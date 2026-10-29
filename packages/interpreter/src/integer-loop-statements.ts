@@ -20,6 +20,10 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
     const {container, slot, knownType, realInput, emit, emitValue} = expressions;
     const indexedWrite = createLoopIndexedWrites(state, expressions);
     const exactExpressions = state.wideScalars.size ? createLoopExpressions(state, true) : undefined;
+    const recordAssigned = (name: string) => {
+        assigned.add(name);
+        state.currentScope()?.assigned.add(name);
+    };
 
     function bindArray(assignment: AssignmentStatement, value: string, rank: number, type: LoopTerm['type'],
         lines: string[], body: string[], location: number): true | undefined {
@@ -40,13 +44,13 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 `r${destination} = ${completed}; cells${destination} = cells[${destination}] = ${completed}.cells;`,
                 ...Array.from({ length: rank > 1 ? rank : 0 }, (_, axis) => `size${destination}_${axis} = ${completed}.shape[${axis}];`),
                 `iterationResult = ${completed}; iterationType = 'array';`);
-            assigned.add(assignment.name);
+            recordAssigned(assignment.name);
             return true;
         }
         body.push(`location = ${location};`, ...lines,
             `const ${completed} = materializeValue(${value});`,
             `writers[${index}](${completed}); r${destination} = ${completed}; storage${destination} = access(${completed}); reader${destination} = read(storage${destination}, stableReads, ${rank}); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${completed};`);
-        assigned.add(assignment.name);
+        recordAssigned(assignment.name);
         return true;
     }
 
@@ -73,7 +77,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                     if (arrays.has(name) || localTypes.has(name) && localTypes.get(name) !== type) return reject(assignment);
                     const destination = slot(name), index = writers.length;
                     localTypes.set(name, type);
-                    written.add(name); assigned.add(name);
+                    written.add(name); recordAssigned(name);
                     writers.push(host.writer(name)); writerNames.push(name);
                     body.push(`writers[${index}](${source}[${position}]); r${destination} = ${source}[${position}];`);
                 }
@@ -86,12 +90,19 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 const binding = host.iteration(assignment.condition);
                 const loop = loopParts(assignment, binding, location);
                 if (!loop) return reject(assignment);
+                const innerScope = numberMode
+                    ? state.pushScope(loop.inductionVariable, loop.inductionSlot, loop.rangeInfo) : undefined;
+                const innerBody: string[] = [];
+                if (statements(assignment.statements, innerBody, allowTail && !binding, loop.breakLabel) === undefined) return reject(assignment);
+                if (innerScope) state.popScope();
+                const innerSetup = innerScope && innerScope.setupLines.length > 0
+                    ? `${loop.setup}\n${innerScope.setupLines.join('\n')}` : loop.setup;
                 // Keep the type with the last completed iteration: a later
                 // continue or break can change registers without replacing it.
-                body.push(`{ let result${numberMode ? ', resultType = "integer"' : ''}; location = ${location}; ${loop.setup} ${loop.header}`,
-                    `let iterationResult${numberMode ? ', iterationType = "integer"' : ''};`, loop.bindings);
-                if (statements(assignment.statements, body, allowTail && !binding, loop.breakLabel) === undefined) return reject(assignment);
-                body.push(`result = iterationResult; ${numberMode ? 'resultType = iterationType;' : ''} location = ${location}; } iterationResult = result; ${numberMode ? 'iterationType = resultType;' : ''} }`);
+                body.push(`{ let result${numberMode ? ', resultType = "integer"' : ''}; location = ${location}; ${innerSetup} ${loop.header}`,
+                    `let iterationResult${numberMode ? ', iterationType = "integer"' : ''};`, loop.bindings,
+                    ...innerBody,
+                    `result = iterationResult; ${numberMode ? 'resultType = iterationType;' : ''} location = ${location}; } iterationResult = result; ${numberMode ? 'iterationType = resultType;' : ''} }`);
                 // An inner loop may run zero times, or leave through break.
                 assigned.clear();
                 for (const name of incoming) assigned.add(name);
@@ -301,7 +312,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             writerNames.push(assignment.name);
             body.push(`location = ${location};`, ...lines, `const out${index} = ${result};`,
                 `${numberMode ? dirty(destination) : `writers[${index}](out${index});`} r${destination} = out${index}; iterationResult = out${index}; ${numberMode ? `iterationType = ${JSON.stringify(type)};` : ''}`);
-            assigned.add(assignment.name);
+            recordAssigned(assignment.name);
         }
         return 'next';
     }

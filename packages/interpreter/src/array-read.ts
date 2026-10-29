@@ -351,9 +351,20 @@ export function prepareMatrixArrayReader(
     const storage = preparedReaderStorage(value, stableReads);
     if (!storage || storage.shape.length !== 2) return (row, column) => fallback(array, [row, column]);
     const { cells, shape: [rows, columns] } = storage;
+    let cachedRow: bigint | undefined;
+    let cachedRowBase = 0;
     return (row, column) => {
-        const i = readPosition(row, rows, 0), j = readPosition(column, columns, 1);
-        return cells.items[i * columns + j];
+        let rowBase: number;
+        if (row === cachedRow) {
+            rowBase = cachedRowBase;
+        } else {
+            const i = readPosition(row, rows, 0);
+            rowBase = i * columns;
+            cachedRow = row;
+            cachedRowBase = rowBase;
+        }
+        const j = readPosition(column, columns, 1);
+        return cells.items[rowBase + j];
     };
 }
 

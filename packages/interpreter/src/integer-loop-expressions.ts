@@ -95,12 +95,157 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     }
     /** Scalar coordinates share axis checks and row-major addressing for reads and writes. */
     function numberOffset(info: { slot: number; rank: number }, indices: readonly string[], lines: string[], write = false): string {
+        const scope = state.numberMode ? state.currentScope() : undefined;
+        if (!scope || !scope.range) {
+            let offset = '0';
+            indices.forEach((index, axis) => {
+                const coordinate = `index${state.serial++}`;
+                const size = info.rank === 1 ? `cells${info.slot}.length` : `size${info.slot}_${axis}`;
+                lines.push(`const ${coordinate} = ${index};
+                    if (${coordinate} < 0 || ${coordinate} >= ${size}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coordinate}, ${axis});`);
+                const value = wide ? `Number(${coordinate})` : coordinate;
+                offset = axis === 0 ? value : `(${offset} * ${size} + ${value})`;
+            });
+            const key = `key${state.serial++}`;
+            lines.push(`const ${key} = ${offset};`);
+            return key;
+        }
+
+        // 1D Array Access: BCE via entry range guard if index is the unit-stride induction variable
+        if (info.rank === 1) {
+            const index = indices[0];
+            const size = `cells${info.slot}.length`;
+            const coordinate = `index${state.serial++}`;
+            const isLocalDef = state.arrayDefinitions.has(names[info.slot]);
+            const isInduction = !isLocalDef && scope.range.unitStride && scope.inductionSlot !== undefined
+                && (index === `r${scope.inductionSlot}` || index === 'cursor');
+
+            if (isInduction) {
+                const guardKey = `${info.slot}_0`;
+                let guardVar = scope.bceGuards.get(guardKey);
+                if (!guardVar) {
+                    guardVar = `bce_${info.slot}_0_${state.serial++}`;
+                    scope.bceGuards.set(guardKey, guardVar);
+                    const cmp = scope.range.operator === 'to' ? '<' : '<=';
+                    scope.setupLines.push(`const ${guardVar} = (${scope.range.strideCode} === 1 && ${scope.range.startCode} >= 0 && ${scope.range.endCode} ${cmp} ${size});`);
+                }
+                lines.push(`const ${coordinate} = ${index};
+                    if (!${guardVar}) {
+                        if (${coordinate} < 0 || ${coordinate} >= ${size}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coordinate}, 0);
+                    }`);
+            } else {
+                lines.push(`const ${coordinate} = ${index};
+                    if (${coordinate} < 0 || ${coordinate} >= ${size}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coordinate}, 0);`);
+            }
+            const key = `key${state.serial++}`;
+            lines.push(`const ${key} = ${coordinate};`);
+            return key;
+        }
+
+        // Multi-dimensional Array Access (rank >= 2)
+        const lastAxis = info.rank - 1;
+        const leadingIndices = indices.slice(0, lastAxis);
+        const isLocalDef = state.arrayDefinitions.has(names[info.slot]);
+        const leadingInvariant = !isLocalDef && scope.depth >= 1 && leadingIndices.every(coord => {
+            if (coord === `r${scope.inductionSlot}` || coord === 'cursor') return false;
+            const match = /^r(\d+)$/.exec(coord);
+            if (match) {
+                const s = Number(match[1]);
+                const varName = names[s];
+                if (varName && scope.assigned.has(varName)) return false;
+            }
+            return true;
+        });
+
+        if (leadingInvariant) {
+            // Hoist outer row base calculation out of the inner loop into scope.setupLines
+            const offsetKey = `${info.slot}_${leadingIndices.join('_')}`;
+            let rowBaseVar = scope.hoistedOffsets.get(offsetKey);
+            if (!rowBaseVar) {
+                rowBaseVar = `rowBase_${info.slot}_${state.serial++}`;
+                scope.hoistedOffsets.set(offsetKey, rowBaseVar);
+
+                let baseExpr = leadingIndices[0];
+                for (let a = 1; a < leadingIndices.length; a++) {
+                    baseExpr = `(${baseExpr} * size${info.slot}_${a} + ${leadingIndices[a]})`;
+                }
+                baseExpr = `(${baseExpr} * size${info.slot}_${lastAxis})`;
+                scope.setupLines.push(`const ${rowBaseVar} = ${baseExpr};`);
+            }
+
+            // Checks for leading axes: if outer BCE guard exists, skip when guard holds
+            leadingIndices.forEach((coord, axis) => {
+                const size = `size${info.slot}_${axis}`;
+                let outerGuard: string | undefined;
+                for (const s of state.loopScopes) {
+                    if (s !== scope && s.inductionSlot !== undefined && coord === `r${s.inductionSlot}`) {
+                        outerGuard = s.bceGuards.get(`${info.slot}_${axis}`);
+                        break;
+                    }
+                }
+                if (outerGuard) {
+                    lines.push(`if (!${outerGuard}) {
+                        if (${coord} < 0 || ${coord} >= ${size}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coord}, ${axis});
+                    }`);
+                } else {
+                    lines.push(`if (${coord} < 0 || ${coord} >= ${size}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coord}, ${axis});`);
+                }
+            });
+
+            const lastCoord = indices[lastAxis];
+            const lastSize = `size${info.slot}_${lastAxis}`;
+            const coordinate = `index${state.serial++}`;
+            const isTrailingInduction = scope.range.unitStride && scope.inductionSlot !== undefined
+                && (lastCoord === `r${scope.inductionSlot}` || lastCoord === 'cursor');
+
+            if (isTrailingInduction) {
+                const guardKey = `${info.slot}_${lastAxis}`;
+                let guardVar = scope.bceGuards.get(guardKey);
+                if (!guardVar) {
+                    guardVar = `bce_${info.slot}_${lastAxis}_${state.serial++}`;
+                    scope.bceGuards.set(guardKey, guardVar);
+                    const cmp = scope.range.operator === 'to' ? '<' : '<=';
+                    scope.setupLines.push(`const ${guardVar} = (${scope.range.strideCode} === 1 && ${scope.range.startCode} >= 0 && ${scope.range.endCode} ${cmp} ${lastSize});`);
+                }
+                lines.push(`const ${coordinate} = ${lastCoord};
+                    if (!${guardVar}) {
+                        if (${coordinate} < 0 || ${coordinate} >= ${lastSize}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coordinate}, ${lastAxis});
+                    }`);
+            } else {
+                lines.push(`const ${coordinate} = ${lastCoord};
+                    if (${coordinate} < 0 || ${coordinate} >= ${lastSize}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coordinate}, ${lastAxis});`);
+            }
+
+            const key = `key${state.serial++}`;
+            lines.push(`const ${key} = ${rowBaseVar} + ${coordinate};`);
+            return key;
+        }
+
+        // Multi-dimensional without hoisting (e.g. at root level)
         let offset = '0';
         indices.forEach((index, axis) => {
             const coordinate = `index${state.serial++}`;
-            const size = info.rank === 1 ? `cells${info.slot}.length` : `size${info.slot}_${axis}`;
-            lines.push(`const ${coordinate} = ${index};
-                if (${coordinate} < 0 || ${coordinate} >= ${size}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coordinate}, ${axis});`);
+            const size = `size${info.slot}_${axis}`;
+            const isInduction = !isLocalDef && scope.range!.unitStride && scope.inductionSlot !== undefined
+                && (index === `r${scope.inductionSlot}` || index === 'cursor');
+
+            if (isInduction) {
+                const guardKey = `${info.slot}_${axis}`;
+                let guardVar = scope.bceGuards.get(guardKey);
+                if (!guardVar) {
+                    guardVar = `bce_${info.slot}_${axis}_${state.serial++}`;
+                    scope.bceGuards.set(guardKey, guardVar);
+                    const cmp = scope.range!.operator === 'to' ? '<' : '<=';
+                    scope.setupLines.push(`const ${guardVar} = (${scope.range!.strideCode} === 1 && ${scope.range!.startCode} >= 0 && ${scope.range!.endCode} ${cmp} ${size});`);
+                }
+                lines.push(`const ${coordinate} = ${index};
+                    if (!${guardVar}) {
+                        if (${coordinate} < 0 || ${coordinate} >= ${size}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coordinate}, ${axis});
+                    }`);
+            } else {
+                lines.push(`const ${coordinate} = ${index};
+                    if (${coordinate} < 0 || ${coordinate} >= ${size}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coordinate}, ${axis});`);
+            }
             const value = wide ? `Number(${coordinate})` : coordinate;
             offset = axis === 0 ? value : `(${offset} * ${size} + ${value})`;
         });

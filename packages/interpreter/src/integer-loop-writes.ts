@@ -26,6 +26,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             if (!['integer', 'real', 'boolean'].includes(type)) return undefined;
             const target = previous ?? { slot: slot(assignment.name), rank, compound, type };
             destinations.set(assignment.name, target);
+            state.currentScope()?.assigned.add(assignment.name);
             if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
             const lines: string[] = [];
             const indices: string[] = [];

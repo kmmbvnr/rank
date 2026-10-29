@@ -123,9 +123,17 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     const root = region ? { setup: '', header: '{', bindings: '', breakLabel: undefined }
         : loopParts(statement, iteration, -1, host.continuation);
     if (!root) return undefined;
+    const rootScope = numberMode && !region
+        ? state.pushScope(root.inductionVariable, root.inductionSlot, root.rangeInfo) : undefined;
     const statements = createLoopStatements(state, expressions, loopParts);
     const body: string[] = [];
     if (!statements(region ? statement.statements.slice(0, -1) : statement.statements, body, !region && !iteration, root.breakLabel)) return undefined;
+    if (rootScope) {
+        state.popScope();
+        if (rootScope.setupLines.length > 0) {
+            root.setup = `${root.setup}\n${rootScope.setupLines.join('\n')}`;
+        }
+    }
     // Index aliases can be written under another name. All writes in a region
     // with typed container arguments must preserve their integer cell domain.
     if ([...containers.values()].some(info => info.kind === 'index' && info.integers)

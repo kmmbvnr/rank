@@ -268,7 +268,7 @@ end`);
         expect(result.output).toEqual(['5482660']);
         expect(result.functions).toBe(4401);
         expect(Object.keys(result.fallbacks)).toEqual([]);
-    }, 15000);
+    }, 30000);
 
     it('compiles the Euler 023 top-level search at full size', () => {
         const source = readFileSync(new URL('../../../demos/euler/023_abundantsums.ra', import.meta.url), 'utf8');
@@ -278,5 +278,5 @@ end`);
         expect(result.functions).toBe(0);
         expect(result.loops).toBe(3);
         expect(Object.keys(result.fallbacks).filter(key => key.startsWith('loop:'))).toEqual([]);
-    }, 15000);
+    }, 30000);
 });

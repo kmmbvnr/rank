@@ -7,7 +7,7 @@ import { isRankArray, isRankSet, type RankArray } from './value.js';
 
 import { integerLiteral } from './eval/application.js';
 import { resolveAxes, safeDimension } from './tensor-index.js';
-import type { LoopCompilationState } from './integer-loop-state.js';
+import type { LoopCompilationState, LoopRangeInfo } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
 
 export function createLoopHeader(state: LoopCompilationState, expressions: LoopExpressions) {
@@ -70,7 +70,15 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
         };
     }
 
-    function loopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number, continuation?: LoopContinuation): { setup: string; header: string; bindings: string; breakLabel?: string } | undefined {
+    function loopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number, continuation?: LoopContinuation): {
+        setup: string;
+        header: string;
+        bindings: string;
+        breakLabel?: string;
+        rangeInfo?: LoopRangeInfo;
+        inductionVariable?: string;
+        inductionSlot?: number;
+    } | undefined {
         return compileLoopParts(node, iteration, location, continuation) ?? reject(node, 'loop-header');
     }
     function compileLoopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number, continuation?: LoopContinuation) {
@@ -79,7 +87,14 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
         if (continuation && numberMode) return undefined;
         const tests: string[] = [];
         let setup = '', header: string, bindings = '';
+        let rangeInfo: LoopRangeInfo | undefined;
+        let inductionVariable: string | undefined;
+        let inductionSlot: number | undefined;
         if (iteration) {
+            if (iteration.names.length > 0 && iteration.names[0] !== '#') {
+                inductionVariable = iteration.names[0];
+                inductionSlot = slot(inductionVariable);
+            }
             if (forAxes(iteration.iterable)) return continuation ? undefined : scalarAxisParts(iteration, location);
             const traversal = loopTraversal(iteration);
             if (!traversal) return undefined;
@@ -165,11 +180,29 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                 const start = emit(range.left, tests), end = emit(range.right, tests);
                 const step = range.step ? emit(range.step, tests) : { code: one, type: 'integer' };
                 if (start?.type !== 'integer' || end?.type !== 'integer' || step?.type !== 'integer') return undefined;
-                setup = `${tests.join('\n')} const start = ${start.code}, end = ${end.code}, stride = ${step.code};
-                    if (stride === ${zero}) throw badStep();`;
-                header = `for (let cursor = start${indexed ? `, ordinal = ${zero}` : ''};
-                    stride > ${zero} ? cursor ${range.operator === 'to' ? '<=' : '<'} end : cursor ${range.operator === 'to' ? '>=' : '>'} end;
-                    cursor = ${safe('cursor + stride')}${indexed ? `, ordinal = ${safe(`ordinal + ${one}`)}` : ''}) { location = ${location}; checkpoint();`;
+                if (numberMode) {
+                    const startVar = `start${state.serial++}`;
+                    const endVar = `end${state.serial++}`;
+                    const strideVar = `stride${state.serial++}`;
+                    rangeInfo = {
+                        startCode: startVar,
+                        endCode: endVar,
+                        operator: range.operator as 'to' | 'till',
+                        strideCode: strideVar,
+                        unitStride: !range.step || step.code === '1',
+                    };
+                    setup = `${tests.join('\n')} const ${startVar} = ${start.code}, ${endVar} = ${end.code}, ${strideVar} = ${step.code};
+                        if (${strideVar} === ${zero}) throw badStep();`;
+                    header = `for (let cursor = ${startVar}${indexed ? `, ordinal = ${zero}` : ''};
+                        ${strideVar} > ${zero} ? cursor ${range.operator === 'to' ? '<=' : '<'} ${endVar} : cursor ${range.operator === 'to' ? '>=' : '>'} ${endVar};
+                        cursor = ${safe(`cursor + ${strideVar}`)}${indexed ? `, ordinal = ${safe(`ordinal + ${one}`)}` : ''}) { location = ${location}; checkpoint();`;
+                } else {
+                    setup = `${tests.join('\n')} const start = ${start.code}, end = ${end.code}, stride = ${step.code};
+                        if (stride === ${zero}) throw badStep();`;
+                    header = `for (let cursor = start${indexed ? `, ordinal = ${zero}` : ''};
+                        stride > ${zero} ? cursor ${range.operator === 'to' ? '<=' : '<'} end : cursor ${range.operator === 'to' ? '>=' : '>'} end;
+                        cursor = ${safe('cursor + stride')}${indexed ? `, ordinal = ${safe(`ordinal + ${one}`)}` : ''}) { location = ${location}; checkpoint();`;
+                }
             }
             if (continuation && 'values' in continuation) {
                 // Use the live iterator, including its captured bounds and current
@@ -199,7 +232,7 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                     if (!first) { ${tests.join('\n')} if (!(${test.code})) break; }`
                 : `for (;;) { location = ${location}; checkpoint(); ${tests.join('\n')} if (!(${test.code})) break;`;
         }
-        return { setup, header, bindings };
+        return { setup, header, bindings, rangeInfo, inductionVariable, inductionSlot };
     }
     return loopParts;
 }
