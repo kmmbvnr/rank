@@ -1,0 +1,33 @@
+rem A Long Chess Match
+rem https://projecteuler.net/problem=661
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 50
+
+rem The lead is a walk moving +1 with
+rem probability a, -1 with b, and the
+rem match survives each game with q =
+rem 1 - t. With c = t + q (a + b) the
+rem roots of q a r^2 - c r + q b = 0
+rem give the expected number of games
+rem in the lead
+rem   (1 - r1) / (t q (r2 - r1)).
+rem Sum it over the Nn - 2 parameter
+rem triples of H(n).
+Ks = (3 to Nn) * 1.0
+Aa = 1.0 / ((Ks + 3.0) sqrt)
+Bb = Aa + 1.0 / (Ks * Ks)
+Tt = 1.0 / (Ks * Ks * Ks)
+Qq = 1.0 - Tt
+Cc = Tt + Qq * (Aa + Bb)
+Dd = Cc * Cc - 4.0 * Qq * Qq * Aa * Bb
+Dd = Dd sqrt
+Rm = (Cc - Dd) / (2.0 * Qq * Aa)
+Rp = (Cc + Dd) / (2.0 * Qq * Aa)
+Ee = (1.0 - Rm) / (Tt * Qq * (Rp - Rm))
+Answer = Ee sum text ".4f"
+Answer print
