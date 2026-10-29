@@ -229,5 +229,6 @@
   "euler/576_irrationaljumps.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
   "euler/606_gozintachains.ra": "About 95 s: Lucy prime-cube sieve to 10^12; run manually.",
   "euler/608_divisorsums.ra": "About 40 s and 5 GB: 44M squarefree smooth divisors; run manually.",
-  "euler/609_pisequences.ra": "About 70 s: gathers over a 12 x 5.8M matrix; run manually."
+  "euler/609_pisequences.ra": "About 70 s: gathers over a 12 x 5.8M matrix; run manually.",
+  "euler/611_hallwaysquaresteps.ra": "About 115 s: Lucy sieves of pi and the mod 4 character to 10^12; run manually."
 }

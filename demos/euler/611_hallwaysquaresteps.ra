@@ -1,0 +1,94 @@
+rem Hallway of Square Steps
+rem https://projecteuler.net/problem=611
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg N integer = 1000000000000
+
+rem Door n flips once per n = a^2 + b^2,
+rem 0 < a < b, and r2(n) gives (P - u)
+rem / 2 such pairs, P the product of
+rem (e + 1) over primes 1 mod 4 and u
+rem = 1 when every e is even. Odd means
+rem n = 2^a v^2 with an odd number of
+rem 1 mod 4 prime factors in odd v, or
+rem n = 2^a w^2 p^e, w odd, p 1 mod 4,
+rem e = 1 mod 4. Primes p above sqrt N
+rem take e = 1: count them by Lucy
+rem sieves of pi and the character.
+R = N isqrt
+Sp = (R + 1) factorsieve
+Vs = 0 to R
+Cu = Vs
+Om = Vs * 0
+for J in 1 to 20
+  Pf = Sp Cu
+  Om += ((Pf mod 4) equal 1) integer
+  Cu = Cu // (Pf max 1)
+end
+Ga = ((Vs mod 2) equal 1) integer
+Ga = Ga * (Om mod 2)
+Ca = Ga scan +
+As = 0 to 40
+Ra = (N shr As) isqrt
+Answer = (Ca Ra) sum
+Pr = primes to R array
+Q1 = Pr ((Pr mod 4 equal 1) indices)
+P4 = Q1 * Q1 * Q1 * Q1
+Pe = Q1
+for J in 1 to 5
+  for A in 0 to 40
+    W = (N // (Pe shl A)) isqrt
+    Cw = (W + 1) // 2
+    Cp = (W // Q1 + 1) // 2
+    Answer += (Cw - Cp) sum
+  end
+  Pe = (Pe * P4) min (N + 1)
+end
+Qs = (Vs - 1) max 0
+Hm = Vs mod 4
+Ha = (Hm equal 1) integer
+Hs = Ha + ((Hm equal 2) integer) - 1
+Hs = Hs * ((Vs greater 0) integer)
+Ws = N // (Vs max 1)
+Ql = Ws - 1
+Hq = Ws mod 4
+Hb = (Hq equal 1) integer
+Hl = Hb + ((Hq equal 2) integer) - 1
+for P in Pr
+  Pc = ((P mod 4) equal 1) integer
+  Pc -= ((P mod 4) equal 3) integer
+  Z0 = Qs (P - 1)
+  Z1 = Hs (P - 1)
+  Ih = R min (N // (P * P))
+  Ix = 1 to Ih
+  Pi = P * Ix
+  Ii = Pi min R
+  Jx = (N // Pi) min R
+  Mk = Pi at most R
+  Dq = (Mk choose (Ql Ii) (Qs Jx)) - Z0
+  Dh = (Mk choose (Hl Ii) (Hs Jx)) - Z1
+  Iw = P * P to R
+  Eq = Qs (Iw // P) - Z0
+  Eh = Hs (Iw // P) - Z1
+  Ql Ix = Ql Ix - Dq
+  Hl Ix = Hl Ix - Pc * Dh
+  Qs Iw = Qs Iw - Eq
+  Hs Iw = Hs Iw - Pc * Eh
+end
+R1 = (Qs R - 1 + Hs R) // 2
+Wm = N // (R + 1)
+for A in 0 to 40
+  Wa = (Wm shr A) isqrt
+  if Wa at least 1
+    Wo = 1 to Wa by 2
+    Mm = (Wo * Wo) shl A
+    Pv = (Ql Mm - 1 + Hl Mm) // 2
+    Answer += ((Pv - R1) max 0) sum
+  end
+end
+Answer print
