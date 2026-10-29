@@ -1,0 +1,38 @@
+use testing
+
+test "ACMP 158: sample case 15 rubles, 2 children"
+  use "0158_combinator"
+  X = 15
+  K = 2
+  run
+
+  Answer equal 10
+end
+
+test "ACMP 158: 0 rubles, 0 children"
+  use "0158_combinator"
+  X = 0
+  K = 0
+  run
+
+  Answer equal 1
+end
+
+test "ACMP 158: 1 banknote, 1 child (2 people)"
+  use "0158_combinator"
+  X = 5
+  K = 1
+  run
+
+  Answer equal 2
+end
+
+test "ACMP 158: maximum inputs X=500, K=100"
+  use "0158_combinator"
+  X = 500
+  K = 100
+  run
+
+  Expected = 90548514656103281165404177077484163874504589675413336841320
+  Answer equal Expected
+end
