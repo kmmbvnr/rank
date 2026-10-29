@@ -1,0 +1,135 @@
+rem 123 Numbers
+rem https://projecteuler.net/problem=698
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 111111111111222333
+
+rem A 123-number has digits 1 to 3 whose
+rem counts (A, B, C), absent digits
+rem counting 0, are 123-numbers or 0.
+rem There are multinomial(L; A, B, C)
+rem of length L for each such triple.
+rem Find the length L where the running
+rem total reaches Nn, then fix the
+rem digits left to right: a prefix with
+rem counts q has as many completions as
+rem the multinomials of r left over
+rem positions into (A - q1, B - q2,
+rem C - q3) over valid (A, B, C).
+Pm = array shape 1681 fill 0
+for I in 0 to 40
+  Pm (I * 41) = 1
+  for J in 1 to I
+    Ia = (I - 1) * 41 + J
+    Pu = Pm (Ia - 1) + Pm Ia
+    Pm (I * 41 + J) = Pu
+  end
+end
+Ok = array shape 64 fill 0
+Ok 0 = 1
+Ok 1 = 1
+for N in 2 to 63
+  Good = 1
+  X = N
+  for X greater 0
+    Dg = X mod 10
+    X = X // 10
+    if Dg equal 0
+      Good = 0
+    end
+    if Dg greater 3
+      Good = 0
+    end
+  end
+  if Good equal 1
+    for Dg in 1 to 3
+      Cn = 0
+      X = N
+      for X greater 0
+        if X mod 10 equal Dg
+          Cn += 1
+        end
+        X = X // 10
+      end
+      if Ok Cn equal 0
+        Good = 0
+      end
+    end
+  end
+  Ok N = Good
+end
+Gr = (0 to 40) reshape 41 1
+Gc = (0 to 40) reshape 1 41
+Cum = 0
+Ln = 1
+Go = 1
+for Go equal 1
+  Cd = Ln - Gr - Gc
+  Ms = (Cd at least 0) integer
+  Cc = Cd max 0
+  Wt = Ok Gr * Ok Gc * Ok Cc * Ms
+  Bm = Gc min (Ln - Gr max 0)
+  Ar = Gr min Ln
+  Ma = Pm (Ln * 41 + Ar)
+  Mt = Ma * Pm ((Ln - Ar) * 41 + Bm)
+  Cn = (Wt * Mt) sum
+  if Cum + Cn at least Nn
+    Go = 0
+  end
+  if Go equal 1
+    Cum += Cn
+    Ln += 1
+  end
+end
+Rk = Nn - Cum
+P1 = 0
+P2 = 0
+P3 = 0
+Answer = 0
+for Ps in 1 to Ln
+  Rm = Ln - Ps
+  Dn = 0
+  for D in 1 to 3
+    if Dn equal 0
+      E1 = (D equal 1) integer
+      E2 = (D equal 2) integer
+      E3 = (D equal 3) integer
+      Q1 = P1 + E1
+      Q2 = P2 + E2
+      Q3 = P3 + E3
+      Ad = Gr - Q1
+      Bd = Gc - Q2
+      Cd = Ln - Gr - Gc - Q3
+      Ma = (Ad at least 0) integer
+      Mb = (Bd at least 0) integer
+      Mc = (Cd at least 0) integer
+      Ms = Ma * Mb * Mc
+      Cf = (Ln - Gr - Gc) max 0
+      Wt = Ok Gr * Ok Gc * Ok Cf * Ms
+      Ac = Ad max 0
+      Ac = Ac min Rm
+      Bc = Bd max 0
+      Bc = Bc min (Rm - Ac)
+      Ma = Pm (Rm * 41 + Ac)
+      Mt = Ma * Pm ((Rm - Ac) * 41 + Bc)
+      Bk = (Wt * Mt) sum
+      Hit = Rk at most Bk
+      if Rk greater Bk
+        Rk -= Bk
+      end
+      if Hit
+        Dn = D
+        P1 = Q1
+        P2 = Q2
+        P3 = Q3
+      end
+    end
+  end
+  Md = 123123123
+  Answer = (Answer * 10 + Dn) mod Md
+end
+Answer print
