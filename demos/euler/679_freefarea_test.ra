@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "679_freefarea"
+  Nn = 9
+  run
+  Answer equal 1
+  Nn = 15
+  run
+  Answer equal 72863
+end
+
+test "default input"
+  use "679_freefarea"
+  Nn = 30
+  run
+  Answer equal 644997092988678
+end
