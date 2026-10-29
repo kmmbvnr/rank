@@ -1,0 +1,57 @@
+rem Square Root Smooth Numbers
+rem https://projecteuler.net/problem=668
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 10000000000
+
+rem The others, x <= Nn with a prime
+rem factor p >= sqrt(x), are x = p q
+rem with q <= p, p the largest prime.
+rem For p up to R = sqrt(Nn) that is p
+rem choices of q; above R it is Nn // p
+rem = the number of q with q p <= Nn,
+rem so those count pi(Nn // q) - pi(R)
+rem for q up to Nn // (R + 1). Prime
+rem counts at every Nn // k come from
+rem Lucy's sieve: Lo[v] for v up to R,
+rem Hi[k] for v = Nn // k.
+R = Nn isqrt
+V = 0 to R array
+Lo = ((V - 1) max 0) copy
+K = 1 to R array
+Top = concat (array 0) (Nn // K - 1)
+Hi = Top copy
+for P in primes to R
+  Sp = Lo (P - 1)
+  Kmax = R min (Nn // (P * P))
+  if Kmax greater 0
+    Ks = 1 to Kmax array
+    Kp = Ks * P
+    Pos' = Kp min R
+    Low' = (Nn // Kp) min R
+    Near = Hi Pos
+    Far = Lo Low
+    Big' = Kp at most R
+    Src = Big choose Near Far
+    Cur = Hi (1 to Kmax)
+    Hi (1 to Kmax) = Cur - (Src - Sp)
+  end
+  if P * P at most R
+    Vs' = P * P to R array
+    Cur = Lo (P * P to R)
+    Back = Lo (Vs // P)
+    Lo (P * P to R) = Cur - (Back - Sp)
+  end
+end
+Ps = primes to R array
+Qm = Nn // (R + 1)
+Hq = Hi (1 to Qm)
+Bd = Hq - Lo R
+Sm = Ps sum
+Bg = Bd sum
+Answer = Nn - Sm - Bg
+Answer print

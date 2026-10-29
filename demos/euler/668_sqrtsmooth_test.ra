@@ -1,0 +1,18 @@
+use testing
+
+test "statement value"
+  use "668_sqrtsmooth"
+  Nn = 100
+  run
+  Answer equal 29
+  Nn = 100000000
+  run
+  Answer equal 27531694
+end
+
+test "default input"
+  use "668_sqrtsmooth"
+  Nn = 10000000000
+  run
+  Answer equal 2811077773
+end
