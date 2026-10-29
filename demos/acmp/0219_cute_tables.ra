@@ -1,0 +1,138 @@
+rem ACMP 219 - Cute Tables (Симпатичные таблицы)
+rem Solved in Euler 1-15 style with bipartite network maximum flow (Edmonds-Karp).
+rem
+rem We are given an N x M grid with row limits R_i, column limits C_j, and
+rem pre-filled cells Z_{i, j} (or -1 if empty). We want to find non-negative
+rem values for empty cells to maximize total sum while keeping sum(row i) <= R_i
+rem and sum(col j) <= C_j.
+rem
+rem We check feasibility of fixed cells using vector row/column sums. Then the
+rem remaining capacities form a bipartite flow network:
+rem   Source S -> Row_i with capacity R_i - fixed_row_i
+rem   Col_j -> Sink T with capacity C_j - fixed_col_j
+rem   Row_i -> Col_j with capacity INF for each empty cell (i, j)
+rem
+rem Max flow equals the maximum additional sum, by the Max-Flow Min-Cut theorem.
+
+use io
+use cli
+use sequences
+use text
+
+arg N integer = 2
+arg M integer = 2
+arg RText text = "2 2"
+arg CText text = "1 2"
+arg ZText text = "1 -1 -1 -1"
+
+INF = 1000000000
+
+rem Parse inputs preserving negative numbers
+RP = (RText split "\n" join " ") split " "
+R = (RP (not (RP equal ""))) integer
+
+CP = (CText split "\n" join " ") split " "
+C = (CP (not (CP equal ""))) integer
+
+ZP = (ZText split "\n" join " ") split " "
+ZTokens = (ZP (not (ZP equal ""))) integer
+Z = ZTokens reshape N M
+
+FixedMask = Z not equal -1
+FixedValues = Z * (FixedMask integer)
+FixedSum = FixedValues sum
+FixedRow = FixedValues sum axis -1
+FixedCol = FixedValues sum axis 0
+
+RowViolated = (FixedRow greater R) count
+ColViolated = (FixedCol greater C) count
+
+Answer = -1
+
+if (RowViolated equal 0) and (ColViolated equal 0)
+  RemR = R - FixedRow
+  RemC = C - FixedCol
+
+  V = N + M + 2
+  S = 0
+  T = V - 1
+
+  Cap = (array shape (V * V) fill 0) reshape V V
+
+  for I in 0 till N
+    Row = I + 1
+    Cap S Row = RemR I
+  end
+
+  for J in 0 till M
+    Col = N + 1 + J
+    Cap Col T = RemC J
+  end
+
+  for I in 0 till N
+    for J in 0 till M
+      Val = Z I J
+      if Val equal -1
+        Row = I + 1
+        Col = N + 1 + J
+        Cap Row Col = INF
+      end
+    end
+  end
+
+  TotalFlow = 0
+  Running = true
+
+  for Running
+    Prev = array shape V fill -1
+    Prev S = S
+    Q = array shape V fill 0
+    Head = 0
+    Tail = 1
+    Q 0 = S
+
+    for (Head less Tail) and ((Prev T) equal -1)
+      Curr = Q Head
+      Head = Head + 1
+      for Nxt in 0 till V
+        CapVal = Cap Curr Nxt
+        PrevVal = Prev Nxt
+        if (CapVal greater 0) and (PrevVal equal -1)
+          Prev Nxt = Curr
+          Q Tail = Nxt
+          Tail = Tail + 1
+        end
+      end
+    end
+
+    TargetPrev = Prev T
+    if TargetPrev equal -1
+      Running = false
+    else
+      Push = INF
+      Vtx = T
+      for Vtx not equal S
+        P = Prev Vtx
+        EdgeCap = Cap P Vtx
+        Push = Push min EdgeCap
+        Vtx = P
+      end
+
+      Vtx = T
+      for Vtx not equal S
+        P = Prev Vtx
+        ForwardCap = Cap P Vtx
+        BackwardCap = Cap Vtx P
+        Cap P Vtx = ForwardCap - Push
+        Cap Vtx P = BackwardCap + Push
+        Vtx = P
+      end
+
+      TotalFlow = TotalFlow + Push
+    end
+  end
+
+  Answer = FixedSum + TotalFlow
+end
+
+Answer print

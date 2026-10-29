@@ -1,0 +1,49 @@
+use testing
+
+test "ACMP 219: sample 1 (2x2 table, max sum 3)"
+  use "0219_cute_tables"
+  N = 2
+  M = 2
+  RText = "2 2"
+  CText = "1 2"
+  ZText = "1 -1\n-1 -1"
+  run
+
+  Answer equal 3
+end
+
+test "ACMP 219: impossible configuration returns -1"
+  use "0219_cute_tables"
+  N = 2
+  M = 2
+  RText = "2 2"
+  CText = "1 2"
+  ZText = "5 -1\n-1 -1"
+  run
+
+  Answer equal -1
+end
+
+test "ACMP 219: fully prefilled table"
+  use "0219_cute_tables"
+  N = 2
+  M = 2
+  RText = "5 5"
+  CText = "5 5"
+  ZText = "1 2\n1 1"
+  run
+
+  Answer equal 5
+end
+
+test "ACMP 219: all empty 3x3 table with symmetric limits"
+  use "0219_cute_tables"
+  N = 3
+  M = 3
+  RText = "10 10 10"
+  CText = "10 10 10"
+  ZText = "-1 -1 -1\n-1 -1 -1\n-1 -1 -1"
+  run
+
+  Answer equal 30
+end
