@@ -1,0 +1,49 @@
+use testing
+
+test "ACMP 239: sample 1 (4x3 room with partial tiling)"
+  use "0239_pattern"
+  N = 4
+  M = 3
+  K = 3
+  GridText = "2 2 2\n2 0 0\n2 1 2\n2 2 2"
+  TilesText = "2 10 0 0\n1 5 1\n4 6 0 0 1"
+  run
+
+  Answer equal 15
+end
+
+test "ACMP 239: all cells already tiled -> 0"
+  use "0239_pattern"
+  N = 2
+  M = 2
+  K = 1
+  GridText = "2 2\n2 2"
+  TilesText = "1 5 0"
+  run
+
+  Answer equal 0
+end
+
+test "ACMP 239: impossible tiling due to color mismatch -> -1"
+  use "0239_pattern"
+  N = 2
+  M = 2
+  K = 1
+  GridText = "0 0\n0 0"
+  TilesText = "2 10 1 1"
+  run
+
+  Answer equal -1
+end
+
+test "ACMP 239: 2x2 grid tiled by two dominoes"
+  use "0239_pattern"
+  N = 2
+  M = 2
+  K = 1
+  GridText = "0 0\n0 0"
+  TilesText = "2 10 0 0"
+  run
+
+  Answer equal 20
+end

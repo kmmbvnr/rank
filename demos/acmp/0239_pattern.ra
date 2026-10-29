@@ -1,0 +1,186 @@
+rem ACMP 239 - Pattern (Узор)
+rem Solved in Euler 1-15 style with exact-cover bitmask dynamic programming.
+rem
+rem We want to tile an N x M room where some squares are already covered (2) and
+rem the rest must match specific binary colors (0 or 1).
+rem Available tiles come in 4 shapes (1x1, 1x2 domino, 1x3 tromino, corner L-tromino)
+rem with given colors and costs, and can be rotated by multiples of 90 degrees.
+rem
+rem We identify all U target squares that need tiling, generate all valid tile
+rem placements on the grid, and solve the exact-cover problem with bitmask DP:
+rem   DP[mask | tile_mask] = min(DP[mask | tile_mask], DP[mask] + cost)
+rem where each step covers the lowest unset bit to prevent redundant orderings.
+
+use io
+use cli
+use sequences
+use text
+use numbers
+use bits
+
+arg N integer = 4
+arg M integer = 3
+arg K integer = 3
+arg GridText text = "2 2 2\n2 0 0\n2 1 2\n2 2 2"
+arg TilesText text = "2 10 0 0\n1 5 1\n4 6 0 0 1"
+
+INF = 1000000000
+
+rem Parse Grid
+GP = (GridText split "\n" join " ") split " "
+GT = (GP (not (GP equal ""))) integer
+
+rem Collect target cells that need tiling (value != 2)
+TargetR = array shape 0 fill 0
+TargetC = array shape 0 fill 0
+TargetColor = array shape 0 fill 0
+
+TargetLookup = (array shape (N * M) fill -1)
+
+for R in 0 till N
+  for C in 0 till M
+    Idx = R * M + C
+    Val = GT Idx
+    if Val not equal 2
+      Tid = TargetR len
+      TargetR = concat TargetR (array R)
+      TargetC = concat TargetC (array C)
+      TargetColor = concat TargetColor (array Val)
+      TargetLookup Idx = Tid
+    end
+  end
+end
+
+U = TargetR len
+Answer = -1
+
+if U equal 0
+  Answer = 0
+else
+  rem Parse tiles and generate valid placements
+  RawTileLines = TilesText split "\n"
+  TLMask = not (RawTileLines equal "")
+  TileLines = RawTileLines TLMask
+  NumTiles = TileLines len
+
+  PlacementsCost = array shape 0 fill 0
+  PlacementsMask = array shape 0 fill 0
+
+  for TIdx in 0 till NumTiles
+    TLine = TileLines TIdx
+    Parts = (TLine split " ") (not ((TLine split " ") equal ""))
+    Words = Parts integer
+    Form = Words 0
+    Cost = Words 1
+    NumColors = (Words len) - 2
+    Colors = Words (2 till (Words len))
+
+    BaseR = array 0
+    BaseC = array 0
+    if Form equal 2
+      BaseR = array 0 0
+      BaseC = array 0 1
+    end
+    if Form equal 3
+      BaseR = array 0 0 0
+      BaseC = array 0 1 2
+    end
+    if Form equal 4
+      BaseR = array 0 0 1
+      BaseC = array 0 1 1
+    end
+
+    rem 4 rotations
+    CurR = BaseR
+    CurC = BaseC
+    for Rot in 0 to 3
+      if Rot greater 0
+        rem Rotate 90 deg clockwise: (r, c) -> (c, -r)
+        NewR = CurC
+        NewC = 0 - CurR
+        CurR = NewR
+        CurC = NewC
+      end
+
+      rem Try placing at every (R0, C0)
+      for R0 in 0 till N
+        for C0 in 0 till M
+          CanPlace = true
+          PMask = 0
+          for Cell in 0 till NumColors
+            NR = R0 + (CurR Cell)
+            NC = C0 + (CurC Cell)
+            if (NR less 0) or (not (NR less N)) or (NC less 0) or (not (NC less M))
+              CanPlace = false
+            else
+              NIdx = NR * M + NC
+              Tid = TargetLookup NIdx
+              if Tid equal -1
+                CanPlace = false
+              else
+                ReqCol = TargetColor Tid
+                TileCol = Colors Cell
+                if ReqCol not equal TileCol
+                  CanPlace = false
+                else
+                  PMask = PMask bor (1 shl Tid)
+                end
+              end
+            end
+          end
+
+          if CanPlace
+            PlacementsCost = concat PlacementsCost (array Cost)
+            PlacementsMask = concat PlacementsMask (array PMask)
+          end
+        end
+      end
+    end
+  end
+
+  rem Bitmask DP
+  TotalStates = 1 shl U
+  DP = array shape TotalStates fill INF
+  DP 0 = 0
+
+  NumPlacements = PlacementsCost len
+
+  Limit = TotalStates - 1
+  for Mask in 0 till Limit
+    CurCost = DP Mask
+    if CurCost less INF
+      rem Find lowest unset bit
+      Low = 0
+      for Bit in 0 till U
+        if not (Mask bit Bit)
+          Low = Bit
+          break
+        end
+      end
+
+      LowBitMask = 1 shl Low
+
+      for P in 0 till NumPlacements
+        PM = PlacementsMask P
+        rem Only consider placements that cover the lowest unset bit
+        if (PM band LowBitMask) not equal 0
+          if (Mask band PM) equal 0
+            NMask = Mask bor PM
+            NewCost = CurCost + (PlacementsCost P)
+            OldCost = DP NMask
+            DP NMask = OldCost min NewCost
+          end
+        end
+      end
+    end
+  end
+
+  FinalCost = DP (TotalStates - 1)
+  if FinalCost less INF
+    Answer = FinalCost
+  else
+    Answer = -1
+  end
+end
+
+Answer print
