@@ -259,5 +259,6 @@
   "euler/655_divisiblepalindromes.ra": "About 44 s: shift-built residue histogram; run manually (#485).",
   "euler/659_largestprime.ra": "About 53 s: per-prime sieve loop; run manually (#486).",
   "euler/660_pandigitaltriangles.ra": "About 99 s: digit-mask filtering of 10^7 triples; run manually (#487).",
-  "euler/663_sumsofsubarrays.ra": "About 77 s: slice-assign tree build; run manually (#488)."
+  "euler/663_sumsofsubarrays.ra": "About 77 s: slice-assign tree build; run manually (#488).",
+  "euler/662_fibonaccipaths.ra": "About 15 min: 88-step slice += per anti-diagonal; run manually (#489)."
 }

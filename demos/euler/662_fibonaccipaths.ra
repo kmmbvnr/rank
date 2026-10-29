@@ -1,0 +1,75 @@
+rem Fibonacci Paths
+rem https://projecteuler.net/problem=662
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Wi integer = 10000
+arg He integer = 10000
+
+rem Steps (a, b) have a^2 + b^2 = f^2
+rem for a Fibonacci f. Every step raises
+rem x + y, so D(x, y) is filled one
+rem anti-diagonal s = x + y at a time:
+rem the diagonal is the sum, over the
+rem steps, of a shifted slice of the
+rem diagonal s - a - b. Diagonals sit
+rem in a ring of rows, and the sums
+rem are reduced once per diagonal.
+P = 1000000007
+Lm = (Wi * Wi + He * He) isqrt
+Nf = 2 to 30
+Fr = 1.6180339887498949 ** Nf
+Fr = Fr / 2.23606797749979
+Fb = (Fr + 0.5) floor
+Fb = Fb ((Fb at most Lm) indices)
+Nb = Fb len
+Aa = (0 to Wi) reshape (Wi + 1) 1
+Ff = Fb reshape 1 Nb
+Rr = Ff * Ff - Aa * Aa
+Ng = Rr less 0
+Rr = Ng choose 0 Rr
+Bb = Rr isqrt
+Gd = (Bb * Bb equal Rr) integer
+Gd = Gd * ((Bb at most He) integer)
+Gd = Gd * ((Aa + Bb greater 0) integer)
+Nc = (Wi + 1) * Nb
+Gd = Gd * ((Ng equal false) integer)
+Gf = Gd reshape Nc
+Af = (Aa + Bb * 0) reshape Nc
+Bf = Bb reshape Nc
+Sl = (Gf equal 1) indices
+Sa = Af Sl
+Sb = Bf Sl
+Ss = Sa + Sb
+Ns = Sa len
+Rg = Ss max + 1
+Wd = Wi + 1
+Ed = array shape (Rg * Wd) fill 0
+Ed 0 = 1
+Answer = 1
+for S in 1 to Wi + He
+  Xl = (S - He) max 0
+  Xh = S min Wi
+  Ac = array shape Wd fill 0
+  for I in 0 to Ns - 1
+    Sm = Ss I
+    if Sm at most S
+      Aq = Sa I
+      Xs = Xl max Aq
+      if Xs at most Xh
+        Ro = (S - Sm) mod Rg * Wd - Aq
+        Lw = Ro + Xs
+        Hg = Ro + Xh
+        Ac (Xs to Xh) += Ed (Lw to Hg)
+      end
+    end
+  end
+  Ac = Ac mod P
+  Ro = S mod Rg * Wd
+  Ed (Ro to Ro + Wi) = Ac
+  Answer = Ac Wi
+end
+Answer print

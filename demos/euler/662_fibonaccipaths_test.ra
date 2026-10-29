@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "662_fibonaccipaths"
+  Wi = 3
+  He = 4
+  run
+  Answer equal 278
+  Wi = 10
+  He = 10
+  run
+  Answer equal 215846462
+  Wi = 300
+  He = 300
+  run
+  Answer equal 23383209
+end
