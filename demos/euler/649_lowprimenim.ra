@@ -1,0 +1,61 @@
+rem Low-Prime Chessboard Nim
+rem https://projecteuler.net/problem=649
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg N integer = 10000019
+arg C integer = 100
+
+rem A move changes one coordinate by
+rem 2, 3, 5 or 7, so a coin is the sum
+rem of a row game and a column game
+rem and has Grundy value g(r) xor
+rem g(c), g the subtraction game. With
+rem cnt[v] squares of value v, the
+rem arrangements with xor 0 are (1/8)
+rem times the sum over the eight
+rem characters k of
+rem (sum of (-1)^bits(k and v) cnt[v])^C
+rem (exact, then 8 divides it). The
+rem answer is all (N^2)^C less those.
+Sv = primes to 7 array
+Gr = (0 to (N - 1)) * 0
+for I in 2 to N - 1
+  Mk = 0
+  for S in Sv
+    if I at least S
+      Mk = Mk bor (1 shl Gr (I - S))
+    end
+  end
+  V = 0
+  for (Mk shr V) band 1 equal 1
+    V += 1
+  end
+  Gr I = V
+end
+C1 = (0 to 7) * 0
+for V in 0 to 7
+  C1 V = ((Gr equal V) integer) sum
+end
+Cn = (0 to 7) * 0
+for A in 0 to 7
+  for B in 0 to 7
+    Cn (A bxor B) += (C1 A) * (C1 B)
+  end
+end
+Zr = 0
+for Kk in 0 to 7
+  Wk = 0
+  for V in 0 to 7
+    Bits = (Kk band V) popcount
+    Wk += (1 - 2 * (Bits mod 2)) * Cn V
+  end
+  Zr += Wk ** C
+end
+Tot = (N * N) ** C
+Answer = (Tot - Zr // 8) mod 1000000000
+Answer print
