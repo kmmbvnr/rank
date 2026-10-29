@@ -1,12 +1,5 @@
 rem Angular Bisectors
 rem https://projecteuler.net/problem=257
-rem Count the integer sided triangles
-rem a <= b <= c of perimeter up to Limit
-rem for which area(ABC) / area(AEG) is
-rem an integer, E, F, G being the points
-rem where the bisectors of C, A and B
-rem meet the sides AB, BC and CA
-
 use numbers
 use sequences
 use io
@@ -14,63 +7,44 @@ use cli
 
 arg Limit integer = 100000000
 
-rem The ratio is k = (a + b)(a + c) / (b
-rem c), between 1 and 4, and a (a + b +
-rem c) = (k - 1) b c. For k = 4 only
-rem equilateral triangles qualify. For k
-rem = 2, 3 write m = k - 1, b = h y and
-rem m b - a = h d with h = gcd(b, m b -
-rem a). Then a = h (m y - d) and c = a
-rem ((m + 1) y - d) / d, where y and d
-rem are coprime and h is a multiple t of
-rem its least value d / gcd(d, m (m +
-rem 1)). Each triangle is found once;
-rem its multiples number Limit //
-rem perimeter.
+rem M is the area ratio minus one.
+rem Put G = gcd(D, M (M + 1)), D = G Q
+rem and K = M (M + 1) // G. A primitive
+rem triangle needs gcd(Y, G) = 1 and
+rem gcd(Q, K Y) = 1, with perimeter
+rem Y (K Y - M Q). Side ordering and the
+rem strict triangle inequality bound Q;
+rem the perimeter bound raises its start.
+rem Root is ceil(sqrt((M + 1) Y^2)),
+rem exact because M + 1 is 2 or 3.
 Total = Limit // 3
-Top = (5 * Limit) isqrt + 2
 for M in 1 to 2
   Mm = M * (M + 1)
-  for Y in 1 to Top
-    First = 1 + (M - 1) * Y
-    for D in First to (M * Y - 1)
-      G1 = Y
-      G2 = D
-      for
-        if G2 equal 0
-          break
-        end
-        T = G1 mod G2
-        G1 = G2
-        G2 = T
+  for G in 1 to Mm
+    if Mm mod G not equal 0
+      continue
+    end
+    K = Mm // G
+    Top = ((G * Limit) // M) isqrt
+    for Y in 1 to Top
+      Root = ((M + 1) * Y * Y) isqrt + 1
+      if M * Y * Root greater G * Limit
+        break
       end
-      if G1 equal 1
-        E1 = D
-        E2 = Mm
-        for
-          if E2 equal 0
-            break
-          end
-          T = E1 mod E2
-          E1 = E2
-          E2 = T
-        end
-        Hs = D // E1
-        A0 = M * Y - D
-        Cn = Hs * A0 * ((M + 1) * Y - D)
-        if Cn mod D equal 0
-          C1 = Cn // D
-          A1 = Hs * A0
-          B1 = Hs * Y
-          Per = A1 + B1 + C1
-          Ord = A1 at most B1
-          Ord = Ord and (B1 at most C1)
-          Tri = A1 + B1 greater C1
-          Tri = Tri and (C1 greater A1)
-          Fits = Per at most Limit
-          if Ord and Tri and Fits
-            Total += Limit // Per
-          end
+      if Y gcd G not equal 1
+        continue
+      end
+      Ky = K * Y
+      First = (M * Y) // (2 * G) + 1
+      Bound = (Ky - Limit // Y + M - 1) // M
+      if Bound greater First
+        First = Bound
+      end
+      Last = ((M + 1) * Y - Root) // G
+      for Q in First to Last
+        if Q gcd Ky equal 1
+          Per = Y * (Ky - M * Q)
+          Total += Limit // Per
         end
       end
     end

@@ -79,7 +79,6 @@
   "euler/260_stonegame.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/255_roundedroots.ra": "Manual Digits=14 workload: the optimized full reference run takes about 152 seconds; retain the separate full assertion and independent Digits=1..6 checks in the small fixture.",
   "euler/255_roundedroots_default_test.ra": "Manual full-input assertion for Digits=14: the optimized reference run takes about 152 seconds; exact Total/Count and the original rounded answer are retained, with full compiled coverage in full-scale-demos.test.ts.",
-  "euler/257_angularbisectors.ra": "Manual Limit=100000000 workload: scalar reference execution exceeds five minutes; independent smaller limits remain in 257_angularbisectors_test.ra.",
   "euler/258_laggedfibonacci.ra": "Manual N=1000000000000000000 polynomial workload: scalar reference execution takes about 690 seconds; independent smaller indices remain in 258_laggedfibonacci_test.ra.",
   "euler/261_pivotalsquare.ra": "Manual Limit=10000000000 workload: the full compiled run takes about 272 seconds; independent smaller limits remain in 261_pivotalsquare_test.ra.",
   "euler/262_mountainrange.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",

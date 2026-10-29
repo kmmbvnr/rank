@@ -3,9 +3,10 @@ import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 
-// These default bounds are too large for the uncompiled Rank reference.
-// Their small fixtures still compare both modes in the corpus audits.
+// Retain full bounds and require compiled execution here.
+// Fixture-level reference comparisons belong to the corpus audits.
 it.each([
+    ['257_angularbisectors.ra', 139012411n],
     ['299_threesimilar.ra', 549936643n],
     ['426_boxball.ra', 31591886008n],
 ] as const)('checks the full compiled answer for %s', (file, expected) => {

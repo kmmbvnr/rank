@@ -2,7 +2,7 @@ import { findOperation, matchCompiledCallSignature } from '@arrrank/language';
 import { isPureHostFunction } from './host-effects.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
-import { interruptsEnabled } from './interrupt.js';
+import { checkInterrupt, interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { isNativeFunction, type NativeFunction, type RankValue } from './value.js';
 
 type Call = (arguments_: RankValue[]) => RankValue;
@@ -10,12 +10,16 @@ type Call = (arguments_: RankValue[]) => RankValue;
 type NumberCall = (...arguments_: number[]) => number | bigint | boolean;
 /** A positional call slot for generated code; see `preparePositionalBuiltin`. */
 export type PositionalCall = (...arguments_: never[]) => RankValue;
-const numberImplementations = new WeakMap<NativeFunction, Readonly<Record<string, NumberCall>>>();
+type NumberCalls = Readonly<Record<string, NumberCall>>;
+const numberImplementations = new WeakMap<NativeFunction, { calls: NumberCalls; cooperative?: NumberCalls }>();
 
 /** Exact kernels over Number registers; wide integer results trigger private replay.
  * Registration never bypasses catalogue or entry guards. */
-export function withNumberCalls(value: NativeFunction, calls: Readonly<Record<string, NumberCall>>): NativeFunction {
-    numberImplementations.set(value, calls);
+// Cooperative variants must retain the ordinary body's work checkpoints and
+// must not invoke Rank/host callbacks. The binder supplies native boundary polls;
+// inspection and arbitrary polling callbacks always keep the ordinary call.
+export function withNumberCalls(value: NativeFunction, calls: NumberCalls, cooperative?: NumberCalls): NativeFunction {
+    numberImplementations.set(value, { calls, cooperative });
     return value;
 }
 
@@ -46,7 +50,7 @@ interface BuiltinHost {
 
 interface BoundBuiltin {
     readonly call: Call;
-    /** Present only when typed calls are enabled outside an interrupt scope. */
+    /** Interrupt scopes require an explicitly cooperative implementation. */
     readonly kernel?: NumberCall;
 }
 
@@ -67,9 +71,19 @@ function prepareBuiltinBinding(host: BuiltinHost, module: string, name: string, 
             const value = host.resolve(name);
             if (!isNativeFunction(value) || !host.builtins.is(module, name, value)) return undefined;
             const typed = options.typedNativeCalls !== false;
+            const implementations = typed ? numberImplementations.get(value) : undefined;
+            const interrupted = interruptsEnabled();
+            const kernel = interrupted
+                ? privateLoopPolling() ? implementations?.cooperative?.[signature] : undefined
+                : implementations?.calls[signature];
             return {
                 call: typed ? typedNativeCall(value, signature) : value.call,
-                kernel: typed && !interruptsEnabled() ? numberImplementations.get(value)?.[signature] : undefined,
+                kernel: kernel && interrupted ? (...arguments_: number[]) => {
+                    checkInterrupt(name);
+                    const result = kernel(...arguments_);
+                    checkInterrupt(name);
+                    return result;
+                } : kernel,
             };
         } catch { return undefined; }
     };

@@ -112,6 +112,12 @@ export const numbersModule: RuntimeModule = {
     gcd: () => withNumberCalls(native('gcd', 2, arguments_ =>
         greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))), {
         'integer,integer': (a, b) => safeIntegerGcd(a, b),
+    }, {
+        'integer,integer': (a, b) => {
+            // Match greatestCommonDivisor's safe-integer body checkpoint.
+            checkpoint('computing numbers');
+            return safeIntegerGcd(a, b);
+        },
     }),
     powmod: () => native('powmod', 3, args => mapStoredIntegerTernary(args, checkedModularPower,
         (base, exponent, modulus) => exponent >= 0 && modulus > 0 && modulus <= 1073741824

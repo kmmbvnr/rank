@@ -1,8 +1,22 @@
 use testing
 
-rem The default input takes about 90 s.
+test "default input"
+  use "257_angularbisectors"
+  run
+
+  Answer equal 139012411
+end
+
 test "small limits"
   use "257_angularbisectors"
+  Limit = 0
+  run
+
+  Answer equal 0
+  Limit = 3
+  run
+
+  Answer equal 1
   Limit = 60
   run
 
