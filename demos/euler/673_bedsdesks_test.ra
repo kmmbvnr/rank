@@ -1,0 +1,33 @@
+use testing
+
+test "statement examples"
+  use "673_bedsdesks"
+  Beds = (
+    "demos/euler/fixtures/"
+    + "0673_beds_n4.txt"
+  )
+  Desks = (
+    "demos/euler/fixtures/"
+    + "0673_desks_n4.txt"
+  )
+  Nn = 4
+  run
+  Answer equal 2
+  Beds = (
+    "demos/euler/fixtures/"
+    + "0673_beds_n6.txt"
+  )
+  Desks = (
+    "demos/euler/fixtures/"
+    + "0673_desks_n6.txt"
+  )
+  Nn = 6
+  run
+  Answer equal 8
+end
+
+test "default input"
+  use "673_bedsdesks"
+  run
+  Answer equal 700325380
+end
