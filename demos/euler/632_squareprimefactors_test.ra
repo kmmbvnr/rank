@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "632_squareprimefactors"
+  N = 1000
+  run
+  Answer equal 10010112
+  N = 1000000
+  run
+  Answer equal 547801427
+  N = 100000000
+  run
+  Answer equal 914160256
+end
+
+test "default input"
+  use "632_squareprimefactors"
+  run
+  Answer equal 728378714
+end
