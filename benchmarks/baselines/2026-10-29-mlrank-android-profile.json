@@ -1,0 +1,167 @@
+{
+  "date": "2026-10-29",
+  "device": "OnePlus BE2029 / Adreno",
+  "baseCommit": "26375b07",
+  "program": "GPT-2 GPU KV cache, Hello + three tokens, F32",
+  "before": [
+    {
+      "totalMs": 79644.70000000298,
+      "outsideXhrMs": 4998.199999406934,
+      "groups": {
+        "/__rank_model_file:stat": {
+          "count": 5958,
+          "wallMs": 42434.90000039339,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_model_file:sha256": {
+          "count": 2,
+          "wallMs": 637.0,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_model_file:None": {
+          "count": 23,
+          "wallMs": 162.79999999701977,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:load": {
+          "count": 24,
+          "wallMs": 694.2000000178814,
+          "prepareMs": 440.093752,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:invoke": {
+          "count": 300,
+          "wallMs": 29811.300000101328,
+          "prepareMs": 3.345204,
+          "inputMs": 19435.673946999992,
+          "dispatchMs": 312.982344,
+          "readbackMs": 2473.645475000001,
+          "outputMs": 23.735742999999985,
+          "fileBytesRead": 1483858944
+        },
+        "/__rank_ml_result:releaseState": {
+          "count": 72,
+          "wallMs": 702.7000000178814,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:release": {
+          "count": 20,
+          "wallMs": 203.60000006854534,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        }
+      }
+    },
+    {
+      "totalMs": 81478.89999999106,
+      "outsideXhrMs": 5031.400000795722,
+      "groups": {
+        "/__rank_model_file:stat": {
+          "count": 5958,
+          "wallMs": 42344.49999919534,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_model_file:sha256": {
+          "count": 2,
+          "wallMs": 624.7000000029802,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_model_file:None": {
+          "count": 23,
+          "wallMs": 185.90000005066395,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:load": {
+          "count": 24,
+          "wallMs": 2724.7000000327826,
+          "prepareMs": 2449.5949449999994,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:invoke": {
+          "count": 300,
+          "wallMs": 29680.199999943376,
+          "prepareMs": 2.4562019999999993,
+          "inputMs": 19261.085622,
+          "dispatchMs": 332.2208320000001,
+          "readbackMs": 2509.2450479999993,
+          "outputMs": 24.097290999999995,
+          "fileBytesRead": 1483858944
+        },
+        "/__rank_ml_result:releaseState": {
+          "count": 72,
+          "wallMs": 670.8999999463558,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:release": {
+          "count": 20,
+          "wallMs": 216.60000002384186,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        }
+      }
+    }
+  ],
+  "notes": [
+    "Two fresh worker/native sessions, same installed APK; expected text and zero retained states verified.",
+    "XHR times include bridge, scheduling and native work. Native input/dispatch/readback are nested intervals, not additive to XHR.",
+    "Readback can wait for GPU completion; dispatch is not a GPU kernel timer.",
+    "Native profile performs PSS collection on every invocation; timings include this overhead.",
+    "Device reported thermal status 3 during profiling; not a controlled hardware throughput benchmark."
+  ]
+}
