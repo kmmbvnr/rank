@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "606_gozintachains"
+  N = 1000000
+  run
+  Answer equal 8462952
+  N = 1000000000000
+  run
+  Answer equal 998881978
+end
+
+test "small cubes"
+  use "606_gozintachains"
+  N = 1728
+  run
+  Answer equal 1216
+  N = 216000
+  run
+  Answer equal 1053794
+end

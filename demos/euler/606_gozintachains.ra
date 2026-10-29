@@ -1,0 +1,53 @@
+rem Gozinta Chains II
+rem https://projecteuler.net/problem=606
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 10 ** 36
+
+rem The chains of n count the ordered
+rem factorizations of n, and 252 is
+rem reached only by n = p^3 q^3. So S
+rem sums (p q)^3 over primes p < q with
+rem p q <= X = cbrt N: the sum over p of
+rem p^3 (F(X // p) - F(p)), F the sum
+rem of prime cubes (Lucy sieve mod M).
+M = 1000000000
+X = ((N * 1.0) ** (1.0 / 3.0)) floor
+for X ** 3 greater N
+  X -= 1
+end
+for (X + 1) ** 3 at most N
+  X += 1
+end
+R = X isqrt
+Vs = 0 to R
+Ts = Vs * (Vs + 1) // 2 mod M
+Sm = Ts * Ts mod M - 1
+Sm 0 = 0
+Ws = X // (Vs max 1)
+Ts = Ws * (Ws + 1) // 2 mod M
+Lg = Ts * Ts mod M - 1
+for P in primes to R
+  Pc = P * P * P mod M
+  Sp = Sm (P - 1)
+  Ih = R min (X // (P * P))
+  Ix = 1 to Ih
+  Pi = P * Ix
+  Va = Lg (Pi min R)
+  Vb = Sm ((X // Pi) min R)
+  Vl = (Pi at most R) choose Va Vb
+  Dl = (Pc * (Vl - Sp)) mod M
+  Iw = P * P to R
+  Dm = Pc * (Sm (Iw // P) - Sp)
+  Lg (1 to Ih) = (Lg (1 to Ih) - Dl) mod M
+  Sm Iw = (Sm Iw - Dm) mod M
+end
+Pr = primes to R array
+Pc = Pr * Pr * Pr mod M
+Tm = Pc * (Lg Pr - Sm Pr) mod M
+Answer = Tm sum mod M
+Answer print
