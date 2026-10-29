@@ -1,0 +1,57 @@
+rem Binary Series
+rem https://projecteuler.net/problem=689
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Aa real = 0.5
+arg Nn integer = 2000
+arg Tt real = 2000.0
+arg Hh real = 0.04
+
+rem f(x) is a sum of independent terms
+rem b(i) / i^2, b(i) a fair bit, so with
+rem Y = f - pi^2 / 12 the characteristic
+rem function is the product over i of
+rem cos(t / (2 i^2)) and Gil-Pelaez
+rem inversion gives, for x = pi^2 / 12
+rem - a,
+rem   p(a) = 1/2 + (1/pi) times the
+rem   integral of sin(t x) phi(t) / t.
+rem Cut the product at Nn terms and the
+rem integral at Tt, and use Simpson's
+rem rule with step Hh. The value at
+rem t = 0 is x.
+Pi = 3.141592653589793
+Xx = Pi * Pi / 12.0 - Aa
+Ni = (1 to Nn) * 1.0
+Wn = 1.0 / (2.0 * Ni * Ni)
+Mm = ((Tt / Hh) + 0.5) floor
+Mm = Mm + Mm mod 2
+Ds = Tt / Mm
+Sm = Xx
+Bl = 1000
+Last = 0.0
+for S in 1 to Mm by Bl
+  Hi = (S + Bl - 1) min Mm
+  Is = S to Hi
+  Ts = Is * Ds
+  Th = Ts reshape (Ts len) 1
+  Cs = Th * Wn
+  Cc = Cs cos
+  Ph = Cc reduce * axis 1
+  Tx = Ts * Xx
+  Fv = Tx sin
+  Gv = Fv / Ts * Ph
+  Wt = 2.0 + 2.0 * (Is mod 2)
+  Gw = Gv * Wt
+  Bs = Gw sum
+  Sm = Sm + Bs
+  Last = Gv ((Gv len) - 1)
+end
+Sm = Sm - Last
+Pp = 0.5 + Sm * Ds / 3.0 / Pi
+Answer = Pp text ".8f"
+Answer print
