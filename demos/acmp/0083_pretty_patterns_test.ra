@@ -1,0 +1,26 @@
+use testing
+
+test "default input 3x3"
+  use "0083_pretty_patterns"
+  run
+
+  Answer equal 322
+end
+
+test "official example 2x2"
+  use "0083_pretty_patterns"
+  M = 2
+  N = 2
+  run
+
+  Answer equal 14
+end
+
+test "thin grid 1x10"
+  use "0083_pretty_patterns"
+  M = 1
+  N = 10
+  run
+
+  Answer equal 1024
+end

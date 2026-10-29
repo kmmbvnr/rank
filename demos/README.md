@@ -4,6 +4,7 @@ Rank examples from programming contests, numerical exercises and data-analysis p
 
 ## Folders
 
+- [ACMP](acmp/) — Programming-contest exercises from [acmp.ru](https://acmp.ru/).
 - [Advent of Code](aoc/) — Programming puzzles from [Advent of Code](https://adventofcode.com/), grouped by year.
 - [AtCoder](atcoder/) — Programming-contest exercises from [AtCoder](https://atcoder.jp/).
 - [Classic Problems](classic/) — Standalone solutions to classic algorithmic problems.
