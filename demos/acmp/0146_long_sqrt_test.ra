@@ -1,0 +1,24 @@
+use testing
+
+test "example 17 -> 4"
+  use "0146_long_sqrt"
+  run
+
+  Answer equal 4
+end
+
+test "perfect square 144 -> 12"
+  use "0146_long_sqrt"
+  S = "144"
+  run
+
+  Answer equal 12
+end
+
+test "10^40 -> 10^20"
+  use "0146_long_sqrt"
+  S = "10000000000000000000000000000000000000000"
+  run
+
+  Answer equal (10 ** 20)
+end

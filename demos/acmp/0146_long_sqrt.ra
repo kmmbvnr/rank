@@ -1,0 +1,31 @@
+rem Integer Square Root of Arbitrary-Precision Number
+rem https://acmp.ru/index.asp?main=task&id_task=146
+rem Exact floor(sqrt(A)) for large integer A up to 10^3000 via Newton-Raphson iteration
+
+use text
+use io
+use cli
+
+arg S text = "17"
+
+A = S integer
+Answer = 0
+
+if A less 2
+  Answer = A
+else
+  Len = S len
+  Half = (Len + 1) // 2
+  X = 10 ** Half
+
+  for true
+    Y = (X + (A // X)) // 2
+    if not (Y less X)
+      Answer = X
+      break
+    end
+    X = Y
+  end
+end
+
+Answer print
