@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "644_squaresontheline"
+  Lo = 2
+  Hi = 10
+  run
+  Answer equal "2.61969775"
+  Lo = 10
+  Hi = 20
+  run
+  Answer equal "5.99374121"
+end
+
+test "wider window"
+  use "644_squaresontheline"
+  Lo = 20
+  Hi = 100
+  run
+  Answer equal "18.71276493"
+end
