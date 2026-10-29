@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "694_cubefulldivisors"
+  Nn = 16
+  run
+  Answer equal 19
+  Nn = 100
+  run
+  Answer equal 126
+  Nn = 10000
+  run
+  Answer equal 13344
+end
+
+test "default input"
+  use "694_cubefulldivisors"
+  Nn = 1000000000000000000
+  run
+  Answer equal 1339784153569958487
+end
