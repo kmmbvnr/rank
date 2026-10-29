@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "631_constrainedpermutations"
+  N = 2
+  K = 0
+  run
+  Answer equal 3
+  N = 4
+  K = 5
+  run
+  Answer equal 32
+  N = 10
+  K = 25
+  run
+  Answer equal 294400
+end

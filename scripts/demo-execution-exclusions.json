@@ -240,5 +240,6 @@
   "euler/625_gcdsum.ra": "About 20 s: totient sums to N^(2/3) and N = 10^11 recursion; run manually.",
   "euler/626_binarymatrices.ra": "About 16 s: Burnside over 25k signed cycle types squared; run manually.",
   "euler/627_countingproducts.ra": "About 22 s: 4D sumsets of 7-smooth exponents for n <= 11; run manually.",
-  "euler/629_scatterstonenim.ra": "About 11 s: xor-count table over partitions, three Grundy tables; run manually."
+  "euler/629_scatterstonenim.ra": "About 11 s: xor-count table over partitions, three Grundy tables; run manually.",
+  "euler/631_constrainedpermutations.ra": "About 70 s: merged state counts for 43 core lengths; run manually."
 }
