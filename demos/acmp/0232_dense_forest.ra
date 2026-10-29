@@ -1,0 +1,130 @@
+rem ACMP 232 - Dense Forest 2 (Дремучий лес - 2)
+rem Solved in Euler 1-15 style with geometric duality and interval projection.
+rem
+rem A forest of non-overlapping disks is "dense" if no straight line can separate
+rem them into two non-empty subsets without intersecting any disk.
+rem
+rem By duality, a separating line with normal angle Theta exists if and only if
+rem the 1D shadow intervals [center * u - r, center * u + r] have a gap.
+rem The connectivity of these intervals can only change at the critical angles of
+rem inner common tangents between pairs of disks. We compute all critical tangent
+rem angles, sample the midpoint angles, and verify 1D interval connectivity using
+rem vector projections, argsort, and prefix scans.
+
+use io
+use cli
+use sequences
+use text
+use numbers
+
+arg N integer = 3
+arg TreesText text = "0 10 2 5 11 2 12.04 7 2"
+
+Pi = (-1) acos
+Eps = 1e-7
+
+TP = (TreesText split "\n" join " ") split " "
+Tokens = (TP (not (TP equal ""))) real
+
+X = array shape N fill 0.0
+Y = array shape N fill 0.0
+R = array shape N fill 0.0
+
+for I in 0 till N
+  X I = Tokens (3 * I)
+  Y I = Tokens (3 * I + 1)
+  R I = Tokens (3 * I + 2)
+end
+
+Answer = "YES"
+
+if N greater 1
+  rem Collect inner common tangent angles
+  Angles = array shape 0 fill 0.0
+  for I in 0 till N
+    XI = X I
+    YI = Y I
+    RI = R I
+    for J in (I + 1) till N
+      DX = (X J) - XI
+      DY = (Y J) - YI
+      Dist = ((DX * DX) + (DY * DY)) sqrt
+      RadSum = RI + (R J)
+      if Dist greater RadSum
+        CosVal = RadSum / Dist
+        if not (CosVal greater 1.0)
+          Alpha = CosVal acos
+          Base = DY atan2 DX
+          rem Modulo Pi
+          Ang1 = Base + Alpha
+          for Ang1 less 0.0
+            Ang1 = Ang1 + Pi
+          end
+          for not (Ang1 less Pi)
+            Ang1 = Ang1 - Pi
+          end
+
+          Ang2 = Base - Alpha
+          for Ang2 less 0.0
+            Ang2 = Ang2 + Pi
+          end
+          for not (Ang2 less Pi)
+            Ang2 = Ang2 - Pi
+          end
+
+          Angles = concat Angles (array Ang1 Ang2)
+        end
+      end
+    end
+  end
+
+  TestAngles = array shape 0 fill 0.0
+  NumAngles = Angles len
+
+  if NumAngles equal 0
+    TestAngles = array 0.0
+  else
+    SortedAngles = Angles sort
+    for I in 0 till NumAngles
+      NextI = (I + 1) mod NumAngles
+      T1 = SortedAngles I
+      T2 = SortedAngles NextI
+      if T2 less T1
+        T2 = T2 + Pi
+      end
+      Mid = (T1 + T2) / 2.0
+      for not (Mid less Pi)
+        Mid = Mid - Pi
+      end
+      TestAngles = concat TestAngles (array Mid)
+    end
+  end
+
+  FoundClearing = false
+  for Ang in TestAngles
+    if not FoundClearing
+      Ux = Ang cos
+      Uy = Ang sin
+      Proj = (X * Ux) + (Y * Uy)
+      Starts = Proj - R
+      Ends = Proj + R
+
+      Perm = Starts argsort
+      SStarts = Starts Perm
+      SEnds = Ends Perm
+
+      M = SEnds scan max with (SEnds 0) array
+      PrevMax = (M (1 till N)) + Eps
+      Gaps = (SStarts (1 till N)) greater PrevMax
+      if (Gaps count) greater 0
+        FoundClearing = true
+      end
+    end
+  end
+
+  if FoundClearing
+    Answer = "NO"
+  end
+end
+
+Answer print
