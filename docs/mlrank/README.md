@@ -1968,3 +1968,32 @@ The optional native profile separates input preparation into `tensorAllocationMs
 These intervals are contained in `inputMs`; file validation, open/seek/close,
 JSON input conversion and loop overhead account for the remainder. File reads
 can use the operating-system page cache; `fileReadMs` is not a disk-speed test.
+
+On OnePlus, scalar `ByteBuffer.getFloat` conversion plus validation accounted for
+16.2–16.5 seconds of 19.4–19.7 seconds of input preparation. File reads took
+1.20–1.26 seconds and buffer writes 1.12–1.15 seconds. The decoder now uses a
+little-endian `FloatBuffer` bulk read into the same destination array, then checks
+all values for finiteness. Byte staging remains bounded to 64 KiB. File identity
+checks before and after transfer are unchanged; weights still stay out of JS.
+
+Two runs after the change measured 2.1–2.6 seconds for decoding/validation and
+4.8–5.8 seconds for all input preparation. Full profiled execution fell from
+44.6–46.7 to 28.3–32.4 seconds. Each run still read 1,483,858,944 weight bytes and
+made 300 GPU calls. This improves CPU conversion; it does not make weights
+GPU-resident, remove transfers, or reduce GPU arithmetic.
+
+The decoder tests compare all bits of 32,773 finite values across full chunks,
+a short tail and a nonzero file offset, with and without profiling. They include
+signed zero, subnormals and finite extrema, reject NaN/infinities, and reject
+truncated input. Results: [weight input profile](../../benchmarks/baselines/2026-10-29-mlrank-android-weight-input.json).
+
+Nine Android JVM tests passed. On OnePlus, the independent GPT-2 check compared
+251,285 logits (maximum absolute error 0.00032156, unchanged), checked token/context
+limits and EOS, and finished with zero retained state bytes. KV buffers were not
+read back into JavaScript.
+
+Two ordinary menu runs on the installed debug APK took 36.15 and 30.95 seconds,
+both producing `Hello, I'm` with zero retained GPU state bytes. The prior step's
+menu runs took 48.45 and 43.16 seconds; those are historical comparisons rather
+than interleaved controls. The matching profiled before/after runs above show
+about 1.50× speedup in total elapsed time on average.

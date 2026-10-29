@@ -228,6 +228,285 @@
     "fileDecodeMs includes little-endian conversion plus finite-value validation.",
     "Native PSS collection is enabled in profile runs.",
     "One initial run with concurrent UI execution was rejected and excluded.",
-    "Thermal service reports status 3; use phase counts and repeated timings, not a hardware throughput claim."
+    "Thermal service reports status 3; use phase counts and repeated timings, not a hardware throughput claim.",
+    "Two before runs then two after runs; not ABBA. Both versions read 1,483,858,944 weight bytes and issue 300 GPU invocations per run.",
+    "Unprofiled menu runs include the normal UI/signals. Prior-step menu timings are historical, not an interleaved control. Both APKs are debug builds."
+  ],
+  "after": {
+    "runs": [
+      {
+        "totalMs": 28270.5,
+        "text": "Hello, I'm",
+        "finalStateBytes": 0,
+        "outsideXhrMs": 3628.3999999165535,
+        "groups": {
+          "/__rank_model_file:stat": {
+            "count": 1199,
+            "wallMs": 6989.000000208616,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_model_file:sha256": {
+            "count": 2,
+            "wallMs": 642.2000000029802,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_model_file:read": {
+            "count": 23,
+            "wallMs": 138.09999997913837,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:load": {
+            "count": 24,
+            "wallMs": 2678.9999999552965,
+            "prepareMs": 2469.845104,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:invoke": {
+            "count": 300,
+            "wallMs": 13457.899999961257,
+            "prepareMs": 4.210791,
+            "inputMs": 4801.780877000002,
+            "dispatchMs": 339.217239,
+            "readbackMs": 1960.7855190000005,
+            "outputMs": 24.04287599999999,
+            "fileBytesRead": 1483858944,
+            "tensorAllocationMs": 32.871505,
+            "fileReadMs": 1003.006404999999,
+            "fileDecodeMs": 2064.109084000001,
+            "bufferWriteMs": 859.9343099999999
+          },
+          "/__rank_ml_result:releaseState": {
+            "count": 72,
+            "wallMs": 566.5999999940395,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:release": {
+            "count": 20,
+            "wallMs": 169.2999999821186,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          }
+        }
+      },
+      {
+        "totalMs": 32400.29999999702,
+        "text": "Hello, I'm",
+        "finalStateBytes": 0,
+        "outsideXhrMs": 3753.199999690056,
+        "groups": {
+          "/__rank_model_file:stat": {
+            "count": 1199,
+            "wallMs": 8688.100000277162,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_model_file:sha256": {
+            "count": 2,
+            "wallMs": 611.7000000029802,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_model_file:read": {
+            "count": 23,
+            "wallMs": 196.49999997019768,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:load": {
+            "count": 24,
+            "wallMs": 2665.800000026822,
+            "prepareMs": 2415.138491999999,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:invoke": {
+            "count": 300,
+            "wallMs": 15561.199999973178,
+            "prepareMs": 3.3997420000000003,
+            "inputMs": 5750.502971000001,
+            "dispatchMs": 319.4936930000001,
+            "readbackMs": 2036.481869999999,
+            "outputMs": 24.524061000000003,
+            "fileBytesRead": 1483858944,
+            "tensorAllocationMs": 54.759574,
+            "fileReadMs": 1221.399119,
+            "fileDecodeMs": 2568.979886,
+            "bufferWriteMs": 1081.84391
+          },
+          "/__rank_ml_result:releaseState": {
+            "count": 72,
+            "wallMs": 711.1000000685453,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:release": {
+            "count": 20,
+            "wallMs": 212.69999998807907,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          }
+        }
+      }
+    ],
+    "notes": [
+      "Native profile includes per-invoke PSS collection overhead.",
+      "Host intervals do not isolate GPU kernel time."
+    ]
+  },
+  "comparison": {
+    "meanBeforeMs": 45629.75,
+    "meanAfterMs": 30335.39999999851,
+    "beforeOverAfter": 1.5041749902754618
+  },
+  "implementationCommit": "7e9b2a7f",
+  "validation": {
+    "androidUnitTestsPassed": 9,
+    "newDecoderTests": 3,
+    "oneplusGpt2": {
+      "text": "Hello, I'm",
+      "tokens": [
+        15496,
+        11,
+        314,
+        1101
+      ],
+      "runs": [
+        {
+          "prompt": "Hello",
+          "wallMs": 31525.70000000298,
+          "gpuCalls": 300,
+          "finalStateBytes": 0
+        },
+        {
+          "prompt": "Hello,",
+          "wallMs": 24215.79999999702,
+          "gpuCalls": 249,
+          "finalStateBytes": 0
+        }
+      ],
+      "boundaries": [
+        "token limit",
+        "context limit",
+        "eos"
+      ],
+      "valuesCompared": 251285,
+      "maxError": 0.0003215610061602092,
+      "retainedOutputs": 144,
+      "stateInputsReused": 264,
+      "cacheReadbackRequests": 0
+    }
+  },
+  "unprofiledMenuRuns": [
+    {
+      "text": "Hello, I'm",
+      "elapsedMs": 36147,
+      "residentStates": 0,
+      "stateBytes": 0
+    },
+    {
+      "text": "Hello, I'm",
+      "elapsedMs": 30947,
+      "residentStates": 0,
+      "stateBytes": 0
+    }
   ]
 }
