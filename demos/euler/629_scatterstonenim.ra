@@ -39,7 +39,8 @@ for Nn in 1 to N
     end
   end
 end
-G2 = (((Ns mod 2) equal 0) integer) * ((Ns greater 0) integer)
+Ev = ((Ns mod 2) equal 0) integer
+G2 = Ev * ((Ns greater 0) integer)
 G4 = (Ns - 1) max 0
 Gs = stack G2 G3 G4
 Answer = 0
@@ -50,7 +51,8 @@ for Kc in 0 to 2
   for Sz in 1 to N
     Xi = Xs bxor (Gr Sz)
     for Mm in Sz to N
-      Cn Mm = (Cn Mm) + (Cn (Mm - Sz)) Xi
+      Pv = (Cn (Mm - Sz)) Xi
+      Cn Mm = (Cn Mm) + Pv
     end
   end
   Row = Cn N
