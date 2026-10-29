@@ -19,7 +19,7 @@ export type LoopContinuation = {
 export interface LoopHost {
     readonly continuation?: LoopContinuation;
     readonly observableEntry?: boolean;
-    canDeferWrites?(bindings: readonly [string, 'integer' | 'real' | 'boolean' | 'array'][]): boolean;
+    canDeferWrites?(bindings: readonly [string, 'integer' | 'real' | 'boolean' | 'array', number?][]): boolean;
     readonly tensorReadHoisting: boolean;
     readonly textLoops: boolean;
     readonly textArrayLoops: boolean;

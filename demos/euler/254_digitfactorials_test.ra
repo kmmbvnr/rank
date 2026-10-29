@@ -9,14 +9,34 @@ end
 
 test "small top"
   use "254_digitfactorials"
+  Top = 0
+  run
+
+  Answer equal 0
+  Top = 1
+  run
+
+  Answer equal 1
+  Top = 2
+  run
+
+  Answer equal 3
   Top = 3
   run
 
   Answer equal 8
+  Top = 5
+  run
+
+  Answer equal 21
   Top = 10
   run
 
   Answer equal 46
+  Top = 15
+  run
+
+  Answer equal 93
   Top = 20
   run
 

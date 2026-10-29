@@ -17,12 +17,13 @@ const overflow = {};
 class PrivateIntegerArray {
     private published?: RankArray;
     cells: Int32Array | Float64Array;
-    constructor(readonly shape: number[], fill: number) {
+    constructor(readonly shape: number[], fill: number, source?: NumberCells) {
         const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
         // Keep lengths outside the publishing backend's Array(length) range
         // on the exact path, before allocating speculative typed cells.
         if (size > 0xffffffff) throw overflow;
-        this.cells = fill === (fill | 0) ? new Int32Array(size).fill(fill) : new Float64Array(size).fill(fill);
+        this.cells = source ? source instanceof Int32Array ? source.slice() : Float64Array.from(source, Number)
+            : fill === (fill | 0) ? new Int32Array(size).fill(fill) : new Float64Array(size).fill(fill);
     }
     value(): RankArray {
         // No polling during publication: errors/cancellation publish all the
@@ -100,7 +101,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     const storage = new Map<string, { slot: number; rank: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
     if (plan.vectorIterations.length && !host.declareIteration) return undefined;
     const written = new Set([...plan.writerNames, ...plan.binderNames]);
-    const bindings = [...written].map(name => [name, plan.arrayDefinitions.has(name) ? 'array' : localTypes.get(name)!] as [string, 'integer' | 'real' | 'boolean' | 'array']);
+    const bindings = [...written].map(name => [name, plan.arrayDefinitions.has(name) ? 'array' : localTypes.get(name)!, plan.arrayDefinitions.has(name) ? arrays.get(name)?.rank : undefined] as [string, 'integer' | 'real' | 'boolean' | 'array', number?]);
     const slots = [...written].map(name => names.indexOf(name));
     const registers = names.map((_, index) => `r${index} = input[${index}]`);
     for (const slot of slots) registers.push(`d${slot} = 0`);
@@ -132,7 +133,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: ((arguments_: RankValue[]) => RankValue)[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
-    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', code)(
+    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', code)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -144,7 +145,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             () => new RankError('power result is not real'),
             (index: number | bigint, axis = 0) => index < 0 ? new RankError(`array index must be nonnegative on axis ${axis}`)
                 : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower,
-            (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number) => new PrivateIntegerArray(shape, fill));
+            (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number) => new PrivateIntegerArray(shape, fill),
+            (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
+            (shape: number[], cells: NumberCells) => new PrivateIntegerArray([...shape], 0, cells));
     try { run = compile(source); } catch { return undefined; }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These

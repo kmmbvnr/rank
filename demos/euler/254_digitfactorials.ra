@@ -30,59 +30,94 @@ rem least on ties, with digits in order.
 Fa = array 1 1 2 6 24 120 720 5040
 Fb = array 40320 362880
 Fa = concat Fa Fb
-Pw = 10 ** (0 to 22 array)
 Dd = 0 to 9 array
+rem Cache canonical digit counts for the
+rem 9! possible remainders. Most F cannot
+rem improve the current length: decode
+rem their digits only when they can.
+Length = Fa factorial_lengths
 Total = 0
 for I in 1 to Top
+  Total += I digit_factorial_score Fa Dd Length
+end
+Answer = Total
+Answer print
+
+fun I digit_factorial_score Fa Dd Length
+  Sg = 0
   Q = I // 9
-  Tn = 10 ** Q
+  Tn = 1
+  for E in 1 to Q
+    Tn *= 10
+  end
   Low = (I mod 9) * Tn + Tn - 1
   Bk = 0
   Bc = array shape 10 fill 0
+  rem Reuse C; copy only a new best value.
+  C = array shape 10 fill 0
   F = Low
   for
     Cn = F // 362880
     if Bk greater 0 and Cn greater Bk
       break
     end
-    C = array shape 10 fill 0
-    C 9 = F // 362880
     Rm = F mod 362880
-    for D in 8 to 1 by -1
-      C D = Rm // (Fa D)
-      Rm = Rm mod (Fa D)
-    end
-    K = C sum
-    Pick = Bk equal 0 or K less Bk
-    if K equal Bk
-      for D in 1 to 9
-        if C D equal Bc D
-          continue
+    K = Cn + Length Rm
+    if Bk equal 0 or K at most Bk
+      C 9 = Cn
+      for D in 8 to 1 by -1
+        C D = Rm // (Fa D)
+        Rm = Rm mod (Fa D)
+      end
+      Pick = Bk equal 0 or K less Bk
+      if K equal Bk
+        for D in 1 to 9
+          if C D equal Bc D
+            continue
+          end
+          Pick = C D greater Bc D
+          break
         end
-        Pick = C D greater Bc D
-        break
+      end
+      if Pick
+        Bk = K
+        Bc = C copy
+        Sg = (C * Dd) sum
       end
     end
-    if Pick
-      Bk = K
-      Bc = C
-    end
-    Dg = F // Pw mod 10
+    Dg = F
+    Pp = 1
     Sb = 0
     for P in 1 to 22
-      Sb += Dg (P - 1)
-      if Dg P less 9 and Sb at least 1
+      Sb += Dg mod 10
+      Dg = Dg // 10
+      Pp *= 10
+      if Dg mod 10 less 9 and Sb at least 1
         S = Sb - 1
         M = S // 9
-        Tn = 10 ** M
+        Tn = 1
+        for E in 1 to M
+          Tn *= 10
+        end
         Tail = (S mod 9) * Tn + Tn - 1
-        Pp = Pw P
         F = (F // Pp + 1) * Pp + Tail
         break
       end
     end
   end
-  Total += (Bc * Dd) sum
+  return Sg
 end
-Answer = Total
-Answer print
+
+rem At stage D, quotient gives the count
+rem of digit D and the remainder indexes
+rem the already computed lower digits.
+fun Fa factorial_lengths
+  Length = array 0
+  for D in 1 to 8
+    R = 0 till (Fa (D + 1)) array
+    Q = R // (Fa D)
+    Rest = R mod (Fa D)
+    Length = ((Length Rest) + Q) copy
+  end
+  return Length
+end

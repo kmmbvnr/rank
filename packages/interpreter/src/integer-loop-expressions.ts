@@ -352,7 +352,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const previous = arrays.get(e.name);
             if (previous && previous.type !== 'bytes') return { kind: 'array', element: previous.type, rank: previous.rank };
             const current = host.read(e.name);
-            if (current && isRankArray(current) && storedScalarKinds(current)?.join() === 'integer') {
+            const kinds = current && isRankArray(current) ? storedScalarKinds(current) : undefined;
+            if (current && isRankArray(current) && kinds && (kinds.length === 0 || kinds.join() === 'integer')) {
                 return { kind: 'array', element: 'integer', rank: current.shape.length };
             }
         }
@@ -426,9 +427,77 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         lines.push(`const ${name} = ${code};`);
         return { code: name, type };
     }
+    /** Integer vector reductions keep their scalar inputs in evaluation order.
+     * Only total pointwise operators fuse: divisions and calls retain their
+     * ordinary array evaluation/error order. Entry guards exclude lazy inputs. */
+    function emitIntegerSum(source: Expression, lines: string[]): LoopTerm | undefined {
+        type Vector = { size: string; cell(index: string, body: string[]): LoopTerm };
+        function scalarSyntax(e: Expression): boolean {
+            if (isParenthesizedExpression(e)) return scalarSyntax(e.value);
+            return isNameExpression(e) || isNumberLiteral(e)
+                || isUnaryExpression(e) && scalarSyntax(e.operand)
+                || isBinaryExpression(e) && !e.step && scalarSyntax(e.left) && scalarSyntax(e.right);
+        }
+        function vector(e: Expression): Vector | undefined {
+            while (isParenthesizedExpression(e)) e = e.value;
+            const type = arrayType(e);
+            if (!type) {
+                if (!scalarSyntax(e)) return undefined;
+                const scalar = emit(e, lines, 'integer');
+                return scalar?.type === 'integer' ? { size: '1', cell: () => scalar } : undefined;
+            }
+            if (type.rank !== 1 || type.element !== 'integer') return undefined;
+            if (isNameExpression(e)) {
+                const info = arrays.get(e.name) ?? { slot: slot(e.name), rank: 1, type: 'integer' as const };
+                arrays.set(e.name, info);
+                if (!assigned.has(e.name)) arrayInputs.add(e.name);
+                const size = `length${state.serial++}`;
+                lines.push(`const ${size} = ${numberMode ? `cells${info.slot}.length` : `r${info.slot}.shape[0]`};`);
+                return { size, cell: index => ({ type: 'integer', code: numberMode
+                    ? `safe(Number(cells${info.slot}[${index}]))` : `reader${info.slot}(BigInt(${index}))` }) };
+            }
+            if (!isBinaryExpression(e) || e.step || !['+', '-', '*'].includes(e.operator)) return undefined;
+            const left = vector(e.left), right = vector(e.right);
+            if (!left || !right) return undefined;
+            const size = `length${state.serial++}`;
+            lines.push(`if (${left.size} !== ${right.size} && ${left.size} !== 1 && ${right.size} !== 1) throw shapeMismatch(${left.size}, ${right.size});`,
+                `const ${size} = ${left.size} === 1 ? ${right.size} : ${left.size};`);
+            return { size, cell: (index, body) => {
+                const a = left.cell(`(${left.size} === 1 ? 0 : ${index})`, body);
+                const b = right.cell(`(${right.size} === 1 ? 0 : ${index})`, body);
+                return { type: 'integer', code: arithmetic(e.operator, a, b, 'integer', body)! };
+            } };
+        }
+        if (wide || !host.arrayReads || !arrayType(source)) return undefined;
+        const input = vector(source);
+        if (!input) return undefined;
+        const result = `sum${state.serial++}`, index = `cell${state.serial++}`, body: string[] = [];
+        const value = input.cell(index, body);
+        builtins.set('sum', 'core');
+        lines.push(`let ${result} = ${numberMode ? '0' : '0n'}; for (let ${index} = 0; ${index} < ${input.size}; ${index}++) {
+            checkpoint(); ${body.join('\n')} ${result} = ${safe(`${result} + ${value.code}`)};
+        }`);
+        if (!temporaryBudget(source)) return undefined;
+        return { code: result, type: 'integer' };
+    }
     function emitValue(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
         let source = e;
         while (isParenthesizedExpression(source)) source = source.value;
+        if (numberMode && host.arrayLocals && host.arrayReads && host.nativeCalls
+            && isApplicationExpression(source) && source.arguments.length === 1
+            && isNameExpression(source.head) && isNameExpression(source.arguments[0])
+            && source.arguments[0].name === 'copy' && !localTypes.has('copy') && !arrays.has('copy') && !containers.has('copy')) {
+            const name = source.head.name, type = arrayType(source.head);
+            if (type?.element === 'integer') {
+                const info = arrays.get(name) ?? { slot: slot(name), rank: type.rank, type: 'integer' as const };
+                arrays.set(name, info);
+                if (!assigned.has(name)) arrayInputs.add(name);
+                builtins.set('copy', 'sequences');
+                const result = `copied${state.serial++}`;
+                lines.push(`const ${result} = copyArray(r${info.slot}.shape, cells${info.slot});`);
+                return { code: result, type };
+            }
+        }
         if (!state.numberMode && host.arrayLocals && host.arrayReads) {
             if (isArrayExpression(source) && !source.dimensions.length && !source.range && !source.fill && !source.rows.length && source.items.length) {
                 const cells: string[] = [];
@@ -529,6 +598,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;
+            if (op === 'sum' && !localTypes.has(op) && !arrays.has(op) && !containers.has(op)) {
+                const result = emitIntegerSum(e.head, lines);
+                if (result) return result;
+            }
             if (!numberMode && op === 'text' && host.scalarText) {
                 const value = emit(e.head, lines);
                 if (value?.type !== 'integer') return undefined;

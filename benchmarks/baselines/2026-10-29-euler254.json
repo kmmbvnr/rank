@@ -1,0 +1,2780 @@
+{
+  "date": "2026-10-29",
+  "parent": "8ce578df2271b18e092c9e0c03c623b231a05981",
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5"
+  },
+  "method": "Serial fresh processes; alternating runtime order; imports excluded, parse/preparation/evaluation included. External host load uncontrolled; timings vary between cohorts. RSS is process maximum, not retained memory.",
+  "sourceSnapshots": {
+    "original": "rem Sums of Digit Factorials\nrem https://projecteuler.net/problem=254\nrem f(n) is the sum of the factorials of\nrem the digits of n and sf(n) the digit\nrem sum of f(n). With g(i) the least n\nrem with sf(n) = i and sg(i) its digit\nrem sum, add up sg(i) for i up to Top.\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\narg Top integer = 150\n\nrem A least n has at most d of the digit\nrem d below 9, as d + 1 of them could be\nrem swapped for a (d + 1) with the same\nrem factorial sum. So f is written in\nrem the factorial base, with all the\nrem rest in 9s: c9 = f // 9!. The digits\nrem are fewest for the least f with\nrem digit sum i, up to 36 more than c9.\nrem So look at the f with digit sum i\nrem while c9 does not pass the best\nrem count, each next one found by\nrem raising the lowest digit that may\nrem rise, and take the shortest n, the\nrem least on ties, with digits in order.\nFa = array 1 1 2 6 24 120 720 5040\nFb = array 40320 362880\nFa = concat Fa Fb\nPw = 10 ** (0 to 22 array)\nDd = 0 to 9 array\nTotal = 0\nfor I in 1 to Top\n  Q = I // 9\n  Tn = 10 ** Q\n  Low = (I mod 9) * Tn + Tn - 1\n  Bk = 0\n  Bc = array shape 10 fill 0\n  F = Low\n  for\n    Cn = F // 362880\n    if Bk greater 0 and Cn greater Bk\n      break\n    end\n    C = array shape 10 fill 0\n    C 9 = F // 362880\n    Rm = F mod 362880\n    for D in 8 to 1 by -1\n      C D = Rm // (Fa D)\n      Rm = Rm mod (Fa D)\n    end\n    K = C sum\n    Pick = Bk equal 0 or K less Bk\n    if K equal Bk\n      for D in 1 to 9\n        if C D equal Bc D\n          continue\n        end\n        Pick = C D greater Bc D\n        break\n      end\n    end\n    if Pick\n      Bk = K\n      Bc = C\n    end\n    Dg = F // Pw mod 10\n    Sb = 0\n    for P in 1 to 22\n      Sb += Dg (P - 1)\n      if Dg P less 9 and Sb at least 1\n        S = Sb - 1\n        M = S // 9\n        Tn = 10 ** M\n        Tail = (S mod 9) * Tn + Tn - 1\n        Pp = Pw P\n        F = (F // Pp + 1) * Pp + Tail\n        break\n      end\n    end\n  end\n  Total += (Bc * Dd) sum\nend\nAnswer = Total\nAnswer print\n",
+    "scalar-digits": "rem Sums of Digit Factorials\nrem https://projecteuler.net/problem=254\nrem f(n) is the sum of the factorials of\nrem the digits of n and sf(n) the digit\nrem sum of f(n). With g(i) the least n\nrem with sf(n) = i and sg(i) its digit\nrem sum, add up sg(i) for i up to Top.\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\narg Top integer = 150\n\nrem A least n has at most d of the digit\nrem d below 9, as d + 1 of them could be\nrem swapped for a (d + 1) with the same\nrem factorial sum. So f is written in\nrem the factorial base, with all the\nrem rest in 9s: c9 = f // 9!. The digits\nrem are fewest for the least f with\nrem digit sum i, up to 36 more than c9.\nrem So look at the f with digit sum i\nrem while c9 does not pass the best\nrem count, each next one found by\nrem raising the lowest digit that may\nrem rise, and take the shortest n, the\nrem least on ties, with digits in order.\nFa = array 1 1 2 6 24 120 720 5040\nFb = array 40320 362880\nFa = concat Fa Fb\nPw = 10 ** (0 to 22 array)\nDd = 0 to 9 array\nTotal = 0\nfor I in 1 to Top\n  Q = I // 9\n  Tn = Pw Q\n  Low = (I mod 9) * Tn + Tn - 1\n  Bk = 0\n  Bc = array shape 10 fill 0\n  F = Low\n  for\n    Cn = F // 362880\n    if Bk greater 0 and Cn greater Bk\n      break\n    end\n    C = array shape 10 fill 0\n    C 9 = F // 362880\n    Rm = F mod 362880\n    for D in 8 to 1 by -1\n      C D = Rm // (Fa D)\n      Rm = Rm mod (Fa D)\n    end\n    K = C sum\n    Pick = Bk equal 0 or K less Bk\n    if K equal Bk\n      for D in 1 to 9\n        if C D equal Bc D\n          continue\n        end\n        Pick = C D greater Bc D\n        break\n      end\n    end\n    if Pick\n      Bk = K\n      Bc = C\n    end\n    Dg = F\n    Pp = 1\n    Sb = 0\n    for P in 1 to 22\n      Sb += Dg mod 10\n      Dg = Dg // 10\n      Pp *= 10\n      if Dg mod 10 less 9 and Sb at least 1\n        S = Sb - 1\n        M = S // 9\n        Tn = Pw M\n        Tail = (S mod 9) * Tn + Tn - 1\n        F = (F // Pp + 1) * Pp + Tail\n        break\n      end\n    end\n  end\n  Total += (Bc * Dd) sum\nend\nAnswer = Total\nAnswer print\n",
+    "manual-helper": "rem Sums of Digit Factorials\nrem https://projecteuler.net/problem=254\nrem f(n) is the sum of the factorials of\nrem the digits of n and sf(n) the digit\nrem sum of f(n). With g(i) the least n\nrem with sf(n) = i and sg(i) its digit\nrem sum, add up sg(i) for i up to Top.\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\narg Top integer = 150\n\nrem A least n has at most d of the digit\nrem d below 9, as d + 1 of them could be\nrem swapped for a (d + 1) with the same\nrem factorial sum. So f is written in\nrem the factorial base, with all the\nrem rest in 9s: c9 = f // 9!. The digits\nrem are fewest for the least f with\nrem digit sum i, up to 36 more than c9.\nrem So look at the f with digit sum i\nrem while c9 does not pass the best\nrem count, each next one found by\nrem raising the lowest digit that may\nrem rise, and take the shortest n, the\nrem least on ties, with digits in order.\nFa = array 1 1 2 6 24 120 720 5040\nFb = array 40320 362880\nFa = concat Fa Fb\nTotal = 0\nfor I in 1 to Top\n  Total += I score Fa\nend\nAnswer = Total\nAnswer print\n\nfun I score Fa\n  Sg = 0\n  Q = I // 9\n  Tn = 1\n  for E in 1 to Q\n    Tn *= 10\n  end\n  Low = (I mod 9) * Tn + Tn - 1\n  Bk = 0\n  Bc = array shape 10 fill 0\n  F = Low\n  for\n    Cn = F // 362880\n    if Bk greater 0 and Cn greater Bk\n      break\n    end\n    C = array shape 10 fill 0\n    C 9 = F // 362880\n    K = C 9\n    Rm = F mod 362880\n    for D in 8 to 1 by -1\n      C D = Rm // (Fa D)\n      K += C D\n      Rm = Rm mod (Fa D)\n    end\n    Pick = Bk equal 0 or K less Bk\n    if K equal Bk\n      for D in 1 to 9\n        if C D equal Bc D\n          continue\n        end\n        Pick = C D greater Bc D\n        break\n      end\n    end\n    if Pick\n      Bk = K\n      for D in 1 to 9\n        Bc D = C D\n      end\n    end\n    Dg = F\n    Pp = 1\n    Sb = 0\n    for P in 1 to 22\n      Sb += Dg mod 10\n      Dg = Dg // 10\n      Pp *= 10\n      if Dg mod 10 less 9 and Sb at least 1\n        S = Sb - 1\n        M = S // 9\n        Tn = 1\n        for E in 1 to M\n          Tn *= 10\n        end\n        Tail = (S mod 9) * Tn + Tn - 1\n        F = (F // Pp + 1) * Pp + Tail\n        break\n      end\n    end\n  end\n  for D in 1 to 9\n    Sg += D * Bc D\n  end\n  return Sg\nend\n",
+    "sum-copy-helper": "rem Sums of Digit Factorials\nrem https://projecteuler.net/problem=254\nrem f(n) is the sum of the factorials of\nrem the digits of n and sf(n) the digit\nrem sum of f(n). With g(i) the least n\nrem with sf(n) = i and sg(i) its digit\nrem sum, add up sg(i) for i up to Top.\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\narg Top integer = 150\n\nrem A least n has at most d of the digit\nrem d below 9, as d + 1 of them could be\nrem swapped for a (d + 1) with the same\nrem factorial sum. So f is written in\nrem the factorial base, with all the\nrem rest in 9s: c9 = f // 9!. The digits\nrem are fewest for the least f with\nrem digit sum i, up to 36 more than c9.\nrem So look at the f with digit sum i\nrem while c9 does not pass the best\nrem count, each next one found by\nrem raising the lowest digit that may\nrem rise, and take the shortest n, the\nrem least on ties, with digits in order.\nFa = array 1 1 2 6 24 120 720 5040\nFb = array 40320 362880\nFa = concat Fa Fb\nDd = 0 to 9 array\nTotal = 0\nfor I in 1 to Top\n  Total += I score Fa Dd\nend\nAnswer = Total\nAnswer print\n\nfun I score Fa Dd\n  Sg = 0\n  Q = I // 9\n  Tn = 1\n  for E in 1 to Q\n    Tn *= 10\n  end\n  Low = (I mod 9) * Tn + Tn - 1\n  Bk = 0\n  Bc = array shape 10 fill 0\n  C = array shape 10 fill 0\n  F = Low\n  for\n    Cn = F // 362880\n    if Bk greater 0 and Cn greater Bk\n      break\n    end\n    C 9 = F // 362880\n    Rm = F mod 362880\n    for D in 8 to 1 by -1\n      C D = Rm // (Fa D)\n      Rm = Rm mod (Fa D)\n    end\n    K = C sum\n    Pick = Bk equal 0 or K less Bk\n    if K equal Bk\n      for D in 1 to 9\n        if C D equal Bc D\n          continue\n        end\n        Pick = C D greater Bc D\n        break\n      end\n    end\n    if Pick\n      Bk = K\n      Bc = C copy\n    end\n    Dg = F\n    Pp = 1\n    Sb = 0\n    for P in 1 to 22\n      Sb += Dg mod 10\n      Dg = Dg // 10\n      Pp *= 10\n      if Dg mod 10 less 9 and Sb at least 1\n        S = Sb - 1\n        M = S // 9\n        Tn = 1\n        for E in 1 to M\n          Tn *= 10\n        end\n        Tail = (S mod 9) * Tn + Tn - 1\n        F = (F // Pp + 1) * Pp + Tail\n        break\n      end\n    end\n  end\n  return (Bc * Dd) sum\nend\n",
+    "computed-powers": "rem Sums of Digit Factorials\nrem https://projecteuler.net/problem=254\nrem f(n) is the sum of the factorials of\nrem the digits of n and sf(n) the digit\nrem sum of f(n). With g(i) the least n\nrem with sf(n) = i and sg(i) its digit\nrem sum, add up sg(i) for i up to Top.\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\narg Top integer = 150\n\nrem A least n has at most d of the digit\nrem d below 9, as d + 1 of them could be\nrem swapped for a (d + 1) with the same\nrem factorial sum. So f is written in\nrem the factorial base, with all the\nrem rest in 9s: c9 = f // 9!. The digits\nrem are fewest for the least f with\nrem digit sum i, up to 36 more than c9.\nrem So look at the f with digit sum i\nrem while c9 does not pass the best\nrem count, each next one found by\nrem raising the lowest digit that may\nrem rise, and take the shortest n, the\nrem least on ties, with digits in order.\nFa = array 1 1 2 6 24 120 720 5040\nFb = array 40320 362880\nFa = concat Fa Fb\nDd = 0 to 9 array\nTotal = 0\nfor I in 1 to Top\n  Total += I score Fa Dd\nend\nAnswer = Total\nAnswer print\n\nfun I score Fa Dd\n  Q = I // 9\n  Tn = 10 ** Q\n  Low = (I mod 9) * Tn + Tn - 1\n  Bk = 0\n  Bc = array shape 10 fill 0\n  C = array shape 10 fill 0\n  F = Low\n  for\n    Cn = F // 362880\n    if Bk greater 0 and Cn greater Bk\n      break\n    end\n    C 9 = F // 362880\n    Rm = F mod 362880\n    for D in 8 to 1 by -1\n      C D = Rm // (Fa D)\n      Rm = Rm mod (Fa D)\n    end\n    K = C sum\n    Pick = Bk equal 0 or K less Bk\n    if K equal Bk\n      for D in 1 to 9\n        if C D equal Bc D\n          continue\n        end\n        Pick = C D greater Bc D\n        break\n      end\n    end\n    if Pick\n      Bk = K\n      Bc = C copy\n    end\n    Dg = F\n    Pp = 1\n    Sb = 0\n    for P in 1 to 22\n      Sb += Dg mod 10\n      Dg = Dg // 10\n      Pp *= 10\n      if Dg mod 10 less 9 and Sb at least 1\n        S = Sb - 1\n        M = S // 9\n        Tn = 10 ** M\n        Tail = (S mod 9) * Tn + Tn - 1\n        F = (F // Pp + 1) * Pp + Tail\n        break\n      end\n    end\n  end\n  return (Bc * Dd) sum\nend\n",
+    "three-tables": "rem Sums of Digit Factorials\nrem https://projecteuler.net/problem=254\nuse numbers\nuse sequences\nuse io\nuse cli\narg Top integer = 150\n\nFa = array 1 1 2 6 24 120 720 5040\nFa = concat Fa (array 40320 362880)\nLength = array 0\nDigit = array 0\nOrder = array 0\nfor D in 1 to 8\n  R = 0 till (Fa (D + 1)) array\n  Q = R // (Fa D)\n  Rest = R mod (Fa D)\n  Length = (Length Rest) + Q\n  Digit = (Digit Rest) + D * Q\n  Order = (Order Rest) + Q * 10 ** (8 - D)\nend\nTotal = 0\nfor I in 1 to Top\n  Total += I score Length Digit Order\nend\nAnswer = Total\nAnswer print\n\nfun I score Length Digit Order\n  Tn = 1\n  for E in 1 to (I // 9)\n    Tn *= 10\n  end\n  F = (I mod 9) * Tn + Tn - 1\n  Bk = 0\n  Best = 0\n  Sg = 0\n  for\n    Cn = F // 362880\n    if Bk greater 0 and Cn greater Bk\n      break\n    end\n    Rm = F mod 362880\n    K = Cn + Length Rm\n    Key = Order Rm\n    if Bk equal 0 or K less Bk or (K equal Bk and Key greater Best)\n      Bk = K\n      Best = Key\n      Sg = 9 * Cn + Digit Rm\n    end\n    Dg = F\n    Pp = 1\n    Sb = 0\n    for P in 1 to 22\n      Sb += Dg mod 10\n      Dg = Dg // 10\n      Pp *= 10\n      if Dg mod 10 less 9 and Sb at least 1\n        S = Sb - 1\n        Tn = 1\n        for E in 1 to (S // 9)\n          Tn *= 10\n        end\n        Tail = (S mod 9) * Tn + Tn - 1\n        F = (F // Pp + 1) * Pp + Tail\n        break\n      end\n    end\n  end\n  return Sg\nend\n",
+    "final": "rem Sums of Digit Factorials\nrem https://projecteuler.net/problem=254\nrem f(n) is the sum of the factorials of\nrem the digits of n and sf(n) the digit\nrem sum of f(n). With g(i) the least n\nrem with sf(n) = i and sg(i) its digit\nrem sum, add up sg(i) for i up to Top.\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\narg Top integer = 150\n\nrem A least n has at most d of the digit\nrem d below 9, as d + 1 of them could be\nrem swapped for a (d + 1) with the same\nrem factorial sum. So f is written in\nrem the factorial base, with all the\nrem rest in 9s: c9 = f // 9!. The digits\nrem are fewest for the least f with\nrem digit sum i, up to 36 more than c9.\nrem So look at the f with digit sum i\nrem while c9 does not pass the best\nrem count, each next one found by\nrem raising the lowest digit that may\nrem rise, and take the shortest n, the\nrem least on ties, with digits in order.\nFa = array 1 1 2 6 24 120 720 5040\nFb = array 40320 362880\nFa = concat Fa Fb\nDd = 0 to 9 array\nrem Cache canonical digit counts for the\nrem 9! possible remainders. Most F cannot\nrem improve the current length: decode\nrem their digits only when they can.\nLength = Fa factorial_lengths\nTotal = 0\nfor I in 1 to Top\n  Total += I digit_factorial_score Fa Dd Length\nend\nAnswer = Total\nAnswer print\n\nfun I digit_factorial_score Fa Dd Length\n  Sg = 0\n  Q = I // 9\n  Tn = 1\n  for E in 1 to Q\n    Tn *= 10\n  end\n  Low = (I mod 9) * Tn + Tn - 1\n  Bk = 0\n  Bc = array shape 10 fill 0\n  rem Reuse C; copy only a new best value.\n  C = array shape 10 fill 0\n  F = Low\n  for\n    Cn = F // 362880\n    if Bk greater 0 and Cn greater Bk\n      break\n    end\n    Rm = F mod 362880\n    K = Cn + Length Rm\n    if Bk equal 0 or K at most Bk\n      C 9 = Cn\n      for D in 8 to 1 by -1\n        C D = Rm // (Fa D)\n        Rm = Rm mod (Fa D)\n      end\n      Pick = Bk equal 0 or K less Bk\n      if K equal Bk\n        for D in 1 to 9\n          if C D equal Bc D\n            continue\n          end\n          Pick = C D greater Bc D\n          break\n        end\n      end\n      if Pick\n        Bk = K\n        Bc = C copy\n        Sg = (C * Dd) sum\n      end\n    end\n    Dg = F\n    Pp = 1\n    Sb = 0\n    for P in 1 to 22\n      Sb += Dg mod 10\n      Dg = Dg // 10\n      Pp *= 10\n      if Dg mod 10 less 9 and Sb at least 1\n        S = Sb - 1\n        M = S // 9\n        Tn = 1\n        for E in 1 to M\n          Tn *= 10\n        end\n        Tail = (S mod 9) * Tn + Tn - 1\n        F = (F // Pp + 1) * Pp + Tail\n        break\n      end\n    end\n  end\n  return Sg\nend\n\nrem At stage D, quotient gives the count\nrem of digit D and the remainder indexes\nrem the already computed lower digits.\nfun Fa factorial_lengths\n  Length = array 0\n  for D in 1 to 8\n    R = 0 till (Fa (D + 1)) array\n    Q = R // (Fa D)\n    Rest = R mod (Fa D)\n    Length = ((Length Rest) + Q) copy\n  end\n  return Length\nend\n"
+  },
+  "sourceHashes": {
+    "original": "1d2c811b376202f8750c4d957b50abacddd14ac82eaa7b780543871c7c6da083",
+    "scalar-digits": "50d52bf178d53e2f20f78379833961cb9a91eed7587031470aaf292ee1e32ec9",
+    "manual-helper": "2e79f95f31117b21c452a60f620488e5b8782b5570f191bf4d69e2fb7ca66e46",
+    "sum-copy-helper": "8d5ac7d50e67e024424c8b93bc1cced93a206576e0be5ac5e3862d60df278c5f",
+    "computed-powers": "614512346007d571e731678e5356776f792bd2f33e55697ea7b679f128ff2a21",
+    "three-tables": "bbd8bdbd5e139b325902d97c41bbcf6ad938782f528b0e5f7b4f0b13504c5c9f",
+    "final": "481cebb1f7d3645d3359812814163244418d453e57437928d685d385750f032c"
+  },
+  "runtimeHashes": {
+    "integer-loop-expressions.js": "3e26110529f34b79e62400cb68757b35acaa21e8332625eff2f272a35fe291ba",
+    "integer-loop-runtime.js": "aa22064e940bdc0a59905e402c882dfc0f9755e69d8ac869665abe9f9d353997",
+    "number-loop-runtime.js": "55101d403c5e8ead60b75852c32304bf9db78f63ed54f28cb9c05304bb6fbe50",
+    "binding-environment.js": "2dc27f02c13593ee5d7ba6da35f4e701a7f4235fbd5bb9af4e1800c4fbc27e2d"
+  },
+  "initialSourceExperiment": [
+    {
+      "label": "original",
+      "ms": 39111.93975,
+      "out": [
+        "8184523820510"
+      ],
+      "answer": "8184523820510",
+      "rss": 894.453125,
+      "diagnostics": {
+        "compiledLoops": 1519869,
+        "numberLoops": 1519869,
+        "numberLoopReadBuffers": 3039530,
+        "numberLoopReadBufferCells": 69903093,
+        "numberLoopReadBufferHits": 1519735,
+        "compiledTensors": 1519534,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:unsupported-op:**": 5,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 4,
+          "loop:unsupported-op:**": 2,
+          "scalar-expression:too-small": 16,
+          "tensor:scalar-evaluation-timing": 3039218,
+          "scalar-expression:unsupported-op:and": 4,
+          "scalar-expression:unsupported-op:or": 1,
+          "number-loop:unsafe-cell": 3039061,
+          "scalar-expression:unsupported-op:P": 3,
+          "scalar-expression:unsupported-op:less": 3,
+          "number-loop:unsafe-input": 7
+        }
+      }
+    },
+    {
+      "label": "helper",
+      "ms": 435.00962499999997,
+      "out": [
+        "8184523820510"
+      ],
+      "answer": "8184523820510",
+      "rss": 182.3125,
+      "diagnostics": {
+        "compiledLoops": 166,
+        "numberLoops": 174,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 16,
+        "numberLoopReadBuffers": 10,
+        "numberLoopReadBufferCells": 100,
+        "numberLoopReadBufferHits": 149,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 2,
+          "tensor:unsupported-type:array": 3,
+          "loop:unstable-bindings:ForStatement": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1,
+          "tensor:scalar-evaluation-timing": 8,
+          "number-loop:unsafe-input": 7
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Fa D",
+            "line": 61,
+            "column": 20
+          }
+        ]
+      }
+    },
+    {
+      "label": "helper",
+      "ms": 432.64374999999995,
+      "out": [
+        "8184523820510"
+      ],
+      "answer": "8184523820510",
+      "rss": 182.21875,
+      "diagnostics": {
+        "compiledLoops": 166,
+        "numberLoops": 174,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 16,
+        "numberLoopReadBuffers": 10,
+        "numberLoopReadBufferCells": 100,
+        "numberLoopReadBufferHits": 149,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 2,
+          "tensor:unsupported-type:array": 3,
+          "loop:unstable-bindings:ForStatement": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1,
+          "tensor:scalar-evaluation-timing": 8,
+          "number-loop:unsafe-input": 7
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Fa D",
+            "line": 61,
+            "column": 20
+          }
+        ]
+      }
+    },
+    {
+      "label": "original",
+      "ms": 38618.482667,
+      "out": [
+        "8184523820510"
+      ],
+      "answer": "8184523820510",
+      "rss": 910.984375,
+      "diagnostics": {
+        "compiledLoops": 1519869,
+        "numberLoops": 1519869,
+        "numberLoopReadBuffers": 3039530,
+        "numberLoopReadBufferCells": 69903093,
+        "numberLoopReadBufferHits": 1519735,
+        "compiledTensors": 1519534,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:unsupported-op:**": 5,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 4,
+          "loop:unsupported-op:**": 2,
+          "scalar-expression:too-small": 16,
+          "tensor:scalar-evaluation-timing": 3039218,
+          "scalar-expression:unsupported-op:and": 4,
+          "scalar-expression:unsupported-op:or": 1,
+          "number-loop:unsafe-cell": 3039061,
+          "scalar-expression:unsupported-op:P": 3,
+          "scalar-expression:unsupported-op:less": 3,
+          "number-loop:unsafe-input": 7
+        }
+      }
+    },
+    {
+      "label": "original",
+      "ms": 39228.492375,
+      "out": [
+        "8184523820510"
+      ],
+      "answer": "8184523820510",
+      "rss": 924.671875,
+      "diagnostics": {
+        "compiledLoops": 1519869,
+        "numberLoops": 1519869,
+        "numberLoopReadBuffers": 3039530,
+        "numberLoopReadBufferCells": 69903093,
+        "numberLoopReadBufferHits": 1519735,
+        "compiledTensors": 1519534,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:unsupported-op:**": 5,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 4,
+          "loop:unsupported-op:**": 2,
+          "scalar-expression:too-small": 16,
+          "tensor:scalar-evaluation-timing": 3039218,
+          "scalar-expression:unsupported-op:and": 4,
+          "scalar-expression:unsupported-op:or": 1,
+          "number-loop:unsafe-cell": 3039061,
+          "scalar-expression:unsupported-op:P": 3,
+          "scalar-expression:unsupported-op:less": 3,
+          "number-loop:unsafe-input": 7
+        }
+      }
+    },
+    {
+      "label": "helper",
+      "ms": 452.73920799999996,
+      "out": [
+        "8184523820510"
+      ],
+      "answer": "8184523820510",
+      "rss": 182.59375,
+      "diagnostics": {
+        "compiledLoops": 166,
+        "numberLoops": 174,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 16,
+        "numberLoopReadBuffers": 10,
+        "numberLoopReadBufferCells": 100,
+        "numberLoopReadBufferHits": 149,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 2,
+          "tensor:unsupported-type:array": 3,
+          "loop:unstable-bindings:ForStatement": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1,
+          "tensor:scalar-evaluation-timing": 8,
+          "number-loop:unsafe-input": 7
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Fa D",
+            "line": 61,
+            "column": 20
+          }
+        ]
+      }
+    },
+    {
+      "label": "original-reference",
+      "ms": 48722.326666,
+      "out": [
+        "8184523820510"
+      ],
+      "answer": "8184523820510",
+      "rss": 617,
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 5
+        }
+      }
+    },
+    {
+      "label": "helper-reference",
+      "ms": 53800.270625,
+      "out": [
+        "8184523820510"
+      ],
+      "answer": "8184523820510",
+      "rss": 485.078125,
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 9
+        }
+      }
+    }
+  ],
+  "generalCompilerComparison": [
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-reductions.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 43122.539542,
+      "answer": "8184523820510",
+      "rssMiB": 445.140625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 3039553,
+        "numberLoops": 3039554,
+        "mixedIntegerLoops": 8,
+        "numberLoopOverflows": 8,
+        "numberLoopReadBuffers": 497,
+        "numberLoopReadBufferCells": 4970,
+        "numberLoopReadBufferHits": 1519707,
+        "compiledTensors": 150,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 4,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:too-small": 9,
+          "tensor:scalar-evaluation-timing": 150,
+          "loop:unsupported-op:sum": 150,
+          "loop:input-type": 150,
+          "scalar-expression:unsupported-op:and": 1,
+          "scalar-expression:unsupported-op:or": 1,
+          "number-loop:unsafe-input": 14
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Fa D",
+            "line": 61,
+            "column": 20
+          }
+        ]
+      },
+      "label": "rank253-same-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-reductions.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 933.55475,
+      "answer": "8184523820510",
+      "rssMiB": 181.25,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 158,
+        "numberLoops": 165,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 15,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 10,
+        "numberLoopReadBufferHits": 149,
+        "compiledTensors": 150,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 4,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:too-small": 1,
+          "tensor:scalar-evaluation-timing": 8
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Fa D",
+            "line": 61,
+            "column": 20
+          }
+        ]
+      },
+      "label": "rank254-same-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-dot.ra",
+        "--Top=1",
+        "--expect=1706880000"
+      ],
+      "ms": 456.66420800000003,
+      "answer": "1706880000",
+      "rssMiB": 217.203125,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "loop:unsupported-op:sum": 1
+        }
+      },
+      "label": "rank253-dot"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-dot.ra",
+        "--Top=1",
+        "--expect=1706880000"
+      ],
+      "ms": 250.241291,
+      "answer": "1706880000",
+      "rssMiB": 132.71875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1
+        }
+      },
+      "label": "rank254-dot"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-reductions.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 949.7245419999999,
+      "answer": "8184523820510",
+      "rssMiB": 183.375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 158,
+        "numberLoops": 165,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 15,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 10,
+        "numberLoopReadBufferHits": 149,
+        "compiledTensors": 150,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 4,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:too-small": 1,
+          "tensor:scalar-evaluation-timing": 8
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Fa D",
+            "line": 61,
+            "column": 20
+          }
+        ]
+      },
+      "label": "rank254-same-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-reductions.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 31037.335334,
+      "answer": "8184523820510",
+      "rssMiB": 446.34375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 3039553,
+        "numberLoops": 3039554,
+        "mixedIntegerLoops": 8,
+        "numberLoopOverflows": 8,
+        "numberLoopReadBuffers": 497,
+        "numberLoopReadBufferCells": 4970,
+        "numberLoopReadBufferHits": 1519707,
+        "compiledTensors": 150,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 4,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:too-small": 9,
+          "tensor:scalar-evaluation-timing": 150,
+          "loop:unsupported-op:sum": 150,
+          "loop:input-type": 150,
+          "scalar-expression:unsupported-op:and": 1,
+          "scalar-expression:unsupported-op:or": 1,
+          "number-loop:unsafe-input": 14
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Fa D",
+            "line": 61,
+            "column": 20
+          }
+        ]
+      },
+      "label": "rank253-same-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-dot.ra",
+        "--Top=1",
+        "--expect=1706880000"
+      ],
+      "ms": 165.3745,
+      "answer": "1706880000",
+      "rssMiB": 137,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1
+        }
+      },
+      "label": "rank254-dot"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-dot.ra",
+        "--Top=1",
+        "--expect=1706880000"
+      ],
+      "ms": 347.93133300000005,
+      "answer": "1706880000",
+      "rssMiB": 218.625,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "loop:unsupported-op:sum": 1
+        }
+      },
+      "label": "rank253-dot"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-reductions.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 31844.465583,
+      "answer": "8184523820510",
+      "rssMiB": 449.796875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 3039553,
+        "numberLoops": 3039554,
+        "mixedIntegerLoops": 8,
+        "numberLoopOverflows": 8,
+        "numberLoopReadBuffers": 497,
+        "numberLoopReadBufferCells": 4970,
+        "numberLoopReadBufferHits": 1519707,
+        "compiledTensors": 150,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 4,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:too-small": 9,
+          "tensor:scalar-evaluation-timing": 150,
+          "loop:unsupported-op:sum": 150,
+          "loop:input-type": 150,
+          "scalar-expression:unsupported-op:and": 1,
+          "scalar-expression:unsupported-op:or": 1,
+          "number-loop:unsafe-input": 14
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Fa D",
+            "line": 61,
+            "column": 20
+          }
+        ]
+      },
+      "label": "rank253-same-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-reductions.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 792.167083,
+      "answer": "8184523820510",
+      "rssMiB": 170.796875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 158,
+        "numberLoops": 165,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 15,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 10,
+        "numberLoopReadBufferHits": 149,
+        "compiledTensors": 150,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 4,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:too-small": 1,
+          "tensor:scalar-evaluation-timing": 8
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Fa D",
+            "line": 61,
+            "column": 20
+          }
+        ]
+      },
+      "label": "rank254-same-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-dot.ra",
+        "--Top=1",
+        "--expect=1706880000"
+      ],
+      "ms": 362.19441600000005,
+      "answer": "1706880000",
+      "rssMiB": 216.53125,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "loop:unsupported-op:sum": 1
+        }
+      },
+      "label": "rank253-dot"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-dot.ra",
+        "--Top=1",
+        "--expect=1706880000"
+      ],
+      "ms": 198.486583,
+      "answer": "1706880000",
+      "rssMiB": 136.359375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1
+        }
+      },
+      "label": "rank254-dot"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-reductions.ra",
+        "--Top=150",
+        "--expect=8184523820510",
+        "--reference"
+      ],
+      "ms": 61664.12225,
+      "answer": "8184523820510",
+      "rssMiB": 436.28125,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 7
+        }
+      },
+      "label": "rank254-reference"
+    }
+  ],
+  "finalCompilerAndControlComparison": [
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/254_digitfactorials.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 12446.463042,
+      "answer": "8184523820510",
+      "rssMiB": 195.140625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1520713,
+        "numberLoops": 1520714,
+        "mixedIntegerLoops": 8,
+        "numberLoopOverflows": 8,
+        "numberLoopReadBuffers": 497,
+        "numberLoopReadBufferCells": 4970,
+        "numberLoopReadBufferHits": 867,
+        "compiledTensors": 411,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 2,
+          "tensor:unsupported-type:array": 5,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-function:unsupported-op:till": 1,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "scalar-expression:too-small": 14,
+          "scalar-expression:unsupported-op:D": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:unsupported-op:mod": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:scalar-evaluation-timing": 150,
+          "loop:unsupported-op:sum": 1,
+          "scalar-expression:unsupported-op:and": 1,
+          "scalar-expression:unsupported-op:Rm": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "scalar-expression:unsupported-op:or": 2,
+          "number-loop:unsafe-input": 14
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "digit_factorial_score",
+            "expression": "Length Rm",
+            "line": 65,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "factorial_lengths",
+            "expression": "Fa (D + 1)",
+            "line": 117,
+            "column": 17
+          },
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "factorial_lengths",
+            "expression": "0 till (Fa (D + 1)) array",
+            "line": 117,
+            "column": 9
+          }
+        ]
+      },
+      "label": "rank253-final-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/254_digitfactorials.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 633.971625,
+      "answer": "8184523820510",
+      "rssMiB": 191.609375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 158,
+        "numberLoops": 165,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 15,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 20,
+        "numberLoopReadBufferHits": 298,
+        "compiledTensors": 8,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 2,
+          "tensor:unsupported-type:array": 5,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-function:unsupported-op:till": 1,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "scalar-expression:too-small": 4,
+          "scalar-expression:unsupported-op:D": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:unsupported-op:mod": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:scalar-evaluation-timing": 8
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "digit_factorial_score",
+            "expression": "Length Rm",
+            "line": 65,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "factorial_lengths",
+            "expression": "Fa (D + 1)",
+            "line": 117,
+            "column": 17
+          },
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "factorial_lengths",
+            "expression": "0 till (Fa (D + 1)) array",
+            "line": 117,
+            "column": 9
+          }
+        ]
+      },
+      "label": "rank254-final-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/250_subsets.ra",
+        "--Top=1",
+        "--expect=1425480602091519"
+      ],
+      "ms": 576.098625,
+      "answer": "1425480602091519",
+      "rssMiB": 183.34375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numericDistincts": 1,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "loop:loop-header:ForStatement": 1,
+          "tensor:scalar-evaluation-timing": 5,
+          "tensor:unsupported-node:DeclaredCallExpression": 4,
+          "number-loop:unsafe-input": 32,
+          "tensor:unsupported-type:array": 3,
+          "scalar-expression:too-small": 4,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:Res": 5,
+          "scalar-expression:unsupported-op:-": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:mod": 2
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "cyclic_product",
+            "expression": "A I",
+            "line": 25,
+            "column": 16
+          }
+        ]
+      },
+      "label": "rank253-250"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/250_subsets.ra",
+        "--Top=1",
+        "--expect=1425480602091519"
+      ],
+      "ms": 554.401209,
+      "answer": "1425480602091519",
+      "rssMiB": 181.515625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numericDistincts": 1,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "loop:loop-header:ForStatement": 1,
+          "tensor:scalar-evaluation-timing": 5,
+          "tensor:unsupported-node:DeclaredCallExpression": 4,
+          "number-loop:unsafe-input": 32,
+          "tensor:unsupported-type:array": 3,
+          "scalar-expression:too-small": 4,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:Res": 5,
+          "scalar-expression:unsupported-op:-": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:mod": 2
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "cyclic_product",
+            "expression": "A I",
+            "line": 25,
+            "column": 16
+          }
+        ]
+      },
+      "label": "rank254-250"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/251_cardanotriplets.ra",
+        "--Top=1",
+        "--expect=18946051"
+      ],
+      "ms": 6354.774666,
+      "answer": "18946051",
+      "rssMiB": 208.859375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 1377,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 3,
+          "scalar-expression:unsupported-op:isqrt": 4,
+          "scalar-expression:unsupported-op:+": 4,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:too-small": 2
+        }
+      },
+      "label": "rank253-251"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/251_cardanotriplets.ra",
+        "--Top=1",
+        "--expect=18946051"
+      ],
+      "ms": 6297.239959,
+      "answer": "18946051",
+      "rssMiB": 214.15625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 1377,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 3,
+          "scalar-expression:unsupported-op:isqrt": 4,
+          "scalar-expression:unsupported-op:+": 4,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:too-small": 2
+        }
+      },
+      "label": "rank254-251"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/252_convexholes.ra",
+        "--Top=1",
+        "--expect=104924"
+      ],
+      "ms": 4817.351166,
+      "answer": "104924",
+      "rssMiB": 374.84375,
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 1247490,
+        "compiledLoops": 1496,
+        "numericSorts": 996,
+        "numberLoops": 502,
+        "exactLoopWorkSamples": 994,
+        "numberLoopCopyProbes": 3,
+        "numberLoopReadBuffers": 1997,
+        "numberLoopReadBufferCells": 749402,
+        "compiledTensors": 1496,
+        "tensorMapPreparations": 500,
+        "maskMaterializations": 1000,
+        "maskMaterializedCells": 249500,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 9,
+          "scalar-expression:too-small": 9,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:deferred-binding:AssignmentStatement": 5,
+          "scalar-expression:operator-guard:*": 1496,
+          "scalar-expression:operator-guard:+": 998,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "tensor:dyadic-terminal:ReturnStatement": 1,
+          "scalar-expression:unsupported-op:/": 3,
+          "scalar-expression:unsupported-op:-": 2,
+          "scalar-expression:unsupported-op:min": 1,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "number-loop:condition-work": 994
+        }
+      },
+      "label": "rank253-252"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/252_convexholes.ra",
+        "--Top=1",
+        "--expect=104924"
+      ],
+      "ms": 4578.421084,
+      "answer": "104924",
+      "rssMiB": 356.890625,
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 1247490,
+        "compiledLoops": 1496,
+        "numericSorts": 996,
+        "numberLoops": 502,
+        "exactLoopWorkSamples": 994,
+        "numberLoopCopyProbes": 3,
+        "numberLoopReadBuffers": 1997,
+        "numberLoopReadBufferCells": 749402,
+        "compiledTensors": 1496,
+        "tensorMapPreparations": 500,
+        "maskMaterializations": 1000,
+        "maskMaterializedCells": 249500,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 9,
+          "scalar-expression:too-small": 9,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:deferred-binding:AssignmentStatement": 5,
+          "scalar-expression:operator-guard:*": 1496,
+          "scalar-expression:operator-guard:+": 998,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "tensor:dyadic-terminal:ReturnStatement": 1,
+          "scalar-expression:unsupported-op:/": 3,
+          "scalar-expression:unsupported-op:-": 2,
+          "scalar-expression:unsupported-op:min": 1,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "number-loop:condition-work": 994
+        }
+      },
+      "label": "rank254-252"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/253_tidyingup.ra",
+        "--Top=1",
+        "--expect=11.492847"
+      ],
+      "ms": 1519.3984169999999,
+      "answer": "11.492847",
+      "rssMiB": 239.640625,
+      "tests": [],
+      "diagnostics": {
+        "indexReads": 485801,
+        "indexReadHits": 485801,
+        "indexWrites": 44583,
+        "cellsComputed": 21,
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "elementTypeScans": 1,
+        "elementTypeScannedCells": 60000,
+        "typedUnpacks": 1,
+        "typedUnpackedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1
+        }
+      },
+      "label": "rank253-253"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/253_tidyingup.ra",
+        "--Top=1",
+        "--expect=11.492847"
+      ],
+      "ms": 1530.481792,
+      "answer": "11.492847",
+      "rssMiB": 238.1875,
+      "tests": [],
+      "diagnostics": {
+        "indexReads": 485801,
+        "indexReadHits": 485801,
+        "indexWrites": 44583,
+        "cellsComputed": 21,
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "elementTypeScans": 1,
+        "elementTypeScannedCells": 60000,
+        "typedUnpacks": 1,
+        "typedUnpackedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1
+        }
+      },
+      "label": "rank254-253"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/254_digitfactorials.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 666.0941250000001,
+      "answer": "8184523820510",
+      "rssMiB": 190.390625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 158,
+        "numberLoops": 165,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 15,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 20,
+        "numberLoopReadBufferHits": 298,
+        "compiledTensors": 8,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 2,
+          "tensor:unsupported-type:array": 5,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-function:unsupported-op:till": 1,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "scalar-expression:too-small": 4,
+          "scalar-expression:unsupported-op:D": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:unsupported-op:mod": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:scalar-evaluation-timing": 8
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "digit_factorial_score",
+            "expression": "Length Rm",
+            "line": 65,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "factorial_lengths",
+            "expression": "Fa (D + 1)",
+            "line": 117,
+            "column": 17
+          },
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "factorial_lengths",
+            "expression": "0 till (Fa (D + 1)) array",
+            "line": 117,
+            "column": 9
+          }
+        ]
+      },
+      "label": "rank254-final-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/254_digitfactorials.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 12317.732167,
+      "answer": "8184523820510",
+      "rssMiB": 194.609375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1520713,
+        "numberLoops": 1520714,
+        "mixedIntegerLoops": 8,
+        "numberLoopOverflows": 8,
+        "numberLoopReadBuffers": 497,
+        "numberLoopReadBufferCells": 4970,
+        "numberLoopReadBufferHits": 867,
+        "compiledTensors": 411,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 2,
+          "tensor:unsupported-type:array": 5,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-function:unsupported-op:till": 1,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "scalar-expression:too-small": 14,
+          "scalar-expression:unsupported-op:D": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:unsupported-op:mod": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:scalar-evaluation-timing": 150,
+          "loop:unsupported-op:sum": 1,
+          "scalar-expression:unsupported-op:and": 1,
+          "scalar-expression:unsupported-op:Rm": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "scalar-expression:unsupported-op:or": 2,
+          "number-loop:unsafe-input": 14
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "digit_factorial_score",
+            "expression": "Length Rm",
+            "line": 65,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "factorial_lengths",
+            "expression": "Fa (D + 1)",
+            "line": 117,
+            "column": 17
+          },
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "factorial_lengths",
+            "expression": "0 till (Fa (D + 1)) array",
+            "line": 117,
+            "column": 9
+          }
+        ]
+      },
+      "label": "rank253-final-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/250_subsets.ra",
+        "--Top=1",
+        "--expect=1425480602091519"
+      ],
+      "ms": 552.875041,
+      "answer": "1425480602091519",
+      "rssMiB": 182.421875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numericDistincts": 1,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "loop:loop-header:ForStatement": 1,
+          "tensor:scalar-evaluation-timing": 5,
+          "tensor:unsupported-node:DeclaredCallExpression": 4,
+          "number-loop:unsafe-input": 32,
+          "tensor:unsupported-type:array": 3,
+          "scalar-expression:too-small": 4,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:Res": 5,
+          "scalar-expression:unsupported-op:-": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:mod": 2
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "cyclic_product",
+            "expression": "A I",
+            "line": 25,
+            "column": 16
+          }
+        ]
+      },
+      "label": "rank254-250"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/250_subsets.ra",
+        "--Top=1",
+        "--expect=1425480602091519"
+      ],
+      "ms": 577.7753339999999,
+      "answer": "1425480602091519",
+      "rssMiB": 183.40625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numericDistincts": 1,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "loop:loop-header:ForStatement": 1,
+          "tensor:scalar-evaluation-timing": 5,
+          "tensor:unsupported-node:DeclaredCallExpression": 4,
+          "number-loop:unsafe-input": 32,
+          "tensor:unsupported-type:array": 3,
+          "scalar-expression:too-small": 4,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:Res": 5,
+          "scalar-expression:unsupported-op:-": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:mod": 2
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "cyclic_product",
+            "expression": "A I",
+            "line": 25,
+            "column": 16
+          }
+        ]
+      },
+      "label": "rank253-250"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/251_cardanotriplets.ra",
+        "--Top=1",
+        "--expect=18946051"
+      ],
+      "ms": 6399.320167,
+      "answer": "18946051",
+      "rssMiB": 195.71875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 1377,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 3,
+          "scalar-expression:unsupported-op:isqrt": 4,
+          "scalar-expression:unsupported-op:+": 4,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:too-small": 2
+        }
+      },
+      "label": "rank254-251"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/251_cardanotriplets.ra",
+        "--Top=1",
+        "--expect=18946051"
+      ],
+      "ms": 6475.831749999999,
+      "answer": "18946051",
+      "rssMiB": 197.453125,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 1377,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 3,
+          "scalar-expression:unsupported-op:isqrt": 4,
+          "scalar-expression:unsupported-op:+": 4,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:too-small": 2
+        }
+      },
+      "label": "rank253-251"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/252_convexholes.ra",
+        "--Top=1",
+        "--expect=104924"
+      ],
+      "ms": 5043.332917,
+      "answer": "104924",
+      "rssMiB": 359.390625,
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 1247490,
+        "compiledLoops": 1496,
+        "numericSorts": 996,
+        "numberLoops": 502,
+        "exactLoopWorkSamples": 994,
+        "numberLoopCopyProbes": 3,
+        "numberLoopReadBuffers": 1997,
+        "numberLoopReadBufferCells": 749402,
+        "compiledTensors": 1496,
+        "tensorMapPreparations": 500,
+        "maskMaterializations": 1000,
+        "maskMaterializedCells": 249500,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 9,
+          "scalar-expression:too-small": 9,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:deferred-binding:AssignmentStatement": 5,
+          "scalar-expression:operator-guard:*": 1496,
+          "scalar-expression:operator-guard:+": 998,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "tensor:dyadic-terminal:ReturnStatement": 1,
+          "scalar-expression:unsupported-op:/": 3,
+          "scalar-expression:unsupported-op:-": 2,
+          "scalar-expression:unsupported-op:min": 1,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "number-loop:condition-work": 994
+        }
+      },
+      "label": "rank254-252"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/252_convexholes.ra",
+        "--Top=1",
+        "--expect=104924"
+      ],
+      "ms": 4688.59825,
+      "answer": "104924",
+      "rssMiB": 354.03125,
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 1247490,
+        "compiledLoops": 1496,
+        "numericSorts": 996,
+        "numberLoops": 502,
+        "exactLoopWorkSamples": 994,
+        "numberLoopCopyProbes": 3,
+        "numberLoopReadBuffers": 1997,
+        "numberLoopReadBufferCells": 749402,
+        "compiledTensors": 1496,
+        "tensorMapPreparations": 500,
+        "maskMaterializations": 1000,
+        "maskMaterializedCells": 249500,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 9,
+          "scalar-expression:too-small": 9,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:deferred-binding:AssignmentStatement": 5,
+          "scalar-expression:operator-guard:*": 1496,
+          "scalar-expression:operator-guard:+": 998,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "tensor:dyadic-terminal:ReturnStatement": 1,
+          "scalar-expression:unsupported-op:/": 3,
+          "scalar-expression:unsupported-op:-": 2,
+          "scalar-expression:unsupported-op:min": 1,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "number-loop:condition-work": 994
+        }
+      },
+      "label": "rank253-252"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/253_tidyingup.ra",
+        "--Top=1",
+        "--expect=11.492847"
+      ],
+      "ms": 1470.633208,
+      "answer": "11.492847",
+      "rssMiB": 235.234375,
+      "tests": [],
+      "diagnostics": {
+        "indexReads": 485801,
+        "indexReadHits": 485801,
+        "indexWrites": 44583,
+        "cellsComputed": 21,
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "elementTypeScans": 1,
+        "elementTypeScannedCells": 60000,
+        "typedUnpacks": 1,
+        "typedUnpackedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1
+        }
+      },
+      "label": "rank254-253"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/253_tidyingup.ra",
+        "--Top=1",
+        "--expect=11.492847"
+      ],
+      "ms": 1473.095458,
+      "answer": "11.492847",
+      "rssMiB": 238.765625,
+      "tests": [],
+      "diagnostics": {
+        "indexReads": 485801,
+        "indexReadHits": 485801,
+        "indexWrites": 44583,
+        "cellsComputed": 21,
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "elementTypeScans": 1,
+        "elementTypeScannedCells": 60000,
+        "typedUnpacks": 1,
+        "typedUnpackedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1
+        }
+      },
+      "label": "rank253-253"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/254_digitfactorials.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 13090.958167,
+      "answer": "8184523820510",
+      "rssMiB": 185.078125,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1520713,
+        "numberLoops": 1520714,
+        "mixedIntegerLoops": 8,
+        "numberLoopOverflows": 8,
+        "numberLoopReadBuffers": 497,
+        "numberLoopReadBufferCells": 4970,
+        "numberLoopReadBufferHits": 867,
+        "compiledTensors": 411,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 2,
+          "tensor:unsupported-type:array": 5,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-function:unsupported-op:till": 1,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "scalar-expression:too-small": 14,
+          "scalar-expression:unsupported-op:D": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:unsupported-op:mod": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:scalar-evaluation-timing": 150,
+          "loop:unsupported-op:sum": 1,
+          "scalar-expression:unsupported-op:and": 1,
+          "scalar-expression:unsupported-op:Rm": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "scalar-expression:unsupported-op:or": 2,
+          "number-loop:unsafe-input": 14
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "digit_factorial_score",
+            "expression": "Length Rm",
+            "line": 65,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "factorial_lengths",
+            "expression": "Fa (D + 1)",
+            "line": 117,
+            "column": 17
+          },
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "factorial_lengths",
+            "expression": "0 till (Fa (D + 1)) array",
+            "line": 117,
+            "column": 9
+          }
+        ]
+      },
+      "label": "rank253-final-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/254_digitfactorials.ra",
+        "--Top=150",
+        "--expect=8184523820510"
+      ],
+      "ms": 641.6469579999999,
+      "answer": "8184523820510",
+      "rssMiB": 191.140625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 158,
+        "numberLoops": 165,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 15,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 20,
+        "numberLoopReadBufferHits": 298,
+        "compiledTensors": 8,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 2,
+          "tensor:unsupported-type:array": 5,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-function:unsupported-op:till": 1,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "scalar-expression:too-small": 4,
+          "scalar-expression:unsupported-op:D": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:unsupported-op:mod": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:scalar-evaluation-timing": 8
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "digit_factorial_score",
+            "expression": "Length Rm",
+            "line": 65,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "factorial_lengths",
+            "expression": "Fa (D + 1)",
+            "line": 117,
+            "column": 17
+          },
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "factorial_lengths",
+            "expression": "0 till (Fa (D + 1)) array",
+            "line": 117,
+            "column": 9
+          }
+        ]
+      },
+      "label": "rank254-final-demo"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/250_subsets.ra",
+        "--Top=1",
+        "--expect=1425480602091519"
+      ],
+      "ms": 571.7284999999999,
+      "answer": "1425480602091519",
+      "rssMiB": 184.109375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numericDistincts": 1,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "loop:loop-header:ForStatement": 1,
+          "tensor:scalar-evaluation-timing": 5,
+          "tensor:unsupported-node:DeclaredCallExpression": 4,
+          "number-loop:unsafe-input": 32,
+          "tensor:unsupported-type:array": 3,
+          "scalar-expression:too-small": 4,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:Res": 5,
+          "scalar-expression:unsupported-op:-": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:mod": 2
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "cyclic_product",
+            "expression": "A I",
+            "line": 25,
+            "column": 16
+          }
+        ]
+      },
+      "label": "rank253-250"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/250_subsets.ra",
+        "--Top=1",
+        "--expect=1425480602091519"
+      ],
+      "ms": 567.308875,
+      "answer": "1425480602091519",
+      "rssMiB": 180.34375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numericDistincts": 1,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "loop:loop-header:ForStatement": 1,
+          "tensor:scalar-evaluation-timing": 5,
+          "tensor:unsupported-node:DeclaredCallExpression": 4,
+          "number-loop:unsafe-input": 32,
+          "tensor:unsupported-type:array": 3,
+          "scalar-expression:too-small": 4,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:Res": 5,
+          "scalar-expression:unsupported-op:-": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:mod": 2
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "cyclic_product",
+            "expression": "A I",
+            "line": 25,
+            "column": 16
+          }
+        ]
+      },
+      "label": "rank254-250"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/251_cardanotriplets.ra",
+        "--Top=1",
+        "--expect=18946051"
+      ],
+      "ms": 6307.334041,
+      "answer": "18946051",
+      "rssMiB": 204.71875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 1377,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 3,
+          "scalar-expression:unsupported-op:isqrt": 4,
+          "scalar-expression:unsupported-op:+": 4,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:too-small": 2
+        }
+      },
+      "label": "rank253-251"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/251_cardanotriplets.ra",
+        "--Top=1",
+        "--expect=18946051"
+      ],
+      "ms": 6308.474999999999,
+      "answer": "18946051",
+      "rssMiB": 203.640625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 1377,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 3,
+          "scalar-expression:unsupported-op:isqrt": 4,
+          "scalar-expression:unsupported-op:+": 4,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:too-small": 2
+        }
+      },
+      "label": "rank254-251"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/252_convexholes.ra",
+        "--Top=1",
+        "--expect=104924"
+      ],
+      "ms": 5142.613,
+      "answer": "104924",
+      "rssMiB": 356.59375,
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 1247490,
+        "compiledLoops": 1496,
+        "numericSorts": 996,
+        "numberLoops": 502,
+        "exactLoopWorkSamples": 994,
+        "numberLoopCopyProbes": 3,
+        "numberLoopReadBuffers": 1997,
+        "numberLoopReadBufferCells": 749402,
+        "compiledTensors": 1496,
+        "tensorMapPreparations": 500,
+        "maskMaterializations": 1000,
+        "maskMaterializedCells": 249500,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 9,
+          "scalar-expression:too-small": 9,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:deferred-binding:AssignmentStatement": 5,
+          "scalar-expression:operator-guard:*": 1496,
+          "scalar-expression:operator-guard:+": 998,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "tensor:dyadic-terminal:ReturnStatement": 1,
+          "scalar-expression:unsupported-op:/": 3,
+          "scalar-expression:unsupported-op:-": 2,
+          "scalar-expression:unsupported-op:min": 1,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "number-loop:condition-work": 994
+        }
+      },
+      "label": "rank253-252"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/252_convexholes.ra",
+        "--Top=1",
+        "--expect=104924"
+      ],
+      "ms": 4599.866583999999,
+      "answer": "104924",
+      "rssMiB": 349.796875,
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 1247490,
+        "compiledLoops": 1496,
+        "numericSorts": 996,
+        "numberLoops": 502,
+        "exactLoopWorkSamples": 994,
+        "numberLoopCopyProbes": 3,
+        "numberLoopReadBuffers": 1997,
+        "numberLoopReadBufferCells": 749402,
+        "compiledTensors": 1496,
+        "tensorMapPreparations": 500,
+        "maskMaterializations": 1000,
+        "maskMaterializedCells": 249500,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 9,
+          "scalar-expression:too-small": 9,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:deferred-binding:AssignmentStatement": 5,
+          "scalar-expression:operator-guard:*": 1496,
+          "scalar-expression:operator-guard:+": 998,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "tensor:dyadic-terminal:ReturnStatement": 1,
+          "scalar-expression:unsupported-op:/": 3,
+          "scalar-expression:unsupported-op:-": 2,
+          "scalar-expression:unsupported-op:min": 1,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "number-loop:condition-work": 994
+        }
+      },
+      "label": "rank254-252"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/253_tidyingup.ra",
+        "--Top=1",
+        "--expect=11.492847"
+      ],
+      "ms": 1543.89025,
+      "answer": "11.492847",
+      "rssMiB": 216.390625,
+      "tests": [],
+      "diagnostics": {
+        "indexReads": 485801,
+        "indexReadHits": 485801,
+        "indexWrites": 44583,
+        "cellsComputed": 21,
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "elementTypeScans": 1,
+        "elementTypeScannedCells": 60000,
+        "typedUnpacks": 1,
+        "typedUnpackedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1
+        }
+      },
+      "label": "rank253-253"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/253_tidyingup.ra",
+        "--Top=1",
+        "--expect=11.492847"
+      ],
+      "ms": 1472.434584,
+      "answer": "11.492847",
+      "rssMiB": 230.203125,
+      "tests": [],
+      "diagnostics": {
+        "indexReads": 485801,
+        "indexReadHits": 485801,
+        "indexWrites": 44583,
+        "cellsComputed": 21,
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "elementTypeScans": 1,
+        "elementTypeScannedCells": 60000,
+        "typedUnpacks": 1,
+        "typedUnpackedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1
+        }
+      },
+      "label": "rank254-253"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank196-delivery/demos/euler/254_digitfactorials.ra",
+        "--Top=150",
+        "--expect=8184523820510",
+        "--reference"
+      ],
+      "ms": 30443.279333000002,
+      "answer": "8184523820510",
+      "rssMiB": 441.15625,
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 11820,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      },
+      "label": "final-reference"
+    }
+  ],
+  "originalReferenceImmediatelyAfterFinalCohort": {
+    "args": [
+      "--runtime=/tmp/rank253-validation/packages/interpreter/out/index.js",
+      "--source=/tmp/rank254-before.ra",
+      "--reference"
+    ],
+    "ms": 127354.815875,
+    "answer": "8184523820510",
+    "rssMiB": 475.953125,
+    "tests": [],
+    "diagnostics": {
+      "fallbacks": {
+        "loop:disabled": 5
+      }
+    }
+  },
+  "otherSingleObservations": {
+    "scalarTop20": {
+      "ms": 4778.8649589999995,
+      "out": [
+        "156"
+      ],
+      "answer": "156",
+      "rss": 867.390625,
+      "diagnostics": {
+        "compiledLoops": 537230,
+        "numberLoops": 268666,
+        "numberLoopReadBuffers": 139,
+        "numberLoopReadBufferCells": 1390,
+        "numberLoopReadBufferHits": 268629,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "loop:unsupported-op:sum": 1,
+          "scalar-expression:too-small": 9,
+          "tensor:scalar-evaluation-timing": 20,
+          "loop:unstable-bindings:ForStatement": 1,
+          "scalar-expression:unsupported-op:and": 1,
+          "scalar-expression:unsupported-op:or": 1,
+          "number-loop:unsafe-cell": 537128
+        }
+      }
+    },
+    "fusedTop20": {
+      "ms": 4180.991417,
+      "out": [
+        "156"
+      ],
+      "answer": "156",
+      "rss": 601.6875,
+      "diagnostics": {
+        "compiledLoops": 537250,
+        "numberLoops": 268686,
+        "numberLoopReadBuffers": 159,
+        "numberLoopReadBufferCells": 1590,
+        "numberLoopReadBufferHits": 268629,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "loop:unstable-bindings:ForStatement": 2,
+          "scalar-expression:too-small": 9,
+          "tensor:scalar-evaluation-timing": 20,
+          "scalar-expression:unsupported-op:and": 1,
+          "scalar-expression:unsupported-op:or": 1,
+          "number-loop:unsafe-cell": 537128
+        }
+      }
+    },
+    "copyTop20": {
+      "ms": 1011.8937920000001,
+      "out": [
+        "156"
+      ],
+      "answer": "156",
+      "rss": 491,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 2,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 2,
+          "number-loop:unsafe-cell": 2
+        }
+      }
+    },
+    "singleRegionFull": {
+      "ms": 6045.19525,
+      "out": [
+        "8184523820510"
+      ],
+      "answer": "8184523820510",
+      "rss": 622.328125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 2,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 2,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 20,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 2,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1
+        }
+      }
+    },
+    "computedPowersFull": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-powers.ra"
+      ],
+      "ms": 1068.33525,
+      "answer": "8184523820510",
+      "rssMiB": 179.828125,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 151,
+        "numberLoops": 160,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 9,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 20,
+        "numberLoopReadBufferHits": 156,
+        "compiledTensors": 150,
+        "fallbacks": {
+          "scalar-function:unsupported-op:**": 2,
+          "tensor:unsupported-type:array": 4,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 3,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "scalar-expression:too-small": 14,
+          "scalar-expression:unsupported-op:**": 2,
+          "tensor:scalar-evaluation-timing": 22,
+          "loop:unsupported-op:**": 1,
+          "scalar-expression:unsupported-op:and": 2,
+          "scalar-expression:unsupported-op:or": 1,
+          "number-loop:unsafe-input": 14,
+          "tensor:output-shape": 112
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:**",
+            "node": "BinaryExpression",
+            "function": "score",
+            "expression": "10 ** Q",
+            "line": 43,
+            "column": 8
+          }
+        ]
+      }
+    },
+    "threeTablesCompiled": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-lookup.ra"
+      ],
+      "ms": 679.527208,
+      "answer": "8184523820510",
+      "rssMiB": 199.578125,
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 23640,
+        "compiledTensors": 8,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 5,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "scalar-expression:too-small": 8,
+          "scalar-expression:unsupported-op:D": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 9,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:unsupported-op:mod": 2,
+          "scalar-expression:unsupported-op:Rest": 13,
+          "scalar-expression:unsupported-op:+": 5,
+          "scalar-expression:unsupported-op:**": 15,
+          "scalar-expression:unsupported-op:*": 4,
+          "tensor:scalar-evaluation-timing": 8,
+          "scalar-expression:operator-guard:*": 8,
+          "scalar-expression:operator-guard:+": 8,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Length Rm",
+            "line": 44,
+            "column": 14
+          }
+        ]
+      }
+    },
+    "threeTablesReference": {
+      "ms": 20336.8795,
+      "out": [
+        "8184523820510"
+      ],
+      "answer": "8184523820510",
+      "rss": 465.609375,
+      "diagnostics": {
+        "cellsComputed": 35460,
+        "fallbacks": {
+          "loop:disabled": 6
+        }
+      }
+    },
+    "oneTableCompiled": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-pruned.ra"
+      ],
+      "ms": 457.609792,
+      "answer": "8184523820510",
+      "rssMiB": 192.78125,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 158,
+        "numberLoops": 165,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 15,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 20,
+        "numberLoopReadBufferHits": 298,
+        "compiledTensors": 8,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 5,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "scalar-expression:too-small": 4,
+          "scalar-expression:unsupported-op:D": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:unsupported-op:mod": 2,
+          "loop:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:unsupported-node:DeclaredCallExpression": 1,
+          "tensor:scalar-evaluation-timing": 8
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "score",
+            "expression": "Length Rm",
+            "line": 66,
+            "column": 14
+          }
+        ]
+      }
+    },
+    "oneTableReference": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank254-pruned.ra",
+        "--reference"
+      ],
+      "ms": 18828.020834,
+      "answer": "8184523820510",
+      "rssMiB": 465.765625,
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 11820,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    }
+  },
+  "candidateCounts": {
+    "tested": 1519534,
+    "decodedBefore": 1519534,
+    "decodedAfter": 694
+  },
+  "independentSmallOracle": {
+    "g": {
+      "1": 1,
+      "2": 2,
+      "3": 5,
+      "4": 15,
+      "5": 25,
+      "6": 3,
+      "7": 13,
+      "8": 23,
+      "9": 6,
+      "10": 16,
+      "11": 26,
+      "12": 44,
+      "13": 144,
+      "14": 256,
+      "15": 36,
+      "16": 136,
+      "17": 236,
+      "18": 67,
+      "19": 167,
+      "20": 267
+    },
+    "prefixes": {
+      "0": 0,
+      "1": 1,
+      "2": 3,
+      "3": 8,
+      "4": 14,
+      "5": 21,
+      "6": 24,
+      "7": 28,
+      "8": 33,
+      "9": 39,
+      "10": 46,
+      "11": 54,
+      "12": 62,
+      "13": 71,
+      "14": 84,
+      "15": 93,
+      "16": 103,
+      "17": 114,
+      "18": 127,
+      "19": 141,
+      "20": 156
+    }
+  },
+  "independentPrefixChecks": [
+    {
+      "top": 0,
+      "reference": false,
+      "answer": "0",
+      "ms": 334.09729100000004
+    },
+    {
+      "top": 0,
+      "reference": true,
+      "answer": "0",
+      "ms": 333.0625
+    },
+    {
+      "top": 1,
+      "reference": false,
+      "answer": "1",
+      "ms": 353.85354199999995
+    },
+    {
+      "top": 1,
+      "reference": true,
+      "answer": "1",
+      "ms": 357.1515
+    },
+    {
+      "top": 2,
+      "reference": false,
+      "answer": "3",
+      "ms": 341.48970899999995
+    },
+    {
+      "top": 2,
+      "reference": true,
+      "answer": "3",
+      "ms": 366.622167
+    },
+    {
+      "top": 3,
+      "reference": false,
+      "answer": "8",
+      "ms": 349.001375
+    },
+    {
+      "top": 3,
+      "reference": true,
+      "answer": "8",
+      "ms": 355.54133399999995
+    },
+    {
+      "top": 4,
+      "reference": false,
+      "answer": "14",
+      "ms": 357.02154199999995
+    },
+    {
+      "top": 4,
+      "reference": true,
+      "answer": "14",
+      "ms": 345.549542
+    },
+    {
+      "top": 5,
+      "reference": false,
+      "answer": "21",
+      "ms": 378.6845
+    },
+    {
+      "top": 5,
+      "reference": true,
+      "answer": "21",
+      "ms": 373.01566599999995
+    },
+    {
+      "top": 6,
+      "reference": false,
+      "answer": "24",
+      "ms": 392.591416
+    },
+    {
+      "top": 6,
+      "reference": true,
+      "answer": "24",
+      "ms": 387.324
+    },
+    {
+      "top": 7,
+      "reference": false,
+      "answer": "28",
+      "ms": 348.85600000000005
+    },
+    {
+      "top": 7,
+      "reference": true,
+      "answer": "28",
+      "ms": 380.51254199999994
+    },
+    {
+      "top": 8,
+      "reference": false,
+      "answer": "33",
+      "ms": 383.527334
+    },
+    {
+      "top": 8,
+      "reference": true,
+      "answer": "33",
+      "ms": 433.758958
+    },
+    {
+      "top": 9,
+      "reference": false,
+      "answer": "39",
+      "ms": 344.10416599999996
+    },
+    {
+      "top": 9,
+      "reference": true,
+      "answer": "39",
+      "ms": 493.37279099999995
+    },
+    {
+      "top": 10,
+      "reference": false,
+      "answer": "46",
+      "ms": 373.747625
+    },
+    {
+      "top": 10,
+      "reference": true,
+      "answer": "46",
+      "ms": 531.6772080000001
+    },
+    {
+      "top": 11,
+      "reference": false,
+      "answer": "54",
+      "ms": 342.02750000000003
+    },
+    {
+      "top": 11,
+      "reference": true,
+      "answer": "54",
+      "ms": 561.60925
+    },
+    {
+      "top": 12,
+      "reference": false,
+      "answer": "62",
+      "ms": 347.06737499999997
+    },
+    {
+      "top": 12,
+      "reference": true,
+      "answer": "62",
+      "ms": 675.965042
+    },
+    {
+      "top": 13,
+      "reference": false,
+      "answer": "71",
+      "ms": 412.862709
+    },
+    {
+      "top": 13,
+      "reference": true,
+      "answer": "71",
+      "ms": 1049.920458
+    },
+    {
+      "top": 14,
+      "reference": false,
+      "answer": "84",
+      "ms": 466.257666
+    },
+    {
+      "top": 14,
+      "reference": true,
+      "answer": "84",
+      "ms": 1389.415958
+    },
+    {
+      "top": 15,
+      "reference": false,
+      "answer": "93",
+      "ms": 491.64175000000006
+    },
+    {
+      "top": 15,
+      "reference": true,
+      "answer": "93",
+      "ms": 1889.572208
+    },
+    {
+      "top": 16,
+      "reference": false,
+      "answer": "103",
+      "ms": 479.833916
+    },
+    {
+      "top": 16,
+      "reference": true,
+      "answer": "103",
+      "ms": 2345.678333
+    },
+    {
+      "top": 17,
+      "reference": false,
+      "answer": "114",
+      "ms": 525.365459
+    },
+    {
+      "top": 17,
+      "reference": true,
+      "answer": "114",
+      "ms": 3228.861958
+    },
+    {
+      "top": 18,
+      "reference": false,
+      "answer": "127",
+      "ms": 770.963666
+    },
+    {
+      "top": 18,
+      "reference": true,
+      "answer": "127",
+      "ms": 4139.487040999999
+    },
+    {
+      "top": 19,
+      "reference": false,
+      "answer": "141",
+      "ms": 559.170083
+    },
+    {
+      "top": 19,
+      "reference": true,
+      "answer": "141",
+      "ms": 4679.071166
+    },
+    {
+      "top": 20,
+      "reference": false,
+      "answer": "156",
+      "ms": 560.963917
+    },
+    {
+      "top": 20,
+      "reference": true,
+      "answer": "156",
+      "ms": 5704.566667
+    }
+  ],
+  "independentTableChecks": {
+    "rows": 362880,
+    "engines": 2,
+    "passed": true
+  },
+  "fixtures": {
+    "compiled": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--fixture"
+      ],
+      "ms": 1354.788125,
+      "rssMiB": 240.734375,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "8184523820510"
+          ],
+          "durationMs": 310.66608300000007
+        },
+        {
+          "name": "small top",
+          "passed": true,
+          "output": [
+            "0",
+            "1",
+            "3",
+            "8",
+            "21",
+            "46",
+            "93",
+            "156"
+          ],
+          "durationMs": 677.0897499999999
+        }
+      ],
+      "diagnostics": {
+        "compiledLoops": 214,
+        "numberLoops": 221,
+        "mixedIntegerLoops": 7,
+        "numberLoopOverflows": 15,
+        "numberLoopReadBuffers": 16,
+        "numberLoopReadBufferCells": 160,
+        "numberLoopReadBufferHits": 396,
+        "compiledTensors": 72,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 8,
+          "tensor:unsupported-type:array": 8,
+          "tensor:unsupported-node:MaterializeExpression": 4,
+          "scalar-expression:unsupported-op:to": 6,
+          "scalar-function:unsupported-op:till": 2,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:till": 4,
+          "scalar-expression:too-small": 16,
+          "scalar-expression:unsupported-op:D": 8,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 8,
+          "scalar-expression:unsupported-op://": 4,
+          "scalar-expression:unsupported-op:mod": 4,
+          "loop:unsupported-node:DeclaredCallExpression": 2,
+          "tensor:unsupported-node:DeclaredCallExpression": 2,
+          "tensor:scalar-evaluation-timing": 8,
+          "scalar-expression:unsupported-node:NameExpression": 18,
+          "scalar-expression:unsupported-op:equal": 18
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "digit_factorial_score",
+            "expression": "Length Rm",
+            "line": 65,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "factorial_lengths",
+            "expression": "Fa (D + 1)",
+            "line": 117,
+            "column": 17
+          },
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "factorial_lengths",
+            "expression": "0 till (Fa (D + 1)) array",
+            "line": 117,
+            "column": 9
+          }
+        ]
+      }
+    },
+    "reference": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--fixture",
+        "--reference"
+      ],
+      "ms": 35610.536166,
+      "rssMiB": 593.78125,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "8184523820510"
+          ],
+          "durationMs": 28052.415834
+        },
+        {
+          "name": "small top",
+          "passed": true,
+          "output": [
+            "0",
+            "1",
+            "3",
+            "8",
+            "21",
+            "46",
+            "93",
+            "156"
+          ],
+          "durationMs": 7182.144833000002
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 106380,
+        "fallbacks": {
+          "loop:disabled": 16
+        }
+      }
+    }
+  },
+  "validation": {
+    "forcedSourceAndTestTypeScriptBuild": "passed; fresh JS hashes identical to benchmarked runtime",
+    "currentRegressionTests": 23,
+    "parentRegressionFailures": 17,
+    "missingAndRegressionTestsPassed": 50,
+    "ordinaryInterpreter": {
+      "passed": 9240,
+      "failed": 28,
+      "total": 9268,
+      "baselineFailureNames": [
+        "accumulate-writes.test.ts > accumulating writes (compilation=false) > handles real reductions for *=",
+        "accumulate-writes.test.ts > accumulating writes (compilation=false) > handles real reductions for +=",
+        "accumulate-writes.test.ts > accumulating writes (compilation=false) > handles real reductions for -=",
+        "accumulate-writes.test.ts > accumulating writes (compilation=false) > leaves the array intact on failure: A (array 0 0) += array 1 .accumulate",
+        "accumulate-writes.test.ts > accumulating writes (compilation=false) > leaves the array intact on failure: A (array 0 0) += array 1.0 2.0 .accumulate",
+        "accumulate-writes.test.ts > accumulating writes (compilation=false) > weighted addition",
+        "accumulate-writes.test.ts > accumulating writes (compilation=false) > weighted multiplication",
+        "accumulate-writes.test.ts > accumulating writes (compilation=false) > weighted subtraction",
+        "accumulate-writes.test.ts > accumulating writes (compilation=true) > handles real reductions for *=",
+        "accumulate-writes.test.ts > accumulating writes (compilation=true) > handles real reductions for +=",
+        "accumulate-writes.test.ts > accumulating writes (compilation=true) > handles real reductions for -=",
+        "accumulate-writes.test.ts > accumulating writes (compilation=true) > leaves the array intact on failure: A (array 0 0) += array 1 .accumulate",
+        "accumulate-writes.test.ts > accumulating writes (compilation=true) > leaves the array intact on failure: A (array 0 0) += array 1.0 2.0 .accumulate",
+        "accumulate-writes.test.ts > accumulating writes (compilation=true) > weighted addition",
+        "accumulate-writes.test.ts > accumulating writes (compilation=true) > weighted multiplication",
+        "accumulate-writes.test.ts > accumulating writes (compilation=true) > weighted subtraction",
+        "array-construction.test.ts > array construction (compiled false) > runs the Euler 11 solution with separate directional products",
+        "array-construction.test.ts > array construction (compiled true) > runs the Euler 11 solution with separate directional products",
+        "diagnostics.test.ts > syntax error wording > reports \"fun N inc\\n\" in one readable line",
+        "explicit-plan-demos.test.ts > explicit-plan demo migration (compilation=false) > packs ready digit words through the actual infinite-string merge stage",
+        "explicit-plan-demos.test.ts > explicit-plan demo migration (compilation=true) > packs ready digit words through the actual infinite-string merge stage",
+        "intrinsic-matrix-ranks.test.ts > intrinsic matrix cells > executes the documented Euler 8 and 11 programs",
+        "io-programs.test.ts > Rank IO, modules and programs > binds argument text from defaults, args and the workspace",
+        "io-programs.test.ts > Rank IO, modules and programs > binds option text from defaults, args and the workspace",
+        "negative-axis.test.ts > negative tensor axes (compilation=false) > keeps trailing-axis helpers independent of the frame rank",
+        "negative-axis.test.ts > negative tensor axes (compilation=true) > keeps trailing-axis helpers independent of the frame rank",
+        "window-dimensions.test.ts > window dimensions (compiled false) > continues builtin and user function pipelines and preserves source pipelines",
+        "window-dimensions.test.ts > window dimensions (compiled true) > continues builtin and user function pipelines and preserves source pipelines"
+      ],
+      "note": "Initial manual suite collection lacked docs in the temporary checkout. After mounting docs, all 298 manual tests passed. These totals combine that rerun with the ordinary run; no source repair was needed for the environment error."
+    },
+    "scopedAudits": "types and differential, both 254 paths, four checks passed",
+    "cliChecks": "both paths passed",
+    "fullExhaustiveCorpusAudits": "not run"
+  }
+}

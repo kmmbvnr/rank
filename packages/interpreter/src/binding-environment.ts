@@ -174,10 +174,12 @@ export class BindingEnvironment {
 
     /** A private region can publish once only when all its binding stores are total.
      * No callbacks run between this proof and publication. */
-    canDeferWrites(bindings: readonly [string, 'integer' | 'real' | 'boolean' | 'array'][]): boolean {
-        return bindings.every(([name, type]) => {
+    canDeferWrites(bindings: readonly [string, 'integer' | 'real' | 'boolean' | 'array', number?][]): boolean {
+        return bindings.every(([name, type, rank]) => {
             const scope = this.assignmentScope(name);
             if (availableBuiltin(name, this.modules) || this.isConstant(name, scope)) return false;
+            const previousRank = scope.rankOf(name);
+            if (rank !== undefined && previousRank !== undefined && rank !== previousRank) return false;
             const held = scope.get(name);
             const accepted = scope.typeOf(name) ?? (held === undefined ? undefined : new Set([typeName(held)]));
             return accepted === undefined || acceptsBindingType(accepted, type);
