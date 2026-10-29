@@ -1,0 +1,54 @@
+rem Powers of Two
+rem https://projecteuler.net/problem=686
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Lp integer = 123
+arg Nn integer = 678910
+
+rem 2^j starts with the d digits of Lp
+rem exactly when the fraction of
+rem j log10(2) lies in [a, b), a =
+rem log10(Lp) - d + 1, b = log10(Lp + 1)
+rem - d + 1. With log10(2) = Th + Tl,
+rem Th = 5050445 / 2^24 (so j Th is
+rem exact in a double) and Tl the
+rem remainder, the fraction is found
+rem to about 1e-15 for j up to 2^28.
+rem Blocks of 10^7 exponents are
+rem counted, then the hit is located.
+Th = 5050445.0 / 16777216.0
+Tl = 0.000000015481333490135613
+L0 = Lp * 1.0
+Dg = (L0 log) / 2.302585092994046
+Dn = Dg floor
+Aa = Dg - Dn
+L1 = (Lp + 1) * 1.0
+Bb = (L1 log) / 2.302585092994046
+Bb = Bb - Dn
+Bl = 10000000
+Hit = 0
+Base = 1
+Answer = 0
+for Hit less Nn
+  Js = (Base to (Base + Bl - 1)) * 1.0
+  Pt = Js * Th
+  F0 = Pt floor
+  Fa = Pt - F0 + Js * Tl
+  F1 = Fa floor
+  Fr = Fa - F1
+  Ok = (Fr at least Aa) integer
+  Ok = Ok * ((Fr less Bb) integer)
+  Cn = Ok sum
+  if Hit + Cn at least Nn
+    Ix = (Ok equal 1) indices
+    Answer = Base + Ix (Nn - Hit - 1)
+  end
+  Hit += Cn
+  Base += Bl
+end
+Answer print
