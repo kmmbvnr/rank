@@ -1,0 +1,33 @@
+use testing
+
+test "ACMP 230: sample 1 (5x6 maze with mirrors)"
+  use "0230_ray_of_light"
+  N = 5
+  M = 6
+  GridText = "..*...\n......\n.....*\n*X...*\n....*."
+  run
+
+  Expected = "./*./\\\n/..X./\n\\./.X*\n*X.//*\n/\\X/*."
+  Answer equal Expected
+end
+
+test "ACMP 230: sample 2 (3x3 open room)"
+  use "0230_ray_of_light"
+  N = 3
+  M = 3
+  GridText = "...\n.X.\n..."
+  run
+
+  Expected = "\\./\n.X.\n/.\\"
+  Answer equal Expected
+end
+
+test "ACMP 230: single cell room"
+  use "0230_ray_of_light"
+  N = 1
+  M = 1
+  GridText = "X"
+  run
+
+  Answer equal "X"
+end

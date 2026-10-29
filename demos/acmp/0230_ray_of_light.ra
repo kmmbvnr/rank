@@ -1,0 +1,183 @@
+rem ACMP 230 - Ray of Light in the Dark Realm (Луч света в темном царстве)
+rem Solved in Euler 1-15 style with deterministic optical ray tracing on a grid.
+rem
+rem An optical ray begins at cell 'X' and shoots in 4 diagonal directions (under 45 degrees).
+rem When a ray reaches a corner between cells, it reflects according to specular corner rules:
+rem   1. Hits internal wall corner or single outer corner: reverses direction by 180 degrees.
+rem   2. Hits flat horizontal or vertical wall: specular reflection across that axis.
+rem   3. Hits unobstructed space: continues straight.
+rem We trace all 4 rays until they enter an already-visited state, then composite
+rem slash ('/'), backslash ('\'), intersection ('X'), mirror ('*'), and dark ('.').
+
+use io
+use cli
+use sequences
+use text
+
+arg N integer = 5
+arg M integer = 6
+arg GridText text = "..*...\n......\n.....*\n*X...*\n....*."
+
+Lines = (GridText split "\n" join " ") split " "
+Tokens = Lines (not (Lines equal ""))
+Grid = Tokens join ""
+
+rem Find start cell containing X
+StartIdx = 0
+for I in 0 till (N * M)
+  if (Grid I) equal "X"
+    StartIdx = I
+  end
+end
+StartR = StartIdx // M
+StartC = StartIdx mod M
+
+Visited = array shape (4 * N * M) fill 0
+Slash = array shape (N * M) fill 0
+Backslash = array shape (N * M) fill 0
+
+for InitDir in 0 till 4
+  R = StartR
+  C = StartC
+  DR = (InitDir // 2) * 2 - 1
+  DC = (InitDir mod 2) * 2 - 1
+  CellIdx = R * M + C
+  if DR equal DC
+    Backslash CellIdx = 1
+  else
+    Slash CellIdx = 1
+  end
+  StateIdx = (InitDir * N * M) + CellIdx
+  Visited StateIdx = 1
+
+  Running = true
+  for Running
+    AR = R + DR
+    AC = C + DC
+    Ahead = 0
+    if (AR less 0) or (not (AR less N)) or (AC less 0) or (not (AC less M))
+      Ahead = 1
+    else
+      if (Grid (AR * M + AC)) equal "*"
+        Ahead = 1
+      end
+    end
+
+    HR = R
+    HC = C + DC
+    Horiz = 0
+    if (HR less 0) or (not (HR less N)) or (HC less 0) or (not (HC less M))
+      Horiz = 1
+    else
+      if (Grid (HR * M + HC)) equal "*"
+        Horiz = 1
+      end
+    end
+
+    VR = R + DR
+    VC = C
+    Vert = 0
+    if (VR less 0) or (not (VR less N)) or (VC less 0) or (not (VC less M))
+      Vert = 1
+    else
+      if (Grid (VR * M + VC)) equal "*"
+        Vert = 1
+      end
+    end
+
+    NDR = DR
+    NDC = DC
+    NR = R
+    NC = C
+
+    if Ahead equal 1
+      if (Horiz equal 1) and (Vert equal 1)
+        NDR = 0 - DR
+        NDC = 0 - DC
+        NR = R
+        NC = C
+      else
+        if (Horiz equal 1) and (Vert equal 0)
+          NDR = DR
+          NDC = 0 - DC
+          NR = R + DR
+          NC = C
+        else
+          if (Vert equal 1) and (Horiz equal 0)
+            NDR = 0 - DR
+            NDC = DC
+            NR = R
+            NC = C + DC
+          else
+            NDR = 0 - DR
+            NDC = 0 - DC
+            NR = R
+            NC = C
+          end
+        end
+      end
+    else
+      if (Horiz equal 1) and (Vert equal 1)
+        NDR = 0 - DR
+        NDC = 0 - DC
+        NR = R
+        NC = C
+      else
+        NDR = DR
+        NDC = DC
+        NR = R + DR
+        NC = C + DC
+      end
+    end
+
+    NDir = (((NDR + 1) // 2) * 2) + ((NDC + 1) // 2)
+    NextStateIdx = (NDir * N * M) + (NR * M + NC)
+    if (Visited NextStateIdx) equal 1
+      Running = false
+    else
+      Visited NextStateIdx = 1
+      NCell = NR * M + NC
+      if NDR equal NDC
+        Backslash NCell = 1
+      else
+        Slash NCell = 1
+      end
+      R = NR
+      C = NC
+      DR = NDR
+      DC = NDC
+    end
+  end
+end
+
+ResultLines = array shape 0 fill ""
+for Row in 0 till N
+  LineStr = ""
+  for Col in 0 till M
+    Idx = Row * M + Col
+    Ch = Grid Idx
+    if Ch equal "*"
+      LineStr = LineStr + "*"
+    else
+      SVal = Slash Idx
+      BVal = Backslash Idx
+      if (SVal equal 1) and (BVal equal 1)
+        LineStr = LineStr + "X"
+      else
+        if SVal equal 1
+          LineStr = LineStr + "/"
+        else
+          if BVal equal 1
+            LineStr = LineStr + "\\"
+          else
+            LineStr = LineStr + "."
+          end
+        end
+      end
+    end
+  end
+  ResultLines = concat ResultLines (array LineStr)
+end
+
+Answer = ResultLines join "\n"
+Answer print
