@@ -227,5 +227,6 @@
   "euler/276_primitivetriangles_test.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
   "euler/562_maximalperimeter_test.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
   "euler/576_irrationaljumps.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
-  "euler/606_gozintachains.ra": "About 95 s: Lucy prime-cube sieve to 10^12; run manually."
+  "euler/606_gozintachains.ra": "About 95 s: Lucy prime-cube sieve to 10^12; run manually.",
+  "euler/608_divisorsums.ra": "About 40 s and 5 GB: 44M squarefree smooth divisors; run manually."
 }

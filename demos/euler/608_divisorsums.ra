@@ -1,0 +1,70 @@
+rem Divisor Sums
+rem https://projecteuler.net/problem=608
+
+use numbers
+use sequences
+use io
+use cli
+
+arg F integer = 200
+arg N integer = 1000000000000
+
+rem sigma0(k d) counts the pairs x | k,
+rem y | d with gcd(x, y) = 1, so with
+rem T(v) = sum of sigma0 up to v and
+rem m = F!, D = sum over squarefree t
+rem built from the primes of m of
+rem mu(t) T(N // t) W(t), where each
+rem prime p^e of m scales W by
+rem (e + 1)(e + 2) / 2, or by e (e + 1)
+rem / 2 when p divides t. Small t use
+rem the hyperbola for T, large t a
+rem table of sigma0 sums up to L.
+M = 1000000007
+Pr = primes to F array
+Pk = Pr
+Ex = Pr * 0
+for J in 1 to 8
+  Ex += F // Pk
+  Pk = Pk * Pr
+end
+W1 = Ex * (Ex + 1) // 2
+Cc = (Ex + 1) * (Ex + 2) // 2
+Ic = Cc (M - 2) M powmod
+Fp = (M - W1) * Ic mod M
+Ts = (1 to 1) array
+Ws = (1 to 1) array
+Np = Pr len
+Nq = Np - 1
+for J in 0 to Nq
+  Pj = Pr J
+  Ws = Ws * Cc J mod M
+  Mk = Ts at most (N // Pj)
+  Ix = Mk indices
+  Ts = concat Ts (Ts Ix * Pj)
+  Ws = concat Ws (Ws Ix * Fp J mod M)
+end
+L = N min 10000000
+B = N // L
+Rl = L isqrt
+Dv = (0 to L) * 0
+for D in 1 to Rl
+  Dv (D * D to L by D) += 2
+  Dv (D * D) -= 1
+end
+Tb = Dv scan +
+Sm = Ts at most B
+Is = Sm indices
+Answer = 0
+for I in Is
+  V = N // Ts I
+  S = V isqrt
+  Hy = 2 * ((V // (1 to S)) sum) - S * S
+  Answer += Hy mod M * Ws I mod M
+end
+Bg = Ts greater B
+Ib = Bg indices
+Tv = Tb (N // Ts Ib)
+Answer += (Tv mod M * Ws Ib mod M) sum
+Answer = Answer mod M
+Answer print

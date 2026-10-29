@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "608_divisorsums"
+  F = 3
+  N = 100
+  run
+  Answer equal 3398
+  F = 4
+  N = 1000000
+  run
+  Answer equal 268882292
+end
+
+test "brute force"
+  use "608_divisorsums"
+  F = 5
+  N = 300
+  run
+  Answer equal 100842
+end
