@@ -1,0 +1,67 @@
+rem Divisible Palindromes
+rem https://projecteuler.net/problem=655
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Mo integer = 10000019
+arg Ml integer = 32
+
+rem A palindrome of length l is the sum
+rem of d_i W_i over its h = (l + 1) / 2
+rem free digits, W_i = 10^i + 10^(l-1-i)
+rem mod Mo (the middle digit counts
+rem once). Meet in the middle: the
+rem first h - 7 digits (the lead one
+rem is 1 to 9) go into a residue
+rem histogram, one digit at a time as
+rem a sum of cyclic shifts; the last
+rem 7 digits are enumerated outright
+rem and look up the opposite residue.
+Answer = 0
+Ds = (0 to 9) reshape 1 10
+Ks = concat (2 ** (0 to 2)) (8 to 9)
+for Ln in 1 to Ml
+  Hf = (Ln + 1) // 2
+  Jn = Hf - 1
+  if Jn greater 7
+    Jn = 7
+  end
+  Ix = 0 to (Hf - 1)
+  P1 = 10 Ix Mo powmod
+  P2 = 10 (Ln - 1 - Ix) Mo powmod
+  Nm = (2 * Ix + 1 less Ln) integer
+  Wt = (P1 + P2 * Nm) mod Mo
+  Cb = array shape Mo fill 0
+  Cb ((1 to 9) * Wt 0 mod Mo) = 1
+  for I in 1 to Hf - Jn - 1
+    Ac = Cb copy
+    for Q in 0 to 4
+      Sc = Ks Q * Wt I mod Mo
+      Sr = Ac
+      if Q greater 2
+        Sr = Cb
+      end
+      Ro = Sr
+      if Sc greater 0
+        Hi = Sr (Mo - Sc to Mo - 1)
+        Lw = Sr (0 to Mo - Sc - 1)
+        Ro = concat Hi Lw
+      end
+      Ac = Ac + Ro
+    end
+    Cb = Ac
+  end
+  Rt = array shape 1 fill 0
+  for I in Hf - Jn to Hf - 1
+    Dw = Ds * Wt I
+    Rc = Rt reshape (Rt len) 1
+    Rm = (Rc + Dw) mod Mo
+    Nr = Rt len * 10
+    Rt = Rm reshape Nr
+  end
+  Answer += (Cb ((Mo - Rt) mod Mo)) sum
+end
+Answer print
