@@ -1,0 +1,119 @@
+rem Patterned Cylinders
+rem https://projecteuler.net/problem=651
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Lo integer = 4
+arg Hi integer = 40
+
+rem Burnside over D(a) x D(b): per axis
+rem the elements are rotations (cycle
+rem length u, count n/u, phi(u) each)
+rem and reflections. A pair fixes
+rem sum k k' gcd(l, l') cell cycles and
+rem exact m colours by inclusion-
+rem exclusion: sum (-1)^j C(m,j)
+rem (m-j)^cycles. Here f(i, F(i-1),
+rem F(i)) uses m = i colours.
+P = 1000000007
+Answer = 0
+Fa = 1
+Fb = 0
+for M in 1 to Hi
+  Tt = Fa + Fb
+  Fa = Fb
+  Fb = Tt
+  if M at least Lo
+    La = 0 * (0 to 0)
+    Ka = La
+    Lc = La
+    Kc = La
+    Wa = La
+    Tg = La
+    for X in 0 to 1
+      N = Fa
+      if X equal 1
+        N = Fb
+      end
+      Sq = N isqrt
+      Dv = 1 to Sq
+      Ix = (N mod Dv equal 0) indices
+      Dv = Dv Ix
+      Dv = concat Dv (N // Dv)
+      Dv = Dv unique
+      Ne = Dv len
+      Dr = Dv reshape Ne 1
+      Dc = Dv reshape 1 Ne
+      Dm = (Dr mod Dc equal 0) integer
+      Cn = Dm sum axis 1
+      Pm = Dv ((Cn equal 2) indices)
+      Nq = Pm len
+      Pc = Pm reshape 1 Nq
+      Mu = (Dr mod Pc) equal 0
+      Rd = (Mu choose Pc 1) reduce * axis 1
+      Pq = Pc - 1
+      Fi = (Mu choose Pq 1) reduce * axis 1
+      Ph = Dv // Rd * Fi
+      Ev = 1 - N mod 2
+      J = 0 to 1
+      Z = J equal 0
+      Zd = Dv * 0
+      L1 = concat Dv (1 + J)
+      Q1 = Z choose (1 + Ev) (N // 2)
+      K1 = concat (N // Dv) Q1
+      Hf = (N - 1 - Ev) // 2
+      Q2 = Z choose Hf 0
+      K2 = concat Zd Q2
+      L2 = concat (Zd + 1) (2 - J)
+      Hn = N // (1 + Ev)
+      Q3 = Z choose Hn (Ev * (N // 2))
+      W = concat Ph Q3
+      La = concat La L1
+      Ka = concat Ka K1
+      Lc = concat Lc L2
+      Kc = concat Kc K2
+      Wa = concat Wa W
+      Tg = concat Tg (L1 * 0 + X)
+    end
+    Ia = (Tg equal 0) indices
+    Ib = (Tg equal 1) indices
+    Na = Ia len
+    Nb = Ib len
+    A1 = (La Ia) reshape Na 1
+    A2 = (Lc Ia) reshape Na 1
+    B1 = (La Ib) reshape 1 Nb
+    B2 = (Lc Ib) reshape 1 Nb
+    Ak1 = (Ka Ia) reshape Na 1
+    Ak2 = (Kc Ia) reshape Na 1
+    Bk1 = (Ka Ib) reshape 1 Nb
+    Bk2 = (Kc Ib) reshape 1 Nb
+    Cy = Ak1 * Bk1 * (A1 gcd B1)
+    Cy = Cy + Ak1 * Bk2 * (A1 gcd B2)
+    Cy = Cy + Ak2 * Bk1 * (A2 gcd B1)
+    Cy = Cy + Ak2 * Bk2 * (A2 gcd B2)
+    Cf = Cy reshape (Na * Nb)
+    Aw = ((Wa Ia) mod P) reshape Na 1
+    Bw = ((Wa Ib) mod P) reshape 1 Nb
+    Ww = (Aw * Bw mod P) reshape (Na * Nb)
+    Sm = Cf * 0
+    Bn = 1
+    for Jj in 0 to M
+      Pw = (M - Jj) Cf P powmod
+      Tm = Bn mod P * Pw mod P
+      if Jj mod 2 equal 1
+        Tm = P - Tm
+      end
+      Sm = (Sm + Tm) mod P
+      Bn = Bn * (M - Jj) // (Jj + 1)
+    end
+    Tot = (Ww * Sm mod P) sum mod P
+    Dn = 4 * Fa mod P * (Fb mod P) mod P
+    Iv = Dn (P - 2) P powmod
+    Answer = (Answer + Tot * Iv) mod P
+  end
+end
+
+Answer print

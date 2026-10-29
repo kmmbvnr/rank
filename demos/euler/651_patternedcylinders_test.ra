@@ -1,0 +1,19 @@
+use testing
+
+test "statement values"
+  use "651_patternedcylinders"
+  Lo = 8
+  Hi = 8
+  run
+  Answer equal 49718354
+  Lo = 13
+  Hi = 13
+  run
+  Answer equal 907081451
+end
+
+test "default input"
+  use "651_patternedcylinders"
+  run
+  Answer equal 448233151
+end
