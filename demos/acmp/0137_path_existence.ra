@@ -1,0 +1,58 @@
+rem Existence of Path (Floyd-Warshall with Negative Cycles)
+rem https://acmp.ru/index.asp?main=task&id_task=137
+rem Determine reachability: 0 (no path), 1 (shortest path), 2 (arbitrarily small path via negative cycle)
+
+use sequences
+use text
+use io
+use cli
+
+arg MatrixText text = "0 1 2 0 0 1 0 3 0 0 2 3 0 0 0 0 0 0 0 -1 0 0 0 -1 0"
+arg N integer = 5
+
+Parts = MatrixText split " "
+Mask = not (Parts equal "")
+Vals = (Parts Mask) integer
+Adj = Vals reshape N N
+
+INF = 1000000000
+D = array shape N N fill INF
+
+for I in 0 till N
+  D I I = 0
+  for J in 0 till N
+    W = Adj I J
+    if W not equal 0
+      D I J = (D I J) min W
+    end
+  end
+end
+
+for K in 0 till N
+  Col = D # K
+  Row = D K
+  ColValid = (Col less (INF // 2)) integer
+  RowValid = (Row less (INF // 2)) integer
+  Valid = ColValid RowValid outer *
+  ThroughK = (Col Row outer +) * Valid + INF * (1 - Valid)
+  D = D min ThroughK
+end
+
+Result = ((D less (INF // 2)) integer)
+
+for K in 0 till N
+  if (D K K) less 0
+    Col = D # K
+    Row = D K
+    From = (Col less (INF // 2)) integer
+    To = (Row less (INF // 2)) integer
+    Through = From To outer *
+    Result = (Through * 2) max Result
+  end
+end
+
+Answer = Result
+for I in 0 till N
+  Row = Result I
+  (Row join " ") print
+end

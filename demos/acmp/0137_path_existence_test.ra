@@ -1,0 +1,22 @@
+use testing
+
+test "example 1 with negative cycle"
+  use "0137_path_existence"
+  run
+
+  (Answer 0 0) equal 1
+  (Answer 0 3) equal 0
+  (Answer 3 3) equal 2
+  (Answer 3 4) equal 2
+end
+
+test "simple DAG without negative cycles"
+  use "0137_path_existence"
+  MatrixText = "0 5 0 0 0 2 0 0 0"
+  N = 3
+  run
+
+  (Answer 0 1) equal 1
+  (Answer 0 2) equal 1
+  (Answer 2 0) equal 0
+end
