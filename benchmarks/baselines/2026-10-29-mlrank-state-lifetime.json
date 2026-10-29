@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-29",
+  "implementationCommit": "0d295f26",
+  "scope": "Retained GPU state ownership on execution failure, preview disposal and Android worker/page lifetime",
+  "desktop": {
+    "mac": {
+      "failedCells": 70,
+      "previousCellPreserved": true,
+      "failedHandlesInvalidated": true,
+      "previewOwnedByFork": true,
+      "borrowedParentProtected": true,
+      "finalStateBytes": 0
+    },
+    "intel": {
+      "failedCells": 70,
+      "previousCellPreserved": true,
+      "failedHandlesInvalidated": true,
+      "previewOwnedByFork": true,
+      "borrowedParentProtected": true,
+      "finalStateBytes": 0
+    }
+  },
+  "android": {
+    "nativeLifecycle": {
+      "isolatedOwners": true,
+      "closedOwnerRejected": true,
+      "idempotentClose": true,
+      "queuedRequestClosed": true,
+      "pageReloadReclaimed": true,
+      "finalStateBytes": 0
+    },
+    "applicationWorkerLifecycle": {
+      "workerFailureReclaimed": true,
+      "restartedWithoutPageReload": true,
+      "cleanRunReclaimed": true,
+      "failedCellReclaimed": true,
+      "finalStateBytes": 0
+    },
+    "finalApkGpt2": {
+      "text": "Hello, I'm",
+      "elapsedMs": 82387,
+      "residentStates": 0,
+      "stateBytes": 0,
+      "note": "Single UI regression run, not a speed comparison."
+    }
+  },
+  "regression": {
+    "unitTestsPassed": 136,
+    "workerProtocolTestsPassed": 3,
+    "metalGpt2": {
+      "text": "Hello, I'm",
+      "tokens": [
+        15496,
+        11,
+        314,
+        1101
+      ],
+      "valuesCompared": 251285,
+      "maxError": 0.000189527071000839,
+      "boundaries": [
+        "token limit",
+        "context limit",
+        "eos"
+      ],
+      "invalid": [
+        "at least one",
+        "at most four",
+        "nonnegative",
+        "integer"
+      ]
+    }
+  },
+  "limitations": [
+    "Cleanup waits for the current native call; a hung GPU kernel is not forcibly cancelled.",
+    "No deliberately hung driver / sixty-second timeout test; stale-session recovery is unit-tested.",
+    "Legacy unscoped native bridge requests require explicit cleanup."
+  ]
+}

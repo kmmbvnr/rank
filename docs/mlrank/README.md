@@ -1762,11 +1762,16 @@ after model release. Model reservations plus retained F32 bytes share the
 accounting limits, not measurements of driver allocation. Update a cache,
 then free its predecessor; both are temporarily resident.
 
-Interpreter disposal attempts to free its retained states. Programs should free
-them explicitly, including on error paths. Abrupt worker/process termination
-does not guarantee interpreter disposal: on Android, restart the app process if
-a terminated worker left unreachable native states. Automatic worker-session
-reclamation remains follow-up work.
+Interpreter disposal frees its retained states. An unhandled error or interrupt
+also releases states allocated during that `execute` call. Handles from earlier
+successful cells remain live; assignments made before the error are not rolled
+back, so a handle from the failed call now reports that it was released. A
+handled Rank `try/catch` keeps the normal explicit ownership rules.
+
+Preview forks own their new states and release them on disposal. They can read
+or pass a borrowed parent tensor to RAM, but cannot free it. Android also tracks
+native worker sessions, so worker failure and page reload no longer depend on
+JavaScript reaching `dispose`; see the lifecycle checks below.
 
 [GPU KV cache](../../demos/mlrank/kv-cache.ra) initializes one token, appends
 three tokens to an eight-slot packed K/V tensor and evaluates attention on the
@@ -1788,7 +1793,7 @@ For Android, generate `--fixture` and substitute its JSON into
 
 This establishes correctness and removes host transport for retained outputs.
 It does not establish a speedup or zero-copy behavior inside LiteRT. The next section implements per-layer GPT-2 caches and measures the complete
-single-token path. Abandoned worker-session reclamation remains pending.
+single-token path. Worker-session reclamation is covered by the lifecycle checks below.
 
 ### GPT-2 generation with per-layer GPU KV caches (stage 15)
 
@@ -1850,8 +1855,7 @@ logits, whereas the new head returns one. Its readback payload falls from
 be attributed to the K/V cache alone.
 
 The four-token shape is still a correctness fixture. Longer contexts, batched
-prefill, in-place cache writes, sampling, retained residuals, and cleanup after
-abrupt Android worker termination remain separate work.
+prefill, in-place cache writes, sampling and retained residuals remain separate work.
 
 
 ABBA full-program measurements for three generated tokens:
@@ -1866,3 +1870,50 @@ Desktop decode intervals were 382–426 ms versus 240–277 ms on Metal,
 and 2.94–3.39 s versus 2.69–2.86 s on Intel. Android timings above are full
 program execution, not per-token latency. The full reports are in
 [`2026-10-29-mlrank-gpt2-kv.json`](../../benchmarks/baselines/2026-10-29-mlrank-gpt2-kv.json).
+
+
+### GPU state lifetime on errors and worker failure
+
+The Android browser host opens a native GPU session before starting its worker.
+It adds the session ID to requests; the worker includes it in reply waits.
+Native models and retained states belong to that session. Closing it releases
+only that owner's resources and rejects subsequent requests with `STALE_SESSION`.
+Another live owner can continue using its buffers. Normal model LRU eviction
+still operates across sessions within the shared memory budget.
+
+The browser closes the owner on disposal, replacement, uncaught worker errors,
+message decoding failures and native transport failure. It ignores late messages
+from retired workers and creates a fresh worker after failure. Pending calls
+are rejected instead of being delivered to the replacement worker. WebView
+navigation and renderer loss clear the page's native sessions. GPU execution and
+cleanup use the same native executor: cleanup waits for the current native call
+to finish; this does not forcibly cancel a running GPU kernel.
+
+A native reply timeout closes the affected owner and reports `STALE_SESSION`;
+the browser retires that worker. The stale-session recovery path is unit-tested.
+The on-device check covers queued invocation followed by owner closure, rather
+than deliberately hanging a GPU driver for sixty seconds.
+
+Verification:
+
+- `scripts/mlrank-state-lifetime-check.mjs` injects 70 failed calls on Metal
+  and Intel, keeps the previous successful cell readable, rejects failed-cell
+  handles, and checks preview disposal and borrowed-parent protection.
+- `packages/web/test/ram-owner.playwright.js` checks independent native owners,
+  stale and cross-owner requests, idempotent close, queued work and page reload.
+- `packages/web/test/ram-owner-ui.playwright.js` throws an uncaught exception
+  inside the real application worker, verifies zero retained states, then runs
+  the same program without reloading the page. It also checks ordinary restart
+  and a failing cell, and removes its temporary notebook.
+- Unit checks cover interrupts, handled errors, delayed session creation,
+  pending-call rejection and native stale-session recovery.
+
+Standalone native test clients must open and close their own session. Legacy
+unscoped requests remain available for existing bridge tests; they do not gain
+worker-level ownership automatically.
+
+Results: [state lifetime baseline](../../benchmarks/baselines/2026-10-29-mlrank-state-lifetime.json).
+
+The final APK also ran the saved GPT-2 GPU KV cache program on OnePlus: `Hello, I'm`,
+82.39 seconds for this single regression run, zero retained states and zero state
+bytes afterward. This run is not a performance comparison.
