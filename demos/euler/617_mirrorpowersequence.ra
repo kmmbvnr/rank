@@ -1,0 +1,59 @@
+rem Mirror Power Sequence
+rem https://projecteuler.net/problem=617
+
+use numbers
+use bits
+use io
+use cli
+
+arg N integer = 1000000000000000000
+
+rem Every MPS runs c, c^e, c^(e^2), ...
+rem with c not an e-th power; its power
+rem steps end in a mirror step back to
+rem b = c^(e^s) at n = c^(e^s) +
+rem c^(e^u), 0 <= s < u. Its u terms
+rem each start a sequence, so D is the
+rem sum of u over the (c, e, s, u) with
+rem n <= N. Count the c up to the
+rem largest root Cm by bisection, less
+rem the e-th powers among them.
+Lg = 0
+for (1 shl Lg) at most N
+  Lg += 1
+end
+Answer = 0
+for E in 2 to Lg
+  U = 1
+  for E ** U at most Lg
+    for S in 0 to U - 1
+      Lo = 1
+      Hi = (N isqrt) + 2
+      for Hi - Lo greater 1
+        Md = (Lo + Hi) // 2
+        Pa = Md ** (E ** S)
+        Tm = Pa + Md ** (E ** U)
+        if Tm at most N
+          Lo = Md
+        else
+          Hi = Md
+        end
+      end
+      Rl = 1
+      Rh = Lo + 1
+      for Rh - Rl greater 1
+        Rm = (Rl + Rh) // 2
+        if Rm ** E at most Lo
+          Rl = Rm
+        else
+          Rh = Rm
+        end
+      end
+      if Lo at least 2
+        Answer += U * (Lo - Rl)
+      end
+    end
+    U += 1
+  end
+end
+Answer print

@@ -1,0 +1,26 @@
+use testing
+
+test "default input"
+  use "617_mirrorpowersequence"
+  run
+  Answer equal 1001133757
+end
+
+test "statement values"
+  use "617_mirrorpowersequence"
+  N = 10
+  run
+  Answer equal 2
+  N = 100
+  run
+  Answer equal 21
+  N = 1000
+  run
+  Answer equal 69
+  N = 1000000
+  run
+  Answer equal 1303
+  N = 1000000000000
+  run
+  Answer equal 1014800
+end
