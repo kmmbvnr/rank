@@ -1,0 +1,8 @@
+use ml
+arg Cache .f32 shape 16 1536
+arg Projection .f32 shape 1 2304
+arg Slot .f32 shape 16 1
+arg One .f32 shape 1 = array shape 1 fill 1.0
+arg Negative .f32 shape 1 = array shape 1 fill -1.0
+Row = Projection # (768 till 2304)
+return Cache * (One + Slot * Negative) + Row * Slot
