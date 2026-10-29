@@ -1,0 +1,79 @@
+rem A Long Row of Dice
+rem https://projecteuler.net/problem=641
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 10 ** 36
+
+rem Die i is turned d(i) - 1 times, so
+rem it shows 1 when d(i) = 1 mod 6.
+rem That needs i = s^2 with every
+rem exponent of s not 1 mod 3 and an
+rem even number of them 2 mod 3, i.e.
+rem s = A^3 B^2 with B squarefree and
+rem an even number of primes. Count
+rem the B <= y = sqrt(sqrt(N) / A^3)
+rem as (Q(y) + M(y)) / 2, Q squarefree
+rem count and M Mertens' function,
+rem from tables to L and the
+rem identity 1 = sum M(y // k) above.
+Ns = N isqrt
+Ar = ((Ns * 1.0) ** (1.0 / 3.0)) floor
+for (Ar + 1) ** 3 at most Ns
+  Ar += 1
+end
+for Ar ** 3 greater Ns
+  Ar -= 1
+end
+Ym = Ns isqrt
+L = 10000000 min Ym
+Mu = (0 to L) * 0 + 1
+Rs = 0 to L
+for P in primes to (L isqrt) array
+  Ix = P to L by P
+  Mu Ix *= -1
+  Rs Ix //= P
+  if P * P at most L
+    Mu (P * P to L by P * P) = 0
+  end
+end
+Gt = (Rs greater 1) integer
+Mu = Mu * (1 - 2 * Gt)
+Mu 0 = 0
+Mt = Mu scan +
+Qt = ((Mu not equal 0) integer) scan +
+As = 1 to Ar
+Ys = (Ns // (As * As * As)) isqrt
+Sm = (Ys at most L) indices
+Yk = Ys Sm
+Answer = ((Qt Yk + Mt Yk) // 2) sum
+Bg = (Ys greater L) indices
+for Ia in Bg
+  Y = Ys Ia
+  Rt = Y isqrt
+  Ds = 1 to Rt
+  Qy = (Mu Ds * (Y // (Ds * Ds))) sum
+  Kc = Y // L
+  Mv = (0 to (Kc + 1)) * 0
+  for Kk in Kc to 1 by -1
+    X = Y // Kk
+    R = X isqrt
+    Js = 2 to R
+    Ix = Kk * Js
+    Hg = (Ix at most Kc) integer
+    Va = Mv (Ix min Kc)
+    Vb = Mt ((X // Js) min L)
+    Wb = (1 - Hg) * Vb
+    Tt = ((Hg * Va) + Wb) sum
+    Vs = 1 to (X // (R + 1))
+    Lw = (X // (Vs + 1)) max R
+    Cn = X // Vs - Lw
+    Tt += (Mt Vs * Cn) sum
+    Mv Kk = 1 - Tt
+  end
+  Answer += (Qy + Mv 1) // 2
+end
+Answer print

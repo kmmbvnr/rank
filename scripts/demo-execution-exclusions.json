@@ -247,5 +247,6 @@
   "euler/637_flexibledigitsum.ra": "About 55 s: split-sum search over two digit halves in two bases; run manually.",
   "euler/636_restrictedfactorisations.ra": "About 150 s: 1900 knapsack passes over 10^6 cells; run manually (#476 for row writes).",
   "euler/639_multiplicativesum.ra": "About 45 s: 1.6 million powerful numbers times 50 exponents; run manually.",
-  "euler/640_shutthebox.ra": "About 45 s: value iteration over 4096 states, 1500 rounds; run manually."
+  "euler/640_shutthebox.ra": "About 45 s: value iteration over 4096 states, 1500 rounds; run manually.",
+  "euler/641_longrowofdice.ra": "About 15 s: Mertens sums above 10^7 for 21 cutoffs; run manually."
 }

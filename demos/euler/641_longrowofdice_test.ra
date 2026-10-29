@@ -1,0 +1,33 @@
+use testing
+
+test "statement values"
+  use "641_longrowofdice"
+  N = 100
+  run
+  Answer equal 2
+  N = 100000000
+  run
+  Answer equal 69
+end
+
+test "brute force and large cutoffs"
+  use "641_longrowofdice"
+  N = 1000000
+  run
+  Answer equal 20
+  N = 1000000000000
+  run
+  Answer equal 740
+  N = 100000000000000000000
+  run
+  Answer equal 78220
+  N = 1000000000000000000000000000000
+  run
+  Answer equal 25055676
+end
+
+test "default input"
+  use "641_longrowofdice"
+  run
+  Answer equal 793525366
+end
