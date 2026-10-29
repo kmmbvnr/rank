@@ -161,6 +161,25 @@ Alias = A`, ['A outer 8', 'A 0', 'Alias 0']);
         }
     });
 
+    it('preserves warmed return contracts through multiple compiled tail transfers', () => {
+        const source = `use algo
+fun Cache leaf N
+ return Cache N
+end
+fun Cache middle N
+ return Cache leaf N
+end
+fun Cache outer N
+ return Cache middle N
+end
+Cache = new index
+Cache 0 = 2`;
+        const result = compare(source, ['Cache leaf 0', 'Cache middle 0', 'Cache outer 0',
+            'Cache 0 = 1.5', 'Cache outer 0', 'Cache 0 = 2', 'Cache outer 0']);
+        expect(result.values[4].error).toContain('middle returns integer and cannot return real');
+        expect(result.values[6].value).toBe('2');
+    });
+
     it('checks queue protection before evaluating a pushed value', () => {
         for (const compilation of [false, true]) {
             const runtime = new Interpreter(() => {}, { compilation });

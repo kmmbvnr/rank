@@ -813,7 +813,12 @@ export class FunctionInvocation {
                                     arguments_ = error.arguments_;
                                     continue;
                                 }
-                                if (error instanceof TailCallSignal && error.compiled) return error.compiled(error.arguments_, true);
+                                if (error instanceof TailCallSignal && error.compiled) {
+                                    // Tail transfer discards the caller frame, but the
+                                    // callee still owns its specialized return contract.
+                                    const contract = error.definition.specialization(error.arguments_);
+                                    return contract.check(error.compiled(error.arguments_, true));
+                                }
                                 if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
                                 throw error;
                             }
@@ -847,7 +852,10 @@ export class FunctionInvocation {
                         }
                         // A scalar tail callee replaces this logical frame. Errors
                         // must not acquire the discarded caller's stack entry.
-                        if (error instanceof TailCallSignal && error.compiled) return error.compiled(error.arguments_, true);
+                        if (error instanceof TailCallSignal && error.compiled) {
+                            const contract = error.definition.specialization(error.arguments_);
+                            return contract.check(error.compiled(error.arguments_, true));
+                        }
                         if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
                         throw error;
                     }
