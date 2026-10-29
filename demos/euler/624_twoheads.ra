@@ -1,0 +1,45 @@
+rem Two Heads Are Better Than One
+rem https://projecteuler.net/problem=624
+
+use numbers
+use bits
+use io
+use cli
+
+arg N integer = 1000000000000000000
+arg P integer = 1000000009
+
+rem Tosses end at m with probability
+rem F(m - 1) / 2^m, the (2, 2) entry of
+rem B^m for B = [[1, 1], [1, 0]] / 2.
+rem Summing m = n, 2 n, ... gives the
+rem (2, 2) entry of X (I - X)^-1 with
+rem X = B^n, which is (x12^2 + x22
+rem (1 - x11)) / ((1 - x11)(1 - x22) -
+rem x12^2), computed mod P with F(n) by
+rem fast doubling.
+Fa = 0
+Fb = 1
+for Ps in 62 to 0 by -1
+  Fc = Fa * ((2 * Fb - Fa) mod P) mod P
+  Fd = (Fa * Fa + Fb * Fb) mod P
+  if N bit Ps
+    Fa = Fd
+    Fb = (Fc + Fd) mod P
+  else
+    Fa = Fc
+    Fb = Fd
+  end
+end
+Iw = 2 N P powmod
+Is = Iw (P - 2) P powmod
+X11 = Fb * Is mod P
+X12 = Fa * Is mod P
+X22 = (Fb - Fa) mod P * Is mod P
+Y1 = (1 - X11) mod P
+Y2 = (1 - X22) mod P
+Dt = (Y1 * Y2 - X12 * X12) mod P
+Nm = (X12 * X12 + X22 * Y1) mod P
+Iv = Dt (P - 2) P powmod
+Answer = Nm * Iv mod P
+Answer print

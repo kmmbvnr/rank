@@ -1,0 +1,29 @@
+use testing
+
+test "default input"
+  use "624_twoheads"
+  run
+  Answer equal 984524441
+end
+
+test "statement values"
+  use "624_twoheads"
+  P = 109
+  N = 2
+  run
+  Answer equal 66
+  N = 3
+  run
+  Answer equal 46
+end
+
+test "series check"
+  use "624_twoheads"
+  P = 1000003
+  N = 4
+  run
+  Answer equal 503450
+  N = 5
+  run
+  Answer equal 107303
+end
