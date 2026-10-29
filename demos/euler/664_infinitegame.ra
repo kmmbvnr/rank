@@ -1,0 +1,33 @@
+rem An Infinite Game
+rem https://projecteuler.net/problem=664
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 1234567
+
+rem With the golden ratio f, the game
+rem is the Conway soldiers game with
+rem weights f^-d for a column at
+rem distance d, so
+rem   F(n) = 3 + ceil(log_f(A)),
+rem   A = sum over d of d^n f^-d.
+rem The terms peak near d = n / ln f
+rem with width about sqrt(n): sum those
+rem in log space about their maximum.
+Rt = 5.0 sqrt
+Lp = (1.0 + Rt) / 2.0
+Lp = Lp log
+Pk = (Nn / Lp) floor
+Wd = 40 * (Nn isqrt) + 400
+Lo = (Pk - Wd) max 1
+Ds = (Lo to (Pk + Wd)) * 1.0
+Lv = Nn * (Ds log) - Ds * Lp
+Mx = Lv max
+Sm = (Lv - Mx) exp sum
+Ls = Sm log
+Lg = (Mx + Ls) / Lp
+Answer = (Lg - 0.000000001) ceil + 3
+Answer print

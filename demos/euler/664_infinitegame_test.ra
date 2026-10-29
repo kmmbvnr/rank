@@ -1,0 +1,30 @@
+use testing
+
+test "statement values"
+  use "664_infinitegame"
+  Nn = 0
+  run
+  Answer equal 4
+  Nn = 1
+  run
+  Answer equal 6
+  Nn = 2
+  run
+  Answer equal 9
+  Nn = 3
+  run
+  Answer equal 13
+  Nn = 11
+  run
+  Answer equal 58
+  Nn = 123
+  run
+  Answer equal 1173
+end
+
+test "default input"
+  use "664_infinitegame"
+  Nn = 1234567
+  run
+  Answer equal 35295862
+end
