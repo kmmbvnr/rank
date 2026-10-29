@@ -65,10 +65,10 @@ describe('RAM local tensor functions',()=>{
    'fun A looped\nreturn A\nA = A relu\nend',
   ])expect(()=>compileRam('use ml\narg X .f32 shape 2\n'+helper+'\nreturn X looped','bad.ram')).toThrow();
  });
- it('reports the faulty helper line and enforces the expanded graph limit',()=>{
+ it('reports the faulty helper line and partitions the expanded graph',()=>{
   try{compileRam(boundary+'fun A wrong Weight\nreturn A matmul Weight\nend\nreturn B wrong W','bad.ram');expect.fail('expected error');}
   catch(e){expect(e).toMatchObject({rankKind:'RamCompile',location:{sourceId:'bad.ram',line:6}});}
   const source='use ml\narg X .f32 shape 3\nfun A activate\nreturn A relu\nend\n'+'X = X activate\n'.repeat(128)+'return X';
-  expect(()=>compileRam(source,'large.ram')).toThrow('128 tensors');
+  expect(compileRam(source,'large.ram').graph.parts).toHaveLength(2);
  });
 });

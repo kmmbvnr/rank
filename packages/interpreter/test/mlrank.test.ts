@@ -157,8 +157,8 @@ describe('RAM ReLU MVP', () => {
         const source = 'use ml\narg X .f32 shape 3\nH = X relu\nreturn H softmax';
         expect(compileRam(source, 'steps.ram').graph.model)
             .not.toEqual(compileRam(source.replace('H = X relu', 'H = X softmax'), 'steps.ram').graph.model);
-        expect(() => compileRam('use ml\narg X .f32 shape 3\n' + 'X = X relu\n'.repeat(128) + 'return X', 'steps.ram'))
-            .toThrow('128 tensors');
+        expect(compileRam('use ml\narg X .f32 shape 3\n' + 'X = X relu\n'.repeat(128) + 'return X', 'steps.ram').graph.parts)
+            .toHaveLength(2);
     });
     it('rounds binary16 ties to even and handles subnormals without silently overflowing', () => {
         expect(ramRound(1 + 2 ** -11, 'f16')).toBe(1);
@@ -192,8 +192,8 @@ describe('RAM normalization and GELU', () => {
             expect(() => compileRam(invalid, 'norm.ram')).toThrow('positive baked one-element');
         for (const op of ['layernorm', 'gelu_new']) {
             expect(() => compileRam(`use ml\narg X .f16 shape 3\nreturn X ${op}`, 'norm.ram')).toThrow('require .f32');
-            expect(() => compileRam('use ml\narg X .f32 shape 3\n'
-                + `X = X ${op}\n`.repeat(30) + 'return X', 'norm.ram')).toThrow('128 tensors');
+            expect(compileRam('use ml\narg X .f32 shape 3\n'
+                + `X = X ${op}\n`.repeat(30) + 'return X', 'norm.ram').graph.parts!.length).toBeGreaterThan(1);
         }
         expect(compileRam(source, 'norm.ram').graph.model)
             .not.toEqual(compileRam(source.replace('0.01', '0.02'), 'norm.ram').graph.model);

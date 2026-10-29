@@ -5,7 +5,9 @@ import {nodeRamGpu,sendRamGpu,closeRamGpu} from '../packages/cli/out/ram-gpu.js'
 
 // Independent scalar reference; no graph evaluator or tensor backend is used.
 const fixtures=[];
-const composed=process.argv.includes('--functions');
+const partitioned=process.argv.includes('--partition');
+const composed=partitioned||process.argv.includes('--functions');
+const blocks=partitioned?3:1;
 const linear=(x,w,b,rows,cin,cout)=>Array.from({length:rows*cout},(_,i)=>{
  const row=Math.floor(i/cout),col=i%cout;let v=b[col];
  for(let k=0;k<cin;k++)v+=x[row*cin+k]*w[k*cout+col];return v;
@@ -28,9 +30,11 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  let original;
  for(const changed of [false,true]) {
  const input=base.map((v,i)=>changed&&Math.floor(i/C)%T===T-1?Math.fround(v+2*(1+i%C)):v);
- const n1=norm(input,g1,b1,C);
- const p=linear(n1,weights,qkvBias,B*T,C,3*C);
- const scores=[],masked=[],probabilities=[],context=Array(B*H*T*D).fill(0),merged=Array(B*T*C).fill(0),output=Array(B*T*C).fill(0);
+ let state=input,n1,p,scores,masked,probabilities,context,merged,output,attention,residual1,n2,up,activated,mlp;
+ for(let block=0;block<blocks;block++){
+ n1=norm(state,g1,b1,C);
+ p=linear(n1,weights,qkvBias,B*T,C,3*C);
+ scores=[],masked=[],probabilities=[],context=Array(B*H*T*D).fill(0),merged=Array(B*T*C).fill(0),output=Array(B*T*C).fill(0);
  for(let b=0;b<B;b++)for(let h=0;h<H;h++)for(let t=0;t<T;t++) {
  const row=[];
  for(let s=0;s<T;s++) {
@@ -46,12 +50,14 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  context[((b*H+h)*T+t)*D+d]=v;merged[(b*T+t)*C+h*D+d]=v;
  }
  }
- const attention=linear(merged,outWeights,outBias,B*T,C,C);
- const residual1=input.map((v,i)=>v+attention[i]),n2=norm(residual1,g2,b2,C);
- const up=linear(n2,upW,upB,B*T,C,4*C);
- const activated=up.map(x=>.5*x*(1+Math.tanh(Math.sqrt(2/Math.PI)*(x+.044715*x*x*x))));
- const mlp=linear(activated,downW,downB,B*T,4*C,C);
+ attention=linear(merged,outWeights,outBias,B*T,C,C);
+ residual1=state.map((v,i)=>v+attention[i]),n2=norm(residual1,g2,b2,C);
+ up=linear(n2,upW,upB,B*T,C,4*C);
+ activated=up.map(x=>.5*x*(1+Math.tanh(Math.sqrt(2/Math.PI)*(x+.044715*x*x*x))));
+ mlp=linear(activated,downW,downB,B*T,4*C,C);
  for(let i=0;i<output.length;i++)output[i]=residual1[i]+mlp[i];
+ state=output;
+ }
  if(!changed)original=output;else for(let b=0;b<B;b++)for(let t=0;t<T-1;t++)for(let c=0;c<C;c++)assert.equal(output[(b*T+t)*C+c],original[(b*T+t)*C+c]);
  const prefix=`use ml\narg X .f32 shape ${B} ${T} ${C}\n${literal('W',[C,3*C],weights)}\n${literal('O',[C,C],outWeights)}\n${literal('Scale',[1],[scale])}\n${literal('Mask',[1,1,T,T],mask)}\n`;
  const constants=[['G1',[C],g1],['B1',[C],b1],['G2',[C],g2],['B2',[C],b2],['QkvBias',[3*C],qkvBias],['OutBias',[C],outBias],['UpW',[C,4*C],upW],['UpB',[4*C],upB],['DownW',[4*C,C],downW],['DownB',[C],downB]].map(([n,s,v])=>literal(n,s,v)).join('\n')+'\n';
@@ -74,17 +80,19 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  const flat=prefix+constants+lines.slice(0,end+1).join('\n')+'\nreturn '+name+'\n';
  const source=composed?prefix+constants+'fun X attentionblock W O\n'+lines.slice(0,15).join('\n')+'\nreturn X + Attention\nend\n'
   +'fun X feedforward UpW DownW\n'+lines.slice(16,20).join('\n').replaceAll('Residual1','X')+'\nreturn X + Mlp\nend\n'
-  +'return (X attentionblock W O) feedforward UpW DownW\n':flat;
- if(composed)assert.deepEqual(compileRam(source,'transformer.ram').graph.model,compileRam(flat,'transformer.ram').graph.model);
+  +(partitioned?'fun X transformerblock W O UpW DownW\nreturn (X attentionblock W O) feedforward UpW DownW\nend\n'
+    +'X = X transformerblock W O UpW DownW\n'.repeat(blocks-1)+'return X transformerblock W O UpW DownW\n'
+    :'return (X attentionblock W O) feedforward UpW DownW\n'):flat;
+ if(composed&&!partitioned)assert.deepEqual(compileRam(source,'transformer.ram').graph.model,compileRam(flat,'transformer.ram').graph.model);
  const graph=compileRam(source,'transformer.ram').graph;assert.deepEqual(graph.outputShape,outputShape);
- fixtures.push({stage:`${B}x${T}x${H}x${D}/${changed?'future-changed':'base'}/${name}`,source,expected,outputShape,input,inputSizes:[input.length],inputShape:[B,T,C],nodeCount:graph.nodes.length,constantBytes:graph.nodes.filter(n=>n.kind==='constant').reduce((sum,n)=>sum+n.values.length*4,0),logicalTensorBytes:graph.nodes.reduce((sum,n)=>sum+n.shape.reduce((a,b)=>a*b,1)*4,0),model:Buffer.from(graph.model).toString('base64')});
- if(B===1&&T===3&&!changed&&name==='Output'&&process.argv.includes('--write-demo'))writeFileSync('demos/mlrank/transformer.ram',source);
+ fixtures.push({stage:`${B}x${T}x${H}x${D}/${changed?'future-changed':'base'}/${name}`,source,expected,outputShape,input,partCount:graph.parts?.length??1,partSizes:graph.parts?.map(p=>p.graph.nodes.length),inputSizes:[input.length],inputShape:[B,T,C],nodeCount:graph.nodes.length,constantBytes:graph.nodes.filter(n=>n.kind==='constant').reduce((sum,n)=>sum+n.values.length*4,0),logicalTensorBytes:graph.nodes.reduce((sum,n)=>sum+n.shape.reduce((a,b)=>a*b,1)*4,0),model:Buffer.from(graph.model).toString('base64')});
+ if(B===1&&T===3&&!changed&&name==='Output'&&process.argv.includes('--write-demo'))writeFileSync(partitioned?'demos/mlrank/transformerstack.ram':'demos/mlrank/transformer.ram',source);
  }
  }
 }
 if(process.argv.includes('--fixture')){
  mkdirSync('/tmp/rank-mlrank',{recursive:true});
- writeFileSync('/tmp/rank-mlrank/transformer-functions-fixture.json',JSON.stringify(fixtures));
+ writeFileSync('/tmp/rank-mlrank/transformer-'+(partitioned?'partition':'functions')+'-fixture.json',JSON.stringify(fixtures));
 }else if(process.argv.includes('--ui')) {
  mkdirSync('output/playwright',{recursive:true});
  const f=fixtures.find(f=>f.stage==='1x1x1x3/base/Output');
@@ -99,10 +107,13 @@ if(process.argv.includes('--fixture')){
  const memoryBefore=process.memoryUsage();
  try {for(const f of fixtures) {
  console.error(f.stage);
- const r=new Interpreter(()=>{},{loadModule:name=>({id:name,source:f.source}),ramGpu:nodeRamGpu});
+ let gpuCalls=0;const gpu=(...args)=>{gpuCalls++;return nodeRamGpu(...args);};gpu.control=nodeRamGpu.control;
+ const r=new Interpreter(()=>{},{loadModule:name=>({id:name,source:f.source}),ramGpu:gpu});
  try {r.execute('use "transformer.ram"');r.variables.set('X',{kind:'array',shape:f.inputShape,items:f.input});
  for(let repeat=0;repeat<3;repeat++) {
- const result=r.execute('X transformer');assert.deepEqual(result.shape,f.outputShape);
+ const before=gpuCalls,start=performance.now();
+ const result=r.execute('X transformer');const wallMs=performance.now()-start;
+ assert.equal(gpuCalls-before,f.partCount);assert.deepEqual(result.shape,f.outputShape);
  const errors=result.items.map((v,i)=>Math.abs(v-f.expected[i]));
  errors.forEach((e,i)=>assert.ok(Number.isFinite(e)&&e<=1e-5+1e-5*Math.abs(f.expected[i]),`${f.stage} cell ${i}: ${result.items[i]} != ${f.expected[i]}`));
  if(f.stage.endsWith('/Probabilities')) {
@@ -117,9 +128,10 @@ if(process.argv.includes('--fixture')){
  if(f.stage.includes('future-changed')) {const base=outputs.get(key),[B,T,C]=f.inputShape;for(let b=0;b<B;b++)for(let t=0;t<T-1;t++)for(let c=0;c<C;c++)assert.ok(Math.abs(result.items[(b*T+t)*C+c]-base[(b*T+t)*C+c])<1e-5);}
  else outputs.set(key,result.items);
  }
- checks.push({stage:f.stage,repeat,maxError:Math.max(...errors),fullyAccelerated:true});
+ const status=sendRamGpu({action:'releaseState',stateId:'nonexistent'});assert.equal(status.stateBytes,0);
+ checks.push({stage:f.stage,repeat,wallMs,gpuCalls:gpuCalls-before,finalStateBytes:status.stateBytes,maxError:Math.max(...errors),fullyAccelerated:true});
  }
- if(f.stage.endsWith('/Output')) {
+ if(f.stage.endsWith('/Output')&&!partitioned) {
  const loaded=sendRamGpu({action:'load',model:f.model,inputSizes:f.inputSizes});assert.ok(loaded.fullyAccelerated);
  const profile=sendRamGpu({action:'invoke',modelId:loaded.modelId,input:f.input,outputSize:f.expected.length,profile:true});
  assert.ok(profile.fullyAccelerated);assert.equal(profile.output.length,f.expected.length);
@@ -129,6 +141,6 @@ if(process.argv.includes('--fixture')){
  }
  }finally{r.dispose();}
  }
- console.log(JSON.stringify({platform:process.platform,composed,fixtureCount:fixtures.length,memoryBefore,memoryAfter:process.memoryUsage(),profiles,tolerance:{atol:1e-5,rtol:1e-5},checks},null,2));
+ console.log(JSON.stringify({platform:process.platform,composed,blocks,partitioned,fixtureCount:fixtures.length,memoryBefore,memoryAfter:process.memoryUsage(),profiles,tolerance:{atol:1e-5,rtol:1e-5},checks},null,2));
  }finally{closeRamGpu();}
 }

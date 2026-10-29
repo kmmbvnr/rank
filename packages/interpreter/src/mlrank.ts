@@ -1,3 +1,4 @@
+import { partitionRam, executeRamGraph, type RamPart } from './ram-plan.js';
 import { ramState, retainRamState, registerRetainFunction, type RamStateDescriptor, type OwnRamState } from './ram-state.js';
 import { fileTensorInput, type FileTensorInput } from './file-tensor.js';
 import { demandValue } from './plan.js';
@@ -15,6 +16,7 @@ import { arrayValues, ownedArray } from './array-storage.js';
 import { isRankArray, type NativeFunction } from './value.js';
 
 export interface RamGraph {
+    readonly parts?: readonly RamPart[];
     readonly precision: 'f16' | 'f32';
     readonly shape: readonly number[];
     readonly inputs: readonly { name: string; shape: readonly number[]; dtype?: 'i32'; indexLimit?: number }[];
@@ -22,7 +24,7 @@ export interface RamGraph {
     readonly outputShape: readonly number[];
     readonly output: number;
     readonly model: Uint8Array;
-    /** Serialized graph plus nominal tensor storage; excludes driver overhead. */
+    /** Serialized graph plus nominal tensors, or largest part for a composite; excludes driver overhead. */
     readonly reservationBytes: number;
 }
 /** A synchronous host bridge. It must reject unavailable GPUs and partial delegation. */
@@ -113,7 +115,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
                 weights[value.value] = ramWeightDigest(bytes);
                 names.set(weight.name, nodes.length); nodes.push({ kind: 'constant', values, shape });
             } catch (error) { fail(String(error), weight); }
-            if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', weight);
+            if (nodes.length > 4096) fail('RAM graph exceeds 4096 tensors', weight);
             return;
         }
         const evaluator = new Interpreter(() => {});
@@ -141,11 +143,10 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
         } catch (error) { fail(String(error), weight); }
         finally { evaluator.dispose(); }
         names.set(weight.name, nodes.length); nodes.push({ kind: 'constant', values, shape });
-        if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', weight);
+        if (nodes.length > 4096) fail('RAM graph exceeds 4096 tensors', weight);
     };
     let current: Statement = output;
     const lower = (expression: Expression, argument = false): number => {
-        if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', current);
         if (isParenthesizedExpression(expression)) return lower(expression.value, argument);
         if (isNameExpression(expression)) {
             const index = names.get(expression.name);
@@ -197,7 +198,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
         }
         // Normalization is centered before squaring, avoiding E[X²] - E[X]² cancellation.
         const append = (node: RamNode): number => {
-            if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', current);
+            if (nodes.length >= 4096) return fail('RAM graph exceeds 4096 tensors', current);
             nodes.push(node); return nodes.length - 1;
         };
         if (isApplicationExpression(expression) && expression.arguments.length === 1
@@ -327,7 +328,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
                 node = { kind: 'reshape', input: nodes.length - 1, shape };
             }
         } else return fail('RAM supports tensor names, +, *, relu, softmax, gelu_new, layernorm, and linear', current);
-        if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', current);
+        if (nodes.length >= 4096) return fail('RAM graph exceeds 4096 tensors', current);
         nodes.push(node); return nodes.length - 1;
     };
     for (const statement of body.slice(0, -1)) {
@@ -346,7 +347,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
                 inputs.push({name:statement.name,shape,...dtype});
                 inputSpecs.set(nodes.length, inputs.at(-1)!);
                 names.set(statement.name, nodes.length); nodes.push({kind:'input',shape,...dtype});
-                if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', statement);
+                if (nodes.length > 4096) fail('RAM graph exceeds 4096 tensors', statement);
             }
         } else if (isAssignmentStatement(statement) && statement.operator === '='
             && !statement.deferred && !statement.accumulate) {
@@ -362,12 +363,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     for (const node of nodes) if (node.kind !== 'input') validShape(node.shape, output);
     const name = id.split(/[\\/]/).at(-1)!.replace(/\.ram$/i, '');
     if (!/^[a-z][a-z0-9_]*$/.test(name)) fail('RAM file name must be a lowercase function name');
-    const model = ramModel(nodes, result);
-    const transposedWeights = new Set(nodes.flatMap(node => node.kind === 'linear' ? [node.right] : []));
-    const tensorBytes = (node: RamNode) => node.shape.reduce((a,b) => a*b, 1) * 4;
-    const reservationBytes = model.length + nodes.reduce((sum,node) => sum + tensorBytes(node), 0)
-        + [...transposedWeights].reduce((sum,index) => sum + tensorBytes(nodes[index]), 0);
-    const graph: RamGraph = { precision: precision as RamGraph['precision'], shape, inputs, nodes, outputShape: nodes[result].shape, output: result, model, reservationBytes };
+    const graph = partitionRam(precision as RamGraph['precision'], nodes, result, inputs, shape);
     // Ordinary import discovery sees a standard function with the declared inputs. Its runtime
     // implementation is installed by useFile, rather than evaluating this stub.
     const program = parse(`fun ${inputs[0].name} ${name} ${inputs.slice(1).map(input => input.name).join(' ')}\nreturn ${input.name}\nend\n`, id);
@@ -423,7 +419,7 @@ export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamM
             });
         });
         if (!gpu) throw new RankError('RAM GPU runtime is unavailable on this host', 'GpuUnavailable');
-        const output = gpu(module.graph, input, inputFiles.some(Boolean) ? inputFiles : undefined,
+        const output = executeRamGraph(module.graph, gpu, input, inputFiles.some(Boolean) ? inputFiles : undefined,
             retain || inputStates.some(Boolean) ? {...(retain ? {retainOutput:true} : {}), ...(inputStates.some(Boolean) ? {inputStates} : {})} : undefined);
         if ('id' in output) {
             if (!retain || output.dtype !== 'f32' || output.shape.length !== module.graph.outputShape.length || output.shape.some((n,i)=>n!==module.graph.outputShape[i]))

@@ -26,3 +26,5 @@ export { encodeRamWeights, decodeRamWeights, ramWeightName } from './ram-weights
 export type { FileTensorInput } from './file-tensor.js';
 
 export { inputValues } from './cli-args.js';
+
+export { executeRamGraph } from './ram-plan.js';
