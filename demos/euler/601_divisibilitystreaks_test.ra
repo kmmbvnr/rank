@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "601_divisibilitystreaks"
+  run
+  Answer equal 1617243
+end
+
+test "brute force"
+  use "601_divisibilitystreaks"
+  Top = 5
+  run
+  Answer equal 28
+  Top = 8
+  run
+  Answer equal 159
+end

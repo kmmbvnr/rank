@@ -1,0 +1,22 @@
+rem Divisibility Streaks
+rem https://projecteuler.net/problem=601
+rem Sum of P(i, 4^i) for i up to 31
+
+use numbers
+use bits
+use sequences
+use io
+use cli
+
+arg Top integer = 31
+
+rem n has streak s when lcm(1..s) = L(s)
+rem divides n - 1 and s + 1 does not, so
+rem the count below N is (N - 2) // L(s)
+rem - (N - 2) // L(s + 1).
+Ls = (1 to Top + 1) scan lcm with 1
+Is = 1 to Top
+Ns = (1 shl (2 * Is)) - 2
+Ip = Is + 1
+Answer = (Ns // Ls Is - Ns // Ls Ip) sum
+Answer print
