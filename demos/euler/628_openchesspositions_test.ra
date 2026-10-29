@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "628_openchesspositions"
+  run
+  Answer equal 210286684
+end
+
+test "statement and brute force"
+  use "628_openchesspositions"
+  N = 3
+  run
+  Answer equal 2
+  N = 5
+  run
+  Answer equal 70
+  N = 9
+  run
+  Answer equal 277406
+end

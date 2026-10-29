@@ -1,0 +1,35 @@
+rem Open Chess Positions
+rem https://projecteuler.net/problem=628
+
+use numbers
+use io
+use cli
+
+arg N integer = 100000000
+
+rem Rows read top down, a position is
+rem closed when a run of pawns on
+rem consecutive rows holds consecutive
+rem rising columns, and either starts
+rem on the top row (a block B(j) with
+rem columns n - j to n - 1 first) or in
+rem column 0, and ends on the bottom
+rem row or in the last column. B(j)
+rem and C(m) are exclusive among
+rem themselves, B(n) = C(n - 1) is the
+rem identity and B(j) C(m) leaves
+rem (n - j - m - 1)! free, so
+rem f = n! - 2 sum k! + sum s (n - 1 - s)!
+rem + 1 with k = 0 to n - 1, s = 1 to
+rem n - 1. Summed with a running k!.
+M = 1008691207
+Fk = 1
+S1 = 0
+T = 0
+for K in 0 to N - 1
+  S1 = (S1 + Fk) mod M
+  T = (T + (N - 1 - K) * Fk) mod M
+  Fk = Fk * (K + 1) mod M
+end
+Answer = (Fk - 2 * S1 + T + 1) mod M
+Answer print
