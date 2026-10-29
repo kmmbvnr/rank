@@ -1,0 +1,34 @@
+rem Convex Path in Square
+rem https://projecteuler.net/problem=604
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 1000000000000000000
+
+rem Steps are primitive vectors (a, b)
+rem with distinct slopes, and both
+rem sums must stay within N. A layer
+rem a + b = s holds phi(s) vectors of
+rem cost s and is balanced, so take
+rem whole layers while the cost stays
+rem within 2 N, then fill with layer
+rem m + 1. Exact fills with an odd
+rem rest are not special-cased.
+L = (((10.0 * N) ** (1.0 / 3.0)) floor)
+L = L * 11 // 10 + 100
+Ph = (0 to L) copy
+for P in primes to L
+  Sl = P to L by P
+  Ph Sl -= Ph Sl // P
+end
+Ss = 2 to L
+Cs = (Ss * Ph (2 to L)) scan +
+Ps = Ph (2 to L) scan +
+M = (Cs at most (2 * N)) count
+R = 2 * N - Cs (M - 1)
+T = R // (M + 2)
+Answer = Ps (M - 1) + T + 1
+Answer print
