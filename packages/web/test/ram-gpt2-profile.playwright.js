@@ -3,6 +3,7 @@
 // readback may wait for GPU completion. These are host intervals, not kernel timers.
 async page => {
  const fixture=__GPT2_KV_BENCH_FIXTURE__;
+ await page.waitForFunction(()=>document.querySelector('#input')?.getAttribute('aria-busy')!=='true',null,{timeout:180000});
  return page.evaluate(async f=>{
   const native=(method,args={})=>window.Capacitor.nativePromise('RamGpu',method,args);
   const main=document.querySelector('script[type="module"][src]').src,code=await fetch(main).then(r=>r.text());
@@ -55,9 +56,9 @@ async page => {
      const groups={};
      for(const call of calls){
       const key=call.path+':'+String(call.action??'read');
-      const group=groups[key]??={count:0,wallMs:0,prepareMs:0,inputMs:0,dispatchMs:0,readbackMs:0,outputMs:0,fileBytesRead:0};
+      const group=groups[key]??={count:0,wallMs:0,prepareMs:0,inputMs:0,dispatchMs:0,readbackMs:0,outputMs:0,fileBytesRead:0,tensorAllocationMs:0,fileReadMs:0,fileDecodeMs:0,bufferWriteMs:0};
       group.count++;group.wallMs+=call.elapsedMs;
-      for(const field of ['prepareMs','inputMs','dispatchMs','readbackMs','outputMs','fileBytesRead'])group[field]+=call.reply?.[field]??0;
+      for(const field of ['prepareMs','inputMs','dispatchMs','readbackMs','outputMs','fileBytesRead','tensorAllocationMs','fileReadMs','fileDecodeMs','bufferWriteMs'])group[field]+=call.reply?.[field]??0;
      }
      runs.push({totalMs,text:"Hello, I'm",finalStateBytes:status.stateBytes,
       outsideXhrMs:totalMs-calls.reduce((sum,call)=>sum+call.elapsedMs,0),groups});

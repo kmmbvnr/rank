@@ -313,7 +313,8 @@ final class RamGpu {
         }
         if (total != data.length()) throw new IllegalArgumentException("Wrong RAM input length");
         int offset = 0, fileInputsReused = 0;
-        long fileBytesRead = 0;
+        long fileBytesRead = 0, bufferWriteNanos = 0;
+        ModelFiles.TensorReadProfile inputProfile = request.optBoolean("profile", false) ? new ModelFiles.TensorReadProfile() : null;
         for (int index = 0; index < sizes.length; index++) {
             if (stateInputs != null && !stateInputs.isNull(index)) continue;
             if (files != null && !files.isNull(index)) {
@@ -323,7 +324,10 @@ final class RamGpu {
                 String identity = descriptor.toString();
                 if (identity.equals(fileInputs[index])) { fileInputsReused++; continue; }
                 fileInputs[index] = null;
-                inputs.get(index).writeFloat(ModelFiles.readTensor(context, descriptor, sizes[index]));
+                float[] values = ModelFiles.readTensor(context, descriptor, sizes[index], inputProfile);
+                long writeStarted = inputProfile == null ? 0 : System.nanoTime();
+                inputs.get(index).writeFloat(values);
+                if (inputProfile != null) bufferWriteNanos += System.nanoTime() - writeStarted;
                 fileInputs[index] = identity;
                 fileBytesRead += descriptor.getLong("length");
                 continue;
@@ -337,7 +341,9 @@ final class RamGpu {
                         throw new IllegalArgumentException("RAM i32 input requires signed 32-bit integers");
                     input[i] = (int) value;
                 }
+                long writeStarted = inputProfile == null ? 0 : System.nanoTime();
                 inputs.get(index).writeInt(input);
+                if (inputProfile != null) bufferWriteNanos += System.nanoTime() - writeStarted;
                 continue;
             }
             float[] input = new float[sizes[index]];
@@ -345,7 +351,9 @@ final class RamGpu {
                 input[i] = (float) data.getDouble(offset++);
                 if (!Float.isFinite(input[i])) throw new IllegalArgumentException("RAM input requires finite f32 values");
             }
+            long writeStarted = inputProfile == null ? 0 : System.nanoTime();
             inputs.get(index).writeFloat(input);
+            if (inputProfile != null) bufferWriteNanos += System.nanoTime() - writeStarted;
         }
         long written = System.nanoTime();
         model.run(callInputs, outputs);
@@ -380,6 +388,10 @@ final class RamGpu {
             result.put("fileBytesRead", fileBytesRead);
             result.put("fileInputsReused", fileInputsReused);
             result.put("inputMs", (written - prepared) / 1e6);
+            result.put("tensorAllocationMs", inputProfile.allocationNanos / 1e6);
+            result.put("fileReadMs", inputProfile.readNanos / 1e6);
+            result.put("fileDecodeMs", inputProfile.decodeNanos / 1e6);
+            result.put("bufferWriteMs", bufferWriteNanos / 1e6);
             result.put("dispatchMs", (dispatched - written) / 1e6);
             result.put("readbackMs", (read - dispatched) / 1e6);
             result.put("outputMs", (packed - read) / 1e6);

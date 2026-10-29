@@ -15,6 +15,7 @@ export interface RamReply {
     error?: string; code?: string; modelId?: string; output?: number[];
     fullyAccelerated?: boolean; gpuOnlyRequested?: boolean;
     fileBytesRead?: number; fileInputsReused?: number; pssBytes?: number;
+    tensorAllocationMs?: number; fileReadMs?: number; fileDecodeMs?: number; bufferWriteMs?: number;
     inputMs?: number; dispatchMs?: number; readbackMs?: number; outputMs?: number; peakRssBytes?: number;
     cached?: boolean; prepareMs?: number; executeMs?: number; backend?: string;
 }

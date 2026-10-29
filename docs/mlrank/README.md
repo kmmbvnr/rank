@@ -1957,3 +1957,14 @@ Validation also passed 44 interpreter tests, 19 CLI tests and three worker tests
 Metal compared 251,285 logits with maximum error 0.00018953 against the independent
 reference. This change improves host overhead; it does not reduce weight traffic
 or establish faster GPU kernels.
+
+
+### Android weight input profile
+
+The optional native profile separates input preparation into `tensorAllocationMs`
+(destination array and bounded staging buffer), `fileReadMs` (`readFully` calls),
+`fileDecodeMs` (little-endian float conversion and finite-value checks), and
+`bufferWriteMs` (LiteRT input-buffer writes, including any wait in those calls).
+These intervals are contained in `inputMs`; file validation, open/seek/close,
+JSON input conversion and loop overhead account for the remainder. File reads
+can use the operating-system page cache; `fileReadMs` is not a disk-speed test.
