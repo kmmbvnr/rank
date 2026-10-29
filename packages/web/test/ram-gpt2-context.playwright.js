@@ -18,7 +18,7 @@ async page => {
    try{
     await post({nativeRam:true,nativeFiles:true,ramSessionId:owner.sessionId,modules:f.modules},0);
     let source=f.source.replace(/^Prompt = .*$/m,'Prompt = '+JSON.stringify(c.prompt)).replace(/^MaxNew = .*$/m,'MaxNew = '+c.maxNew);
-    if(c.poison)source=source.replace('Empty = array shape ContextLimit 1536 fill 0.0','Empty = ((1 to (ContextLimit * 1536)) * 0.00001) reshape ContextLimit 1536');
+    if(c.poison)source=source.replace('Empty = array shape ContextLimit 1536 fill 0.0','Empty = ((1 to (ContextLimit * 1536)) * 0.00001) reshape ContextLimit 1536').replace('X = array shape ContextLimit 768 fill 0.0','X = ((1 to (ContextLimit * 768)) * 0.00001) reshape ContextLimit 768');
     if(c.steps)source=source.replace('for Position in','Trace = array shape '+c.steps.length+' 50257 fill 0.0\nfor Position in').replace('Next = Logits max .index','Trace Generated # = Logits\nNext = Logits max .index').replace('F close\nTokens bpedecode Config','F close\nTrace');
     const started=performance.now(),result=await execute(source),wallMs=performance.now()-started;
     if(c.message){if(result.ok||requests.length||!result.output.some(line=>line.text.includes(c.message)))throw Error('Invalid input accepted, wrong error or GPU touched');invalid.push(c.message);continue;}
@@ -48,6 +48,6 @@ async page => {
   }
   if(cacheReadbackRequests)throw Error('KV cache was read into JS');
   if(valuesCompared!==f.reference.cases.reduce((sum,c)=>sum+c.steps.length*50257,0))throw Error('Missing logits');
-  return {context:16,runs,boundaries,invalid,valuesCompared,maxError,cacheReadbackRequests};
+  return {context:16,batched:!!f.batched,runs,boundaries,invalid,valuesCompared,maxError,cacheReadbackRequests};
  },fixture);
 }
