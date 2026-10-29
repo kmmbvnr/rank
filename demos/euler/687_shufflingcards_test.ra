@@ -1,0 +1,7 @@
+use testing
+
+test "default input"
+  use "687_shufflingcards"
+  run
+  Answer equal "0.3285320869"
+end

@@ -1,0 +1,131 @@
+rem Shuffling Cards
+rem https://projecteuler.net/problem=687
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nr integer = 13
+
+rem q(j) is the chance that j given
+rem ranks have no two equal cards side
+rem by side. Draw the deck left to
+rem right; the state is the number u of
+rem cards of other ranks left, the
+rem numbers a(r) of tracked ranks with
+rem r cards left, and the class s of
+rem the rank drawn last (0 if none or
+rem finished), which cannot come next.
+rem V is the chance of surviving to the
+rem end, filled by cards left. With
+rem B(j) = C(Nr, j) q(j) = E[C(Y, j)],
+rem Pr(Y = k) = sum over j of
+rem (-1)^(j-k) C(j, k) B(j).
+Nc = 4 * Nr
+Su = 14 ** 4 * 5
+Vv = array shape (53 * Su) fill 0.0
+Cs = 0 to (14 ** 4 - 1)
+A4 = Cs // 2744
+A3 = Cs // 196 mod 14
+A2 = Cs // 14 mod 14
+A1 = Cs mod 14
+Sm = A1 + A2 + A3 + A4
+Sl = (Sm at most Nr) indices
+A1 = A1 Sl
+A2 = A2 Sl
+A3 = A3 Sl
+A4 = A4 Sl
+Wv = A1 + 2 * A2 + 3 * A3 + 4 * A4
+Bo = A4 * 13720 + A3 * 980
+Bo = Bo + A2 * 70 + A1 * 5
+for U in 0 to Nc
+  for W in 0 to Nc - U
+    Gi = (Wv equal W) indices
+    Rm = U + W
+    if Gi len greater 0
+      B0 = U * Su + Bo Gi
+      G1 = A1 Gi
+      G2 = A2 Gi
+      G3 = A3 Gi
+      G4 = A4 Gi
+      for S in 0 to 4
+        Tt = G1 * 0.0
+        if U greater 0
+          Tt = U * Vv (B0 - Su)
+        end
+        E1 = (S equal 1) integer
+        C1 = (G1 - E1) max 0
+        E2 = (S equal 2) integer
+        C2 = (G2 - E2) max 0
+        E3 = (S equal 3) integer
+        C3 = (G3 - E3) max 0
+        E4 = (S equal 4) integer
+        C4 = (G4 - E4) max 0
+        I1 = (B0 - 5) max 0
+        T1 = C1 * Vv I1
+        I2 = (B0 - 64) max 0
+        T2 = 2 * C2 * Vv I2
+        I3 = (B0 - 908) max 0
+        T3 = 3 * C3 * Vv I3
+        I4 = (B0 - 12737) max 0
+        T4 = 4 * C4 * Vv I4
+        Tt = Tt + T1 + T2 + T3 + T4
+        Ac = G1
+        if S equal 2
+          Ac = G2
+        end
+        if S equal 3
+          Ac = G3
+        end
+        if S equal 4
+          Ac = G4
+        end
+        Ms = (Ac at least 1) integer
+        if S equal 0
+          Ms = G1 * 0 + 1
+        end
+        if Rm equal 0
+          Tt = G1 * 0.0 + 1.0
+        end
+        Pv = Tt / (Rm max 1) * Ms
+        Vv (B0 + S) = Pv
+      end
+    end
+  end
+end
+Js = 0 to Nr
+Ix = (Nc - 4 * Js) * Su + Js * 13720
+Qj = Vv Ix
+Bj = Qj
+Cr = 1.0
+for J in 0 to Nr
+  Bj J = Qj J * Cr
+  Cr = Cr * (Nr - J) / (J + 1)
+end
+Dk = Bj * 0.0
+for K in 0 to Nr
+  Ck = 1.0
+  Tm = 0.0
+  for J in K to Nr
+    Sg = 1.0
+    if (J - K) mod 2 equal 1
+      Sg = -1.0
+    end
+    Tm = Tm + Sg * Ck * Bj J
+    Ck = Ck * (J + 1) / (J + 1 - K)
+  end
+  Dk K = Tm
+end
+Pr = 0.0
+for K in 2 to Nr
+  Pm = 1
+  for D in 2 to K - 1
+    if K mod D equal 0
+      Pm = 0
+    end
+  end
+  Pr = Pr + Pm * Dk K
+end
+Answer = Pr text ".10f"
+Answer print
