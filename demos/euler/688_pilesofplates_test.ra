@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "688_pilesofplates"
+  Nn = 10
+  run
+  Answer equal 83
+  Nn = 100
+  run
+  Answer equal 12656
+  Nn = 1000000000000000
+  run
+  Answer equal 20039017
+end
