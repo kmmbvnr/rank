@@ -1,0 +1,31 @@
+use testing
+
+test "default input"
+  use "615_millionthnumber"
+  run
+  Answer equal 108424772
+end
+
+test "statement values"
+  use "615_millionthnumber"
+  Om = 5
+  Cn = 5
+  Bound = 1000
+  run
+  Answer equal 80
+  Cn = 6
+  run
+  Answer equal 96
+end
+
+test "brute force"
+  use "615_millionthnumber"
+  Om = 10
+  Cn = 1000
+  run
+  Answer equal 167936
+  Om = 12
+  Cn = 300
+  run
+  Answer equal 238464
+end

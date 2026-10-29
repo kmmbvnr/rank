@@ -1,0 +1,97 @@
+rem Millionth Number, a Million Primes
+rem https://projecteuler.net/problem=615
+
+use numbers
+use sequences
+use algo
+use bits
+use io
+use cli
+
+arg Om integer = 1000000
+arg Cn integer = 1000000
+arg Bound integer = 100000
+
+rem n = 2^Om x key, key the product of
+rem 2 and p / 2 over odd primes p taken
+rem with repeats. Needs Om above the
+rem odd prime count c of the keys (the
+rem odd part alone could hold Om).
+rem Keys up to Bound are scaled by 2^30
+rem to stay exact. Small generators with
+rem (p / 2)^2 <= Bound are expanded
+rem with repeats, a large one appears
+rem at most once, on a small key.
+Md = 123454321
+Sc = 1 shl 30
+Bd = Bound * Sc
+Lm = 2 * (Bound isqrt) + 1
+Gp = primes from 3 till Lm array
+Ks = (Sc to Sc) array
+Ps = (1 to 1) array
+Cs = (0 to 0) array
+for P in Gp reverse
+  Ck = Ks
+  Cp = Ps
+  Cc = Cs
+  for Ck len greater 0
+    Nk = Ck * P // 2
+    Ix = (Nk at most Bd) indices
+    Ck = Nk Ix
+    Cp = Cp Ix * P mod Md
+    Cc = Cc Ix + 1
+    Ks = concat Ks Ck
+    Ps = concat Ps Cp
+    Cs = concat Cs Cc
+  end
+end
+Ck = Ks
+Cp = Ps
+Cc = Cs
+for Ck len greater 0
+  Ix = ((Ck * 2) at most Bd) indices
+  Ck = Ck Ix * 2
+  Cp = Cp Ix * 2 mod Md
+  Cc = Cc Ix
+  Ks = concat Ks Ck
+  Ps = concat Ps Cp
+  Cs = concat Cs Cc
+end
+Od = Ks argsort
+Sk = Ks Od
+Sp = Ps Od
+Sc1 = (Cs Od) + 1
+Hb = 2 * Bound + 1
+Lp = primes from Lm till Hb array
+Np = Lp len
+Nc = (0 to (Np - 1)) * 0
+for J in 0 to Np - 1
+  Nc J = Sk upperindex (2 * Bd // Lp J)
+end
+Tt = Nc sum
+Os = Nc scan + with 0
+Ko = (0 till Tt) * 0
+Po = (0 till Tt) * 0
+Co = (0 till Tt) * 0
+for J in 0 to Np - 1
+  Q = Lp J
+  Nj = Nc J
+  O1 = Os J
+  Ir = 0 till Nj
+  Iw = O1 till O1 + Nj
+  Ko Iw = Sk Ir * Q // 2
+  Po Iw = Sp Ir * Q mod Md
+  Co Iw = Sc1 Ir
+end
+Ka = concat Sk Ko
+Pa = concat Sp Po
+Ca = concat (Sc1 - 1) Co
+Ok = (Ca at most Om) indices
+Ka = Ka Ok
+Pa = Pa Ok
+Ca = Ca Ok
+Ao = Ka argsort
+Jx = Ao (Cn - 1)
+Tw = 2 (Om - Ca Jx) Md powmod
+Answer = Pa Jx * Tw mod Md
+Answer print
