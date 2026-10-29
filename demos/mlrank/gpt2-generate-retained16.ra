@@ -1,0 +1,181 @@
+use io
+use "gpt2row.ram"
+use ml
+use "gpt2qkv.ram"
+use "gpt2kvwrite16.ram"
+use "gpt2kvattn16.ram"
+use "gpt2tokenmlp.ram"
+use "gpt2tokennorm.ram"
+use "gpt2tokenhead.ram"
+use "gpt2tokentail.ram"
+use "gpt2prefillqkv16.ram"
+use "gpt2prefillcache16.ram"
+use "gpt2prefillattn16.ram"
+use "gpt2prefillmlp16.ram"
+use "gpt2prefilllast16.ram"
+use text
+use sequences
+TokenizerFile = "models/gpt2-tokenizer.json" open
+TokenizerFile verify "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6"
+TokenizerFile close
+Config = "models/gpt2-tokenizer.json" read
+Prompt = "Hello, world! My name is"
+MaxNew = 2
+ContextLimit = 16
+Tokens = Prompt bpeencode Config
+if Tokens len equal 0
+.DomainError "Prompt must contain at least one token" raise
+end
+if Tokens len greater ContextLimit
+.DomainError "This demo supports at most sixteen context tokens" raise
+end
+if MaxNew type not equal .integer
+.DomainError "MaxNew must be an integer" raise
+end
+if MaxNew less 0
+.DomainError "MaxNew must be nonnegative" raise
+end
+F = "models/gpt2-forward.safetensors" open
+F verify "c53f03ec73ec33687f2edfd4abc0eedd514bb40f8b330798e9d950a7e7ac2268"
+TokenTable' = F tensor "wte.weight"
+PositionTable' = F tensor "wpe.weight"
+project = (gpt2qkv gpukeep)
+writecache = (gpt2kvwrite16 gpukeep)
+prefillproject = (gpt2prefillqkv16 gpukeep)
+prefillcache = (gpt2prefillcache16 gpukeep)
+embed = (gpt2row gpukeep)
+attention = (gpt2kvattn16 gpukeep)
+feedforward = (gpt2tokenmlp gpukeep)
+prefillattention = (gpt2prefillattn16 gpukeep)
+prefillfeedforward = (gpt2prefillmlp16 gpukeep)
+lastrow = (gpt2prefilllast16 gpukeep)
+normalize = (gpt2tokennorm gpukeep)
+Caches = array shape 12 fill .NA
+CachedLayers = 0
+Empty = array shape ContextLimit 1536 fill 0.0
+PromptLength = Tokens len
+BatchPrompt = PromptLength greater 1
+Generated = 0
+StopReason = "token limit"
+Begin = PromptLength - 1
+for Position in Begin till ContextLimit
+if Generated at least MaxNew
+break
+end
+if Tokens len at least ContextLimit
+StopReason = "context limit"
+break
+end
+if Tokens last equal 50256
+StopReason = "eos"
+break
+end
+Slot = array shape ContextLimit 1 fill 0.0
+Slot Position 0 = 1.0
+MaskRow = array shape ContextLimit fill -10000.0
+MaskRow (0 till (Position + 1)) = 0.0
+Mask = MaskRow reshape 1 1 1 ContextLimit
+X = .NA
+Rows = .NA
+if Generated equal 0 and BatchPrompt
+Rows = array shape ContextLimit 768 fill 0.0
+for RowPosition in 0 till PromptLength
+Token = Tokens RowPosition
+Row' = TokenTable (Token till (Token + 1)) #
+Pos' = PositionTable (RowPosition till (RowPosition + 1)) #
+Embedded = Row gpt2row Pos
+Rows RowPosition # = Embedded 0 #
+end
+else
+Token = Tokens Position
+Row' = TokenTable (Token till (Token + 1)) #
+Pos' = PositionTable (Position till (Position + 1)) #
+X = Row embed Pos
+end
+for Layer in 0 till 12
+Prefix = "h." + (Layer text) + "."
+G1' = F tensor (Prefix + "ln_1.weight")
+B1' = F tensor (Prefix + "ln_1.bias")
+W' = F tensor (Prefix + "attn.c_attn.weight")
+QkvBias' = F tensor (Prefix + "attn.c_attn.bias")
+O' = F tensor (Prefix + "attn.c_proj.weight")
+OutBias' = F tensor (Prefix + "attn.c_proj.bias")
+G2' = F tensor (Prefix + "ln_2.weight")
+B2' = F tensor (Prefix + "ln_2.bias")
+UpW' = F tensor (Prefix + "mlp.c_fc.weight")
+UpB' = F tensor (Prefix + "mlp.c_fc.bias")
+DownW' = F tensor (Prefix + "mlp.c_proj.weight")
+DownB' = F tensor (Prefix + "mlp.c_proj.bias")
+if Generated equal 0 and BatchPrompt
+Projection = .NA
+H = .NA
+if Layer equal 0
+Projection = Rows prefillproject G1 B1 W QkvBias
+else
+Projection = X prefillproject G1 B1 W QkvBias
+end
+NewCache = Projection prefillcache
+Caches Layer = NewCache
+CachedLayers += 1
+if Layer equal 0
+H = Rows prefillattention Projection NewCache O OutBias
+else
+H = X prefillattention Projection NewCache O OutBias
+X gpufree
+end
+Projection gpufree
+X = H prefillfeedforward G2 B2 UpW UpB DownW DownB
+H gpufree
+else
+Projection = X project G1 B1 W QkvBias
+NewCache = .NA
+if Position equal 0
+NewCache = Empty writecache Projection Slot
+CachedLayers += 1
+else
+NewCache = (Caches Layer) writecache Projection Slot
+(Caches Layer) gpufree
+end
+Caches Layer = NewCache
+H = X attention Projection NewCache Mask O OutBias
+X gpufree
+Projection gpufree
+X = H feedforward G2 B2 UpW UpB DownW DownB
+H gpufree
+end
+end
+if Generated equal 0 and BatchPrompt
+Selector = array shape 1 ContextLimit fill 0.0
+Selector 0 (PromptLength - 1) = 1.0
+Selected = X lastrow Selector
+X gpufree
+X = Selected
+end
+G' = F tensor "ln_f.weight"
+B' = F tensor "ln_f.bias"
+Hidden = X normalize G B
+X gpufree
+Result = array shape 1 50257 fill 0.0
+for Start in 0 till 50176 by 1024
+Part' = TokenTable (Start till (Start + 1024)) #
+Y = Hidden gpt2tokenhead Part
+Result # (Start till (Start + 1024)) = Y
+end
+Part' = TokenTable (50176 till 50257) #
+Y = Hidden gpt2tokentail Part
+Result # (50176 till 50257) = Y
+Hidden gpufree
+Logits = Result 0 #
+Next = Logits max .index
+if Next equal 50256
+StopReason = "eos"
+break
+end
+Tokens = concat Tokens (array Next)
+Generated += 1
+end
+for Layer in 0 till CachedLayers
+(Caches Layer) gpufree
+end
+F close
+Tokens bpedecode Config

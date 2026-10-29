@@ -1,0 +1,4 @@
+use ml
+arg X .f32 shape 16 768
+arg Row .f32 shape 1 16
+return Row matmul X

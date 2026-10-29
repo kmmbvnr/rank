@@ -6,8 +6,8 @@ async page => {
   const native=(method,args={})=>window.Capacitor.nativePromise('RamGpu',method,args);
   const main=document.querySelector('script[type="module"][src]').src,code=await fetch(main).then(r=>r.text());
   const asset=new URL(code.match(/worker-[A-Za-z0-9_-]+\.js/)[0],main);
-  const runs=[],boundaries=[],invalid=[];let valuesCompared=0,maxError=0,cacheReadbackRequests=0;
-  for(const c of [...f.reference.cases,...f.reference.boundaries,...f.reference.invalid]){
+  const runs=[],boundaries=[],invalid=[],failedStages=[];let valuesCompared=0,maxError=0,cacheReadbackRequests=0;
+  for(const c of [...f.reference.cases,...f.reference.boundaries,...f.reference.invalid,...(f.failures??[])]){
    const owner=await native('openSession'),worker=new Worker(asset,{type:'module'}),pending=new Map(),requests=[];let sequence=0;
    worker.onmessage=event=>{const m=event.data;if(m.ram){requests.push(JSON.parse(m.ram.payload));void native('submit',{id:m.ram.id,payload:JSON.stringify({...JSON.parse(m.ram.payload),...owner})}).catch(e=>{for(const p of pending.values())p.reject(e);});return;}const p=pending.get(m.id);if(p){pending.delete(m.id);m.error?p.reject(Error(m.error)):p.resolve(m);}};
    worker.onerror=e=>{for(const p of pending.values())p.reject(Error(e.message));};
@@ -17,10 +17,18 @@ async page => {
    const scalar=async source=>{const result=await execute(source);if(!result.ok)throw Error(JSON.stringify(result));return (await call('inspect',[result.valueRef,{}])).result.text;};
    try{
     await post({nativeRam:true,nativeFiles:true,ramSessionId:owner.sessionId,modules:f.modules},0);
-    let source=f.source.replace(/^Prompt = .*$/m,'Prompt = '+JSON.stringify(c.prompt)).replace(/^MaxNew = .*$/m,'MaxNew = '+c.maxNew);
-    if(c.poison)source=source.replace('Empty = array shape ContextLimit 1536 fill 0.0','Empty = ((1 to (ContextLimit * 1536)) * 0.00001) reshape ContextLimit 1536').replace('X = array shape ContextLimit 768 fill 0.0','X = ((1 to (ContextLimit * 768)) * 0.00001) reshape ContextLimit 768');
+    let source=f.source.replace(/^Prompt = .*$/m,'Prompt = '+JSON.stringify(c.prompt)).replace(/^MaxNew = .*$/m,'MaxNew = '+(c.maxNew??1));
+    if(c.poison)source=source.replace('Empty = array shape ContextLimit 1536 fill 0.0','Empty = ((1 to (ContextLimit * 1536)) * 0.00001) reshape ContextLimit 1536').replace('Rows = array shape ContextLimit 768 fill 0.0','Rows = ((1 to (ContextLimit * 768)) * 0.00001) reshape ContextLimit 768').replace('X = array shape ContextLimit 768 fill 0.0','X = ((1 to (ContextLimit * 768)) * 0.00001) reshape ContextLimit 768');
+    if(c.after)source=source.replace(c.after,c.after+'\n.DomainError "injected activation failure" raise');
     if(c.steps)source=source.replace('for Position in','Trace = array shape '+c.steps.length+' 50257 fill 0.0\nfor Position in').replace('Next = Logits max .index','Trace Generated # = Logits\nNext = Logits max .index').replace('F close\nTokens bpedecode Config','F close\nTrace');
     const started=performance.now(),result=await execute(source),wallMs=performance.now()-started;
+    if(c.after){
+     if(result.ok||!result.output.some(line=>line.text.includes('injected activation failure')))throw Error('Missing injected failure: '+c.name);
+     const id=crypto.randomUUID();await native('submit',{id,payload:JSON.stringify({...owner,action:'releaseState',stateId:'nonexistent'})});
+     const status=await fetch('/__rank_ml_result?id='+id+'&sessionId='+owner.sessionId).then(r=>r.json());
+     if(status.stateBytes!==0||status.residentStates!==0)throw Error('Failure leaked states: '+c.name);
+     failedStages.push(c.name);continue;
+    }
     if(c.message){if(result.ok||requests.length||!result.output.some(line=>line.text.includes(c.message)))throw Error('Invalid input accepted, wrong error or GPU touched');invalid.push(c.message);continue;}
     if(!result.ok)throw Error(JSON.stringify(result));
     if(!c.steps){
@@ -48,6 +56,6 @@ async page => {
   }
   if(cacheReadbackRequests)throw Error('KV cache was read into JS');
   if(valuesCompared!==f.reference.cases.reduce((sum,c)=>sum+c.steps.length*50257,0))throw Error('Missing logits');
-  return {context:16,batched:!!f.batched,runs,boundaries,invalid,valuesCompared,maxError,cacheReadbackRequests};
+  return {context:16,batched:!!f.batched,retained:!!f.retained,runs,boundaries,invalid,failedStages,valuesCompared,maxError,cacheReadbackRequests};
  },fixture);
 }
