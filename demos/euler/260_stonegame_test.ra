@@ -18,3 +18,19 @@ test "small top"
 
   Answer equal 173895
 end
+
+test "empty and narrow games"
+  use "260_stonegame"
+  Top = 0
+  run
+  Answer equal 0
+  Top = 2
+  run
+  Answer equal 3
+  Top = 3
+  run
+  Answer equal 10
+  Top = 15
+  run
+  Answer equal 645
+end

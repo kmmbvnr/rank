@@ -1,52 +1,53 @@
 rem Stone Game
 rem https://projecteuler.net/problem=260
-rem Three piles, and a move takes N
-rem stones from one pile, or from two,
-rem or from all three. Whoever takes the
-rem last stone wins. Add up x + y + z
-rem over the lost positions with x <= y
-rem <= z and z up to Top.
-
+rem Sum the losing positions X <= Y <= Z <= Top.
+rem For fixed Y,Z there is at most one losing X:
+rem the pair mark makes all later X winning.
+rem Pr B stores bits A for fixed pairs A,B.
+rem Dr C stores reversed bits Top-D for fixed
+rem difference D and third pile C; Df is its transpose.
+rem Eq B stores reversed bits Top-A for the two gaps.
+rem Align those rows with X, union the forbidden
+rem positions, then choose the least unmarked bit.
 use numbers
+use bits
 use io
 use cli
-
 arg Top integer = 1000
-
-rem A position is lost when no move goes
-rem to a lost one. Going in order of z,
-rem y and x, every lost position marks
-rem the positions that reach it: the
-rem same two piles, or the same third
-rem pile with the other two a fixed
-rem difference apart, or the same
-rem differences of all three. A position
-rem with a mark is won.
 W = Top + 1
-Pr = array shape (W * W) fill 0
-Dg = array shape (W * W) fill 0
-Eq = array shape (W * W) fill 0
+Pr = array shape W fill 0
+Dr = array shape W fill 0
+Df = array shape W fill 0
+Eq = array shape W fill 0
 Sum = 0
 for Z in 0 to Top
   for Y in 0 to Z
-    for X in 0 to Y
-      Hit = Pr (X * W + Y)
-      Hit += Pr (X * W + Z)
-      Hit += Pr (Y * W + Z)
-      Hit += Dg ((Y - X) * W + Z)
-      Hit += Dg ((Z - X) * W + Y)
-      Hit += Dg ((Z - Y) * W + X)
-      Hit += Eq ((Y - X) * W + Z - Y)
-      if Hit equal 0
-        Sum += X + Y + Z
-        Pr (X * W + Y) = 1
-        Pr (X * W + Z) = 1
-        Pr (Y * W + Z) = 1
-        Dg ((Y - X) * W + Z) = 1
-        Dg ((Z - X) * W + Y) = 1
-        Dg ((Z - Y) * W + X) = 1
-        Eq ((Y - X) * W + Z - Y) = 1
-      end
+    if Pr Z bit Y
+      continue
+    end
+    Gap = Z - Y
+    Hit = Pr Y bor Pr Z
+    Hit = Hit bor (Dr Z shr (Top - Y))
+    Hit = Hit bor (Dr Y shr (Top - Z))
+    Hit = Hit bor Df Gap
+    Hit = Hit bor (Eq Gap shr (Top - Y))
+    Free = (Hit bnot) band ((1 shl (Y + 1)) - 1)
+    if Free not equal 0
+      Low = Free band (-Free)
+      X = (Low binary len) - 1
+      Sum += X + Y + Z
+      Bx = 1 shl X
+      By = 1 shl Y
+      Bz = 1 shl Z
+      Pr Y = Pr Y bor Bx
+      Pr Z = Pr Z bor Bx bor By
+      Dr Z = Dr Z bor (1 shl (Top - Y + X))
+      Dr Y = Dr Y bor (1 shl (Top - Z + X))
+      Dr X = Dr X bor (1 shl (Top - Z + Y))
+      Df (Y - X) = Df (Y - X) bor Bz
+      Df (Z - X) = Df (Z - X) bor By
+      Df Gap = Df Gap bor Bx
+      Eq Gap = Eq Gap bor (1 shl (Top - Y + X))
     end
   end
 end

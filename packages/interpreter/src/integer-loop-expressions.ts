@@ -364,7 +364,21 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         // no Rank callbacks; bind() checks the current builtin.
         calls.push({ name: operation.name, locals: [], stableArrayReads: true, numberSafe: numberMode,
             bind: host.prepareBuiltinCall(operation.module, operation.name, types, numberMode) });
-        const code = `calls[${index}](${arguments_.join(',')})`;
+        let code = `calls[${index}](${arguments_.join(',')})`;
+        // Exact bitsets need no native dispatch per cell. Retain the bound call
+        // above as the entry guard; invalid domains use its ordinary errors.
+        if (!numberMode && operation.module === 'bits') {
+            const [left, right] = arguments_;
+            const token = ({ band: '&', bor: '|', bxor: '^' } as Record<string, string>)[operation.name];
+            if (token) code = `(${left} ${token} ${right})`;
+            if (operation.name === 'bnot') code = `(~${left})`;
+            if (operation.name === 'shl' || operation.name === 'shr') {
+                code = `(${right} < 0n ? ${code} : (${left} ${operation.name === 'shl' ? '<<' : '>>'} ${right}))`;
+            }
+            if (operation.name === 'bit') {
+                code = `(${left} < 0n || ${right} < 0n ? ${code} : ((${left} & (1n << ${right})) !== 0n))`;
+            }
+        }
         lines.push(`const ${name} = ${numberMode && signature.result === 'integer' ? safe(code) : code};`);
         return { code: name, type: signature.result };
     }

@@ -1,0 +1,1024 @@
+{
+  "baselineCommit": "228a0633955653a07ffbca523467304f5420162f",
+  "environment": "macOS arm64, Node v24.15.0",
+  "method": "Fresh sequential processes; elapsed includes parse/preparation/evaluation, excludes import. External load uncontrolled; uptime load averages reached 54.48 41.57 25.68. Controlled group alternates source/runtime variants.",
+  "originalSourceSha256": "eb51c99f7945a1924a610f9ccb03df9b43d64f665194a8843842ff0dfd95b416",
+  "timedBitsetSourceSha256": "f4ddf0851070362dcfb30b46c6d9844d4675387acd75951d6cc5337b613b5657",
+  "controlled": [
+    {
+      "top": "1000",
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 27009.327834,
+      "answer": "167542057",
+      "rss": 177.859375,
+      "rep": 0,
+      "runtime": "shipping",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 5801.415999999999,
+      "answer": "167542057",
+      "rss": 180.734375,
+      "rep": 0,
+      "runtime": "shipping",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 4383.6775,
+      "answer": "167542057",
+      "rss": 182.390625,
+      "rep": 0,
+      "runtime": "inline",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 4525.764125000001,
+      "answer": "167542057",
+      "rss": 176.578125,
+      "rep": 1,
+      "runtime": "inline",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 6041.1432079999995,
+      "answer": "167542057",
+      "rss": 180.46875,
+      "rep": 1,
+      "runtime": "shipping",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 30255.457833999997,
+      "answer": "167542057",
+      "rss": 183.734375,
+      "rep": 1,
+      "runtime": "shipping",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 27152.291250000002,
+      "answer": "167542057",
+      "rss": 184.03125,
+      "rep": 2,
+      "runtime": "shipping",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 5034.176959,
+      "answer": "167542057",
+      "rss": 171.140625,
+      "rep": 2,
+      "runtime": "shipping",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 3756.608792,
+      "answer": "167542057",
+      "rss": 178.515625,
+      "rep": 2,
+      "runtime": "inline",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    }
+  ],
+  "earlyAlgorithmSamples": [
+    {
+      "top": "1000",
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 7492.689374999999,
+      "answer": "167542057",
+      "rss": 179.375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "short",
+      "mode": "compiled",
+      "ms": 5073.232334,
+      "answer": "167542057",
+      "rss": 182.921875,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "break",
+      "mode": "compiled",
+      "ms": 5772.8931250000005,
+      "answer": "167542057",
+      "rss": 183.078125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "skip",
+      "mode": "compiled",
+      "ms": 5858.032916,
+      "answer": "167542057",
+      "rss": 183.390625,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "skipshort",
+      "mode": "compiled",
+      "ms": 4985.930415999999,
+      "answer": "167542057",
+      "rss": 182.109375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "skipshort",
+      "mode": "compiled",
+      "ms": 4460.402583,
+      "answer": "167542057",
+      "rss": 182.78125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "skip",
+      "mode": "compiled",
+      "ms": 5830.261667,
+      "answer": "167542057",
+      "rss": 178.71875,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "break",
+      "mode": "compiled",
+      "ms": 6030.942916999999,
+      "answer": "167542057",
+      "rss": 180.734375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "short",
+      "mode": "compiled",
+      "ms": 5066.5143339999995,
+      "answer": "167542057",
+      "rss": 179.359375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 8104.695957999999,
+      "answer": "167542057",
+      "rss": 184.609375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 7292.684375000001,
+      "answer": "167542057",
+      "rss": 184.5,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "short",
+      "mode": "compiled",
+      "ms": 4993.719959,
+      "answer": "167542057",
+      "rss": 183.875,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "break",
+      "mode": "compiled",
+      "ms": 6918.855,
+      "answer": "167542057",
+      "rss": 183.8125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "skip",
+      "mode": "compiled",
+      "ms": 5966.460208,
+      "answer": "167542057",
+      "rss": 184.09375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "skipshort",
+      "mode": "compiled",
+      "ms": 5671.74375,
+      "answer": "167542057",
+      "rss": 180.109375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    }
+  ],
+  "bitsetPairSamplesAndReferenceChecks": [
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 6338.438832999999,
+      "answer": "167542057",
+      "rss": 177.640625,
+      "runtime": "shipping",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 5001.686417,
+      "answer": "167542057",
+      "rss": 177.59375,
+      "runtime": "inline",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 4916.938834,
+      "answer": "167542057",
+      "rss": 179.28125,
+      "runtime": "inline",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 5873.59775,
+      "answer": "167542057",
+      "rss": 174.03125,
+      "runtime": "shipping",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 5985.6011659999995,
+      "answer": "167542057",
+      "rss": 166.546875,
+      "runtime": "shipping",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 5806.858749999999,
+      "answer": "167542057",
+      "rss": 172.109375,
+      "runtime": "inline",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "100",
+      "variant": "original",
+      "mode": "reference",
+      "ms": 8580.22875,
+      "answer": "173895",
+      "rss": 163.578125,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "100",
+      "variant": "short",
+      "mode": "reference",
+      "ms": 3971.2235829999995,
+      "answer": "173895",
+      "rss": 179.484375,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "100",
+      "variant": "skipshort",
+      "mode": "reference",
+      "ms": 3704.5742920000002,
+      "answer": "173895",
+      "rss": 176.1875,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "top": "100",
+      "variant": "bitset",
+      "mode": "reference",
+      "ms": 2676.9617499999995,
+      "answer": "173895",
+      "rss": 170.453125,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "indexReads": 0,
+        "indexWrites": 0,
+        "fallbacks": {
+          "loop:disabled": 2
+        },
+        "compilerRejections": []
+      }
+    }
+  ],
+  "oracle": {
+    "checks": 42,
+    "tops": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      10,
+      15
+    ],
+    "variants": [
+      "original",
+      "skipshort",
+      "bitset"
+    ],
+    "engines": [
+      "compiled",
+      "reference"
+    ],
+    "result": "All answer sums match direct legal-move enumeration."
+  },
+  "productionSamples": [
+    {
+      "top": "1000",
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 10033.786208000001,
+      "answer": "167542057",
+      "rssMiB": 173.703125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      },
+      "repeat": 0,
+      "runtime": "original"
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 1485.5697499999999,
+      "answer": "167542057",
+      "rssMiB": 181.359375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      },
+      "repeat": 0,
+      "runtime": "algorithm"
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 1266.8682079999999,
+      "answer": "167542057",
+      "rssMiB": 175.671875,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      },
+      "repeat": 0,
+      "runtime": "final"
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 1221.6713750000001,
+      "answer": "167542057",
+      "rssMiB": 173.53125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      },
+      "repeat": 1,
+      "runtime": "final"
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 1583.906292,
+      "answer": "167542057",
+      "rssMiB": 180.734375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      },
+      "repeat": 1,
+      "runtime": "algorithm"
+    },
+    {
+      "top": "1000",
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 9112.208792000001,
+      "answer": "167542057",
+      "rssMiB": 196.671875,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      },
+      "repeat": 1,
+      "runtime": "original"
+    },
+    {
+      "top": "1000",
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 11104.910042,
+      "answer": "167542057",
+      "rssMiB": 193.015625,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      },
+      "repeat": 2,
+      "runtime": "original"
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 2572.356375,
+      "answer": "167542057",
+      "rssMiB": 165.125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      },
+      "repeat": 2,
+      "runtime": "algorithm"
+    },
+    {
+      "top": "1000",
+      "variant": "bitset",
+      "mode": "compiled",
+      "ms": 2119.5514999999996,
+      "answer": "167542057",
+      "rssMiB": 172.90625,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopOverflows": 1,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 1,
+          "tensor:unsupported-type:array": 4
+        },
+        "compilerRejections": []
+      },
+      "repeat": 2,
+      "runtime": "final"
+    }
+  ],
+  "fullReference": {
+    "top": "1000",
+    "variant": "bitset",
+    "mode": "reference",
+    "ms": 26397.343584,
+    "answer": "167542057",
+    "rssMiB": 200.375,
+    "diagnostics": {
+      "compiledLoops": 0,
+      "numberLoops": 0,
+      "numberLoopOverflows": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "fallbacks": {
+        "loop:disabled": 2
+      },
+      "compilerRejections": []
+    }
+  },
+  "productionSourceSha256": "14964ae3d4040fe2076c9293ace6eab8d3ad0657e1ae7c9ed78c60e9a8d52839",
+  "productionRuntimeNote": "Production samples were measured on 228a0633 plus the exact bit lowering, before integration of independent main commit 9dfe7784 (tensor-only changes)."
+}

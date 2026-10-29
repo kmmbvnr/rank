@@ -71,3 +71,14 @@ it('cross-checks the full box-ball answer with a per-ball reference', () => {
     for (const [last, answer] of [[10, 8912], [100, 170376], [1000, 1714252], [10000000, 31591886008]])
         expect(perBallReference(last)).toBe(answer);
 }, 30_000);
+
+it('checks the full Euler 260 exact-bitset answer', () => {
+    const url = new URL('../../../demos/euler/260_stonegame.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(167542057n);
+        expect(diagnostics.compiledLoops).toBeGreaterThan(0);
+    } finally { runtime.dispose(); }
+}, 60_000);
