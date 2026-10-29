@@ -43,11 +43,12 @@ for P in primes to R
   Dl = (Pc * (Vl - Sp)) mod M
   Iw = P * P to R
   Dm = Pc * (Sm (Iw // P) - Sp)
-  Lg (1 to Ih) = (Lg (1 to Ih) - Dl) mod M
+  Ir = 1 to Ih
+  Lg Ir = (Lg Ir - Dl) mod M
   Sm Iw = (Sm Iw - Dm) mod M
 end
 Pr = primes to R array
-Pc = Pr * Pr * Pr mod M
-Tm = Pc * (Lg Pr - Sm Pr) mod M
+Cb = Pr * Pr * Pr mod M
+Tm = Cb * (Lg Pr - Sm Pr) mod M
 Answer = Tm sum mod M
 Answer print
