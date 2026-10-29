@@ -1,0 +1,19 @@
+use testing
+
+test "default input"
+  use "603_primeconcatenation"
+  run
+  Answer equal 879476477
+end
+
+test "brute force"
+  use "603_primeconcatenation"
+  N = 7
+  K = 3
+  run
+  Answer equal 704184352
+  N = 11
+  K = 4
+  run
+  Answer equal 583884376
+end
