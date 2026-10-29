@@ -1,0 +1,46 @@
+rem Shut the Box
+rem https://projecteuler.net/problem=640
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Cards integer = 12
+arg Faces integer = 6
+
+rem A state is the set of face down
+rem cards (a bit mask). A roll (x, y)
+rem lets the player flip card x, y or
+rem x + y, so the expected turns E
+rem satisfy E(s) = 1 + mean over rolls
+rem of the least E(s xor card). Value
+rem iteration from E = 0 rises to the
+rem answer from the empty mask; the
+rem all down mask has E = 0.
+Sn = 1 shl Cards
+Ss = 0 to (Sn - 1)
+Cj = 0 to (Cards - 1)
+Bt = (1 shl Cj) reshape Cards 1
+Ix = Ss bxor Bt
+Rl = 0 to (Faces * Faces - 1)
+Xi = Rl // Faces
+Yi = Rl mod Faces
+Zi = Xi + Yi + 1
+Ee = Ss * 0.0
+Ft = Faces * Faces * 1.0
+Dl = 1.0
+for Dl greater 0.00000000001
+  Gm = Ee Ix
+  A1 = Gm Xi Ss
+  A2 = Gm Yi Ss
+  A3 = Gm Zi Ss
+  Mn = A1 min A2 min A3
+  En = 1.0 + (Mn sum axis 0) / Ft
+  En (Sn - 1) = 0.0
+  Dl = ((En - Ee) abs) max
+  Ee = En
+end
+Answer = (Ee 0) text ".6f"
+Answer print
