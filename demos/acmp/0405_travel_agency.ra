@@ -1,0 +1,49 @@
+rem Travel Agency
+rem https://acmp.ru/index.asp?main=task&id_task=405
+rem Count pairs of planets whose paths all pass through planet A
+
+use io
+use cli
+use graph
+use sequences
+use text
+
+arg Input text = "7 9\n1 2\n1 3\n1 4\n1 5\n1 6\n1 7\n2 3\n4 5\n6 7"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = Tokens 0 integer
+M = Tokens 1 integer
+
+EdgeNums = (Tokens drop 2) take (2 * M) integer
+EdgesU = EdgeNums (0 till (2 * M) by 2)
+EdgesV = EdgeNums (1 till (2 * M) by 2)
+
+Nodes = 1 to N
+Answer = array shape N fill 0
+
+for A in 1 to N
+  Mask = (EdgesU not equal A) and (EdgesV not equal A)
+  ActiveU = EdgesU Mask
+  ActiveV = EdgesV Mask
+
+  RemNodes = Nodes (Nodes not equal A)
+  D = new dsu RemNodes
+
+  NumActive = ActiveU len
+  for E in 0 till NumActive
+    D merge (ActiveU E) (ActiveV E)
+  end
+
+  Roots = D findroot RemNodes
+  U = Roots unique
+  Counts = (Roots U outer equal integer) sum axis 0
+  SumSq = (Counts ** 2) sum
+
+  RemCount = N - 1
+  Pairs = ((RemCount ** 2) - SumSq) // 2
+  Answer (A - 1) = Pairs + RemCount
+end
+
+Answer print
