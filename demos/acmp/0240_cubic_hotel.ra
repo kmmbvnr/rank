@@ -1,0 +1,150 @@
+rem Cubic Hotel (Image Is Everything)
+rem https://acmp.ru/index.asp?main=task&id_task=240
+rem Reconstruct 3D N x N x N cube from 6 orthogonal projections using iterative carving
+
+use io
+use cli
+use sequences
+use text
+
+arg Input text = "3\n.R. YYR .Y. RYY .Y. .R.\nGRB YGR BYG RBY GYB GRB\n.R. YRR .Y. RRY .R. .Y."
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = Tokens 0 integer
+Words = (Tokens drop 1) take (6 * N)
+
+Pos = array shape (N * N * N) fill "#"
+
+rem Initial pass for "."
+for K in 0 to 5
+  for I in 0 to (N - 1)
+    Word = Words (I * 6 + K)
+    Chars = Word split ""
+    for J in 0 to (N - 1)
+      Ch = Chars J
+      if Ch equal "."
+        for L in 0 to (N - 1)
+          X = 0
+          Y = 0
+          Z = 0
+          if K equal 0
+            X = L
+            Y = J
+            Z = I
+          else
+            if K equal 1
+              X = N - 1 - J
+              Y = L
+              Z = I
+            else
+              if K equal 2
+                X = N - 1 - L
+                Y = N - 1 - J
+                Z = I
+              else
+                if K equal 3
+                  X = J
+                  Y = N - 1 - L
+                  Z = I
+                else
+                  if K equal 4
+                    X = N - 1 - I
+                    Y = J
+                    Z = L
+                  else
+                    X = I
+                    Y = J
+                    Z = N - 1 - L
+                  end
+                end
+              end
+            end
+          end
+          CellIdx = (X * N + Y) * N + Z
+          Pos CellIdx = "."
+        end
+      end
+    end
+  end
+end
+
+rem Iterative refinement
+Running = true
+for Running
+  Done = true
+  for K in 0 to 5
+    for I in 0 to (N - 1)
+      Word = Words (I * 6 + K)
+      Chars = Word split ""
+      for J in 0 to (N - 1)
+        Ch = Chars J
+        if Ch not equal "."
+          Broken = false
+          for L in 0 to (N - 1)
+            if not Broken
+              X = 0
+              Y = 0
+              Z = 0
+              if K equal 0
+                X = L
+                Y = J
+                Z = I
+              else
+                if K equal 1
+                  X = N - 1 - J
+                  Y = L
+                  Z = I
+                else
+                  if K equal 2
+                    X = N - 1 - L
+                    Y = N - 1 - J
+                    Z = I
+                  else
+                    if K equal 3
+                      X = J
+                      Y = N - 1 - L
+                      Z = I
+                    else
+                      if K equal 4
+                        X = N - 1 - I
+                        Y = J
+                        Z = L
+                      else
+                        X = I
+                        Y = J
+                        Z = N - 1 - L
+                      end
+                    end
+                  end
+                end
+              end
+              CellIdx = (X * N + Y) * N + Z
+              CellVal = Pos CellIdx
+              if CellVal not equal "."
+                if CellVal equal "#"
+                  Pos CellIdx = Ch
+                  Broken = true
+                else
+                  if CellVal equal Ch
+                    Broken = true
+                  else
+                    Pos CellIdx = "."
+                    Done = false
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  if Done
+    Running = false
+  end
+end
+
+Answer = (Pos not equal ".") count
+Answer print
