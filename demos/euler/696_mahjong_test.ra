@@ -1,0 +1,23 @@
+use testing
+
+test "statement values"
+  use "696_mahjong"
+  Nn = 4
+  Ss = 1
+  Tt = 1
+  run
+  Answer equal 20
+  Nn = 9
+  Ss = 1
+  Tt = 4
+  run
+  Answer equal 13259
+  Ss = 3
+  run
+  Answer equal 5237550
+  Nn = 1000
+  Ss = 1000
+  Tt = 5
+  run
+  Answer equal 107662178
+end
