@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
 import { typedArray } from '../src/array-storage.js';
 
-function run(program: string, cells: Int32Array | Float64Array) {
+function run(program: string, cells: Int32Array | Float64Array | BigInt64Array, shape: number[] = [cells.length], index?: Int32Array) {
     const runtime = new Interpreter();
     try {
-        runtime.variables.set('X', typedArray(cells, [cells.length]));
+        runtime.variables.set('X', typedArray(cells, shape));
+        if (index) runtime.variables.set('Ix', typedArray(index, [index.length]));
         return runtime.execute(`use numbers\nuse stats\n${program}`);
     } finally { runtime.dispose(); }
 }
@@ -49,6 +50,33 @@ describe('a reduction over a slice of a stored array', () => {
             }
         }
     }
+    const grid = Int32Array.from({ length: 3000 }, (_, i) => (i * 31) % 997 - 400);
+    for (const op of ['sum', 'min', 'max']) {
+        for (const spec of ['(2 to 27) (5 to 90)', '(0 to 29) (3 to 3)', '(29 to 0 by -3) (0 to 99 by 7)', '(4 to 4) (0 to 99)']) {
+            it(`${op} of a 30 by 100 block ${spec}`, () => {
+                expect(run(`(X ${spec}) ${op}`, grid, [30, 100])).toEqual(run(`Y = X ${spec}\nY ${op}`, grid, [30, 100]));
+            });
+        }
+    }
+    it('sums a block against a direct count', () => {
+        let want = 0;
+        for (let r = 2; r <= 27; r++) for (let c = 5; c <= 90; c++) want += grid[r * 100 + c];
+        expect(run('(X (2 to 27) (5 to 90)) sum', grid, [30, 100])).toBe(BigInt(want));
+    });
+    const wide = BigInt64Array.from({ length: 3000 }, (_, i) => BigInt(((i * 7919) % 2001 - 1000)) * 10000000n);
+    for (const op of ['sum', 'min', 'max']) {
+        for (const spec of ['0 to 2998', '0 to 2998 by 2', '2999 to 0 by -1']) {
+            it(`${op} of 64-bit cells ${spec}`, () => {
+                expect(run(`(X (${spec})) ${op}`, wide)).toEqual(run(`Y = X (${spec})\nY ${op}`, wide));
+            });
+        }
+    }
+    it('gathers by an index array', () => {
+        const index = Int32Array.from({ length: 1000 }, (_, i) => (i * 7) % 3000);
+        const want = Array.from(index).reduce((t, i) => t + ints[i], 0);
+        expect(run('(X Ix) sum', ints, [3000], index)).toBe(BigInt(want));
+        expect(run('(X Ix) max', ints, [3000], index)).toBe(BigInt(Math.max(...Array.from(index, i => ints[i]))));
+    });
     it('leaves the source unchanged', () => {
         const before = Array.from(ints);
         run('(X (10 to 20)) sum', ints);

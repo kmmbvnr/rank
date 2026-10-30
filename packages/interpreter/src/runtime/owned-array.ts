@@ -883,6 +883,12 @@ function integer32Items(cells: Int32Array): ArrayLike<bigint> & Iterable<bigint>
     }) as unknown as ArrayLike<bigint> & Iterable<bigint>;
 }
 
+/** Stored 64-bit integer cells, read in place. */
+export function integer64Cells(value: RankArray): BigInt64Array | undefined {
+    const state = ownedStorage.get(value);
+    return state?.stable && !state.validity && state.typed instanceof BigInt64Array ? state.typed : undefined;
+}
+
 /** Trusted raw cells for number-only kernels, never exposed as Rank reals. */
 export function integer32Cells(value: RankArray): Int32Array | undefined {
     const state = ownedStorage.get(value);

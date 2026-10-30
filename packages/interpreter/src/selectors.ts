@@ -219,9 +219,6 @@ function selectedAxisShape(axis: SelectedAxis): readonly number[] {
 
 function selectionFromAxes(sourceShape: readonly number[], axes: readonly SelectedAxis[]): TensorSelection {
     const shape = axes.flatMap(axis => [...selectedAxisShape(axis)]);
-    // Flatten each selector frame only for offset arithmetic. The public
-    // shape retains all its dimensions, including empty dimensions.
-    const indexShape = axes.filter(axis => axis.preserve).map(axis => axis.size);
     // A vector selection is already a linear mapping. Avoid rebuilding a
     // one-coordinate tensor address for every selected item; gather-heavy
     // loops use this path for both boolean masks and integer index vectors.
@@ -235,15 +232,26 @@ function selectionFromAxes(sourceShape: readonly number[], axes: readonly Select
     return {
         shape, axes, sourceShape, unique: axes.every(axis => !axis.preserve || axis.unique === true),
         linear: linearSelection(axes, sourceShape),
-        offsetAt(index) {
-            const output = coordinatesAt(indexShape, index);
-            let outputAxis = 0;
-            const sourceCoordinates = axes.map(axis => {
-                if (!axis.preserve) return axis.indexAt(0);
-                return axis.indexAt(output[outputAxis++]);
-            });
-            return arrayOffset(sourceShape, sourceCoordinates);
-        },
+        offsetAt: multiAxisOffset(sourceShape, axes),
+    };
+}
+
+/** Source offset of output cell `index`, with no coordinate array per cell. */
+function multiAxisOffset(sourceShape: readonly number[], axes: readonly SelectedAxis[]): (index: number) => number {
+    const strides = sourceShape.map((_, axis) => sourceShape.slice(axis + 1).reduce((n, d) => n * d, 1));
+    const kept = axes.map((axis, at) => ({ axis, stride: strides[at] })).filter(entry => entry.axis.preserve);
+    let fixed: number | undefined;
+    return index => {
+        // A dropped axis is read on first use, as before, not at construction.
+        fixed ??= axes.reduce((total, axis, at) => axis.preserve ? total : total + axis.indexAt(0) * strides[at], 0);
+        let offset = fixed;
+        for (let k = kept.length - 1; k >= 0; k--) {
+            const { axis, stride } = kept[k];
+            const coordinate = index % axis.size;
+            index = (index - coordinate) / axis.size;
+            offset += axis.indexAt(coordinate) * stride;
+        }
+        return offset;
     };
 }
 

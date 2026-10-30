@@ -1,5 +1,5 @@
 import { arrayDeclaration, declareArray } from './array-declaration.js';
-import { float64Cells, integer32Cells, MAX_HELD_CELLS, sliceStoredArray, typedArray, typedElementKind } from './array-storage.js';
+import { float64Cells, integer32Cells, integer64Cells, MAX_HELD_CELLS, sliceStoredArray, typedArray, typedElementKind } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
@@ -50,23 +50,30 @@ export function materializeArrayView(value: RankArray): RankArray | undefined {
     return inheritSemanticArrayType(value, result);
 }
 
-/** A strided or reversed native selection of stored Int32 or Float64 cells,
- * gathered into packed cells. The same proofs as `materializeArrayView` apply. */
-export function materializeStridedView(value: RankArray): RankArray | undefined {
+/** Any other native selection of stored Int32 or Float64 cells (strided,
+ * reversed, a block over several axes, or an index gather), read through its
+ * source positions into packed cells. The same proofs as `materializeArrayView`
+ * apply: one uniform physical kind and no per-cell checks. */
+export function materializeSelectedView(value: RankArray): RankArray | undefined {
     if (!privateLoopPolling() || inspectionEnabled() || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
     const view = prepareStoredScalarView(value, true);
-    const linear = view?.linear;
-    if (!view || !linear || linear.stride === 1 || linear.stride === 0 || !view.validateUniform) return undefined;
+    if (!view || !view.regular || !view.validateUniform) return undefined;
     const size = value.shape.reduce((n, dimension) => n * dimension, 1);
-    const cells = integer32Cells(view.source) ?? (typedElementKind(view.source) === 'real' ? float64Cells(view.source) : undefined);
-    const last = linear.offset + linear.stride * (size - 1);
-    if (!cells || size === 0 || linear.offset < 0 || last < 0 || Math.max(linear.offset, last) >= cells.length) return undefined;
-    view.validateUniform(view.items[linear.offset]);
-    const out = cells instanceof Int32Array ? new Int32Array(size) : new Float64Array(size);
+    const cells = integer32Cells(view.source) ?? integer64Cells(view.source)
+        ?? (typedElementKind(view.source) === 'real' ? float64Cells(view.source) : undefined);
+    if (!cells || size === 0) return undefined;
+    const first = view.position(0);
+    if (!(first >= 0 && first < cells.length)) return undefined;
+    view.validateUniform(view.items[first]);
+    const out = cells instanceof Int32Array ? new Int32Array(size) : cells instanceof BigInt64Array ? new BigInt64Array(size) : new Float64Array(size);
     for (let start = 0; start < size; start += 4096) {
         const end = Math.min(size, start + 4096);
         checkpoint('gathering numeric selection', end - start);
-        for (let index = start, at = linear.offset + linear.stride * start; index < end; index++, at += linear.stride) out[index] = cells[at];
+        for (let index = start; index < end; index++) {
+            const at = view.position(index);
+            if (!(at >= 0 && at < cells.length)) return undefined;
+            out[index] = cells[at];
+        }
     }
     const result = typedArray(out, [...value.shape]);
     const declaration = arrayDeclaration(value);
