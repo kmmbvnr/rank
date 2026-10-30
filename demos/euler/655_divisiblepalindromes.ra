@@ -14,11 +14,11 @@ rem of d_i W_i over its h = (l + 1) / 2
 rem free digits, W_i = 10^i + 10^(l-1-i)
 rem mod Mo (the middle digit counts
 rem once). Meet in the middle: the
-rem first h - 7 digits (the lead one
+rem first h - 6 digits (the lead one
 rem is 1 to 9) go into a residue
 rem histogram, one digit at a time as
-rem a sum of cyclic shifts; the last
-rem 7 digits are enumerated outright
+rem ten rotations in four adds; the last
+rem 6 digits are enumerated outright
 rem and look up the opposite residue.
 Answer = 0
 Ds = (0 to 9) reshape 1 10
@@ -26,8 +26,8 @@ Ks = concat (2 ** (0 to 2)) (8 to 9)
 for Ln in 1 to Ml
   Hf = (Ln + 1) // 2
   Jn = Hf - 1
-  if Jn greater 7
-    Jn = 7
+  if Jn greater 6
+    Jn = 6
   end
   Ix = 0 to (Hf - 1)
   P1 = 10 Ix Mo powmod
@@ -37,16 +37,11 @@ for Ln in 1 to Ml
   Cb = array shape Mo fill 0
   Cb ((1 to 9) * Wt 0 mod Mo) = 1
   for I in 1 to Hf - Jn - 1
-    Ac = Cb copy
-    for Q in 0 to 4
-      Sc = Ks Q * Wt I mod Mo
-      Sr = Ac
-      if Q greater 2
-        Sr = Cb
-      end
-      Ac = Ac + (Sr rotate Sc)
-    end
-    Cb = Ac
+    A1 = Wt I
+    P = Cb + (Cb rotate A1)
+    P = P + (P rotate (A1 * 2 mod Mo))
+    P = P + (Cb rotate (A1 * 4 mod Mo))
+    Cb = P + (P rotate (A1 * 5 mod Mo))
   end
   Rt = array shape 1 fill 0
   for I in Hf - Jn to Hf - 1
