@@ -1,0 +1,32 @@
+use testing
+
+test "sample 1: 20 bulbs, boys 2 3 8"
+  use "0337_lightbulbs"
+  run
+
+  Answer equal 8
+end
+
+test "sample 2: 172 bulbs, 10 boys"
+  use "0337_lightbulbs"
+  Input = "172 10\n19 2 7 13 40 23 16 1 45 9"
+  run
+
+  Answer equal 99
+end
+
+test "duplicate periods cancel out"
+  use "0337_lightbulbs"
+  Input = "10 2\n3 3"
+  run
+
+  Answer equal 0
+end
+
+test "large N 10^9 with periods 2 4"
+  use "0337_lightbulbs"
+  Input = "1000000000 2\n2 4"
+  run
+
+  Answer equal 250000000
+end
