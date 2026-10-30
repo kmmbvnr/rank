@@ -1,5 +1,5 @@
 import { arrayDeclaration, declareArray } from './array-declaration.js';
-import { MAX_HELD_CELLS, sliceStoredArray, typedArray } from './array-storage.js';
+import { float64Cells, integer32Cells, MAX_HELD_CELLS, sliceStoredArray, typedArray, typedElementKind } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
@@ -45,6 +45,30 @@ export function materializeArrayView(value: RankArray): RankArray | undefined {
     if (size) view.validateUniform(view.items[view.linear.offset]);
     const result = sliceStoredArray(view.source, view.linear.offset, value.shape);
     if (!result) return undefined;
+    const declaration = arrayDeclaration(value);
+    if (declaration) declareArray(result, declaration);
+    return inheritSemanticArrayType(value, result);
+}
+
+/** A strided or reversed native selection of stored Int32 or Float64 cells,
+ * gathered into packed cells. The same proofs as `materializeArrayView` apply. */
+export function materializeStridedView(value: RankArray): RankArray | undefined {
+    if (!privateLoopPolling() || inspectionEnabled() || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
+    const view = prepareStoredScalarView(value, true);
+    const linear = view?.linear;
+    if (!view || !linear || linear.stride === 1 || linear.stride === 0 || !view.validateUniform) return undefined;
+    const size = value.shape.reduce((n, dimension) => n * dimension, 1);
+    const cells = integer32Cells(view.source) ?? (typedElementKind(view.source) === 'real' ? float64Cells(view.source) : undefined);
+    const last = linear.offset + linear.stride * (size - 1);
+    if (!cells || size === 0 || linear.offset < 0 || last < 0 || Math.max(linear.offset, last) >= cells.length) return undefined;
+    view.validateUniform(view.items[linear.offset]);
+    const out = cells instanceof Int32Array ? new Int32Array(size) : new Float64Array(size);
+    for (let start = 0; start < size; start += 4096) {
+        const end = Math.min(size, start + 4096);
+        checkpoint('gathering numeric selection', end - start);
+        for (let index = start, at = linear.offset + linear.stride * start; index < end; index++, at += linear.stride) out[index] = cells[at];
+    }
+    const result = typedArray(out, [...value.shape]);
     const declaration = arrayDeclaration(value);
     if (declaration) declareArray(result, declaration);
     return inheritSemanticArrayType(value, result);

@@ -1,7 +1,7 @@
 import { checkpoint } from '../interrupt.js';
 import { reduceTensorMap } from '../jit/tensor-map.js';
 import { collectionProtocol, type CollectionProtocolFor, type CollectionCapability } from '@arrrank/language';
-import { materializeArrayView } from './array-copy.js';
+import { materializeArrayView, materializeStridedView } from './array-copy.js';
 import { arrayValues, denseScalarItems, float64Cells, integer32Cells, readArrayItem, shouldStream, streamCells, typedElementKind } from './array-storage.js';
 import { extremeMasked, presentReals, sumMasked } from '../jit/masked-kernels.js';
 import { reduceSequence, sequenceValues } from '../sequence.js';
@@ -39,7 +39,7 @@ interface ProtocolValues {
 /** A selection of one stored array is a stored view; reductions read its typed cells
  * in place instead of calling a reader for every cell. */
 function storedView(value: RankArray): RankArray {
-    return value.itemAt === undefined ? value : materializeArrayView(value) ?? value;
+    return value.itemAt === undefined ? value : materializeArrayView(value) ?? materializeStridedView(value) ?? value;
 }
 
 const adapters: { [P in keyof ProtocolValues]: (value: ProtocolValues[P], operation: string) => ElementSource } = {
