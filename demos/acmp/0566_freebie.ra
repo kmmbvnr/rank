@@ -1,0 +1,174 @@
+rem ACMP 0566 - Freebie (Халява)
+rem Grisha has A caps with 1 star, B caps with 2 stars, C caps with 3 stars.
+rem Each t-shirt requires a set of caps with total stars >= K.
+rem Maximize the number of t-shirts that can be obtained.
+rem
+rem Mathematical formulation:
+rem 1. Small K (1, 2, 3) can be solved in closed form:
+rem    - K = 1: A + B + C
+rem    - K = 2: C + B + (A // 2)
+rem    - K = 3: C + (A min B) + remainder allocation
+rem 2. For K >= 4, every valid shirt is formed by a minimal bundle of
+rem    (L threes, J twos, I ones) where I = max(0, K - 3L - 2J).
+rem    Since total items <= 300, the search space over ordered bundles
+rem    with the upper-bound pruning bound = cur + (remA + 2*remB + 3*remC)//K
+rem    is extremely compact (< 3000 states total).
+rem    Implemented via a non-recursive procedural stack.
+
+use io
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = "2 2 2 4"
+
+Tokens = (Input split "\n" join " ") split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+A = Nums 0
+B = Nums 1
+C = Nums 2
+K = Nums 3
+
+TotalStars = A + 2 * B + 3 * C
+
+Answer = 0
+
+if (K less 1) or (TotalStars less K)
+  Answer = 0
+else
+  if K equal 1
+    Answer = A + B + C
+  else
+    if K equal 2
+      Answer = C + B + (A // 2)
+    else
+      if K equal 3
+        Pairs = A min B
+        RemA = A - Pairs
+        RemB = B - Pairs
+        Extra = 0
+        if RemA greater 0
+          Extra = RemA // 3
+        else
+          Extra = RemB // 2
+        end
+        Answer = C + Pairs + Extra
+      else
+        MaxL = C min ((K + 2) // 3)
+        MaxJ = B min ((K + 1) // 2)
+
+        MaxBundles = (MaxL + 1) * (MaxJ + 1)
+        BL = array shape MaxBundles fill 0
+        BJ = array shape MaxBundles fill 0
+        BI = array shape MaxBundles fill 0
+        NumBundles = 0
+
+        L = MaxL
+        for not (L less 0)
+          J = MaxJ
+          for not (J less 0)
+            Sum23 = 3 * L + 2 * J
+            Valid = 0
+            ReqI = 0
+            if not (Sum23 less K)
+              Drop3 = (L greater 0) and (not ((Sum23 - 3) less K))
+              Drop2 = (J greater 0) and (not ((Sum23 - 2) less K))
+              if (not Drop3) and (not Drop2)
+                Valid = 1
+                ReqI = 0
+              end
+            else
+              ReqI = K - Sum23
+              if not (ReqI greater A)
+                Valid = 1
+              end
+            end
+            if Valid equal 1
+              BL NumBundles = L
+              BJ NumBundles = J
+              BI NumBundles = ReqI
+              NumBundles = NumBundles + 1
+            end
+            J = J - 1
+          end
+          L = L - 1
+        end
+
+        Best = 0
+        StackCap = 2000
+        StackIdx = array shape StackCap fill 0
+        StackA = array shape StackCap fill 0
+        StackB = array shape StackCap fill 0
+        StackC = array shape StackCap fill 0
+        StackShirts = array shape StackCap fill 0
+
+        StackIdx 0 = 0
+        StackA 0 = A
+        StackB 0 = B
+        StackC 0 = C
+        StackShirts 0 = 0
+        Top = 1
+
+        for Top greater 0
+          Top = Top - 1
+          Idx = StackIdx Top
+          CurA = StackA Top
+          CurB = StackB Top
+          CurC = StackC Top
+          CurShirts = StackShirts Top
+
+          if CurShirts greater Best
+            Best = CurShirts
+          end
+
+          if Idx less NumBundles
+            MaxPossible = CurShirts + ((CurA + 2 * CurB + 3 * CurC) // K)
+            if MaxPossible greater Best
+              CurL = BL Idx
+              CurJ = BJ Idx
+              CurI = BI Idx
+
+              MaxCountC = 999999
+              if CurL greater 0
+                MaxCountC = CurC // CurL
+              end
+              MaxCountB = 999999
+              if CurJ greater 0
+                MaxCountB = CurB // CurJ
+              end
+              MaxCountA = 999999
+              if CurI greater 0
+                MaxCountA = CurA // CurI
+              end
+              MaxCount = MaxCountC min (MaxCountB min MaxCountA)
+
+              TakeK = 0
+              for not (TakeK greater MaxCount)
+                RemA = CurA - TakeK * CurI
+                RemB = CurB - TakeK * CurJ
+                RemC = CurC - TakeK * CurL
+                NextShirts = CurShirts + TakeK
+                NextUpper = NextShirts + ((RemA + 2 * RemB + 3 * RemC) // K)
+                if NextUpper greater Best
+                  StackIdx Top = Idx + 1
+                  StackA Top = RemA
+                  StackB Top = RemB
+                  StackC Top = RemC
+                  StackShirts Top = NextShirts
+                  Top = Top + 1
+                end
+                TakeK = TakeK + 1
+              end
+            end
+          end
+        end
+        Answer = Best
+      end
+    end
+  end
+end
+
+(Answer text) print
