@@ -15,7 +15,7 @@ const reference: Record<string, (a: bigint, b: bigint) => bigint> = {
     shl: (a, b) => a << b, shr: (a, b) => a >> b,
 };
 
-function run(source: string, cells = names): bigint[] {
+function run(source: string, cells: Record<string, Int32Array | BigInt64Array> = names): bigint[] {
     const runtime = new Interpreter();
     for (const [name, values] of Object.entries(cells)) runtime.variables.set(name, typedArray(values));
     try {

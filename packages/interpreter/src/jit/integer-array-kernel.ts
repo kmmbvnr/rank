@@ -71,6 +71,56 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
     return cells.array(shape);
 }
 
+/** One tight loop per operation over Int32 cells. A result outside Int32 or a zero
+ * divisor declines, so the general kernel keeps wide and error cases exact. */
+function compactBinary(code: number, a: Int32Array, ao: number, as: number,
+    b: Int32Array, bo: number, bs: number, size: number): Int32Array | undefined {
+    const out = new Int32Array(size);
+    for (let start = 0; start < size; start += 4096) {
+        const end = Math.min(size, start + 4096);
+        checkpoint('computing integer array', end - start);
+        switch (code) {
+            case 0: for (let i = start; i < end; i++) {
+                const r = a[ao + i * as] + b[bo + i * bs];
+                if (r !== (r | 0)) return undefined;
+                out[i] = r;
+            } break;
+            case 1: for (let i = start; i < end; i++) {
+                const r = a[ao + i * as] - b[bo + i * bs];
+                if (r !== (r | 0)) return undefined;
+                out[i] = r;
+            } break;
+            case 2: for (let i = start; i < end; i++) {
+                const r = a[ao + i * as] * b[bo + i * bs];
+                if (r !== (r | 0)) return undefined;
+                out[i] = r;
+            } break;
+            case 3: for (let i = start; i < end; i++) {
+                const u = a[ao + i * as], v = b[bo + i * bs];
+                if (v === 0) return undefined;
+                const r = u % v;
+                out[i] = r !== 0 && r < 0 !== v < 0 ? r + v : r;
+            } break;
+            case 4: for (let i = start; i < end; i++) {
+                const u = a[ao + i * as], v = b[bo + i * bs];
+                if (v === 0) return undefined;
+                const r = u % v, q = (u - (r !== 0 && r < 0 !== v < 0 ? r + v : r)) / v;
+                if (q !== (q | 0)) return undefined;
+                out[i] = q;
+            } break;
+            case 5: for (let i = start; i < end; i++) {
+                const u = a[ao + i * as], v = b[bo + i * bs];
+                out[i] = v < u ? v : u;
+            } break;
+            default: for (let i = start; i < end; i++) {
+                const u = a[ao + i * as], v = b[bo + i * bs];
+                out[i] = v > u ? v : u;
+            }
+        }
+    }
+    return out;
+}
+
 /** Completed integer operands can produce a compact result without BigInt arithmetic.
  * A result that widens discards the temporary buffer and uses exact arithmetic. */
 function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-' | '*' | 'gcd' | 'mod' | '//' | 'min' | 'max'): RankArray | undefined {
@@ -104,6 +154,10 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         ? new Int32Array(items.buffer, items.byteOffset, items.length * 2) : undefined;
     const aw = words(ab), bw = words(bb);
     const ao = a?.linear!.offset ?? 0, as = a?.linear!.stride ?? 0, bo = b?.linear!.offset ?? 0, bs = b?.linear!.stride ?? 0;
+    const fast = !ai && !bi && code < 7 && (!a || ac) && (!b || bc) && x === (x | 0) && y === (y | 0)
+        ? compactBinary(code, ac ?? Int32Array.of(x), a ? ao : 0, a ? as : 0,
+            bc ?? Int32Array.of(y), b ? bo : 0, b ? bs : 0, size) : undefined;
+    if (fast) return typedArray(fast, shape);
     for (let start = 0; start < size; start += 4096) {
         const end = Math.min(size, start + 4096);
         checkpoint('computing integer array', end - start);
@@ -258,6 +312,7 @@ export function compareStoredInt32(left: RankValue, right: RankValue, name?: str
         : name === 'greater' ? (a: number, b: number) => a > b
         : name === 'atmost' ? (a: number, b: number) => a <= b
         : name === 'atleast' ? (a: number, b: number) => a >= b : undefined;
+    const code = ['equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].indexOf(name ?? '');
     if (!compare || inspectionEnabled() || !privateLoopPolling()) return undefined;
     const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
     const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
@@ -278,6 +333,25 @@ export function compareStoredInt32(left: RankValue, right: RankValue, name?: str
         const readA = a ? (i: number) => a.compact![a.linear!.offset + ai(i) * a.linear!.stride] : () => Number(left);
         const readB = b ? (i: number) => b.compact![b.linear!.offset + bi(i) * b.linear!.stride] : () => Number(right);
         const cells = new BooleanCells(size);
+        const sameA = !isRankArray(left) || same(left.shape, shape), sameB = !isRankArray(right) || same(right.shape, shape);
+        if (sameA && sameB && code >= 0) {
+            // Equal shapes or scalars: index the borrowed cells directly, no closure per cell.
+            const ac = a?.compact ?? Int32Array.of(Number(left)), bc = b?.compact ?? Int32Array.of(Number(right));
+            const ao = a ? a.linear!.offset : 0, as = a ? a.linear!.stride : 0;
+            const bo = b ? b.linear!.offset : 0, bs = b ? b.linear!.stride : 0;
+            const words = cells.words;
+            for (let start = 0; start < size; start += 4096) {
+                const end = Math.min(size, start + 4096);
+                checkpoint('comparing integer array', end - start);
+                for (let i = start; i < end; i++) {
+                    const u = ac[ao + i * as], v = bc[bo + i * bs];
+                    const hit = code === 0 ? u === v : code === 1 ? u !== v : code === 2 ? u < v
+                        : code === 3 ? u > v : code === 4 ? u <= v : u >= v;
+                    if (hit) words[i >>> 5] |= 1 << (i & 31);
+                }
+            }
+            return createOwned(cells, shape, true);
+        }
         for (let start = 0; start < size; start += 4096) {
             const end = Math.min(size, start + 4096);
             checkpoint('comparing integer array', end - start);
