@@ -103,6 +103,31 @@ export interface CompilerCapabilities {
     readonly hooks: CompilerDiagnosticsHooks;
 }
 
+/** Copy compiler configuration once; host services and callback state stay live. */
+export function snapshotCompilerOptions(options: InterpreterOptions): InterpreterOptions {
+    const compiler = options.compiler;
+    return Object.freeze({
+        ...options,
+        compiler: compiler && Object.freeze({
+            ...compiler,
+            loops: compiler.loops && Object.freeze({ ...compiler.loops }),
+            tensors: compiler.tensors && Object.freeze({ ...compiler.tensors }),
+            scalars: compiler.scalars && Object.freeze({ ...compiler.scalars }),
+            functions: compiler.functions && Object.freeze({ ...compiler.functions }),
+            blocks: compiler.blocks && Object.freeze({ ...compiler.blocks }),
+            hooks: compiler.hooks && Object.freeze({ ...compiler.hooks }),
+        }),
+    });
+}
+
+/** A readonly result is reused on every execution step, including reference steps. */
+export function fixedCompilerCapabilities(options: InterpreterOptions): CompilerCapabilities {
+    const capabilities = resolveCompilerCapabilities(options);
+    for (const group of [capabilities.loops, capabilities.tensors, capabilities.scalars,
+        capabilities.functions, capabilities.blocks, capabilities.hooks]) Object.freeze(group);
+    return Object.freeze(capabilities);
+}
+
 export function resolveCompilerCapabilities(options: InterpreterOptions): CompilerCapabilities {
     const globalEnabled = options.compilation !== false;
     const compiler = options.compiler;
@@ -228,10 +253,11 @@ export function referenceCompilerOptions(options: InterpreterOptions): Interpret
     };
 }
 
+/** Readonly constructor options; compiler flags/hooks are snapshotted, callback state remains live. */
 export interface InterpreterOptions {
     /** Disable every generated-code tier, including in child modules and tests. */
     readonly compilation?: boolean;
-    /** Grouped compiler capabilities. */
+    /** Grouped compiler capabilities. Flags and hooks are captured at interpreter creation. */
     readonly compiler?: CompilerCapabilitiesConfig;
     readonly environment?: RankEnvironment;
     /** Optional host MD5 implementation; portable hashing is the default.

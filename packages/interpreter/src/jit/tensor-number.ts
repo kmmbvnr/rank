@@ -1,7 +1,7 @@
 import type { CompiledAtomType } from '@arrrank/language';
 import { integer32Cells } from '../array-storage.js';
 import { prepareStoredScalarView } from '../integer-view.js';
-import { checkpoint, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, privateLoopPolling, interruptsEnabled } from '../interrupt.js';
 import type { TensorCodeCache, TensorNode } from './tensor-kernel.js';
 import { isRankArray } from '../value.js';
 import type { RankValue } from '../value.js';
@@ -102,12 +102,13 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
     }
     const result = emit(root);
     if (!result || size === undefined) return undefined;
+    const interruptible = interruptsEnabled();
     const source = `return function(data, scalars, size, indices, checks) {
         const checked = [];
         let result = ${operation === 'sum' ? '0' : '[]'};
         const count = indices ? indices.length : size;
         for (let at = 0; at < count; at++) {
-            if ((at & 4095) === 0) checkpoint('consuming integer tensor', Math.min(4096, count - at));
+            ${interruptible ? "if ((at & 4095) === 0) checkpoint('computing tensor', Math.min(4096, count - at));" : ''}
             const i = indices ? indices[at] : at;
             ${lines.join('\n')}
             ${operation === 'sum' ? `result = safe(result + ${result.name});` : `if (${result.name}) result.push(i);`}
@@ -130,7 +131,7 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
         compiled?.(source);
     }
     return () => {
-        if (!privateLoopPolling() || !valid()) return undefined;
+        if (!privateLoopPolling() || interruptsEnabled() !== interruptible || !valid()) return undefined;
         try {
             const value = run(data, scalars, size!, indices, checks);
             return typeof value === 'number' ? BigInt(value) : value;

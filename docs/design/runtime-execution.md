@@ -23,6 +23,15 @@ backend, including tensor-cell copies and flat-record combines. Imported modules
 and Rank test blocks inherit the setting. Individual tier switches remain available
 for isolating a backend. Debugger inspection uses the same reference options.
 
+Compiler flags and hook identities are captured when an interpreter is created,
+including the nested `compiler` groups. Changing the supplied configuration later
+does not reconfigure that interpreter or its child modules and tests; create a
+new interpreter for different settings. Callback state remains live. Readonly
+options and resolved capability groups are frozen, and the runtime reuses two
+capability snapshots: ordinary and reference. Inspection selects the reference
+snapshot dynamically and restores the ordinary one when inspection ends. The
+FastPaths context shares this getter instead of resolving all flags per step.
+
 The differential test runs every demo and embedded Rank test in both modes. It
 compares eager return values, output, errors and host effects using fixed random
 input, an isolated environment and in-memory files. Lazy streams are observed

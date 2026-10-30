@@ -1,0 +1,2127 @@
+{
+  "sourceHeadAtStart": "5f12ccbdee46980e2f2578c028de7257f88f5518",
+  "sourceHeadAtEnd": "ec7824a6111ffe32c860fdfc75676e569e8bd556",
+  "runtimeLatestMtime": 1793381395.035105,
+  "firstSeriesBirthtime": 1793382228.208147,
+  "runtimeUnchangedDuringMeasurements": true,
+  "runtimeDigest": "dc1291087c14018d9ffb80017291bf3fe28b3768cdb48be1a35eea62c979bbe5",
+  "node": "v24.15.0",
+  "platform": "darwin-arm64",
+  "hashes": {
+    "benchmarks/euler275-investigation.mjs": "03ede2c8c64a75f30d5cbbedc1a8afc98623fcfca2e4c50bce9f9c3c4cb50c94",
+    "benchmarks/euler275-verify.py": "4b10b7f855329eb425bdbcfaa9003cbd56fdcc6565b821a12d6d9eb1d7325561",
+    "benchmarks/experiments/euler275-original.ra": "dde283e0965bd809b08ecdb707e84641f60f7bff9854cb3617ad65afcdccfac5"
+  },
+  "initialSamples": [
+    {
+      "mode": "compiled",
+      "n": "12",
+      "variant": "original",
+      "ms": 176.89675,
+      "answer": "9657",
+      "rssMiB": 181.984375,
+      "trial": 0,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "original",
+      "ms": 4218.728792,
+      "answer": "9657",
+      "rssMiB": 368.484375,
+      "trial": 0,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "cache",
+      "ms": 4838.823792,
+      "answer": "9657",
+      "rssMiB": 371.234375,
+      "trial": 0,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "early-break",
+      "ms": 3598.2334170000004,
+      "answer": "9657",
+      "rssMiB": 368.125,
+      "trial": 0,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "early-break-cache",
+      "ms": 3659.293542,
+      "answer": "9657",
+      "rssMiB": 367.1875,
+      "trial": 0,
+      "series": "initial"
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "original",
+      "ms": 28897.957333000002,
+      "answer": "15030564",
+      "rssMiB": 182.40625,
+      "trial": 0,
+      "series": "initial"
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "early-break",
+      "ms": 22174.806708,
+      "answer": "15030564",
+      "rssMiB": 182.265625,
+      "trial": 0,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "original",
+      "ms": 4161.461875,
+      "answer": "9657",
+      "rssMiB": 369.15625,
+      "trial": 1,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "cache",
+      "ms": 4201.738833,
+      "answer": "9657",
+      "rssMiB": 372.59375,
+      "trial": 1,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "early-break",
+      "ms": 3597.152667,
+      "answer": "9657",
+      "rssMiB": 369.203125,
+      "trial": 1,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "early-break-cache",
+      "ms": 3739.9500000000003,
+      "answer": "9657",
+      "rssMiB": 345.6875,
+      "trial": 1,
+      "series": "initial"
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "original",
+      "ms": 29437.404209,
+      "answer": "15030564",
+      "rssMiB": 182.734375,
+      "trial": 1,
+      "series": "initial"
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "early-break",
+      "ms": 22878.117875,
+      "answer": "15030564",
+      "rssMiB": 185.171875,
+      "trial": 1,
+      "series": "initial"
+    },
+    {
+      "mode": "compiled",
+      "n": "12",
+      "variant": "original",
+      "ms": 201.039583,
+      "answer": "9657",
+      "rssMiB": 182.796875,
+      "trial": 1,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "cache",
+      "ms": 4239.602458,
+      "answer": "9657",
+      "rssMiB": 366.71875,
+      "trial": 2,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "early-break",
+      "ms": 3704.541417,
+      "answer": "9657",
+      "rssMiB": 370.640625,
+      "trial": 2,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "early-break-cache",
+      "ms": 4023.315042,
+      "answer": "9657",
+      "rssMiB": 371.25,
+      "trial": 2,
+      "series": "initial"
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "original",
+      "ms": 28604.156833,
+      "answer": "15030564",
+      "rssMiB": 182.34375,
+      "trial": 2,
+      "series": "initial"
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "early-break",
+      "ms": 21578.912042,
+      "answer": "15030564",
+      "rssMiB": 182.28125,
+      "trial": 2,
+      "series": "initial"
+    },
+    {
+      "mode": "compiled",
+      "n": "12",
+      "variant": "original",
+      "ms": 178.65129199999998,
+      "answer": "9657",
+      "rssMiB": 181.796875,
+      "trial": 2,
+      "series": "initial"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "original",
+      "ms": 4239.639249999999,
+      "answer": "9657",
+      "rssMiB": 368.515625,
+      "trial": 2,
+      "series": "initial"
+    }
+  ],
+  "secondSeries": [
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "original",
+      "ms": 4188.951125,
+      "answer": "9657",
+      "rssMiB": 368.109375,
+      "trial": 0,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "native-cache",
+      "ms": 3782.295792,
+      "answer": "9657",
+      "rssMiB": 372.75,
+      "trial": 0,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "lean",
+      "ms": 6152.625666,
+      "answer": "9657",
+      "rssMiB": 405.953125,
+      "trial": 0,
+      "series": "cache-and-lean",
+      "discarded": true
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "lean-native-cache",
+      "ms": 5520.730416,
+      "answer": "9657",
+      "rssMiB": 402.578125,
+      "trial": 0,
+      "series": "cache-and-lean",
+      "discarded": true
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "lean",
+      "ms": 46623.237833,
+      "answer": "15030564",
+      "rssMiB": 184.1875,
+      "trial": 0,
+      "series": "cache-and-lean",
+      "discarded": true
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "native-cache",
+      "ms": 3699.8062919999998,
+      "answer": "9657",
+      "rssMiB": 368.75,
+      "trial": 1,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "lean",
+      "ms": 3305.922375,
+      "answer": "9657",
+      "rssMiB": 370.046875,
+      "trial": 1,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "lean-native-cache",
+      "ms": 3007.240208,
+      "answer": "9657",
+      "rssMiB": 369.375,
+      "trial": 1,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "lean",
+      "ms": 20916.221250000002,
+      "answer": "15030564",
+      "rssMiB": 183.078125,
+      "trial": 1,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "original",
+      "ms": 4210.932333,
+      "answer": "9657",
+      "rssMiB": 368.6875,
+      "trial": 1,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "lean",
+      "ms": 3399.236167,
+      "answer": "9657",
+      "rssMiB": 369.0625,
+      "trial": 2,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "lean-native-cache",
+      "ms": 3008.720375,
+      "answer": "9657",
+      "rssMiB": 369.03125,
+      "trial": 2,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "lean",
+      "ms": 20771.890958,
+      "answer": "15030564",
+      "rssMiB": 181.78125,
+      "trial": 2,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "original",
+      "ms": 4244.947083,
+      "answer": "9657",
+      "rssMiB": 368.046875,
+      "trial": 2,
+      "series": "cache-and-lean",
+      "discarded": false
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "native-cache",
+      "ms": 3680.947875,
+      "answer": "9657",
+      "rssMiB": 369.28125,
+      "trial": 2,
+      "series": "cache-and-lean",
+      "discarded": false
+    }
+  ],
+  "followupSamples": [
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "lean",
+      "ms": 3354.4153749999996,
+      "answer": "9657",
+      "rssMiB": 371.484375,
+      "trial": 3,
+      "series": "corrected-lean-followup"
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "lean-native-cache",
+      "ms": 2972.045375,
+      "answer": "9657",
+      "rssMiB": 367.265625,
+      "trial": 3,
+      "series": "corrected-lean-followup"
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "lean",
+      "ms": 20730.069333000003,
+      "answer": "15030564",
+      "rssMiB": 181.15625,
+      "trial": 3,
+      "series": "corrected-lean-followup"
+    }
+  ],
+  "summary": [
+    {
+      "mode": "compiled",
+      "n": "12",
+      "variant": "original",
+      "samples": 3,
+      "medianMs": 178.65129199999998,
+      "minMs": 176.89675,
+      "maxMs": 201.039583
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "original",
+      "samples": 6,
+      "medianMs": 4214.830562499999,
+      "minMs": 4161.461875,
+      "maxMs": 4244.947083
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "cache",
+      "samples": 3,
+      "medianMs": 4239.602458,
+      "minMs": 4201.738833,
+      "maxMs": 4838.823792
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "early-break",
+      "samples": 3,
+      "medianMs": 3598.2334170000004,
+      "minMs": 3597.152667,
+      "maxMs": 3704.541417
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "early-break-cache",
+      "samples": 3,
+      "medianMs": 3739.9500000000003,
+      "minMs": 3659.293542,
+      "maxMs": 4023.315042
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "original",
+      "samples": 3,
+      "medianMs": 28897.957333000002,
+      "minMs": 28604.156833,
+      "maxMs": 29437.404209
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "early-break",
+      "samples": 3,
+      "medianMs": 22174.806708,
+      "minMs": 21578.912042,
+      "maxMs": 22878.117875
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "native-cache",
+      "samples": 3,
+      "medianMs": 3699.8062919999998,
+      "minMs": 3680.947875,
+      "maxMs": 3782.295792
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "lean",
+      "samples": 3,
+      "medianMs": 3354.4153749999996,
+      "minMs": 3305.922375,
+      "maxMs": 3399.236167
+    },
+    {
+      "mode": "reference",
+      "n": "12",
+      "variant": "lean-native-cache",
+      "samples": 3,
+      "medianMs": 3007.240208,
+      "minMs": 2972.045375,
+      "maxMs": 3008.720375
+    },
+    {
+      "mode": "compiled",
+      "n": "18",
+      "variant": "lean",
+      "samples": 3,
+      "medianMs": 20771.890958,
+      "minMs": 20730.069333000003,
+      "maxMs": 20916.221250000002
+    }
+  ],
+  "independentOracle": [
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "early-break",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "lean",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "native-cache",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "early-break-native-cache",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "lean-native-cache",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "early-break",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "lean",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "native-cache",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "early-break-native-cache",
+      "answer": 1
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "lean-native-cache",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "early-break",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "lean",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "native-cache",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "early-break-native-cache",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "lean-native-cache",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "early-break",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "lean",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "native-cache",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "early-break-native-cache",
+      "answer": 1
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "lean-native-cache",
+      "answer": 1
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "early-break",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "lean",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "native-cache",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "early-break-native-cache",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "lean-native-cache",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "early-break",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "lean",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "native-cache",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "early-break-native-cache",
+      "answer": 2
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "lean-native-cache",
+      "answer": 2
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "early-break",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "lean",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "native-cache",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "early-break-native-cache",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "lean-native-cache",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "early-break",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "lean",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "native-cache",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "early-break-native-cache",
+      "answer": 4
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "lean-native-cache",
+      "answer": 4
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "early-break",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "lean",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "native-cache",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "early-break-native-cache",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "lean-native-cache",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "early-break",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "lean",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "native-cache",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "early-break-native-cache",
+      "answer": 9
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "lean-native-cache",
+      "answer": 9
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "early-break",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "lean",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "native-cache",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "early-break-native-cache",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "lean-native-cache",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "early-break",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "lean",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "native-cache",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "early-break-native-cache",
+      "answer": 18
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "lean-native-cache",
+      "answer": 18
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "early-break",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "lean",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "native-cache",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "early-break-native-cache",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "lean-native-cache",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "early-break",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "lean",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "native-cache",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "early-break-native-cache",
+      "answer": 44
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "lean-native-cache",
+      "answer": 44
+    },
+    {
+      "n": 8,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "reference",
+      "variant": "early-break",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "reference",
+      "variant": "lean",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "reference",
+      "variant": "native-cache",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "reference",
+      "variant": "early-break-native-cache",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "reference",
+      "variant": "lean-native-cache",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "compiled",
+      "variant": "early-break",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "compiled",
+      "variant": "lean",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "compiled",
+      "variant": "native-cache",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "compiled",
+      "variant": "early-break-native-cache",
+      "answer": 111
+    },
+    {
+      "n": 8,
+      "mode": "compiled",
+      "variant": "lean-native-cache",
+      "answer": 111
+    }
+  ],
+  "diagnostics": {
+    "original": {
+      "mode": "compiled",
+      "n": "15",
+      "variant": "original",
+      "ms": 786.052375,
+      "answer": "360505",
+      "rssMiB": 184.4375,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 20,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 11,
+          "tensor:unsupported-type:array": 12,
+          "tensor:scalar-evaluation-timing": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "lean": {
+      "mode": "compiled",
+      "n": "15",
+      "variant": "lean",
+      "ms": 626.257167,
+      "answer": "360505",
+      "rssMiB": 182.28125,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 20,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 11,
+          "tensor:unsupported-type:array": 12,
+          "tensor:scalar-evaluation-timing": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "lean-native-cache": {
+      "mode": "compiled",
+      "n": "15",
+      "variant": "lean-native-cache",
+      "ms": 625.783833,
+      "answer": "360505",
+      "rssMiB": 182.375,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 20,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 11,
+          "tensor:unsupported-type:array": 12,
+          "tensor:scalar-evaluation-timing": 1
+        },
+        "compilerRejections": []
+      }
+    }
+  },
+  "instrumented": {
+    "mode": "compiled",
+    "n": "15",
+    "variant": "instrument",
+    "ms": 802.256041,
+    "answer": "360505",
+    "rssMiB": 184.125,
+    "Visits": "11710792",
+    "Leaves": "718474",
+    "Pruned": "8071259",
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 2,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 2,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 1,
+      "numberLoopCopyAmortized": 1,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 2,
+      "numberLoopReadBufferCells": 20,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:too-small": 11,
+        "tensor:unsupported-type:array": 12,
+        "tensor:scalar-evaluation-timing": 1
+      },
+      "compilerRejections": []
+    }
+  },
+  "referenceCpuProfile": {
+    "totalSampleMs": 4439.458,
+    "topSelfTime": [
+      {
+        "function": "",
+        "file": "expressions.js",
+        "line": 183,
+        "selfMs": 284.623
+      },
+      {
+        "function": "get",
+        "file": "frame.js",
+        "line": 63,
+        "selfMs": 219.501
+      },
+      {
+        "function": "resolveCompilerCapabilities",
+        "file": "interpreter-options.js",
+        "line": 1,
+        "selfMs": 183.253
+      },
+      {
+        "function": "execute",
+        "file": "blocks.js",
+        "line": 31,
+        "selfMs": 171.787
+      },
+      {
+        "function": "",
+        "file": "expressions.js",
+        "line": 254,
+        "selfMs": 154.038
+      },
+      {
+        "function": "isNativeFunction",
+        "file": "value.js",
+        "line": 242,
+        "selfMs": 126.958
+      },
+      {
+        "function": "flag",
+        "file": "interpreter-options.js",
+        "line": 4,
+        "selfMs": 115.502
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "line": 0,
+        "selfMs": 112.627
+      },
+      {
+        "function": "writeArrayCell",
+        "file": "owned-array.js",
+        "line": 192,
+        "selfMs": 98.212
+      },
+      {
+        "function": "assign",
+        "file": "binding-environment.js",
+        "line": 57,
+        "selfMs": 94.874
+      },
+      {
+        "function": "stream",
+        "file": "assignments.js",
+        "line": 349,
+        "selfMs": 92.921
+      },
+      {
+        "function": "selectValues",
+        "file": "value-selection.js",
+        "line": 30,
+        "selfMs": 87.498
+      },
+      {
+        "function": "",
+        "file": "application.js",
+        "line": 479,
+        "selfMs": 85.29
+      },
+      {
+        "function": "preparedStatement",
+        "file": "blocks.js",
+        "line": 97,
+        "selfMs": 82.665
+      },
+      {
+        "function": "",
+        "file": "expressions.js",
+        "line": 269,
+        "selfMs": 81.5
+      },
+      {
+        "function": "get compiler",
+        "file": "fast-paths.js",
+        "line": 42,
+        "selfMs": 79.377
+      },
+      {
+        "function": "",
+        "file": "expressions.js",
+        "line": 241,
+        "selfMs": 75.253
+      },
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "line": 0,
+        "selfMs": 73.792
+      },
+      {
+        "function": "stream",
+        "file": "loops.js",
+        "line": 66,
+        "selfMs": 68.793
+      },
+      {
+        "function": "checkMutable",
+        "file": "binding-environment.js",
+        "line": 158,
+        "selfMs": 68.001
+      },
+      {
+        "function": "splitQualified",
+        "file": "interpreter.js",
+        "line": 33,
+        "selfMs": 61.583
+      },
+      {
+        "function": "evaluate",
+        "file": "expressions.js",
+        "line": 56,
+        "selfMs": 53.623
+      },
+      {
+        "function": "set",
+        "file": "owned-array.js",
+        "line": 821,
+        "selfMs": 52.748
+      },
+      {
+        "function": "",
+        "file": "expressions.js",
+        "line": 624,
+        "selfMs": 52.541
+      },
+      {
+        "function": "general",
+        "file": "assignments.js",
+        "line": 94,
+        "selfMs": 51.625
+      },
+      {
+        "function": "continueStatementStream",
+        "file": "blocks.js",
+        "line": 163,
+        "selfMs": 51.377
+      },
+      {
+        "function": "stream",
+        "file": "mutation-guards.js",
+        "line": 36,
+        "selfMs": 48.789
+      },
+      {
+        "function": "",
+        "file": "application.js",
+        "line": 575,
+        "selfMs": 46.5
+      },
+      {
+        "function": "evaluateBinaryValue",
+        "file": "operators.js",
+        "line": 229,
+        "selfMs": 42.748
+      },
+      {
+        "function": "compileSourceTextModule",
+        "file": "utils",
+        "line": 316,
+        "selfMs": 42.501
+      }
+    ]
+  },
+  "officialOrderTenChecks": [
+    {
+      "mode": "compiled",
+      "n": "10",
+      "variant": "original",
+      "ms": 149.98679199999998,
+      "answer": "964",
+      "rssMiB": 184.265625
+    },
+    {
+      "mode": "compiled",
+      "n": "10",
+      "variant": "early-break",
+      "ms": 150.240583,
+      "answer": "964",
+      "rssMiB": 183.53125
+    },
+    {
+      "mode": "compiled",
+      "n": "10",
+      "variant": "lean",
+      "ms": 147.219916,
+      "answer": "964",
+      "rssMiB": 181.546875
+    },
+    {
+      "mode": "compiled",
+      "n": "10",
+      "variant": "native-cache",
+      "ms": 150.32612500000002,
+      "answer": "964",
+      "rssMiB": 183.203125
+    },
+    {
+      "mode": "compiled",
+      "n": "10",
+      "variant": "early-break-native-cache",
+      "ms": 149.30904099999998,
+      "answer": "964",
+      "rssMiB": 183.03125
+    },
+    {
+      "mode": "compiled",
+      "n": "10",
+      "variant": "lean-native-cache",
+      "ms": 149.759709,
+      "answer": "964",
+      "rssMiB": 183.375
+    },
+    {
+      "mode": "reference",
+      "n": "10",
+      "variant": "original",
+      "ms": 541.805542,
+      "answer": "964",
+      "rssMiB": 197.59375
+    },
+    {
+      "mode": "reference",
+      "n": "10",
+      "variant": "early-break",
+      "ms": 491.279041,
+      "answer": "964",
+      "rssMiB": 197.21875
+    },
+    {
+      "mode": "reference",
+      "n": "10",
+      "variant": "lean",
+      "ms": 471.871667,
+      "answer": "964",
+      "rssMiB": 195.859375
+    },
+    {
+      "mode": "reference",
+      "n": "10",
+      "variant": "native-cache",
+      "ms": 487.63020800000004,
+      "answer": "964",
+      "rssMiB": 197.34375
+    },
+    {
+      "mode": "reference",
+      "n": "10",
+      "variant": "early-break-native-cache",
+      "ms": 452.35491599999995,
+      "answer": "964",
+      "rssMiB": 197.078125
+    },
+    {
+      "mode": "reference",
+      "n": "10",
+      "variant": "lean-native-cache",
+      "ms": 439.34295800000007,
+      "answer": "964",
+      "rssMiB": 197.046875
+    }
+  ],
+  "notes": [
+    "A concurrent source commit landed; built JavaScript predated all timed series and was not rebuilt.",
+    "Initial lean trial 0 samples are discarded because one pruning bound was accidentally omitted by the prototype transformer.",
+    "The initial investigation changed only research files; the delivery section records the implemented fix.",
+    "No exhaustive corpus or full ordinary suite was run. Scoped delivery checks are recorded below."
+  ],
+  "delivery": {
+    "samples": [
+      {
+        "mode": "compiled",
+        "n": "18",
+        "variant": "original",
+        "runtime": "uncached",
+        "ms": 32031.307334,
+        "answer": "15030564",
+        "rssMiB": 183.609375,
+        "trial": 0
+      },
+      {
+        "mode": "compiled",
+        "n": "18",
+        "variant": "shipping",
+        "runtime": "shipping",
+        "ms": 23049.828458,
+        "answer": "15030564",
+        "rssMiB": 181.59375,
+        "trial": 0
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "original",
+        "runtime": "uncached",
+        "ms": 4452.185875,
+        "answer": "9657",
+        "rssMiB": 320.265625,
+        "trial": 0
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "original",
+        "runtime": "shipping",
+        "ms": 3879.0634999999997,
+        "answer": "9657",
+        "rssMiB": 366.4375,
+        "trial": 0
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "shipping",
+        "runtime": "shipping",
+        "ms": 3053.822459,
+        "answer": "9657",
+        "rssMiB": 367.203125,
+        "trial": 0
+      },
+      {
+        "mode": "compiled",
+        "n": "18",
+        "variant": "shipping",
+        "runtime": "shipping",
+        "ms": 22341.545790999997,
+        "answer": "15030564",
+        "rssMiB": 182.78125,
+        "trial": 1
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "original",
+        "runtime": "uncached",
+        "ms": 4567.24225,
+        "answer": "9657",
+        "rssMiB": 370.8125,
+        "trial": 1
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "original",
+        "runtime": "shipping",
+        "ms": 4449.936292,
+        "answer": "9657",
+        "rssMiB": 371.125,
+        "trial": 1
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "shipping",
+        "runtime": "shipping",
+        "ms": 3477.981042,
+        "answer": "9657",
+        "rssMiB": 367.28125,
+        "trial": 1
+      },
+      {
+        "mode": "compiled",
+        "n": "18",
+        "variant": "original",
+        "runtime": "uncached",
+        "ms": 30575.620916999997,
+        "answer": "15030564",
+        "rssMiB": 185.59375,
+        "trial": 1
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "original",
+        "runtime": "uncached",
+        "ms": 4231.070625,
+        "answer": "9657",
+        "rssMiB": 370.5,
+        "trial": 2
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "original",
+        "runtime": "shipping",
+        "ms": 3770.429667,
+        "answer": "9657",
+        "rssMiB": 368.0625,
+        "trial": 2
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "shipping",
+        "runtime": "shipping",
+        "ms": 3102.754167,
+        "answer": "9657",
+        "rssMiB": 366.875,
+        "trial": 2
+      },
+      {
+        "mode": "compiled",
+        "n": "18",
+        "variant": "original",
+        "runtime": "uncached",
+        "ms": 29677.424917,
+        "answer": "15030564",
+        "rssMiB": 183.75,
+        "trial": 2
+      },
+      {
+        "mode": "compiled",
+        "n": "18",
+        "variant": "shipping",
+        "runtime": "shipping",
+        "ms": 22251.923625,
+        "answer": "15030564",
+        "rssMiB": 181.15625,
+        "trial": 2
+      }
+    ],
+    "oracle": [
+      {
+        "n": 1,
+        "mode": "reference",
+        "variant": "shipping",
+        "answer": 1
+      },
+      {
+        "n": 1,
+        "mode": "compiled",
+        "variant": "shipping",
+        "answer": 1
+      },
+      {
+        "n": 2,
+        "mode": "reference",
+        "variant": "shipping",
+        "answer": 1
+      },
+      {
+        "n": 2,
+        "mode": "compiled",
+        "variant": "shipping",
+        "answer": 1
+      },
+      {
+        "n": 3,
+        "mode": "reference",
+        "variant": "shipping",
+        "answer": 2
+      },
+      {
+        "n": 3,
+        "mode": "compiled",
+        "variant": "shipping",
+        "answer": 2
+      },
+      {
+        "n": 4,
+        "mode": "reference",
+        "variant": "shipping",
+        "answer": 4
+      },
+      {
+        "n": 4,
+        "mode": "compiled",
+        "variant": "shipping",
+        "answer": 4
+      },
+      {
+        "n": 5,
+        "mode": "reference",
+        "variant": "shipping",
+        "answer": 9
+      },
+      {
+        "n": 5,
+        "mode": "compiled",
+        "variant": "shipping",
+        "answer": 9
+      },
+      {
+        "n": 6,
+        "mode": "reference",
+        "variant": "shipping",
+        "answer": 18
+      },
+      {
+        "n": 6,
+        "mode": "compiled",
+        "variant": "shipping",
+        "answer": 18
+      },
+      {
+        "n": 7,
+        "mode": "reference",
+        "variant": "shipping",
+        "answer": 44
+      },
+      {
+        "n": 7,
+        "mode": "compiled",
+        "variant": "shipping",
+        "answer": 44
+      },
+      {
+        "n": 8,
+        "mode": "reference",
+        "variant": "shipping",
+        "answer": 111
+      },
+      {
+        "n": 8,
+        "mode": "compiled",
+        "variant": "shipping",
+        "answer": 111
+      }
+    ],
+    "diagnostics": {
+      "mode": "compiled",
+      "n": "15",
+      "variant": "shipping",
+      "runtime": "shipping",
+      "ms": 730.565709,
+      "answer": "360505",
+      "rssMiB": 181.828125,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 20,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 10,
+          "tensor:unsupported-type:array": 11,
+          "tensor:scalar-evaluation-timing": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "controlledUncachedRuntime": "Shipping runtime with the cached capability getter and the FastPaths callback replaced by previous repeated resolution; all other fixes retained.",
+    "hashes": {
+      "demos/euler/275_balancedsculptures.ra": "f515e1ccfaa0d31eeb5243254fffb42dc599f4429b816f64ccbae2f7bf0c7489",
+      "packages/interpreter/src/interpreter.ts": "b3a432f9280d3a26e4213f0bcb02daa7ebf6da9329cada52de02fd99953af270",
+      "packages/interpreter/src/interpreter-options.ts": "b5d8df13f9354609b11ec898ade2e938eee4968be37d556e4554a6f5bf796876",
+      "packages/interpreter/src/jit/tensor-number.ts": "247723a6345a90d262808d33aabc1ca00f46d05f13a8ff6812f50e7d09798f3c",
+      "benchmarks/euler275-investigation.mjs": "b88cc89f5495c48703020668e46eca7850e2bf48ccc3a1c8c354b411b2be0ecc"
+    },
+    "sourceHeadAtEnd": "b77b6bf23843f25c9ef9b978929b8fd6a3bbd45f",
+    "buildParentRevision": "ec7824a6111ffe32c860fdfc75676e569e8bd556",
+    "runtimeLatestMtime": 1793383451.4319646,
+    "firstTimedSampleStart": 1793383492.3537815,
+    "runtimeUnchangedDuringMeasurements": true,
+    "runtimeDigest": "7229cfebfab983b580345439f0dc71f2425113b5ff57d292e3d956b3133aecad",
+    "summary": [
+      {
+        "mode": "compiled",
+        "n": "18",
+        "variant": "original",
+        "runtime": "uncached",
+        "samples": 3,
+        "medianSeconds": 30.575620916999995,
+        "minSeconds": 29.677424917,
+        "maxSeconds": 32.031307334000005
+      },
+      {
+        "mode": "compiled",
+        "n": "18",
+        "variant": "shipping",
+        "runtime": "shipping",
+        "samples": 3,
+        "medianSeconds": 22.341545790999998,
+        "minSeconds": 22.251923625,
+        "maxSeconds": 23.049828458
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "original",
+        "runtime": "uncached",
+        "samples": 3,
+        "medianSeconds": 4.4521858750000005,
+        "minSeconds": 4.231070625,
+        "maxSeconds": 4.5672422500000005
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "original",
+        "runtime": "shipping",
+        "samples": 3,
+        "medianSeconds": 3.8790634999999996,
+        "minSeconds": 3.7704296669999997,
+        "maxSeconds": 4.449936292
+      },
+      {
+        "mode": "reference",
+        "n": "12",
+        "variant": "shipping",
+        "runtime": "shipping",
+        "samples": 3,
+        "medianSeconds": 3.102754167,
+        "minSeconds": 3.053822459,
+        "maxSeconds": 3.4779810419999997
+      }
+    ],
+    "validation": {
+      "focusedSuites": 20,
+      "focusedTestsPassed": 737,
+      "fullCompiledTestsPassed": 1,
+      "scopedTypesAndDifferentialPassed": 2,
+      "shippingOracleComparisons": 16,
+      "semanticBoundaryTests": 11,
+      "semanticBoundaryOwners": 65
+    }
+  }
+}

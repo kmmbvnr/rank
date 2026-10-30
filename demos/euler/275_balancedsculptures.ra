@@ -28,7 +28,9 @@ rem 0 by the blocks left, each further
 rem out than the last at best. With a
 rem count of all and of the mirror
 rem symmetric, the answer is half their
-rem sum.
+rem sum. Reject impossible moments before
+rem writing the branch state, and stop
+rem the mirror test at its first miss.
 Sd = 64
 Rw = N + 2
 Mc = array shape (N + 1) fill 0
@@ -52,7 +54,6 @@ end
 G = array shape 8192 fill 0
 Seen = array shape (Sd * Rw) fill 0
 Occ = array shape (Sd * Rw) fill 0
-Fs = array shape (N + 2) fill 0
 Fe = array shape (N + 2) fill 0
 Fi = array shape (N + 2) fill 0
 Fx = array shape (N + 2) fill 0
@@ -81,9 +82,11 @@ for
   C = G (Fi D)
   Fi D += 1
   Cx = C mod 64 - 32
-  Pd D = C
-  Occ C = 1
   Ns = Fx D + Cx
+  Rm = N - D - 1
+  if Ns abs greater Mc Rm
+    continue
+  end
   Nl = Fl D
   if Cx less Nl
     Nl = Cx
@@ -92,19 +95,16 @@ for
   if Cx greater Nr
     Nr = Cx
   end
-  Rm = N - D - 1
   Tr = Rm * (Rm + 1) // 2
-  Ok = 1
-  if Ns abs greater Mc Rm
-    Ok = 0
-  end
   if Ns + Rm * Nr + Tr less 0
-    Ok = 0
+    continue
   end
   if Ns + Rm * Nl - Tr greater 0
-    Ok = 0
+    continue
   end
-  if Ok equal 1 and Rm equal 0
+  Pd D = C
+  Occ C = 1
+  if Rm equal 0
     if Ns equal 0
       CountA += 1
       Sy = 1
@@ -114,14 +114,11 @@ for
         Mj = Yr + 64 - Cj mod 64
         if Occ Mj equal 0
           Sy = 0
+          break
         end
       end
       CountS += Sy
     end
-    Occ C = 0
-    continue
-  end
-  if Ok equal 0
     Occ C = 0
     continue
   end
@@ -139,7 +136,6 @@ for
       end
     end
   end
-  Fs (D + 1) = Fi D
   Fe (D + 1) = Na
   Fi (D + 1) = Fi D
   Fx (D + 1) = Ns

@@ -22,7 +22,8 @@ import { runExecution } from './execution.js';
 import { FastPaths } from './fast-paths.js';
 import { FunctionInvocation } from './function-invocation.js';
 import {
-    moduleOptions, testOptions, resolveCompilerCapabilities, referenceCompilerOptions,
+    moduleOptions, testOptions, referenceCompilerOptions,
+    snapshotCompilerOptions, fixedCompilerCapabilities,
     type CompilerCapabilities, type InterpreterOptions, type RankTestResult,
 } from './interpreter-options.js';
 import { RETIRED_IMPLICIT_NAMES } from './modules/algo.js';
@@ -65,13 +66,15 @@ export class Interpreter {
     private readonly output: Output;
     private readonly baseOptions: InterpreterOptions;
     private readonly referenceOptions: InterpreterOptions;
+    private readonly baseCompiler: CompilerCapabilities;
+    private readonly referenceCompiler: CompilerCapabilities;
     private environmentOverride?: RankEnvironment;
     /** Inspection runs every statement through the reference paths, so a debugger can stop anywhere. */
     get options(): InterpreterOptions {
         return this.baseOptions.compilation === false || inspectionEnabled() ? this.referenceOptions : this.baseOptions;
     }
     get compiler(): CompilerCapabilities {
-        return resolveCompilerCapabilities(this.options);
+        return this.options === this.referenceOptions ? this.referenceCompiler : this.baseCompiler;
     }
     private readonly random: SeedableRandom;
     private readonly parsingPrograms = new Set<string>();
@@ -105,8 +108,10 @@ export class Interpreter {
 
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
-        this.baseOptions = { ...options, environment: options.environment ?? new EnvironmentOverlay() };
-        this.referenceOptions = referenceCompilerOptions(this.baseOptions);
+        this.baseOptions = snapshotCompilerOptions({ ...options, environment: options.environment ?? new EnvironmentOverlay() });
+        this.referenceOptions = Object.freeze(referenceCompilerOptions(this.baseOptions));
+        this.baseCompiler = fixedCompilerCapabilities(this.baseOptions);
+        this.referenceCompiler = fixedCompilerCapabilities(this.referenceOptions);
         this.random = seedableRandom(options.random);
         const requireOpen = (module: string, operation: string) => requireModule(this.modules, module, operation);
         const select = (values: RankValue[], missing?: () => RankValue) => selectValues(this.modules, values, missing);
@@ -146,6 +151,7 @@ export class Interpreter {
             (fn, source, axes) => this.functions.arrayBatch(fn, source, axes),
         );
         this.fastPaths = new FastPaths({
+            compiler: () => this.compiler,
             checkMutation: statement => this.mutations.statement(statement),
             bindings: this.bindings,
             modules: this.modules,
