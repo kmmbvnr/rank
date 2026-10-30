@@ -1,0 +1,252 @@
+rem Inverse Digit Sum II
+rem https://projecteuler.net/problem=685
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Kk integer = 10000
+arg Lo integer = 1
+
+rem Replace each digit a by b = 9 - a.
+rem Numbers of length L and digit sum s
+rem are the L-strings of deficits b
+rem (first b <= 8) with sum D = 9 L - s,
+rem and smaller numbers have larger b
+rem strings. A(d, t) counts d-strings
+rem over 0 to 9 with sum t: the sum over
+rem j of (-1)^j C(d, j) C(d + t - 10 j
+rem - 1, t - 10 j), capped at Cap.
+rem Phase 0 finds the length (a count
+rem of the strings for each L), phase 1
+rem places deficits left to right: with
+rem 1 left the unit sits at offset
+rem Rk - 1, with 2 left the offset
+rem solves a quadratic, with 3 or more
+rem the first position is decided by
+rem the counts A(r - 1, rem - b). The
+rem number is its nines joined as
+rem v -> v 10^g + 10^g - 1 mod 10^9+7.
+P = 1000000007
+Cap = 40000000000000000
+Total = 0
+for N in Lo to Kk
+  S = N * N * N
+  Rk = N * N * N * N
+  L = (S + 8) // 9
+  D = 9 * L - S
+  Ph = 0
+  Rm = 0
+  Lr = 0
+  Pos = 0
+  Np = 0
+  Ps = array shape 80 fill 0
+  Bs = array shape 80 fill 0
+  Bm = 0
+  Go = 1
+  for Go equal 1
+    Doq = 0
+    Ph0 = Ph
+    Qd = 0
+    Qt = array shape 1 fill 0
+    if Ph equal 0
+      D = 9 * L - S
+      Qd = L - 1
+      Qt = D - (0 to (D min 8))
+      Doq = 1
+    end
+    if Ph equal 1
+      if Rm equal 0
+        Go = 0
+      end
+      if Rm equal 1
+        Ps Np = Pos + Rk - 1
+        Bs Np = 1
+        Np += 1
+        Rm = 0
+        Go = 0
+      end
+      if Rm equal 2
+        Q1 = 2 * Lr + 1
+        Dc = Q1 * Q1 - 8 * Rk
+        Sd = (Dc * 1.0) sqrt
+        Xr = (4.0 * Rk) / (Q1 + Sd)
+        Xx = Xr ceil
+        Xx = Xx max 1
+        Xm = Xx - 1
+        Tx = Xm * (Xm - 1) // 2
+        Cm = Xm * Lr - Tx
+        for Cm at least Rk
+          Xx -= 1
+          Xm = Xx - 1
+          Tx = Xm * (Xm - 1) // 2
+          Cm = Xm * Lr - Tx
+        end
+        Cm = Xx * Lr - Xx * Xm // 2
+        for Cm less Rk
+          Xx += 1
+          Xm = Xx - 1
+          Cm = Xx * Lr - Xx * Xm // 2
+        end
+        Xm = Xx - 1
+        Tx = Xm * (Xm - 1) // 2
+        Cm = Xm * Lr - Tx
+        Rp = Rk - Cm
+        Tt = Xx - 1
+        Ps Np = Pos + Tt
+        Bs Np = 2
+        Mo = (Rp greater 1) integer
+        Rm = Mo
+        if Mo equal 1
+          Bs Np = 1
+          Rp -= 1
+        end
+        Np += 1
+        Rk = Rp
+        Pos = Pos + Tt + 1
+        Lr = Lr - Tt - 1
+      end
+      if Rm greater 2
+        Bm = Rm min 9
+        if Pos equal 0
+          Bm = Rm min 8
+        end
+        Qd = Lr - 1
+        Qt = Rm - (1 to Bm)
+        Doq = 1
+      end
+    end
+    if Doq equal 1
+      Qa = Qt * 0
+      if Qd equal 0
+        Qa = (Qt equal 0) integer
+      end
+      if Qd greater 0
+        Q9 = 9 * Qd
+        Lim = (Qt at most Q9) integer
+        Lg = (Qt at least 0) integer
+        Lim = Lim * Lg
+        if Qd at least 1000000
+          Z0 = (Qt equal 0) integer
+          Z1 = (Qt equal 1) integer
+          Z2 = (Qt equal 2) integer
+          Z3 = (Qt at least 3) integer
+          Qs = Qd * (Qd + 1) // 2
+          Qs = Qs min Cap
+          if Qd at least 300000000
+            Qs = Cap
+          end
+          Qa = Z0 + Z1 * Qd
+          Qa = Qa + Z2 * Qs + Z3 * Cap
+          Qa = Qa min Cap
+        end
+        if Qd less 1000000
+          Qk = Qt max 0
+          Af = Qt * 0.0
+          Ai = Qt * 0
+          Kmx = Qk max
+          for J in 0 to 3
+            T = Qk - 10 * J
+            Vj = (T at least 0) integer
+            T = T max 0
+            Nn = Qd + T - 1
+            Cf = Qt * 0.0 + 1.0
+            Ci = Qt * 0 + 1
+            for I in 1 to Kmx
+              M = (T at least I) integer
+              Nb = Nn - T + I
+              Fa = Nb * 1.0 / I
+              Wf = M * Fa + 1.0 - M
+              Cf = Cf * Wf
+              Wi = M * Nb + 1 - M
+              Ci = Ci * Wi
+              Wd = M * I + 1 - M
+              Ci = Ci // Wd
+            end
+            Cjf = 1.0
+            Cji = 1
+            if J equal 1
+              Cjf = Qd * 1.0
+              Cji = Qd
+            end
+            if J equal 2
+              Cjf = Qd * (Qd - 1) / 2.0
+              Cji = Qd * (Qd - 1) // 2
+            end
+            if J equal 3
+              Cq = Qd * (Qd - 1)
+              Cjf = Cq * (Qd - 2) / 6.0
+              Cji = Cq * (Qd - 2) // 6
+            end
+            Sg = 1 - 2 * (J mod 2)
+            Af = Af + Sg * Cjf * Cf * Vj
+            Ai = Ai + Sg * Cji * Ci * Vj
+          end
+          Cp = 30000000000000000.0
+          Big = (Af greater Cp) integer
+          Am = Ai max 0
+          Qa = Big * Cap
+          Qa = Qa + (1 - Big) * Am
+        end
+        Qa = Qa * Lim
+      end
+      if Ph equal 0
+        Cn = Qa sum
+        if Rk at most Cn
+          Ph = 1
+          Rm = D
+          Lr = L
+          Pos = 0
+        end
+        if Rk greater Cn
+          Rk -= Cn
+          L += 1
+        end
+      end
+      if Ph0 equal 1
+        if Doq equal 1
+          if Rm greater 2
+            Br = Qa reverse
+            Cs = Br scan +
+            Hm = Cs at least Rk
+            Hit = Hm indices
+            if Hit len greater 0
+              K0 = Hit 0
+              Pr = 0
+              if K0 greater 0
+                Pr = Cs (K0 - 1)
+              end
+              Bv = Bm - K0
+              Rk -= Pr
+              Ps Np = Pos
+              Bs Np = Bv
+              Np += 1
+              Rm -= Bv
+            end
+            if Hit len equal 0
+              Rk -= Cs (Bm - 1)
+            end
+            Pos += 1
+            Lr -= 1
+          end
+        end
+      end
+    end
+  end
+  Vv = 0
+  Cur = 0
+  for K in 0 to Np - 1
+    Gp = Ps K - Cur
+    Pg = 10 Gp P powmod
+    Vv = (Vv * Pg + Pg - 1) mod P
+    Vv = (Vv * 10 + 9 - Bs K) mod P
+    Cur = Ps K + 1
+  end
+  Gp = L - Cur
+  Pg = 10 Gp P powmod
+  Vv = (Vv * Pg + Pg - 1) mod P
+  Total = (Total + Vv) mod P
+end
+Answer = Total
+Answer print
