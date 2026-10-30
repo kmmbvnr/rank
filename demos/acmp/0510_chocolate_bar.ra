@@ -1,0 +1,24 @@
+rem Chocolate Bar
+rem https://acmp.ru/index.asp?main=task&id_task=510
+rem Count domino tilings of 3 x N rectangle using second-order linear recurrence
+
+use io
+use cli
+
+arg N integer = 4
+
+Answer = 0
+if (N mod 2) equal 0
+  K = N // 2
+  DP = array shape (K + 1) fill 0
+  DP 0 = 1
+  if K greater 0
+    DP 1 = 3
+    for I in 2 to K
+      DP I = 4 * (DP (I - 1)) - (DP (I - 2))
+    end
+  end
+  Answer = DP K
+end
+
+Answer print
