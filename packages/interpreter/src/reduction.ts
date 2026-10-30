@@ -7,6 +7,8 @@ import { elementSource } from './element-source.js';
 import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, registerArrayDependencies, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
+import { rangeBounds } from './operators.js';
+import { arrayResidues, modularReduce, modularScan, rangeResidues } from './modular-fold.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { sumIndexed } from './modules/numbers.js';
@@ -79,6 +81,22 @@ export class ReductionEvaluator {
         if (axes) return this.reduceAxes(value, axes, cell => this.reduceCell(operator, cell, seed),
             seed === undefined ? [] : [seed]);
         return this.reduceCell(operator, value, seed);
+    }
+
+    /** `(X scan op [with S]) mod M` and `(X reduce op [with S]) mod M` for `+` and `*`:
+     * reducing each step gives the same residues without exact intermediates. */
+    modularFold(kind: 'scan' | 'reduce', operator: string, source: RankValue, seed: RankValue | undefined,
+        axis: number | undefined, modulus: RankValue): RankValue | undefined {
+        if ((operator !== '+' && operator !== '*') || typeof modulus !== 'bigint'
+            || seed !== undefined && typeof seed !== 'bigint') return undefined;
+        const bounds = isRankSequence(source) ? rangeBounds(source) : undefined;
+        const residues = bounds ? rangeResidues(bounds.start, bounds.end, bounds.inclusive, modulus)
+            : isRankArray(source) ? arrayResidues(source, modulus) : undefined;
+        if (!residues) return undefined;
+        if (kind === 'reduce') return axis === undefined ? modularReduce(operator, residues, seed, modulus) : undefined;
+        if (axis === undefined && residues.shape.length !== 1) return undefined;
+        const at = axis === undefined ? 0 : resolveAxis(axis, residues.shape.length, () => new RankError('scan axis out of range'));
+        return modularScan(operator, residues, at, seed, modulus);
     }
 
     evaluateScan(operator: string, value: RankValue, seed?: RankValue, axis?: number, rank?: number): RankValue {

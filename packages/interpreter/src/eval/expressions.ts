@@ -2,7 +2,8 @@ import { AstUtils } from 'langium';
 import { PlanConstruction } from './plan-construction.js';
 import { demand, demandValue } from '../plan.js';
 import { materializeValue } from '../materialize.js';
-import { checkedArrayDimension } from '../tensor-index.js';
+import { checkedArrayDimension, safeDimension } from '../tensor-index.js';
+import { integerLiteral } from './application.js';
 export { checkedArrayDimension } from '../tensor-index.js';
 import { ArrayBindingContract } from '../array-binding-contract.js';
 import { tuple } from '../value.js';
@@ -13,7 +14,7 @@ import {
     isNewStructureExpression, isNumberLiteral, isParenthesizedExpression, isRecordExpression,
     isRecordUpdateExpression, isStdinExpression, isStringLiteral, isTextBlockExpression, isUnaryExpression,
     isUnpackExpression, nameNeedsExecution, requiresDataOperand, applicationForm, findOperation,
-    type AddressItem, type ArrayItem, type Expression, type SortField,
+    type AddressItem, type ArrayItem, type BinaryExpression, type Expression, type SortField,
 } from '@arrrank/language';
 import { allValid, createArraySnapshot, filledArray, derivedArray, isPresentAt, maskedNumericCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
@@ -35,6 +36,7 @@ import { keyedSort, sortByFields, sortFieldDescending } from '../modules/keyed-s
 import { mergeSorted } from '../modules/sorted-merge.js';
 import { materializeArray } from '../modules/sequences.js';
 import { tableAlias } from '../modules/tables.js';
+import type { ReductionEvaluator } from '../reduction.js';
 import { expectInteger, type Operators } from '../operators.js';
 import { recordContract } from '../record-contract.js';
 import { assignRecordField } from '../record-write.js';
@@ -68,6 +70,7 @@ export interface ExpressionContext {
     readonly functions: FunctionInvocation;
     readonly builtins: BuiltinRegistry;
     readonly application: ApplicationEvaluator;
+    readonly reductions: ReductionEvaluator;
     readonly fastPaths: FastPaths;
 }
 
@@ -650,6 +653,8 @@ export class ExpressionEvaluator {
                     return expressions.context.operators.evaluateBinary(expression.operator, left, ALL_AXIS, step);
                 };
             }
+            const fold = expression.operator === 'mod' && !expression.step ? this.modularFold(expression) : undefined;
+            if (fold) return fold;
             if (!expression.step) {
                 const right = () => expressions.evaluate(expression.right);
                 const operation = (left: RankValue, right: RankValue) =>
@@ -670,6 +675,32 @@ export class ExpressionEvaluator {
             return function* (): Execution<RankValue> { throw new RankError('# is only valid inside tensor addressing'); };
         }
         return function* (): Execution<RankValue> { throw new RankError(`cannot evaluate ${expression.$type}`); };
+    }
+
+    /** `(X scan * [with S]) mod M`, also `+` and `reduce`: each step is reduced as it goes,
+     * so exact prefix products never form. Anything the kernel declines runs unfused. */
+    private modularFold(expression: BinaryExpression): (() => Evaluation<RankValue>) | undefined {
+        let left: Expression = expression.left;
+        while (isParenthesizedExpression(left)) left = left.value;
+        if (!isBinaryExpression(left)) return undefined;
+        const form = applicationForm(left, name => this.operationOf(name), false, name => isNativeFunction(this.context.findVariable(name) ?? MISSING));
+        if (form.kind !== 'scan' && form.kind !== 'reduce' || form.kind === 'reduce' && (form.rank || form.axes)
+            || form.kind === 'scan' && form.rank) return undefined;
+        const axis = form.kind === 'scan' && form.axis ? safeDimension(integerLiteral(form.axis, 'scan axis'), 'scan axis') : undefined;
+        const expressions = this;
+        return function* (): Execution<RankValue> {
+            const source = yield* resume(expressions.evaluate(form.source));
+            const seed = form.seed ? yield* resume(expressions.evaluate(form.seed)) : undefined;
+            const modulus = yield* resume(expressions.evaluate(expression.right));
+            const fused = expressions.context.reductions.modularFold(form.kind, form.operator, source, seed,
+                axis, modulus);
+            if (fused !== undefined) return fused;
+            // Declined: the exact fold, then the remainder, as unfused code would.
+            const exact = form.kind === 'scan'
+                ? expressions.context.reductions.evaluateScan(form.operator, source, seed, axis)
+                : expressions.context.reductions.evaluateReduction(form.operator, source, undefined, seed);
+            return expressions.context.operators.evaluateBinary('mod', exact, modulus);
+        };
     }
 
     /** Binding identity, including aliases; no user function is executed by classification. */

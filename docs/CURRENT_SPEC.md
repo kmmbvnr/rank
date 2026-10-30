@@ -4418,6 +4418,18 @@ application on the selected cells.
 This replaces the earlier `scan rank R` axis shorthand. Use `scan axis -1`
 for scalar prefixes within rows and `scan axis 0` for scalar column prefixes.
 
+A `mod` after a `+` or `*` fold of integers reduces every step, so prefix
+products never leave the integer range:
+
+```rank
+Fact = 1 to N scan * with 1 mod M
+Last = Values reduce * mod M
+```
+
+The result equals `(Values scan * with 1) mod M`. It holds for a modulus from
+1 to 2^31 and cells that are small integers; other operands take the exact
+route and reduce at the end.
+
 A binary user function can also accumulate states:
 
 ```rank
