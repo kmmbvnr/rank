@@ -6,7 +6,8 @@ import { takeDropValue } from '../sequence.js';
 import { expressionFacts, findOperation, isForStatement, isBinaryExpression, isBooleanLiteral, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
 import { loopValueType, type IntegerLoopPlan, type LoopHost, type LoopTerm, type CompiledLoop, type LoopWorkFeedback } from './integer-loop-plan.js';
 import { ResourceMap } from '../resource-summary.js';
-import { prepareIntegerView } from '../integer-view.js';
+import { prepareIntegerView, prepareStoredScalarView } from '../integer-view.js';
+import { materializeTensorMap } from '../tensor-map.js';
 import { primeRange } from '../prime-sequence.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
@@ -65,13 +66,29 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                 : prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead, takeDropValue,
             (message: string) => new RankError(message, 'DomainError'),
             (array: RankValue, first: number, count: number, stride: number, operand: RankValue, operator: '=' | '+=' | '-=' | '*=') => {
-                let values: bigint | bigint[];
+                let values: bigint | bigint[] | Int32Array;
                 if (typeof operand === 'bigint') values = operand;
                 else {
                     if (!isRankArray(operand)) throw new RankError('assignment expects integer cells');
                     if (operand.shape.length !== 1 || operand.shape[0] !== count) {
                         throw new RankError(`assignment shape mismatch: ${[count]} and ${operand.shape}`, 'DimensionMismatch');
                     }
+                    // Stored Int32 cells copy as numbers, with no BigInt per cell.
+                    const view = count > 0 && privateLoopPolling()
+                        ? prepareStoredScalarView(materializeTensorMap(operand) ?? operand, true) : undefined;
+                    if (view?.compact && view.linear && (!view.validate || view.validateUniform)
+                        && view.kinds?.join() === 'integer') {
+                        const { offset, stride } = view.linear;
+                        view.validateUniform?.(BigInt(view.compact[offset]));
+                        const cells = new Int32Array(count);
+                        for (let start = 0; start < count; start += 4096) {
+                            const end = Math.min(count, start + 4096);
+                            checkpoint('preparing array write', end - start);
+                            if (stride === 1) cells.set(view.compact.subarray(offset + start, offset + end), start);
+                            else for (let i = start; i < end; i++) cells[i] = view.compact[offset + i * stride];
+                        }
+                        values = cells;
+                    } else
                     // Snapshot the complete RHS before the first destination write.
                     values = Array.from({ length: count }, (_, index) => readArrayItem(operand, index) as bigint);
                 }
