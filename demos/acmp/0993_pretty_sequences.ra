@@ -1,0 +1,43 @@
+rem Pretty Sequences
+rem https://acmp.ru/index.asp?main=task&id_task=993
+rem Find maximal prefix of sequence that is k-pretty using dynamic range minimums
+
+use io
+use algo
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "10 1\n0 1 1 0 2 2 1 2 2 3"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+K = (Tokens 1) integer
+A = (Tokens drop 2) integer
+
+MaxVal = (A max) + 2
+Counts = (0 till MaxVal) * 0
+Tree = Counts segment min
+
+MaxPrefix = N
+
+for J in 0 till N
+  V = A J
+  if V greater 0
+    MinVal = Tree 0 (V - 1) query
+    CurC = Counts V
+    if (CurC + 1) greater (MinVal + K)
+      MaxPrefix = J
+      break
+    end
+  end
+
+  NewC = (Counts V) + 1
+  Counts V = NewC
+  Tree V = NewC
+end
+
+(MaxPrefix text) print

@@ -1,0 +1,64 @@
+use testing
+
+test "sample 1: 10 elements with k=1"
+  use "0993_pretty_sequences"
+  run
+
+  MaxPrefix equal 8
+end
+
+test "sample 2: 2 elements with k=0 starting with 1"
+  use "0993_pretty_sequences"
+  Input = "2 0\n1 0"
+  run
+
+  MaxPrefix equal 0
+end
+
+test "single zero with k=0"
+  use "0993_pretty_sequences"
+  Input = "1 0\n0"
+  run
+
+  MaxPrefix equal 1
+end
+
+test "single non-zero with k=0 fails immediately"
+  use "0993_pretty_sequences"
+  Input = "1 0\n5"
+  run
+
+  MaxPrefix equal 0
+end
+
+test "all zeros are always valid"
+  use "0993_pretty_sequences"
+  Input = "5 0\n0 0 0 0 0"
+  run
+
+  MaxPrefix equal 5
+end
+
+test "unseen intermediate value limits frequency"
+  use "0993_pretty_sequences"
+  Input = "3 0\n0 2 1"
+  run
+
+  MaxPrefix equal 1
+end
+
+test "interleaved pairs valid under k=0"
+  use "0993_pretty_sequences"
+  Input = "4 0\n0 1 0 1"
+  run
+
+  MaxPrefix equal 4
+end
+
+test "higher k allows larger frequency gaps"
+  use "0993_pretty_sequences"
+  Input = "4 2\n2 2 0 1"
+  run
+
+  MaxPrefix equal 4
+end
