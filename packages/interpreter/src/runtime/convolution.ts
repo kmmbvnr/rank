@@ -178,7 +178,8 @@ export function convolveModular(left: RankValue, right: RankValue, modulus: bigi
         if (typeof side !== 'object' || side === null || !('shape' in side) || side.shape.length !== 1) return undefined;
     }
     const a = arrayResidues(left as RankArray, modulus);
-    const b = a && arrayResidues(right as RankArray, modulus);
+    // A square transforms its operand once.
+    const b = left === right ? a : a && arrayResidues(right as RankArray, modulus);
     const product = a && b && modularConvolve(a, b, Number(modulus));
     return product && typedArray(product.cells, product.shape);
 }

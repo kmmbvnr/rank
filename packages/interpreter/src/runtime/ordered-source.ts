@@ -1,5 +1,5 @@
 import { collectionProtocol, type CollectionProtocolFor, type CollectionCapability } from '@arrrank/language';
-import { ownedArray, denseScalarItems, readArrayItem, realCells, typedArray, typedElementKind } from './array-storage.js';
+import { ownedArray, denseScalarItems, float64Cells, integer32Cells, integer64Cells, readArrayItem, realCells, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from '../interrupt.js';
 import { RankDeque } from './containers.js';
 import { collectionSize } from './collection-size.js';
@@ -42,6 +42,19 @@ function reverseArray(value: RankArray): RankValue {
     const [rows, ...rest] = value.shape;
     const width = rest.reduce((product, dimension) => product * dimension, 1);
     const total = rows * width;
+    const packed = integer32Cells(value) ?? integer64Cells(value) ?? float64Cells(value);
+    if (packed) {
+        // Whole rows move as typed blocks; no cell is boxed.
+        const flipped = new (packed.constructor as { new (length: number): Int32Array })(total);
+        const source = packed as Int32Array;
+        for (let row = 0; row < rows; row += 1) {
+            if ((row & 0xfff) === 0) checkpoint('reversing array');
+            const from = (rows - 1 - row) * width;
+            if (width === 1) flipped[row] = source[from];
+            else flipped.set(source.subarray(from, from + width), row * width);
+        }
+        return typedArray(flipped, value.shape);
+    }
     const kind = typedElementKind(value);
     const reals = realCells(value) !== undefined;
     const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
