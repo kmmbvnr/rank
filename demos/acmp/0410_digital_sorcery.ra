@@ -1,0 +1,127 @@
+rem Digital Sorcery
+rem https://acmp.ru/index.asp?main=task&id_task=410
+rem Find minimal K >= 0 such that (N + K) mod M == 0 with minimal digit sum
+
+use io
+use cli
+use sequences
+use text
+
+arg N integer = 5
+arg M integer = 8
+
+Answer = "0"
+if (N mod M) not equal 0
+  TargetRem = (M - (N mod M)) mod M
+
+  rem Step 1: Find minimal digit sum using Dial algorithm
+  INF = 1000000
+  Dist = array shape M fill INF
+
+  for D in 1 to 9
+    R = D mod M
+    if D less (Dist R)
+      Dist R = D
+    end
+  end
+
+  for C in 1 to 200
+    rem 0-transitions
+    Changed = true
+    for Changed
+      Changed = false
+      for U in 0 till M
+        if (Dist U) equal C
+          V = (U * 10) mod M
+          if C less (Dist V)
+            Dist V = C
+            Changed = true
+          end
+        end
+      end
+    end
+
+    if not (C less (Dist TargetRem))
+      break
+    end
+
+    for U in 0 till M
+      if (Dist U) equal C
+        for D in 1 to 9
+          V = (U * 10 + D) mod M
+          if (C + D) less (Dist V)
+            Dist V = C + D
+          end
+        end
+      end
+    end
+  end
+
+  MinSum = Dist TargetRem
+
+  rem Step 2: BFS by length to find minimal number with digit sum MinSum
+  NumStates = M * (MinSum + 1)
+  ParentState = array shape NumStates fill -1
+  ParentDigit = array shape NumStates fill -1
+  Reached = array shape NumStates fill false
+
+  TargetState = TargetRem * (MinSum + 1) + MinSum
+
+  rem Frontier of reached states
+  Frontier = array shape 0 fill 0
+
+  for D in 1 to 9
+    if not (MinSum less D)
+      R = D mod M
+      S = D
+      State = R * (MinSum + 1) + S
+      if not (Reached State)
+        Reached State = true
+        ParentDigit State = D
+        ParentState State = -2
+        Frontier = concat Frontier (array State)
+      end
+    end
+  end
+
+  TargetReached = Reached TargetState
+  for (not TargetReached) and (Frontier len greater 0)
+    NextFrontier = array shape 0 fill 0
+
+    for I in 0 till (Frontier len)
+      CurState = Frontier I
+      CurRem = CurState // (MinSum + 1)
+      CurSum = CurState mod (MinSum + 1)
+
+      for D in 0 to 9
+        NextSum = CurSum + D
+        if not (MinSum less NextSum)
+          NextRem = (CurRem * 10 + D) mod M
+          NextState = NextRem * (MinSum + 1) + NextSum
+
+          if not (Reached NextState)
+            Reached NextState = true
+            ParentState NextState = CurState
+            ParentDigit NextState = D
+            NextFrontier = concat NextFrontier (array NextState)
+          end
+        end
+      end
+    end
+
+    Frontier = NextFrontier
+    TargetReached = Reached TargetState
+  end
+
+  rem Reconstruct digits
+  Digits = array shape 0 fill 0
+  Curr = TargetState
+  for Curr not equal -2
+    Digits = concat (array (ParentDigit Curr)) Digits
+    Curr = ParentState Curr
+  end
+
+  Answer = Digits join ""
+end
+
+Answer print
