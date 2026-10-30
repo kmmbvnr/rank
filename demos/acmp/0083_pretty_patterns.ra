@@ -28,6 +28,7 @@ Flip = Cell bxor Max
 Both0' = Flip Flip outer band
 Adj0' = Both0 shr 1 band Both0
 
+rem Compat A B: can A be next to B?
 Bad' = Adj1 bor Adj0
 Compat = Bad equal 0 integer
 
