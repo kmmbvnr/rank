@@ -1,0 +1,41 @@
+use testing
+
+test "sample 1: unit square"
+  use "0342_inscribed_circle"
+  run
+
+  Answer equal "YES"
+  X equal 0.5
+  Y equal 0.5
+  R equal 0.5
+end
+
+test "sample 2: rectangle 1x2"
+  use "0342_inscribed_circle"
+  Input = "4\n0 0\n1 0\n1 2\n0 2"
+  run
+
+  Answer equal "NO"
+end
+
+test "triangle 3-4-5"
+  use "0342_inscribed_circle"
+  Input = "3\n0 0\n3 0\n0 4"
+  run
+
+  Answer equal "YES"
+  X equal 1.0
+  Y equal 1.0
+  R equal 1.0
+end
+
+test "rhombus with center at origin"
+  use "0342_inscribed_circle"
+  Input = "4\n0 -5\n12 0\n0 5\n-12 0"
+  run
+
+  Answer equal "YES"
+  X equal 0.0
+  Y equal 0.0
+  R equal 4.615
+end
