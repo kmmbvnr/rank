@@ -1,8 +1,14 @@
 use testing
 
-rem The default input takes about 80 s.
+rem Full N=24 is checked in the compiled
+rem full-scale suite; keep these images
+rem small for reference comparisons.
 test "small images"
   use "287_quadtree"
+  N = 1
+  run
+
+  Answer equal 9
   N = 2
   run
 
@@ -11,10 +17,22 @@ test "small images"
   run
 
   Answer equal 86
+  N = 4
+  run
+
+  Answer equal 212
+  N = 5
+  run
+
+  Answer equal 499
   N = 8
   run
 
   Answer equal 4552
+  N = 10
+  run
+
+  Answer equal 18790
   N = 12
   run
 

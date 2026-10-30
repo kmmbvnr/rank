@@ -10,6 +10,7 @@ it.each([
     ['258_laggedfibonacci.ra', 12747994n],
     ['259_reachablenumbers.ra', 20101196798n],
     ['275_balancedsculptures.ra', 15030564n],
+    ['287_quadtree.ra', 313135496n],
     ['299_threesimilar.ra', 549936643n],
     ['426_boxball.ra', 31591886008n],
 ] as const)('checks the full compiled answer for %s', (file, expected) => {

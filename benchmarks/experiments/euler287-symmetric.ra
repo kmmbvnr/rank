@@ -1,0 +1,106 @@
+rem Quadtree Encoding (a simple
+rem compression algorithm)
+rem https://projecteuler.net/problem=287
+rem Find the length of the minimal
+rem quadtree sequence of the black disk
+rem D(N): the pixels of a 2^N square
+rem with (x - 2^(N-1))^2 + (y -
+rem 2^(N-1))^2 <= 2^(2N-2)
+
+use numbers
+use io
+use cli
+
+arg N integer = 24
+
+rem A region that is all black or all
+rem white costs 2 bits, any other 1 bit
+rem and the cost of its four quarters.
+rem Walk the quarters depth first,
+rem keeping the open regions on a stack
+rem of corner and size.
+C = 2 ** (N - 1)
+R2 = C * C
+Cap = 4 * N + 8
+Xs = array shape Cap fill 0
+Ys = array shape Cap fill 0
+Ss = array shape Cap fill 0
+Ss 0 = 2 * C
+Top = 1
+rem A full quadtree with I internal
+rem nodes has 3 * I + 1 leaves, so its
+rem encoding costs 2 + 7 * I bits.
+rem Mixed 2 by 2 squares need no walk
+rem through their four pixel children.
+Splits = 0
+for
+  if Top equal 0
+    break
+  end
+  Top -= 1
+  X0 = Xs Top
+  Y0 = Ys Top
+  S = Ss Top
+  rem Exchange of x and y preserves
+  rem the image: visit only one half.
+  if X0 greater Y0
+    continue
+  end
+  X1 = X0 + S - 1
+  Y1 = Y0 + S - 1
+  Fx = (X0 - C) * (X0 - C)
+  Gx = (X1 - C) * (X1 - C)
+  Far = Fx
+  if Gx greater Far
+    Far = Gx
+  end
+  Fy = (Y0 - C) * (Y0 - C)
+  Gy = (Y1 - C) * (Y1 - C)
+  Fary = Fy
+  if Gy greater Fary
+    Fary = Gy
+  end
+  Nx = C
+  if C less X0
+    Nx = X0
+  end
+  if C greater X1
+    Nx = X1
+  end
+  Ny = C
+  if C less Y0
+    Ny = Y0
+  end
+  if C greater Y1
+    Ny = Y1
+  end
+  Dx = Nx - C
+  Dy = Ny - C
+  Near = Dx * Dx + Dy * Dy
+  Dark = Far + Fary at most R2
+  if Dark or Near greater R2
+    continue
+  end
+  Splits += 1
+  if X0 less Y0
+    Splits += 1
+  end
+  if S greater 2
+    H = S // 2
+    Xs Top = X0
+    Ys Top = Y0
+    Ss Top = H
+    Xs (Top + 1) = X0 + H
+    Ys (Top + 1) = Y0
+    Ss (Top + 1) = H
+    Xs (Top + 2) = X0
+    Ys (Top + 2) = Y0 + H
+    Ss (Top + 2) = H
+    Xs (Top + 3) = X0 + H
+    Ys (Top + 3) = Y0 + H
+    Ss (Top + 3) = H
+    Top += 4
+  end
+end
+Answer = 2 + 7 * Splits
+Answer print

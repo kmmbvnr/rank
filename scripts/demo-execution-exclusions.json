@@ -85,7 +85,7 @@
   "euler/275_balancedsculptures.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/275_balancedsculptures_large_test.ra": "Manual N=15 assertion: scalar reference execution exceeds five minutes; independent orders 6, 10 and 12 remain in 275_balancedsculptures_test.ra.",
   "euler/283_integertriangles.ra": "Manual Top=1000 reference workload; full compiled golden covered by full-scale-demos.test.ts and smaller cross-mode checks by 283_integertriangles_test.ra.",
-  "euler/287_quadtree.ra": "Manual N=24 workload: scalar reference execution exceeds five minutes; independent smaller images remain in 287_quadtree_test.ra.",
+  "euler/287_quadtree.ra": "Manual N=24 reference workload; full compiled golden covered by full-scale-demos.test.ts and smaller cross-mode images by 287_quadtree_test.ra.",
   "euler/289_eulerianloops.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/291_panaitopolprimes.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/292_pythagoreanpolygons.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",

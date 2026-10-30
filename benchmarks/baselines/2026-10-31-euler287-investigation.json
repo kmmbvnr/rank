@@ -1,0 +1,676 @@
+{
+  "samples": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 24,
+      "ms": 5017.1911660000005,
+      "answer": "313135496",
+      "rssMiB": 177.90625,
+      "round": "replacement"
+    },
+    {
+      "mode": "compiled",
+      "variant": "terminal",
+      "n": 24,
+      "ms": 2893.222125,
+      "answer": "313135496",
+      "rssMiB": 175.890625,
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "symmetric",
+      "n": 24,
+      "ms": 1570.300625,
+      "answer": "313135496",
+      "rssMiB": 176.28125,
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "corners",
+      "n": 24,
+      "ms": 1543.015459,
+      "answer": "313135496",
+      "rssMiB": 175.828125,
+      "round": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "n": 16,
+      "ms": 3236.8475,
+      "answer": "1221292",
+      "rssMiB": 176.140625,
+      "round": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "corners",
+      "n": 16,
+      "ms": 1084.641916,
+      "answer": "1221292",
+      "rssMiB": 176.109375,
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "terminal",
+      "n": 24,
+      "ms": 2880.461042,
+      "answer": "313135496",
+      "rssMiB": 176.609375,
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "symmetric",
+      "n": 24,
+      "ms": 1590.085458,
+      "answer": "313135496",
+      "rssMiB": 178.21875,
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "corners",
+      "n": 24,
+      "ms": 1531.345625,
+      "answer": "313135496",
+      "rssMiB": 176.03125,
+      "round": 2
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "n": 16,
+      "ms": 3350.2912920000003,
+      "answer": "1221292",
+      "rssMiB": 175.484375,
+      "round": 2
+    },
+    {
+      "mode": "reference",
+      "variant": "corners",
+      "n": 16,
+      "ms": 1050.922917,
+      "answer": "1221292",
+      "rssMiB": 176.359375,
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 24,
+      "ms": 4744.262,
+      "answer": "313135496",
+      "rssMiB": 176.890625,
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "symmetric",
+      "n": 24,
+      "ms": 1568.640542,
+      "answer": "313135496",
+      "rssMiB": 177.0625,
+      "round": 3
+    },
+    {
+      "mode": "compiled",
+      "variant": "corners",
+      "n": 24,
+      "ms": 1533.3232090000001,
+      "answer": "313135496",
+      "rssMiB": 175.96875,
+      "round": 3
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "n": 16,
+      "ms": 3288.278875,
+      "answer": "1221292",
+      "rssMiB": 176.03125,
+      "round": 3
+    },
+    {
+      "mode": "reference",
+      "variant": "corners",
+      "n": 16,
+      "ms": 1072.4238750000002,
+      "answer": "1221292",
+      "rssMiB": 176.078125,
+      "round": 3
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 24,
+      "ms": 4750.952333,
+      "answer": "313135496",
+      "rssMiB": 175.875,
+      "round": 3
+    },
+    {
+      "mode": "compiled",
+      "variant": "terminal",
+      "n": 24,
+      "ms": 2877.96825,
+      "answer": "313135496",
+      "rssMiB": 175.609375,
+      "round": 3
+    }
+  ],
+  "summary": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 24,
+      "medianMs": 4750.952333,
+      "minMs": 4744.262,
+      "maxMs": 5017.1911660000005,
+      "medianPeakRssMiB": 176.890625
+    },
+    {
+      "mode": "compiled",
+      "variant": "terminal",
+      "n": 24,
+      "medianMs": 2880.461042,
+      "minMs": 2877.96825,
+      "maxMs": 2893.222125,
+      "medianPeakRssMiB": 175.890625
+    },
+    {
+      "mode": "compiled",
+      "variant": "symmetric",
+      "n": 24,
+      "medianMs": 1570.300625,
+      "minMs": 1568.640542,
+      "maxMs": 1590.085458,
+      "medianPeakRssMiB": 177.0625
+    },
+    {
+      "mode": "compiled",
+      "variant": "corners",
+      "n": 24,
+      "medianMs": 1533.3232090000001,
+      "minMs": 1531.345625,
+      "maxMs": 1543.015459,
+      "medianPeakRssMiB": 175.96875
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "n": 16,
+      "medianMs": 3288.278875,
+      "minMs": 3236.8475,
+      "maxMs": 3350.2912920000003,
+      "medianPeakRssMiB": 176.03125
+    },
+    {
+      "mode": "reference",
+      "variant": "corners",
+      "n": 16,
+      "medianMs": 1072.4238750000002,
+      "minMs": 1050.922917,
+      "maxMs": 1084.641916,
+      "medianPeakRssMiB": 176.109375
+    }
+  ],
+  "discardedSamples": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 24,
+      "ms": 4855.572083,
+      "answer": "313135496",
+      "rssMiB": 176.84375,
+      "round": 1,
+      "reason": "overlapped the scoped fixture audits"
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 24,
+      "ms": 4959.351000000001,
+      "answer": "313135496",
+      "rssMiB": 176.84375,
+      "reason": "overlapped a small diagnostic run"
+    }
+  ],
+  "nativeSamples": [
+    {
+      "mode": "native-number",
+      "variant": "original",
+      "n": 24,
+      "answer": "313135496",
+      "ms": 697.2613329999999,
+      "rssMiB": 52.15625
+    },
+    {
+      "mode": "native-number",
+      "variant": "original",
+      "n": 24,
+      "answer": "313135496",
+      "ms": 700.9961249999999,
+      "rssMiB": 52.046875
+    },
+    {
+      "mode": "native-number",
+      "variant": "original",
+      "n": 24,
+      "answer": "313135496",
+      "ms": 704.043666,
+      "rssMiB": 52.015625
+    }
+  ],
+  "guardAttributionSingleSamples": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 24,
+      "ms": 4006.4294170000003,
+      "answer": "313135496",
+      "rssMiB": 175.796875,
+      "guardExperiment": "safe"
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 24,
+      "ms": 4936.143875,
+      "answer": "313135496",
+      "rssMiB": 176.140625,
+      "guardExperiment": "stores"
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 24,
+      "ms": 4406.295166,
+      "answer": "313135496",
+      "rssMiB": 176.109375,
+      "guardExperiment": "both"
+    }
+  ],
+  "oracle": {
+    "comparisons": 80,
+    "answers": {
+      "1": "9",
+      "2": "30",
+      "3": "86",
+      "4": "212",
+      "5": "499",
+      "6": "1052",
+      "7": "2242",
+      "8": "4552",
+      "9": "9382",
+      "10": "18790"
+    }
+  },
+  "diagnostics": {
+    "originalN16": {
+      "mode": "compiled",
+      "n": "16",
+      "file": "/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/287_quadtree.ra",
+      "ms": 135.1905,
+      "answer": "1221292",
+      "rssMiB": 166.046875,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 1,
+          "scalar-expression:too-small": 3,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    "cornersN12": {
+      "mode": "compiled",
+      "variant": "corners",
+      "n": 12,
+      "ms": 113.295083,
+      "answer": "75658",
+      "rssMiB": 165.828125,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 1,
+          "scalar-expression:too-small": 3,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:output-shape": 2,
+          "tensor:unsupported-type:array": 3
+        },
+        "compilerRejections": []
+      }
+    }
+  },
+  "metadata": {
+    "revision": "855dff4ec99cc923941aba6126ff538f0fd56902",
+    "node": "v24.15.0",
+    "platform": "darwin/arm64",
+    "method": "Fresh serial processes; three samples per measured case, rotated order. Parse and compilation included, imports excluded. Other host load uncontrolled. RSS is process high-water, not retained allocation. Known own-process overlaps discarded. Native control has no Rank overflow/error/interrupt/publication contracts; guard controls intentionally unsafe, one sample each. Full N=24 reference not run.",
+    "interpreterOutJsSha256": "7e46553cb38d43c1d674219a8ad7f74dfb7c60332baf4eda82e73d332f40856a"
+  },
+  "sourceHashes": {
+    "benchmarks/experiments/euler287-corners.ra": "088a1e3cb095cd14271742e90e648f709722965428dac374a524d79306a5b2e6",
+    "benchmarks/experiments/euler287-guard-loader.mjs": "da357d06fb15af5b41052a21ee6f46a5d078ccd0c6a6d3ddaf6e77ea8452bc13",
+    "benchmarks/experiments/euler287-original.ra": "00d639456185dac2ab2ae340cb129380810a967df3fea8d8f6e45c6375f75dda",
+    "benchmarks/experiments/euler287-symmetric.ra": "16b757fde6b68c3dc0f24d77614c94a9f5837cc995df45d720c792448bf378a7",
+    "benchmarks/experiments/euler287-terminal.ra": "2bd70113b6946ceeebed49db290510cde6649f8629652780d0ea0003f3012a73",
+    "benchmarks/euler287-investigation.mjs": "3d2e9df75e1adfb1483ce12c9a38dcc36b82e9f04ab5bbd29e09db7e4d2448c8",
+    "benchmarks/euler287-native.mjs": "1f07ead00acf047cca17c7641c4e51f72479d69ffd3ca939006a6673272f4f0a",
+    "benchmarks/euler287-verify.mjs": "8e901e068f08fa1c0a93b9440581925d747a3f454428a573ed2840f10618e012"
+  },
+  "verification": [
+    "TypeScript build: language and interpreter",
+    "80 independent pixel-prefix oracle comparisons: N=1..10, 4 variants, 2 modes",
+    "2 scoped fixture type/differential tests passed; 4237 skipped",
+    "Full N=24 golden 313135496 checked on every compiled sample",
+    "node --check on new standalone benchmark scripts"
+  ],
+  "delivery": {
+    "samples": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 24,
+        "ms": 4802.143834,
+        "answer": "313135496",
+        "rssMiB": 180.875,
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 24,
+        "ms": 1523.344,
+        "answer": "313135496",
+        "rssMiB": 175.578125,
+        "round": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "n": 16,
+        "ms": 3355.836833,
+        "answer": "1221292",
+        "rssMiB": 175.96875,
+        "round": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 16,
+        "ms": 1072.7558749999998,
+        "answer": "1221292",
+        "rssMiB": 175.859375,
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 24,
+        "ms": 1576.219125,
+        "answer": "313135496",
+        "rssMiB": 176.015625,
+        "round": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "n": 16,
+        "ms": 3530.490583,
+        "answer": "1221292",
+        "rssMiB": 179.015625,
+        "round": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 16,
+        "ms": 1172.339375,
+        "answer": "1221292",
+        "rssMiB": 174.9375,
+        "round": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 24,
+        "ms": 5289.434792,
+        "answer": "313135496",
+        "rssMiB": 176.734375,
+        "round": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "n": 16,
+        "ms": 3645.129583,
+        "answer": "1221292",
+        "rssMiB": 178.40625,
+        "round": 3
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 16,
+        "ms": 1121.758875,
+        "answer": "1221292",
+        "rssMiB": 175.71875,
+        "round": 3
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 24,
+        "ms": 4728.382166,
+        "answer": "313135496",
+        "rssMiB": 176.0625,
+        "round": 3
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 24,
+        "ms": 1537.85675,
+        "answer": "313135496",
+        "rssMiB": 175.734375,
+        "round": 3
+      }
+    ],
+    "summary": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 24,
+        "medianMs": 4802.143834,
+        "medianPeakRssMiB": 176.734375
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 24,
+        "medianMs": 1537.85675,
+        "medianPeakRssMiB": 175.734375
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "n": 16,
+        "medianMs": 3530.490583,
+        "medianPeakRssMiB": 178.40625
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 16,
+        "medianMs": 1121.758875,
+        "medianPeakRssMiB": 175.71875
+      }
+    ],
+    "oracle": {
+      "comparisons": 100,
+      "answers": {
+        "1": "9",
+        "2": "30",
+        "3": "86",
+        "4": "212",
+        "5": "499",
+        "6": "1052",
+        "7": "2242",
+        "8": "4552",
+        "9": "9382",
+        "10": "18790"
+      }
+    },
+    "parentRevision": "855dff4ec99cc923941aba6126ff538f0fd56902",
+    "sourceHashes": {
+      "demos/euler/287_quadtree.ra": "088a1e3cb095cd14271742e90e648f709722965428dac374a524d79306a5b2e6",
+      "demos/euler/287_quadtree_test.ra": "a01ead1e517ff3ca62c6ca8965130dcc097114105db6cbd31038e43be8ad2107",
+      "packages/interpreter/test/full-scale-demos.test.ts": "67e8c9dc65272f01033faa343de2ea2fbd0301be949eae10b57239402d07b223",
+      "scripts/demo-execution-exclusions.json": "b502bfac856b14559133df3e59d64bffb292a2af965e887d9f3147738bcb5349",
+      "benchmarks/euler287-investigation.mjs": "b271374fc5ec94340418b3344256f7fc566caacf8d1a35944e8e8fd9f7735a82",
+      "benchmarks/euler287-verify.mjs": "f24a3c0bb4f9ee9818dcc147274b4cfe7ec1c121a88ea81e7303c36967c1e89f"
+    },
+    "verification": {
+      "fullCompiledTestsPassed": 1,
+      "scopedFixtureTestsPassed": 2,
+      "oracleComparisons": 100,
+      "typeScriptBuild": "passed",
+      "fullReferenceN24": "not run"
+    }
+  }
+}
