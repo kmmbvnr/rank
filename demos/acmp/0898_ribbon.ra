@@ -1,0 +1,65 @@
+rem Ribbon (Ленточка)
+rem https://acmp.ru/index.asp?main=task&id_task=898
+rem Determine fold crease orientations ('K' convex to us / 'O' convex away) on a folded paper ribbon.
+rem Solved in O(K * N) via iterative divide-and-conquer binary reflection.
+
+use io
+use numbers
+use cli
+use sequences
+use text
+use bits
+
+arg Input text = "2\nPP\n1 1"
+
+Tokens = Input split "\n" join " " split "\r" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+S = Tokens 1
+KCount = (Tokens 2) integer
+
+Queries = (Tokens (3 till (3 + KCount))) integer
+
+SChars = S split ""
+SRev = SChars reverse
+
+TotalLen = 1 shl N
+
+OutChars = array shape KCount fill ""
+
+for QIdx in 0 till KCount
+  Q = Queries QIdx
+  X = TotalLen - Q
+  Inv = 0
+  AnsChar = "?"
+
+  for Step in 0 till N
+    CurN = N - Step
+    Mid = 1 shl (CurN - 1)
+    if X equal Mid
+      Base = "O"
+      if (SRev (CurN - 1)) equal "Z"
+        Base = "K"
+      end
+      if (Inv mod 2) equal 1
+        if Base equal "K"
+          Base = "O"
+        else
+          Base = "K"
+        end
+      end
+      AnsChar = Base
+      break
+    end
+    if X greater Mid
+      X = (Mid * 2) - X
+      Inv = Inv + 1
+    end
+  end
+
+  OutChars QIdx = AnsChar
+end
+
+Ans = OutChars join ""
+Ans print
