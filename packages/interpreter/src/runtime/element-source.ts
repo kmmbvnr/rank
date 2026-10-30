@@ -1,6 +1,7 @@
 import { checkpoint } from '../interrupt.js';
 import { reduceTensorMap } from '../jit/tensor-map.js';
 import { collectionProtocol, type CollectionProtocolFor, type CollectionCapability } from '@arrrank/language';
+import { materializeArrayView } from './array-copy.js';
 import { arrayValues, denseScalarItems, float64Cells, integer32Cells, readArrayItem, shouldStream, streamCells, typedElementKind } from './array-storage.js';
 import { extremeMasked, presentReals, sumMasked } from '../jit/masked-kernels.js';
 import { reduceSequence, sequenceValues } from '../sequence.js';
@@ -35,8 +36,16 @@ interface ProtocolValues {
     text: string;
 }
 
+/** A selection of one stored array is a stored view; reductions read its typed cells
+ * in place instead of calling a reader for every cell. */
+function storedView(value: RankArray): RankArray {
+    return value.itemAt === undefined ? value : materializeArrayView(value) ?? value;
+}
+
 const adapters: { [P in keyof ProtocolValues]: (value: ProtocolValues[P], operation: string) => ElementSource } = {
-    array: value => ({
+    array: lazy => {
+        const value = storedView(lazy);
+        return {
         rank: value.shape.length,
         values: () => arrayValues(value, shouldStream(value)),
         reduce: operation => {
@@ -55,6 +64,17 @@ const adapters: { [P in keyof ProtocolValues]: (value: ProtocolValues[P], operat
                     total += BigInt(chunk);
                 }
                 return total;
+            }
+            if (operation === 'mean') {
+                // Same left-to-right binary64 sum as the generic mean, with no boxed cell.
+                const compact = integer32Cells(value);
+                if (!compact?.length) return undefined;
+                let total = 0;
+                for (let index = 0; index < compact.length; index++) {
+                    if ((index & 0xfff) === 0) checkpoint('computing statistics');
+                    total += compact[index];
+                }
+                return total / compact.length;
             }
             if (operation !== 'min' && operation !== 'max') return undefined;
             const masked = extremeMasked(value, operation === 'min' ? (a, b) => a < b : (a, b) => a > b);
@@ -83,7 +103,7 @@ const adapters: { [P in keyof ProtocolValues]: (value: ProtocolValues[P], operat
                 }
             }
         },
-    }),
+    }; },
     sequence: (value, operation) => ({
         rank: 1,
         values: () => sequenceValues(value, operation),
