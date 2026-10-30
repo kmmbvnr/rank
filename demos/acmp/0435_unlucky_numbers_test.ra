@@ -1,0 +1,36 @@
+use testing
+
+test "sample 1: N = 1, K = 7"
+  use "0435_unlucky_numbers"
+  N = 1
+  K = 7
+  run
+
+  Answer equal 7
+end
+
+test "sample 2: N = 4, K = 3"
+  use "0435_unlucky_numbers"
+  run
+
+  Answer equal 164
+end
+
+test "sample 3: N = 11, K = 9"
+  use "0435_unlucky_numbers"
+  N = 11
+  K = 9
+  run
+
+  Answer equal 50184219171
+end
+
+test "boundary: N = 2, K = 1"
+  use "0435_unlucky_numbers"
+  N = 2
+  K = 1
+  run
+
+  rem Numbers: 00 (lucky), 01 (unlucky), 10 (unlucky), 11 (lucky 1=1)
+  Answer equal 2
+end

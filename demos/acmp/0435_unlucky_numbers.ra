@@ -1,0 +1,99 @@
+rem Unlucky Numbers
+rem https://acmp.ru/index.asp?main=task&id_task=435
+rem Count N-digit numbers with digits in 0..K that cannot be partitioned into two equal-sum subsets
+
+use io
+use cli
+use sequences
+use text
+use bits
+
+arg N integer = 4
+arg K integer = 3
+
+rem Facts for multinomial coefficient
+Facts = array shape (N + 1) fill 1
+for I in 2 to N
+  Facts I = (Facts (I - 1)) * I
+end
+
+rem 1. Count all numbers with odd sum of digits using polynomial powers
+Poly = array shape (K + 1) fill 1
+DP = Poly
+for Step in 1 till N
+  LenDP = DP len
+  NextDP = array shape (LenDP + K) fill 0
+  for I in 0 till LenDP
+    V = DP I
+    if V greater 0
+      for D in 0 to K
+        NextDP (I + D) = (NextDP (I + D)) + V
+      end
+    end
+  end
+  DP = NextDP
+end
+
+OddIndices = (1 till (DP len) by 2) array
+OddTotal = (DP OddIndices) sum
+
+rem 2. Search partitions of N into c_0..c_K for even sum with gap at S/2
+EvenUnluckyTotal = 0
+
+C = array shape (K + 1) fill 0
+RemN = array shape (K + 1) fill 0
+SumAt = array shape (K + 1) fill 0
+
+RemN 0 = N
+SumAt 0 = 0
+D = 0
+
+Running = true
+for Running
+  if D equal K
+    C K = RemN K
+    TotSum = (SumAt K) + (C K) * K
+    if (TotSum greater 0) and ((TotSum mod 2) equal 0)
+      rem Check subset sum
+      Mask = 1
+      for I in 1 to K
+        Cnt = C I
+        for J in 0 till Cnt
+          Mask = Mask bor (Mask shl I)
+        end
+      end
+      Target = TotSum // 2
+      Bit = (Mask shr Target) band 1
+      if Bit equal 0
+        Ways = Facts N
+        for I in 0 to K
+          Ways //= Facts (C I)
+        end
+        EvenUnluckyTotal += Ways
+      end
+    end
+
+    rem Backtrack to previous level with available choices
+    Backtracking = true
+    for Backtracking
+      D -= 1
+      if D less 0
+        Running = false
+        Backtracking = false
+      else
+        C D += 1
+        if not (RemN D less (C D))
+          Backtracking = false
+        end
+      end
+    end
+  else
+    RemN (D + 1) = (RemN D) - (C D)
+    SumAt (D + 1) = (SumAt D) + (C D) * D
+    D += 1
+    C D = 0
+  end
+end
+
+Answer = OddTotal + EvenUnluckyTotal
+Answer print
