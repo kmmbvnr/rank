@@ -1,0 +1,56 @@
+use testing
+
+test "sample 1: 3 boys and 4 girls with K=3 complete matching yields 24 ways"
+  use "0512_graduation"
+  run
+
+  Ways equal 24
+end
+
+test "sample 2: 1 boy and 5 girls with K=1 yields 3 ways"
+  use "0512_graduation"
+  Input = "1 5 1\nYYNNY"
+  run
+
+  Ways equal 3
+end
+
+test "impossible K exceeding boys yields 0"
+  use "0512_graduation"
+  Input = "2 3 3\nYYY\nYYY"
+  run
+
+  Ways equal 0
+end
+
+test "impossible K exceeding girls yields 0"
+  use "0512_graduation"
+  Input = "3 2 3\nYY\nYY\nYY"
+  run
+
+  Ways equal 0
+end
+
+test "no compatible pairs yields 0"
+  use "0512_graduation"
+  Input = "2 2 2\nNN\nNN"
+  run
+
+  Ways equal 0
+end
+
+test "unique diagonal pairing yields 1"
+  use "0512_graduation"
+  Input = "3 3 3\nYNN\nNYN\nNNY"
+  run
+
+  Ways equal 1
+end
+
+test "full 10x10 complete matching for K=10 yields 10! ways"
+  use "0512_graduation"
+  Input = "10 10 10\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY"
+  run
+
+  Ways equal 3628800
+end
