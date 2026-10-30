@@ -125,6 +125,7 @@ Structures, modules, and query syntax that extend the core language via `use`:
 - [Numerical scripting roadmap](design/numerical-scripting-roadmap.md)
 - [R data-analysis roadmap](design/r-data-analysis-roadmap.md)
 - [Task corpora: numerical, R and contest problems](design/task-corpora.md)
+- [Demo techniques: demos and pages grouped by method](design/demo-techniques.md)
 
 ---
 
