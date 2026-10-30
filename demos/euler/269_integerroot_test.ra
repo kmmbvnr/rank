@@ -18,3 +18,15 @@ test "few digits"
 
   Answer equal 14696
 end
+
+test "fewer digits than divisor degree"
+  use "269_integerroot"
+  K = 1
+  run
+
+  Answer equal 1
+  K = 2
+  run
+
+  Answer equal 33
+end

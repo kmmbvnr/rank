@@ -27,9 +27,9 @@ rem gives q[i] = (p[i] - sum g[j]
 rem q[i-j]) / g[0] so the state is the
 rem last d quotient coefficients, d the
 rem degree of G, packed in base B.
-rem Digits run for K places, then d
-rem zeros, and the quotient must end at
-rem 0. Equal states merge by sort.
+rem For the last d digits q[i] must be
+rem zero: Q has degree less than K-d.
+rem Equal states merge by sort.
 Base = 2001
 Off = 1000
 Total = 10 ** (K - 1)
@@ -38,6 +38,10 @@ Pos = 0 to 8 array
 for Mask in 1 to 511
   Sel' = (Mask shr Pos) band 1 equal 1
   Rs = (1 to 9 array) filter Sel array
+  rem G[0] must divide the last digit.
+  if (Rs reduce *) greater 9
+    continue
+  end
   G = array 1
   for R in Rs
     Up' = concat G Zero
@@ -52,37 +56,37 @@ for Mask in 1 to 511
   Keep = Base ** (D - 1)
   Keys = array Key0
   Cnts = array 1
-  for I in 0 till (K + D)
+  for I in 0 till K
     N = Keys len
     if N equal 0
       break
     end
-    Col' = Keys reshape N 1
-    Lag' = (Col // Pw) mod Base - Off
+    Col = Keys reshape N 1
+    Lag = (Col // Pw) mod Base - Off
     Back = (Lag * Gw) sum axis 1
     Tail = Keys mod Keep
-    NK = array shape 0 fill 0
-    NC = NK
     Lo = 0
     Hi = 9
     if I equal 0
       Lo = 1
     end
-    if I at least K
-      Hi = 0
+    rem Digits form rows, states columns.
+    Width = Hi - Lo + 1
+    Digits = (Lo to Hi array) reshape Width 1
+    Acc = Digits - Back
+    Q = Acc // Lead
+    Fit = Acc mod Lead equal 0
+    Fit = Fit and (Q at most Off - 1)
+    Fit = Fit and (Q at least 1 - Off)
+    if I at least K - D
+      Fit = Fit and (Q equal 0)
     end
-    for P in Lo to Hi
-      Acc = P - Back
-      Q = Acc // Lead
-      Fit = Acc mod Lead equal 0
-      Fit = Fit and (Q at most Off - 1)
-      Fit = Fit and (Q at least 1 - Off)
-      Nk' = (Q + Off) + Base * Tail
-      Na' = Nk filter Fit
-      NK = concat NK Na
-      Ca' = Cnts filter Fit
-      NC = concat NC Ca
-    end
+    Cells = Width * N
+    Masked = Fit reshape Cells
+    Next' = ((Q + Off) + Base * Tail) reshape Cells
+    Counts' = (Cnts + Digits * 0) reshape Cells
+    NK = Next filter Masked array
+    NC = Counts filter Masked array
     Keys = NK
     Cnts = NC
     if Keys len equal 0
@@ -90,20 +94,20 @@ for Mask in 1 to 511
     end
     Ord = Keys argsort
     Ks = Keys Ord
-    Cum' = (Cnts Ord) scan +
-    Tl' = Ks drop 1
-    Nx' = concat Tl (array -1)
+    Cum = (Cnts Ord) scan +
+    Tl = Ks drop 1
+    Nx = concat Tl (array -1)
     Last = Ks not equal Nx
     Ke = Ks filter Last array
     Ce = Cum filter Last array
     H = Ke len
-    Hd' = Ce take (H - 1)
-    Pc' = concat Zero Hd
+    Hd = Ce take (H - 1)
+    Pc = concat Zero Hd
     Keys = Ke
     Cnts = Ce - Pc
   end
-  Hit' = Keys equal Key0
-  Done' = Cnts filter Hit
+  Hit = Keys equal Key0
+  Done = Cnts filter Hit
   Count = Done sum
   Sign = 1 - 2 * ((Rs len + 1) mod 2)
   Total += Sign * Count
