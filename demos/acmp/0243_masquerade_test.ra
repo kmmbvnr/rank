@@ -1,0 +1,41 @@
+use testing
+
+test "ACMP 243: sample 1 (2 shops, 14 meters -> 88)"
+  use "0243_masquerade"
+  N = 2
+  L = 14
+  ShopsText = "7 9 6 10\n7 8 6 10"
+  run
+
+  Answer equal 88
+end
+
+test "ACMP 243: sample 2 (insufficient stock -> -1)"
+  use "0243_masquerade"
+  N = 1
+  L = 20
+  ShopsText = "1 1 1 1"
+  run
+
+  Answer equal -1
+end
+
+test "ACMP 243: discount overbuy (need 8 meters, buying 9 is cheaper)"
+  use "0243_masquerade"
+  N = 1
+  L = 8
+  ShopsText = "7 9 6 10"
+  run
+
+  Answer equal 54
+end
+
+test "ACMP 243: zero meters required"
+  use "0243_masquerade"
+  N = 1
+  L = 0
+  ShopsText = "7 9 6 10"
+  run
+
+  Answer equal 0
+end

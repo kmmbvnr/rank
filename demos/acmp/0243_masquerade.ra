@@ -1,0 +1,72 @@
+rem ACMP 243 - Masquerade (Маскарад)
+rem Solved in Euler 1-15 style with min-plus knapsack convolution and wholesale discount pricing.
+rem
+rem We need at least L meters of fabric from N shops. Each shop offers regular price P,
+rem wholesale discount price Q for buying >= R meters, and stock limit F.
+rem Buying more than L meters is allowed if it results in lower total cost.
+rem
+rem We compute each shop's piece-wise linear cost vector using vector arithmetic:
+rem   DiscMask = (not (X less R)) integer
+rem   Price = (Q * DiscMask) + (P * (1 - DiscMask))
+rem   CostVec = concat (array 0) (X * Price)
+rem
+rem Then we transition DP via min-plus convolution:
+rem   NextDP[M] = min_{0 <= X <= min(M, F)} (DP[M - X] + CostVec[X])
+rem and take the minimum cost over target states M >= L.
+
+use io
+use cli
+use sequences
+use text
+use numbers
+
+arg N integer = 2
+arg L integer = 14
+arg ShopsText text = "7 9 6 10\n7 8 6 10"
+
+INF = 1000000000
+
+Tokens = (ShopsText words) integer
+TotalStock = 0
+for I in 0 till N
+  F = Tokens (4 * I + 3)
+  TotalStock = TotalStock + F
+end
+
+Answer = -1
+
+if not (TotalStock less L)
+  MaxCap = TotalStock min (L + 100)
+  DP = array shape (MaxCap + 1) fill INF
+  DP 0 = 0
+
+  for I in 0 till N
+    P = Tokens (4 * I)
+    R = Tokens (4 * I + 1)
+    Q = Tokens (4 * I + 2)
+    F = Tokens (4 * I + 3)
+
+    CostVec = array 0
+    if F greater 0
+      X = 1 to F
+      DiscMask = (not (X less R)) integer
+      Price = (Q * DiscMask) + (P * (1 - DiscMask))
+      CostVec = concat (array 0) (X * Price)
+    end
+
+    NextDP = array shape (MaxCap + 1) fill INF
+    for M in 0 to MaxCap
+      LimitX = M min F
+      X = 0 to LimitX
+      PrevM = M - X
+      Cand = (DP PrevM) + (CostVec X)
+      NextDP M = Cand min
+    end
+    DP = NextDP
+  end
+
+  TargetSlice = DP (L to MaxCap)
+  Answer = TargetSlice min
+end
+
+Answer print
