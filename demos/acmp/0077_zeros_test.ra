@@ -1,0 +1,35 @@
+use testing
+
+test "sample 1: N = 8, K = 1"
+  use "0077_zeros"
+  run
+
+  Answer equal 3
+end
+
+test "N = 100, K = 2"
+  use "0077_zeros"
+  N = 100
+  K = 2
+  run
+
+  Answer equal 25
+end
+
+test "K = 0: powers of 2 minus 1 up to N"
+  use "0077_zeros"
+  N = 8
+  K = 0
+  run
+
+  Answer equal 3
+end
+
+test "large N = 10^9, K = 15"
+  use "0077_zeros"
+  N = 1000000000
+  K = 15
+  run
+
+  Answer equal 137149736
+end

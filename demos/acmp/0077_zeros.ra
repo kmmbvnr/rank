@@ -1,0 +1,48 @@
+rem Zeros
+rem https://acmp.ru/index.asp?main=task&id_task=77
+rem Count numbers from 1 to N with exactly K binary zeros using vectorized binomial sums
+
+use io
+use cli
+use sequences
+use numbers
+
+arg N integer = 8
+arg K integer = 1
+
+Temp = N
+Bits = array shape 0 fill 0
+for Temp greater 0
+  Bits = concat (array (Temp mod 2)) Bits
+  Temp = Temp // 2
+end
+
+L = Bits len
+Answer = 0
+
+if K less L
+  Range = (K till (L - 1)) array
+  if Range len greater 0
+    Answer += (Range binomial K) sum
+  end
+
+  Z = 0
+  for I in 1 to (L - 1)
+    Bit = Bits I
+    RemBits = L - 1 - I
+    if Bit equal 1
+      Need = K - (Z + 1)
+      if (not (Need less 0)) and (not (Need greater RemBits))
+        Answer += RemBits binomial Need
+      end
+    else
+      Z += 1
+    end
+  end
+
+  if Z equal K
+    Answer += 1
+  end
+end
+
+Answer print
