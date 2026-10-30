@@ -1,0 +1,162 @@
+rem Yarra Gnisrever
+rem https://projecteuler.net/problem=680
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Nn integer = 1000000000000000000
+arg Kk integer = 1000000
+arg Bt integer = 800
+
+rem The array is kept as runs (first
+rem value x, step +-1, length). The
+rem ends of reversal j are s, t =
+rem F(2j-1),
+rem F(2j) mod n, found by a = a + b,
+rem b = a + 2 b. A batch of Bt reversals
+rem cuts the position line at all its
+rem ends, so each reversal only moves
+rem and flips whole blocks of the cut
+rem line: the batch is run on the small
+rem list of blocks, then every run is
+rem cut at the block ends and the pieces
+rem are laid out in the new order,
+rem flipped when their block is. At the
+rem end sum i A(i) over the runs from
+rem sum (p + u)(x + d u), reduced mod
+rem 10^9 with exact divisions.
+Md = 1000000000
+Sx = array shape Kk fill 0
+Tx = array shape Kk fill 0
+Fa = 1 mod Nn
+Fb = 1 mod Nn
+for J in 0 to Kk - 1
+  Sx J = Fa min Fb
+  Tx J = Fa max Fb
+  Fc = (Fa + Fb) mod Nn
+  Fb = (Fc + Fb) mod Nn
+  Fa = Fc
+end
+Rx = array shape 1 fill 0
+Rd = array shape 1 fill 1
+Rl = array shape 1 fill Nn
+Bn = array shape 1 fill Nn
+for B0 in 0 to Kk - 1 by Bt
+  B1 = (B0 + Bt - 1) min (Kk - 1)
+  Bo = array shape 1 fill 0
+  Bl = array shape 1 fill Nn
+  Bf = array shape 1 fill 0
+  for J in B0 to B1
+    Lo = Sx J
+    Hz = Tx J + 1
+    for W in 0 to 1
+      Pt = Lo
+      if W equal 1
+        Pt = Hz
+      end
+      Sb = Bl len
+      Cp = (Bl scan +) - Bl
+      Ib = (Cp upperindex Pt) - 1
+      Ib = Ib min (Sb - 1)
+      Of = Pt - Cp Ib
+      Og = (Of greater 0) integer
+      Pl = (Pt less Nn) integer
+      if Og * Pl equal 1
+        S0 = Bo Ib
+        Ln = Bl Ib
+        Fl = Bf Ib
+        SL = S0 + Fl * (Ln - Of)
+        SR = S0 + (1 - Fl) * Of
+        Qx = 0 to Sb
+        Gq = (Qx greater Ib) integer
+        Sr = (Qx - Gq) min (Sb - 1)
+        Ml = (Qx equal Ib) integer
+        Ib1 = Ib + 1
+        Mr = (Qx equal Ib1) integer
+        Mo = 1 - Ml - Mr
+        Bo = Bo Sr * Mo + SL * Ml
+        Bo = Bo + SR * Mr
+        Bl = Bl Sr * Mo + Of * Ml
+        Bl = Bl + (Ln - Of) * Mr
+        Bf = Bf Sr
+      end
+    end
+    Sb = Bl len
+    Cp = (Bl scan +) - Bl
+    Ia = Cp lowerindex Lo
+    Iz = Sb
+    if Hz less Nn
+      Iz = Cp lowerindex Hz
+    end
+    Ix = 0 to Sb - 1
+    Rv = (Ia + Iz - 1 - Ix) max 0
+    Rv = Rv min (Sb - 1)
+    Mg = (Ix at least Ia) integer
+    Mh = (Ix less Iz) integer
+    Mk = Mg * Mh
+    Bo = Mk * (Bo Rv) + (1 - Mk) * Bo
+    Bl = Mk * (Bl Rv) + (1 - Mk) * Bl
+    Fn = 1 - Bf Rv
+    Bf = Mk * Fn + (1 - Mk) * Bf
+  end
+  Rs = (Rl scan +) - Rl
+  Ys = concat (concat Rs Bo) Bn
+  Ys = Ys sort
+  Ys = Ys unique
+  Yp = Ys (0 to Ys len - 2)
+  Yl = Ys (1 to Ys len - 1) - Yp
+  Pr = (Rs upperindex Yp) - 1
+  Fo = Yp - Rs Pr
+  Px = Rx Pr + Rd Pr * Fo
+  Pd = Rd Pr
+  P0 = Yp lowerindex Bo
+  P1 = Yp lowerindex (Bo + Bl)
+  Cq = P1 - P0
+  Oq = (Cq scan +) - Cq
+  Np = Cq sum
+  Mq = array shape Np fill 0
+  Nz = (Cq greater 0) indices
+  Mq (Oq Nz) = 1
+  Qi = Nz ((Mq scan +) - 1)
+  Kq = (0 to Np - 1) - Oq Qi
+  Fq = Bf Qi
+  Ck = Cq Qi - 1 - Kq
+  Sp = P0 Qi + (1 - Fq) * Kq + Fq * Ck
+  Ql = Yl Sp
+  Qx = Px Sp
+  Qd = Pd Sp
+  Rx = Qx + Fq * Qd * (Ql - 1)
+  Rd = Qd * (1 - 2 * Fq)
+  Rl = Ql
+end
+Ps = (Rl scan +) - Rl
+Pq = Ps mod Md
+Xq = Rx mod Md
+Lq = Rl mod Md
+Ev = (Rl mod 2 equal 0) integer
+H1 = Ev * (Rl // 2) + (1 - Ev) * Rl
+Rm1 = Rl - 1
+H2 = Ev * Rm1 + (1 - Ev) * (Rm1 // 2)
+S1 = (H1 mod Md) * (H2 mod Md) mod Md
+Ca = Ev * (Rl // 2) + (1 - Ev) * Rl
+Cb = H2
+Cc = 2 * Rl - 1
+Da = (Ca mod 3 equal 0) integer
+Db = (Cb mod 3 equal 0) integer
+Db = Db * (1 - Da)
+Dc = 1 - Da - Db
+Ca = Da * (Ca // 3) + (1 - Da) * Ca
+Cb = Db * (Cb // 3) + (1 - Db) * Cb
+Cc = Dc * (Cc // 3) + (1 - Dc) * Cc
+S2 = (Ca mod Md) * (Cb mod Md) mod Md
+S2 = S2 * (Cc mod Md) mod Md
+T0 = Lq * Pq mod Md * Xq mod Md
+Tw = (Pq * Rd + Xq + Md) mod Md
+T1 = Tw * S1 mod Md
+T2 = (Rd * S2 + Md) mod Md
+Tt = T0 + T1 + T2
+Answer = Tt sum mod Md
+Answer print
