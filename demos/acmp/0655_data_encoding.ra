@@ -1,0 +1,111 @@
+rem ACMP 0655 - Data Encoding (Кодирование данных)
+rem Decode natural number N from code(N) = N + cyclic(N, K).
+rem
+rem Mathematical relation:
+rem N * (10^K + 1) = code(N) + A * (10^L - 1)
+rem where L is the number of digits of N, and A is the integer formed by the first K digits.
+rem Taking modulo (10^K + 1) yields a linear congruence:
+rem A * (10^L - 1) = -code(N)  (mod 10^K + 1)
+rem solved via the extended Euclidean algorithm with verification of cyclic sum.
+
+use io
+use cli
+use sequences
+use numbers
+use text
+
+arg Input text = "512\n1"
+
+Tokens = (Input split "\n" join " ") split " "
+Tokens = Tokens (Tokens not equal "")
+CodeText = Tokens 0
+K = (Tokens 1) integer
+
+Code = CodeText integer
+LenCode = CodeText len
+
+TenK = ("1" + ((array shape K fill "0") join "")) integer
+Mod = TenK + 1
+MinA = ("1" + ((array shape (K - 1) fill "0") join "")) integer
+
+Answer = ""
+Found = false
+
+MinL = K + 1
+if (LenCode - 1) greater MinL
+  MinL = LenCode - 1
+end
+
+for L in (MinL to LenCode array) reverse
+  if not Found
+    TenL = ("1" + ((array shape L fill "0") join "")) integer
+    M = L - K
+    TenM = ("1" + ((array shape M fill "0") join "")) integer
+
+    Coeff = (TenL - 1) mod Mod
+    Target = ((0 - Code) mod Mod + Mod) mod Mod
+
+    rem Extended GCD of Coeff and Mod
+    G0 = Coeff
+    G1 = Mod
+    X0 = 1
+    X1 = 0
+    for G1 not equal 0
+      Q = G0 // G1
+      G2 = G0 mod G1
+      G0 = G1
+      G1 = G2
+      X2 = X0 - Q * X1
+      X0 = X1
+      X1 = X2
+    end
+    G = G0
+    X = X0
+
+    if (Target mod G) equal 0
+      Step = Mod // G
+      BaseA = (X * (Target // G)) mod Step
+      if BaseA less 0
+        BaseA = BaseA + Step
+      end
+
+      if G equal Mod
+        if M equal K
+          SumAB = Code // Mod
+          MaxB = TenK - 1
+          ChosenA = MinA
+          if (SumAB - ChosenA) greater MaxB
+            ChosenA = SumAB - MaxB
+          end
+          BaseA = ChosenA
+          Step = TenK
+        end
+      end
+
+      A = BaseA
+      for (A less TenK) and (not Found)
+        if A greater (MinA - 1)
+          Num = Code + A * (TenL - 1)
+          if (Num mod Mod) equal 0
+            N = Num // Mod
+            NText = N text
+            if (NText len) equal L
+              AActual = N // TenM
+              if AActual equal A
+                B = N mod TenM
+                Cyclic = B * TenK + A
+                if (N + Cyclic) equal Code
+                  Answer = NText
+                  Found = true
+                end
+              end
+            end
+          end
+        end
+        A = A + Step
+      end
+    end
+  end
+end
+
+Answer print

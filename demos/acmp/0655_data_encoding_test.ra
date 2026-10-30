@@ -1,0 +1,41 @@
+use testing
+
+test "sample 1: 512 with K=1 gives 319"
+  use "0655_data_encoding"
+  run
+
+  Answer equal "319"
+end
+
+test "symmetric 4-digit code with K=2"
+  use "0655_data_encoding"
+  Input = "4646\n2"
+  run
+
+  Answer equal "1036"
+end
+
+test "carry to L+1 digits with K=2"
+  use "0655_data_encoding"
+  Input = "1753152\n2"
+  run
+
+  Answer equal "987654"
+end
+
+test "large 15-digit number with K=5"
+  use "0655_data_encoding"
+  Input = "802358023524690\n5"
+  run
+
+  Answer equal "123456789012345"
+end
+
+test "K=3 with 6-digit cyclic shift"
+  use "0655_data_encoding"
+  rem N = 100200, cyclic(N, 3) = 200100 -> code = 300300
+  Input = "300300\n3"
+  run
+
+  Answer equal "100200"
+end
