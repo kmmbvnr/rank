@@ -1,0 +1,74 @@
+rem Bus Stops
+rem https://acmp.ru/index.asp?main=task&id_task=560
+rem Minimum cost to place N platforms of width W along railway L with gap constraints [r, R]
+
+use io
+use algo
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "3 1 5\n0 1\n3 7 1 5 2"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+W = (Tokens 1) integer
+L = (Tokens 2) integer
+Rmin = (Tokens 3) integer
+Rmax = (Tokens 4) integer
+A = (Tokens drop 5) integer
+
+G = L - (N * W)
+MinG = (N + 1) * Rmin
+MaxG = (N + 1) * Rmax
+
+Answer = "No solution."
+
+if (not (G less 0)) and (not (G less MinG)) and (not (G greater MaxG))
+  M = L - W + 1
+  Pref = array shape (L + 1) fill 0
+  Pref (1 till (L + 1)) = A scan +
+  C = (Pref (W till (L + 1))) - (Pref (0 till (L - W + 1)))
+
+  INF = 1000000000000000
+  DP = array shape M fill INF
+
+  R1 = Rmax min (M - 1)
+  if not (R1 less Rmin)
+    DP (Rmin till (R1 + 1)) = C (Rmin till (R1 + 1))
+  end
+
+  if N greater 1
+    for K in 2 till (N + 1)
+      Tree = DP segment min
+      NextDP = array shape M fill INF
+      StartP = (W + Rmin) min M
+      for P in StartP till M
+        QL = (P - W - Rmax) max 0
+        QR = (P - W - Rmin) min (M - 1)
+        if not (QR less QL)
+          MinVal = Tree QL QR query
+          if MinVal less INF
+            NextDP P = (C P) + MinVal
+          end
+        end
+      end
+      DP = NextDP
+    end
+  end
+
+  FinL = (L - W - Rmax) max 0
+  FinR = (L - W - Rmin) min (M - 1)
+  if not (FinR less FinL)
+    TreeFin = DP segment min
+    BestCost = TreeFin FinL FinR query
+    if BestCost less INF
+      Answer = BestCost text
+    end
+  end
+end
+
+Answer print
