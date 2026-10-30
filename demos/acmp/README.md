@@ -29,6 +29,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0230** | [Луч света в темном царстве](0230_ray_of_light.ra) | Simulation / Optics (63%) | Deterministic 4-ray optical tracing with specular corner reflections |
 | **0232** | [Дремучий лес - 2](0232_dense_forest.ra) | Computational Geometry (77%) | Geometric duality & 1D shadow interval projection with vector `argsort` & prefix max scan |
 | **0239** | [Узор](0239_pattern.ra) | Bitmask DP (80%) | Exact-cover bitmask DP with tile rotation generator & lowest-unset-bit transitions |
+| **0240** | [Кубический отель](0240_cubic_hotel.ra) | 3D Geometry / Simulation (70%) | Reconstruct $N \times N \times N$ colored voxel cube from 6 orthogonal views via iterative ray carving |
 | **0242** | [Раскраска плиток](0242_tile_coloring.ra) | Math / Modulo (62%) | Linear modular system solver for periodic grid coloring |
 | **0243** | [Маскарад](0243_masquerade.ra) | Greedy / Math (60%) | Optimal discount package purchasing with boundary overbuy check |
 | **0261** | [Лотерея](0261_lottery.ra) | Game Theory / Trees (62%) | Complete binary tree minimax evaluation for adversarial lottery bets |
@@ -50,13 +51,25 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0441** | [Карточки - 2](0441_cards_2.ra) | Data Structures / Sorting (73%) | Minimal adjacent swaps via `A argsort`, vector scatter assignment `P OrderB = OrderA` & `((P P outer greater) and (Indices Indices outer less)) count` |
 | **0455** | [Умножение дроби](0455_fraction_multiplication.ra) | Math / Strings (64%) | Periodic fraction multiplication by $N$ via BigInt arithmetic, period divisor reduction & cyclic shift |
 | **0467** | [Закраска прямой - 2](0467_line_coloring_2.ra) | Sweep-line / Intervals (61%) | Longest white interval under parity flips via coordinate compression & prefix sum scan |
+| **0468** | [Числовая последовательность - 2](0468_sequence_2.ra) | Combinatorics / Binary Search (62%) | Find $N$-th integer with exactly 3 set bits via combinatorial number system & binary search |
 | **0479** | [Муравей и дерево](0479_ant_and_tree.ra) | Computational Geometry (63%) | Shortest path avoiding circular obstacle via vector dot products, projections & tangent arc angles |
+| **0484** | [Трубопровод](0484_pipeline.ra) | Trees / Fibonacci Morphism (60%) | Find sequence of open valves in a 40-layer pipeline tree via iterative Fibonacci Lindenmayer morphism |
 | **0510** | [Шоколадка](0510_chocolate_bar.ra) | Dynamic Programming (60%) | Domino tilings of $3 \times N$ rectangle via second-order linear recurrence $F_k = 4 F_{k-1} - F_{k-2}$ |
 | **0523** | [Роман в томах](0523_book_volumes.ra) | Binary Search / Greedy (60%) | Optimal chapter partitioning into $K$ volumes via binary search on answer |
+| **0538** | [Радио](0538_radio.ra) | Graph Theory / Binary Search (61%) | Maximize non-interfering transmitter radius via binary search and bipartite 2-coloring |
+| **0563** | [Задача про XOR](0563_xor_problem.ra) | Bitwise / Combinatorics (69%) | All-pairs power-of-two difference XOR sum via vector residue partitioning, run-length compression & bit parity |
+| **0566** | [Халява](0566_freebie.ra) | Math / Branch & Bound (61%) | Maximize t-shirts from 1, 2, 3-star caps via closed forms for $K \le 3$, and DAG stack search with upper bound pruning for $K \ge 4$ |
 | **0572** | [Технология программирования](0572_programming_technology.ra) | Greedy / Sorting (60%) | Maximize persuaded friends via dual-group sorting: $b_i \ge 0$ by threshold $a_i$ ascending, $b_i < 0$ by potential $(a_i + b_i)$ descending |
 | **0586** | [Законопроект](0586_bill.ra) | Game Theory (62%) | Sequential parliamentary voting simulation via backward induction & vectorized column comparison |
+| **0588** | [Число](0588_self_describing_number.ra) | Number Theory / Construction (60%) | Autobiographical / self-describing numbers in base $b$ via closed-form digit construction `Digits (B - 5) = 1; Digits (B - 1) = B - 4` |
 | **0614** | [Скобки - 3](0614_brackets_3.ra) | Dynamic Programming / Strings (61%) | Count distinct regular bracket subsequences via DFA state transitions on greedy next-occurrence jumps |
+| **0615** | [Новый год](0615_new_year.ra) | Graph Theory / Matching (62%) | Minimum weight edge cover in bipartite graph via reduction to maximum savings matching and Hungarian/MCMF augmentation |
 | **0624** | [Электронная почта](0624_email.ra) | Graph Theory (62%) | Distributed email log consistency check via chronological dependency DAG and `Graph cycle` |
+| **0655** | [Кодирование данных](0655_data_encoding.ra) | Number Theory / Carry Math (60%) | Smallest positive integer $A$ whose product with $K$ is a cyclic shift of $A$ via periodic carry transitions |
+| **0659** | [Перетягивание каната](0659_tug_of_war.ra) | Graph Theory / Min $K$-Cut (62%) | Bisection into teams of size $K$ and $N - K$ maximizing internal edges via Branch and Bound, vertex sorting `Order = (0 - Deg) argsort`, and vector future-cut pruning `FutureCut = ((To1 min To2) (Vtx till N)) sum` |
+| **0714** | [Кольцевая автодорога](0714_circular_highway.ra) | Computational Geometry (65%) | Find count and minimum-radius circle equidistant to 4 points via vector circumcenter and perpendicular bisector intersection |
+| **0734** | [Строковый компьютер](0734_string_computer.ra) | Combinatorics / Free Monoids (61%) | Maximum non-redundant set size and number of such sets over alphabet $K$ and max length $N$ via geometric series and parity analysis |
+| **0749** | [Неправильный RSA](0749_incorrect_rsa.ra) | Number Theory / Combinatorics (64%) | Count non-trivial factorizations of $n = p^k \cdot q^k$ ($1 \le k \le 23$) via $O(1)$ relative tolerance float64 $k$-th power detection and precomputed 2D vector partitions of $(k, k)$ |
 | **0974** | [Странный Ним](0974_strange_nim.ra) | Game Theory (65%) | 3-coin Welter's Game via Conway's Frieze rule in $O(1)$ without loops |
 | **0978** | [Последовательность - 5](0978_sequence_5.ra) | Number Theory (79%) | Legendre's formula for maximal $k$ with $n^k \mid n!$ using `N factors unique` |
 | **1000** | [Упаковка чисел](1000_number_packing.ra) | Bitwise / Encodings (65%) | Variable-length prefix-free integer encoding (1–9 bytes) into hex |
