@@ -270,5 +270,6 @@
   "euler/693_finitesequence.ra": "About 11 min: residue-set squaring; run manually (#496).",
   "euler/680_yarragnisrever.ra": "About 80 min: batched run list; run manually (#497).",
   "euler/671_colouringloop.ra": "About 9.5 min: dense 910-state steps; run manually (#499).",
-  "euler/696_mahjong.ra": "About 49 s: sparse flat convolutions; run manually (#500)."
+  "euler/696_mahjong.ra": "About 49 s: sparse flat convolutions; run manually (#500).",
+  "euler/667_movingpentagon.ra": "About 63 s: 62 profile evaluations; run manually (#501)."
 }
