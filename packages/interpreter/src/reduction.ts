@@ -1,7 +1,7 @@
 import { foldAxisPartition, foldAxisDiagnostic } from '@arrrank/language';
 import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
-import { scanInt32Axis } from './axis-order.js';
+import { scanInt32Axis, sumRealAxis } from './axis-order.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
 import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, registerArrayDependencies, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
@@ -377,6 +377,11 @@ export class ReductionEvaluator {
             return definition !== undefined && reducer === this.standardFunctions.get(definition);
         });
         const booleanFold = builtin && (operation === 'any' || operation === 'all');
+        if (builtin && operation === 'sum' && axes.length === 1 && !inspectionEnabled() && privateLoopPolling()
+            && reducer === this.standardFunctions.get(standardModules.core.sum)) {
+            const packed = sumRealAxis(value, axes[0]) ?? sumIntegerAxis(value, axes[0]);
+            if (packed !== undefined) return packed;
+        }
 
         const strides = value.shape.map(() => 1);
         for (let axis = strides.length - 2; axis >= 0; axis -= 1) {

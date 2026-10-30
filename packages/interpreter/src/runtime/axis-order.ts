@@ -129,3 +129,32 @@ export function scanInt32Axis(op: '+' | 'max' | 'min', value: RankArray, shape: 
     if (!wide) return typedArray(Int32Array.from(out), [...shape]);
     return typedArray(BigInt64Array.from(out, x => BigInt(x)), [...shape]);
 }
+
+/** `sum` along one axis of stored real cells, adding in axis order from 0 as
+ * the generic fold does. An empty axis keeps the integer-zero seed's path. */
+export function sumRealAxis(value: RankArray, axis: number): RankArray | number | undefined {
+    const kind = typedElementKind(value);
+    const cells = kind === 'real' && !value.columnNames ? float64Cells(value) : undefined;
+    const length = value.shape[axis];
+    if (!cells || !length || cells.length === 0) return undefined;
+    let inner = 1;
+    for (let d = axis + 1; d < value.shape.length; d++) inner *= value.shape[d];
+    const outer = cells.length / (length * inner);
+    const totals = new Float64Array(outer * inner);
+    for (let block = 0; block < outer; block++) {
+        checkpoint('summing real axis', length * inner);
+        const target = block * inner;
+        if (inner === 1) {
+            let total = 0;
+            for (let i = block * length, end = i + length; i < end; i++) total += cells[i];
+            totals[target] = total;
+            continue;
+        }
+        for (let row = 0; row < length; row++) {
+            const source = (block * length + row) * inner;
+            for (let lane = 0; lane < inner; lane++) totals[target + lane] += cells[source + lane];
+        }
+    }
+    const shape = value.shape.filter((_, index) => index !== axis);
+    return shape.length ? typedArray(totals, shape) : totals[0];
+}
