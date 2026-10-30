@@ -1,0 +1,111 @@
+rem Glass Fence
+rem https://acmp.ru/index.asp?main=task&id_task=434
+rem Construct minimal-perimeter, minimal-area orthogonal enclosing fence for swamp polygon
+
+use io
+use cli
+use sequences
+use text
+
+arg Input text = "6\n0 0\n2 0\n2 1\n1 1\n1 2\n0 2"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = Tokens 0 integer
+Coords = (Tokens drop 1) take (2 * N) integer
+X = Coords (0 till (2 * N) by 2)
+Y = Coords (1 till (2 * N) by 2)
+
+NextX = concat (X drop 1) (array (X 0))
+NextY = concat (Y drop 1) (array (Y 0))
+
+IsHEdge = Y equal NextY
+HX1 = (X min NextX) IsHEdge
+HX2 = (X max NextX) IsHEdge
+HY = Y IsHEdge
+
+SortedX = X unique sort
+NumIntervals = (SortedX len) - 1
+LeftX = SortedX take NumIntervals
+RightX = SortedX drop 1
+
+TopY = array shape NumIntervals fill 0
+BotY = array shape NumIntervals fill 0
+
+for I in 0 till NumIntervals
+  Covering = (HX1 at most (LeftX I)) and (HX2 at least (RightX I))
+  TopY I = (HY Covering) max
+  BotY I = (HY Covering) min
+end
+
+PrefMax = TopY scan max axis 0
+SuffMax = (((TopY reverse) scan max axis 0) reverse)
+FenceTop = PrefMax min SuffMax
+
+PrefMin = BotY scan min axis 0
+SuffMin = (((BotY reverse) scan min axis 0) reverse)
+FenceBot = PrefMin max SuffMin
+
+PolyX = array (SortedX 0)
+PolyY = array (FenceBot 0)
+
+for I in 0 till NumIntervals
+  PolyX = concat PolyX (array (SortedX (I + 1)))
+  PolyY = concat PolyY (array (FenceBot I))
+  if (I + 1) less NumIntervals
+    if (FenceBot (I + 1)) not equal (FenceBot I)
+      PolyX = concat PolyX (array (SortedX (I + 1)))
+      PolyY = concat PolyY (array (FenceBot (I + 1)))
+    end
+  end
+end
+
+PolyX = concat PolyX (array (SortedX NumIntervals))
+PolyY = concat PolyY (array (FenceTop (NumIntervals - 1)))
+
+RevIndices = (0 till NumIntervals) reverse
+for Step in 0 till NumIntervals
+  I = RevIndices Step
+  PolyX = concat PolyX (array (SortedX I))
+  PolyY = concat PolyY (array (FenceTop I))
+  if I greater 0
+    if (FenceTop (I - 1)) not equal (FenceTop I)
+      PolyX = concat PolyX (array (SortedX I))
+      PolyY = concat PolyY (array (FenceTop (I - 1)))
+    end
+  end
+end
+
+P = PolyX len
+SimpX = array shape 0 fill 0
+SimpY = array shape 0 fill 0
+
+for I in 0 till P
+  Prev = (I - 1 + P) mod P
+  Next = (I + 1) mod P
+  IsDup = ((PolyX I) equal (PolyX Next)) and ((PolyY I) equal (PolyY Next))
+  if not IsDup
+    DX1 = (PolyX I) - (PolyX Prev)
+    DY1 = (PolyY I) - (PolyY Prev)
+    DX2 = (PolyX Next) - (PolyX I)
+    DY2 = (PolyY Next) - (PolyY I)
+    IsCollinear = (DX1 * DY2) equal (DX2 * DY1)
+    if not IsCollinear
+      SimpX = concat SimpX (array (PolyX I))
+      SimpY = concat SimpY (array (PolyY I))
+    end
+  end
+end
+
+AnswerCount = SimpX len
+AnswerVertices = (array shape (AnswerCount * 2) fill 0) reshape AnswerCount 2
+for I in 0 till AnswerCount
+  AnswerVertices I 0 = SimpX I
+  AnswerVertices I 1 = SimpY I
+end
+
+AnswerCount print
+for I in 0 till AnswerCount
+  (tuple (SimpX I) (SimpY I)) print
+end
