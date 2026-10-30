@@ -30,4 +30,31 @@ describe('slice assignment from stored cells', () => {
         const init = 'Xs = array shape 8 fill 1\nYs = array shape 8 fill 1';
         expect(() => loop(init, 'Xs (0 to 4) = Ys (0 to 5)', 'Xs')).toThrow('mismatch');
     });
+
+    it('widens an Int32 destination without losing signs or other cells', () => {
+        const out = run(`use sequences
+use io
+Xs = array shape 6 fill -5
+Ys = array shape 3 fill 3000000000
+Xs (0 to 2) = Ys
+Xs print`).trim();
+        expect(out).toBe('3000000000 3000000000 3000000000 -5 -5 -5');
+        const sums = run(`use sequences
+use io
+Xs = array shape 6 fill 2000000000
+Ys = array shape 3 fill 2000000000
+Xs (0 to 2) += Ys
+Xs print`).trim();
+        expect(sums).toBe('4000000000 4000000000 4000000000 2000000000 2000000000 2000000000');
+    });
+
+    it('binds a strided slice as an independent copy', () => {
+        const out = run(`use sequences
+use io
+Ts = 0 to 9
+Tl = Ts (0 to 8 by 2)
+Ts 0 = 99
+(Tl sum) * 1000 + Ts 0 print`).trim();
+        expect(out).toBe('20099');
+    });
 });

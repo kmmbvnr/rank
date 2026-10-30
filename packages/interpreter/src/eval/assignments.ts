@@ -202,6 +202,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             ? undefined : assignmentOperator(statement.operator);
         let operands: RankValue[] | undefined;
         let compactOperands: Int32Array | undefined;
+        let wideOperands: BigInt64Array | undefined;
         if (isRankArray(result)) {
             if (!sameShape(selection.shape, result.shape)) {
                 throw new RankError(
@@ -236,12 +237,21 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 const { offset, stride } = view.linear;
                 view.validateUniform?.(view.compact ? BigInt(view.compact[offset]) : view.items[offset]);
                 if (view.compact && !statement.accumulate) compactOperands = new Int32Array(count);
+                else if (view.items instanceof BigInt64Array && !statement.accumulate) wideOperands = new BigInt64Array(count);
                 else operands = new Array<RankValue>(count);
                 if (compactOperands && view.compact && stride === 1) {
                     for (let start = 0; start < count; start += 4096) {
                         const end = Math.min(count, start + 4096);
                         checkpoint('preparing accumulated array updates', end - start);
                         compactOperands.set(view.compact.subarray(offset + start, offset + end), start);
+                    }
+                } else if (wideOperands) {
+                    const cells = view.items as BigInt64Array;
+                    for (let start = 0; start < count; start += 4096) {
+                        const end = Math.min(count, start + 4096);
+                        checkpoint('preparing array updates', end - start);
+                        if (stride === 1) wideOperands.set(cells.subarray(offset + start, offset + end), start);
+                        else for (let index = start; index < end; index++) wideOperands[index] = cells[offset + index * stride];
                     }
                 } else {
                     for (let start = 0; start < count; start += 4096) {
@@ -261,14 +271,14 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         }
         if (count > 0 && host.options().compilation !== false && !inspectionEnabled()
             && (statement.operator === '=' || statement.operator === '+=' || statement.operator === '-=' || statement.operator === '*=')
-            && (typeof result === 'bigint' || compactOperands || operands?.every(value => typeof value === 'bigint'))) {
+            && (typeof result === 'bigint' || compactOperands || wideOperands || operands?.every(value => typeof value === 'bigint'))) {
             const cells = writableIntegerCells(target);
             if (cells) {
                 // Every replacement is an integer; the binding owns validation,
                 // independently of the physical storage proof above.
                 host.checkArrayWrite(statement.name, target, [typeof result === 'bigint' ? result
-                    : compactOperands ? BigInt(compactOperands[0]) : operands![0]]);
-                let values: bigint | readonly bigint[] | Int32Array = typeof result === 'bigint' ? result : compactOperands ?? operands as bigint[];
+                    : compactOperands ? BigInt(compactOperands[0]) : wideOperands ? wideOperands[0] : operands![0]]);
+                let values: bigint | readonly bigint[] | Int32Array | BigInt64Array = typeof result === 'bigint' ? result : compactOperands ?? wideOperands ?? operands as bigint[];
                 let operation = statement.operator;
                 if (!statement.accumulate && !selection.unique && operation !== '=') {
                     // Gather before scatter: repeated addresses all read the
@@ -277,7 +287,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                     for (let i = 0; i < count; i++) {
                         checkpoint('preparing array write');
                         const old = cells[selection.offsetAt(i)];
-                        const rhs = typeof values === 'bigint' ? values : values instanceof Int32Array ? BigInt(values[i]) : values[i];
+                        const rhs = typeof values === 'bigint' ? values : values instanceof Int32Array ? BigInt(values[i]) : values[i] as bigint;
                         replacements.push(operation === '+=' ? old + rhs : operation === '-=' ? old - rhs : old * rhs);
                     }
                     values = replacements;
@@ -291,6 +301,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             }
         }
         if (compactOperands) operands = Array.from(compactOperands, BigInt);
+        else if (wideOperands) operands = Array.from(wideOperands);
         if (count > 0 && host.options().compilation !== false && host.options().booleanSelectionCompilation !== false
             && privateLoopPolling()
             && statement.operator === '='

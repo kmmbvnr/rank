@@ -155,6 +155,19 @@ export function writableIntegerCells(value: RankArray): ArrayLike<bigint> | unde
     return state.items as unknown as ArrayLike<bigint>;
 }
 
+const LITTLE_ENDIAN = new Uint8Array(new Uint16Array([1]).buffer)[0] === 1;
+
+/** Int32 cells as int64 cells. Writing the two halves avoids a BigInt per cell. */
+function widenInt32(cells: Int32Array): BigInt64Array {
+    if (!LITTLE_ENDIAN) return BigInt64Array.from(cells, BigInt);
+    const wide = new BigInt64Array(cells.length), halves = new Int32Array(wide.buffer);
+    for (let i = 0; i < cells.length; i++) {
+        halves[2 * i] = cells[i];
+        halves[2 * i + 1] = cells[i] >> 31;
+    }
+    return wide;
+}
+
 const fitsInt32 = (value: bigint) => value >= -2147483648n && value <= 2147483647n;
 
 const INT64_MIN = -(1n << 63n), INT64_MAX = (1n << 63n) - 1n;
@@ -173,7 +186,7 @@ function storeCell(state: OwnedStorage, index: number, value: RankValue): void {
             return;
         }
         // Widen before writing; existing borrowed readers follow state.items.
-        state.typed = typed = BigInt64Array.from(typed, BigInt);
+        state.typed = typed = widenInt32(typed);
         state.slices = undefined;
         state.items = typed as unknown as RankValue[];
     }
@@ -229,7 +242,7 @@ export function fillBooleanSelection(
  * the proven equivalent of offsetAt, not an inferred range of addresses. */
 export function writeIntegerSelection(
     value: RankArray, count: number, offsetAt: (index: number) => number,
-    operand: bigint | readonly bigint[] | Int32Array, operator: '=' | '+=' | '-=' | '*=',
+    operand: bigint | readonly bigint[] | Int32Array | BigInt64Array, operator: '=' | '+=' | '-=' | '*=',
     linear?: { offset: number; stride: number },
 ): void {
     const state = ownedStorage.get(value)!;
@@ -291,6 +304,23 @@ export function writeIntegerSelection(
             return;
         }
     }
+    // Wide cells copy from packed operands with no boxed BigInt per cell.
+    if (operator === '=' && state.typed instanceof BigInt64Array && !state.validity && privateLoopPolling()
+        && (operand instanceof BigInt64Array || operand instanceof Int32Array) && linear) {
+        const cells = state.typed;
+        for (let start = 0; start < count; start += 4096) {
+            const end = Math.min(count, start + 4096);
+            checkpoint('writing array', end - start);
+            if (operand instanceof BigInt64Array && linear.stride === 1) {
+                cells.set(operand.subarray(start, end), linear.offset + start);
+                continue;
+            }
+            let offset = linear.offset + start * linear.stride;
+            for (let i = start; i < end; i++, offset += linear.stride)
+                cells[offset] = typeof operand[i] === 'bigint' ? operand[i] as bigint : BigInt(operand[i]);
+        }
+        return;
+    }
     // Compact integer writes can stay in Number while every result fits int32.
     // Fall back at the first widening cell, keeping the already committed prefix.
     // Host polling may mutate storage, so it retains the per-cell reload path.
@@ -318,6 +348,34 @@ export function writeIntegerSelection(
                 const offset = linear ? linear.offset + i * linear.stride : offsetAt(i);
                 const result = numeric(cells[offset], next);
                 if (!Number.isSafeInteger(next) || result !== (result | 0)) { first = i; break outer; }
+                cells[offset] = result;
+                first = i + 1;
+            }
+        }
+        if (first === count) return;
+    }
+    // A destination that left int32 widens once; the rest stays in typed BigInt cells.
+    if (first < count && !state.validity && privateLoopPolling()
+        && (state.typed instanceof Int32Array || state.typed instanceof BigInt64Array)) {
+        if (state.typed instanceof Int32Array) {
+            state.typed = widenInt32(state.typed);
+            state.slices = undefined;
+            state.items = state.typed as unknown as RankValue[];
+        }
+        const cells = state.typed as BigInt64Array;
+        const scalar = typeof operand === 'bigint' ? operand : undefined;
+        const combine = operator === '=' ? (_: bigint, next: bigint) => next
+            : operator === '+=' ? (old: bigint, next: bigint) => old + next
+            : operator === '-=' ? (old: bigint, next: bigint) => old - next
+            : (old: bigint, next: bigint) => old * next;
+        outer: for (let start = first; start < count; start += 1024) {
+            const end = Math.min(count, start + 1024);
+            checkpoint('writing array', end - start);
+            for (let i = start; i < end; i++) {
+                const next = scalar ?? BigInt((operand as readonly bigint[] | Int32Array | BigInt64Array)[i]);
+                const offset = linear ? linear.offset + i * linear.stride : offsetAt(i);
+                const result = combine(cells[offset], next);
+                if (result !== BigInt.asIntN(64, result)) { first = i; break outer; }
                 cells[offset] = result;
                 first = i + 1;
             }
