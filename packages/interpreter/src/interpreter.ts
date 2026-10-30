@@ -160,6 +160,7 @@ export class Interpreter {
             compileDirect: expression => this.expressions.compileDirect(expression),
             operationOf: name => this.expressions.operationOf(name),
             operators: this.operators,
+            reductions: this.reductions,
         });
         this.application = new ApplicationEvaluator({
             findVariable: name => this.findVariable(name),

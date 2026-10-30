@@ -3127,3 +3127,100 @@ Total
         expect(diagnostics.fallbacks).toHaveProperty('loop:unsupported-node:TupleExpression');
     });
 });
+
+describe('axis reductions inside compiled loops', () => {
+    const matrix = 'M = (array 1 2 3 4 5 6) reshape 2 3\n';
+    const cube = 'C = (array 1 2 3 4 5 6 7 8 9 10 11 12) reshape 2 3 2\n';
+    /** Runs with the default compiler and checks the outcome against the evaluator. */
+    function reduced(body: string) {
+        const source = `use sequences\n${body}`;
+        const reference = execute(source, false);
+        const diagnostics = new RuntimeDiagnostics();
+        const runtime = new Interpreter();
+        let outcome: { value?: string; error?: string };
+        try {
+            const value = diagnostics.run(() => runtime.execute(source));
+            outcome = { value: value === undefined ? undefined : formatValue(value) };
+        } catch (error) {
+            outcome = { error: error instanceof RankError ? error.format() : String(error) };
+        } finally { runtime.dispose(); }
+        expect(outcome).toEqual(reference.error === undefined ? { value: reference.value } : { error: reference.error });
+        return { ...outcome, compiled: diagnostics.compiledLoops, fallbacks: diagnostics.fallbacks };
+    }
+    it('compiles the matrix-vector step of a column DP', () => {
+        const result = reduced(`Compat = (array 1 1 0 1 0 1 1 1 1) reshape 3 3
+DP = array shape 3 fill 1
+for Step in 1 till 6
+  DP = (Compat * DP) sum axis -1
+end
+DP`);
+        expect(result.error).toBeUndefined();
+        expect(result.compiled).toBe(1);
+        expect(Object.keys(result.fallbacks).filter(name => name.startsWith('loop:'))).toEqual([]);
+    });
+    it.each([
+        ['sum axis 0'], ['sum axis 1'], ['sum axis -1'], ['sum axis -2'], ['min axis 0'], ['max axis 1'],
+        ['min axis -1'], ['max axis -2'],
+    ])('matches the evaluator for %s', reduction => {
+        const result = reduced(`${matrix}R = M sum axis 0
+for Step in 1 to 3
+  R = (M + Step) ${reduction}
+end
+R`);
+        expect([result.error, result.compiled]).toEqual([undefined, 1]);
+    });
+    it.each([
+        ['sum axis 0'], ['sum axis 1'], ['sum axis 2'], ['sum axis 0 2'], ['sum axis 2 0'], ['sum axis -1 -3'],
+        ['max axis 1 2'], ['min axis 0 1'],
+    ])('reduces a rank-3 array with %s', reduction => {
+        const result = reduced(`${cube}R = C ${reduction}
+for Step in 1 to 2
+  R = (C * Step) ${reduction}
+end
+R`);
+        expect([result.error, result.compiled]).toEqual([undefined, 1]);
+    });
+    it('feeds the reduced array back into the next iteration', () => {
+        const result = reduced(`M = (array 1 1 1 1) reshape 2 2
+V = array 1 2
+for Step in 1 to 10
+  V = (M * V) sum axis 1
+end
+V`);
+        expect([result.error, result.compiled]).toEqual([undefined, 1]);
+    });
+    it.each([
+        ['an axis that does not exist', 'sum axis 5'],
+        ['a negative axis that does not exist', 'sum axis -3'],
+        ['duplicate axes', 'sum axis 0 -2'],
+    ])('reports %s like the evaluator', (_, reduction) => {
+        expect(reduced(`${matrix}R = M sum axis 0
+for Step in 1 to 2
+  R = (M + Step) ${reduction}
+end
+R`).error).toBeDefined();
+    });
+    it('leaves a full reduction to the scalar path', () => {
+        reduced(`${matrix}T = 0
+for Step in 1 to 3
+  T += (M + Step) sum axis 0 1
+end
+T`);
+    });
+    it('reduces an empty array', () => {
+        reduced(`E = array shape 0 3 fill 0
+R = array shape 3 fill 0
+for Step in 1 to 2
+  R = E sum axis 0
+end
+R`);
+    });
+    it('keeps a shadowed reduction name out of the compiled path', () => {
+        reduced(`${matrix}sum = 1
+R = M sum axis 0
+for Step in 1 to 2
+  R = (M + Step) sum axis 0
+end
+R`);
+    });
+});
