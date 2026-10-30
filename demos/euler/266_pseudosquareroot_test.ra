@@ -1,8 +1,7 @@
 use testing
 
-rem The default input takes about a
-rem minute (it sorts two million
-rem products): small limits only.
+rem Small limits independently check
+rem the divisor search.
 test "small limits"
   use "266_pseudosquareroot"
   Limit = 20

@@ -13,7 +13,8 @@ export function sortValue(value: RankValue, descending = false): RankValue {
     if (!source?.vector) throw new RankError('sort expects text or a rank-1 array');
     const items = source.vector();
     const kind = sortableKind(items, 'sort');
-    items.sort(interruptibleCallback((left, right) => (descending ? -1 : 1) * compareOrderedValues(left, right, kind), 'sorting'));
+    const compare = sortComparator(kind);
+    items.sort(interruptibleCallback((left, right) => (descending ? -1 : 1) * compare(left, right), 'sorting'));
     return source.build(items);
 }
 
@@ -39,10 +40,22 @@ export function sortableKind(items: readonly RankValue[], operation: string): Or
 export function stableOrder(items: readonly RankValue[], kind: OrderedKind, descending = false): number[] {
     const fast = numericOrderItems(items, descending);
     if (fast) return fast;
+    const compare = sortComparator(kind);
     return items
         .map((_, position) => position)
         .sort(interruptibleCallback((left, right) =>
-            (descending ? -1 : 1) * compareOrderedValues(items[left], items[right], kind) || left - right, 'sorting'));
+            (descending ? -1 : 1) * compare(items[left], items[right]) || left - right, 'sorting'));
+}
+
+function sortComparator(kind: OrderedKind): (left: RankValue, right: RankValue) => number {
+    // sortableKind has checked every cell. Numeric comparisons need neither
+    // repeated kind checks nor the generic comparator's record-cycle WeakMap.
+    // Relational operators keep arbitrary-size integers exact, including mixed reals.
+    if (kind === 'numeric') return (left, right) => {
+        const a = left as bigint | number, b = right as bigint | number;
+        return a < b ? -1 : a > b ? 1 : 0;
+    };
+    return (left, right) => compareOrderedValues(left, right, kind);
 }
 
 /** Sort already-computed key rows lexicographically and stably. */

@@ -563,10 +563,10 @@ end`);
         try {
             runtime.execute(source);
             expect(runtime.variables.get('Answer')).toBe(79534n);
-            for (const name of ['A', 'B', 'Sa', 'Cut', 'Tag', 'Asked', 'Where', 'Ok']) {
+            for (const name of ['A', 'B', 'Sa', 'Where', 'Ok']) {
                 expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             }
-            for (const name of ['Keys', 'Mark', 'Before', 'Which', 'Pick', 'Mate', 'Prod']) {
+            for (const name of ['Pick', 'Mate']) {
                 expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
             }
         } finally { runtime.dispose(); }

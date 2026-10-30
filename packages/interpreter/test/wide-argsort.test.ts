@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type RankArray } from '../src/index.js';
-import { denseScalarItems, typedArray } from '../src/array-storage.js';
+import { denseScalarItems, ownedArray, typedArray } from '../src/array-storage.js';
 import { withInterrupt } from '../src/interrupt.js';
+import { sortableKind, stableOrder } from '../src/modules/sequence-order.js';
 
 describe.each([false, true])('wide stable argsort (compilation=%s)', compilation => {
     it.each([false, true])('preserves exact signed Int64 keys and ties (descending=%s)', descending => {
@@ -35,6 +36,20 @@ describe.each([false, true])('wide stable argsort (compilation=%s)', compilation
         } finally { r.dispose(); }
     });
 
+    it.each([false, true])('sorts arbitrary precision keys exactly and stably (descending=%s)', descending => {
+        const huge = 1n << 150n;
+        const keys = [huge + 1n, -huge, huge, 0n, huge + 1n, -huge - 1n, -huge, 0n];
+        const order = descending ? [0, 4, 2, 3, 7, 1, 6, 5] : [5, 1, 6, 3, 7, 2, 0, 4];
+        const r = new Interpreter(() => {}, { compilation });
+        try {
+            r.variables.set('Keys', ownedArray(keys.slice()));
+            r.execute(`use sequences\nSorted = Keys sort .${descending ? 'descending' : 'ascending'}\nOrder = Keys argsort .${descending ? 'descending' : 'ascending'}`);
+            expect(Array.from(denseScalarItems(r.variables.get('Order') as RankArray)!)).toEqual(order.map(BigInt));
+            expect(Array.from(denseScalarItems(r.variables.get('Sorted') as RankArray)!)).toEqual(order.map(i => keys[i]));
+            expect(Array.from(denseScalarItems(r.variables.get('Keys') as RankArray)!)).toEqual(keys);
+        } finally { r.dispose(); }
+    });
+
     it('retains cooperative polling instead of entering native numeric ordering', () => {
         const r = new Interpreter(() => {}, { compilation });
         const diagnostics = new RuntimeDiagnostics();
@@ -46,4 +61,12 @@ describe.each([false, true])('wide stable argsort (compilation=%s)', compilation
             expect(diagnostics.numericSorts).toBe(0);
         } finally { r.dispose(); }
     });
+});
+
+it('keeps mixed numeric sort comparisons exact and stable after kind validation', () => {
+    const huge = 1n << 150n;
+    const keys = [huge + 1n, Infinity, huge, 1.5, 1n, 1.0, -Infinity, -huge, -huge - 1n];
+    // Collection homogeneity rejects mixed integer/real arrays; stableOrder is
+    // also an internal helper, whose validated numeric domain includes both.
+    expect(stableOrder(keys, sortableKind(keys, 'argsort'))).toEqual([6, 8, 7, 4, 5, 3, 2, 0, 1]);
 });

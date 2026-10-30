@@ -1,0 +1,20 @@
+--- a/out/modules/sequence-order.js
++++ b/out/modules/sequence-order.js
+@@ -13,7 +13,7 @@
+         throw new RankError('sort expects text or a rank-1 array');
+     const items = source.vector();
+     const kind = sortableKind(items, 'sort');
+-    items.sort(interruptibleCallback((left, right) => (descending ? -1 : 1) * compareOrderedValues(left, right, kind), 'sorting'));
++    items.sort(interruptibleCallback((left, right) => (descending ? -1 : 1) * (kind === 'numeric' ? (left < right ? -1 : left > right ? 1 : 0) : compareOrderedValues(left, right, kind)), 'sorting'));
+     return source.build(items);
+ }
+ export function argsortValue(value, descending = false) {
+@@ -42,7 +42,7 @@
+         return fast;
+     return items
+         .map((_, position) => position)
+-        .sort(interruptibleCallback((left, right) => (descending ? -1 : 1) * compareOrderedValues(items[left], items[right], kind) || left - right, 'sorting'));
++        .sort(interruptibleCallback((left, right) => (descending ? -1 : 1) * (kind === 'numeric' ? (items[left] < items[right] ? -1 : items[left] > items[right] ? 1 : 0) : compareOrderedValues(items[left], items[right], kind)) || left - right, 'sorting'));
+ }
+ /** Sort already-computed key rows lexicographically and stably. */
+ export function sortByKeys(items, keys, operation = 'sort by', indices = false, descending = []) {

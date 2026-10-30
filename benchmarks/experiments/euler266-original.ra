@@ -1,0 +1,50 @@
+rem Pseudo Square Root
+rem https://projecteuler.net/problem=266
+rem Find the largest divisor not above
+rem the square root of the product of
+rem the primes below Limit, modulo 10^16
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 190
+
+rem Split the primes in two halves and
+rem list the divisors a of one half and
+rem b of the other. For each b the best
+rem a is the largest up to T / b, found
+rem by sorting the a's and the quotients
+rem together and counting the a's before
+rem each quotient.
+Ps = primes till Limit array
+H = Ps len // 2
+Total = Ps reduce *
+Root = Total isqrt
+A = array 1
+for P in Ps take H
+  A = concat A (A * P)
+end
+B = array 1
+for P in Ps drop H
+  B = concat B (B * P)
+end
+Sa = A sort
+NA = Sa len
+Cut = Root // B
+Keys' = concat (Sa * 2) (Cut * 2 + 1)
+Mark' = concat (Sa - Sa) (Cut - Cut + 1)
+Ord = Keys argsort
+Tag = Mark Ord
+Before' = (1 - Tag) scan +
+Asked = Tag equal 1
+Where = (Before filter Asked) - 1
+Which' = (Ord filter Asked) - NA
+Ok = Where at least 0
+Pick' = Sa (Where filter Ok array)
+Mate' = B (Which filter Ok array)
+Prod' = Pick * Mate
+Best = Prod max
+Answer = Best mod 10000000000000000
+Answer print
