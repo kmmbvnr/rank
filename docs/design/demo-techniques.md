@@ -16,11 +16,8 @@ number of ways to be in state `j`. One step is a matrix: `T[i][j]` is the
 number of ways to go from `i` to `j`. Then `v[t+1] = v[t] T`, and when the
 rule is the same at every step, `v[n] = v[0] T^n`.
 
-**Two skills.** Modeling is choosing the states and building `T`; it is most of
-the work. Speed-up is computing `T^n` by repeated squaring: about `log2 n`
-matrix products instead of `n` steps. `matpow` does this exactly; a modular
-form is tracked in
-[#503](https://github.com/kmmbvnr/rank/issues/503).
+Squaring `T` repeatedly gives `T^n` in about `log2 n` products instead of `n`
+steps.
 
 | Demo | State | Notes |
 | --- | --- | --- |
