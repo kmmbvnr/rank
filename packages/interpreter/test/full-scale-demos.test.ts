@@ -39,6 +39,22 @@ it('compiles the full Euler 255 interval traversal and preserves the exact total
     } finally { runtime.dispose(); }
 }, 60_000);
 
+it('checks the full compiled Euler 288 tail without Number overflow', () => {
+    const url = new URL('../../../demos/euler/288_enormousfactorial.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(605857431263981935n);
+        expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(2);
+        // The short prefix needs exact arithmetic; its speculative Number
+        // attempt overflows once. The ten-million-step tail stays in Number.
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(3);
+        expect(diagnostics.mixedIntegerLoops).toBe(1);
+    } finally { runtime.dispose(); }
+}, 60_000);
+
 // Independent representation: match individual balls and boxes, rather than
 // the Rank program's run stack and difference table of removal rounds.
 function perBallReference(last: number): number {

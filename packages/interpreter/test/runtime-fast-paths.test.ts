@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Interpreter, type RankArray, type RankValue } from '../src/index.js';
 import { LocalFrame } from '../src/frame.js';
+import { BindingEnvironment } from '../src/binding-environment.js';
 
 describe('runtime fast paths', () => {
     it('publishes lazy global arrays while checking rank and restores rejected writes', () => {
@@ -138,5 +139,63 @@ end
         expect(first.get('X')).toBe(1n);
         expect(second.reset()).toBe(true);
         expect(second.get('X')).toBeUndefined();
+    });
+});
+
+describe('prepared writers through block scopes', () => {
+    it('reuses a global writer through nested blocks and retains type checks', () => {
+        const values = new Map<string, RankValue>();
+        const bindings = new BindingEnvironment(values, new Set());
+        bindings.assign('Total', 0n);
+        const outer = new LocalFrame(undefined, new Map(), new Set(['I']));
+        bindings.current = new LocalFrame(outer, new Map(), new Set(['J']));
+        const assign = vi.spyOn(bindings, 'assign');
+        const write = bindings.compileAssign('Total');
+        write(1n);
+        write(2n);
+        bindings.current = undefined;
+        write(3n);
+        expect(assign).toHaveBeenCalledTimes(1);
+        expect(values.get('Total')).toBe(3n);
+        expect(() => write('text')).toThrow('Total has type integer and cannot receive text');
+        expect(values.get('Total')).toBe(3n);
+    });
+
+    it('selects the enclosing local slot anew when the invocation changes', () => {
+        const bindings = new BindingEnvironment(new Map(), new Set());
+        bindings.assign('Total', 99n);
+        const layout = new Map([['Total', 0]]);
+        const first = new LocalFrame(undefined, layout);
+        const second = new LocalFrame(undefined, layout);
+        first.define('Total', 1n, new Set(['integer']));
+        second.define('Total', 10n, new Set(['integer']));
+        const write = bindings.compileAssign('Total');
+        const assign = vi.spyOn(bindings, 'assign');
+        bindings.current = new LocalFrame(first, new Map(), new Set(['I']));
+        write(2n);
+        bindings.current = new LocalFrame(second, new Map(), new Set(['I']));
+        write(11n);
+        bindings.current = new LocalFrame(first, new Map(), new Set(['J']));
+        write(3n);
+        expect(assign).not.toHaveBeenCalled();
+        expect(first.get('Total')).toBe(3n);
+        expect(second.get('Total')).toBe(11n);
+        expect(bindings.globals.get('Total')).toBe(99n);
+        // An escaped/mapped frame must still use its checked ordinary writer.
+        const captured = first.values;
+        write(4n);
+        expect(captured.get('Total')).toBe(4n);
+    });
+
+    it('keeps mutation protection installed after the global cache was warmed', () => {
+        const bindings = new BindingEnvironment(new Map(), new Set());
+        bindings.assign('Total', 0n);
+        bindings.current = new LocalFrame(undefined, new Map(), new Set(['I']));
+        const write = bindings.compileAssign('Total');
+        write(1n);
+        write(2n);
+        bindings.protect('Total', 'Saved', '')();
+        expect(() => { bindings.checkMutable('Total'); write(3n); }).toThrow();
+        expect(bindings.globals.get('Total')).toBe(2n);
     });
 });

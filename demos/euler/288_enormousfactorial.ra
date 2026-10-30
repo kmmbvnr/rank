@@ -14,31 +14,25 @@ arg P integer = 61
 arg Q integer = 10000000
 arg Exp integer = 10
 
-rem By Legendre the count is
-rem (N - s) / (p - 1) with s the digit
-rem sum of N in base p: the T[n] are the
-rem digits. Take N modulo M =
-rem (p - 1) p^Exp. As p^n = p^Exp mod M
-rem from n = Exp on, the tail of T only
-rem enters as its sum.
-Mod = (P - 1) * P ** Exp
+rem Digit k contributes T[k] * W(k),
+rem where W(k) = (p^k - 1) / (p - 1).
+rem For k >= Exp all W(k) are equal
+rem modulo p^Exp: only sum the tail.
 S = 290797
 Low = 0
-Tail = 0
-Total = 0
 Pw = 1
-for K in 0 to Q
+Weight = 0
+for K in 0 to ((Exp - 1) min Q)
   T = S mod P
-  Total += T
-  if K less Exp
-    Low += T * Pw
-    Pw *= P
-  else
-    Tail += T
-  end
+  Low += T * Weight
+  Weight += Pw
+  Pw *= P
   S = S * S mod 50515093
 end
-Rest = Low + Tail * P ** Exp
-Count = (Rest - Total) // (P - 1)
-Answer = Count mod (P ** Exp)
+Tail = 0
+for K in Exp to Q
+  Tail += S mod P
+  S = S * S mod 50515093
+end
+Answer = (Low + Tail * Weight) mod (P ** Exp)
 Answer print

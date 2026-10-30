@@ -1,0 +1,1616 @@
+{
+  "revision": "a937cd7a003b93a6fbb2a8b6cee062b4b16a199a",
+  "node": "v24.15.0",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "parameters": {
+    "p": 61,
+    "q": 10000000,
+    "exp": 10
+  },
+  "expected": "605857431263981935",
+  "timing": "Fresh serial processes, rotating case order, imports excluded, parse included; other host activity uncontrolled. Diagnostics/oracles/profiles do not overlap timed series.",
+  "series": {
+    "initial": [
+      {
+        "mode": "compiled",
+        "file": "demos/euler/288_enormousfactorial.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 221.52825,
+        "answer": "605857431263981935",
+        "rssMiB": 172.390625,
+        "round": 0,
+        "variant": "original"
+      },
+      {
+        "mode": "compiled",
+        "file": "/tmp/rank288-split.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 671.447167,
+        "answer": "605857431263981935",
+        "rssMiB": 152.84375,
+        "round": 0,
+        "variant": "split"
+      },
+      {
+        "mode": "reference",
+        "file": "demos/euler/288_enormousfactorial.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 7307.881375,
+        "answer": "605857431263981935",
+        "rssMiB": 173.078125,
+        "round": 0,
+        "variant": "original"
+      },
+      {
+        "mode": "reference",
+        "file": "/tmp/rank288-split.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 4477.436875,
+        "answer": "605857431263981935",
+        "rssMiB": 172.359375,
+        "round": 0,
+        "variant": "split"
+      },
+      {
+        "mode": "compiled",
+        "file": "/tmp/rank288-split.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 745.499291,
+        "answer": "605857431263981935",
+        "rssMiB": 151.9375,
+        "round": 1,
+        "variant": "split"
+      },
+      {
+        "mode": "reference",
+        "file": "demos/euler/288_enormousfactorial.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 6624.655625,
+        "answer": "605857431263981935",
+        "rssMiB": 172.796875,
+        "round": 1,
+        "variant": "original"
+      },
+      {
+        "mode": "reference",
+        "file": "/tmp/rank288-split.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 3938.420333,
+        "answer": "605857431263981935",
+        "rssMiB": 173.078125,
+        "round": 1,
+        "variant": "split"
+      },
+      {
+        "mode": "compiled",
+        "file": "demos/euler/288_enormousfactorial.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 217.15816699999996,
+        "answer": "605857431263981935",
+        "rssMiB": 171.671875,
+        "round": 1,
+        "variant": "original"
+      },
+      {
+        "mode": "reference",
+        "file": "demos/euler/288_enormousfactorial.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 7289.548792,
+        "answer": "605857431263981935",
+        "rssMiB": 172.875,
+        "round": 2,
+        "variant": "original"
+      },
+      {
+        "mode": "reference",
+        "file": "/tmp/rank288-split.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 4459.228999999999,
+        "answer": "605857431263981935",
+        "rssMiB": 173.34375,
+        "round": 2,
+        "variant": "split"
+      },
+      {
+        "mode": "compiled",
+        "file": "demos/euler/288_enormousfactorial.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 252.175917,
+        "answer": "605857431263981935",
+        "rssMiB": 172.078125,
+        "round": 2,
+        "variant": "original"
+      },
+      {
+        "mode": "compiled",
+        "file": "/tmp/rank288-split.ra",
+        "q": 10000000,
+        "p": 61,
+        "exp": 10,
+        "ms": 754.047917,
+        "answer": "605857431263981935",
+        "rssMiB": 138.1875,
+        "round": 2,
+        "variant": "split"
+      }
+    ],
+    "remainderAndReduced": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 216.587291,
+        "answer": "605857431263981935",
+        "rssMiB": 173.25,
+        "round": 0,
+        "remainderPrototype": false
+      },
+      {
+        "mode": "compiled",
+        "variant": "split",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 178.58983400000002,
+        "answer": "605857431263981935",
+        "rssMiB": 139.328125,
+        "round": 0,
+        "remainderPrototype": true
+      },
+      {
+        "mode": "compiled",
+        "variant": "reduced",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 198.27983300000002,
+        "answer": "605857431263981935",
+        "rssMiB": 172.671875,
+        "round": 0,
+        "remainderPrototype": false
+      },
+      {
+        "mode": "reference",
+        "variant": "reduced",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 4780.943332999999,
+        "answer": "605857431263981935",
+        "rssMiB": 173.625,
+        "round": 0,
+        "remainderPrototype": false
+      },
+      {
+        "mode": "compiled",
+        "variant": "split",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 179.82366700000003,
+        "answer": "605857431263981935",
+        "rssMiB": 155.3125,
+        "round": 1,
+        "remainderPrototype": true
+      },
+      {
+        "mode": "compiled",
+        "variant": "reduced",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 197.854416,
+        "answer": "605857431263981935",
+        "rssMiB": 173.078125,
+        "round": 1,
+        "remainderPrototype": false
+      },
+      {
+        "mode": "reference",
+        "variant": "reduced",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 5059.103249999999,
+        "answer": "605857431263981935",
+        "rssMiB": 174.359375,
+        "round": 1,
+        "remainderPrototype": false
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 222.253292,
+        "answer": "605857431263981935",
+        "rssMiB": 172.484375,
+        "round": 1,
+        "remainderPrototype": false
+      },
+      {
+        "mode": "compiled",
+        "variant": "reduced",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 198.846125,
+        "answer": "605857431263981935",
+        "rssMiB": 172.765625,
+        "round": 2,
+        "remainderPrototype": false
+      },
+      {
+        "mode": "reference",
+        "variant": "reduced",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 5375.556709,
+        "answer": "605857431263981935",
+        "rssMiB": 173.46875,
+        "round": 2,
+        "remainderPrototype": false
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 215.262125,
+        "answer": "605857431263981935",
+        "rssMiB": 172.796875,
+        "round": 2,
+        "remainderPrototype": false
+      },
+      {
+        "mode": "compiled",
+        "variant": "split",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 181.122542,
+        "answer": "605857431263981935",
+        "rssMiB": 138.984375,
+        "round": 2,
+        "remainderPrototype": true
+      }
+    ],
+    "binding": [
+      {
+        "mode": "reference",
+        "variant": "original",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 6682.034583000001,
+        "answer": "605857431263981935",
+        "rssMiB": 173.828125,
+        "round": 0,
+        "bindingPrototype": false
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 5547.547041,
+        "answer": "605857431263981935",
+        "rssMiB": 174.046875,
+        "round": 0,
+        "bindingPrototype": true
+      },
+      {
+        "mode": "reference",
+        "variant": "split",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 3170.144042,
+        "answer": "605857431263981935",
+        "rssMiB": 175.75,
+        "round": 0,
+        "bindingPrototype": true
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 5373.118791000001,
+        "answer": "605857431263981935",
+        "rssMiB": 173.15625,
+        "round": 1,
+        "bindingPrototype": true
+      },
+      {
+        "mode": "reference",
+        "variant": "split",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 3175.5405,
+        "answer": "605857431263981935",
+        "rssMiB": 173.765625,
+        "round": 1,
+        "bindingPrototype": true
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 6459.303458,
+        "answer": "605857431263981935",
+        "rssMiB": 173.8125,
+        "round": 1,
+        "bindingPrototype": false
+      },
+      {
+        "mode": "reference",
+        "variant": "split",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 3270.593541,
+        "answer": "605857431263981935",
+        "rssMiB": 173.203125,
+        "round": 2,
+        "bindingPrototype": true
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 6543.015458999999,
+        "answer": "605857431263981935",
+        "rssMiB": 173.296875,
+        "round": 2,
+        "bindingPrototype": false
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "p": 61,
+        "q": 10000000,
+        "exp": 10,
+        "ms": 5376.378708,
+        "answer": "605857431263981935",
+        "rssMiB": 172.21875,
+        "round": 2,
+        "bindingPrototype": true
+      }
+    ]
+  },
+  "sourceHashes": {
+    "benchmarks/experiments/euler288-original.ra": "f10fd3a7c6db49d4dc748ec62995be360d2d1ff441eb5eed298c46e9c9f60eef",
+    "benchmarks/experiments/euler288-remainder-loader.mjs": "c87501cafba0edf213aace2f47010a6aa3b9c06d8ab1428a804bee2901abfecd",
+    "benchmarks/experiments/euler288-reduced.ra": "1deb8940d4541de3ffecd0f4415683bd531c290eefa77fdb9fec469b7119a618",
+    "benchmarks/experiments/euler288-split.ra": "73194b48be64a610b6432dbc4dffe8e4e41ff60e62ba8672c91577a13db7e6f9",
+    "benchmarks/experiments/euler288-binding-loader.mjs": "612bedb4a3b1be1b139c8a4b02f761c322ed1803dc7a4cb5caff1cb9251ae3dc",
+    "benchmarks/euler288-investigation.mjs": "82d25be98e79eab231b16a2f55a69aae8c59a1b0b473ca87fdedf94c1fd7b9dd",
+    "benchmarks/euler288-verify.mjs": "fab6e5a7d4df6b13b6176f09781a3d2f0c983c03f36ae9d523087862e97f1c7c",
+    "demos/euler/288_enormousfactorial.ra": "f10fd3a7c6db49d4dc748ec62995be360d2d1ff441eb5eed298c46e9c9f60eef",
+    "demos/euler/288_enormousfactorial_test.ra": "d65c90e30b55ac47d8cf7b02bfa03893f437fe57128d779dd6f37ddb5ebdd816"
+  },
+  "verification": {
+    "stock": {
+      "comparisons": 72,
+      "remainderComparisons": 84743,
+      "generatedRemainders": 624,
+      "generatedNumberLoops": 1
+    },
+    "remainder": {
+      "comparisons": 72,
+      "remainderComparisons": 84743,
+      "generatedRemainders": 624,
+      "generatedNumberLoops": 1
+    },
+    "binding": {
+      "comparisons": 72,
+      "remainderComparisons": 84743,
+      "generatedRemainders": 624,
+      "generatedNumberLoops": 1
+    },
+    "combined": {
+      "comparisons": 72,
+      "remainderComparisons": 84743,
+      "generatedRemainders": 624,
+      "generatedNumberLoops": 1
+    }
+  },
+  "diagnostics": {
+    "original": {
+      "mode": "compiled",
+      "variant": "original",
+      "p": 61,
+      "q": 10000000,
+      "exp": 10,
+      "ms": 218.56954100000002,
+      "answer": "605857431263981935",
+      "rssMiB": 174.625,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:unsupported-op:*": 3,
+          "scalar-expression:too-small": 1,
+          "tensor:scalar-evaluation-timing": 4,
+          "scalar-expression:unsupported-op:+": 1,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op:mod": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "split": {
+      "mode": "compiled",
+      "variant": "split",
+      "p": 61,
+      "q": 10000000,
+      "exp": 10,
+      "ms": 670.040458,
+      "answer": "605857431263981935",
+      "rssMiB": 153.84375,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op:mod": 1,
+          "tensor:scalar-evaluation-timing": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "reduced": {
+      "mode": "compiled",
+      "variant": "reduced",
+      "p": 61,
+      "q": 10000000,
+      "exp": 10,
+      "ms": 200.39912500000003,
+      "answer": "605857431263981935",
+      "rssMiB": 172.921875,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 8,
+          "scalar-expression:unsupported-op:*": 3,
+          "scalar-expression:too-small": 1,
+          "tensor:scalar-evaluation-timing": 4,
+          "scalar-expression:unsupported-op:-": 3,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+          "scalar-expression:unsupported-op:+": 1,
+          "scalar-expression:unsupported-op:mod": 1
+        },
+        "compilerRejections": []
+      }
+    }
+  },
+  "referenceProfile": {
+    "workload": "Q=1000000, includes imports/startup, attribution only",
+    "result": {
+      "mode": "reference",
+      "file": "demos/euler/288_enormousfactorial.ra",
+      "q": 1000000,
+      "p": 61,
+      "exp": 10,
+      "ms": 735.620375,
+      "answer": "94628344576751366",
+      "rssMiB": 181.296875
+    },
+    "topSelf": [
+      {
+        "function": "assign",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js",
+        "line": 57,
+        "microseconds": 118541,
+        "percent": 13.182207395051432
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+        "line": 184,
+        "microseconds": 76706,
+        "percent": 8.529997219905477
+      },
+      {
+        "function": "get",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js",
+        "line": 63,
+        "microseconds": 52500,
+        "percent": 5.838198498748957
+      },
+      {
+        "function": "execute",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/blocks.js",
+        "line": 31,
+        "microseconds": 47959,
+        "percent": 5.3332221295524045
+      },
+      {
+        "function": "compileSourceTextModule",
+        "url": "node:internal/modules/esm/utils",
+        "line": 316,
+        "microseconds": 42501,
+        "percent": 4.72627189324437
+      },
+      {
+        "function": "(program)",
+        "url": "",
+        "line": 0,
+        "microseconds": 28375,
+        "percent": 3.1554072838476506
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js",
+        "line": 117,
+        "microseconds": 27458,
+        "percent": 3.053433416736169
+      },
+      {
+        "function": "checkMutable",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js",
+        "line": 158,
+        "microseconds": 22667,
+        "percent": 2.5206561023074783
+      },
+      {
+        "function": "publish",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js",
+        "line": 230,
+        "microseconds": 22584,
+        "percent": 2.5114261884904088
+      },
+      {
+        "function": "run",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js",
+        "line": 395,
+        "microseconds": 22458,
+        "percent": 2.4974145120934113
+      },
+      {
+        "function": "run",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/mutation-guards.js",
+        "line": 35,
+        "microseconds": 21417,
+        "percent": 2.381651376146789
+      },
+      {
+        "function": "has",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/language/out/binding-rule.js",
+        "line": 1,
+        "microseconds": 18708,
+        "percent": 2.0804003336113426
+      },
+      {
+        "function": "assignmentScope",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js",
+        "line": 38,
+        "microseconds": 16375,
+        "percent": 1.8209619127050318
+      },
+      {
+        "function": "isConstant",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js",
+        "line": 224,
+        "microseconds": 16334,
+        "percent": 1.8164025576869616
+      },
+      {
+        "function": "splitQualified",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/interpreter.js",
+        "line": 33,
+        "microseconds": 16208,
+        "percent": 1.8023908812899638
+      },
+      {
+        "function": "preparedStatement",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/blocks.js",
+        "line": 97,
+        "microseconds": 13832,
+        "percent": 1.5381706978037253
+      },
+      {
+        "function": "typeOf",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js",
+        "line": 166,
+        "microseconds": 13751,
+        "percent": 1.5291631915485127
+      },
+      {
+        "function": "evaluateBinaryValue",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 229,
+        "microseconds": 12667,
+        "percent": 1.4086182930219628
+      },
+      {
+        "function": "stream",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/loops.js",
+        "line": 66,
+        "microseconds": 11916,
+        "percent": 1.3251042535446205
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 203,
+        "microseconds": 11375,
+        "percent": 1.264943008062274
+      },
+      {
+        "function": "findOperation",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/language/out/operations.js",
+        "line": 1313,
+        "microseconds": 11333,
+        "percent": 1.260272449263275
+      },
+      {
+        "function": "(garbage collector)",
+        "url": "",
+        "line": 0,
+        "microseconds": 9958,
+        "percent": 1.1073672504865164
+      },
+      {
+        "function": "getAlternativesForProd",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+        "line": 172,
+        "microseconds": 9541,
+        "percent": 1.0609952738393107
+      },
+      {
+        "function": "stream",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/statement-control.js",
+        "line": 53,
+        "microseconds": 8875,
+        "percent": 0.9869335557408953
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+        "line": 242,
+        "microseconds": 8708,
+        "percent": 0.968362524325827
+      }
+    ]
+  },
+  "checks": {
+    "build": "tsc -b packages/language packages/interpreter passed",
+    "focusedTests": "npm test --workspace @arrrank/interpreter -- test/types.test.ts test/differential.test.ts -t euler/288_enormousfactorial_test: 2 passed, 4237 skipped; 2 fixture blocks completed",
+    "broadSuites": "not run",
+    "intel": "not measured",
+    "productionChanges": false
+  },
+  "delivery": {
+    "baseRevision": "6cec6bd3774c17ca1063bd3254275d510d48aca5",
+    "timing": "Fresh serial processes, reverse case order on alternating rounds; legacy loader rolls back only these two changes in memory. No own tests/profiles/oracles overlap timing; other host load uncontrolled. Separate before/after batches retained, final claims use interleaved paired control.",
+    "samples": {
+      "before": [
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "compiled",
+          "ms": 217.553667,
+          "answer": "605857431263981935",
+          "rssMiB": 173.484375,
+          "round": 0,
+          "stage": "before"
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "reference",
+          "ms": 6289.255416,
+          "answer": "605857431263981935",
+          "rssMiB": 173.828125,
+          "round": 0,
+          "stage": "before"
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 115.35095900000002,
+          "answer": "1000023",
+          "rssMiB": 174,
+          "round": 0,
+          "stage": "before"
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 760.74775,
+          "answer": "329468",
+          "rssMiB": 439.90625,
+          "round": 0,
+          "stage": "before"
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "reference",
+          "ms": 6231.734625,
+          "answer": "605857431263981935",
+          "rssMiB": 173.375,
+          "round": 1,
+          "stage": "before"
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 117.80054200000001,
+          "answer": "1000023",
+          "rssMiB": 173.46875,
+          "round": 1,
+          "stage": "before"
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 749.393292,
+          "answer": "329468",
+          "rssMiB": 447.0625,
+          "round": 1,
+          "stage": "before"
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "compiled",
+          "ms": 218.809917,
+          "answer": "605857431263981935",
+          "rssMiB": 172.140625,
+          "round": 1,
+          "stage": "before"
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 115.23262500000001,
+          "answer": "1000023",
+          "rssMiB": 174.5625,
+          "round": 2,
+          "stage": "before"
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 750.450792,
+          "answer": "329468",
+          "rssMiB": 447.640625,
+          "round": 2,
+          "stage": "before"
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "compiled",
+          "ms": 222.165041,
+          "answer": "605857431263981935",
+          "rssMiB": 172.90625,
+          "round": 2,
+          "stage": "before"
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "reference",
+          "ms": 6023.306583,
+          "answer": "605857431263981935",
+          "rssMiB": 172.828125,
+          "round": 2,
+          "stage": "before"
+        }
+      ],
+      "after": [
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "compiled",
+          "ms": 241.721625,
+          "answer": "605857431263981935",
+          "rssMiB": 172.6875,
+          "round": 0,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "compiled",
+          "ms": 196.46283300000002,
+          "answer": "605857431263981935",
+          "rssMiB": 155.875,
+          "round": 0,
+          "stage": "after"
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "reference",
+          "ms": 5675.536875,
+          "answer": "605857431263981935",
+          "rssMiB": 177.703125,
+          "round": 0,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "reference",
+          "ms": 3326.26475,
+          "answer": "605857431263981935",
+          "rssMiB": 173.25,
+          "round": 0,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 124.81158300000001,
+          "answer": "1000023",
+          "rssMiB": 171.65625,
+          "round": 0,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 814.498959,
+          "answer": "329468",
+          "rssMiB": 430.0625,
+          "round": 0,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "compiled",
+          "ms": 200.52787499999997,
+          "answer": "605857431263981935",
+          "rssMiB": 157.015625,
+          "round": 1,
+          "stage": "after"
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "reference",
+          "ms": 6084.322040999999,
+          "answer": "605857431263981935",
+          "rssMiB": 174.71875,
+          "round": 1,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "reference",
+          "ms": 3486.7901659999998,
+          "answer": "605857431263981935",
+          "rssMiB": 176.265625,
+          "round": 1,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 130.49874999999997,
+          "answer": "1000023",
+          "rssMiB": 178.671875,
+          "round": 1,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 882.076833,
+          "answer": "329468",
+          "rssMiB": 439.109375,
+          "round": 1,
+          "stage": "after"
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "compiled",
+          "ms": 253.67025,
+          "answer": "605857431263981935",
+          "rssMiB": 173.875,
+          "round": 1,
+          "stage": "after"
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "reference",
+          "ms": 5957.146333,
+          "answer": "605857431263981935",
+          "rssMiB": 172.734375,
+          "round": 2,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "reference",
+          "ms": 3604.088584,
+          "answer": "605857431263981935",
+          "rssMiB": 174.328125,
+          "round": 2,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 129.98791600000004,
+          "answer": "1000023",
+          "rssMiB": 172.390625,
+          "round": 2,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 848.1614999999999,
+          "answer": "329468",
+          "rssMiB": 432.3125,
+          "round": 2,
+          "stage": "after"
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "compiled",
+          "ms": 249.54120899999998,
+          "answer": "605857431263981935",
+          "rssMiB": 172.609375,
+          "round": 2,
+          "stage": "after"
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "compiled",
+          "ms": 209.11320800000001,
+          "answer": "605857431263981935",
+          "rssMiB": 140.0625,
+          "round": 2,
+          "stage": "after"
+        }
+      ],
+      "paired": [
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "compiled",
+          "ms": 220.56362500000003,
+          "answer": "605857431263981935",
+          "rssMiB": 175.59375,
+          "round": 0,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "compiled",
+          "ms": 180.395917,
+          "answer": "605857431263981935",
+          "rssMiB": 139.140625,
+          "round": 0,
+          "legacyControl": false
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "reference",
+          "ms": 6865.911,
+          "answer": "605857431263981935",
+          "rssMiB": 173.625,
+          "round": 0,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "reference",
+          "ms": 3193.834458,
+          "answer": "605857431263981935",
+          "rssMiB": 173.328125,
+          "round": 0,
+          "legacyControl": false
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 116.06841700000001,
+          "answer": "1000023",
+          "rssMiB": 174.03125,
+          "round": 0,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 115.09816599999999,
+          "answer": "1000023",
+          "rssMiB": 174.0625,
+          "round": 0,
+          "legacyControl": false
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 791.484791,
+          "answer": "329468",
+          "rssMiB": 448.484375,
+          "round": 0,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 819.135,
+          "answer": "329468",
+          "rssMiB": 430.984375,
+          "round": 0,
+          "legacyControl": false
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 913.8025420000001,
+          "answer": "329468",
+          "rssMiB": 448.71875,
+          "round": 1,
+          "legacyControl": false
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 893.534042,
+          "answer": "329468",
+          "rssMiB": 381.3125,
+          "round": 1,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 135.600708,
+          "answer": "1000023",
+          "rssMiB": 173.78125,
+          "round": 1,
+          "legacyControl": false
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 135.038625,
+          "answer": "1000023",
+          "rssMiB": 177.703125,
+          "round": 1,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "reference",
+          "ms": 3560.684334,
+          "answer": "605857431263981935",
+          "rssMiB": 175.859375,
+          "round": 1,
+          "legacyControl": false
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "reference",
+          "ms": 6738.094083,
+          "answer": "605857431263981935",
+          "rssMiB": 174.703125,
+          "round": 1,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "compiled",
+          "ms": 182.74312499999996,
+          "answer": "605857431263981935",
+          "rssMiB": 156.59375,
+          "round": 1,
+          "legacyControl": false
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "compiled",
+          "ms": 220.11220799999998,
+          "answer": "605857431263981935",
+          "rssMiB": 175.1875,
+          "round": 1,
+          "legacyControl": true
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "compiled",
+          "ms": 220.25866700000003,
+          "answer": "605857431263981935",
+          "rssMiB": 173.546875,
+          "round": 2,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "compiled",
+          "ms": 180.915584,
+          "answer": "605857431263981935",
+          "rssMiB": 141.296875,
+          "round": 2,
+          "legacyControl": false
+        },
+        {
+          "file": "benchmarks/experiments/euler288-original.ra",
+          "mode": "reference",
+          "ms": 7113.250875000001,
+          "answer": "605857431263981935",
+          "rssMiB": 173.296875,
+          "round": 2,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/288_enormousfactorial.ra",
+          "mode": "reference",
+          "ms": 3566.628541,
+          "answer": "605857431263981935",
+          "rssMiB": 173.40625,
+          "round": 2,
+          "legacyControl": false
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 127.217917,
+          "answer": "1000023",
+          "rssMiB": 173.34375,
+          "round": 2,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 129.49724999999998,
+          "answer": "1000023",
+          "rssMiB": 173.859375,
+          "round": 2,
+          "legacyControl": false
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 856.754375,
+          "answer": "329468",
+          "rssMiB": 394.15625,
+          "round": 2,
+          "legacyControl": true
+        },
+        {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 895.5897500000001,
+          "answer": "329468",
+          "rssMiB": 448.734375,
+          "round": 2,
+          "legacyControl": false
+        }
+      ]
+    },
+    "summary": [
+      {
+        "file": "benchmarks/experiments/euler288-original.ra",
+        "mode": "compiled",
+        "legacyControl": true,
+        "medianMs": 220.25866700000003,
+        "medianRssMiB": 175.1875,
+        "samplesMs": [
+          220.56362500000003,
+          220.11220799999998,
+          220.25866700000003
+        ]
+      },
+      {
+        "file": "demos/euler/288_enormousfactorial.ra",
+        "mode": "compiled",
+        "legacyControl": false,
+        "medianMs": 180.915584,
+        "medianRssMiB": 141.296875,
+        "samplesMs": [
+          180.395917,
+          182.74312499999996,
+          180.915584
+        ]
+      },
+      {
+        "file": "benchmarks/experiments/euler288-original.ra",
+        "mode": "reference",
+        "legacyControl": true,
+        "medianMs": 6865.911,
+        "medianRssMiB": 173.625,
+        "samplesMs": [
+          6865.911,
+          6738.094083,
+          7113.250875000001
+        ]
+      },
+      {
+        "file": "demos/euler/288_enormousfactorial.ra",
+        "mode": "reference",
+        "legacyControl": false,
+        "medianMs": 3560.684334,
+        "medianRssMiB": 173.40625,
+        "samplesMs": [
+          3193.834458,
+          3560.684334,
+          3566.628541
+        ]
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "compiled",
+        "legacyControl": true,
+        "medianMs": 127.217917,
+        "medianRssMiB": 174.03125,
+        "samplesMs": [
+          116.06841700000001,
+          135.038625,
+          127.217917
+        ]
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "compiled",
+        "legacyControl": false,
+        "medianMs": 129.49724999999998,
+        "medianRssMiB": 173.859375,
+        "samplesMs": [
+          115.09816599999999,
+          135.600708,
+          129.49724999999998
+        ]
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "compiled",
+        "legacyControl": true,
+        "medianMs": 856.754375,
+        "medianRssMiB": 394.15625,
+        "samplesMs": [
+          791.484791,
+          893.534042,
+          856.754375
+        ]
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "compiled",
+        "legacyControl": false,
+        "medianMs": 895.5897500000001,
+        "medianRssMiB": 448.71875,
+        "samplesMs": [
+          819.135,
+          913.8025420000001,
+          895.5897500000001
+        ]
+      }
+    ],
+    "oracle": {
+      "comparisons": 96,
+      "remainderComparisons": 84743,
+      "generatedRemainders": 624,
+      "generatedNumberLoops": 1
+    },
+    "diagnostics": {
+      "mode": "compiled",
+      "variant": "shipping",
+      "p": 61,
+      "q": 10000000,
+      "exp": 10,
+      "ms": 180.217625,
+      "answer": "605857431263981935",
+      "rssMiB": 139.296875,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op:mod": 1,
+          "tensor:scalar-evaluation-timing": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "checks": {
+      "build": "tsc -b packages/language packages/interpreter passed",
+      "targetedRuntimeTests": "679 passed in 10 files; another 193 passed in 8 files (872 total)",
+      "fullGolden": "1 passed, 14 skipped; full compiled answer 605857431263981935",
+      "fixture": "2 scoped tests passed, 4237 skipped; 7 fixture blocks, 100 compiled entries, 18 Number loop entries",
+      "broadSuites": "not run",
+      "intel": "not measured"
+    },
+    "sourceHashes": {
+      "benchmarks/euler288-controls.mjs": "d5fba6236c460b06004a36116ec76334d3a3cc8905e332c96ae3d6e455c5568b",
+      "benchmarks/euler288-investigation.mjs": "78ac9b76c21b2c68ba0280e213a63943c3ad0fd5945bff8f33493017cce25bda",
+      "benchmarks/euler288-verify.mjs": "dd0fd78c1583824bd2455994c6d3be186988067f68858e3bbd2501d94de222b0",
+      "benchmarks/experiments/euler288-original.ra": "f10fd3a7c6db49d4dc748ec62995be360d2d1ff441eb5eed298c46e9c9f60eef",
+      "benchmarks/experiments/euler288-remainder-loader.mjs": "c87501cafba0edf213aace2f47010a6aa3b9c06d8ab1428a804bee2901abfecd",
+      "benchmarks/experiments/euler288-legacy-loader.mjs": "9616680fb4a5e623a50cb4d8b5893fdd1ec832e38ad5d60eed1690a2f59670e0",
+      "benchmarks/experiments/euler288-reduced.ra": "1deb8940d4541de3ffecd0f4415683bd531c290eefa77fdb9fec469b7119a618",
+      "benchmarks/experiments/euler288-split.ra": "73194b48be64a610b6432dbc4dffe8e4e41ff60e62ba8672c91577a13db7e6f9",
+      "benchmarks/experiments/euler288-binding-loader.mjs": "a850f8eec52132c881e628befe80d31bbdedeeb45ee4461a0cb9c09d5cc1ec8d",
+      "demos/euler/288_enormousfactorial.ra": "a6b459f588d36a12ba918f814bf180748cb4fb49fc64806a7b1b24bf6a3aaec6",
+      "demos/euler/288_enormousfactorial_test.ra": "e0d87246ae9673ffd51fc9f5e9988126af58262dd93de970225da41de45c756b",
+      "packages/interpreter/src/binding-environment.ts": "4186d78668ec8432d9ed824a36e996a3b77fbe46bd75db8803cf10b4d7a1601c",
+      "packages/interpreter/src/jit/integer-loop-expressions.ts": "b66483b96251d9869fb9cd83b0f4e55039565611037bb87cbf9c65dac72cd482"
+    }
+  }
+}

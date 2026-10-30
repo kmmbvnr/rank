@@ -958,3 +958,50 @@ end`;
         } finally { runtime.dispose(); }
     });
 });
+
+it('keeps integer remainder exact at the bounded quotient edges and for every sign', () => {
+    const cases: [bigint, bigint][] = [];
+    const bound = 1n << 52n;
+    const numerators = [0n, 1n, (1n << 31n) - 1n, bound - 2n, bound - 1n,
+        bound, bound + 1n, (1n << 53n) - 1n];
+    const divisors = [1n, 2n, 3n, 61n, 50515093n, bound - 1n, bound, (1n << 53n) - 1n];
+    for (const a of numerators) for (const b of divisors)
+        for (const sa of [-1n, 1n]) for (const sb of [-1n, 1n]) cases.push([sa * a, sb * b]);
+    for (let b = 7n; b < 1000n; b += 37n) {
+        const multiple = (bound - 1n) / b * b;
+        for (const delta of [-1n, 0n, 1n]) cases.push([multiple + delta, b]);
+    }
+    const array = (name: string, values: bigint[]) =>
+        `${name} = array shape ${values.length}\n${values.join('\n')}\nend\n`;
+    const expected = cases.map(([a, b]) => {
+        const r = a % b;
+        return r !== 0n && (a < 0n) !== (b < 0n) ? r + b : r;
+    });
+    const source = array('A', cases.map(([a]) => a)) + array('B', cases.map(([, b]) => b))
+        + array('Expected', expected) + `Errors = 0
+for I in 0 to ${cases.length - 1}
+ if A I mod B I not equal Expected I
+  Errors += 1
+ end
+end`;
+    const candidate = execute(source);
+    expect(candidate.observation).toEqual(execute(source, { compilation: false }).observation);
+    expect(candidate.observation).toEqual(execute(source, { numberLoopCompilation: false }).observation);
+    expect(candidate.observation.error).toBeUndefined();
+    expect(candidate.observation.variables).toContainEqual(['Errors', '0']);
+    expect(candidate.diagnostics.numberLoops).toBe(1);
+    expect(candidate.diagnostics.numberLoopOverflows).toBe(0);
+});
+
+it('retains completed remainder stores and reports a later zero divisor', () => {
+    const source = `A = array shape 100 fill 0
+Last = -1
+for I in 0 to 99
+ A I = 4503599627370495 mod (97 - I)
+ Last = I
+end`;
+    expect(compare(source).numberLoops).toBe(1);
+    const result = execute(source).observation;
+    expect(result.error).toContain('division by zero');
+    expect(result.variables).toContainEqual(['Last', '96']);
+});

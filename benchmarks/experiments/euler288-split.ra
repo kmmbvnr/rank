@@ -1,0 +1,27 @@
+rem Research: separate positional prefix from the digit-sum tail.
+use numbers
+use io
+use cli
+arg P integer = 61
+arg Q integer = 10000000
+arg Exp integer = 10
+rem W(k) = 1 + p + ... + p^(k-1).
+S = 290797
+Low = 0
+Pw = 1
+Weight = 0
+for K in 0 to ((Exp - 1) min Q)
+  T = S mod P
+  Low += T * Weight
+  Weight += Pw
+  Pw *= P
+  S = S * S mod 50515093
+end
+rem W(k) is W(Exp) modulo p^Exp for all k >= Exp.
+Tail = 0
+for K in Exp to Q
+  Tail += S mod P
+  S = S * S mod 50515093
+end
+Answer = (Low + Tail * Weight) mod (P ** Exp)
+Answer print

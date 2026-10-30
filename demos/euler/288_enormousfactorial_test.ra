@@ -1,12 +1,5 @@
 use testing
 
-test "default input"
-  use "288_enormousfactorial"
-  run
-
-  Answer equal 605857431263981935
-end
-
 test "problem example"
   use "288_enormousfactorial"
   P = 3
@@ -15,4 +8,67 @@ test "problem example"
   run
 
   Answer equal 624955285
+end
+
+rem Full Q=10000000 golden is checked
+rem by the compiled full-scale suite.
+
+test "P=61 Q=0 Exp=10"
+  use "288_enormousfactorial"
+  P = 61
+  Q = 0
+  Exp = 10
+  run
+
+  Answer equal 0
+end
+
+test "P=61 Q=9 Exp=10"
+  use "288_enormousfactorial"
+  P = 61
+  Q = 9
+  Exp = 10
+  run
+
+  Answer equal 11405004883248562
+end
+
+test "P=61 Q=10 Exp=10"
+  use "288_enormousfactorial"
+  P = 61
+  Q = 10
+  Exp = 10
+  run
+
+  Answer equal 213518829854398632
+end
+
+test "P=61 Q=11 Exp=10"
+  use "288_enormousfactorial"
+  P = 61
+  Q = 11
+  Exp = 10
+  run
+
+  Answer equal 427521703353263412
+end
+
+test "P=2 Q=200 Exp=80"
+  use "288_enormousfactorial"
+  P = 2
+  Q = 200
+  Exp = 80
+  run
+
+  Answer equal 488731533221080040898657
+end
+
+test "P=7 Q=99 Exp=0"
+  use "288_enormousfactorial"
+  P = 7
+  Q = 99
+  Exp = 0
+  run
+
+  Answer equal 0
 end

@@ -121,12 +121,15 @@ export class BindingEnvironment {
         let slot = -1;
         let global: ReadonlySet<string> | undefined;
         return (value: RankValue): void => {
-            if (this.isConstant(name, this.assignmentScope(name))) {
+            const scope = this.assignmentScope(name);
+            if (this.isConstant(name, scope)) {
                 throw new RankError(`cannot reassign function declaration: ${name}`, 'TypeError');
             }
             if (isRankPlan(value)) { this.assign(name, value); return; }
             const received = typeName(value);
-            const frame = this.current;
+            // A block can update an enclosing binding. Cache the slot/type in
+            // that binding's scope, rather than missing in the block's frame.
+            const frame = scope === this.globals ? undefined : scope;
             if (frame === undefined) {
                 // A global keeps the types it first settled on, so the site
                 // remembers them and the write costs one store rather than a

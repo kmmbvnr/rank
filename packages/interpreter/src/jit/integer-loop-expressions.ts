@@ -453,7 +453,16 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return name;
         }
         const remainder = numberMode || op === 'mod' ? `m${state.serial++}` : undefined;
-        if (remainder) lines.push(`const ${remainder} = (${a}) % (${b});`);
+        if (remainder) {
+            // For 0 <= a < 2^52 and b > 0, quotient rounding is < 1/(2*b),
+            // too small to cross the next integer. floor(a/b)*b <= a, so its
+            // product and the subtraction are exact. Keep % outside this
+            // domain, and retain the zero/sign/overflow checks around it.
+            const code = numberMode
+                ? `(${a}) >= 0 && (${a}) < 4503599627370496 && (${b}) > 0 ? (${a}) - Math.floor((${a}) / (${b})) * (${b}) : (${a}) % (${b})`
+                : `(${a}) % (${b})`;
+            lines.push(`const ${remainder} = ${code};`);
+        }
         lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b, { remainder, number: numberMode, safe })};`);
         return name;
     }
