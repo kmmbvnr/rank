@@ -1,0 +1,69 @@
+rem Maharaja
+rem https://acmp.ru/index.asp?main=task&id_task=101
+rem Count placements of K non-attacking Maharajas (queen + knight) on N x N board using bitmask search
+
+use io
+use cli
+use bits
+use numbers
+
+arg N integer = 3
+arg K integer = 1
+
+fun Row Placed N K ColMask D1 D2 Prev1 Prev2 solve
+  if Placed equal K
+    return 1
+  end
+  if Row equal N
+    return 0
+  end
+  if (N - Row) less (K - Placed)
+    return 0
+  end
+
+  Total = 0
+
+  rem Option 1: Place at (Row, C)
+  for C in 0 to (N - 1)
+    ColBit = ColMask band (1 shl C)
+    if ColBit equal 0
+      D1Val = (Row - C) + 15
+      D1Bit = D1 band (1 shl D1Val)
+      if D1Bit equal 0
+        D2Val = Row + C
+        D2Bit = D2 band (1 shl D2Val)
+        if D2Bit equal 0
+          Conflict = false
+          if not (Prev1 less 0)
+            Diff1 = (Prev1 - C) abs
+            if Diff1 equal 2
+              Conflict = true
+            end
+          end
+          if (not Conflict) and (not (Prev2 less 0))
+            Diff2 = (Prev2 - C) abs
+            if Diff2 equal 1
+              Conflict = true
+            end
+          end
+
+          if not Conflict
+            NextCol = ColMask bor (1 shl C)
+            NextD1 = D1 bor (1 shl D1Val)
+            NextD2 = D2 bor (1 shl D2Val)
+            Sub = (Row + 1) (Placed + 1) N K NextCol NextD1 NextD2 C Prev1 solve
+            Total += Sub
+          end
+        end
+      end
+    end
+  end
+
+  rem Option 2: Skip row
+  SubSkip = (Row + 1) Placed N K ColMask D1 D2 (0 - 1) Prev1 solve
+  Total += SubSkip
+  return Total
+end
+
+Answer = 0 0 N K 0 0 0 (0 - 1) (0 - 1) solve
+Answer print

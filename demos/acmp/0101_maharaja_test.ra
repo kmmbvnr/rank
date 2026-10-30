@@ -1,0 +1,35 @@
+use testing
+
+test "sample 1: 3x3 with 1 maharaja"
+  use "0101_maharaja"
+  run
+
+  Answer equal 9
+end
+
+test "sample 2: 4x4 with 2 maharajas"
+  use "0101_maharaja"
+  N = 4
+  K = 2
+  run
+
+  Answer equal 20
+end
+
+test "sample 3: 5x5 with 3 maharajas"
+  use "0101_maharaja"
+  N = 5
+  K = 3
+  run
+
+  Answer equal 48
+end
+
+test "10x10 with 10 maharajas"
+  use "0101_maharaja"
+  N = 10
+  K = 10
+  run
+
+  Answer equal 4
+end
