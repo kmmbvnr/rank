@@ -10,6 +10,8 @@ import { floorDivide, floorRemainder } from '../numeric-division.js';
 import { arrayStrides, broadcastOffset, broadcastShape, trailingCells } from './tensor-layout.js';
 import { isRankArray, type RankArray, type RankValue } from '../value.js';
 
+const MAX_SAFE = 9007199254740991n, MAX_SAFE_NUMBER = Number.MAX_SAFE_INTEGER;
+const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((n, i) => n === b[i]);
 const lowWord = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 
 /** Exact arithmetic over stored integers, including trusted segmented views.
@@ -24,7 +26,7 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
         : name === 'gcd' ? greatestCommonDivisor
         : name === 'abs' ? (a: bigint) => a < 0n ? -a : a : undefined;
     if (!operation || inspectionEnabled() || !privateLoopPolling()) return undefined;
-    if (name === '+' || name === '-' || name === '*' || name === 'gcd') {
+    if (name === '+' || name === '-' || name === '*' || name === 'gcd' || name === 'mod' || name === '//' || name === 'min' || name === 'max') {
         try {
             const compact = mapStoredInt32Binary(left, right, name);
             if (compact) return compact;
@@ -63,13 +65,13 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
 
 /** Completed integer operands can produce a compact result without BigInt arithmetic.
  * A result that widens discards the temporary buffer and uses exact arithmetic. */
-function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-' | '*' | 'gcd'): RankArray | undefined {
+function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-' | '*' | 'gcd' | 'mod' | '//' | 'min' | 'max'): RankArray | undefined {
     const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
     const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
     const eligible = (value: RankValue, view: typeof a) => isRankArray(value)
         ? view?.kinds?.length === 1 && view.kinds[0] === 'integer' && view.linear !== undefined
             && (!view.validate || view.validateUniform !== undefined)
-        : typeof value === 'bigint' && value >= -2147483648n && value <= 2147483647n;
+        : typeof value === 'bigint' && value >= -MAX_SAFE && value <= MAX_SAFE;
     if (!eligible(left, a) || !eligible(right, b) || !a && !b) return undefined;
     const shape = broadcastShape(isRankArray(left) ? left.shape : [], isRankArray(right) ? right.shape : []);
     const size = shape.reduce((n, dimension) => n * dimension, 1);
@@ -77,29 +79,72 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         if (a) a.validateUniform?.(a.compact ? BigInt(a.compact[a.linear!.offset]) : a.items[a.linear!.offset]);
         if (b) b.validateUniform?.(b.compact ? BigInt(b.compact[b.linear!.offset]) : b.items[b.linear!.offset]);
     }
-    const ai = broadcastIndex(isRankArray(left) ? left.shape : undefined, shape);
-    const bi = broadcastIndex(isRankArray(right) ? right.shape : undefined, shape);
     const x = a ? 0 : Number(left), y = b ? 0 : Number(right);
-    const operation = name === '+' ? (a: number, b: number) => a + b
-        : name === '-' ? (a: number, b: number) => a - b
-        : name === 'gcd' ? safeIntegerGcd : (a: number, b: number) => a * b;
-    const cells = new Int32Array(size);
+    const code = name === '+' ? 0 : name === '-' ? 1 : name === '*' ? 2 : name === 'mod' ? 3
+        : name === '//' ? 4 : name === 'min' ? 5 : name === 'max' ? 6 : 7;
+    // Results beyond Int32 stay exact while they are safe integers; any other
+    // result is left to the BigInt path.
+    const cells = new Float64Array(size);
+    let wide = false;
+    // Equal shapes address both operands in place, with no broadcast mapping.
+    const sameShape = (value: RankValue) => !isRankArray(value) || same(value.shape, shape);
+    const ai = sameShape(left) ? undefined : broadcastIndex(isRankArray(left) ? left.shape : undefined, shape);
+    const bi = sameShape(right) ? undefined : broadcastIndex(isRankArray(right) ? right.shape : undefined, shape);
+    const ac = a?.compact, ab = a?.items, bc = b?.compact, bb = b?.items;
+    // Int64 cells are read as two Int32 words: no BigInt per cell.
+    const words = (items: ArrayLike<RankValue> | undefined) => items instanceof BigInt64Array
+        ? new Int32Array(items.buffer, items.byteOffset, items.length * 2) : undefined;
+    const aw = words(ab), bw = words(bb);
+    const ao = a?.linear!.offset ?? 0, as = a?.linear!.stride ?? 0, bo = b?.linear!.offset ?? 0, bs = b?.linear!.stride ?? 0;
     for (let start = 0; start < size; start += 4096) {
         const end = Math.min(size, start + 4096);
         checkpoint('computing integer array', end - start);
         for (let i = start; i < end; i++) {
-            const ap = a ? a.linear!.offset + ai(i) * a.linear!.stride : 0;
-            const bp = b ? b.linear!.offset + bi(i) * b.linear!.stride : 0;
-            const av = a ? a.compact ? a.compact[ap] : Number(a.items[ap]) : x;
-            const bv = b ? b.compact ? b.compact[bp] : Number(b.items[bp]) : y;
-            if (!Number.isSafeInteger(av) || !Number.isSafeInteger(bv)) return undefined;
-            const result = operation(av, bv);
-            if (result !== (result | 0)) return undefined;
+            const ap = a ? ao + (ai ? ai(i) : i) * as : 0;
+            const bp = b ? bo + (bi ? bi(i) : i) * bs : 0;
+            const av = a ? ac ? ac[ap] : aw ? aw[2 * ap + 1 - lowWord] * 4294967296 + (aw[2 * ap + lowWord] >>> 0) : Number(ab![ap]) : x;
+            const bv = b ? bc ? bc[bp] : bw ? bw[2 * bp + 1 - lowWord] * 4294967296 + (bw[2 * bp + lowWord] >>> 0) : Number(bb![bp]) : y;
+            if (!(av >= -MAX_SAFE_NUMBER && av <= MAX_SAFE_NUMBER) || !(bv >= -MAX_SAFE_NUMBER && bv <= MAX_SAFE_NUMBER)) return undefined;
+            let result: number;
+            switch (code) {
+                case 0: result = av + bv; break;
+                case 1: result = av - bv; break;
+                case 2: result = av * bv; break;
+                case 3: case 4: {
+                    if (bv === 0) return undefined;
+                    const r = av % bv, m = r !== 0 && r < 0 !== bv < 0 ? r + bv : r;
+                    result = code === 3 ? m : (av - m) / bv;
+                    break;
+                }
+                case 5: result = bv < av ? bv : av; break;
+                case 6: result = bv > av ? bv : av; break;
+                default: result = safeIntegerGcd(av, bv);
+            }
+            if (result !== (result | 0)) {
+                if (!(result >= -MAX_SAFE_NUMBER && result <= MAX_SAFE_NUMBER)) return undefined;
+                wide = true;
+            }
             cells[i] = result;
         }
     }
-    return a?.compact || b?.compact ? typedArray(cells, shape)
-        : ownedScalarArray(Array.from(cells, BigInt), 'integer', shape);
+    // Typed operands produce typed cells; boxed operands keep boxed cells.
+    const typed = (view: typeof a) => !view || !!view.compact || view.items instanceof BigInt64Array;
+    const packed = typed(a) && typed(b);
+    if (wide) {
+        if (packed) {
+            const out = new BigInt64Array(size), pair = new Int32Array(out.buffer);
+            for (let i = 0; i < size; i++) {
+                const high = Math.floor(cells[i] / 4294967296);
+                pair[2 * i + lowWord] = cells[i] - high * 4294967296 | 0;
+                pair[2 * i + 1 - lowWord] = high;
+            }
+            return typedArray(out, shape);
+        }
+        return ownedScalarArray(Array.from(cells, BigInt), 'integer', shape);
+    }
+    const narrow = Int32Array.from(cells);
+    return packed ? typedArray(narrow, shape)
+        : ownedScalarArray(Array.from(narrow, BigInt), 'integer', shape);
 }
 
 /** Compare completed compact integers directly into a bitmap. Borrowed readers
