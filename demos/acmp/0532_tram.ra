@@ -1,0 +1,123 @@
+rem Tram
+rem https://acmp.ru/index.asp?main=task&id_task=532
+rem Maximize passengers satisfaction with M seats across P tram stops via sweep-line and sum segment trees
+
+use io
+use algo
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "4 2 4\n10 -10 2 3\n-1 -3 1 4\n6 -6 1 3\n7 4 2 4"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+M = (Tokens 1) integer
+P = (Tokens 2) integer
+Raw = (Tokens drop 3) integer
+
+A = Raw ((0 till N) * 4)
+B = Raw (((0 till N) * 4) + 1)
+C = Raw (((0 till N) * 4) + 2)
+D = Raw (((0 till N) * 4) + 3)
+
+rem Every passenger contributes standing happiness B_i on each of their hops
+BaseHappiness = (B * (D - C)) sum
+
+rem Sitting adds extra gain (A_i - B_i) when positive
+Gains = A - B
+PosMask = Gains greater 0
+NumPos = PosMask count
+
+TotalGains = 0
+
+if NumPos greater 0
+  PosG = Gains PosMask
+  PosC = C PosMask
+  PosD = D PosMask
+
+  rem Coordinate compress distinct positive gains
+  UniqueG = PosG sort unique
+  K = UniqueG len
+  GainIdx = UniqueG lowerindex PosG
+
+  CountTree = (array shape K fill 0) segment +
+  SumTree = (array shape K fill 0) segment +
+
+  EnterOrder = PosC argsort
+  ExitOrder = PosD argsort
+
+  SortedEnterC = PosC EnterOrder
+  SortedEnterIdx = GainIdx EnterOrder
+  SortedEnterG = PosG EnterOrder
+
+  SortedExitD = PosD ExitOrder
+  SortedExitIdx = GainIdx ExitOrder
+  SortedExitG = PosG ExitOrder
+
+  EnterPtr = 0
+  ExitPtr = 0
+
+  rem Sweep through each hop from stop S to S+1
+  for S in 1 till P
+    rem Process departures at stop S
+    for true
+      if ExitPtr equal NumPos
+        break
+      end
+      if not ((SortedExitD ExitPtr) equal S)
+        break
+      end
+      EIdx = SortedExitIdx ExitPtr
+      EG = SortedExitG ExitPtr
+      CountTree EIdx = (CountTree EIdx) - 1
+      SumTree EIdx = (SumTree EIdx) - EG
+      ExitPtr = ExitPtr + 1
+    end
+
+    rem Process arrivals at stop S
+    for true
+      if EnterPtr equal NumPos
+        break
+      end
+      if not ((SortedEnterC EnterPtr) equal S)
+        break
+      end
+      EIdx = SortedEnterIdx EnterPtr
+      EG = SortedEnterG EnterPtr
+      CountTree EIdx = (CountTree EIdx) + 1
+      SumTree EIdx = (SumTree EIdx) + EG
+      EnterPtr = EnterPtr + 1
+    end
+
+    rem Query sum of top M gains among active passengers
+    TotalActive = CountTree 0 (K - 1) query
+    if TotalActive greater 0
+      if not (TotalActive greater M)
+        HopGain = SumTree 0 (K - 1) query
+        TotalGains = TotalGains + HopGain
+      else
+        Rem = TotalActive - M
+        CutPos = CountTree firstatleast Rem
+        CountBefore = 0
+        SumBefore = 0
+        if CutPos greater 0
+          CountBefore = CountTree 0 (CutPos - 1) query
+          SumBefore = SumTree 0 (CutPos - 1) query
+        end
+        TakeAtCut = Rem - CountBefore
+        BottomSum = SumBefore + (TakeAtCut * (UniqueG CutPos))
+        TotalSum = SumTree 0 (K - 1) query
+        HopGain = TotalSum - BottomSum
+        TotalGains = TotalGains + HopGain
+      end
+    end
+  end
+end
+
+MaxSatisfaction = BaseHappiness + TotalGains
+
+(MaxSatisfaction text) print

@@ -1,0 +1,40 @@
+use testing
+
+test "sample 1: 4 passengers with 2 seats across 4 stops yields 28"
+  use "0532_tram"
+  run
+
+  MaxSatisfaction equal 28
+end
+
+test "all passengers prefer standing over sitting"
+  use "0532_tram"
+  Input = "2 1 3\n1 5 1 2\n2 10 2 3"
+  run
+
+  MaxSatisfaction equal 15
+end
+
+test "zero seats forces all passengers to stand"
+  use "0532_tram"
+  Input = "2 0 3\n10 1 1 3\n20 2 1 3"
+  run
+
+  MaxSatisfaction equal 6
+end
+
+test "unlimited seats allows all willing passengers to sit"
+  use "0532_tram"
+  Input = "2 5 3\n10 1 1 3\n20 2 1 3"
+  run
+
+  MaxSatisfaction equal 60
+end
+
+test "disjoint passenger intervals with seats"
+  use "0532_tram"
+  Input = "2 1 4\n5 1 1 2\n8 2 2 4"
+  run
+
+  MaxSatisfaction equal 21
+end
