@@ -4,6 +4,7 @@ import { demand, demandValue, isRankPlan } from './plan.js';
 import { scalarBuiltinArray } from './scalar-builtin.js';
 import { registerTensorMap } from './tensor-map.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
+import { mapStoredRealExtreme } from './real-extreme-kernel.js';
 import { rankedCells } from './ranked-cells.js';
 import { framedArray } from './framed-array.js';
 import { ALL_AXIS, atArray, reverseArrayAxis, sliceArray, tensorSelection } from './selectors.js';
@@ -182,6 +183,8 @@ export class RankApplication {
         if (operation) {
             const integers = mapStoredIntegers(left, right, operation);
             if (integers) return completed(integers);
+            const reals = mapStoredRealExtreme(left, right, operation);
+            if (reals) return completed(reals);
         }
         // The standard find holds the complete left vector and maps scalar
         // targets. Keep error demand lazy and share one revision-checked index.
