@@ -1,0 +1,177 @@
+rem Triangle Centres
+rem https://projecteuler.net/problem=264
+rem Add up the perimeters of the
+rem triangles with vertices on lattice
+rem points, circumcentre (0, 0) and
+rem orthocentre (5, 0), whose perimeter
+rem is at most Limit, to 4 places.
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 100000
+
+rem The vertices A, B, C add up to (5,
+rem 0). With C taken as the least
+rem vertex, S = A + B = (5, 0) - C and
+rem A, B = (S +- U) / 2 for U
+rem perpendicular to S, with U = t (-y,
+rem x) for S = g (x, y) and (x, y) prime
+rem to each other. As |A| = |B| = |C|
+rem this gives t^2 = 3 g^2 + (100 - 40 g
+rem x) / (x^2 + y^2), whole only when
+rem x^2 + y^2 divides 100 - 40 g x. That
+rem has the solutions g in one class mod
+rem a divisor, and a perimeter below
+rem Limit bounds the circumradius, so
+rem the direction (x, y) and g are
+rem small.
+Rw = 4 * Limit * Limit // 3
+Rq = (410 + Rw) isqrt
+Rm = (10 + Rq) // 6 + 2
+Sm = Rm + 5
+Qm = 100 + 40 * Sm
+Lm = Qm isqrt + 1
+Ca = array shape 20000 fill 0
+Cb = array shape 20000 fill 0
+Cc = array shape 20000 fill 0
+Cd = array shape 20000 fill 0
+Ce = array shape 20000 fill 0
+Cf = array shape 20000 fill 0
+Nc = 0
+for X in (0 - Lm) to Lm
+  for Y in (0 - Lm) to Lm
+    Q = X * X + Y * Y
+    if Q equal 0 or Q greater Qm
+      continue
+    end
+    G1 = X abs
+    G2 = Y abs
+    for
+      if G2 equal 0
+        break
+      end
+      Rr = G1 mod G2
+      G1 = G2
+      G2 = Rr
+    end
+    if G1 not equal 1
+      continue
+    end
+    Aa = 40 * X
+    E = Q
+    if Aa not equal 0
+      Ab = Aa abs
+      E = Q gcd Ab
+    end
+    if 100 mod E not equal 0
+      continue
+    end
+    Mm = Q // E
+    G0 = 0
+    if Mm greater 1
+      Ar = Aa // E mod Mm
+      R0 = Ar
+      R1 = Mm
+      S0 = 1
+      S1 = 0
+      for
+        if R1 equal 0
+          break
+        end
+        Qt = R0 // R1
+        Nr = R0 - Qt * R1
+        R0 = R1
+        R1 = Nr
+        Ns = S0 - Qt * S1
+        S0 = S1
+        S1 = Ns
+      end
+      Iv = S0 mod Mm
+      G0 = (100 // E) * Iv mod Mm
+    end
+    Gn = G0
+    if G0 equal 0
+      Gn = Mm
+    end
+    Gx = (Sm * Sm // Q) isqrt + 1
+    for G in Gn to Gx by Mm
+      Num = 100 - 40 * G * X
+      if Num mod Q not equal 0
+        continue
+      end
+      T2 = 3 * G * G + Num // Q
+      if T2 at most 0
+        continue
+      end
+      T = T2 isqrt
+      if T * T not equal T2
+        continue
+      end
+      Sx = G * X
+      Sy = G * Y
+      Ux = 0 - T * Y
+      Uy = T * X
+      if (Sx + Ux) mod 2 not equal 0
+        continue
+      end
+      if (Sy + Uy) mod 2 not equal 0
+        continue
+      end
+      Ax = (Sx + Ux) // 2
+      Ay = (Sy + Uy) // 2
+      Bx = (Sx - Ux) // 2
+      By = (Sy - Uy) // 2
+      Cx = 5 - Sx
+      Cy = 0 - Sy
+      Ok = 1
+      if Ax equal Cx and Ay equal Cy
+        Ok = 0
+      end
+      if Bx equal Cx and By equal Cy
+        Ok = 0
+      end
+      Lx = Ax less Cx
+      Ex = Ax equal Cx and Ay less Cy
+      if Lx or Ex
+        Ok = 0
+      end
+      Lx = Bx less Cx
+      Ex = Bx equal Cx and By less Cy
+      if Lx or Ex
+        Ok = 0
+      end
+      if Ok equal 1
+        Ca Nc = Ax
+        Cb Nc = Ay
+        Cc Nc = Bx
+        Cd Nc = By
+        Ce Nc = Cx
+        Cf Nc = Cy
+        Nc += 1
+      end
+    end
+  end
+end
+Xa = Ca take Nc
+Ya = Cb take Nc
+Xb = Cc take Nc
+Yb = Cd take Nc
+Xc = Ce take Nc
+Yc = Cf take Nc
+Dx = Xa - Xb
+Dy = Ya - Yb
+Dab' = ((Dx * Dx + Dy * Dy) * 1.0) sqrt
+Dx = Xa - Xc
+Dy = Ya - Yc
+Dac' = ((Dx * Dx + Dy * Dy) * 1.0) sqrt
+Dx = Xb - Xc
+Dy = Yb - Yc
+Dbc' = ((Dx * Dx + Dy * Dy) * 1.0) sqrt
+Per = Dab + Dac + Dbc
+Fit' = Per at most Limit
+Tt' = Per filter Fit
+Answer = Tt sum round 4
+Answer print

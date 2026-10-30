@@ -41,22 +41,16 @@ Cd = array shape 20000 fill 0
 Ce = array shape 20000 fill 0
 Cf = array shape 20000 fill 0
 Nc = 0
-for X in (0 - Lm) to Lm
+rem C is the least vertex, so Cx <= 5/3
+rem and G * X = 5 - Cx > 0. G > 0,
+rem hence only positive X can fit.
+for X in 1 to Lm
   for Y in (0 - Lm) to Lm
     Q = X * X + Y * Y
     if Q equal 0 or Q greater Qm
       continue
     end
-    G1 = X abs
-    G2 = Y abs
-    for
-      if G2 equal 0
-        break
-      end
-      Rr = G1 mod G2
-      G1 = G2
-      G2 = Rr
-    end
+    G1 = X gcd Y
     if G1 not equal 1
       continue
     end
