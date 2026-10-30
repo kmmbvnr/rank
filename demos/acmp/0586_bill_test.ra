@@ -1,0 +1,41 @@
+use testing
+
+test "sample 1: bill 1 passes on first vote"
+  use "0586_bill"
+  run
+
+  Answer equal "1"
+end
+
+test "sample 2: bill 3 passes after bills 1 and 2 rejected"
+  use "0586_bill"
+  Input = "3 2 4\n3 1 4 2\n1 3 4 2\n4 2 3 1"
+  run
+
+  Answer equal "3"
+end
+
+test "single bill immediately passes"
+  use "0586_bill"
+  Input = "3 2 1\n1\n1\n1"
+  run
+
+  Answer equal "1"
+end
+
+test "unanimous threshold reaches last bill"
+  use "0586_bill"
+  rem 3 deputies, threshold 3, opposite preferences
+  Input = "3 3 3\n1 2 3\n2 3 1\n3 1 2"
+  run
+
+  Answer equal "3"
+end
+
+test "bill 2 accepted by majority"
+  use "0586_bill"
+  Input = "3 2 3\n2 1 3\n2 3 1\n1 2 3"
+  run
+
+  Answer equal "2"
+end

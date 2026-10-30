@@ -1,0 +1,53 @@
+rem ACMP 0586 - Bill (Законопроект)
+rem Determine which bill passes in parliament using backward induction game theory.
+rem
+rem Deputies vote rationally with full information on preferences.
+rem Voting proceeds sequentially from bill 1 to bill K.
+rem If all K bills are rejected, Crisis occurs (the worst outcome for all deputies).
+rem Thus, if bill K is reached, it is guaranteed to pass (outcome is K).
+rem By backward induction from bill K-1 down to 1:
+rem When voting on bill I, rejecting it leads to NextOutcome.
+rem A deputy votes FOR bill I if they prefer I over NextOutcome.
+rem If at least M deputies vote FOR, bill I passes (NextOutcome becomes I).
+
+use io
+use cli
+use sequences
+use numbers
+use text
+
+arg Input text = "3 2 4\n3 4 1 2\n2 3 4 1\n4 1 2 3"
+
+Tokens = (Input split "\n" join " ") split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+N = Nums 0
+M = Nums 1
+K = Nums 2
+
+Rank = array shape N K fill 0
+PosOrder = (0 till K) array
+
+for D in 0 till N
+  Prefs = Nums ((D * K + 3) till ((D + 1) * K + 3))
+  Row = array shape K fill 0
+  Row (Prefs - 1) = PosOrder
+  Rank D = Row
+end
+
+NextOutcome = K - 1
+
+if K greater 1
+  for I in ((0 till (K - 1)) array) reverse
+    ColI = Rank # I
+    ColNext = Rank # NextOutcome
+    Votes = (ColI less ColNext) count
+    if Votes greater (M - 1)
+      NextOutcome = I
+    end
+  end
+end
+
+Answer = (NextOutcome + 1) text
+Answer print
