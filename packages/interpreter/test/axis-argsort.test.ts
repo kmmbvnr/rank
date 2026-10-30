@@ -24,7 +24,7 @@ function run(cells: Cells, shape: number[], axis: number, down: boolean, lazy = 
         runtime.variables.set('M', typedArray(cells, shape));
         const sum = lazy ? ' + 0' : '';
         const result = runtime.execute(`use sequences\nuse numbers\n(M${sum}) argsort axis ${axis}${down ? ' .descending' : ''}`);
-        if (!isRankArray(result)) throw Error('expected array');
+        if (!result || !isRankArray(result)) throw Error('expected array');
         return Array.from({ length: cells.length }, (_, i) => Number(readArrayItem(result, i)));
     } finally { runtime.dispose(); }
 }
@@ -33,6 +33,37 @@ const ties = (n: number, real: boolean): Cells => {
     const values = Array.from({ length: n }, (_, i) => ((i * 2654435761) >>> 0) % 7 - 3);
     return real ? Float64Array.from(values, v => v / 4) : Int32Array.from(values);
 };
+
+function scan(cells: Int32Array, shape: number[], axis: number, op: string, lazy: boolean): bigint[] {
+    const runtime = new Interpreter();
+    try {
+        runtime.variables.set('M', typedArray(cells, shape));
+        const result = runtime.execute(`use numbers\n(M${lazy ? ' + 0' : ''}) scan ${op} axis ${axis}`);
+        if (!result || !isRankArray(result)) throw Error('expected array');
+        return Array.from({ length: cells.length }, (_, i) => readArrayItem(result, i) as bigint);
+    } finally { runtime.dispose(); }
+}
+
+describe('integer scan axis', () => {
+    const fold: Record<string, (a: bigint, b: bigint) => bigint> = {
+        '+': (a, b) => a + b, max: (a, b) => a > b ? a : b, min: (a, b) => a < b ? a : b,
+    };
+    const big = Int32Array.from({ length: 360 }, (_, i) => i % 3 ? 2147483647 - i : -2147483648 + i);
+    for (const [name, cells] of [['small', ties(360, false) as Int32Array], ['near 2^31', big]] as const) {
+        for (const [shape, axis] of [[[6, 60], 1], [[60, 6], 0], [[3, 20, 6], 0], [[3, 20, 6], 1], [[3, 20, 6], 2]] as [number[], number][]) {
+            for (const op of ['+', 'max', 'min']) for (const lazy of [false, true]) {
+                it(`${name} ${shape.join('x')} axis ${axis} ${op}${lazy ? ' lazy' : ''}`, () => {
+                    const n = shape[axis], inner = shape.slice(axis + 1).reduce((a, b) => a * b, 1);
+                    const expected = Array.from(cells, BigInt);
+                    for (let i = 0; i < expected.length; i++) {
+                        if (Math.floor(i / inner) % n) expected[i] = fold[op](expected[i - inner], BigInt(cells[i]));
+                    }
+                    expect(scan(cells, shape, axis, op, lazy)).toEqual(expected);
+                });
+            }
+        }
+    }
+});
 
 describe('argsort axis on numeric matrices', () => {
     for (const real of [true, false]) for (const [shape, axis] of [[[4, 40], 1], [[40, 4], 0], [[3, 20, 4], 0], [[3, 20, 4], 1], [[3, 20, 4], 2]] as [number[], number][]) {

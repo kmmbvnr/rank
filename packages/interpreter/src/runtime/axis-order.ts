@@ -98,3 +98,34 @@ export function argsortStoredAxis(value: RankArray, axis: number, down: boolean)
     }
     return typedArray(out, [...shape]);
 }
+
+const INT32_MAX = 2147483647;
+
+/** Prefix `+`, `max` or `min` along an axis of stored Int32 cells. Sums stay
+ * exact in a double for axes under 2^21 cells; wider results become Int64. */
+export function scanInt32Axis(op: '+' | 'max' | 'min', value: RankArray, shape: readonly number[], axis: number): RankArray | undefined {
+    const cells = integer32Cells(value);
+    const length = shape[axis];
+    if (!cells || value.columnNames || length > 2 ** 21) return undefined;
+    let inner = 1;
+    for (let d = axis + 1; d < shape.length; d++) inner *= shape[d];
+    const out = new Float64Array(cells.length);
+    const block = length * inner;
+    let wide = false;
+    for (let start = 0; start < out.length && length > 0; start += block) {
+        checkpoint('scanning', block);
+        for (let i = 0; i < inner; i++) out[start + i] = cells[start + i];
+        for (let at = start + inner; at < start + block; at += inner) {
+            const end = at + inner;
+            if (op === '+') for (let i = at; i < end; i++) out[i] = out[i - inner] + cells[i];
+            else if (op === 'max') for (let i = at; i < end; i++) { const a = out[i - inner], b = cells[i]; out[i] = a > b ? a : b; }
+            else for (let i = at; i < end; i++) { const a = out[i - inner], b = cells[i]; out[i] = a < b ? a : b; }
+        }
+    }
+    if (op === '+') for (let i = 0; i < out.length; i++) {
+        const x = out[i];
+        if (x > INT32_MAX || x < -INT32_MAX - 1) { wide = true; break; }
+    }
+    if (!wide) return typedArray(Int32Array.from(out), [...shape]);
+    return typedArray(BigInt64Array.from(out, x => BigInt(x)), [...shape]);
+}
