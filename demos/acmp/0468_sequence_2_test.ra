@@ -1,0 +1,44 @@
+use testing
+use bits
+
+test "sample 1: first term is 7"
+  use "0468_sequence_2"
+  run
+
+  Answer equal 7
+end
+
+test "first 8 terms match problem description"
+  use "0468_sequence_2"
+
+  Expected = array 7 11 13 14 19 21 22 25
+  for I in 1 to 8
+    N = I
+    run
+    Answer equal (Expected (I - 1))
+  end
+end
+
+test "large N power of two combinadics"
+  use "0468_sequence_2"
+  rem N = C(5, 3) + 1 = 10 + 1 = 11: should be 2^5 + 2^1 + 2^0 = 35
+  N = 11
+  run
+
+  Answer equal 35
+end
+
+test "maximum N = 2^31 - 1 has 3 set bits"
+  use "0468_sequence_2"
+  N = 2147483647
+  run
+
+  rem Check that Answer is positive and has exactly 3 set bits
+  P3Bit = 1 shl P3
+  P2Bit = 1 shl P2
+  P1Bit = 1 shl P1
+  Answer equal (P3Bit + P2Bit + P1Bit)
+  P3 greater P2
+  P2 greater P1
+  P1 greater -1
+end

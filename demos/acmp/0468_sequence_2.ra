@@ -1,0 +1,56 @@
+rem ACMP 0468 - Number Sequence 2 (Числовая последовательность - 2)
+rem Find the N-th number with exactly 3 set bits in its binary representation.
+rem
+rem Any integer with 3 bits set is uniquely represented as 2^P3 + 2^P2 + 2^P1
+rem with P3 > P2 > P1 >= 0.
+rem In the combinatorial number system (combinadics), the 0-based rank is:
+rem K = C(P3, 3) + C(P2, 2) + C(P1, 1).
+rem For N up to 2^31 - 1, P3 <= 2500, found via binary search in O(log P3) operations.
+
+use io
+use cli
+use numbers
+use bits
+
+arg N integer = 1
+
+K = N - 1
+
+rem Binary search for P3: largest integer such that C(P3, 3) <= K
+Low = 2
+High = 3000
+P3 = 2
+for Low less (High + 1)
+  Mid = (Low + High) // 2
+  C3 = Mid * (Mid - 1) * (Mid - 2) // 6
+  if C3 greater K
+    High = Mid - 1
+  else
+    P3 = Mid
+    Low = Mid + 1
+  end
+end
+C3Val = P3 * (P3 - 1) * (P3 - 2) // 6
+K = K - C3Val
+
+rem Binary search for P2: largest integer such that C(P2, 2) <= K
+Low = 1
+High = P3 - 1
+P2 = 1
+for Low less (High + 1)
+  Mid = (Low + High) // 2
+  C2 = Mid * (Mid - 1) // 2
+  if C2 greater K
+    High = Mid - 1
+  else
+    P2 = Mid
+    Low = Mid + 1
+  end
+end
+C2Val = P2 * (P2 - 1) // 2
+K = K - C2Val
+
+P1 = K
+
+Answer = (1 shl P3) + (1 shl P2) + (1 shl P1)
+(Answer text) print
