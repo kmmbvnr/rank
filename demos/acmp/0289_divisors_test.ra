@@ -1,0 +1,49 @@
+use testing
+
+test "ACMP 289: sample 1 (D=3 -> 4)"
+  use "0289_divisors"
+  D = 3
+  run
+
+  Answer equal 4
+end
+
+test "ACMP 289: sample 2 (D=4 -> 6)"
+  use "0289_divisors"
+  D = 4
+  run
+
+  Answer equal 6
+end
+
+test "ACMP 289: sample 3 (D=12 -> 60)"
+  use "0289_divisors"
+  D = 12
+  run
+
+  Answer equal 60
+end
+
+test "ACMP 289: sample 4 (D=60 -> 5040)"
+  use "0289_divisors"
+  D = 60
+  run
+
+  Answer equal 5040
+end
+
+test "ACMP 289: sample 5 (D=4911 exceeds 10^15 -> 0)"
+  use "0289_divisors"
+  D = 4911
+  run
+
+  Answer equal 0
+end
+
+test "ACMP 289: D=1 -> 1"
+  use "0289_divisors"
+  D = 1
+  run
+
+  Answer equal 1
+end
