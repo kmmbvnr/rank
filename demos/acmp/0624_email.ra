@@ -1,0 +1,81 @@
+rem ACMP 0624 - Email (Электронная почта)
+rem Validate consistency of distributed email logs using directed cycle detection.
+rem
+rem Events on each computer are ordered chronologically.
+rem For each letter X, sending (+X) must occur before receiving (-X).
+rem These constraints form a directed dependency graph of events.
+rem The logs are mutually consistent if and only if the dependency graph has no directed cycles.
+
+use io
+use cli
+use sequences
+use numbers
+use text
+use graph
+
+arg Input text = "2\n2 2\n2 1 -2\n2 2 -1\n2 2\n2 -2 1\n2 -1 2"
+
+Tokens = (Input split "\n" join " ") split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+T = Nums 0
+Ptr = 1
+Results = array shape 0 fill ""
+
+for TestIdx in 0 till T
+  N = Nums Ptr
+  M = Nums (Ptr + 1)
+  Ptr = Ptr + 2
+
+  AllFrom = array shape 0 fill 0
+  AllTo = array shape 0 fill 0
+  VerticesList = array shape 0 fill 0
+
+  for Comp in 0 till N
+    K = Nums Ptr
+    Ptr = Ptr + 1
+    if K greater 0
+      Events = Nums (Ptr till (Ptr + K))
+      Ptr = Ptr + K
+      VerticesList = concat VerticesList Events
+      if K greater 1
+        Froms = Events take (K - 1)
+        Tos = Events drop 1
+        AllFrom = concat AllFrom Froms
+        AllTo = concat AllTo Tos
+      end
+    end
+  end
+
+  PosEvents = VerticesList (VerticesList greater 0)
+  PosEvents = PosEvents sort
+  UniquePos = PosEvents
+  if (PosEvents len) greater 1
+    Diff = concat (array true) ((PosEvents drop 1) not equal (PosEvents take ((PosEvents len) - 1)))
+    UniquePos = PosEvents Diff
+  end
+
+  if (UniquePos len) greater 0
+    SendTos = 0 - UniquePos
+    AllFrom = concat AllFrom UniquePos
+    AllTo = concat AllTo SendTos
+    VerticesList = concat VerticesList SendTos
+  end
+
+  G = new graph VerticesList .directed
+  if (AllFrom len) greater 0
+    GEdges = stack AllFrom AllTo axis 1
+    G add GEdges
+  end
+
+  Cycle = G cycle
+  if (Cycle len) equal 0
+    Results = concat Results (array "YES")
+  else
+    Results = concat Results (array "NO")
+  end
+end
+
+Answer = Results join "\n"
+Answer print
