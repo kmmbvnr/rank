@@ -39,3 +39,20 @@ describe('sum axis over stored numeric arrays', () => {
         }
     }
 });
+
+describe('real beside stored Int32 cells', () => {
+    it('multiplies and adds exactly like the boxed path', () => {
+        const reals = Float64Array.from({ length: 2000 }, (_, i) => (i % 13 - 6) * 0.37);
+        const ints = Int32Array.from({ length: 2000 }, (_, i) => i % 3 ? 2147483647 - i : -2147483648 + i);
+        const runtime = new Interpreter();
+        try {
+            runtime.variables.set('R', typedArray(reals, [2000]));
+            runtime.variables.set('I', typedArray(ints, [2000]));
+            for (const [op, f] of [['*', (a: number, b: number) => a * b], ['+', (a: number, b: number) => a + b], ['-', (a: number, b: number) => b - a]] as const) {
+                const result = runtime.execute(op === '-' ? 'I - R' : `R ${op} I`);
+                if (!result || !isRankArray(result)) throw Error('expected array');
+                for (let i = 0; i < 2000; i++) expect(readArrayItem(result, i)).toBe(op === '-' ? ints[i] - reals[i] : f(reals[i], ints[i]));
+            }
+        } finally { runtime.dispose(); }
+    });
+});

@@ -7,7 +7,7 @@ import { arrayStrides, broadcastOffset, broadcastShape, trailingCells } from '..
 export { broadcastShape } from '../jit/tensor-layout.js';
 import { prepareStoredScalarView, type LinearView } from './integer-view.js';
 import { mapPair, runExecution } from '../execution.js';
-import { evaluateArrayItem, prepareArrayEvaluation, derivedArray, denseScalarItems, storedOperandItems, float64Cells, ownedArray, realCells, typedArray } from './array-storage.js';
+import { evaluateArrayItem, prepareArrayEvaluation, derivedArray, denseScalarItems, storedOperandItems, float64Cells, integer32Cells, ownedArray, realCells, typedArray } from './array-storage.js';
 import { RankError } from '../errors.js';
 import { checkpoint, InterruptedError } from '../interrupt.js';
 import type { RankArray, RankValue } from './value.js';
@@ -402,6 +402,9 @@ function integersAsReals(
     array: RankArray | undefined, items: ArrayLike<RankValue> | undefined, scalar: RankValue,
 ): Float64Array | number | undefined {
     if (!array) return typeof scalar === 'bigint' ? Number(scalar) : undefined;
+    // Stored Int32 cells convert straight from the buffer, with no boxed bigints.
+    const compact = integer32Cells(array);
+    if (compact) return Float64Array.from(compact);
     if (!items) return undefined;
     const out = new Float64Array(items.length);
     for (let index = 0; index < items.length; index += 1) {
