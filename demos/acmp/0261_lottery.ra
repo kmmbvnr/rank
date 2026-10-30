@@ -1,0 +1,76 @@
+rem ACMP 261 - Lottery (Лотерея)
+rem Solved in Euler 1-15 style with trie prefix tree optimization and delta payout decomposition.
+rem
+rem Participants submit M-digit numbers in base K. The host announces a winning number S.
+rem Matching t leading digits earns prize A[t]. If t == 0, prize is 0.
+rem Total payout decomposes across depth d via differences Delta[d] = A[d] - A[d-1]:
+rem   Total = sum_{d=1}^M count(prefix_d) * Delta[d]
+rem
+rem We recursively find the minimum payout path in the prefix trie of bets.
+rem Since bets are sorted, each prefix corresponds to a contiguous sub-interval [Left, Right].
+rem If any branch has count == 0 (an absent digit), the host can choose it and pay 0.
+
+use io
+use cli
+use sequences
+use text
+use numbers
+
+arg N integer = 10
+arg M integer = 3
+arg K integer = 2
+arg AText text = "1 3 100"
+arg BetsText text = "000 000 001 010 100 100 100 100 110 111"
+
+AParts = (AText split " ") (not ((AText split " ") equal ""))
+A = AParts integer
+
+Delta = array (A 0)
+if M greater 1
+  Delta = concat (array (A 0)) ((A (1 till M)) - (A (0 till (M - 1))))
+end
+
+BParts = (BetsText split "\n" join " ") split " "
+Bets = BParts (not (BParts equal ""))
+
+fun get_cost Left Right Depth
+  if Depth equal M
+    return 0
+  end
+  if Left equal Right
+    return 0
+  end
+
+  CurDelta = Delta Depth
+  Best = 1000000000000000
+
+  for Dig in 0 till K
+    SubL = -1
+    SubR = -1
+    for I in Left till Right
+      BetStr = Bets I
+      DChar = BetStr Depth
+      DVal = DChar integer
+      if DVal equal Dig
+        if SubL equal -1
+          SubL = I
+        end
+        SubR = I + 1
+      end
+    end
+
+    if SubL equal -1
+      return 0
+    else
+      Cnt = SubR - SubL
+      ChildCost = get_cost SubL SubR (Depth + 1)
+      Total = (Cnt * CurDelta) + ChildCost
+      Best = Best min Total
+    end
+  end
+
+  return Best
+end
+
+Answer = get_cost 0 N 0
+Answer print

@@ -1,0 +1,53 @@
+use testing
+
+test "ACMP 261: sample 1 (10 bets in binary -> 6)"
+  use "0261_lottery"
+  N = 10
+  M = 3
+  K = 2
+  AText = "1 3 100"
+  BetsText = "000 000 001 010 100 100 100 100 110 111"
+  run
+
+  Answer equal 6
+end
+
+test "ACMP 261: sample 2 (missing first digit -> 0)"
+  use "0261_lottery"
+  N = 1
+  M = 1
+  K = 10
+  AText = "100"
+  BetsText = "0"
+  run
+
+  Answer equal 0
+end
+
+test "ACMP 261: all identical bets (unavoidable match)"
+  use "0261_lottery"
+  N = 4
+  M = 2
+  K = 2
+  AText = "5 20"
+  BetsText = "00 00 00 00"
+  run
+
+  rem Choosing 1 gives 0 matching first digit
+  Answer equal 0
+end
+
+test "ACMP 261: complete binary tree depth 2"
+  use "0261_lottery"
+  N = 4
+  M = 2
+  K = 2
+  AText = "10 50"
+  BetsText = "00 01 10 11"
+  run
+
+  rem Delta = [10, 40]. Either branch 0 or 1 has 2 bets.
+  rem At depth 1: 2 bets * 10 = 20.
+  rem At depth 2: 1 bet * 40 = 40. Total = 60.
+  Answer equal 60
+end
