@@ -1,0 +1,48 @@
+use testing
+
+test "sample 1: N = 1, K = 1 -> 2"
+  use "0644_time_key_2"
+  run
+
+  Ans equal 2
+end
+
+test "sample 2: N = 1, K = 10 -> 22"
+  use "0644_time_key_2"
+  Input = "1 10"
+  run
+
+  Ans equal 22
+end
+
+test "sample 3: N = 2, K = 3 -> 7"
+  use "0644_time_key_2"
+  Input = "2 3"
+  run
+
+  Ans equal 7
+end
+
+test "boundary: N = 6, K = 1 -> 8"
+  use "0644_time_key_2"
+  Input = "6 1"
+  run
+
+  Ans equal 8
+end
+
+test "stress test: N = 1, K = 2000000000 -> 34179892637"
+  use "0644_time_key_2"
+  Input = "1 2000000000"
+  run
+
+  Ans equal 34179892637
+end
+
+test "stress test: N = 2000000000, K = 2000000000 -> 36359345582"
+  use "0644_time_key_2"
+  Input = "2000000000 2000000000"
+  run
+
+  Ans equal 36359345582
+end
