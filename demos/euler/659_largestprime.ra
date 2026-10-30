@@ -18,6 +18,11 @@ rem that works, and divides 4 k^2 + 1
 rem exactly for k = +-x/2 (mod p). Hits
 rem are divided out; a cofactor left
 rem after all p <= 2 Kk + 1 is a prime.
+rem Primes up to Kk / 100 are sieved one
+rem by one. Larger ones hit few k, so
+rem all hit k are handled in a round:
+rem a product by .accumulate divides
+rem every k once, repeated until clean.
 rem The sum is kept in two limbs.
 Lm = 2 * Kk + 1
 Pa = primes to Lm array
@@ -41,7 +46,9 @@ Kb = Ps - Ka
 Ks = 0 to Kk
 Rm = 4 * Ks * Ks + 1
 Lp = Ks * 0
-for J in 0 to Np - 1
+Tm = Kk // 100
+Ns = (Ps at most Tm) count
+for J in 0 to Ns - 1
   Pj = Ps J
   for Q in 0 to 1
     K0 = Ka J
@@ -61,6 +68,33 @@ for J in 0 to Np - 1
       end
     end
   end
+end
+Rg = Ns to (Np - 1)
+Pr = concat (Ps Rg) (Ps Rg)
+Kr = concat (Ka Rg) (Kb Rg)
+Od = Pr argsort
+Pr = Pr Od
+Kr = Kr Od
+Ok = Kr at most Kk
+Pr = Pr (Ok indices)
+Kr = Kr (Ok indices)
+Qq = array shape (Kk + 1) fill 1
+for Pr len greater 0
+  Lp Kr = (Lp Kr) max Pr
+  Sk = Kr
+  Sp = Pr
+  for Sk len greater 0
+    Qq Sk *= Sp .accumulate
+    Rm Sk //= Qq Sk
+    Qq Sk = 1
+    Ds = (Rm Sk mod Sp equal 0) indices
+    Sk = Sk Ds
+    Sp = Sp Ds
+  end
+  Kr += Pr
+  Nx = (Kr at most Kk) indices
+  Pr = Pr Nx
+  Kr = Kr Nx
 end
 Pk = (Rm greater 1) choose Rm Lp
 Pk = Pk (1 to Kk)
