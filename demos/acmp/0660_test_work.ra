@@ -1,0 +1,95 @@
+rem Test Work (Контрольная работа)
+rem https://acmp.ru/index.asp?main=task&id_task=660
+rem Count subrectangles in an N x M grid with K painted cells containing no painted cells.
+rem Solved via 2D sweep-line with histogram column heights and monotonic stack running sum.
+
+use io
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "4 3 3\n1 2\n4 3\n3 1"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+M = (Tokens 1) integer
+K = (Tokens 2) integer
+
+Idx = 3
+
+PaintedR = array shape K fill 0
+PaintedC = array shape K fill 0
+
+for I in 0 till K
+  PaintedR I = ((Tokens (Idx + (I * 2))) integer) - 1
+  PaintedC I = ((Tokens (Idx + (I * 2) + 1)) integer) - 1
+end
+
+if M greater N
+  Temp = N
+  N = M
+  M = Temp
+  TempArr = PaintedR
+  PaintedR = PaintedC
+  PaintedC = TempArr
+end
+
+SortedR = PaintedR
+SortedC = PaintedC
+if K greater 0
+  Order = PaintedR argsort
+  SortedR = PaintedR Order
+  SortedC = PaintedC Order
+end
+
+H = array shape M fill 0
+StackCol = array shape (M + 1) fill 0
+StackH = array shape (M + 1) fill 0
+StackSum = array shape (M + 1) fill 0
+
+Total = 0
+PIdx = 0
+
+for R in 0 till N
+  H = H + 1
+
+  for Step in 0 till (K + 1)
+    if (PIdx equal K) or ((SortedR PIdx) not equal R)
+      break
+    end
+    H (SortedC PIdx) = 0
+    PIdx = PIdx + 1
+  end
+
+  Top = 0
+  StackCol 0 = -1
+  StackH 0 = -1
+  StackSum 0 = 0
+  RowTotal = 0
+
+  for C in 0 till M
+    CurH = H C
+
+    for Pop in 0 till (Top + 1)
+      if (Top equal 0) or ((StackH Top) less CurH)
+        break
+      end
+      Top = Top - 1
+    end
+
+    PrevC = StackCol Top
+    CurSum = (StackSum Top) + ((C - PrevC) * CurH)
+    Top = Top + 1
+    StackCol Top = C
+    StackH Top = CurH
+    StackSum Top = CurSum
+    RowTotal = RowTotal + CurSum
+  end
+
+  Total = Total + RowTotal
+end
+
+(Total text) print

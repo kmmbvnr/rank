@@ -1,0 +1,40 @@
+use testing
+
+test "sample 1: 4x3 grid with 3 painted cells -> 22"
+  use "0660_test_work"
+  run
+
+  Total equal 22
+end
+
+test "empty 2x3 grid: 0 painted cells -> 18"
+  use "0660_test_work"
+  Input = "2 3 0"
+  run
+
+  Total equal 18
+end
+
+test "fully painted 1x1 grid -> 0"
+  use "0660_test_work"
+  Input = "1 1 1\n1 1"
+  run
+
+  Total equal 0
+end
+
+test "empty 1x1 grid -> 1"
+  use "0660_test_work"
+  Input = "1 1 0"
+  run
+
+  Total equal 1
+end
+
+test "transposed: 3x4 grid with 3 painted cells -> 22"
+  use "0660_test_work"
+  Input = "3 4 3\n2 1\n3 4\n1 3"
+  run
+
+  Total equal 22
+end
