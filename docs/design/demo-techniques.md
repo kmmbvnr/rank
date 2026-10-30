@@ -22,10 +22,6 @@ matrix products instead of `n` steps. `matpow` does this exactly; a modular
 form is tracked in
 [#503](https://github.com/kmmbvnr/rank/issues/503).
 
-**Fits** when there are few states, many steps and a local rule. It does not
-fit N queens: the state (columns and diagonals) is exponential in `n` and there
-are only `n` steps.
-
 | Demo | State | Notes |
 | --- | --- | --- |
 | [ACMP 0083 Pretty Patterns](../../demos/acmp/0083_pretty_patterns.ra) | colors of one column | `Compat matpow (Cols - 1) sum` |
