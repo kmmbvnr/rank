@@ -1,0 +1,54 @@
+use testing
+use numbers
+
+test "sample 1: general quad with 7 plans"
+  use "0714_circular_highway"
+  run
+
+  Answer1 equal "7"
+  (BestR round 4) equal 1.1441
+end
+
+test "sample 2: unit square with infinite plans"
+  use "0714_circular_highway"
+  Input = "0 0\n0 1\n1 0\n1 1"
+  run
+
+  Answer1 equal "Infinity"
+  (BestX round 4) equal 0.5
+  (BestY round 4) equal 0.5
+  (BestR round 4) equal 0.0
+end
+
+test "collinear points with common midpoint"
+  use "0714_circular_highway"
+  Input = "0 0\n1 0\n2 0\n3 0"
+  run
+
+  Answer1 equal "Infinity"
+  (BestX round 4) equal 1.5
+  (BestY round 4) equal 0.0
+  (BestR round 4) equal 1.0
+end
+
+test "collinear vertical points with common midpoint"
+  use "0714_circular_highway"
+  Input = "0 0\n0 2\n0 4\n0 6"
+  run
+
+  Answer1 equal "Infinity"
+  (BestX round 4) equal 0.0
+  (BestY round 4) equal 3.0
+  (BestR round 4) equal 2.0
+end
+
+test "rectangle with origin center"
+  use "0714_circular_highway"
+  Input = "-2 -1\n2 -1\n2 1\n-2 1"
+  run
+
+  Answer1 equal "Infinity"
+  (BestX round 4) equal 0.0
+  (BestY round 4) equal 0.0
+  (BestR round 4) equal 0.0
+end

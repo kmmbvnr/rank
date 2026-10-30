@@ -1,0 +1,169 @@
+rem Circular Highway
+rem https://acmp.ru/index.asp?main=task&id_task=714
+rem Find count and minimum-radius circle equidistant to 4 points
+
+use io
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = "0 0\n0 1\n1 0\n2 2"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+Coords = Tokens real
+
+Xs = Coords (array 0 2 4 6)
+Ys = Coords (array 1 3 5 7)
+
+CandX = array 0.0
+CandX = CandX drop 1
+CandY = array 0.0
+CandY = CandY drop 1
+CandR = array 0.0
+CandR = CandR drop 1
+
+IsInfinity = false
+
+Ta = array 1 0 0 0
+Tb = array 2 2 1 1
+Tc = array 3 3 3 2
+Td = array 0 1 2 3
+
+for K in 0 till 4
+  Ax = Xs (Ta K)
+  Ay = Ys (Ta K)
+  Bx = Xs (Tb K)
+  By = Ys (Tb K)
+  Cx = Xs (Tc K)
+  Cy = Ys (Tc K)
+  Dx = Xs (Td K)
+  Dy = Ys (Td K)
+
+  Cross = (Bx - Ax) * (Cy - Ay) - (By - Ay) * (Cx - Ax)
+  if (Cross abs) greater 0.000000001
+    Denom = 2.0 * (Ax * (By - Cy) + Bx * (Cy - Ay) + Cx * (Ay - By))
+    if (Denom abs) greater 0.000000001
+      A2 = Ax * Ax + Ay * Ay
+      B2 = Bx * Bx + By * By
+      C2 = Cx * Cx + Cy * Cy
+
+      Ux = (A2 * (By - Cy) + B2 * (Cy - Ay) + C2 * (Ay - By)) / Denom
+      Uy = (A2 * (Cx - Bx) + B2 * (Ax - Cx) + C2 * (Bx - Ax)) / Denom
+
+      R1 = ((Ax - Ux) * (Ax - Ux) + (Ay - Uy) * (Ay - Uy)) sqrt
+      R2 = ((Dx - Ux) * (Dx - Ux) + (Dy - Uy) * (Dy - Uy)) sqrt
+
+      CandX = concat CandX (array Ux)
+      CandY = concat CandY (array Uy)
+
+      if ((R1 - R2) abs) less 0.0000001
+        IsInfinity = true
+        CandR = concat CandR (array 0.0)
+      else
+        CandR = concat CandR (array ((R1 + R2) / 2.0))
+      end
+    end
+  end
+end
+
+Pa = array 0 0 0
+Pb = array 1 2 3
+Pc = array 2 1 1
+Pd = array 3 3 2
+
+for K in 0 till 3
+  Ax = Xs (Pa K)
+  Ay = Ys (Pa K)
+  Bx = Xs (Pb K)
+  By = Ys (Pb K)
+  Cx = Xs (Pc K)
+  Cy = Ys (Pc K)
+  Dx = Xs (Pd K)
+  Dy = Ys (Pd K)
+
+  A1 = Bx - Ax
+  B1 = By - Ay
+  C1 = (Bx * Bx - Ax * Ax + By * By - Ay * Ay) / 2.0
+
+  A2 = Dx - Cx
+  B2 = Dy - Cy
+  C2 = (Dx * Dx - Cx * Cx + Dy * Dy - Cy * Cy) / 2.0
+
+  Det = A1 * B2 - A2 * B1
+  Det1 = C1 * B2 - C2 * B1
+  Det2 = A1 * C2 - A2 * C1
+
+  if (Det abs) less 0.000000001
+    if ((Det1 abs) less 0.000000001) and ((Det2 abs) less 0.000000001)
+      IsInfinity = true
+      M1x = (Ax + Bx) / 2.0
+      M1y = (Ay + By) / 2.0
+      M2x = (Cx + Dx) / 2.0
+      M2y = (Cy + Dy) / 2.0
+
+      D1 = (((Bx - Ax) * (Bx - Ax) + (By - Ay) * (By - Ay)) sqrt) / 2.0
+      D2 = (((Dx - Cx) * (Dx - Cx) + (Dy - Cy) * (Dy - Cy)) sqrt) / 2.0
+
+      Lnorm = (A1 * A1 + B1 * B1) sqrt
+      Uxdir = (0.0 - B1) / Lnorm
+      Uydir = A1 / Lnorm
+
+      T0 = (M2x - M1x) * Uxdir + (M2y - M1y) * Uydir
+      if (T0 abs) greater 0.000000001
+        Tstar = (D2 * D2 - D1 * D1 + T0 * T0) / (2.0 * T0)
+        CandX = concat CandX (array (M1x + Tstar * Uxdir))
+        CandY = concat CandY (array (M1y + Tstar * Uydir))
+        CandR = concat CandR (array 0.0)
+      else
+        CandX = concat CandX (array M1x)
+        CandY = concat CandY (array M1y)
+        CandR = concat CandR (array ((D1 + D2) / 2.0))
+      end
+    end
+  else
+    Ox = Det1 / Det
+    Oy = Det2 / Det
+    R1 = ((Ax - Ox) * (Ax - Ox) + (Ay - Oy) * (Ay - Oy)) sqrt
+    R2 = ((Cx - Ox) * (Cx - Ox) + (Cy - Oy) * (Cy - Oy)) sqrt
+
+    CandX = concat CandX (array Ox)
+    CandY = concat CandY (array Oy)
+
+    if ((R1 - R2) abs) less 0.0000001
+      IsInfinity = true
+      CandR = concat CandR (array 0.0)
+    else
+      CandR = concat CandR (array ((R1 + R2) / 2.0))
+    end
+  end
+end
+
+NCand = CandX len
+Keep = (0 till NCand) * 0 + 1
+for I in 0 till NCand
+  for J in (I + 1) till NCand
+    if (((CandX I - CandX J) abs) less 0.00001) and (((CandY I - CandY J) abs) less 0.00001) and (((CandR I - CandR J) abs) less 0.00001)
+      Keep J = 0
+    end
+  end
+end
+UniqueCount = Keep sum
+
+Order = CandR argsort
+BestIdx = Order 0
+BestX = CandX BestIdx
+BestY = CandY BestIdx
+BestR = CandR BestIdx
+
+Answer1 = ""
+if IsInfinity
+  Answer1 = "Infinity"
+else
+  Answer1 = UniqueCount text
+end
+
+Answer1 print
+Answer2 = (BestX text) + " " + (BestY text) + " " + (BestR text)
+Answer2 print
