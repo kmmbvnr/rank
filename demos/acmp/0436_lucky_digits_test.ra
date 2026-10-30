@@ -1,0 +1,37 @@
+use testing
+
+test "sample 1: 49 1 gives base 3 with 2 ones"
+  use "0436_lucky_digits"
+  run
+
+  BestD equal 3
+  BestL equal 2
+end
+
+test "sample 2: 7 5 gives 0 copies of 5"
+  use "0436_lucky_digits"
+  N = 7
+  K = 5
+  run
+
+  BestL equal 0
+end
+
+test "exact two zeros: 100 0"
+  use "0436_lucky_digits"
+  N = 100
+  K = 0
+  run
+
+  BestL equal 2
+end
+
+test "large N: 10^11 with zeros gives base 2 with 11 zeros"
+  use "0436_lucky_digits"
+  N = 100000000000
+  K = 0
+  run
+
+  BestD equal 2
+  BestL equal 11
+end

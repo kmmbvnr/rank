@@ -1,0 +1,105 @@
+rem Lucky Digits
+rem https://acmp.ru/index.asp?main=task&id_task=436
+rem Find base D (D >= 2, D <= 10^12) maximizing trailing digits K in base D representation of N
+
+use io
+use cli
+use sequences
+use text
+
+arg N integer = 49
+arg K integer = 1
+
+BestL = 0
+BestD = 2
+if K greater 1
+  BestD = K + 1
+end
+
+StartD = 2
+if K greater 1
+  StartD = K + 1
+end
+
+rem 1. Check small bases up to 5000
+CheckLimit = 5000
+for D in StartD to CheckLimit
+  Temp = N
+  CurL = 0
+  for (Temp greater 0) and ((Temp mod D) equal K)
+    CurL += 1
+    Temp //= D
+  end
+  if CurL greater BestL
+    BestL = CurL
+    BestD = D
+  end
+end
+
+rem 2. Check Q = 0 for L = 2: N = K * D + K => D = (N - K) / K
+if (K greater 0) and (N greater K)
+  if ((N - K) mod K) equal 0
+    D = (N - K) // K
+    if (D greater K) and (not (D less 2))
+      Temp = N
+      CurL = 0
+      for (Temp greater 0) and ((Temp mod D) equal K)
+        CurL += 1
+        Temp //= D
+      end
+      if CurL greater BestL
+        BestL = CurL
+        BestD = D
+      end
+    end
+  end
+end
+
+rem 3. Check divisors of N - K up to sqrt(N - K)
+if N greater K
+  Diff = N - K
+  Limit = (Diff ** 0.5) integer
+  for D in StartD to Limit
+    if (Diff mod D) equal 0
+      rem Check D
+      Temp = N
+      CurL = 0
+      for (Temp greater 0) and ((Temp mod D) equal K)
+        CurL += 1
+        Temp //= D
+      end
+      if CurL greater BestL
+        BestL = CurL
+        BestD = D
+      end
+
+      rem Check paired divisor D2 = Diff / D
+      D2 = Diff // D
+      if (D2 greater K) and (not (D2 less 2))
+        Temp2 = N
+        CurL2 = 0
+        for (Temp2 greater 0) and ((Temp2 mod D2) equal K)
+          CurL2 += 1
+          Temp2 //= D2
+        end
+        if CurL2 greater BestL
+          BestL = CurL2
+          BestD = D2
+        end
+      end
+    end
+  end
+end
+
+rem 4. Check L = 1
+if BestL equal 0
+  if N greater K
+    D = N - K
+    if (D greater K) and (not (D less 2))
+      BestL = 1
+      BestD = D
+    end
+  end
+end
+
+(tuple BestD BestL) print
