@@ -26,6 +26,17 @@ describe('slice assignment from stored cells', () => {
         expect(loop(init, 'Xs (0 to 7) += Ys (0 to 7)', 'Xs 7')).toBe('6000000000');
     });
 
+    it('adds Int32 slices into wide cells with carries and signs', () => {
+        const init = 'Xs = array shape 6 fill 4294967295\nXs 0 = 5000000000\nXs 1 = -4294967296\nYs = (array shape 6 fill 1) * (0 to 5) - 3';
+        const up = loop(init, 'Xs (0 to 5) += Ys (0 to 5)', 'Xs', 3);
+        expect(up).toBe('4999999991 -4294967302 4294967292 4294967295 4294967298 4294967301');
+    });
+
+    it('subtracts Int32 slices from wide cells', () => {
+        const init = 'Xs = array shape 4 fill 3000000000\nYs = 0 to 3';
+        expect(loop(init, 'Xs (0 to 3) -= Ys (0 to 3)', 'Xs', 2)).toBe('3000000000 2999999998 2999999996 2999999994');
+    });
+
     it('rejects a right side of the wrong length', () => {
         const init = 'Xs = array shape 8 fill 1\nYs = array shape 8 fill 1';
         expect(() => loop(init, 'Xs (0 to 4) = Ys (0 to 5)', 'Xs')).toThrow('mismatch');

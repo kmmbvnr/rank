@@ -363,6 +363,33 @@ export function writeIntegerSelection(
             state.items = state.typed as unknown as RankValue[];
         }
         const cells = state.typed as BigInt64Array;
+        // Packed operands add into int64 cells as two int32 halves with a
+        // carry, so no BigInt is boxed. Stops at the first int64 overflow.
+        if (LITTLE_ENDIAN && linear && (operator === '+=' || operator === '-=')
+            && (operand instanceof Int32Array || operand instanceof BigInt64Array)) {
+            const dst = new Int32Array(cells.buffer, cells.byteOffset, cells.length * 2);
+            const src = operand instanceof BigInt64Array
+                ? new Int32Array(operand.buffer, operand.byteOffset, operand.length * 2) : operand;
+            const wide = operand instanceof BigInt64Array;
+            const sign = operator === '-=' ? -1 : 1;
+            for (let start = first; start < count; start += 4096) {
+                const end = Math.min(count, start + 4096);
+                checkpoint('writing array', end - start);
+                let offset = (linear.offset + start * linear.stride) * 2;
+                for (let i = start; i < end; i++, offset += linear.stride * 2) {
+                    const low = wide ? src[i * 2] : src[i];
+                    const high = wide ? src[i * 2 + 1] : low >> 31;
+                    const sum = (dst[offset] >>> 0) + sign * (low >>> 0);
+                    const next = dst[offset + 1] + sign * high + (sum > 4294967295 ? 1 : sum < 0 ? -1 : 0);
+                    if (next !== (next | 0)) { first = i; break; }
+                    dst[offset] = sum | 0;
+                    dst[offset + 1] = next;
+                    first = i + 1;
+                }
+                if (first < end) break;
+            }
+            if (first === count) return;
+        }
         const scalar = typeof operand === 'bigint' ? operand : undefined;
         const combine = operator === '=' ? (_: bigint, next: bigint) => next
             : operator === '+=' ? (old: bigint, next: bigint) => old + next
