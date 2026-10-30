@@ -1,0 +1,111 @@
+rem Currency Exchange
+rem https://acmp.ru/index.asp?main=task&id_task=403
+rem Count integers in [L, R] where each digit appears at most 2 times via digit DP
+
+use io
+use cli
+use sequences
+use text
+
+arg Input text = "990 1000"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+Val1 = Tokens 0 integer
+Val2 = Tokens 1 integer
+L = Val1 min Val2
+R = Val1 max Val2
+
+Ways = array shape (19 * 11 * 11) fill 0
+
+for C0 in 0 to 10
+  for C1 in 0 to (10 - C0)
+    Idx = C0 * 11 + C1
+    Ways Idx = 1
+  end
+end
+
+for Rem in 1 to 18
+  PrevRem = Rem - 1
+  for C0 in 0 to 10
+    for C1 in 0 to (10 - C0)
+      W = 0
+      if C0 greater 0
+        PrevIdx1 = (PrevRem * 11 + (C0 - 1)) * 11 + (C1 + 1)
+        W += C0 * (Ways PrevIdx1)
+      end
+      if C1 greater 0
+        PrevIdx2 = (PrevRem * 11 + C0) * 11 + (C1 - 1)
+        W += C1 * (Ways PrevIdx2)
+      end
+      CurIdx = (Rem * 11 + C0) * 11 + C1
+      Ways CurIdx = W
+    end
+  end
+end
+
+Bounds = array (L - 1) R
+Results = array shape 2 fill 0
+
+for BIdx in 0 to 1
+  X = Bounds BIdx
+  Total = 0
+
+  if X greater 0
+    S = X text
+    Digits = (S split "") integer
+    NumDigits = Digits len
+
+    rem Lengths < NumDigits
+    if NumDigits greater 1
+      for Len in 1 to (NumDigits - 1)
+        Idx = ((Len - 1) * 11 + 9) * 11 + 1
+        Total += 9 * (Ways Idx)
+      end
+    end
+
+    rem Length == NumDigits
+    Counts = array shape 10 fill 0
+    CanMatch = true
+
+    for I in 0 to (NumDigits - 1)
+      if CanMatch
+        Digit = Digits I
+        StartD = 0
+        if I equal 0
+          StartD = 1
+        end
+
+        RemLen = NumDigits - 1 - I
+        if StartD less Digit
+          for D in StartD to (Digit - 1)
+            if (Counts D) less 2
+              Counts D = (Counts D) + 1
+              C0 = (Counts equal 0) count
+              C1 = (Counts equal 1) count
+              WIdx = (RemLen * 11 + C0) * 11 + C1
+              Total += Ways WIdx
+              Counts D = (Counts D) - 1
+            end
+          end
+        end
+
+        if (Counts Digit) greater 1
+          CanMatch = false
+        else
+          Counts Digit = (Counts Digit) + 1
+        end
+      end
+    end
+
+    if CanMatch
+      Total += 1
+    end
+  end
+
+  Results BIdx = Total
+end
+
+Answer = (Results 1) - (Results 0)
+Answer print
