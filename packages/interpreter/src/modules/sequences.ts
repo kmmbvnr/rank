@@ -6,6 +6,7 @@ import { permutedArray } from '../array-permutation.js';
 import { findValue, findAllValues } from './sequence-search.js';
 import { materializeValue } from '../materialize.js';
 import { numericSort } from '../numeric-collections.js';
+import { argsortStoredAxis } from '../axis-order.js';
 import { reshapeDimensions } from '../tensor-layout.js';
 import { sortValue, argsortValue, sortableKind, stableOrder } from './sequence-order.js';
 export { sortValue, argsortValue, sortByKeys } from './sequence-order.js';
@@ -503,6 +504,8 @@ export function sortByItems(value: RankValue, operation = 'sort by'): RankValue[
 export function argsortAxis(value: RankValue, axis: number, descending = false): RankArray {
     if (!isRankArray(value)) throw new RankError('argsort axis expects an array');
     axis = resolveAxis(axis, value.shape.length, axis => new RankError(`argsort axis out of bounds: ${axis}`, 'DimensionMismatch'));
+    const stored = argsortStoredAxis(value, axis, descending);
+    if (stored) return stored;
     const shape = [...value.shape];
     const result = Array<RankValue>(arraySize(shape));
     const vectorShape = shape.filter((_, current) => current !== axis);
