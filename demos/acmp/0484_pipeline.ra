@@ -1,0 +1,67 @@
+rem Pipeline
+rem https://acmp.ru/index.asp?main=task&id_task=484
+rem Find sequence of open valves to drain waste in a 40-layer Fibonacci pipeline tree
+
+use io
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "8"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+S = (Tokens 0) integer
+
+F = array shape 45 fill 0
+F 1 = 1
+F 2 = 1
+for I in 3 till 45
+  F I = (F (I - 1)) + (F (I - 2))
+end
+
+Path = array S
+Curr = S
+
+for true
+  if Curr equal 1
+    break
+  end
+
+  L = 1
+  for true
+    if (F (L + 3)) - 1 greater Curr
+      break
+    end
+    L = L + 1
+  end
+
+  StartL = (F (L + 2)) - 1
+  StartPrev = (F (L + 1)) - 1
+  K = Curr - StartL
+
+  CurL = L
+  CurK = K
+  Offset = 0
+
+  for true
+    if CurL less 3
+      break
+    end
+    if CurK less (F CurL)
+      CurL = CurL - 1
+    else
+      Offset = Offset + (F (CurL - 1))
+      CurK = CurK - (F CurL)
+      CurL = CurL - 2
+    end
+  end
+
+  Parent = StartPrev + Offset
+  Path = concat Path (array Parent)
+  Curr = Parent
+end
+
+Answer = Path join " "
+Answer print

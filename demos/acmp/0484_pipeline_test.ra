@@ -1,0 +1,50 @@
+use testing
+
+test "sample 1: valve 8"
+  use "0484_pipeline"
+  run
+
+  Answer equal "8 4 2 1"
+end
+
+test "sample 2: valve 5"
+  use "0484_pipeline"
+  Input = "5"
+  run
+
+  Answer equal "5 2 1"
+end
+
+test "sample 3: valve 6"
+  use "0484_pipeline"
+  Input = "6"
+  run
+
+  Answer equal "6 3 1"
+end
+
+test "sample 4: valve 10"
+  use "0484_pipeline"
+  Input = "10"
+  run
+
+  Answer equal "10 6 3 1"
+end
+
+test "base valve 1"
+  use "0484_pipeline"
+  Input = "1"
+  run
+
+  Answer equal "1"
+end
+
+test "maximum valve layer 40"
+  use "0484_pipeline"
+  Input = "433494435"
+  run
+
+  (Path len) equal 40
+  (Path 0) equal 433494435
+  (Path 39) equal 1
+end
