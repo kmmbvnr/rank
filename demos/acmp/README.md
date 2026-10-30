@@ -37,8 +37,17 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0337** | [Лампочки](0337_lightbulbs.ra) | Number Theory / Inclusion-Exclusion (94%) | Parity LCM inclusion-exclusion term update with vector `lcm`, `argsort` & run-length merge |
 | **0342** | [Вписанная окружность](0342_inscribed_circle.ra) | Computational Geometry (68%) | Convex polygon incircle via vector inward normals, $2 \times 2$ Cramer solve & `(Diffs less 0.0001) all` |
 | **0396** | [Точки и отрезки](0396_points_and_segments.ra) | Data Structures / Scan (62%) | Segment point containment using tagged coordinate prefix scans `scan +` & scatter assignment |
+| **0403** | [Обмен валюты](0403_currency_exchange.ra) | Digit DP (70%) | Count integers in $[A, B]$ with $\le 2$ copies of each digit via memoized digit DP |
+| **0404** | [Игра в камешки](0404_stone_game.ra) | Game Theory (63%) | Square-root subtraction game up to $10^{12}$ via P-position sieve |
+| **0405** | [Туристическое агентство](0405_travel_agency.ra) | Graph Theory (80%) | Count cut-vertex disconnected component pairs using vector DSU & `(Roots U outer equal integer) sum axis 0` |
+| **0410** | [Цифровое колдовство](0410_digital_sorcery.ra) | BFS / Number Theory (75%) | Minimal number $K$ with $(N + K) \equiv 0 \pmod M$ and minimal digit sum via Dial's algorithm & BFS |
 | **0414** | [Расследование](0414_investigation.ra) | Tree LCA (65%) | Lowest common ancestor in tree rooted at 1 with ancestor tagging |
+| **0428** | [SMS](0428_sms.ra) | Dynamic Programming (74%) | Mobile keyboard SMS decoding via character-button matrix dot product & polynomial composition convolution |
 | **0432** | [Грядки](0432_garden_beds.ra) | Graph / Connected Components (60%) | 4-connected grid components via vector neighbor masks and Disjoint Set Union (`new dsu`) |
+| **0434** | [Стеклянный забор](0434_glass_fence.ra) | Computational Geometry (72%) | Orthogonal convex hull with minimal perimeter & area via `TopY scan max axis 0` & `BotY scan min axis 0` |
+| **0435** | [Несчастливые номера](0435_unlucky_numbers.ra) | Combinatorics / DP (88%) | Count unpartitionable $N$-digit numbers via polynomial parity convolution & bitset subset sum |
+| **0436** | [Счастливые цифры](0436_lucky_digits.ra) | Number Theory (60%) | Base $D$ maximizing trailing digits $K$ up to $N = 10^{11}$ via divisor analysis & base testing |
+| **0441** | [Карточки - 2](0441_cards_2.ra) | Data Structures / Sorting (73%) | Minimal adjacent swaps via `A argsort`, vector scatter assignment `P OrderB = OrderA` & `((P P outer greater) and (Indices Indices outer less)) count` |
 | **0467** | [Закраска прямой - 2](0467_line_coloring_2.ra) | Sweep-line / Intervals (61%) | Longest white interval under parity flips via coordinate compression & prefix sum scan |
 | **0510** | [Шоколадка](0510_chocolate_bar.ra) | Dynamic Programming (60%) | Domino tilings of $3 \times N$ rectangle via second-order linear recurrence $F_k = 4 F_{k-1} - F_{k-2}$ |
 | **0523** | [Роман в томах](0523_book_volumes.ra) | Binary Search / Greedy (60%) | Optimal chapter partitioning into $K$ volumes via binary search on answer |
