@@ -1,0 +1,64 @@
+use testing
+
+test "sample 1: 0.1(6) * 3 gives finite 0.5"
+  use "0455_fraction_multiplication"
+  run
+
+  Answer equal "0.5"
+end
+
+test "sample 2: 12.(3) * 2 gives 24.(6)"
+  use "0455_fraction_multiplication"
+  Input = "12.(3)\n2"
+  run
+
+  Answer equal "24.(6)"
+end
+
+test "period completes to integer: 0.(3) * 3 gives 1"
+  use "0455_fraction_multiplication"
+  Input = "0.(3)\n3"
+  run
+
+  Answer equal "1"
+end
+
+test "shift period left: 0.5(3) * 5 gives 2.(6)"
+  use "0455_fraction_multiplication"
+  Input = "0.5(3)\n5"
+  run
+
+  Answer equal "2.(6)"
+end
+
+test "long 6-digit period completes: 0.(142857) * 7 gives 1"
+  use "0455_fraction_multiplication"
+  Input = "0.(142857)\n7"
+  run
+
+  Answer equal "1"
+end
+
+test "long period permuted: 0.(142857) * 2 gives 0.(285714)"
+  use "0455_fraction_multiplication"
+  Input = "0.(142857)\n2"
+  run
+
+  Answer equal "0.(285714)"
+end
+
+test "trailing zero non-periodic: 0.0(3) * 3 gives 0.1"
+  use "0455_fraction_multiplication"
+  Input = "0.0(3)\n3"
+  run
+
+  Answer equal "0.1"
+end
+
+test "non-periodic part preserved: 1.25(3) * 3 gives 3.76"
+  use "0455_fraction_multiplication"
+  Input = "1.25(3)\n3"
+  run
+
+  Answer equal "3.76"
+end

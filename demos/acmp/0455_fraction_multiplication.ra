@@ -1,0 +1,100 @@
+rem ACMP 0455 - Fraction Multiplication (Умножение дроби)
+rem Multiply a periodic decimal fraction by an integer N using modular arithmetic
+rem and period reduction.
+rem
+rem Format: Q has form I.nonper(per) where (per) is repeating infinitely.
+rem Q * N produces a fraction whose period divides the original period length P.
+rem The carry from the periodic part carries into the non-periodic part.
+
+use io
+use cli
+use sequences
+use numbers
+use text
+
+arg Input text = "0.1(6)\n3"
+
+Lines = Input split "\n"
+Lines = Lines (Lines not equal "")
+QText = Lines 0
+N = (Lines 1) integer
+
+Dot = QText find "."
+Open = QText find "("
+Close = QText find ")"
+
+IntPart = QText take Dot
+NonPer = QText ((Dot + 1) till Open)
+Per = QText ((Open + 1) till Close)
+
+K = NonPer len
+P = Per len
+
+D = Per integer
+Denom9 = ((array shape P fill "9") join "") integer
+
+Prod = D * N
+Carry = Prod // Denom9
+Rem = Prod mod Denom9
+
+PrefixStr = IntPart + NonPer
+PrefixVal = PrefixStr integer
+NewPrefixVal = PrefixVal * N + Carry
+NewPrefixStr = NewPrefixVal text
+
+PrefixLen = NewPrefixStr len
+if PrefixLen less (K + 1)
+  PadCount = (K + 1) - PrefixLen
+  NewPrefixStr = ((array shape PadCount fill "0") join "") + NewPrefixStr
+end
+
+SplitIdx = (NewPrefixStr len) - K
+NewIntPart = NewPrefixStr take SplitIdx
+NewFracPart = NewPrefixStr drop SplitIdx
+
+Answer = ""
+
+if Rem equal 0
+  for ((NewFracPart len) greater 0) and ((NewFracPart ((NewFracPart len) - 1)) equal "0")
+    NewFracPart = NewFracPart take ((NewFracPart len) - 1)
+  end
+  if (NewFracPart len) greater 0
+    Answer = NewIntPart + "." + NewFracPart
+  else
+    Answer = NewIntPart
+  end
+else
+  RemStr = Rem text
+  RemLen = RemStr len
+  if RemLen less P
+    RemStr = ((array shape (P - RemLen) fill "0") join "") + RemStr
+  end
+
+  Divs = (1 to P array)
+  Divs = Divs (P mod Divs equal 0)
+
+  MinP = P
+  for CandLen in Divs
+    Candidate = RemStr take CandLen
+    Reconstructed = (array shape (P // CandLen) fill Candidate) join ""
+    if Reconstructed equal RemStr
+      MinP = CandLen
+      break
+    end
+  end
+  PerStr = RemStr take MinP
+
+  for ((NewFracPart len) greater 0) and ((NewFracPart ((NewFracPart len) - 1)) equal (PerStr ((PerStr len) - 1)))
+    NewFracPart = NewFracPart take ((NewFracPart len) - 1)
+    LastPer = PerStr ((PerStr len) - 1)
+    PerStr = LastPer + (PerStr take ((PerStr len) - 1))
+  end
+
+  if (NewFracPart len) greater 0
+    Answer = NewIntPart + "." + NewFracPart + "(" + PerStr + ")"
+  else
+    Answer = NewIntPart + ".(" + PerStr + ")"
+  end
+end
+
+Answer print
