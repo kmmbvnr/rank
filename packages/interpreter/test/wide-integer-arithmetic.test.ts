@@ -30,7 +30,7 @@ describe('stored integer arithmetic beyond Int32', () => {
             for (const [left, cells] of [['S', small], ['W', wide]] as const) {
                 if (name === '*' && left === 'W') continue;
                 const got = run(`${left} ${name} R`, { S: small, W: wide, R: right });
-                expect(got).toEqual(Array.from(cells, (a, i) => operation(BigInt(a), BigInt(right[i]))));
+                expect(got).toEqual(Array.from({ length: N }, (_, i) => operation(BigInt(cells[i]), BigInt(right[i]))));
             }
         });
     }
