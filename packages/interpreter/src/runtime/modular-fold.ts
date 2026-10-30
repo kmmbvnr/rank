@@ -1,19 +1,18 @@
 import { checkpoint } from '../interrupt.js';
 import { collectArrayCells } from './array-read.js';
+import { multiply } from './modular-power.js';
 import { integer32Cells, typedArray } from './owned-array.js';
 import type { RankArray } from './value.js';
 
 /** Largest modulus whose residues fit an Int32 cell. */
 const MAX_MODULUS = 2 ** 31;
-/** Residues below this multiply exactly in a double. */
-const EXACT_PRODUCT = 2 ** 26;
 
 type Step = (acc: number, x: number) => number;
 
 /** `+` and `*` on residues below `m`; the wide product is split in 16-bit halves. */
 function stepOf(op: '+' | '*', m: number): Step {
     if (op === '+') return (a, x) => { const s = a + x; return s >= m ? s - m : s; };
-    if (m <= EXACT_PRODUCT) return (a, x) => (a * x) % m;
+    if (m <= 2 ** 30) return (a, x) => multiply(a, x, m);
     return (a, x) => ((a * (x >>> 16)) % m * 65536 + a * (x & 65535)) % m;
 }
 

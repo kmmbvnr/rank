@@ -5,15 +5,38 @@ import { checkpoint } from '../interrupt.js';
  * imul recovers the exact low 32 bits of a*b - quotient*modulus. That
  * difference lies in (-modulus, 2*modulus), so its signed 32-bit value is
  * unambiguous. One correction then gives the exact nonnegative residue. */
-function multiply(a: number, b: number, modulus: number): number {
+export function multiply(a: number, b: number, modulus: number): number {
     const quotient = (a * b / modulus) | 0;
     const remainder = (Math.imul(a, b) - Math.imul(quotient, modulus)) | 0;
     return remainder < 0 ? remainder + modulus : remainder >= modulus ? remainder - modulus : remainder;
 }
 
+let lastBase = -1;
+let lastModulus = -1;
+let squares: Float64Array | undefined;
+
 /** Safe integer inputs, a nonnegative exponent and 0 < modulus <= 2^30.
  * Larger domains retain the arbitrary-precision modularPower implementation. */
 export function safeIntegerModularPower(base: number, exponent: number, modulus: number): number {
+    if (exponent <= 4294967295) {
+        const reduced = base >= 0 && base < modulus ? base : ((base % modulus) + modulus) % modulus;
+        // A run of calls with one base and modulus shares its squarings.
+        if (reduced === lastBase && modulus === lastModulus) {
+            if (!squares) {
+                squares = new Float64Array(32);
+                squares[0] = reduced;
+                for (let bit = 1; bit < 32; bit++) squares[bit] = multiply(squares[bit - 1], squares[bit - 1], modulus);
+            }
+            let result = modulus === 1 ? 0 : 1;
+            for (let remaining = exponent >>> 0, bit = 0; remaining > 0; remaining >>>= 1, bit++) {
+                if (remaining & 1) result = multiply(result, squares[bit], modulus);
+            }
+            return result;
+        }
+        lastBase = reduced;
+        lastModulus = modulus;
+        squares = undefined;
+    }
     let factor = base >= 0 && base < modulus ? base : ((base % modulus) + modulus) % modulus;
     let power = exponent;
     let result = modulus === 1 ? 0 : 1;
