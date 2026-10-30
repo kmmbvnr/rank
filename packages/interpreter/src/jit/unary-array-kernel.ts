@@ -16,9 +16,28 @@ export function mapStoredUnary(source: RankArray, input: 'real' | 'integer' | 'n
     const size = source.shape.reduce((n, dimension) => n * dimension, 1);
     if (size < 1024) return undefined;
     const { offset, stride } = view.linear;
+    const compact = view.compact && (!view.validate || view.validateUniform) ? view.compact : undefined;
     const cells = result === 'real' ? new Float64Array(size) : new Int32Array(size);
     let wide: IntegerCells | undefined;
     try {
+        if (compact) {
+            // Int32 cells are exact Numbers: no BigInt round trip per cell.
+            if (size) view.validateUniform?.(BigInt(compact[offset]));
+            const out = result === 'integer' ? new Int32Array(size) : undefined;
+            let fits = true;
+            for (let start = 0; fits && start < size; start += 4096) {
+                const end = Math.min(size, start + 4096);
+                checkpoint('computing numeric array', end - start);
+                for (let index = start; index < end; index++) {
+                    const computed = operation(compact[offset + index * stride]);
+                    if (!out) { (cells as Float64Array)[index] = computed; continue; }
+                    if (computed !== (computed | 0)) { fits = false; break; }
+                    out[index] = computed;
+                }
+            }
+            // A result outside Int32 retries on the widening path below.
+            if (fits) return typedArray(out ?? cells, source.shape);
+        }
         view.validateUniform?.(view.items[offset]);
         for (let start = 0; start < size; start += 4096) {
             const end = Math.min(size, start + 4096);

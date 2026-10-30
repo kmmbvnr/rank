@@ -3,7 +3,7 @@ import { arrayValues, derivedArray, readArrayItem } from '../array-storage.js';
 import { prepareStoredScalarView } from '../integer-view.js';
 import { registerArrayCopy } from '../array-copy.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
-import type { NativeFunction, RankArray, RankValue } from '../value.js';
+import { isRankArray, type NativeFunction, type RankArray, type RankValue } from '../value.js';
 
 // Only internal, pure scalar-to-scalar builtins opt in. Names and user-declared
 // signatures are not evidence that ranked result assembly may be bypassed.
@@ -13,6 +13,16 @@ const operations = new WeakMap<NativeFunction, {
     result?: 'real' | 'integer' | 'numeric';
     intrinsic?: 'abs';
 }>();
+
+const completions = new WeakMap<RankArray, { reader: RankArray['itemAt']; complete(): RankArray | undefined }>();
+
+/** The stored result of a scalar builtin over completed storage, or the array
+ * itself. Dense arithmetic takes operands whole, like stored ones; the batch
+ * pass declines when any cell would fail, so errors keep their lazy reads. */
+export function completeScalarBuiltin(value: RankValue): RankValue {
+    const plan = isRankArray(value) ? completions.get(value) : undefined;
+    return plan && plan.reader === (value as RankArray).itemAt ? plan.complete() ?? value : value;
+}
 
 export function registerScalarBuiltin(fn: NativeFunction, operation: (value: RankValue) => RankValue,
     batch?: (source: RankArray) => RankArray | undefined, result?: 'real' | 'integer' | 'numeric', intrinsic?: 'abs'): NativeFunction {
@@ -51,7 +61,10 @@ export function scalarBuiltinArray(source: RankArray, fn: NativeFunction,
             } else yield read(index);
         }
     });
-    if (registered.batch) registerArrayCopy(result, () => registered.batch!(source));
+    if (registered.batch) {
+        registerArrayCopy(result, () => registered.batch!(source));
+        completions.set(result, { reader: result.itemAt, complete: () => registered.batch!(source) });
+    }
     return registered.result ? registerTensorScalarMap(result, source, operation, registered.result,
         () => registered.call === fn.call, registered.intrinsic) : result;
 }

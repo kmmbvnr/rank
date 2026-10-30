@@ -61,3 +61,38 @@ describe('arbitrary-precision popcount', () => {
         expect(count(input)).toBe(100000n);
     });
 });
+
+describe('stored popcount arrays', () => {
+    const oracle = (value: bigint) => BigInt([...value.toString(2)].filter(bit => bit === '1').length);
+    const program = (count: number, step: bigint) => `use bits\nuse sequences\nXs = (0 to ${count - 1}) * ${step} + 5\nXs popcount sum`;
+
+    it('counts Int32 and wider cells in one pass', () => {
+        for (const step of [1000003n, 4000000007n]) {
+            const sum = Array.from({ length: 3000 }, (_, i) => oracle(BigInt(i) * step + 5n)).reduce((a, b) => a + b, 0n);
+            expect(run(program(3000, step)).trim()).toBe(String(sum));
+        }
+    });
+
+    it('keeps the domain error for a negative cell', () => {
+        expect(() => run('use bits\nuse sequences\n((0 to 2999) - 1) popcount')).toThrow('popcount expects a nonnegative integer');
+    });
+});
+
+describe('one index vector gathering several arrays', () => {
+    const program = (tail: string) => `use sequences
+Ix = ((0 to 2999) * 7) mod 3000
+Xs = (0 to 2999) * 2
+Ys = (0 to 2999) * 3
+Xs Ix
+Ys Ix
+${tail}`;
+
+    it('gathers each source through the same checked offsets', () => {
+        expect(run(program('(Ys Ix) sum'))).toBe(String(Array.from({ length: 3000 }, (_, i) => ((i * 7) % 3000) * 3).reduce((a, b) => a + b, 0)));
+    });
+
+    it('rechecks the vector after it is written', () => {
+        expect(() => run(program('Ix 5 = 3000\nXs Ix'))).toThrow('out of bounds');
+        expect(run(program('Ix 5 = 1\n(Xs Ix) 5'))).toBe('2');
+    });
+});

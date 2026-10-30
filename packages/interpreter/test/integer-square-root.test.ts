@@ -8,6 +8,7 @@ import type { RuntimeContext } from '../src/modules/types.js';
 import { registerScalarBuiltin, scalarBuiltinArray } from '../src/scalar-builtin.js';
 import { native } from '../src/modules/shared.js';
 import { demandValue } from '../src/plan.js';
+import { run } from './support.js';
 
 // Independent integer-only oracle, including for inputs using the new estimate.
 function newton(n: bigint): bigint {
@@ -312,5 +313,17 @@ Total' = (A * A) isqrt sum`);
             expect(() => withInterrupt(signal, () => demandValue(plan))).toThrow(InterruptedError);
             expect(demandValue(plan)).toBe(50005000n);
         } finally { runtime.dispose(); }
+    });
+});
+
+describe('isqrt as an operand of dense arithmetic', () => {
+    it('takes the stored root whole and keeps the exact values', () => {
+        expect(run('use numbers\nuse sequences\n((((0 to 4999) * 8 + 1) isqrt - 1) // 2 + 2) sum'))
+            .toBe(String(Array.from({ length: 5000 }, (_, i) => (BigInt(Math.floor(Math.sqrt(i * 8 + 1))) - 1n) / 2n + 2n)
+                .reduce((a, b) => a + b, 0n)));
+    });
+
+    it('still raises for a negative cell when the result is read', () => {
+        expect(() => run('use numbers\nuse sequences\n((((0 to 4999) - 1) isqrt) + 1) sum')).toThrow('isqrt expects a nonnegative integer');
     });
 });

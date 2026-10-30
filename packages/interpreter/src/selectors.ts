@@ -1,3 +1,4 @@
+import { arrayRevision } from './array-revision.js';
 import { resolveAxis } from './tensor-index.js';
 import { registerArrayCopy, copyStoredArrayBlocks } from './array-copy.js';
 import { registerPackedBooleanSelection } from './packed-booleans.js';
@@ -58,6 +59,8 @@ function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (
     return result;
 }
 
+const checkedOffsets = new WeakMap<RankArray, { revision: number; size: number; offsets: Float64Array; unique: boolean }>();
+
 interface SelectedAxis {
     readonly preserve: boolean;
     readonly size: number;
@@ -66,6 +69,8 @@ interface SelectedAxis {
     readonly unique?: boolean;
     indexAt(coordinate: number): number;
     readonly linear?: LinearView;
+    /** Validated source offsets of a materialized index vector. */
+    readonly offsets?: Float64Array;
 }
 
 interface TensorSelection {
@@ -188,10 +193,17 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
                         linear: { offset: first, stride }, indexAt: (coordinate: number) => first + coordinate * stride };
                 }
             }
+            // One index vector often gathers several arrays in a row: keep its
+            // checked offsets while the vector and the axis size are unchanged.
+            const revision = isRankArray(selector) ? arrayRevision(selector) : undefined;
+            const cached = revision === undefined ? undefined : checkedOffsets.get(selector as RankArray);
+            if (cached && cached.revision === revision && cached.size === size && cached.offsets.length === stored.length) {
+                return { preserve: true, size: cached.offsets.length, shape, unique: cached.unique, indexAt: (coordinate: number) => cached.offsets[coordinate], offsets: cached.offsets };
+            }
             const indices = new Float64Array(stored.length);
             let unique = true;
             for (let i = 0; i < indices.length; i++) {
-                checkpoint('checking array indices');
+                if ((i & 4095) === 0) checkpoint('checking array indices', Math.min(4096, indices.length - i));
                 const value = compact ? compact[i] : stored[i] as bigint;
                 const offset = Number(value);
                 if (offset < 0) throw new RankError(`array index must be nonnegative on axis ${axis}`);
@@ -199,7 +211,8 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
                 indices[i] = offset;
                 if (i > 0 && offset <= indices[i - 1]) unique = false;
             }
-            return { preserve: true, size: indices.length, shape, unique, indexAt: (coordinate: number) => indices[coordinate] };
+            if (revision !== undefined) checkedOffsets.set(selector as RankArray, { revision, size, offsets: indices, unique });
+            return { preserve: true, size: indices.length, shape, unique, indexAt: (coordinate: number) => indices[coordinate], offsets: indices };
         }
         const indices = selectorIndices(selector, size, axis);
         return {
@@ -442,9 +455,9 @@ function gather(
     const strides = new Array<number>(sourceShape.length).fill(1);
     for (let axis = sourceShape.length - 2; axis >= 0; axis -= 1) strides[axis] = strides[axis + 1] * sourceShape[axis + 1];
     let fixed = 0;
-    const kept: { size: number; stride: number; indexAt: (coordinate: number) => number }[] = [];
+    const kept: { size: number; stride: number; indexAt: (coordinate: number) => number; offsets?: Float64Array }[] = [];
     axes.forEach((axis, position) => {
-        if (axis.preserve) kept.push({ size: axis.size, stride: strides[position], indexAt: axis.indexAt });
+        if (axis.preserve) kept.push({ size: axis.size, stride: strides[position], indexAt: axis.indexAt, offsets: axis.offsets });
         else fixed += axis.indexAt(0) * strides[position];
     });
     const rank = kept.length;
@@ -452,6 +465,7 @@ function gather(
     // Each kept axis is decoded once into a table of source offsets, so the
     // innermost loop is a lookup instead of a closure call per cell.
     const tables = kept.map(axis => {
+        if (axis.offsets && axis.stride === 1) return axis.offsets;
         const table = new Float64Array(axis.size);
         for (let coordinate = 0; coordinate < axis.size; coordinate += 1) table[coordinate] = axis.indexAt(coordinate) * axis.stride;
         return table;

@@ -4,6 +4,7 @@ import { mapArrayCells } from './array-cell-mapping.js';
 import { mapScalarArrays } from '../jit/scalar-array-map.js';
 import { prepareDenseOperands, isArrayValue, numericKinds, DENSE_MIN_CELLS } from '../jit/tensor-operands.js';
 import { arrayStrides, broadcastOffset, broadcastShape, trailingCells } from '../jit/tensor-layout.js';
+import { completeScalarBuiltin } from '../jit/scalar-builtin.js';
 export { broadcastShape } from '../jit/tensor-layout.js';
 import { prepareStoredScalarView, type LinearView } from './integer-view.js';
 import { mapPair, runExecution } from '../execution.js';
@@ -69,13 +70,14 @@ export function mapBooleanArrays(left: RankArray, right: RankArray, operator: 'a
  * it is read, as in the lazy path.
  */
 export function mapDenseArrays(
-    left: RankValue,
-    right: RankValue,
+    leftOperand: RankValue,
+    rightOperand: RankValue,
     operation: (left: RankValue, right: RankValue) => RankValue,
     realCode = -1,
     allowSmall = false,
     integerOperation = ['+', '-', '*'][realCode],
 ): RankArray | undefined {
+    const left = completeScalarBuiltin(leftOperand), right = completeScalarBuiltin(rightOperand);
     const comparison = compareStoredInt32(left, right, integerOperation);
     if (comparison) return comparison;
     const integers = mapStoredIntegers(left, right, integerOperation);
