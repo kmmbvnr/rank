@@ -1,0 +1,188 @@
+rem Zuma
+rem https://acmp.ru/index.asp?main=task&id_task=707
+rem Minimum shots to clear a Zuma row of balls via BFS with state pruning and chain-reaction simulation.
+
+use io
+use numbers
+use cli
+use sequences
+use text
+use algo
+
+arg Input text = "ABBBAA"
+
+fun S C Pos simulate_shot
+  LeftPart = S (0 till Pos)
+  RightPart = S (Pos till (S len))
+  TextChars = (array LeftPart C RightPart) join ""
+  Chars = TextChars split ""
+  N = Chars len
+  L = Pos
+  R = Pos
+
+  for Step in 0 till N
+    if (L equal 0) or ((Chars (L - 1)) not equal C)
+      break
+    end
+    L = L - 1
+  end
+
+  for Step in 0 till N
+    if (R equal (N - 1)) or ((Chars (R + 1)) not equal C)
+      break
+    end
+    R = R + 1
+  end
+
+  if (R - L + 1) less 3
+    return TextChars
+  end
+
+  for Chain in 0 till 20
+    OldN = N
+    LeftSlice = Chars (0 till L)
+    RightSlice = Chars ((R + 1) till N)
+    Chars = concat LeftSlice RightSlice
+    N = Chars len
+
+    if (L equal 0) or (R equal (OldN - 1)) or (N equal 0)
+      break
+    end
+
+    LeftChar = Chars (L - 1)
+    RightChar = Chars L
+    if LeftChar not equal RightChar
+      break
+    end
+
+    C2 = LeftChar
+    NewL = L - 1
+    NewR = L
+
+    for Step in 0 till N
+      if (NewL equal 0) or ((Chars (NewL - 1)) not equal C2)
+        break
+      end
+      NewL = NewL - 1
+    end
+
+    for Step in 0 till N
+      if (NewR equal (N - 1)) or ((Chars (NewR + 1)) not equal C2)
+        break
+      end
+      NewR = NewR + 1
+    end
+
+    if (NewR - NewL + 1) less 3
+      break
+    end
+
+    L = NewL
+    R = NewR
+  end
+
+  return Chars join ""
+end
+
+fun Initial solve_zuma
+  if Initial equal ""
+    return "0"
+  end
+
+  MaxStates = 15000
+  NodeStr = array shape MaxStates fill ""
+  NodeParent = array shape MaxStates fill -1
+  NodeMove = array shape MaxStates fill ""
+  
+  NodeStr 0 = Initial
+  NodeParent 0 = -1
+  NodeMove 0 = ""
+  NodeCount = 1
+
+  Visited = new set
+  Visited add Initial
+
+  Q = new queue
+  Q push 0
+
+  TargetNode = -1
+  Found = 0
+
+  for Step in 0 till MaxStates
+    if (Q len) equal 0
+      break
+    end
+
+    CurId = Q pop
+    CurS = NodeStr CurId
+
+    if CurS equal ""
+      TargetNode = CurId
+      Found = 1
+      break
+    end
+
+    CurLen = CurS len
+    Chars = CurS split ""
+    I = 0
+
+    for BlockStep in 0 till CurLen
+      if not (I less CurLen)
+        break
+      end
+      J = I
+      CurChar = Chars I
+      for ForwardStep in 0 till CurLen
+        if (J equal CurLen) or ((Chars J) not equal CurChar)
+          break
+        end
+        J = J + 1
+      end
+
+      NextS = CurS CurChar I simulate_shot
+      if not (NextS in Visited)
+        Visited add NextS
+        NodeStr NodeCount = NextS
+        NodeParent NodeCount = CurId
+        NodeMove NodeCount = CurChar + (I text)
+        Q push NodeCount
+        if NextS equal ""
+          TargetNode = NodeCount
+          Found = 1
+          NodeCount = NodeCount + 1
+          break
+        end
+        NodeCount = NodeCount + 1
+      end
+
+      I = J
+    end
+
+    if Found equal 1
+      break
+    end
+  end
+
+  Curr = TargetNode
+  Moves = array shape 0 fill ""
+  for Step in 0 till 20
+    if Curr equal 0
+      break
+    end
+    Moves = concat (array (NodeMove Curr)) Moves
+    Curr = NodeParent Curr
+  end
+
+  NumMoves = Moves len
+  if NumMoves equal 0
+    return "0"
+  end
+  return (NumMoves text) + " " + (Moves join " ")
+end
+
+RawTokens = Input split "\n" join " " split " "
+Tokens = RawTokens (RawTokens not equal "")
+StartStr = Tokens 0
+
+Ans = StartStr solve_zuma
+Ans print
