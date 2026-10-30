@@ -1,0 +1,48 @@
+use testing
+
+test "sample 1: abcabc with shift of abc -> 4"
+  use "0829_strings_3"
+  run
+
+  Matches equal 4
+end
+
+test "sample 2: abcabc with shift of acb -> 0"
+  use "0829_strings_3"
+  Input = "abcabc\nacb"
+  run
+
+  Matches equal 0
+end
+
+test "sample 3: aaaaaaa with shift of aa -> 6"
+  use "0829_strings_3"
+  Input = "aaaaaaa\naa"
+  run
+
+  Matches equal 6
+end
+
+test "sample 4: aAaa8aaAa with shift of aAa -> 4"
+  use "0829_strings_3"
+  Input = "aAaa8aaAa\naAa"
+  run
+
+  Matches equal 4
+end
+
+test "b longer than a -> 0"
+  use "0829_strings_3"
+  Input = "abc\nabcd"
+  run
+
+  Matches equal 0
+end
+
+test "exact single match"
+  use "0829_strings_3"
+  Input = "hello\nelloh"
+  run
+
+  Matches equal 1
+end
