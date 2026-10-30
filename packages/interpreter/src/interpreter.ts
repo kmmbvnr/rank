@@ -199,6 +199,7 @@ export class Interpreter {
             functions: this.functions,
             builtins: this.builtins,
             application: this.application,
+            reductions: this.reductions,
             fastPaths: this.fastPaths,
         });
         this.blocks = new BlockExecution({

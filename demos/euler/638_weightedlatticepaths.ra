@@ -32,19 +32,17 @@ for Kk in Ks
   Nu = 1
   De = 1
   if Kk equal 1
-    for I in 1 to Aa
-      Nu = Nu * (Bb + I) mod M
-      De = De * I mod M
-    end
+    Hi = Bb + Aa
+    Nu = (Bb + 1 to Hi) reduce * mod M
+    De = (1 to Aa) reduce * mod M
   else
-    Pn = Kk (Bb + 1) M powmod
-    Pd = Kk
-    for I in 1 to Aa
-      Nu = Nu * (Pn - 1) mod M
-      De = De * (Pd - 1) mod M
-      Pn = Pn * Kk mod M
-      Pd = Pd * Kk mod M
-    end
+    Ks' = array shape Aa fill Kk
+    Pw = Ks scan * with 1 mod M
+    Pk = Pw (1 to Aa)
+    Sh = Kk Bb M powmod
+    Pn = Pk * Sh mod M
+    Nu = (Pn - 1) reduce * mod M
+    De = (Pk - 1) reduce * mod M
   end
   Iv = De (M - 2) M powmod
   Answer = (Answer + Nu * Iv) mod M
