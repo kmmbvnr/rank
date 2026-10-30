@@ -1,0 +1,15 @@
+use testing
+
+test "statement pairs"
+  use "674_iequations"
+  Num = 3
+  run
+  Answer equal 26
+end
+
+test "default input"
+  use "674_iequations"
+  Num = 149
+  run
+  Answer equal 416678753
+end

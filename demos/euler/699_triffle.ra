@@ -1,0 +1,113 @@
+rem Triffle Numbers
+rem https://projecteuler.net/problem=699
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Nn integer = 100000000000000
+
+rem n = 3^a m (3 not dividing m) is a
+rem triffle number when m divides
+rem sigma(n) and 3 divides sigma(n)
+rem fewer than a times. Start from
+rem n = 2^b 3^a for every a, b. A prime
+rem p can join n only if it divides
+rem sigma(n), so the candidates are the
+rem primes of the sigma(q^f) already in
+rem n. Each p is tried with every
+rem exponent that keeps the threes of
+rem sigma below a. A part B of n that
+rem is not reachable this way has
+rem B | sigma(B), gcd(B, 6) = 1 and
+rem B <= N / 3; for N = 10^14 that
+rem forces sigma(B) = 2 B, impossible
+rem with at most six prime factors.
+rem Visited n are kept in a set per a.
+
+fun X pd
+  Fs = X factors unique
+  return Fs filter greater 3 array
+end
+
+fun X v3
+  C = 0
+  for X mod 3 equal 0
+    X = X // 3
+    C += 1
+  end
+  return C
+end
+
+fun N G T Cd A P3 Sn go
+  if N in Sn
+    return 0
+  end
+  Sn add N
+  R = 0
+  if G mod (N // P3) equal 0
+    R += N
+  end
+  for P in Cd
+    if N mod P not equal 0
+      Pe = P
+      Se = P + 1
+      Mx = Nn // N
+      for Pe at most Mx
+        Tt = T + (Se v3)
+        if Tt less A
+          Nx = N * Pe
+          if Nx not in Sn
+            Cx = Cd
+            for F in Se pd
+              if F not in Cx
+                Cx = concat Cx (array F)
+              end
+            end
+            Gx = G * Se
+            R += Nx Gx Tt Cx A P3 Sn go
+          end
+        end
+        if Pe greater (Mx // P)
+          break
+        end
+        Pe = Pe * P
+        Se = Se + Pe
+      end
+    end
+  end
+  return R
+end
+
+Answer = 0
+P3 = 3
+S3 = 4
+A = 1
+for P3 at most Nn
+  Sn = new set
+  P2 = 1
+  S2 = 1
+  for P2 at most Nn // P3
+    T = S2 v3
+    if T less A
+      Cd = S2 pd
+      for F in S3 pd
+        if F not in Cd
+          Cd = concat Cd (array F)
+        end
+      end
+      N0 = P2 * P3
+      G0 = S2 * S3
+      Answer += N0 G0 T Cd A P3 Sn go
+    end
+    P2 = P2 * 2
+    S2 = S2 + P2
+  end
+  A += 1
+  P3 = P3 * 3
+  S3 = S3 + P3
+end
+
+Answer print

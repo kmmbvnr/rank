@@ -1,0 +1,210 @@
+rem Mahjong
+rem https://projecteuler.net/problem=696
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Nn integer = 100000000
+arg Ss integer = 100000000
+arg Tt integer = 30
+
+rem A suit is a count (0 to 4) per rank.
+rem Maximal runs of positive counts are
+rem blocks. A block is scanned with the
+rem set of states (a, b, f): chows
+rem started at the last rank and the
+rem one before, and pairs used. Such
+rem sets form a small automaton (found
+rem by search), so blocks are counted by
+rem length L and tiles M for no pair
+rem (M = 3u) and one pair (M = 3u + 2).
+rem k blocks in n ranks leave C(n - L +
+rem 1, k) placements. With T(u), Q(u)
+rem the suit counts without and with
+rem the pair, w = s [x^t] Q T^(s-1).
+rem Series in (L, u) are flat vectors.
+P = 1000000007
+Mx = 3 * Tt + 2
+Wd = Mx + 1
+rem Subset automaton by search.
+Sts = array shape 400 fill 0
+Trn = array shape 1600 fill 0
+Sts 0 = 1
+Ns = 1
+Si = 0
+for Si less Ns
+  St = Sts Si
+  for C in 1 to 4
+    Nw = 0
+    for Cf in 0 to 49
+      Hb = (St shr Cf) band 1
+      if Hb equal 1
+        Aa = Cf // 10
+        Bb = Cf // 2 mod 5
+        Ff = Cf mod 2
+        if Aa + Bb at most C
+          Rm = C - Aa - Bb
+          for E in 0 to 1
+            Ok = 1
+            Ea = (E equal 1) integer
+            Fa = (Ff equal 1) integer
+            if Ea * Fa equal 1
+              Ok = 0
+            end
+            R2 = Rm - 2 * E
+            Fb = (R2 at least 0) integer
+            if Ok * Fb equal 1
+              for Pg in 0 to R2 // 3
+                Qq = R2 - 3 * Pg
+                Cn1 = Qq * 5 + Aa
+                Nc = Cn1 * 2 + Ff + E
+                Nw = Nw bor (1 shl Nc)
+              end
+            end
+          end
+        end
+      end
+    end
+    Fd = Ns
+    for K in 0 to Ns - 1
+      if Sts K equal Nw
+        Fd = K
+      end
+    end
+    if Fd equal Ns
+      Sts Ns = Nw
+      Ns += 1
+    end
+    Trn (Si * 4 + C - 1) = Fd
+  end
+  Si += 1
+end
+rem Block counts by length and tiles.
+Sv = Sts (0 to Ns - 1)
+A0 = (Sv band 1) reshape Ns 1
+A1 = ((Sv shr 1) band 1) reshape Ns 1
+Wf = 2 * Tt + 1
+Lf = Wd * Wf
+B0s = array shape Lf fill 0
+B1s = array shape Lf fill 0
+Cu = array shape (Ns * Wd) fill 0
+Cu 0 = 1
+for L in 1 to Mx
+  Nx = array shape (Ns * Wd) fill 0
+  for S in 0 to Ns - 1
+    for C in 1 to 4
+      Tg = Trn (S * 4 + C - 1)
+      D0 = Tg * Wd + C
+      D1 = Tg * Wd + Wd - 1
+      S0 = S * Wd
+      S1 = S0 + Wd - 1 - C
+      Dv = Nx (D0 to D1) + Cu (S0 to S1)
+      Nx (D0 to D1) = Dv mod P
+    end
+  end
+  Cu = Nx
+  Cm = Cu reshape Ns Wd
+  R0 = (Cm * A0) sum axis 0 mod P
+  R1 = (Cm * A1) sum axis 0 mod P
+  O0 = L * Wf
+  O1 = O0 + Tt
+  B0s (O0 to O1) = R0 (0 to 3 * Tt by 3)
+  Hg = 3 * Tt + 2
+  B1s (O0 to O1) = R1 (2 to Hg by 3)
+end
+rem Placements C(n - L + 1, k) per k.
+Lv = 0 to Mx
+Tp1 = Nn - Lv + 1
+Cb = (Tp1 at least 0) integer
+Gv = array shape Lf fill 0
+Gv 0 = 1
+Gq = array shape Lf fill 0
+Um = ((0 to (Lf - 1)) mod Wf) at most Tt
+Uk = Um integer
+Tv = array shape Wf fill 0
+Qv = array shape Wf fill 0
+for K in 0 to Tt + 1
+  if K greater 0
+    Gold = Gv
+    for W in 0 to 1
+      Xa = Gold
+      Xb = B0s
+      if W equal 1
+        Xa = B1s
+        Xb = Gold
+      end
+      Rr = array shape Lf fill 0
+      Nz = (Xa not equal 0) indices
+      for Ix in Nz
+        Vv = Xa Ix
+        Hi = Lf - 1 - Ix
+        Pr = Vv * Xb (0 to Hi) mod P
+        Ie = Lf - 1
+        Pq = Rr (Ix to Ie) + Pr
+        Rr (Ix to Ie) = Pq mod P
+      end
+      Rr = Rr * Uk
+      if W equal 0
+        Gv = Rr
+      end
+      if W equal 1
+        Gq = Rr
+      end
+    end
+    Fc = (Tp1 - K + 1) mod P
+    Ik = K (P - 2) P powmod
+    Cb = Cb * Fc mod P * Ik mod P
+    Qm = Gq reshape Wd Wf
+    Cc = Cb reshape Wd 1
+    Pm = Qm * Cc mod P
+    Qs = Pm sum axis 0 mod P
+    Qv = (Qv + K * Qs) mod P
+  end
+  Gm = Gv reshape Wd Wf
+  Cc = Cb reshape Wd 1
+  Pm = Gm * Cc mod P
+  Gs = Pm sum axis 0 mod P
+  Tv = (Tv + Gs) mod P
+end
+rem Q has u from the pair blocks: the
+rem pair tiles use M = 3u + 2, so Qv is
+rem already indexed by u.
+Qp = Qv (0 to Tt)
+Tq = Tv (0 to Tt)
+Rs = Qp
+Bs = Tq
+Ee = Ss - 1
+for Ee greater 0
+  Ob = Ee mod 2
+  for W in 0 to 1
+    Go = 1
+    if (W equal 0) and (Ob equal 0)
+      Go = 0
+    end
+    if Go equal 1
+      Ya = Rs
+      if W equal 1
+        Ya = Bs
+      end
+      Zz = array shape (Tt + 1) fill 0
+      for I in 0 to Tt
+        Hh = Tt - I
+        Pw = Ya I * Bs (0 to Hh) mod P
+        Zs = Zz (I to Tt) + Pw
+        Zz (I to Tt) = Zs mod P
+      end
+      if W equal 0
+        Rs = Zz
+      end
+      if W equal 1
+        Bs = Zz
+      end
+    end
+  end
+  Ee = Ee // 2
+end
+Answer = (Ss mod P) * (Rs Tt) mod P
+Answer print

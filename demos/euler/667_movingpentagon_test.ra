@@ -1,0 +1,15 @@
+use testing
+
+test "coarser grid"
+  use "667_movingpentagon"
+  Nt = 4000
+  run
+  Answer equal "1.5276530109"
+end
+
+test "default input"
+  use "667_movingpentagon"
+  Nt = 20000
+  run
+  Answer equal "1.5276527929"
+end

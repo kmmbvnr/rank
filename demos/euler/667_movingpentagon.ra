@@ -1,0 +1,169 @@
+rem Moving Pentagon
+rem https://projecteuler.net/problem=667
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nt integer = 20000
+
+rem Unit-edge pentagon symmetric about
+rem the bisector of its first edge:
+rem (0, 0), (1, 0), (1 + cos a, sin a),
+rem (1/2, sin a - s), (-cos a, sin a),
+rem s = sqrt(1 - (1 + 2 cos a)^2 / 4).
+rem Rotate it by th and push it into
+rem the corner: w_x, w_y are the widths
+rem of the bounding box and w(th) the
+rem largest min(x, y) over the shape. It
+rem passes a corner of width W when some
+rem arc of angles with w <= W holds a
+rem th with w_x <= W and one with w_y <=
+rem W. The least such W is found by
+rem bisection over the sampled angles,
+rem and area / W^2 is maximised over a
+rem by golden section. The area bound is
+rem exact at sampled angles of 90
+rem degrees, so the grid does not
+rem matter once Nt >= 20000.
+Pi = 3.141592653589793
+Th = (0 to (Nt - 1)) * (2.0 * Pi / Nt)
+Cs = Th cos
+Sn = Th sin
+Zi = array shape 1 fill 0
+Ix = concat (1 to 4) Zi
+Cn = 0 to (Nt - 1)
+Cr = Cs reshape 1 Nt
+Sr = Sn reshape 1 Nt
+Lo = 1.055
+Hi = 1.062
+Gr = 0.6180339887498949
+X1 = Hi - Gr * (Hi - Lo)
+X2 = Lo + Gr * (Hi - Lo)
+F1 = 0.0
+F2 = 0.0
+Sl = 1
+Z1 = array shape 1 fill 0.0
+for It in 0 to 61
+  Aq = X1
+  if It equal 1
+    Aq = X2
+    Sl = 2
+  end
+  if It greater 1
+    Mv = (F1 less F2) integer
+    if Mv equal 1
+      Lo = X1
+      X1 = X2
+      F1 = F2
+      X2 = Lo + Gr * (Hi - Lo)
+      Aq = X2
+      Sl = 2
+    end
+    if Mv equal 0
+      Hi = X2
+      X2 = X1
+      F2 = F1
+      X1 = Hi - Gr * (Hi - Lo)
+      Aq = X1
+      Sl = 1
+    end
+  end
+  Ca = Aq cos
+  Sa = Aq sin
+  Dd = 1.0 + 2.0 * Ca
+  Qq = 1.0 - Dd * Dd / 4.0
+  Sd = Qq sqrt
+  Va = concat (Z1 + 0.0) (Z1 + 1.0)
+  Vb = concat (Z1 + 1.0 + Ca) (Z1 + 0.5)
+  Vx = concat (concat Va Vb) (Z1 - Ca)
+  Wa = concat (Z1 + 0.0) (Z1 + 0.0)
+  Wb = concat (Z1 + Sa) (Z1 + Sa - Sd)
+  Vy = concat (concat Wa Wb) (Z1 + Sa)
+  Ar = Vx * (Vy Ix) - (Vx Ix) * Vy
+  Area = (Ar sum) abs / 2.0
+  Vxc = Vx reshape 5 1
+  Vyc = Vy reshape 5 1
+  Xm = Vxc * Cr - Vyc * Sr
+  Ym = Vxc * Sr + Vyc * Cr
+  Mnx = Xm reduce min axis 0
+  Mxx = Xm reduce max axis 0
+  Mny = Ym reduce min axis 0
+  Mxy = Ym reduce max axis 0
+  Wx = Mxx - Mnx
+  Wy = Mxy - Mny
+  Mnr = Mnx reshape 1 Nt
+  Mnq = Mny reshape 1 Nt
+  Xs = Xm - Mnr
+  Ys = Ym - Mnq
+  Wv = (Xs min Ys) reduce max axis 0
+  Xn = Xs Ix Cn
+  Yn = Ys Ix Cn
+  D1 = Xs - Ys
+  D2 = Xn - Yn
+  Cx = (D1 * D2 less 0.0) integer
+  Dn = (D1 - D2) * Cx + (1 - Cx)
+  Tt = D1 / Dn
+  Px = (Xs + Tt * (Xn - Xs)) * Cx
+  Wv = Wv max (Px reduce max axis 0)
+  Wl = 0.0
+  Wh = 3.0
+  for Bi in 1 to 60
+    Wm = (Wl + Wh) / 2.0
+    Sg = (Wv at most Wm) integer
+    Fa = (Wx at most Wm) integer
+    Fb = (Wy at most Wm) integer
+    Bk = (Sg equal 0) indices
+    Nb = Bk len
+    Ok = 0
+    if Nb equal 0
+      Sa2 = Fa sum
+      Sb2 = Fb sum
+      Qa = (Sa2 greater 0) integer
+      Qb = (Sb2 greater 0) integer
+      Ok = Qa * Qb
+    end
+    if Nb greater 0
+      Ca2 = Fa scan +
+      Cb2 = Fb scan +
+      Ta = Ca2 (Nt - 1)
+      Tb = Cb2 (Nt - 1)
+      Ea = concat Ca2 (Ca2 + Ta)
+      Eb = concat Cb2 (Cb2 + Tb)
+      Bn = concat Bk (Bk (0 to 0) + Nt)
+      Gi = Bn (0 to Nb - 1)
+      Gj = Bn (1 to Nb)
+      Ha = (Ea Gj) - (Ea Gi)
+      Hb = (Eb Gj) - (Eb Gi)
+      Ia = (Ha greater 0) integer
+      Ib = (Hb greater 0) integer
+      Oc = Ia * Ib
+      Os = Oc sum
+      Ok = Os min 1
+    end
+    if Ok equal 1
+      Wh = Wm
+    end
+    if Ok equal 0
+      Wl = Wm
+    end
+  end
+  Fv = Area / (Wh * Wh)
+  if It equal 0
+    F1 = Fv
+  end
+  if It equal 1
+    F2 = Fv
+  end
+  if It greater 1
+    if Sl equal 1
+      F1 = Fv
+    end
+    if Sl equal 2
+      F2 = Fv
+    end
+  end
+end
+Answer = (F1 max F2) text ".10f"
+Answer print

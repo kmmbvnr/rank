@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "680_yarragnisrever"
+  Nn = 5
+  Kk = 4
+  Bt = 3
+  run
+  Answer equal 27
+  Nn = 100
+  Kk = 100
+  Bt = 7
+  run
+  Answer equal 246597
+  Nn = 10000
+  Kk = 10000
+  Bt = 50
+  run
+  Answer equal 275481640
+end
