@@ -60,8 +60,11 @@ A 0 = 99`);
     it('declines mixed scalar and nested vector literals', () => {
         compare('fun X helper\n return array X 1.0\nend', [[2n]], 0);
         compare('fun X helper\n return array (array X X)\nend', [[2n]], 0);
-        compare('fun X helper\n return array -X X\nend', [[2n]], 0);
         compare('fun X helper\n return array X X\nend', [[new ByteArray(new Uint8Array([1, 2]))]], 0);
+    });
+
+    it('compiles signed numeric vector literals', () => {
+        compare('fun X helper\n return array -X +X\nend', [[2n], [1.5]], 2);
     });
 
     it('preserves scalar kinds and signed zero in vector results', () => {

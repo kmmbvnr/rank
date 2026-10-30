@@ -1,0 +1,134 @@
+rem An engineers' dream come true
+rem https://projecteuler.net/problem=263
+rem Sum the first Count engineers'
+rem paradises: numbers n with the
+rem consecutive primes n - 9, n - 3, n +
+rem 3, n + 9 and practical n - 8, n - 4,
+rem n, n + 4, n + 8
+rem Search from Start through Limit.
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Count integer = 4
+arg Start integer = 210
+arg Limit integer = 100000000000
+
+rem The primes n - 9 .. n + 9 avoid 3,
+rem 5 and 7 as factors. Above 4, practical
+rem numbers that are 2 mod 4 must be divisible
+rem by 3; all five neighbours cannot be,
+rem so n is a multiple of 4. A practical
+rem number that is 4 mod 8 must have an
+rem odd factor 3, 5 or 7. These necessary
+rem conditions give a wheel of 840.
+rem The odd numbers between
+rem the primes must be composite, and
+rem each of the five numbers must be
+rem practical: with the primes p of N in
+rem order, p is at most 1 + the sum of
+rem divisors of the part below p
+rem (Stewart's test).
+fun N practical
+  Left = N
+  Sigma = 1
+  for P in N factors unique
+    if P greater Sigma + 1
+      return false
+    end
+    Part = 1
+    Total = 1
+    for
+      if Left mod P not equal 0
+        break
+      end
+      Left //= P
+      Part *= P
+      Total += Part
+    end
+    Sigma *= Total
+  end
+  return true
+end
+
+rem Test the practical neighbours
+rem without finishing a failed candidate.
+fun N practical_neighbours
+  for D in array -8 -4 0 4 8
+    if not ((N + D) practical)
+      return false
+    end
+  end
+  return true
+end
+
+Wheel = 840
+Res = array shape 0 fill 0
+for R in 0 till Wheel by 4
+  Ok = true
+  for D in array -9 -3 3 9
+    X = R + D
+    Bad = X mod 3 equal 0
+    Bad = Bad or (X mod 5 equal 0)
+    if Bad or (X mod 7 equal 0)
+      Ok = false
+      break
+    end
+  end
+  if Ok
+    for D in array -8 -4 0 4 8
+      X = R + D + Wheel
+      if X mod 8 equal 4
+        Bad = X mod 3 not equal 0
+        Bad = Bad and (X mod 5 not equal 0)
+        if Bad and (X mod 7 not equal 0)
+          Ok = false
+          break
+        end
+      end
+    end
+  end
+  if Ok
+    Res = concat Res (array R)
+  end
+end
+Found = 0
+Answer = 0
+Gaps = array 7 5 1 -1 -5 -7
+for Base in (Start // Wheel) * Wheel to Limit by Wheel
+  if Found equal Count
+    break
+  end
+  for R in Res
+    N = Base + R
+    if N less Start
+      continue
+    end
+    if N greater Limit
+      break
+    end
+    if N - 9 not in primes or N + 9 not in primes
+      continue
+    end
+    if N - 3 not in primes or N + 3 not in primes
+      continue
+    end
+    Ok = true
+    for G in Gaps
+      if N - G in primes
+        Ok = false
+        break
+      end
+    end
+    if Ok and (N practical_neighbours)
+      Found += 1
+      Answer += N
+      if Found equal Count
+        break
+      end
+    end
+  end
+end
+Answer print

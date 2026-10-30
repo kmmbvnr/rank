@@ -10,19 +10,20 @@ import {
     isReturnStatement, isExpressionStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement, isUnpackStatement,
     type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
+import { sequenceValues } from '../sequence.js';
 import { checkpoint, privateLoopPolling } from '../interrupt.js';
 import { argumentSelectionError, RankError } from '../errors.js';
 import { recordFallback } from '../diagnostics.js';
-import type { RankArray, RankValue } from '../value.js';
+import { isRankArray, type RankArray, type RankSequence, type RankValue } from '../value.js';
 import type { LoopCallable } from './integer-loop-plan.js';
 import { scalarArrayWriteOffset } from '../selectors.js';
 import { checkedArrayDimension } from '../tensor-index.js';
-import { arrayForWrite, ownedArray, noteArrayBinding, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from '../array-storage.js';
+import { arrayValues, arrayForWrite, ownedArray, noteArrayBinding, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from '../array-storage.js';
 import { scalarSelection } from './scalar-selection.js';
 import { takeDropValue } from '../sequence.js';
 import { copyArray, materializeCollection } from '../modules/sequences.js';
 import { hasDeferredSelectionCopy } from '../integer-view.js';
-import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes } from './scalar-function-proof.js';
+import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes, type ScalarLoopIterable } from './scalar-function-proof.js';
 import { emitFunctionPlan, functionPlanArrays, functionPlanCallbacks, FunctionPlanDemandError } from '../function-plan.js';
 import { textAt, textPoints } from '../text-storage.js';
 import { sortValue, argsortValue } from '../modules/sequence-order.js';
@@ -44,7 +45,7 @@ interface Kernel {
     readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
     readonly captures: readonly { name: string; rank: number }[];
-    readonly calls: readonly { operation: Operation; inputs: readonly string[] }[];
+    readonly calls: readonly { operation: Operation; inputs: readonly string[]; iterator?: boolean }[];
     readonly guards: readonly string[];
     readonly modules: readonly string[];
     readonly locations: readonly (Statement | Expression)[];
@@ -302,7 +303,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     };
     statement.parameters.forEach(slot);
     const locations: (Statement | Expression)[] = [];
-    const calls: { operation: Operation; inputs: readonly string[] }[] = [];
+    const calls: { operation: Operation; inputs: readonly string[]; iterator?: boolean }[] = [];
     const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[] = [];
     const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
     const memberships: string[] = [];
@@ -327,6 +328,14 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             if (remainder) lines.push(`const ${remainder} = ${left} % ${right};`);
             lines.push(`const ${result} = ${binaryOperatorSource(operation, left, right, { remainder })};`);
         } else lines.push(`const ${result} = ${binaryOperatorSource(operation, left, right)};`);
+        return result;
+    }
+    function iterable(source: ScalarLoopIterable, lines: string[]): string {
+        if (source.kind === 'literal') return emit(source.expression, lines);
+        const argument = 'kind' in source.source ? iterable(source.source, lines) : emit(source.source, lines);
+        const index = calls.push({ operation: source.operation, inputs: [], iterator: true }) - 1;
+        const result = `v${serial++}`;
+        lines.push(`const ${result} = calls[${index}](${argument});`);
         return result;
     }
     function emit(expression: Expression, lines: string[], tail = false): string {
@@ -383,7 +392,10 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 return result;
             }
             if (operation === 'vector') {
-                const values = expression.input.indices!.map(item => lower(item, lines));
+                const values = expression.input.indices!.map((item, index) => {
+                    const value = lower(item, lines);
+                    return expression.input.signs?.[index] ? `-(${value})` : value;
+                });
                 const result = `v${serial++}`;
                 lines.push(`const ${result} = ownedArray([${values.join(',')}], [${values.length}], true);`);
                 return result;
@@ -606,6 +618,20 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 if (binding) {
                     let range = binding.iterable;
                     while (isParenthesizedExpression(range)) range = range.value;
+                    const finite = proof!.loopIterables.get(command);
+                    if (finite) {
+                        const source = iterable(finite, lines), id = serial++;
+                        const indexed = binding.names[1] !== undefined && binding.names[1] !== '#';
+                        lines.push(`noteArrayBinding(${source});`);
+                        if (indexed) lines.push(`let ordinal${id} = 0n;`);
+                        lines.push(`for (const point${id} of loopValues(${source})) { location = ${location}; checkpoint();`);
+                        binding.names.forEach((name, index) => {
+                            if (name !== '#') lines.push(`${slot(name)} = ${index ? `ordinal${id}++` : `point${id}`};`);
+                        });
+                        commands(command.statements, lines);
+                        lines.push('}}');
+                        continue;
+                    }
                     const iterableType = expressions.get(range)?.type;
                     const deque = iterableType && isCompiledContainer(iterableType) && iterableType.kind === 'deque';
                     if (iterableType === 'text' || deque) {
@@ -725,8 +751,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const writable = (array: RankArray) => {
         if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
     };
+    const loopValues = (value: RankArray | RankSequence) => isRankArray(value) ? arrayValues(value) : sequenceValues(value, 'for');
     const kernelArguments = [
-        RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection,
+        loopValues, RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection,
         indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension,
         membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem,
         prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection,
@@ -734,7 +761,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems,
     ];
     const kernelParameterNames = [
-        'RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection',
+        'loopValues', 'RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection',
         'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension',
         'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem',
         'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection',

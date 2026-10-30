@@ -4,7 +4,7 @@ import {
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression,
     isNameExpression, isExpressionStatement, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
-    isCountClauseExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement,
+    isCountClauseExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement, type Operation,
 } from '@arrrank/language';
 import { describeCompilerRejection, recordCompilerRejection, type CompilerRejection } from './compiler-rejection.js';
 import { recordFallback } from '../diagnostics.js';
@@ -26,8 +26,12 @@ export interface ScalarFunctionInput {
     readonly keyed?: boolean;
     readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof; readonly captures: ScalarCaptureTypes };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
+    readonly signs?: readonly boolean[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
 }
+/** A finite native stage is consumed only by its loop, never as an array value. */
+export type ScalarLoopIterable = { readonly kind: 'literal'; readonly expression: Expression; readonly element: CompiledScalarType }
+    | { readonly kind: 'native'; readonly element: CompiledScalarType; readonly operation: Operation; readonly source: ScalarLoopIterable | Expression };
 export interface ScalarFunctionProof {
     readonly type: CompiledFunctionType;
     readonly dependencies: readonly string[];
@@ -44,6 +48,7 @@ export interface ScalarFunctionProof {
     readonly planBindings: ReadonlyMap<Statement, FunctionPlan>;
     readonly planReturn: boolean;
     readonly planReturns: ReadonlySet<Statement>;
+    readonly loopIterables: ReadonlyMap<Statement, ScalarLoopIterable>;
     readonly nonnegative: readonly number[];
 }
 const simpleProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | CompilerRejection>>();
@@ -109,6 +114,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     }
     let planReturn = false;
     const planReturns = new Set<Statement>();
+    const loopIterables = new Map<Statement, ScalarLoopIterable>();
     let consumerRoot: Expression | undefined;
     const unwrap = (source: Expression): Expression => isParenthesizedExpression(source) ? unwrap(source.value) : source;
     const readsStage = (source: Expression) => AstUtils.streamAst(source).some(node => isNameExpression(node) && stages.has(node.name));
@@ -246,12 +252,13 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 }
                 if (loops && isArrayExpression(source) && source.items.length
                     && !source.dimensions.length && !source.fill && !source.rows.length && !source.range) {
-                    if (source.items.some(item => item.sign)) return undefined;
                     const types = source.items.map(item => type(item.value, env));
                     const element = types[0];
-                    if (typeof element !== 'string' || types.some(type => type !== element)) return undefined;
+                    if (typeof element !== 'string' || types.some(type => type !== element)
+                        || source.items.some(item => item.sign && element !== 'integer' && element !== 'real')) return undefined;
                     return { type: { kind: 'array', element, rank: 1 }, input: {
                         name: '', operation: 'vector', indices: source.items.map(item => expressions.get(item.value)!),
+                        signs: source.items.map(item => item.sign === '-'),
                     } };
                 }
                 if (loops && isArrayExpression(source) && source.dimensions.length && source.fill
@@ -405,6 +412,30 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         expressions.set(expression, inferred.expression);
         return inferred.expression.type;
     }
+    function loopIterable(source: Expression, env: ReadonlyMap<string, CompiledCalleeType>): ScalarLoopIterable | undefined {
+        if (--budget.remaining < 0) return undefined;
+        source = unwrap(source);
+        if (isArrayExpression(source)) {
+            const domain = type(source, env);
+            if (domain && typeof domain !== 'string' && !isCompiledContainer(domain) && domain.rank === 1) {
+                return { kind: 'literal', expression: source, element: domain.element };
+            }
+            return undefined;
+        }
+        if (!isApplicationExpression(source) || source.arguments.length !== 1) return undefined;
+        const argument = unaryApplicationHead(source, name => findOperation(name)?.arities,
+            name => !env.has(name) && !lexicalBinding(scope, name)) ?? source.head;
+        const operation = isNameExpression(source.arguments[0]) ? findOperation(source.arguments[0].name) : undefined;
+        if (!argument || !operation || env.has(operation.name) || lexicalBinding(scope, operation.name)) return undefined;
+        let input: ScalarLoopIterable | Expression | undefined;
+        if (operation.name === 'factors' || operation.name === 'divisors') {
+            if (type(argument, env) === 'integer') input = argument;
+        } else if (operation.name === 'unique') input = loopIterable(argument, env);
+        if (!input) return undefined;
+        nativeReads.add(operation.name);
+        modules.add(operation.module);
+        return { kind: 'native', operation, source: input, element: 'kind' in input ? input.element : 'integer' };
+    }
     // null: every path returned; undefined: unproved; map: continuing paths.
     function flow(commands: readonly Statement[], env: Map<string, CompiledCalleeType>, inLoop = false): Map<string, CompiledCalleeType> | null | undefined {
         for (let index = 0; index < commands.length; index++) {
@@ -514,17 +545,19 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (binding) {
                     let range = binding.iterable;
                     while (isParenthesizedExpression(range)) range = range.value;
-                    const iterable = !(isBinaryExpression(range) && ['to', 'till'].includes(range.operator)) ? type(range, env) : undefined;
+                    const finite = loopIterable(range, env);
+                    if (finite) loopIterables.set(command, finite);
+                    const iterable = !finite && !(isBinaryExpression(range) && ['to', 'till'].includes(range.operator)) ? type(range, env) : undefined;
                     const text = iterable === 'text';
                     const deque = iterable && isCompiledContainer(iterable) && iterable.kind === 'deque';
-                    if ((!text && !deque && (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)
+                    if ((!finite && !text && !deque && (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)
                         || type(range.left, env) !== 'integer' || type(range.right, env) !== 'integer'
                         || range.step && type(range.step, env) !== 'integer'))
                         || binding.names.length > 2 || new Set(binding.names).size !== binding.names.length) return reject(command, 'loop-range');
                     for (const [index, name] of binding.names.entries()) {
                         if (name === '#') continue;
                         if (protectedNames.has(name) || stages.has(name)) return reject(command, 'plan-capture-write');
-                        const domain = text && index === 0 ? 'text' : 'integer';
+                        const domain = index === 0 && finite ? finite.element : text && index === 0 ? 'text' : 'integer';
                         if (name.includes('.') || settled.has(name) && settled.get(name) !== domain) return reject(command, 'loop-binding');
                         settled.set(name, domain);
                         body.set(name, domain);
@@ -584,7 +617,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const result = outcome === null && resultType && !(recursive && (arrayWrites.size || nonnegativeParameters.size))
         && !(planBindings.size && (containers || arrayWrites.size))
         ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, localArrayWrites, expressions,
-            planCalls, planBindings, planReturn, planReturns, nonnegative: [...nonnegativeParameters] } : undefined;
+            planCalls, planBindings, planReturn, planReturns, loopIterables, nonnegative: [...nonnegativeParameters] } : undefined;
     const failure = rejection ?? { ...describeCompilerRejection('scalar-function', statement), reason: 'scalar-function:missing-return' };
     // A path-depth limit must not poison a helper that is shallow on its own.
     if (result || !path.length) proofs.set(key, result ?? failure);

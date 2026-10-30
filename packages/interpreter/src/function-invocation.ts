@@ -774,7 +774,14 @@ export class FunctionInvocation {
         const scalars = kernel.scalarCaptures.map(({ name }) => () => resolve(name)!);
         const captureReaders: ReturnType<typeof capturedIntegerReader>[] = [];
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
-        const binders = kernel.calls.map(({ operation, inputs }) => preparePositionalBuiltin({
+        const binders = kernel.calls.map(({ operation, inputs, iterator }) => iterator ? () => {
+            // Finite iterator stages use the original native implementation and
+            // interpreter-owned workspace. No callbacks can invalidate entry guards.
+            const value = resolve(operation.name);
+            if (!privateLoopPolling() || !this.modules.has(operation.module) || !value || !isNativeFunction(value)
+                || !this.builtins.is(operation.module, operation.name, value) || !hasNativeImplementation(value)) return undefined;
+            return ((argument: RankValue) => value.call([argument])) as LoopCallable;
+        } : preparePositionalBuiltin({
             modules: this.modules, builtins: this.builtins, options: this.options,
             resolve: name => context?.lookup(name) ?? this.bindings.globals.get(name)
                 ?? this.builtins.lookup(name) ?? (() => { throw this.builtins.unknown(name); })(),
