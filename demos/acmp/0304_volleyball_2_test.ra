@@ -1,0 +1,31 @@
+use testing
+
+test "ACMP 304: sample 1 (3 sets, 3:0 sweep)"
+  use "0304_volleyball_2"
+  N = 3
+  MatchesText = "25:23 25:20 25:18"
+  run
+
+  Expected = 10043105786927107686166271970998925000
+  Answer equal Expected
+end
+
+test "ACMP 304: sample 2 (4 sets with overtime 26:24)"
+  use "0304_volleyball_2"
+  N = 4
+  MatchesText = "25:23 20:25 26:24 25:18"
+  run
+
+  Expected = 323866095164273521651645790930981230216140667500000
+  Answer equal Expected
+end
+
+test "ACMP 304: 5 sets match (final set to 15)"
+  use "0304_volleyball_2"
+  N = 5
+  MatchesText = "25:23 20:25 26:24 18:25 16:14"
+  run
+
+  Expected = 12992406593267095158690413536461801620088828701830500000000
+  Answer equal Expected
+end

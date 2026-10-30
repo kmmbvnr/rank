@@ -1,0 +1,59 @@
+rem ACMP 304 - Volleyball 2 (Волейбол - 2)
+rem Solved in Euler 1-15 style with exact combinatorial ballot counting.
+rem
+rem We want to count the number of point-by-point trajectories for a volleyball match.
+rem Each set is played to Target points (25 for sets 1..4, 15 for set 5) with a lead of >= 2.
+rem
+rem For a set with final score A : B (assume A > B):
+rem   1. Normal win (A == Target, B <= Target - 2):
+rem      The winner scores the final point. All previous (A - 1) points of winner
+rem      and B points of loser can appear in any order:
+rem        Ways = C((A - 1) + B, B) = C(A + B - 1, B)
+rem   2. Overtime / deuce (A > Target, A == B + 2):
+rem      The game must reach (Target - 1) : (Target - 1), requiring C(2T, T) ways.
+rem      Each subsequent tie (T+i):(T+i) offers exactly 2 point-pair choices ((1,2) or (2,1)),
+rem      followed by 2 consecutive points for the winner:
+rem        Ways = C(2T, T) * 2^(B - T)
+rem
+rem Total ways for the match is the product of the ways of all N sets.
+
+use io
+use cli
+use sequences
+use text
+use numbers
+use bits
+
+arg N integer = 3
+arg MatchesText text = "25:23 25:20 25:18"
+
+Tokens = (MatchesText words) integer
+TotalWays = 1
+
+for SIdx in 0 till N
+  A = Tokens (2 * SIdx)
+  B = Tokens (2 * SIdx + 1)
+
+  Target = 25
+  if SIdx equal 4
+    Target = 15
+  end
+  T = Target - 1
+
+  MaxScore = A max B
+  MinScore = A min B
+  SetWays = 0
+
+  if (MaxScore equal Target) and (not (MinScore greater (Target - 2)))
+    SetWays = (MaxScore + MinScore - 1) binomial MinScore
+  else
+    BaseWays = (2 * T) binomial T
+    Power = 1 shl (MinScore - T)
+    SetWays = BaseWays * Power
+  end
+
+  TotalWays = TotalWays * SetWays
+end
+
+Answer = TotalWays
+Answer print
