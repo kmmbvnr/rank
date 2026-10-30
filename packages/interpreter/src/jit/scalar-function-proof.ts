@@ -590,10 +590,20 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     }
     // Seed a closed scalar return before visiting recursive calls. This is
     // only a candidate: normal flow still checks every return and all paths.
-    // Do not read locals/captures or execute calls out of source order.
+    // A returned local may take its candidate from a closed initializer in
+    // the straight-line prefix. Normal flow still checks every assignment;
+    // inference neither reads captures nor executes the initializer early.
     const terminal = statement.statements.at(-1);
     if (loops && terminal && isReturnStatement(terminal) && terminal.value) {
-        const seed = inferCompiledExpression<CompiledScalarType, never>(terminal.value, {
+        let seedSource = unwrap(terminal.value);
+        if (isNameExpression(seedSource)) {
+            const name = seedSource.name;
+            for (const command of statement.statements) {
+                if (!isAssignmentStatement(command) || command.deferred || command.operator !== '=') break;
+                if (command.name === name) seedSource = command.value;
+            }
+        }
+        const seed = inferCompiledExpression<CompiledScalarType, never>(seedSource, {
             atom: type => compiledScalarTypes.find(candidate => candidate === type),
             read: () => undefined,
             isBound: () => true,

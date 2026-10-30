@@ -7,6 +7,7 @@ rem the primes below Under
 
 use numbers
 use sequences
+use algo
 use io
 use cli
 
@@ -20,8 +21,10 @@ rem least Least, counts (-1)^(k - Least)
 rem times C(k - 1, Least - 1) times the
 rem multiples of d. Split the primes in
 rem two halves, list the subsets of each
-rem and pair every subset of the first
-rem with the subsets of the second.
+rem and sort the second by product.
+rem A boundary search keeps only pairs
+rem below Limit. Cache the weights for
+rem each possible first-half size.
 Max = Limit - 1
 Ps = primes till Under array
 H = Ps len // 2
@@ -37,19 +40,26 @@ for P in Ps drop H
   Pb = concat Pb (Pb * P)
   Kb = concat Kb (Kb + 1)
 end
+Ord = Pb argsort
+Pb = Pb Ord
+Kb = Kb Ord
 Ks = 0 to (Ps len) array
 Sign' = 1 - 2 * ((Ks - Least) mod 2)
 Top' = (Ks - 1) max (Least - 1)
 Pick' = Top binomial (Least - 1)
 Used' = Ks at least Least
 Weights = Used choose (Sign * Pick) 0
+Counts' = (0 to H array) reshape (H + 1) 1
+BySize = Weights (Counts + Kb)
 Answer = 0
 for I in 0 till (Pa len)
   A = Pa I
-  Fit = Pb at most (Max // A)
-  Ds' = Pb filter Fit array
-  Sizes' = (Kb filter Fit array) + Ka I
-  Mult' = Max // (A * Ds)
-  Answer += (Weights Sizes * Mult) sum
+  Q = Max // A
+  N = Pb upperindex Q
+  Ds' = Pb take N array
+  Row' = BySize (Ka I)
+  W' = Row take N array
+  Mult' = Q // Ds
+  Answer += (W * Mult) sum
 end
 Answer print

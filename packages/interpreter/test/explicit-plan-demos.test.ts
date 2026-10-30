@@ -572,6 +572,19 @@ end`);
         } finally { runtime.dispose(); }
     });
 
+    it('stores prime-subset weight rows while deferring their size grid', () => {
+        const source = readFileSync(new URL('../../../demos/euler/268_fourprimes.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--under=30', '--limit=1000000'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(37268n);
+            for (const name of ['Pa', 'Ka', 'Pb', 'Kb', 'Weights', 'BySize']) {
+                expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            }
+            expect(isRankPlan(runtime.variables.get('Counts')!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
     it('retains the optimal betting fractions and streams the binomial tail', () => {
         const source = readFileSync(new URL('../../../demos/euler/267_billionaire.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--n=20', '--goal=20'] });

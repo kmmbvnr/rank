@@ -1,7 +1,7 @@
 use testing
 
-rem The default input takes about a
-rem minute: smaller inputs only.
+rem Small limits exercise the counting
+rem weights and prime-set parameters.
 test "small inputs"
   use "268_fourprimes"
   Under = 30

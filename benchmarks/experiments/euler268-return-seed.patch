@@ -1,0 +1,19 @@
+--- a/packages/interpreter/out/jit/scalar-function-proof.js
++++ b/packages/interpreter/out/jit/scalar-function-proof.js
+@@ -644,7 +644,15 @@
+     // Do not read locals/captures or execute calls out of source order.
+     const terminal = statement.statements.at(-1);
+     if (loops && terminal && isReturnStatement(terminal) && terminal.value) {
+-        const seed = inferCompiledExpression(terminal.value, {
++        let seedSource = terminal.value;
++        if (isNameExpression(seedSource)) {
++            const name = seedSource.name;
++            for (const command of statement.statements) {
++                if (!isAssignmentStatement(command) || command.deferred || command.operator !== '=') break;
++                if (command.name === name) seedSource = command.value;
++            }
++        }
++        const seed = inferCompiledExpression(seedSource, {
+             atom: type => compiledScalarTypes.find(candidate => candidate === type),
+             read: () => undefined,
+             isBound: () => true,

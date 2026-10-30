@@ -1,0 +1,55 @@
+rem Counting numbers with at least four
+rem distinct prime factors less than 100
+rem https://projecteuler.net/problem=268
+rem Count the numbers below Limit that
+rem are divisible by at least Least of
+rem the primes below Under
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10000000000000000
+arg Under integer = 100
+arg Least integer = 4
+
+rem By inclusion and exclusion a subset
+rem of k primes with product d, k at
+rem least Least, counts (-1)^(k - Least)
+rem times C(k - 1, Least - 1) times the
+rem multiples of d. Split the primes in
+rem two halves, list the subsets of each
+rem and pair every subset of the first
+rem with the subsets of the second.
+Max = Limit - 1
+Ps = primes till Under array
+H = Ps len // 2
+Pa = array 1
+Ka = array 0
+for P in Ps take H
+  Pa = concat Pa (Pa * P)
+  Ka = concat Ka (Ka + 1)
+end
+Pb = array 1
+Kb = array 0
+for P in Ps drop H
+  Pb = concat Pb (Pb * P)
+  Kb = concat Kb (Kb + 1)
+end
+Ks = 0 to (Ps len) array
+Sign' = 1 - 2 * ((Ks - Least) mod 2)
+Top' = (Ks - 1) max (Least - 1)
+Pick' = Top binomial (Least - 1)
+Used' = Ks at least Least
+Weights = Used choose (Sign * Pick) 0
+Answer = 0
+for I in 0 till (Pa len)
+  A = Pa I
+  Fit = Pb at most (Max // A)
+  Ds' = Pb filter Fit array
+  Sizes' = (Kb filter Fit array) + Ka I
+  Mult' = Max // (A * Ds)
+  Answer += (Weights Sizes * Mult) sum
+end
+Answer print
