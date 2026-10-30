@@ -622,7 +622,7 @@ export function typedArray(
 
 /** Integer arrays from this size up are packed. Smaller ones stay boxed, since
  * every read from a typed buffer allocates a new bigint. */
-const PACKED_CELLS = 4096;
+const PACKED_CELLS = 64;
 
 /** Fresh integer cells in one buffer, when there are enough of them and every
  * one fits in 64 bits. */
