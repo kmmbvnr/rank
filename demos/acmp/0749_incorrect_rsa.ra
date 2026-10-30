@@ -1,0 +1,46 @@
+rem ACMP 0749 - Incorrect RSA (Неправильный RSA)
+rem Count non-trivial factorizations of n = p^k * q^k for distinct primes p, q.
+rem
+rem Mathematical properties:
+rem 1. Any factorization of n = p^k * q^k into factors > 1 corresponds bijectively
+rem    to a 2D vector partition of the exponent pair (k, k) into non-zero pairs (a_i, b_i)
+rem    such that sum a_i = k and sum b_i = k.
+rem 2. The number of such factorizations depends purely on k, not on the specific primes p, q.
+rem 3. Since p * q >= 6 and n <= 10^18, k is an integer in the range 1 <= k <= 23.
+rem 4. k is determined in O(1) by testing from k = 23 down to 2 whether n is a perfect k-th power:
+rem    X = round(n^(1/k)); |X^k - n| <= tol.
+rem 5. Precomputed vector partition sequence for k = 1..23 answers any query in O(1).
+
+use io
+use cli
+use numbers
+use text
+
+arg Input text = "100"
+
+Tokens = (Input split "\n" join " ") split " "
+Tokens = Tokens (Tokens not equal "")
+NStr = Tokens 0
+N = NStr real
+
+FoundK = 1
+K = 23
+
+for (K greater 1) and (FoundK equal 1)
+  X = (N ** (1.0 / K)) round 0
+  if not (X less 2.0)
+    P = X ** K
+    Diff = (P - N) abs
+    Tol = 0.1 max (N * 0.00000000001)
+    if not (Diff greater Tol)
+      FoundK = K
+    end
+  end
+  K = K - 1
+end
+
+AnsTable = array "1" "8" "30" "108" "338" "1042" "2997" "8405" "22651" "59520" "151957" "379692" "927621" "2224234" "5236585" "12130779" "27669592" "62229989" "138095695" "302673028" "655627974" "1404599866" "2977831388"
+
+Answer = AnsTable (FoundK - 1)
+
+Answer print
