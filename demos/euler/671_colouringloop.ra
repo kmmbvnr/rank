@@ -1,0 +1,206 @@
+rem Colouring a Loop
+rem https://projecteuler.net/problem=671
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Kc integer = 10
+arg Nn integer = 10004003002001
+
+rem Same column automaton as 670 (per
+rem row: cells left 0 to 2 and colour,
+rem plus a vertical-tile flag), now on
+rem a loop: rooted tilings of length m
+rem are T(m) = tr(A^m). By colour
+rem symmetry only one start state per
+rem orbit is needed, weighted by its
+rem orbit size, so T(1..Nt) comes from
+rem a few row vectors. Berlekamp-Massey
+rem gives a short recurrence, T(Nn) is
+rem found by polynomial powering, and
+rem Burnside over rotations gives F =
+rem (T(n) + (n - 1) T(1)) / n for a
+rem prime n (as in all given cases).
+P = 1000004321
+K = Kc
+Ng = 18 * K * K
+Sx = 0 to (Ng - 1)
+Nu = Sx mod 2
+Cb = Sx // 2 mod K
+Rb = Sx // (2 * K) mod 3
+Ct = Sx // (6 * K) mod K
+Rt = Sx // (6 * K * K)
+Ra = (Rt equal 0) integer
+Rc = (Rb equal 0) integer
+Z0 = Ra * Rc
+Ve = ((Ct equal Cb) integer) * Z0
+Va = (Nu equal 0) integer
+Vs = Va + Nu * Ve
+Vi = (Vs equal 1) indices
+Nv = Vi len
+Nu = Nu Vi
+Cb = Cb Vi
+Rb = Rb Vi
+Ct = Ct Vi
+Rt = Rt Vi
+N1 = Nu reshape Nv 1
+Cb1 = Cb reshape Nv 1
+Rb1 = Rb reshape Nv 1
+Ct1 = Ct reshape Nv 1
+Rt1 = Rt reshape Nv 1
+N2 = Nu reshape 1 Nv
+Cb2 = Cb reshape 1 Nv
+Rb2 = Rb reshape 1 Nv
+Ct2 = Ct reshape 1 Nv
+Rt2 = Rt reshape 1 Nv
+Za = (Rt1 equal 0) integer
+Zb = (Rb1 equal 0) integer
+Zr1 = Za * Zb
+Zc = (Rt2 equal 0) integer
+Zd = (Rb2 equal 0) integer
+Zr2 = Zc * Zd
+Vc = (N2 equal 1) integer * Zr1 * Zr2
+Vc = Vc * ((Ct2 equal Cb2) integer)
+Vc = Vc * ((Ct2 not equal Ct1) integer)
+Vc = Vc * ((Ct2 not equal Cb1) integer)
+Tp = (Rt1 greater 0) integer
+Tp = Tp * ((Rt2 equal Rt1 - 1) integer)
+Tp = Tp * ((Ct2 equal Ct1) integer)
+Tq = (Rt1 equal 0) integer
+Tq = Tq * ((Ct2 not equal Ct1) integer)
+Bp = (Rb1 greater 0) integer
+Bp = Bp * ((Rb2 equal Rb1 - 1) integer)
+Bp = Bp * ((Cb2 equal Cb1) integer)
+Bq = (Rb1 equal 0) integer
+Bq = Bq * ((Cb2 not equal Cb1) integer)
+Rg = (N2 equal 0) integer * (Tp + Tq)
+Rg = Rg * (Bp + Bq)
+Rg = Rg * ((Ct2 not equal Cb2) integer)
+Zn = Zr1 * ((N1 equal 0) integer)
+Rg = Rg * (1 - Zn)
+Am = Vc + Rg
+rem Orbit representatives: first colour
+rem 0, second colour 0 or 1.
+Pa = (Ct equal 0) integer
+Pb = (Cb at most 1) integer
+Rp = Pa * Pb
+Ri = (Rp equal 1) indices
+Nr = Ri len
+Cr = Cb Ri
+Wt = (K * K - K) * Cr + K * (1 - Cr)
+Cj = (0 to (Nv - 1)) reshape 1 Nv
+Rq = Ri reshape Nr 1
+Rmk = (Rq equal Cj) integer
+Vm = Rmk
+Nt = 100
+Ts = array shape Nt fill 0
+for M in 0 to Nt - 1
+  Vq = Vm reshape Nr Nv 1
+  Vt = Vq * (Am reshape 1 Nv Nv) mod P
+  Vm = Vt sum axis 1 mod P
+  Dh = Vm * Rmk
+  Dg = Dh sum axis 1
+  Ts M = (Dg * Wt mod P) sum mod P
+end
+Zw = 130
+Mn = 0 - 1
+Cc = array shape Zw fill 0
+Bb = array shape Zw fill 0
+Cc 0 = 1
+Bb 0 = 1
+Lg = 0
+Mm = 1
+Bd = 1
+for N in 0 to Nt - 1
+  Dd = Ts N
+  if Lg greater 0
+    Cx = Cc (1 to Lg)
+    Ax = Ts (N - 1 to N - Lg by Mn)
+    Px = Cx * Ax mod P
+    Sq = Px sum
+    Dd = (Dd + Sq) mod P
+  end
+  if Dd equal 0
+    Mm += 1
+  end
+  if Dd not equal 0
+    Ik = Bd (P - 2) P powmod
+    Co = Dd * Ik mod P
+    Tc = Cc copy
+    Zs = array shape Mm fill 0
+    Bh = Bb (0 to Zw - 1 - Mm)
+    Sh = concat Zs Bh
+    Cc = (Cc + P - Co * Sh mod P) mod P
+    Up = (2 * Lg at most N) integer
+    if Up equal 1
+      Lg2 = N + 1 - Lg
+      Bb = Tc
+      Bd = Dd
+      Mm = 1
+      Lg = Lg2
+    end
+    if Up equal 0
+      Mm += 1
+    end
+  end
+end
+Ry = Cc (Lg to 1 by Mn)
+Rs = array shape Lg fill 0
+Rs 0 = 1
+Pbs = array shape Lg fill 0
+Pbs 1 = 1
+if Lg equal 1
+  Pbs 0 = (P - Cc 1) mod P
+end
+Ee = Nn - 1
+Zp = array shape Lg fill 0
+for Ee greater 0
+  Ob = Ee mod 2
+  for W in 0 to 1
+    Go = 1
+    if (W equal 0) and (Ob equal 0)
+      Go = 0
+    end
+    if Go equal 1
+      Xop = Rs
+      if W equal 1
+        Xop = Pbs
+      end
+      Ppr = array shape (2 * Lg) fill 0
+      for I in 0 to Lg - 1
+        Pi = Xop I * Pbs mod P
+        Ie = I + Lg - 1
+        Ps = Ppr (I to Ie) + Pi
+        Ppr (I to Ie) = Ps mod P
+      end
+      for Kk in 2 * Lg - 2 to Lg by Mn
+        Cf = Ppr Kk
+        Kl = Kk - Lg
+        Kh = Kk - 1
+        Sb = Cf * Ry mod P
+        Pg = Ppr (Kl to Kh) + P - Sb
+        Rd = Pg mod P
+        Ppr (Kl to Kh) = Rd
+        Ppr Kk = 0
+      end
+      Pv = Ppr (0 to Lg - 1)
+      if W equal 0
+        Rs = Pv
+      end
+      if W equal 1
+        Pbs = Pv
+      end
+    end
+  end
+  Ee = Ee // 2
+end
+Ta = Ts (0 to Lg - 1)
+Tn = (Rs * Ta mod P) sum mod P
+Ik = (Nn mod P) (P - 2) P powmod
+Nm = (Nn - 1) mod P
+Ts0 = Ts 0
+Fs = (Tn + Nm * Ts0) mod P
+Answer = Fs * Ik mod P
+Answer print

@@ -268,5 +268,6 @@
   "euler/688_pilesofplates.ra": "About 77 s: 1.4e8-element closed form; run manually (#494).",
   "euler/681_maximalarea.ra": "About 29 min: per-m divisor loop; run manually (#495).",
   "euler/693_finitesequence.ra": "About 11 min: residue-set squaring; run manually (#496).",
-  "euler/680_yarragnisrever.ra": "About 80 min: batched run list; run manually (#497)."
+  "euler/680_yarragnisrever.ra": "About 80 min: batched run list; run manually (#497).",
+  "euler/671_colouringloop.ra": "About 9.5 min: dense 910-state steps; run manually (#499)."
 }
