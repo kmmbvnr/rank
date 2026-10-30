@@ -1,0 +1,251 @@
+rem ACMP 0659 - Tug of War (Перетягивание каната)
+rem Partition N participants into two teams of size K and N - K
+rem to maximize the total internal cohesion (number of within-team edges).
+rem
+rem Formulated as Minimum Bisection / Min K-Cut:
+rem Maximizing internal edges is equivalent to minimizing the cut between teams:
+rem Internal = M - Cut.
+rem
+rem Efficient Branch and Bound with vector operations:
+rem 1. Reorder vertices by degree descending via APL-style array indexing:
+rem    Order = (0 - Deg) argsort; NewAdj = (Adj Order) # Order.
+rem 2. Maintain counts of cut edges and future guaranteed cut edges:
+rem    FutureCut = ((To1 min To2) (Vtx till N)) sum.
+rem    Prune any branch where M - (CurCut + FutureCut) <= Best.
+rem 3. Update neighbor degree vectors via vector arithmetic:
+rem    To1 = To1 + RowV, To2 = To2 + RowV.
+rem 4. Direct procedural iterative backtracking without recursion.
+
+use io
+use cli
+use sequences
+use text
+
+arg Input text = "5 3 3\n1 3\n2 5\n5 4"
+
+Tokens = (Input split "\n" join " ") split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+N = Nums 0
+K = Nums 1
+M = Nums 2
+
+Swapped = false
+TargetK = K
+if K greater (N - K)
+  TargetK = N - K
+  Swapped = true
+end
+
+Adj = array shape N N fill 0
+
+if M greater 0
+  EdgeIdxs = (0 till M) array
+  U = (Nums (3 + EdgeIdxs * 2)) - 1
+  V = (Nums (4 + EdgeIdxs * 2)) - 1
+  for E in 0 till M
+    NodeU = U E
+    NodeV = V E
+    RowU = Adj NodeU
+    RowU NodeV = 1
+    Adj NodeU = RowU
+    RowV = Adj NodeV
+    RowV NodeU = 1
+    Adj NodeV = RowV
+  end
+end
+
+Deg = Adj sum axis 1
+Order = (0 - Deg) argsort
+Perm = array shape N fill 0
+for I in 0 till N
+  Orig = Order I
+  Perm Orig = I
+end
+
+Rows = Adj Order
+NewAdj = Rows # Order
+
+Best = 0
+BestAssignment = array shape N fill 0
+
+rem Initial greedy baseline
+for I in 0 till TargetK
+  BestAssignment I = 1
+end
+
+for I in 0 till N
+  RowI = NewAdj I
+  for J in (I + 1) till N
+    if (RowI J) equal 1
+      if (I less TargetK) and (J less TargetK)
+        Best = Best + 1
+      end
+      if (not (I less TargetK)) and (not (J less TargetK))
+        Best = Best + 1
+      end
+    end
+  end
+end
+
+To1 = array shape N fill 0
+To2 = array shape N fill 0
+CurAssignment = array shape N fill 0
+
+State = array shape (N + 1) fill 0
+FirstBranch = array shape (N + 1) fill 0
+SecondBranch = array shape (N + 1) fill 0
+CutAdded = array shape (N + 1) fill 0
+
+CurCut = 0
+CurK = 0
+Vtx = 0
+
+for not (Vtx less 0)
+  if Vtx equal N
+    TotalInt = M - CurCut
+    if TotalInt greater Best
+      Best = TotalInt
+      for I in 0 till N
+        BestAssignment I = CurAssignment I
+      end
+    end
+    Vtx = Vtx - 1
+  else
+    St = State Vtx
+    RowV = NewAdj Vtx
+    Cut1 = To2 Vtx
+    Cut2 = To1 Vtx
+
+    if St equal 0
+      RemNeeded1 = TargetK - CurK
+      RemNeeded2 = (N - TargetK) - (Vtx - CurK)
+
+      Valid = true
+      if (RemNeeded1 less 0) or (RemNeeded2 less 0)
+        Valid = false
+      end
+
+      if Valid
+        FutureCut = 0
+        if Vtx less N
+          FutureCut = ((To1 min To2) (Vtx till N)) sum
+        end
+        if not ((M - (CurCut + FutureCut)) greater Best)
+          Valid = false
+        end
+      end
+
+      if not Valid
+        Vtx = Vtx - 1
+      else
+        B1 = 0
+        B2 = 0
+        if not (Cut1 greater Cut2)
+          if RemNeeded1 greater 0
+            B1 = 1
+          end
+          if RemNeeded2 greater 0
+            B2 = 2
+          end
+        else
+          if RemNeeded2 greater 0
+            B1 = 2
+          end
+          if RemNeeded1 greater 0
+            B2 = 1
+          end
+        end
+        FirstBranch Vtx = B1
+        SecondBranch Vtx = B2
+
+        NextChoice = B1
+        if NextChoice equal 0
+          NextChoice = B2
+        end
+
+        if NextChoice equal 0
+          Vtx = Vtx - 1
+        else
+          if (NextChoice equal B1) and (B2 greater 0)
+            State Vtx = 1
+          else
+            State Vtx = 2
+          end
+
+          CAdd = Cut2
+          if NextChoice equal 1
+            CAdd = Cut1
+          end
+          CutAdded Vtx = CAdd
+          CurCut = CurCut + CAdd
+
+          if NextChoice equal 1
+            CurAssignment Vtx = 1
+            CurK = CurK + 1
+            To1 = To1 + RowV
+          else
+            CurAssignment Vtx = 0
+            To2 = To2 + RowV
+          end
+          Vtx = Vtx + 1
+        end
+      end
+    else
+      if St equal 1
+        PrevChoice = FirstBranch Vtx
+        CurCut = CurCut - (CutAdded Vtx)
+        if PrevChoice equal 1
+          CurK = CurK - 1
+          To1 = To1 - RowV
+        else
+          To2 = To2 - RowV
+        end
+
+        NextChoice = SecondBranch Vtx
+        State Vtx = 2
+        CAdd = Cut2
+        if NextChoice equal 1
+          CAdd = Cut1
+        end
+        CutAdded Vtx = CAdd
+        CurCut = CurCut + CAdd
+
+        if NextChoice equal 1
+          CurAssignment Vtx = 1
+          CurK = CurK + 1
+          To1 = To1 + RowV
+        else
+          CurAssignment Vtx = 0
+          To2 = To2 + RowV
+        end
+        Vtx = Vtx + 1
+      else
+        PrevChoice = SecondBranch Vtx
+        if (FirstBranch Vtx greater 0) and (SecondBranch Vtx equal 0)
+          PrevChoice = FirstBranch Vtx
+        end
+        CurCut = CurCut - (CutAdded Vtx)
+        if PrevChoice equal 1
+          CurK = CurK - 1
+          To1 = To1 - RowV
+        else
+          To2 = To2 - RowV
+        end
+        State Vtx = 0
+        Vtx = Vtx - 1
+      end
+    end
+  end
+end
+
+OrigIsTeam1 = BestAssignment Perm
+if Swapped
+  OrigIsTeam1 = 1 - OrigIsTeam1
+end
+AllOrig = (1 to N) array
+Team1 = AllOrig (OrigIsTeam1 equal 1)
+Answer = Team1 join " "
+
+(Answer text) print

@@ -1,0 +1,60 @@
+use testing
+
+test "sample 1: 5 participants, K=3, 3 edges"
+  use "0659_tug_of_war"
+  Input = "5 3 3\n1 3\n2 5\n5 4"
+  run
+
+  Best equal 3
+  (Team1 len) equal 3
+  Answer equal "2 4 5"
+end
+
+test "empty graph M=0"
+  use "0659_tug_of_war"
+  Input = "4 2 0"
+  run
+
+  Best equal 0
+  (Team1 len) equal 2
+end
+
+test "complete graph K_4 split into 2 and 2"
+  use "0659_tug_of_war"
+  rem In K_4, any partition of 4 into 2 and 2 has 1 + 1 = 2 internal edges
+  Input = "4 2 6\n1 2\n1 3\n1 4\n2 3\n2 4\n3 4"
+  run
+
+  Best equal 2
+  (Team1 len) equal 2
+end
+
+test "cycle C_6 split into two paths of length 3"
+  use "0659_tug_of_war"
+  rem Vertices {1,2,3} and {4,5,6} cut 2 edges, retaining 2 + 2 = 4 internal edges
+  Input = "6 3 6\n1 2\n2 3\n3 4\n4 5\n5 6\n6 1"
+  run
+
+  Best equal 4
+  (Team1 len) equal 3
+end
+
+test "two disjoint triangles"
+  use "0659_tug_of_war"
+  rem Two separate components {1,2,3} and {4,5,6} can be separated with 0 cut edges
+  Input = "6 3 6\n1 2\n2 3\n3 1\n4 5\n5 6\n6 4"
+  run
+
+  Best equal 6
+  (Team1 len) equal 3
+end
+
+test "asymmetric partition K=1"
+  use "0659_tug_of_war"
+  rem Path 1-2-3-4-5, removing vertex 1 or 5 leaves a subpath of 3 edges
+  Input = "5 1 4\n1 2\n2 3\n3 4\n4 5"
+  run
+
+  Best equal 3
+  (Team1 len) equal 1
+end
