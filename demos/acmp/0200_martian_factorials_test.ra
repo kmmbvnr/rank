@@ -1,0 +1,44 @@
+use testing
+
+test "sample 1: 5! in base 10"
+  use "0200_martian_factorials"
+  run
+
+  Answer equal 1
+end
+
+test "sample 2: 100! in base 10"
+  use "0200_martian_factorials"
+  N = 100
+  K = 10
+  run
+
+  Answer equal 24
+end
+
+test "sample 3: 100! in base 6"
+  use "0200_martian_factorials"
+  N = 100
+  K = 6
+  run
+
+  Answer equal 48
+end
+
+test "sample 4: 3! in base 10"
+  use "0200_martian_factorials"
+  N = 3
+  K = 10
+  run
+
+  Answer equal 0
+end
+
+test "large N = 10^9, K = 1000"
+  use "0200_martian_factorials"
+  N = 1000000000
+  K = 1000
+  run
+
+  Answer equal 83333332
+end

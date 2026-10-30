@@ -1,0 +1,30 @@
+rem Martian Factorials
+rem https://acmp.ru/index.asp?main=task&id_task=200
+rem Number of trailing zeros of N! in base K via prime factorization and Legendre's formula
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg N integer = 5
+arg K integer = 10
+
+Factors = K factors array
+Primes = Factors unique array
+
+Ks = new queue
+for P in Primes
+  E = (Factors equal P) count
+  Legendre = 0
+  X = N // P
+  for X greater 0
+    Legendre += X
+    X //= P
+  end
+  Ks push (Legendre // E)
+end
+
+Answer = (Ks array) min
+Answer print
