@@ -25,6 +25,7 @@ import { arrayOffset, coordinatesAt, sameShape } from './tensor-index.js';
 import { isRankArray, isRankLabel, isRankSqliteExpression, isRankSequence, valueRank,
     type IntrinsicRank, type NativeFunction, type RankArray, type RankValue } from './value.js';
 
+const bitwiseOperations = ['band', 'bor', 'bxor', 'shl', 'shr'] as const;
 const arrayItem = readArrayItem;
 const DENSE_FRAME_CELLS = 1024;
 const arraySize = (shape: readonly number[]): number =>
@@ -175,7 +176,8 @@ export class RankApplication {
         const operation = leftRank === 0 && rightRank === 0 && hasNativeImplementation(fn)
             ? fn === this.standardFunctions.get(standardModules.numbers.gcd) ? 'gcd'
                 : fn === this.standardFunctions.get(standardModules.core.min) ? 'min'
-                : fn === this.standardFunctions.get(standardModules.core.max) ? 'max' : undefined
+                : fn === this.standardFunctions.get(standardModules.core.max) ? 'max'
+                : bitwiseOperations.find(name => fn === this.standardFunctions.get(standardModules.bits[name]))
             : undefined;
         if (operation) {
             const integers = mapStoredIntegers(left, right, operation);

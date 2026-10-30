@@ -25,11 +25,19 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
         : name === 'max' ? (a: bigint, b: bigint) => b > a ? b : a
         : name === 'gcd' ? greatestCommonDivisor
         : name === 'abs' ? (a: bigint) => a < 0n ? -a : a : undefined;
+    if (name === 'band' || name === 'bor' || name === 'bxor' || name === 'shl' || name === 'shr') {
+        return inspectionEnabled() || !privateLoopPolling() ? undefined : mapStoredBitwise(left, right, name);
+    }
     if (!operation || inspectionEnabled() || !privateLoopPolling()) return undefined;
     if (name === '+' || name === '-' || name === '*' || name === 'gcd' || name === 'mod' || name === '//' || name === 'min' || name === 'max') {
         try {
             const compact = mapStoredInt32Binary(left, right, name);
             if (compact) return compact;
+            // Wide cells times a 0/1 mask need no product.
+            if (name === '*') {
+                const masked = mapStoredBitwise(left, right, 'mask');
+                if (masked) return masked;
+            }
         } catch (error) {
             if (error instanceof InterruptedError) throw error;
             if (!(error instanceof RankError)) throw error;
@@ -127,9 +135,9 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
             cells[i] = result;
         }
     }
-    // Typed operands produce typed cells; boxed operands keep boxed cells.
-    const typed = (view: typeof a) => !view || !!view.compact || view.items instanceof BigInt64Array;
-    const packed = typed(a) && typed(b);
+    // One typed operand makes typed cells; only all-boxed operands keep boxed cells.
+    const typed = (view: typeof a) => !!view && (!!view.compact || view.items instanceof BigInt64Array);
+    const packed = typed(a) || typed(b);
     if (wide) {
         if (packed) {
             const out = new BigInt64Array(size), pair = new Int32Array(out.buffer);
@@ -145,6 +153,100 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
     const narrow = Int32Array.from(cells);
     return packed ? typedArray(narrow, shape)
         : ownedScalarArray(Array.from(narrow, BigInt), 'integer', shape);
+}
+
+/** Bitwise operations on Int32/Int64 storage, one Int32 word pair per cell.
+ * A shift that leaves the Int64 range, a negative count, a product by anything
+ * but 0 or 1 or boxed operands decline, so the exact BigInt path produces the value or the error. */
+function mapStoredBitwise(left: RankValue, right: RankValue, name: 'band' | 'bor' | 'bxor' | 'shl' | 'shr' | 'mask'): RankArray | undefined {
+    const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
+    const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
+    const typed = (view: typeof a) => view?.compact || view?.items instanceof BigInt64Array;
+    const eligible = (value: RankValue, view: typeof a) => isRankArray(value)
+        ? view?.kinds?.length === 1 && view.kinds[0] === 'integer' && view.linear !== undefined
+            && typed(view) && (!view.validate || view.validateUniform !== undefined)
+        : typeof value === 'bigint' && value >= -(1n << 63n) && value < 1n << 63n;
+    if (!eligible(left, a) || !eligible(right, b) || !a && !b) return undefined;
+    const shape = broadcastShape(isRankArray(left) ? left.shape : [], isRankArray(right) ? right.shape : []);
+    const size = shape.reduce((n, dimension) => n * dimension, 1);
+    if (size) {
+        if (a) a.validateUniform?.(a.compact ? BigInt(a.compact[a.linear!.offset]) : a.items[a.linear!.offset]);
+        if (b) b.validateUniform?.(b.compact ? BigInt(b.compact[b.linear!.offset]) : b.items[b.linear!.offset]);
+    }
+    const scalarHigh = (value: RankValue) => Number(BigInt.asIntN(32, (value as bigint) >> 32n));
+    const scalarLow = (value: RankValue) => Number(BigInt.asIntN(32, value as bigint));
+    const xh = a ? 0 : scalarHigh(left), xl = a ? 0 : scalarLow(left);
+    const yh = b ? 0 : scalarHigh(right), yl = b ? 0 : scalarLow(right);
+    const code = name === 'band' ? 0 : name === 'bor' ? 1 : name === 'bxor' ? 2 : name === 'shl' ? 3 : name === 'shr' ? 4 : 5;
+    const out = new BigInt64Array(size), ow = new Int32Array(out.buffer);
+    const sameShape = (value: RankValue) => !isRankArray(value) || same(value.shape, shape);
+    const ai = sameShape(left) ? undefined : broadcastIndex(isRankArray(left) ? left.shape : undefined, shape);
+    const bi = sameShape(right) ? undefined : broadcastIndex(isRankArray(right) ? right.shape : undefined, shape);
+    const ac = a?.compact, bc = b?.compact;
+    const words = (items: ArrayLike<RankValue> | undefined) => items instanceof BigInt64Array
+        ? new Int32Array(items.buffer, items.byteOffset, items.length * 2) : undefined;
+    const aw = words(a?.items), bw = words(b?.items);
+    const ao = a?.linear!.offset ?? 0, as = a?.linear!.stride ?? 0, bo = b?.linear!.offset ?? 0, bs = b?.linear!.stride ?? 0;
+    const hi = 1 - lowWord;
+    let wide = false;
+    for (let start = 0; start < size; start += 4096) {
+        const end = Math.min(start + 4096, size);
+        checkpoint('computing integer array', end - start);
+        for (let i = start; i < end; i++) {
+            const ap = a ? ao + (ai ? ai(i) : i) * as : 0;
+            const bp = b ? bo + (bi ? bi(i) : i) * bs : 0;
+            let ah = xh, al = xl, bh = yh, bl = yl;
+            if (a) {
+                if (ac) { al = ac[ap]; ah = al >> 31; } else { al = aw![2 * ap + lowWord]; ah = aw![2 * ap + hi]; }
+            }
+            if (b) {
+                if (bc) { bl = bc[bp]; bh = bl >> 31; } else { bl = bw![2 * bp + lowWord]; bh = bw![2 * bp + hi]; }
+            }
+            let rh: number, rl: number;
+            if (code === 5) {
+                // Only a product by 0 or 1 is exact here; any other factor declines.
+                if (bh === 0 && bl >>> 0 <= 1) { rh = bl ? ah : 0; rl = bl ? al : 0; }
+                else if (ah === 0 && al >>> 0 <= 1) { rh = al ? bh : 0; rl = al ? bl : 0; }
+                else return undefined;
+            } else if (code < 3) {
+                if (code === 0) { rh = ah & bh; rl = al & bl; }
+                else if (code === 1) { rh = ah | bh; rl = al | bl; }
+                else { rh = ah ^ bh; rl = al ^ bl; }
+            } else {
+                // The count is the right operand: a nonnegative value of up to 2^32 - 1 or more.
+                if (bh < 0) return undefined;
+                const n = bh > 0 || bl >>> 0 > 64 ? 64 : bl >>> 0;
+                if (code === 4) {
+                    if (n >= 64) { rh = ah >> 31; rl = rh; }
+                    else if (n >= 32) { rl = ah >> (n - 32); rh = ah >> 31; }
+                    else if (n === 0) { rh = ah; rl = al; }
+                    else { rl = al >>> n | ah << 32 - n; rh = ah >> n; }
+                } else if (n === 0) { rh = ah; rl = al; }
+                else if (n >= 64) {
+                    if (ah !== 0 || al !== 0) return undefined;
+                    rh = 0; rl = 0;
+                } else {
+                    let backHigh: number, backLow: number;
+                    if (n >= 32) {
+                        rh = al << n - 32; rl = 0;
+                        backLow = rh >> n - 32; backHigh = rh >> 31;
+                    } else {
+                        rh = ah << n | al >>> 32 - n; rl = al << n;
+                        backLow = rl >>> n | rh << 32 - n; backHigh = rh >> n;
+                    }
+                    // A value that does not shift back left the Int64 range.
+                    if (backHigh !== ah || backLow !== al) return undefined;
+                }
+            }
+            ow[2 * i + lowWord] = rl;
+            ow[2 * i + hi] = rh;
+            if (rh !== rl >> 31) wide = true;
+        }
+    }
+    if (wide) return typedArray(out, shape);
+    const narrow = new Int32Array(size);
+    for (let i = 0; i < size; i++) narrow[i] = ow[2 * i + lowWord];
+    return typedArray(narrow, shape);
 }
 
 /** Compare completed compact integers directly into a bitmap. Borrowed readers

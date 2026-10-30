@@ -1,7 +1,7 @@
 import { materializeTensorMap, registerTensorConcat } from '../tensor-map.js';
 import { resolveAxis, resolveAxes } from '../tensor-index.js';
 import { copyArrayStorage } from '../array-copy.js';
-import { materializePackedBooleans, packedTruePositions } from '../packed-booleans.js';
+import { countPackedBooleans, materializePackedBooleans, packedTruePositions } from '../packed-booleans.js';
 import { permutedArray } from '../array-permutation.js';
 import { findValue, findAllValues } from './sequence-search.js';
 import { materializeValue } from '../materialize.js';
@@ -214,6 +214,13 @@ function booleanReduction(value: RankValue, operation: 'all' | 'any'): boolean {
         return planned;
     }
     const expected = operation === 'all';
+    // A bitmap answers from its popcount, without reading each cell.
+    if (isRankArray(value)) {
+        const packed = countPackedBooleans(value);
+        if (packed !== undefined) {
+            return expected ? packed === BigInt(value.shape.reduce((a, b) => a * b, 1)) : packed > 0n;
+        }
+    }
     for (const item of collectionValues(value, operation)) {
         if (typeof item !== 'boolean') {
             throw new RankError(`${operation} expects boolean values`, 'TypeError');
