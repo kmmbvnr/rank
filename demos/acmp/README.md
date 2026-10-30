@@ -48,9 +48,15 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0435** | [Несчастливые номера](0435_unlucky_numbers.ra) | Combinatorics / DP (88%) | Count unpartitionable $N$-digit numbers via polynomial parity convolution & bitset subset sum |
 | **0436** | [Счастливые цифры](0436_lucky_digits.ra) | Number Theory (60%) | Base $D$ maximizing trailing digits $K$ up to $N = 10^{11}$ via divisor analysis & base testing |
 | **0441** | [Карточки - 2](0441_cards_2.ra) | Data Structures / Sorting (73%) | Minimal adjacent swaps via `A argsort`, vector scatter assignment `P OrderB = OrderA` & `((P P outer greater) and (Indices Indices outer less)) count` |
+| **0455** | [Умножение дроби](0455_fraction_multiplication.ra) | Math / Strings (64%) | Periodic fraction multiplication by $N$ via BigInt arithmetic, period divisor reduction & cyclic shift |
 | **0467** | [Закраска прямой - 2](0467_line_coloring_2.ra) | Sweep-line / Intervals (61%) | Longest white interval under parity flips via coordinate compression & prefix sum scan |
+| **0479** | [Муравей и дерево](0479_ant_and_tree.ra) | Computational Geometry (63%) | Shortest path avoiding circular obstacle via vector dot products, projections & tangent arc angles |
 | **0510** | [Шоколадка](0510_chocolate_bar.ra) | Dynamic Programming (60%) | Domino tilings of $3 \times N$ rectangle via second-order linear recurrence $F_k = 4 F_{k-1} - F_{k-2}$ |
 | **0523** | [Роман в томах](0523_book_volumes.ra) | Binary Search / Greedy (60%) | Optimal chapter partitioning into $K$ volumes via binary search on answer |
+| **0572** | [Технология программирования](0572_programming_technology.ra) | Greedy / Sorting (60%) | Maximize persuaded friends via dual-group sorting: $b_i \ge 0$ by threshold $a_i$ ascending, $b_i < 0$ by potential $(a_i + b_i)$ descending |
+| **0586** | [Законопроект](0586_bill.ra) | Game Theory (62%) | Sequential parliamentary voting simulation via backward induction & vectorized column comparison |
+| **0614** | [Скобки - 3](0614_brackets_3.ra) | Dynamic Programming / Strings (61%) | Count distinct regular bracket subsequences via DFA state transitions on greedy next-occurrence jumps |
+| **0624** | [Электронная почта](0624_email.ra) | Graph Theory (62%) | Distributed email log consistency check via chronological dependency DAG and `Graph cycle` |
 | **0974** | [Странный Ним](0974_strange_nim.ra) | Game Theory (65%) | 3-coin Welter's Game via Conway's Frieze rule in $O(1)$ without loops |
 | **0978** | [Последовательность - 5](0978_sequence_5.ra) | Number Theory (79%) | Legendre's formula for maximal $k$ with $n^k \mid n!$ using `N factors unique` |
 | **1000** | [Упаковка чисел](1000_number_packing.ra) | Bitwise / Encodings (65%) | Variable-length prefix-free integer encoding (1–9 bytes) into hex |
