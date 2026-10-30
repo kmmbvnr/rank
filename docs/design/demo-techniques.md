@@ -6,6 +6,10 @@ same idea, and link the demos from it.
 
 ## Transfer-matrix method
 
+A task has a small vector of values that every step updates by the same linear
+rule, in ordinary arithmetic or a suitable semiring. Then many steps combine
+into one power of the transition matrix.
+
 **Idea.** Find a compact description of the past (a state) from which the
 construction can continue. After `t` steps keep a vector: `v[t][j]` is the
 number of ways to be in state `j`. One step is a matrix: `T[i][j]` is the
