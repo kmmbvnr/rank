@@ -1,0 +1,50 @@
+use testing
+
+test "sample 1: 3 boys 3 girls 7 wishes"
+  use "0615_new_year"
+  run
+
+  TotalCost equal 11
+  NumChosen equal 4
+  AnswerEdges equal "2 3 4 6"
+end
+
+test "single wish 1 1"
+  use "0615_new_year"
+  Input = "1 1\n1\n1 1 5"
+  run
+
+  TotalCost equal 5
+  NumChosen equal 1
+  AnswerEdges equal "1"
+end
+
+test "two boys one girl 2 1"
+  use "0615_new_year"
+  Input = "2 1\n2\n1 1 3\n2 1 4"
+  run
+
+  TotalCost equal 7
+  NumChosen equal 2
+  AnswerEdges equal "1 2"
+end
+
+test "two disjoint pairs 2 2"
+  use "0615_new_year"
+  Input = "2 2\n2\n1 1 5\n2 2 6"
+  run
+
+  TotalCost equal 11
+  NumChosen equal 2
+  AnswerEdges equal "1 2"
+end
+
+test "parallel wishes select cheaper"
+  use "0615_new_year"
+  Input = "1 1\n2\n1 1 10\n1 1 4"
+  run
+
+  TotalCost equal 4
+  NumChosen equal 1
+  AnswerEdges equal "2"
+end
