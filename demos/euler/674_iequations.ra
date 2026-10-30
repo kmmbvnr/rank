@@ -1,0 +1,290 @@
+rem Solving I-equations
+rem https://projecteuler.net/problem=674
+
+use numbers
+use sequences
+use algo
+use text
+use io
+use cli
+
+arg Src path = (
+  "demos/euler/fixtures/"
+  + "0674_i_expressions.txt"
+)
+arg Num integer = 149
+
+rem I is injective, so e1 = e2 has a
+rem solution exactly when the trees
+rem unify (shared variable names) and
+rem the least value takes every free
+rem variable as 0. Each line is parsed
+rem into node arrays (left, right, and a
+rem variable id for leaves). For each
+rem pair of distinct lines unify with
+rem an explicit stack, binding a
+rem variable only when it does not
+rem occur in the other term, then
+rem evaluate e1 by post-order with
+rem J(x, y) = (1 + x + y)^2 + y - x
+rem mod 10^9.
+Md = 1000000000
+Mn = 0 - 1
+Ls = Src readlines
+Ne = Ls len min Num
+Mx = 200000
+Lc = array shape Mx fill Mn
+Rc = array shape Mx fill Mn
+Vr = array shape Mx fill Mn
+Rt = array shape Ne fill 0
+Pk = array shape 30000 fill 0
+Nn = 0
+for E in 0 to Ne - 1
+  Bt = (Ls E) bytes integer
+  Ln = Bt len
+  Sp = 0
+  I = 0
+  for I less Ln
+    C = Bt I
+    Nx = 0
+    if I + 1 less Ln
+      Nx = Bt (I + 1)
+    end
+    Sk0 = 0
+    if (C equal 73) and (Nx equal 40)
+      I += 2
+      Sk0 = 1
+    end
+    if (C equal 44) or (C equal 40)
+      I += 1
+      Sk0 = 1
+    end
+    if (C equal 41) and (Sk0 equal 0)
+      Sp -= 1
+      Lc Nn = Pk (Sp - 1)
+      Rc Nn = Pk Sp
+      Sp -= 1
+      Pk Sp = Nn
+      Sp += 1
+      Nn += 1
+      I += 1
+    end
+    if (C at least 65) and (Sk0 equal 0)
+      Cd = 0
+      Lt = 1
+      for Lt equal 1
+        Lt = 0
+        if I less Ln
+          Ch = Bt I
+          if Ch at least 65
+            Cd = Cd * 60 + Ch - 64
+            I += 1
+            Lt = 1
+          end
+        end
+      end
+      Vr Nn = Cd
+      Pk Sp = Nn
+      Sp += 1
+      Nn += 1
+    end
+  end
+  Rt E = Pk 0
+end
+Vq = Vr (0 to Nn - 1)
+Lv = (Vq greater Mn) indices
+Uc = (Vq Lv) unique
+Uc = Uc sort
+Nv = Uc len
+Vi = (Uc lowerindex Vq)
+Vr = (Vq greater Mn) choose Vi Mn
+Pd = array shape (Mx - Nn) fill Mn
+Vr = concat Vr Pd
+Bd = array shape Nv fill Mn
+Sk = array shape 1000000 fill 0
+Ok = array shape 1000000 fill 0
+Oz = array shape Mx fill 0
+Sm = array shape Mx fill 0
+Vl = array shape Mx fill 0
+Dn = array shape Mx fill 0
+Oc = 0
+Cu = 0
+Answer = 0
+for P in 0 to Ne - 2
+  for Q in P + 1 to Ne - 1
+    if (Ls P) not equal (Ls Q)
+      Bd = Bd * 0 - 1
+      Cu += 1
+      Sp = 2
+      Sk 0 = Rt P
+      Sk 1 = Rt Q
+      Fail = 0
+      Run = 1
+      for Run equal 1
+        Sp -= 2
+        A = Sk Sp
+        B = Sk (Sp + 1)
+        Go = 1
+        for Go equal 1
+          Va = Vr A
+          Go = 0
+          if Va greater Mn
+            Tg = Bd Va
+            if Tg greater Mn
+              A = Tg
+              Go = 1
+            end
+          end
+        end
+        Go = 1
+        for Go equal 1
+          Va = Vr B
+          Go = 0
+          if Va greater Mn
+            Tg = Bd Va
+            if Tg greater Mn
+              B = Tg
+              Go = 1
+            end
+          end
+        end
+        Va = Vr A
+        Vb = Vr B
+        if A not equal B
+          Bv = 0 - 1
+          Bn = 0 - 1
+          if Va greater Mn
+            Sv = (Vb equal Va) integer
+            if Sv equal 0
+              Bv = Va
+              Bn = B
+            end
+          end
+          Fa = (Va less 0) integer
+          Fb = (Vb greater Mn) integer
+          if Fa * Fb equal 1
+            Bv = Vb
+            Bn = A
+          end
+          if Bv greater Mn
+            Oc += 1
+            Os = 1
+            Ok 0 = Bn
+            Hit = 0
+            Orn = 1
+            for Orn equal 1
+              Os -= 1
+              X = Ok Os
+              Go = 1
+              for Go equal 1
+                Vx = Vr X
+                Go = 0
+                if Vx greater Mn
+                  Tg = Bd Vx
+                  if Tg greater Mn
+                    X = Tg
+                    Go = 1
+                  end
+                end
+              end
+              Vx = Vr X
+              if Vx greater Mn
+                if Vx equal Bv
+                  Hit = 1
+                end
+              end
+              Fa = (Vx less 0) integer
+              if Fa * (1 - Hit) equal 1
+                if Oz X not equal Oc
+                  Oz X = Oc
+                  Ok Os = Lc X
+                  Ok (Os + 1) = Rc X
+                  Os += 2
+                end
+              end
+              Og = Os min 1
+              Orn = Og * (1 - Hit)
+            end
+            if Hit equal 1
+              Fail = 1
+            end
+            if Hit equal 0
+              Bd Bv = Bn
+            end
+          end
+          Fa = (Bv less 0) integer
+          Fb = (Va less 0) integer
+          Fc = (Vb less 0) integer
+          if Fa * Fb * Fc equal 1
+            Sk Sp = Lc A
+            Sk (Sp + 1) = Lc B
+            Sk (Sp + 2) = Rc A
+            Sk (Sp + 3) = Rc B
+            Sp += 4
+          end
+        end
+        Run = (Sp greater 0) integer
+        Run = Run * (1 - Fail)
+      end
+      if Fail equal 0
+        Os = 1
+        Ok 0 = Rt P
+        Value = 0
+        for Os greater 0
+          X = Ok (Os - 1)
+          Vx = Vr X
+          if Vx greater Mn
+            Tg = Bd Vx
+            if Tg less 0
+              Vl X = 0
+              Sm X = Cu
+              Os -= 1
+            end
+            if Tg greater Mn
+              if Sm Tg equal Cu
+                Vl X = Vl Tg
+                Sm X = Cu
+                Os -= 1
+              end
+              if Sm Tg not equal Cu
+                Ok Os = Tg
+                Os += 1
+              end
+            end
+          end
+          if Vx less 0
+            if Sm X equal Cu
+              Os -= 1
+            end
+            if Sm X not equal Cu
+              L = Lc X
+              R = Rc X
+              Zl = Sm L
+              Zr = Sm R
+              Fa = (Zl equal Cu) integer
+              Fb = (Zr equal Cu) integer
+              if Fa * Fb equal 1
+                Wl = Vl L
+                Wr = Vl R
+                Sw = 1 + Wl + Wr
+                S1 = Sw mod Md
+                Vo = S1 * S1 + Wr - Wl
+                Vl X = (Vo + Md) mod Md
+                Sm X = Cu
+                Os -= 1
+              end
+              if Fa * Fb equal 0
+                Ok Os = L
+                Ok (Os + 1) = R
+                Os += 2
+              end
+            end
+          end
+        end
+        Vp = Vl (Rt P)
+        Answer = (Answer + Vp) mod Md
+      end
+    end
+  end
+end
+Answer print
