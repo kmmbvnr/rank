@@ -58,6 +58,7 @@ const samples: readonly Sample[] = [
     ['linalg.matmul', () => [ownedArray(Array(24).fill(1n), [2, 3, 4]),
         ownedArray(Array(120).fill(1n), [4, 5, 6])], [2, 3, 5, 6]],
     ['linalg.inverse', () => [matrix], [2, 2]],
+    ['linalg.matpow', () => [matrix, 3n], [2, 2]],
     ['linalg.solve', () => [matrix, vector(4n, 8n)], [2]],
     ['linalg.solve', () => [matrix, matrix], [2, 2]],
     ...['acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cos', 'cosh',
