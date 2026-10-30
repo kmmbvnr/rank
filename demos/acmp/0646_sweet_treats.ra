@@ -1,0 +1,38 @@
+rem Sweet Treats
+rem https://acmp.ru/index.asp?main=task&id_task=646
+rem Number of fair candy partitions such that both children receive at least K candies
+
+use io
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "4 3\n1 2 3 2"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+K = (Tokens 1) integer
+A = (Tokens drop 2) integer
+
+TotalSum = A sum
+Ways = 0
+
+if not (TotalSum less (2 * K))
+  rem Count subsets of boxes with candy sum < K via vectorized 0-1 knapsack DP
+  DP = array shape K fill 0
+  DP 0 = 1
+
+  Items = A (A less K)
+  for V in Items
+    DP (V till K) = (DP (V till K)) + (DP (0 till (K - V)))
+  end
+
+  Under = DP sum
+  Total = 2 ** N
+  Ways = Total - (2 * Under)
+end
+
+(Ways text) print
