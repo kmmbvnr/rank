@@ -1,0 +1,129 @@
+rem Permutations - 3
+rem https://acmp.ru/index.asp?main=task&id_task=537
+rem Find M-th lexicographical K-permutation where every adjacent pair has gcd >= K
+
+use io
+use numbers
+use cli
+use sequences
+use text
+use bits
+
+arg Input text = "4 1 2\n6 8 3 9"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+M = (Tokens 1) integer
+K = (Tokens 2) integer
+RawA = (Tokens drop 3) integer
+
+A = RawA sort
+AllMask = (1 shl N) - 1
+
+rem Precompute adjacency: Adj i j is 1 if gcd(A_i, A_j) >= K and i != j
+Adj = (0 till (N * N)) * 0
+for I in 0 till N
+  for J in 0 till N
+    if not (I equal J)
+      G = (A I) gcd (A J)
+      if not (G less K)
+        Idx = (I * N) + J
+        Adj Idx = 1
+      end
+    end
+  end
+end
+
+rem DP state: DP(mask, last) = number of valid completions
+rem When mask == AllMask, DP(AllMask, last) = 1
+DP = array shape ((1 shl N) * N) fill 0
+for Last in 0 till N
+  Idx = (AllMask * N) + Last
+  DP Idx = 1
+end
+
+for MaskRev in 1 till AllMask
+  Mask = AllMask - MaskRev
+  for Last in 0 till N
+    if not (((Mask shr Last) band 1) equal 0)
+      Ways = 0
+      for Next in 0 till N
+        if ((Mask shr Next) band 1) equal 0
+          EdgeIdx = (Last * N) + Next
+          if (Adj EdgeIdx) equal 1
+            NextMask = Mask bor (1 shl Next)
+            NextDPIdx = (NextMask * N) + Next
+            Ways = Ways + (DP NextDPIdx)
+          end
+        end
+      end
+      CurDPIdx = (Mask * N) + Last
+      DP CurDPIdx = Ways
+    end
+  end
+end
+
+rem Reconstruct M-th permutation
+Answer = "-1"
+RemM = M
+CurMask = 0
+CurLast = -1
+Perm = array shape N fill 0
+Possible = true
+
+FoundFirst = false
+for I in 0 till N
+  StartMask = 1 shl I
+  StartDPIdx = (StartMask * N) + I
+  Ways = DP StartDPIdx
+  if not (Ways less RemM)
+    Perm 0 = A I
+    CurMask = StartMask
+    CurLast = I
+    FoundFirst = true
+    break
+  else
+    RemM = RemM - Ways
+  end
+end
+
+if not FoundFirst
+  Possible = false
+end
+
+if Possible
+  for Step in 1 till N
+    FoundNext = false
+    for Next in 0 till N
+      if ((CurMask shr Next) band 1) equal 0
+        EdgeIdx = (CurLast * N) + Next
+        if (Adj EdgeIdx) equal 1
+          NextMask = CurMask bor (1 shl Next)
+          NextDPIdx = (NextMask * N) + Next
+          Ways = DP NextDPIdx
+          if not (Ways less RemM)
+            Perm Step = A Next
+            CurMask = NextMask
+            CurLast = Next
+            FoundNext = true
+            break
+          else
+            RemM = RemM - Ways
+          end
+        end
+      end
+    end
+    if not FoundNext
+      Possible = false
+      break
+    end
+  end
+end
+
+if Possible
+  Answer = Perm join " "
+end
+
+Answer print
