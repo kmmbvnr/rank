@@ -266,5 +266,6 @@
   "euler/678_fermatlike.ra": "About 156 s: sieves and 4e8-pair scan; run manually (#492).",
   "euler/686_powersoftwo.ra": "About 50 s: 1.9e8-element fraction scan; run manually (#493).",
   "euler/688_pilesofplates.ra": "About 77 s: 1.4e8-element closed form; run manually (#494).",
-  "euler/681_maximalarea.ra": "About 29 min: per-m divisor loop; run manually (#495)."
+  "euler/681_maximalarea.ra": "About 29 min: per-m divisor loop; run manually (#495).",
+  "euler/693_finitesequence.ra": "About 11 min: residue-set squaring; run manually (#496)."
 }

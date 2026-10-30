@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "693_finitesequence"
+  Nn = 100
+  run
+  Answer equal 145
+  Nn = 10000
+  run
+  Answer equal 8824
+  Nn = 300000
+  run
+  Answer equal 62506
+end

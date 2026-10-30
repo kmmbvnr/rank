@@ -1,0 +1,146 @@
+rem Finite Sequence Generator
+rem https://projecteuler.net/problem=693
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 3000000
+
+rem Only y mod x matters and y, x - y
+rem give the same square, so g(x) is
+rem found by squaring the set of
+rem distinct residues > 1 under the
+rem moduli x + 1, x + 2, ... until the
+rem set is empty or has one element,
+rem which is then followed by plain
+rem squaring. For u in [L, R] the
+rem chain from u reaches a state of
+rem R after R - u steps, so g(u) <= g(R)
+rem + (R - L). Evaluate g on a coarse
+rem grid, then repeatedly split the
+rem interval with the largest bound
+rem until none exceeds the best g.
+Stp = (Nn // 64) max 1
+Gx = 2 to Nn by Stp
+Gl = Gx len
+if Gx (Gl - 1) less Nn
+  Gx = concat Gx (array shape 1 fill Nn)
+end
+Ng = Gx len
+Gv = array shape Ng fill 0
+Il = array shape 0 fill 0
+Ir = array shape 0 fill 0
+Jl = array shape 0 fill 0
+Jr = array shape 0 fill 0
+Best = 0
+Z1 = array shape 1 fill 0
+Phase = 0
+Kk = 0
+Lc = 0
+Rc = 0
+Ic = 0
+Spl = 0
+Go = 1
+for Go equal 1
+  Xq = 0
+  Spl = 0
+  if Phase equal 0
+    Xq = Gx Kk
+  end
+  if Phase equal 1
+    Ub = Jr + Ir - Il
+    Mx = Ub max
+    if Mx at most Best
+      Go = 0
+    end
+    if Go equal 1
+      Ip = (Ub equal Mx) indices
+      Ic = Ip 0
+      Lc = Il Ic
+      Rc = Ir Ic
+      if Rc - Lc at most 1
+        Jr Ic = 0 - 1000000000
+      end
+      if Rc - Lc greater 1
+        Xq = (Lc + Rc) // 2
+        Spl = 1
+      end
+    end
+  end
+  if Xq greater 0
+    Gq = 1
+    if Xq greater 2
+      Ys = 2 to (Xq // 2)
+      Vc = Ys * Ys mod Xq
+      Vc = Vc ((Vc greater 1) indices)
+      Vc = Vc unique
+      Gq = 2
+      if Vc len greater 0
+        Ln = 2
+        Zz = Xq
+        Ed = 0
+        for Ed equal 0
+          if Vc len equal 1
+            Vs = Vc 0
+            Zz += 1
+            Ln += 1
+            Ed = 1
+            for Vs greater 1
+              Vs = Vs * Vs mod Zz
+              if Vs greater 1
+                Ln += 1
+                Zz += 1
+              end
+            end
+            Gq = Ln
+          end
+          if Ed equal 0
+            Zz += 1
+            Wc = Vc * Vc mod Zz
+            Pk = (Wc greater 1) indices
+            Wc = Wc Pk
+            Wc = Wc unique
+            Ln += 1
+            if Wc len equal 0
+              Gq = Ln
+              Ed = 1
+            end
+            if Wc len greater 0
+              Vc = Wc
+            end
+          end
+        end
+      end
+    end
+    if Gq greater Best
+      Best = Gq
+    end
+    if Phase equal 0
+      Gv Kk = Gq
+      Kk += 1
+      if Kk equal Ng
+        Phase = 1
+        Il = Gx (0 to Ng - 2)
+        Ir = Gx (1 to Ng - 1)
+        Jl = Gv (0 to Ng - 2)
+        Jr = Gv (1 to Ng - 1)
+      end
+    end
+    if Phase equal 1
+      if Spl equal 1
+        Gr = Jr Ic
+        Jr Ic = Gq
+        Rr = Rc
+        Il = concat Il (Z1 + Xq)
+        Ir = concat Ir (Z1 + Rr)
+        Jl = concat Jl (Z1 + Gq)
+        Jr = concat Jr (Z1 + Gr)
+        Ir Ic = Xq
+      end
+    end
+  end
+end
+Answer = Best
+Answer print
