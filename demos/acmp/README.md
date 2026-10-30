@@ -55,8 +55,11 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0479** | [Муравей и дерево](0479_ant_and_tree.ra) | Computational Geometry (63%) | Shortest path avoiding circular obstacle via vector dot products, projections & tangent arc angles |
 | **0484** | [Трубопровод](0484_pipeline.ra) | Trees / Fibonacci Morphism (60%) | Find sequence of open valves in a 40-layer pipeline tree via iterative Fibonacci Lindenmayer morphism |
 | **0510** | [Шоколадка](0510_chocolate_bar.ra) | Dynamic Programming (60%) | Domino tilings of $3 \times N$ rectangle via second-order linear recurrence $F_k = 4 F_{k-1} - F_{k-2}$ |
+| **0512** | [Выпускной](0512_graduation.ra) | Dynamic Programming / Bitmask (75%) | Count matchings of size $K$ in bipartite graph via subsets DP & vectorized popcount filter |
 | **0523** | [Роман в томах](0523_book_volumes.ra) | Binary Search / Greedy (60%) | Optimal chapter partitioning into $K$ volumes via binary search on answer |
+| **0532** | [Трамвай](0532_tram.ra) | Data Structures / Sweep-line (74%) | Maximum passenger satisfaction across $P$ stops with $M$ seats via coordinate-compressed sum segment trees and `firstatleast` |
 | **0533** | [Треугольники - 3](0533_triangles_3.ra) | Computational Geometry (66%) | Count non-degenerate isosceles triangles among $N$ integer points via vector distance sorting, RLE grouping & canonical half-plane collinear cancellation |
+| **0537** | [Перестановки - 3](0537_permutations_3.ra) | Dynamic Programming / Bitmask (74%) | $M$-th lexicographical $K$-permutation with adjacent $\gcd \ge K$ via Hamiltonian path bitmask DP in $O(2^N \cdot N^2)$ |
 | **0538** | [Радио](0538_radio.ra) | Graph Theory / Binary Search (61%) | Maximize non-interfering transmitter radius via binary search and bipartite 2-coloring |
 | **0560** | [Остановки](0560_bus_stops.ra) | Dynamic Programming (64%) | Minimum platform construction cost with gap intervals $[r, R]$ via prefix sum costs & range minimum segment tree queries |
 | **0563** | [Задача про XOR](0563_xor_problem.ra) | Bitwise / Combinatorics (69%) | All-pairs power-of-two difference XOR sum via vector residue partitioning, run-length compression & bit parity |
@@ -64,6 +67,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0572** | [Технология программирования](0572_programming_technology.ra) | Greedy / Sorting (60%) | Maximize persuaded friends via dual-group sorting: $b_i \ge 0$ by threshold $a_i$ ascending, $b_i < 0$ by potential $(a_i + b_i)$ descending |
 | **0586** | [Законопроект](0586_bill.ra) | Game Theory (62%) | Sequential parliamentary voting simulation via backward induction & vectorized column comparison |
 | **0588** | [Число](0588_self_describing_number.ra) | Number Theory / Construction (60%) | Autobiographical / self-describing numbers in base $b$ via closed-form digit construction `Digits (B - 5) = 1; Digits (B - 1) = B - 4` |
+| **0612** | [Подстрока](0612_substring.ra) | Free Groups / Strings (68%) | Shortest word in free group equivalent to $X$ containing $Y$ via longest common subword of reduced forms, binary search & vectorized set window matching |
 | **0614** | [Скобки - 3](0614_brackets_3.ra) | Dynamic Programming / Strings (61%) | Count distinct regular bracket subsequences via DFA state transitions on greedy next-occurrence jumps |
 | **0615** | [Новый год](0615_new_year.ra) | Graph Theory / Matching (62%) | Minimum weight edge cover in bipartite graph via reduction to maximum savings matching and Hungarian/MCMF augmentation |
 | **0624** | [Электронная почта](0624_email.ra) | Graph Theory (62%) | Distributed email log consistency check via chronological dependency DAG and `Graph cycle` |
