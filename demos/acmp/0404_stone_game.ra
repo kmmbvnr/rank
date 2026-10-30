@@ -1,0 +1,57 @@
+rem Stone Game
+rem https://acmp.ru/index.asp?main=task&id_task=404
+rem Determine winner in square-root subtraction game up to 10^12 using accelerated P-position sieve
+
+use io
+use cli
+
+arg N integer = 3
+
+Answer = "WIN"
+
+if N equal 2
+  Answer = "LOSE"
+else
+  Osn = 2
+  Bad = 2
+  Running = true
+
+  for Running and (Bad less N)
+    NextBad = Bad + Osn
+    if not ((Osn * Osn) greater NextBad)
+      Osn += 1
+      Bad += Osn
+      if Bad equal N
+        Answer = "LOSE"
+        Running = false
+      end
+    else
+      Target = Osn * (Osn - 1)
+      K = (Target - Bad) // Osn
+      if K greater 0
+        Limit = Bad + K * Osn
+        if not (Limit less N)
+          Rem = (N - Bad) mod Osn
+          if Rem equal 0
+            Answer = "LOSE"
+          end
+          Running = false
+        else
+          Bad = Limit
+        end
+      else
+        NextBad2 = Bad + Osn
+        if not ((Osn * Osn) greater NextBad2)
+          Osn += 1
+        end
+        Bad += Osn
+      end
+    end
+  end
+
+  if Bad equal N
+    Answer = "LOSE"
+  end
+end
+
+Answer print

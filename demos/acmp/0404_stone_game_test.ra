@@ -1,0 +1,48 @@
+use testing
+
+test "sample 1: 3 stones is WIN"
+  use "0404_stone_game"
+  run
+
+  Answer equal "WIN"
+end
+
+test "sample 2: 5 stones is LOSE"
+  use "0404_stone_game"
+  N = 5
+  run
+
+  Answer equal "LOSE"
+end
+
+test "boundary: 2 stones is LOSE"
+  use "0404_stone_game"
+  N = 2
+  run
+
+  Answer equal "LOSE"
+end
+
+test "small P-position: 8 stones is LOSE"
+  use "0404_stone_game"
+  N = 8
+  run
+
+  Answer equal "LOSE"
+end
+
+test "large 10^12 is WIN"
+  use "0404_stone_game"
+  N = 1000000000000
+  run
+
+  Answer equal "WIN"
+end
+
+test "large P-position close to 10^12 is LOSE"
+  use "0404_stone_game"
+  N = 1000000951425
+  run
+
+  Answer equal "LOSE"
+end
