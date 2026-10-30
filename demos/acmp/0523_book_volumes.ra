@@ -1,0 +1,43 @@
+rem Book in Volumes
+rem https://acmp.ru/index.asp?main=task&id_task=523
+rem Partition N chapters into at most K volumes minimizing maximum volume size via binary search
+
+use io
+use cli
+use sequences
+use text
+
+arg Input text = "3\n1 2 1\n2"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = Tokens 0 integer
+Pages = ((Tokens drop 1) take N) integer
+K = Tokens (N + 1) integer
+
+Low = Pages max
+High = Pages sum
+
+for Low less High
+  Mid = (Low + High) // 2
+  Vols = 1
+  Cur = 0
+  for P in Pages
+    if (Cur + P) greater Mid
+      Vols += 1
+      Cur = P
+    else
+      Cur += P
+    end
+  end
+
+  if not (Vols greater K)
+    High = Mid
+  else
+    Low = Mid + 1
+  end
+end
+
+Answer = Low
+Answer print

@@ -1,0 +1,32 @@
+use testing
+
+test "sample 1: 3 chapters, 2 volumes"
+  use "0523_book_volumes"
+  run
+
+  Answer equal 3
+end
+
+test "sample 2: 4 chapters, 3 volumes"
+  use "0523_book_volumes"
+  Input = "4\n1 2 1 1\n3"
+  run
+
+  Answer equal 2
+end
+
+test "single volume K = 1"
+  use "0523_book_volumes"
+  Input = "3\n1 2 1\n1"
+  run
+
+  Answer equal 4
+end
+
+test "volume per chapter K = N"
+  use "0523_book_volumes"
+  Input = "3\n1 2 1\n3"
+  run
+
+  Answer equal 2
+end
