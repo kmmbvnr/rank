@@ -1,0 +1,94 @@
+rem Maze of Knowledge
+rem https://acmp.ru/index.asp?main=task&id_task=139
+rem Maximum knowledge path from 1 to N with positive cycle detection using Bellman-Ford
+
+use io
+use cli
+use sequences
+use text
+
+arg Input text = "2 2\n1 2 5\n1 2 -5"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = Tokens 0 integer
+M = Tokens 1 integer
+
+Answer = ":("
+
+if M greater 0
+  EdgeCoords = ((Tokens drop 2) take (3 * M)) integer
+  EIdx = (0 till M) array
+  U = EdgeCoords (EIdx * 3)
+  V = EdgeCoords (EIdx * 3 + 1)
+  W = EdgeCoords (EIdx * 3 + 2)
+
+  rem Reachability from 1
+  Reach1 = array shape (N + 1) fill false
+  Reach1 1 = true
+  for Step in 1 to N
+    Active = Reach1 U
+    if (Active count) greater 0
+      Reach1 (V Active) = true
+    end
+  end
+
+  rem Reachability to N
+  ReachN = array shape (N + 1) fill false
+  ReachN N = true
+  for Step in 1 to N
+    Active = ReachN V
+    if (Active count) greater 0
+      ReachN (U Active) = true
+    end
+  end
+
+  if Reach1 N
+    ValidMask = (Reach1 U) and ((ReachN U) and ((Reach1 V) and (ReachN V)))
+    ValidU = U ValidMask
+    ValidV = V ValidMask
+    ValidW = W ValidMask
+
+    NumEdges = ValidU len
+    Dist = array shape (N + 1) fill (0 - 1000000000000000)
+    Dist 1 = 0
+
+    HasPosCycle = false
+    Stop = false
+    for Step in 1 to N
+      if not Stop
+        Changed = false
+        for E in 0 to (NumEdges - 1)
+          EU = ValidU E
+          EV = ValidV E
+          EW = ValidW E
+          DU = Dist EU
+          if DU greater (0 - 500000000000000)
+            Cand = DU + EW
+            if Cand greater (Dist EV)
+              Dist EV = Cand
+              Changed = true
+            end
+          end
+        end
+        if Step equal N
+          if Changed
+            HasPosCycle = true
+          end
+        end
+        if not Changed
+          Stop = true
+        end
+      end
+    end
+
+    if HasPosCycle
+      Answer = ":)"
+    else
+      Answer = Dist N text
+    end
+  end
+end
+
+Answer print

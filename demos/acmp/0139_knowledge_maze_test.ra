@@ -1,0 +1,32 @@
+use testing
+
+test "sample 1: 2 rooms, 2 edges"
+  use "0139_knowledge_maze"
+  run
+
+  Answer equal "5"
+end
+
+test "positive cycle on path to N"
+  use "0139_knowledge_maze"
+  Input = "3 4\n1 2 1\n2 2 1\n2 3 1\n1 3 0"
+  run
+
+  Answer equal ":)"
+end
+
+test "no path to N"
+  use "0139_knowledge_maze"
+  Input = "4 4\n1 2 10\n3 4 1\n4 3 1\n3 3 1"
+  run
+
+  Answer equal ":("
+end
+
+test "simple path of length 3"
+  use "0139_knowledge_maze"
+  Input = "3 2\n1 2 10\n2 3 20"
+  run
+
+  Answer equal "30"
+end
