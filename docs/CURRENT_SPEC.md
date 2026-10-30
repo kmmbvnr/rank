@@ -6878,6 +6878,7 @@ atanh
 gcd
 lcm
 powmod
+convolve
 binomial
 binomialmod
 factors
@@ -7082,6 +7083,22 @@ Value = Base Exponent Modulus powmod
 The result is normalized from zero through `Modulus - 1`. The implementation
 uses repeated squaring, so it does not construct the potentially huge value
 `Base ** Exponent` first.
+
+`convolve` multiplies two integer vectors as polynomials, so cell `k` of the
+result is the sum of `A i * B j` over `i + j = k`; the result has
+`A len + B len - 1` cells. Both operands must be nonempty integer vectors:
+
+```rank
+Product = A convolve B
+Residues = A convolve B mod M
+```
+
+Without `mod` the sums are exact at any width and are computed in
+O(`A len * B len`) steps. `A convolve B mod M` (also parenthesized) reduces
+inside the product, so no cell exceeds the modulus and nothing overflows. For
+a modulus from 1 through 2147483648 and products shorter than 2^23 cells, it uses
+number-theoretic transforms and takes O((`A len + B len`) log) steps. Other
+moduli, and longer products, take the exact path, then `mod`.
 
 `binomial` returns the exact binomial coefficient for nonnegative integers
 with `0 at most K at most N`:

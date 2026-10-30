@@ -4,6 +4,7 @@ import { demand, demandValue } from '../plan.js';
 import { materializeValue } from '../materialize.js';
 import { checkedArrayDimension, safeDimension } from '../tensor-index.js';
 import { integerLiteral } from './application.js';
+import { convolveExact, convolveModular } from '../convolution.js';
 export { checkedArrayDimension } from '../tensor-index.js';
 import { ArrayBindingContract } from '../array-binding-contract.js';
 import { tuple } from '../value.js';
@@ -682,6 +683,8 @@ export class ExpressionEvaluator {
     private modularFold(expression: BinaryExpression): (() => Evaluation<RankValue>) | undefined {
         let left: Expression = expression.left;
         while (isParenthesizedExpression(left)) left = left.value;
+        const product = this.modularConvolution(left, expression);
+        if (product) return product;
         if (!isBinaryExpression(left)) return undefined;
         const form = applicationForm(left, name => this.operationOf(name), false, name => isNativeFunction(this.context.findVariable(name) ?? MISSING));
         if (form.kind !== 'scan' && form.kind !== 'reduce' || form.kind === 'reduce' && (form.rank || form.axes)
@@ -700,6 +703,25 @@ export class ExpressionEvaluator {
                 ? expressions.context.reductions.evaluateScan(form.operator, source, seed, axis)
                 : expressions.context.reductions.evaluateReduction(form.operator, source, undefined, seed);
             return expressions.context.operators.evaluateBinary('mod', exact, modulus);
+        };
+    }
+
+    /** `(A convolve B) mod M`: the product is reduced inside the transform, so it never overflows. */
+    private modularConvolution(left: Expression, expression: BinaryExpression): (() => Evaluation<RankValue>) | undefined {
+        const parts = flattenApplication(left);
+        const word = parts[2];
+        if (parts.length !== 3 || !isNameExpression(word) || this.operationOf(word.name) !== findOperation('convolve')) {
+            return undefined;
+        }
+        const expressions = this;
+        return function* (): Execution<RankValue> {
+            expressions.context.requireModule('numbers', 'convolve');
+            const a = yield* resume(expressions.evaluate(parts[0]));
+            const b = yield* resume(expressions.evaluate(parts[1]));
+            const modulus = yield* resume(expressions.evaluate(expression.right));
+            const fused = convolveModular(a, b, modulus as bigint);
+            if (fused !== undefined) return fused;
+            return expressions.context.operators.evaluateBinary('mod', convolveExact(a, b), modulus);
         };
     }
 

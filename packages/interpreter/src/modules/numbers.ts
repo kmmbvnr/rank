@@ -39,6 +39,7 @@ import {
     type SequencePlan,
     type SequencePredicate,
 } from '../value.js';
+import { convolveExact } from '../convolution.js';
 import { expectInteger, expectNumeric, mapValue, native, scalarNative } from './shared.js';
 import type { RuntimeContext, RuntimeModule } from './types.js';
 
@@ -127,6 +128,7 @@ export const numbersModule: RuntimeModule = {
         expectInteger(arguments_[1]),
         expectInteger(arguments_[2]),
     ))),
+    convolve: () => native('convolve', 2, arguments_ => convolveExact(arguments_[0], arguments_[1])),
     binomial: () => native('binomial', 2, arguments_ => mapBinaryValue(
         arguments_[0],
         arguments_[1],

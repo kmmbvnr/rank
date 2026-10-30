@@ -50,18 +50,31 @@ Nb = 0
 for 2 ** Nb at most Kk
   Nb += 1
 end
+rem Reduce mod q by Newton division:
+rem the inverse of the reversed q.
+Fr = Q1 reverse
+Iv = array shape 1 fill 1
+Ln = 1
+for Ln less K - 1
+  Ln = Ln * 2
+  Fm = Fr (0 to (Ln min (K + 1)) - 1)
+  Tm = Fm convolve Iv mod P
+  Tm = (0 - Tm (0 to Ln - 1)) mod P
+  Tm 0 = (Tm 0 + 2) mod P
+  Iv = Iv convolve Tm mod P
+  Iv = Iv (0 to Ln - 1)
+end
+Iv = Iv (0 to K - 2)
 Rs = array shape K fill 0
 Rs 1 = 1
 for Bt in Nb - 2 to 0 by -1
-  Ac = array shape K fill 0
-  Cu = Rs copy
-  for I in 0 to K - 1
-    Ac = (Ac + Rs I * Cu) mod P
-    Tp = Cu (K - 1)
-    Cu = concat Z0 (Cu (0 to K - 2))
-    Cu = (Cu + Tp * Rl) mod P
-  end
-  Rs = Ac
+  Pr = Rs convolve Rs mod P
+  Hi = (Pr reverse) (0 to K - 2)
+  Qr = Hi convolve Iv mod P
+  Qt = (Qr (0 to K - 2)) reverse
+  Pq = Qt convolve Q1 mod P
+  Lo = Pr (0 to K - 1)
+  Rs = (Lo - Pq (0 to K - 1) + P) mod P
   if (Kk shr Bt) band 1 equal 1
     Tp = Rs (K - 1)
     Rs = concat Z0 (Rs (0 to K - 2))
