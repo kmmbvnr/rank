@@ -223,6 +223,47 @@ Other integer products use BigInt.
 
 outer, inverse, solve
 
+## matpow
+
+A square matrix to an integer power.
+
+```rank
+use linalg
+use sequences
+A = (array 1 1 1 0) reshape 2 2
+A matpow 10
+```
+
+```result
+89 55 55 34
+```
+
+### Usage
+
+```text
+Matrix matpow Power
+```
+
+The matrix must be square and the power
+an integer. Power 0 gives the identity
+matrix. A negative power inverts the
+matrix first, so a singular matrix is an
+error.
+
+Integer cells stay exact. The work is
+about log2 of the power in products, not
+the power itself.
+
+### Notes
+
+A ** 2 squares each cell. To multiply
+the matrix by itself, use matpow or
+matmul.
+
+### See also
+
+matmul, inverse
+
 ## solve
 
 Find X in the equations A × X = B.

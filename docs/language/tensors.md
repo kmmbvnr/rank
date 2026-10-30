@@ -702,6 +702,24 @@ over an empty dimension produces zero for every output element.
 `matmul` differs from `outer`: `outer` adds combination axes, while `matmul`
 removes the selected compatible axes by summing their products.
 
+### Matrix powers
+
+`matpow` from `use linalg` raises a square rank-2 matrix to an integer power:
+
+```rank
+Fibonacci = (array 1 1 1 0) reshape 2 2
+Tenth = Fibonacci matpow 10
+```
+
+It multiplies by repeated squaring, so a power `N` takes about `log2 N`
+products instead of `N`. Integer cells stay exact. A zero power is the identity
+matrix. A negative power inverts the matrix first and raises the inverse, so a
+singular matrix raises `inverse expects a nonsingular matrix`. A matrix that is
+not square, or a power that is not an integer, is an error.
+
+`**` stays elementwise: `A ** 2` squares every cell, and `A matpow 2` is
+`A matmul A`.
+
 ## ML direction
 
 High-level names such as `logistic`, `linear` and `cnn` have been useful as

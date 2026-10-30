@@ -37,7 +37,8 @@ import { copyArray } from './modules/sequences.js';
 import { ALL_AXIS, atArray, sliceArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
 import { preparePositionalBuiltin } from './jit/typed-native.js';
 import { textAt } from './text-storage.js';
-import { isRankArray, isRankCounter, isNativeFunction, type NativeFunction, type RankValue } from './value.js';
+import { isRankArray, isRankCounter, isNativeFunction, type NativeFunction, type RankArray, type RankValue } from './value.js';
+import type { ReductionEvaluator } from './reduction.js';
 
 export type CompiledLoop = NonNullable<ReturnType<typeof compileIntegerLoop>>;
 
@@ -59,6 +60,7 @@ export interface FastPathContext {
     /** Builtin identity a name is bound to, or false for a user value. */
     operationOf(name: string): Operation | undefined | false;
     readonly operators: Operators;
+    readonly reductions: ReductionEvaluator;
 }
 
 /** The reference evaluation an application fast path falls back to. */
@@ -287,6 +289,8 @@ export class FastPaths {
                 select: (source, selector) => copyArray(selectValues(this.context.modules, [source, selector]), false),
                 copy: source => copyArray(source, false),
                 binary: (operator, left, right) => this.context.operators.evaluateBinary(operator, left, right),
+                reduceAxis: (operation, source, axes) => copyArray(
+                    this.context.reductions.evaluateAxisReduction(operation, source, axes) as RankArray, false),
             },
             textRead: textAt,
             returns: loops.returns,

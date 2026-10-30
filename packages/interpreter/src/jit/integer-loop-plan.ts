@@ -59,6 +59,7 @@ export interface LoopHost {
         select(source: RankValue, selector: RankValue): RankArray;
         copy(value: RankValue): RankArray;
         binary(operator: string, left: RankValue, right: RankValue): RankValue;
+        reduceAxis(operation: string, source: RankValue, axes: readonly number[]): RankArray;
     };
     iteration(condition: Expression | undefined): IterationBinding | undefined;
     read(name: string): RankValue | undefined;

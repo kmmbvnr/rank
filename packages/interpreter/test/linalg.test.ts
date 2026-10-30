@@ -500,6 +500,50 @@ describe('Rank linear algebra', () => {
             'A inverse',
         ].join('\n'))).toThrowError('inverse expects a nonsingular matrix');
     });
+
+    describe('matpow', () => {
+        const fibonacci = ['use linalg', 'A = array shape 2 2', '  1 1', '  1 0', 'end'];
+        it('raises an integer matrix to a power exactly', () => {
+            expect(run([...fibonacci, 'A matpow 10'].join('\n'))).toBe('89 55 55 34');
+            expect(run([...fibonacci, 'A matpow 90'].join('\n')))
+                .toBe('4660046610375530309 2880067194370816120 2880067194370816120 1779979416004714189');
+        });
+        it('matches repeated matmul for every small power', () => {
+            for (let power = 0; power <= 12; power += 1) {
+                expect(run([...fibonacci, 'Id = array shape 2 2', '  1 0', '  0 1', 'end',
+                    `fun P step = P matmul A`, `(A matpow ${power}) equal (Id step repeat ${power})`, ].join('\n')))
+                    .toBe('true true true true');
+            }
+        });
+        it('returns the identity for a zero power and the matrix for one', () => {
+            expect(run([...fibonacci, 'A matpow 0'].join('\n'))).toBe('1 0 0 1');
+            expect(run([...fibonacci, 'A matpow 1'].join('\n'))).toBe('1 1 1 0');
+        });
+        it('inverts for a negative power', () => {
+            expectNumbers(run([...fibonacci, 'A matpow -2'].join('\n')), [1, -1, -1, 2]);
+        });
+        it('keeps the argument unchanged', () => {
+            expect(run([...fibonacci, 'B = A matpow 5', 'A'].join('\n'))).toBe('1 1 1 0');
+        });
+        it('handles one-by-one matrices', () => {
+            expect(run('use linalg\n(array shape 1 1 fill 3) matpow 4')).toBe('81');
+        });
+        it('keeps real cells real', () => {
+            expectNumbers(run('use linalg\n(array shape 2 2 fill 0.5) matpow 3'), [0.5, 0.5, 0.5, 0.5]);
+        });
+        it('rejects a matrix that is not square', () => {
+            expect(() => run('use linalg\n(array shape 2 3 fill 1) matpow 2'))
+                .toThrowError('matpow expects a square rank-2 matrix');
+        });
+        it('rejects a power that is not an integer', () => {
+            expect(() => run([...fibonacci, 'A matpow 1.5'].join('\n')))
+                .toThrowError('matpow expects an integer power');
+        });
+        it('rejects a singular matrix for a negative power', () => {
+            expect(() => run('use linalg\n(array shape 2 2 fill 1) matpow -1'))
+                .toThrowError('inverse expects a nonsingular matrix');
+        });
+    });
 });
 
 function expectNumbers(actual: string | undefined, expected: readonly number[]): void {

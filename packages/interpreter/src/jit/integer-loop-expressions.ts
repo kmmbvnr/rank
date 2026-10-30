@@ -10,10 +10,12 @@ import { compiledArgumentType, hasNativeDeque } from './compiled-argument-type.j
 import {
     applicationExpression, rangeSliceOperands, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
-    isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, type Expression, type CompiledLoopType,
+    isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex, isRankSet } from '../value.js';
+import { integerLiteral } from '../eval/application.js';
+import { resolveAxes, safeDimension } from '../tensor-index.js';
 import { RankDeque } from '../containers.js';
 import { denseScalarItems, materializedArrayItems, arrayRevision, storedScalarKinds } from '../array-storage.js';
 
@@ -560,6 +562,23 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         lines.push(`const ${name} = ${numberMode && signature.result === 'integer' ? safe(code) : code};`);
         return { code: name, type: signature.result };
     }
+    /** `A sum axis 0 -1` over integers: any literal axes, as the evaluator takes them.
+     * The reduced rank is fixed here; axis errors surface from the evaluator itself. */
+    function axisReduction(e: Expression) {
+        if (!isApplicationExpression(e) || !host.arrayValues) return undefined;
+        const form = applicationForm(e, name => findOperation(name));
+        if (form.kind !== 'axis-reduction' || !['sum', 'min', 'max'].includes(form.operation.name)) return undefined;
+        const name = form.operation.name;
+        if (localTypes.has(name) || arrays.has(name) || containers.has(name)) return undefined;
+        const source = arrayType(form.source);
+        if (source?.element !== 'integer') return undefined;
+        try {
+            const label = `${name} axis`;
+            const axes = form.axes.map(axis => Number(safeDimension(integerLiteral(axis, label), label)));
+            const rank = source.rank - resolveAxes(axes, source.rank, name).length;
+            return rank >= 1 ? { form, axes, rank } : undefined;
+        } catch { return undefined; }
+    }
     // Array operands use the same concrete range/selection operations as the
     // evaluator, without re-entering expression evaluation on every iteration.
     function arrayType(e: Expression): CompiledArrayType | undefined {
@@ -582,6 +601,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 return { kind: 'array', element: 'integer', rank: Math.max(left?.rank ?? 0, right?.rank ?? 0) };
             }
         }
+        const reduction = axisReduction(e);
+        if (reduction) return { kind: 'array', element: 'integer', rank: reduction.rank };
         if (isApplicationExpression(e)) {
             const parts = flattenApplication(e), last = parts.at(-1)!;
             if (parts.length >= 2 && isNameExpression(last) && last.name === 'copy'
@@ -606,7 +627,14 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return { code: `r${info.slot}`, type };
         }
         let code: string;
-        if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
+        const reduction = axisReduction(e);
+        if (reduction) {
+            const input = emitValue(reduction.form.source, lines);
+            if (!input || typeof input.type === 'string' || input.type.element !== 'integer') return undefined;
+            const { name, module } = reduction.form.operation;
+            builtins.set(name, module);
+            code = `arrayValues.reduceAxis(${JSON.stringify(name)}, ${input.code}, [${reduction.axes.join(',')}])`;
+        } else if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
             const start = emit(e.left, lines, 'integer'), end = emit(e.right, lines, 'integer');
             const step = e.step ? emit(e.step, lines, 'integer') : undefined;
             if (start?.type !== 'integer' || end?.type !== 'integer' || e.step && step?.type !== 'integer') return undefined;

@@ -36,6 +36,11 @@ export const linalgModule: RuntimeModule = {
         if (!shape) throw new RankError('matmul expects compatible cell shapes', 'DimensionMismatch');
         return shape as readonly number[];
     } }),
+    matpow: () => native(
+        'matpow',
+        2,
+        arguments_ => matrixPower(arguments_[0], arguments_[1]),
+    ),
     solve: () => {
         const fn = native('solve', 2, arguments_ => solveLinearSystem(arguments_[0], arguments_[1]));
         return { ...fn, dyadicResultShape: (left: readonly number[], right: readonly number[]) => {
@@ -700,6 +705,41 @@ function stridesOf(shape: readonly number[]): number[] {
     const strides = new Array<number>(shape.length).fill(1);
     for (let axis = shape.length - 2; axis >= 0; axis -= 1) strides[axis] = strides[axis + 1] * shape[axis + 1];
     return strides;
+}
+
+/** Exponentiation by squaring: O(log |power|) products, exact for integer cells. */
+function matrixPower(value: RankValue, power: RankValue): RankArray {
+    value = tensorSource(value) ?? value;
+    if (!isRankArray(value) || value.shape.length !== 2 || value.shape[0] !== value.shape[1]) {
+        throw new RankError('matpow expects a square rank-2 matrix', 'DimensionMismatch');
+    }
+    if (typeof power !== 'bigint') throw new RankError('matpow expects an integer power', 'TypeError');
+
+    const size = value.shape[0];
+    // Products stay lazy otherwise, and squaring would recompute them.
+    const settle = (matrix: RankValue): RankArray => {
+        const cells = matrix as RankArray;
+        return ownedArray(Array.from({ length: size * size }, (_, index) => arrayItem(cells, index)), [size, size]);
+    };
+    let base = settle(value);
+    const integers = Array.from({ length: size * size }, (_, index) => arrayItem(base, index))
+        .every(item => typeof item === 'bigint');
+    let exponent = power;
+    if (exponent < 0n) {
+        base = inverseMatrix(base);
+        exponent = -exponent;
+    }
+    let result: RankArray | undefined;
+    while (exponent > 0n) {
+        checkpoint('computing linear algebra');
+        if (exponent & 1n) result = result ? settle(matmulValues(result, base)) : base;
+        exponent >>= 1n;
+        if (exponent > 0n) base = settle(matmulValues(base, base));
+    }
+    if (result) return result;
+    const one = integers && power === 0n ? 1n : 1, zero = integers && power === 0n ? 0n : 0;
+    return ownedArray(Array.from({ length: size * size }, (_, index) =>
+        index % (size + 1) === 0 ? one : zero), [size, size]);
 }
 
 function inverseMatrix(value: RankValue): RankArray {
