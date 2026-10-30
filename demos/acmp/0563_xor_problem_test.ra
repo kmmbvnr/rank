@@ -1,0 +1,48 @@
+use testing
+
+test "sample 1: consecutive 1 2 3"
+  use "0563_xor_problem"
+  run
+
+  Answer equal 1
+end
+
+test "sample 2: pair of equal elements 1 1"
+  use "0563_xor_problem"
+  Input = "2\n1\n1"
+  run
+
+  Answer equal -1
+end
+
+test "sample 3: powers of two 1 2 4"
+  use "0563_xor_problem"
+  Input = "3\n1\n2\n4"
+  run
+
+  Answer equal 6
+end
+
+test "single element"
+  use "0563_xor_problem"
+  Input = "1\n42"
+  run
+
+  Answer equal 42
+end
+
+test "negative and positive pair"
+  use "0563_xor_problem"
+  Input = "2\n-1\n1"
+  run
+
+  Answer equal -1
+end
+
+test "all zeros with even count"
+  use "0563_xor_problem"
+  Input = "4\n0\n0\n0\n0"
+  run
+
+  Answer equal 0
+end

@@ -1,0 +1,67 @@
+rem Problem About XOR
+rem https://acmp.ru/index.asp?main=task&id_task=563
+rem Compute S = (xor of all a_i) xor (xor of F(a_i, a_j) for all i < j)
+
+use io
+use numbers
+use cli
+use sequences
+use text
+use bits
+
+arg Input text = "3\n1\n2\n3"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+N = (Tokens 0) integer
+A = (Tokens drop 1) integer
+
+Axor = 0
+for I in 0 till N
+  Axor = Axor bxor (A I)
+end
+
+Two32 = 4294967296
+Half32 = Two32 // 2
+
+U = A
+NegMask = A less 0
+U NegMask = (A NegMask) + Two32
+
+Fxor = 0
+
+for P in 0 till 32
+  Mask = 0
+  if P less 31
+    Mask = (1 shl (P + 1)) - 1
+  else
+    Mask = Two32 - 1
+  end
+
+  Masked = U band Mask
+  Order = Masked argsort
+  S = Masked Order
+
+  Diff = (S drop 1) not equal (S take (N - 1))
+  CutIdx = ((0 till (N - 1)) Diff) + 1
+  Boundaries = concat (concat (array 0) CutIdx) (array N)
+  NumCuts = Boundaries len
+  Counts = (Boundaries drop 1) - (Boundaries take (NumCuts - 1))
+  Parities = (Counts shr 1) band 1
+  BitP = (Parities sum) mod 2
+
+  if BitP equal 1
+    if P less 31
+      Fxor = Fxor bor (1 shl P)
+    else
+      Fxor = Fxor bor Half32
+    end
+  end
+end
+
+Answer = Axor bxor Fxor
+if not (Answer less Half32)
+  Answer = Answer - Two32
+end
+
+Answer print
