@@ -1,0 +1,41 @@
+use testing
+use numbers
+
+test "sample 1: ant detours around tree"
+  use "0479_ant_and_tree"
+  run
+
+  (Answer - 6.014 abs) less 0.001
+end
+
+test "straight unobstructed path"
+  use "0479_ant_and_tree"
+  Input = "0 0 4 0 2 2 1"
+  run
+
+  (Answer - 4.0 abs) less 0.001
+end
+
+test "segment tangent to obstacle does not detour"
+  use "0479_ant_and_tree"
+  Input = "0 1 4 1 2 0 1"
+  run
+
+  (Answer - 4.0 abs) less 0.001
+end
+
+test "same start and destination"
+  use "0479_ant_and_tree"
+  Input = "5 5 5 5 10 10 2"
+  run
+
+  (Answer - 0.0 abs) less 0.001
+end
+
+test "scaled symmetrical detour"
+  use "0479_ant_and_tree"
+  Input = "100 100 900 900 500 500 200"
+  run
+
+  (Answer - 1202.848 abs) less 0.001
+end
