@@ -1,0 +1,48 @@
+use testing
+
+test "sample 1: two signals, one valid 110 and one ERROR"
+  use "0657_hello_space"
+  run
+
+  (Results 0) equal "110"
+  (Results 1) equal "ERROR"
+end
+
+test "single bit 10 signal: '10' in Manchester is H(u), L(2u), H(u)"
+  use "0657_hello_space"
+  Input = "1\n3\n50\n100\n50"
+  run
+
+  (Results 0) equal "10"
+end
+
+test "longer valid signal: 1010"
+  rem 1: H(u), L(u)
+  rem 0: L(u), H(u) -> middle is L(2u)
+  rem 1: H(u), L(u) -> middle is H(2u)
+  rem 0: L(u), H(u) -> middle is L(2u)
+  rem Runs: H(u), L(2u), H(2u), L(2u), H(u) -> 5 runs
+  use "0657_hello_space"
+  Input = "1\n5\n100\n200\n200\n200\n100"
+  run
+
+  (Results 0) equal "1010"
+end
+
+test "error: invalid starting bit (must start with 1)"
+  rem 0: L(u), H(u) -> cannot start with L because silence is L and signal records H first
+  use "0657_hello_space"
+  Input = "1\n3\n100\n100\n100"
+  run
+
+  (Results 0) equal "ERROR"
+end
+
+test "error: noise exceeds 10% tolerance"
+  rem u nominal 100, but one pulse is 125 (> 10% of 100, and not 200)
+  use "0657_hello_space"
+  Input = "1\n5\n100\n100\n125\n200\n100"
+  run
+
+  (Results 0) equal "ERROR"
+end

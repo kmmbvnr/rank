@@ -1,0 +1,103 @@
+rem Hello Space!
+rem https://acmp.ru/index.asp?main=task&id_task=657
+rem Demodulating alien Manchester-encoded binary signal from noisy pulse durations with <= 10% relative error.
+rem Bit 1 = HIGH (T/2) then LOW (T/2); Bit 0 = LOW (T/2) then HIGH (T/2). First bit is 1, last bit is 0.
+rem Every constant pulse has nominal duration u = T/2 (type 1) or 2u = T (type 2).
+
+use io
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "2\n5\n42\n43\n39\n93\n44\n5\n10\n10\n22\n10\n30"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+K = (Tokens 0) integer
+Idx = 1
+
+Results = array shape K fill ""
+
+for KIdx in 0 till K
+  N = (Tokens Idx) integer
+  Idx = Idx + 1
+  T = (Tokens (Idx till (Idx + N))) integer
+  Idx = Idx + N
+
+  T1 = T 0
+  Failed = 0
+  if T1 equal 0
+    Failed = 1
+  end
+
+  Types = array shape N fill 1
+  if Failed equal 0
+    IsType1 = not ((T * 10) greater (T1 * 14))
+    Types = 2 - (IsType1 integer)
+
+    LowBounds = (T * 10.0) / (Types * 11.0)
+    HighBounds = (T * 10.0) / (Types * 9.0)
+    MaxLow = LowBounds max
+    MinHigh = HighBounds min
+
+    if MaxLow greater MinHigh
+      Failed = 1
+    end
+  end
+
+  if Failed equal 0
+    TotalHalf = Types sum
+    if (TotalHalf mod 2) not equal 0
+      Failed = 1
+    end
+  end
+
+  BitStr = "ERROR"
+  if Failed equal 0
+    TotalHalf = Types sum
+    NumBits = TotalHalf // 2
+    HalfBits = array shape TotalHalf fill 0
+    Pos = 0
+    for I in 0 till N
+      Val = 1 - (I mod 2)
+      Len = Types I
+      HalfBits Pos = Val
+      if Len equal 2
+        HalfBits (Pos + 1) = Val
+      end
+      Pos = Pos + Len
+    end
+
+    EvenIdx = (0 till NumBits) * 2
+    OddIdx = EvenIdx + 1
+    B0 = HalfBits EvenIdx
+    B1 = HalfBits OddIdx
+
+    IsOne = (B0 equal 1) and (B1 equal 0)
+    IsZero = (B0 equal 0) and (B1 equal 1)
+    Valid = IsOne or IsZero
+
+    if not ((Valid count) equal NumBits)
+      Failed = 1
+    else
+      if not ((IsOne 0) and (IsZero (NumBits - 1)))
+        Failed = 1
+      else
+        BitChars = array shape NumBits fill "0"
+        for BIdx in 0 till NumBits
+          if IsOne BIdx
+            BitChars BIdx = "1"
+          end
+        end
+        BitStr = BitChars join ""
+      end
+    end
+  end
+
+  Results KIdx = BitStr
+end
+
+Output = Results join "\n"
+Output print
