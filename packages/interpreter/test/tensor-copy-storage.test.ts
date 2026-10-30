@@ -4,12 +4,12 @@ import { compileTensorKernel } from '../src/tensor-kernel.js';
 import { denseScalarItems, filledArray, ownedScalarArray, readArrayItem, typedArray, typedElementKind } from '../src/array-storage.js';
 
 describe('tensor copy storage', () => {
-    it.each([0, 1, 4095, 4096, 5000])('packs exact integer output at size %s', size => {
+    it.each([0, 1, 63, 64, 4096, 5000])('packs exact integer output at size %s', size => {
         const runtime = new Interpreter();
         try {
             const result = runtime.execute(`use numbers\nuse sequences\nA = ((0 till ${size}) mod 31) copy\n(A * 3 + 1) copy`) as RankArray;
             expect(result.shape).toEqual([size]);
-            expect(typedElementKind(result)).toBe(size >= 4096 ? 'integer' : undefined);
+            expect(typedElementKind(result)).toBe(size >= 64 ? 'integer' : undefined);
             for (let i = 0; i < size; i++) expect(readArrayItem(result, i)).toBe(BigInt(i % 31 * 3 + 1));
         } finally { runtime.dispose(); }
     });
