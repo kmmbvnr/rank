@@ -1,0 +1,101 @@
+rem Colouring a Strip
+rem https://projecteuler.net/problem=670
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Nn integer = 10000000000000000
+
+rem Scan the strip by column. A state
+rem holds, per row, the cells a tile
+rem still covers (0 to 2) and its
+rem colour, plus a flag for a vertical
+rem tile in the last column. A move
+rem continues a tile or starts one in a
+rem new colour; a vertical tile needs
+rem both rows free; two rows may not
+rem both start tiles right after both
+rem ended, unless the last column was
+rem vertical (no four tiles at a point).
+rem The reachable states form a 0/1
+rem matrix T and F(n) = v T^(n-1).
+P = 1000004321
+Sx = 0 to 287
+Nu = Sx mod 2
+Cb = Sx // 2 mod 4
+Rb = Sx // 8 mod 3
+Ct = Sx // 24 mod 4
+Rt = Sx // 96
+N1 = Nu reshape 288 1
+Cb1 = Cb reshape 288 1
+Rb1 = Rb reshape 288 1
+Ct1 = Ct reshape 288 1
+Rt1 = Rt reshape 288 1
+N2 = Nu reshape 1 288
+Cb2 = Cb reshape 1 288
+Rb2 = Rb reshape 1 288
+Ct2 = Ct reshape 1 288
+Rt2 = Rt reshape 1 288
+Z1 = (Rt1 equal 0) integer
+Z1 = Z1 * ((Rb1 equal 0) integer)
+Z2 = (Rt2 equal 0) integer
+Z2 = Z2 * ((Rb2 equal 0) integer)
+Vc = (N2 equal 1) integer * Z1 * Z2
+Vc = Vc * ((Ct2 equal Cb2) integer)
+Vc = Vc * ((Ct2 not equal Ct1) integer)
+Vc = Vc * ((Ct2 not equal Cb1) integer)
+Tp = (Rt1 greater 0) integer
+Tp = Tp * ((Rt2 equal Rt1 - 1) integer)
+Tp = Tp * ((Ct2 equal Ct1) integer)
+Tq = (Rt1 equal 0) integer
+Tq = Tq * ((Ct2 not equal Ct1) integer)
+Bp = (Rb1 greater 0) integer
+Bp = Bp * ((Rb2 equal Rb1 - 1) integer)
+Bp = Bp * ((Cb2 equal Cb1) integer)
+Bq = (Rb1 equal 0) integer
+Bq = Bq * ((Cb2 not equal Cb1) integer)
+Rg = (N2 equal 0) integer * (Tp + Tq)
+Rg = Rg * (Bp + Bq)
+Rg = Rg * ((Ct2 not equal Cb2) integer)
+Zn = Z1 * ((N1 equal 0) integer)
+Rg = Rg * (1 - Zn)
+Tm = Vc + Rg
+Va = (Nu equal 1) integer
+Va = Va * ((Rt equal 0) integer)
+Va = Va * ((Rb equal 0) integer)
+Va = Va * ((Ct equal Cb) integer)
+Vb = (Nu equal 0) integer
+Vb = Vb * ((Ct not equal Cb) integer)
+V0 = Va + Vb
+Rc = V0
+for I in 1 to 12
+  Rv = Rc reshape 288 1
+  Nx = (Rv * Tm) sum axis 0
+  Rc = ((Rc + Nx) greater 0) integer
+end
+Ix = (Rc equal 1) indices
+Ns = Ix len
+Tm = Tm Ix Ix
+Vv = V0 Ix
+Fn = (Rt Ix equal 0) integer
+Fn = Fn * ((Rb Ix equal 0) integer)
+Ee = Nn - 1
+for Ee greater 0
+  if Ee band 1 equal 1
+    Vr = Vv reshape Ns 1
+    Vm = Vr * Tm mod P
+    Vv = Vm sum axis 0 mod P
+  end
+  Ee = Ee shr 1
+  if Ee greater 0
+    Aa = Tm reshape Ns Ns 1
+    Bb = Tm reshape 1 Ns Ns
+    Cm = Aa * Bb mod P
+    Tm = Cm sum axis 1 mod P
+  end
+end
+Answer = (Vv * Fn) sum mod P
+Answer print

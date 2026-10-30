@@ -1,0 +1,29 @@
+use testing
+
+test "default input"
+  use "604_convexpath"
+  run
+  Answer equal 1398582231101
+end
+
+test "statement values"
+  use "604_convexpath"
+  N = 1
+  run
+  Answer equal 2
+  N = 3
+  run
+  Answer equal 3
+  N = 9
+  run
+  Answer equal 6
+  N = 11
+  run
+  Answer equal 7
+  N = 100
+  run
+  Answer equal 30
+  N = 50000
+  run
+  Answer equal 1898
+end

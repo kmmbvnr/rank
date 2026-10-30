@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "691_longsubstring"
+  Nn = 10
+  run
+  Answer equal 19
+  Nn = 1000
+  run
+  Answer equal 2460
+end
+
+test "default input"
+  use "691_longsubstring"
+  Nn = 5000000
+  run
+  Answer equal 11570761
+end

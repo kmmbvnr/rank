@@ -1,0 +1,24 @@
+use testing
+
+test "statement sums"
+  use "614_specialpartitions"
+  N = 10
+  run
+  Answer equal 20
+  N = 100
+  run
+  Answer equal 499397
+  N = 1000
+  run
+  Answer equal 514141877
+end
+
+test "larger sums"
+  use "614_specialpartitions"
+  N = 3000
+  run
+  Answer equal 75198867
+  N = 1000000
+  run
+  Answer equal 632194023
+end

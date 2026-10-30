@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "675_twoomega"
+  Nn = 5
+  run
+  Answer equal 96
+  Nn = 10
+  run
+  Answer equal 4821
+  Nn = 100000
+  run
+  Answer equal 476618093
+end

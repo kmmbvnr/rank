@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "621_triangularsums"
+  N = 9
+  run
+  Answer equal 7
+  N = 1000
+  run
+  Answer equal 78
+  N = 1000000
+  run
+  Answer equal 2106
+end
+
+test "default input"
+  use "621_triangularsums"
+  run
+  Answer equal 11429712
+end

@@ -1,0 +1,65 @@
+rem Pi Sequences
+rem https://projecteuler.net/problem=609
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 100000000
+
+rem G(v) is the polynomial in x (x marks
+rem a non-prime) over all prefixes of
+rem the pi chain from v: G(v) = x^c
+rem (1 + G(pi v)), c = 1 if not prime.
+rem All v in [p, next prime) share pi v
+rem = m, so only G(m) for m <= pi(N) is
+rem built, by repeated gathers, and the
+rem gap weights give p(N, k).
+Md = 1000000007
+Kd = 12
+Pr = primes to N array
+Mx = Pr len
+Ms = 0 to Mx
+Q = Pr till (Mx + 1)
+Ind = Ms * 0
+Ind Q = 1
+Pi = Ind scan +
+Pi 1 = 0
+Rw = 0 to (Kd - 1)
+Z0 = (Rw equal 0) integer
+Z1 = (Rw equal 1) integer
+E0 = Z0 reshape Kd 1
+Zn = (Ms greater 0) integer
+Cm = Ind equal 0
+W2 = Pi Mx
+Vs = 0 to W2
+P2 = Pi Vs
+C2 = (Cm Vs) reshape 1 (W2 + 1)
+N2 = (Zn Vs) reshape 1 (W2 + 1)
+Gs = (Rw reshape Kd 1) * (Vs * 0)
+for J in 1 to 10
+  Bm = (Gs Rw P2) + E0
+  Gs = (C2 choose (Bm shift 1) Bm) * N2
+end
+Bm = (Gs Rw Pi) + E0
+Cw = Cm reshape 1 (Mx + 1)
+Gm = Cw choose (Bm shift 1) Bm
+Gm = Gm * (Zn reshape 1 (Mx + 1))
+Ik = 1 to Mx
+Bf = (Gm Rw Ik) + E0
+Ln = (N + 1 to N + 1) array
+Nx = concat (Pr (1 to (Mx - 1))) Ln
+Wt = (Nx - Pr - 1) reshape 1 Mx
+Cn = (Bf * Wt) sum axis 1
+Tot = (Bf sum axis 1) + (Cn shift 1)
+Nc = N - 1 - Mx
+Tot = Tot - Z0 * Mx - Z1 * Nc
+Answer = 1
+for K in 0 to Kd - 1
+  if Tot K greater 0
+    Tk = Tot K mod Md
+    Answer = Answer * Tk mod Md
+  end
+end
+Answer print

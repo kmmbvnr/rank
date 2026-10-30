@@ -8,6 +8,7 @@ import { checkpoint } from './interrupt.js';
 import { prepareIntegerView } from './integer-view.js';
 import { isNativeFunction, type RankValue } from './value.js';
 import { membershipKeys } from './membership-keys.js';
+import { evaluateBinaryInteger } from './jit/operator-codegen.js';
 
 type Node = { kind: 'read'; name: string } | { kind: 'literal'; value: bigint }
     | { kind: 'concat'; parts: Node[] }
@@ -102,8 +103,7 @@ export function compileMembershipFunction(statement: FunctionStatement): {
             } else {
                 const a = bind(node.left), b = bind(node.right);
                 if (!a || !b || (!('scalar' in a) && !('scalar' in b) && a.length !== b.length)) return undefined;
-                const op = node.op === '+' ? (a: bigint, b: bigint) => a + b
-                    : node.op === '-' ? (a: bigint, b: bigint) => a - b : (a: bigint, b: bigint) => a * b;
+                const op = (a: bigint, b: bigint) => evaluateBinaryInteger(node.op, a, b);
                 result = 'scalar' in a && 'scalar' in b ? { scalar: op(a.scalar, b.scalar) }
                     : { length: 'scalar' in a ? (b as Exclude<Bound, { scalar: bigint }>).length : a.length,
                         read: index => op('scalar' in a ? a.scalar : a.read(index), 'scalar' in b ? b.scalar : b.read(index)) };

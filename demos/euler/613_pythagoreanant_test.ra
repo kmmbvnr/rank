@@ -1,0 +1,19 @@
+use testing
+
+test "default input"
+  use "613_pythagoreanant"
+  run
+  Answer equal "0.3916721504"
+end
+
+test "other triangles"
+  use "613_pythagoreanant"
+  Lx = 1
+  Ly = 1
+  run
+  Answer equal "0.3896821999"
+  Lx = 5
+  Ly = 12
+  run
+  Answer equal "0.4060616171"
+end

@@ -1,0 +1,49 @@
+rem The King's Banquet
+rem https://projecteuler.net/problem=669
+
+use numbers
+use sequences
+use io
+use bits
+use cli
+
+arg Kk integer = 83
+arg Ll integer = 10000000000000000
+
+rem For n = F(k) the seating is a path
+rem on 1 to n whose neighbours sum to
+rem Fibonacci numbers. From the right
+rem end, place a1 = n, a(2m) = t with
+rem t = m F(k-1) mod n and a(2m+1) =
+rem n - t. The left position Ll is the
+rem right position r = n - Ll + 1. The
+rem product m F(k-1) is reduced five
+rem bits of m at a time to stay in 63
+rem bits.
+Fa = 1
+Fb = 1
+for I in 3 to Kk
+  Tt = Fa + Fb
+  Fa = Fb
+  Fb = Tt
+end
+Nn = Fb
+Rr = Nn - Ll + 1
+Mm = Rr // 2
+Nb = 0
+for 2 ** Nb at most Mm
+  Nb += 1
+end
+Tt = 0
+for B in (Nb + 4) // 5 - 1 to 0 by -1
+  Ch = (Mm shr (5 * B)) band 31
+  Tt = (Tt * 32 + Fa * Ch) mod Nn
+end
+Answer = Tt
+if Rr mod 2 equal 1
+  Answer = (Nn - Tt) mod Nn
+end
+if Rr equal 1
+  Answer = Nn
+end
+Answer print

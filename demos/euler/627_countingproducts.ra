@@ -1,0 +1,107 @@
+rem Counting Products
+rem https://projecteuler.net/problem=627
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 10001
+
+rem F(30, n) counts exponent vectors
+rem over 2, 3, 5, 7 and the primes 11
+rem to 29. Of n factors, r are 7-smooth
+rem (an r-fold sumset A_r in 4 dims)
+rem and the rest hold the large
+rem primes: t of them are 11 or 13,
+rem each possibly with a 2 (22, 26), so
+rem F = sum C(r, t) (t + 1) binomial(
+rem n - r - t + 3, 3) over r + t <= n,
+rem C(r, t) the size of A_r plus up to
+rem t extra 2s. F(30, n) is a degree 10
+rem polynomial in n (its tenth
+rem differences are constant), so it is
+rem built for n <= 11 and interpolated.
+M = 1000000007
+Nm = 11
+Dm = 4 * Nm + 2
+Db = 3 * Nm + 2
+Dc = 2 * Nm + 2
+Dd = Nm + 2
+Sd = 1
+Sc = Dd
+Sb = Dc * Dd
+Sa = Db * Dc * Dd
+Zn = Dm * Sa
+Ks = 1 to 30
+Rm = Ks copy
+Ea = Ks * 0
+for E in 1 to 5
+  Hit = ((Rm mod 2) equal 0) integer
+  Rm = Rm // (1 + Hit)
+  Ea += Hit
+end
+Eb = Ks * 0
+for E in 1 to 3
+  Hit = ((Rm mod 3) equal 0) integer
+  Rm = Rm // (1 + 2 * Hit)
+  Eb += Hit
+end
+Ec = Ks * 0
+for E in 1 to 2
+  Hit = ((Rm mod 5) equal 0) integer
+  Rm = Rm // (1 + 4 * Hit)
+  Ec += Hit
+end
+Hd = ((Rm mod 7) equal 0) integer
+Rm = Rm // (1 + 6 * Hd)
+Sm = Rm equal 1
+Of = Ea * Sa + Eb * Sb
+Of = Of + Ec * Sc + Hd * Sd
+Os = Of ((Sm indices))
+A = (0 to (Zn - 1)) * 0
+A 0 = 1
+Cr = (0 to Nm) reshape (Nm + 1) 1
+Ct = Cr * (0 to Nm)
+for R in 0 to Nm
+  Cu = A
+  for T in 0 to Nm - R
+    Ct R T = Cu sum
+    Cu = Cu max (Cu shift Sa)
+  end
+  Nx = A * 0
+  for Of1 in Os
+    Nx = Nx max (A shift Of1)
+  end
+  A = Nx
+end
+Fv = (1 to Nm) * 0
+for Nn in 1 to Nm
+  Tt = 0
+  for R in 0 to Nn
+    for T in 0 to Nn - R
+      Kq = Nn - R - T
+      Bn = (Kq + 3) * (Kq + 2)
+      Bn = Bn * (Kq + 1) // 6
+      Tt += Ct R T * (T + 1) * Bn
+    end
+  end
+  Ix = Nn - 1
+  Fv Ix = Tt
+end
+Answer = 0
+for I in 1 to Nm
+  Nu = 1
+  De = 1
+  for J in 1 to Nm
+    if J not equal I
+      Nu = Nu * ((N - J) mod M) mod M
+      De = De * ((I - J) mod M) mod M
+    end
+  end
+  Iv = De (M - 2) M powmod
+  Fi = Fv (I - 1) mod M
+  Tm = Fi * Nu mod M * Iv
+  Answer = (Answer + Tm) mod M
+end
+Answer print

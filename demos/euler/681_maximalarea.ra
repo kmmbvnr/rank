@@ -1,0 +1,93 @@
+rem Maximal Area
+rem https://projecteuler.net/problem=681
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Nn integer = 1000000
+
+rem The best quadrilateral is cyclic, so
+rem with x, y, z, w = s - a, s - b, s -
+rem c, s - d the area m has m^2 = x y z
+rem w, and a, b, c, d are positive and
+rem the perimeter even when x >= y >= z
+rem >= w, x < y + z + w, x + y + z + w
+rem even. For each m take the divisors
+rem D of m^2: w^4 <= m^2, z from D with
+rem w z^3 <= m^2, w z | m^2 and r = m^2
+rem / (w z). Then x y = r with y <= x <
+rem y + z + w, so y lies in [sqrt(r) -
+rem (z + w), sqrt(r)] among D; those
+rem are found by a range search.
+Sp = 1048575 factorsieve
+Answer = 0
+for M in 1 to Nn
+  M2 = M * M
+  D = array shape 1 fill 1
+  X = M
+  for X greater 1
+    P = Sp X
+    Ee = 0
+    for X mod P equal 0
+      X = X // P
+      Ee += 1
+    end
+    Pw = P ** (0 to 2 * Ee)
+    Nd = D len
+    Dc = D reshape Nd 1 * Pw
+    D = Dc reshape (Nd * (2 * Ee + 1))
+  end
+  D = D sort
+  Rm = M isqrt
+  Ws = D ((D at most Rm) indices)
+  Zs = D ((D at most M) indices)
+  Wc = Ws reshape (Ws len) 1
+  Zr = Zs reshape 1 (Zs len)
+  Z3 = Zr * Zr * Zr
+  Ok = (Zr at least Wc) integer
+  Zq = (Z3 at most M2 // Wc) integer
+  Ok = Ok * Zq
+  Wz = Wc * Zr
+  Dz = (M2 mod Wz equal 0) integer
+  Ok = Ok * Dz
+  Fl = (Ok equal 1) indices
+  if Fl len greater 0
+    Pr = Fl # 0
+    Pz = Fl # 1
+    Wp = Ws Pr
+    Zp = Zs Pz
+    Rr = M2 // (Wp * Zp)
+    Sq = Rr isqrt
+    Yl = (Sq - Zp - Wp) max Zp
+    Lo = D lowerindex Yl
+    Hi = D upperindex Sq
+    Cf = (Hi - Lo) max 0
+    Tot = Cf sum
+    if Tot greater 0
+      Of = (Cf scan +) - Cf
+      Pk = (Cf greater 0) indices
+      Mk = array shape Tot fill 0
+      Mk (Of Pk) = 1
+      Pd = Pk ((Mk scan +) - 1)
+      Ko = (0 to (Tot - 1)) - Of Pd
+      Yv = D (Lo Pd + Ko)
+      Rv = Rr Pd
+      Zv = Zp Pd
+      Wv = Wp Pd
+      Dv = (Rv mod Yv equal 0) indices
+      Yv = Yv Dv
+      Xv = (Rv Dv) // Yv
+      Sm = Yv + Zv Dv + Wv Dv
+      Gd = (Xv less Sm) integer
+      Tt = Xv + Sm
+      Pa = (Tt mod 2 equal 0) integer
+      Gd = Gd * Pa
+      Bs = Tt * Gd
+      Answer += Bs sum
+    end
+  end
+end
+Answer print

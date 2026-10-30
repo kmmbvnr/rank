@@ -1,0 +1,52 @@
+rem Weighted Lattice Paths
+rem https://projecteuler.net/problem=638
+
+use numbers
+use io
+use cli
+
+arg A integer = 0
+arg B integer = 0
+arg K integer = 0
+
+rem The paths weighted by k^area sum to
+rem the Gaussian binomial [a + b, a]_k
+rem = prod (k^(b + i) - 1) / (k^i - 1),
+rem i = 1 to a, and to C(a + b, a) for
+rem k = 1. With A = 0 the answer is the
+rem sum over k = 1 to 7 of C(10^k + k,
+rem 10^k + k, k).
+M = 1000000007
+Ks = 1 to 7
+if A greater 0
+  Ks = K to K
+end
+Answer = 0
+for Kk in Ks
+  Aa = 10 ** Kk + Kk
+  Bb = Aa
+  if A greater 0
+    Aa = A
+    Bb = B
+  end
+  Nu = 1
+  De = 1
+  if Kk equal 1
+    for I in 1 to Aa
+      Nu = Nu * (Bb + I) mod M
+      De = De * I mod M
+    end
+  else
+    Pn = Kk (Bb + 1) M powmod
+    Pd = Kk
+    for I in 1 to Aa
+      Nu = Nu * (Pn - 1) mod M
+      De = De * (Pd - 1) mod M
+      Pn = Pn * Kk mod M
+      Pd = Pd * Kk mod M
+    end
+  end
+  Iv = De (M - 2) M powmod
+  Answer = (Answer + Nu * Iv) mod M
+end
+Answer print

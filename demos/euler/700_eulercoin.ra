@@ -1,0 +1,61 @@
+rem Eulercoin
+rem https://projecteuler.net/problem=700
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Cut integer = 20000000
+
+rem The terms r(k) = A k mod M, for
+rem coprime A and M, hit every value
+rem 1 to M - 1 once. Large Eulercoins
+rem (record lows) come from walking k
+rem up until the record falls to Cut.
+rem Small ones are the values v below
+rem that record whose index
+rem k(v) = v / A mod M is a new
+rem minimum as v grows.
+Aa = 1504170715041707
+Mm = 4503599627370517
+Answer = 0
+Bt = Mm
+Rr = 0
+for Bt greater Cut
+  Rr += Aa
+  if Rr at least Mm
+    Rr -= Mm
+  end
+  if Rr less Bt
+    Bt = Rr
+    Answer += Rr
+  end
+end
+T0 = 0
+T1 = 1
+R0 = Mm
+R1 = Aa
+for R1 greater 0
+  Qt = R0 // R1
+  Tn = R0 - Qt * R1
+  R0 = R1
+  R1 = Tn
+  Tn = T0 - Qt * T1
+  T0 = T1
+  T1 = Tn
+end
+Ai = (T0 mod Mm + Mm) mod Mm
+Kv = 0
+Mk = Mm
+for V in 1 to Bt - 1
+  Kv += Ai
+  if Kv at least Mm
+    Kv -= Mm
+  end
+  if Kv less Mk
+    Mk = Kv
+    Answer += V
+  end
+end
+Answer print

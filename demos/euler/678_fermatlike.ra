@@ -1,0 +1,168 @@
+rem Fermat-like Equations
+rem https://projecteuler.net/problem=678
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Nn integer = 1000000000000000000
+
+rem Count a^e + b^e = c^f, a < b, with
+rem f >= 3, over the powers c^f <= Nn.
+rem e = 2: r2(c^f) from the primes of c
+rem (4 prod (f v + 1) for p = 1 mod 4,
+rem none if f v is odd for p = 3 mod
+rem 4), minus the axis and diagonal
+rem points, over 8. e = 3 (f not a
+rem multiple of 3): a + b = u divides
+rem c^f in (N^1/3, (4N)^1/3], a b =
+rem (u^2 - v) / 3 and (4v - u^2) / 3 a
+rem square, v = c^f / u. e >= 4: scan
+rem b and a, skip both odd for even e,
+rem and look the sum up in the sorted
+rem powers through a hit bitmap.
+
+Fm = 3
+for 2 ** Fm at most Nn
+  Fm += 1
+end
+E2 = 0
+E3 = 0
+Cv = 0 to 0
+Cf = 0 to 0
+Sp = 40000 factorsieve
+for F in 3 to Fm
+  Cm = ((Nn * 1.0) ** (1.0 / F)) floor
+  for (Cm + 1) ** F at most Nn
+    Cm += 1
+  end
+  for Cm ** F greater Nn
+    Cm -= 1
+  end
+  if Cm at least 2
+    Cs = 2 to Cm
+    Nv = Cs ** F
+    Cv = concat Cv Nv
+    Cf = concat Cf (Cs * 0 + F)
+    Rr = Cs * 0 + 4
+    for P in primes to Cm
+      Mi = P to Cm by P
+      Vp = Mi * 0 + 1
+      Pk = P * P
+      for Pk at most Cm
+        Dk = (Mi mod Pk equal 0) integer
+        Vp = Vp + Dk
+        Pk *= P
+      end
+      Ex = F * Vp
+      Fc = Mi * 0 + 1
+      if P mod 4 equal 1
+        Fc = Ex + 1
+      end
+      if P mod 4 equal 3
+        Fc = 1 - Ex mod 2
+      end
+      Ix = Mi - 2
+      Rr Ix = Rr Ix * Fc
+    end
+    Sq = Nv isqrt
+    Ax = (Sq * Sq equal Nv) integer
+    Ax = Ax * 4
+    Hf = Nv // 2
+    Sh = Hf isqrt
+    Ev = (Nv mod 2 equal 0) integer
+    Eq = (Sh * Sh equal Hf) integer
+    Eq = Ev * Eq * 4
+    E2 += ((Rr - Ax - Eq) // 8) sum
+    if F mod 3 not equal 0
+      for C in 2 to Cm
+        X = C
+        Dv = array shape 1 fill 1
+        for X greater 1
+          P = Sp X
+          Ee = 0
+          for X mod P equal 0
+            X = X // P
+            Ee += 1
+          end
+          Pw = P ** (0 to Ee * F)
+          Nd = Dv len
+          Dc = Dv reshape Nd 1 * Pw
+          Nw = Nd * (Ee * F + 1)
+          Dv = Dc reshape Nw
+        end
+        Nc = C ** F
+        U3 = Dv * Dv * Dv
+        Ok = (U3 greater Nc) integer
+        Wn = (U3 at most 4 * Nc) integer
+        Ok = Ok * Wn
+        Us = Dv ((Ok equal 1) indices)
+        Vv = Nc // Us
+        Dd = 4 * Vv - Us * Us
+        Ok = (Dd at least 0) integer
+        M3 = (Dd mod 3 equal 0) integer
+        Ok = Ok * M3
+        Ds = Dd // 3
+        Sr = Ds isqrt
+        Sg = (Sr * Sr equal Ds) integer
+        Ok = Ok * Sg
+        Pz = (Sr greater 0) integer
+        Ok = Ok * Pz
+        Pa = (Us - Sr) mod 2 equal 0
+        Ok = Ok * (Pa integer)
+        Ok = Ok * ((Sr less Us) integer)
+        Mm = (Us * Us - Vv) mod 3
+        Md = Mm equal 0
+        Ok = Ok * (Md integer)
+        E3 += Ok sum
+      end
+    end
+  end
+end
+Oi = Cv argsort
+Cv = Cv Oi
+Cf = Cf Oi
+Mq = 33554393
+Bm = array shape Mq fill 0
+Bm (Cv mod Mq) = 1
+E4 = 0
+for E in 4 to Fm
+  Bq = ((Nn * 1.0) ** (1.0 / E)) floor
+  for (Bq + 1) ** E at most Nn
+    Bq += 1
+  end
+  for Bq ** E greater Nn
+    Bq -= 1
+  end
+  if Bq at least 2
+    Ae = (1 to Bq) ** E
+    for B in 2 to Bq
+      Be = B ** E
+      Hi = B - 2
+      Sl = Ae (0 to Hi)
+      Od = (B mod 2) * (1 - E mod 2)
+      if Od equal 1
+        Sl = Ae (1 to Hi by 2)
+      end
+      Ss = Sl + Be
+      Hb = Bm (Ss mod Mq) equal 1
+      Sx = Ss (Hb indices)
+      Sx = Sx ((Sx at most Nn) indices)
+      if Sx len greater 0
+        Lo = Cv lowerindex Sx
+        Hh = Cv upperindex Sx
+        Ht = (Hh greater Lo) indices
+        for H in Ht
+          Fs = Cf (Lo H to Hh H - 1)
+          Nz = Fs mod E not equal 0
+          Nf = Nz integer
+          E4 += Nf sum
+        end
+      end
+    end
+  end
+end
+Answer = E2 + E3 + E4
+Answer print

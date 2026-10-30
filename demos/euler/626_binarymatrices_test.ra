@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "626_binarymatrices"
+  N = 3
+  run
+  Answer equal 3
+  N = 5
+  run
+  Answer equal 39
+  N = 8
+  run
+  Answer equal 656108
+end
+
+test "default input"
+  use "626_binarymatrices"
+  run
+  Answer equal 695577663
+end

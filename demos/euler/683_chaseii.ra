@@ -1,0 +1,55 @@
+rem The Chase II
+rem https://projecteuler.net/problem=683
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+arg Nn integer = 500
+
+rem With m players left only the gap d
+rem between the dice matters; it moves
+rem by 0, +-1, +-2 with probability 3/9,
+rem 2/9, 1/9, and the round ends at
+rem d = 0. The Fourier modes th = 2 pi
+rem k / m have eigenvalues l(k) =
+rem 1/3 + 4/9 cos th + 2/9 cos 2 th. The
+rem mean time from d is a(d) = sum over
+rem k of (1 - cos(th d)) / (1 - l(k)).
+rem The second moment solves (I - P) b =
+rem c with c = 2 a - 1 off zero, so the
+rem expected payment of the round is
+rem E(m) = -(1/m) sum over k of
+rem c^(k) / (1 - l(k)), with c^ the
+rem cosine transform. G is the sum of
+rem E(m) for m = 2 to Nn.
+Total = 0.0
+for M in 2 to Nn
+  Th = 6.283185307179586 / M
+  Ds = (0 to (M - 1)) reshape M 1
+  Ks = (1 to (M - 1)) reshape 1 (M - 1)
+  Ph = Th * Ds * Ks
+  Cs = Ph cos
+  Tk = Th * Ks
+  Lm = 1.0 / 3.0 + 4.0 / 9.0 * (Tk cos)
+  Lm = Lm + 2.0 / 9.0 * ((2.0 * Tk) cos)
+  Iv = 1.0 / (1.0 - Lm)
+  Aa = ((1.0 - Cs) * Iv) sum axis 1
+  Cc = 2.0 * Aa - 1.0
+  Sc = Cc sum
+  Cc 0 = 0.0 - Sc - 1.0
+  Cm = Cc reshape M 1
+  Ch = (Cm * Cs) sum axis 0
+  Iw = Iv reshape (M - 1)
+  Tw = (Ch * Iw) sum
+  Total += 0.0 - Tw / M
+end
+Lg = Total log
+Ex = (Lg / 2.302585092994046) floor
+Mt = Total / (10.0 ** Ex)
+Ms = Mt text ".8f"
+Es = Ex text ".0f"
+Answer = Ms + "e" + Es
+Answer print

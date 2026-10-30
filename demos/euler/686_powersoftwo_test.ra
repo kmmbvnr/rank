@@ -1,0 +1,16 @@
+use testing
+
+test "statement values"
+  use "686_powersoftwo"
+  Lp = 12
+  Nn = 1
+  run
+  Answer equal 7
+  Nn = 2
+  run
+  Answer equal 80
+  Lp = 123
+  Nn = 45
+  run
+  Answer equal 12710
+end

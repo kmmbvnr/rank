@@ -1,0 +1,87 @@
+rem 5-smooth Pairs
+rem https://projecteuler.net/problem=682
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 10000000
+
+rem g(k, s) counts 5-smooth numbers
+rem 2^a 3^b 5^c with a + b + c = k and
+rem 2a + 3b + 5c = s; f(n) is the sum
+rem over k, s of g(k, s) g(k, n - s).
+rem The generating function of f is
+rem rational with a degree 32
+rem denominator
+rem D(q) = 1 - q - q^6 + q^9 - q^10 +
+rem q^11 + q^13 - q^19 - q^21 + q^22 -
+rem q^23 + q^26 + q^31 - q^32 (found by
+rem Berlekamp-Massey), so f(n) =
+rem -sum D_i f(n-i) for n >= 32. The
+rem first 32 terms come from g, then a
+rem companion matrix is raised to a
+rem power.
+P = 1000000007
+G = array shape 1024 fill 0
+for A in 0 to 15
+  for B in 0 to 10
+    for C in 0 to 6
+      S = 2 * A + 3 * B + 5 * C
+      if S less 32
+        K = A + B + C
+        G (K * 32 + S) += 1
+      end
+    end
+  end
+end
+Gm = G reshape 32 32
+Fi = array shape 32 fill 0
+for N in 0 to 31
+  for S in 0 to N
+    Cl = Gm (0 to 31) S
+    Cr = Gm (0 to 31) (N - S)
+    Fi N += (Cl * Cr) sum
+  end
+end
+Dc = array shape 33 fill 0
+Dc 0 = 1
+Dc 1 = -1
+Dc 6 = -1
+Dc 9 = 1
+Dc 10 = -1
+Dc 11 = 1
+Dc 13 = 1
+Dc 19 = -1
+Dc 21 = -1
+Dc 22 = 1
+Dc 23 = -1
+Dc 26 = 1
+Dc 31 = 1
+Dc 32 = -1
+Mx = array shape 1024 fill 0
+Mx (0 to 31) = 0 - Dc (1 to 32)
+Ix = 1 to 31
+Mx (Ix * 32 + Ix - 1) = 1
+Tm = (Mx reshape 32 32 + P) mod P
+Vv = Fi (31 to 0 by -1)
+Ee = Nn - 31
+for Ee greater 0
+  if Ee mod 2 equal 1
+    Vm = Tm * (Vv reshape 1 32) mod P
+    Vv = Vm sum axis 1 mod P
+  end
+  Ee = Ee // 2
+  if Ee greater 0
+    Aa = Tm reshape 32 32 1
+    Bb = Tm reshape 1 32 32
+    Cm = Aa * Bb mod P
+    Tm = Cm sum axis 1 mod P
+  end
+end
+Answer = Vv 0
+if Nn less 32
+  Answer = Fi Nn
+end
+Answer print

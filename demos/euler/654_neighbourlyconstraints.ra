@@ -1,0 +1,73 @@
+rem Neighbourly Constraints
+rem https://projecteuler.net/problem=654
+
+use numbers
+use sequences
+use io
+use bits
+use cli
+
+arg Nn integer = 5000
+arg Mm integer = 1000000000000
+
+rem T(n, m) = 1' A^(m-1) 1 for the
+rem (n-1)-square A[x, y] = [x + y <= n].
+rem A is a reversal times prefix sums,
+rem so A^-2 is the tridiagonal matrix
+rem B (corner 1, diagonal 2, off -1)
+rem and A^2 has the characteristic
+rem polynomial q = det(xB - I), a three
+rem term recurrence. So s_t = 1' A^t 1
+rem obeys q on steps of two: take
+rem x^k mod q by squaring, then dot it
+rem with the first K even or odd terms.
+P = 1000000007
+K = Nn - 1
+Ft = array shape K fill 1
+Sa = array shape (2 * K) fill 0
+for T in 0 to 2 * K - 1
+  Sa T = Ft sum mod P
+  Ft = ((Ft scan +) mod P) reverse
+end
+Z0 = array shape 1 fill 0
+Z2 = array shape 2 fill 0
+Q0 = array shape (K + 1) fill 0
+Q0 0 = 1
+Q1 = Q0 copy
+Q1 0 = P - 1
+Q1 1 = 1
+for D in 2 to K
+  Sh = concat Z0 (Q1 (0 to K - 1))
+  Sk = concat Z2 (Q0 (0 to K - 2))
+  Qn = (2 * Sh + 2 * P - Q1 - Sk) mod P
+  Q0 = Q1
+  Q1 = Qn
+end
+Rl = (P - Q1 (0 to K - 1)) mod P
+Kk = (Mm - 1) // 2
+Ev = (Mm - 1) mod 2
+Nb = 0
+for 2 ** Nb at most Kk
+  Nb += 1
+end
+Rs = array shape K fill 0
+Rs 1 = 1
+for Bt in Nb - 2 to 0 by -1
+  Ac = array shape K fill 0
+  Cu = Rs copy
+  for I in 0 to K - 1
+    Ac = (Ac + Rs I * Cu) mod P
+    Tp = Cu (K - 1)
+    Cu = concat Z0 (Cu (0 to K - 2))
+    Cu = (Cu + Tp * Rl) mod P
+  end
+  Rs = Ac
+  if (Kk shr Bt) band 1 equal 1
+    Tp = Rs (K - 1)
+    Rs = concat Z0 (Rs (0 to K - 2))
+    Rs = (Rs + Tp * Rl) mod P
+  end
+end
+Se = Sa (Ev + 2 * (0 to K - 1))
+Answer = (Rs * Se mod P) sum mod P
+Answer print

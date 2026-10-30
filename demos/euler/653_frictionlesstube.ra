@@ -1,0 +1,36 @@
+rem Frictionless Tube
+rem https://projecteuler.net/problem=653
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Ln integer = 1000000000
+arg Nm integer = 1000001
+arg Jm integer = 500001
+
+rem Shrink each marble by 20 mm per
+rem marble to its west: collisions then
+rem only swap labels, so the marbles
+rem are non-interacting ghosts at
+rem y = s + 10 and the labels keep
+rem their order. Marble j exits when
+rem the (Nm - j + 1)-th ghost to get
+rem there has done so: an east ghost
+rem needs lv - s - 10 and a west one
+rem lv + s - 10, with lv = Ln - 20
+rem (j - 1) the shrunk end point.
+Rs = array shape Nm fill 0
+Rv = 6563116
+for K in 0 to Nm - 1
+  Rs K = Rv
+  Rv = Rv * Rv mod 32745673
+end
+Gs = Rs mod 1000 + 1
+Ss = Gs scan +
+Ew = Rs at most 10000000
+Bs = Ew choose (0 - Ss - 10) (Ss - 10)
+Lv = Ln - 20 * (Jm - 1)
+Answer = Lv + (Bs sort) (Nm - Jm)
+Answer print

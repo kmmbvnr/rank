@@ -1,0 +1,15 @@
+use testing
+
+test "symmetry at the mean"
+  use "689_binaryseries"
+  Aa = 0.8224670334241132
+  run
+  Answer equal "0.50000000"
+end
+
+test "default input"
+  use "689_binaryseries"
+  Aa = 0.5
+  run
+  Answer equal "0.56565454"
+end

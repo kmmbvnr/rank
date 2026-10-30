@@ -1,0 +1,91 @@
+rem Beds and Desks
+rem https://projecteuler.net/problem=673
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+arg Beds path = (
+  "demos/euler/fixtures/"
+  + "0673_beds.txt"
+)
+arg Desks path = (
+  "demos/euler/fixtures/"
+  + "0673_desks.txt"
+)
+arg Nn integer = 500
+
+rem Beds and desks are two involutions;
+rem the students form paths and cycles
+rem whose edges alternate in colour. A
+rem component is fixed by its size m
+rem and its numbers nb, nd of vertices
+rem without a bed or desk partner. It
+rem has m symmetries as a cycle, 2 as a
+rem path of even size, else 1. With c
+rem components of a kind the count is
+rem the product of (sym^c c!).
+P = 999999937
+Ix = 0 to (Nn - 1)
+Bd = Ix copy
+Dk = Ix copy
+Lq = Beds readlines
+Fl = Lq join ","
+Pt = Fl split ","
+Nm = Pt integer
+Pb = Nm reshape (Nm len // 2) 2
+Ba' = Pb # 0
+Bb' = Pb # 1
+Bd (Ba - 1) = Bb - 1
+Bd (Bb - 1) = Ba - 1
+Lq = Desks readlines
+Fl = Lq join ","
+Pt = Fl split ","
+Nm = Pt integer
+Pd = Nm reshape (Nm len // 2) 2
+Da' = Pd # 0
+Db' = Pd # 1
+Dk (Da - 1) = Db - 1
+Dk (Db - 1) = Da - 1
+Lb = Ix copy
+Go = 1
+for Go equal 1
+  Ln = (Lb min (Lb Bd)) min (Lb Dk)
+  Go = (Ln not equal Lb) any integer
+  Lb = Ln
+end
+Lr = Lb reshape Nn 1
+Lc = Lb reshape 1 Nn
+Sm = (Lr equal Lc) integer
+Sz = Sm sum axis 1
+Lb1 = (Bd equal Ix) integer
+Nbv = Lb1 reshape 1 Nn
+Ld1 = (Dk equal Ix) integer
+Ndv = Ld1 reshape 1 Nn
+Cb = (Sm * Nbv) sum axis 1
+Cd = (Sm * Ndv) sum axis 1
+Rt = (Lb equal Ix) indices
+Ms = Sz Rt
+Nb = Cb Rt
+Nd = Cd Rt
+Cy = (Nb + Nd equal 0) integer
+Ev = (Ms mod 2 equal 0) integer
+Sy = Cy * Ms + (1 - Cy) * (1 + Ev)
+Ky = Ms * 9 + Nb * 3 + Nd
+Us = Ky unique
+Fc = array shape (Nn + 1) fill 1
+for K in 1 to Nn
+  Fc K = Fc (K - 1) * K mod P
+end
+Answer = 1
+for U in Us
+  Sl = (Ky equal U) indices
+  Cn = Sl len
+  Sg = Sy (Sl 0)
+  Pw = Sg Cn P powmod
+  Answer = Answer * Pw mod P
+  Answer = Answer * (Fc Cn) mod P
+end
+Answer print

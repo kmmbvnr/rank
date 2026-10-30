@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "670_colouringstrip"
+  Nn = 2
+  run
+  Answer equal 120
+  Nn = 5
+  run
+  Answer equal 45876
+  Nn = 100
+  run
+  Answer equal 53275818
+end
+
+test "default input"
+  use "670_colouringstrip"
+  Nn = 10000000000000000
+  run
+  Answer equal 551055065
+end

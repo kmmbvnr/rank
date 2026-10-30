@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "663_sumsofsubarrays"
+  Nn = 5
+  Lo = 0
+  Up = 6
+  run
+  Answer equal 32
+  Up = 100
+  run
+  Answer equal 2416
+  Nn = 14
+  run
+  Answer equal 3881
+  Nn = 107
+  Up = 1000
+  run
+  Answer equal 1618572
+end

@@ -1,0 +1,23 @@
+use testing
+
+test "statement values"
+  use "652_protologarithm"
+  N = 5
+  run
+  Answer equal 13
+  N = 10
+  run
+  Answer equal 69
+  N = 100
+  run
+  Answer equal 9607
+  N = 10000
+  run
+  Answer equal 99959605
+end
+
+test "default input"
+  use "652_protologarithm"
+  run
+  Answer equal 983924497
+end

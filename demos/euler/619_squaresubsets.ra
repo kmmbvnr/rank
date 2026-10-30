@@ -1,0 +1,76 @@
+rem Square Subsets
+rem https://projecteuler.net/problem=619
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg A integer = 1000000
+arg B integer = 1234567
+
+rem A subset has a square product when
+rem its exponent parity vectors (over
+rem GF(2)) sum to zero, so C = 2^(m -
+rem rank) - 1. A number has at most one
+rem prime above sqrt B: group by it, one
+rem pivot per group, and the rest (pair
+rem differences and smooth numbers)
+rem live among the small primes, packed
+rem 60 per word and eliminated there.
+Md = 1000000007
+Ns = A to B
+M = Ns len
+Sp = primes to (B isqrt) array
+P0 = Sp len
+Wn = (P0 + 59) // 60
+Rm = Ns copy
+Wi = 0 to (Wn - 1)
+Wm = (Wi reshape Wn 1) * (Ns * 0)
+for J in 0 to P0 - 1
+  P = Sp J
+  Par = Ns * 0
+  Dv = Rm mod P equal 0
+  for Dv any
+    Rm = Dv choose (Rm // P) Rm
+    Par = Par bxor (Dv integer)
+    Dv = Rm mod P equal 0
+  end
+  Wk = J // 60
+  Bt = J mod 60
+  Wm Wk = (Wm Wk) bor (Par shl Bt)
+end
+Od = Rm argsort
+Rs = Rm Od
+Wr = Wm Wi Od
+Pv = Rs shift 1
+Sm = (Rs equal Pv) integer
+Lg = (Rs greater 1) integer
+Gc = (Lg * (1 - Sm)) sum
+Df = Lg * Sm
+Wp = Wr shift 1 axis 1
+Vc = Wr bxor (Wp * Df)
+Sz = (Rs equal 1) integer
+Kp = (Df + Sz) greater 0
+Ik = Kp indices
+Mx = Vc Wi Ik
+Mk = Ik len
+Rk = 0
+for J in 0 to P0 - 1
+  Wk = J // 60
+  Row = Mx Wk
+  Bt = J mod 60
+  Hit = ((Row shr Bt) band 1) equal 1
+  Ix = Hit indices
+  if Ix len greater 0
+    Pc = Mx Wi (Ix first)
+    Hm = (Hit integer) reshape 1 Mk
+    Pr = Pc reshape Wn 1
+    Mx = Mx bxor (Pr * Hm)
+    Rk += 1
+  end
+end
+Tt = M - Gc - Rk
+Answer = ((2 Tt Md powmod) - 1) mod Md
+Answer print

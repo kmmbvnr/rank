@@ -1,0 +1,69 @@
+rem Square Prime Factors
+rem https://projecteuler.net/problem=632
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 10000000000000000
+arg Top integer = 8
+
+rem S(j) is the sum of N // m^2 over
+rem squarefree m with j prime factors,
+rem and an integer with exactly k
+rem square primes is counted C(r, k)
+rem times in S(r) for r >= k, so
+rem C(k) = sum (-1)^(r - k) C(r, k)
+rem S(r). The m <= sqrt N are sieved
+rem in blocks by the primes up to
+rem N^(1/4); the rest of each m is 1
+rem or one larger prime. The answer is
+rem the product of the nonzero C(k).
+Md = 1000000007
+R = N isqrt
+Sp = primes to (R isqrt) array
+Bk = 1000000
+Sj = (0 to Top) * 0
+for L in 1 to R by Bk
+  B = (Bk min (R - L + 1))
+  Ms = L to (L + B - 1)
+  Rs = Ms copy
+  Om = (0 to (B - 1)) * 0
+  Sf = Om + 1
+  for P in Sp
+    St = (P - L mod P) mod P
+    if St less B
+      Ix = St to (B - 1) by P
+      Rs Ix //= P
+      Om Ix += 1
+    end
+    Q2 = P * P
+    S2 = (Q2 - L mod Q2) mod Q2
+    if S2 less B
+      Sf (S2 to (B - 1) by Q2) = 0
+    end
+  end
+  Om += (Rs greater 1) integer
+  Vv = (N // (Ms * Ms)) * Sf
+  Oc = Om min Top
+  Sj Oc += Vv .accumulate
+end
+Cn = (0 to Top) * 0
+for K in 0 to Top
+  Tt = 0
+  for J in K to Top
+    Sg = 1 - 2 * ((J - K) mod 2)
+    Bi = J K 1000003 binomialmod
+    Tt += Sg * Sj J * Bi
+  end
+  Cn K = Tt
+end
+Answer = 1
+for K in 0 to Top
+  Ck = Cn K
+  if Ck greater 0
+    Answer = Answer * (Ck mod Md) mod Md
+  end
+end
+Answer print

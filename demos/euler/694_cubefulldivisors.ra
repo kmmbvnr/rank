@@ -1,0 +1,72 @@
+rem Cube-full Divisors
+rem https://projecteuler.net/problem=694
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Nn integer = 1000000000000000000
+
+rem Counting each cube-full divisor d by
+rem its multiples gives S(N) = sum over
+rem cube-full d <= N of N // d. A
+rem cube-full d is a product of prime
+rem powers p^e, e >= 3, so p^3 <= N.
+rem Build them level by level (one more
+rem distinct prime per level, in
+rem increasing prime order): for each
+rem frontier element take every larger
+rem prime with d p^3 <= N, then raise
+rem it to p^4, p^5, ... while <= N.
+Rt = ((Nn * 1.0) ** (1.0 / 3.0)) floor
+for (Rt + 1) ** 3 at most Nn
+  Rt += 1
+end
+for Rt ** 3 greater Nn
+  Rt -= 1
+end
+Ps = primes to Rt array
+Fd = array shape 1 fill 1
+Fj = array shape 1 fill 0
+Answer = Nn
+for Fd len greater 0
+  Qq = Nn // Fd
+  Cr = ((Qq * 1.0) ** (1.0 / 3.0)) floor
+  C1 = (Cr + 1) ** 3
+  Up = (C1 at most Qq) integer
+  Cr = Cr + Up
+  Dn = (Cr ** 3 greater Qq) integer
+  Cr = Cr - Dn
+  Np = Ps upperindex Cr
+  Cf = (Np - Fj) max 0
+  Tot = Cf sum
+  Nd = array shape 0 fill 0
+  Nj = array shape 0 fill 0
+  if Tot greater 0
+    Of = (Cf scan +) - Cf
+    Pz = (Cf greater 0) indices
+    Mk = array shape Tot fill 0
+    Mk (Of Pz) = 1
+    Pd = Pz ((Mk scan +) - 1)
+    Ko = (0 to (Tot - 1)) - Of Pd
+    Ix = Fj Pd + Ko
+    Pp = Ps Ix
+    Cu = Fd Pd * Pp * Pp * Pp
+    Ji = Ix + 1
+    for Cu len greater 0
+      Nd = concat Nd Cu
+      Nj = concat Nj Ji
+      Ke = (Cu at most Nn // Pp) indices
+      Cu = Cu Ke * Pp Ke
+      Ji = Ji Ke
+      Pp = Pp Ke
+    end
+  end
+  Sb = Nn // Nd
+  Answer += Sb sum
+  Fd = Nd
+  Fj = Nj
+end
+Answer print

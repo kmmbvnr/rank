@@ -1,0 +1,95 @@
+rem Constrained Permutations
+rem https://projecteuler.net/problem=631
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg N integer = 1000000000000000000
+arg K integer = 40
+
+rem Appending a last value v makes 1243
+rem when a larger earlier value follows
+rem an increasing pair of smaller ones,
+rem so the banned v form a set F of
+rem gaps that updates from F, v and b,
+rem the smallest value with a smaller
+rem one before it. A permutation is
+rem the identity or a core (last value
+rem not the maximum) then fixed
+rem points: f = n + 1 + sum a(c)
+rem (n - c + 1) over core lengths
+rem c <= n. The a(c) are counted over
+rem the states (F, b, inversions),
+rem merged after every length.
+Md = 1000000007
+Ca = (0 to (K + 3)) * 0
+Fs = (0 to 0) * 0
+Iv = (0 to 0) * 0
+Bs = (0 to 0) * 0
+Cs = (0 to 0) * 0 + 1
+for Ln in 0 to K + 2
+  Ks = (0 to 0) * 0
+  Cn = (0 to 0) * 0
+  for V in 1 to Ln + 1
+    Lm = Iv + Ln + 1 - V
+    Fb = ((Fs shr V) band 1) equal 0
+    Fi = Fb integer
+    Lk = (Lm at most K) integer
+    Ok = Fi * Lk
+    Ix = (Ok greater 0) indices
+    if Ix len greater 0
+      F0 = Fs Ix
+      I0 = Lm Ix
+      B0 = Bs Ix
+      C0 = Cs Ix
+      Lo = F0 band ((1 shl V) - 1)
+      Hi = (F0 shr (V + 1)) shl (V + 2)
+      Sh = (B0 greater 0) integer
+      Ab = (B0 at least V) integer
+      Sh = Sh * Ab
+      Bm = B0 + Sh
+      Wh = 1 shl (V + 1)
+      Wi = Wh - (1 shl (Bm + 1))
+      Pz = (B0 greater 0) integer
+      Ex = (Wi max 0) * Pz
+      Nf = Lo bor Hi bor Ex
+      Nz = (Bm equal 0) integer
+      Lt = (V less Bm) integer
+      Un = ((Nz + Lt) greater 0) integer
+      Vg = (V greater 1) integer
+      Un = Un * Vg
+      Nb = Bm * (1 - Un) + V * Un
+      Ky = (Nf shl 6) bor I0
+      Ky = (Ky shl 6) bor Nb
+      Ks = concat Ks Ky
+      Cn = concat Cn C0
+      if V not equal Ln + 1
+        Ca (Ln + 1) += C0 sum
+      end
+    end
+  end
+  Od = Ks argsort
+  Sk = Ks Od
+  Sc = Cn Od
+  Sj = Sk + 1
+  Sq = Sj shift 1
+  St = (Sj not equal Sq) indices
+  Ng = St len
+  En = St shift -1
+  En (Ng - 1) = Sk len
+  Cp = Sc scan + with 0
+  Cs = (Cp En) - (Cp St)
+  Uk = Sk St
+  Bs = Uk band 63
+  Iv = (Uk shr 6) band 63
+  Fs = Uk shr 12
+end
+Tt = (N + 1) mod Md
+Cx = 0 to (K + 3)
+Wt = ((N + 1 - Cx) max 0) mod Md
+Pc = ((Ca mod Md) * Wt mod Md) sum
+Answer = (Tt + Pc) mod Md
+Answer print

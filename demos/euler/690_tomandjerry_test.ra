@@ -1,0 +1,24 @@
+use testing
+
+test "statement values"
+  use "690_tomandjerry"
+  Nn = 3
+  run
+  Answer equal 3
+  Nn = 7
+  run
+  Answer equal 37
+  Nn = 10
+  run
+  Answer equal 328
+  Nn = 20
+  run
+  Answer equal 1416269
+end
+
+test "default input"
+  use "690_tomandjerry"
+  Nn = 2019
+  run
+  Answer equal 415157690
+end

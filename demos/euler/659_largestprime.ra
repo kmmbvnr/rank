@@ -1,0 +1,71 @@
+rem Largest Prime
+rem https://projecteuler.net/problem=659
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Kk integer = 10000000
+
+rem A prime dividing n^2 + k^2 and
+rem (n+1)^2 + k^2 divides 4 k^2 + 1, so
+rem P(k) is its largest prime factor.
+rem Sieve k = 1 to Kk: a prime p = 1
+rem (mod 4) has x^2 = -1 (mod p), found
+rem as g^((p-1)/4) for the first g
+rem that works, and divides 4 k^2 + 1
+rem exactly for k = +-x/2 (mod p). Hits
+rem are divided out; a cofactor left
+rem after all p <= 2 Kk + 1 is a prime.
+rem The sum is kept in two limbs.
+Lm = 2 * Kk + 1
+Pa = primes to Lm array
+Ps = Pa ((Pa mod 4 equal 1) indices)
+Np = Ps len
+Xr = array shape Np fill 0
+Ix = 0 to (Np - 1)
+G = 2
+for Ix len greater 0
+  Pp = Ps Ix
+  Xc = G ((Pp - 1) // 4) Pp powmod
+  Ok = (Xc * Xc mod Pp) equal (Pp - 1)
+  Xr Ix = Ok choose Xc 0
+  Sq = Xc * Xc mod Pp
+  Bd = Sq not equal (Pp - 1)
+  Ix = Ix (Bd indices)
+  G += 1
+end
+Ka = Xr * ((Ps + 1) // 2) mod Ps
+Kb = Ps - Ka
+Ks = 0 to Kk
+Rm = 4 * Ks * Ks + 1
+Lp = Ks * 0
+for J in 0 to Np - 1
+  Pj = Ps J
+  for Q in 0 to 1
+    K0 = Ka J
+    if Q equal 1
+      K0 = Kb J
+    end
+    if K0 at most Kk
+      Is = K0 to Kk by Pj
+      Rm Is //= Pj
+      Lp Is = Pj
+      Dv = Rm Is mod Pj equal 0
+      Sl = Is (Dv indices)
+      for Sl len greater 0
+        Rm Sl //= Pj
+        Dv = Rm Sl mod Pj equal 0
+        Sl = Sl (Dv indices)
+      end
+    end
+  end
+end
+Pk = (Rm greater 1) choose Rm Lp
+Pk = Pk (1 to Kk)
+B9 = 1000000000
+Hi = (Pk // B9) sum mod B9
+Lo = (Pk mod B9) sum
+Answer = (Hi * B9 + Lo) mod (B9 * B9)
+Answer print

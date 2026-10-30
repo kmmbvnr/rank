@@ -1,0 +1,60 @@
+rem 2^omega(n)
+rem https://projecteuler.net/problem=675
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Nn integer = 10000000
+
+rem S(n) = prod (2 e + 1) over prime
+rem powers p^e of n, and S(i!) is the
+rem prefix product of the ratios r(i) =
+rem S(i!) / S((i-1)!), which touch only
+rem the primes p | i: (2 E(i) + 1) /
+rem (2 E(i-1) + 1) with E the Legendre
+rem exponent. A prime p > sqrt(Nn) hits
+rem i = j p only, ratio (2j+1)/(2j-1),
+rem one vector update per j. Small
+rem primes get all multiples at once.
+rem Prefixes use doubling passes.
+P = 1000000087
+Rt = Nn isqrt
+Pa = primes to Nn array
+Ns = Pa upperindex Rt
+Rr = array shape (Nn + 1) fill 1
+for Pp in Pa (0 to Ns - 1)
+  Mi = Pp to Nn by Pp
+  Em = Mi * 0
+  Ep = Mi * 0
+  Pk = Pp
+  for Pk at most Nn
+    Em = Em + Mi // Pk
+    Ep = Ep + (Mi - 1) // Pk
+    Pk *= Pp
+  end
+  Dn = 2 * Ep + 1
+  Iv = Dn (P - 2) P powmod
+  Nm = (2 * Em + 1) * Iv mod P
+  Rr (Pp to Nn by Pp) = Rr Mi * Nm mod P
+end
+Pl = Pa (Ns to Pa len - 1)
+for J in 1 to Nn // (Rt + 1)
+  Cn = Pl upperindex (Nn // J)
+  Ix = J * Pl (0 to Cn - 1)
+  Iq = (2 * J - 1) (P - 2) P powmod
+  Fj = (2 * J + 1) * Iq mod P
+  Rr Ix = Rr Ix * Fj mod P
+end
+Sp = 0
+for 2 ** Sp at most Nn
+  Sh = 2 ** Sp
+  Pd = array shape Sh fill 1
+  Pd = concat Pd (Rr (0 to Nn - Sh))
+  Rr = Rr * Pd mod P
+  Sp += 1
+end
+Answer = (Rr (2 to Nn)) sum mod P
+Answer print

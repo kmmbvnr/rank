@@ -1,0 +1,61 @@
+rem Incomplete Words II
+rem https://projecteuler.net/problem=658
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Kk integer = 10000000
+arg Nl integer = 1000000000000
+
+rem Swapping the sums of 657, S(k, n) =
+rem sum of A_r G_r, G_r = 1 + r + ...
+rem + r^n and A_r the sum over a > r of
+rem (-1)^(a-r+1) C(a, r). Then A_r =
+rem 2 A_(r+1) + c_r with c_r = (-1)^
+rem (k-r+1) C(k+1, r+1) - 1, so 2^r A_r
+rem is a suffix sum of 2^s c_s. The
+rem factorials are prefix products
+rem built by doubling the span.
+P = 1000000007
+Al = Kk + 1
+Vs = 0 to Al
+Fa = (Vs at least 1) choose Vs 1
+Sf = (Al to 1 by -1) copy
+Sp = 0
+for 2 ** Sp less Al
+  Sh = 2 ** Sp
+  Pd = array shape Sh fill 1
+  Pd = concat Pd (Fa (0 to Al - Sh))
+  Fa = Fa * Pd mod P
+  Pr = array shape Sh fill 1
+  Pr = concat Pr (Sf (0 to Al - 1 - Sh))
+  Sf = Sf * Pr mod P
+  Sp += 1
+end
+Fl = Fa Al
+Ifa = Fl (P - 2) P powmod
+Fi = (Ifa * Sf mod P) reverse
+Fi = concat Fi (array shape 1 fill Ifa)
+Ks = 0 to (Kk - 1)
+Cm = Fi (1 to Kk)
+Bn = Fl * Cm mod P * (Cm reverse) mod P
+Ng = (Kk - Ks + 1) mod 2 equal 1
+Cc = Ng choose (P - Bn) Bn
+Cc = (Cc + P - 1) mod P
+P2 = 2 Ks P powmod
+Ws = P2 * Cc mod P
+Ss = ((Ws reverse) scan +) reverse
+Ih = 500000004 Ks P powmod
+As = Ss mod P * Ih mod P
+Pk = Ks (Nl + 1) P powmod
+Iv = Fi (1 to (Kk - 2))
+Iv = Iv * Fa (0 to (Kk - 3)) mod P
+Pm = Pk (2 to (Kk - 1)) + P - 1
+Gk = Pm * Iv mod P
+G0 = array shape 1 fill 1
+G1 = array shape 1 fill ((Nl + 1) mod P)
+Gs = concat (concat G0 G1) Gk
+Answer = (As * Gs mod P) sum mod P
+Answer print

@@ -1,0 +1,123 @@
+rem Counting Binary Matrices
+rem https://projecteuler.net/problem=626
+
+use numbers
+use sequences
+use linalg
+use bits
+use io
+use cli
+
+arg N integer = 20
+
+rem Burnside over B(n) x B(n), whose
+rem classes are signed cycle types and
+rem have centralizers z = prod (2 k)^m
+rem m!. A pair of cycles (a, e), (b, d)
+rem fixes 2^gcd(a, b) cell orbits when
+rem the flips even out and none else:
+rem with v the 2-adic valuation, e
+rem must be 0 if v(a) > v(b), d must
+rem be 0 if v(a) < v(b), and e = d if
+rem equal. So c(n) is the sum over the
+rem compatible pairs of 2^(sum of
+rem gcd) / (z z'), the exponent being a
+rem bilinear form in the cycle counts.
+P = 1001001011
+T = 2 * N
+Rt = (0 to (T - 1)) reshape T 1
+Mt = Rt * (0 to 0)
+Tot = (0 to 0) * 0
+for Tq in 0 to T - 1
+  Kk = Tq // 2 + 1
+  Bm = Mt copy
+  Bt = Tot copy
+  for Mu in 1 to N // Kk
+    Lm = N - Mu * Kk
+    Sl = (Bt at most Lm) indices
+    Cm = Bm (0 to (T - 1)) Sl
+    Cm Tq = Sl * 0 + Mu
+    Mt = concat Mt Cm axis 1
+    Tot = concat Tot (Bt Sl + Mu * Kk)
+  end
+end
+Fi = (Tot equal N) indices
+Mf = Mt (0 to (T - 1)) Fi
+Rn = Fi len
+Ma = (Mf reshape N 2 Rn) sum axis 1
+Ty = 0 to (T - 1)
+Kb = (2 * (Ty // 2 + 1)) reshape T 1
+Zt = Kb Mf P powmod
+Fc = ((1 to N) scan * with 1) mod P
+Zt = Zt * (Fc Mf) mod P
+Zz = (0 to (Rn - 1)) * 0 + 1
+for Tt in 0 to T - 1
+  Zr = Zt Tt
+  Zz = Zz * Zr mod P
+end
+Wg = Zz (P - 2) P powmod
+Kt = Ty // 2 + 1
+Lv = (Kt mod 2 equal 0) integer
+Lv += (Kt mod 4 equal 0) integer
+Lv += (Kt mod 8 equal 0) integer
+Lv += (Kt mod 16 equal 0) integer
+Cd = 2 * Lv + Ty mod 2
+Jr = (0 to 9) reshape 10 1
+Id = (Jr equal (Cd reshape 1 T)) integer
+Pz = (Mf greater 0) integer
+Pq = Pz * 1.0
+Qs = (Id * 1.0) matmul Pq
+Ps = (Qs greater 0.5) integer
+Ev = 0 to 8 by 2
+Od = 1 to 9 by 2
+Rcs = 0 to (Rn - 1)
+Pp = Ps Ev Rcs
+Nn = Ps Od Rcs
+Ay = ((Pp + Nn) greater 0) integer
+Lc = (Ay scan + axis 0) - Ay
+Lc = (Lc greater 0) integer
+Bw = 2 ** (0 to 9)
+Cd = (Ps * (Bw reshape 10 1)) sum axis 0
+Ns = 1 to N
+Ga = Ns reshape N 1
+Gb = Ns reshape 1 N
+Gi = Ga gcd Gb
+Gd = Gi * 1.0
+Es2 = (0 to (N * N)) * 1
+Tb = 2 Es2 P powmod
+Answer = 0
+Us = Cd unique
+for U in Us
+  Ri = (Cd equal U) indices
+  Es = 0 to 4
+  Sp = (U shr (2 * Es)) band 1
+  Sn = (U shr (2 * Es + 1)) band 1
+  Pr = Sp reshape 5 1
+  Nr = Sn reshape 5 1
+  Ra = ((Pr + Nr) greater 0) integer
+  Cr = (Ra scan + axis 0) - Ra
+  Lb = Cr greater 0
+  Lr = Lb integer
+  C1 = (Nr * Lc) sum axis 0
+  C2 = (Nn * Lr) sum axis 0
+  Dp = (Pr - Pp) abs
+  Dn = (Nr - Nn) abs
+  Ms = Dp + Dn + Pr * Nr
+  C3 = (Ra * Ay * Ms) sum axis 0
+  Ji = ((C1 + C2 + C3) equal 0) indices
+  Mr = Ma (0 to (N - 1)) Ri
+  Mc = Ma (0 to (N - 1)) Ji
+  Ml = (Mr transpose) * 1.0
+  Xx = (Ml matmul Gd) matmul (Mc * 1.0)
+  Ex = (Xx round 0) integer
+  Wr = Wg Ri
+  Wc = Wg Ji
+  Nr1 = Ri len
+  Nc1 = Ji len
+  Wa = Wr reshape Nr1 1
+  Wb = Wc reshape 1 Nc1
+  Wp = (Wa * Wb) mod P
+  Answer += ((Wp * (Tb Ex)) mod P) sum
+end
+Answer = Answer mod P
+Answer print

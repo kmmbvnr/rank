@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "681_maximalarea"
+  Nn = 10
+  run
+  Answer equal 186
+  Nn = 100
+  run
+  Answer equal 23238
+  Nn = 100000
+  run
+  Answer equal 26927556378
+end

@@ -1,0 +1,15 @@
+use testing
+
+test "statement value"
+  use "697_decayingsequence"
+  Nn = 100
+  run
+  Answer equal "46.27"
+end
+
+test "default input"
+  use "697_decayingsequence"
+  Nn = 10000000
+  run
+  Answer equal "4343871.06"
+end

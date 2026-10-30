@@ -1,0 +1,54 @@
+rem Divisors of Binomial Product
+rem https://projecteuler.net/problem=650
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 20000
+
+rem B(n) / B(n - 1) = n^n / n!, so the
+rem exponent of p in B(n) rises by n
+rem v_p(n) - v_p(n!) at each step, and
+rem D(n) = prod (p^(e + 1) - 1) / (p -
+rem 1). Keep p^(e + 1) mod M for all
+rem primes up to N, multiplying by
+rem p^(n v_p(n)) and by the inverse of
+rem p to the v_p(n!), and take the
+rem product of the terms in halves.
+M = 1000000007
+Pr = primes to N array
+Np = Pr len
+Ip = Pr (M - 2) M powmod
+Iq = (Pr - 1) (M - 2) M powmod
+Pw = Pr copy
+Vf = Pr * 0
+Answer = 0
+for Nn in 1 to N
+  Vn = Pr * 0
+  Pk = Pr
+  Pm = Pk at most Nn
+  for Pm any
+    Vn += (Nn mod Pk equal 0) integer
+    Pk = (Pk * Pr) min (N + 1)
+    Pm = Pk at most Nn
+  end
+  Vf += Vn
+  Pu = Pr (Nn * Vn) M powmod
+  Pd = Ip Vf M powmod
+  Pw = Pw * Pu mod M * Pd mod M
+  Tm = (Pw - 1) * Iq mod M
+  for Tm len greater 1
+    Hl = (Tm len + 1) // 2
+    Np2 = 2 * Hl - Tm len
+    Pz = (0 till Np2) * 0 + 1
+    Tm = concat Tm Pz
+    Lh = Tm (0 till Hl)
+    Rh = Tm (Hl till 2 * Hl)
+    Tm = Lh * Rh mod M
+  end
+  Answer += Tm 0
+end
+Answer = Answer mod M
+Answer print

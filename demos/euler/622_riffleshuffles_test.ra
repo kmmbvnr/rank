@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "622_riffleshuffles"
+  run
+  Answer equal 3010983666182123972
+end
+
+test "statement and brute force"
+  use "622_riffleshuffles"
+  K = 8
+  run
+  Answer equal 412
+  K = 12
+  run
+  Answer equal 8628
+  K = 16
+  run
+  Answer equal 111032
+end

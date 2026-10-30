@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "619_squaresubsets"
+  A = 5
+  B = 10
+  run
+  Answer equal 3
+  A = 40
+  B = 55
+  run
+  Answer equal 15
+  A = 1000
+  B = 1234
+  run
+  Answer equal 975523611
+end

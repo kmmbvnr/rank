@@ -1,0 +1,233 @@
+rem Squares on the Line
+rem https://projecteuler.net/problem=644
+
+use numbers
+use sequences
+use algo
+use bits
+use io
+use cli
+
+arg Lo integer = 200
+arg Hi integer = 500
+
+rem Pass 1: Grundy values g(L) of a
+rem segment, constant between lattice
+rem points a + b sqrt 2. For L inside
+rem one lattice gap, the moves leave
+rem u = L - 1 or L - sqrt 2; cutting
+rem [0, u] at the starts of the runs of
+rem g and at u minus them gives pieces
+rem with one g(x) xor g(u - x) each.
+Rt = 2.0 sqrt
+Lim = Hi + 2
+Ij = 0 to Lim
+Jm = (Lim / Rt) floor
+Jj = 0 to Jm
+Ir = Ij reshape (Lim + 1) 1
+Jr = (Jj * Rt) reshape 1 (Jm + 1)
+Gr = Ir + Jr
+Fg = Gr reshape ((Lim + 1) * (Jm + 1))
+Kp = (Fg at most Lim) indices
+Bp = (Fg Kp) sort
+Nb = Bp len
+St = (0 to 0) * 1.0
+Vs = (0 to 0) * 0
+Gw = 1024
+Ep = 1.0 / 1000000000000.0
+for W in 1 to Lim
+  K0 = ((Bp less W) integer) sum
+  K1 = ((Bp less (W + 1)) integer) sum
+  if K1 greater K0
+    Ks = K0 till K1
+    T0 = Bp Ks
+    T1 = Bp ((Ks + 1) min (Nb - 1))
+    Lm = (T0 + T1) / 2.0
+    R = Ks len
+    Us = concat (Lm - 1.0) (Lm - Rt)
+    Ok = (Us at least 0.0) integer
+    Ur = (Us max 0.0) reshape (2 * R) 1
+    S = St len
+    Sr = St reshape 1 S
+    Ca1 = Sr min Ur
+    Cb1 = (Ur - Sr) max 0.0
+    Cc = concat Ca1 Cb1 axis 1
+    Z0 = Sr * 0 + Ur * 0
+    Tg = concat Z0 (Z0 + 1) axis 1
+    Od = Cc argsort axis 1
+    R2n = 2 * R
+    Rw = (0 to (R2n - 1)) reshape R2n 1
+    Fx = Od + Rw * (2 * S)
+    Cs = (Cc reshape (4 * R * S)) Fx
+    Tr = (Tg reshape (4 * R * S)) Fx
+    Ts = Tr integer
+    Rr = 0 to (R2n - 1)
+    Sc = 0 to (2 * S - 2)
+    Cp = Cs Rr Sc
+    Pv = concat (Rw * 0.0) Cp axis 1
+    Ln = Cs - Pv
+    Na = 1 - Ts
+    Ca = (Na scan + axis 1) - Na
+    Cb = (Ts scan + axis 1) - Ts
+    Gx = Vs ((Ca - 1) max 0)
+    Gy = Vs ((S - Cb - 1) max 0)
+    Xo = Gx bxor Gy
+    Ok2 = Ok reshape (2 * R) 1
+    Pp = (Ln greater Ep) integer
+    Vd = Pp * Ok2
+    Rk = Rw mod R
+    Ps = Rk * Gw + Xo
+    Fl = (0 to (R * Gw - 1)) * 0
+    Vf = Vd reshape (4 * R * S)
+    Ix = (Vf greater 0) indices
+    Fl ((Ps reshape (4 * R * S)) Ix) = 1
+    Bm = Fl reshape R Gw
+    Gk = (Bm scan * axis 1) sum axis 1
+    Lv = Vs (S - 1 to S - 1)
+    Pg = concat Lv (Gk (0 to (R - 2)))
+    Ch = (Gk not equal Pg) indices
+    if Ch len greater 0
+      St = concat St (T0 Ch)
+      Vs = concat Vs (Gk Ch)
+    end
+  end
+end
+rem Pass 2: m(u), the measure of x with
+rem g(x) = g(u - x), is linear between
+rem lattice points, so one sweep per gap
+rem gives its value and slope (an end
+rem moves with u when it is u or a
+rem u - start). Then e(L) = L / 2 (m(L
+rem - 1) / (L - 1) + m(L - sqrt 2) / (L
+rem - sqrt 2)) is sampled in each gap
+rem and the best gaps are refined.
+S = St len
+Sr = St reshape 1 S
+Ka = ((Bp less Lo) integer) sum
+Kz = ((Bp less Hi) integer) sum
+Fr = ((0 to 40) / 40.0) reshape 1 41
+Q1 = (0 to 0) * 0.0
+Q2 = Q1 * 1
+Q3 = Q1 * 1
+Q4 = Q1 * 1
+Q5 = Q1 * 1
+Q6 = Q1 * 1
+Q7 = Q1 * 1
+Q8 = Q1 * 1
+Fst = 1
+for Kb in Ka to Kz by 64
+  Ks = Kb till ((Kb + 64) min (Kz + 1))
+  T0 = Bp Ks
+  T1 = Bp ((Ks + 1) min (Nb - 1))
+  Lm = (T0 + T1) / 2.0
+  R = Ks len
+  Us = concat (Lm - 1.0) (Lm - Rt)
+  Ur = Us reshape (2 * R) 1
+  Ia = (Sr less Ur) integer
+  Ca1 = Sr min Ur
+  Cb1 = (Ur - Sr) max 0.0
+  Cc = concat Ca1 Cb1 axis 1
+  Z0 = Sr * 0 + Ur * 0
+  Ty = concat Z0 (Z0 + 1) axis 1
+  Mv = concat (1 - Ia) Ia axis 1
+  Od = Cc argsort axis 1
+  R2n = 2 * R
+  Rw = (0 to (R2n - 1)) reshape R2n 1
+  Fx = Od + Rw * (2 * S)
+  Fz = 4 * R * S
+  Cs = (Cc reshape Fz) Fx
+  Ts = ((Ty reshape Fz) Fx) integer
+  Mo = ((Mv reshape Fz) Fx) integer
+  Rr = 0 to (R2n - 1)
+  Sc = 0 to (2 * S - 2)
+  Cp = Cs Rr Sc
+  Mq = Mo Rr Sc
+  Pv = concat (Rw * 0.0) Cp axis 1
+  Mp = concat (Rw * 0) Mq axis 1
+  Ln = Cs - Pv
+  Na = 1 - Ts
+  Ca = (Na scan + axis 1) - Na
+  Cb = (Ts scan + axis 1) - Ts
+  Gx = Vs ((Ca - 1) max 0)
+  Gy = Vs ((S - Cb - 1) max 0)
+  Pos = (Ln greater Ep) integer
+  Eq = ((Gx equal Gy) integer) * Pos
+  Mm = (Ln * Eq) sum axis 1
+  Sk = ((Mo - Mp) * Eq) sum axis 1
+  Sl = Sk * 1.0
+  M1 = Mm (0 to (R - 1))
+  S1 = Sl (0 to (R - 1))
+  M2 = Mm (R to (2 * R - 1))
+  S2 = Sl (R to (2 * R - 1))
+  Aa = T0 max (Lo * 1.0)
+  Bb = T1 min (Hi * 1.0)
+  Ac = Aa reshape R 1
+  Wd = (Bb - Aa) reshape R 1
+  Lg = Ac + Wd * Fr
+  Dl = Lg - (Lm reshape R 1)
+  C1 = M1 reshape R 1
+  D1 = S1 reshape R 1
+  C2 = M2 reshape R 1
+  D2 = S2 reshape R 1
+  Ma = C1 + D1 * Dl
+  Mb = C2 + D2 * Dl
+  Qa = Ma / (Lg - 1.0)
+  Qb = Mb / (Lg - Rt)
+  Ev = Lg / 2.0 * (Qa + Qb)
+  Ok = (Bb greater Aa) integer
+  Wv = Ok reshape R 1
+  Ev = Ev * Wv
+  Mx = Ev max axis 1
+  if Fst equal 1
+    Q1 = M1
+    Q2 = S1
+    Q3 = M2
+    Q4 = S2
+    Q5 = Lm
+    Q6 = Aa
+    Q7 = Bb
+    Q8 = Mx
+    Fst = 0
+  else
+    Q1 = concat Q1 M1
+    Q2 = concat Q2 S1
+    Q3 = concat Q3 M2
+    Q4 = concat Q4 S2
+    Q5 = concat Q5 Lm
+    Q6 = concat Q6 Aa
+    Q7 = concat Q7 Bb
+    Q8 = concat Q8 Mx
+  end
+end
+Top = Q8 max
+Cn = (Q8 at least (Top - 0.05)) indices
+Ra = Q6 Cn
+Rb = Q7 Cn
+Rc = Q5 Cn
+R1 = Q1 Cn
+R2 = Q2 Cn
+R3 = Q3 Cn
+R4 = Q4 Cn
+Lx = Ra
+Hx = Rb
+for It in 1 to 80
+  Ma = Lx + (Hx - Lx) / 3.0
+  Mb = Hx - (Hx - Lx) / 3.0
+  Wa = (R1 + R2 * (Ma - Rc))
+  Wa = Wa / (Ma - 1.0)
+  Xa = (R3 + R4 * (Ma - Rc)) / (Ma - Rt)
+  E1 = Ma / 2.0 * (Wa + Xa)
+  Wb = (R1 + R2 * (Mb - Rc))
+  Wb = Wb / (Mb - 1.0)
+  Xb = (R3 + R4 * (Mb - Rc)) / (Mb - Rt)
+  E2 = Mb / 2.0 * (Wb + Xb)
+  Lx = (E1 less E2) choose Ma Lx
+  Hx = (E1 less E2) choose Hx Mb
+end
+Lf = (Lx + Hx) / 2.0
+Wf = (R1 + R2 * (Lf - Rc)) / (Lf - 1.0)
+Xf = (R3 + R4 * (Lf - Rc)) / (Lf - Rt)
+Ef = Lf / 2.0 * (Wf + Xf)
+Best = (Ef max) max Top
+Answer = Best text ".8f"
+Answer print

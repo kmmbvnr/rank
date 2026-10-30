@@ -1,0 +1,34 @@
+use testing
+
+test "statement values"
+  use "649_lowprimenim"
+  N = 3
+  C = 1
+  run
+  Answer equal 4
+  C = 2
+  run
+  Answer equal 40
+  N = 9
+  C = 3
+  run
+  Answer equal 450304
+end
+
+test "brute force"
+  use "649_lowprimenim"
+  N = 20
+  C = 3
+  run
+  Answer equal 53901312
+  N = 31
+  C = 2
+  run
+  Answer equal 758912
+end
+
+test "default input"
+  use "649_lowprimenim"
+  run
+  Answer equal 924668016
+end

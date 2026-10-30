@@ -1,0 +1,64 @@
+rem Scatterstone Nim
+rem https://projecteuler.net/problem=629
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg N integer = 200
+
+rem Grundy values of one pile: for k =
+rem 2 they alternate 0, 1; for k >= 4
+rem they are n - 1; k = 3 is computed
+rem (reachable xors for 2 and 3 parts,
+rem unbounded over piles in order).
+rem A position of n stones is winning
+rem when the xor of its piles is not 0,
+rem so f = p(n) - #(xor 0), counted
+rem over partitions by xor value, and
+rem g = f(2) + f(3) + (n - 3) f(4).
+M = 1000000007
+Nx = 256
+Xs = 0 to (Nx - 1)
+Ns = 0 to N
+Tr = array shape (N + 1) 4 Nx fill 0
+Tr 0 0 = (Xs equal 0) integer
+G3 = Ns * 0
+for Nn in 1 to N
+  if Nn at least 2
+    Rs = (Tr Nn 2) max (Tr Nn 3)
+    G3 Nn = ((Rs equal 0) indices) first
+  end
+  Xi = Xs bxor (G3 Nn)
+  for Mm in Nn to N
+    for Pp in 1 to 3
+      Sr = (Tr (Mm - Nn) (Pp - 1)) Xi
+      Tr Mm Pp = (Tr Mm Pp) max Sr
+    end
+  end
+end
+Ev = ((Ns mod 2) equal 0) integer
+G2 = Ev * ((Ns greater 0) integer)
+G4 = (Ns - 1) max 0
+Gs = stack G2 G3 G4
+Answer = 0
+for Kc in 0 to 2
+  Gr = Gs Kc
+  Cn = array shape (N + 1) Nx fill 0
+  Cn 0 0 = 1
+  for Sz in 1 to N
+    Xi = Xs bxor (Gr Sz)
+    for Mm in Sz to N
+      Pv = (Cn (Mm - Sz)) Xi
+      Cn Mm = (Cn Mm) + Pv
+    end
+  end
+  Row = Cn N
+  Fk = (Row sum) - Row 0
+  Iq = (Kc equal 2) integer
+  Answer += Fk * (1 + (N - 4) * Iq)
+end
+Answer = Answer mod M
+Answer print

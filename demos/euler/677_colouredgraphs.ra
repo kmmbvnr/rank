@@ -1,0 +1,129 @@
+rem Coloured Graphs
+rem https://projecteuler.net/problem=677
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 10000
+
+rem Planted trees R, B, Y by root colour
+rem (F2, F3, F4 are F(x^2), F(x^3),
+rem F(x^4); A = R + B + Y, N = R + B):
+rem   R = x (1 + F + P2 + P3)(A)
+rem   B = x (1 + F + P2)(A)
+rem   Y = x (1 + F + P2)(N)
+rem with the multiset operators
+rem   P2 = (F^2 + F2) / 2
+rem   P3 = (F^3 + 3 F F2 + 2 F3) / 6
+rem   P4 = (F^4 + 6 F^2 F2 + 3 F2^2
+rem        + 8 F F3 + 6 F4) / 24.
+rem Coefficients come one at a time as
+rem dot products. A vertex root gets
+rem one more child (P4 for R, P3 for B
+rem and Y), an edge root counts A^2 -
+rem Y^2, and g = V + E/2 + (A2 - Y2)/2
+rem - E by the dissymmetry theorem.
+P = 1000000007
+I2 = 500000004
+I6 = 166666668
+I24 = 41666667
+Z = array shape (Nn + 8) fill 0
+Aa = Z copy
+Na = Z copy
+Ya = Z copy
+Sa = Z copy
+Ca = Z copy
+Sn = Z copy
+Cn = Z copy
+A2 = Z copy
+N2 = Z copy
+A3 = Z copy
+N3 = Z copy
+A4 = Z copy
+Aa 1 = 3
+Na 1 = 2
+Ya 1 = 1
+A2 2 = 3
+N2 2 = 2
+A3 3 = 3
+N3 3 = 2
+A4 4 = 3
+for K in 2 to Nn
+  M = K - 1
+  Fa = Aa (0 to M)
+  Fn = Na (0 to M)
+  Ra = Aa (M to 0 by -1)
+  Rn = Na (M to 0 by -1)
+  Rs = Sa (M to 0 by -1)
+  Rt = Sn (M to 0 by -1)
+  R2 = A2 (M to 0 by -1)
+  Sa M = (Fa * Ra mod P) sum mod P
+  Sn M = (Fn * Rn mod P) sum mod P
+  Ca M = (Fa * Rs mod P) sum mod P
+  Cn M = (Fn * Rt mod P) sum mod P
+  Cx = (Fa * R2 mod P) sum mod P
+  P2 = (Sa M + A2 M) * I2 mod P
+  P3 = (Ca M + 3 * Cx + 2 * A3 M) mod P
+  P3 = P3 * I6 mod P
+  Q2 = (Sn M + N2 M) * I2 mod P
+  Rk = (Aa M + P2 + P3) mod P
+  Bk = (Aa M + P2) mod P
+  Yk = (Na M + Q2) mod P
+  Aa K = (Rk + Bk + Yk) mod P
+  Na K = (Rk + Bk) mod P
+  Ya K = Yk
+  K2 = K * 2
+  K3 = K * 3
+  K4 = K * 4
+  if K2 at most Nn
+    A2 K2 = Aa K
+    N2 K2 = Na K
+  end
+  if K3 at most Nn
+    A3 K3 = Aa K
+    N3 K3 = Na K
+  end
+  if K4 at most Nn
+    A4 K4 = Aa K
+  end
+end
+M = Nn - 1
+Fa = Aa (0 to M)
+Fn = Na (0 to M)
+Qa = (Fa * Ca (M to 0 by -1) mod P) sum
+Sp = (Sa (0 to M)) * (A2 (M to 0 by -1))
+Sx = Sp mod P sum
+Ax = (Fa * A3 (M to 0 by -1) mod P) sum
+Cx = (Fa * A2 (M to 0 by -1) mod P) sum
+Cy = (Fn * N2 (M to 0 by -1) mod P) sum
+Sh = 0
+if M mod 2 equal 0
+  Sh = Sa (M // 2)
+end
+Q4 = Qa + 6 * Sx + 3 * Sh + 8 * Ax
+Q4 = (Q4 + 6 * A4 M) mod P * I24 mod P
+P2 = (Sa M + A2 M) * I2 mod P
+P3 = (Ca M + 3 * Cx + 2 * A3 M) mod P
+P3 = P3 * I6 mod P
+Q2 = (Sn M + N2 M) * I2 mod P
+Q3 = (Cn M + 3 * Cy + 2 * N3 M) mod P
+Q3 = Q3 * I6 mod P
+Vr = (Aa M + P2 + P3 + Q4) mod P
+Vb = (Aa M + P2 + P3) mod P
+Vy = (Na M + Q2 + Q3) mod P
+Fx = Aa (0 to Nn)
+Fy = Ya (0 to Nn)
+Ed = (Fx * Aa (Nn to 0 by -1) mod P) sum
+Ry = Ya (Nn to 0 by -1)
+Ey = (Fy * Ry mod P) sum
+Ed = (Ed - Ey + P) mod P
+Dg = 0
+if Nn mod 2 equal 0
+  Dg = Aa (Nn // 2) - Ya (Nn // 2)
+end
+Eu = (Ed + Dg + P) * I2 mod P
+Vs = Vr + Vb + Vy
+Answer = (Vs + Eu - Ed + P) mod P
+Answer print

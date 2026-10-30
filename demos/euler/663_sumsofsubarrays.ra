@@ -1,0 +1,92 @@
+rem Sums of Subarrays
+rem https://projecteuler.net/problem=663
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 10000003
+arg Lo integer = 10000000
+arg Up integer = 10200000
+
+rem A segment tree keeps for each node
+rem the sum t, best prefix p, best
+rem suffix q and best subarray m, all
+rem with the empty piece allowed. A
+rem node merges its children l, r as
+rem   t = tl + tr,
+rem   p = max(pl, tl + pr),
+rem   q = max(qr, tr + ql),
+rem   m = max(ml, mr, ql + pr).
+rem The first Lo updates only touch the
+rem leaves; the tree is then built one
+rem level at a time and each later
+rem update fixes one leaf-to-root path.
+Tb = array shape (2 * Up + 1) fill 0
+Tb 2 = 1 mod Nn
+for K in 3 to 2 * Up
+  Sm = Tb (K - 1) + Tb (K - 2)
+  Tb K = (Sm + Tb (K - 3)) mod Nn
+end
+Sz = 1
+for Sz less Nn
+  Sz *= 2
+end
+Ts = array shape (2 * Sz) fill 0
+for I in 1 to Lo
+  Ip = 2 * I
+  X = Sz + Tb (Ip - 2) mod Nn
+  Dl = 2 * (Tb (Ip - 1) mod Nn)
+  Ts X += Dl - Nn + 1
+end
+Lf = Ts (Sz to 2 * Sz - 1) max 0
+Ps = Ts * 0
+Qs = Ts * 0
+Ms = Ts * 0
+Ps (Sz to 2 * Sz - 1) = Lf
+Qs (Sz to 2 * Sz - 1) = Lf
+Ms (Sz to 2 * Sz - 1) = Lf
+Lv = Sz
+for Lv greater 1
+  Lv = Lv // 2
+  Cl = 2 * Lv
+  Ch = 4 * Lv - 2
+  Tl = Ts (Cl to Ch by 2)
+  Tr = Ts (Cl + 1 to Ch + 1 by 2)
+  Pl = Ps (Cl to Ch by 2)
+  Pr = Ps (Cl + 1 to Ch + 1 by 2)
+  Ql = Qs (Cl to Ch by 2)
+  Qr = Qs (Cl + 1 to Ch + 1 by 2)
+  Ml = Ms (Cl to Ch by 2)
+  Mr = Ms (Cl + 1 to Ch + 1 by 2)
+  Hv = 2 * Lv - 1
+  Ts (Lv to Hv) = Tl + Tr
+  Ps (Lv to Hv) = Pl max (Tl + Pr)
+  Qs (Lv to Hv) = Qr max (Tr + Ql)
+  Cx = Ql + Pr
+  Ms (Lv to Hv) = (Ml max Mr) max Cx
+end
+Answer = 0
+for I in Lo + 1 to Up
+  Ip = 2 * I
+  X = Sz + Tb (Ip - 2) mod Nn
+  Dl = 2 * (Tb (Ip - 1) mod Nn)
+  Ts X += Dl - Nn + 1
+  Lq = Ts X max 0
+  Ps X = Lq
+  Qs X = Lq
+  Ms X = Lq
+  for X greater 1
+    X = X // 2
+    L = 2 * X
+    R = L + 1
+    Ts X = Ts L + Ts R
+    Ps X = Ps L max (Ts L + Ps R)
+    Qs X = Qs R max (Ts R + Qs L)
+    Cx = Qs L + Ps R
+    Ms X = (Ms L max Ms R) max Cx
+  end
+  Answer += Ms 1
+end
+Answer print

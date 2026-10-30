@@ -1,0 +1,78 @@
+rem Gcd Sum
+rem https://projecteuler.net/problem=625
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 100000000000
+
+rem G = sum over d of d Phi(N // d), Phi
+rem the totient summatory function. Phi
+rem is sieved to L = N^(2/3) and for
+rem the larger N // k comes from Phi(x)
+rem = x(x + 1)/2 - sum Phi(x // d),
+rem all mod M. The d above sqrt N are
+rem grouped by N // d.
+M = 998244353
+L = ((N * 1.0) ** (2.0 / 3.0)) floor
+L += 10
+Ph = (0 to L) copy
+Rs = (0 to L) copy
+Lr = L isqrt
+for P in primes to Lr
+  Sl = P to L by P
+  Ph Sl -= Ph Sl // P
+  Pe = P
+  for Pe at most L
+    Rs (Pe to L by Pe) //= P
+    Pe *= P
+  end
+end
+Rm = Rs max 1
+Pr = Ph // Rm * (Rm - 1)
+Ph = (Rs greater 1) choose Pr Ph
+Fs = (Ph scan +) mod M
+K = N // (L + 1)
+Bg = array shape (K + 2) fill 0
+for Kk in K to 1 by -1
+  X = N // Kk
+  Sx = X isqrt
+  D1 = X // (L + 1)
+  Ev = X + (X mod 2)
+  Od = X + 1 - (X mod 2)
+  V = (Ev // 2) mod M * (Od mod M) mod M
+  if D1 at least 2
+    Ds = (2 to D1) copy
+    V -= (Bg (Kk * Ds)) sum
+  end
+  Dd = (D1 + 1 to Sx) copy
+  V -= (Fs (X // Dd)) sum
+  Qs = (1 to X // (Sx + 1)) copy
+  Ct = (X // Qs - X // (Qs + 1)) mod M
+  V -= ((Fs Qs * Ct) mod M) sum
+  Bg Kk = V mod M
+end
+S = N isqrt
+Ds = 1 to S
+Xs = N // Ds
+Sm = Fs (Xs min L)
+Sb = Bg (Ds min K)
+Mk = Xs at most L
+Pa = Mk choose Sm Sb
+Answer = ((Ds * Pa) mod M) sum
+Q1 = N // (S + 1)
+Qs = 1 to Q1
+Hi = N // Qs
+Lo = (N // (Qs + 1)) max S
+He = Hi + (Hi mod 2)
+Ho = Hi + 1 - (Hi mod 2)
+Th = (He // 2) mod M * (Ho mod M) mod M
+Le = Lo + (Lo mod 2)
+Lw = Lo + 1 - (Lo mod 2)
+Tl = (Le // 2) mod M * (Lw mod M) mod M
+Sd = (Th - Tl) mod M
+Answer += ((Sd * Fs Qs) mod M) sum
+Answer = Answer mod M
+Answer print

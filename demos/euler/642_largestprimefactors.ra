@@ -1,0 +1,88 @@
+rem Sum of Largest Prime Factors
+rem https://projecteuler.net/problem=642
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 201820182018
+
+rem With F(v, q) the sum of the largest
+rem prime factors of numbers up to v
+rem whose primes beyond q are used
+rem last, F(v, q) = G(v) - G(q) + sum
+rem over primes p > q, p^2 <= v, and
+rem e >= 1 with p^(e + 1) <= v of F(v
+rem // p^e, p) + p, G the prime sum.
+rem Writing C(v) = G(v) + the rest,
+rem each prime p, taken from the largest
+rem down, adds C(v // p^e) - G(p - 1)
+rem to C(v) for every v >= p^(e + 1),
+rem over all v = N // k (a table for
+rem the small ones). G comes from a
+rem Lucy sieve mod 10^9; the answer is
+rem C(N).
+M = 1000000000
+R = N isqrt
+Vs = 0 to R
+Ev = Vs + (Vs mod 2)
+Od = Vs + 1 - (Vs mod 2)
+Hv = (Ev // 2) mod M * (Od mod M)
+Gs = Hv mod M - 1
+Gs 0 = 0
+Wl = N // (Vs max 1)
+El = Wl + (Wl mod 2)
+Ol = Wl + 1 - (Wl mod 2)
+Hw = (El // 2) mod M * (Ol mod M)
+Gl = Hw mod M - 1
+Pr = primes to R array
+for P in Pr
+  Gp = Gs (P - 1)
+  Ih = R min (N // (P * P))
+  Ix = 1 to Ih
+  Pi = P * Ix
+  Mk = Pi at most R
+  Va = Gl (Pi min R)
+  Vb = Gs ((N // Pi) min R)
+  Dv = (Mk choose Va Vb) - Gp
+  Gl Ix = (Gl Ix - P * Dv) mod M
+  Iw = P * P to R
+  Qd = Gs (Iw // P) - Gp
+  Gs Iw = (Gs Iw - P * Qd) mod M
+end
+Cs = Gs copy
+Cl = Gl copy
+Gf = Gs copy
+for P in Pr reverse
+  Gv = Gf (P - 1)
+  Ih = R min (N // (P * P))
+  Is = 1 to Ih
+  Al = Is * 0
+  Sw = P * P
+  Sv = Sw to R
+  As = (Sv * 0)
+  Pe = P
+  for Pe * P at most N
+    Ie = R min (N // (Pe * P))
+    Ix = 1 to Ie
+    Pi = Pe * Ix
+    Mk = Pi at most R
+    Va = Cl (Pi min R)
+    Vb = Cs ((N // Pi) min R)
+    Dv = (Mk choose Va Vb) - Gv
+    Al (Ix - 1) += Dv
+    if Pe * P at most R
+      Sx = Pe * P to R
+      Ds = (Cs (Sx // Pe)) - Gv
+      As (Sx - Sw) += Ds
+    end
+    Pe *= P
+  end
+  Cl Is = (Cl Is + Al) mod M
+  if Sw at most R
+    Cs Sv = (Cs Sv + As) mod M
+  end
+end
+Answer = Cl 1 mod M
+Answer print

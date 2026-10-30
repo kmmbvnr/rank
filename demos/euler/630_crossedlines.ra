@@ -1,0 +1,63 @@
+rem Crossed Lines
+rem https://projecteuler.net/problem=630
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 2500
+
+rem Each pair of points gives a line
+rem a x + b y = c in lowest terms with
+rem a > 0 (or a = 0, b > 0), packed in
+rem one key. With M distinct lines and
+rem d of them parallel in a direction,
+rem a line is crossed by the M - d
+rem others, so S = M^2 - sum of d^2.
+Sq = 290797
+Tt = (0 to (2 * N - 1)) * 0
+for I in 0 to 2 * N - 1
+  Sq = Sq * Sq mod 50515093
+  Tt I = Sq mod 2000 - 1000
+end
+Ev = 0 to (2 * N - 1) by 2
+Od = 1 to (2 * N - 1) by 2
+Xs = Tt Ev
+Ys = Tt Od
+Fl = 0 to (N * N - 1)
+Ii = Fl // N
+Jj = Fl mod N
+Pr = (Ii less Jj) indices
+I1 = Ii Pr
+J1 = Jj Pr
+X1 = Xs I1
+Y1 = Ys I1
+A = Ys J1 - Y1
+B = X1 - Xs J1
+G = A gcd B
+A = A // G
+B = B // G
+Ng = (A less 0) integer
+Az = (A equal 0) integer
+Bn = (B less 0) integer
+Zr = Az * Bn
+Sg = 1 - 2 * (Ng + Zr)
+A = A * Sg
+B = B * Sg
+C = A * X1 + B * Y1
+Dr = (A + 2001) * 4003 + B + 2001
+Ky = Dr * 8200000 + C + 4100000
+Ks = Ky sort
+Nw = (Ks not equal (Ks shift 1)) indices
+Un = Ks Nw
+M = Un len
+Dk = Un // 8200000
+Nd = (Dk not equal (Dk shift 1)) indices
+Nn = Nd len
+En = (M to M) array
+Nx = concat (Nd (1 to (Nn - 1))) En
+Cn = Nx - Nd
+Sd = (Cn * Cn) sum
+Answer = M * M - Sd
+Answer print

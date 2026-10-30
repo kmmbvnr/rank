@@ -1,0 +1,48 @@
+rem Riffle Shuffles
+rem https://projecteuler.net/problem=622
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg K integer = 60
+
+rem The top and bottom cards stay, so
+rem s(n) is the order of 2 modulo n - 1.
+rem n - 1 = d with ord_d(2) = K are the
+rem divisors of 2^K - 1 that divide no
+rem 2^j - 1 for j a proper divisor of K.
+rem By Moebius over k | K the sum of
+rem d + 1 is sum mu(K / k) (sigma +
+rem tau)(2^k - 1), each factored by
+rem trial division with small primes.
+Pr = primes to 100000 array
+Ks = 1 to K
+Dk = Ks ((K mod Ks equal 0) indices)
+Answer = 0
+for Kd in Dk
+  Q = K // Kd
+  Pq = primes to Q array
+  Dv = (Q mod Pq) equal 0
+  Sq = (Q mod (Pq * Pq)) equal 0
+  Mu = 0
+  if Sq any equal false
+    Mu = 1 - 2 * (Dv count mod 2)
+  end
+  Nk = (1 shl Kd) - 1
+  Rv = Pr * 0 + Nk
+  Ex = Pr * 0
+  for J in 1 to Kd
+    Hit = (Rv mod Pr) equal 0
+    Rv = Hit choose (Rv // Pr) Rv
+    Ex += Hit integer
+  end
+  Pw = Pr ** (Ex + 1)
+  Sg = (Pw - 1) // (Pr - 1)
+  Sm = Sg reduce * with 1
+  Tu = (Ex + 1) reduce * with 1
+  Answer += Mu * (Sm + Tu)
+end
+Answer print

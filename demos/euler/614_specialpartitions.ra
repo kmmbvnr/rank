@@ -1,0 +1,63 @@
+rem Special Partitions 2
+rem https://projecteuler.net/problem=614
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 10000000
+
+rem Special partitions have generating
+rem function A(q^4) T(q) with T the
+rem triangular numbers theta series and
+rem A(x) = prod (1 + x^r) / (1 - x^r),
+rem 1 / A(x) = 1 + 2 sum (-1)^m x^(m^2),
+rem so a(n) = 2 sum (-1)^(m + 1)
+rem a(n - m^2). The sum over i <= N is
+rem sum a(k) H(N - 4 k) - 1, H(T) the
+rem count of triangular numbers <= T.
+rem Blocks of Bk: squares from Bk up
+rem read earlier blocks in one slice
+rem each, smaller squares run in order.
+Md = 1000000007
+K = N // 4
+Bk = 8192
+Mb = (Bk - 1) isqrt
+Mt = K isqrt
+A = (0 to K) * 0
+A 0 = 1
+for S in 0 to K by Bk
+  E = (S + Bk) min (K + 1)
+  Ac = (0 to (E - S - 1)) * 0
+  for M in (Mb + 1) to Mt
+    Sq = M * M
+    Lo = S max Sq
+    if Lo less E
+      Ix = Lo - S till E - S
+      Sr = Lo - Sq till E - Sq
+      if M mod 2 equal 1
+        Ac Ix += A Sr
+      else
+        Ac Ix -= A Sr
+      end
+    end
+  end
+  L0 = S max 1
+  for Nn in L0 till E
+    T = Ac (Nn - S)
+    for M in 1 to Mb
+      Sq = M * M
+      if Sq at most Nn
+        Sg = 2 * (M mod 2) - 1
+        T += Sg * A (Nn - Sq)
+      end
+    end
+    A Nn = 2 * T mod Md
+  end
+end
+Ts = N - 4 * (0 to K)
+Hc = ((8 * Ts + 1) isqrt - 1) // 2 + 1
+Tt = (A * Hc mod Md) sum
+Answer = (Tt - 1) mod Md
+Answer print

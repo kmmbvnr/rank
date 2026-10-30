@@ -279,3 +279,64 @@ end`);
         else expect(results[1].value).toBe(nativeCall ? '4' : 4n);
     });
 });
+
+describe('scalar function speculative number mode and BigInt overflow fallback', () => {
+    it('runs small loop arithmetic in number mode and replays on BigInt overflow', () => {
+        let calls = 0;
+        const runtime = new Interpreter(undefined, {
+            scalarFunctionCompilation: true,
+            onScalarFunctionExecuted: () => calls++,
+        });
+        try {
+            runtime.execute(`
+fun N loopSum
+  Total = 0
+  for I in 1 to N
+    Total += I
+  end
+  return Total
+end
+`);
+            const small = runtime.execute('10 loopSum');
+            expect(small).toBe(55n);
+            expect(calls).toBe(1);
+
+            // 200_000_000 * 200_000_001 / 2 = 20_000_000_100_000_000 > Number.MAX_SAFE_INTEGER
+            const large = runtime.execute('200000000 loopSum');
+            expect(large).toBe(20000000100000000n);
+            expect(calls).toBe(2);
+        } finally {
+            runtime.dispose();
+        }
+    });
+
+    it('handles negative strides and while loops with number mode and overflow replay', () => {
+        const runtime = new Interpreter(undefined, { scalarFunctionCompilation: true });
+        try {
+            runtime.execute(`
+fun N countdown
+  Total = 0
+  for I in N till 0 by -1
+    Total += I
+  end
+  return Total
+end
+fun N whileCountdown
+  Total = 0
+  Count = N
+  for Count greater 0
+    Total += Count
+    Count -= 1
+  end
+  return Total
+end
+`);
+            expect(runtime.execute('10 countdown')).toBe(55n);
+            expect(runtime.execute('10 whileCountdown')).toBe(55n);
+            expect(runtime.execute('200000000 countdown')).toBe(20000000100000000n);
+            expect(runtime.execute('200000000 whileCountdown')).toBe(20000000100000000n);
+        } finally {
+            runtime.dispose();
+        }
+    });
+});

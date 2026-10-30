@@ -1,0 +1,26 @@
+use testing
+
+test "default input"
+  use "634_squarecubeproducts"
+  run
+  Answer equal 4019680944
+end
+
+test "statement and brute force"
+  use "634_squarecubeproducts"
+  N = 100
+  run
+  Answer equal 2
+  N = 20000
+  run
+  Answer equal 130
+  N = 3000000
+  run
+  Answer equal 2014
+  N = 100000000
+  run
+  Answer equal 12434
+  N = 1000000000
+  run
+  Answer equal 40307
+end

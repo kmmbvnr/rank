@@ -1,0 +1,7 @@
+use testing
+
+test "default input"
+  use "700_eulercoin"
+  run
+  Answer equal 1517926517777556
+end

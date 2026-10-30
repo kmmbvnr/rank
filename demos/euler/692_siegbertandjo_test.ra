@@ -1,0 +1,15 @@
+use testing
+
+test "statement value"
+  use "692_siegbertandjo"
+  Nn = 13
+  run
+  Answer equal 43
+end
+
+test "default input"
+  use "692_siegbertandjo"
+  Nn = 23416728348467685
+  run
+  Answer equal 842043391019219959
+end

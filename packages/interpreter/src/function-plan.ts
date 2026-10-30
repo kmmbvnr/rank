@@ -2,8 +2,8 @@ import { tensorReductionStep } from './tensor-reduction-codegen.js';
 import { tensorBufferedNodes, tensorChildren, tensorExpressionLowerer, type TensorNode } from './tensor-ir.js';
 import { inlineTensorEmitter, type PreparedTensor } from './tensor-inline.js';
 import {
-    inferCompiledExpression, flattenApplication, isNameExpression, isNumberLiteral, isBinaryExpression, isUnaryExpression, isArrayExpression, isLabelLiteral, findCompiledOperator, applicationForm, findOperation,
-    matchCompiledOperatorSignature,
+    inferCompiledExpression, flattenApplication, isNameExpression, isNumberLiteral, isBinaryExpression, isUnaryExpression, isArrayExpression, findCompiledOperator, applicationForm, findOperation,
+    matchCompiledOperatorSignature, orderedApplicationForm, typeConversionForm,
     type Expression, type CompiledExpression, type CompiledScalarType, type CompiledFunctionType,
     type CompiledOperator, type ApplicationExpression,
 } from '@arrrank/language';
@@ -146,29 +146,23 @@ export function proveFunctionPlan(expression: Expression, host: {
                         return { type: { element: 'integer', rank: 0 }, input: { length: operand } };
                     }
                 }
-                if ((parts.length === 2 || parts.length === 3 && isLabelLiteral(tail)) && isNameExpression(parts[1])
-                    && ['sort', 'argsort', 'unique'].includes(parts[1].name) && host.builtin(parts[1].name)) {
-                    const name = parts[1].name as 'sort' | 'argsort' | 'unique';
-                    const operand = parse(parts[0]);
-                    if (operand?.type.rank === 1 && (parts.length === 2 || name !== 'unique' && isLabelLiteral(tail)
-                        && ['ascending', 'descending'].includes(tail.name))) {
-                        return { type: { element: name === 'argsort' ? 'integer' : operand.type.element, rank: 1 },
-                            input: { native: { name, operand, descending: isLabelLiteral(tail) && tail.name === 'descending' } } };
+                const ordered = orderedApplicationForm(parts, name => host.builtin(name));
+                if (ordered) {
+                    const operand = parse(ordered.source);
+                    if (operand?.type.rank === 1) {
+                        return { type: { element: ordered.operation === 'argsort' ? 'integer' : operand.type.element, rank: 1 },
+                            input: { native: { name: ordered.operation, operand, descending: ordered.descending ?? false } } };
                     }
                 }
-                if (parts.length === 4 && isNameExpression(parts[1]) && parts[1].name === 'integer'
-                    && isNameExpression(parts[2]) && parts[2].name === 'rank'
-                    && isNumberLiteral(parts[3]) && parts[3].value === 0n && host.builtin('integer')) {
-                    const operand = parse(parts[0]);
-                    if (operand?.type.element === 'text' && operand.type.rank === 0) return {
-                        type: { element: 'integer', rank: 1 }, input: { conversion: 'integer0', operand },
-                    };
-                }
-                if (parts.length === 2 && isNameExpression(parts[1]) && parts[1].name === 'text' && host.builtin('text')) {
-                    const operand = parse(parts[0]);
-                    if (operand?.type.rank === 0) return {
-                        type: { element: 'text', rank: 0 }, input: { conversion: 'text', operand },
-                    };
+                const conversion = typeConversionForm(parts, name => host.builtin(name));
+                if (conversion) {
+                    const operand = parse(conversion.source);
+                    if (conversion.target === 'integer' && conversion.rank === 0 && operand?.type.element === 'text' && operand.type.rank === 0) {
+                        return { type: { element: 'integer', rank: 1 }, input: { conversion: 'integer0', operand } };
+                    }
+                    if (conversion.target === 'text' && operand?.type.rank === 0) {
+                        return { type: { element: 'text', rank: 0 }, input: { conversion: 'text', operand } };
+                    }
                 }
                 return undefined;
             },

@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "678_fermatlike"
+  Nn = 1000
+  run
+  Answer equal 7
+  Nn = 100000
+  run
+  Answer equal 53
+  Nn = 10000000
+  run
+  Answer equal 287
+  Nn = 1000000000000
+  run
+  Answer equal 16066
+end

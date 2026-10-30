@@ -1,0 +1,26 @@
+use testing
+
+test "statement values"
+  use "653_frictionlesstube"
+  Ln = 5000
+  Nm = 3
+  Jm = 2
+  run
+  Answer equal 5519
+  Ln = 10000
+  Nm = 11
+  Jm = 6
+  run
+  Answer equal 11780
+  Ln = 100000
+  Nm = 101
+  Jm = 51
+  run
+  Answer equal 114101
+end
+
+test "default input"
+  use "653_frictionlesstube"
+  run
+  Answer equal 1130658687
+end

@@ -64,7 +64,7 @@ export type CompiledExpressionResult<T, Input = string> =
 
 /** Scalar extrema and left-associated chains such as `A B max C min`.
  * Collection reductions use the ordinary call path when scalar proof fails. */
-function scalarExtremeParts(source: Expression, unbound: (name: string) => boolean): {
+export function scalarExtremeParts(source: Expression, unbound: (name: string) => boolean): {
     name: 'min' | 'max'; left: Expression; right?: Expression; selected?: number;
 } | undefined {
     if (!isApplicationExpression(source)) return undefined;

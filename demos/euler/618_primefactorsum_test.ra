@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "618_primefactorsum"
+  run
+  Answer equal 634212216
+end
+
+test "statement values"
+  use "618_primefactorsum"
+  Top = 5
+  run
+  Answer equal 16
+  Top = 6
+  run
+  Answer equal 65
+end

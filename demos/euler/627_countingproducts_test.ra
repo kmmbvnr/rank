@@ -1,0 +1,24 @@
+use testing
+
+test "statement value"
+  use "627_countingproducts"
+  N = 2
+  run
+  Answer equal 308
+end
+
+test "interpolated values"
+  use "627_countingproducts"
+  N = 5
+  run
+  Answer equal 31856
+  N = 16
+  run
+  Answer equal 139004019
+end
+
+test "default input"
+  use "627_countingproducts"
+  run
+  Answer equal 220196142
+end

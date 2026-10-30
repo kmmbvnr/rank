@@ -1,0 +1,25 @@
+use testing
+
+test "statement values"
+  use "658_incompletewords2"
+  Kk = 4
+  Nl = 4
+  run
+  Answer equal 406
+  Kk = 8
+  Nl = 8
+  run
+  Answer equal 27902680
+  Kk = 10
+  Nl = 100
+  run
+  Answer equal 983602076
+end
+
+test "default input"
+  use "658_incompletewords2"
+  Kk = 10000000
+  Nl = 1000000000000
+  run
+  Answer equal 958280177
+end

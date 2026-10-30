@@ -1,0 +1,14 @@
+use testing
+
+test "statement value"
+  use "661_longchessmatch"
+  Nn = 3
+  run
+  Answer equal "6.8345"
+end
+
+test "default input"
+  use "661_longchessmatch"
+  run
+  Answer equal "646231.2177"
+end

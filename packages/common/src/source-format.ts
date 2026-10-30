@@ -1,4 +1,5 @@
 import { parse } from '@arrrank/interpreter';
+import { forIteration } from '@arrrank/language';
 import { cellWidth } from './display-width.js';
 import { tokenize, type Token } from './repl-input.js';
 
@@ -31,9 +32,15 @@ function wrapLine(line: string, width: number): string {
         const token = code[i];
         if (token.text === '(') depth++;
         else if (token.text === ')') depth--;
-        else if (depth === 0 && (assignment.has(token.text) || token.text === 'push')) {
-            start = i + 1;
-            break;
+        else if (depth === 0) {
+            if (assignment.has(token.text) || token.text === 'push') {
+                start = i + 1;
+                break;
+            }
+            if (code[0].text === 'for' && token.text === 'in') {
+                start = i + 1;
+                break;
+            }
         }
     }
     if (start >= code.length) return line;
@@ -100,6 +107,16 @@ export function formatSource(
                 if (start.line !== end.line) {
                     for (let line = start.line; line <= end.line; line++) protectedLines.add(line);
                 }
+            }
+            if (value?.$type === 'ForStatement') {
+                const binding = forIteration(value.condition);
+                return {
+                    ...value,
+                    loopBinding: binding ? binding.names : null,
+                };
+            }
+            if (key === 'condition' && value?.$type === 'ParenthesizedExpression' && forIteration(value.value)) {
+                return value;
             }
             while (value?.$type === 'ParenthesizedExpression') value = value.value;
             return typeof value === 'bigint' ? `${value}n` : value;

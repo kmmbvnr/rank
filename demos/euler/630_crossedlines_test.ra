@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "630_crossedlines"
+  run
+  Answer equal 9669182880384
+end
+
+test "statement values"
+  use "630_crossedlines"
+  N = 3
+  run
+  Answer equal 6
+  N = 100
+  run
+  Answer equal 24477690
+end

@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "685_inversedigitsum2"
+  Kk = 3
+  run
+  Answer equal 7128
+  Kk = 10
+  run
+  Answer equal 32287064
+end
+
+test "default input"
+  use "685_inversedigitsum2"
+  Kk = 10000
+  run
+  Answer equal 662878999
+end

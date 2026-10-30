@@ -1,0 +1,87 @@
+rem Matching Digit Sums
+rem https://projecteuler.net/problem=676
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Nn integer = 10000000000000000
+arg K1 integer = 3
+arg K2 integer = 6
+
+rem The digit sum in base 2^k is the sum
+rem of bit p times 2^(p mod k), so the
+rem sums match when the balance of
+rem d(p) = 2^(p mod k) - 2^(p mod l)
+rem over the set bits is 0. Scan the
+rem bits of Nn from the top with a
+rem vector over balances of the count
+rem C and value sum V of the numbers
+rem already below Nn, and one tight
+rem prefix. Products with 2^p mod 10^16
+rem are split in base 10^8.
+Q = 100000000
+Tn = Q * Q
+Lb = 0
+for 2 ** Lb at most Nn
+  Lb += 1
+end
+Answer = 0
+for K in K1 to K2
+  for L in 1 to K - 2
+    Pv = 0 to (Lb - 1)
+    Dv = 2 ** (Pv mod K)
+    Dv = Dv - 2 ** (Pv mod L)
+    Aa = Dv abs sum
+    Wd = 2 * Aa + 1
+    Cf = array shape Wd fill 0
+    Vf = array shape Wd fill 0
+    Dt = Aa
+    Tv = 0
+    for P in Lb - 1 to 0 by -1
+      Dl = Dv P
+      Bt = (Nn shr P) band 1
+      Pw = 2 ** P
+      Ps = Pw // Q
+      Pr = Pw mod Q
+      Cs = Cf
+      Vs = Vf
+      if Dl greater 0
+        Zs = array shape Dl fill 0
+        Hi = Wd - 1 - Dl
+        Cs = concat Zs (Cf (0 to Hi))
+        Vs = concat Zs (Vf (0 to Hi))
+      end
+      if Dl less 0
+        Ng = 0 - Dl
+        Zs = array shape Ng fill 0
+        Hc = Cf (Ng to Wd - 1)
+        Hv = Vf (Ng to Wd - 1)
+        Cs = concat Hc Zs
+        Vs = concat Hv Zs
+      end
+      C1 = Cs // Q
+      C0 = Cs mod Q
+      Md = (Ps * C0 + Pr * C1) mod Q
+      Pt = (Md * Q + Pr * C0) mod Tn
+      Cn = Cf + Cs
+      Vn = (Vf + Vs + Pt) mod Tn
+      if Bt equal 1
+        Cn Dt = Cn Dt + 1
+        Vn Dt = (Vn Dt + Tv) mod Tn
+        Dt = Dt + Dl
+        Tv = Tv + Pw
+      end
+      Cf = Cn
+      Vf = Vn
+    end
+    Sm = Vf Aa
+    if Dt equal Aa
+      Sm = Sm + Tv
+    end
+    Answer = (Answer + Sm) mod Tn
+  end
+end
+Answer print

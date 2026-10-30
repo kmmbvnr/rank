@@ -1,0 +1,17 @@
+use testing
+
+test "statement value"
+  use "669_kingsbanquet"
+  Kk = 9
+  Ll = 3
+  run
+  Answer equal 30
+end
+
+test "default input"
+  use "669_kingsbanquet"
+  Kk = 83
+  Ll = 10000000000000000
+  run
+  Answer equal 56342087360542122
+end

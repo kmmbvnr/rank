@@ -1,0 +1,24 @@
+use testing
+
+test "statement values"
+  use "629_scatterstonenim"
+  N = 7
+  run
+  Answer equal 66
+  N = 10
+  run
+  Answer equal 291
+end
+
+test "brute force"
+  use "629_scatterstonenim"
+  N = 24
+  run
+  Answer equal 32434
+end
+
+test "default input"
+  use "629_scatterstonenim"
+  run
+  Answer equal 626616617
+end

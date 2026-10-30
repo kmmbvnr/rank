@@ -1,0 +1,107 @@
+rem Bounded Divisors
+rem https://projecteuler.net/problem=646
+
+use numbers
+use sequences
+use io
+use cli
+
+arg F integer = 70
+arg LoE integer = 20
+arg HiE integer = 60
+
+rem Split the primes of F! into two
+rem groups with similar divisor counts.
+rem A divisor a b has weight
+rem lambda(a) lambda(b) a b mod M, so
+rem each a needs the weights of the b
+rem with L <= a b <= H: b sorted by
+rem log, prefix sums, and the ranks of
+rem log L - log a and log H - log a
+rem from one merged sort. The logs are
+rem exact to about 1e-13, so the bounds
+rem take a 1e-12 slack (ties included).
+M = 1000000007
+Pr = primes to F array
+Np = Pr len
+Ex = Pr * 0
+Pk = Pr
+Pm = Pk at most F
+for Pm any
+  Ex += F // Pk
+  Pk = Pk * Pr
+  Pm = Pk at most F
+end
+Ln = (Pr * 1.0) log
+Od = (Ex + 1) argsort .descending
+Gr = Pr * 0
+Pa = 1
+Pb = 1
+for J in Od
+  if Pa at most Pb
+    Pa *= (Ex J) + 1
+  else
+    Pb *= (Ex J) + 1
+    Gr J = 1
+  end
+end
+La = (0 to 0) * 0.0
+Ra = (0 to 0) * 0
+Ma = Ra + 1
+Lb = La * 1
+Rb = Ra * 1
+Mb = Ma * 1
+for G in 0 to 1
+  Lv = (0 to 0) * 0.0
+  Rs = (0 to 0) * 0 + 1
+  Sg = (0 to 0) * 0 + 1
+  for J in 0 to Np - 1
+    if Gr J equal G
+      P = Pr J
+      Lv0 = Lv
+      Rs0 = Rs
+      Sg0 = Sg
+      Pw = 1
+      Ej = Ex J
+      for E in 1 to Ej
+        Pw = Pw * P mod M
+        Lv = concat Lv (Lv0 + E * Ln J)
+        Rs = concat Rs (Rs0 * Pw mod M)
+        Fs = 1 - 2 * (E mod 2)
+        Sg = concat Sg (Sg0 * Fs)
+      end
+    end
+  end
+  if G equal 0
+    La = Lv
+    Ra = Rs
+    Ma = Sg
+  else
+    Lb = Lv
+    Rb = Rs
+    Mb = Sg
+  end
+end
+Ob = Lb argsort
+Sb = Lb Ob
+Wb = (Mb * Rb) mod M
+Pf = ((Wb Ob) scan + with 0)
+Nb = Sb len
+Na = La len
+Lq = LoE * (10.0 log) - 0.000000000001
+Hq = HiE * (10.0 log) + 0.000000000001
+Al = Lq - La
+Ah = Hq - La
+Al = concat Sb Al
+Al = concat Al Ah
+Od2 = Al argsort
+Iv = Od2 argsort
+Cb = ((Od2 less Nb) integer) scan +
+Ls = Nb to (Nb + Na - 1)
+Lo = Cb (Iv Ls)
+Hs = (Nb + Na) to (Nb + 2 * Na - 1)
+Hi = Cb (Iv Hs)
+Wa = (Ma * Ra) mod M
+Dd = (Pf Hi - Pf Lo) mod M
+Answer = ((Wa * Dd) mod M) sum mod M
+Answer print

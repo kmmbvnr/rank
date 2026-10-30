@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "646_boundeddivisors"
+  F = 10
+  LoE = 2
+  HiE = 3
+  run
+  Answer equal 1457
+  F = 15
+  LoE = 3
+  HiE = 5
+  run
+  Answer equal 999892033
+  F = 30
+  LoE = 8
+  HiE = 12
+  run
+  Answer equal 732174862
+end

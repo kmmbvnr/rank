@@ -1,0 +1,41 @@
+rem Marsh Crossing
+rem https://projecteuler.net/problem=607
+
+use numbers
+use io
+use cli
+
+arg D integer = 100
+
+rem The strips cross the line at 45
+rem degrees, so the perpendicular gap
+rem is D / sqrt 2. Inside a strip the
+rem bend follows Snell's law, sin t =
+rem k v. Bisect k until the sideways
+rem steps w tan t add up to that gap.
+Rt = 2.0 sqrt
+Gp = D / Rt
+Wo = (Gp - 50.0) / 2.0
+Ix = 0 to 6
+Mid = (Ix greater 0) and (Ix less 6)
+Wd = Mid choose 10.0 Wo
+Vl = Mid choose (10.0 - Ix) 10.0
+Lo = 0.0
+Hi = 0.1
+for J in 1 to 100
+  K = (Lo + Hi) / 2.0
+  Sn = K * Vl
+  Cn = (1.0 - Sn * Sn) sqrt
+  Tn = Sn / Cn
+  Sd = (Wd * Tn) sum
+  if Sd less Gp
+    Lo = K
+  else
+    Hi = K
+  end
+end
+Sn = Lo * Vl
+Cs = (1.0 - Sn * Sn) sqrt
+Tm = (Wd / (Vl * Cs)) sum
+Answer = Tm text ".10f"
+Answer print

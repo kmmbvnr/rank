@@ -1,0 +1,61 @@
+rem Distinct Values of a Proto-
+rem logarithmic Function
+rem https://projecteuler.net/problem=652
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 1000000000000000000
+
+rem Write n = r^k with r not a perfect
+rem power. A base r has capacity A, the
+rem top power under N. Equal values:
+rem log_r^i r^j = i/j in lowest terms
+rem for one base, and (r, s, i/j) for
+rem two bases with i <= A, j <= B.
+rem So D = Q(L, L) + sum over base
+rem pairs of Q(A, B), with Q(a, b) the
+rem coprime pairs in a x b and L the
+rem top capacity. Bases with capacity A
+rem are counted by Moebius inversion
+rem over the integer roots of N.
+M = 1000000000
+Kv = 1 to 4096
+Fv = (N * 1.0) ** (1.0 / Kv)
+Rt = (Fv * 1.000000000001) floor
+Rt 0 = N
+L = (Rt at least 2) count
+Mu = array shape (L + 1) fill 1
+Mu 0 = 0
+Rs = (0 to L) copy
+for P in primes to (L isqrt)
+  Mu (P to L by P) *= -1
+  Mu (P * P to L by P * P) = 0
+  Rs (P to L by P) //= P
+end
+Mu = (Rs greater 1) choose (0 - Mu) Mu
+Ar = (1 to (L + 1)) reshape (L + 1) 1
+Dc = (1 to L) reshape 1 L
+Ix = Ar * Dc - 1
+Tm = (Rt Ix) - 1
+Un = (Tm * (Mu Dc)) sum axis 1
+Bc = (Un (0 to (L - 1))) - (Un (1 to L))
+Bm = Bc mod M
+Br = Bm reshape L 1
+Bw = Bm reshape 1 L
+Ls = (1 to L) reshape L 1 1
+Ms = (1 to L) reshape 1 L 1
+Ds = (1 to L) reshape 1 1 L
+Mq = (Mu Ds) * (Ls // Ds)
+Mq = Mq * (Ms // Ds)
+Qm = Mq sum axis 2
+Dr = (1 to L) reshape L 1
+Id = (Dr equal Dc) integer
+Pm = Br * Bw - Id * Br
+Pm = (Pm + M) mod M
+Rat = Qm (L - 1) (L - 1)
+Tt = (Pm * Qm mod M) sum
+Answer = (Rat + Tt) mod M
+Answer print

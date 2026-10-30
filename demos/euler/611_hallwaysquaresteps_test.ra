@@ -1,0 +1,24 @@
+use testing
+
+test "statement values"
+  use "611_hallwaysquaresteps"
+  N = 5
+  run
+  Answer equal 1
+  N = 100
+  run
+  Answer equal 27
+  N = 1000
+  run
+  Answer equal 233
+  N = 1000000
+  run
+  Answer equal 112168
+end
+
+test "brute force"
+  use "611_hallwaysquaresteps"
+  N = 10000
+  run
+  Answer equal 1812
+end

@@ -1,0 +1,67 @@
+rem Pythagorean Ant
+rem https://projecteuler.net/problem=613
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Lx integer = 40
+arg Ly integer = 30
+
+rem A = (0, 0), B = (Lx, 0), C = (0, Ly)
+rem The share of (point, direction)
+rem pairs leaving through BC is the
+rem integral over Q on BC and the
+rem inward angle a from its normal of
+rem cos a times the ray length inside.
+rem Rays between Q B and Q A end on AB,
+rem those between Q A and Q C on AC,
+rem and for a line at distance h with
+rem foot angle a0 the ray length is
+rem h / cos(a - a0), integrated in
+rem closed form. Simpson in a smooth
+rem step of s along BC (no end kinks).
+Np = 2000
+Pi = 0.0 atan2 (0.0 - 1.0)
+Tp = 2.0 * Pi
+Ia = 1 to (Np - 1)
+U = Ia / (Np * 1.0)
+U2 = U * U
+V = 1.0 - U
+Q = 10.0 - 15.0 * U + 6.0 * U2
+S = U2 * U * Q
+Ds = 30.0 * U2 * V * V
+X = Lx * (1.0 - S)
+Y = Ly * S
+Fn = (0.0 - Lx) atan2 (0.0 - Ly)
+Ab = (0.0 - Y) atan2 (Lx - X) - Fn
+Ac = (Ly - Y) atan2 (0.0 - X) - Fn
+Aa = (0.0 - Y) atan2 (0.0 - X) - Fn
+Ab = (Ab + Pi) mod Tp - Pi
+Ac = (Ac + Pi) mod Tp - Pi
+Aa = (Aa + Pi) mod Tp - Pi
+Hf = Pi / 2.0
+O1 = (Hf - Fn) mod Tp - Pi
+O2 = (Pi - Fn + Pi) mod Tp - Pi
+Lo = Ab min Aa
+Hi = Ab max Aa
+Lo = Ab min Aa
+Hi = Ab max Aa
+H1 = (Hi - O1) cos log
+L1 = (Lo - O1) cos log
+G1 = (O1 cos) * (Hi - Lo)
+G1 = G1 + (O1 sin) * (H1 - L1)
+Lo = Aa min Ac
+Hi = Aa max Ac
+H2 = (Hi - O2) cos log
+L2 = (Lo - O2) cos log
+G2 = (O2 cos) * (Hi - Lo)
+G2 = G2 + (O2 sin) * (H2 - L2)
+Wt = 2.0 + 2.0 * (Ia mod 2)
+Tt = (Wt * Ds * (Y * G1 + X * G2)) sum
+Hp = (Lx * Lx + Ly * Ly) * 1.0 sqrt
+Pr = Tt * Hp / (3.0 * Np)
+Pr = Pr / (Tp * Lx * Ly / 2.0)
+Answer = Pr text ".10f"
+Answer print

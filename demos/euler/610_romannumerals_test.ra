@@ -1,0 +1,14 @@
+use testing
+
+test "default input"
+  use "610_romannumerals"
+  run
+  Answer equal "319.30207833"
+end
+
+test "other stop chance"
+  use "610_romannumerals"
+  Pm = 0.3
+  run
+  Answer equal "205.53659888"
+end

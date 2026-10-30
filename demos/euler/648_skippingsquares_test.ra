@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "648_skippingsquares"
+  N = 10
+  run
+  Answer equal 53964
+  N = 50
+  run
+  Answer equal 842418857
+end
+
+test "default input"
+  use "648_skippingsquares"
+  run
+  Answer equal 301483197
+end

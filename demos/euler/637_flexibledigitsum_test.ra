@@ -1,0 +1,21 @@
+use testing
+
+test "statement value"
+  use "637_flexibledigitsum"
+  N = 100
+  run
+  Answer equal 3302
+end
+
+test "brute force"
+  use "637_flexibledigitsum"
+  N = 1000
+  run
+  Answer equal 422582
+  N = 100000
+  run
+  Answer equal 4727592381
+  N = 1000000
+  run
+  Answer equal 482603537896
+end

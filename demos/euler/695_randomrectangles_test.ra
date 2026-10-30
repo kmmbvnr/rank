@@ -1,0 +1,14 @@
+use testing
+
+test "default input"
+  use "695_randomrectangles"
+  run
+  Answer equal "0.1017786859"
+end
+
+test "more nodes agree"
+  use "695_randomrectangles"
+  Gn = 30
+  run
+  Answer equal "0.1017786859"
+end

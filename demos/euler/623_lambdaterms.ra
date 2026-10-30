@@ -1,0 +1,46 @@
+rem Lambda Count
+rem https://projecteuler.net/problem=623
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 2000
+
+rem De Bruijn terms: T(n, k) counts the
+rem terms of size n with k variables in
+rem scope. A variable has size 1 (k of
+rem them), an application (M N) size
+rem 2 + |M| + |N|, an abstraction
+rem (lx.M) size 5 + |M| with one more
+rem variable. Only k <= (N - n) / 5 can
+rem occur in a closed term of size N.
+Md = 1000000007
+Kc = N // 5 + 2
+Rw = (0 to N) reshape (N + 1) 1
+Tm = Rw * ((0 to Kc) * 0)
+Answer = 0
+for Sz in 1 to N
+  Kn = (N - Sz) // 5
+  Cs = 0 to Kn
+  Row = (0 to Kc) * 0
+  if Sz equal 1
+    Row Cs = Cs
+  end
+  if Sz at least 4
+    Rs = 1 to (Sz - 3)
+    Aa = Tm Rs Cs
+    Cv = (Aa * (Aa reverse)) mod Md
+    Sc = Cv sum axis 0
+    Row Cs = (Row Cs + Sc) mod Md
+  end
+  if Sz at least 6
+    Ab = Tm (Sz - 5) (Cs + 1)
+    Row Cs = (Row Cs + Ab) mod Md
+  end
+  Tm Sz = Row
+  Answer += Row 0
+end
+Answer = Answer mod Md
+Answer print

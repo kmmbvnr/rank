@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "660_pandigitaltriangles"
+  Lo = 9
+  Hi = 9
+  run
+  Answer equal 1082
+end
+
+test "bases 12 to 15"
+  use "660_pandigitaltriangles"
+  Lo = 12
+  Hi = 15
+  run
+  Answer equal 2042689
+end

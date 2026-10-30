@@ -1,0 +1,13 @@
+use testing
+
+test "statement values"
+  use "602_productofheadcounts"
+  N = 3
+  K = 2
+  run
+  Answer equal 4
+  N = 100
+  K = 40
+  run
+  Answer equal 986699437
+end

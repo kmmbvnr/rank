@@ -1,0 +1,22 @@
+rem Product of Head Counts
+rem https://projecteuler.net/problem=602
+
+use numbers
+use io
+use cli
+
+arg N integer = 10000000
+arg K integer = 4000000
+
+rem e(n, p) = p A_n(p) for the Eulerian
+rem polynomial, so c(n, k) is the
+rem Eulerian number sum of
+rem (-1)^j C(n + 1, j) (k - j)^n.
+M = 1000000007
+Js = 0 to K
+Cb = (N + 1) Js M binomialmod
+Pw = (K - Js) N M powmod
+Sg = 1 - 2 * (Js mod 2)
+Tm = (Sg * Cb) mod M
+Answer = ((Tm * Pw) mod M sum) mod M
+Answer print

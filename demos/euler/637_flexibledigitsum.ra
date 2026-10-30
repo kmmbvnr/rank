@@ -1,0 +1,137 @@
+rem Flexible Digit Sum
+rem https://projecteuler.net/problem=637
+
+use numbers
+use sequences
+use algo
+use bits
+use io
+use cli
+
+arg N integer = 10000000
+
+rem f is 0 below the base B, 1 when
+rem the digit sum is below B (set F1),
+rem 2 when some split has a sum in F1,
+rem else 3. Split the digits into a
+rem first half a and last half b: a
+rem split sums chunks inside each half
+rem plus the middle, a cut or one chunk
+rem across it. For each a the b with a
+rem half sum y = f - x, f in F1, are
+rem marked in a table and found by
+rem gathering the sums of b. In base 3
+rem only n < 3^12 are searched; above
+rem that none has f = 3 (checked to
+rem 10^7 by a full search of splits).
+Fm = array shape 2 (N + 1) fill 0
+for Bi in 0 to 1
+  B = 10 - 7 * Bi
+  Tb = 4 + 2 * Bi
+  Cov = B ** (2 * Tb)
+  Nn = N min (Cov - 1)
+  Sv = 0 to N
+  Cu = Sv copy
+  Dsv = Sv * 0
+  Cg = Cu greater 0
+  for Cg any
+    Dsv += Cu mod B
+    Cu = Cu // B
+    Cg = Cu greater 0
+  end
+  Ge = (Sv at least B) integer
+  Lt = (Dsv less B) integer
+  F1 = Ge * Lt
+  Fs = (F1 greater 0) indices
+  Bt = B ** Tb
+  Bv = 0 to (Bt - 1)
+  Bz = (0 to (Tb - 1)) * 0 + B
+  Db = Bv digits Bz
+  Nm = 2 ** (Tb - 1)
+  Sbm = array shape Nm Bt fill 0
+  Fl = (0 to (Nm - 1)) * 0
+  for Mk in 0 to Nm - 1
+    Cur = Bv * 0
+    Tot = Bv * 0
+    Fq = 0
+    for K in 0 to Tb - 1
+      Cur = Cur * B + Db K
+      Cb = (Mk shr K) band 1
+      if Cb equal 1 or K equal Tb - 1
+        Tot += Cur
+        Cur = Bv * 0
+        if Fq equal 0
+          Fq = K + 1
+        end
+      end
+    end
+    Sbm Mk = Tot
+    Fl Mk = Fq
+  end
+  Hit = (Sv * 0) + 1
+  Am = Nn // Bt
+  Ab = (0 to (Tb - 1)) * 0 + B
+  Bc = 0 to (Bt - 1)
+  for A in 0 to Am
+    Da = A digits Ab
+    Hr = Bv * 0
+    Ya = Bv * 0
+    for Ia in 0 to Nm - 1
+      Sc = 0
+      Sa = 0
+      for K in 0 to Tb - 1
+        Sc = Sc * B + Da K
+        Cx = (Ia shr K) band 1
+        if Cx equal 1 or K equal Tb - 1
+          Sa += Sc
+          Sc = 0
+        end
+      end
+      Lw = Fs lowerindex Sa
+      Up = Fs upperindex (Sa + Bt - 1)
+      if Up greater Lw
+        Yv = (Fs (Lw till Up)) - Sa
+        Ya Yv = 1
+      end
+    end
+    Hr = Hr max ((Ya Sbm) max axis 0)
+    for Kf in 1 to Tb
+      Rk = (Fl equal Kf) indices
+      Yb = Bv * 0
+      for Ia in 0 to Nm - 1
+        Sc = 0
+        Sa = 0
+        La = 0
+        for K in 0 to Tb - 1
+          Sc = Sc * B + Da K
+          Cx = (Ia shr K) band 1
+          Ed = K equal Tb - 1
+          if Cx equal 1 or Ed
+            Sa += Sc
+            La = Sc
+            Sc = 0
+          end
+        end
+        Xv = Sa - La + La * B ** Kf
+        Lw = Fs lowerindex Xv
+        Up = Fs upperindex (Xv + Bt - 1)
+        if Up greater Lw
+          Yv = (Fs (Lw till Up)) - Xv
+          Yb Yv = 1
+        end
+      end
+      Sk = Sbm Rk Bc
+      Hr = Hr max ((Yb Sk) max axis 0)
+    end
+    Lo = A * Bt
+    Hi = (Lo + Bt) min (Nn + 1)
+    Hw = Hr (0 till Hi - Lo)
+    Hit (Lo till Hi) = Hw
+  end
+  Fv = (1 - F1) * (3 - Hit) + F1
+  Fm Bi = Fv * Ge
+end
+Ns = 0 to N
+Eq = (Fm 0 equal Fm 1) integer
+Answer = (Eq * Ns) sum
+Answer print

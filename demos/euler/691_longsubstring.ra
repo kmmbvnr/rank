@@ -1,0 +1,138 @@
+rem Long Substring with Many Repetitions
+rem https://projecteuler.net/problem=691
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Nn integer = 5000000
+
+rem c(i) = thue-morse(i) xor the
+rem Fibonacci word bit floor((i+1)/f) -
+rem floor(i/f). Build the suffix
+rem automaton of c; each state has the
+rem longest length M and the number R
+rem of occurrences of its substrings.
+rem Occurrence counts flow up the
+rem suffix links in order of length.
+rem B(r) is the largest M with R = r,
+rem L(k) = max of B(r) over r >= k, and
+rem the answer is the sum of L(k).
+Ii = 0 to (Nn - 1)
+Tm = (Ii popcount) mod 2
+Ph = 1.618033988749895
+Fa = ((Ii + 1) / Ph) floor
+Fb = (Ii / Ph) floor
+Cc = (Tm + Fa - Fb) mod 2
+Mx = 2 * Nn + 2
+Ln = array shape Mx fill 0
+Lk = array shape Mx fill 0
+Ct = array shape Mx fill 0
+N0 = array shape Mx fill 0
+N1 = array shape Mx fill 0
+Lk 0 = 0 - 1
+Sz = 1
+Ls = 0
+for I in 0 to Nn - 1
+  Ch = Cc I
+  Cu = Sz
+  Sz += 1
+  Ll = Ln Ls
+  Ln Cu = Ll + 1
+  Ct Cu = 1
+  P = Ls
+  Go = 1
+  for Go equal 1
+    if P equal 0 - 1
+      Go = 0
+    end
+    if Go equal 1
+      Nx = N0 P
+      if Ch equal 1
+        Nx = N1 P
+      end
+      if Nx greater 0
+        Go = 0
+      end
+      if Go equal 1
+        if Ch equal 0
+          N0 P = Cu
+        end
+        if Ch equal 1
+          N1 P = Cu
+        end
+        P = Lk P
+      end
+    end
+  end
+  if P equal 0 - 1
+    Lk Cu = 0
+  end
+  if P greater 0 - 1
+    Q = N0 P
+    if Ch equal 1
+      Q = N1 P
+    end
+    Lp = Ln P + 1
+    Lq = Ln Q
+    if Lp at least Lq
+      Lk Cu = Q
+    end
+    if Lp less Lq
+      Cl = Sz
+      Sz += 1
+      Ln Cl = Lp
+      N0 Cl = N0 Q
+      N1 Cl = N1 Q
+      Lk Cl = Lk Q
+      Ct Cl = 0
+      Go = 1
+      for Go equal 1
+        if P equal 0 - 1
+          Go = 0
+        end
+        if Go equal 1
+          Nx = N0 P
+          if Ch equal 1
+            Nx = N1 P
+          end
+          if Nx not equal Q
+            Go = 0
+          end
+          if Go equal 1
+            if Ch equal 0
+              N0 P = Cl
+            end
+            if Ch equal 1
+              N1 P = Cl
+            end
+            P = Lk P
+          end
+        end
+      end
+      Lk Q = Cl
+      Lk Cu = Cl
+    end
+  end
+  Ls = Cu
+end
+Ord = (Ln (0 to Sz - 1)) argsort
+for J in Sz - 1 to 1 by -1
+  V = Ord (J)
+  Pv = Lk V
+  Ct Pv += Ct V
+end
+Bb = array shape (Nn + 2) fill 0
+for V in 1 to Sz - 1
+  R = Ct V
+  Lv = Ln V
+  if Lv greater Bb R
+    Bb R = Lv
+  end
+end
+Sr = (Bb reverse) scan max
+Sf = Sr reverse
+Answer = (Sf (1 to Nn + 1)) sum
+Answer print

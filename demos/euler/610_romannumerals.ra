@@ -1,0 +1,82 @@
+rem Roman Numerals II
+rem https://projecteuler.net/problem=610
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Pm real = 0.02
+
+rem A numeral is a base 8 code (I = 1
+rem to M = 7). Thousands come from M
+rem alone, k with mean 0.14 / 0.86, and
+rem the rest r < 1000 is a chain over
+rem the canonical codes: a symbol is
+rem taken when the parsed value of the
+rem code plus it has that same code.
+rem E(r) = (Pm r + q sum E(next)) /
+rem (Pm + q count), q = (1 - Pm) / 7.
+Qs = (1.0 - Pm) / 7.0
+Ps = 0 to 2
+Ac = 5 - 2 * Ps
+Bc = Ac + 1
+Cc = Ac + 2
+T0 = 0 * Ac
+T1 = Ac
+T2 = 9 * Ac
+T3 = 73 * Ac
+T4 = 8 * Ac + Bc
+T5 = Bc
+T6 = 8 * Bc + Ac
+T7 = 64 * Bc + 9 * Ac
+T8 = 512 * Bc + 73 * Ac
+T9 = 8 * Ac + Cc
+Tm = stack T0 T1 T2 T3 T4 T5 T6 T7 T8 T9
+Tb = Tm reshape 30
+Lc = (Tb at least 1) integer
+Lc += (Tb at least 8) integer
+Lc += (Tb at least 64) integer
+Lc += (Tb at least 512) integer
+Vs = 0 to 999
+Bs = Ps * 0 + 10
+Dg = Vs digits Bs
+Ix = Dg * 3 + (Ps reshape 3 1)
+Cp = Tb Ix
+Lp = Lc Ix
+Ct = Cp 2 + Cp 1 * 8 ** (Lp 2)
+Ct = Ct + Cp 0 * 8 ** (Lp 1 + Lp 2)
+Sy = (1 to 7) reshape 1 7
+Cd = (Ct reshape 1000 1) * 8 + Sy
+Cf = Cd reshape 7000
+Bd = (0 to 13) * 0 + 8
+Dm = Cf digits Bd
+Ks = 0 to 7
+Kk = (Ks - 1) max 0
+Lt = (Ks greater 0) integer
+Lt = Lt * 10 ** (Kk // 2)
+Lt = Lt * (1 + 4 * (Kk mod 2))
+Vl = Lt Dm
+Nx = Vl shift -1
+Sg = 1 - 2 * ((Vl less Nx) integer)
+Pv = (Vl * Sg) sum axis 0
+Nv = Pv min 999
+Of = (Pv at most 999) integer
+Of = Of * ((Ct Nv equal Cf) integer)
+Ok = Of reshape 1000 7
+Nr = Nv reshape 1000 7
+Ee = Vs * 1.0
+for J in 1 to 20
+  Sm = (Ok * (Ee Nr)) sum axis 1
+  Cn = Ok sum axis 1
+  Nm = Pm * Vs + Qs * Sm
+  Ee = Nm / (Pm + Qs * Cn)
+end
+Ok0 = Ok 0
+Nr0 = Nr 0
+Er = (Ok0 * (Ee Nr0)) sum
+Er = Er / (Ok0 sum)
+Th = Qs / (1.0 - Qs)
+Tt = 1000.0 * Th + 6.0 * Th * Er
+Answer = Tt text ".8f"
+Answer print
