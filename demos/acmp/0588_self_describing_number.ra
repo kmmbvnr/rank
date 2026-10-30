@@ -1,0 +1,36 @@
+rem Self-Describing Number
+rem https://acmp.ru/index.asp?main=task&id_task=588
+rem Find a b-digit self-describing number in base b or -1
+
+use io
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "5"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+B = (Tokens 0) integer
+
+Answer = "-1"
+
+if B equal 4
+  Answer = (array 2 1 0 1) join "\n"
+else
+  if B equal 5
+    Answer = (array 1 2 0 0 2) join "\n"
+  else
+    if B greater 6
+      Digits = array shape B fill 0
+      Digits 0 = 2
+      Digits 1 = 1
+      Digits (B - 5) = 1
+      Digits (B - 1) = B - 4
+      Answer = Digits join "\n"
+    end
+  end
+end
+
+Answer print

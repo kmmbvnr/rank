@@ -1,0 +1,64 @@
+use testing
+
+test "sample 1: base 5"
+  use "0588_self_describing_number"
+  run
+
+  Answer equal "1\n2\n0\n0\n2"
+end
+
+test "sample 2: base 2"
+  use "0588_self_describing_number"
+  Input = "2"
+  run
+
+  Answer equal "-1"
+end
+
+test "base 3"
+  use "0588_self_describing_number"
+  Input = "3"
+  run
+
+  Answer equal "-1"
+end
+
+test "base 4"
+  use "0588_self_describing_number"
+  Input = "4"
+  run
+
+  Answer equal "2\n1\n0\n1"
+end
+
+test "base 6"
+  use "0588_self_describing_number"
+  Input = "6"
+  run
+
+  Answer equal "-1"
+end
+
+test "base 7"
+  use "0588_self_describing_number"
+  Input = "7"
+  run
+
+  Answer equal "2\n1\n1\n0\n0\n0\n3"
+end
+
+test "base 8"
+  use "0588_self_describing_number"
+  Input = "8"
+  run
+
+  Answer equal "2\n1\n0\n1\n0\n0\n0\n4"
+end
+
+test "base 10"
+  use "0588_self_describing_number"
+  Input = "10"
+  run
+
+  Answer equal "2\n1\n0\n0\n0\n1\n0\n0\n0\n6"
+end
