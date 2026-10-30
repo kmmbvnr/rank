@@ -162,7 +162,7 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         const form = applicationForm(e, name => findOperation(name));
         const shiftParts = flattenApplication(e);
         const plainShift = shiftParts.length === 3 && isNameExpression(shiftParts[2]) && shiftParts[2].name === 'shift';
-        if (plainShift || form.kind === 'axis-shift') {
+        if (plainShift || form.kind === 'axis-shift' && !form.cyclic) {
             const sourceExpression = form.kind === 'axis-shift' ? form.source : shiftParts[0];
             const amountExpression = unwrap(form.kind === 'axis-shift' ? form.amount : shiftParts[1]);
             const signed = isUnaryExpression(amountExpression) && ['+', '-'].includes(amountExpression.operator)

@@ -10,6 +10,7 @@ import {
     argsortAxis, directedSort, lengthOfAxis, reshapeWithDimensions, reshapeWithShapeRows, sortDescending,
     sortMode, stackValues, concatValues, transposeValue, type SortMode,
 } from '../modules/sequences.js';
+import { rotateArray } from '../runtime/rotate.js';
 import { shiftValue, windowValue } from '../sequence.js';
 import { unpackApplicationItems } from '../value-selection.js';
 import { isNativeFunction, isRankArray, type RankValue } from '../value.js';
@@ -154,7 +155,14 @@ export function compileSequenceApplication(context: ApplicationContext, applicat
         case 'axis-shift': {
             const axisShift = form;
             return function* (): Execution<RankValue> {
-                context.requireModule('sequences', 'shift');
+                context.requireModule('sequences', axisShift.cyclic ? 'rotate' : 'shift');
+                if (axisShift.cyclic) {
+                    return rotateArray(
+                        (yield* resume(context.evaluate(axisShift.source))),
+                        (yield* resume(context.evaluate(axisShift.amount))),
+                        axisShift.axis,
+                    );
+                }
                 return shiftValue(
                     (yield* resume(context.evaluate(axisShift.source))),
                     (yield* resume(context.evaluate(axisShift.amount))),

@@ -868,25 +868,26 @@ function explicitComparisonRank(expression: Expression): ComparisonRank | undefi
 /** `Values Count shift [with Fill] [axis K]`; the bare form is an ordinary operation. */
 function explicitAxisShift(
     parts: Expression[], nameOf: NameOf,
-): { source: Expression; amount: Expression; fill?: Expression; axis?: number } | undefined {
-    if (parts.length < 5 || !isNamed(parts[2], 'shift', nameOf)) return undefined;
+): { source: Expression; amount: Expression; fill?: Expression; axis?: number; cyclic?: boolean } | undefined {
+    const cyclic = isNamed(parts[2], 'rotate', nameOf);
+    if (parts.length < 5 || !cyclic && !isNamed(parts[2], 'shift', nameOf)) return undefined;
     let position = 3;
     let fill: Expression | undefined;
     let axis: number | undefined;
-    if (isNamed(parts[position], 'with', nameOf)) {
+    if (!cyclic && isNamed(parts[position], 'with', nameOf)) {
         fill = parts[position + 1];
         if (!fill) return undefined;
         position += 2;
     }
     if (isNamed(parts[position], 'axis', nameOf)) {
         if (position + 2 !== parts.length) {
-            throw new ApplicationSyntaxError('shift axis expects exactly one axis');
+            throw new ApplicationSyntaxError(`${cyclic ? 'rotate' : 'shift'} axis expects exactly one axis`);
         }
         axis = literalDimension(integerLiteral(parts[position + 1], 'shift axis'), 'shift axis');
         position += 2;
     }
     if (position !== parts.length || (!fill && axis === undefined)) return undefined;
-    return { source: parts[0], amount: parts[1], fill, axis };
+    return cyclic ? { source: parts[0], amount: parts[1], axis, cyclic } : { source: parts[0], amount: parts[1], fill, axis };
 }
 
 interface WindowApplication {

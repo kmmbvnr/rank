@@ -44,13 +44,7 @@ for Ln in 1 to Ml
       if Q greater 2
         Sr = Cb
       end
-      Ro = Sr
-      if Sc greater 0
-        Hi = Sr (Mo - Sc to Mo - 1)
-        Lw = Sr (0 to Mo - Sc - 1)
-        Ro = concat Hi Lw
-      end
-      Ac = Ac + Ro
+      Ac = Ac + (Sr rotate Sc)
     end
     Cb = Ac
   end

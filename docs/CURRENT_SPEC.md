@@ -7876,6 +7876,23 @@ rem Б😀A
 
 Reversal of array axes is a separate tensor operation and remains deferred.
 
+`rotate` shifts an array cyclically along its leading axis. A positive count
+moves items to the right, as `np.roll`; a negative count moves them left, and
+any count wraps around the length. `axis N` selects another axis. Packed
+storage stays packed and is copied as two blocks:
+
+```rank
+use sequences
+A = 1 to 5
+B = A rotate 2
+rem 4 5 1 2 3
+C = A rotate -1
+rem 2 3 4 5 1
+M = (1 to 6) reshape 3 2
+D = M rotate 1 axis 1
+rem 2 1 4 3 6 5
+```
+
 `codepoint` converts exactly one Unicode character to its integer code point.
 `character` performs the inverse conversion and returns one-character text:
 

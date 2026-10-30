@@ -28,6 +28,7 @@ import { FlatRecords, flatRecords } from '../flat.js';
 import { ownedArray, derivedArray, copyStoredNumericArray, copyMaterializedArrayItems, arrayValueTraversal, arrayValues, collectArrayCells, prepareArrayRead, readArrayItem, evaluateArrayItem, reshapeStoredArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
+import { rotateArray } from '../runtime/rotate.js';
 import { atSequence, materializeSequence, sequenceArrayOperand, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
 import { atArray } from '../selectors.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
@@ -96,6 +97,7 @@ export const sequencesModule: RuntimeModule = {
     findall: () => native('findall', 2, arguments_ => findAllValues(arguments_[0], arguments_[1])),
     indices: () => native('indices', 1, arguments_ => trueIndices(arguments_[0])),
     reverse: () => native('reverse', 1, arguments_ => reverseValue(arguments_[0])),
+    rotate: () => native('rotate', 2, arguments_ => rotateArray(arguments_[0], arguments_[1])),
     first: () => native('first', 1, arguments_ => endItem(arguments_[0], false)),
     last: () => native('last', 1, arguments_ => endItem(arguments_[0], true)),
 };
