@@ -1,0 +1,85 @@
+rem SMS
+rem https://acmp.ru/index.asp?main=task&id_task=428
+rem Count possible original messages of length N that could produce received SMS S
+
+use io
+use cli
+use sequences
+use text
+
+arg S text = "OMSCMNWQTTARTERPDEINAL"
+arg N integer = 20
+
+Alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" split ""
+Alpha = Alpha (Alpha not equal "")
+
+Buttons = array 2 2 2  3 3 3  4 4 4  5 5 5  6 6 6  7 7 7 7  8 8 8  9 9 9 9
+Presses = array 1 2 3  1 2 3  1 2 3  1 2 3  1 2 3  1 2 3 4  1 2 3  1 2 3 4
+
+Chars = S split ""
+Chars = Chars (Chars not equal "")
+L = Chars len
+
+Answer = 0
+if L greater 0
+  Match = (Chars Alpha outer equal) integer
+  CharButtons = (Match * Buttons) sum axis -1
+  CharPresses = (Match * Presses) sum axis -1
+
+  IsNewRun = concat (array true) ((CharButtons (1 till L)) not equal (CharButtons (0 till (L - 1))))
+  RunID = ((IsNewRun integer) scan +) - 1
+  NumRuns = (RunID max) + 1
+
+  DP = array shape (N + 1) fill 0
+  DP 0 = 1
+
+  for R in 0 till NumRuns
+    RunMask = (RunID equal R) integer
+    K = (CharPresses * RunMask) sum
+    Btn = (CharButtons * RunMask) max
+    Cap = 3
+    if (Btn equal 7) or (Btn equal 9)
+      Cap = 4
+    end
+
+    rem Compute compositions of K into k parts (each in 1..Cap)
+    rem 1D flattened storage: Idx = k * (K + 1) + s
+    TableSize = (K + 1) * (K + 1)
+    PartDP = array shape TableSize fill 0
+    PartDP 0 = 1
+
+    for k in 1 to K
+      for s in 1 to K
+        SumWays = 0
+        for d in 1 to Cap
+          if not (s less d)
+            PrevIdx = (k - 1) * (K + 1) + (s - d)
+            SumWays = SumWays + (PartDP PrevIdx)
+          end
+        end
+        CurIdx = k * (K + 1) + s
+        PartDP CurIdx = SumWays
+      end
+    end
+
+    NextDP = array shape (N + 1) fill 0
+    for OldLen in 0 to N
+      if (DP OldLen) greater 0
+        for k in 1 to K
+          NewLen = OldLen + k
+          if not (N less NewLen)
+            CurWays = PartDP (k * (K + 1) + K)
+            if CurWays greater 0
+              NextDP NewLen = (NextDP NewLen) + ((DP OldLen) * CurWays)
+            end
+          end
+        end
+      end
+    end
+    DP = NextDP
+  end
+
+  Answer = DP N
+end
+
+Answer print

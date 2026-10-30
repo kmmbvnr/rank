@@ -1,0 +1,44 @@
+use testing
+
+test "sample: OMSCMNWQTTARTERPDEINAL with length 20"
+  use "0428_sms"
+  run
+
+  Answer equal 760
+end
+
+test "split letter: C with length 2 gives AB and BA"
+  use "0428_sms"
+  S = "C"
+  N = 2
+  run
+
+  Answer equal 2
+end
+
+test "merged letter: AA with length 1 gives B"
+  use "0428_sms"
+  S = "AA"
+  N = 1
+  run
+
+  Answer equal 1
+end
+
+test "exact word: SMS with length 3"
+  use "0428_sms"
+  S = "SMS"
+  N = 3
+  run
+
+  Answer equal 1
+end
+
+test "impossible length: A with length 10"
+  use "0428_sms"
+  S = "A"
+  N = 10
+  run
+
+  Answer equal 0
+end
