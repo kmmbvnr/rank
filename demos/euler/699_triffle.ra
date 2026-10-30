@@ -9,234 +9,105 @@ use cli
 
 arg Nn integer = 100000000000000
 
-rem n = 3^a m with 3 not dividing m has
-rem sigma(n) / n = c sigma(m) / (3^a m),
-rem c = (3^(a+1) - 1) / 2 prime to 3,
-rem so n is a triffle number when the
-rem reduced fraction c sigma(m) / m has
-rem denominator 1 and 3 divides sigma(m)
-rem fewer than a times. Depth first
-rem search over prime powers of m in
-rem increasing order, keeping the
-rem reduced fraction as prime lists of
-rem the denominator Dp^De and numerator
-rem Ap^Ae. A new prime p either divides
-rem the numerator at once, or its
-rem factor must be cancelled by a later
-rem prime q >= 2p - 1, so p (2p - 1) is
-rem at most the room Bd / m left. The
-rem result is the sum of n over the
-rem triffle numbers up to Nn.
-Rsv = 11000000
-Pr = primes to Rsv array
-Np = Pr len
-Zs = array shape 24 fill 0
+rem n = 3^a m (3 not dividing m) is a
+rem triffle number when m divides
+rem sigma(n) and 3 divides sigma(n)
+rem fewer than a times. Start from
+rem n = 2^b 3^a for every a, b. A prime
+rem p can join n only if it divides
+rem sigma(n), so the candidates are the
+rem primes of the sigma(q^f) already in
+rem n. Each p is tried with every
+rem exponent that keeps the threes of
+rem sigma below a. A part B of n that
+rem is not reachable this way has
+rem B | sigma(B), gcd(B, 6) = 1 and
+rem B <= N / 3; for N = 10^14 that
+rem forces sigma(B) = 2 B, impossible
+rem with at most six prime factors.
+rem Visited n are kept in a set per a.
 
-fun J M Lp Dp De Ap Ae V3 Bd A dfs
-  T = 0
-  if (De sum equal 0) and (V3 less A)
-    T = 3 ** A * M
+fun X pd
+  Fs = X factors unique
+  return Fs filter greater 3 array
+end
+
+fun X v3
+  C = 0
+  for X mod 3 equal 0
+    X = X // 3
+    C += 1
   end
-  Rm = Bd // M
-  if Rm less 2
-    return T
+  return C
+end
+
+fun N G T Cd A P3 Sn go
+  if N in Sn
+    return 0
   end
-  Sq = (1 + 8 * Rm) * 1.0 sqrt
-  Pm = ((1.0 + Sq) / 4.0) floor
-  for (Pm * (2 * Pm - 1)) greater Rm
-    Pm -= 1
+  Sn add N
+  R = 0
+  if G mod (N // P3) equal 0
+    R += N
   end
-  Gu = 1
-  for Gu equal 1
-    Pn = Pm + 1
-    Gu = 0
-    if Pn * (2 * Pn - 1) at most Rm
-      Pm += 1
-      Gu = 1
-    end
-  end
-  K = Pr upperindex Pm
-  Cp = Zs * 0
-  Ci = Zs * 0
-  if K greater J
-    Cp = Pr (J to K - 1)
-    Ci = J to K - 1
-  end
-  Ex = (Ae greater 0) integer
-  Ex = Ex * ((Ap greater Pm) integer)
-  Ex = Ex * ((Ap at most Rm) integer)
-  Ex = Ex * ((Ap greater Lp) integer)
-  Ex = Ex * ((Ap not equal 3) integer)
-  Xi = (Ex equal 1) indices
-  if Xi len greater 0
-    Xp = Ap Xi
-    Xj = Pr lowerindex Xp
-    Cp = concat Cp Xp
-    Ci = concat Ci Xj
-  end
-  Ok = (Cp greater Lp) integer
-  Ok = Ok * ((Cp not equal 3) integer)
-  Ok = Ok * ((Cp at most Rm) integer)
-  Sel = (Ok equal 1) indices
-  for Q in 0 to Sel len - 1
-    P = Cp (Sel Q)
-    Ix = Ci (Sel Q)
-    Pe = 1
-    Sg = 1
-    E = 0
-    Go = 1
-    for Go equal 1
-      if Pe greater Rm // P
-        Go = 0
-      end
-      if Go equal 1
+  for P in Cd
+    if N mod P not equal 0
+      Pe = P
+      Se = P + 1
+      Mx = Nn // N
+      for Pe at most Mx
+        Tt = T + (Se v3)
+        if Tt less A
+          Nx = N * Pe
+          if Nx not in Sn
+            Cx = Cd
+            for F in Se pd
+              if F not in Cx
+                Cx = concat Cx (array F)
+              end
+            end
+            Gx = G * Se
+            R += Nx Gx Tt Cx A P3 Sn go
+          end
+        end
+        if Pe greater (Mx // P)
+          break
+        end
         Pe = Pe * P
-        E += 1
-        if Pe greater Rm
-          Go = 0
-        end
-      end
-      if Go equal 1
-        Sg = Sg + Pe
-        D = Dp
-        G = De
-        H = Ap
-        I = Ae
-        V = V3
-        Sa = (H equal P) integer
-        Ig = (I greater 0) integer
-        Sa = Sa * Ig
-        Si = (Sa equal 1) indices
-        Er = E
-        if Si len greater 0
-          Sl = Si 0
-          Tt = (I Sl) min E
-          I Sl = I Sl - Tt
-          Er = E - Tt
-        end
-        if Er greater 0
-          Em = (G equal 0) indices
-          Sl = Em 0
-          D Sl = P
-          G Sl = Er
-        end
-        S = Sg
-        Fq = Zs * 0
-        Ff = Zs * 0
-        Nf = 0
-        I2 = 0
-        Q2 = 2
-        Run = 1
-        for Run equal 1
-          Run = (I2 less Np) integer
-          if Run equal 1
-            Q2 = Pr I2
-            Qs = Q2 * Q2
-            Run = (Qs at most S) integer
-          end
-          Fc = 0
-          if Run equal 1
-            for S mod Q2 equal 0
-              S = S // Q2
-              Fc += 1
-            end
-            if Fc greater 0
-              Fq Nf = Q2
-              Ff Nf = Fc
-              Nf += 1
-            end
-            I2 += 1
-          end
-        end
-        if S greater 1
-          Fq Nf = S
-          Ff Nf = 1
-          Nf += 1
-        end
-        for Tq in 0 to Nf - 1
-          Qf = Fq Tq
-          Fn = Ff Tq
-          if Qf equal 3
-            V += Fn
-          end
-          if Qf not equal 3
-            Ds = (D equal Qf) integer
-            Gg = (G greater 0) integer
-            Ds = Ds * Gg
-            Di = (Ds equal 1) indices
-            if Di len greater 0
-              Sl = Di 0
-              Tt = (G Sl) min Fn
-              G Sl = G Sl - Tt
-              Fn = Fn - Tt
-            end
-            if Fn greater 0
-              Am = (H equal Qf) integer
-              Ig = (I greater 0) integer
-              Am = Am * Ig
-              Ai = (Am equal 1) indices
-              if Ai len greater 0
-                Sl = Ai 0
-                I Sl = I Sl + Fn
-              end
-              if Ai len equal 0
-                Ez = (I equal 0) indices
-                Sl = Ez 0
-                H Sl = Qf
-                I Sl = Fn
-              end
-            end
-          end
-        end
-        Pq = M * Pe
-        Jn = Ix + 1
-        T += Jn Pq P D G H I V Bd A dfs
+        Se = Se + Pe
       end
     end
   end
-  return T
+  return R
 end
 
 Answer = 0
 P3 = 3
+S3 = 4
 A = 1
 for P3 at most Nn
-  Bd = Nn // P3
-  S = (3 * P3 - 1) // 2
-  Ap0 = Zs * 0
-  Ae0 = Zs * 0
-  Nf = 0
-  I2 = 0
-  Q2 = 2
-  Run = 1
-  for Run equal 1
-    Run = (I2 less Np) integer
-    if Run equal 1
-      Q2 = Pr I2
-      Run = (Q2 * Q2 at most S) integer
-    end
-    Fc = 0
-    if Run equal 1
-      for S mod Q2 equal 0
-        S = S // Q2
-        Fc += 1
+  Sn = new set
+  P2 = 1
+  S2 = 1
+  for P2 at most Nn // P3
+    T = S2 v3
+    if T less A
+      Cd = S2 pd
+      for F in S3 pd
+        if F not in Cd
+          Cd = concat Cd (array F)
+        end
       end
-      if Fc greater 0
-        Ap0 Nf = Q2
-        Ae0 Nf = Fc
-        Nf += 1
-      end
-      I2 += 1
+      N0 = P2 * P3
+      G0 = S2 * S3
+      Answer += N0 G0 T Cd A P3 Sn go
     end
+    P2 = P2 * 2
+    S2 = S2 + P2
   end
-  if S greater 1
-    Ap0 Nf = S
-    Ae0 Nf = 1
-    Nf += 1
-  end
-  R0 = 0 1 0 Zs Zs Ap0 Ae0 0 Bd A dfs
-  Answer += R0
-  P3 = P3 * 3
   A += 1
+  P3 = P3 * 3
+  S3 = S3 + P3
 end
+
 Answer print
