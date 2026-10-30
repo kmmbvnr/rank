@@ -1,0 +1,67 @@
+use testing
+
+test "sample 1: complex 9-character string has 8 distinct regular subsequences"
+  use "0614_brackets_3"
+  run
+
+  Answer equal 8
+end
+
+test "simple pair has empty and self"
+  use "0614_brackets_3"
+  S = "()"
+  run
+
+  Answer equal 2
+end
+
+test "two adjacent pairs"
+  use "0614_brackets_3"
+  S = "()()"
+  run
+
+  rem "", "()", "()()"
+  Answer equal 3
+end
+
+test "nested pair"
+  use "0614_brackets_3"
+  S = "(())"
+  run
+
+  rem "", "()", "(())"
+  Answer equal 3
+end
+
+test "only open brackets yields only empty sequence"
+  use "0614_brackets_3"
+  S = "((((("
+  run
+
+  Answer equal 1
+end
+
+test "only close brackets yields only empty sequence"
+  use "0614_brackets_3"
+  S = "))))"
+  run
+
+  Answer equal 1
+end
+
+test "inverted pair yields only empty sequence"
+  use "0614_brackets_3"
+  S = ")("
+  run
+
+  Answer equal 1
+end
+
+test "three identical pairs form 5 distinct sequences"
+  use "0614_brackets_3"
+  S = "()()()"
+  run
+
+  rem "", "()", "(())", "()()", "()()()"
+  Answer equal 5
+end

@@ -1,0 +1,88 @@
+rem ACMP 0614 - Brackets 3 (Скобки - 3)
+rem Count distinct regular bracket subsequences of a parenthesis string.
+rem
+rem Distinct subsequences of any alphabet correspond to unique leftmost embeddings
+rem in a Deterministic Finite Automaton (DFA) where each transition on character c
+rem jumps to the first occurrence of c at or after the current position.
+rem Tracking the parenthesis balance ensures that only valid regular bracket sequences
+rem (prefix balance >= 0, final balance = 0) are counted.
+rem
+rem DP state: DP[pos][bal] = number of distinct valid completions from index pos with prefix balance bal.
+
+use io
+use cli
+use sequences
+use numbers
+use text
+
+arg S text = "((())())("
+
+N = S len
+Chars = S split ""
+
+rem Precompute nextOpen, nextClose, and remaining close bracket counts
+NextOpen = array shape (N + 1) fill -1
+NextClose = array shape (N + 1) fill -1
+RemClose = array shape (N + 1) fill 0
+
+LastOpen = -1
+LastClose = -1
+CloseCount = 0
+
+for I in ((0 till N) array) reverse
+  Ch = Chars I
+  if Ch equal ")"
+    CloseCount = CloseCount + 1
+    LastClose = I
+  else
+    LastOpen = I
+  end
+  NextOpen I = LastOpen
+  NextClose I = LastClose
+  RemClose I = CloseCount
+end
+
+MaxBal = (N // 2) + 1
+DP = array shape (N + 1) (MaxBal + 1) fill 0
+
+for Pos in ((0 to N) array) reverse
+  MaxB = RemClose Pos
+  if MaxB greater MaxBal
+    MaxB = MaxBal
+  end
+  for Bal in 0 to MaxB
+    Res = 0
+    if Bal equal 0
+      Res = 1
+    end
+
+    rem Transition on (
+    NO = NextOpen Pos
+    if NO greater -1
+      NextP = NO + 1
+      NextB = Bal + 1
+      if NextB less (MaxBal + 1)
+        if NextB less ((RemClose NextP) + 1)
+          Res = Res + (DP NextP NextB)
+        end
+      end
+    end
+
+    rem Transition on )
+    if Bal greater 0
+      NC = NextClose Pos
+      if NC greater -1
+        NextP = NC + 1
+        NextB = Bal - 1
+        if NextB less ((RemClose NextP) + 1)
+          Res = Res + (DP NextP NextB)
+        end
+      end
+    end
+
+    DP Pos Bal = Res
+  end
+end
+
+Answer = DP 0 0
+(Answer text) print
