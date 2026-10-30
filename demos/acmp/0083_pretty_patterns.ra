@@ -4,6 +4,7 @@ rem Count M x N monochromatic-free 2x2 patterns
 
 use bits
 use io
+use linalg
 use sequences
 use cli
 
@@ -30,8 +31,6 @@ Adj0' = Both0 shr 1 band Both0
 Bad' = Adj1 bor Adj0
 Compat = Bad equal 0 integer
 
-fun Dp step = (Compat * Dp) sum axis -1
-One = array shape States fill 1
-Answer = One step repeat (Cols - 1) sum
+Answer = Compat matpow (Cols - 1) sum
 
 Answer print

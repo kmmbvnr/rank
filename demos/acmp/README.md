@@ -9,7 +9,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | Task | Title | Topic | Array / Vector Technique |
 | :--- | :--- | :--- | :--- |
 | **0077** | [Нолики](0077_zeros.ra) | Combinatorics (63%) | Count binary zeros up to $N$ with broadcast `(Range binomial K) sum` |
-| **0083** | [Симпатичные узоры](0083_pretty_patterns.ra) | Bitmask DP (66%) | Profile DP with bitwise ops (`band`, `bor`, `bxor`) & matrix dot product `(Compat * DP) sum axis -1` |
+| **0083** | [Симпатичные узоры](0083_pretty_patterns.ra) | Bitmask DP (66%) | Profile DP with bitwise ops (`band`, `bor`, `bxor`) & `Compat matpow (Cols - 1) sum` over a column-compatibility matrix |
 | **0100** | [Счастливые билеты](0100_lucky_tickets.ra) | Combinatorics (68%) | Polynomial convolution via `DP scan + with 0 array` & vectorized index slicing `DP = C Hi - C Lo` |
 | **0101** | [Магараджа](0101_maharaja.ra) | Backtracking / Bitmask (60%) | Non-attacking Maharajas (queen + knight) placement via row-by-row bitmask search |
 | **0104** | [Шаблон](0104_pattern.ra) | 2D DP (65%) | Wildcard pattern matching with `*` and `?` over 2D state matrix |
