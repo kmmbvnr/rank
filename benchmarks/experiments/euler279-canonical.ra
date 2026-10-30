@@ -1,0 +1,24 @@
+rem Research: canonical primitive 120-degree triples also produce
+rem two non-equilateral 60-degree triangles.
+use numbers
+use sequences
+use io
+use cli
+arg Limit integer = 100000000
+Total = Limit // 3
+Top = (Limit // 2) isqrt
+for M in 2 to Top
+  Hi = (Limit // (2 * M) - M) min (M - 1)
+  if Hi at least 1
+    Ns = 1 to Hi array
+    Co = Ns gcd M equal 1
+    R = Ns filter (Co and ((M - Ns) mod 2 equal 1))
+    Total += (Limit // (2 * M * (M + R))) sum
+    E = Ns filter (Co and ((M - Ns) mod 3 not equal 0))
+    Total += (Limit // ((2 * M + E) * (M + E))) sum
+    Total += (Limit // (3 * M * (M + E))) sum
+    Total += (Limit // ((2 * M + E) * (M + 2 * E))) sum
+  end
+end
+Answer = Total
+Answer print

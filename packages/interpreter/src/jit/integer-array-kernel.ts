@@ -140,10 +140,6 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
     const x = a ? 0 : Number(left), y = b ? 0 : Number(right);
     const code = name === '+' ? 0 : name === '-' ? 1 : name === '*' ? 2 : name === 'mod' ? 3
         : name === '//' ? 4 : name === 'min' ? 5 : name === 'max' ? 6 : 7;
-    // Results beyond Int32 stay exact while they are safe integers; any other
-    // result is left to the BigInt path.
-    const cells = new Float64Array(size);
-    let wide = false;
     // Equal shapes address both operands in place, with no broadcast mapping.
     const sameShape = (value: RankValue) => !isRankArray(value) || same(value.shape, shape);
     const ai = sameShape(left) ? undefined : broadcastIndex(isRankArray(left) ? left.shape : undefined, shape);
@@ -158,6 +154,12 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         ? compactBinary(code, ac ?? Int32Array.of(x), a ? ao : 0, a ? as : 0,
             bc ?? Int32Array.of(y), b ? bo : 0, b ? bs : 0, size) : undefined;
     if (fast) return typedArray(fast, shape);
+    // Allocate wide scratch only after the compact path declines. Most stored
+    // Int32 operations finish above and would discard this buffer unused.
+    // Results beyond Int32 stay exact while they are safe integers; any other
+    // result is left to the BigInt path.
+    const cells = new Float64Array(size);
+    let wide = false;
     for (let start = 0; start < size; start += 4096) {
         const end = Math.min(size, start + 4096);
         checkpoint('computing integer array', end - start);

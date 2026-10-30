@@ -13,64 +13,35 @@ use cli
 arg Limit integer = 100000000
 
 rem Only 60, 90 and 120 degrees have a
-rem rational cosine, so the triangles
-rem are the multiples of the primitive
-rem ones with such an angle; one of
-rem perimeter p has Limit // p of them.
-rem With coprime m > n the primitive
-rem ones are,
-rem at 90 degrees, (m^2 - n^2, 2 m n,
-rem m^2 + n^2) with m - n odd; at 60,
-rem (m^2 - n^2, 2 m n - n^2,
-rem m^2 - m n + n^2) with n < m < 2 n,
-rem divided by 3 when 3 divides m + n;
-rem at 120, (m^2 - n^2, 2 m n + n^2,
-rem m^2 + m n + n^2), divided by 3 when
-rem 3 divides m - n, each arising twice.
-rem The equilateral triangle has 60 too.
+rem rational cosine among integral
+rem angles strictly between 0 and 180.
+rem Coprime m > n, with m - n not a
+rem multiple of 3, give one primitive
+rem 120-degree triangle with sides
+rem x=m^2-n^2, y=2mn+n^2, z=m^2+mn+n^2.
+rem The triangles (x,x+y,z) and (y,x+y,z)
+rem have 60 degrees. Their perimeters
+rem are (2m+n)(m+n), 3m(m+n), and
+rem (2m+n)(m+2n). Each has Limit // p
+rem multiples. Add equilateral ones too.
+rem Right triangles need m - n odd and
+rem perimeter 2m(m+n). This is smaller
+rem than all three other perimeters,
+rem so one bound and gcd mask suffice.
 Total = Limit // 3
-Twice = 0
-Top = (3 * Limit) isqrt + 2
+Top = (Limit // 2) isqrt
 for M in 2 to Top
-  Room = Limit // (2 * M) - M
-  Hi = Room min (M - 1)
+  Hi = (Limit // (2 * M) - M) min (M - 1)
   if Hi at least 1
     Ns = 1 to Hi array
     Co = Ns gcd M equal 1
-    Odd = (M - Ns) mod 2 equal 1
-    P' = 2 * M * (M + Ns)
-    Ok = Co and Odd
-    Pk = P filter Ok
-    Total += (Limit // Pk) sum
-  end
-  Disc = (M * M + 12 * Limit) isqrt
-  Cap = (Disc - 3 * M) // 2
-  Hi = Cap min (M - 1)
-  if Hi at least 1
-    Ns = 1 to Hi array
-    Co = Ns gcd M equal 1
-    By3 = (M - Ns) mod 3 equal 0
-    Div = 1 + 2 * (By3 choose 1 0)
-    Q = (2 * M + Ns) * (M + Ns) // Div
-    Ok = Co and (Q at most Limit)
-    Qk = Q filter Ok
-    Twice += (Limit // Qk) sum
+    R = Ns filter (Co and ((M - Ns) mod 2 equal 1))
+    Total += (Limit // (2 * M * (M + R))) sum
+    E = Ns filter (Co and ((M - Ns) mod 3 not equal 0))
+    Total += (Limit // ((2 * M + E) * (M + E))) sum
+    Total += (Limit // (3 * M * (M + E))) sum
+    Total += (Limit // ((2 * M + E) * (M + 2 * E))) sum
   end
 end
-for N in 1 to Top
-  Disc = (9 * N * N + 24 * Limit) isqrt
-  Hi = (Disc - N) // 4
-  Hi = Hi min (2 * N - 1)
-  if Hi at least N + 1
-    Ms = (N + 1) to Hi array
-    Co = Ms gcd N equal 1
-    By3 = (Ms + N) mod 3 equal 0
-    Div = 1 + 2 * (By3 choose 1 0)
-    P = (2 * Ms - N) * (Ms + N) // Div
-    Ok = Co and (P at most Limit)
-    Pk = P filter Ok
-    Total += (Limit // Pk) sum
-  end
-end
-Answer = Total + Twice // 2
+Answer = Total
 Answer print

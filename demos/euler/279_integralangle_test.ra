@@ -1,5 +1,12 @@
 use testing
 
+test "default input"
+  use "279_integralangle"
+  run
+
+  Answer equal 416577688
+end
+
 test "small limits"
   use "279_integralangle"
   Limit = 100
@@ -14,4 +21,20 @@ test "small limits"
   run
 
   Answer equal 8891
+end
+
+test "empty and first triangle"
+  use "279_integralangle"
+  Limit = 0
+  run
+  Answer equal 0
+  Limit = 1
+  run
+  Answer equal 0
+  Limit = 2
+  run
+  Answer equal 0
+  Limit = 3
+  run
+  Answer equal 1
 end
