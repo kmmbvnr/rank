@@ -1,0 +1,41 @@
+use testing
+
+test "sample 1: 5 friends mixed positive and negative"
+  use "0572_programming_technology"
+  run
+
+  Answer equal "4\n1 4 3 5"
+end
+
+test "insufficient initial authority for all friends"
+  use "0572_programming_technology"
+  Input = "3 0\n5 1\n10 -1\n2 3"
+  run
+
+  Answer equal "0"
+end
+
+test "all positive friends partial reach"
+  use "0572_programming_technology"
+  Input = "3 1\n2 1\n1 2\n5 3"
+  run
+
+  Answer equal "2\n2 1"
+end
+
+test "all negative friends optimal order"
+  use "0572_programming_technology"
+  Input = "2 10\n5 -2\n8 -3"
+  run
+
+  Answer equal "2\n2 1"
+end
+
+test "negative initial authority satisfied"
+  use "0572_programming_technology"
+  Input = "2 -5\n-10 2\n-2 1"
+  run
+
+  rem Initial -5 >= -10 -> reaches -3, which is not >= -2
+  Answer equal "1\n1"
+end

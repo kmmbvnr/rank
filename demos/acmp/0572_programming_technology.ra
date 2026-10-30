@@ -1,0 +1,70 @@
+rem ACMP 0572 - Programming Technology (Технология программирования)
+rem Maximize persuaded friends with required authority threshold a_i and authority change b_i.
+rem
+rem Greedy approach with dual-group sorting:
+rem 1. Friends with b_i >= 0 (positive or neutral impact) are processed first,
+rem    sorted by required threshold a_i ascending to accumulate authority as fast as possible.
+rem 2. Friends with b_i < 0 (negative impact) are processed last,
+rem    sorted by potential (a_i + b_i) descending with tie-breaker a_i descending.
+
+use io
+use cli
+use sequences
+use numbers
+use text
+
+arg Input text = "5 1\n1 3\n6 -5\n6 -4\n2 2\n2 -1"
+
+Tokens = (Input split "\n" join " ") split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+N = Nums 0
+P = Nums 1
+
+Idxs = (0 till N) array
+A = Nums (Idxs * 2 + 2)
+B = Nums (Idxs * 2 + 3)
+
+PosMask = B greater -1
+NegMask = B less 0
+
+PosIdx = Idxs PosMask
+NegIdx = Idxs NegMask
+
+SortedPos = array shape 0 fill 0
+if (PosIdx len) greater 0
+  PosOrder = (A PosIdx) argsort
+  SortedPos = PosIdx PosOrder
+end
+
+SortedNeg = array shape 0 fill 0
+if (NegIdx len) greater 0
+  Key = (A NegIdx + B NegIdx) * 10000000 + (A NegIdx)
+  NegOrder = (0 - Key) argsort
+  SortedNeg = NegIdx NegOrder
+end
+
+Order = concat SortedPos SortedNeg
+
+CurrentP = P
+Chosen = array shape 0 fill 0
+
+for Idx in Order
+  Req = A Idx
+  Delta = B Idx
+  if CurrentP greater (Req - 1)
+    CurrentP = CurrentP + Delta
+    Chosen = concat Chosen (array (Idx + 1))
+  end
+end
+
+Count = Chosen len
+Answer = ""
+if Count equal 0
+  Answer = "0"
+else
+  Answer = (Count text) + "\n" + (Chosen join " ")
+end
+
+Answer print
