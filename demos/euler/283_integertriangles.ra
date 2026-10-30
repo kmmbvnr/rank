@@ -25,6 +25,14 @@ rem Take x up to sqrt(3) K and test each
 rem divisor D, found from the factors of
 rem K and of x^2 + K^2 by a smallest
 rem prime factor sieve.
+rem The paired factor X Z - K^2 is at
+rem least D, so D <= sqrt(C), where
+rem C = K^2 (X^2 + K^2). Both factors
+rem are multiples of G = gcd(X, K^2):
+rem enumerate D = G E with E dividing
+rem C / G^2, and cap each partial D.
+rem This also bounds intermediate
+rem arithmetic before testing Y and Z.
 Lim = 16 * Top * Top
 Sp = array shape (Lim + 1) fill 0
 for P in 2 to (Lim isqrt)
@@ -84,7 +92,21 @@ for Kk in 1 to Top
         end
       end
     end
-    Dv 0 = 1
+    Cap = (K2 * (X * X + K2)) isqrt
+    BaseD = X gcd K2
+    rem Remove G^2 from the factorization
+    rem of C; start each divisor at G.
+    G = BaseD
+    for I in 0 till Np
+      for
+        if G mod (Pl I) greater 0
+          break
+        end
+        G = G // (Pl I)
+        El I = El I - 2
+      end
+    end
+    Dv 0 = BaseD
     Nd = 1
     for I in 0 till Np
       Old = Nd
@@ -92,8 +114,11 @@ for Kk in 1 to Top
       for J in 1 to (El I)
         Pw = Pw * Pl I
         for L in 0 till Old
-          Dv Nd = Dv L * Pw
-          Nd += 1
+          D = Dv L * Pw
+          if D at most Cap
+            Dv Nd = D
+            Nd += 1
+          end
         end
       end
     end

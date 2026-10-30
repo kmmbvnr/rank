@@ -1,12 +1,5 @@
 use testing
 
-test "default input"
-  use "283_integertriangles"
-  run
-
-  Answer equal 28038042525570324
-end
-
 test "small top"
   use "283_integertriangles"
   Top = 1
@@ -25,4 +18,20 @@ test "small top"
   run
 
   Answer equal 3781786
+end
+
+test "empty input and reduced factors"
+  use "283_integertriangles"
+  Top = 0
+  run
+
+  Answer equal 0
+  Top = 3
+  run
+
+  Answer equal 17644
+  Top = 100
+  run
+
+  Answer equal 289620027474
 end

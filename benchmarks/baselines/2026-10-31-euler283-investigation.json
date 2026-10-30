@@ -1,0 +1,2237 @@
+{
+  "date": "2026-10-30T19:39:48.363700+00:00",
+  "commit": "be2c200bbe27bcc17ee4121768eb3a029d2e3258",
+  "node": "v24.15.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "protocol": "Fresh serial processes; imports excluded, parse included; other host load uncontrolled; RSS is process high-water.",
+  "main": {
+    "summary": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "top": 1000,
+        "medianMs": 60739.810124999996,
+        "medianRSSMiB": 348.625,
+        "samples": [
+          {
+            "mode": "compiled",
+            "variant": "original",
+            "limit": "1000",
+            "answer": "28038042525570324",
+            "ms": 60739.810124999996,
+            "rssMiB": 348.625,
+            "stages": [
+              {
+                "label": "28038042525570324",
+                "ms": 60739.709166
+              }
+            ],
+            "round": 0
+          },
+          {
+            "mode": "compiled",
+            "variant": "original",
+            "limit": "1000",
+            "answer": "28038042525570324",
+            "ms": 58853.769583,
+            "rssMiB": 349.296875,
+            "stages": [
+              {
+                "label": "28038042525570324",
+                "ms": 58853.684458
+              }
+            ],
+            "round": 1
+          },
+          {
+            "mode": "compiled",
+            "variant": "original",
+            "limit": "1000",
+            "answer": "28038042525570324",
+            "ms": 62664.691875,
+            "rssMiB": 345.125,
+            "stages": [
+              {
+                "label": "28038042525570324",
+                "ms": 62664.605041999996
+              }
+            ],
+            "round": 2
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "capped",
+        "top": 1000,
+        "medianMs": 7603.022542000001,
+        "medianRSSMiB": 328.578125,
+        "samples": [
+          {
+            "mode": "compiled",
+            "variant": "capped",
+            "limit": "1000",
+            "answer": "28038042525570324",
+            "ms": 7572.575917,
+            "rssMiB": 329.53125,
+            "stages": [
+              {
+                "label": "28038042525570324",
+                "ms": 7572.4980829999995
+              }
+            ],
+            "round": 0
+          },
+          {
+            "mode": "compiled",
+            "variant": "capped",
+            "limit": "1000",
+            "answer": "28038042525570324",
+            "ms": 7603.022542000001,
+            "rssMiB": 328.578125,
+            "stages": [
+              {
+                "label": "28038042525570324",
+                "ms": 7602.948709
+              }
+            ],
+            "round": 1
+          },
+          {
+            "mode": "compiled",
+            "variant": "capped",
+            "limit": "1000",
+            "answer": "28038042525570324",
+            "ms": 8042.146125,
+            "rssMiB": 327.78125,
+            "stages": [
+              {
+                "label": "28038042525570324",
+                "ms": 8042.056167000001
+              }
+            ],
+            "round": 2
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "safe",
+        "top": 1000,
+        "medianMs": 31972.530832999997,
+        "medianRSSMiB": 338.796875,
+        "samples": [
+          {
+            "mode": "compiled",
+            "variant": "safe",
+            "limit": "1000",
+            "answer": "28038042525570324",
+            "ms": 31348.826707999997,
+            "rssMiB": 338.46875,
+            "stages": [
+              {
+                "label": "28038042525570324",
+                "ms": 31348.745124999998
+              }
+            ],
+            "round": 0
+          },
+          {
+            "mode": "compiled",
+            "variant": "safe",
+            "limit": "1000",
+            "answer": "28038042525570324",
+            "ms": 32575.440708000002,
+            "rssMiB": 338.796875,
+            "stages": [
+              {
+                "label": "28038042525570324",
+                "ms": 32575.365792
+              }
+            ],
+            "round": 1
+          },
+          {
+            "mode": "compiled",
+            "variant": "safe",
+            "limit": "1000",
+            "answer": "28038042525570324",
+            "ms": 31972.530832999997,
+            "rssMiB": 340.234375,
+            "stages": [
+              {
+                "label": "28038042525570324",
+                "ms": 31972.458208
+              }
+            ],
+            "round": 2
+          }
+        ]
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "top": 100,
+        "medianMs": 4256.193792,
+        "medianRSSMiB": 418.96875,
+        "samples": [
+          {
+            "mode": "reference",
+            "variant": "original",
+            "limit": "100",
+            "answer": "289620027474",
+            "ms": 4752.853583,
+            "rssMiB": 418.96875,
+            "stages": [
+              {
+                "label": "289620027474",
+                "ms": 4752.776167
+              }
+            ],
+            "round": 0
+          },
+          {
+            "mode": "reference",
+            "variant": "original",
+            "limit": "100",
+            "answer": "289620027474",
+            "ms": 4256.193792,
+            "rssMiB": 420.734375,
+            "stages": [
+              {
+                "label": "289620027474",
+                "ms": 4256.130459
+              }
+            ],
+            "round": 1
+          },
+          {
+            "mode": "reference",
+            "variant": "original",
+            "limit": "100",
+            "answer": "289620027474",
+            "ms": 4195.45125,
+            "rssMiB": 417.28125,
+            "stages": [
+              {
+                "label": "289620027474",
+                "ms": 4195.389625
+              }
+            ],
+            "round": 2
+          }
+        ]
+      },
+      {
+        "mode": "reference",
+        "variant": "capped",
+        "top": 100,
+        "medianMs": 3440.8095829999997,
+        "medianRSSMiB": 413.546875,
+        "samples": [
+          {
+            "mode": "reference",
+            "variant": "capped",
+            "limit": "100",
+            "answer": "289620027474",
+            "ms": 3969.7215000000006,
+            "rssMiB": 415.828125,
+            "stages": [
+              {
+                "label": "289620027474",
+                "ms": 3969.633833
+              }
+            ],
+            "round": 0
+          },
+          {
+            "mode": "reference",
+            "variant": "capped",
+            "limit": "100",
+            "answer": "289620027474",
+            "ms": 3440.8095829999997,
+            "rssMiB": 413.546875,
+            "stages": [
+              {
+                "label": "289620027474",
+                "ms": 3440.740708
+              }
+            ],
+            "round": 1
+          },
+          {
+            "mode": "reference",
+            "variant": "capped",
+            "limit": "100",
+            "answer": "289620027474",
+            "ms": 3422.3517079999997,
+            "rssMiB": 412.96875,
+            "stages": [
+              {
+                "label": "289620027474",
+                "ms": 3422.283042
+              }
+            ],
+            "round": 2
+          }
+        ]
+      }
+    ],
+    "samples": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 60739.810124999996,
+        "rssMiB": 348.625,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 60739.709166
+          }
+        ],
+        "round": 0
+      },
+      {
+        "mode": "compiled",
+        "variant": "capped",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 7572.575917,
+        "rssMiB": 329.53125,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 7572.4980829999995
+          }
+        ],
+        "round": 0
+      },
+      {
+        "mode": "compiled",
+        "variant": "safe",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 31348.826707999997,
+        "rssMiB": 338.46875,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 31348.745124999998
+          }
+        ],
+        "round": 0
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 4752.853583,
+        "rssMiB": 418.96875,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 4752.776167
+          }
+        ],
+        "round": 0
+      },
+      {
+        "mode": "reference",
+        "variant": "capped",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 3969.7215000000006,
+        "rssMiB": 415.828125,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 3969.633833
+          }
+        ],
+        "round": 0
+      },
+      {
+        "mode": "compiled",
+        "variant": "capped",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 7603.022542000001,
+        "rssMiB": 328.578125,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 7602.948709
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "safe",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 32575.440708000002,
+        "rssMiB": 338.796875,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 32575.365792
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 4256.193792,
+        "rssMiB": 420.734375,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 4256.130459
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "capped",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 3440.8095829999997,
+        "rssMiB": 413.546875,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 3440.740708
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 58853.769583,
+        "rssMiB": 349.296875,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 58853.684458
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "safe",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 31972.530832999997,
+        "rssMiB": 340.234375,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 31972.458208
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 4195.45125,
+        "rssMiB": 417.28125,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 4195.389625
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "capped",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 3422.3517079999997,
+        "rssMiB": 412.96875,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 3422.283042
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 62664.691875,
+        "rssMiB": 345.125,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 62664.605041999996
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "capped",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 8042.146125,
+        "rssMiB": 327.78125,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 8042.056167000001
+          }
+        ],
+        "round": 2
+      }
+    ]
+  },
+  "widePredicatePrototype": {
+    "summary": [
+      {
+        "variant": "original",
+        "medianMs": 36230.396457999996,
+        "medianRSSMiB": 364.734375
+      },
+      {
+        "variant": "capped",
+        "medianMs": 43040.204834000004,
+        "medianRSSMiB": 367.375
+      }
+    ],
+    "samples": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 36913.285958,
+        "rssMiB": 363.171875,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 36913.200916999995
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "capped",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 43040.204834000004,
+        "rssMiB": 363.84375,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 43040.120084
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "capped",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 44102.68275,
+        "rssMiB": 368.0625,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 44102.588542
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 36230.396457999996,
+        "rssMiB": 365.40625,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 36230.321292
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 34573.663458,
+        "rssMiB": 364.734375,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 34573.583375
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "capped",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 41624.7255,
+        "rssMiB": 367.375,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 41624.641959
+          }
+        ]
+      }
+    ]
+  },
+  "reduced": {
+    "summary": [
+      {
+        "mode": "compiled",
+        "medianMs": 6736.957791,
+        "medianRSSMiB": 336.65625
+      },
+      {
+        "mode": "reference",
+        "medianMs": 3508.41425,
+        "medianRSSMiB": 407.921875
+      }
+    ],
+    "samples": [
+      {
+        "mode": "compiled",
+        "variant": "reduced",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 5836.383917,
+        "rssMiB": 337.734375,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 5836.306917
+          }
+        ]
+      },
+      {
+        "mode": "reference",
+        "variant": "reduced",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 3285.7970840000003,
+        "rssMiB": 405.5,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 3285.7203750000003
+          }
+        ]
+      },
+      {
+        "mode": "reference",
+        "variant": "reduced",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 3588.876875,
+        "rssMiB": 409.390625,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 3588.7956249999997
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "reduced",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 6746.270875,
+        "rssMiB": 335.640625,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 6746.176625
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "reduced",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 6736.957791,
+        "rssMiB": 336.65625,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 6736.83225
+          }
+        ]
+      },
+      {
+        "mode": "reference",
+        "variant": "reduced",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 3508.41425,
+        "rssMiB": 407.921875,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 3508.348
+          }
+        ]
+      }
+    ]
+  },
+  "pairedFull": {
+    "summary": [
+      {
+        "variant": "capped",
+        "medianMs": 9262.657000000001,
+        "medianRSSMiB": 328.78125
+      },
+      {
+        "variant": "reduced",
+        "medianMs": 6637.255999999999,
+        "medianRSSMiB": 336.015625
+      }
+    ],
+    "samples": [
+      {
+        "mode": "compiled",
+        "variant": "capped",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 9294.490541,
+        "rssMiB": 328.796875,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 9294.377041
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "reduced",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 6570.596875,
+        "rssMiB": 336.734375,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 6570.503625
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "reduced",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 6651.828625,
+        "rssMiB": 334.578125,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 6651.734875
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "capped",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 9246.842875,
+        "rssMiB": 328.359375,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 9246.758083
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "capped",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 9262.657000000001,
+        "rssMiB": 328.78125,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 9262.563292
+          }
+        ]
+      },
+      {
+        "mode": "compiled",
+        "variant": "reduced",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 6637.255999999999,
+        "rssMiB": 336.015625,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 6637.160417
+          }
+        ]
+      }
+    ]
+  },
+  "initialDiagnostics": {
+    "diag10": {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "10",
+      "answer": "3781786",
+      "ms": 148.32687500000003,
+      "rssMiB": 176,
+      "stages": [
+        {
+          "label": "sieve",
+          "ms": 142.38266600000003
+        },
+        {
+          "label": "3781786",
+          "ms": 5.886124999999993
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "diag100": {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "100",
+      "answer": "289620027474",
+      "ms": 282.321833,
+      "rssMiB": 193.578125,
+      "stages": [
+        {
+          "label": "sieve",
+          "ms": 135.207583
+        },
+        {
+          "label": "289620027474",
+          "ms": 147.06733300000002
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "diag1000": {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "1000",
+      "answer": "28038042525570324",
+      "ms": 53170.0485,
+      "rssMiB": 345.8125,
+      "stages": [
+        {
+          "label": "sieve",
+          "ms": 353.733833
+        },
+        {
+          "label": "28038042525570324",
+          "ms": 52816.193542
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 2,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "capped1000": {
+      "mode": "compiled",
+      "variant": "capped",
+      "limit": "1000",
+      "answer": "28038042525570324",
+      "ms": 7357.747958999999,
+      "rssMiB": 327.921875,
+      "stages": [
+        {
+          "label": "sieve",
+          "ms": 319.773375
+        },
+        {
+          "label": "28038042525570324",
+          "ms": 7037.8940840000005
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "safe1000": {
+      "mode": "compiled",
+      "variant": "safe",
+      "limit": "1000",
+      "answer": "28038042525570324",
+      "ms": 31422.107625,
+      "rssMiB": 337.015625,
+      "stages": [
+        {
+          "label": "sieve",
+          "ms": 313.3365
+        },
+        {
+          "label": "28038042525570324",
+          "ms": 31108.689625
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "pruned1000": {
+      "mode": "compiled",
+      "variant": "pruned",
+      "limit": "1000",
+      "answer": "28038042525570324",
+      "ms": 7916.4378750000005,
+      "rssMiB": 329.75,
+      "stages": [
+        {
+          "label": "sieve",
+          "ms": 326.139416
+        },
+        {
+          "label": "28038042525570324",
+          "ms": 7590.209334
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "hoisted1000": {
+      "mode": "compiled",
+      "variant": "hoisted",
+      "limit": "1000",
+      "answer": "28038042525570324",
+      "ms": 7666.864541999999,
+      "rssMiB": 332.703125,
+      "stages": [
+        {
+          "label": "sieve",
+          "ms": 346.65766699999995
+        },
+        {
+          "label": "28038042525570324",
+          "ms": 7320.133666000001
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 5,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "congruent1000": {
+      "mode": "compiled",
+      "variant": "congruent",
+      "limit": "1000",
+      "answer": "28038042525570324",
+      "ms": 7504.0275,
+      "rssMiB": 338.359375,
+      "stages": [
+        {
+          "label": "sieve",
+          "ms": 379.937584
+        },
+        {
+          "label": "28038042525570324",
+          "ms": 7123.981541
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "wide-original1000": {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "1000",
+      "answer": "28038042525570324",
+      "ms": 37477.323791,
+      "rssMiB": 363.59375,
+      "stages": [
+        {
+          "label": "28038042525570324",
+          "ms": 37477.245083
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "reduced1000": {
+      "mode": "compiled",
+      "variant": "reduced",
+      "limit": "1000",
+      "answer": "28038042525570324",
+      "ms": 6633.870457999999,
+      "rssMiB": 337.75,
+      "stages": [
+        {
+          "label": "sieve",
+          "ms": 390.65670800000004
+        },
+        {
+          "label": "28038042525570324",
+          "ms": 6243.128208
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-type:array": 4,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    }
+  },
+  "verification": {
+    "stock": {
+      "comparisons": 273,
+      "variants": [
+        "original",
+        "safe",
+        "capped",
+        "pruned",
+        "hoisted",
+        "congruent",
+        "reduced"
+      ],
+      "limits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        10,
+        15,
+        20,
+        25,
+        50,
+        100
+      ],
+      "expected": {
+        "0": "0",
+        "1": "192",
+        "2": "2796",
+        "3": "17644",
+        "4": "57856",
+        "5": "140098",
+        "7": "712244",
+        "10": "3781786",
+        "15": "27042494",
+        "20": "100349196",
+        "25": "304657928",
+        "50": "9152902472",
+        "100": "289620027474"
+      }
+    },
+    "widePrototype": {
+      "comparisons": 273,
+      "variants": [
+        "original",
+        "safe",
+        "capped",
+        "pruned",
+        "hoisted",
+        "congruent",
+        "reduced"
+      ],
+      "limits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        10,
+        15,
+        20,
+        25,
+        50,
+        100
+      ],
+      "expected": {
+        "0": "0",
+        "1": "192",
+        "2": "2796",
+        "3": "17644",
+        "4": "57856",
+        "5": "140098",
+        "7": "712244",
+        "10": "3781786",
+        "15": "27042494",
+        "20": "100349196",
+        "25": "304657928",
+        "50": "9152902472",
+        "100": "289620027474"
+      }
+    }
+  },
+  "referenceProfile": {
+    "result": {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "100",
+      "answer": "289620027474",
+      "ms": 5412.420499999999,
+      "rssMiB": 419.921875,
+      "stages": [
+        {
+          "label": "289620027474",
+          "ms": 5412.330833999999
+        }
+      ]
+    },
+    "top": [
+      {
+        "name": "stream",
+        "samples": 221,
+        "percent": 4.76,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/loops.js",
+        "line": 66
+      },
+      {
+        "name": "(garbage collector)",
+        "samples": 136,
+        "percent": 2.93,
+        "url": "",
+        "line": 0
+      },
+      {
+        "name": "execute",
+        "samples": 132,
+        "percent": 2.85,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/blocks.js",
+        "line": 31
+      },
+      {
+        "name": "(program)",
+        "samples": 125,
+        "percent": 2.69,
+        "url": "",
+        "line": 0
+      },
+      {
+        "name": "stream",
+        "samples": 110,
+        "percent": 2.37,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js",
+        "line": 349
+      },
+      {
+        "name": "sequenceValues",
+        "samples": 63,
+        "percent": 1.36,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/sequence.js",
+        "line": 381
+      },
+      {
+        "name": "",
+        "samples": 63,
+        "percent": 1.36,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/sequence.js",
+        "line": 387
+      },
+      {
+        "name": "selectValues",
+        "samples": 57,
+        "percent": 1.23,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/value-selection.js",
+        "line": 30
+      },
+      {
+        "name": "store",
+        "samples": 55,
+        "percent": 1.19,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js",
+        "line": 339
+      },
+      {
+        "name": "",
+        "samples": 53,
+        "percent": 1.14,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+        "line": 184
+      },
+      {
+        "name": "assign",
+        "samples": 52,
+        "percent": 1.12,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js",
+        "line": 57
+      },
+      {
+        "name": "",
+        "samples": 49,
+        "percent": 1.06,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+        "line": 255
+      },
+      {
+        "name": "",
+        "samples": 47,
+        "percent": 1.01,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/application.js",
+        "line": 479
+      },
+      {
+        "name": "",
+        "samples": 46,
+        "percent": 0.99,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+        "line": 255
+      },
+      {
+        "name": "makeRange",
+        "samples": 46,
+        "percent": 0.99,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 570
+      },
+      {
+        "name": "assign",
+        "samples": 45,
+        "percent": 0.97,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js",
+        "line": 57
+      },
+      {
+        "name": "checkMutable",
+        "samples": 45,
+        "percent": 0.97,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js",
+        "line": 158
+      },
+      {
+        "name": "stream",
+        "samples": 45,
+        "percent": 0.97,
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/mutation-guards.js",
+        "line": 36
+      }
+    ]
+  },
+  "sha256": {
+    "benchmarks/experiments/euler283-reduced.ra": "0d82ea6e0b4ff73adf67113e9fd442878e032b817beac8b1d4e1b1a5ba37741f",
+    "benchmarks/experiments/euler283-congruent.ra": "25511aeb40cfd6f0e50c91fd4e7953a588b6eae3d3f81d62efbc099f04736218",
+    "benchmarks/experiments/euler283-safe.ra": "750e74a6c44a9eeda12a26766693ab88f8dc95fa72101e24e77016d6a088be6c",
+    "benchmarks/experiments/euler283-original.ra": "0c80bb06b60fbfccf44dacec6972718a3bf524212cbeb937dbfffb7369ed0662",
+    "benchmarks/experiments/euler283-wide-predicates-loader.mjs": "1ebfa0d1658e91e529f1191e4b64e69eb0eb98426e2a676b0cd5d80e027e6562",
+    "benchmarks/experiments/euler283-capped.ra": "64796eb443334c49aba1262aaf0f571ee5cbe2691084f7ca185e8c4448c89319",
+    "benchmarks/experiments/euler283-hoisted.ra": "b17e7289b84e428ccff5d98332f71194e19b76f96a7071342cc57e259f9481c6",
+    "benchmarks/experiments/euler283-pruned.ra": "dc6071c77641958c6a35124ed0b5dc3f2b67390f93d5416da2dd640874d940e9",
+    "benchmarks/euler283-investigation.mjs": "f9fdf0315446ed0049c09846a14c8037658b244fd64629b30d2ae52859374c2f",
+    "benchmarks/euler283-verify.mjs": "e58bae4c2d78ed13f0807b475ef1b6b35d5717c649f0883c0dc38d6789c3137b",
+    "demos/euler/283_integertriangles.ra": "0c80bb06b60fbfccf44dacec6972718a3bf524212cbeb937dbfffb7369ed0662",
+    "packages/interpreter/out/jit/integer-loop-wide.js": "e62743d2f32a25c13d8ba9ac74f1a6ae0db52ce56b965b16d16121845bc4a47d",
+    "packages/interpreter/out/jit/integer-loop-statements.js": "d68c8554d8f7f6bc486bf4e96071ba52a2df4223ae31d93dadc550849efb207c",
+    "packages/interpreter/out/jit/number-loop-runtime.js": "9c516897c67f72d64dae53d68a4e2e97b8b21408416b941a548678622eda661f"
+  },
+  "notRun": [
+    "full reference default",
+    "ordinary full suites",
+    "exhaustive audits",
+    "Intel measurements"
+  ],
+  "delivery": {
+    "parentCommit": "d50ed27fc87d48b9c3e3daf50d404757ed25100e",
+    "runtimeFingerprint": "81a0cdfe5f04216f1d91dd33dd196839ac8516b7dd798c2ccc20b9908b6f8cc6",
+    "sha256": {
+      "demos/euler/283_integertriangles.ra": "2fa528b2941e3c0b42580184802a0a3b79c75aa24d3d6ae112a98219dee17a9d",
+      "demos/euler/283_integertriangles_test.ra": "6ae196c8345ccec5c7f02d1b8b89db95be844aa90f9b738f4eee226764b8de5b",
+      "packages/interpreter/test/full-scale-demos.test.ts": "323e285fb17c9b52418c63ddba1f6a33280ad43baeb2de3927ff5c047c50a622",
+      "scripts/demo-execution-exclusions.json": "318c2b0c0c7c2764efee20b5fb370bc81b28477894a1512675fcb79540eadd6c",
+      "benchmarks/euler283-verify.mjs": "4e21a1412ea5fa9f97ed26306a1493399d2a159cc381bedb3e9c1e2041e46ea8"
+    },
+    "summary": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "top": 1000,
+        "medianMs": 54343.488625000005,
+        "medianRSSMiB": 346.234375
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "top": 1000,
+        "medianMs": 5304.290375,
+        "medianRSSMiB": 336.0625
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "top": 100,
+        "medianMs": 4156.6887910000005,
+        "medianRSSMiB": 418.6875
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "top": 100,
+        "medianMs": 2838.777458,
+        "medianRSSMiB": 407.171875
+      }
+    ],
+    "samples": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 54654.047334,
+        "rssMiB": 345.09375,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 54653.954709000005
+          }
+        ],
+        "round": 0
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 5304.290375,
+        "rssMiB": 336.0625,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 5304.216625
+          }
+        ],
+        "round": 0
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 4156.6887910000005,
+        "rssMiB": 419.078125,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 4156.627583
+          }
+        ],
+        "round": 0
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 2838.777458,
+        "rssMiB": 407.171875,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 2838.713417
+          }
+        ],
+        "round": 0
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 5679.302083,
+        "rssMiB": 336.21875,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 5679.219583
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 4625.790167,
+        "rssMiB": 415.875,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 4625.727583
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 2849.9208339999996,
+        "rssMiB": 407.703125,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 2849.8593339999998
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 53298.298459,
+        "rssMiB": 346.234375,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 53298.207959
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 4150.757917,
+        "rssMiB": 418.6875,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 4150.697083
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "limit": "100",
+        "answer": "289620027474",
+        "ms": 2810.467458,
+        "rssMiB": 400.640625,
+        "stages": [
+          {
+            "label": "289620027474",
+            "ms": 2810.401125
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 54343.488625000005,
+        "rssMiB": 346.65625,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 54343.402500000004
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "limit": "1000",
+        "answer": "28038042525570324",
+        "ms": 5240.815458,
+        "rssMiB": 334.703125,
+        "stages": [
+          {
+            "label": "28038042525570324",
+            "ms": 5240.741083
+          }
+        ],
+        "round": 2
+      }
+    ],
+    "oracle": {
+      "comparisons": 312,
+      "variants": [
+        "original",
+        "safe",
+        "capped",
+        "pruned",
+        "hoisted",
+        "congruent",
+        "reduced",
+        "shipping"
+      ],
+      "limits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        10,
+        15,
+        20,
+        25,
+        50,
+        100
+      ],
+      "expected": {
+        "0": "0",
+        "1": "192",
+        "2": "2796",
+        "3": "17644",
+        "4": "57856",
+        "5": "140098",
+        "7": "712244",
+        "10": "3781786",
+        "15": "27042494",
+        "20": "100349196",
+        "25": "304657928",
+        "50": "9152902472",
+        "100": "289620027474"
+      }
+    },
+    "verification": [
+      "tsc -b packages/language packages/interpreter",
+      "full-scale-demos.test.ts -t Euler 283: 1 passed, 12 skipped",
+      "types.test.ts and differential.test.ts -t euler/283_integertriangles_test: 2 passed, 4235 skipped; 1 fixture, 2 blocks, 106 compiled entries, 14 Number loop entries",
+      "check:semantic-boundaries: 11 tests passed and 65 owners checked"
+    ],
+    "notRun": [
+      "full reference Top=1000",
+      "full ordinary suites",
+      "exhaustive audits",
+      "Intel runs"
+    ]
+  }
+}

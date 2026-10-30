@@ -1,0 +1,121 @@
+rem Integer Triangles
+rem https://projecteuler.net/problem=283
+rem Add up the perimeters of all the
+rem triangles with integer sides whose
+rem area to perimeter ratio is an
+rem integer k, for k up to Top
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Top integer = 1000
+
+rem With x, y, z the distances from the
+rem corners to the touching points of
+rem the incircle, of radius K = 2 k,
+rem Heron gives x y z = K^2 (x + y + z),
+rem and x, y, z are integers, the sides
+rem y + z and so on. For x <= y <= z, D
+rem = x y - K^2 is a divisor of K^2 (x^2
+rem + K^2) and y and z follow from D,
+rem the perimeter being 2 (x + y + z).
+rem Take x up to sqrt(3) K and test each
+rem divisor D, found from the factors of
+rem K and of x^2 + K^2 by a smallest
+rem prime factor sieve.
+Lim = 16 * Top * Top
+Sp = array shape (Lim + 1) fill 0
+for P in 2 to (Lim isqrt)
+  if Sp P equal 0
+    for J in (P * P) to Lim by P
+      if Sp J equal 0
+        Sp J = P
+      end
+    end
+  end
+end
+Pl = array shape 40 fill 0
+El = array shape 40 fill 0
+Dv = array shape 200000 fill 0
+Total = 0
+for Kk in 1 to Top
+  K = 2 * Kk
+  K2 = K * K
+  for X in 1 to (3 * K2 isqrt)
+    Np = 0
+    for T in 1 to 2
+      V = K
+      if T equal 2
+        V = X * X + K2
+      end
+      for
+        if V equal 1
+          break
+        end
+        P = Sp V
+        if P equal 0
+          P = V
+        end
+        Ex = 0
+        for
+          if V mod P greater 0
+            break
+          end
+          V = V // P
+          Ex += 1
+        end
+        if T equal 1
+          Ex = Ex * 2
+        end
+        Fd = -1
+        for I in 0 till Np
+          if Pl I equal P
+            Fd = I
+          end
+        end
+        if Fd less 0
+          Pl Np = P
+          El Np = Ex
+          Np += 1
+        else
+          El Fd = El Fd + Ex
+        end
+      end
+    end
+    Cap = (K2 * (X * X + K2)) isqrt
+    Dv 0 = 1
+    Nd = 1
+    for I in 0 till Np
+      Old = Nd
+      Pw = 1
+      for J in 1 to (El I)
+        Pw = Pw * Pl I
+        for L in 0 till Old
+          D = Dv L * Pw
+          if D at most Cap
+            Dv Nd = D
+            Nd += 1
+          end
+        end
+      end
+    end
+    for L in 0 till Nd
+      D = Dv L
+      if (D + K2) mod X equal 0
+        Y = (D + K2) // X
+        Sm = K2 * (X + Y)
+        Oy = Y at least X
+        if Oy and Sm mod D equal 0
+          Z = Sm // D
+          if Z at least Y
+            Total += 2 * (X + Y + Z)
+          end
+        end
+      end
+    end
+  end
+end
+Answer = Total
+Answer print

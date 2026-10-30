@@ -121,3 +121,15 @@ it('checks the full compiled answer for Euler 272', () => {
         expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 }, 60_000);
+
+it('compiles the full Euler 283 reduced-divisor search with an exact wide total', () => {
+    const url = new URL('../../../demos/euler/283_integertriangles.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(28038042525570324n);
+        expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(2);
+        expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
+    } finally { runtime.dispose(); }
+}, 60_000);
