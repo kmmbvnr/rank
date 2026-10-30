@@ -75,8 +75,8 @@ export function native(
 
 /** Register the checked scalar body without exposing a new NativeFunction ABI. */
 export function scalarNative(name: string, call: (value: RankValue) => RankValue,
-    batch?: (source: RankArray) => RankArray | undefined, result?: 'real' | 'integer'): NativeFunction {
-    return registerScalarBuiltin(native(name, 1, args => call(args[0])), call, batch, result);
+    batch?: (source: RankArray) => RankArray | undefined, result?: 'real' | 'integer' | 'numeric', intrinsic?: 'abs'): NativeFunction {
+    return registerScalarBuiltin(native(name, 1, args => call(args[0])), call, batch, result, intrinsic);
 }
 
 export function mapValue(

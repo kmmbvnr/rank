@@ -10,12 +10,13 @@ import type { NativeFunction, RankArray, RankValue } from '../value.js';
 const operations = new WeakMap<NativeFunction, {
     call: NativeFunction['call']; scalar(value: RankValue): RankValue;
     batch?: (source: RankArray) => RankArray | undefined;
-    result?: 'real' | 'integer';
+    result?: 'real' | 'integer' | 'numeric';
+    intrinsic?: 'abs';
 }>();
 
 export function registerScalarBuiltin(fn: NativeFunction, operation: (value: RankValue) => RankValue,
-    batch?: (source: RankArray) => RankArray | undefined, result?: 'real' | 'integer'): NativeFunction {
-    operations.set(fn, { call: fn.call, scalar: operation, batch, result });
+    batch?: (source: RankArray) => RankArray | undefined, result?: 'real' | 'integer' | 'numeric', intrinsic?: 'abs'): NativeFunction {
+    operations.set(fn, { call: fn.call, scalar: operation, batch, result, intrinsic });
     return fn;
 }
 
@@ -52,5 +53,5 @@ export function scalarBuiltinArray(source: RankArray, fn: NativeFunction,
     });
     if (registered.batch) registerArrayCopy(result, () => registered.batch!(source));
     return registered.result ? registerTensorScalarMap(result, source, operation, registered.result,
-        () => registered.call === fn.call) : result;
+        () => registered.call === fn.call, registered.intrinsic) : result;
 }

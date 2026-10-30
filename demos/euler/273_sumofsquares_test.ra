@@ -1,7 +1,6 @@
 use testing
 
-rem The default input takes about a
-rem minute: smaller limits only.
+rem Small cases and strict prime bounds.
 test "small limits"
   use "273_sumofsquares"
   Limit = 20
@@ -16,4 +15,17 @@ test "small limits"
   run
 
   Answer equal 2579619
+end
+
+test "prime boundaries and full answer"
+  use "273_sumofsquares"
+  Limit = 5
+  run
+  Answer equal 0
+  Limit = 6
+  run
+  Answer equal 1
+  Limit = 150
+  run
+  Answer equal 2032447591196869022
 end

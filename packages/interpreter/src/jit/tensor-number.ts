@@ -27,7 +27,7 @@ const caches = new WeakMap<TensorCodeCache, Map<string, Run>>();
  * Overflow discards private consumer state before the ordinary exact demand. */
 export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>,
     operation: 'sum' | 'positions', code: TensorCodeCache, valid: () => boolean,
-    indices?: readonly number[]): (() => bigint | number[] | undefined) | undefined {
+    indices?: readonly number[], compiled?: (source: string) => void): (() => bigint | number[] | undefined) | undefined {
     const expected = operation === 'sum' ? 'integer' : 'boolean';
     if (!privateLoopPolling() || domains.get(root)?.join() !== expected) return undefined;
     const data: Cells[] = [], scalars: (number | boolean)[] = [], lines: string[] = [];
@@ -78,11 +78,12 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
             if (node.op === 'not' && a.type === 'boolean') value = `!${a.name}`;
             else if ((node.op === '+' || node.op === '-') && a.type === 'integer') value = `${node.op}${a.name}`;
             else return undefined;
-        } else if (node.kind === 'binary' && !node.native && !node.ranks) {
+        } else if (node.kind === 'binary' && (!node.native || node.native === 'min' || node.native === 'max') && !node.ranks) {
             const a = emit(node.left), b = emit(node.right);
             if (!a || !b) return undefined;
             if (a.type === 'integer' && b.type === 'integer') {
                 if (['+', '-', '*'].includes(node.op)) value = `safe(${a.name} ${node.op} ${b.name})`;
+                else if (node.op === 'min' || node.op === 'max') value = `Math.${node.op}(${a.name}, ${b.name})`;
                 else if (node.op === '//') value = `divide(${a.name}, ${b.name})`;
                 else if (node.op === 'mod') value = `remainder(${a.name}, ${b.name})`;
                 else {
@@ -117,13 +118,16 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
     if (!cache) caches.set(code, cache = new Map());
     let run = cache.get(source);
     if (!run) {
-        run = new Function('safe', 'divide', 'remainder', 'checkpoint', source)(safe, divide,
-            (a: number, b: number) => {
-                if (!b) throw overflow;
-                const r = a % b;
-                return r !== 0 && (r < 0) !== (b < 0) ? safe(r + b) : r;
-            }, checkpoint) as Run;
+        try {
+            run = new Function('safe', 'divide', 'remainder', 'checkpoint', source)(safe, divide,
+                (a: number, b: number) => {
+                    if (!b) throw overflow;
+                    const r = a % b;
+                    return r !== 0 && (r < 0) !== (b < 0) ? safe(r + b) : r;
+                }, checkpoint) as Run;
+        } catch { return undefined; }
         if (cache.size < 128) cache.set(source, run);
+        compiled?.(source);
     }
     return () => {
         if (!privateLoopPolling() || !valid()) return undefined;

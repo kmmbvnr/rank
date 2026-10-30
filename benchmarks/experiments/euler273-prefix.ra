@@ -1,0 +1,112 @@
+rem Sum of Squares
+rem https://projecteuler.net/problem=273
+rem Add up the a, with 0 < a <= b, over
+rem all N = a^2 + b^2 that are a product
+rem of distinct primes = 1 mod 4 below
+rem Limit
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 150
+
+rem A prime p = u^2 + v^2 = (u + v i)
+rem (u - v i). A product of some of
+rem them, each in one of its two forms,
+rem is a Gaussian integer z with
+rem |z|^2 = N, and its 2^k forms give
+rem the 2^(k-1) ways, each twice. So the
+rem answer is half the sum of the
+rem smaller of |re z| and |im z| over
+rem all such z. List the z for two
+rem halves of the primes, then multiply
+rem every pair of them.
+Ps = primes till Limit array
+Quad' = Ps mod 4 equal 1
+Ones = Ps filter Quad array
+H = Ones len // 2
+Ar = array 1
+Ai = array 0
+Br = array 1
+Bi = array 0
+for P in Ones
+  Us = 1 to (P isqrt) array
+  Vq = P - Us * Us
+  Root = Vq isqrt
+  Hit' = Root * Root equal Vq
+  U = (Us filter Hit) 0
+  V = (P - U * U) isqrt
+  First = Ones take H
+  Same' = First equal P
+  Mine = (First filter Same) len
+  if Mine greater 0
+    Tr' = Ar * U - Ai * V
+    Ti' = Ar * V + Ai * U
+    Sr' = Ar * U + Ai * V
+    Si' = Ai * U - Ar * V
+    Ar = concat Ar Tr Sr
+    Ai = concat Ai Ti Si
+  else
+    Tr' = Br * U - Bi * V
+    Ti' = Br * V + Bi * U
+    Sr' = Br * U + Bi * V
+    Si' = Bi * U - Br * V
+    Br = concat Br Tr Sr
+    Bi = concat Bi Ti Si
+  end
+end
+rem Canonicalize each factor into the first octant.
+AbsR = Ar abs
+AbsI = Ai abs
+Ar = AbsR max AbsI
+Ai = AbsR min AbsI
+AbsR = Br abs
+AbsI = Bi abs
+Br = AbsR max AbsI
+Bi = AbsR min AbsI
+rem Integer slope keys preserve exact order: denominators <= MaxR.
+MaxR = Br max
+Scale = MaxR * MaxR
+Keys = Bi * Scale // Br
+Order = Keys argsort
+Br = Br Order
+Bi = Bi Order
+Pr = concat (array 0) (Br scan +)
+Pi = concat (array 0) (Bi scan +)
+N = Br len
+SumR = Pr N
+SumI = Pi N
+Total = 0
+for I in 0 till (Ar len)
+  Xr = Ar I
+  Xi = Ai I
+  for Mode in 0 to 1
+    A = Xr
+    B = Xi
+    if Mode equal 1
+      A = Xr + Xi
+      B = Xr - Xi
+    end
+    Left = 0
+    Right = N
+    for Left less Right
+      Mid = (Left + Right) // 2
+      if A * (Bi Mid) at most B * (Br Mid)
+        Left = Mid + 1
+      else
+        Right = Mid
+      end
+    end
+    R = Pr Left
+    S = Pi Left
+    if Mode equal 0
+      Total += Xi * (2 * R - SumR) + Xr * (SumI - 2 * S)
+    else
+      Total += Xr * (S + SumR - R) + Xi * (R + S - SumI)
+    end
+  end
+end
+Answer = Total // 4
+Answer print

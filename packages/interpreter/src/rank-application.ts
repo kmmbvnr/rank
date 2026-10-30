@@ -334,7 +334,7 @@ export class RankApplication {
         }
         if (frameAxes.length === 0) return fn.call([cells.cellAt(0)]);
 
-        if (fn === this.standardFunctions.get(standardModules.numbers.abs)
+        if (fn === this.standardFunctions.get(standardModules.numbers.abs) && hasNativeImplementation(fn)
             && frameAxes.length === value.shape.length
             && frameAxes.every((axis, index) => axis === index)) {
             const integers = mapStoredIntegers(value, 0n, 'abs');

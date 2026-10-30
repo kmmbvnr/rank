@@ -55,7 +55,7 @@ export const numbersModule: RuntimeModule = {
         const value = expectNumeric(argument);
         if (typeof value === 'bigint') return absolute(value);
         return value < 0 ? -value : value === 0 ? 0 : value;
-    }, source => mapStoredUnary(source, 'real', Math.abs)),
+    }, source => mapStoredUnary(source, 'real', Math.abs), 'numeric', 'abs'),
     sin: () => unaryMath('sin', Math.sin, finiteDomain),
     cos: () => unaryMath('cos', Math.cos, finiteDomain),
     tan: () => unaryMath('tan', Math.tan, finiteDomain),

@@ -19,15 +19,15 @@ interface MapRecipe {
 }
 const maps = new WeakMap<RankArray, MapRecipe>();
 const scalarMaps = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[];
-    source: RankArray; call(cell: RankValue): RankValue; result: 'real' | 'integer'; valid(): boolean }>();
+    source: RankArray; call(cell: RankValue): RankValue; result: 'real' | 'integer' | 'numeric'; intrinsic?: 'abs'; valid(): boolean }>();
 
 /** Checked native scalar bodies are captured at construction, like their readers.
  * This records a recipe only; it neither reads cells nor retains results. */
 export function registerTensorScalarMap(value: RankArray, source: RankArray, call: (cell: RankValue) => RankValue,
-    result: 'real' | 'integer', valid: () => boolean): RankArray {
+    result: 'real' | 'integer' | 'numeric', valid: () => boolean, intrinsic?: 'abs'): RankArray {
     const scope = active ?? mapScope(source);
     if (scope?.enabled()) {
-        scalarMaps.set(value, { reader: value.itemAt, shape: [...value.shape], source, call, result, valid });
+        scalarMaps.set(value, { reader: value.itemAt, shape: [...value.shape], source, call, result, valid, intrinsic });
         owners.set(value, scope);
     }
     return value;
@@ -215,6 +215,7 @@ function prepareTensorGraph(value: RankArray) {
     const guards: (() => boolean)[] = [];
     let remaining = 1024;
     let transformed = false;
+    let nonReplayableChecks = false;
     const typed = <T extends TensorNode>(node: T, domain: readonly CompiledAtomType[]): T => { domains.set(node, domain); return node; };
     function check(source: TensorNode, validate: ((cell: RankValue, index: number) => RankValue) | undefined, uniform = false): TensorNode {
         return validate ? typed({ kind: 'check', source, validate, uniform }, domains.get(source)!) : source;
@@ -245,6 +246,7 @@ function prepareTensorGraph(value: RankArray) {
             const view = prepareNativeScalarView(value);
             if (view === false) return undefined;
             if (view) {
+                nonReplayableChecks ||= !view.replaySafe;
                 const source = lower(view.source);
                 if (!source) return undefined;
                 guards.push(view.valid);
@@ -278,9 +280,16 @@ function prepareTensorGraph(value: RankArray) {
                 guardArray(value);
                 guards.push(scalar.valid);
                 transformed = true;
-                const node = typed({ kind: 'call', source, validate: scalar.call }, [scalar.result]);
+                const types = scalar.result === 'numeric' ? domains.get(source)! : [scalar.result];
+                // Only the captured internal builtin grants this lowering. Keep
+                // real abs on its scalar body (NaN and signed zero included).
+                const node = scalar.intrinsic === 'abs' && types.join() === 'integer'
+                    ? typed({ kind: 'binary', op: 'max', native: 'max', left: source,
+                        right: typed({ kind: 'unary', op: '-', operand: source }, ['integer']) }, ['integer'])
+                    : typed({ kind: 'call', source, validate: scalar.call }, types);
                 const validate = arrayCellValidator(value);
-                return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }));
+                return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }),
+                    value.shape.length === 1 && !value.columnNames);
             }
             const shift = shifts.get(value);
             if (shift && shift.reader === value.itemAt && shift.shape.length === value.shape.length
@@ -346,7 +355,7 @@ function prepareTensorGraph(value: RankArray) {
     if (!root) return undefined;
     const host = { ...scope.host, valid: () => consumerCompilation && scope.enabled()
         && scope.host.valid?.() !== false && guards.every(guard => guard()) };
-    return { root, domains, host, scope, transformed };
+    return { root, domains, host, scope, transformed, nonReplayableChecks };
 }
 
 /** Mask construction still precedes reading any selected source values. */
@@ -390,8 +399,18 @@ function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bi
         : scan ? compileNativeIntegerScan(root, scan.seed, domains, host, scope.code)
         : operation === 'copy' ? compileNativeTensorCopy(root, domains, host, scope.code)
         : compileNativeTensorReduction(root, operation as TensorReduction, domains, host, scope.code);
+    // The selected-position sum already owns checked private Number state.
+    // Reuse it for complete rank-one sums; overflow restarts the exact consumer.
+    const numeric = !graph.nonReplayableChecks && !visit && !scan && operation === 'sum'
+        ? prepareNumberTensor(root, domains, 'sum', scope.code, host.valid, undefined, host.compiled) : undefined;
     return range => {
         if (!consumerCompilation || !scope.enabled()) return undefined;
+        const fast = !range ? numeric?.() : undefined;
+        if (typeof fast === 'bigint') {
+            scope.executed();
+            if (diagnostics) diagnostics.numberTensors++;
+            return fast;
+        }
         const result = kernel.run(range);
         if (result !== undefined) scope.executed();
         return result;

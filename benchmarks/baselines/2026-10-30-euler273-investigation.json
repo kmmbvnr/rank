@@ -1,0 +1,1881 @@
+{
+  "samples": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "150",
+      "ms": 28384.468083,
+      "answer": "2032447591196869022",
+      "rssMiB": 336.46875,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 28384.828416999997
+        }
+      ],
+      "round": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "150",
+      "ms": 29536.254792,
+      "answer": "2032447591196869022",
+      "rssMiB": 334.75,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 29536.678292
+        }
+      ],
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "prefix",
+      "limit": "150",
+      "ms": 194.685541,
+      "answer": "2032447591196869022",
+      "rssMiB": 185.59375,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 195.073291
+        }
+      ],
+      "round": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "prefix",
+      "limit": "150",
+      "ms": 506.793083,
+      "answer": "2032447591196869022",
+      "rssMiB": 191.484375,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 507.137791
+        }
+      ],
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "rows",
+      "limit": "150",
+      "ms": 4948.784042,
+      "answer": "2032447591196869022",
+      "rssMiB": 181.53125,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 4949.151790999999
+        }
+      ],
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "arithmetic-abs",
+      "limit": "150",
+      "ms": 12484.499124999998,
+      "answer": "2032447591196869022",
+      "rssMiB": 490.96875,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 12484.828042
+        }
+      ],
+      "round": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "150",
+      "ms": 29898.824917,
+      "answer": "2032447591196869022",
+      "rssMiB": 335.3125,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 29899.167042
+        }
+      ],
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "prefix",
+      "limit": "150",
+      "ms": 212.68875,
+      "answer": "2032447591196869022",
+      "rssMiB": 188.046875,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 213.06716699999998
+        }
+      ],
+      "round": 2
+    },
+    {
+      "mode": "reference",
+      "variant": "prefix",
+      "limit": "150",
+      "ms": 451.027416,
+      "answer": "2032447591196869022",
+      "rssMiB": 194.203125,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 451.40758299999993
+        }
+      ],
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "rows",
+      "limit": "150",
+      "ms": 5058.58875,
+      "answer": "2032447591196869022",
+      "rssMiB": 185.28125,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 5058.974166
+        }
+      ],
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "arithmetic-abs",
+      "limit": "150",
+      "ms": 12524.216666,
+      "answer": "2032447591196869022",
+      "rssMiB": 507.65625,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 12524.542541
+        }
+      ],
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "150",
+      "ms": 30161.953791,
+      "answer": "2032447591196869022",
+      "rssMiB": 351.359375,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 30162.402082999997
+        }
+      ],
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "prefix",
+      "limit": "150",
+      "ms": 190.24450000000002,
+      "answer": "2032447591196869022",
+      "rssMiB": 186.4375,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 190.60370799999998
+        }
+      ],
+      "round": 3
+    },
+    {
+      "mode": "reference",
+      "variant": "prefix",
+      "limit": "150",
+      "ms": 452.11745799999994,
+      "answer": "2032447591196869022",
+      "rssMiB": 192.765625,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 452.468584
+        }
+      ],
+      "round": 3
+    },
+    {
+      "mode": "compiled",
+      "variant": "rows",
+      "limit": "150",
+      "ms": 4904.931791999999,
+      "answer": "2032447591196869022",
+      "rssMiB": 184.6875,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 4905.200709
+        }
+      ],
+      "round": 3
+    },
+    {
+      "mode": "compiled",
+      "variant": "arithmetic-abs",
+      "limit": "150",
+      "ms": 12086.60975,
+      "answer": "2032447591196869022",
+      "rssMiB": 490.359375,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 12086.942834
+        }
+      ],
+      "round": 3
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "150",
+      "ms": 27767.997375,
+      "answer": "2032447591196869022",
+      "rssMiB": 337.5625,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 27768.342583
+        }
+      ],
+      "round": 3
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "150",
+      "ms": 28820.901833,
+      "answer": "2032447591196869022",
+      "rssMiB": 347.359375,
+      "stages": [
+        {
+          "label": "2032447591196869022",
+          "ms": 28821.30375
+        }
+      ],
+      "round": 3
+    }
+  ],
+  "node": "v24.15.0",
+  "revision": "721b2e245e8cbd25d668fcd3906e4fffd1345365",
+  "sourceSha256": "21091335be90659854bb6f55688244fb4a8ddee7a09cb82eb97e64c438a3d3c6",
+  "environment": "darwin arm64; other host load uncontrolled; own timed cases serial; no own build/test overlap",
+  "summary": [
+    {
+      "mode": "compiled",
+      "variant": "arithmetic-abs",
+      "medianMs": 12484.499124999998,
+      "rangeMs": [
+        12086.60975,
+        12524.216666
+      ],
+      "medianPeakRssMiB": 490.96875
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "medianMs": 28384.468083,
+      "rangeMs": [
+        27767.997375,
+        30161.953791
+      ],
+      "medianPeakRssMiB": 337.5625
+    },
+    {
+      "mode": "compiled",
+      "variant": "prefix",
+      "medianMs": 194.685541,
+      "rangeMs": [
+        190.24450000000002,
+        212.68875
+      ],
+      "medianPeakRssMiB": 186.4375
+    },
+    {
+      "mode": "compiled",
+      "variant": "rows",
+      "medianMs": 4948.784042,
+      "rangeMs": [
+        4904.931791999999,
+        5058.58875
+      ],
+      "medianPeakRssMiB": 184.6875
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "medianMs": 29536.254792,
+      "rangeMs": [
+        28820.901833,
+        29898.824917
+      ],
+      "medianPeakRssMiB": 335.3125
+    },
+    {
+      "mode": "reference",
+      "variant": "prefix",
+      "medianMs": 452.11745799999994,
+      "rangeMs": [
+        451.027416,
+        506.793083
+      ],
+      "medianPeakRssMiB": 192.765625
+    }
+  ],
+  "pilots": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "100",
+      "ms": 280.84675000000004,
+      "answer": "318838322751",
+      "rssMiB": 196.640625,
+      "stages": [
+        {
+          "label": "generated",
+          "ms": 129.04454199999998
+        },
+        {
+          "label": "318838322751",
+          "ms": 152.125875
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 1063003,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 56,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 23,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 22,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 1,
+        "maskMaterializedCells": 11,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:till": 3,
+          "tensor:deferred-binding:AssignmentStatement": 13,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 12,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 4,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "loop:no-text-specialization": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-node:TableFilterExpression": 2,
+          "scalar-expression:operator-guard:*": 1071,
+          "tensor:binding:isqrt": 11,
+          "scalar-expression:operator-guard:-": 265,
+          "scalar-expression:operator-guard:+": 265,
+          "loop:deferred-binding:AssignmentStatement": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "mode": "compiled",
+      "variant": "rows",
+      "limit": "150",
+      "ms": 4545.910958,
+      "answer": "2032447591196869022",
+      "rssMiB": 185.078125,
+      "stages": [
+        {
+          "label": "generated",
+          "ms": 148.068666
+        },
+        {
+          "label": "2032447591196869022",
+          "ms": 4398.022792
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 247,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 81,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 33,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 32,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 1,
+        "maskMaterializedCells": 16,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:deferred-binding:AssignmentStatement": 11,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 17,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 4,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "loop:no-text-specialization": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-node:TableFilterExpression": 2,
+          "scalar-expression:operator-guard:*": 144,
+          "tensor:binding:isqrt": 16,
+          "scalar-expression:operator-guard:-": 32,
+          "scalar-expression:operator-guard:+": 32
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "mode": "compiled",
+      "variant": "deferred",
+      "limit": "150",
+      "ms": 31709.105625,
+      "answer": "2032447591196869022",
+      "rssMiB": 377.9375,
+      "stages": [
+        {
+          "label": "generated",
+          "ms": 141.19020799999998
+        },
+        {
+          "label": "2032447591196869022",
+          "ms": 31568.221416999997
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 301327294,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 81,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 33,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 32,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 1,
+        "maskMaterializedCells": 16,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:till": 3,
+          "tensor:deferred-binding:AssignmentStatement": 15,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 17,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 4,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "loop:no-text-specialization": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-node:TableFilterExpression": 2,
+          "scalar-expression:operator-guard:*": 26388,
+          "tensor:binding:isqrt": 16,
+          "scalar-expression:operator-guard:-": 6593,
+          "scalar-expression:operator-guard:+": 6593,
+          "loop:deferred-binding:AssignmentStatement": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "mode": "compiled",
+      "variant": "arithmetic-abs",
+      "limit": "150",
+      "ms": 11912.811459,
+      "answer": "2032447591196869022",
+      "rssMiB": 492.125,
+      "stages": [
+        {
+          "label": "generated",
+          "ms": 158.06441600000002
+        },
+        {
+          "label": "2032447591196869022",
+          "ms": 11755.071917000001
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 247,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 6642,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 33,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 6593,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 1,
+        "maskMaterializedCells": 16,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:till": 3,
+          "tensor:deferred-binding:AssignmentStatement": 15,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 17,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:too-small": 6,
+          "tensor:unsupported-type:array": 4,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "loop:no-text-specialization": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-node:TableFilterExpression": 2,
+          "scalar-expression:operator-guard:*": 52632,
+          "tensor:binding:isqrt": 16,
+          "scalar-expression:operator-guard:-": 13154,
+          "scalar-expression:operator-guard:+": 13154,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "tensor:dyadic-terminal:ReturnStatement": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "mode": "compiled",
+      "variant": "prefix",
+      "limit": "150",
+      "ms": 199.05216700000003,
+      "answer": "2032447591196869022",
+      "rssMiB": 186.84375,
+      "stages": [
+        {
+          "label": "generated",
+          "ms": 183.87125
+        },
+        {
+          "label": "2032447591196869022",
+          "ms": 15.555166999999983
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 247,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 1,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopReadBuffers": 4,
+        "numberLoopReadBufferCells": 26248,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 82,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 33,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 32,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 1,
+        "maskMaterializedCells": 16,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:deferred-binding:AssignmentStatement": 11,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 17,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op://": 2,
+          "scalar-expression:too-small": 5,
+          "tensor:unsupported-type:array": 6,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "loop:no-text-specialization": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-node:TableFilterExpression": 2,
+          "scalar-expression:operator-guard:*": 144,
+          "tensor:binding:isqrt": 16,
+          "scalar-expression:operator-guard:-": 32,
+          "scalar-expression:operator-guard:+": 32,
+          "tensor:dyadic-terminal:AssignmentStatement": 4,
+          "scalar-expression:unsupported-op:+": 4
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "mode": "reference",
+      "variant": "prefix",
+      "limit": "150",
+      "ms": 434.25033299999996,
+      "answer": "2032447591196869022",
+      "rssMiB": 193.125,
+      "stages": [
+        {
+          "label": "generated",
+          "ms": 169.93016599999999
+        },
+        {
+          "label": "2032447591196869022",
+          "ms": 264.688
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 118763,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 1,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 1,
+        "maskMaterializedCells": 16,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "loop:disabled": 4
+        },
+        "compilerRejections": []
+      }
+    }
+  ],
+  "oracle": [
+    {
+      "limit": 1,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "0",
+      "passed": true
+    },
+    {
+      "limit": 1,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "0",
+      "passed": true
+    },
+    {
+      "limit": 1,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "0",
+      "passed": true
+    },
+    {
+      "limit": 1,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "0",
+      "passed": true
+    },
+    {
+      "limit": 5,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "0",
+      "passed": true
+    },
+    {
+      "limit": 5,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "0",
+      "passed": true
+    },
+    {
+      "limit": 5,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "0",
+      "passed": true
+    },
+    {
+      "limit": 5,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "0",
+      "passed": true
+    },
+    {
+      "limit": 6,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "1",
+      "passed": true
+    },
+    {
+      "limit": 6,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "1",
+      "passed": true
+    },
+    {
+      "limit": 6,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "1",
+      "passed": true
+    },
+    {
+      "limit": 6,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "1",
+      "passed": true
+    },
+    {
+      "limit": 13,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "1",
+      "passed": true
+    },
+    {
+      "limit": 13,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "1",
+      "passed": true
+    },
+    {
+      "limit": 13,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "1",
+      "passed": true
+    },
+    {
+      "limit": 13,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "1",
+      "passed": true
+    },
+    {
+      "limit": 14,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "8",
+      "passed": true
+    },
+    {
+      "limit": 14,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "8",
+      "passed": true
+    },
+    {
+      "limit": 14,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "8",
+      "passed": true
+    },
+    {
+      "limit": 14,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "8",
+      "passed": true
+    },
+    {
+      "limit": 17,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "8",
+      "passed": true
+    },
+    {
+      "limit": 17,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "8",
+      "passed": true
+    },
+    {
+      "limit": 17,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "8",
+      "passed": true
+    },
+    {
+      "limit": 17,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "8",
+      "passed": true
+    },
+    {
+      "limit": 18,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 18,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 18,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 18,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 20,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 20,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 20,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 20,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 29,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 29,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 29,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 29,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "80",
+      "passed": true
+    },
+    {
+      "limit": 30,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "906",
+      "passed": true
+    },
+    {
+      "limit": 30,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "906",
+      "passed": true
+    },
+    {
+      "limit": 30,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "906",
+      "passed": true
+    },
+    {
+      "limit": 30,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "906",
+      "passed": true
+    },
+    {
+      "limit": 37,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "906",
+      "passed": true
+    },
+    {
+      "limit": 37,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "906",
+      "passed": true
+    },
+    {
+      "limit": 37,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "906",
+      "passed": true
+    },
+    {
+      "limit": 37,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "906",
+      "passed": true
+    },
+    {
+      "limit": 38,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "12006",
+      "passed": true
+    },
+    {
+      "limit": 38,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "12006",
+      "passed": true
+    },
+    {
+      "limit": 38,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "12006",
+      "passed": true
+    },
+    {
+      "limit": 38,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "12006",
+      "passed": true
+    },
+    {
+      "limit": 40,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "12006",
+      "passed": true
+    },
+    {
+      "limit": 40,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "12006",
+      "passed": true
+    },
+    {
+      "limit": 40,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "12006",
+      "passed": true
+    },
+    {
+      "limit": 40,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "12006",
+      "passed": true
+    },
+    {
+      "limit": 53,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "165658",
+      "passed": true
+    },
+    {
+      "limit": 53,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "165658",
+      "passed": true
+    },
+    {
+      "limit": 53,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "165658",
+      "passed": true
+    },
+    {
+      "limit": 53,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "165658",
+      "passed": true
+    },
+    {
+      "limit": 54,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "2579619",
+      "passed": true
+    },
+    {
+      "limit": 54,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "2579619",
+      "passed": true
+    },
+    {
+      "limit": 54,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "2579619",
+      "passed": true
+    },
+    {
+      "limit": 54,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "2579619",
+      "passed": true
+    },
+    {
+      "limit": 60,
+      "variant": "original",
+      "mode": "compiled",
+      "answer": "2579619",
+      "passed": true
+    },
+    {
+      "limit": 60,
+      "variant": "original",
+      "mode": "reference",
+      "answer": "2579619",
+      "passed": true
+    },
+    {
+      "limit": 60,
+      "variant": "prefix",
+      "mode": "compiled",
+      "answer": "2579619",
+      "passed": true
+    },
+    {
+      "limit": 60,
+      "variant": "prefix",
+      "mode": "reference",
+      "answer": "2579619",
+      "passed": true
+    }
+  ],
+  "verification": {
+    "fixtureTypeAndDifferential": "2 selected tests passed, 4219 skipped",
+    "fullAnswer": "2032447591196869022",
+    "fullCorpus": "not run",
+    "productionChanges": false
+  },
+  "hashes": {
+    "benchmarks/euler273-investigation.mjs": "bb8d74137007f15a81e721b96cee4e18325793bc6569ccb250ca6be424ad1638",
+    "benchmarks/euler273-verify.py": "c6cb0b823c78a37b4464b2921f44ba727b25230353c5ea9beb3a3d962b1e251d",
+    "benchmarks/experiments/euler273-original.ra": "21091335be90659854bb6f55688244fb4a8ddee7a09cb82eb97e64c438a3d3c6",
+    "benchmarks/experiments/euler273-prefix.ra": "2b36d7dee00e5426e9d552def60b547cd874ed5a90edcdd9aa2f558195c208ac"
+  },
+  "runtimeInterpreterOutJsSha256": "a0b0eb9f07c7196f7184f7ef049ce967644b62dd8e2ba1174732a4a2f91fa539",
+  "delivery": {
+    "samples": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "150",
+        "ms": 8977.017125,
+        "answer": "2032447591196869022",
+        "rssMiB": 354.28125,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 8977.367042
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "deferred",
+        "limit": "150",
+        "ms": 1282.598042,
+        "answer": "2032447591196869022",
+        "rssMiB": 544.609375,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 1282.953416
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "limit": "150",
+        "ms": 185.887875,
+        "answer": "2032447591196869022",
+        "rssMiB": 185.75,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 186.228375
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "limit": "150",
+        "ms": 425.7677090000001,
+        "answer": "2032447591196869022",
+        "rssMiB": 191.859375,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 426.1008330000001
+          }
+        ],
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "deferred",
+        "limit": "150",
+        "ms": 1295.9414579999998,
+        "answer": "2032447591196869022",
+        "rssMiB": 545.59375,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 1296.276917
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "limit": "150",
+        "ms": 188.43112499999998,
+        "answer": "2032447591196869022",
+        "rssMiB": 185.265625,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 188.84775000000002
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "limit": "150",
+        "ms": 425.024042,
+        "answer": "2032447591196869022",
+        "rssMiB": 191.734375,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 425.40379199999995
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "150",
+        "ms": 9022.126291999999,
+        "answer": "2032447591196869022",
+        "rssMiB": 356.171875,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 9022.536457999999
+          }
+        ],
+        "round": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "limit": "150",
+        "ms": 186.523,
+        "answer": "2032447591196869022",
+        "rssMiB": 185.546875,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 186.864
+          }
+        ],
+        "round": 3
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "limit": "150",
+        "ms": 428.012792,
+        "answer": "2032447591196869022",
+        "rssMiB": 193.28125,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 428.35699999999997
+          }
+        ],
+        "round": 3
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "150",
+        "ms": 9004.418249999999,
+        "answer": "2032447591196869022",
+        "rssMiB": 429.359375,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 9004.770375
+          }
+        ],
+        "round": 3
+      },
+      {
+        "mode": "compiled",
+        "variant": "deferred",
+        "limit": "150",
+        "ms": 1283.5625420000001,
+        "answer": "2032447591196869022",
+        "rssMiB": 544.1875,
+        "stages": [
+          {
+            "label": "2032447591196869022",
+            "ms": 1283.892792
+          }
+        ],
+        "round": 3
+      }
+    ],
+    "node": "v24.15.0",
+    "revision": "34bad0ab779c975d79af4697bb8d37b064c5f45f",
+    "sourceSha256": "485a95b1f38fdb71879fbde52c1c5e46b3c372963c80c70f061c29bb87894145",
+    "summary": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "medianMs": 9004.418249999999,
+        "rangeMs": [
+          8977.017125,
+          9022.126291999999
+        ],
+        "medianPeakRssMiB": 356.171875
+      },
+      {
+        "mode": "compiled",
+        "variant": "deferred",
+        "medianMs": 1283.5625420000001,
+        "rangeMs": [
+          1282.598042,
+          1295.9414579999998
+        ],
+        "medianPeakRssMiB": 544.609375
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "medianMs": 186.523,
+        "rangeMs": [
+          185.887875,
+          188.43112499999998
+        ],
+        "medianPeakRssMiB": 185.546875
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "medianMs": 425.7677090000001,
+        "rangeMs": [
+          425.024042,
+          428.012792
+        ],
+        "medianPeakRssMiB": 191.859375
+      }
+    ],
+    "oracle": [
+      {
+        "limit": 1,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "0",
+        "passed": true
+      },
+      {
+        "limit": 1,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "0",
+        "passed": true
+      },
+      {
+        "limit": 5,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "0",
+        "passed": true
+      },
+      {
+        "limit": 5,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "0",
+        "passed": true
+      },
+      {
+        "limit": 6,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "1",
+        "passed": true
+      },
+      {
+        "limit": 6,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "1",
+        "passed": true
+      },
+      {
+        "limit": 13,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "1",
+        "passed": true
+      },
+      {
+        "limit": 13,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "1",
+        "passed": true
+      },
+      {
+        "limit": 14,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "8",
+        "passed": true
+      },
+      {
+        "limit": 14,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "8",
+        "passed": true
+      },
+      {
+        "limit": 17,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "8",
+        "passed": true
+      },
+      {
+        "limit": 17,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "8",
+        "passed": true
+      },
+      {
+        "limit": 18,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "80",
+        "passed": true
+      },
+      {
+        "limit": 18,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "80",
+        "passed": true
+      },
+      {
+        "limit": 20,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "80",
+        "passed": true
+      },
+      {
+        "limit": 20,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "80",
+        "passed": true
+      },
+      {
+        "limit": 29,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "80",
+        "passed": true
+      },
+      {
+        "limit": 29,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "80",
+        "passed": true
+      },
+      {
+        "limit": 30,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "906",
+        "passed": true
+      },
+      {
+        "limit": 30,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "906",
+        "passed": true
+      },
+      {
+        "limit": 37,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "906",
+        "passed": true
+      },
+      {
+        "limit": 37,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "906",
+        "passed": true
+      },
+      {
+        "limit": 38,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "12006",
+        "passed": true
+      },
+      {
+        "limit": 38,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "12006",
+        "passed": true
+      },
+      {
+        "limit": 40,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "12006",
+        "passed": true
+      },
+      {
+        "limit": 40,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "12006",
+        "passed": true
+      },
+      {
+        "limit": 53,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "165658",
+        "passed": true
+      },
+      {
+        "limit": 53,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "165658",
+        "passed": true
+      },
+      {
+        "limit": 54,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "2579619",
+        "passed": true
+      },
+      {
+        "limit": 54,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "2579619",
+        "passed": true
+      },
+      {
+        "limit": 60,
+        "variant": "shipping",
+        "mode": "compiled",
+        "answer": "2579619",
+        "passed": true
+      },
+      {
+        "limit": 60,
+        "variant": "shipping",
+        "mode": "reference",
+        "answer": "2579619",
+        "passed": true
+      }
+    ],
+    "verification": {
+      "focused": "925 passed in 40 files",
+      "scopedTypeDifferential": "4 passed, both main and fixture, full answer in both engines",
+      "semanticBoundaries": "11 tests, 65 owners",
+      "fullCorpus": "not run"
+    },
+    "runtimeInterpreterOutJsSha256": "3bf96a5a4ce26b7e1168f8093de385d1d39082ce881f4fbb266ce9195ef2f188"
+  }
+}

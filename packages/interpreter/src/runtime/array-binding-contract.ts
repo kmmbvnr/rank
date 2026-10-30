@@ -357,7 +357,7 @@ export class ArrayBindingContract {
             holdArraySource(checked, source);
             registerScalarView(checked, source, index => index, { accepts: () =>
                 this.at(path)?.elements?.some(cell => cell.type === 'integer') === true,
-                check: validate, scalarCheck: true, linear: () => ({ offset: 0, stride: 1 }) });
+                check: validate, scalarCheck: true, pureCheck: true, linear: () => ({ offset: 0, stride: 1 }) });
             registerPackedBooleanCheck(checked, source, validate);
             (this.checkedReaders ??= new WeakMap()).set(checked, { path, read: checked.itemAt,
                 shape: checked.shape, items: Object.getOwnPropertyDescriptor(checked, 'items')?.get });

@@ -15,6 +15,8 @@ interface View {
     readonly regular?: boolean;
     /** Internal binding validation depends on scalar kind, not scalar value. */
     readonly scalarCheck?: boolean;
+    /** Runtime-owned kind validation may be replayed after numeric overflow. */
+    readonly pureCheck?: boolean;
     /** A selection may detach its source and offset together before a write. */
     readonly capture?: () => { source: RankArray; offset: (index: number) => number };
 }
@@ -60,7 +62,7 @@ export function registerIntegerReadPlan<T extends RankArray>(value: T,
 /** Only runtime-created selections and contract wrappers may publish views.
  * The public reader still owns its ordinary cache and validation behavior. */
 export function registerScalarView<T extends RankArray>(value: T, source: RankArray | (() => RankArray),
-    offset: (index: number) => number, options: Pick<View, 'accepts' | 'check' | 'linear' | 'regular' | 'scalarCheck' | 'capture'> = {}): T {
+    offset: (index: number) => number, options: Pick<View, 'accepts' | 'check' | 'linear' | 'regular' | 'scalarCheck' | 'pureCheck' | 'capture'> = {}): T {
     views.set(value, { source, offset, ...options, reader: value.itemAt });
     return value;
 }
@@ -72,6 +74,7 @@ export function prepareNativeScalarView(value: RankArray): {
     source: RankArray; shape: readonly number[]; offset(index: number): number;
     linear?: LinearView; valid(): boolean;
     uniform: boolean;
+    replaySafe: boolean;
     validate(cell: RankValue, index: number): RankValue;
 } | false | undefined {
     const view = views.get(value);
@@ -85,6 +88,7 @@ export function prepareNativeScalarView(value: RankArray): {
     const linear = view.linear?.();
     const validate = arrayCellValidator(value);
     return { ...snapshot, shape, linear: linear && { ...linear },
+        replaySafe: !view.check || view.pureCheck === true,
         uniform: shape.length === 1 && !value.columnNames && (!view.check || view.scalarCheck === true), valid() {
         const current = capture();
         return value.itemAt === view.reader && current.source === snapshot.source && current.offset === snapshot.offset
