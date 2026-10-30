@@ -35,6 +35,3 @@ form is tracked in
 Pages: [matrix powers in the spec](../CURRENT_SPEC.md#matrix-powers),
 [the same section in tensors](../language/tensors.md#matrix-powers) and the
 `matpow` entry of the [linalg manual](../manual/linalg.md#matpow).
-
-Demos with a hand-written modular power (`022`, `023`, `435`) are candidates
-for the fused `matpow ... mod` form once #503 is done.
