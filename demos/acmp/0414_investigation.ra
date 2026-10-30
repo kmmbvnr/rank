@@ -1,0 +1,36 @@
+rem Investigation
+rem https://acmp.ru/index.asp?main=task&id_task=414
+rem Find lowest common ancestor (LCA) in a tree rooted at node 1
+
+use io
+use cli
+use sequences
+use text
+
+arg Input text = "4\n3 4\n1 1 3"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = Tokens 0 integer
+A = Tokens 1 integer
+B = Tokens 2 integer
+
+GivenParents = (Tokens drop 3) take (N - 1) integer
+Parents = concat (array 0 1) GivenParents
+
+Visited = array shape (N + 1) fill false
+Cur = A
+Visited Cur = true
+for Cur not equal 1
+  Cur = Parents Cur
+  Visited Cur = true
+end
+
+LCA = B
+for not (Visited LCA)
+  LCA = Parents LCA
+end
+
+Answer = LCA
+Answer print

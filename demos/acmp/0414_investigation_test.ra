@@ -1,0 +1,32 @@
+use testing
+
+test "sample 1: 4 nodes, LCA of 3 and 4"
+  use "0414_investigation"
+  run
+
+  Answer equal 3
+end
+
+test "sample 2: 8 nodes, LCA of 3 and 6"
+  use "0414_investigation"
+  Input = "8\n3 6\n1 1 2 4 5 1 1"
+  run
+
+  Answer equal 1
+end
+
+test "same node LCA"
+  use "0414_investigation"
+  Input = "4\n4 4\n1 1 3"
+  run
+
+  Answer equal 4
+end
+
+test "ancestor is target"
+  use "0414_investigation"
+  Input = "4\n1 4\n1 1 3"
+  run
+
+  Answer equal 1
+end
