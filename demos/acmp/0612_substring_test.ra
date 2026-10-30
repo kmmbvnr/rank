@@ -1,0 +1,40 @@
+use testing
+
+test "sample 1: minimal word equivalent to X containing Y as substring"
+  use "0612_substring"
+  run
+
+  Answer equal "aAaBabaAbA"
+end
+
+test "Y is already a substring of reduced X"
+  use "0612_substring"
+  Input = "aBab\nBa"
+  run
+
+  Answer equal "aBab"
+end
+
+test "single character disjoint elements"
+  use "0612_substring"
+  Input = "a\nb"
+  run
+
+  Answer equal "bBa"
+end
+
+test "identical words yield Y without extensions"
+  use "0612_substring"
+  Input = "aB\naB"
+  run
+
+  Answer equal "aB"
+end
+
+test "Y self-cancels into empty group element"
+  use "0612_substring"
+  Input = "a\nBb"
+  run
+
+  Answer equal "Bba"
+end

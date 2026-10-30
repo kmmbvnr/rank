@@ -1,0 +1,108 @@
+rem Substring
+rem https://acmp.ru/index.asp?main=task&id_task=612
+rem Shortest word in free group equivalent to X containing Y as substring via longest common subword
+
+use io
+use algo
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "abAaBBabbA\nAaBaba"
+
+Tokens = Input split "\n"
+X = Tokens 0
+Y = Tokens 1
+
+rem Reduce X in free group via stack
+StackX = array shape (X len) fill ""
+TopX = 0
+for I in 0 till (X len)
+  Ch = X drop I take 1
+  if TopX greater 0
+    Prev = StackX (TopX - 1)
+    InvPrev = Prev "AaBb" "aAbB" translate
+    if InvPrev equal Ch
+      TopX = TopX - 1
+    else
+      StackX TopX = Ch
+      TopX = TopX + 1
+    end
+  else
+    StackX TopX = Ch
+    TopX = TopX + 1
+  end
+end
+Xred = (StackX take TopX) join ""
+
+rem Reduce Y in free group via stack
+StackY = array shape (Y len) fill ""
+TopY = 0
+for I in 0 till (Y len)
+  Ch = Y drop I take 1
+  if TopY greater 0
+    Prev = StackY (TopY - 1)
+    InvPrev = Prev "AaBb" "aAbB" translate
+    if InvPrev equal Ch
+      TopY = TopY - 1
+    else
+      StackY TopY = Ch
+      TopY = TopY + 1
+    end
+  else
+    StackY TopY = Ch
+    TopY = TopY + 1
+  end
+end
+Yred = (StackY take TopY) join ""
+
+Xlen = Xred len
+Ylen = Yred len
+MaxPossible = Xlen min Ylen
+
+BestL = 0
+BestXPos = 0
+BestYPos = 0
+
+if MaxPossible greater 0
+  rem Binary search for length of longest common substring between Xred and Yred
+  Low = 1
+  High = MaxPossible
+  for true
+    if Low greater High
+      break
+    end
+    Mid = (Low + High) // 2
+    SetX = new set (Xred window Mid)
+    WinsY = Yred window Mid
+    Matches = WinsY in SetX
+    if Matches any
+      BestL = Mid
+      MatchIndices = Matches indices
+      BestYPos = MatchIndices 0
+      Sub = WinsY BestYPos
+      AllX = Xred findall Sub
+      BestXPos = AllX 0
+      Low = Mid + 1
+    else
+      High = Mid - 1
+    end
+  end
+end
+
+Xleft = Xred take BestXPos
+Xright = Xred drop (BestXPos + BestL)
+
+Pprime = Yred take BestYPos
+Qprime = Yred drop (BestYPos + BestL)
+
+InvPprime = (Pprime reverse) "AaBb" "aAbB" translate
+InvQprime = (Qprime reverse) "AaBb" "aAbB" translate
+
+Lpart = (array Xleft InvPprime) join ""
+Rpart = (array InvQprime Xright) join ""
+
+Answer = (array Lpart Y Rpart) join ""
+
+Answer print
