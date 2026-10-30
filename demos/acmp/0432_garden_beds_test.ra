@@ -1,0 +1,32 @@
+use testing
+
+test "sample 1: 5x10 grid with 3 beds"
+  use "0432_garden_beds"
+  run
+
+  Answer equal 3
+end
+
+test "sample 2: 5x10 grid with 5 beds"
+  use "0432_garden_beds"
+  Input = "5 10\n##..#####.\n.#.#.#....\n###..##.#.\n..##.....#\n.###.#####"
+  run
+
+  Answer equal 5
+end
+
+test "no beds"
+  use "0432_garden_beds"
+  Input = "2 2\n..\n.."
+  run
+
+  Answer equal 0
+end
+
+test "diagonal beds touching at corner"
+  use "0432_garden_beds"
+  Input = "2 2\n#.\n.#"
+  run
+
+  Answer equal 2
+end

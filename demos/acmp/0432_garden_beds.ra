@@ -1,0 +1,59 @@
+rem Garden Beds
+rem https://acmp.ru/index.asp?main=task&id_task=432
+rem Count 4-connected components of garden beds on an N x M grid using DSU
+
+use io
+use cli
+use graph
+use sequences
+use text
+
+arg Input text = "5 10\n##......#.\n.#..#...#.\n.###....#.\n..##....#.\n........#."
+
+Lines = Input split "\n"
+Lines = Lines (Lines not equal "")
+Header = (Lines 0) split " "
+Header = Header (Header not equal "")
+N = Header 0 integer
+M = Header 1 integer
+
+AllRows = ((Lines drop 1) take N) join ""
+GridChars = AllRows split ""
+GridChars = GridChars (GridChars not equal "")
+
+IsBed = GridChars equal "#"
+Indices = (0 till (N * M)) array
+BedCells = Indices IsBed
+
+Answer = 0
+if BedCells len greater 0
+  Union = new dsu BedCells
+  IsBedPadded = concat IsBed (array shape (M + 1) fill false)
+
+  rem Horizontal edges: c < M - 1
+  CanRight = ((Indices mod M) less (M - 1)) and IsBed
+  RightNeighbor = Indices + 1
+  HasRightEdge = CanRight and (IsBedPadded RightNeighbor)
+  EdgesH_U = Indices HasRightEdge
+  EdgesH_V = RightNeighbor HasRightEdge
+
+  rem Vertical edges: r < N - 1
+  CanDown = (Indices less ((N - 1) * M)) and IsBed
+  DownNeighbor = Indices + M
+  HasDownEdge = CanDown and (IsBedPadded DownNeighbor)
+  EdgesV_U = Indices HasDownEdge
+  EdgesV_V = DownNeighbor HasDownEdge
+
+  EdgesU = concat EdgesH_U EdgesV_U
+  EdgesV = concat EdgesH_V EdgesV_V
+
+  if EdgesU len greater 0
+    for K in 0 to (EdgesU len - 1)
+      Union merge (EdgesU K) (EdgesV K)
+    end
+  end
+
+  Answer = Union components
+end
+
+Answer print
