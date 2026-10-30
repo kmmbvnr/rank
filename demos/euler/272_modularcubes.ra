@@ -29,7 +29,9 @@ rem the sums of the numbers of 2 and
 rem primes = 2 mod 3 with the powers of
 rem 3 added. A is found by loops over
 rem primes one inside the other.
-Mm = Limit // 53599
+rem Factor 9 out of mode 1. The smallest
+rem base is 9 * 7 * 13 * 19 * 31.
+Mm = Limit // 482391
 Pm = Limit // 15561 + 10
 Ps = primes till Pm
 P1 = Ps filter (Ps mod 3 equal 1) array
@@ -58,7 +60,8 @@ Va = array shape (Mm + 1) fill 0
 Vb = array shape (Mm + 1) fill 0
 for I in 1 to Mm
   Va I = Pre I + 3 * Pre (I // 3)
-  Pw = 9
+  rem Mode 1 keeps the remaining powers of 3.
+  Pw = 1
   Sb = 0
   for
     if Pw greater I
@@ -68,6 +71,10 @@ for I in 1 to Mm
     Pw = Pw * 3
   end
   Vb I = Sb
+end
+PrimeSum = array shape (Np + 1) fill 0
+for I in 0 till Np
+  PrimeSum (I + 1) = PrimeSum I + P1 I
 end
 Fl = array shape 400 fill 0
 Fp = array shape 5 fill 1
@@ -80,52 +87,132 @@ for Mode in 0 to 1
     Lim = Limit // 9
   end
   for I1 in 0 till Np
-    Fp 0 = P1 I1
-    A1 = P1 I1
-    Pw1 = A1
-    for Rp in 2 to (3 - Mode)
-      Pw1 = Pw1 * A1
-    end
-    if A1 * Pw1 greater Lim
+    if I1 + 4 - Mode at least Np
       break
     end
+    Minimum = P1 I1
+    for Next in 1 to (4 - Mode)
+      Minimum = Minimum * P1 (I1 + Next)
+    end
+    if Minimum greater Lim
+      break
+    end
+    Fp 0 = P1 I1
+    A1 = P1 I1
     for I2 in (I1 + 1) till Np
-      Fp 1 = P1 I2
-      A2 = A1 * P1 I2
-      Pw2 = P1 I2
-      for Rp in 2 to (2 - Mode)
-        Pw2 = Pw2 * P1 I2
-      end
-      if A2 * Pw2 greater Lim
+      if I2 + 3 - Mode at least Np
         break
       end
+      Minimum = A1 * P1 I2
+      for Next in 1 to (3 - Mode)
+        Minimum = Minimum * P1 (I2 + Next)
+      end
+      if Minimum greater Lim
+        break
+      end
+      Fp 1 = P1 I2
+      A2 = A1 * P1 I2
       for I3 in (I2 + 1) till Np
-        Fp 2 = P1 I3
-        A3 = A2 * P1 I3
-        Pw3 = 1
-        if Mode equal 0
-          Pw3 = P1 I3
-        end
-        if A3 * Pw3 greater Lim
+        if I3 + 2 - Mode at least Np
           break
         end
-        for I4 in (I3 + 1) till Np
-          Fp 3 = P1 I4
-          A4 = A3 * P1 I4
-          Pw4 = 1
-          if Mode equal 0
-            Pw4 = P1 I4
+        Minimum = A2 * P1 I3
+        for Next in 1 to (2 - Mode)
+          Minimum = Minimum * P1 (I3 + Next)
+        end
+        if Minimum greater Lim
+          break
+        end
+        Fp 2 = P1 I3
+        A3 = A2 * P1 I3
+        rem Below cofactor 7 no selected prime
+        rem can recur. Sum the last prime by
+        rem quotient intervals instead of visits.
+        if Mode equal 1
+          for Qb in 1 to 6
+            Low = (Lim // (A3 * (Qb + 1))) max (P1 I3)
+            High = Lim // (A3 * Qb)
+            Left = 0
+            Right = Np
+            for Left less Right
+              Mid = (Left + Right) // 2
+              if P1 Mid at most Low
+                Left = Mid + 1
+              else
+                Right = Mid
+              end
+            end
+            Start = Left
+            Right = Np
+            for Left less Right
+              Mid = (Left + Right) // 2
+              if P1 Mid at most High
+                Left = Mid + 1
+              else
+                Right = Mid
+              end
+            end
+            if Left greater Start
+              Total += 9 * A3 * (Vt Qb) * (PrimeSum Left - PrimeSum Start)
+            end
           end
-          if A4 * Pw4 greater Lim
+        end
+        for I4 in (I3 + 1) till Np
+          if Mode equal 1 and A3 * P1 I4 greater Lim // 7
             break
           end
+          if I4 + 1 - Mode at least Np
+            break
+          end
+          Minimum = A3 * P1 I4
+          for Next in 1 to (1 - Mode)
+            Minimum = Minimum * P1 (I4 + Next)
+          end
+          if Minimum greater Lim
+            break
+          end
+          Fp 3 = P1 I4
+          A4 = A3 * P1 I4
           Lo5 = I4 + 1
           Hi5 = Np - 1
           if Mode equal 1
             Lo5 = 0
             Hi5 = 0
           end
+          rem The same tail for five-prime bases.
+          if Mode equal 0
+            for Qb in 1 to 6
+              Low = (Lim // (A4 * (Qb + 1))) max (P1 I4)
+              High = Lim // (A4 * Qb)
+              Left = 0
+              Right = Np
+              for Left less Right
+                Mid = (Left + Right) // 2
+                if P1 Mid at most Low
+                  Left = Mid + 1
+                else
+                  Right = Mid
+                end
+              end
+              Start = Left
+              Right = Np
+              for Left less Right
+                Mid = (Left + Right) // 2
+                if P1 Mid at most High
+                  Left = Mid + 1
+                else
+                  Right = Mid
+                end
+              end
+              if Left greater Start
+                Total += 1 * A4 * (Vt Qb) * (PrimeSum Left - PrimeSum Start)
+              end
+            end
+          end
           for I5 in Lo5 to Hi5
+            if Mode equal 0 and A4 * P1 I5 greater Lim // 7
+              break
+            end
             P5 = P1 I5
             if Mode equal 1
               P5 = 1
@@ -135,7 +222,7 @@ for Mode in 0 to 1
             if A5 greater Lim
               break
             end
-            M = Limit // A5
+            M = Lim // A5
             Sm = 0
             if M less 7
               Sm = Vt M
@@ -163,6 +250,9 @@ for Mode in 0 to 1
                 Fq = Fl L
                 Sm += Fq * Vt (M // Fq)
               end
+            end
+            if Mode equal 1
+              Sm = 9 * Sm
             end
             Total += A5 * Sm
           end

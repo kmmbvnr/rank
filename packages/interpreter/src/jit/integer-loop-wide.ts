@@ -1,5 +1,5 @@
 import { AstUtils, type AstNode } from 'langium';
-import { isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isIfStatement, isNameExpression, type Expression } from '@arrrank/language';
+import { flattenApplication, isApplicationExpression, isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isIfStatement, isNameExpression, type Expression } from '@arrrank/language';
 import type { IntegerLoopPlan } from './integer-loop-plan.js';
 
 /** Keep addresses, numeric control and cell stores checked Numbers. Integer
@@ -24,6 +24,12 @@ export function wideLoopScalars(plan: IntegerLoopPlan): Set<string> {
         if (isArrayAssignmentStatement(node)) {
             node.indices.forEach(index => read(index.value));
             read(node.value);
+        }
+        if (isApplicationExpression(node)) {
+            const [head, ...indices] = flattenApplication(node);
+            if (isNameExpression(head) && plan.arrays.get(head.name)?.rank === indices.length) {
+                indices.forEach(read);
+            }
         }
         // Fresh private arrays use checked Number dimensions and fill cells,
         // just like indexed stores. Their inputs cannot become wide registers.

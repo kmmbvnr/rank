@@ -1,7 +1,7 @@
 use testing
 
-rem The default input takes 15 min,
-rem so only smaller limits are tested.
+rem Small limits keep reference checks practical.
+rem The full compiled answer has a separate test.
 test "small limits"
   use "272_modularcubes"
   Limit = 10000000
@@ -12,4 +12,16 @@ test "small limits"
   run
 
   Answer equal 316174709149021
+end
+
+test "first qualifying number"
+  use "272_modularcubes"
+  Limit = 482390
+  run
+
+  Answer equal 0
+  Limit = 482391
+  run
+
+  Answer equal 482391
 end

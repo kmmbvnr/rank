@@ -108,3 +108,15 @@ it('compiles the full Euler 262 contour and preserves the sampled route', () => 
         expect(diagnostics.fallbacks['loop:container-write-type:ForStatement']).toBeUndefined();
     } finally { runtime.dispose(); }
 }, 60_000);
+
+// The full reference input remains a manual-budget workload.
+it('checks the full compiled answer for Euler 272', () => {
+    const url = new URL('../../../demos/euler/272_modularcubes.ra', import.meta.url);
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(8495585919506151122n);
+        expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
+    } finally { runtime.dispose(); }
+}, 60_000);

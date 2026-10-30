@@ -19,6 +19,36 @@ function compare(source: string) {
 }
 
 describe('exact integer consumers inside Number loops', () => {
+    it.each([
+        ['2', 'Col'],
+        ['2 2', 'Row Col'],
+        ['2 2', '(Row mod 2) Col'],
+        ['2 2 2', 'Row Col (Col mod 2)'],
+    ])('keeps %s array addresses numeric when loaded cells feed a wide sum', (shape, indices) => {
+        const { diagnostics, observation } = compare(`use numbers
+A = array shape ${shape} fill 1
+Total = 9007199254740992
+for Row in 0 to 1
+ for J in 0 to 1
+  Col = J
+  Total += A ${indices}
+ end
+end`);
+        expect(observation.error).toBeUndefined();
+        expect(observation.variables).toContainEqual(['Total', '9007199254740996']);
+        expect(diagnostics.mixedIntegerLoops).toBe(1);
+    });
+
+    it('retains exact bounds errors for an unsafe array coordinate', () => {
+        const { observation } = compare(`A = array shape 2 2 fill 1
+Total = 9007199254740992
+Row = 9007199254740992
+for Col in 0 to 1
+ Total += A Row Col
+end`);
+        expect(observation.error).toContain('out of bounds');
+    });
+
     it('uses exact setup and predicates around numeric array writes', () => {
         const { diagnostics, observation } = compare(`use bits
 N = 1000000000000000000

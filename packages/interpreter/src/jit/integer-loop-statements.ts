@@ -26,7 +26,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
     };
 
     function bindArray(assignment: AssignmentStatement, value: string, rank: number, type: LoopTerm['type'],
-        lines: string[], body: string[], location: number): true | undefined {
+        lines: string[], body: string[], location: number, aliasSlot?: number): true | undefined {
         if (localTypes.has(assignment.name)) return reject(assignment);
         const old = arrays.get(assignment.name), target = destinations.get(assignment.name);
         if (old && (old.rank !== rank || old.type !== type)
@@ -41,7 +41,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             if (type !== 'integer') return reject(assignment);
             body.push(`location = ${location};`, ...lines,
                 `const ${completed} = ${value};`, dirty(destination),
-                `r${destination} = ${completed}; cells${destination} = cells[${destination}] = ${completed}.cells;`,
+                `r${destination} = ${completed}; cells${destination} = cells[${destination}] = ${aliasSlot === undefined ? `${completed}.cells` : `cells${aliasSlot}`};`,
                 ...Array.from({ length: rank > 1 ? rank : 0 }, (_, axis) => `size${destination}_${axis} = ${completed}.shape[${axis}];`),
                 `iterationResult = ${completed}; iterationType = 'array';`);
             recordAssigned(assignment.name);
@@ -255,6 +255,10 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 && !assignment.name.includes('.')) {
                 let expression = assignment.value;
                 while (isParenthesizedExpression(expression)) expression = expression.value;
+                if (isNameExpression(expression) && !arrays.has(expression.name)) {
+                    const type = expressions.arrayType(expression);
+                    if (type) arrays.set(expression.name, { slot: slot(expression.name), rank: type.rank, type: type.element });
+                }
                 const source = isNameExpression(expression) ? arrays.get(expression.name) : undefined;
                 if (isArrayExpression(expression) && expression.dimensions.length || source) {
                     if (localTypes.has(assignment.name)) return reject(assignment);
@@ -280,17 +284,15 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                         value = `created${state.serial++}`;
                         lines.push(`const ${value} = ${numberMode ? `createArray(${shape}, ${fill.code})` : `ownedArray(Array(Number(${size})).fill(${fill.code}), ${shape}, true)`};`);
                     } else {
-                        // Local aliases require per-store COW, beyond private
-                        // numeric buffers. Keep their existing exact fallback.
-                        if (numberMode) return reject(assignment);
                         if (!isNameExpression(expression) || !source) return reject(assignment);
                         const name = expression.name;
+                        if (numberMode && assignment.name === name) return reject(assignment);
                         if (!assigned.has(name)) arrayInputs.add(name);
                         aliases.push([assignment.name, name]);
                         if (arrayDefinitions.has(name)) state.localAliases.push([assignment.name, name]);
                         rank = source.rank; type = source.type; value = `r${source.slot}`;
                     }
-                    if (!bindArray(assignment, value, rank, type, lines, body, location)) return undefined;
+                    if (!bindArray(assignment, value, rank, type, lines, body, location, source?.slot)) return undefined;
                     continue;
                 }
             }

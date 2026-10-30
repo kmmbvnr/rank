@@ -155,8 +155,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const s = Number(match[1]);
                 const varName = names[s];
                 if (varName && scope.assigned.has(varName)) return false;
+                return true;
             }
-            return true;
+            // Expression temporaries are declared at the read site. They are
+            // neither in scope nor proven invariant in the loop preheader.
+            return /^-?\d+$/.test(coord);
         });
 
         if (leadingInvariant) {
@@ -1057,7 +1060,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 || destinations.has(head.name) && destinations.get(head.name)!.rank !== arguments_.length) return undefined;
             const indices: string[] = [];
             for (const argument of arguments_) {
-                const value = emit(argument, lines);
+                // A wide result needs exact loaded cells, but addresses still
+                // belong to the checked Number backend (including row strides).
+                const value: LoopTerm | undefined = wide && state.numberMode
+                    ? createLoopExpressions(state).emit(argument, lines) : emit(argument, lines);
                 if (value?.type !== 'integer') return undefined;
                 indices.push(value.code);
             }
@@ -1147,7 +1153,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         return undefined;
     }
-    return { container, slot, knownType, realInput, emit, emitValue, arithmetic, numberOffset };
+    return { container, slot, knownType, realInput, emit, emitValue, arithmetic, numberOffset, arrayType };
 }
 
 export type LoopExpressions = ReturnType<typeof createLoopExpressions>;

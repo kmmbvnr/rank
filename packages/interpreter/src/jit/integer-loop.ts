@@ -158,8 +158,12 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // A deque retains snapshots of pushed arrays. Their local stores need
     // per-statement copy-on-write, beyond the region-entry write guard.
     if ([...state.dequeArrays].some(name => writable.has(name))) return reject(statement, 'deque-array-write');
-    // Local aliases need copy-on-write at the individual store, not just
-    // at region entry. Keep those writes interpreted until that lowering exists.
+    // Numeric aliases may share read-only buffers. Mutation or calls require
+    // a separate ownership proof. The exact backend can write an old alias
+    // after rebinding its source, but source stores can invalidate alias readers.
+    if (numberMode && aliases.length && calls.length > 0) return reject(statement, 'array-alias-call');
+    if (aliases.some(([target, source]) => numberMode ? writable.has(target) || writable.has(source)
+        : destinations.has(source))) return reject(statement, 'mutable-array-alias');
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))
         || state.localAliases.some(([target, source]) => writable.has(target) || writable.has(source))) return reject(statement, 'unstable-bindings');
