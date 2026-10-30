@@ -440,19 +440,27 @@ function gather(
         else fixed += axis.indexAt(0) * strides[position];
     });
     const rank = kept.length;
-    const coordinates = new Array<number>(rank).fill(0);
-    const contribution = kept.map(axis => axis.indexAt(0) * axis.stride);
-    let offset = fixed + contribution.reduce((sum, value) => sum + value, 0);
-    for (let index = 0; index < total; index += 1) {
-        if ((index & 0xfff) === 0) checkpoint('computing array');
-        out[index] = stored[offset];
-        for (let position = rank - 1; position >= 0; position -= 1) {
-            const axis = kept[position];
+    if (rank === 0) { out[0] = stored[fixed]; return; }
+    // Each kept axis is decoded once into a table of source offsets, so the
+    // innermost loop is a lookup instead of a closure call per cell.
+    const tables = kept.map(axis => {
+        const table = new Float64Array(axis.size);
+        for (let coordinate = 0; coordinate < axis.size; coordinate += 1) table[coordinate] = axis.indexAt(coordinate) * axis.stride;
+        return table;
+    });
+    const inner = tables[rank - 1], run = inner.length;
+    const coordinates = new Array<number>(rank - 1).fill(0);
+    let base = fixed;
+    for (let position = 0; position < rank - 1; position += 1) base += tables[position][0];
+    for (let index = 0; index < total; index += run) {
+        checkpoint('computing array', run);
+        for (let step = 0; step < run; step += 1) out[index + step] = stored[base + inner[step]];
+        for (let position = rank - 2; position >= 0; position -= 1) {
+            const table = tables[position];
+            base -= table[coordinates[position]];
             coordinates[position] += 1;
-            if (coordinates[position] >= axis.size) coordinates[position] = 0;
-            const next = axis.indexAt(coordinates[position]) * axis.stride;
-            offset += next - contribution[position];
-            contribution[position] = next;
+            if (coordinates[position] >= table.length) coordinates[position] = 0;
+            base += table[coordinates[position]];
             if (coordinates[position] !== 0) break;
         }
     }
