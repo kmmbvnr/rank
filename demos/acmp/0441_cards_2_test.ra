@@ -1,0 +1,32 @@
+use testing
+
+test "sample 1: 5 cards with duplicates gives 7 swaps"
+  use "0441_cards_2"
+  run
+
+  Answer equal 7
+end
+
+test "sample 2: different cards impossible gives -1"
+  use "0441_cards_2"
+  Input = "8\n1 2 1 2 1 2 1 2\n2 1 2 1 2 1 2 2"
+  run
+
+  Answer equal -1
+end
+
+test "already identical gives 0 swaps"
+  use "0441_cards_2"
+  Input = "4\n1 2 3 4\n1 2 3 4"
+  run
+
+  Answer equal 0
+end
+
+test "completely reversed 4 cards gives 6 swaps"
+  use "0441_cards_2"
+  Input = "4\n1 2 3 4\n4 3 2 1"
+  run
+
+  Answer equal 6
+end

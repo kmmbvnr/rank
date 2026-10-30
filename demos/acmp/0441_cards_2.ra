@@ -1,0 +1,31 @@
+rem Cards 2
+rem https://acmp.ru/index.asp?main=task&id_task=441
+rem Minimum adjacent swaps to transform array A into array B
+
+use io
+use cli
+use sequences
+use text
+
+arg Input text = "5\n3 2 3 4 5\n5 4 3 2 3"
+
+Lines = Input split "\n"
+Lines = Lines (Lines not equal "")
+
+N = Lines 0 integer
+A = (Lines 1) words integer
+B = (Lines 2) words integer
+
+Answer = -1
+if ((A sort) equal (B sort)) all
+  OrderA = A argsort
+  OrderB = B argsort
+
+  P = array shape N fill 0
+  P OrderB = OrderA
+
+  Indices = 0 till N
+  Answer = ((P P outer greater) and (Indices Indices outer less)) count
+end
+
+Answer print
