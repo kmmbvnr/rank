@@ -10,41 +10,28 @@ use cli
 arg M integer = 3
 arg N integer = 3
 
-R = M
-C = N
-if R greater C
-  R = N
-  C = M
-end
+Rows = M min N
+Cols = M max N
 
-Answer = 0
-if R equal 1
-  Answer = 2 ** C
-else
-  States = 2 ** R
-  AdjacentMask = (2 ** (R - 1)) - 1
-  FullMask = States - 1
+rem Represent a column as a number:
+rem a bit per cell, 0 is all white,
+rem Max is all black
+States = 2 ** Rows
+Max = States - 1
 
-  Compat = array shape States States fill 0
+Cell = 0 till States
+Both1' = Cell Cell outer band
+Adj1' = Both1 shr 1 band Both1
 
-  for A in 0 till States
-    for B in 0 till States
-      Both1 = A band B
-      Adj1 = Both1 band (Both1 shr 1) band AdjacentMask
-      Both0 = (A bor B) bxor FullMask
-      Adj0 = Both0 band (Both0 shr 1) band AdjacentMask
-      if (Adj1 equal 0) and (Adj0 equal 0)
-        Compat A B = 1
-      end
-    end
-  end
+Flip = Cell bxor Max
+Both0' = Flip Flip outer band
+Adj0' = Both0 shr 1 band Both0
 
-  DP = array shape States fill 1
-  for Step in 1 till C
-    DP = (Compat * DP) sum axis -1
-  end
+Bad' = Adj1 bor Adj0
+Compat = Bad equal 0 integer
 
-  Answer = DP sum
-end
+fun Dp step = (Compat * Dp) sum axis -1
+One = array shape States fill 1
+Answer = One step repeat (Cols - 1) sum
 
 Answer print
