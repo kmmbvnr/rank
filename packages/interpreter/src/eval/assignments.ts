@@ -237,13 +237,21 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 view.validateUniform?.(view.compact ? BigInt(view.compact[offset]) : view.items[offset]);
                 if (view.compact && !statement.accumulate) compactOperands = new Int32Array(count);
                 else operands = new Array<RankValue>(count);
-                for (let start = 0; start < count; start += 4096) {
-                    const end = Math.min(count, start + 4096);
-                    checkpoint('preparing accumulated array updates', end - start);
-                    for (let index = start; index < end; index++) {
-                        if (compactOperands) compactOperands[index] = view.compact![offset + index * stride];
-                        else operands![index] = view.compact
-                            ? BigInt(view.compact[offset + index * stride]) : view.items[offset + index * stride];
+                if (compactOperands && view.compact && stride === 1) {
+                    for (let start = 0; start < count; start += 4096) {
+                        const end = Math.min(count, start + 4096);
+                        checkpoint('preparing accumulated array updates', end - start);
+                        compactOperands.set(view.compact.subarray(offset + start, offset + end), start);
+                    }
+                } else {
+                    for (let start = 0; start < count; start += 4096) {
+                        const end = Math.min(count, start + 4096);
+                        checkpoint('preparing accumulated array updates', end - start);
+                        for (let index = start; index < end; index++) {
+                            if (compactOperands) compactOperands[index] = view.compact![offset + index * stride];
+                            else operands![index] = view.compact
+                                ? BigInt(view.compact[offset + index * stride]) : view.items[offset + index * stride];
+                        }
                     }
                 }
             } else operands = Array.from(
@@ -252,7 +260,6 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             );
         }
         if (count > 0 && host.options().compilation !== false && !inspectionEnabled()
-            && (target.shape.length === 1 || statement.accumulate || ranks !== undefined)
             && (statement.operator === '=' || statement.operator === '+=' || statement.operator === '-=' || statement.operator === '*=')
             && (typeof result === 'bigint' || compactOperands || operands?.every(value => typeof value === 'bigint'))) {
             const cells = writableIntegerCells(target);
@@ -286,7 +293,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         if (compactOperands) operands = Array.from(compactOperands, BigInt);
         if (count > 0 && host.options().compilation !== false && host.options().booleanSelectionCompilation !== false
             && privateLoopPolling()
-            && target.shape.length === 1 && statement.operator === '='
+            && statement.operator === '='
             && typeof result === 'boolean' && hasWritableBooleanCells(target)) {
             host.checkArrayWrite(statement.name, target, [result]);
             fillBooleanSelection(ownedSelection() as typeof target, count, selection.offsetAt, result);

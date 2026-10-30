@@ -223,3 +223,53 @@ it('establishes scalar-fill type once without scanning repeated cells', () => {
         expect(() => r.execute('Empty = array 1.0')).toThrow('cannot receive');
     } finally { r.dispose(); }
 });
+
+it.each([false, true])('batches whole-row and partial-row writes into multidimensional arrays (compilation=%s)', compilation => {
+    const r = new Interpreter(undefined, { compilation });
+    const d = new RuntimeDiagnostics();
+    try {
+        r.execute('use sequences\nM = array shape 3 4 fill 1\nV = array 10 20 30 40');
+        d.run(() => r.execute('M 1 = V'));
+        expect(formatValue(r.execute('M 1')!)).toBe('10 20 30 40');
+        expect(formatValue(r.execute('M 0')!)).toBe('1 1 1 1');
+        expect(formatValue(r.execute('M 2')!)).toBe('1 1 1 1');
+        if (compilation) {
+            expect(d.bulkArrayWrites).toBe(1);
+            expect(d.bulkArrayWriteCells).toBe(4);
+        }
+
+        // Partial row write
+        d.run(() => r.execute('M 1 (1 till 3) = array 99 98'));
+        expect(formatValue(r.execute('M 1')!)).toBe('10 99 98 40');
+
+        // Row copy from another row
+        d.run(() => r.execute('M 2 = M 0'));
+        expect(formatValue(r.execute('M 2')!)).toBe('1 1 1 1');
+
+        // Row compound assignment
+        d.run(() => r.execute('M 0 += array 1 2 3 4'));
+        expect(formatValue(r.execute('M 0')!)).toBe('2 3 4 5');
+
+        // Scalar row fill
+        d.run(() => r.execute('M 2 = 7'));
+        expect(formatValue(r.execute('M 2')!)).toBe('7 7 7 7');
+
+        // Rank-3 plane write
+        r.execute('P = array shape 2 2 3 fill 0\nPlane = array shape 2 3 fill 5');
+        d.run(() => r.execute('P 1 = Plane'));
+        expect(formatValue(r.execute('P 0 0')!)).toBe('0 0 0');
+        expect(formatValue(r.execute('P 1 0')!)).toBe('5 5 5');
+        expect(formatValue(r.execute('P 1 1')!)).toBe('5 5 5');
+    } finally { r.dispose(); }
+});
+
+it('batches boolean row writes into multidimensional arrays', () => {
+    const r = new Interpreter();
+    try {
+        r.execute('use sequences\nB = array shape 2 3 fill true');
+        r.execute('B 1 = false');
+        expect(formatValue(r.execute('B 0')!)).toBe('true true true');
+        expect(formatValue(r.execute('B 1')!)).toBe('false false false');
+    } finally { r.dispose(); }
+});
+

@@ -244,6 +244,14 @@ export function writeIntegerSelection(
         if (cells instanceof Int32Array && fitsInt32(operand)) {
             const replacement = Number(operand);
             if (linear) {
+                if (linear.stride === 1) {
+                    for (let start = 0; start < count; start += 4096) {
+                        const end = Math.min(count, start + 4096);
+                        checkpoint('writing array', end - start);
+                        cells.fill(replacement, linear.offset + start, linear.offset + end);
+                    }
+                    return;
+                }
                 for (let start = 0; start < count; start += 1024) {
                     const end = Math.min(count, start + 1024);
                     checkpoint('writing array', end - start);
@@ -260,6 +268,14 @@ export function writeIntegerSelection(
         }
         if (cells instanceof BigInt64Array && fitsInt64(operand)) {
             if (linear) {
+                if (linear.stride === 1) {
+                    for (let start = 0; start < count; start += 4096) {
+                        const end = Math.min(count, start + 4096);
+                        checkpoint('writing array', end - start);
+                        cells.fill(operand, linear.offset + start, linear.offset + end);
+                    }
+                    return;
+                }
                 for (let start = 0; start < count; start += 1024) {
                     const end = Math.min(count, start + 1024);
                     checkpoint('writing array', end - start);
@@ -281,6 +297,14 @@ export function writeIntegerSelection(
     let first = 0;
     if (state.typed instanceof Int32Array && !state.validity && privateLoopPolling()) {
         const cells = state.typed;
+        if (operator === '=' && operand instanceof Int32Array && linear?.stride === 1) {
+            for (let start = 0; start < count; start += 4096) {
+                const end = Math.min(count, start + 4096);
+                checkpoint('writing array', end - start);
+                cells.set(operand.subarray(start, end), linear.offset + start);
+            }
+            return;
+        }
         const scalar = typeof operand === 'bigint' ? Number(operand) : undefined;
         const numeric = operator === '=' ? (_: number, next: number) => next
             : operator === '+=' ? (old: number, next: number) => old + next
