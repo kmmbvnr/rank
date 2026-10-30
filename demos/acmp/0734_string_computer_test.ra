@@ -1,0 +1,63 @@
+use testing
+
+test "sample 1: N=1 K=1"
+  use "0734_string_computer"
+  Input = "1 1"
+  run
+
+  MaxStrings equal 1
+  CountSets equal 1
+end
+
+test "sample 2: N=3 K=2"
+  use "0734_string_computer"
+  run
+
+  MaxStrings equal 12
+  CountSets equal 1
+end
+
+test "N=4 K=2 even length multi-sets"
+  use "0734_string_computer"
+  Input = "4 2"
+  run
+
+  MaxStrings equal 24
+  CountSets equal 5
+end
+
+test "N=2 K=1 single character even"
+  use "0734_string_computer"
+  Input = "2 1"
+  run
+
+  MaxStrings equal 1
+  CountSets equal 2
+end
+
+test "N=4 K=1 single character even 4"
+  use "0734_string_computer"
+  Input = "4 1"
+  run
+
+  MaxStrings equal 2
+  CountSets equal 2
+end
+
+test "N=5 K=3 odd length ternary"
+  use "0734_string_computer"
+  Input = "5 3"
+  run
+
+  MaxStrings equal 351
+  CountSets equal 1
+end
+
+test "N=6 K=2 even length binary"
+  use "0734_string_computer"
+  Input = "6 2"
+  run
+
+  MaxStrings equal 112
+  CountSets equal 9
+end

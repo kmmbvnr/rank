@@ -1,0 +1,40 @@
+rem String Computer
+rem https://acmp.ru/index.asp?main=task&id_task=734
+rem Find maximum non-redundant set size and number of such sets over alphabet K and max length N
+
+use io
+use cli
+use numbers
+use text
+
+arg Input text = "3 2"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+N = (Tokens 0) integer
+K = (Tokens 1) integer
+
+M = N // 2
+MaxStrings = 0
+CountSets = 0
+
+if K equal 1
+  MaxStrings = N - M
+  if (N mod 2) equal 0
+    CountSets = 2
+  else
+    CountSets = 1
+  end
+else
+  Kn1 = K ** (N + 1)
+  Km1 = K ** (M + 1)
+  MaxStrings = (Kn1 - Km1) // (K - 1)
+  if (N mod 2) equal 0
+    CountSets = (K ** M) + 1
+  else
+    CountSets = 1
+  end
+end
+
+(MaxStrings text) print
+(CountSets text) print
