@@ -493,14 +493,14 @@ end`);
         } finally { runtime.dispose(); }
     });
 
-    it('retains the triangle prefix and mutable Moebius table while deferring the final lookup', () => {
+    it('retains the Moebius prefix and quotient groups while deferring triangle counts', () => {
         const source = readFileSync(new URL('../../../demos/euler/276_primitivetriangles.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=100'] });
         try {
             runtime.execute(source);
             expect(runtime.variables.get('Answer')).toBe(6033n);
-            for (const name of ['N', 'Cum', 'Mu']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
-            for (const name of ['Odd', 'Base', 'Tri', 'Quot', 'Pick']) {
+            for (const name of ['Mu', 'Prefix', 'Q', 'A', 'B']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            for (const name of ['Weight', 'K', 'R', 'Count']) {
                 expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
             }
         } finally { runtime.dispose(); }

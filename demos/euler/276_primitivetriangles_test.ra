@@ -1,6 +1,6 @@
 use testing
 
-rem The default input takes about 16 s.
+rem Full input, including exact integers above 2^53.
 test "default input"
   use "276_primitivetriangles"
   run
@@ -18,4 +18,20 @@ test "small limits"
   run
 
   Answer equal 6033
+end
+
+test "empty and first triangle"
+  use "276_primitivetriangles"
+  Limit = 0
+  run
+  Answer equal 0
+  Limit = 1
+  run
+  Answer equal 0
+  Limit = 2
+  run
+  Answer equal 0
+  Limit = 3
+  run
+  Answer equal 1
 end

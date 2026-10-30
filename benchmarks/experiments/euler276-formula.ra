@@ -1,0 +1,21 @@
+use numbers
+use sequences
+use io
+use cli
+arg Limit integer = 10000000
+Max = Limit // 3
+Mu = array shape (Max + 1) fill 1
+for P in primes to Max
+  Mu (P to Max by P) *= -1
+  if P * P at most Max
+    Mu (P * P to Max by P * P) = 0
+  end
+end
+Q' = Limit // (1 to Max)
+K' = Q // 12
+R' = Q mod 12
+A = array 0 2 3 6 8 12 15 20 24 30 35 42
+B = array 0 0 0 1 1 2 3 5 6 9 11 15
+Count' = ((12 * K + 3 * R + 6) * K + A R) * K + B R
+Answer = ((Mu drop 1) * Count) sum
+Answer print

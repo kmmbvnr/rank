@@ -1,0 +1,1268 @@
+{
+  "samples": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 11747.275333000001,
+      "rssMiB": 1461.78125,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 11747.206458
+        }
+      ],
+      "repeat": 0,
+      "scanPrototype": false
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 18958.801125,
+      "rssMiB": 1388.609375,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 18958.697916
+        }
+      ],
+      "repeat": 0,
+      "scanPrototype": false
+    },
+    {
+      "mode": "compiled",
+      "variant": "formula",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 3457.9896670000003,
+      "rssMiB": 804.03125,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 3457.899334
+        }
+      ],
+      "repeat": 0,
+      "scanPrototype": false
+    },
+    {
+      "mode": "compiled",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 454.579291,
+      "rssMiB": 421.328125,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 454.4978749999999
+        }
+      ],
+      "repeat": 0,
+      "scanPrototype": false
+    },
+    {
+      "mode": "reference",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 2064.478958,
+      "rssMiB": 597.234375,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 2064.401792
+        }
+      ],
+      "repeat": 0,
+      "scanPrototype": false
+    },
+    {
+      "mode": "compiled",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 300.3106250000001,
+      "rssMiB": 221.390625,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 300.22504100000003
+        }
+      ],
+      "repeat": 0,
+      "scanPrototype": true
+    },
+    {
+      "mode": "reference",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 1931.0890829999998,
+      "rssMiB": 933.453125,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 1930.98175
+        }
+      ],
+      "repeat": 0,
+      "scanPrototype": true
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 17536.925583999997,
+      "rssMiB": 1552.34375,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 17536.872625
+        }
+      ],
+      "repeat": 1,
+      "scanPrototype": false
+    },
+    {
+      "mode": "compiled",
+      "variant": "formula",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 2841.590041,
+      "rssMiB": 828.34375,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 2841.525416
+        }
+      ],
+      "repeat": 1,
+      "scanPrototype": false
+    },
+    {
+      "mode": "compiled",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 391.762417,
+      "rssMiB": 422.734375,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 391.6910419999999
+        }
+      ],
+      "repeat": 1,
+      "scanPrototype": false
+    },
+    {
+      "mode": "reference",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 1738.026042,
+      "rssMiB": 668.953125,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 1737.9508340000002
+        }
+      ],
+      "repeat": 1,
+      "scanPrototype": false
+    },
+    {
+      "mode": "compiled",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 260.252333,
+      "rssMiB": 224.5,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 260.18325000000004
+        }
+      ],
+      "repeat": 1,
+      "scanPrototype": true
+    },
+    {
+      "mode": "reference",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 1874.7673329999998,
+      "rssMiB": 823.5625,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 1874.700667
+        }
+      ],
+      "repeat": 1,
+      "scanPrototype": true
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 12723.315709,
+      "rssMiB": 1463.328125,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 12723.129708999999
+        }
+      ],
+      "repeat": 1,
+      "scanPrototype": false
+    },
+    {
+      "mode": "compiled",
+      "variant": "formula",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 2892.43775,
+      "rssMiB": 856.828125,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 2892.367458
+        }
+      ],
+      "repeat": 2,
+      "scanPrototype": false
+    },
+    {
+      "mode": "compiled",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 439.33250000000004,
+      "rssMiB": 421.96875,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 439.23883300000006
+        }
+      ],
+      "repeat": 2,
+      "scanPrototype": false
+    },
+    {
+      "mode": "reference",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 1813.351167,
+      "rssMiB": 660.484375,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 1813.276333
+        }
+      ],
+      "repeat": 2,
+      "scanPrototype": false
+    },
+    {
+      "mode": "compiled",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 263.683667,
+      "rssMiB": 225.015625,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 263.59674999999993
+        }
+      ],
+      "repeat": 2,
+      "scanPrototype": true
+    },
+    {
+      "mode": "reference",
+      "variant": "grouped",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 1669.660708,
+      "rssMiB": 938.09375,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 1669.592167
+        }
+      ],
+      "repeat": 2,
+      "scanPrototype": true
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 11454.475665999998,
+      "rssMiB": 1460.921875,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 11454.421999999999
+        }
+      ],
+      "repeat": 2,
+      "scanPrototype": false
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 16420.377084,
+      "rssMiB": 1536.03125,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 16420.32025
+        }
+      ],
+      "repeat": 2,
+      "scanPrototype": false
+    }
+  ],
+  "summary": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "scanPrototype": false,
+      "medianMs": 11747.275333000001,
+      "medianRssMiB": 1461.78125
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "scanPrototype": false,
+      "medianMs": 17536.925583999997,
+      "medianRssMiB": 1536.03125
+    },
+    {
+      "mode": "compiled",
+      "variant": "formula",
+      "scanPrototype": false,
+      "medianMs": 2892.43775,
+      "medianRssMiB": 828.34375
+    },
+    {
+      "mode": "compiled",
+      "variant": "grouped",
+      "scanPrototype": false,
+      "medianMs": 439.33250000000004,
+      "medianRssMiB": 421.96875
+    },
+    {
+      "mode": "reference",
+      "variant": "grouped",
+      "scanPrototype": false,
+      "medianMs": 1813.351167,
+      "medianRssMiB": 660.484375
+    },
+    {
+      "mode": "compiled",
+      "variant": "grouped",
+      "scanPrototype": true,
+      "medianMs": 263.683667,
+      "medianRssMiB": 224.5
+    },
+    {
+      "mode": "reference",
+      "variant": "grouped",
+      "scanPrototype": true,
+      "medianMs": 1874.7673329999998,
+      "medianRssMiB": 933.453125
+    }
+  ],
+  "date": "2026-10-30",
+  "sourceHeadAtEnd": "3a069b790877f5df3fb4f8ee7a88d6883a11ed75",
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "fullAnswer": "5777137137739632912",
+  "method": "3 fresh serial processes per case, rotated order; imports excluded, parse+execution included; RSS process high-water; external load uncontrolled",
+  "timedSourceHashes": {
+    "benchmarks/euler276-investigation.mjs": "e13fdcaf48e40549bd39ce0b85d467c3d835580f00637d9c0328b30c27938852",
+    "benchmarks/experiments/euler276-original.ra": "b9a9f78d3e3bbef08b91d100a3e5bba51c2e8cde0f71bd407cb3e4e799114e5b",
+    "benchmarks/experiments/euler276-formula.ra": "37103981531fb9b3eb3a8408b5478888526f22d6c42145bef9b057544e7a1fbe",
+    "benchmarks/experiments/euler276-grouped.ra": "fc4d21bb38817a4e011424431d94db7fab4447fb57ae77e96fe533961e688e7f",
+    "benchmarks/experiments/euler276-scan-loader.mjs": "f23ce6dcffd485b0de7a290d742597d3d6d1ccddfd609eeb16767c4fe25585c6"
+  },
+  "sourceChangesAfterTiming": "grouped tiny-input first-quotient range bound; loader optional TRACE_SCAN logging disabled by default",
+  "finalSourceHashes": {
+    "benchmarks/euler276-scan-verify.mjs": "02e7e485a4b4724525d7fe41b6f63e1df0e1f2b63ef3a35d2a616684778e5f46",
+    "benchmarks/euler276-verify.mjs": "34e52a34bf4ca945886e6077139b625a5bac22f8d23f35c81894123927ee6b37",
+    "benchmarks/euler276-investigation.mjs": "e13fdcaf48e40549bd39ce0b85d467c3d835580f00637d9c0328b30c27938852",
+    "benchmarks/experiments/euler276-formula.ra": "37103981531fb9b3eb3a8408b5478888526f22d6c42145bef9b057544e7a1fbe",
+    "benchmarks/experiments/euler276-grouped.ra": "e032e53bf6312f354a6b5927d7744873ae7a9ab5e327d5a1e94c66682b9f52c7",
+    "benchmarks/experiments/euler276-scan-loader.mjs": "dc15db5aacfa21d87a750499a0f965a1ca55d2bf32f6279124f2c80e4789112b",
+    "benchmarks/experiments/euler276-original.ra": "b9a9f78d3e3bbef08b91d100a3e5bba51c2e8cde0f71bd407cb3e4e799114e5b"
+  },
+  "runtimeBuild": {
+    "jsFileCount": 457,
+    "sha256PathsAndContents": "a1c800d8ea92ba304978a4877cfbc81ecedaa8fac60843ccea580997393a2ad5",
+    "latestMtimeLocal": "2026-10-30T23:04:11.431965",
+    "firstSampleFileBirthLocal": "2026-10-30T23:15:55.837263"
+  },
+  "initialStageSamples": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 10512.983124999999,
+      "rssMiB": 1461.75,
+      "stages": [
+        {
+          "label": "prefix",
+          "ms": 6254.273417
+        },
+        {
+          "label": "sieve",
+          "ms": 335.06845799999974
+        },
+        {
+          "label": "5777137137739632912",
+          "ms": 3923.5874589999994
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 15220.128292,
+      "rssMiB": 1534.421875,
+      "stages": [
+        {
+          "label": "prefix",
+          "ms": 6451.597625
+        },
+        {
+          "label": "sieve",
+          "ms": 4296.629457999999
+        },
+        {
+          "label": "5777137137739632912",
+          "ms": 4471.849584
+        }
+      ]
+    }
+  ],
+  "referenceGroupedProfileTop": [
+    {
+      "name": "(garbage collector)",
+      "url": "",
+      "selfMs": 282.543
+    },
+    {
+      "name": "general",
+      "url": "packages/interpreter/out/eval/assignments.js",
+      "selfMs": 281.587
+    },
+    {
+      "name": "readArrayItem",
+      "url": "packages/interpreter/out/runtime/array-read.js",
+      "selfMs": 157.168
+    },
+    {
+      "name": "evaluateBinaryValue",
+      "url": "packages/interpreter/out/operators.js",
+      "selfMs": 113.543
+    },
+    {
+      "name": "write",
+      "url": "packages/interpreter/out/runtime/array-binding-contract.js",
+      "selfMs": 98.085
+    },
+    {
+      "name": "",
+      "url": "packages/interpreter/out/runtime/array-binding-contract.js",
+      "selfMs": 96.455
+    },
+    {
+      "name": "",
+      "url": "packages/interpreter/out/eval/assignments.js",
+      "selfMs": 73.663
+    },
+    {
+      "name": "writeArrayCell",
+      "url": "packages/interpreter/out/runtime/owned-array.js",
+      "selfMs": 52.373
+    },
+    {
+      "name": "compileSourceTextModule",
+      "url": "node:internal/modules/esm/utils",
+      "selfMs": 42.085
+    },
+    {
+      "name": "advance",
+      "url": "packages/interpreter/out/execution.js",
+      "selfMs": 38.291
+    },
+    {
+      "name": "scanValues",
+      "url": "packages/interpreter/out/reduction.js",
+      "selfMs": 29.333
+    },
+    {
+      "name": "(program)",
+      "url": "",
+      "selfMs": 26.335
+    },
+    {
+      "name": "storeCell",
+      "url": "packages/interpreter/out/runtime/owned-array.js",
+      "selfMs": 25.167
+    },
+    {
+      "name": "materializeValues",
+      "url": "packages/interpreter/out/materialize.js",
+      "selfMs": 24.999
+    },
+    {
+      "name": "ownedArray",
+      "url": "packages/interpreter/out/runtime/owned-array.js",
+      "selfMs": 24.25
+    },
+    {
+      "name": "registerRangePlan",
+      "url": "packages/interpreter/out/range-plan.js",
+      "selfMs": 19.916
+    },
+    {
+      "name": "indexAt",
+      "url": "packages/interpreter/out/selectors.js",
+      "selfMs": 18.792
+    },
+    {
+      "name": "stream",
+      "url": "packages/interpreter/out/eval/loops.js",
+      "selfMs": 18.791
+    },
+    {
+      "name": "evaluateBinary",
+      "url": "packages/interpreter/out/operators.js",
+      "selfMs": 16.377
+    },
+    {
+      "name": "continueStatementStream",
+      "url": "packages/interpreter/out/eval/blocks.js",
+      "selfMs": 16.167
+    }
+  ],
+  "oracle": {
+    "checks": 20673,
+    "engines": 2,
+    "variants": 3,
+    "limits": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      121,
+      143,
+      144,
+      145,
+      168,
+      169,
+      170,
+      255,
+      256,
+      257,
+      400
+    ],
+    "oracle": "direct integer sides, triangle inequality, gcd; direct perimeter-prefix check through 20000"
+  },
+  "patchedOracle": {
+    "checks": 20673,
+    "engines": 2,
+    "variants": 3,
+    "limits": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      121,
+      143,
+      144,
+      145,
+      168,
+      169,
+      170,
+      255,
+      256,
+      257,
+      400
+    ],
+    "oracle": "direct integer sides, triangle inequality, gcd; direct perimeter-prefix check through 20000"
+  },
+  "scanOracle": {
+    "checks": 8,
+    "oracle": "positive/negative narrow/wide and unsafe long Int32 prefix, guarded prototype only"
+  },
+  "delivery": {
+    "samples": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 10508.724709,
+        "rssMiB": 1462.828125,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 10508.669042000001
+          }
+        ],
+        "repeat": 0
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 15052.571125,
+        "rssMiB": 1531.953125,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 15052.515208
+          }
+        ],
+        "repeat": 0
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 243.714083,
+        "rssMiB": 229.46875,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 243.63866600000003
+          }
+        ],
+        "repeat": 0
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 1476.828708,
+        "rssMiB": 615.65625,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 1476.76425
+          }
+        ],
+        "repeat": 0
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 15397.20575,
+        "rssMiB": 1533.015625,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 15397.154917
+          }
+        ],
+        "repeat": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 245.53525,
+        "rssMiB": 230.109375,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 245.45775
+          }
+        ],
+        "repeat": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 1481.662583,
+        "rssMiB": 617.5625,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 1481.600291
+          }
+        ],
+        "repeat": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 10369.7455,
+        "rssMiB": 1462.3125,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 10369.687875000001
+          }
+        ],
+        "repeat": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 246.033125,
+        "rssMiB": 230.203125,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 245.954375
+          }
+        ],
+        "repeat": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 1513.974583,
+        "rssMiB": 624.078125,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 1513.9120420000002
+          }
+        ],
+        "repeat": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 10492.125750000001,
+        "rssMiB": 1464.265625,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 10492.068125
+          }
+        ],
+        "repeat": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "limit": "10000000",
+        "answer": "5777137137739632912",
+        "ms": 15461.999959,
+        "rssMiB": 1544.578125,
+        "stages": [
+          {
+            "label": "5777137137739632912",
+            "ms": 15461.948125
+          }
+        ],
+        "repeat": 2
+      }
+    ],
+    "summary": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "medianMs": 10492.125750000001,
+        "medianRssMiB": 1462.828125
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "medianMs": 15397.20575,
+        "medianRssMiB": 1533.015625
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "medianMs": 245.53525,
+        "medianRssMiB": 230.109375
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "medianMs": 1481.662583,
+        "medianRssMiB": 617.5625
+      }
+    ],
+    "sourceHashes": {
+      "demos/euler/276_primitivetriangles.ra": "d3b59bb078885490b8182fec5840c9184d1122ea9dbbac9ec60d968bc3f2b782",
+      "demos/euler/276_primitivetriangles_test.ra": "7336b3c6075ba5b99fa2f5b505bf27dd3769334d510a700e22551440033a4ac4",
+      "packages/interpreter/src/reduction.ts": "3d4ff23515d2807a32a64a45ea57e8f3534a1fb1fc4a65e3cd926e8abf16b73e",
+      "packages/interpreter/src/runtime/axis-order.ts": "4667acbfefc9c25e829977bbd3631116c44d0b04f10b125ac92829439c93ed1f",
+      "benchmarks/euler276-investigation.mjs": "d7a5b54b3d404f50a8ea37d323e5b643b1e362abee5358dfa263314bf7ddabd7"
+    },
+    "sourceHeadBeforeCommit": "3a069b790877f5df3fb4f8ee7a88d6883a11ed75",
+    "validation": {
+      "focusedTests": "655/655 in 11 files",
+      "scopedTypesAndDifferential": "4 passed, 4227 skipped; 2 demos, 3 fixture blocks",
+      "semanticBoundaries": "11 tests and 65 semantic owners",
+      "fullSuite": "Not run; focused suites and scoped audits only"
+    },
+    "oracle": {
+      "checks": 20897,
+      "engines": 2,
+      "variants": 4,
+      "limits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        121,
+        143,
+        144,
+        145,
+        168,
+        169,
+        170,
+        255,
+        256,
+        257,
+        400
+      ],
+      "oracle": "direct integer sides, triangle inequality, gcd; direct perimeter-prefix check through 20000"
+    },
+    "scanOracle": {
+      "checks": 8,
+      "oracle": "positive/negative narrow/wide and unsafe long Int32 prefix, guarded compact scan"
+    },
+    "runtimeBuild": {
+      "fileCount": 458,
+      "sha256PathsAndContents": "2e85abd44ea8d45e79056637f5f9b32aef85a29fb616aa39fd4886be85a40b0a",
+      "latestMtimeLocal": "2026-10-30T23:27:39.827852"
+    },
+    "diagnostics": {
+      "mode": "compiled",
+      "variant": "shipping",
+      "limit": "10000000",
+      "answer": "5777137137739632912",
+      "ms": 240.13387500000002,
+      "rssMiB": 229.515625,
+      "stages": [
+        {
+          "label": "5777137137739632912",
+          "ms": 240.06750000000002
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 63210,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 5,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 5,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 239400,
+        "bulkArrayWriteCells": 11307726,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 7,
+          "tensor:unsupported-type:array": 3,
+          "scalar-expression:unsupported-op:+": 6,
+          "tensor:application-form:BinaryExpression": 1,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 8,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:deferred-binding:AssignmentStatement": 4,
+          "tensor:binding:Weight": 1,
+          "scalar-expression:unsupported-op:Prefix": 2,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:operator-guard:+": 5,
+          "scalar-expression:operator-guard://": 1,
+          "scalar-expression:unsupported-op:R": 6,
+          "scalar-expression:unsupported-op:*": 2,
+          "scalar-expression:operator-guard:*": 4
+        },
+        "compilerRejections": []
+      }
+    }
+  }
+}

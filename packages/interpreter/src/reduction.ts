@@ -105,6 +105,10 @@ export class ReductionEvaluator {
             return this.scanInputCells(value, rank ?? 0, axis, seed, (left, right) => this.binary(operator, left, right));
         }
         if (axis !== undefined) return this.evaluateScanAxis(operator, value, axis, seed);
+        if (operator === '+' && seed === undefined && isRankArray(value) && value.shape.length === 1) {
+            const compact = scanInt32Axis('+', value, value.shape, 0);
+            if (compact) return compact;
+        }
         if (operator === '+' && isRankArray(value) && this.isTensorFusion()) {
             const scanned = scanTensorMap(value, seed);
             if (scanned) return scanned;

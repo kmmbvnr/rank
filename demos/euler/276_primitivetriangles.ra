@@ -1,36 +1,40 @@
 rem Primitive Triangles
 rem https://projecteuler.net/problem=276
-rem Count the integer sided triangles
-rem with gcd(a, b, c) = 1 and perimeter
-rem up to Limit
+rem Count integer triangles with gcd(a,b,c)=1.
 
 use numbers
 use sequences
 use io
 use cli
-
 arg Limit integer = 10000000
 
-rem T(n), the triangles of perimeter n,
-rem is n^2 / 48 rounded for even n and
-rem (n + 3)^2 / 48 for odd n. All the
-rem triangles are the primitive ones
-rem scaled by each d, so by Moebius the
-rem primitive ones are the sum of mu(d)
-rem times the sum of T(n), n <= L / d.
-N = 1 to Limit array
-Odd' = N mod 2 equal 1
-Base' = Odd choose (N + 3) N
-Tri' = (Base * Base + 24) // 48
-Cum = Tri scan +
-Mu = array shape (Limit + 1) fill 1
-for P in primes to Limit
-  Mu (P to Limit by P) *= -1
-  if P * P at most Limit
-    Mu (P * P to Limit by P * P) = 0
+rem Moebius inversion only needs d <= Limit/3:
+rem smaller quotients cannot form a triangle.
+Max = Limit // 3
+Mu = array shape (Max + 1) fill 1
+Mu 0 = 0
+for P in primes to Max
+  Mu (P to Max by P) *= -1
+  if P * P at most Max
+    Mu (P * P to Max by P * P) = 0
   end
 end
-Quot' = Limit // N
-Pick' = Cum (Quot - 1)
-Answer = ((Mu drop 1) * Pick) sum
+Prefix = Mu scan +
+
+rem Group equal quotients using the prefix of mu.
+rem There are only O(sqrt(Limit)) distinct values.
+Root = Limit sqrt floor integer
+Q = concat (Limit // (1 to (Root min Max))) (3 to (Limit // (Root + 1)))
+Weight' = Prefix (Limit // Q) - Prefix (Limit // (Q + 1))
+
+rem F(q) counts all triangles up to perimeter q.
+rem For q=12k+r it is a cubic in k. Its coefficients
+rem follow by summing the rounded perimeter formula;
+rem B[r]=F(r), A[r]=F(12+r)-F(r)-18-3r.
+K' = Q // 12
+R' = Q mod 12
+A = array 0 2 3 6 8 12 15 20 24 30 35 42
+B = array 0 0 0 1 1 2 3 5 6 9 11 15
+Count' = ((12 * K + 3 * R + 6) * K + A R) * K + B R
+Answer = (Weight * Count) sum
 Answer print

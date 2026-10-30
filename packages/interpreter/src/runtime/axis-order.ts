@@ -1,4 +1,4 @@
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, privateLoopPolling } from '../interrupt.js';
 import { collectArrayCells } from './array-read.js';
 import { float64Cells, integer32Cells, typedArray, typedElementKind } from './owned-array.js';
 import type { RankArray } from './value.js';
@@ -101,23 +101,33 @@ export function argsortStoredAxis(value: RankArray, axis: number, down: boolean)
 
 const INT32_MAX = 2147483647;
 
-/** Prefix `+`, `max` or `min` along an axis of stored Int32 cells. Sums stay
- * exact in a double for axes under 2^21 cells; wider results become Int64. */
+/** Prefix `+`, `max` or `min` along an axis of stored Int32 cells. Axes up to
+ * 2^21 cells have safe Number sums even for worst-case Int32 inputs. Longer
+ * axes check each prefix before publishing; an unsafe sum leaves exact
+ * traversal to the caller. Wider safe results become Int64, never reals. */
 export function scanInt32Axis(op: '+' | 'max' | 'min', value: RankArray, shape: readonly number[], axis: number): RankArray | undefined {
     const cells = integer32Cells(value);
     const length = shape[axis];
-    if (!cells || value.columnNames || length > 2 ** 21) return undefined;
+    if (!cells || value.columnNames || !privateLoopPolling()) return undefined;
     let inner = 1;
     for (let d = axis + 1; d < shape.length; d++) inner *= shape[d];
     const out = new Float64Array(cells.length);
     const block = length * inner;
     let wide = false;
     for (let start = 0; start < out.length && length > 0; start += block) {
-        checkpoint('scanning', block);
-        for (let i = 0; i < inner; i++) out[start + i] = cells[start + i];
-        for (let at = start + inner; at < start + block; at += inner) {
-            const end = at + inner;
-            if (op === '+') for (let i = at; i < end; i++) out[i] = out[i - inner] + cells[i];
+        for (let at = start; at < start + inner; at += 4096) {
+            const end = Math.min(start + inner, at + 4096);
+            checkpoint('scanning', end - at);
+            for (let i = at; i < end; i++) out[i] = cells[i];
+        }
+        for (let at = start + inner; at < start + block; at += 4096) {
+            const end = Math.min(start + block, at + 4096);
+            checkpoint('scanning', end - at);
+            if (op === '+') for (let i = at; i < end; i++) {
+                const next = out[i - inner] + cells[i];
+                if (length > 2 ** 21 && !Number.isSafeInteger(next)) return undefined;
+                out[i] = next;
+            }
             else if (op === 'max') for (let i = at; i < end; i++) { const a = out[i - inner], b = cells[i]; out[i] = a > b ? a : b; }
             else for (let i = at; i < end; i++) { const a = out[i - inner], b = cells[i]; out[i] = a < b ? a : b; }
         }

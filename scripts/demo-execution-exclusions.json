@@ -224,7 +224,6 @@
   "euler/579_latticecubes.ra": "To fix later: the default input takes about 2.3 min (a compiled walk over about 10^9 integer quaternions with parity, span and gcd tests and a scale loop per primitive frame); the small _test.ra fixture stays in the audits.",
   "euler/566_cakeicing.ra": "To fix later: the default input takes about 32 min (14190 triples, each closing a cut set of up to 6 x 10^4 points in a compiled hash walk, then a permutation, cycle and KMP pass and a big-integer CRT merge); the small _test.ra fixture stays in the audits.",
   "euler/030_digitpowers_test.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
-  "euler/276_primitivetriangles_test.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
   "euler/562_maximalperimeter_test.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
   "euler/576_irrationaljumps.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
   "euler/606_gozintachains.ra": "About 95 s: Lucy prime-cube sieve to 10^12; run manually.",
