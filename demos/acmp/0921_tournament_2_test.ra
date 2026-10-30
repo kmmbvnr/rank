@@ -1,0 +1,33 @@
+use testing
+
+test "sample 1: 3 50 50 50 -> 1"
+  use "0921_tournament_2"
+  run
+
+  BestC equal 1
+end
+
+test "sample 2: 4 0 0 100 -> 3"
+  use "0921_tournament_2"
+  Input = "4 0 0 100"
+  run
+
+  BestC equal 3
+end
+
+test "K = 2 minimal tournament: exactly 1 chess match"
+  use "0921_tournament_2"
+  Input = "2 40 40 20"
+  run
+
+  BestC equal 1
+end
+
+test "large K = 60000"
+  use "0921_tournament_2"
+  Input = "60000 60 40 10"
+  run
+
+  BestC greater 0
+  BestC less 60000
+end
