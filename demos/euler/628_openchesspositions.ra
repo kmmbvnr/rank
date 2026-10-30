@@ -23,13 +23,14 @@ rem f = n! - 2 sum k! + 1 + sum s
 rem (n - 1 - s)!, k = 0 to n - 1 and
 rem s = 1 to n - 1, with a running k!.
 M = 1008691207
-Fk = 1
-S1 = 0
-T = 0
-for K in 0 to N - 1
-  S1 = (S1 + Fk) mod M
-  T = (T + (N - 1 - K) * Fk) mod M
-  Fk = Fk * (K + 1) mod M
-end
+rem Fs = k! for k = 0 to n, Ps its
+rem prefix sums; sum s (n - 1 - s)! is
+rem the sum of Ps up to n - 2.
+Fs = 1 to N scan * with 1 mod M
+Ps = Fs scan + mod M
+Fk = Fs (N)
+S1 = Ps (N - 1)
+Qs = Ps (0 to N - 2)
+T = Qs sum
 Answer = (Fk - 2 * S1 + T + 1) mod M
 Answer print
