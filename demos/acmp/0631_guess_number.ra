@@ -1,0 +1,29 @@
+rem Guess the Number
+rem https://acmp.ru/index.asp?main=task&id_task=631
+rem Minimum candies needed in worst case to guess number from 1 to N with asymmetric costs (yes=2, no=1)
+
+use io
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "6"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+N = (Tokens 0) integer
+
+rem Fibonacci sequence F: F_0=1, F_1=1, F_2=2, F_3=3, F_4=5, F_5=8, ...
+rem Max candidates distinguishable with C candies is F_C
+rem Minimum candies for N candidates is count of Fibonacci numbers strictly less than N
+F = array shape 40 fill 0
+F 0 = 1
+F 1 = 1
+for I in 2 till 40
+  F I = (F (I - 1)) + (F (I - 2))
+end
+
+Candies = (F less N) count
+
+(Candies text) print

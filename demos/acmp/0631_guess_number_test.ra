@@ -1,0 +1,56 @@
+use testing
+
+test "sample 1: N = 6 requires 5 candies"
+  use "0631_guess_number"
+  run
+
+  Candies equal 5
+end
+
+test "sample 2: N = 2 requires 2 candies"
+  use "0631_guess_number"
+  Input = "2"
+  run
+
+  Candies equal 2
+end
+
+test "N = 1 requires 0 candies"
+  use "0631_guess_number"
+  Input = "1"
+  run
+
+  Candies equal 0
+end
+
+test "Fibonacci boundary: N = 5 requires 4 candies"
+  use "0631_guess_number"
+  Input = "5"
+  run
+
+  Candies equal 4
+end
+
+test "Fibonacci boundary: N = 8 requires 5 candies"
+  use "0631_guess_number"
+  Input = "8"
+  run
+
+  Candies equal 5
+end
+
+test "Fibonacci boundary: N = 9 requires 6 candies"
+  use "0631_guess_number"
+  Input = "9"
+  run
+
+  Candies equal 6
+end
+
+test "large N: N = 100000 requires 25 candies"
+  use "0631_guess_number"
+  Input = "100000"
+  run
+
+  Candies equal 25
+end
