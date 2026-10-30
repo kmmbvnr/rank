@@ -1,0 +1,32 @@
+use testing
+
+test "sample 1: 3 segments, 2 points"
+  use "0396_points_and_segments"
+  run
+
+  Answer equal (array 2 0)
+end
+
+test "sample 2: 1 segment, 3 points"
+  use "0396_points_and_segments"
+  Input = "1 3\n-10 10\n-100 100 0"
+  run
+
+  Answer equal (array 0 0 1)
+end
+
+test "reversed segment and boundary points"
+  use "0396_points_and_segments"
+  Input = "1 2\n5 0\n0 5"
+  run
+
+  Answer equal (array 1 1)
+end
+
+test "multiple overlapping identical segments"
+  use "0396_points_and_segments"
+  Input = "3 1\n1 3\n1 3\n1 3\n1"
+  run
+
+  Answer equal (array 3)
+end

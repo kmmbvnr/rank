@@ -1,0 +1,66 @@
+rem Points and Segments
+rem https://acmp.ru/index.asp?main=task&id_task=396
+rem Count how many segments contain each given point using APL/J coordinate prefix scans
+
+use io
+use cli
+use sequences
+use text
+
+arg Input text = "3 2\n0 5\n-3 2\n7 10\n1 6"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+N = Tokens 0 integer
+M = Tokens 1 integer
+
+SegCoords = ((Tokens drop 2) take (2 * N)) integer
+Pts = ((Tokens drop (2 + 2 * N)) take M) integer
+
+SegIdx = (0 till N) array
+SegA = SegCoords (SegIdx * 2)
+SegB = SegCoords (SegIdx * 2 + 1)
+
+L = SegA min SegB
+R = SegA max SegB
+
+P_orig_idx = (0 till M) array
+
+rem CountL: L_i <= P_j
+AllKeysL = concat (2 * L) (2 * Pts + 1)
+AllTagsL = concat (array shape N fill 1) (array shape M fill 0)
+AllQueryIdxL = concat (array shape N fill (0 - 1)) P_orig_idx
+
+OrderL = AllKeysL argsort
+SortedTagsL = AllTagsL OrderL
+SortedQueryIdxL = AllQueryIdxL OrderL
+
+CumL = SortedTagsL scan +
+
+IsQueryL = SortedTagsL equal 0
+QueryAnsL = CumL IsQueryL
+QueryPosL = SortedQueryIdxL IsQueryL
+
+CountL = array shape M fill 0
+CountL QueryPosL = QueryAnsL
+
+rem CountR: R_i < P_j
+AllKeysR = concat (2 * R + 1) (2 * Pts)
+AllTagsR = concat (array shape N fill 1) (array shape M fill 0)
+AllQueryIdxR = concat (array shape N fill (0 - 1)) P_orig_idx
+
+OrderR = AllKeysR argsort
+SortedTagsR = AllTagsR OrderR
+SortedQueryIdxR = AllQueryIdxR OrderR
+
+CumR = SortedTagsR scan +
+
+IsQueryR = SortedTagsR equal 0
+QueryAnsR = CumR IsQueryR
+QueryPosR = SortedQueryIdxR IsQueryR
+
+CountR = array shape M fill 0
+CountR QueryPosR = QueryAnsR
+
+Answer = CountL - CountR
+Answer print
