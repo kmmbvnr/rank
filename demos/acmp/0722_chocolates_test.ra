@@ -1,0 +1,56 @@
+use testing
+
+test "sample 1: 2x3 box yields 8 combinations"
+  use "0722_chocolates"
+  run
+
+  Combinations equal 8
+end
+
+test "1x1 box yields 2 single-color configurations"
+  use "0722_chocolates"
+  Input = "1 1"
+  run
+
+  Combinations equal 2
+end
+
+test "2x2 box yields 6 configurations"
+  use "0722_chocolates"
+  Input = "2 2"
+  run
+
+  Combinations equal 6
+end
+
+test "3x3 box yields 10 configurations"
+  use "0722_chocolates"
+  Input = "3 3"
+  run
+
+  Combinations equal 10
+end
+
+test "4x4 box yields 18 configurations"
+  use "0722_chocolates"
+  Input = "4 4"
+  run
+
+  Combinations equal 18
+end
+
+test "asymmetric 1x5 box yields 16 configurations"
+  use "0722_chocolates"
+  Input = "1 5"
+  run
+
+  Combinations equal 16
+end
+
+test "large 1000x1000 box with BigInt arithmetic"
+  use "0722_chocolates"
+  Input = "1000 1000"
+  run
+
+  (Combinations text) equal "281321470845691263287341019508734199080725079345434930970419620348618148472787734318968997978250446933951001796967063964352745453061800894588424048213496485095469356444792557492502395070760367608980981293614002"
+end

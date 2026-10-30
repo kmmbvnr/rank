@@ -1,0 +1,35 @@
+rem Chocolates
+rem https://acmp.ru/index.asp?main=task&id_task=722
+rem Count valid N x M 2-colored grids without 3 monochromatic edge-connected cells
+
+use io
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "2 3"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+M = (Tokens 1) integer
+
+rem A grid with no 3 monochromatic connected cells must either have:
+rem 1. Alternating rows where the row sequence has no 3 consecutive identical rows: 2 * F_(N+1)
+rem 2. Alternating columns where the column sequence has no 3 consecutive identical columns: 2 * F_(M+1)
+rem 3. Their intersection is the 2 standard alternating checkerboards
+rem Total configurations = 2 * F_(N+1) + 2 * F_(M+1) - 2
+MaxDim = (N max M) + 5
+
+F = array shape MaxDim fill 0
+F 1 = 1
+F 2 = 1
+for I in 3 till MaxDim
+  F I = (F (I - 1)) + (F (I - 2))
+end
+
+Combinations = (2 * (F (N + 1))) + (2 * (F (M + 1))) - 2
+
+(Combinations text) print
