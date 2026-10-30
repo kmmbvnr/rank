@@ -1,0 +1,66 @@
+rem Triangles - 3
+rem https://acmp.ru/index.asp?main=task&id_task=533
+rem Count non-degenerate isosceles triangles among N 2D integer points
+
+use io
+use numbers
+use cli
+use sequences
+use text
+
+arg Input text = "3\n0 0\n2 2\n-2 2"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+N = (Tokens 0) integer
+Coords = (Tokens drop 1) integer
+
+Idx = (0 till N) * 2
+Xs = Coords Idx
+Ys = Coords (Idx + 1)
+
+Base = 4000000001
+TotalTriangles = 0
+
+for I in 0 till N
+  XO = Xs I
+  YO = Ys I
+
+  MaskOther = (0 till N) not equal I
+  Dx = (Xs MaskOther) - XO
+  Dy = (Ys MaskOther) - YO
+
+  D = (Dx * Dx) + (Dy * Dy)
+  M = D len
+
+  rem Count pairs with equal distance D from apex (XO, YO)
+  OrderD = D argsort
+  SortedD = D OrderD
+
+  DiffD = (SortedD drop 1) not equal (SortedD take (M - 1))
+  IdxM = 0 till (M - 1)
+  CutIdx = (IdxM DiffD) + 1
+  Boundaries = concat (concat (array 0) CutIdx) (array M)
+  NumBoundaries = Boundaries len
+  Counts = (Boundaries drop 1) - (Boundaries take (NumBoundaries - 1))
+  PairsD = ((Counts * (Counts - 1)) // 2) sum
+
+  rem Count collinear opposite pairs where (XO, YO) is midpoint
+  rem Map vector (Dx, Dy) to upper half-plane
+  IsNeg = (Dx less 0) or ((Dx equal 0) and (Dy less 0))
+  Cx = Dx
+  Cx IsNeg = 0 - (Dx IsNeg)
+  Cy = Dy
+  Cy IsNeg = 0 - (Dy IsNeg)
+
+  Key = Cx * Base + Cy
+  OrderKey = Key argsort
+  SortedKey = Key OrderKey
+
+  DiffKey = (SortedKey drop 1) not equal (SortedKey take (M - 1))
+  CollinearPairs = (M - 1) - (DiffKey count)
+
+  TotalTriangles = TotalTriangles + (PairsD - CollinearPairs)
+end
+
+TotalTriangles print
