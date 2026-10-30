@@ -1,0 +1,64 @@
+rem Line Coloring 2
+rem https://acmp.ru/index.asp?main=task&id_task=467
+rem Find longest white interval after N flip operations on [0, 10^9) using coordinate compression & prefix parity
+
+use io
+use cli
+use sequences
+use text
+
+arg Input text = "4\n20 50\n10 35\n40 90\n100 1000000000"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = Tokens 0 integer
+
+Answer = 1000000000
+
+if N greater 0
+  Raw = ((Tokens drop 1) take (2 * N)) integer
+  Idx = (0 till N) array
+  A = Raw (Idx * 2)
+  B = Raw (Idx * 2 + 1)
+  L = A min B
+  R = A max B
+
+  Valid = L less R
+  L = L Valid
+  R = R Valid
+
+  AllEvents = concat L R
+  AllPts = concat (array 0 1000000000) AllEvents
+  SortedPts = AllPts sort unique array
+
+  NumSegments = (SortedPts len) - 1
+  SegLeft = SortedPts (0 till NumSegments)
+  SegRight = SortedPts (1 to NumSegments)
+  SegLen = SegRight - SegLeft
+
+  Flips = array shape (SortedPts len) fill 0
+  for I in 0 to (SortedPts len - 1)
+    P = SortedPts I
+    Flips I = (AllEvents equal P) count
+  end
+
+  CumFlips = Flips scan +
+  SegColor = (CumFlips (0 till NumSegments)) mod 2
+  IsWhite = SegColor equal 0
+
+  Cur = 0
+  MaxLen = 0
+  for I in 0 to (NumSegments - 1)
+    if IsWhite I
+      Cur += SegLen I
+      MaxLen = MaxLen max Cur
+    else
+      Cur = 0
+    end
+  end
+
+  Answer = MaxLen
+end
+
+Answer print

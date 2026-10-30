@@ -1,0 +1,32 @@
+use testing
+
+test "sample 1: 4 operations"
+  use "0467_line_coloring_2"
+  run
+
+  Answer equal 15
+end
+
+test "two identical operations cancel out"
+  use "0467_line_coloring_2"
+  Input = "2\n10 20\n10 20"
+  run
+
+  Answer equal 1000000000
+end
+
+test "full inversion to black"
+  use "0467_line_coloring_2"
+  Input = "1\n0 1000000000"
+  run
+
+  Answer equal 0
+end
+
+test "cut single middle hole"
+  use "0467_line_coloring_2"
+  Input = "1\n100 200"
+  run
+
+  Answer equal 999999800
+end
