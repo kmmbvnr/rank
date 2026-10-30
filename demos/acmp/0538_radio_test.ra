@@ -1,0 +1,39 @@
+use testing
+use numbers
+
+test "sample 1: unit square towers give sqrt(2)/2"
+  use "0538_radio"
+  run
+
+  rem Expected R = 1 / sqrt(2) approx 0.70710678
+  (R - 0.70710678 abs) less 0.00001
+  FinalColors equal array 1 2 2 1
+end
+
+test "collinear 3 towers"
+  use "0538_radio"
+  Input = "3\n0 0\n2 0\n4 0"
+  run
+
+  rem Expected R = 4 / 2 = 2.0
+  (R - 2.0 abs) less 0.00001
+  FinalColors equal array 1 2 1
+end
+
+test "equilateral triangle of side 10"
+  use "0538_radio"
+  rem All 3 pairwise distances are 10. Odd cycle, so R <= 10 / 2 = 5.0
+  Input = "3\n0 0\n10 0\n5 8.6602540378"
+  run
+
+  (R - 5.0 abs) less 0.00001
+end
+
+test "two close pairs separated by large distance"
+  use "0538_radio"
+  rem Diagonal distance is sqrt(100^2 + 2^2) = 100.02, so R = 50.01
+  Input = "4\n0 0\n0 2\n100 0\n100 2"
+  run
+
+  (R - 50.01 abs) less 0.01
+end

@@ -1,0 +1,92 @@
+rem ACMP 0538 - Radio (Радио)
+rem Maximize coverage radius R of N transmitters with 2 frequencies to avoid interference.
+rem
+rem Two transmitters broadcasting on the same frequency must be at distance >= 2R.
+rem Thus, any pair at distance < 2R must broadcast on different frequencies (2-coloring).
+rem We binary search for the maximal 2R = Mid such that the graph with edges
+rem for distance < Mid is bipartite, verifying with BFS 2-coloring.
+
+use io
+use cli
+use sequences
+use numbers
+use text
+
+arg Input text = "4\n0 0\n0 1\n1 0\n1 1"
+
+Tokens = (Input split "\n" join " ") split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens real
+
+N = (Nums 0) integer
+Idxs = (0 till N) array
+X = Nums (Idxs * 2 + 1)
+Y = Nums (Idxs * 2 + 2)
+
+DX = X X outer -
+DY = Y Y outer -
+D2 = DX * DX + DY * DY
+
+Low = 0.0
+High = 40000.0
+
+FinalColors = array shape N fill 1
+
+for Iter in 0 till 45
+  Mid = (Low + High) / 2.0
+  Mid2 = Mid * Mid
+
+  Colors = array shape N fill 0
+  Q = array shape N fill 0
+  IsBipartite = true
+
+  for I in 0 till N
+    if ((Colors I) equal 0) and IsBipartite
+      Colors I = 1
+      Head = 0
+      Tail = 0
+      Q Tail = I
+      Tail = Tail + 1
+
+      for (Head less Tail) and IsBipartite
+        U = Q Head
+        Head = Head + 1
+        ColU = Colors U
+        NextCol = 3 - ColU
+
+        Row = D2 U
+        Mask = (Row less Mid2) and (Row greater 0.0)
+        Neighs = Idxs Mask
+
+        for V in Neighs
+          ColV = Colors V
+          if ColV equal 0
+            Colors V = NextCol
+            Q Tail = V
+            Tail = Tail + 1
+          else
+            if ColV equal ColU
+              IsBipartite = false
+              break
+            end
+          end
+        end
+      end
+    end
+  end
+
+  if IsBipartite
+    Low = Mid
+    FinalColors = Colors
+  else
+    High = Mid
+  end
+end
+
+rem Fill any unvisited nodes with color 1
+ZeroMask = FinalColors equal 0
+FinalColors ZeroMask = 1
+
+R = Low / 2.0
+Answer = (R text) + "\n" + (FinalColors join " ")
+Answer print
