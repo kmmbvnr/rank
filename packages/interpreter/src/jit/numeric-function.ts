@@ -6,7 +6,7 @@ import {
 } from '@arrrank/language';
 import { InterruptedError, interruptsEnabled, privateLoopPolling } from '../interrupt.js';
 import { RankError } from '../errors.js';
-import { recordFallback } from '../diagnostics.js';
+import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { ownedStorage } from '../array-storage-state.js';
 import { MAX_HELD_CELLS, realCells, storedScalarKinds, typedArray } from '../array-storage.js';
 import { tuple, type RankArray, type RankValue } from '../value.js';
@@ -156,7 +156,11 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
         // len and reshape dimensions demand metadata, not computed source cells.
     }
     roots.forEach(demand);
-    const variants = new Map<string, NumericRun>();
+    // Only shape/scalar facts are retained, never input storage or results.
+    type Prepared = { run: NumericRun; results: NumericBound[]; scalars: number[] };
+    const variants = new Map<string, Prepared>();
+    const inputNames = new Set([...reachable].flatMap(node => node.kind === 'input' ? [node.name] : []));
+    for (const { name } of assignments) if (parameters.has(name)) inputNames.add(name);
     let unavailable = false;
     return { run(): RankValue | undefined {
         if (unavailable || !privateLoopPolling() || interruptsEnabled()) return undefined;
@@ -170,31 +174,40 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             return op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b : op === '/' ? a / b
                 : op === '//' ? Math.floor(a / b) : a - Math.floor(a / b) * b;
         }
+        function readInput(name: string): NumericBound {
+            let info: NumericBound;
+            const value = host.lookup(name);
+            if (typeof value === 'bigint' && safe(Number(value))) info = { shape: [], size: 1, integer: true, scalar: Number(value), low: Number(value), high: Number(value) };
+            else if (typeof value === 'number' && Number.isFinite(value)) info = { shape: [], size: 1, integer: false, scalar: value };
+            else {
+                const state = value && typeof value === 'object' ? ownedStorage.get(value as RankArray) : undefined;
+                if (!state?.stable || !state.scalarOnly || state.validity || state.readOnlyCells
+                    || state.typed && !(state.typed instanceof Float64Array)) return bad(`input-storage:${name}`);
+                const descriptor = Object.getOwnPropertyDescriptor(value, 'shape');
+                if (!descriptor || !('value' in descriptor) || !same(descriptor.value, state.shape)
+                    || Object.getOwnPropertyDescriptor(value, 'itemAt') || Object.getOwnPropertyDescriptor(value, 'columnNames')
+                    || Object.getOwnPropertyDescriptor(value, 'tableScopes') || Object.getOwnPropertyDescriptor(value, 'sortKeys')
+                    || storedScalarKinds(value as RankArray, true)?.join() !== 'real') return bad();
+                const cells = realCells(value as RankArray);
+                if (!cells) return bad();
+                info = { shape: [...state.shape], size: sizeOf(state.shape), integer: false, data: data.length };
+                if (!info.shape.length || info.size !== cells.length) return bad();
+                data.push(cells);
+            }
+            return info;
+        }
+        function execute(prepared: Prepared): RankValue | undefined {
+            const buffers = prepared.results.map(r => new Float64Array(r.size));
+            if (!prepared.run(data, prepared.scalars, buffers)) return undefined;
+            const values = buffers.map((buffer, i) => typedArray(buffer, prepared.results[i].shape, undefined, 'real'));
+            host.executed();
+            return product ? tuple(values) : values[0];
+        }
         function bind(node: NumericNode): NumericBound {
             const old = bound.get(node); if (old) return old;
             let info: NumericBound;
             if (node.kind === 'input') {
-                const previous = inputs.get(node.name);
-                if (previous) { bound.set(node, previous); return previous; }
-                const value = host.lookup(node.name);
-                if (typeof value === 'bigint' && safe(Number(value))) info = { shape: [], size: 1, integer: true, scalar: Number(value), low: Number(value), high: Number(value) };
-                else if (typeof value === 'number' && Number.isFinite(value)) info = { shape: [], size: 1, integer: false, scalar: value };
-                else {
-                    const state = value && typeof value === 'object' ? ownedStorage.get(value as RankArray) : undefined;
-                    if (!state?.stable || !state.scalarOnly || state.validity || state.readOnlyCells
-                        || state.typed && !(state.typed instanceof Float64Array)) return bad(`input-storage:${node.name}`);
-                    const descriptor = Object.getOwnPropertyDescriptor(value, 'shape');
-                    if (!descriptor || !('value' in descriptor) || !same(descriptor.value, state.shape)
-                        || Object.getOwnPropertyDescriptor(value, 'itemAt') || Object.getOwnPropertyDescriptor(value, 'columnNames')
-                        || Object.getOwnPropertyDescriptor(value, 'tableScopes') || Object.getOwnPropertyDescriptor(value, 'sortKeys')
-                        || storedScalarKinds(value as RankArray, true)?.join() !== 'real') return bad();
-                    const cells = realCells(value as RankArray);
-                    if (!cells) return bad();
-                    info = { shape: [...state.shape], size: sizeOf(state.shape), integer: false, data: data.length };
-                    if (!info.shape.length || info.size !== cells.length) return bad();
-                    data.push(cells);
-                }
-                inputs.set(node.name, info);
+                info = inputs.get(node.name)!;
             } else if (node.kind === 'constant') info = { shape: [], size: 1, integer: node.integer, scalar: node.value, low: node.integer ? node.value : undefined, high: node.integer ? node.value : undefined };
             else if (node.kind === 'length') {
                 const source = bind(node.source); if (!source.shape.length) return bad();
@@ -258,6 +271,21 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
         }
         let preflight = true;
         try {
+            const signature: string[] = [];
+            for (const name of inputNames) {
+                const info = readInput(name);
+                if (rejected) return undefined;
+                inputs.set(name, info);
+                signature.push(info.shape.length ? `a:${info.shape.join(',')}`
+                    : `${info.integer ? 'i' : 'r'}:${Object.is(info.scalar, -0) ? '-0' : info.scalar}`);
+            }
+            const key = signature.join('|'), prepared = variants.get(key);
+            const diagnostics = currentDiagnostics();
+            if (prepared) {
+                if (diagnostics) diagnostics.numericFunctionPlanHits++;
+                preflight = false; return execute(prepared);
+            }
+            if (diagnostics) diagnostics.numericFunctionPreparations++;
             const contracts = new Map<string, string>();
             for (const { name, node } of assignments) {
                 const info = bind(node), type = `${info.shape.length}:${info.integer}`;
@@ -269,22 +297,16 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             const results = roots.map(bind);
             if (rejected || results.some(r => r.integer || !r.shape.length || r.size <= 0 || r.size > MAX_HELD_CELLS)) return undefined;
             preflight = false;
-            const key = JSON.stringify([...bound.values()].map(v => [v.shape, v.integer, v.scalar]));
             const scalars: number[] = [], scalarSlots = new Map<NumericNode, number>();
             for (const [node, info] of bound) if (!info.shape.length) { scalarSlots.set(node, scalars.length); scalars.push(info.scalar!); }
-            let run = variants.get(key);
-            if (!run) {
-                const emitted = emitNumericFunction(roots, bound, scalarSlots);
-                if (!emitted) return undefined;
-                try { run = new Function(emitted)() as NumericRun; } catch { unavailable = true; return undefined; }
-                if (variants.size >= 32) variants.delete(variants.keys().next().value!);
-                variants.set(key, run); host.compiled(emitted);
-            }
-            const buffers = results.map(r => new Float64Array(r.size));
-            if (!run(data, scalars, buffers)) return undefined;
-            const values = buffers.map((buffer, i) => typedArray(buffer, results[i].shape, undefined, 'real'));
-            host.executed();
-            return product ? tuple(values) : values[0];
+            const emitted = emitNumericFunction(roots, bound, scalarSlots);
+            if (!emitted) return undefined;
+            let run: NumericRun;
+            try { run = new Function(emitted)() as NumericRun; } catch { unavailable = true; return undefined; }
+            if (variants.size >= 32) variants.delete(variants.keys().next().value!);
+            const plan = { run, results, scalars };
+            variants.set(key, plan); host.compiled(emitted);
+            return execute(plan);
         } catch (error) {
             if (preflight && error instanceof RankError && !(error instanceof InterruptedError)) return undefined;
             throw error;

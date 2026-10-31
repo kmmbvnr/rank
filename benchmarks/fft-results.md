@@ -577,6 +577,83 @@ node benchmarks/fft-demo-regression.mjs \
   --only=matmul --output=/tmp/fft-demo-matmul.json
 ```
 
+## General compiler follow-up: prepared numeric functions
+
+### Step 1: cache the full preparation
+
+The compiler previously cached generated code but rebuilt the entire bound
+node graph, shape arithmetic, local contracts and scalar-slot mapping before
+every lookup. It now retains a bounded prepared specialization selected from
+the current input shapes, scalar kinds and scalar values. Negative real zero
+has its own key. Every call still validates current storage, metadata and
+native operations, reads fresh input cells, and allocates fresh outputs.
+No input arrays or output buffers are retained by these plans. Unsupported
+inputs and arithmetic failures retain ordinary replay.
+
+This changes the compiler only. The FFT source is unchanged: sine/cosine
+tables and frequency ordering are still computed inside each FFT call.
+The baseline is an independently built clean `31f2acaa` checkout; the
+candidate was measured as uncommitted changes based on the same commit.
+
+Five serial fresh-process samples per mode, alternating order, give:
+
+| FFT N | Before, ms | After, ms |
+| --- | ---: | ---: |
+| 256 | 0.526 | 0.383 |
+| 1024 | 0.869 | 0.732 |
+| 4096 | 1.780 | 1.380 |
+
+The N=4096 first-series wall median decreases 22.5%, but host load causes
+large outliers, including a 12.43 ms baseline at N=256. A separate nine-pair
+N=4096 confirmation measures 1.504 to 1.350 ms (10.2% lower); CPU medians
+fall from 2.480 to 1.997 ms (19.5%). Confirmation ranges still overlap:
+before 1.37–3.55 ms, after 1.27–3.04 ms. The confirmation supports a more
+modest gain than the initial largest-size median.
+
+Three independent pure array helpers use the same compiler, without any
+FFT operations or name matching. They force the complete host output within
+timing and check every value against independent JS expressions:
+
+| Helper, 4096 input cells | Before, ms | After, ms |
+| --- | ---: | ---: |
+| Reshape + affine transform | 0.10962 | 0.06336 |
+| Strided finite differences | 0.03747 | 0.03291 |
+| Paired-channel mean/spread | 0.05778 | 0.05432 |
+
+Finite differences improve 12.2%, with first-series process ranges
+0.03627–0.03960 ms before and 0.03212–0.03598 ms after. The affine result
+has very wide ranges (0.0559–0.3024 before, 0.0581–0.1220 after), so its
+large median change is not a reliable standalone speedup claim.
+
+Existing demo controls remain unchanged in the stable series: matrix-vector
+30.864 to 30.715 ms; gradient descent's nine-pair confirmation 7.126 to
+7.115 ms. The first gradient series was noisy and appeared 14.2% slower
+(12.275 to 14.017 ms); the confirmation does not reproduce that regression.
+Programs that do not use eligible numerical helpers are not expected to
+benefit from this preparation cache.
+
+Warm FFT diagnostics record 12 prepared-plan hits, zero preparations and
+12 executed numerical functions; no new code is generated. The cache remains
+bounded to 32 variants, and eviction/rebuilding, new input values, shape/type
+changes, signed zero, builtin guards and post-warm arithmetic failure have
+dedicated tests. All 453 ordinary interpreter files / 10,415 tests, 55
+Deep-ML files, seven classic files, TypeScript build, semantic boundaries
+and application-form checks pass. Exhaustive audits remain excluded.
+
+Evidence: [FFT series](baselines/2026-11-01-numeric-prepared-step1-fft.json),
+[FFT confirmation](baselines/2026-11-01-numeric-prepared-step1-fft-confirm.json),
+[general helpers](baselines/2026-11-01-numeric-prepared-step1-helpers.json),
+[matvec control](baselines/2026-11-01-numeric-prepared-step1-matvec.json),
+[gradient first series](baselines/2026-11-01-numeric-prepared-step1-gradient.json),
+[gradient confirmation](baselines/2026-11-01-numeric-prepared-step1-gradient-confirm.json),
+[warm/cold diagnostics](baselines/2026-11-01-numeric-prepared-step1-diagnostics.json).
+
+```sh
+node benchmarks/numeric-function-plans.mjs \
+  --baseline=/path/to/baseline --samples=5 \
+  --output=/tmp/numeric-function-plans.json
+```
+
 ## Reproduction and checks
 
 ```sh
