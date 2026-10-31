@@ -1,3 +1,5 @@
+import { BooleanCells } from './boolean-cells.js';
+import { createOwned } from './owned-array.js';
 import { mapPackedBooleanArrays } from './packed-booleans.js';
 import { chooseStoredIntegers, compareStoredInt32, mapStoredIntegers } from '../jit/integer-array-kernel.js';
 import { mapArrayCells } from './array-cell-mapping.js';
@@ -119,7 +121,7 @@ export function mapDenseArrays(
         // table) is laid out once at the result's shape, so the kernels stay flat.
         if (leftMod < 0) { a = expandOperand(a as Float64Array, leftArray!.shape, shape, Float64Array) as Float64Array; leftMod = 0; }
         if (rightMod < 0) { b = expandOperand(b as Float64Array, rightArray!.shape, shape, Float64Array) as Float64Array; rightMod = 0; }
-        if (realCode > LAST_ARITHMETIC_CODE) return ownedArray(compareKernel(realCode, size, a!, b!, leftMod, rightMod), shape, true);
+        if (realCode > LAST_ARITHMETIC_CODE) return createOwned(compareKernel(realCode, size, a!, b!, leftMod, rightMod), shape, true);
         const result = realKernel(realCode, size, a!, b!, leftMod, rightMod);
         if (result) return typedArray(result, shape);
         return undefined;
@@ -421,18 +423,18 @@ function integersAsReals(
 function compareKernel(
     code: number, size: number, a: Float64Array | number, b: Float64Array | number,
     aMod: number, bMod: number,
-): boolean[] {
-    const out: boolean[] = new Array(size);
+): BooleanCells {
+    const cells = new BooleanCells(size), words = cells.words;
     for (let start = 0; start < size; start += DENSE_CHUNK) {
         checkpoint('computing array');
         const end = Math.min(size, start + DENSE_CHUNK);
         for (let i = start; i < end; i += 1) {
             const x = typeof a === 'number' ? a : a[aMod ? i % aMod : i];
             const y = typeof b === 'number' ? b : b[bMod ? i % bMod : i];
-            out[i] = code === 5 ? x < y : code === 6 ? x > y : code === 7 ? x <= y : x >= y;
+            if (code === 5 ? x < y : code === 6 ? x > y : code === 7 ? x <= y : x >= y) words[i >>> 5] |= 1 << (i & 31);
         }
     }
-    return out;
+    return cells;
 }
 
 /** Codes for the real operations that run without a call through `operation`. */

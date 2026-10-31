@@ -5,7 +5,8 @@ import { constructingTensorPlan, registerTensorMap } from './tensor-map.js';
 import { membershipLookup } from './membership-lookup.js';
 import { mapArrayCells } from './array-cell-mapping.js';
 import { mapScalarArrays } from './scalar-array-map.js';
-import { registerRangePlan, registerModularRange } from './range-plan.js';
+import { arithmeticRange, registerRangePlan, registerModularRange } from './range-plan.js';
+import { registerSequenceCompletion } from './sequence-completion.js';
 import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } from './numeric-division.js';
 import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
@@ -24,7 +25,7 @@ import { compareOrderedValues, orderedKind } from './ordered.js';
 import { dyadicCells, emptyFrameArray, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
 import { counterHas, setHas } from './collections.js';
 import {
-    arraySequenceOperands, isPositionalMask, mapSequence, materializeSequence, positionalMask, sequence, sequenceMask, sequenceValues, zipSequences,
+    arraySequenceOperands, isPositionalMask, mapSequence, materializeSequence, positionalMask, sequence, sequenceMask, sequenceValues, stackItems, zipSequences,
 } from './sequence.js';
 import { safeDimension } from './tensor-index.js';
 import { REAL_CODES, mapBooleanArrays, mapBroadcastArrays, mapDenseArrays } from './tensor.js';
@@ -732,6 +733,23 @@ function addressable(mapped: RankSequence, source: RankSequence, operation: (ite
     }, source.plan.scalarItems && typeof scalar !== 'object' ? true : undefined);
 }
 
+/** A scalar operation over a proved range fills dense storage on demand, from
+ * the packed range, instead of boxing every yielded cell. */
+function completeRangeMap(
+    mapped: RankSequence, source: RankSequence, scalar: RankValue, name: string,
+    operation: (left: RankValue, right: RankValue) => RankValue, scalarFirst: boolean,
+): void {
+    if ((typeof scalar !== 'number' && typeof scalar !== 'bigint') || !DENSE_OPERATORS.has(name)
+        || !arithmeticRange(source.plan)) return;
+    registerSequenceCompletion(mapped.plan, () => {
+        const cells = materializeSequence(source);
+        const dense = scalarFirst
+            ? mapDenseArrays(scalar, cells, operation, REAL_CODES[name], !isPredicateOperator(name), name)
+            : mapDenseArrays(cells, scalar, operation, REAL_CODES[name], !isPredicateOperator(name), name);
+        return dense ?? stackItems(mapped.plan.iterate(), undefined, 'sequence');
+    });
+}
+
 const DENSE_OPERATORS = new Set(['+', '-', '*', '/', '//', 'mod', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal']);
 
 function mapBinary(
@@ -753,11 +771,14 @@ function mapBinary(
         const mapped = withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right), typeof right !== 'object'), left,
             item => scalarOperation(item, right), right), left, item => scalarOperation(item, right));
         if (name === 'mod' && typeof right === 'bigint') registerModularRange(mapped.plan, left.plan, right);
+        completeRangeMap(mapped, left, right, name, scalarOperation, false);
         return mapped;
     }
     if (isRankSequence(right)) {
-        return withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item), typeof left !== 'object'), right,
+        const mapped = withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item), typeof left !== 'object'), right,
             item => scalarOperation(left, item), left), right, item => scalarOperation(left, item));
+        completeRangeMap(mapped, right, left, name, scalarOperation, true);
+        return mapped;
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
