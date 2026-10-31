@@ -1,0 +1,60 @@
+use bits
+use numbers
+use sequences
+use io
+
+rem Radix-2 FFT with whole-array stages.
+fun X fftReal
+  N = X len
+  if X shape len not equal 1
+    .DimensionMismatch raise
+  end
+  Mask = N band (N - 1)
+  if N less 1 or Mask not equal 0
+    .DomainError raise
+  end
+  R = X real copy
+  I = array shape N fill 0.0
+  K = 0 till (N // 2) array
+  A = -2 * (-1 acos) * K / N
+  Cos = A cos copy
+  Sin = A sin copy
+
+  Size = N
+  for Size greater 1
+    H = Size // 2
+    Rm = R reshape # 2 H
+    Im = I reshape # 2 H
+    unpack Ur Vr = Rm axis 1
+    unpack Ui Vi = Im axis 1
+    W = (0 till H) * (N // Size)
+    C = Cos W
+    S = Sin W
+    Dr = Ur - Vr
+    Di = Ui - Vi
+    Tr = Dr * C - Di * S
+    Ti = Dr * S + Di * C
+    NextR = concat (Ur + Vr) Tr axis 1
+    NextI = concat (Ui + Vi) Ti axis 1
+    R = NextR reshape N
+    I = NextI reshape N
+    Size //= 2
+  end
+
+  rem Restore frequency order from bits.
+  Index = 0 till N array
+  Order = array shape N fill 0
+  Bits = N
+  for Bits greater 1
+    Order = Order * 2 + Index mod 2
+    Index = Index // 2
+    Bits //= 2
+  end
+  return tuple (R Order) (I Order)
+end
+
+
+X = array 1 2 3 4
+unpack Re Im = X fftReal
+Re print
+Im print

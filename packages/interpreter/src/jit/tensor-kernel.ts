@@ -469,8 +469,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     const routes = viewNodes.map(node => node.offset);
     const routeSlots = new Map<TensorNode, number>(viewNodes.map((node, index) => [node, index]));
     let cachedRun: KernelRun | undefined;
-    // Concat segment lengths vary between calls; retain bounded code layouts,
-    // never source arrays, so recurring shapes do not recompile every step.
+    // Retain bounded executable layouts, never operand storage, so recurring
+    // broadcast shapes and concat lengths do not recompile every step.
     const variants = new Map<string, { run: KernelRun; source: string }>();
     const hasConcat = [...domains.keys()].some(node => node.kind === 'concat');
     const hasSlices = [...domains.keys()].some(node => node.kind === 'slice');
@@ -1274,10 +1274,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             cachedKey = key;
             cachedRun = execute;
             if (compiled) host.compiled?.(generated);
-            if ([...bound.keys()].some(node => node.kind === 'concat')) {
-                if (variants.size >= 256) variants.delete(variants.keys().next().value!);
-                variants.set(key, { run: execute!, source: generated });
-            }
+            if (variants.size >= 256) variants.delete(variants.keys().next().value!);
+            variants.set(key, { run: execute!, source: generated });
         }
         if (!scanning && !structural.length && [...bound.keys()].every(node => node.kind !== 'select' && node.kind !== 'slice'
             && !(node.kind === 'unary' && (node.op === 'text' || node.op === 'integer0')))

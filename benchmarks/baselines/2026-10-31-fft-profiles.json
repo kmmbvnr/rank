@@ -1,0 +1,535 @@
+{
+  "compiledCpu": {
+    "n": 4096,
+    "mode": "compiled",
+    "calls": 91,
+    "samples": 15322,
+    "sampledMs": 2592.874999999998,
+    "categoryMs": {
+      "concatCopies": 337.9539999999986,
+      "contracts": 681.2800000000018,
+      "reshape": 29.620000000000008,
+      "axisSelection": 273.86899999999946,
+      "gc": 110.54600000000005
+    },
+    "categoryPercent": {
+      "concatCopies": 13.033948802005451,
+      "contracts": 26.275080750132663,
+      "reshape": 1.1423612785035926,
+      "axisSelection": 10.56236802776839,
+      "gc": 4.263452731041802
+    },
+    "categoryNote": "inclusive categories; may overlap",
+    "self": [
+      {
+        "frame": "storedScalarKinds|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js:48",
+        "ms": 566.7060000000001
+      },
+      {
+        "frame": "copyStoredArrayBlocks|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-copy.js:93",
+        "ms": 158.16199999999998
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/selectors.js:265",
+        "ms": 144.24099999999999
+      },
+      {
+        "frame": "(garbage collector)|:0",
+        "ms": 110.54600000000005
+      },
+      {
+        "frame": "materializeSelectedView|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-copy.js:59",
+        "ms": 110.08199999999997
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/concat-array.js:139",
+        "ms": 90.62800000000004
+      },
+      {
+        "frame": "(anonymous)|:3",
+        "ms": 86.373
+      },
+      {
+        "frame": "post|node:inspector:115",
+        "ms": 82.042
+      },
+      {
+        "frame": "compactBinary|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/integer-array-kernel.js:90",
+        "ms": 81.70900000000002
+      },
+      {
+        "frame": "createOwned|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js:1068",
+        "ms": 64.172
+      },
+      {
+        "frame": "prepareStoredScalarView|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/integer-view.js:167",
+        "ms": 56.86500000000003
+      },
+      {
+        "frame": "arrayElementTypes|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-element-types.js:7",
+        "ms": 55.451
+      },
+      {
+        "frame": "bindRun|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/tensor-kernel.js:587",
+        "ms": 44.336999999999996
+      },
+      {
+        "frame": "(program)|:0",
+        "ms": 38.33600000000004
+      },
+      {
+        "frame": "invoke|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/tensor-kernel.js:444",
+        "ms": 38.33200000000001
+      },
+      {
+        "frame": "enter|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/materialize.js:30",
+        "ms": 33.92200000000004
+      },
+      {
+        "frame": "semanticArrayType|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/semantic-array-type.js:18",
+        "ms": 26.912999999999993
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/selectors.js:92",
+        "ms": 22.287000000000003
+      },
+      {
+        "frame": "advance|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:92",
+        "ms": 21.086999999999993
+      },
+      {
+        "frame": "realKernel|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/tensor.js:328",
+        "ms": 20.508
+      },
+      {
+        "frame": "selectionArray|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/selectors.js:24",
+        "ms": 17.916
+      },
+      {
+        "frame": "state.convert|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js:1096",
+        "ms": 17.549000000000003
+      },
+      {
+        "frame": "derivedArray|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/derived-array.js:16",
+        "ms": 17.328
+      },
+      {
+        "frame": "emit|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/tensor-kernel.js:1066",
+        "ms": 16.122
+      },
+      {
+        "frame": "tensorSelection|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/selectors.js:88",
+        "ms": 15.919999999999998
+      },
+      {
+        "frame": "visit|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:177",
+        "ms": 15.624
+      },
+      {
+        "frame": "integer32Items|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js:1019",
+        "ms": 15.122
+      },
+      {
+        "frame": "arrayValues|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-read.js:125",
+        "ms": 12
+      },
+      {
+        "frame": "mapStoredInt32Binary|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/integer-array-kernel.js:156",
+        "ms": 11.377
+      },
+      {
+        "frame": "sliceArray|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/selectors.js:401",
+        "ms": 11.333
+      }
+    ],
+    "inclusive": [
+      {
+        "frame": "(root)|:0",
+        "ms": 2592.874999999948
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/benchmarks/fft.mjs:0",
+        "ms": 2438.6599999999494
+      },
+      {
+        "frame": "run|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/benchmarks/fft.mjs:168",
+        "ms": 2355.867999999947
+      },
+      {
+        "frame": "call|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/function-invocation.js:428",
+        "ms": 2337.9859999999476
+      },
+      {
+        "frame": "next|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:81",
+        "ms": 2334.6109999999467
+      },
+      {
+        "frame": "runExecution|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:137",
+        "ms": 2334.6109999999467
+      },
+      {
+        "frame": "advance|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:92",
+        "ms": 2331.6109999999467
+      },
+      {
+        "frame": "run|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/block-compiler.js:15",
+        "ms": 831.9310000000071
+      },
+      {
+        "frame": "continueCompiledBlock|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/blocks.js:84",
+        "ms": 812.5250000000071
+      },
+      {
+        "frame": "materializeValue|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/materialize.js:23",
+        "ms": 783.331999999996
+      },
+      {
+        "frame": "enter|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/materialize.js:30",
+        "ms": 758.8739999999966
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:433",
+        "ms": 751.3310000000016
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:20",
+        "ms": 720.494000000002
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js:117",
+        "ms": 645.3719999999984
+      },
+      {
+        "frame": "check|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:145",
+        "ms": 628.8660000000003
+      },
+      {
+        "frame": "checkBinding|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:257",
+        "ms": 621.8270000000003
+      },
+      {
+        "frame": "checkArray|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:282",
+        "ms": 619.3260000000002
+      },
+      {
+        "frame": "stream|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:68",
+        "ms": 606.1550000000004
+      },
+      {
+        "frame": "visit|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:177",
+        "ms": 596.7410000000002
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:259",
+        "ms": 589.7830000000001
+      },
+      {
+        "frame": "arrayElementTypes|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-element-types.js:7",
+        "ms": 571.9940000000003
+      },
+      {
+        "frame": "storedScalarKinds|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js:48",
+        "ms": 567.0400000000002
+      },
+      {
+        "frame": "assign|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js:57",
+        "ms": 476.7790000000001
+      },
+      {
+        "frame": "set|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:69",
+        "ms": 423.78300000000013
+      },
+      {
+        "frame": "stored|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:407",
+        "ms": 419.42499999999785
+      },
+      {
+        "frame": "copyArrayStorage|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-copy.js:14",
+        "ms": 377.4929999999981
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:74",
+        "ms": 366.1999999999981
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/concat-array.js:132",
+        "ms": 341.07999999999856
+      },
+      {
+        "frame": "copyStoredArrayBlocks|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-copy.js:93",
+        "ms": 337.9539999999986
+      },
+      {
+        "frame": "run|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/fast-paths.js:181",
+        "ms": 292.3789999999991
+      }
+    ]
+  },
+  "referenceCpu": {
+    "n": 4096,
+    "mode": "reference",
+    "calls": 185,
+    "samples": 18818,
+    "sampledMs": 2575.6249999999995,
+    "self": [
+      {
+        "frame": "storedScalarKinds|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js:48",
+        "ms": 732.5180000000001
+      },
+      {
+        "frame": "copyStoredArrayBlocks|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-copy.js:93",
+        "ms": 165.50100000000006
+      },
+      {
+        "frame": "(garbage collector)|:0",
+        "ms": 140.33500000000004
+      },
+      {
+        "frame": "realKernel|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/tensor.js:328",
+        "ms": 135.54600000000008
+      },
+      {
+        "frame": "prepareStoredScalarView|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/integer-view.js:167",
+        "ms": 123.00600000000009
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/selectors.js:265",
+        "ms": 122.19900000000001
+      },
+      {
+        "frame": "materializeSelectedView|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-copy.js:59",
+        "ms": 106.96600000000005
+      },
+      {
+        "frame": "compactBinary|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/integer-array-kernel.js:90",
+        "ms": 104.08600000000006
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/concat-array.js:139",
+        "ms": 96.61999999999999
+      },
+      {
+        "frame": "(program)|:0",
+        "ms": 93.95700000000001
+      },
+      {
+        "frame": "post|node:inspector:115",
+        "ms": 71.834
+      },
+      {
+        "frame": "createOwned|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js:1068",
+        "ms": 54.450999999999986
+      },
+      {
+        "frame": "enter|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/materialize.js:30",
+        "ms": 34.25100000000002
+      },
+      {
+        "frame": "semanticArrayType|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/semantic-array-type.js:18",
+        "ms": 21.88
+      },
+      {
+        "frame": "arrayElementTypes|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-element-types.js:7",
+        "ms": 21.542999999999996
+      },
+      {
+        "frame": "tensorSelection|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/selectors.js:88",
+        "ms": 19.586000000000002
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/selectors.js:92",
+        "ms": 18.416999999999998
+      },
+      {
+        "frame": "state.convert|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js:1096",
+        "ms": 17.162
+      },
+      {
+        "frame": "advance|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:92",
+        "ms": 13.998
+      },
+      {
+        "frame": "derivedArray|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/derived-array.js:16",
+        "ms": 13.75
+      },
+      {
+        "frame": "visit|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:177",
+        "ms": 13.419
+      },
+      {
+        "frame": "selectionArray|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/selectors.js:24",
+        "ms": 12.290000000000001
+      },
+      {
+        "frame": "readArrayItem|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-read.js:367",
+        "ms": 10.497
+      },
+      {
+        "frame": "materializeValue|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/materialize.js:23",
+        "ms": 9.792000000000002
+      },
+      {
+        "frame": "arrayValues|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-read.js:125",
+        "ms": 8.999
+      },
+      {
+        "frame": "mapStoredInt32Binary|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/integer-array-kernel.js:156",
+        "ms": 8.998000000000001
+      },
+      {
+        "frame": "revisionFrame|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-revision.js:17",
+        "ms": 8.335
+      },
+      {
+        "frame": "mapDenseArrays|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/tensor.js:63",
+        "ms": 7.75
+      },
+      {
+        "frame": "evaluateBinaryValue|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js:230",
+        "ms": 7.709999999999999
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-read.js:132",
+        "ms": 7.500999999999999
+      }
+    ],
+    "inclusive": [
+      {
+        "frame": "(root)|:0",
+        "ms": 2575.624999999932
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/benchmarks/fft.mjs:0",
+        "ms": 2327.375999999932
+      },
+      {
+        "frame": "run|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/benchmarks/fft.mjs:151",
+        "ms": 2255.166999999932
+      },
+      {
+        "frame": "call|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/function-invocation.js:428",
+        "ms": 2237.254999999932
+      },
+      {
+        "frame": "next|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:81",
+        "ms": 2234.129999999932
+      },
+      {
+        "frame": "runExecution|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:137",
+        "ms": 2234.129999999932
+      },
+      {
+        "frame": "advance|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:92",
+        "ms": 2232.297999999932
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js:242",
+        "ms": 751.5669999999983
+      },
+      {
+        "frame": "storedScalarKinds|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js:48",
+        "ms": 732.8100000000003
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:433",
+        "ms": 731.5410000000032
+      },
+      {
+        "frame": "materializeValue|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/materialize.js:23",
+        "ms": 719.072999999997
+      },
+      {
+        "frame": "continueStatementStream|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/blocks.js:163",
+        "ms": 712.5080000000025
+      },
+      {
+        "frame": "run|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:417",
+        "ms": 702.4679999999959
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:20",
+        "ms": 701.9540000000037
+      },
+      {
+        "frame": "enter|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/materialize.js:30",
+        "ms": 696.2389999999972
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js:117",
+        "ms": 690.7029999999983
+      },
+      {
+        "frame": "check|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:145",
+        "ms": 678.7
+      },
+      {
+        "frame": "checkBinding|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:257",
+        "ms": 674.1640000000002
+      },
+      {
+        "frame": "checkArray|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:282",
+        "ms": 671.4560000000001
+      },
+      {
+        "frame": "visit|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:177",
+        "ms": 658.6550000000001
+      },
+      {
+        "frame": "(anonymous)|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:259",
+        "ms": 646.2800000000001
+      },
+      {
+        "frame": "arrayElementTypes|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-element-types.js:7",
+        "ms": 640.07
+      },
+      {
+        "frame": "stream|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:68",
+        "ms": 532.3659999999963
+      },
+      {
+        "frame": "assign|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js:57",
+        "ms": 519.1700000000002
+      },
+      {
+        "frame": "evaluateBinaryValue|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js:230",
+        "ms": 503.8020000000001
+      },
+      {
+        "frame": "mapBinary|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js:734",
+        "ms": 491.9660000000001
+      },
+      {
+        "frame": "mapDenseArrays|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/tensor.js:63",
+        "ms": 482.9200000000002
+      },
+      {
+        "frame": "set|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:69",
+        "ms": 467.5080000000001
+      },
+      {
+        "frame": "prepare|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:174",
+        "ms": 439.5400000000001
+      },
+      {
+        "frame": "stored|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:407",
+        "ms": 392.82599999999815
+      }
+    ]
+  },
+  "compiledAllocation": {
+    "n": 4096,
+    "mode": "compiled",
+    "calls": 210,
+    "sampledAllocationBytes": 2388436416,
+    "bytesPerCall": 11373506.742857143,
+    "note": "V8 allocation sampling estimate, includes collected objects; not retained or peak heap"
+  },
+  "jsAllocation": {
+    "n": 4096,
+    "mode": "fftjs-reuse",
+    "calls": 88835,
+    "sampledAllocationBytes": 2327392,
+    "bytesPerCall": 26.199043169921765,
+    "note": "V8 allocation sampling estimate, includes collected objects; not retained or peak heap"
+  }
+}
