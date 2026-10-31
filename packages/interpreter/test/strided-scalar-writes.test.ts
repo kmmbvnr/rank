@@ -60,12 +60,27 @@ describe.each([false, true])('typed scalar selection replacement (linear=%s)', l
         expect(readArrayItem(array, 8191)).toBe(0n);
     });
 
-    it('charges every write to a demand budget', () => {
+    it.each([0, 1, 1023, 1024, 1025])('commits exactly %s cells under a demand budget', budget => {
         const array = filledArray(0n, [8192]);
-        expect(() => withDemandBudget(1024, () => writeIntegerSelection(array, 8192, i => i, 7n, '=',
+        expect(() => withDemandBudget(budget, () => writeIntegerSelection(array, 8192, i => i, 7n, '=',
             linear ? { offset: 0, stride: 1 } : undefined))).toThrow(DemandBudgetExhausted);
-        expect(readArrayItem(array, 1023)).toBe(7n);
-        expect(readArrayItem(array, 1024)).toBe(0n);
+        if (budget) expect(readArrayItem(array, budget - 1)).toBe(7n);
+        expect(readArrayItem(array, budget)).toBe(0n);
+    });
+
+    it.each([
+        { name: 'int32 scalar', wide: false, operand: () => 7n, operator: '=' as const, expected: 7n },
+        { name: 'int64 scalar', wide: true, operand: () => 7n, operator: '=' as const, expected: 7n },
+        { name: 'int32 vector', wide: false, operand: () => new Int32Array(8192).fill(7), operator: '=' as const, expected: 7n },
+        { name: 'int64 vector', wide: true, operand: () => new BigInt64Array(8192).fill(7n), operator: '=' as const, expected: 7n },
+        { name: 'int32 addition', wide: false, operand: () => new Int32Array(8192).fill(7), operator: '+=' as const, expected: 8n },
+        { name: 'int64 addition', wide: true, operand: () => new BigInt64Array(8192).fill(7n), operator: '+=' as const, expected: 8n },
+    ])('retains a partial $name write when bounded', ({ wide, operand, operator, expected }) => {
+        const array = typedArray(wide ? new BigInt64Array(8192).fill(1n) : new Int32Array(8192).fill(1));
+        expect(() => withDemandBudget(17, () => writeIntegerSelection(array, 8192, i => i,
+            operand(), operator, linear ? { offset: 0, stride: 1 } : undefined))).toThrow(DemandBudgetExhausted);
+        expect(readArrayItem(array, 16)).toBe(expected);
+        expect(readArrayItem(array, 17)).toBe(1n);
     });
 
     it('reloads storage after an observable host poll widens the buffer', () => {

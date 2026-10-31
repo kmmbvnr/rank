@@ -52,16 +52,16 @@ Image = array shape 5 5
 end`);
         const expected = [0,0.5281045752,0,0,0, 0,0.4013071895,0.3111111111,0.4104575163,0,
             1,1,1,1,1, 0.385620915,1,1,1,0, 1,1,1,1,0.4862745098];
-        cells(r.execute('Kernel convolve Image')!).forEach((v, i) => expect(v).toBeCloseTo(expected[i], 8));
-        expect(() => r.execute('(array shape 2 2 fill 1) convolve Image')).toThrow(/DimensionMismatch/);
+        cells(r.execute('Kernel convolveImage Image')!).forEach((v, i) => expect(v).toBeCloseTo(expected[i], 8));
+        expect(() => r.execute('(array shape 2 2 fill 1) convolveImage Image')).toThrow(/DimensionMismatch/);
         r.dispose();
     });
     it('normalizes positive sums, uses one for nonpositive sums and clamps', () => {
         const r = runtime();
         r.execute('Image = array 0.0 0.25 0.75 1.0 shape 2 2');
-        expect(cells(r.execute('(array 5 shape 1 1) convolve Image')!)).toEqual([0,0.25,0.75,1]);
-        expect(cells(r.execute('(array -1 shape 1 1) convolve Image')!)).toEqual([0,0,0,0]);
-        expect(cells(r.execute('(array 0 0 0 -2 2 0 0 0 0 shape 3 3) convolve Image')!)).toEqual([0,0.5,0,0.5]);
+        expect(cells(r.execute('(array 5 shape 1 1) convolveImage Image')!)).toEqual([0,0.25,0.75,1]);
+        expect(cells(r.execute('(array -1 shape 1 1) convolveImage Image')!)).toEqual([0,0,0,0]);
+        expect(cells(r.execute('(array 0 0 0 -2 2 0 0 0 0 shape 3 3) convolveImage Image')!)).toEqual([0,0.5,0,0.5]);
         r.dispose();
     });
     it('convolves RGB channels independently against a separate pixel reference', () => {

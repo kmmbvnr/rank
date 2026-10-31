@@ -69,7 +69,7 @@ describe('stored popcount arrays', () => {
     it('counts Int32 and wider cells in one pass', () => {
         for (const step of [1000003n, 4000000007n]) {
             const sum = Array.from({ length: 3000 }, (_, i) => oracle(BigInt(i) * step + 5n)).reduce((a, b) => a + b, 0n);
-            expect(run(program(3000, step)).trim()).toBe(String(sum));
+            expect(run(program(3000, step))).toBe(String(sum));
         }
     });
 

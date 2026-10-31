@@ -8,7 +8,6 @@ import type { RuntimeContext } from '../src/modules/types.js';
 import { registerScalarBuiltin, scalarBuiltinArray } from '../src/scalar-builtin.js';
 import { native } from '../src/modules/shared.js';
 import { demandValue } from '../src/plan.js';
-import { run } from './support.js';
 
 // Independent integer-only oracle, including for inputs using the new estimate.
 function newton(n: bigint): bigint {

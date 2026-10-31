@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { run } from './support.js';
+import { run as runProgram } from './support.js';
+
+function run(source: string): string {
+    const result = runProgram(source);
+    if (result === undefined) throw new Error('expected a program result');
+    return result;
+}
 
 const loop = (init: string, statement: string, show: string, times = 2) =>
     run(`use sequences\nuse io\n${init}\nfor R in 1 to ${times}\n  ${statement}\nend\n${show} print`).trim();

@@ -290,7 +290,7 @@ describe('scalar function speculative number mode and BigInt overflow fallback',
         try {
             runtime.execute(`
 fun N loopSum
-  Total = 0
+  Total = 9007199254740000
   for I in 1 to N
     Total += I
   end
@@ -298,12 +298,13 @@ fun N loopSum
 end
 `);
             const small = runtime.execute('10 loopSum');
-            expect(small).toBe(55n);
+            expect(small).toBe(9007199254740055n);
             expect(calls).toBe(1);
 
-            // 200_000_000 * 200_000_001 / 2 = 20_000_000_100_000_000 > Number.MAX_SAFE_INTEGER
-            const large = runtime.execute('200000000 loopSum');
-            expect(large).toBe(20000000100000000n);
+            // The seeded sum is odd and beyond Number's safe range,
+            // forcing exact replay after a nonempty Number prefix.
+            const large = runtime.execute('101 loopSum');
+            expect(large).toBe(9007199254745151n);
             expect(calls).toBe(2);
         } finally {
             runtime.dispose();
@@ -315,14 +316,14 @@ end
         try {
             runtime.execute(`
 fun N countdown
-  Total = 0
+  Total = 9007199254740000
   for I in N till 0 by -1
     Total += I
   end
   return Total
 end
 fun N whileCountdown
-  Total = 0
+  Total = 9007199254740000
   Count = N
   for Count greater 0
     Total += Count
@@ -331,10 +332,10 @@ fun N whileCountdown
   return Total
 end
 `);
-            expect(runtime.execute('10 countdown')).toBe(55n);
-            expect(runtime.execute('10 whileCountdown')).toBe(55n);
-            expect(runtime.execute('200000000 countdown')).toBe(20000000100000000n);
-            expect(runtime.execute('200000000 whileCountdown')).toBe(20000000100000000n);
+            expect(runtime.execute('10 countdown')).toBe(9007199254740055n);
+            expect(runtime.execute('10 whileCountdown')).toBe(9007199254740055n);
+            expect(runtime.execute('101 countdown')).toBe(9007199254745151n);
+            expect(runtime.execute('101 whileCountdown')).toBe(9007199254745151n);
         } finally {
             runtime.dispose();
         }

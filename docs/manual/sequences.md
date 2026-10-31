@@ -514,6 +514,39 @@ of its rows.
 
 sort, transpose
 
+## rotate
+
+Move array items cyclically.
+
+Positive counts move items right;
+negative counts move them left. Items
+wrap around instead of being dropped.
+
+```rank
+use sequences
+(array 1 2 3 4 5) rotate 2
+```
+
+```result
+4 5 1 2 3
+```
+
+### Usage
+
+```text
+Values rotate Count
+Values rotate Count axis Axis
+```
+
+Count must be an integer. Rotation uses
+the leading axis unless Axis is given.
+The result keeps the array's shape.
+Counts can exceed the axis length.
+
+### See also
+
+reverse, shift, axis
+
 ## first
 
 The first item.

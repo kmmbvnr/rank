@@ -41,7 +41,7 @@ test "identity convolution preserves grayscale and RGB"
   Identity = array 1 shape 1 1
   Gray = array 0.0 0.25 0.75 1.0 shape 2 2
   RGB = array 16711680 65280 255 16777215 shape 2 2
-  SameGray = (Identity convolve Gray equal Gray) all
+  SameGray = (Identity convolveImage Gray equal Gray) all
   SameRGB = (Identity convolveRGB RGB equal RGB) all
   SameGray and SameRGB
 end
@@ -75,7 +75,7 @@ test "asymmetric convolution keeps orientation and wraps both axes"
     7.0 7.0 4.0
   end
   Expected = Expected / 30
-  Actual = Kernel convolve Image
+  Actual = Kernel convolveImage Image
   ((Actual - Expected) abs less 0.000000000001) all
 end
 
@@ -96,7 +96,7 @@ test "signed convolution clips negative values"
     0.0 0.0 0.0
     0.3 0.6 0.9
   end
-  Actual = Kernel convolve Image
+  Actual = Kernel convolveImage Image
   ((Actual - Expected) abs less 0.000000000001) all
 end
 

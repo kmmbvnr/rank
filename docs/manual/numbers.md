@@ -304,6 +304,44 @@ huge.
 
 binomial, powmod
 
+## convolve
+
+Multiply two integer polynomials.
+
+Coefficients start with the constant
+term, followed by increasing powers.
+
+```rank
+use numbers
+A = array 1 2 3
+B = array 4 5
+A convolve B
+```
+
+```result
+4 13 22 15
+```
+
+### Usage
+
+```text
+A convolve B
+(A convolve B) mod M
+```
+
+A and B must be nonempty integer
+vectors. The result has length
+(A len) + (B len) - 1, with exact
+integer coefficients.
+
+With a positive M up to 2^31, modular
+evaluation can avoid forming the exact
+product's large coefficients.
+
+### See also
+
+mod
+
 ## cos
 
 Cosine of an angle given in radians.

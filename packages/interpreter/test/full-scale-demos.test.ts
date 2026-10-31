@@ -5,7 +5,7 @@ import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 
 // Retain full bounds and require compiled execution here.
 // Fixture-level reference comparisons belong to the corpus audits.
-it.each([
+for (const [file, expected] of [
     ['257_angularbisectors.ra', 139012411n],
     ['258_laggedfibonacci.ra', 12747994n],
     ['259_reachablenumbers.ra', 20101196798n],
@@ -14,17 +14,21 @@ it.each([
     ['296_angularbisector.ra', 1137208419n],
     ['299_threesimilar.ra', 549936643n],
     ['426_boxball.ra', 31591886008n],
-] as const)('checks the full compiled answer for %s', (file, expected) => {
-    const url = new URL(`../../../demos/euler/${file}`, import.meta.url);
-    const diagnostics = new RuntimeDiagnostics();
-    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
-    try {
-        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(expected);
-        expect(diagnostics.numberLoops).toBeGreaterThan(0);
-        expect(diagnostics.numberLoopOverflows).toBe(0);
-    } finally { runtime.dispose(); }
-}, 60_000);
+] as const) {
+    // Euler 275 can take about a minute on a busy host.
+    const timeout = file === '275_balancedsculptures.ra' ? 120_000 : 60_000;
+    it(`checks the full compiled answer for ${file}`, () => {
+        const url = new URL(`../../../demos/euler/${file}`, import.meta.url);
+        const diagnostics = new RuntimeDiagnostics();
+        const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+        try {
+            diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+            expect(runtime.variables.get('Answer')).toBe(expected);
+            expect(diagnostics.numberLoops).toBeGreaterThan(0);
+            expect(diagnostics.numberLoopOverflows).toBe(0);
+        } finally { runtime.dispose(); }
+    }, timeout);
+}
 
 it('compiles the full Euler 255 interval traversal and preserves the exact total', () => {
     const url = new URL('../../../demos/euler/255_roundedroots.ra', import.meta.url);

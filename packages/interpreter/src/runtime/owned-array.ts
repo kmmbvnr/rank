@@ -1,6 +1,6 @@
 import { BooleanCells, booleanItems } from './boolean-cells.js';
 import { copyArrayStorage } from './array-copy.js';
-import { checkpoint, InterruptedError, interruptsEnabled, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, InterruptedError, interruptsEnabled, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import { ResourceSummary } from '../resource-summary.js';
 import { StoredValueSummary } from './stored-value.js';
@@ -248,13 +248,16 @@ export function writeIntegerSelection(
     linear?: { offset: number; stride: number },
 ): void {
     const state = ownedStorage.get(value)!;
+    // Bulk checkpoints reserve a whole block before storing it. A bounded
+    // observer must instead see exactly the prefix its allowance permits.
+    const bulk = privateLoopPolling() && !demandBudgetEnabled();
     const diagnostics = currentDiagnostics();
     if (diagnostics) { diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count; }
     state.revision = noteMutation(state.birth);
     // A scalar replacement neither reads old cells nor changes physical kind.
     // Check representability once, outside the cell loop. Observable host
     // polling keeps the ordinary path, which reloads storage after each poll.
-    if (operator === '=' && typeof operand === 'bigint' && !state.validity && privateLoopPolling()) {
+    if (operator === '=' && typeof operand === 'bigint' && !state.validity && bulk) {
         const cells = state.typed;
         if (cells instanceof Int32Array && fitsInt32(operand)) {
             const replacement = Number(operand);
@@ -307,7 +310,7 @@ export function writeIntegerSelection(
         }
     }
     // Wide cells copy from packed operands with no boxed BigInt per cell.
-    if (operator === '=' && state.typed instanceof BigInt64Array && !state.validity && privateLoopPolling()
+    if (operator === '=' && state.typed instanceof BigInt64Array && !state.validity && bulk
         && (operand instanceof BigInt64Array || operand instanceof Int32Array) && linear) {
         const cells = state.typed;
         for (let start = 0; start < count; start += 4096) {
@@ -327,7 +330,7 @@ export function writeIntegerSelection(
     // Fall back at the first widening cell, keeping the already committed prefix.
     // Host polling may mutate storage, so it retains the per-cell reload path.
     let first = 0;
-    if (state.typed instanceof Int32Array && !state.validity && privateLoopPolling()) {
+    if (state.typed instanceof Int32Array && !state.validity && bulk) {
         const cells = state.typed;
         if (operator === '=' && operand instanceof Int32Array && linear?.stride === 1) {
             for (let start = 0; start < count; start += 4096) {
@@ -357,7 +360,7 @@ export function writeIntegerSelection(
         if (first === count) return;
     }
     // A destination that left int32 widens once; the rest stays in typed BigInt cells.
-    if (first < count && !state.validity && privateLoopPolling()
+    if (first < count && !state.validity && bulk
         && (state.typed instanceof Int32Array || state.typed instanceof BigInt64Array)) {
         if (state.typed instanceof Int32Array) {
             state.typed = widenInt32(state.typed);

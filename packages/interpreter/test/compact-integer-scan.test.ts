@@ -13,8 +13,8 @@ for (const compilation of [true, false]) describe(`compact integer scan (compila
             runtime.execute('use sequences');
             runtime.variables.set('Cells', typedArray(cells, [n]));
             const result = runtime.execute('Cells scan +');
-            expect(isRankArray(result)).toBe(true);
-            if (!isRankArray(result)) throw new Error('expected an array');
+            expect(result).toBeDefined();
+            if (result === undefined || !isRankArray(result)) throw new Error('expected an array');
             expect(integer32Cells(result)).toBeDefined();
             for (const i of [0, 4095, 4096, n - 1]) expect(readArrayItem(result, i)).toBe(BigInt(i + 1));
             expect(cells[n - 1]).toBe(1);

@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { DemandBudgetExhausted, Interpreter, isRankArray, withDemandBudget, type RankArray } from '../src/index.js';
+import { DemandBudgetExhausted, Interpreter, isRankArray, withDemandBudget, type RankArray, type RankValue } from '../src/index.js';
 import { denseScalarItems, integer32Cells, ownedArray } from '../src/array-storage.js';
 import { modularPower } from '../src/primality.js';
+
+function integerCell(value: RankValue): bigint {
+    if (typeof value !== 'bigint') throw new Error('expected an integer cell');
+    return value;
+}
 
 function execute(source: string) {
     const runtime = new Interpreter();
@@ -28,8 +33,8 @@ describe('powmod array operands', () => {
             const runtime = new Interpreter();
             try {
                 const out = runtime.execute(`use numbers\nuse sequences\nA = ${base} copy\nA ${e} ${m} powmod`) as RankArray;
-                const input = (runtime.variables.get('A') as RankArray).items.map(BigInt);
-                expect(Array.from(out.items, BigInt)).toEqual(
+                const input = (runtime.variables.get('A') as RankArray).items.map(integerCell);
+                expect(Array.from(out.items, integerCell)).toEqual(
                     input.map(x => modularPower(x, BigInt(e), BigInt(m))));
             } finally { runtime.dispose(); }
         };

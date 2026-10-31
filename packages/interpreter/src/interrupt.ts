@@ -122,6 +122,9 @@ export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () =
 /** Cooperative checks are needed for host cancellation and bounded observation. */
 export function interruptsEnabled(): boolean { return state.flag !== undefined || state.budget !== undefined; }
 
+/** Prefix-observable writes must charge demand one committed cell at a time. */
+export function demandBudgetEnabled(): boolean { return state.budget !== undefined; }
+
 /** Atomics-only cancellation cannot observe private loop registers. Inspection
  * and arbitrary host polling callbacks retain per-assignment publication. */
 export function privateLoopPolling(): boolean { return state.opaquePolling && !state.paused; }

@@ -31,7 +31,7 @@ end
 
 rem Odd positive kernel dimensions; center at (shape - 1) // 2.
 rem Weights keep their orientation, as in the contest formula.
-fun Kernel convolve Image
+fun Kernel convolveImage Image
   Shape = Kernel shape
   if Shape len not equal 2 or (Shape mod 2 equal 0 any)
     .DimensionMismatch raise
@@ -53,7 +53,7 @@ fun Kernel convolveRGB Image
   Base = array 256 256 256
   RGB' = Image digits Base
   Normalized' = RGB / 255.0
-  Filtered' = Kernel convolve Normalized rank 2 2
+  Filtered' = Kernel convolveImage Normalized rank 2 2
   Rounded' = (Filtered * 255.0) round 0
   Bytes' = Rounded integer rank 0
   return Bytes fromDigits Base
