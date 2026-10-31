@@ -1,0 +1,110 @@
+[
+  {
+    "round": 0,
+    "version": "before",
+    "mode": "compiled",
+    "limit": "10000",
+    "variant": "original",
+    "noLinkedCalls": false,
+    "answer": "1111981904675169",
+    "ms": 10399.411958,
+    "cpuMs": 10869.085,
+    "rssMiB": 422.015625
+  },
+  {
+    "round": 0,
+    "version": "before",
+    "mode": "compiled",
+    "limit": "10000",
+    "variant": "production",
+    "noLinkedCalls": false,
+    "answer": "1111981904675169",
+    "ms": 9942.671,
+    "cpuMs": 9819.09,
+    "rssMiB": 444.40625
+  },
+  {
+    "round": 0,
+    "version": "final",
+    "mode": "compiled",
+    "limit": "10000",
+    "variant": "production",
+    "noLinkedCalls": false,
+    "answer": "1111981904675169",
+    "ms": 555.5989579999999,
+    "cpuMs": 721.769,
+    "rssMiB": 177.859375
+  },
+  {
+    "round": 1,
+    "version": "before",
+    "mode": "compiled",
+    "limit": "10000",
+    "variant": "production",
+    "noLinkedCalls": false,
+    "answer": "1111981904675169",
+    "ms": 7811.407916,
+    "cpuMs": 8221.799,
+    "rssMiB": 481.421875
+  },
+  {
+    "round": 1,
+    "version": "final",
+    "mode": "compiled",
+    "limit": "10000",
+    "variant": "production",
+    "noLinkedCalls": false,
+    "answer": "1111981904675169",
+    "ms": 1018.1564579999999,
+    "cpuMs": 1180.108,
+    "rssMiB": 177.859375
+  },
+  {
+    "round": 1,
+    "version": "before",
+    "mode": "compiled",
+    "limit": "10000",
+    "variant": "original",
+    "noLinkedCalls": false,
+    "answer": "1111981904675169",
+    "ms": 13029.688375,
+    "cpuMs": 13346.276,
+    "rssMiB": 460.703125
+  },
+  {
+    "round": 2,
+    "version": "final",
+    "mode": "compiled",
+    "limit": "10000",
+    "variant": "production",
+    "noLinkedCalls": false,
+    "answer": "1111981904675169",
+    "ms": 578.6754579999999,
+    "cpuMs": 749.155,
+    "rssMiB": 178.671875
+  },
+  {
+    "round": 2,
+    "version": "before",
+    "mode": "compiled",
+    "limit": "10000",
+    "variant": "original",
+    "noLinkedCalls": false,
+    "answer": "1111981904675169",
+    "ms": 13791.355875000001,
+    "cpuMs": 13381.855,
+    "rssMiB": 402.328125
+  },
+  {
+    "round": 2,
+    "version": "before",
+    "mode": "compiled",
+    "limit": "10000",
+    "variant": "production",
+    "noLinkedCalls": false,
+    "answer": "1111981904675169",
+    "ms": 7777.377834,
+    "cpuMs": 8268.103,
+    "rssMiB": 474.8125
+  }
+]

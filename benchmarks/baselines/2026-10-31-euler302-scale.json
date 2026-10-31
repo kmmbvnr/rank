@@ -1,0 +1,110 @@
+[
+  {
+    "round": 0,
+    "mode": "compiled",
+    "power": "14",
+    "variant": "original",
+    "answer": "70645",
+    "ms": 6240.065708,
+    "rssMiB": 552.0625
+  },
+  {
+    "round": 0,
+    "mode": "compiled",
+    "power": "14",
+    "variant": "reuse",
+    "answer": "70645",
+    "ms": 6606.9343340000005,
+    "rssMiB": 587
+  },
+  {
+    "round": 0,
+    "mode": "reference",
+    "power": "14",
+    "variant": "original",
+    "answer": "70645",
+    "ms": 6934.184292,
+    "rssMiB": 628.40625
+  },
+  {
+    "round": 0,
+    "mode": "reference",
+    "power": "14",
+    "variant": "reuse",
+    "answer": "70645",
+    "ms": 4783.583792,
+    "rssMiB": 517.203125
+  },
+  {
+    "round": 1,
+    "mode": "compiled",
+    "power": "14",
+    "variant": "reuse",
+    "answer": "70645",
+    "ms": 5077.8485,
+    "rssMiB": 538.359375
+  },
+  {
+    "round": 1,
+    "mode": "compiled",
+    "power": "14",
+    "variant": "original",
+    "answer": "70645",
+    "ms": 9306.098084,
+    "rssMiB": 557.15625
+  },
+  {
+    "round": 1,
+    "mode": "reference",
+    "power": "14",
+    "variant": "reuse",
+    "answer": "70645",
+    "ms": 4798.763375,
+    "rssMiB": 522.4375
+  },
+  {
+    "round": 1,
+    "mode": "reference",
+    "power": "14",
+    "variant": "original",
+    "answer": "70645",
+    "ms": 9796.273,
+    "rssMiB": 535.375
+  },
+  {
+    "round": 2,
+    "mode": "compiled",
+    "power": "14",
+    "variant": "original",
+    "answer": "70645",
+    "ms": 6310.367125000001,
+    "rssMiB": 563.390625
+  },
+  {
+    "round": 2,
+    "mode": "compiled",
+    "power": "14",
+    "variant": "reuse",
+    "answer": "70645",
+    "ms": 9026.830291999999,
+    "rssMiB": 588
+  },
+  {
+    "round": 2,
+    "mode": "reference",
+    "power": "14",
+    "variant": "original",
+    "answer": "70645",
+    "ms": 6405.2581660000005,
+    "rssMiB": 661.203125
+  },
+  {
+    "round": 2,
+    "mode": "reference",
+    "power": "14",
+    "variant": "reuse",
+    "answer": "70645",
+    "ms": 6187.610833999999,
+    "rssMiB": 529.640625
+  }
+]

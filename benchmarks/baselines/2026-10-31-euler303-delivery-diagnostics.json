@@ -1,0 +1,16 @@
+{
+  "mode": "compiled",
+  "limit": "10000",
+  "variant": "production",
+  "noLinkedCalls": false,
+  "answer": "1111981904675169",
+  "ms": 754.685708,
+  "cpuMs": 992.008,
+  "rssMiB": 176.625,
+  "calls": 10000,
+  "diagnostics": {
+    "compiledLoops": 1,
+    "numberFunctions": 10000,
+    "numberFunctionFallbacks": 3
+  }
+}

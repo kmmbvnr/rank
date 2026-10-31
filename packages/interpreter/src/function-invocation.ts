@@ -813,15 +813,22 @@ export class FunctionInvocation {
                         throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
                     }
                     this.compiler.hooks.onScalarFunctionExecuted?.();
-                    if (rawNumber && arguments_.every(a => typeof a === 'bigint' || typeof a === 'number' || typeof a === 'boolean')) {
+                    if (rawNumber && (!kernel.numberStorage || this.compiler.loops.number && privateLoopPolling()
+                        && (kernel.numberStorage !== 'queues' || nativeDequeMethods()))
+                        && arguments_.every(a => typeof a === 'bigint' || typeof a === 'number' || typeof a === 'boolean')) {
                         try {
                             const numArgs = arguments_.map(a => typeof a === 'bigint' ? Number(a) : a as number);
                             if (numArgs.every(a => typeof a === 'number' ? Number.isSafeInteger(a) : true)) {
+                                const diagnostics = currentDiagnostics();
+                                if (diagnostics) diagnostics.numberFunctions++;
                                 const numResult = rawNumber(...numArgs as never[]);
                                 return typeof numResult === 'number' && kernel.returnType === 'integer' ? BigInt(numResult) : numResult;
                             }
                         } catch (error) {
-                            if (error !== numberOverflow) {
+                            if (error === numberOverflow) {
+                                const diagnostics = currentDiagnostics();
+                                if (diagnostics) diagnostics.numberFunctionFallbacks++;
+                            } else {
                                 if (error instanceof FunctionPlanDemandError) throw error.error;
                                 if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
                                 throw error;
@@ -914,6 +921,10 @@ export class FunctionInvocation {
                 }
                 this.compiler.hooks.onScalarFunctionExecuted?.();
                 try {
+                    if (kernel.numberStorage && (!this.compiler.loops.number || !privateLoopPolling()
+                        || kernel.numberStorage === 'queues' && !nativeDequeMethods())) throw numberOverflow;
+                    const diagnostics = currentDiagnostics();
+                    if (diagnostics) diagnostics.numberFunctions++;
                     return rawNumber(...arguments_ as never[]) as unknown as number;
                 } catch (error) {
                     if (error === numberOverflow) throw error;

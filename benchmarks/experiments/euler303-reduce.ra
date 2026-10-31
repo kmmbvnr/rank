@@ -1,0 +1,59 @@
+rem Multiples with Small Digits
+rem https://projecteuler.net/problem=303
+
+use algo
+use io
+use cli
+
+arg Limit integer = 10000
+
+Terms = array shape (Limit + 1) fill 0
+for N in 1 to Limit
+  if N mod 10 equal 0
+    Terms N = Terms (N // 10)
+  elif N mod 5 equal 0
+    Terms N = 2 * Terms (N // 5)
+  else
+    Terms N = N smallest // N
+  end
+end
+Answer = Terms sum
+Answer print
+
+rem BFS over decimal remainders. Parent
+rem links rebuild the zero remainder.
+fun N smallest
+  Parent = array shape N fill -1
+  Digit = array shape N fill -1
+  Pending = new queue
+  for D in 1 to 2
+    R = D mod N
+    if Parent R equal -1
+      Parent R = N
+      Digit R = D
+      Pending push R
+    end
+  end
+  for R in Pending
+    if R equal 0
+      break
+    end
+    for D in 0 to 2
+      Next = (10 * R + D) mod N
+      if Parent Next equal -1
+        Parent Next = R
+        Digit Next = D
+        Pending push Next
+      end
+    end
+  end
+  Value = 0
+  Place = 1
+  R = 0
+  for R less N
+    Value += Digit R * Place
+    Place *= 10
+    R = Parent R
+  end
+  return Value
+end

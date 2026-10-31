@@ -1,0 +1,75 @@
+[
+  {
+    "mode": "compiled",
+    "limit": "100",
+    "variant": "original",
+    "answer": "11363107",
+    "ms": 206.13020899999998,
+    "rssMiB": 158.53125,
+    "calls": 100,
+    "diagnostics": {
+      "compiledLoops": 1,
+      "fallbacks": {}
+    },
+    "noLinkedCalls": false
+  },
+  {
+    "mode": "compiled",
+    "limit": "100",
+    "variant": "array",
+    "answer": "11363107",
+    "ms": 115.77724999999998,
+    "rssMiB": 162.59375,
+    "calls": 100,
+    "diagnostics": {
+      "compiledLoops": 1,
+      "fallbacks": {}
+    },
+    "noLinkedCalls": false
+  },
+  {
+    "mode": "compiled",
+    "limit": "100",
+    "variant": "array",
+    "answer": "11363107",
+    "ms": 111.35412500000001,
+    "rssMiB": 165.90625,
+    "calls": 0,
+    "diagnostics": {
+      "compiledLoops": 100,
+      "numberLoops": 100,
+      "fallbacks": {
+        "loop:unbound-name:NameExpression": 1,
+        "scalar-expression:unsupported-op:to": 1,
+        "scalar-expression:too-small": 1
+      }
+    },
+    "noLinkedCalls": true
+  },
+  {
+    "mode": "compiled",
+    "limit": "10000",
+    "variant": "arrayearly",
+    "answer": "1111981904675169",
+    "ms": 561.807292,
+    "rssMiB": 691.6875,
+    "calls": 0,
+    "diagnostics": {
+      "compiledLoops": 10006,
+      "numberLoops": 10008,
+      "exactLoopWorkSamples": 4,
+      "exactLoopWorkPromotions": 1,
+      "numberLoopCopyProbes": 2,
+      "mixedIntegerLoops": 3,
+      "numberLoopOverflows": 6,
+      "fallbacks": {
+        "loop:unbound-name:NameExpression": 1,
+        "scalar-expression:unsupported-op:to": 1,
+        "scalar-expression:too-small": 5,
+        "tensor:unsupported-type:array": 3,
+        "number-loop:condition-work": 4
+      }
+    },
+    "noLinkedCalls": true
+  }
+]

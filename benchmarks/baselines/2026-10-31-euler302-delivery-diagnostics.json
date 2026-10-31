@@ -1,0 +1,44 @@
+{
+  "mode": "compiled",
+  "power": "8",
+  "variant": "production",
+  "answer": "656",
+  "ms": 151.843584,
+  "rssMiB": 180.5625,
+  "compiledFunctions": 1467,
+  "diagnostics": {
+    "compiledLoops": 2,
+    "numericDistincts": 489,
+    "numberLoops": 2,
+    "compiledTensors": 1467,
+    "fallbacks": {
+      "scalar-expression:unsupported-op:**": 6,
+      "tensor:scalar-evaluation-timing": 1,
+      "scalar-expression:unsupported-op:/": 1,
+      "scalar-expression:unsupported-op:less": 1,
+      "scalar-expression:too-small": 5,
+      "scalar-expression:unsupported-op:atleast": 1,
+      "tensor:unsupported-node:MaterializeExpression": 2,
+      "scalar-expression:unsupported-op:to": 1,
+      "tensor:unsupported-type:array": 2,
+      "scalar-expression:unsupported-op:len": 4,
+      "scalar-expression:unsupported-op:+": 2,
+      "tensor:unsupported-node:NewStructureExpression": 1,
+      "loop:loop-header:ForStatement": 2,
+      "scalar-expression:unsupported-op:till": 2,
+      "scalar-expression:unsupported-op:I": 3,
+      "scalar-expression:unsupported-op:-": 5,
+      "scalar-function:unsupported-op:len": 1
+    },
+    "compilerRejections": [
+      {
+        "reason": "scalar-function:unsupported-op:len",
+        "node": "ApplicationExpression",
+        "function": "g",
+        "expression": "Fs len",
+        "line": 41,
+        "column": 12
+      }
+    ]
+  }
+}
