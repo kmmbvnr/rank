@@ -1,8 +1,7 @@
-rem Farmer 2 (Maximal Rectangle of 1s in Grid)
+rem Farmer 2
 rem https://acmp.ru/index.asp?main=task&id_task=116
-rem Largest rectangular barn area in binary grid via histogram heights and monotonic stack
+rem Largest rectangle of free cells
 
-use algo
 use sequences
 use text
 use io
@@ -10,53 +9,33 @@ use cli
 
 arg Grid text = "1011011111 0111111110 1111111111 1011111111 1101110111"
 
-RowStrings = Grid split " "
-N = RowStrings len
-M = (RowStrings 0) len
+Rows = Grid split " "
+M = Rows first len
+Cols = 1 to M
 
 Heights = array shape M fill 0
-BestArea = 0
+Left = array shape M fill 0
+Right = array shape M fill (M + 1)
+Answer = 0
 
-for I in 0 till N
-  RowChars = (RowStrings I) split ""
-  Row = (RowChars equal "1") integer
-  Heights = (Heights + 1) * Row
+for Row in Rows
+  On = Row split "" integer rank 0
+  Off = 1 - On
+  Heights = (Heights + 1) * On
 
-  Left = array shape M fill 0
-  Right = array shape M fill 0
+  rem Nearest zeros bound each row's run
+  Starts = Cols * Off scan max
+  Ends = Cols * Off + (M + 1) * On
+  Limits = (Ends reverse) scan min
+  Stops = Limits reverse
 
-  Stack = new stack
-  for J in 0 till M
-    H = Heights J
-    for (Stack len greater 0) and (not ((Heights (Stack peek)) less H))
-      Stack pop
-    end
-    if Stack len equal 0
-      Left J = 0
-    else
-      Left J = (Stack peek) + 1
-    end
-    Stack push J
-  end
+  rem Intersect bounds over each height
+  Left = (Left max Starts) * On
+  Right = Right min Stops
+  Right (Off equal 1) = M + 1
 
-  Stack = new stack
-  for J in (M - 1) to 0 by -1
-    H = Heights J
-    for (Stack len greater 0) and (not ((Heights (Stack peek)) less H))
-      Stack pop
-    end
-    if Stack len equal 0
-      Right J = M - 1
-    else
-      Right J = (Stack peek) - 1
-    end
-    Stack push J
-  end
-
-  Widths = Right - Left + 1
-  Areas = Heights * Widths
-  BestArea = BestArea max (Areas max)
+  Areas = (Right - Left - 1) * Heights
+  Answer = Answer max (Areas max)
 end
 
-Answer = BestArea
 Answer print
