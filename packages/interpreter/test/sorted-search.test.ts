@@ -16,6 +16,27 @@ describe('sorted integer insertion indices', () => {
         }
     });
 
+    it('searches stored Int32 cells, edges outside Int32 and edits between searches', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute('use algo\nuse sequences\nA = ((1 to 3000) * 3) copy\n');
+            const count = (op: string, t: string) => runtime.execute(`A ${op} ${t}`);
+            expect(count('lowerindex', '9')).toBe(2n);
+            expect(count('upperindex', '9')).toBe(3n);
+            expect(count('upperindex', '10')).toBe(3n);
+            expect(count('lowerindex', '(0 - 5000000000)')).toBe(0n);
+            expect(count('upperindex', '5000000000')).toBe(3000n);
+            expect(count('lowerindex', '2147483648')).toBe(3000n);
+            expect(count('lowerindex', '(0 - 2147483649)')).toBe(0n);
+            expect(formatValue(runtime.execute('A lowerindex (array 0 3 4 9000 9001)')!)).toBe('0 0 1 2999 3000');
+            expect(count('upperindex', '9000')).toBe(3000n);
+            runtime.execute('A 2999 = 100000');
+            expect(count('upperindex', '9000')).toBe(2999n);
+            expect(count('lowerindex', '99999')).toBe(2999n);
+            expect(count('upperindex', '100000')).toBe(3000n);
+        } finally { runtime.dispose(); }
+    });
+
     it.each([false, true])('supports scalar and ranked targets with compilation=%s', compilation => {
         const runtime = new Interpreter(undefined, { compilation });
         try {

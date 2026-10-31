@@ -22,72 +22,113 @@ rem / (w z). Then x y = r with y <= x <
 rem y + z + w, so y lies in [sqrt(r) -
 rem (z + w), sqrt(r)] among D; those
 rem are found by a range search.
+rem y > (sqrt((z+w)^2 + 4r) - z - w)/2
+rem tightens that range. M runs in
+rem blocks of Bk: divisors <= M of all
+rem block members are kept as keys
+rem owner * Bb + d, sorted together.
+rem Keys fit Int32 while Bk * Bb <= 2^31
+rem and Nn < Bb.
 Sp = 1048575 factorsieve
+Bk = 1024
+Bb = 2 ** 21
 Answer = 0
-for M in 1 to Nn
-  M2 = M * M
-  D = array shape 1 fill 1
-  X = M
-  for X greater 1
-    P = Sp X
-    Ee = 0
-    for X mod P equal 0
-      X = X // P
-      Ee += 1
+for Bi in 0 to ((Nn - 1) // Bk)
+  M0 = Bi * Bk + 1
+  Ms = M0 to ((M0 + Bk - 1) min Nn)
+  N = Ms len
+  Ow = 0 to (N - 1)
+  Po = Ow
+  D = array shape N fill 1
+  X = Ms
+  for (X max) greater 1
+    Ia = (X greater 1) indices
+    Xa = X Ia
+    P = Sp Xa
+    Ea = array shape (Ia len) fill 0
+    Dm = Xa * 0 + 1
+    for (Dm max) greater 0
+      Dm = (Xa mod P equal 0) integer
+      Xa = Xa // (P ** Dm)
+      Ea += Dm
     end
-    Pw = P ** (0 to 2 * Ee)
-    Nd = D len
-    Dc = D reshape Nd 1 * Pw
-    D = Dc reshape (Nd * (2 * Ee + 1))
+    X (Ia) = Xa
+    Pf = array shape N fill 1
+    Pf (Ia) = P
+    Ef = array shape N fill 0
+    Ef (Ia) = Ea
+    Cn = 2 * (Ef Po) + 1
+    Tot = Cn sum
+    Of = (Cn scan +) - Cn
+    Mk = array shape Tot fill 0
+    Mk (Of) = 1
+    Pd = (Mk scan +) - 1
+    Ko = (0 to (Tot - 1)) - Of Pd
+    D = D Pd * (Pf (Po Pd)) ** Ko
+    Po = Po Pd
+    Kp = (D at most Ms Po) indices
+    D = D Kp
+    Po = Po Kp
   end
-  D = D sort
-  Rm = M isqrt
-  Ws = D ((D at most Rm) indices)
-  Zs = D ((D at most M) indices)
-  Wc = Ws reshape (Ws len) 1
-  Zr = Zs reshape 1 (Zs len)
-  Z3 = Zr * Zr * Zr
-  Ok = (Zr at least Wc) integer
-  Zq = (Z3 at most M2 // Wc) integer
-  Ok = Ok * Zq
-  Wz = Wc * Zr
+  Dk = (Po * Bb + D) sort
+  Do = Dk // Bb
+  Dd = Dk mod Bb
+  Mo = Ms Do
+  Rt = Ms isqrt
+  We = Dk upperindex (Ow * Bb + Rt)
+  Ix = 0 to (Dk len - 1)
+  Wi = (Ix less We Do) indices
+  Wm = Mo Wi
+  Wv = Dd Wi
+  Zq = (Wm * Wm // Wv * 1.0) ** (1 / 3)
+  Zb = (Zq floor) integer + 2
+  Zc = Zb min Wm
+  Ze = Dk upperindex (Do Wi * Bb + Zc)
+  Cw = Ze - Wi
+  Of = (Cw scan +) - Cw
+  Tot = Cw sum
+  Mk = array shape Tot fill 0
+  Mk (Of) = 1
+  Pd = (Mk scan +) - 1
+  Wr = Wi Pd
+  Zr = (0 to (Tot - 1)) + (Wi - Of) Pd
+  Wp = Dd Wr
+  Zp = Dd Zr
+  M2 = (Mo * Mo) Wr
+  Z3 = Zp * Zp * Zp * Wp
+  Ok = (Z3 at most M2) integer
+  Wz = Wp * Zp
   Dz = (M2 mod Wz equal 0) integer
   Ok = Ok * Dz
   Fl = (Ok equal 1) indices
-  if Fl len greater 0
-    Pr = Fl # 0
-    Pz = Fl # 1
-    Wp = Ws Pr
-    Zp = Zs Pz
-    Rr = M2 // (Wp * Zp)
-    Sq = Rr isqrt
-    Yl = (Sq - Zp - Wp) max Zp
-    Lo = D lowerindex Yl
-    Hi = D upperindex Sq
-    Cf = (Hi - Lo) max 0
-    Tot = Cf sum
-    if Tot greater 0
-      Of = (Cf scan +) - Cf
-      Pk = (Cf greater 0) indices
-      Mk = array shape Tot fill 0
-      Mk (Of Pk) = 1
-      Pd = Pk ((Mk scan +) - 1)
-      Ko = (0 to (Tot - 1)) - Of Pd
-      Yv = D (Lo Pd + Ko)
-      Rv = Rr Pd
-      Zv = Zp Pd
-      Wv = Wp Pd
-      Dv = (Rv mod Yv equal 0) indices
-      Yv = Yv Dv
-      Xv = (Rv Dv) // Yv
-      Sm = Yv + Zv Dv + Wv Dv
-      Gd = (Xv less Sm) integer
-      Tt = Xv + Sm
-      Pa = (Tt mod 2 equal 0) integer
-      Gd = Gd * Pa
-      Bs = Tt * Gd
-      Answer += Bs sum
-    end
-  end
+  Wr = Wr Fl
+  Wp = Wp Fl
+  Zp = Zp Fl
+  Rr = M2 Fl // (Wp * Zp)
+  Sq = Rr isqrt
+  Ss = Zp + Wp
+  Dc = (Ss * Ss + 4 * Rr) isqrt
+  Yl = ((Dc - Ss) // 2) max Zp
+  Ob = Do Wr * Bb
+  Lo = Dk lowerindex (Ob + Yl)
+  Hi = Dk upperindex (Ob + Sq)
+  Cf = (Hi - Lo) max 0
+  Tot = Cf sum
+  Of = (Cf scan +) - Cf
+  Mk = array shape Tot fill 0
+  Pk = (Cf greater 0) indices
+  Mk (Of Pk) = 1
+  Pd = Pk ((Mk scan +) - 1)
+  Ij = (0 to (Tot - 1)) + (Lo - Of) Pd
+  Yv = Dd Ij
+  Rv = Rr Pd
+  Dv = (Rv mod Yv equal 0) indices
+  Yv = Yv Dv
+  Xv = (Rv Dv) // Yv
+  Sm = Yv + Zp (Pd Dv) + Wp (Pd Dv)
+  Gd = (Xv less Sm) integer
+  Tt = Xv + Sm
+  Gd = Gd * ((Tt mod 2 equal 0) integer)
+  Answer += (Tt * Gd) sum
 end
 Answer print
