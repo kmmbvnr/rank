@@ -1,6 +1,7 @@
 import { readArrayItem } from './array-storage.js';
 import { RankError } from '../errors.js';
 import { checkpoint } from '../interrupt.js';
+import { prepareStoredScalarView } from './integer-view.js';
 import { isRankArray, type RankValue } from './value.js';
 
 /** The caller supplies an ascending integer vector. Inspect only the binary
@@ -12,6 +13,20 @@ export function sortedIndex(source: RankValue, target: RankValue, upper: boolean
     }
     if (typeof target !== 'bigint') throw new RankError(`${name} expects an integer target`);
     let low = 0, high = source.shape[0];
+    // Stored Int64 cells compare in place, skipping the per-probe reader.
+    const view = prepareStoredScalarView(source);
+    const cells = view?.items instanceof BigInt64Array && view.linear && !view.validate ? view.items : undefined;
+    if (cells) {
+        checkpoint('searching sorted integers', Math.ceil(Math.log2(high + 1)));
+        const { offset, stride } = view!.linear!;
+        while (low < high) {
+            const middle = Math.floor((low + high) / 2);
+            const value = cells[offset + middle * stride];
+            if (value < target || upper && value === target) low = middle + 1;
+            else high = middle;
+        }
+        return BigInt(low);
+    }
     while (low < high) {
         checkpoint('searching sorted integers');
         const middle = Math.floor((low + high) / 2);

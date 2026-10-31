@@ -34,6 +34,8 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
         try {
             const compact = mapStoredInt32Binary(left, right, name);
             if (compact) return compact;
+            const wide = mapStoredWords(left, right, name);
+            if (wide) return wide;
             // Wide cells times a 0/1 mask need no product.
             if (name === '*') {
                 const masked = mapStoredBitwise(left, right, 'mask');
@@ -210,6 +212,70 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
     const narrow = Int32Array.from(cells);
     return packed ? typedArray(narrow, shape)
         : ownedScalarArray(Array.from(narrow, BigInt), 'integer', shape);
+}
+
+/** Sums and differences of Int32/Int64 cells, and Int64 cells modulo an Int32
+ * scalar, on Int32 word pairs with no BigInt per cell. A result outside Int64
+ * declines. */
+function mapStoredWords(left: RankValue, right: RankValue, name: string): RankArray | undefined {
+    const code = name === '+' ? 0 : name === '-' ? 1 : name === 'mod' ? 2 : -1;
+    if (code < 0) return undefined;
+    const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
+    const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
+    const fine = (view: typeof a) => view?.kinds?.length === 1 && view.kinds[0] === 'integer' && view.linear !== undefined
+        && (view.compact || view.items instanceof BigInt64Array) && (!view.validate || view.validateUniform !== undefined);
+    const int64 = (value: RankValue) => typeof value === 'bigint' && value >= -(1n << 63n) && value < 1n << 63n;
+    if (code === 2 ? !a || b || !fine(a) || typeof right !== 'bigint' || right < 1n || right > 67108864n
+        : !a === !b ? !a || !fine(a) || !fine(b) || !same((left as RankArray).shape, (right as RankArray).shape)
+            : (a ? !fine(a) || !int64(right) : !fine(b) || !int64(left))) return undefined;
+    const shape = (isRankArray(left) ? left : right as RankArray).shape;
+    const size = shape.reduce((n, dimension) => n * dimension, 1);
+    if (size) {
+        if (a) a.validateUniform?.(a.compact ? BigInt(a.compact[a.linear!.offset]) : a.items[a.linear!.offset]);
+        if (b) b.validateUniform?.(b.compact ? BigInt(b.compact[b.linear!.offset]) : b.items[b.linear!.offset]);
+    }
+    const hi = 1 - lowWord;
+    const words = (items: ArrayLike<RankValue> | undefined) => items instanceof BigInt64Array
+        ? new Int32Array(items.buffer, items.byteOffset, items.length * 2) : undefined;
+    const aw = words(a?.items), bw = words(b?.items), ac = a?.compact, bc = b?.compact;
+    const ao = a?.linear!.offset ?? 0, as = a?.linear!.stride ?? 0, bo = b?.linear!.offset ?? 0, bs = b?.linear!.stride ?? 0;
+    const sh = (value: RankValue) => Number(BigInt.asIntN(32, (value as bigint) >> 32n));
+    const sl = (value: RankValue) => Number(BigInt.asIntN(32, value as bigint));
+    const xh = a ? 0 : sh(left), xl = a ? 0 : sl(left), yh = b ? 0 : sh(right), yl = b ? 0 : sl(right);
+    const m = code === 2 ? Number(right) : 0, c = 4294967296 % m;
+    const out = code === 2 ? new Int32Array(size) : new BigInt64Array(size);
+    const ow = code === 2 ? out as Int32Array : new Int32Array(out.buffer);
+    for (let start = 0; start < size; start += 4096) {
+        const end = Math.min(start + 4096, size);
+        checkpoint('computing integer array', end - start);
+        for (let i = start; i < end; i++) {
+            let ah = xh, al = xl, bh = yh, bl = yl;
+            if (a) {
+                const p = ao + i * as;
+                if (ac) { al = ac[p]; ah = al >> 31; } else { al = aw![2 * p + lowWord]; ah = aw![2 * p + hi]; }
+            }
+            if (b) {
+                const p = bo + i * bs;
+                if (bc) { bl = bc[p]; bh = bl >> 31; } else { bl = bw![2 * p + lowWord]; bh = bw![2 * p + hi]; }
+            }
+            if (code === 2) {
+                // hi * 2^32 + lo with hi % m * (2^32 % m) below 2^52; the float
+                // quotient may be off by one, which the two corrections absorb.
+                let r = ah % m;
+                if (r < 0) r += m;
+                let x = r * c + (al >>> 0);
+                x -= Math.floor(x / m) * m;
+                ow[i] = x < 0 ? x + m : x >= m ? x - m : x;
+                continue;
+            }
+            const lo = code === 0 ? (al >>> 0) + (bl >>> 0) : (al >>> 0) - (bl >>> 0);
+            const high = code === 0 ? ah + bh + (lo >= 4294967296 ? 1 : 0) : ah - bh - (lo < 0 ? 1 : 0);
+            if (high !== (high | 0)) return undefined;
+            ow[2 * i + lowWord] = lo | 0;
+            ow[2 * i + hi] = high;
+        }
+    }
+    return typedArray(out, shape);
 }
 
 /** Bitwise operations on Int32/Int64 storage, one Int32 word pair per cell.
