@@ -1,0 +1,57 @@
+rem Sum of digits - experience #23
+rem https://projecteuler.net/problem=294
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 3138428376721
+arg Mod integer = 1000000000
+
+rem 10 has order 22 mod 23. A full cycle
+rem treats all nonzero residues equally.
+Q = N // 22
+R = N mod 22
+K = 0 to 23 array
+A = Q binomial (K min Q)
+A *= (K at most Q) integer
+A *= (-1) ** K
+B = array shape 24 fill 0
+B 0 = 1
+B 10 = Q
+B 20 = Q * (Q + 1) // 2
+B 23 = Q
+D = (A convolve B) take 24
+
+Tail = array shape 552 fill 0
+Tail 0 = 1
+for L in 0 till R
+  Next = array shape 552 fill 0
+  for S in 0 to (23 min (9 * L))
+    for M in 0 till 23
+      V = Tail (23 * S + M)
+      if V equal 0
+        continue
+      end
+      for Digit in 0 to (9 min (23 - S))
+        Id = 23 * (S + Digit)
+        Id += (M * 10 + Digit) mod 23
+        Next Id += V
+      end
+    end
+  end
+  Tail = Next
+end
+Zero = Tail (23 * K)
+Sums = (Tail reshape 24 23) sum axis 1
+J = 0 to 2 array
+U = N binomial (J min N)
+U *= (J at most N) integer
+Top = N + 22 - 10 * J
+Bot = 23 - 10 * J
+W = Top binomial (Bot min Top)
+W *= (Bot at most Top) integer
+All = (((-1) ** J) * U * W) sum
+Fix = ((D reverse) * (23 * Zero - Sums)) sum
+Answer = ((All + Fix) // 23) mod Mod
+Answer print

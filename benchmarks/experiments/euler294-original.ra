@@ -1,0 +1,63 @@
+rem Sum of digits - experience #23
+rem https://projecteuler.net/problem=294
+rem Count the numbers below 10^N that
+rem are divisible by 23 and have digit
+rem sum 23, modulo Mod
+
+use bits
+use numbers
+use io
+use cli
+
+arg N integer = 3138428376721
+arg Mod integer = 1000000000
+
+rem A block of L digits is a table of
+rem how many strings give each digit
+rem sum s and value r mod 23, at index
+rem 23 s + r. Joining a block to one of
+rem length b shifts r by 10^b.
+rem Blocks of 1, 2, 4, ... digits come
+rem from joining a block to itself, and
+rem the bits of N pick the ones to add.
+Size = 24 * 23
+Pw = array shape Size fill 0
+for D in 0 to 9
+  Pw (23 * D + D mod 23) = 1
+end
+Acc = array shape Size fill 0
+Acc 0 = 1
+P10 = 10
+Bits = N binary len
+for B in 0 till Bits
+  for Stage in 0 to 1
+    Lft = Acc
+    if Stage equal 1
+      Lft = Pw
+    end
+    Do = (Stage equal 1) or (N bit B)
+    if Do
+      Res = array shape Size fill 0
+      for I in 0 till Size
+        X = Lft I
+        S1 = I // 23
+        Sh = I mod 23 * P10
+        for J in 0 till (23 * (24 - S1))
+          S2 = J // 23
+          To = 23 * (S1 + S2)
+          To += (Sh + J mod 23) mod 23
+          Res To += X * Pw J mod Mod
+        end
+      end
+      Out = Res mod Mod
+      if Stage equal 0
+        Acc = Out
+      else
+        Pw = Out
+      end
+    end
+  end
+  P10 = P10 * P10 mod 23
+end
+Answer = Acc (23 * 23)
+Answer print

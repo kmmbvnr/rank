@@ -1,0 +1,129 @@
+{
+  "revision": "42c9271bc5942dbf906d42319099a52fd3a74599",
+  "node": "v24.15.0",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "description": "Fresh serial processes; interpreter construction/startup excluded, parse/JIT included; uncontrolled host load.",
+  "samples": [
+    {
+      "repeat": 0,
+      "mode": "compiled",
+      "variant": "original",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 1549.353709,
+      "rssMiB": 190.765625
+    },
+    {
+      "repeat": 0,
+      "mode": "compiled",
+      "variant": "periodic",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 143.364041,
+      "rssMiB": 177.890625
+    },
+    {
+      "repeat": 0,
+      "mode": "reference",
+      "variant": "original",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 12475.711833000001,
+      "rssMiB": 242.046875
+    },
+    {
+      "repeat": 0,
+      "mode": "reference",
+      "variant": "periodic",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 372.7625,
+      "rssMiB": 185.21875
+    },
+    {
+      "repeat": 1,
+      "mode": "compiled",
+      "variant": "periodic",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 290.0365,
+      "rssMiB": 177.375
+    },
+    {
+      "repeat": 1,
+      "mode": "compiled",
+      "variant": "original",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 1311.7939999999999,
+      "rssMiB": 191.84375
+    },
+    {
+      "repeat": 1,
+      "mode": "reference",
+      "variant": "periodic",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 179.94308300000003,
+      "rssMiB": 180.40625
+    },
+    {
+      "repeat": 1,
+      "mode": "reference",
+      "variant": "original",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 12927.45675,
+      "rssMiB": 245.640625
+    },
+    {
+      "repeat": 2,
+      "mode": "compiled",
+      "variant": "original",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 2032.5330829999998,
+      "rssMiB": 190.625
+    },
+    {
+      "repeat": 2,
+      "mode": "compiled",
+      "variant": "periodic",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 143.982,
+      "rssMiB": 176.4375
+    },
+    {
+      "repeat": 2,
+      "mode": "reference",
+      "variant": "original",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 12046.129874999999,
+      "rssMiB": 184.40625
+    },
+    {
+      "repeat": 2,
+      "mode": "reference",
+      "variant": "periodic",
+      "n": "3138428376721",
+      "mod": "1000000000",
+      "answer": "789184709",
+      "ms": 176.500458,
+      "rssMiB": 182.5
+    }
+  ]
+}

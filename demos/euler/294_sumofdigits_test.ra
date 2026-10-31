@@ -7,6 +7,44 @@ test "default input"
   Answer equal 789184709
 end
 
+test "empty input and period boundary"
+  use "294_sumofdigits"
+  Mod = 1000000000000000000
+  N = 0
+  run
+
+  Answer equal 0
+  N = 21
+  run
+
+  Answer equal 41240469344
+  N = 22
+  run
+
+  Answer equal 86617444562
+  N = 23
+  run
+
+  Answer equal 177511312014
+end
+
+test "moduli divisible by 23"
+  use "294_sumofdigits"
+  N = 44
+  Mod = 23
+  run
+
+  Answer equal 1
+  Mod = 529
+  run
+
+  Answer equal 139
+  Mod = 1
+  run
+
+  Answer equal 0
+end
+
 test "problem examples"
   use "294_sumofdigits"
   Mod = 1000000000000000000

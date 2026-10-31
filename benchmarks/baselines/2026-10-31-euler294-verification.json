@@ -1,0 +1,1217 @@
+{
+  "enumerationLengths": 7,
+  "cases": [
+    {
+      "n": 0,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 0,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 1,
+      "mod": "23",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 1,
+      "mod": "23",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 2,
+      "mod": "46",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 2,
+      "mod": "46",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 3,
+      "mod": "529",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 3,
+      "mod": "529",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 4,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "20"
+    },
+    {
+      "n": 4,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "20"
+    },
+    {
+      "n": 5,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "258"
+    },
+    {
+      "n": 5,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "258"
+    },
+    {
+      "n": 6,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 6,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 7,
+      "mod": "23",
+      "compilation": true,
+      "answer": "6"
+    },
+    {
+      "n": 7,
+      "mod": "23",
+      "compilation": false,
+      "answer": "6"
+    },
+    {
+      "n": 8,
+      "mod": "46",
+      "compilation": true,
+      "answer": "11"
+    },
+    {
+      "n": 8,
+      "mod": "46",
+      "compilation": false,
+      "answer": "11"
+    },
+    {
+      "n": 9,
+      "mod": "529",
+      "compilation": true,
+      "answer": "184"
+    },
+    {
+      "n": 9,
+      "mod": "529",
+      "compilation": false,
+      "answer": "184"
+    },
+    {
+      "n": 10,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "1003674"
+    },
+    {
+      "n": 10,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "1003674"
+    },
+    {
+      "n": 11,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "3477907"
+    },
+    {
+      "n": 11,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "3477907"
+    },
+    {
+      "n": 12,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 12,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 13,
+      "mod": "23",
+      "compilation": true,
+      "answer": "20"
+    },
+    {
+      "n": 13,
+      "mod": "23",
+      "compilation": false,
+      "answer": "20"
+    },
+    {
+      "n": 14,
+      "mod": "46",
+      "compilation": true,
+      "answer": "11"
+    },
+    {
+      "n": 14,
+      "mod": "46",
+      "compilation": false,
+      "answer": "11"
+    },
+    {
+      "n": 15,
+      "mod": "529",
+      "compilation": true,
+      "answer": "384"
+    },
+    {
+      "n": 15,
+      "mod": "529",
+      "compilation": false,
+      "answer": "384"
+    },
+    {
+      "n": 16,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "646622172"
+    },
+    {
+      "n": 16,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "646622172"
+    },
+    {
+      "n": 17,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "1589465492"
+    },
+    {
+      "n": 17,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "1589465492"
+    },
+    {
+      "n": 18,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 18,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 19,
+      "mod": "23",
+      "compilation": true,
+      "answer": "18"
+    },
+    {
+      "n": 19,
+      "mod": "23",
+      "compilation": false,
+      "answer": "18"
+    },
+    {
+      "n": 20,
+      "mod": "46",
+      "compilation": true,
+      "answer": "16"
+    },
+    {
+      "n": 20,
+      "mod": "46",
+      "compilation": false,
+      "answer": "16"
+    },
+    {
+      "n": 21,
+      "mod": "529",
+      "compilation": true,
+      "answer": "173"
+    },
+    {
+      "n": 21,
+      "mod": "529",
+      "compilation": false,
+      "answer": "173"
+    },
+    {
+      "n": 22,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "617444562"
+    },
+    {
+      "n": 22,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "617444562"
+    },
+    {
+      "n": 23,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "177511312014"
+    },
+    {
+      "n": 23,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "177511312014"
+    },
+    {
+      "n": 24,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 24,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 25,
+      "mod": "23",
+      "compilation": true,
+      "answer": "19"
+    },
+    {
+      "n": 25,
+      "mod": "23",
+      "compilation": false,
+      "answer": "19"
+    },
+    {
+      "n": 26,
+      "mod": "46",
+      "compilation": true,
+      "answer": "33"
+    },
+    {
+      "n": 26,
+      "mod": "46",
+      "compilation": false,
+      "answer": "33"
+    },
+    {
+      "n": 27,
+      "mod": "529",
+      "compilation": true,
+      "answer": "512"
+    },
+    {
+      "n": 27,
+      "mod": "529",
+      "compilation": false,
+      "answer": "512"
+    },
+    {
+      "n": 28,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "883680852"
+    },
+    {
+      "n": 28,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "883680852"
+    },
+    {
+      "n": 29,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "8534003836547"
+    },
+    {
+      "n": 29,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "8534003836547"
+    },
+    {
+      "n": 30,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 30,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 31,
+      "mod": "23",
+      "compilation": true,
+      "answer": "1"
+    },
+    {
+      "n": 31,
+      "mod": "23",
+      "compilation": false,
+      "answer": "1"
+    },
+    {
+      "n": 32,
+      "mod": "46",
+      "compilation": true,
+      "answer": "39"
+    },
+    {
+      "n": 32,
+      "mod": "46",
+      "compilation": false,
+      "answer": "39"
+    },
+    {
+      "n": 33,
+      "mod": "529",
+      "compilation": true,
+      "answer": "129"
+    },
+    {
+      "n": 33,
+      "mod": "529",
+      "compilation": false,
+      "answer": "129"
+    },
+    {
+      "n": 34,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "75494553"
+    },
+    {
+      "n": 34,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "75494553"
+    },
+    {
+      "n": 35,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "230650197452519"
+    },
+    {
+      "n": 35,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "230650197452519"
+    },
+    {
+      "n": 36,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 36,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 37,
+      "mod": "23",
+      "compilation": true,
+      "answer": "16"
+    },
+    {
+      "n": 37,
+      "mod": "23",
+      "compilation": false,
+      "answer": "16"
+    },
+    {
+      "n": 38,
+      "mod": "46",
+      "compilation": true,
+      "answer": "36"
+    },
+    {
+      "n": 38,
+      "mod": "46",
+      "compilation": false,
+      "answer": "36"
+    },
+    {
+      "n": 39,
+      "mod": "529",
+      "compilation": true,
+      "answer": "27"
+    },
+    {
+      "n": 39,
+      "mod": "529",
+      "compilation": false,
+      "answer": "27"
+    },
+    {
+      "n": 40,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "865727359"
+    },
+    {
+      "n": 40,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "865727359"
+    },
+    {
+      "n": 41,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "4085170323896492"
+    },
+    {
+      "n": 41,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "4085170323896492"
+    },
+    {
+      "n": 42,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 42,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 43,
+      "mod": "23",
+      "compilation": true,
+      "answer": "9"
+    },
+    {
+      "n": 43,
+      "mod": "23",
+      "compilation": false,
+      "answer": "9"
+    },
+    {
+      "n": 44,
+      "mod": "46",
+      "compilation": true,
+      "answer": "24"
+    },
+    {
+      "n": 44,
+      "mod": "46",
+      "compilation": false,
+      "answer": "24"
+    },
+    {
+      "n": 45,
+      "mod": "529",
+      "compilation": true,
+      "answer": "369"
+    },
+    {
+      "n": 45,
+      "mod": "529",
+      "compilation": false,
+      "answer": "369"
+    },
+    {
+      "n": 46,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "267601270"
+    },
+    {
+      "n": 46,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "267601270"
+    },
+    {
+      "n": 47,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "52293336920199098"
+    },
+    {
+      "n": 47,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "52293336920199098"
+    },
+    {
+      "n": 48,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 48,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 49,
+      "mod": "23",
+      "compilation": true,
+      "answer": "20"
+    },
+    {
+      "n": 49,
+      "mod": "23",
+      "compilation": false,
+      "answer": "20"
+    },
+    {
+      "n": 50,
+      "mod": "46",
+      "compilation": true,
+      "answer": "39"
+    },
+    {
+      "n": 50,
+      "mod": "46",
+      "compilation": false,
+      "answer": "39"
+    },
+    {
+      "n": 51,
+      "mod": "529",
+      "compilation": true,
+      "answer": "49"
+    },
+    {
+      "n": 51,
+      "mod": "529",
+      "compilation": false,
+      "answer": "49"
+    },
+    {
+      "n": 52,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "332735318"
+    },
+    {
+      "n": 52,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "332735318"
+    },
+    {
+      "n": 53,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "517260479447442419"
+    },
+    {
+      "n": 53,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "517260479447442419"
+    },
+    {
+      "n": 54,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 54,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 55,
+      "mod": "23",
+      "compilation": true,
+      "answer": "21"
+    },
+    {
+      "n": 55,
+      "mod": "23",
+      "compilation": false,
+      "answer": "21"
+    },
+    {
+      "n": 56,
+      "mod": "46",
+      "compilation": true,
+      "answer": "43"
+    },
+    {
+      "n": 56,
+      "mod": "46",
+      "compilation": false,
+      "answer": "43"
+    },
+    {
+      "n": 57,
+      "mod": "529",
+      "compilation": true,
+      "answer": "404"
+    },
+    {
+      "n": 57,
+      "mod": "529",
+      "compilation": false,
+      "answer": "404"
+    },
+    {
+      "n": 58,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "617095257"
+    },
+    {
+      "n": 58,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "617095257"
+    },
+    {
+      "n": 59,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "147661285232885010"
+    },
+    {
+      "n": 59,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "147661285232885010"
+    },
+    {
+      "n": 60,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 60,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 61,
+      "mod": "23",
+      "compilation": true,
+      "answer": "14"
+    },
+    {
+      "n": 61,
+      "mod": "23",
+      "compilation": false,
+      "answer": "14"
+    },
+    {
+      "n": 62,
+      "mod": "46",
+      "compilation": true,
+      "answer": "19"
+    },
+    {
+      "n": 62,
+      "mod": "46",
+      "compilation": false,
+      "answer": "19"
+    },
+    {
+      "n": 63,
+      "mod": "529",
+      "compilation": true,
+      "answer": "11"
+    },
+    {
+      "n": 63,
+      "mod": "529",
+      "compilation": false,
+      "answer": "11"
+    },
+    {
+      "n": 64,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "378511906"
+    },
+    {
+      "n": 64,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "378511906"
+    },
+    {
+      "n": 65,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "936588283289714316"
+    },
+    {
+      "n": 65,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "936588283289714316"
+    },
+    {
+      "n": 66,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 66,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 67,
+      "mod": "23",
+      "compilation": true,
+      "answer": "7"
+    },
+    {
+      "n": 67,
+      "mod": "23",
+      "compilation": false,
+      "answer": "7"
+    },
+    {
+      "n": 68,
+      "mod": "46",
+      "compilation": true,
+      "answer": "36"
+    },
+    {
+      "n": 68,
+      "mod": "46",
+      "compilation": false,
+      "answer": "36"
+    },
+    {
+      "n": 69,
+      "mod": "529",
+      "compilation": true,
+      "answer": "100"
+    },
+    {
+      "n": 69,
+      "mod": "529",
+      "compilation": false,
+      "answer": "100"
+    },
+    {
+      "n": 70,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "552105747"
+    },
+    {
+      "n": 70,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "552105747"
+    },
+    {
+      "n": 71,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "411318377058927043"
+    },
+    {
+      "n": 71,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "411318377058927043"
+    },
+    {
+      "n": 72,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 72,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 73,
+      "mod": "23",
+      "compilation": true,
+      "answer": "21"
+    },
+    {
+      "n": 73,
+      "mod": "23",
+      "compilation": false,
+      "answer": "21"
+    },
+    {
+      "n": 74,
+      "mod": "46",
+      "compilation": true,
+      "answer": "23"
+    },
+    {
+      "n": 74,
+      "mod": "46",
+      "compilation": false,
+      "answer": "23"
+    },
+    {
+      "n": 75,
+      "mod": "529",
+      "compilation": true,
+      "answer": "290"
+    },
+    {
+      "n": 75,
+      "mod": "529",
+      "compilation": false,
+      "answer": "290"
+    },
+    {
+      "n": 76,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "841502137"
+    },
+    {
+      "n": 76,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "841502137"
+    },
+    {
+      "n": 77,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "441298836356615198"
+    },
+    {
+      "n": 77,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "441298836356615198"
+    },
+    {
+      "n": 78,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 78,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 79,
+      "mod": "23",
+      "compilation": true,
+      "answer": "1"
+    },
+    {
+      "n": 79,
+      "mod": "23",
+      "compilation": false,
+      "answer": "1"
+    },
+    {
+      "n": 80,
+      "mod": "46",
+      "compilation": true,
+      "answer": "44"
+    },
+    {
+      "n": 80,
+      "mod": "46",
+      "compilation": false,
+      "answer": "44"
+    },
+    {
+      "n": 81,
+      "mod": "529",
+      "compilation": true,
+      "answer": "450"
+    },
+    {
+      "n": 81,
+      "mod": "529",
+      "compilation": false,
+      "answer": "450"
+    },
+    {
+      "n": 82,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "612663470"
+    },
+    {
+      "n": 82,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "612663470"
+    },
+    {
+      "n": 83,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "910229315574439258"
+    },
+    {
+      "n": 83,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "910229315574439258"
+    },
+    {
+      "n": 84,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 84,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 85,
+      "mod": "23",
+      "compilation": true,
+      "answer": "5"
+    },
+    {
+      "n": 85,
+      "mod": "23",
+      "compilation": false,
+      "answer": "5"
+    },
+    {
+      "n": 86,
+      "mod": "46",
+      "compilation": true,
+      "answer": "2"
+    },
+    {
+      "n": 86,
+      "mod": "46",
+      "compilation": false,
+      "answer": "2"
+    },
+    {
+      "n": 87,
+      "mod": "529",
+      "compilation": true,
+      "answer": "510"
+    },
+    {
+      "n": 87,
+      "mod": "529",
+      "compilation": false,
+      "answer": "510"
+    },
+    {
+      "n": 88,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "558929576"
+    },
+    {
+      "n": 88,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "558929576"
+    },
+    {
+      "n": 89,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "58400796120670608"
+    },
+    {
+      "n": 89,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "58400796120670608"
+    },
+    {
+      "n": 90,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 90,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 91,
+      "mod": "23",
+      "compilation": true,
+      "answer": "15"
+    },
+    {
+      "n": 91,
+      "mod": "23",
+      "compilation": false,
+      "answer": "15"
+    },
+    {
+      "n": 92,
+      "mod": "46",
+      "compilation": true,
+      "answer": "2"
+    },
+    {
+      "n": 92,
+      "mod": "46",
+      "compilation": false,
+      "answer": "2"
+    },
+    {
+      "n": 93,
+      "mod": "529",
+      "compilation": true,
+      "answer": "514"
+    },
+    {
+      "n": 93,
+      "mod": "529",
+      "compilation": false,
+      "answer": "514"
+    },
+    {
+      "n": 94,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "818727804"
+    },
+    {
+      "n": 94,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "818727804"
+    },
+    {
+      "n": 95,
+      "mod": "1000000000000000000",
+      "compilation": true,
+      "answer": "354826580024226959"
+    },
+    {
+      "n": 95,
+      "mod": "1000000000000000000",
+      "compilation": false,
+      "answer": "354826580024226959"
+    },
+    {
+      "n": 96,
+      "mod": "1",
+      "compilation": true,
+      "answer": "0"
+    },
+    {
+      "n": 96,
+      "mod": "1",
+      "compilation": false,
+      "answer": "0"
+    },
+    {
+      "n": 97,
+      "mod": "23",
+      "compilation": true,
+      "answer": "6"
+    },
+    {
+      "n": 97,
+      "mod": "23",
+      "compilation": false,
+      "answer": "6"
+    },
+    {
+      "n": 98,
+      "mod": "46",
+      "compilation": true,
+      "answer": "34"
+    },
+    {
+      "n": 98,
+      "mod": "46",
+      "compilation": false,
+      "answer": "34"
+    },
+    {
+      "n": 99,
+      "mod": "529",
+      "compilation": true,
+      "answer": "350"
+    },
+    {
+      "n": 99,
+      "mod": "529",
+      "compilation": false,
+      "answer": "350"
+    },
+    {
+      "n": 100,
+      "mod": "1000000000",
+      "compilation": true,
+      "answer": "73349001"
+    },
+    {
+      "n": 100,
+      "mod": "1000000000",
+      "compilation": false,
+      "answer": "73349001"
+    }
+  ]
+}
