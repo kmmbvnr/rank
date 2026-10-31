@@ -59,7 +59,7 @@ function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (
     return result;
 }
 
-const checkedOffsets = new WeakMap<RankArray, { revision: number; size: number; offsets: Float64Array; unique: boolean }>();
+const checkedOffsets = new WeakMap<RankArray, { revision: number; size: number; offsets: Float64Array | Int32Array; unique: boolean }>();
 
 interface SelectedAxis {
     readonly preserve: boolean;
@@ -70,7 +70,7 @@ interface SelectedAxis {
     indexAt(coordinate: number): number;
     readonly linear?: LinearView;
     /** Validated source offsets of a materialized index vector. */
-    readonly offsets?: Float64Array;
+    readonly offsets?: Float64Array | Int32Array;
 }
 
 interface TensorSelection {
@@ -199,6 +199,29 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
             const cached = revision === undefined ? undefined : checkedOffsets.get(selector as RankArray);
             if (cached && cached.revision === revision && cached.size === size && cached.offsets.length === stored.length) {
                 return { preserve: true, size: cached.offsets.length, shape, unique: cached.unique, indexAt: (coordinate: number) => cached.offsets[coordinate], offsets: cached.offsets };
+            }
+            // One tight pass proves an Int32 vector in range; only a failure
+            // falls through to the scan that locates the first bad index.
+            if (compact) {
+                let lowest = 0, highest = -1, ordered = true;
+                if (compact.length) {
+                    lowest = highest = compact[0];
+                    for (let start = 0; start < compact.length; start += 4096) {
+                        checkpoint('checking array indices', Math.min(4096, compact.length - start));
+                        const end = Math.min(compact.length, start + 4096);
+                        for (let i = start; i < end; i++) {
+                            const value = compact[i];
+                            if (value < lowest) lowest = value;
+                            if (value > highest) highest = value;
+                            if (i > 0 && value <= compact[i - 1]) ordered = false;
+                        }
+                    }
+                }
+                if (lowest >= 0 && highest < size) {
+                    const offsets = compact.slice();
+                    if (revision !== undefined) checkedOffsets.set(selector as RankArray, { revision, size, offsets, unique: ordered });
+                    return { preserve: true, size: offsets.length, shape, unique: ordered, indexAt: (coordinate: number) => offsets[coordinate], offsets };
+                }
             }
             const indices = new Float64Array(stored.length);
             let unique = true;
@@ -455,7 +478,7 @@ function gather(
     const strides = new Array<number>(sourceShape.length).fill(1);
     for (let axis = sourceShape.length - 2; axis >= 0; axis -= 1) strides[axis] = strides[axis + 1] * sourceShape[axis + 1];
     let fixed = 0;
-    const kept: { size: number; stride: number; indexAt: (coordinate: number) => number; offsets?: Float64Array }[] = [];
+    const kept: { size: number; stride: number; indexAt: (coordinate: number) => number; offsets?: Float64Array | Int32Array }[] = [];
     axes.forEach((axis, position) => {
         if (axis.preserve) kept.push({ size: axis.size, stride: strides[position], indexAt: axis.indexAt, offsets: axis.offsets });
         else fixed += axis.indexAt(0) * strides[position];

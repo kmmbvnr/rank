@@ -9,6 +9,7 @@ import { rankedCells } from './ranked-cells.js';
 import { framedArray } from './framed-array.js';
 import { ALL_AXIS, atArray, reverseArrayAxis, sliceArray, tensorSelection } from './selectors.js';
 import { rankedNumericFind } from './numeric-search.js';
+import { sortedIndexBatch } from './sorted-search.js';
 import { arrayCells, arrayFrameAxes, arrayValues, derivedArray, ownedArray, denseScalarItems, prepareArrayRead, readArrayItem, registerArrayDependencies, registerArrayReadPlan, sliceStoredArray, typedArray } from './array-storage.js';
 import { prepareStoredScalarView, registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
@@ -185,6 +186,13 @@ export class RankApplication {
             if (integers) return completed(integers);
             const reals = mapStoredRealExtreme(left, right, operation);
             if (reals) return completed(reals);
+        }
+        // Sorted-index queries over stored integers run as one batch.
+        if (customLeftRank === undefined && customRightRank === undefined && a.frameShape.length === 0 && rightRank === 0
+            && (fn === this.standardFunctions.get(standardModules.algo.lowerindex)
+                || fn === this.standardFunctions.get(standardModules.algo.upperindex))) {
+            const found = sortedIndexBatch(left, right, fn.name === 'upperindex');
+            if (found) return completed(found);
         }
         // The standard find holds the complete left vector and maps scalar
         // targets. Keep error demand lazy and share one revision-checked index.

@@ -112,3 +112,52 @@ describe('sorted integer insertion indices', () => {
         } finally { runtime.dispose(); }
     });
 });
+
+describe('sorted index batches', () => {
+    const run = (source: string): string => {
+        const runtime = new Interpreter();
+        try { return formatValue(runtime.execute('use sequences\nuse numbers\nuse algo\n' + source)!); } finally { runtime.dispose(); }
+    };
+    const ref = (cells: bigint[], target: bigint, upper: boolean) => cells.filter(c => c < target || upper && c === target).length;
+
+    it('matches single searches for unordered, repeated and extreme targets', () => {
+        for (const scale of [1n, 4_000_000_000n]) {
+            const cells = Array.from({ length: 3000 }, (_, i) => (BigInt(i) * 3n + BigInt(i % 2)) * scale);
+            const mid = Array.from({ length: 5000 }, (_, i) => (BigInt((i * 7919) % 9500) - 200n) * scale);
+            const setup = `Dk = (((0 to 2999) * 3 + (0 to 2999) mod 2) * ${scale}) copy\n`
+                + `Tm = ((((0 to 4999) * 7919 mod 9500) - 200) * ${scale}) copy\n`
+                + `Tw = concat Tm ((array shape 1 fill 0) - 5000000000)\nTw = concat Tw (array shape 1 fill 5000000000)\n`;
+            const targets = [...mid, -5_000_000_000n, 5_000_000_000n];
+            for (const upper of [false, true]) {
+                const op = upper ? 'upperindex' : 'lowerindex';
+                const got = run(`${setup}Rs = Dk ${op} Tw\nRs`).split(' ').map(BigInt);
+                expect(got).toEqual(targets.map(t => BigInt(ref(cells, t, upper))));
+            }
+        }
+    });
+    it('keeps sorted targets and edits between batches exact', () => {
+        const out = run('Dk = ((1 to 4000) * 2) copy\nTv = (1 to 4000) copy\nA1 = Dk lowerindex Tv\nDk 3999 = 100000\nA2 = Dk upperindex (Tv * 2)\nS1 = A1 sum\nS2 = A2 sum\nS1 + S2');
+        let a1 = 0, a2 = 0;
+        const dk = Array.from({ length: 4000 }, (_, i) => (i + 1) * 2); 
+        for (let t = 1; t <= 4000; t++) a1 += dk.filter(c => c < t).length;
+        dk[3999] = 100000;
+        for (let t = 1; t <= 4000; t++) a2 += dk.filter(c => c <= t * 2).length;
+        expect(out).toBe(String(a1 + a2));
+    });
+});
+
+describe('Int32 index vector gathers', () => {
+    const exec = (source: string): string => {
+        const runtime = new Interpreter();
+        try { return formatValue(runtime.execute('use sequences\nuse numbers\n' + source)!); } catch (error) { return (error as Error).message; } finally { runtime.dispose(); }
+    };
+    const base = 'Dk = ((1 to 5000) * 2) copy\n';
+    it('gathers sorted, repeated and shuffled in-range vectors', () => {
+        expect(exec(`${base}Ix = (((0 to 4999) * 7) mod 5000) copy\nRs = Dk Ix\nRs sum`)).toBe(String([...Array(5000).keys()].reduce((n, i) => n + ((i * 7) % 5000 + 1) * 2, 0)));
+        expect(exec(`${base}Ix = ((0 to 4999) // 2) copy\nRs = Dk Ix\nRs sum`)).toBe(String([...Array(5000).keys()].reduce((n, i) => n + (Math.floor(i / 2) + 1) * 2, 0)));
+    });
+    it('reports the first offending index', () => {
+        expect(exec(`${base}Ix = ((0 to 4999) - 3) copy\nRs = Dk Ix\nRs sum`)).toContain('nonnegative');
+        expect(exec(`${base}Ix = ((0 to 4999) + 3) copy\nRs = Dk Ix\nRs sum`)).toContain('out of bounds on axis 0: 5000');
+    });
+});
