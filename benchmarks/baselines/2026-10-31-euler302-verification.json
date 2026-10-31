@@ -1,0 +1,242 @@
+[
+  {
+    "mode": "compiled",
+    "variant": "original",
+    "limit": 100,
+    "answer": 0
+  },
+  {
+    "mode": "compiled",
+    "variant": "original",
+    "limit": 1000,
+    "answer": 2
+  },
+  {
+    "mode": "compiled",
+    "variant": "original",
+    "limit": 10000,
+    "answer": 7
+  },
+  {
+    "mode": "compiled",
+    "variant": "original",
+    "limit": 100000,
+    "answer": 34
+  },
+  {
+    "mode": "compiled",
+    "variant": "original",
+    "limit": 1000000,
+    "answer": 99
+  },
+  {
+    "mode": "compiled",
+    "variant": "reuse",
+    "limit": 100,
+    "answer": 0
+  },
+  {
+    "mode": "compiled",
+    "variant": "reuse",
+    "limit": 1000,
+    "answer": 2
+  },
+  {
+    "mode": "compiled",
+    "variant": "reuse",
+    "limit": 10000,
+    "answer": 7
+  },
+  {
+    "mode": "compiled",
+    "variant": "reuse",
+    "limit": 100000,
+    "answer": 34
+  },
+  {
+    "mode": "compiled",
+    "variant": "reuse",
+    "limit": 1000000,
+    "answer": 99
+  },
+  {
+    "mode": "compiled",
+    "variant": "prune",
+    "limit": 100,
+    "answer": 0
+  },
+  {
+    "mode": "compiled",
+    "variant": "prune",
+    "limit": 1000,
+    "answer": 2
+  },
+  {
+    "mode": "compiled",
+    "variant": "prune",
+    "limit": 10000,
+    "answer": 7
+  },
+  {
+    "mode": "compiled",
+    "variant": "prune",
+    "limit": 100000,
+    "answer": 34
+  },
+  {
+    "mode": "compiled",
+    "variant": "prune",
+    "limit": 1000000,
+    "answer": 99
+  },
+  {
+    "mode": "compiled",
+    "variant": "production",
+    "limit": 100,
+    "answer": 0
+  },
+  {
+    "mode": "compiled",
+    "variant": "production",
+    "limit": 1000,
+    "answer": 2
+  },
+  {
+    "mode": "compiled",
+    "variant": "production",
+    "limit": 10000,
+    "answer": 7
+  },
+  {
+    "mode": "compiled",
+    "variant": "production",
+    "limit": 100000,
+    "answer": 34
+  },
+  {
+    "mode": "compiled",
+    "variant": "production",
+    "limit": 1000000,
+    "answer": 99
+  },
+  {
+    "mode": "reference",
+    "variant": "original",
+    "limit": 100,
+    "answer": 0
+  },
+  {
+    "mode": "reference",
+    "variant": "original",
+    "limit": 1000,
+    "answer": 2
+  },
+  {
+    "mode": "reference",
+    "variant": "original",
+    "limit": 10000,
+    "answer": 7
+  },
+  {
+    "mode": "reference",
+    "variant": "original",
+    "limit": 100000,
+    "answer": 34
+  },
+  {
+    "mode": "reference",
+    "variant": "original",
+    "limit": 1000000,
+    "answer": 99
+  },
+  {
+    "mode": "reference",
+    "variant": "reuse",
+    "limit": 100,
+    "answer": 0
+  },
+  {
+    "mode": "reference",
+    "variant": "reuse",
+    "limit": 1000,
+    "answer": 2
+  },
+  {
+    "mode": "reference",
+    "variant": "reuse",
+    "limit": 10000,
+    "answer": 7
+  },
+  {
+    "mode": "reference",
+    "variant": "reuse",
+    "limit": 100000,
+    "answer": 34
+  },
+  {
+    "mode": "reference",
+    "variant": "reuse",
+    "limit": 1000000,
+    "answer": 99
+  },
+  {
+    "mode": "reference",
+    "variant": "prune",
+    "limit": 100,
+    "answer": 0
+  },
+  {
+    "mode": "reference",
+    "variant": "prune",
+    "limit": 1000,
+    "answer": 2
+  },
+  {
+    "mode": "reference",
+    "variant": "prune",
+    "limit": 10000,
+    "answer": 7
+  },
+  {
+    "mode": "reference",
+    "variant": "prune",
+    "limit": 100000,
+    "answer": 34
+  },
+  {
+    "mode": "reference",
+    "variant": "prune",
+    "limit": 1000000,
+    "answer": 99
+  },
+  {
+    "mode": "reference",
+    "variant": "production",
+    "limit": 100,
+    "answer": 0
+  },
+  {
+    "mode": "reference",
+    "variant": "production",
+    "limit": 1000,
+    "answer": 2
+  },
+  {
+    "mode": "reference",
+    "variant": "production",
+    "limit": 10000,
+    "answer": 7
+  },
+  {
+    "mode": "reference",
+    "variant": "production",
+    "limit": 100000,
+    "answer": 34
+  },
+  {
+    "mode": "reference",
+    "variant": "production",
+    "limit": 1000000,
+    "answer": 99
+  }
+]

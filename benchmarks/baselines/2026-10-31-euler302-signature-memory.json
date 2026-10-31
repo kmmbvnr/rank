@@ -1,0 +1,14 @@
+{
+  "before": {
+    "arrays": 2000,
+    "cellsPerArray": 4096,
+    "retainedBytes": 67874720,
+    "rssMiB": 150.6875
+  },
+  "after": {
+    "arrays": 2000,
+    "cellsPerArray": 4096,
+    "retainedBytes": 203312,
+    "rssMiB": 91.71875
+  }
+}

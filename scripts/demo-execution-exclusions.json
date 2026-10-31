@@ -18,7 +18,7 @@
   "euler/196_primetriplets_test.ra": "Existing differential execution-budget exclusion (#311, #316).",
   "euler/198_ambiguous.ra": "Existing differential execution-budget exclusion (#311, #316).",
   "euler/198_ambiguous_test.ra": "Existing differential execution-budget exclusion (#311, #316).",
-  "euler/302_strongachilles.ra": "Searches strong Achilles numbers below 10^18.",
+  "euler/302_strongachilles.ra": "Full compiled answer is covered by full-scale-demos.test.ts; the exact recursive search remains above the reference audit budget.",
   "euler/303_smalldigits.ra": "Runs a remainder BFS for every divisor through 10000.",
   "euler/304_primonacci.ra": "Finds and processes 100000 primes above 10^14.",
   "euler/305_reflexive.ra": "Enumerates decimal occurrence patterns through power 13.",

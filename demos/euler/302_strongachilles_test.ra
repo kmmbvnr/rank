@@ -11,3 +11,16 @@ test "published counts"
 
   Answer equal 656
 end
+
+
+test "small powerful non-powers"
+  use "302_strongachilles"
+  Limit = 1000
+  run
+
+  Answer equal 2
+  Limit = 1000000
+  run
+
+  Answer equal 99
+end

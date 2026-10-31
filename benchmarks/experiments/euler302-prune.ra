@@ -1,0 +1,108 @@
+rem Strong Achilles Numbers
+rem https://projecteuler.net/problem=302
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Limit integer = 10 ** 18
+
+rem The largest prime has exponent at
+rem least three, so it is below cbrt N.
+Root = (Limit ** (1 / 3)) floor
+for (Root + 1) ** 3 less Limit
+  Root += 1
+end
+for Root ** 3 at least Limit
+  Root -= 1
+end
+Pr = primes to Root array
+Facs = new index
+Empty = array shape 0 fill 0
+Last = Pr len - 1
+Answer = 1 Empty 0 0 Last Facs g
+Answer print
+
+rem Fs holds unfinished factors of phi.
+rem Gp holds finished exponent gcds.
+fun N Fs Gn Gp Max C g
+  Total = 0
+  Cnt = new counter Fs
+  Ks = Fs unique
+  Es = Cnt Ks
+  if Gn equal 1
+    G = Gp
+    Done = true
+    if Fs len greater 0
+      if (Es less 2) any
+        Done = false
+      else
+        for E in Es
+          G = G gcd E
+        end
+      end
+    end
+    if Done
+      if G equal 1
+        Total = 1
+      end
+    end
+  end
+  Singles = Ks filter Es equal 1 array
+  Start = 0
+  if Singles len greater 0
+    Start = Pr lowerindex (Singles max)
+  end
+  for I in Start to Max
+    P = Pr I
+    Pow = P * P
+    if N * Pow at least Limit
+      break
+    end
+    Have = Cnt P
+    Exp = 2
+    if Have equal 0
+      Pow *= P
+      Exp += 1
+    end
+    if N * Pow at least Limit
+      continue
+    end
+    High = Ks filter Ks greater P array
+    G2 = Gp
+    Ok = true
+    if High len greater 0
+      He = Cnt High
+      if (He less 2) any
+        Ok = false
+      else
+        for E in He
+          G2 = G2 gcd E
+        end
+      end
+    end
+    if not Ok
+      continue
+    end
+    Base = P - 1
+    if Base not in C
+      C Base = Base factors array
+    end
+    Low = Fs filter Fs less P array
+    F2 = concat Low (C Base)
+    for N * Pow less Limit
+      Next = N * Pow
+      Gn2 = Gn gcd Exp
+      Ep = Have + Exp - 1
+      Gp2 = G2 gcd Ep
+      Prev = I - 1
+      More = Next F2 Gn2 Gp2 Prev C g
+      Total += More
+      Pow *= P
+      Exp += 1
+    end
+  end
+  return Total
+end

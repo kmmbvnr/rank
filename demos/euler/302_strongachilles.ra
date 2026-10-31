@@ -19,45 +19,49 @@ for Root ** 3 at least Limit
   Root -= 1
 end
 Pr = primes to Root array
-Facs = new index
+rem Packed factors of each P - 1.
+Offsets = array shape (Pr len + 1) fill 0
+Factors = new queue
+for I in 0 till Pr len
+  for F in (Pr I - 1) factors
+    Factors push F
+  end
+  Offsets (I + 1) = Factors len
+end
+Flat = Factors array
 Empty = array shape 0 fill 0
 Last = Pr len - 1
-Answer = 1 Empty 0 0 Last Facs g
+Answer = 1 Empty 0 0 Last g
 Answer print
 
 rem Fs holds unfinished factors of phi.
 rem Gp holds finished exponent gcds.
-fun N Fs Gn Gp Max C g
+fun N Fs Gn Gp Max g
   Total = 0
+  Length = Fs len
+  Ks = Fs unique
   if Gn equal 1
     G = Gp
     Done = true
-    if Fs len greater 0
-      Ks = Fs unique
-      Cnt = new counter Fs
-      Es = Cnt Ks
-      if (Es less 2) any
+    for F in Ks
+      E = (Fs equal F) count
+      if E less 2
         Done = false
-      else
-        for E in Es
-          G = G gcd E
-        end
+        break
       end
+      G = G gcd E
     end
-    if Done
-      if G equal 1
-        Total = 1
-      end
+    if Done and (G equal 1)
+      Total = 1
     end
   end
-  Cnt = new counter Fs
   for I in 0 to Max
     P = Pr I
     Pow = P * P
     if N * Pow at least Limit
       break
     end
-    Have = Cnt P
+    Have = (Fs equal P) count
     Exp = 2
     if Have equal 0
       Pow *= P
@@ -66,37 +70,45 @@ fun N Fs Gn Gp Max C g
     if N * Pow at least Limit
       continue
     end
-    High = Fs filter Fs greater P array
-    Low = Fs filter Fs less P array
     G2 = Gp
+    LowCount = Length - Have
     Ok = true
-    if High len greater 0
-      Hs = High unique
-      Hc = new counter High
-      He = Hc Hs
-      if (He less 2) any
-        Ok = false
-      else
-        for E in He
-          G2 = G2 gcd E
+    for F in Ks
+      if F greater P
+        E = (Fs equal F) count
+        if E less 2
+          Ok = false
+          break
         end
+        LowCount -= E
+        G2 = G2 gcd E
       end
     end
     if not Ok
       continue
     end
-    Base = P - 1
-    if Base not in C
-      C Base = Base factors array
+    Lo = Offsets I
+    Hi = Offsets (I + 1)
+    Size = LowCount + Hi - Lo
+    F2 = array shape Size fill 0
+    At = 0
+    for F in Fs
+      if F less P
+        F2 At = F
+        At += 1
+      end
+    end
+    for J in Lo till Hi
+      F2 At = Flat J
+      At += 1
     end
     for N * Pow less Limit
       Next = N * Pow
-      F2 = concat Low (C Base)
       Gn2 = Gn gcd Exp
       Ep = Have + Exp - 1
       Gp2 = G2 gcd Ep
       Prev = I - 1
-      More = Next F2 Gn2 Gp2 Prev C g
+      More = Next F2 Gn2 Gp2 Prev g
       Total += More
       Pow *= P
       Exp += 1

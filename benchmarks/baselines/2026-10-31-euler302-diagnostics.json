@@ -1,0 +1,62 @@
+{
+  "mode": "compiled",
+  "power": "8",
+  "variant": "original",
+  "answer": "656",
+  "ms": 542.960292,
+  "rssMiB": 234.28125,
+  "diagnostics": {
+    "indexReads": 1466,
+    "indexReadHits": 1466,
+    "indexWrites": 90,
+    "cellsComputed": 3929,
+    "compiledLoops": 203,
+    "numericDistincts": 413,
+    "numberLoops": 203,
+    "numberLoopReadBuffers": 201,
+    "numberLoopReadBufferCells": 212,
+    "maskMaterializations": 1198,
+    "maskMaterializedCells": 762,
+    "fallbacks": {
+      "scalar-expression:unsupported-op:**": 6,
+      "tensor:scalar-evaluation-timing": 1,
+      "scalar-expression:unsupported-op:/": 1,
+      "scalar-expression:unsupported-op:less": 1,
+      "scalar-expression:too-small": 16,
+      "scalar-expression:unsupported-op:atleast": 1,
+      "tensor:unsupported-node:MaterializeExpression": 3,
+      "scalar-expression:unsupported-op:to": 2,
+      "tensor:unsupported-node:NewStructureExpression": 4,
+      "tensor:unsupported-type:array": 1,
+      "scalar-expression:unsupported-op:len": 6,
+      "scalar-expression:unsupported-op:-": 2,
+      "scalar-function:unsupported-op:len": 2,
+      "scalar-function:unbound-name:NameExpression": 1,
+      "loop:unsupported-node:MaterializeExpression": 1,
+      "loop:no-text-specialization": 1467,
+      "tensor:output-shape": 6472,
+      "scalar-expression:unsupported-op:greater": 4,
+      "scalar-expression:unsupported-op:notin": 1,
+      "loop:unstable-bindings:ForStatement": 1
+    },
+    "compilerRejections": [
+      {
+        "reason": "scalar-function:unsupported-op:len",
+        "node": "ApplicationExpression",
+        "function": "g",
+        "expression": "Fs len",
+        "line": 35,
+        "column": 8
+      },
+      {
+        "reason": "scalar-function:unbound-name:NameExpression",
+        "node": "NameExpression",
+        "name": "len",
+        "function": "g",
+        "expression": "len",
+        "line": 35,
+        "column": 11
+      }
+    ]
+  }
+}

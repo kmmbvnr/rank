@@ -222,3 +222,17 @@ it('checks the full Euler 300 maximum-contact reduction', () => {
         expect(runtime.variables.get('Count')).toBe(3409n);
     } finally { runtime.dispose(); }
 }, 60_000);
+
+
+it('checks the full Euler 302 search with recursive owned-array helpers', () => {
+    const url = new URL('../../../demos/euler/302_strongachilles.ra', import.meta.url);
+    let calls = 0;
+    const runtime = new Interpreter(() => {}, {
+        sourceId: fileURLToPath(url), onScalarFunctionExecuted: () => calls++,
+    });
+    try {
+        runtime.execute(readFileSync(url, 'utf8'));
+        expect(runtime.variables.get('Answer')).toBe(1170060n);
+        expect(calls).toBeGreaterThan(1_600_000);
+    } finally { runtime.dispose(); }
+}, 90_000);

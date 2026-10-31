@@ -1,0 +1,92 @@
+[
+  {
+    "round": 0,
+    "power": 12,
+    "answer": 16176,
+    "nodes": 26670,
+    "candidates": 21222,
+    "factorCache": 1229,
+    "ms": 7.121874999999999,
+    "rssMiB": 54.140625
+  },
+  {
+    "round": 0,
+    "power": 14,
+    "answer": 70645,
+    "nodes": 107722,
+    "candidates": 94811,
+    "factorCache": 4797,
+    "ms": 18.182709,
+    "rssMiB": 58.34375
+  },
+  {
+    "round": 0,
+    "power": 18,
+    "answer": 1170060,
+    "nodes": 1635470,
+    "candidates": 1882677,
+    "factorCache": 78498,
+    "ms": 234.28829199999998,
+    "rssMiB": 105.34375
+  },
+  {
+    "round": 1,
+    "power": 12,
+    "answer": 16176,
+    "nodes": 26670,
+    "candidates": 21222,
+    "factorCache": 1229,
+    "ms": 6.216334,
+    "rssMiB": 54.109375
+  },
+  {
+    "round": 1,
+    "power": 14,
+    "answer": 70645,
+    "nodes": 107722,
+    "candidates": 94811,
+    "factorCache": 4797,
+    "ms": 18.025792000000003,
+    "rssMiB": 58.296875
+  },
+  {
+    "round": 1,
+    "power": 18,
+    "answer": 1170060,
+    "nodes": 1635470,
+    "candidates": 1882677,
+    "factorCache": 78498,
+    "ms": 238.499708,
+    "rssMiB": 105.390625
+  },
+  {
+    "round": 2,
+    "power": 12,
+    "answer": 16176,
+    "nodes": 26670,
+    "candidates": 21222,
+    "factorCache": 1229,
+    "ms": 6.611167,
+    "rssMiB": 54.4375
+  },
+  {
+    "round": 2,
+    "power": 14,
+    "answer": 70645,
+    "nodes": 107722,
+    "candidates": 94811,
+    "factorCache": 4797,
+    "ms": 18.0135,
+    "rssMiB": 58.3125
+  },
+  {
+    "round": 2,
+    "power": 18,
+    "answer": 1170060,
+    "nodes": 1635470,
+    "candidates": 1882677,
+    "factorCache": 78498,
+    "ms": 283.288125,
+    "rssMiB": 105.3125
+  }
+]

@@ -434,6 +434,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 return result;
             }
             const receiver = slot(expression.input.name);
+            if (operation === 'array-len') {
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = BigInt(${receiver}.shape[0] ?? 0);`);
+                return result;
+            }
             if (operation === 'array-contains' || operation === 'array-not-contains') {
                 const value = lower(expression.input.indices![0], lines);
                 const result = `v${serial++}`;

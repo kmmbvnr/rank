@@ -442,8 +442,13 @@ export class FastPaths {
         // and needs no resource frame. Only constructor-owned array writes can
         // enter here; writes through arguments or aliases still need a frame.
         // Array-only bodies retain the private Number loop tier. Containers
-        // already require exact, publishing loops, so compile that body together.
-        return proof && proof.localArrayWrites && (!proof.arrayWrites.size || proof.containers) && !proof.planReturn
+        // already require exact, publishing loops. Recursive owned-array bodies also
+        // need the linked exact tier; their invocation-local writes are proved above.
+        // A newly admitted stored-array loop must not steal an ordinary
+        // array-only helper from its existing private Number loop backend.
+        if (proof && !proof.recursive && !proof.containers
+            && [...proof.loopIterables.values()].some(loop => loop.kind === 'literal' && isNameExpression(loop.expression))) return undefined;
+        return proof && proof.localArrayWrites && (!proof.arrayWrites.size || proof.containers || proof.recursive) && !proof.planReturn
             ? { locals: proof.locals, nonnegative: proof.nonnegative, loops: true } : undefined;
     }
 
