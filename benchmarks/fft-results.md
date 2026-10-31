@@ -130,6 +130,37 @@ ran before the benchmark series, not concurrently with it.
 Evidence: [before/after timing samples](baselines/2026-10-31-fft-cache-comparison.json)
 and [post-repair diagnostics](baselines/2026-10-31-fft-cache-diagnostics.json).
 
+## Incremental improvements
+
+Each step compares against the immediately preceding build in alternating,
+serial fresh processes, with five samples per size. The tables report measured
+medians, not an estimate of the speedup of several changes combined.
+
+### Step 1: retain exact domains when materializing numeric selections
+
+Selected native numeric cells already have a proved uniform physical domain.
+The materialized buffer now keeps that evidence, including the distinction
+between `real` (which includes NaN) and `numeric-limit` (infinities).
+Compiled outputs and contiguous slices already retained this information;
+this change fixes the remaining noncontiguous selection path.
+
+At N=4096, a warm FFT drops from 166 type scans over 407,548 cells to 102 scans
+over 313,344 cells. Runtime guards and mixed-domain fallback are unchanged.
+
+| N | Before, ms | After, ms |
+| --- | ---: | ---: |
+| 256 | 1.950 | 1.907 |
+| 1024 | 4.211 | 3.971 |
+| 4096 | 8.412 | 7.874 |
+
+The N=4096 median decreases by about 6.4%; there are timing outliers and
+overlapping ranges. Tests cover gathered finite reals, NaN and infinities,
+binding boundaries, aliasing and numeric guards. FFT results still agree with
+the direct DFT.
+
+Evidence: [step 1 timing](baselines/2026-10-31-fft-step1.json) and
+[diagnostics](baselines/2026-10-31-fft-step1-diagnostics.json).
+
 ## Reproduction and checks
 
 ```sh

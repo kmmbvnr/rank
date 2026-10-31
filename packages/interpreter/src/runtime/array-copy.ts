@@ -75,7 +75,7 @@ export function materializeSelectedView(value: RankArray): RankArray | undefined
             out[index] = cells[at];
         }
     }
-    const result = typedArray(out, [...value.shape]);
+    const result = typedArray(out, [...value.shape], undefined, view.kinds![0]);
     const declaration = arrayDeclaration(value);
     if (declaration) declareArray(result, declaration);
     return inheritSemanticArrayType(value, result);

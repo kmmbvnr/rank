@@ -1,9 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, parse, type RankArray, type RankValue } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, parse, type RankArray, type RankValue } from '../src/index.js';
 import { compileTensorKernel } from '../src/tensor-kernel.js';
 import { denseScalarItems, filledArray, ownedScalarArray, readArrayItem, typedArray, typedElementKind } from '../src/array-storage.js';
 
 describe('tensor copy storage', () => {
+    it.each([
+        ['real', [1, 2, NaN, 4, 5], [1, NaN, 5]],
+        ['numeric-limit', [Infinity, -Infinity, Infinity, -Infinity, Infinity], [Infinity, Infinity, Infinity]],
+    ] as const)('preserves the exact %s domain when gathering stored cells', (kind, cells, expected) => {
+        const runtime = new Interpreter(undefined, { compilation: false });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.variables.set('Source', typedArray(Float64Array.from(cells), [5], undefined, kind));
+            const result = diagnostics.run(() => runtime.execute('use sequences\nPicked = Source (array 0 2 4)\nPicked')) as RankArray;
+            runtime.variables.set('Result', result);
+            diagnostics.run(() => runtime.execute('Checked = Result'));
+            expect(result.items).toEqual(expected);
+            expect(diagnostics.elementTypeScannedCells).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
     it.each([0, 1, 63, 64, 4096, 5000])('packs exact integer output at size %s', size => {
         const runtime = new Interpreter();
         try {
