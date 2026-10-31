@@ -252,7 +252,6 @@
   "euler/648_skippingsquares.ra": "About 30 s: cubic series products to degree 1000; run manually.",
   "euler/650_binomialproduct.ra": "About 4.5 min: 20000 steps of vector powmod over 2262 primes (#479); run manually.",
   "euler/644_squaresontheline.ra": "About 26 min: 3 x 10^5 row sweeps with argsort axis 1 (#480); run manually.",
-  "euler/677_colouredgraphs.ra": "About 95 s: online series dot products; run manually (#491).",
   "euler/678_fermatlike.ra": "About 156 s: sieves and 4e8-pair scan; run manually (#492).",
   "euler/686_powersoftwo.ra": "About 50 s: 1.9e8-element fraction scan; run manually (#493).",
   "euler/688_pilesofplates.ra": "About 77 s: 1.4e8-element closed form; run manually (#494).",

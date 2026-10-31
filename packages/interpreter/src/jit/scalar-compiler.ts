@@ -5,7 +5,8 @@ import {
     isNameExpression, isNumberLiteral, isBooleanLiteral, isStringLiteral,
     type Expression,
 } from '@arrrank/language';
-import type { RankValue } from '../value.js';
+import { isRankArray, type RankValue } from '../value.js';
+import { modularProduct } from '../runtime/modular-fold.js';
 import type { Evaluation } from '../execution.js';
 import { compilerRejection } from './compiler-rejection.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
@@ -17,7 +18,7 @@ interface Host<T = RankValue> {
     compiled?(source: string): void;
     executed?(): void;
 }
-type Factory = (readers: (() => unknown)[], binary: Host['binary'], unary: Host['unary']) => () => RankValue | Evaluation<RankValue>;
+type Factory = (readers: (() => unknown)[], binary: Host['binary'], unary: Host['unary'], mulmod: Host['binary']) => () => RankValue | Evaluation<RankValue>;
 // Readers belong to each invocation; only generated code is shared. Bound the
 // cache because source strings cannot be released like weak AST keys.
 const factories = new Map<string, Factory>();
@@ -90,6 +91,19 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
         // Modifier operands belong to the complete application, including
         // axis/rank/seed qualifiers. Never evaluate its fragments as values.
         if (applicationForm(e).kind !== 'plain') return undefined;
+        let product = e.operator === 'mod' ? e.left : undefined;
+        while (product && isParenthesizedExpression(product)) product = product.value;
+        if (product && isBinaryExpression(product) && product.operator === '*' && !product.step && applicationForm(product).kind === 'plain') {
+            // A*B mod M reduces each product, so arrays never form exact wide products.
+            const a = emit(product.left), b = emit(product.right), m = emit(e.right);
+            if (!a || !b || !m) return undefined;
+            count += 2;
+            const name = `v${serial++}`;
+            const ints = `typeof ${a} === 'bigint' && typeof ${b} === 'bigint' && typeof ${m} === 'bigint' && !${zeroTestSource(m, 'integer')}`;
+            const times = `(${binaryOperatorSource(findCompiledOperator('*')!, a, b)})`;
+            lines.push(`const ${name} = ${ints} ? (${binaryOperatorSource(findCompiledOperator('mod')!, times, m)}) : mulmod(${a}, ${b}, ${m});`);
+            return name;
+        }
         const left = emit(e.left), right = emit(e.right);
         if (!left || !right) return undefined;
         count++;
@@ -115,12 +129,14 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
         factories.delete(source);
         factories.set(source, factory);
     } else {
-        try { factory = new Function('readers', 'binary', 'unary', source) as Factory; }
+        try { factory = new Function('readers', 'binary', 'unary', 'mulmod', source) as Factory; }
         catch { return recordFallback('scalar-expression:dynamic-code-unavailable'); }
         factories.set(source, factory);
         if (factories.size > factoryLimit) factories.delete(factories.keys().next().value!);
         host.compiled?.(source);
     }
-    const run = factory(readers, host.binary, host.unary);
+    const mulmod = (a: RankValue, b: RankValue, m: RankValue) => (isRankArray(a) && isRankArray(b) && typeof m === 'bigint'
+        ? modularProduct(a, b, m) : undefined) ?? host.binary('mod', host.binary('*', a, b), m);
+    const run = factory(readers, host.binary, host.unary, mulmod);
     return host.executed ? () => { host.executed!(); return run(); } : run;
 }

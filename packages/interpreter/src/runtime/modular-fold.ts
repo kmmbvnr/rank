@@ -109,3 +109,16 @@ export function modularReduce(op: '+' | '*', source: Residues, seed: bigint | un
     for (let i = seed === undefined ? 1 : 0; i < cells.length; i++) acc = step(acc, cells[i]);
     return BigInt(acc);
 }
+
+/** `A * B mod M` for equal-shape integer arrays and M up to 2^30: each product is
+ * reduced as it forms, so no cell leaves the Int32 range. */
+export function modularProduct(a: RankArray, b: RankArray, modulus: bigint): RankArray | undefined {
+    const m = modulusOf(modulus);
+    if (m === undefined || m > 2 ** 30 || a.shape.length !== b.shape.length || a.shape.some((n, i) => n !== b.shape[i])) return undefined;
+    const x = arrayResidues(a, modulus), y = arrayResidues(b, modulus);
+    if (!x || !y) return undefined;
+    checkpoint('computing integer array', x.cells.length);
+    const out = new Int32Array(x.cells.length);
+    for (let i = 0; i < out.length; i++) out[i] = multiply(x.cells[i], y.cells[i], m);
+    return typedArray(out, x.shape);
+}
