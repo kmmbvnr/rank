@@ -1,0 +1,101 @@
+rem Pythagorean Polygons
+rem https://projecteuler.net/problem=292
+rem Count the convex polygons with
+rem integer vertices, integer edges, no
+rem three vertices on a line and a
+rem perimeter of at most N, up to
+rem translation
+
+use numbers
+use io
+use cli
+
+arg N integer = 120
+
+rem A polygon is a set of edge vectors
+rem of integer length, no two in one
+rem direction, adding up to zero. Split
+rem it into the vectors turned up (angle
+rem 0 to 180 degrees) and the rest,
+rem whose negatives are up vectors too.
+rem So count the up sets by their sum
+rem (sx, sy) and perimeter p with a
+rem knapsack that takes at most one
+rem multiple m (p, q) of each primitive
+rem direction with p^2 + q^2 = r^2, then
+rem pair two sets of equal sum whose
+rem perimeters add to at most N. Take
+rem off the empty pair and the pairs of
+rem one vector and its opposite. Sums
+rem are at most N / 2 in each
+rem coordinate, as each half has
+rem perimeter of that much at least.
+Half = N // 2
+Wx = 2 * Half + 1
+Wy = Half + 1
+Wp = N + 1
+Dp = array shape (Wx * Wy * Wp) fill 0
+Dp ((Half * Wy) * Wp) = 1
+Digons = 0
+for Pp in (0 - Half) to Half
+  for Qq in 0 to Half
+    Ap = Pp abs
+    Ok = Qq greater 0 or Pp greater 0
+    Norm = Ap * Ap + Qq * Qq
+    Rr = Norm isqrt
+    Sq = Rr * Rr equal Norm
+    G1 = Ap
+    G2 = Qq
+    for
+      if G2 equal 0
+        break
+      end
+      Tt = G1 mod G2
+      G1 = G2
+      G2 = Tt
+    end
+    Good = Ok and Sq and G1 equal 1
+    if Good and Rr at most Half
+      Many = Half // Rr
+      Digons += Many
+      for T in N to Rr by -1
+        for M in 1 to (Many min (T // Rr))
+          Dx = M * Pp
+          Dy = M * Qq
+          Len = M * Rr
+          Delta = (Dx * Wy + Dy) * Wp
+          Delta += Len
+          Xlo = (0 - Half) max (Dx - Half)
+          Xhi = Half min (Dx + Half)
+          for Sx in Xlo to Xhi
+            Base = (Sx + Half) * Wy * Wp
+            Base += T
+            Ylo = Dy + (T - Sx - Dy) mod 2
+            for Sy in Ylo to Half by 2
+              Dst = Base + Sy * Wp
+              Dp Dst += Dp (Dst - Delta)
+            end
+          end
+        end
+      end
+    end
+  end
+end
+Total = 0
+Pre = array shape Wp fill 0
+for Sx in 0 till Wx
+  for Sy in 0 till Wy
+    Base = (Sx * Wy + Sy) * Wp
+    Cum = 0
+    for T in 0 to N
+      Cum += Dp (Base + T)
+      Pre T = Cum
+    end
+    for T in 0 to N
+      Here = Dp (Base + T)
+      Total += Here * Pre (N - T)
+    end
+  end
+end
+Answer = Total - 1 - Digons
+Answer print

@@ -96,6 +96,21 @@ it('checks the full Euler 291 polynomial sieve and compiled root preparation', (
     } finally { runtime.dispose(); }
 }, 60_000);
 
+it('checks full Euler 292 with disjoint slices and no operand snapshots', () => {
+    const url = new URL('../../../demos/euler/292_pythagoreanpolygons.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(3600060866n);
+        expect(diagnostics.numberLoops).toBe(2);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+        expect(diagnostics.numberLoopSliceCopies).toBe(0);
+        expect(diagnostics.numberLoopSliceDirectCells).toBe(11616448);
+        expect(diagnostics.cowCopies).toBe(0);
+    } finally { runtime.dispose(); }
+}, 60_000);
+
 // Independent representation: match individual balls and boxes, rather than
 // the Rank program's run stack and difference table of removal rounds.
 function perBallReference(last: number): number {

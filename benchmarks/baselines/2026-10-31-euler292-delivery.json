@@ -1,0 +1,815 @@
+{
+  "baselineRevision": "220d12bc",
+  "integrationParent": "28366c99e8e66d61714b92da41fcfc82b5a14f74",
+  "method": "27 serial fresh-process samples, 3 per case, alternating order. Parse/JIT included, imports excluded; baseline transpilation in a child. External host load uncontrolled. Compiler copies and metadata guards unchanged since validated local slice experiment. Original reference fixture comparison uses its frozen 3 checkpoints; shipping fixture retains them and adds 5 boundary checkpoints. Full original reference default not measured.",
+  "records": [
+    {
+      "name": "original compiled",
+      "sample": 0,
+      "before": true,
+      "result": {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 120,
+        "ms": 2877.2795,
+        "answer": "3600060866",
+        "rssMiB": 195.828125
+      }
+    },
+    {
+      "name": "shipping compiled",
+      "sample": 0,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 120,
+        "ms": 405.92900000000003,
+        "answer": "3600060866",
+        "rssMiB": 221.359375
+      }
+    },
+    {
+      "name": "streamed60 before",
+      "sample": 0,
+      "before": true,
+      "result": {
+        "mode": "compiled",
+        "variant": "streamed",
+        "n": 60,
+        "ms": 1539.504541,
+        "answer": "891045",
+        "rssMiB": 899.1875
+      }
+    },
+    {
+      "name": "streamed60 after",
+      "sample": 0,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "streamed",
+        "n": 60,
+        "ms": 180.15566700000002,
+        "answer": "891045",
+        "rssMiB": 188.953125
+      }
+    },
+    {
+      "name": "shipping reference",
+      "sample": 0,
+      "before": false,
+      "result": {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 120,
+        "ms": 12251.382167,
+        "answer": "3600060866",
+        "rssMiB": 608.015625
+      }
+    },
+    {
+      "name": "shipping fixture reference",
+      "sample": 0,
+      "before": false,
+      "result": {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": "fixture",
+        "ms": 2825.520125,
+        "answer": "fixture passed",
+        "rssMiB": 598.65625
+      }
+    },
+    {
+      "name": "shipping fixture compiled",
+      "sample": 0,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": "fixture",
+        "ms": 444.32929200000007,
+        "answer": "fixture passed",
+        "rssMiB": 207.421875
+      }
+    },
+    {
+      "name": "290 before",
+      "sample": 0,
+      "before": true,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 315.24512500000003,
+        "answer": "20444710234716473",
+        "rssMiB": 198.203125
+      }
+    },
+    {
+      "name": "290 after",
+      "sample": 0,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 288.817583,
+        "answer": "20444710234716473",
+        "rssMiB": 196.234375
+      }
+    },
+    {
+      "name": "290 after",
+      "sample": 1,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 171.42691699999997,
+        "answer": "20444710234716473",
+        "rssMiB": 189.90625
+      }
+    },
+    {
+      "name": "290 before",
+      "sample": 1,
+      "before": true,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 191.134834,
+        "answer": "20444710234716473",
+        "rssMiB": 200.28125
+      }
+    },
+    {
+      "name": "shipping fixture compiled",
+      "sample": 1,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": "fixture",
+        "ms": 236.618417,
+        "answer": "fixture passed",
+        "rssMiB": 204.59375
+      }
+    },
+    {
+      "name": "shipping fixture reference",
+      "sample": 1,
+      "before": false,
+      "result": {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": "fixture",
+        "ms": 2240.2399579999997,
+        "answer": "fixture passed",
+        "rssMiB": 617
+      }
+    },
+    {
+      "name": "shipping reference",
+      "sample": 1,
+      "before": false,
+      "result": {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 120,
+        "ms": 12443.669042,
+        "answer": "3600060866",
+        "rssMiB": 604.171875
+      }
+    },
+    {
+      "name": "streamed60 after",
+      "sample": 1,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "streamed",
+        "n": 60,
+        "ms": 176.457417,
+        "answer": "891045",
+        "rssMiB": 188.703125
+      }
+    },
+    {
+      "name": "streamed60 before",
+      "sample": 1,
+      "before": true,
+      "result": {
+        "mode": "compiled",
+        "variant": "streamed",
+        "n": 60,
+        "ms": 1392.1785419999999,
+        "answer": "891045",
+        "rssMiB": 900.5625
+      }
+    },
+    {
+      "name": "shipping compiled",
+      "sample": 1,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 120,
+        "ms": 370.69762499999996,
+        "answer": "3600060866",
+        "rssMiB": 222.34375
+      }
+    },
+    {
+      "name": "original compiled",
+      "sample": 1,
+      "before": true,
+      "result": {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 120,
+        "ms": 2162.257875,
+        "answer": "3600060866",
+        "rssMiB": 196.15625
+      }
+    },
+    {
+      "name": "original compiled",
+      "sample": 2,
+      "before": true,
+      "result": {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 120,
+        "ms": 2222.731666,
+        "answer": "3600060866",
+        "rssMiB": 195.796875
+      }
+    },
+    {
+      "name": "shipping compiled",
+      "sample": 2,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 120,
+        "ms": 506.004125,
+        "answer": "3600060866",
+        "rssMiB": 212.234375
+      }
+    },
+    {
+      "name": "streamed60 before",
+      "sample": 2,
+      "before": true,
+      "result": {
+        "mode": "compiled",
+        "variant": "streamed",
+        "n": 60,
+        "ms": 2871.404458,
+        "answer": "891045",
+        "rssMiB": 632.6875
+      }
+    },
+    {
+      "name": "streamed60 after",
+      "sample": 2,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "streamed",
+        "n": 60,
+        "ms": 201.24462499999998,
+        "answer": "891045",
+        "rssMiB": 189.8125
+      }
+    },
+    {
+      "name": "shipping reference",
+      "sample": 2,
+      "before": false,
+      "result": {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 120,
+        "ms": 13431.010417,
+        "answer": "3600060866",
+        "rssMiB": 592.46875
+      }
+    },
+    {
+      "name": "shipping fixture reference",
+      "sample": 2,
+      "before": false,
+      "result": {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": "fixture",
+        "ms": 1918.3641659999998,
+        "answer": "fixture passed",
+        "rssMiB": 597.046875
+      }
+    },
+    {
+      "name": "shipping fixture compiled",
+      "sample": 2,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": "fixture",
+        "ms": 222.516583,
+        "answer": "fixture passed",
+        "rssMiB": 204.640625
+      }
+    },
+    {
+      "name": "290 before",
+      "sample": 2,
+      "before": true,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 176.40183300000007,
+        "answer": "20444710234716473",
+        "rssMiB": 197.578125
+      }
+    },
+    {
+      "name": "290 after",
+      "sample": 2,
+      "before": false,
+      "result": {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 172.048875,
+        "answer": "20444710234716473",
+        "rssMiB": 187.453125
+      }
+    }
+  ],
+  "summary": [
+    {
+      "name": "original compiled",
+      "medianMs": 2222.731666,
+      "medianRssMiB": 195.828125
+    },
+    {
+      "name": "shipping compiled",
+      "medianMs": 405.92900000000003,
+      "medianRssMiB": 221.359375
+    },
+    {
+      "name": "streamed60 before",
+      "medianMs": 1539.504541,
+      "medianRssMiB": 899.1875
+    },
+    {
+      "name": "streamed60 after",
+      "medianMs": 180.15566700000002,
+      "medianRssMiB": 188.953125
+    },
+    {
+      "name": "shipping reference",
+      "medianMs": 12443.669042,
+      "medianRssMiB": 604.171875
+    },
+    {
+      "name": "shipping fixture reference",
+      "medianMs": 2240.2399579999997,
+      "medianRssMiB": 598.65625
+    },
+    {
+      "name": "shipping fixture compiled",
+      "medianMs": 236.618417,
+      "medianRssMiB": 204.640625
+    },
+    {
+      "name": "290 before",
+      "medianMs": 191.134834,
+      "medianRssMiB": 198.203125
+    },
+    {
+      "name": "290 after",
+      "medianMs": 172.048875,
+      "medianRssMiB": 189.90625
+    }
+  ],
+  "choiceComparison": [
+    {
+      "mode": "reference",
+      "variant": "streamed",
+      "n": 120,
+      "ms": 14566.768542,
+      "answer": "3600060866",
+      "rssMiB": 586.140625
+    },
+    {
+      "mode": "reference",
+      "variant": "compact",
+      "n": 120,
+      "ms": 11970.114708,
+      "answer": "3600060866",
+      "rssMiB": 448.796875
+    }
+  ],
+  "oracle": [
+    {
+      "oracle": "direct half-edge-set enumeration, no coordinate/circle/parity pruning; exclude fewer than three edges",
+      "directions": 14,
+      "halfSets": 79107,
+      "counts": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          3
+        ],
+        [
+          7,
+          3
+        ],
+        [
+          8,
+          6
+        ],
+        [
+          9,
+          6
+        ],
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          10
+        ],
+        [
+          12,
+          35
+        ],
+        [
+          13,
+          35
+        ],
+        [
+          14,
+          77
+        ],
+        [
+          15,
+          77
+        ],
+        [
+          16,
+          140
+        ],
+        [
+          17,
+          140
+        ],
+        [
+          18,
+          236
+        ],
+        [
+          19,
+          236
+        ],
+        [
+          20,
+          379
+        ],
+        [
+          21,
+          379
+        ],
+        [
+          22,
+          637
+        ],
+        [
+          23,
+          637
+        ],
+        [
+          24,
+          1030
+        ],
+        [
+          25,
+          1030
+        ],
+        [
+          26,
+          1582
+        ],
+        [
+          27,
+          1582
+        ],
+        [
+          28,
+          2413
+        ],
+        [
+          29,
+          2413
+        ],
+        [
+          30,
+          3655
+        ],
+        [
+          35,
+          8312
+        ],
+        [
+          39,
+          18105
+        ],
+        [
+          40,
+          26613
+        ]
+      ]
+    },
+    {
+      "variant": "shipping",
+      "mode": "compiled",
+      "comparisons": 34
+    },
+    {
+      "variant": "shipping",
+      "mode": "reference",
+      "comparisons": 34
+    }
+  ],
+  "verification": {
+    "typescript": "passed",
+    "focusedInterpreter": 1104,
+    "focusedLanguage": 20,
+    "goldens": [
+      "Euler 289",
+      "Euler 290",
+      "Euler 291",
+      "Euler 292"
+    ],
+    "scopedAudits": {
+      "passed": 4,
+      "skipped": 4253,
+      "scope": "type/differential audits for both 292 files"
+    },
+    "oracleComparisons": 68,
+    "fullSuites": "not run",
+    "catalogue": "main exclusion removed; fixture remains ordinary, original checkpoints preserved"
+  },
+  "sourceSha256": {
+    "benchmarks/euler292-delivery-series.py": "14f74b523139637da2cd8909ab1112b135155d8481b7ec1ab6b01989e61f8f5e",
+    "benchmarks/euler292-investigation.md": "b7105d168776dfdcb816a855766ece6c4547c1d4779f68ca3348cc480182e4f9",
+    "benchmarks/euler292-investigation.mjs": "2f0ef9abbd3efed1fbaae43585fc6cff61850e197dfd34a614e5896f343ad53c",
+    "benchmarks/euler292-series.py": "d5b22736a33cc2850e767e27bb38a948019f0661cdea729f6e39d95cfbc280c8",
+    "benchmarks/euler292-slice-compiler.md": "b78b34186118bee6f7351cb021ce64474be830b6e59cbe1193c62bb9a9b96ed8",
+    "benchmarks/euler292-slice-series.py": "229433a4080010143673c59dcac794a0298820cfaa28af5e2b6c790a3f71a3b1",
+    "benchmarks/euler292-verify.mjs": "f3353ea95b2a182381f179acffa474e19cd336662b4b22e67b6a53b57d4480bc",
+    "benchmarks/euler292-verify.py": "4f475937276f8a09f228057fc5e63627a4388fcff62720deb2b1c133c735a206",
+    "benchmarks/euler292-work.py": "1b8ef3a0c3aaec9d8ded58b135da334eb274d3d60d94bd45f32b1372df1077b2",
+    "benchmarks/experiments/euler292-clipped.ra": "c212622a0022ccd21aedee04ec99b8ae2bb7cabd477afd7a6383acedecea5233",
+    "benchmarks/experiments/euler292-compact.ra": "ebcaaaf78d5bef3bc735c66889fba96e55e6c0d8b80e0e4a46f73dea4738517c",
+    "benchmarks/experiments/euler292-continue.ra": "e35506f009e1919bc4a7b71da561d92e948604b732b23f84739a51aac8ac2c9c",
+    "benchmarks/experiments/euler292-deferred.ra": "cb62b90d2e9cbe835561de0866843cde94401a97893399c518b7fa4ffd33c975",
+    "benchmarks/experiments/euler292-factored.ra": "82efc6422b9324c9e11c61c968fa421402d70e26da0a17e81eb1dee2e1e4a5e9",
+    "benchmarks/experiments/euler292-fixture.ra": "7543b9e6a6b0faa06628c7da74dbbdf5a461350d59966a7417f5f04ad0d3adcf",
+    "benchmarks/experiments/euler292-inline.ra": "379869d60e5264da2e9d02d30cacc74f7b50809c63f9d4e0c13f983e5ff2b760",
+    "benchmarks/experiments/euler292-original.ra": "c7af78b87c160e7559ebeeabf057e5837d120dc220ee15976780e02c4c4224cb",
+    "benchmarks/experiments/euler292-parity.ra": "cc98f2d7313b0a8a578594b08f246cce698a6070de846e2cd5664ce1118e756d",
+    "benchmarks/experiments/euler292-radius.ra": "427a3dc8a64c4171b52ee60183e3ddb4aebf28230d509d7a2bdd6d776a594e7b",
+    "benchmarks/experiments/euler292-rowwise.ra": "6ab30d0e125b613e51ae4a16117dd53b068ffec47f11957919529a36bca02d2f",
+    "benchmarks/experiments/euler292-slice-legacy-loader.mjs": "2a75f0b8b312731ad20d4a6121f9569337637b6095f8a7fc9f259dbd618d5e3f",
+    "benchmarks/experiments/euler292-slices.ra": "20b0e0a50104f94f25a1bbebc6bb0ed1949f8c9ed5d43ef5f3dcf03e9da415a1",
+    "benchmarks/experiments/euler292-sparse.ra": "a2c53d2fa8608d60c7d34a319ca191ae22e0e194d42363d442ba8f4a1170a2fc",
+    "benchmarks/experiments/euler292-streamed.ra": "ec03c4b45f6dd65a0b28e7781dd3d5dd4cb20d3ae97670df8b2f7cb55e780d54",
+    "demos/euler/292_pythagoreanpolygons.ra": "da1695caf62dbfc3ebb1a544a38715964aa3c8aa88a849e2f8ad0939549cb539",
+    "demos/euler/292_pythagoreanpolygons_test.ra": "135580e6b0b58bedcf4c283819d73ae01d73ef91547a0481931bfa81a73a97be",
+    "docs/design/compiler-progress.md": "7668cd954ce610a47c25dee02a4c2e0c96f2a03341f6c80dd759e4c77aca12ca",
+    "packages/interpreter/src/diagnostics.ts": "660281fd566a625c2e0bd64f9c320b158fc08f0cde770fd607faff3ac1c70d45",
+    "packages/interpreter/src/jit/integer-loop-state.ts": "69d8d19c50d91c68c46f83e7f8c08f5551306994a818dda273a20954f0426f9c",
+    "packages/interpreter/src/jit/integer-loop.ts": "f1b459d9050f1d4f8f1d8b4cdaf211de56f47ab25fa4441b3a80c556d4ed088c",
+    "packages/interpreter/src/jit/number-loop-runtime.ts": "292c5fca4cac9bf6806a1248c2668a586c323f371a20ed12cc83ae4faae8eace",
+    "packages/interpreter/src/jit/number-loop-slice.ts": "34c0e36b541fb20a5a0e670d1265c82c76509a803717178a183df8309a9279df",
+    "packages/interpreter/test/full-scale-demos.test.ts": "895c30d63472594f38738a6e2df8e4d09a8ae144179ea20d885f8b5e312b14fa",
+    "packages/interpreter/test/number-loop-slice.test.ts": "b81440f160d468d07c640212bf744ec9cf79cedae83ea73e43236b17f95b2898",
+    "packages/language/src/analysis/numeric-array-update.ts": "714ccb5c14c08267d1da4a29734d8e865f6156e4bd7691484ef815218015989f",
+    "packages/language/test/numeric-array-update.test.ts": "700df7b9f0273b2940c44666a33d8e7bbc2a4a17ec50afe03cc11cff51bc7199",
+    "scripts/demo-execution-exclusions.json": "80c59183fdc49ce3dc41d1b5c43685ba8e1a0e3733ea8849c6ef769fc3061c30"
+  },
+  "integrationVerification": {
+    "parent": "28366c99e8e66d61714b92da41fcfc82b5a14f74",
+    "typescript": "passed",
+    "focusedTests": 225,
+    "goldens": 4,
+    "oracle": [
+      {
+        "oracle": "direct half-edge-set enumeration, no coordinate/circle/parity pruning; exclude fewer than three edges",
+        "directions": 14,
+        "halfSets": 79107,
+        "counts": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            6,
+            3
+          ],
+          [
+            7,
+            3
+          ],
+          [
+            8,
+            6
+          ],
+          [
+            9,
+            6
+          ],
+          [
+            10,
+            10
+          ],
+          [
+            11,
+            10
+          ],
+          [
+            12,
+            35
+          ],
+          [
+            13,
+            35
+          ],
+          [
+            14,
+            77
+          ],
+          [
+            15,
+            77
+          ],
+          [
+            16,
+            140
+          ],
+          [
+            17,
+            140
+          ],
+          [
+            18,
+            236
+          ],
+          [
+            19,
+            236
+          ],
+          [
+            20,
+            379
+          ],
+          [
+            21,
+            379
+          ],
+          [
+            22,
+            637
+          ],
+          [
+            23,
+            637
+          ],
+          [
+            24,
+            1030
+          ],
+          [
+            25,
+            1030
+          ],
+          [
+            26,
+            1582
+          ],
+          [
+            27,
+            1582
+          ],
+          [
+            28,
+            2413
+          ],
+          [
+            29,
+            2413
+          ],
+          [
+            30,
+            3655
+          ],
+          [
+            35,
+            8312
+          ],
+          [
+            39,
+            18105
+          ],
+          [
+            40,
+            26613
+          ]
+        ]
+      },
+      {
+        "variant": "shipping",
+        "mode": "compiled",
+        "comparisons": 34
+      },
+      {
+        "variant": "shipping",
+        "mode": "reference",
+        "comparisons": 34
+      }
+    ],
+    "wholeSourceSmoke": [
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 120,
+        "ms": 363.203916,
+        "answer": "3600060866",
+        "rssMiB": 221.859375
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 120,
+        "ms": 15038.105166000001,
+        "answer": "3600060866",
+        "rssMiB": 606.9375
+      }
+    ]
+  }
+}

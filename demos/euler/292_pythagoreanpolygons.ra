@@ -44,43 +44,38 @@ for Pp in (0 - Half) to Half
     Norm = Ap * Ap + Qq * Qq
     Rr = Norm isqrt
     Sq = Rr * Rr equal Norm
-    G1 = Ap
-    G2 = Qq
-    for
-      if G2 equal 0
-        break
-      end
-      Tt = G1 mod G2
-      G1 = G2
-      G2 = Tt
-    end
-    Good = Ok and Sq and G1 equal 1
+    Good = Ok and Sq
+    Good = Good and (Ap gcd Qq equal 1)
     if Good and Rr at most Half
       Many = Half // Rr
-      Digons += Many
+      rem Descending T keeps this direction
+      rem from reading its own new values.
       for T in N to Rr by -1
-        for Sx in (0 - Half) to Half
-          for Sy in 0 to Half
-            for M in 1 to Many
-              Len = M * Rr
-              Fx = Sx - M * Pp
-              Fy = Sy - M * Qq
-              Ax = Fx abs at most Half
-              Bx = Len at most T
-              Cx = Fy at least 0
-              if Ax and Bx and Cx
-                Ix = (Fx + Half) * Wy
-                Ix += Fy
-                Src = Ix * Wp + T - Len
-                Jx = (Sx + Half) * Wy
-                Jx += Sy
-                Dst = Jx * Wp + T
-                Dp Dst += Dp Src
-              end
-            end
+        rem The remaining edges must close it.
+        Rad = T min (N - T)
+        for M in 1 to (Many min (T // Rr))
+          Dx = M * Pp
+          Dy = M * Qq
+          Len = M * Rr
+          Delta = (Dx * Wy + Dy) * Wp
+          Delta += Len
+          Xlo = (0 - Rad) max (Dx - Half)
+          Xhi = Rad min (Dx + Half)
+          for Sx in Xlo to Xhi
+            Base = (Sx + Half) * Wy * Wp
+            Base += T
+            Yhi = (Rad * Rad - Sx * Sx) isqrt
+            rem Integer edges preserve parity.
+            Ylo = Dy + (T - Sx - Dy) mod 2
+            Dst = Base + Ylo * Wp
+            Last = Base + Yhi * Wp
+            Dp (Dst to Last by (2 * Wp)) += (
+              Dp (Dst - Delta to Last - Delta
+                by (2 * Wp)))
           end
         end
       end
+      Digons += Many
     end
   end
 end

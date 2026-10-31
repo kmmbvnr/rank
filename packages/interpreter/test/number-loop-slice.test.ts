@@ -174,7 +174,7 @@ end`, false);
         expect(result.diagnostics.numberLoops).toBe(1);
     });
 
-    it('retains a live result when its source is written later in the region', () => {
+    it('allows a discarded selection before later source writes and continue', () => {
         const result = compare(`A = array shape 2 3 fill 1
 B = array shape 2 3 fill 2
 for I in 0 to 1
@@ -184,7 +184,8 @@ for I in 0 to 1
   continue
  end
 end`);
-        expect(result.diagnostics.numberLoops).toBe(0);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.state.result).toBeUndefined();
     });
 
     it('preserves a returned operand after subsequent source and destination writes', () => {
@@ -234,6 +235,102 @@ end`, false);
         });
         expect(observations[0]).toEqual(observations[1]);
         expect(observations[0]).toEqual(observations[2]);
+    });
+
+    it.each([
+        ['3 to 5', '0 to 2'],
+        ['0 to 4 by 2', '1 to 5 by 2'],
+        ['4 to 0 by -2', '1 to 5 by 2'],
+    ])('borrows disjoint selections in one mutable array: %s / %s', (target, source) => {
+        const result = compare(`A = array 1 2 3 4 5 6
+for I in 0 to 1
+ A (${target}) += A (${source})
+ Done = I
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopSliceCopies).toBe(0);
+        expect(result.diagnostics.numberLoopSliceDirectCells).toBe(6);
+    });
+
+    it('borrows independent input buffers while retaining the returned live operand', () => {
+        const result = compare(`A = array shape 2 3 fill 1
+B = array shape 2 3 fill 2
+for I in 0 to 1
+ A I (0 to 2) += B I (0 to 2)
+end`);
+        expect(result.diagnostics.numberLoopSliceCopies).toBe(0);
+        expect(result.diagnostics.numberLoopSliceDirectCells).toBe(6);
+        expect(result.state.result).toBe('2 2 2');
+    });
+
+    it.each(['=', '+=', '-=', '*='])('snapshots overlapping operands even when the result is discarded: %s', op => {
+        const result = compare(`A = array 1 2 3 4 5 6
+for I in 0 to 1
+ A (1 to 5) ${op} A (0 to 4)
+ Done = I
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopSliceCopies).toBe(2);
+        expect(result.diagnostics.numberLoopSliceCopyCells).toBe(10);
+    });
+
+    it('keeps snapshots for intersecting selections with different strides', () => {
+        const result = compare(`A = array 1 2 3 4 5 6 7 8
+for I in 0 to 1
+ A (0 to 4 by 2) += A (1 to 7 by 3)
+ Done = I
+end`);
+        expect(result.diagnostics.numberLoopSliceCopies).toBe(2);
+        expect(result.diagnostics.numberLoopSliceCopyCells).toBe(6);
+    });
+
+    it('retains borrowed source cells while the destination widens', () => {
+        const result = compare(`A = array shape 6 fill 2000000000
+for I in 0 to 1
+ A (0 to 4 by 2) += A (1 to 5 by 2)
+ Done = I
+end`);
+        expect(result.diagnostics.numberLoopSliceCopies).toBe(0);
+        expect(result.state.variables).toContainEqual(['A', '6000000000 2000000000 6000000000 2000000000 6000000000 2000000000']);
+    });
+
+    it('keeps a loop result observable across its compilation boundary', () => {
+        const result = compare(`A = array 1 2 3 4 5 6
+for I in 0 to 1
+ A (1 to 5) += A (0 to 4)
+end
+Answer = A sum`);
+        // Following source statements do not run inside this region: a caller
+        // can execute the loop alone and retain its live RHS selection.
+        expect(result.diagnostics.numberLoops).toBe(0);
+    });
+
+    it.each(['continue', 'break'])('retains the last completed iteration result before %s', control => {
+        const result = compare(`A = array 1 2 3 4 5 6
+for I in 0 to 2
+ A (0 to 4 by 2) += A (1 to 5 by 2)
+ if I equal 2
+  ${control}
+ end
+ Done = I
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.state.result).toBe('1');
+    });
+
+    it('borrows local slices in a function prefix and publishes the final array', () => {
+        const result = compare(`fun work
+ A = array shape 6 fill 1
+ for I in 0 to 1
+  A (0 to 4 by 2) += A (1 to 5 by 2)
+  Done = I
+ end
+ return A
+end
+Answer = work`);
+        expect(result.diagnostics.numberLoops).toBeGreaterThan(0);
+        expect(result.diagnostics.numberLoopSliceCopies).toBe(0);
+        expect(result.state.variables).toContainEqual(['Answer', '3 1 3 1 3 1']);
     });
 
     it('copies long operands with polling and keeps the large-store admission policy', () => {

@@ -53,6 +53,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
     const arrays: IntegerLoopPlan['arrays'] = new Map();
     const calleeArrays = new Set<string>();
     const sliceReadSources = new Set<string>();
+    const sliceResultSources = new Set<string>();
     // One read per source at a named cursor; computed/repeated reads use undefined.
     const indexedReads = new Map<string, string | undefined>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
@@ -107,7 +108,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         statement,
         host, numberMode, wideScalars, workCounting, checkpoint, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, writers, binders, writerNames, binderNames,
-        containers, builtins, calls, arrays, calleeArrays, sliceReadSources, indexedReads, arrayInputs, arrayDefinitions, aliases, localAliases, dequeArrays,
+        containers, builtins, calls, arrays, calleeArrays, sliceReadSources, sliceResultSources, indexedReads, arrayInputs, arrayDefinitions, aliases, localAliases, dequeArrays,
         vectorIterations, iterators, destinations, locations, callouts, canCallout,
         get branchDepth() { return branchDepth; },
         set branchDepth(v: number) { branchDepth = v; },

@@ -1,0 +1,1269 @@
+{
+  "baselineRevision": "220d12bc",
+  "method": "3 fresh processes per case; serial alternating order, parse/JIT included, imports excluded; loader child transpilation excludes compiler heap; external host load uncontrolled. Initial per-cell conditional experiment and final cursor experiment are separate.",
+  "initial": {
+    "records": [
+      {
+        "name": "streamed60 before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 1454.617083,
+          "answer": "891045",
+          "rssMiB": 897.84375
+        }
+      },
+      {
+        "name": "streamed60 after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 175.43929200000002,
+          "answer": "891045",
+          "rssMiB": 188.6875
+        }
+      },
+      {
+        "name": "streamed120 after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 120,
+          "ms": 341.57666700000004,
+          "answer": "3600060866",
+          "rssMiB": 221.734375
+        }
+      },
+      {
+        "name": "compact120 after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "compact",
+          "n": 120,
+          "ms": 321.663625,
+          "answer": "3600060866",
+          "rssMiB": 204.953125
+        }
+      },
+      {
+        "name": "snapshot120 before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 638.359833,
+          "answer": "3600060866",
+          "rssMiB": 364.4375
+        }
+      },
+      {
+        "name": "snapshot120 after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 831.8800000000001,
+          "answer": "3600060866",
+          "rssMiB": 276.265625
+        }
+      },
+      {
+        "name": "290 before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 558.241542,
+          "answer": "20444710234716473",
+          "rssMiB": 188.078125
+        }
+      },
+      {
+        "name": "290 after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 331.977708,
+          "answer": "20444710234716473",
+          "rssMiB": 173.8125
+        }
+      },
+      {
+        "name": "290 after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 277.915042,
+          "answer": "20444710234716473",
+          "rssMiB": 187.5
+        }
+      },
+      {
+        "name": "290 before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 299.61354200000005,
+          "answer": "20444710234716473",
+          "rssMiB": 201.03125
+        }
+      },
+      {
+        "name": "snapshot120 after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 850.617917,
+          "answer": "3600060866",
+          "rssMiB": 273.875
+        }
+      },
+      {
+        "name": "snapshot120 before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 715.9222920000001,
+          "answer": "3600060866",
+          "rssMiB": 361.390625
+        }
+      },
+      {
+        "name": "compact120 after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "compact",
+          "n": 120,
+          "ms": 388.03608399999996,
+          "answer": "3600060866",
+          "rssMiB": 206.09375
+        }
+      },
+      {
+        "name": "streamed120 after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 120,
+          "ms": 418.08291699999995,
+          "answer": "3600060866",
+          "rssMiB": 211.359375
+        }
+      },
+      {
+        "name": "streamed60 after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 197.356709,
+          "answer": "891045",
+          "rssMiB": 190.625
+        }
+      },
+      {
+        "name": "streamed60 before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 1423.336791,
+          "answer": "891045",
+          "rssMiB": 899.546875
+        }
+      },
+      {
+        "name": "streamed60 before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 1422.766333,
+          "answer": "891045",
+          "rssMiB": 895.859375
+        }
+      },
+      {
+        "name": "streamed60 after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 189.85145799999998,
+          "answer": "891045",
+          "rssMiB": 196.078125
+        }
+      },
+      {
+        "name": "streamed120 after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 120,
+          "ms": 374.987,
+          "answer": "3600060866",
+          "rssMiB": 221.75
+        }
+      },
+      {
+        "name": "compact120 after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "compact",
+          "n": 120,
+          "ms": 338.895292,
+          "answer": "3600060866",
+          "rssMiB": 204.671875
+        }
+      },
+      {
+        "name": "snapshot120 before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 648.232584,
+          "answer": "3600060866",
+          "rssMiB": 358.078125
+        }
+      },
+      {
+        "name": "snapshot120 after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 656.08825,
+          "answer": "3600060866",
+          "rssMiB": 272.65625
+        }
+      },
+      {
+        "name": "290 before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 174.17225000000002,
+          "answer": "20444710234716473",
+          "rssMiB": 198.421875
+        }
+      },
+      {
+        "name": "290 after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 159.12891599999998,
+          "answer": "20444710234716473",
+          "rssMiB": 172.53125
+        }
+      }
+    ],
+    "summary": [
+      {
+        "name": "streamed60 before",
+        "medianMs": 1423.336791,
+        "medianRssMiB": 897.84375
+      },
+      {
+        "name": "streamed60 after",
+        "medianMs": 189.85145799999998,
+        "medianRssMiB": 190.625
+      },
+      {
+        "name": "streamed120 after",
+        "medianMs": 374.987,
+        "medianRssMiB": 221.734375
+      },
+      {
+        "name": "compact120 after",
+        "medianMs": 338.895292,
+        "medianRssMiB": 204.953125
+      },
+      {
+        "name": "snapshot120 before",
+        "medianMs": 648.232584,
+        "medianRssMiB": 361.390625
+      },
+      {
+        "name": "snapshot120 after",
+        "medianMs": 831.8800000000001,
+        "medianRssMiB": 273.875
+      },
+      {
+        "name": "290 before",
+        "medianMs": 299.61354200000005,
+        "medianRssMiB": 198.421875
+      },
+      {
+        "name": "290 after",
+        "medianMs": 277.915042,
+        "medianRssMiB": 173.8125
+      }
+    ]
+  },
+  "final": {
+    "records": [
+      {
+        "name": "streamed60 before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 3500.3884590000002,
+          "answer": "891045",
+          "rssMiB": 552.59375
+        }
+      },
+      {
+        "name": "streamed60 after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 310.48275000000007,
+          "answer": "891045",
+          "rssMiB": 192.703125
+        }
+      },
+      {
+        "name": "streamed120 after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 120,
+          "ms": 473.94937500000003,
+          "answer": "3600060866",
+          "rssMiB": 223.171875
+        }
+      },
+      {
+        "name": "compact120 after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "compact",
+          "n": 120,
+          "ms": 368.84925,
+          "answer": "3600060866",
+          "rssMiB": 208.328125
+        }
+      },
+      {
+        "name": "snapshot120 before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 712.8755419999999,
+          "answer": "3600060866",
+          "rssMiB": 366.078125
+        }
+      },
+      {
+        "name": "snapshot120 after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 881.7121249999999,
+          "answer": "3600060866",
+          "rssMiB": 271.5625
+        }
+      },
+      {
+        "name": "290 before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 188.08220800000004,
+          "answer": "20444710234716473",
+          "rssMiB": 200.234375
+        }
+      },
+      {
+        "name": "290 after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 170.514375,
+          "answer": "20444710234716473",
+          "rssMiB": 187.40625
+        }
+      },
+      {
+        "name": "290 after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 162.50291599999997,
+          "answer": "20444710234716473",
+          "rssMiB": 187.09375
+        }
+      },
+      {
+        "name": "290 before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 179.215167,
+          "answer": "20444710234716473",
+          "rssMiB": 198.046875
+        }
+      },
+      {
+        "name": "snapshot120 after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 650.16525,
+          "answer": "3600060866",
+          "rssMiB": 276.3125
+        }
+      },
+      {
+        "name": "snapshot120 before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 654.511375,
+          "answer": "3600060866",
+          "rssMiB": 360.5
+        }
+      },
+      {
+        "name": "compact120 after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "compact",
+          "n": 120,
+          "ms": 348.123875,
+          "answer": "3600060866",
+          "rssMiB": 207.21875
+        }
+      },
+      {
+        "name": "streamed120 after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 120,
+          "ms": 357.07625,
+          "answer": "3600060866",
+          "rssMiB": 211.984375
+        }
+      },
+      {
+        "name": "streamed60 after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 177.84804200000002,
+          "answer": "891045",
+          "rssMiB": 188.59375
+        }
+      },
+      {
+        "name": "streamed60 before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 1416.2690830000001,
+          "answer": "891045",
+          "rssMiB": 900.03125
+        }
+      },
+      {
+        "name": "streamed60 before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 1416.374959,
+          "answer": "891045",
+          "rssMiB": 900.484375
+        }
+      },
+      {
+        "name": "streamed60 after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 186.16975000000002,
+          "answer": "891045",
+          "rssMiB": 194.0625
+        }
+      },
+      {
+        "name": "streamed120 after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 120,
+          "ms": 361.263708,
+          "answer": "3600060866",
+          "rssMiB": 222.390625
+        }
+      },
+      {
+        "name": "compact120 after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "compact",
+          "n": 120,
+          "ms": 337.30575,
+          "answer": "3600060866",
+          "rssMiB": 197.390625
+        }
+      },
+      {
+        "name": "snapshot120 before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 659.4742080000001,
+          "answer": "3600060866",
+          "rssMiB": 358.375
+        }
+      },
+      {
+        "name": "snapshot120 after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "slices",
+          "n": 120,
+          "ms": 660.2616250000001,
+          "answer": "3600060866",
+          "rssMiB": 279.625
+        }
+      },
+      {
+        "name": "290 before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 179.43599999999998,
+          "answer": "20444710234716473",
+          "rssMiB": 197.453125
+        }
+      },
+      {
+        "name": "290 after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 18,
+          "ms": 155.33558399999998,
+          "answer": "20444710234716473",
+          "rssMiB": 186.703125
+        }
+      }
+    ],
+    "summary": [
+      {
+        "name": "streamed60 before",
+        "medianMs": 1416.374959,
+        "medianRssMiB": 900.03125
+      },
+      {
+        "name": "streamed60 after",
+        "medianMs": 186.16975000000002,
+        "medianRssMiB": 192.703125
+      },
+      {
+        "name": "streamed120 after",
+        "medianMs": 361.263708,
+        "medianRssMiB": 222.390625
+      },
+      {
+        "name": "compact120 after",
+        "medianMs": 348.123875,
+        "medianRssMiB": 207.21875
+      },
+      {
+        "name": "snapshot120 before",
+        "medianMs": 659.4742080000001,
+        "medianRssMiB": 360.5
+      },
+      {
+        "name": "snapshot120 after",
+        "medianMs": 660.2616250000001,
+        "medianRssMiB": 276.3125
+      },
+      {
+        "name": "290 before",
+        "medianMs": 179.43599999999998,
+        "medianRssMiB": 198.046875
+      },
+      {
+        "name": "290 after",
+        "medianMs": 162.50291599999997,
+        "medianRssMiB": 187.09375
+      }
+    ]
+  },
+  "smokes": [
+    {
+      "before": true,
+      "data": [
+        {
+          "phase": 0,
+          "ms": 1411.779834,
+          "diagnostics": {
+            "memoHits": 0,
+            "memoMisses": 0,
+            "indexReads": 0,
+            "indexReadHits": 0,
+            "indexReadMisses": 0,
+            "indexWrites": 0,
+            "sequencePredicateCalls": 0,
+            "cellsComputed": 0,
+            "hoistedReaders": 0,
+            "loopElementScans": 0,
+            "nativeSequenceCopies": 0,
+            "compiledLoops": 2,
+            "compiledGeneratorLoops": 0,
+            "integerMembershipFilters": 0,
+            "compiledGraphAdds": 0,
+            "compiledEffectCalls": 0,
+            "numericSorts": 0,
+            "numericInPlaceSorts": 0,
+            "numericDistincts": 0,
+            "compiledDistincts": 0,
+            "numericUniqueSorts": 0,
+            "numericSmallestSelections": 0,
+            "numericUniqueSums": 0,
+            "numericSearches": 0,
+            "numericSearchIndexes": 0,
+            "numberLoops": 1,
+            "exactLoopWorkSamples": 0,
+            "exactLoopWorkPromotions": 0,
+            "numberLoopCopyProbes": 0,
+            "numberLoopCopyAmortized": 0,
+            "mixedIntegerLoops": 0,
+            "numberLoopOverflows": 0,
+            "numberLoopSliceCopies": 0,
+            "numberLoopSliceCopyCells": 0,
+            "numberLoopSliceDirectCells": 0,
+            "numberLoopReadBuffers": 0,
+            "numberLoopReadBufferCells": 0,
+            "numberLoopReadBufferHits": 0,
+            "compiledTensors": 0,
+            "tensorRangeScans": 0,
+            "tensorRangeScannedCells": 0,
+            "numberTensors": 0,
+            "compiledCounterBuilds": 0,
+            "compiledCounterSums": 0,
+            "compiledCounterKeys": 0,
+            "tensorMapPreparations": 0,
+            "compiledArrayFunctions": 0,
+            "rankedArrayBatches": 0,
+            "rankedBatches": 0,
+            "maskMaterializations": 0,
+            "maskMaterializedCells": 0,
+            "bulkArrayWrites": 140957,
+            "bulkArrayWriteCells": 660832,
+            "fusedArrayUpdates": 0,
+            "fusedArrayUpdateCells": 0,
+            "fusedArrayUpdateWidenings": 0,
+            "reusedTensorBuffers": 0,
+            "reusedTensorBufferCells": 0,
+            "cowCopies": 0,
+            "cowCopiedCells": 0,
+            "elementTypeScans": 0,
+            "elementTypeScannedCells": 0,
+            "rangeSelectorViews": 0,
+            "selectionSnapshots": 0,
+            "selectionSnapshotCells": 0,
+            "typedUnpacks": 0,
+            "typedUnpackedCells": 0,
+            "fallbacks": {
+              "scalar-expression:too-small": 3,
+              "tensor:output-shape": 2,
+              "tensor:unsupported-type:array": 2
+            },
+            "compilerRejections": []
+          }
+        },
+        {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 1412.180208,
+          "answer": "891045",
+          "rssMiB": 899.953125
+        }
+      ]
+    },
+    {
+      "before": false,
+      "data": [
+        {
+          "phase": 0,
+          "ms": 335.72633399999995,
+          "diagnostics": {
+            "memoHits": 0,
+            "memoMisses": 0,
+            "indexReads": 0,
+            "indexReadHits": 0,
+            "indexReadMisses": 0,
+            "indexWrites": 0,
+            "sequencePredicateCalls": 0,
+            "cellsComputed": 0,
+            "hoistedReaders": 0,
+            "loopElementScans": 0,
+            "nativeSequenceCopies": 0,
+            "compiledLoops": 2,
+            "compiledGeneratorLoops": 0,
+            "integerMembershipFilters": 0,
+            "compiledGraphAdds": 0,
+            "compiledEffectCalls": 0,
+            "numericSorts": 0,
+            "numericInPlaceSorts": 0,
+            "numericDistincts": 0,
+            "compiledDistincts": 0,
+            "numericUniqueSorts": 0,
+            "numericSmallestSelections": 0,
+            "numericUniqueSums": 0,
+            "numericSearches": 0,
+            "numericSearchIndexes": 0,
+            "numberLoops": 2,
+            "exactLoopWorkSamples": 0,
+            "exactLoopWorkPromotions": 0,
+            "numberLoopCopyProbes": 0,
+            "numberLoopCopyAmortized": 0,
+            "mixedIntegerLoops": 0,
+            "numberLoopOverflows": 0,
+            "numberLoopSliceCopies": 0,
+            "numberLoopSliceCopyCells": 0,
+            "numberLoopSliceDirectCells": 11616448,
+            "numberLoopReadBuffers": 0,
+            "numberLoopReadBufferCells": 0,
+            "numberLoopReadBufferHits": 0,
+            "compiledTensors": 0,
+            "tensorRangeScans": 0,
+            "tensorRangeScannedCells": 0,
+            "numberTensors": 0,
+            "compiledCounterBuilds": 0,
+            "compiledCounterSums": 0,
+            "compiledCounterKeys": 0,
+            "tensorMapPreparations": 0,
+            "compiledArrayFunctions": 0,
+            "rankedArrayBatches": 0,
+            "rankedBatches": 0,
+            "maskMaterializations": 0,
+            "maskMaterializedCells": 0,
+            "bulkArrayWrites": 0,
+            "bulkArrayWriteCells": 0,
+            "fusedArrayUpdates": 0,
+            "fusedArrayUpdateCells": 0,
+            "fusedArrayUpdateWidenings": 0,
+            "reusedTensorBuffers": 0,
+            "reusedTensorBufferCells": 0,
+            "cowCopies": 0,
+            "cowCopiedCells": 0,
+            "elementTypeScans": 0,
+            "elementTypeScannedCells": 0,
+            "rangeSelectorViews": 0,
+            "selectionSnapshots": 0,
+            "selectionSnapshotCells": 0,
+            "typedUnpacks": 0,
+            "typedUnpackedCells": 0,
+            "fallbacks": {
+              "scalar-expression:too-small": 3,
+              "tensor:output-shape": 2,
+              "tensor:unsupported-type:array": 2
+            },
+            "compilerRejections": []
+          }
+        },
+        {
+          "mode": "compiled",
+          "variant": "streamed",
+          "n": 120,
+          "ms": 336.11987500000004,
+          "answer": "3600060866",
+          "rssMiB": 222.890625
+        }
+      ]
+    },
+    {
+      "before": false,
+      "data": [
+        {
+          "phase": 0,
+          "ms": 1621.392709,
+          "diagnostics": {
+            "memoHits": 0,
+            "memoMisses": 0,
+            "indexReads": 0,
+            "indexReadHits": 0,
+            "indexReadMisses": 0,
+            "indexWrites": 0,
+            "sequencePredicateCalls": 0,
+            "cellsComputed": 0,
+            "hoistedReaders": 0,
+            "loopElementScans": 0,
+            "nativeSequenceCopies": 0,
+            "compiledLoops": 0,
+            "compiledGeneratorLoops": 0,
+            "integerMembershipFilters": 0,
+            "compiledGraphAdds": 0,
+            "compiledEffectCalls": 0,
+            "numericSorts": 0,
+            "numericInPlaceSorts": 0,
+            "numericDistincts": 0,
+            "compiledDistincts": 0,
+            "numericUniqueSorts": 0,
+            "numericSmallestSelections": 0,
+            "numericUniqueSums": 0,
+            "numericSearches": 0,
+            "numericSearchIndexes": 0,
+            "numberLoops": 0,
+            "exactLoopWorkSamples": 0,
+            "exactLoopWorkPromotions": 0,
+            "numberLoopCopyProbes": 0,
+            "numberLoopCopyAmortized": 0,
+            "mixedIntegerLoops": 0,
+            "numberLoopOverflows": 0,
+            "numberLoopSliceCopies": 0,
+            "numberLoopSliceCopyCells": 0,
+            "numberLoopSliceDirectCells": 0,
+            "numberLoopReadBuffers": 0,
+            "numberLoopReadBufferCells": 0,
+            "numberLoopReadBufferHits": 0,
+            "compiledTensors": 0,
+            "tensorRangeScans": 0,
+            "tensorRangeScannedCells": 0,
+            "numberTensors": 0,
+            "compiledCounterBuilds": 0,
+            "compiledCounterSums": 0,
+            "compiledCounterKeys": 0,
+            "tensorMapPreparations": 0,
+            "compiledArrayFunctions": 0,
+            "rankedArrayBatches": 0,
+            "rankedBatches": 0,
+            "maskMaterializations": 0,
+            "maskMaterializedCells": 0,
+            "bulkArrayWrites": 0,
+            "bulkArrayWriteCells": 0,
+            "fusedArrayUpdates": 0,
+            "fusedArrayUpdateCells": 0,
+            "fusedArrayUpdateWidenings": 0,
+            "reusedTensorBuffers": 0,
+            "reusedTensorBufferCells": 0,
+            "cowCopies": 0,
+            "cowCopiedCells": 0,
+            "elementTypeScans": 0,
+            "elementTypeScannedCells": 0,
+            "rangeSelectorViews": 0,
+            "selectionSnapshots": 0,
+            "selectionSnapshotCells": 0,
+            "typedUnpacks": 0,
+            "typedUnpackedCells": 0,
+            "fallbacks": {
+              "loop:disabled": 9
+            },
+            "compilerRejections": []
+          }
+        },
+        {
+          "mode": "reference",
+          "variant": "streamed",
+          "n": 60,
+          "ms": 1621.854167,
+          "answer": "891045",
+          "rssMiB": 596.5625
+        }
+      ]
+    }
+  ],
+  "finalDiagnostics": [
+    {
+      "phase": 0,
+      "ms": 363.787584,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 11616448,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "tensor:output-shape": 2,
+          "tensor:unsupported-type:array": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "mode": "compiled",
+      "variant": "streamed",
+      "n": 120,
+      "ms": 364.186292,
+      "answer": "3600060866",
+      "rssMiB": 222.09375
+    }
+  ],
+  "oracle": [
+    {
+      "oracle": "direct half-edge-set enumeration, no coordinate/circle/parity pruning; exclude fewer than three edges",
+      "directions": 14,
+      "halfSets": 79107,
+      "counts": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          3
+        ],
+        [
+          7,
+          3
+        ],
+        [
+          8,
+          6
+        ],
+        [
+          9,
+          6
+        ],
+        [
+          10,
+          10
+        ],
+        [
+          11,
+          10
+        ],
+        [
+          12,
+          35
+        ],
+        [
+          13,
+          35
+        ],
+        [
+          14,
+          77
+        ],
+        [
+          15,
+          77
+        ],
+        [
+          16,
+          140
+        ],
+        [
+          17,
+          140
+        ],
+        [
+          18,
+          236
+        ],
+        [
+          19,
+          236
+        ],
+        [
+          20,
+          379
+        ],
+        [
+          21,
+          379
+        ],
+        [
+          22,
+          637
+        ],
+        [
+          23,
+          637
+        ],
+        [
+          24,
+          1030
+        ],
+        [
+          25,
+          1030
+        ],
+        [
+          26,
+          1582
+        ],
+        [
+          27,
+          1582
+        ],
+        [
+          28,
+          2413
+        ],
+        [
+          29,
+          2413
+        ],
+        [
+          30,
+          3655
+        ],
+        [
+          35,
+          8312
+        ],
+        [
+          39,
+          18105
+        ],
+        [
+          40,
+          26613
+        ]
+      ]
+    },
+    {
+      "variant": "streamed",
+      "mode": "compiled",
+      "comparisons": 34
+    },
+    {
+      "variant": "streamed",
+      "mode": "reference",
+      "comparisons": 34
+    }
+  ],
+  "verification": {
+    "typescript": "passed",
+    "interpreter": {
+      "files": 23,
+      "passed": 1104,
+      "localTestTimeoutMs": 15000
+    },
+    "languageTests": 20,
+    "fullGoldens": [
+      "Euler 289",
+      "Euler 290",
+      "Euler 291"
+    ],
+    "fullSuites": "not run"
+  },
+  "sourceSha256": {
+    "packages/interpreter/src/diagnostics.ts": "660281fd566a625c2e0bd64f9c320b158fc08f0cde770fd607faff3ac1c70d45",
+    "packages/interpreter/src/jit/integer-loop-state.ts": "69d8d19c50d91c68c46f83e7f8c08f5551306994a818dda273a20954f0426f9c",
+    "packages/interpreter/src/jit/integer-loop.ts": "f1b459d9050f1d4f8f1d8b4cdaf211de56f47ab25fa4441b3a80c556d4ed088c",
+    "packages/interpreter/src/jit/number-loop-runtime.ts": "292c5fca4cac9bf6806a1248c2668a586c323f371a20ed12cc83ae4faae8eace",
+    "packages/interpreter/src/jit/number-loop-slice.ts": "34c0e36b541fb20a5a0e670d1265c82c76509a803717178a183df8309a9279df",
+    "packages/interpreter/test/number-loop-slice.test.ts": "b81440f160d468d07c640212bf744ec9cf79cedae83ea73e43236b17f95b2898",
+    "packages/language/src/analysis/numeric-array-update.ts": "714ccb5c14c08267d1da4a29734d8e865f6156e4bd7691484ef815218015989f",
+    "packages/language/test/numeric-array-update.test.ts": "700df7b9f0273b2940c44666a33d8e7bbc2a4a17ec50afe03cc11cff51bc7199",
+    "benchmarks/experiments/euler292-streamed.ra": "ec03c4b45f6dd65a0b28e7781dd3d5dd4cb20d3ae97670df8b2f7cb55e780d54",
+    "benchmarks/experiments/euler292-slice-legacy-loader.mjs": "2a75f0b8b312731ad20d4a6121f9569337637b6095f8a7fc9f259dbd618d5e3f",
+    "benchmarks/euler292-slice-series.py": "229433a4080010143673c59dcac794a0298820cfaa28af5e2b6c790a3f71a3b1",
+    "benchmarks/euler292-slice-compiler.md": "ac22da54a5ce7124bf6bb1f5a8aa1aa03d444b8d2e6fd4e21ad4811cc438f11b"
+  }
+}

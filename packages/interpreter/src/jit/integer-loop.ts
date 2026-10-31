@@ -167,10 +167,10 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))
         || state.localAliases.some(([target, source]) => writable.has(target) || writable.has(source))) return reject(statement, 'unstable-bindings');
-    // A slice assignment returns its RHS selection. When that same source is
-    // written in the region, the returned selection can observe those writes;
-    // retain the publishing backend until private live selections are supported.
-    if (numberMode && [...state.sliceReadSources].some(name => writable.has(name))) return reject(statement, 'mutable-slice-result');
+    // A retained slice result can observe later source writes. Discard proofs
+    // stop at this region: callers may retain a loop result even when its source
+    // program has later statements. Keep live mutable results on the exact path.
+    if (numberMode && [...state.sliceResultSources].some(name => writable.has(name))) return reject(statement, 'mutable-slice-result');
     return {
         statement, names, wideScalars, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,

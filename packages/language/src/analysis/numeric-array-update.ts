@@ -31,9 +31,16 @@ export function numericUpdateExpression(expression: Expression, depth = 0): Nume
 }
 
 /** A later sequential statement replaces this result, including through loops
- * and branches. Function declarations are boundaries: their calls may use it. */
-export function statementResultDiscarded(statement: Statement): boolean {
-    for (let current: AstNode = statement, depth = 0; current.$container && depth < 128; depth++) {
+ * and branches. Function declarations are boundaries: their calls may use it.
+ * An optional region boundary excludes statements executed by its caller. */
+export function statementResultDiscarded(statement: Statement, boundary?: AstNode): boolean {
+    if (boundary) {
+        let ancestor: AstNode | undefined = statement;
+        for (let depth = 0; ancestor && ancestor !== boundary && depth < 128; depth++) ancestor = ancestor.$container;
+        // Detached/synthetic nodes cannot borrow a proof from another region.
+        if (ancestor !== boundary) return false;
+    }
+    for (let current: AstNode = statement, depth = 0; current !== boundary && current.$container && depth < 128; depth++) {
         const parent = current.$container;
         const property = current.$containerProperty;
         const siblings = property && (parent as unknown as Record<string, unknown>)[property];

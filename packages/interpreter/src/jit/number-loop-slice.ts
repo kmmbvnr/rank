@@ -1,5 +1,5 @@
 import { loopOperatorSignature, flattenApplication, isApplicationExpression, isBinaryExpression, isNameExpression,
-    isParenthesizedExpression, type ArrayAssignmentStatement, type BinaryExpression, type Expression } from '@arrrank/language';
+    isParenthesizedExpression, isFunctionStatement, statementResultDiscarded, type ArrayAssignmentStatement, type BinaryExpression, type Expression } from '@arrrank/language';
 import { isRankArray } from '../value.js';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
@@ -12,7 +12,7 @@ function unparenthesized(value: Expression): Expression {
 /** A scalar prefix and a trailing arithmetic range select one row. Invalid
  * selections replay the original statement, retaining its error and timing.
  * This lowering only touches private cells. Stores use one scalar value or
- * the complete RHS slice snapshot. */
+ * a complete RHS snapshot when source and destination may overlap. */
 export function emitNumberSlice(state: LoopCompilationState, expressions: LoopExpressions,
     assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined {
     if (!state.numberMode || state.wideScalars.size || !['=', '+=', '-=', '*='].includes(assignment.operator)) return undefined;
@@ -25,6 +25,11 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
     if (!last) return undefined;
     const range = unparenthesized(last);
     if (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)) return undefined;
+    // A function prefix excludes its final return. Do not use that caller's
+    // statement as a discard proof either; its last compiled statement is a
+    // conservative boundary for the slice results we can eliminate.
+    const boundary = isFunctionStatement(state.statement) ? state.statement.statements.at(-2) : state.statement;
+    const discarded = !!boundary && statementResultDiscarded(assignment, boundary);
     const rhs = unparenthesized(assignment.value);
     const parts = isApplicationExpression(rhs) ? flattenApplication(rhs) : [];
     const source = parts.shift();
@@ -51,6 +56,7 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
         input = { slot: existing?.slot ?? expressions.slot(slice.name), rank: slice.parts.length, type: 'integer' };
         arrays.set(slice.name, input);
         state.sliceReadSources.add(slice.name);
+        if (!discarded) state.sliceResultSources.add(slice.name);
         if (!assigned.has(slice.name)) arrayInputs.add(slice.name);
     }
     const lines: string[] = [];
@@ -99,7 +105,12 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
     const n = state.serial++, snapshot = `snapshot${n}`, index = `element${n}`, key = `cell${n}`;
     if (operand && input) {
         lines.push(`if (${destination.count} !== ${operand.count}) throw overflow;
-            const ${snapshot} = sliceArray(cells${input.slot}, ${operand.offset}, ${operand.count}, ${operand.stride});`);
+            const source${n} = cells${input.slot};
+            const direct${n} = disjointSlices(cells${target.slot}, ${destination.offset}, ${destination.stride}, source${n}, ${operand.offset}, ${operand.stride}, ${operand.count});
+            const ${snapshot} = direct${n} ? undefined : sliceArray(source${n}, ${operand.offset}, ${operand.count}, ${operand.stride});
+            const operand${n} = direct${n} ? source${n} : ${snapshot}.cells;
+            const start${n} = direct${n} ? ${operand.offset} : 0;
+            const step${n} = direct${n} ? ${operand.stride} : 1;`);
     } else {
         // Demand a scalar once, including for an empty selection. An element
         // of the destination is read before any of the selected cells change.
@@ -107,9 +118,9 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
         if (scalar?.type !== 'integer') return undefined;
         lines.push(`const ${snapshot} = ${scalar.code};`);
     }
-    const replacement = operand ? `${snapshot}.cells[${index}]` : snapshot;
+    const replacement = operand ? `operand${n}[cursor${n}]` : snapshot;
     lines.push(`
-        for (let ${index} = 0, ${key} = ${destination.offset}; ${index} < ${destination.count}; ${index}++, ${key} += ${destination.stride}) {
+        for (let ${index} = 0, ${key} = ${destination.offset}${operand ? `, cursor${n} = start${n}` : ''}; ${index} < ${destination.count}; ${index}++, ${key} += ${destination.stride}${operand ? `, cursor${n} += step${n}` : ''}) {
             ${state.checkpoint}
             const next${n} = ${assignment.operator === '=' ? replacement
                 : `safe(cells${target.slot}[${key}] ${assignment.operator[0]} ${replacement})`};
@@ -120,7 +131,7 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
             cells${target.slot}[${key}] = next${n};
             ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key}] = 1;`}
         }
-        iterationResult = ${operand && input ? `sliceResult(r${input.slot}, ${operand.offset}, ${operand.count}, ${operand.stride})` : snapshot}; iterationType = '${operand ? 'array' : 'integer'}';`);
+        iterationResult = ${discarded && operand ? 'undefined' : operand && input ? `sliceResult(r${input.slot}, ${operand.offset}, ${operand.count}, ${operand.stride})` : snapshot}; iterationType = '${operand && !discarded ? 'array' : 'integer'}';`);
     body.push(`location = ${location};`, ...lines);
     return true;
 }

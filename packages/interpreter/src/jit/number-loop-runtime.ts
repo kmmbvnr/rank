@@ -59,6 +59,28 @@ class PrivateSliceResult {
         });
     }
 }
+/** All selected cells were validated before this test. Distinct buffers or
+ * disjoint arithmetic selections can be read directly, even after destination
+ * widening: none of these source cells changes during the assignment. Unknown
+ * shared-buffer views and overlapping selections retain the complete snapshot. */
+function disjointSlices(target: NumberCells, first: number, stride: number,
+    source: NumberCells, other: number, otherStride: number, count: number): boolean {
+    let direct = count === 0;
+    if (!direct && (target instanceof Int32Array || target instanceof Float64Array)
+        && (source instanceof Int32Array || source instanceof Float64Array)) {
+        if (target.buffer !== source.buffer) direct = true;
+        else if (target === source) {
+            const last = first + (count - 1) * stride;
+            const otherLast = other + (count - 1) * otherStride;
+            direct = Math.max(first, last) < Math.min(other, otherLast)
+                || Math.max(other, otherLast) < Math.min(first, last)
+                || Math.abs(stride) === Math.abs(otherStride) && (first - other) % Math.abs(stride) !== 0;
+        }
+    }
+    const diagnostics = currentDiagnostics();
+    if (direct && diagnostics) diagnostics.numberLoopSliceDirectCells += count;
+    return direct;
+}
 function safe(value: number): number {
     if (!Number.isSafeInteger(value)) throw overflow;
     return value;
@@ -158,7 +180,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
-    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', code)(
+    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', code)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -174,6 +196,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
             (shape: number[], cells: NumberCells) => new PrivateIntegerArray([...shape], 0, cells), textLength, indexKey,
             (cells: NumberCells, first: number, count: number, stride: number) => {
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) { diagnostics.numberLoopSliceCopies++; diagnostics.numberLoopSliceCopyCells += count; }
                 // Entry-checked numeric buffers and private integer cells are
                 // already exact. Keep short contiguous snapshots in native code;
                 // longer/strided selections retain bounded interrupt polling.
@@ -190,7 +214,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 }
                 return result;
             }, (source: RankArray | PrivateIntegerArray, first: number, count: number, stride: number) =>
-                new PrivateSliceResult(source, first, count, stride));
+                new PrivateSliceResult(source, first, count, stride), disjointSlices);
     try { run = compile(source); } catch { return undefined; }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These

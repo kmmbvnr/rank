@@ -34,6 +34,9 @@ export class RuntimeDiagnostics {
     numberLoopCopyAmortized = 0;
     mixedIntegerLoops = 0;
     numberLoopOverflows = 0;
+    numberLoopSliceCopies = 0;
+    numberLoopSliceCopyCells = 0;
+    numberLoopSliceDirectCells = 0;
     numberLoopReadBuffers = 0;
     numberLoopReadBufferCells = 0;
     numberLoopReadBufferHits = 0;

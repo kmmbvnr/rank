@@ -1,5 +1,23 @@
 # Compiler progress
 
+## Borrowed disjoint slice operands (Euler 292)
+
+Number regions can read integer RHS slices without a temporary cell buffer when
+source and destination buffers differ, their index intervals do not intersect,
+or equal absolute strides select different residues. Possible overlaps and
+unknown shared-buffer views retain the full operand snapshot. The selected
+buffer and cursor are prepared once before the cell loop; widening and exact
+replay remain intact.
+
+A mutable source no longer forces exact execution when its assignment result
+is overwritten within the compiled region. Retained live results still use the
+publishing backend; later caller statements are not a discard proof. Named-row
+validation still applies to every source. Function prefixes respect their final
+compiled-statement boundary. No admission threshold or language binding rule
+changed. Euler 292 uses the bounded streaming slice DP without an `Old` table;
+its full golden and original fixture checks are retained, and the default is
+restored to the ordinary audits. See [measurements and verification](../../benchmarks/euler292-slice-compiler.md).
+
 ## Scalar integer slice fills (Euler 291)
 
 Number loops now lower scalar integer `=`, `+=`, `-=`, and `*=` over trailing
