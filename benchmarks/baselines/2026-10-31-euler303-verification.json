@@ -1,0 +1,67 @@
+{
+  "checks": 2022,
+  "enumeratedCandidates": 32804,
+  "maxIndependentValue": "1122222222",
+  "results": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "smallDivisors": 200,
+      "wideCase": 9999
+    },
+    {
+      "mode": "compiled",
+      "variant": "early",
+      "smallDivisors": 200,
+      "wideCase": 9999
+    },
+    {
+      "mode": "compiled",
+      "variant": "array",
+      "smallDivisors": 200,
+      "wideCase": 9999
+    },
+    {
+      "mode": "compiled",
+      "variant": "arrayearly",
+      "smallDivisors": 200,
+      "wideCase": 9999
+    },
+    {
+      "mode": "compiled",
+      "variant": "production",
+      "smallDivisors": 200,
+      "wideCase": 9999
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "smallDivisors": 200,
+      "wideCase": 9999
+    },
+    {
+      "mode": "reference",
+      "variant": "early",
+      "smallDivisors": 200,
+      "wideCase": 9999
+    },
+    {
+      "mode": "reference",
+      "variant": "array",
+      "smallDivisors": 200,
+      "wideCase": 9999
+    },
+    {
+      "mode": "reference",
+      "variant": "arrayearly",
+      "smallDivisors": 200,
+      "wideCase": 9999
+    },
+    {
+      "mode": "reference",
+      "variant": "production",
+      "smallDivisors": 200,
+      "wideCase": 9999
+    }
+  ]
+}

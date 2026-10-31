@@ -236,3 +236,16 @@ it('checks the full Euler 302 search with recursive owned-array helpers', () => 
         expect(calls).toBeGreaterThan(1_600_000);
     } finally { runtime.dispose(); }
 }, 90_000);
+
+
+it('checks Euler 303 with private Number state and exact wide reconstruction', () => {
+    const url = new URL('../../../demos/euler/303_smalldigits.ra', import.meta.url);
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(1111981904675169n);
+        expect(diagnostics.numberFunctions).toBeGreaterThanOrEqual(10000);
+        expect(diagnostics.numberFunctionFallbacks).toBeGreaterThan(0);
+    } finally { runtime.dispose(); }
+}, 60_000);

@@ -27,8 +27,9 @@ fun N smallest
       Pending push R
     end
   end
+  rem The first zero path is already minimal.
   for R in Pending
-    if R equal 0
+    if not (Parent 0 equal -1)
       break
     end
     for D in 0 to 2

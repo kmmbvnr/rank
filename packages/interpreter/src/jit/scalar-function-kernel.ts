@@ -61,6 +61,7 @@ interface Kernel {
         scalars?: readonly (() => RankValue)[],
         planConsumed?: () => void,
         rankedCalls?: readonly (() => (arguments_: RankValue[]) => RankValue)[]) => LoopCallable;
+    readonly numberStorage?: 'arrays' | 'queues';
     readonly numberDirect?: (locate: (error: unknown, index: number) => unknown,
         safe: (val: number) => number,
         zero: () => Error,
@@ -78,8 +79,8 @@ function compileScalarNumberKernel(
     parameterTypes: readonly CompiledCalleeType[],
     locations: readonly (Statement | Expression)[],
 ): Kernel['numberDirect'] | undefined {
-    if (proof.containers || proof.arrayWrites.size || proof.planCalls.length
-        || proof.planBindings.size || proof.planReturn || proof.nativeReads.length
+    if (!proof.localArrayWrites || proof.planCalls.length
+        || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => name !== 'len')
         || proof.dependencies.length || proof.callCount > 0) return undefined;
     const isNumType = (t: CompiledCalleeType) => t === 'integer' || t === 'real' || t === 'boolean';
     if (!isNumType(proof.type) || !parameterTypes.every(isNumType)) return undefined;
@@ -91,6 +92,34 @@ function compileScalarNumberKernel(
     };
     statement.parameters.forEach(slot);
     let serial = 0;
+    const arrays = new Set<string>(), queues = new Set<string>();
+    // Every object slot must be constructor-owned on every assignment. No
+    // argument objects, aliases, user/native calls or escaping arrays enter
+    // this Number region. A guard bailout can discard all private writes.
+    for (const [expression, value] of proof.expressions) {
+        if (value.kind !== 'input' || !['array', 'new'].includes(value.input.operation ?? '')) continue;
+        const owner = expression.$container;
+        if (!owner || !isAssignmentStatement(owner) || owner.value !== expression || owner.operator !== '=') return undefined;
+        if (value.input.operation === 'array') {
+            if (typeof value.type === 'string' || isCompiledContainer(value.type)
+                || value.type.rank !== 1 || value.type.element !== 'integer') return undefined;
+            arrays.add(owner.name);
+        } else {
+            if (value.input.name !== 'queue') return undefined;
+            queues.add(owner.name);
+        }
+    }
+    for (const command of statement.statements) {
+        // Nested constructor rebindings are checked below as commands are lowered.
+        if (!isAssignmentStatement(command) || !arrays.has(command.name) && !queues.has(command.name)) continue;
+        const value = proof.expressions.get(command.value);
+        if (value?.kind !== 'input' || value.input.operation !== (arrays.has(command.name) ? 'array' : 'new')) return undefined;
+    }
+    function index(source: string, value: string, lines: string[]): string {
+        const at = `at${serial++}`;
+        lines.push(`const ${at} = ${value}; if (${at} < 0 || ${at} >= ${source}.length) throw overflow;`);
+        return at;
+    }
 
     function emitNum(expression: Expression, lines: string[]): string | undefined {
         const compiled = proof.expressions.get(expression);
@@ -113,8 +142,37 @@ function compileScalarNumberKernel(
             return undefined;
         }
         if (compiled.kind === 'input') {
-            if (compiled.input.operation) return undefined;
-            return slot(compiled.input.name);
+            const input = compiled.input;
+            if (input.operation === 'array') {
+                const dimension = input.dimensions![0];
+                let size = lowerNum(dimension.value, lines);
+                if (!size) return undefined;
+                if (dimension.negative) size = `-(${size})`;
+                const count = `size${serial++}`, result = `v${serial++}`;
+                // The private JS vector has the same length representation as
+                // the exact allocator. Other dimensions retain its errors.
+                lines.push(`const ${count} = safe(${size}); if (${count} < 0 || ${count} > 0xffffffff) throw overflow;`);
+                const fill = lowerNum(input.indices![0], lines);
+                if (!fill) return undefined;
+                lines.push(`const ${result} = Array(${count}).fill(safe(${fill}));`);
+                return result;
+            }
+            if (input.operation === 'new' && input.name === 'queue') {
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = [];`);
+                return result;
+            }
+            if ((input.operation === 'array-len' && arrays.has(input.name))
+                || (input.operation === 'len' && queues.has(input.name))) return `${slot(input.name)}.length`;
+            if (input.operation) return undefined;
+            if (input.indices) {
+                if (!arrays.has(input.name) || input.indices.length !== 1) return undefined;
+                const at = lowerNum(input.indices[0], lines);
+                if (!at) return undefined;
+                return `${slot(input.name)}[${index(slot(input.name), at, lines)}]`;
+            }
+            if (typeof compiled.type !== 'string') return undefined;
+            return slot(input.name);
         }
         if (compiled.kind === 'unary') {
             const val = lowerNum(compiled.operand, lines);
@@ -187,14 +245,45 @@ function compileScalarNumberKernel(
                 lines.push(`return ${proof.type === 'integer' ? `safe(${val})` : val};`);
             } else if (isExpressionStatement(cmd)) {
                 if (!emitNum(cmd.value, lines)) return false;
+            } else if (isArrayAssignmentStatement(cmd)) {
+                if (!arrays.has(cmd.name) || cmd.indices.length !== 1 || !cmd.indices[0].value
+                    || !['=', '+=', '-=', '*='].includes(cmd.operator)) return false;
+                const coordinate = emitNum(cmd.indices[0].value, lines);
+                if (!coordinate) return false;
+                const at = index(slot(cmd.name), coordinate, lines);
+                let value = emitNum(cmd.value, lines);
+                if (!value) return false;
+                if (cmd.operator !== '=') value = `safe(${slot(cmd.name)}[${at}] ${cmd.operator[0]} (${value}))`;
+                lines.push(`${slot(cmd.name)}[${at}] = safe(${value});`);
+            } else if (isPushStatement(cmd)) {
+                if (!isNameExpression(cmd.receiver) || !queues.has(cmd.receiver.name)) return false;
+                const value = emitNum(cmd.value, lines);
+                if (!value) return false;
+                // This JS-vector capacity guard falls back to Rank's queue.
+                lines.push(`if (${slot(cmd.receiver.name)}.length >= 0xffffffff) throw overflow;
+                    ${slot(cmd.receiver.name)}[${slot(cmd.receiver.name)}.length] = safe(${value});`);
             } else if (isAssignmentStatement(cmd)) {
+                if (arrays.has(cmd.name) || queues.has(cmd.name)) {
+                    const value = proof.expressions.get(cmd.value);
+                    if (cmd.operator !== '=' || value?.kind !== 'input'
+                        || value.input.operation !== (arrays.has(cmd.name) ? 'array' : 'new')) return false;
+                }
                 let val = emitNum(cmd.value, lines);
                 if (!val) return false;
                 if (cmd.operator !== '=') {
                     const op = findCompiledOperator(cmd.operator.slice(0, -1));
                     if (!op) return false;
                     const prev = slot(cmd.name);
-                    const calc = `(${prev}) ${op.binary} (${val})`;
+                    let calc: string;
+                    if (['+', '-', '*'].includes(op.name)) calc = `(${prev}) ${op.binary} (${val})`;
+                    else if (op.name === '/' || op.name === '//' || op.name === 'mod') {
+                        lines.push(`if (${val} === 0) throw zero();`);
+                        if (op.name === 'mod') {
+                            const remainder = `v${serial++}`;
+                            lines.push(`const ${remainder} = (${prev}) % (${val});`);
+                            calc = binaryOperatorSource(op, prev, val, { number: true, remainder, safe: value => `safe(${value})` });
+                        } else calc = op.name === '//' ? `Math.floor((${prev}) / (${val}))` : `(${prev}) / (${val})`;
+                    } else return false;
                     val = proof.expressions.get(cmd.value)?.type === 'integer' ? `safe(${calc})` : calc;
                 } else if (proof.expressions.get(cmd.value)?.type === 'integer') {
                     val = `safe(${val})`;
@@ -213,34 +302,42 @@ function compileScalarNumberKernel(
                 lines.push('}'.repeat(branches.length));
             } else if (isForStatement(cmd)) {
                 const binding = forIteration(cmd.condition);
+                if (binding && binding.names.length <= 2 && binding.names.every(name => !name.includes('.'))) {
+                    let receiver = binding.iterable;
+                    while (isParenthesizedExpression(receiver)) receiver = receiver.value;
+                    if (isNameExpression(receiver) && (queues.has(receiver.name) || arrays.has(receiver.name))) {
+                        const source = `source${serial++}`, cursor = `cursor${serial++}`;
+                        // Capture the receiver once. Both its cell updates and
+                        // queue appends remain live; rebinding changes no iterator.
+                        lines.push(`{ const ${source} = ${slot(receiver.name)};
+                            for (let ${cursor} = 0; ${cursor} < ${source}.length; ${cursor}++) { location = ${loc}; checkpoint();`);
+                        if (binding.names[0] !== '#') lines.push(`let ${slot(binding.names[0])} = ${source}[${cursor}];`);
+                        if (binding.names[1] && binding.names[1] !== '#') lines.push(`let ${slot(binding.names[1])} = ${cursor};`);
+                        if (!lowerCommands(cmd.statements, lines)) return false;
+                        lines.push('}}');
+                        continue;
+                    }
+                }
                 if (binding && binding.iterable && binding.names.length === 1 && !binding.names[0].includes('.')) {
                     let rangeExpr = binding.iterable;
                     while (isParenthesizedExpression(rangeExpr)) rangeExpr = rangeExpr.value;
                     const range = rangeSliceOperands(rangeExpr);
-                    if (range) {
-                        const start = emitNum(range.start, lines);
-                        const end = emitNum(range.end, lines);
-                        if (!start || !end) return false;
-                        const induction = slot(binding.names[0]);
-                        const endVar = `end${serial++}`;
-                        const cmp = range.inclusive ? '<=' : '<';
-                        lines.push(`const ${endVar} = ${end};`);
-                        lines.push(`for (let ${induction} = ${start}; ${induction} ${cmp} ${endVar}; ${induction} = safe(${induction} + 1)) { checkpoint();`);
-                        if (!lowerCommands(cmd.statements, lines)) return false;
-                        lines.push('}');
-                        continue;
-                    }
+                    // A slice iterates cells of its receiver, not the bounds.
+                    // Keep its existing exact/prefix path until lowered here.
+                    if (range) return false;
                     if (isBinaryExpression(rangeExpr) && (rangeExpr.operator === 'to' || rangeExpr.operator === 'till')) {
                         const start = emitNum(rangeExpr.left, lines);
                         const end = emitNum(rangeExpr.right, lines);
                         const step = rangeExpr.step ? emitNum(rangeExpr.step, lines) : '1';
                         if (!start || !end || !step) return false;
                         const induction = slot(binding.names[0]);
-                        const endVar = `end${serial++}`, stepVar = `step${serial++}`;
+                        const endVar = `end${serial++}`, stepVar = `step${serial++}`, cursor = `cursor${serial++}`;
                         const cmp = rangeExpr.operator === 'to' ? '<=' : '<';
                         lines.push(`const ${endVar} = ${end}, ${stepVar} = ${step};`);
                         lines.push(`if (${stepVar} === 0) throw badStep();`);
-                        lines.push(`for (let ${induction} = ${start}; ${stepVar} > 0 ? ${induction} ${cmp} ${endVar} : ${induction} >= ${endVar}; ${induction} = safe(${induction} + ${stepVar})) { checkpoint();`);
+                        // The cursor belongs to the iterator, independently of
+                        // assignments to its block-local iteration binding.
+                        lines.push(`for (let ${cursor} = ${start}; ${stepVar} > 0 ? ${cursor} ${cmp} ${endVar} : ${cursor} ${rangeExpr.operator === 'to' ? '>=' : '>'} ${endVar}; ${cursor} = safe(${cursor} + ${stepVar})) { location = ${loc}; checkpoint(); let ${induction} = ${cursor};`);
                         if (!lowerCommands(cmd.statements, lines)) return false;
                         lines.push('}');
                         continue;
@@ -627,7 +724,8 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     if (finite) {
                         const source = iterable(finite, lines), id = serial++;
                         const indexed = binding.names[1] !== undefined && binding.names[1] !== '#';
-                        lines.push(`noteArrayBinding(${source});`);
+                        // Traversing a value is not an additional binding:
+                        // ordinary array writes must remain visible to its iterator.
                         if (indexed) lines.push(`let ordinal${id} = 0n;`);
                         lines.push(`for (const point${id} of loopValues(${source})) { location = ${location}; checkpoint();`);
                         binding.names.forEach((name, index) => {
@@ -776,7 +874,10 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     try {
         const run = new Function(...kernelParameterNames, source)(...kernelArguments) as Kernel['run'];
         const direct = new Function(...kernelParameterNames, directSource)(...kernelArguments) as Kernel['direct'];
-        const numberDirect = parameterTypes ? compileScalarNumberKernel(statement, proof, parameterTypes, locations) : undefined;
+        // Default proofs already use integer parameter domains. Build the same
+        // Number variant whichever caller first populates the proof-keyed cache.
+        const numberDirect = compileScalarNumberKernel(statement, proof,
+            parameterTypes ?? statement.parameters.map(() => 'integer' as const), locations);
         kernel = {
             source,
             plans: proof.planBindings.size > 0 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan'),
@@ -795,6 +896,8 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             run,
             direct,
             numberDirect,
+            numberStorage: proof.containers ? 'queues' : [...expressions.values()].some(expression =>
+                expression.kind === 'input' && expression.input.operation === 'array') ? 'arrays' : undefined,
         };
     }
     catch { /* CSP keeps the ordinary function implementation. */ }

@@ -7,6 +7,7 @@ test "smallest multiples"
   3 smallest equal 12
   7 smallest equal 21
   42 smallest equal 210
+  9999 smallest equal 11112222222222222222
 end
 
 test "published sum"
