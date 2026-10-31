@@ -1,0 +1,549 @@
+{
+  "date": "2026-10-31T17:57:28.694Z",
+  "cpu": "Apple M5",
+  "node": "v24.15.0",
+  "commit": "89d2b3adb3df4c4d018f407dabec316801015572",
+  "fftjs": {
+    "version": "4.0.4",
+    "path": "/tmp/rank-fft-library/package/lib/fft.js"
+  },
+  "checkout": "/private/tmp/rank-fft-worktree/",
+  "baseline": "/tmp/rank-fft-step0",
+  "sourceHash": "4fda94787aca90d57119c315cc2dc8c6f6ab994e538119aa92199feeb6588871",
+  "timing": "serial fresh processes; each has >=300 ms warmup; per-call average of a batch targeting 150 ms; parsing, input creation and result validation excluded; coefficients, permutation and output materialization included",
+  "results": [
+    {
+      "trial": 0,
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMs": 9.123708999999963,
+      "warmMs": 3.8273333333333337,
+      "cpuMs": 7.4372444444444445,
+      "iterations": 45,
+      "warmups": 71
+    },
+    {
+      "trial": 0,
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMs": 9.402040999999997,
+      "warmMs": 3.6353317058823533,
+      "cpuMs": 6.92243137254902,
+      "iterations": 51,
+      "warmups": 68
+    },
+    {
+      "trial": 0,
+      "n": 256,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.2559169999999824,
+      "warmMs": 0.0011228535373510645,
+      "cpuMs": 0.0011233994166213476,
+      "iterations": 40454,
+      "warmups": 250987
+    },
+    {
+      "trial": 0,
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMs": 19.641958000000045,
+      "warmMs": 17.343145,
+      "cpuMs": 9.78768,
+      "iterations": 25,
+      "warmups": 36
+    },
+    {
+      "trial": 0,
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMs": 15.705083000000002,
+      "warmMs": 5.776695500000003,
+      "cpuMs": 9.71573076923077,
+      "iterations": 26,
+      "warmups": 43
+    },
+    {
+      "trial": 0,
+      "n": 1024,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.45837499999998954,
+      "warmMs": 0.0047786031379172395,
+      "cpuMs": 0.0047980799146628735,
+      "iterations": 22499,
+      "warmups": 60445
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 29.499957999999992,
+      "warmMs": 11.549086538461534,
+      "cpuMs": 16.37323076923077,
+      "iterations": 13,
+      "warmups": 23
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 26.005499999999984,
+      "warmMs": 10.37485,
+      "cpuMs": 15.5922,
+      "iterations": 15,
+      "warmups": 26
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 1.049334000000016,
+      "warmMs": 0.02231881797607501,
+      "cpuMs": 0.022462980924668606,
+      "iterations": 6186,
+      "warmups": 12160
+    },
+    {
+      "trial": 1,
+      "n": 256,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.20950000000001978,
+      "warmMs": 0.0009648947223665314,
+      "cpuMs": 0.0009656816306573358,
+      "iterations": 32723,
+      "warmups": 296824
+    },
+    {
+      "trial": 1,
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMs": 7.051375000000007,
+      "warmMs": 3.3225093750000014,
+      "cpuMs": 6.137449999999999,
+      "iterations": 40,
+      "warmups": 79
+    },
+    {
+      "trial": 1,
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMs": 7.735416999999984,
+      "warmMs": 3.2578207547169806,
+      "cpuMs": 5.753679245283019,
+      "iterations": 53,
+      "warmups": 79
+    },
+    {
+      "trial": 1,
+      "n": 1024,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.4647500000000093,
+      "warmMs": 0.004048134159552803,
+      "cpuMs": 0.004061186462711791,
+      "iterations": 23077,
+      "warmups": 62663
+    },
+    {
+      "trial": 1,
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMs": 10.834625000000017,
+      "warmMs": 4.195692138888887,
+      "cpuMs": 6.194972222222223,
+      "iterations": 36,
+      "warmups": 61
+    },
+    {
+      "trial": 1,
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMs": 12.49083300000001,
+      "warmMs": 4.469635416666667,
+      "cpuMs": 6.414416666666667,
+      "iterations": 24,
+      "warmups": 62
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 2.0913750000000277,
+      "warmMs": 0.049369722026741746,
+      "cpuMs": 0.04806931738212526,
+      "iterations": 2842,
+      "warmups": 6859
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 64.29150000000004,
+      "warmMs": 25.66960416666666,
+      "cpuMs": 33.54966666666667,
+      "iterations": 6,
+      "warmups": 11
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 66.53095799999994,
+      "warmMs": 29.236749999999983,
+      "cpuMs": 38.4118,
+      "iterations": 5,
+      "warmups": 9
+    },
+    {
+      "trial": 2,
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMs": 77.89487500000007,
+      "warmMs": 8.0374375,
+      "cpuMs": 14.510772727272728,
+      "iterations": 22,
+      "warmups": 39
+    },
+    {
+      "trial": 2,
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMs": 16.125458999999978,
+      "warmMs": 3.9636486486486477,
+      "cpuMs": 6.827702702702703,
+      "iterations": 37,
+      "warmups": 52
+    },
+    {
+      "trial": 2,
+      "n": 256,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.2615419999999631,
+      "warmMs": 0.0010892540482523693,
+      "cpuMs": 0.0010894115451024313,
+      "iterations": 42858,
+      "warmups": 249315
+    },
+    {
+      "trial": 2,
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMs": 16.631250000000023,
+      "warmMs": 6.234028285714284,
+      "cpuMs": 9.504607142857143,
+      "iterations": 28,
+      "warmups": 44
+    },
+    {
+      "trial": 2,
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMs": 15.210041999999987,
+      "warmMs": 6.29048364285714,
+      "cpuMs": 10.18275,
+      "iterations": 28,
+      "warmups": 42
+    },
+    {
+      "trial": 2,
+      "n": 1024,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.46966699999998696,
+      "warmMs": 0.004470298625000002,
+      "cpuMs": 0.004482875,
+      "iterations": 24000,
+      "warmups": 61916
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 28.579416000000037,
+      "warmMs": 10.3908333125,
+      "cpuMs": 15.403625,
+      "iterations": 16,
+      "warmups": 24
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 19.470041999999978,
+      "warmMs": 7.43562134782609,
+      "cpuMs": 11.492608695652173,
+      "iterations": 23,
+      "warmups": 35
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.8526249999999891,
+      "warmMs": 0.01651233345859952,
+      "cpuMs": 0.016582863585118377,
+      "iterations": 7983,
+      "warmups": 15938
+    },
+    {
+      "trial": 3,
+      "n": 256,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.15749999999999886,
+      "warmMs": 0.0007298625510248879,
+      "cpuMs": 0.0007300618882500109,
+      "iterations": 45566,
+      "warmups": 393061
+    },
+    {
+      "trial": 3,
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMs": 5.592040999999995,
+      "warmMs": 2.053753125,
+      "cpuMs": 3.2600499999999997,
+      "iterations": 80,
+      "warmups": 123
+    },
+    {
+      "trial": 3,
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMs": 5.648042000000032,
+      "warmMs": 2.0856348999999996,
+      "cpuMs": 3.156275,
+      "iterations": 80,
+      "warmups": 120
+    },
+    {
+      "trial": 3,
+      "n": 1024,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.36529100000001336,
+      "warmMs": 0.00378455014233049,
+      "cpuMs": 0.0037950440991180176,
+      "iterations": 21429,
+      "warmups": 76434
+    },
+    {
+      "trial": 3,
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMs": 10.890291999999988,
+      "warmMs": 4.269751826086957,
+      "cpuMs": 6.196304347826087,
+      "iterations": 23,
+      "warmups": 64
+    },
+    {
+      "trial": 3,
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMs": 12.503584000000046,
+      "warmMs": 4.469751135135133,
+      "cpuMs": 6.559162162162162,
+      "iterations": 37,
+      "warmups": 59
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.8518750000000068,
+      "warmMs": 0.017713045365917068,
+      "cpuMs": 0.01778915897569219,
+      "iterations": 7693,
+      "warmups": 15678
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 20.445500000000038,
+      "warmMs": 7.34077780952381,
+      "cpuMs": 11.199619047619048,
+      "iterations": 21,
+      "warmups": 37
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 22.949625000000026,
+      "warmMs": 9.270710823529411,
+      "cpuMs": 12.931411764705883,
+      "iterations": 17,
+      "warmups": 30
+    },
+    {
+      "trial": 4,
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMs": 17.328499999999963,
+      "warmMs": 8.607137695652177,
+      "cpuMs": 15.020521739130434,
+      "iterations": 23,
+      "warmups": 36
+    },
+    {
+      "trial": 4,
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMs": 17.464541000000054,
+      "warmMs": 7.5653769090909115,
+      "cpuMs": 11.461863636363637,
+      "iterations": 22,
+      "warmups": 33
+    },
+    {
+      "trial": 4,
+      "n": 256,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.33774999999997135,
+      "warmMs": 0.001897138898733768,
+      "cpuMs": 0.0018481167638624866,
+      "iterations": 31037,
+      "warmups": 143493
+    },
+    {
+      "trial": 4,
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMs": 34.22708299999999,
+      "warmMs": 14.522351888888908,
+      "cpuMs": 18.147333333333332,
+      "iterations": 9,
+      "warmups": 19
+    },
+    {
+      "trial": 4,
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMs": 33.230290999999966,
+      "warmMs": 7.908071428571431,
+      "cpuMs": 12.03947619047619,
+      "iterations": 21,
+      "warmups": 30
+    },
+    {
+      "trial": 4,
+      "n": 1024,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 0.4556249999999977,
+      "warmMs": 0.00429312848238738,
+      "cpuMs": 0.004315327226366985,
+      "iterations": 21178,
+      "warmups": 64216
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 27.722125000000005,
+      "warmMs": 11.450541642857145,
+      "cpuMs": 15.845785714285714,
+      "iterations": 14,
+      "warmups": 24
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 24.255708000000027,
+      "warmMs": 8.92472688888889,
+      "cpuMs": 12.552555555555555,
+      "iterations": 18,
+      "warmups": 27
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMs": 1.0259580000000028,
+      "warmMs": 0.020757971690776165,
+      "cpuMs": 0.020827500388862965,
+      "iterations": 6429,
+      "warmups": 13153
+    }
+  ],
+  "summary": [
+    {
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMedianMs": 9.123708999999963,
+      "medianMs": 3.8273333333333337,
+      "cpuMedianMs": 7.4372444444444445,
+      "minMs": 2.0856348999999996,
+      "maxMs": 8.607137695652177
+    },
+    {
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMedianMs": 9.402040999999997,
+      "medianMs": 3.6353317058823533,
+      "cpuMedianMs": 6.827702702702703,
+      "minMs": 2.053753125,
+      "maxMs": 7.5653769090909115
+    },
+    {
+      "n": 256,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMedianMs": 0.2559169999999824,
+      "medianMs": 0.0010892540482523693,
+      "cpuMedianMs": 0.0010894115451024313,
+      "minMs": 0.0007298625510248879,
+      "maxMs": 0.001897138898733768
+    },
+    {
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMedianMs": 16.631250000000023,
+      "medianMs": 6.234028285714284,
+      "cpuMedianMs": 9.504607142857143,
+      "minMs": 4.469635416666667,
+      "maxMs": 17.343145
+    },
+    {
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMedianMs": 15.210041999999987,
+      "medianMs": 5.776695500000003,
+      "cpuMedianMs": 9.71573076923077,
+      "minMs": 4.195692138888887,
+      "maxMs": 7.908071428571431
+    },
+    {
+      "n": 1024,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMedianMs": 0.45837499999998954,
+      "medianMs": 0.00429312848238738,
+      "cpuMedianMs": 0.004315327226366985,
+      "minMs": 0.00378455014233049,
+      "maxMs": 0.0047786031379172395
+    },
+    {
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMedianMs": 28.579416000000037,
+      "medianMs": 11.450541642857145,
+      "cpuMedianMs": 15.845785714285714,
+      "minMs": 9.270710823529411,
+      "maxMs": 29.236749999999983
+    },
+    {
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMedianMs": 24.255708000000027,
+      "medianMs": 8.92472688888889,
+      "cpuMedianMs": 12.552555555555555,
+      "minMs": 7.34077780952381,
+      "maxMs": 25.66960416666666
+    },
+    {
+      "n": 4096,
+      "mode": "fftjs-reuse",
+      "firstSizeCallMedianMs": 1.0259580000000028,
+      "medianMs": 0.020757971690776165,
+      "cpuMedianMs": 0.020827500388862965,
+      "minMs": 0.01651233345859952,
+      "maxMs": 0.049369722026741746
+    }
+  ]
+}

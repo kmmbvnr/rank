@@ -1,0 +1,308 @@
+{
+  "n": 4096,
+  "mode": "compiled",
+  "diagnostics": {
+    "memoHits": 0,
+    "memoMisses": 0,
+    "indexReads": 0,
+    "indexReadHits": 0,
+    "indexReadMisses": 0,
+    "indexWrites": 0,
+    "sequencePredicateCalls": 0,
+    "cellsComputed": 4096,
+    "hoistedReaders": 0,
+    "loopElementScans": 0,
+    "nativeSequenceCopies": 12,
+    "compiledLoops": 1,
+    "compiledGeneratorLoops": 0,
+    "integerMembershipFilters": 0,
+    "compiledGraphAdds": 0,
+    "compiledEffectCalls": 0,
+    "numericSorts": 0,
+    "numericInPlaceSorts": 0,
+    "numericDistincts": 0,
+    "compiledDistincts": 0,
+    "numericUniqueSorts": 0,
+    "numericSmallestSelections": 0,
+    "numericUniqueSums": 0,
+    "numericSearches": 0,
+    "numericSearchIndexes": 0,
+    "numberLoops": 0,
+    "exactLoopWorkSamples": 0,
+    "exactLoopWorkPromotions": 0,
+    "numberLoopCopyProbes": 0,
+    "numberLoopCopyAmortized": 0,
+    "mixedIntegerLoops": 0,
+    "numberLoopOverflows": 0,
+    "numberLoopSliceCopies": 0,
+    "numberLoopSliceCopyCells": 0,
+    "numberLoopSliceDirectCells": 0,
+    "numberLoopReadBuffers": 0,
+    "numberLoopReadBufferCells": 0,
+    "numberLoopReadBufferHits": 0,
+    "compiledTensors": 24,
+    "tensorRangeScans": 12,
+    "tensorRangeScannedCells": 24576,
+    "numberTensors": 0,
+    "compiledCounterBuilds": 0,
+    "compiledCounterSums": 0,
+    "compiledCounterKeys": 0,
+    "tensorMapPreparations": 0,
+    "compiledArrayFunctions": 0,
+    "rankedArrayBatches": 0,
+    "rankedBatches": 0,
+    "maskMaterializations": 0,
+    "maskMaterializedCells": 0,
+    "bulkArrayWrites": 0,
+    "bulkArrayWriteCells": 0,
+    "fusedArrayUpdates": 0,
+    "fusedArrayUpdateCells": 0,
+    "fusedArrayUpdateWidenings": 0,
+    "reusedTensorBuffers": 0,
+    "reusedTensorBufferCells": 0,
+    "cowCopies": 0,
+    "cowCopiedCells": 0,
+    "elementTypeScans": 166,
+    "elementTypeScannedCells": 407548,
+    "rangeSelectorViews": 0,
+    "selectionSnapshots": 0,
+    "selectionSnapshotCells": 0,
+    "typedUnpacks": 2,
+    "typedUnpackedCells": 8192,
+    "fallbacks": {
+      "scalar-function:unsupported-op:len": 1,
+      "scalar-function:unbound-name:NameExpression": 1,
+      "scalar-expression:unsupported-op:len": 2,
+      "scalar-expression:unsupported-op:notequal": 2,
+      "scalar-expression:too-small": 17,
+      "scalar-expression:unsupported-op:or": 1,
+      "tensor:binding:real": 1,
+      "tensor:unsupported-type:array": 2,
+      "tensor:unsupported-node:MaterializeExpression": 2,
+      "scalar-expression:unsupported-op:till": 4,
+      "scalar-expression:unsupported-op:/": 3,
+      "scalar-expression:unsupported-op:acos": 7,
+      "scalar-expression:unsupported-node:ParenthesizedExpression": 7,
+      "scalar-expression:unsupported-op:*": 10,
+      "tensor:binding:acos": 1,
+      "scalar-expression:operator-guard:*": 2,
+      "tensor:binding:cos": 1,
+      "tensor:binding:sin": 1,
+      "loop:unsupported-node:AllAxisExpression": 1,
+      "tensor:unsupported-op:till": 1,
+      "tensor:unsupported-node:TupleExpression": 1
+    },
+    "compilerRejections": [
+      {
+        "reason": "scalar-function:unsupported-op:len",
+        "node": "ApplicationExpression",
+        "function": "fftReal",
+        "expression": "X len",
+        "line": 8,
+        "column": 7
+      },
+      {
+        "reason": "scalar-function:unbound-name:NameExpression",
+        "node": "NameExpression",
+        "name": "len",
+        "function": "fftReal",
+        "expression": "len",
+        "line": 8,
+        "column": 9
+      }
+    ]
+  },
+  "warmDiagnostics": {
+    "memoHits": 0,
+    "memoMisses": 0,
+    "indexReads": 0,
+    "indexReadHits": 0,
+    "indexReadMisses": 0,
+    "indexWrites": 0,
+    "sequencePredicateCalls": 0,
+    "cellsComputed": 4096,
+    "hoistedReaders": 0,
+    "loopElementScans": 0,
+    "nativeSequenceCopies": 12,
+    "compiledLoops": 1,
+    "compiledGeneratorLoops": 0,
+    "integerMembershipFilters": 0,
+    "compiledGraphAdds": 0,
+    "compiledEffectCalls": 0,
+    "numericSorts": 0,
+    "numericInPlaceSorts": 0,
+    "numericDistincts": 0,
+    "compiledDistincts": 0,
+    "numericUniqueSorts": 0,
+    "numericSmallestSelections": 0,
+    "numericUniqueSums": 0,
+    "numericSearches": 0,
+    "numericSearchIndexes": 0,
+    "numberLoops": 0,
+    "exactLoopWorkSamples": 0,
+    "exactLoopWorkPromotions": 0,
+    "numberLoopCopyProbes": 0,
+    "numberLoopCopyAmortized": 0,
+    "mixedIntegerLoops": 0,
+    "numberLoopOverflows": 0,
+    "numberLoopSliceCopies": 0,
+    "numberLoopSliceCopyCells": 0,
+    "numberLoopSliceDirectCells": 0,
+    "numberLoopReadBuffers": 0,
+    "numberLoopReadBufferCells": 0,
+    "numberLoopReadBufferHits": 0,
+    "compiledTensors": 24,
+    "tensorRangeScans": 12,
+    "tensorRangeScannedCells": 24576,
+    "numberTensors": 0,
+    "compiledCounterBuilds": 0,
+    "compiledCounterSums": 0,
+    "compiledCounterKeys": 0,
+    "tensorMapPreparations": 0,
+    "compiledArrayFunctions": 0,
+    "rankedArrayBatches": 0,
+    "rankedBatches": 0,
+    "maskMaterializations": 0,
+    "maskMaterializedCells": 0,
+    "bulkArrayWrites": 0,
+    "bulkArrayWriteCells": 0,
+    "fusedArrayUpdates": 0,
+    "fusedArrayUpdateCells": 0,
+    "fusedArrayUpdateWidenings": 0,
+    "reusedTensorBuffers": 0,
+    "reusedTensorBufferCells": 0,
+    "cowCopies": 0,
+    "cowCopiedCells": 0,
+    "elementTypeScans": 166,
+    "elementTypeScannedCells": 407548,
+    "rangeSelectorViews": 0,
+    "selectionSnapshots": 0,
+    "selectionSnapshotCells": 0,
+    "typedUnpacks": 2,
+    "typedUnpackedCells": 8192,
+    "fallbacks": {
+      "tensor:binding:real": 1,
+      "tensor:binding:acos": 1,
+      "scalar-expression:unsupported-op:acos": 1,
+      "scalar-expression:operator-guard:*": 2,
+      "tensor:binding:cos": 1,
+      "tensor:binding:sin": 1
+    },
+    "compilerRejections": []
+  },
+  "generated": [
+    {
+      "kind": "Block",
+      "source": "direct-step-dispatch"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "direct-step-dispatch"
+    },
+    {
+      "kind": "Block",
+      "source": "direct-step-dispatch"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 2048) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 2048) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 2048) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 2048) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 1024) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 1024) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 1024) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 1024) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 512) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 512) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 512) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 512) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 256) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 256) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 256) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 256) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 128) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 128) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 128) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 128) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 64) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 64) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 64) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 64) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 32) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 32) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 32) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 32) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 16) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 16) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 16) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 16) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 8) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 8) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 8) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 8) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 4) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 4) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 4) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 4) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 2) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 2) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (((i) % 2) * 1)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (((i) % 2) * 1)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (0)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (0)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:-\");\nconst v0 = (v1) - (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "TensorKernel",
+      "source": "\"use strict\"; /* float64,float64,float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;   for (let i = start; i < size; i++) { \nconst v2 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (0)];\nif (!Number.isFinite(v2) || !Number.isFinite(v3)) return decline(\"tensor:operator-guard:*\");\nconst v1 = (v2) * (v3);\nconst v5 = data[2][offsets[2] + (i)];\nconst v6 = data[3][offsets[3] + (0)];\nif (!Number.isFinite(v5) || !Number.isFinite(v6)) return decline(\"tensor:operator-guard:*\");\nconst v4 = (v5) * (v6);\nif (!Number.isFinite(v1) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v4);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\n\nlength++;\n}  return answer; };"
+    },
+    {
+      "kind": "IntegerLoop",
+      "source": "\"use strict\"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads, callouts) {\n        let r0 = input[0],r1 = input[1], storage1 = access(input[1]), reader1 = read(storage1, stableReads, 1), write1 = write(storage1, batchWrites),r2 = input[2], storage2 = access(input[2]), reader2 = read(storage2, stableReads, 1), write2 = write(storage2, batchWrites);\n        let result = initialResult, location = -1;\n        try {  for (;;) { location = -1; checkpoint(); const v0 = (r0) > (1n); if (!(v0)) break;\n            let iterationResult;\n             location = 0;\nconst v1 = arrayValues.binary(\"*\", r1, 2n);\nconst v2 = arrayValues.binary(\"mod\", r2, 2n);\nconst v3 = arrayValues.binary(\"+\", v1, v2);\nconst completed4 = materializeValue(v3);\nwriters[0](completed4); r1 = completed4; storage1 = access(completed4); reader1 = read(storage1, stableReads, 1); write1 = write(storage1, batchWrites); iterationResult = completed4;\nlocation = 1;\nconst v5 = arrayValues.binary(\"//\", r2, 2n);\nconst completed6 = materializeValue(v5);\nwriters[1](completed6); r2 = completed6; storage2 = access(completed6); reader2 = read(storage2, stableReads, 1); write2 = write(storage2, batchWrites); iterationResult = completed6;\nlocation = 2;\nif (((2n) === 0n)) throw zero();\nconst v7 = (r0) / (2n) - ((((r0) < 0n) !== ((2n) < 0n) && ((r0) % (2n)) !== 0n) ? 1n : 0n);\nconst out2 = v7;\nwriters[2](out2); r0 = out2; iterationResult = out2; \n            result = iterationResult; location = -1;\n        } return result; } catch (error) { throw locate(error, location); }\n    };"
+    }
+  ],
+  "warmGenerated": []
+}

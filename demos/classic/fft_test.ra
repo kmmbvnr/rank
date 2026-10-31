@@ -1,0 +1,78 @@
+use testing
+
+test "FFT agrees with a direct DFT"
+  use "fft"
+  use numbers
+  use sequences
+
+  for N in array 1 2 4 8 16 32
+    K = 0 till N array
+    A = (K * 1.71) sin
+    B = (K * 0.37) cos
+    X = A + B
+    Products = K K outer *
+    Tau = -2 * (-1 acos)
+    Angles = Tau * Products / N
+    WantR = X * (Angles cos) sum axis 1
+    WantI = X * (Angles sin) sum axis 1
+    unpack Re Im = X fftReal
+
+    Re shape equal array N
+    Im shape equal array N
+    (Re - WantR) abs less 1e-8
+    (Im - WantI) abs less 1e-8
+  end
+end
+
+test "rejects invalid FFT lengths"
+  use "fft"
+
+  for N in array 0 3 6
+    Raised = false
+    try
+      X = array shape N fill 0
+      Result = X fftReal
+    catch .DomainError Error
+      Raised = true
+    end
+    Raised
+  end
+end
+
+test "rejects a non-vector FFT input"
+  use "fft"
+
+  Raised = false
+  try
+    X = array shape 2 2 fill 0
+    Result = X fftReal
+  catch .DimensionMismatch Error
+    Raised = true
+  end
+  Raised
+end
+
+test "four-sample example"
+  use "fft"
+  use numbers
+  run
+
+  (Re - (array 10 -2 -2 -2)) abs less 1e-10
+  (Im - (array 0 2 0 -2)) abs less 1e-10
+end
+
+test "impulse and constant input"
+  use "fft"
+  use numbers
+
+  Impulse = array 1 0 0 0 0 0 0 0
+  unpack Re Im = Impulse fftReal
+  (Re - 1) abs less 1e-10
+  Im abs less 1e-10
+
+  Ones = array shape 8 fill 1
+  unpack Cr Ci = Ones fftReal
+  Want = array 8 0 0 0 0 0 0 0
+  (Cr - Want) abs less 1e-10
+  Ci abs less 1e-10
+end

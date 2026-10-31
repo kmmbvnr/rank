@@ -1,0 +1,453 @@
+{
+  "date": "2026-10-31T19:40:02.596Z",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 9,
+  "versions": {
+    "baseline": {
+      "path": "/tmp/rank-fft-main-before",
+      "commit": "f986358561be10a51395833b7748d870da8223d4",
+      "dirty": false
+    },
+    "candidate": {
+      "path": "/private/tmp/rank-fft-worktree/",
+      "commit": "de179b289040a3292f4246558572f85de5be66cf",
+      "dirty": true
+    }
+  },
+  "sources": {
+    "euler": {
+      "path": "demos/euler/006_sumsquarediff.ra",
+      "sha256": "07857b0214aad226d9565d8e696ba5b3d08d4c0370e86da779998feed19a78b3"
+    },
+    "matvec": {
+      "path": "demos/deepml/001_matmul.ra",
+      "sha256": "04be3e6ce5992dcfe6fcf76f86559c822efb467fbcff38abc90ba05c120632d1"
+    },
+    "row": {
+      "path": "demos/deepml/004_mean.ra",
+      "sha256": "065143b7a2a28aff3d9bad4f4e80f8a9ceb8483802df83f9c0a9f71b78a58575"
+    },
+    "column": {
+      "path": "demos/deepml/004_mean.ra",
+      "sha256": "065143b7a2a28aff3d9bad4f4e80f8a9ceb8483802df83f9c0a9f71b78a58575"
+    },
+    "matmul": {
+      "path": "demos/deepml/009_matmul.ra",
+      "sha256": "2bec0ade2d2ff586980e8b49c91a7f8c2486ab18dc2159e2bee43091384ebcac"
+    },
+    "gradient": {
+      "path": "demos/deepml/015_gd.ra",
+      "sha256": "7f1756026b77ba85b35213f29dddee6e31f821d840c8b95feff3bfa9d09fdeae"
+    },
+    "kmeans": {
+      "path": "demos/deepml/017_kmeans.ra",
+      "sha256": "c03aabc2e28e90b8760e2a91f89a7c0a0b3e712cc3ef05a2a3d7e1b2f518d5a8"
+    },
+    "fft": {
+      "path": "demos/classic/fft.ra",
+      "sha256": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    "stages": {
+      "path": "benchmarks/experiments/numeric-array-stages.mjs",
+      "sha256": "ade8327c65a468ceb4bed195ea316693b5b384c62a80ddd3c362e3e2c8a1b0c8"
+    }
+  },
+  "timing": "Serial fresh processes; alternating order per pair. Demo workers use the largest existing numerical-demos.mjs scale, owned snapshot inputs, two warm calls and three measured calls; row is median of measured calls. Euler includes parsing. Array-stage fixtures time a complete parse/execute of 12 rounds. FFT uses the same current demo source in both builds, >=300 ms warmup and a batch targeting 150 ms, including output forcing. Every worker validates its output against the existing independent oracle. These are different timing contracts and should only be compared within a case.",
+  "results": [
+    {
+      "name": "matmul",
+      "trial": 0,
+      "version": "baseline",
+      "size": 64,
+      "firstMs": 305.4806669999999,
+      "warmMs": [
+        234.3443749999999,
+        192.15279199999986,
+        229.30674999999997
+      ],
+      "memory": {
+        "rss": 528842752,
+        "heapTotal": 264470528,
+        "heapUsed": 101961992,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 517024,
+      "measuredMs": 229.30674999999997
+    },
+    {
+      "name": "matmul",
+      "trial": 0,
+      "version": "candidate",
+      "size": 64,
+      "firstMs": 310.33050000000003,
+      "warmMs": [
+        244.19412499999999,
+        197.2940410000001,
+        237.575292
+      ],
+      "memory": {
+        "rss": 529088512,
+        "heapTotal": 270761984,
+        "heapUsed": 82489968,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 517888,
+      "measuredMs": 237.575292
+    },
+    {
+      "name": "matmul",
+      "trial": 1,
+      "version": "candidate",
+      "size": 64,
+      "firstMs": 312.30208400000004,
+      "warmMs": [
+        334.1892499999999,
+        357.23366699999997,
+        499.0704999999998
+      ],
+      "memory": {
+        "rss": 530464768,
+        "heapTotal": 259751936,
+        "heapUsed": 82101280,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 519280,
+      "measuredMs": 357.23366699999997
+    },
+    {
+      "name": "matmul",
+      "trial": 1,
+      "version": "baseline",
+      "size": 64,
+      "firstMs": 658.392333,
+      "warmMs": [
+        546.8896669999999,
+        467.2410410000002,
+        256.48025000000007
+      ],
+      "memory": {
+        "rss": 584122368,
+        "heapTotal": 505724928,
+        "heapUsed": 383489712,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 570432,
+      "measuredMs": 467.2410410000002
+    },
+    {
+      "name": "matmul",
+      "trial": 2,
+      "version": "baseline",
+      "size": 64,
+      "firstMs": 347.979375,
+      "warmMs": [
+        378.80537500000014,
+        228.2895000000001,
+        274.31841600000007
+      ],
+      "memory": {
+        "rss": 507117568,
+        "heapTotal": 261062656,
+        "heapUsed": 70756968,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 502272,
+      "measuredMs": 274.31841600000007
+    },
+    {
+      "name": "matmul",
+      "trial": 2,
+      "version": "candidate",
+      "size": 64,
+      "firstMs": 515.032917,
+      "warmMs": [
+        253.328125,
+        200.23066599999993,
+        258.33925
+      ],
+      "memory": {
+        "rss": 521535488,
+        "heapTotal": 269975552,
+        "heapUsed": 118586752,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 509888,
+      "measuredMs": 253.328125
+    },
+    {
+      "name": "matmul",
+      "trial": 3,
+      "version": "candidate",
+      "size": 64,
+      "firstMs": 325.441833,
+      "warmMs": [
+        251.3737920000001,
+        197.03929200000016,
+        239.49445899999978
+      ],
+      "memory": {
+        "rss": 527073280,
+        "heapTotal": 260538368,
+        "heapUsed": 74044832,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 515872,
+      "measuredMs": 239.49445899999978
+    },
+    {
+      "name": "matmul",
+      "trial": 3,
+      "version": "baseline",
+      "size": 64,
+      "firstMs": 322.812375,
+      "warmMs": [
+        248.2744580000001,
+        200.61429199999998,
+        238.71612499999992
+      ],
+      "memory": {
+        "rss": 525025280,
+        "heapTotal": 261324800,
+        "heapUsed": 87605280,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 513296,
+      "measuredMs": 238.71612499999992
+    },
+    {
+      "name": "matmul",
+      "trial": 4,
+      "version": "baseline",
+      "size": 64,
+      "firstMs": 321.106709,
+      "warmMs": [
+        245.702583,
+        195.39029200000004,
+        239.6445409999999
+      ],
+      "memory": {
+        "rss": 525238272,
+        "heapTotal": 261324800,
+        "heapUsed": 88872976,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 513872,
+      "measuredMs": 239.6445409999999
+    },
+    {
+      "name": "matmul",
+      "trial": 4,
+      "version": "candidate",
+      "size": 64,
+      "firstMs": 327.02025000000003,
+      "warmMs": [
+        246.732166,
+        200.68016699999998,
+        236.89266699999985
+      ],
+      "memory": {
+        "rss": 527810560,
+        "heapTotal": 269189120,
+        "heapUsed": 86834288,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 516000,
+      "measuredMs": 236.89266699999985
+    },
+    {
+      "name": "matmul",
+      "trial": 5,
+      "version": "candidate",
+      "size": 64,
+      "firstMs": 324.200708,
+      "warmMs": [
+        247.73408399999994,
+        196.68983300000014,
+        238.90875000000005
+      ],
+      "memory": {
+        "rss": 526991360,
+        "heapTotal": 272334848,
+        "heapUsed": 87709144,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 515584,
+      "measuredMs": 238.90875000000005
+    },
+    {
+      "name": "matmul",
+      "trial": 5,
+      "version": "baseline",
+      "size": 64,
+      "firstMs": 316.690708,
+      "warmMs": [
+        244.02016600000002,
+        199.69116699999995,
+        239.30708299999992
+      ],
+      "memory": {
+        "rss": 525582336,
+        "heapTotal": 269189120,
+        "heapUsed": 115761432,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 514224,
+      "measuredMs": 239.30708299999992
+    },
+    {
+      "name": "matmul",
+      "trial": 6,
+      "version": "baseline",
+      "size": 64,
+      "firstMs": 318.922,
+      "warmMs": [
+        248.460417,
+        197.8344579999998,
+        241.13466600000015
+      ],
+      "memory": {
+        "rss": 523796480,
+        "heapTotal": 261586944,
+        "heapUsed": 127306728,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 512448,
+      "measuredMs": 241.13466600000015
+    },
+    {
+      "name": "matmul",
+      "trial": 6,
+      "version": "candidate",
+      "size": 64,
+      "firstMs": 327.61199999999997,
+      "warmMs": [
+        249.922959,
+        195.61841600000002,
+        239.00795799999992
+      ],
+      "memory": {
+        "rss": 527876096,
+        "heapTotal": 267091968,
+        "heapUsed": 87558392,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 516464,
+      "measuredMs": 239.00795799999992
+    },
+    {
+      "name": "matmul",
+      "trial": 7,
+      "version": "candidate",
+      "size": 64,
+      "firstMs": 615.971458,
+      "warmMs": [
+        480.35333300000025,
+        406.3411249999999,
+        514.5960829999999
+      ],
+      "memory": {
+        "rss": 527368192,
+        "heapTotal": 262373376,
+        "heapUsed": 119202296,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 515952,
+      "measuredMs": 480.35333300000025
+    },
+    {
+      "name": "matmul",
+      "trial": 7,
+      "version": "baseline",
+      "size": 64,
+      "firstMs": 593.13075,
+      "warmMs": [
+        277.4624170000002,
+        226.3639169999999,
+        274.19220799999994
+      ],
+      "memory": {
+        "rss": 529924096,
+        "heapTotal": 275480576,
+        "heapUsed": 95531584,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 518048,
+      "measuredMs": 274.19220799999994
+    },
+    {
+      "name": "matmul",
+      "trial": 8,
+      "version": "baseline",
+      "size": 64,
+      "firstMs": 377.155416,
+      "warmMs": [
+        277.343791,
+        223.61095799999998,
+        226.5199580000001
+      ],
+      "memory": {
+        "rss": 522862592,
+        "heapTotal": 425492480,
+        "heapUsed": 342093976,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 510608,
+      "measuredMs": 226.5199580000001
+    },
+    {
+      "name": "matmul",
+      "trial": 8,
+      "version": "candidate",
+      "size": 64,
+      "firstMs": 323.477083,
+      "warmMs": [
+        250.66308299999992,
+        201.09970799999996,
+        243.41141599999992
+      ],
+      "memory": {
+        "rss": 526385152,
+        "heapTotal": 265519104,
+        "heapUsed": 74445024,
+        "external": 2343313,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 514896,
+      "measuredMs": 243.41141599999992
+    }
+  ],
+  "summary": [
+    {
+      "name": "matmul",
+      "version": "baseline",
+      "medianMs": 239.6445409999999,
+      "minMs": 226.5199580000001,
+      "maxMs": 467.2410410000002
+    },
+    {
+      "name": "matmul",
+      "version": "candidate",
+      "medianMs": 239.49445899999978,
+      "minMs": 236.89266699999985,
+      "maxMs": 480.35333300000025
+    }
+  ]
+}

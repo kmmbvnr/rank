@@ -1,9 +1,44 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, parse, type RankArray, type RankValue } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, parse, type RankArray, type RankValue } from '../src/index.js';
 import { compileTensorKernel } from '../src/tensor-kernel.js';
 import { denseScalarItems, filledArray, ownedScalarArray, readArrayItem, typedArray, typedElementKind } from '../src/array-storage.js';
 
 describe('tensor copy storage', () => {
+    it.each([false, true])('keeps axis-unpacked blocks independent (compilation=%s)', compilation => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.variables.set('Input', typedArray(Float64Array.from({ length: 24 }, (_, i) => i)));
+            runtime.execute(`use sequences
+Source = Input reshape 4 2 3
+unpack A B = Source axis 1`);
+            expect(typedElementKind(runtime.variables.get('A') as RankArray)).toBe('real');
+            expect(typedElementKind(runtime.variables.get('B') as RankArray)).toBe('real');
+            runtime.execute('Source 0 0 0 = 999.0\nA 1 0 = 777.0');
+            const a = runtime.variables.get('A') as RankArray;
+            const b = runtime.variables.get('B') as RankArray;
+            expect(a.items).toEqual([0, 1, 2, 777, 7, 8, 12, 13, 14, 18, 19, 20]);
+            expect(b.items).toEqual([3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23]);
+            expect(runtime.execute('Source 0 0 0')).toBe(999);
+            expect(runtime.execute('Source 1 0 0')).toBe(6);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([
+        ['real', [1, 2, NaN, 4, 5], [1, NaN, 5]],
+        ['numeric-limit', [Infinity, -Infinity, Infinity, -Infinity, Infinity], [Infinity, Infinity, Infinity]],
+    ] as const)('preserves the exact %s domain when gathering stored cells', (kind, cells, expected) => {
+        const runtime = new Interpreter(undefined, { compilation: false });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.variables.set('Source', typedArray(Float64Array.from(cells), [5], undefined, kind));
+            const result = diagnostics.run(() => runtime.execute('use sequences\nPicked = Source (array 0 2 4)\nPicked')) as RankArray;
+            runtime.variables.set('Result', result);
+            diagnostics.run(() => runtime.execute('Checked = Result'));
+            expect(result.items).toEqual(expected);
+            expect(diagnostics.elementTypeScannedCells).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
     it.each([0, 1, 63, 64, 4096, 5000])('packs exact integer output at size %s', size => {
         const runtime = new Interpreter();
         try {

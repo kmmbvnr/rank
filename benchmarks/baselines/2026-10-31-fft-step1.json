@@ -1,0 +1,332 @@
+{
+  "date": "2026-10-31T17:22:00.471Z",
+  "cpu": "Apple M5",
+  "node": "v24.15.0",
+  "commit": "e7d3706a0478319e1274eebeb8b35a3a339a699b",
+  "checkout": "/private/tmp/rank-fft-worktree/",
+  "baseline": "/tmp/rank-fft-step0",
+  "sourceHash": "4fda94787aca90d57119c315cc2dc8c6f6ab994e538119aa92199feeb6588871",
+  "timing": "serial fresh processes; each has >=300 ms warmup; per-call average of a batch targeting 150 ms; parsing, input creation and result validation excluded; coefficients, permutation and output materialization included",
+  "results": [
+    {
+      "trial": 0,
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMs": 5.561458000000016,
+      "warmMs": 1.956571890109889,
+      "iterations": 91,
+      "warmups": 128
+    },
+    {
+      "trial": 0,
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMs": 5.169582999999989,
+      "warmMs": 1.9066937021276604,
+      "iterations": 94,
+      "warmups": 128
+    },
+    {
+      "trial": 0,
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMs": 11.231291999999996,
+      "warmMs": 4.174749045454547,
+      "iterations": 44,
+      "warmups": 69
+    },
+    {
+      "trial": 0,
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMs": 10.72870800000004,
+      "warmMs": 3.9713778409090916,
+      "iterations": 44,
+      "warmups": 70
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 21.867917000000034,
+      "warmMs": 8.276927733333332,
+      "iterations": 15,
+      "warmups": 34
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 21.129916999999978,
+      "warmMs": 7.794986727272725,
+      "iterations": 22,
+      "warmups": 36
+    },
+    {
+      "trial": 1,
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMs": 5.237041999999974,
+      "warmMs": 1.8910393846153852,
+      "iterations": 91,
+      "warmups": 127
+    },
+    {
+      "trial": 1,
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMs": 5.27354200000002,
+      "warmMs": 1.946245833333334,
+      "iterations": 90,
+      "warmups": 123
+    },
+    {
+      "trial": 1,
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMs": 10.18908399999998,
+      "warmMs": 3.6751975185185177,
+      "iterations": 27,
+      "warmups": 67
+    },
+    {
+      "trial": 1,
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMs": 11.43141700000001,
+      "warmMs": 4.210698404761905,
+      "iterations": 42,
+      "warmups": 66
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 20.763000000000034,
+      "warmMs": 7.888291652173912,
+      "iterations": 23,
+      "warmups": 35
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 21.59187499999996,
+      "warmMs": 8.17458331578947,
+      "iterations": 19,
+      "warmups": 33
+    },
+    {
+      "trial": 2,
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMs": 5.30008399999997,
+      "warmMs": 1.8908014255319145,
+      "iterations": 94,
+      "warmups": 128
+    },
+    {
+      "trial": 2,
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMs": 5.229874999999993,
+      "warmMs": 1.9341114000000001,
+      "iterations": 95,
+      "warmups": 127
+    },
+    {
+      "trial": 2,
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMs": 11.31354200000004,
+      "warmMs": 3.9397666750000013,
+      "iterations": 40,
+      "warmups": 66
+    },
+    {
+      "trial": 2,
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMs": 10.390708000000018,
+      "warmMs": 3.677348777777777,
+      "iterations": 27,
+      "warmups": 68
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 22.065583000000004,
+      "warmMs": 8.412233333333331,
+      "iterations": 15,
+      "warmups": 31
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 22.923666000000026,
+      "warmMs": 7.617489052631575,
+      "iterations": 19,
+      "warmups": 34
+    },
+    {
+      "trial": 3,
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMs": 5.203708000000006,
+      "warmMs": 1.777126400000001,
+      "iterations": 30,
+      "warmups": 130
+    },
+    {
+      "trial": 3,
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMs": 5.2544169999999895,
+      "warmMs": 1.9499995333333333,
+      "iterations": 90,
+      "warmups": 125
+    },
+    {
+      "trial": 3,
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMs": 11.08137499999998,
+      "warmMs": 4.254983342857141,
+      "iterations": 35,
+      "warmups": 66
+    },
+    {
+      "trial": 3,
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMs": 11.404041000000007,
+      "warmMs": 4.265446022727272,
+      "iterations": 44,
+      "warmups": 67
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 21.757499999999993,
+      "warmMs": 7.87408606666667,
+      "iterations": 15,
+      "warmups": 33
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 22.160167,
+      "warmMs": 8.508139550000005,
+      "iterations": 20,
+      "warmups": 32
+    },
+    {
+      "trial": 4,
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMs": 5.531749999999988,
+      "warmMs": 1.9526769677419347,
+      "iterations": 93,
+      "warmups": 123
+    },
+    {
+      "trial": 4,
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMs": 5.241166999999962,
+      "warmMs": 1.9493010337078653,
+      "iterations": 89,
+      "warmups": 124
+    },
+    {
+      "trial": 4,
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMs": 19.561125000000004,
+      "warmMs": 9.342624999999998,
+      "iterations": 26,
+      "warmups": 32
+    },
+    {
+      "trial": 4,
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMs": 22.52166699999998,
+      "warmMs": 9.417869750000008,
+      "iterations": 16,
+      "warmups": 30
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 40.25366599999995,
+      "warmMs": 17.063136857142858,
+      "iterations": 7,
+      "warmups": 17
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 46.818708000000015,
+      "warmMs": 9.135280055555553,
+      "iterations": 18,
+      "warmups": 23
+    }
+  ],
+  "summary": [
+    {
+      "n": 256,
+      "mode": "baseline",
+      "firstSizeCallMedianMs": 5.30008399999997,
+      "medianMs": 1.9499995333333333,
+      "minMs": 1.8908014255319145,
+      "maxMs": 1.956571890109889
+    },
+    {
+      "n": 256,
+      "mode": "compiled",
+      "firstSizeCallMedianMs": 5.229874999999993,
+      "medianMs": 1.9066937021276604,
+      "minMs": 1.777126400000001,
+      "maxMs": 1.9493010337078653
+    },
+    {
+      "n": 1024,
+      "mode": "baseline",
+      "firstSizeCallMedianMs": 11.404041000000007,
+      "medianMs": 4.210698404761905,
+      "minMs": 3.9397666750000013,
+      "maxMs": 9.342624999999998
+    },
+    {
+      "n": 1024,
+      "mode": "compiled",
+      "firstSizeCallMedianMs": 10.72870800000004,
+      "medianMs": 3.9713778409090916,
+      "minMs": 3.6751975185185177,
+      "maxMs": 9.417869750000008
+    },
+    {
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMedianMs": 22.065583000000004,
+      "medianMs": 8.412233333333331,
+      "minMs": 8.17458331578947,
+      "maxMs": 17.063136857142858
+    },
+    {
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMedianMs": 21.757499999999993,
+      "medianMs": 7.87408606666667,
+      "minMs": 7.617489052631575,
+      "maxMs": 9.135280055555553
+    }
+  ]
+}

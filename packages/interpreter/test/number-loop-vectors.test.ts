@@ -408,7 +408,7 @@ B`);
         expect(r.diagnostics.numberLoops).toBe(1);
     });
 
-    it('retains the existing fallback for a rebound vector source read at entry', () => {
+    it('retains the publishing backend for aliases of rebound entry arrays', () => {
         const r = compare(`A = array 0 0
 B = array 0 0
 C = array 0 0
@@ -420,6 +420,114 @@ end
 A`);
         expect(r.observation.result).toBe('5 5');
         expect(r.diagnostics.numberLoops).toBe(0);
+    });
+
+    it('fuses arithmetic over rebound entry arrays while retaining outside aliases', () => {
+        const r = compare(`use sequences
+Index = 0 till 64 array
+Order = array shape 64 fill 0
+Saved = Index
+Bits = 64
+for Bits greater 1
+ Order = Order * 2 + Index mod 2
+ Index = Index // 2
+ Bits //= 2
+end
+tuple Order Index Saved`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+        expect(r.diagnostics.numberLoopOverflows).toBe(0);
+    });
+
+    it('initializes multidimensional entry metadata before a conditional rebinding', () => {
+        const r = compare(`A = array shape 2 3 fill 1.5
+B = A
+Total = 0.0
+for I in 1 to 3
+ if I greater 1
+  A = A + 0.5
+ end
+ Total += (A + B) sum
+end
+A`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+
+    it.each([0, 3])('preserves real entry arrays and empty loops with %s iterations', count => {
+        const r = compare(`A = array -0.0 0.0 1.5
+Saved = A
+for I in 1 to ${count}
+ A = A * -1.0 + 0.0
+end
+tuple A Saved`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('replays widening overflow from the original entry arrays', () => {
+        const r = compare(`A = array 4503599627370495 1
+B = array 1 2
+for I in 1 to 4
+ A = A * 2 + B
+ B = B + 1
+end
+tuple A B`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+    });
+
+    it.each(['A * 2', 'A * 2 - A * 2'])('preserves nonfinite real rebinding for %s', expression => {
+        compare(`A = array shape 3 fill 1.0e308
+for I in 1 to 3
+ A = ${expression}
+end
+A`);
+    });
+
+    it.each(['A // Z', 'A + B'])('preserves completed bindings before an entry-array error in %s', expression => {
+        compare(`A = array 1 2 3
+B = array 1 2
+Z = 0
+Total = 0
+for I in 1 to 3
+ A = A + 1
+ Total += I
+ B = ${expression}
+end
+tuple A B Total`);
+    });
+
+    it('keeps rebound entry arrays with cell stores on the publishing backend', () => {
+        const r = compare(`A = array 1 2
+B = array 3 4
+for I in 1 to 3
+ A = A + 1
+ B 0 = I
+end
+tuple A B`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(0);
+    });
+
+    it.each([30, 70, 110])('retains ordinary entry-array publication under budget %s', budget => {
+        const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute(`A = array shape 8 fill 0
+B = array shape 8 fill 0
+Round = 0`);
+            expect(() => withDemandBudget(budget, () => diagnostics.run(() => runtime.execute(`for I in 1 to 100
+ Round = I
+ A = A + 1
+ B = A * 2
+end`)))).toThrow(DemandBudgetExhausted);
+            const round = Number(runtime.variables.get('Round'));
+            const uniform = (n: number) => Array(8).fill(n).join(' ');
+            expect([uniform(0), uniform(round), uniform(round - 1)]).toContain(formatValue(runtime.variables.get('A')!));
+            expect([uniform(0), uniform(2 * round), uniform(2 * (round - 1))]).toContain(formatValue(runtime.variables.get('B')!));
+            expect(diagnostics.numberLoops).toBe(0);
+        } finally { runtime.dispose(); }
     });
 
     it('widens private int32 vectors without truncating earlier cells', () => {

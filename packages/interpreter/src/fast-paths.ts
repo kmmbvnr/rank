@@ -11,6 +11,8 @@ import {
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './jit/block-compiler.js';
+import { compileTensorRegion } from './jit/tensor-region.js';
+import { compileNumericFunction } from './jit/numeric-function.js';
 import { TailCallSignal } from './control-signals.js';
 import { registerFlatCombine } from './flat-combine.js';
 import { compileFusedReduction, compileFusedSum } from './jit/fused-reduction.js';
@@ -29,7 +31,7 @@ import { recordFallback } from './diagnostics.js';
 import { checkedArrayDimension } from './eval/expressions.js';
 import { forIteration, iterationAtoms, declareIterationTypes, type ForBinding } from './eval/loops.js';
 import type { FunctionInvocation } from './function-invocation.js';
-import { ReturnSignal } from './control-signals.js';
+import { ReturnSignal, returnFunctionValue } from './control-signals.js';
 import { compileIntegerLoop, compileIntegerFunctionPrefix } from './jit/integer-loop.js';
 import { resolveCompilerCapabilities, type CompilerCapabilities, type InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
@@ -100,8 +102,29 @@ export class FastPaths {
         if (this.compiler.blocks.blocks && statements.length >= 2 && statements.length <= 64) {
             let block = this.blocks.get(statements);
             if (block === undefined) {
+                const regions = new Map<number, ReturnType<typeof compileTensorRegion>>();
+                const regionWriters = new Map<Statement, (value: RankValue) => void>();
                 block = compileBlock<ExecutionContext>(statements.length, {
                     prepare: index => steps.preparedStatement(statements, index),
+                    region: index => {
+                        if (!this.compiler.tensors.fusion) return undefined;
+                        if (!regions.has(index)) {
+                            const region = compileTensorRegion(statements, index, {
+                                lookup: name => this.context.bindings.find(name),
+                                commit: (statement, value) => {
+                                    let write = regionWriters.get(statement);
+                                    if (!write) regionWriters.set(statement, write = this.context.compileAssign(statement.name));
+                                    try { this.context.checkMutation(statement); write(value); }
+                                    catch (error) { throw this.context.locate(error, statement); }
+                                },
+                                compiled: source => this.compiler.hooks.onTensorKernelCompiled?.(source),
+                                executed: () => this.tensorExecuted(),
+                            });
+                            regions.set(index, region);
+                            if (region) for (let next = index + 1; next < index + region.length; next++) regions.set(next, undefined);
+                        }
+                        return regions.get(index);
+                    },
                     locate: (error, index) => this.context.locate(error, statements[index]),
                     pause: (index, task, context, compiled) => steps.continueCompiledBlock(
                         statements, index, task, context, compiled),
@@ -157,6 +180,28 @@ export class FastPaths {
                         if (index === 0 && !context.insideFinally && !context.insideGenerator) {
                             const result = prefix.run();
                             if (result) return ordinary(context, commands.length - 1, runExecution(result));
+                        }
+                        return ordinary(context, index, previous);
+                    };
+                }
+            }
+            if (body && this.compiler.functions.arrayFunctions) {
+                const numeric = compileNumericFunction(statement, {
+                    lookup: name => this.context.bindings.find(name),
+                    builtin: name => name === 'concat' ? this.context.modules.has('sequences') : this.tensorHost().builtin(name),
+                    compiled: source => this.compiler.hooks.onFunctionBodyCompiled?.(source),
+                    executed: () => {
+                        this.compiler.hooks.onFunctionBodyExecuted?.();
+                        const diagnostics = currentDiagnostics();
+                        if (diagnostics) diagnostics.compiledArrayFunctions++;
+                    },
+                });
+                if (numeric) {
+                    const ordinary = body;
+                    body = (context, index = 0, previous) => {
+                        if (index === 0 && this.compiler.functions.arrayFunctions && !context.insideFinally && !context.insideGenerator) {
+                            const value = numeric.run();
+                            if (value !== undefined) { returnFunctionValue(context.functionControl, value); return completed(value); }
                         }
                         return ordinary(context, index, previous);
                     };

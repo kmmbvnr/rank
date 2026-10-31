@@ -1,0 +1,264 @@
+{
+  "n": 4096,
+  "mode": "compiled",
+  "calls": 1447,
+  "samples": 16481,
+  "sampledMs": 2546.999999999987,
+  "categoryMs": {
+    "contracts": 269.6299999999991,
+    "reshape": 10.706999999999999,
+    "gc": 140.6260000000001,
+    "concatCopies": 3.248999999999999
+  },
+  "categoryPercent": {
+    "contracts": 10.586179819395387,
+    "reshape": 0.4203769140164921,
+    "gc": 5.521240675304312,
+    "concatCopies": 0.12756183745583102
+  },
+  "categoryNote": "inclusive categories; may overlap",
+  "self": [
+    {
+      "frame": "compactBinary|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/integer-array-kernel.js:90",
+      "ms": 643.3149999999854
+    },
+    {
+      "frame": "(anonymous)|:3",
+      "ms": 185.54000000000002
+    },
+    {
+      "frame": "(garbage collector)|:0",
+      "ms": 140.6260000000001
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/numeric-function.js:194",
+      "ms": 107.66000000000008
+    },
+    {
+      "frame": "state.convert|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/owned-array.js:1096",
+      "ms": 106.01500000000011
+    },
+    {
+      "frame": "storedScalarKinds|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/owned-array.js:48",
+      "ms": 100.67600000000006
+    },
+    {
+      "frame": "bind|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/numeric-function.js:209",
+      "ms": 78.95500000000013
+    },
+    {
+      "frame": "createOwned|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/owned-array.js:1068",
+      "ms": 68.91100000000004
+    },
+    {
+      "frame": "(program)|:0",
+      "ms": 56.75400000000008
+    },
+    {
+      "frame": "arrayElementTypes|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/array-element-types.js:7",
+      "ms": 55.28100000000005
+    },
+    {
+      "frame": "semanticArrayType|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/semantic-array-type.js:18",
+      "ms": 52.265
+    },
+    {
+      "frame": "post|node:inspector:115",
+      "ms": 46.25
+    },
+    {
+      "frame": "visit|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/array-binding-contract.js:177",
+      "ms": 39.58299999999999
+    },
+    {
+      "frame": "tensorSelection|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/selectors.js:88",
+      "ms": 38.1720000000001
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/selectors.js:92",
+      "ms": 36.45100000000005
+    },
+    {
+      "frame": "mapStoredUnary|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/unary-array-kernel.js:7",
+      "ms": 31.710999999999995
+    },
+    {
+      "frame": "checked|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/modules/numbers.js:170",
+      "ms": 30.576999999999998
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/numeric-function.js:380",
+      "ms": 29.663000000000032
+    },
+    {
+      "frame": "prepareStoredScalarView|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/integer-view.js:167",
+      "ms": 26.71299999999999
+    },
+    {
+      "frame": "checkedArgumentType|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/compiled-argument-type.js:61",
+      "ms": 23.962999999999994
+    },
+    {
+      "frame": "broadcastShape|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/tensor-layout.js:48",
+      "ms": 21.868
+    },
+    {
+      "frame": "realArray|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/numeric-conversions.js:37",
+      "ms": 20.211999999999996
+    },
+    {
+      "frame": "advance|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/execution.js:92",
+      "ms": 18.202
+    },
+    {
+      "frame": "gather|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/selectors.js:460",
+      "ms": 17.913999999999998
+    },
+    {
+      "frame": "body|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/fast-paths.js:159",
+      "ms": 17.875999999999998
+    },
+    {
+      "frame": "check|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/array-binding-contract.js:145",
+      "ms": 16.877
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/modules/numbers.js:176",
+      "ms": 16.002
+    },
+    {
+      "frame": "revisionFrame|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/array-revision.js:17",
+      "ms": 15.786000000000003
+    },
+    {
+      "frame": "mapStoredInt32Binary|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/integer-array-kernel.js:156",
+      "ms": 15.661999999999999
+    },
+    {
+      "frame": "isRankArray|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/value.js:205",
+      "ms": 14.453000000000001
+    }
+  ],
+  "inclusive": [
+    {
+      "frame": "(root)|:0",
+      "ms": 2546.999999999736
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-worktree/benchmarks/fft.mjs:0",
+      "ms": 2341.0749999997365
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-worktree/benchmarks/fft.mjs:176",
+      "ms": 2293.741999999736
+    },
+    {
+      "frame": "call|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/function-invocation.js:428",
+      "ms": 2186.9769999997357
+    },
+    {
+      "frame": "advance|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/execution.js:92",
+      "ms": 2177.976999999823
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/block-compiler.js:15",
+      "ms": 1106.4010000000274
+    },
+    {
+      "frame": "(anonymous)|:3",
+      "ms": 1026.5639999999942
+    },
+    {
+      "frame": "continueCompiledBlock|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/eval/blocks.js:84",
+      "ms": 1018.3920000000277
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/eval/blocks.js:132",
+      "ms": 835.8590000000049
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/mutation-guards.js:36",
+      "ms": 835.0250000000048
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/eval/loops.js:200",
+      "ms": 834.3580000000047
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/integer-loop-runtime.js:180",
+      "ms": 833.8179999999948
+    },
+    {
+      "frame": "evaluateBinaryValue|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/operators.js:230",
+      "ms": 778.8549999999825
+    },
+    {
+      "frame": "mapBinary|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/operators.js:734",
+      "ms": 767.6029999999818
+    },
+    {
+      "frame": "mapDenseArrays|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/runtime/tensor.js:63",
+      "ms": 750.7679999999807
+    },
+    {
+      "frame": "binary|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/fast-paths.js:317",
+      "ms": 741.7369999999844
+    },
+    {
+      "frame": "mapStoredIntegers|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/integer-array-kernel.js:18",
+      "ms": 736.598999999981
+    },
+    {
+      "frame": "mapStoredInt32Binary|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/integer-array-kernel.js:156",
+      "ms": 731.5979999999811
+    },
+    {
+      "frame": "callFunction|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/function-invocation.js:1040",
+      "ms": 696.7439999999871
+    },
+    {
+      "frame": "evaluateBinary|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/operators.js:208",
+      "ms": 684.8999999999844
+    },
+    {
+      "frame": "compactBinary|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/integer-array-kernel.js:90",
+      "ms": 643.3149999999854
+    },
+    {
+      "frame": "body|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/fast-paths.js:159",
+      "ms": 504.1019999999885
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/jit/numeric-function.js:194",
+      "ms": 485.1419999999896
+    },
+    {
+      "frame": "runExecution|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/execution.js:137",
+      "ms": 438.56999999998567
+    },
+    {
+      "frame": "next|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/execution.js:81",
+      "ms": 438.0699999999857
+    },
+    {
+      "frame": "expression|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/checked-input.js:133",
+      "ms": 297.1160000000004
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/eval/expressions.js:255",
+      "ms": 297.1160000000004
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/eval/expressions.js:270",
+      "ms": 296.5320000000004
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/eval/application.js:479",
+      "ms": 288.44700000000034
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-worktree/packages/interpreter/out/eval/application.js:575",
+      "ms": 287.4490000000004
+    }
+  ]
+}

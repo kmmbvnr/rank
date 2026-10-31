@@ -12,6 +12,29 @@ function probe(expression = 'A * B + C') {
 }
 
 describe('physical tensor primitive specialization', () => {
+    it('reuses recurring broadcast shapes with fresh buffers and scalar values', () => {
+        const values = new Map<string, RankValue>();
+        const compiled: string[] = [];
+        const kernel = compileTensorKernel(parse('Result = (A * B - C * D) copy').statements[0], {
+            lookup: name => values.get(name), builtin: () => true,
+            compiled: source => compiled.push(source),
+        })!;
+        for (let repeat = 0; repeat < 3; repeat++) {
+            for (const width of [8, 4, 2, 1]) {
+                const a = Float64Array.from({ length: 8 }, (_, i) => i + repeat + 0.25);
+                const b = Float64Array.from({ length: width }, (_, i) => i + repeat + 0.5);
+                values.set('A', typedArray(a, [8 / width, width]));
+                values.set('B', typedArray(b));
+                values.set('C', repeat + 0.5);
+                values.set('D', 2.0);
+                const result = kernel.run() as RankArray;
+                expect(result.shape).toEqual([8 / width, width]);
+                expect(result.items).toEqual(Array.from(a, (value, i) => value * b[i % width] - (repeat + 0.5) * 2));
+            }
+            expect(compiled).toHaveLength(4);
+        }
+    });
+
     it('specializes cached layouts while retaining mixed integer/real promotion', () => {
         const { values, kernel } = probe();
         for (let repeat = 0; repeat < 2; repeat++) {
