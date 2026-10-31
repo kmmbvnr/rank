@@ -49,7 +49,7 @@ export function compileTensorRegion(statements: readonly Statement[], start: num
         return undefined;
     }
     for (const statement of statements.slice(start, start + 8)) {
-        if (!isAssignmentStatement(statement) || statement.deferred || statement.name.includes('.') || definitions.has(statement.name)) break;
+        if (!isAssignmentStatement(statement) || statement.operator !== '=' || statement.deferred || statement.name.includes('.') || definitions.has(statement.name)) break;
         const root = parse(statement.value, { left: 64 });
         if (!root || root.kind === 'input' || root.kind === 'constant') break;
         definitions.set(statement.name, root);

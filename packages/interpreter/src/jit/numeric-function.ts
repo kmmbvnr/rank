@@ -104,7 +104,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
         return undefined;
     }
     for (const command of commands.slice(0, -1)) {
-        if (isAssignmentStatement(command) && !command.deferred && !command.name.includes('.')) {
+        if (isAssignmentStatement(command) && command.operator === '=' && !command.deferred && !command.name.includes('.')) {
             const node = parse(command.value);
             if (!node) return undefined;
             definitions.set(command.name, node); assignments.push({ name: command.name, node });

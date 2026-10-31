@@ -43,6 +43,16 @@ function compare(args: RankValue[], source = stage, name = 'fftStage') {
 }
 
 describe('pure structural numeric functions', () => {
+    it.each(['+=', '-=', '*=', '/='])('retains compound assignment semantics for %s', operator => {
+        const source = `use sequences
+fun X update
+ A = X reshape #
+ A ${operator} A * 0.25
+ return A reshape #
+end`;
+        const result = compare([typedArray(vector(16, .37))], source, 'update');
+        expect(result.executions).toBe(0);
+    });
     it.each([false, true])('compiles every stage with completed real inputs (boxed=%s)', boxed => {
         const f = fixture();
         try {

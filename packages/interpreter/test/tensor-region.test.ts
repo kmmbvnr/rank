@@ -42,6 +42,10 @@ function compare(source = body, x: readonly number[] = [1, 2, 3, 4], z = 0.5, sh
 }
 
 describe('real tensor assignment regions', () => {
+    it.each(['+=', '-=', '*=', '/='])('retains compound update semantics for %s', operator => {
+        compare(body.replace('A = X + Y', `A ${operator} X + Z`));
+        compare(body.replace('B = A * Z', `B ${operator} A * Z`));
+    });
     it('keeps a retained result when the same parsed loop executes again', () => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation: false });
         try {
