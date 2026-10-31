@@ -67,7 +67,7 @@ export function materializeValue(value: RankValue): RankValue {
         }
         if (isStoredValue(computed)) return { value: computed };
         if (isRankArray(computed)) {
-            const copied = materializeArrayView(computed) ?? materializeSelectedView(computed) ?? copyArrayStorage(computed);
+            const copied = materializeArrayView(computed) ?? copyArrayStorage(computed) ?? materializeSelectedView(computed);
             if (copied) return { value: copied };
             const packed = materializePackedBooleans(computed);
             if (packed) return { value: inheritSemanticArrayType(computed, packed) };

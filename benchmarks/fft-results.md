@@ -161,6 +161,28 @@ the direct DFT.
 Evidence: [step 1 timing](baselines/2026-10-31-fft-step1.json) and
 [diagnostics](baselines/2026-10-31-fft-step1-diagnostics.json).
 
+### Step 2: prefer existing native block-copy plans
+
+Materialization now tries the registered native copy plan before the general
+per-cell selection copier. Contiguous slices still share storage first. A
+selection with contiguous trailing runs can use checked `TypedArray.set`
+blocks; irregular gathers retain the general path. This preserves the same
+completed values and copy-on-write isolation.
+
+| N | Before, ms | After, ms |
+| --- | ---: | ---: |
+| 256 | 2.357 | 2.352 |
+| 1024 | 4.628 | 4.637 |
+| 4096 | 9.082 | 8.492 |
+
+The N=4096 median decreases by 6.5%. Smaller inputs show no clear improvement;
+ranges overlap. The 148 focused tests include axis-unpacked blocks remaining
+independent after writes to either the source or a result, in both compilation
+modes. This improves materialization, not zero-copy strided views or whole-loop
+compilation.
+
+Evidence: [step 2 timing](baselines/2026-10-31-fft-step2.json).
+
 ## Reproduction and checks
 
 ```sh

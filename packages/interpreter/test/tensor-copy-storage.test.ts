@@ -4,6 +4,23 @@ import { compileTensorKernel } from '../src/tensor-kernel.js';
 import { denseScalarItems, filledArray, ownedScalarArray, readArrayItem, typedArray, typedElementKind } from '../src/array-storage.js';
 
 describe('tensor copy storage', () => {
+    it.each([false, true])('keeps axis-unpacked blocks independent (compilation=%s)', compilation => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(`use sequences
+Source = (0 till 24) array reshape 4 2 3
+unpack A B = Source axis 1
+Source 0 0 0 = 999
+A 1 0 = 777`);
+            const a = runtime.variables.get('A') as RankArray;
+            const b = runtime.variables.get('B') as RankArray;
+            expect(a.items).toEqual([0n, 1n, 2n, 777n, 7n, 8n, 12n, 13n, 14n, 18n, 19n, 20n]);
+            expect(b.items).toEqual([3n, 4n, 5n, 9n, 10n, 11n, 15n, 16n, 17n, 21n, 22n, 23n]);
+            expect(runtime.execute('Source 0 0 0')).toBe(999n);
+            expect(runtime.execute('Source 1 0 0')).toBe(6n);
+        } finally { runtime.dispose(); }
+    });
+
     it.each([
         ['real', [1, 2, NaN, 4, 5], [1, NaN, 5]],
         ['numeric-limit', [Infinity, -Infinity, Infinity, -Infinity, Infinity], [Infinity, Infinity, Infinity]],
