@@ -1,0 +1,109 @@
+{
+  "node": "v24.15.0",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "samples": [
+    {
+      "repeat": 0,
+      "policy": "cow",
+      "mode": "compiled",
+      "variant": "exact",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 739.3499999999999,
+      "rssMiB": 309.890625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 0,
+      "policy": "none",
+      "mode": "reference",
+      "variant": "exact",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 8095.629249999999,
+      "rssMiB": 447.8125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 1,
+      "policy": "cow",
+      "mode": "compiled",
+      "variant": "exact",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 1508.9358750000001,
+      "rssMiB": 310.890625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 1,
+      "policy": "none",
+      "mode": "reference",
+      "variant": "exact",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 6170.735084,
+      "rssMiB": 436.28125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 2,
+      "policy": "cow",
+      "mode": "compiled",
+      "variant": "exact",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 692.660416,
+      "rssMiB": 307.65625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 2,
+      "policy": "none",
+      "mode": "reference",
+      "variant": "exact",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 8724.685375000001,
+      "rssMiB": 438.328125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    }
+  ]
+}

@@ -47,8 +47,12 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             recordAssigned(assignment.name);
             return true;
         }
+        // Region-entry COW cannot protect an alias created later in its body.
+        // Snapshot writable aliases before binding a direct compiled writer.
+        const bound = aliasSlot === undefined ? `materializeValue(${value})`
+            : `aliasValue(materializeValue(${value}), ${JSON.stringify(assignment.name)})`;
         body.push(`location = ${location};`, ...lines,
-            `const ${completed} = materializeValue(${value});`,
+            `const ${completed} = ${bound};`,
             `writers[${index}](${completed}); r${destination} = ${completed}; storage${destination} = access(${completed}); reader${destination} = read(storage${destination}, stableReads, ${rank}); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${completed};`);
         recordAssigned(assignment.name);
         return true;

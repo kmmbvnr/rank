@@ -159,8 +159,8 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // per-statement copy-on-write, beyond the region-entry write guard.
     if ([...state.dequeArrays].some(name => writable.has(name))) return reject(statement, 'deque-array-write');
     // Numeric aliases may share read-only buffers. Mutation or calls require
-    // a separate ownership proof. The exact backend can write an old alias
-    // after rebinding its source, but source stores can invalidate alias readers.
+    // a separate ownership proof. Exact bindings snapshot writable aliases;
+    // source stores can still invalidate existing compiled alias readers.
     if (numberMode && aliases.length && calls.length > 0) return reject(statement, 'array-alias-call');
     if (aliases.some(([target, source]) => numberMode ? writable.has(target) || writable.has(source)
         : destinations.has(source))) return reject(statement, 'mutable-array-alias');

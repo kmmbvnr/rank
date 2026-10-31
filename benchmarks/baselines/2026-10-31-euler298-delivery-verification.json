@@ -1,0 +1,907 @@
+{
+  "oracle": "Direct LRU/FIFO queues, canonical renaming, exact BigInt path counts without per-edge rounding",
+  "samples": [
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "0",
+      "answer": 0,
+      "correct": true,
+      "ms": 309.619417,
+      "rssMiB": 201.625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "1317"
+      },
+      "phases": [],
+      "graphVerified": true
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "1",
+      "answer": 0,
+      "correct": true,
+      "ms": 337.075333,
+      "rssMiB": 196.828125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "2195"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "2",
+      "answer": 0,
+      "correct": true,
+      "ms": 332.998542,
+      "rssMiB": 197.3125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "3073"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "3",
+      "answer": 0,
+      "correct": true,
+      "ms": 336.900167,
+      "rssMiB": 196.84375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "3951"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "4",
+      "answer": 0,
+      "correct": true,
+      "ms": 335.180709,
+      "rssMiB": 195.859375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "4829"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "5",
+      "answer": 0,
+      "correct": true,
+      "ms": 329.469208,
+      "rssMiB": 196.09375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "5707"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "6",
+      "answer": 0,
+      "correct": true,
+      "ms": 322.93262500000003,
+      "rssMiB": 195.609375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "6585"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "7",
+      "answer": 0,
+      "correct": true,
+      "ms": 328.813583,
+      "rssMiB": 197.21875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "7463"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "8",
+      "answer": 0.012096,
+      "correct": true,
+      "ms": 330.0930000000001,
+      "rssMiB": 196.484375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "8341"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "9",
+      "answer": 0.0447552,
+      "correct": true,
+      "ms": 337.203083,
+      "rssMiB": 196.625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "9219"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "10",
+      "answer": 0.09864288,
+      "correct": true,
+      "ms": 337.39945800000004,
+      "rssMiB": 195.640625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "10097"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "11",
+      "answer": 0.16893878,
+      "correct": true,
+      "ms": 334.20604199999997,
+      "rssMiB": 196.34375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "10975"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "12",
+      "answer": 0.2486989,
+      "correct": true,
+      "ms": 480.47637499999996,
+      "rssMiB": 199.171875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "11853"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "13",
+      "answer": 0.33146566,
+      "correct": true,
+      "ms": 710.955792,
+      "rssMiB": 200.546875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "12731"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "14",
+      "answer": 0.41259959,
+      "correct": true,
+      "ms": 718.547875,
+      "rssMiB": 197.71875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "13609"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "15",
+      "answer": 0.48947283,
+      "correct": true,
+      "ms": 684.5614999999999,
+      "rssMiB": 197.71875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "14487"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "16",
+      "answer": 0.56103798,
+      "correct": true,
+      "ms": 770.5918339999998,
+      "rssMiB": 199.203125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "15365"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "17",
+      "answer": 0.62724081,
+      "correct": true,
+      "ms": 896.181292,
+      "rssMiB": 203.3125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "16243"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "18",
+      "answer": 0.68852775,
+      "correct": true,
+      "ms": 486.22062500000004,
+      "rssMiB": 205.09375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "17121"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "19",
+      "answer": 0.74552088,
+      "correct": true,
+      "ms": 472.13462499999997,
+      "rssMiB": 206.03125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "17999"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "20",
+      "answer": 0.79884191,
+      "correct": true,
+      "ms": 515.315959,
+      "rssMiB": 204.6875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "18877"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "21",
+      "answer": 0.84903728,
+      "correct": true,
+      "ms": 502.42908400000005,
+      "rssMiB": 206.5625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "19755"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "22",
+      "answer": 0.89655952,
+      "correct": true,
+      "ms": 565.868667,
+      "rssMiB": 204.609375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "20633"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "23",
+      "answer": 0.94177422,
+      "correct": true,
+      "ms": 558.454459,
+      "rssMiB": 205.53125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "21511"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "24",
+      "answer": 0.98497507,
+      "correct": true,
+      "ms": 406.519084,
+      "rssMiB": 203.3125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "22389"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "25",
+      "answer": 1.02639934,
+      "correct": true,
+      "ms": 367.06425,
+      "rssMiB": 209.890625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "23267"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "26",
+      "answer": 1.06624076,
+      "correct": true,
+      "ms": 363.77383399999997,
+      "rssMiB": 205.34375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "24145"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "27",
+      "answer": 1.10465961,
+      "correct": true,
+      "ms": 370.66816700000004,
+      "rssMiB": 205.71875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "25023"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "28",
+      "answer": 1.14179028,
+      "correct": true,
+      "ms": 384.039584,
+      "rssMiB": 248.453125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "25901"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "29",
+      "answer": 1.17774703,
+      "correct": true,
+      "ms": 405.017834,
+      "rssMiB": 269.140625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "26779"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "30",
+      "answer": 1.21262821,
+      "correct": true,
+      "ms": 421.51933399999996,
+      "rssMiB": 241.984375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "27657"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "31",
+      "answer": 1.24651945,
+      "correct": true,
+      "ms": 432.507083,
+      "rssMiB": 242.65625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "28535"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "32",
+      "answer": 1.27949611,
+      "correct": true,
+      "ms": 450.17579200000006,
+      "rssMiB": 260.453125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "29413"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "33",
+      "answer": 1.31162498,
+      "correct": true,
+      "ms": 461.36725,
+      "rssMiB": 273.28125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "30291"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "34",
+      "answer": 1.34296572,
+      "correct": true,
+      "ms": 486.05316700000003,
+      "rssMiB": 275.1875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "31169"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "35",
+      "answer": 1.37357182,
+      "correct": true,
+      "ms": 503.392875,
+      "rssMiB": 272.546875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "32047"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "36",
+      "answer": 1.40349147,
+      "correct": true,
+      "ms": 752.440875,
+      "rssMiB": 276.75,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "32925"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "37",
+      "answer": 1.43276818,
+      "correct": true,
+      "ms": 1428.632875,
+      "rssMiB": 277.828125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "33803"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "38",
+      "answer": 1.46144136,
+      "correct": true,
+      "ms": 1561.0182920000002,
+      "rssMiB": 278.3125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "34681"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "39",
+      "answer": 1.48954675,
+      "correct": true,
+      "ms": 1506.689417,
+      "rssMiB": 278.578125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "35559"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "40",
+      "answer": 1.51711689,
+      "correct": true,
+      "ms": 1065.5397910000002,
+      "rssMiB": 281.75,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "36437"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "41",
+      "answer": 1.54418142,
+      "correct": true,
+      "ms": 953.261333,
+      "rssMiB": 285.0625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "37315"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "42",
+      "answer": 1.5707674,
+      "correct": true,
+      "ms": 1133.7375000000002,
+      "rssMiB": 282.015625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "38193"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "43",
+      "answer": 1.59689963,
+      "correct": true,
+      "ms": 1083.0369170000001,
+      "rssMiB": 289.65625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "39071"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "44",
+      "answer": 1.62260084,
+      "correct": true,
+      "ms": 972.527708,
+      "rssMiB": 291.515625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "39949"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "45",
+      "answer": 1.64789196,
+      "correct": true,
+      "ms": 912.5640000000001,
+      "rssMiB": 292.984375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "40827"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "46",
+      "answer": 1.67279228,
+      "correct": true,
+      "ms": 798.8384159999999,
+      "rssMiB": 293.53125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "41705"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "47",
+      "answer": 1.69731961,
+      "correct": true,
+      "ms": 681.4707080000001,
+      "rssMiB": 296.734375,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "42583"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "48",
+      "answer": 1.72149046,
+      "correct": true,
+      "ms": 710.401042,
+      "rssMiB": 298.765625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "43461"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "49",
+      "answer": 1.74532016,
+      "correct": true,
+      "ms": 738.096708,
+      "rssMiB": 300.3125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "44339"
+      },
+      "phases": []
+    },
+    {
+      "mode": "compiled",
+      "variant": "shipping",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 779.990542,
+      "rssMiB": 303.078125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "mode": "reference",
+      "variant": "shipping",
+      "turns": "0",
+      "answer": 0,
+      "correct": true,
+      "ms": 373.71637499999997,
+      "rssMiB": 218.921875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "1317"
+      },
+      "phases": [],
+      "graphVerified": true
+    },
+    {
+      "mode": "reference",
+      "variant": "shipping",
+      "turns": "5",
+      "answer": 0,
+      "correct": true,
+      "ms": 475.750542,
+      "rssMiB": 267.75,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "5707"
+      },
+      "phases": []
+    },
+    {
+      "mode": "reference",
+      "variant": "shipping",
+      "turns": "7",
+      "answer": 0,
+      "correct": true,
+      "ms": 1631.5589169999998,
+      "rssMiB": 273,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "7463"
+      },
+      "phases": []
+    },
+    {
+      "mode": "reference",
+      "variant": "shipping",
+      "turns": "8",
+      "answer": 0.012096,
+      "correct": true,
+      "ms": 1665.187041,
+      "rssMiB": 274.6875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "8341"
+      },
+      "phases": []
+    },
+    {
+      "mode": "reference",
+      "variant": "shipping",
+      "turns": "9",
+      "answer": 0.0447552,
+      "correct": true,
+      "ms": 2207.591042,
+      "rssMiB": 276.5625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "9219"
+      },
+      "phases": []
+    },
+    {
+      "mode": "reference",
+      "variant": "shipping",
+      "turns": "10",
+      "answer": 0.09864288,
+      "correct": true,
+      "ms": 1085.075167,
+      "rssMiB": 284.5,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "10097"
+      },
+      "phases": []
+    },
+    {
+      "mode": "reference",
+      "variant": "shipping",
+      "turns": "20",
+      "answer": 0.79884191,
+      "correct": true,
+      "ms": 1504.4639169999998,
+      "rssMiB": 307.53125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "18877"
+      },
+      "phases": []
+    },
+    {
+      "mode": "reference",
+      "variant": "shipping",
+      "turns": "22",
+      "answer": 0.89655952,
+      "correct": true,
+      "ms": 1880.186041,
+      "rssMiB": 300.5,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "20633"
+      },
+      "phases": []
+    },
+    {
+      "mode": "reference",
+      "variant": "shipping",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 6210.739167,
+      "rssMiB": 448.390625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    }
+  ]
+}

@@ -29,8 +29,8 @@ rem Robin's out entries or a number new
 rem to both, each with a change of the
 rem score L - R. A search finds all the
 rem states with their moves, then the
-rem turns spread the odds of each score
-rem as integers of 2^48 parts.
+rem turns count paths for each score.
+rem Divide by 10^Turns only at the end.
 Bs = 7 ** 5
 Pw = 7 ** (0 to 4 array)
 Id = array shape (6 * Bs) fill -1
@@ -124,10 +124,10 @@ for
 end
 Wd = 2 * Turns + 3
 Off = Turns + 1
-Sl = 2 ** 48
+Sl = 10 ** Turns
 Size = Ns * Wd
 Dp = array shape Size fill 0
-Dp Off = Sl
+Dp Off = 1
 for T in 0 till Turns
   New = array shape Size fill 0
   for X in 0 till Nt
@@ -135,8 +135,11 @@ for T in 0 till Turns
     Ts = Tt X * Wd + Td X
     Wt = Tw X
     for D in (Off - T) to (Off + T)
-      Mv = (Dp (Fs + D) * Wt + 5) // 10
-      New (Ts + D) += Mv
+      Value = Dp (Fs + D)
+      if Value not equal 0
+        Mv = Value * Wt
+        New (Ts + D) += Mv
+      end
     end
   end
   Dp = New
@@ -144,5 +147,6 @@ end
 Cols' = 0 till Size array mod Wd
 Ab' = (Cols - Off) abs
 Total = (Dp * Ab) sum
-Answer = Total / Sl round 8
+Scaled = (Total * 100000000 + Sl // 2) // Sl
+Answer = Scaled / 100000000
 Answer print

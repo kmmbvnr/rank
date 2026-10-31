@@ -1,0 +1,50 @@
+[
+  {
+    "task": "292",
+    "policy": "none",
+    "result": {
+      "mode": "compiled",
+      "variant": "shipping",
+      "n": 120,
+      "ms": 960.6055410000001,
+      "answer": "3600060866",
+      "rssMiB": 223.59375
+    }
+  },
+  {
+    "task": "296",
+    "policy": "none",
+    "result": {
+      "mode": "compiled",
+      "variant": "shipping",
+      "n": "100000",
+      "answer": "1137208419",
+      "ms": 3899.0299999999997,
+      "rssMiB": 153.078125
+    }
+  },
+  {
+    "task": "292",
+    "policy": "cow",
+    "result": {
+      "mode": "compiled",
+      "variant": "shipping",
+      "n": 120,
+      "ms": 461.04941699999995,
+      "answer": "3600060866",
+      "rssMiB": 224.15625
+    }
+  },
+  {
+    "task": "296",
+    "policy": "cow",
+    "result": {
+      "mode": "compiled",
+      "variant": "shipping",
+      "n": "100000",
+      "answer": "1137208419",
+      "ms": 2544.643166,
+      "rssMiB": 158.890625
+    }
+  }
+]

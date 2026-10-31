@@ -1,0 +1,211 @@
+{
+  "node": "v24.15.0",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "samples": [
+    {
+      "repeat": 0,
+      "policy": "cow",
+      "mode": "compiled",
+      "variant": "original",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 383.860792,
+      "rssMiB": 246.125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 0,
+      "policy": "cow",
+      "mode": "compiled",
+      "variant": "skip",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 339.023291,
+      "rssMiB": 239.0625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 0,
+      "policy": "none",
+      "mode": "reference",
+      "variant": "original",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 7906.597833,
+      "rssMiB": 400.6875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 0,
+      "policy": "none",
+      "mode": "reference",
+      "variant": "skip",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 6922.041166,
+      "rssMiB": 319.46875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 1,
+      "policy": "cow",
+      "mode": "compiled",
+      "variant": "original",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 371.35175000000004,
+      "rssMiB": 244.578125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 1,
+      "policy": "cow",
+      "mode": "compiled",
+      "variant": "skip",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 343.87804200000005,
+      "rssMiB": 245.140625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 1,
+      "policy": "none",
+      "mode": "reference",
+      "variant": "original",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 7950.6828749999995,
+      "rssMiB": 402.03125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 1,
+      "policy": "none",
+      "mode": "reference",
+      "variant": "skip",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 7517.721125,
+      "rssMiB": 357.828125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 2,
+      "policy": "cow",
+      "mode": "compiled",
+      "variant": "original",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 356.074542,
+      "rssMiB": 239.265625,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 2,
+      "policy": "cow",
+      "mode": "compiled",
+      "variant": "skip",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 335.112125,
+      "rssMiB": 243.71875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 2,
+      "policy": "none",
+      "mode": "reference",
+      "variant": "original",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 9054.398459,
+      "rssMiB": 401.671875,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    },
+    {
+      "repeat": 2,
+      "policy": "none",
+      "mode": "reference",
+      "variant": "skip",
+      "turns": "50",
+      "answer": 1.76882294,
+      "correct": true,
+      "ms": 6401.570292,
+      "rssMiB": 323.703125,
+      "counts": {
+        "Ns": "439",
+        "Nt": "2913",
+        "Size": "45217"
+      },
+      "phases": []
+    }
+  ]
+}

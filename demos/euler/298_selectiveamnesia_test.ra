@@ -18,3 +18,27 @@ test "fewer turns"
 
   Answer equal 0.79884191
 end
+
+test "exact rounding after 22 turns"
+  use "298_selectiveamnesia"
+  Turns = 22
+  run
+
+  Answer equal 0.89655952
+end
+
+test "empty and first differing scores"
+  use "298_selectiveamnesia"
+  Turns = 0
+  run
+
+  Answer equal 0
+  Turns = 7
+  run
+
+  Answer equal 0
+  Turns = 8
+  run
+
+  Answer equal 0.012096
+end

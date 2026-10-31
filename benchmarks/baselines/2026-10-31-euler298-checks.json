@@ -1,0 +1,48 @@
+{
+  "baseline": "7749fbf9b366cb2c5f31ed033436200bedaba271",
+  "interpreterSourceBuild": "passed",
+  "focused": {
+    "files": 8,
+    "passed": 143
+  },
+  "scopedAudits": {
+    "interpreter": 4,
+    "common": 2,
+    "embeddedBlocks": 4,
+    "passed": true
+  },
+  "ordinary": {
+    "passed": 10182,
+    "failed": 16,
+    "passedFiles": 442,
+    "failedFiles": 4,
+    "excluded": [
+      "types",
+      "differential",
+      "nurikabe"
+    ],
+    "seconds": 311.63
+  },
+  "existingFailures": {
+    "demandBudget": {
+      "count": 1,
+      "baselineReproduced": true
+    },
+    "convolveNameConflict": {
+      "imageTests": 12,
+      "manualTests": 1,
+      "baselineReproduced": true
+    },
+    "scalarFunctionTimeouts": {
+      "count": 2,
+      "rerun": {
+        "passed": 24,
+        "timeoutMs": 30000,
+        "slowTestsMs": [
+          3246,
+          4520
+        ]
+      }
+    }
+  }
+}

@@ -20,7 +20,7 @@ import { RankDeque } from '../containers.js';
 import { hasIntegerDequeIteration, hasNativeDeque } from './compiled-argument-type.js';
 import { unpackApplicationItems } from '../value-selection.js';
 import { IndexEntries, indexHas, indexRead, indexSet, indexKey } from '../index-storage.js';
-import { readArrayItem, storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind, writableIntegerCells, writeIntegerSelection } from '../array-storage.js';
+import { readArrayItem, storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader, ownedArray, arrayRevision, arrayForWrite, privateArrayCopy, isSharedArray, typedElementKind, writableIntegerCells, writeIntegerSelection } from '../array-storage.js';
 
 function emitIntegerLoopSource(plan: IntegerLoopPlan, workCounting = false): string {
     const { names, arrays, destinations, root, body, hasYield } = plan;
@@ -52,7 +52,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
     const checkedCells = new WeakMap<RankArray, { revision: number; type: LoopTerm['type'] | undefined }>();
     const source = emitIntegerLoopSource(plan, false);
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, callouts?: (() => RankValue)[]) => RankValue | undefined;
-    const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', 'shapeMismatch', code)(
+    const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', 'shapeMismatch', 'aliasValue', code)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, checkValueMutable, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
@@ -106,7 +106,8 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                 const items = unpackApplicationItems(value);
                 if (items.length !== count) throw new RankError(`unpack expects ${count} values, got ${items.length}`);
                 return items;
-            }, observeWork, (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'));
+            }, observeWork, (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
+            (value: RankValue, name: string) => writable.has(name) && isRankArray(value) ? privateArrayCopy(value) : value);
     try { run = compile(source, () => {}); }
     catch { return reject(); }
     let countedRun: typeof run | undefined;

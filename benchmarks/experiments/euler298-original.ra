@@ -1,0 +1,148 @@
+rem Selective Amnesia
+rem https://projecteuler.net/problem=298
+rem Larry and Robin hear Turns numbers
+rem from 1 to 10 and each keeps up to 5.
+rem A heard number in memory scores a
+rem point, else it is added, with the
+rem oldest number dropped if full: Larry
+rem the number longest unheard, Robin
+rem the one in memory longest. Find the
+rem expected |L - R|.
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Turns integer = 50
+
+rem A state is Larry's queue, longest
+rem unheard first, only its size l as
+rem the numbers are alike, and Robin's
+rem queue, each entry either out of
+rem Larry's queue or its place there.
+rem Robin's entries are digits 1 for out
+rem and p + 2 for place p, 0 if none,
+rem in base 7. Every turn is a hit of
+rem Larry at place p, a number from
+rem Robin's out entries or a number new
+rem to both, each with a change of the
+rem score L - R. A search finds all the
+rem states with their moves, then the
+rem turns spread the odds of each score
+rem as integers of 2^48 parts.
+Bs = 7 ** 5
+Pw = 7 ** (0 to 4 array)
+Id = array shape (6 * Bs) fill -1
+Sc = array shape 4000 fill 0
+Tf = array shape 40000 fill 0
+Tt = array shape 40000 fill 0
+Td = array shape 40000 fill 0
+Tw = array shape 40000 fill 0
+Id 0 = 0
+Ns = 1
+Nt = 0
+I = 0
+for
+  if I equal Ns
+    break
+  end
+  Code = Sc I
+  L = Code // Bs
+  R = Code mod Bs // Pw mod 7
+  O = (R equal 1) count
+  for Ev in 0 to (L + 5)
+    Fresh = Ev equal L + 5
+    Wt = 1
+    Dl = 0
+    L2 = L
+    R2 = R
+    Ok = true
+    if Ev less L
+      Dl = 1
+      for J in 0 to 4
+        E = R J
+        if E greater 1
+          if E equal Ev + 2
+            Dl = 0
+            R2 J = L + 1
+          else
+            if E greater Ev + 2
+              R2 J = E - 1
+            end
+          end
+        end
+      end
+    else
+      if L equal 5
+        for J in 0 to 4
+          if R2 J equal 2
+            R2 J = 1
+          else
+            if R2 J greater 2
+              R2 J = R2 J - 1
+            end
+          end
+        end
+      else
+        L2 = L + 1
+      end
+      if Fresh
+        Wt = 10 - L - O
+        Dl = 0
+      else
+        Ok = R (Ev - L) equal 1
+        Dl = -1
+      end
+    end
+    Ok = Ok and Wt greater 0
+    if Ok
+      if Dl equal 1 or Fresh
+        for J in 0 to 3
+          R2 J = R2 (J + 1)
+        end
+        R2 4 = L2 + 1
+      end
+      if Ev at least L and not Fresh
+        R2 (Ev - L) = L2 + 1
+      end
+      Rs = (R2 * Pw) sum
+      Code2 = L2 * Bs + Rs
+      if Id Code2 less 0
+        Id Code2 = Ns
+        Sc Ns = Code2
+        Ns += 1
+      end
+      Tf Nt = I
+      Tt Nt = Id Code2
+      Td Nt = Dl
+      Tw Nt = Wt
+      Nt += 1
+    end
+  end
+  I += 1
+end
+Wd = 2 * Turns + 3
+Off = Turns + 1
+Sl = 2 ** 48
+Size = Ns * Wd
+Dp = array shape Size fill 0
+Dp Off = Sl
+for T in 0 till Turns
+  New = array shape Size fill 0
+  for X in 0 till Nt
+    Fs = Tf X * Wd
+    Ts = Tt X * Wd + Td X
+    Wt = Tw X
+    for D in (Off - T) to (Off + T)
+      Mv = (Dp (Fs + D) * Wt + 5) // 10
+      New (Ts + D) += Mv
+    end
+  end
+  Dp = New
+end
+Cols' = 0 till Size array mod Wd
+Ab' = (Cols - Off) abs
+Total = (Dp * Ab) sum
+Answer = Total / Sl round 8
+Answer print
