@@ -81,12 +81,13 @@ call uses named intermediate values or a parenthesized argument.
 Rank code is designed for mobile touchscreens, pocket calculators, and narrow
 displays. Clean, idiomatic Rank balances brevity with readability:
 
-- Prefer array operations over loops.
+- Prefer array operations when they simplify code.
 - Use existing library functions.
 - Chain operations when they read clearly.
 - Keep only useful intermediate variables.
 - Avoid unnecessary conversions and brackets.
 - Use short, meaningful names.
+- Keep function parameters few and meaningful.
 - Prefer at most 40 characters per line,
   including comments.
 - Prefer assigning each variable once.
