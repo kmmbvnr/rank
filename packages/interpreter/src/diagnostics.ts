@@ -54,6 +54,8 @@ export class RuntimeDiagnostics {
     compiledArrayFunctions = 0;
     numericFunctionPreparations = 0;
     numericFunctionPlanHits = 0;
+    compiledNumericCallLoops = 0;
+    numericLoopCalls = 0;
     rankedArrayBatches = 0;
     /** Full materialization attempts over a prepared scalar callback. */
     rankedBatches = 0;

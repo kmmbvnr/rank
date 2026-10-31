@@ -705,6 +705,99 @@ Evidence: [FFT experiment](baselines/2026-11-01-numeric-prepared-step2-fft.json)
 Timing again uses serial fresh processes with alternating order and no
 concurrent tests/profiling. Ratios from the two steps are not multiplied.
 
+### Step 3: private array registers across pure helper calls
+
+The baseline is a fixed build of `cfcefda9`, after steps 1 and 2. The FFT
+source is unchanged: every invocation still computes its coefficients and
+permutation. This step adds a generic conditional-loop plan, using the
+existing numerical helper compiler through a private buffer interface.
+
+An eligible loop calls pure global helpers, assigns an array or unpacks a
+flat tuple of arrays, and updates safe integer control variables. Array
+ranks must remain fixed, and scalar control must prove a finite schedule of
+at most 1024 iterations independently of array results. Existing input
+storage is borrowed read-only; helper outputs remain private until the loop
+succeeds. A failed guard replays the original loop with untouched bindings.
+Captures, effects, memoization, explicit call ranks, generators, finally,
+inspection hooks, cancellation and demand budgets retain the ordinary path.
+
+The first two passes retain public return-contract observations: the first
+can consume inputs with unresolved element declarations; by the second,
+loop-written arrays are real with fixed ranks. Later shapes/scalar values do
+not change the argument specialization. Final bindings and return values
+are wrapped and published once. Numeric output buffers are still freshly
+allocated for every call; buffer recycling is not part of this step.
+
+Five alternating pairs in fresh processes, including all output forcing:
+
+| FFT N | Before, ms | Private calls, ms | Less time | JS in-place, ms |
+| --- | ---: | ---: | ---: | ---: |
+| 256 | 0.35811 | 0.20549 | 42.6% | 0.02412 |
+| 1024 | 0.68093 | 0.46178 | 32.2% | 0.09621 |
+| 4096 | 1.30343 | 1.01823 | 21.9% | 0.38910 |
+
+At N=4096, process ranges do not overlap: 1.295–1.307 ms before and
+0.987–1.026 ms after. CPU medians improve from 1.933 to 1.336 ms. The
+remaining gap against this handwritten JS implementation is about 2.62x;
+this step alone is a 1.28x speedup, not a threefold gain.
+
+A second five-pair run on the final build confirms the result: 1.30105 to
+1.00930 ms at N=4096, with JS at 0.38785 ms (about 2.60x gap). At N=256 and
+1024 it measures 0.36149 to 0.20650 and 0.68282 to 0.46333 ms.
+
+Unhooked runtime diagnostics show one private call loop and twelve helper
+calls. A warm call has twelve prepared-plan hits and zero preparations.
+The benchmark's `--diagnostics` mode installs compilation hooks and therefore
+retains the ordinary loop path; those hook-based runs must not be used to
+count this new optimization.
+
+Independent helpers repeat 16 calls over 4096 real elements. Their inputs
+and full independent JS oracles are prepared outside timing:
+
+| Helper | Before, ms | Private calls, ms |
+| --- | ---: | ---: |
+| Repeated affine transform | 0.27574 | 0.12312 |
+| Repeated pair transform | 0.27580 | 0.12465 |
+| Standalone affine control | 0.04922 | 0.04952 |
+| Standalone indexed control | 0.03080 | 0.03099 |
+| Standalone pair control | 0.04926 | 0.04940 |
+
+The caller-loop examples improve about 2.2x; standalone controls change by
+less than 1%. These controls also cover the refactored ordinary helper
+input path. No FFT-specific operation, coefficient cache or source rewrite
+is involved.
+
+The unchanged matrix/vector demo measures 29.233 to 29.212 ms; gradient
+descent measures 6.968 to 7.012 ms with overlapping process ranges. Neither
+control shows a material change.
+
+Verification: all 453 existing ordinary interpreter files / 10,422 tests
+pass, and all 29 new caller-loop cases pass. The ordinary run exposed an
+incorrect expectation in the new memo fixture (array memo keys are rejected);
+that expectation was corrected and its full 29-case file rerun successfully.
+Tests compare complete results, retained aliases and located errors against
+uncompiled and number-loop-disabled execution, including post-progress
+failures, changing shapes, signed zero, negative floor division, effects,
+captures, hooks, cancellation, demand budgets and the unchanged 4096-point
+FFT. All 55 Deep-ML files and seven classic files pass; TypeScript build,
+semantic boundaries and application-form checks pass. Exhaustive audits
+remain excluded, as required by AGENTS.md.
+
+Evidence: [FFT series](baselines/2026-11-01-numeric-call-loop-fft.json),
+[FFT confirmation](baselines/2026-11-01-numeric-call-loop-fft-confirm.json),
+[general helpers and standalone controls](baselines/2026-11-01-numeric-call-loop-helpers.json),
+[matrix/vector control](baselines/2026-11-01-numeric-call-loop-matvec.json),
+[gradient control](baselines/2026-11-01-numeric-call-loop-gradient.json),
+[unhooked diagnostics](baselines/2026-11-01-numeric-call-loop-diagnostics.json),
+[CPU summary](baselines/2026-11-01-numeric-call-loop-cpu.json).
+
+A separate 2.5-second CPU sample places roughly 45% of inclusive time in the
+existing numerical array loop used for output permutation, versus about 14%
+in the new helper-call loop. Output boxing takes about 7%; garbage collection
+about 3%. These instrumented proportions locate follow-up work, not predicted
+speedups, and categories can overlap. Generic integer array-loop execution
+is now a more promising large target than another helper-boundary change.
+
 ## Reproduction and checks
 
 ```sh

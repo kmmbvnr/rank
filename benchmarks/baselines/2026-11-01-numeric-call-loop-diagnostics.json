@@ -1,0 +1,21 @@
+{
+  "note": "No compilation hooks: hooks deliberately retain the ordinary loop path.",
+  "source": "demos/classic/fft.ra",
+  "n": 4096,
+  "cold": {
+    "compiledNumericCallLoops": 1,
+    "numericLoopCalls": 12,
+    "compiledArrayFunctions": 12,
+    "numericFunctionPreparations": 12,
+    "numericFunctionPlanHits": 0,
+    "numberLoops": 1
+  },
+  "warm": {
+    "compiledNumericCallLoops": 1,
+    "numericLoopCalls": 12,
+    "compiledArrayFunctions": 12,
+    "numericFunctionPreparations": 0,
+    "numericFunctionPlanHits": 12,
+    "numberLoops": 1
+  }
+}

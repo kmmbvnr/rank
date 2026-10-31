@@ -38,6 +38,19 @@ fun X transform Scale
  return Out reshape #
 end`,
 };
+// Repeated pure calls exercise caller-owned array registers without FFT.
+for (const [name, helper] of [['loopAffine', 'affine'], ['loopPairs', 'pairs']]) {
+  sources[name] = sources[helper].replace('transform', 'step') + `
+fun X transform Scale
+ A = X
+ Count = 16
+ for Count greater 0
+  A = A step Scale
+  Count -= 1
+ end
+ return A
+end`;
+}
 const median = xs => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
 if (!values.worker) {
   assert(values.baseline, 'Pass an independently built --baseline');
@@ -74,9 +87,17 @@ if (!values.worker) {
   const n = 4096, cells = Float64Array.from({ length: n }, (_, i) => Math.sin(i * .37) + Math.cos(i * .13));
   const args = [typedArray(cells), name === 'indexed' ? 2n : 1.25];
   const fn = runtime.variables.get('transform'), run = () => fn.call(args).items;
-  const expected = name === 'affine' ? Array.from(cells, x => x * 1.25 + .5)
+  let expected = name === 'affine' ? Array.from(cells, x => x * 1.25 + .5)
     : name === 'indexed' ? Array.from({ length: n / 2 - 1 }, (_, i) => cells[(i + 1) * 2] - cells[i * 2])
       : Array.from({ length: n }, (_, i) => i % 2 ? (cells[i - 1] - cells[i]) * 1.25 : (cells[i] + cells[i + 1]) * .5);
+  if (name.startsWith('loop')) {
+    expected = Array.from(cells);
+    for (let pass = 0; pass < 16; pass++) {
+      const before = expected;
+      expected = name === 'loopAffine' ? before.map(x => x * 1.25 + .5)
+        : before.map((x, i) => i % 2 ? (before[i - 1] - x) * 1.25 : (x + before[i + 1]) * .5);
+    }
+  }
   const check = actual => { assert.equal(actual.length, expected.length); for (let i = 0; i < expected.length; i++) assert(Math.abs(actual[i] - expected[i]) < 1e-12); };
   check(run()); let count = 0, start = performance.now();
   while (performance.now() - start < 300 || count < 3) { run(); count++; }

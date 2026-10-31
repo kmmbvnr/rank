@@ -30,6 +30,7 @@ export interface NumericBound {
 }
 interface Host {
     lookup(name: string): RankValue | undefined;
+    buffer?(name: string): NumericBuffer | undefined;
     builtin(name: 'len' | 'reshape' | 'concat'): boolean;
     compiled(source: string): void;
     executed(): void;
@@ -46,6 +47,25 @@ function inlineRange(expression: Expression, budget = { left: 512 }): boolean {
     return isBinaryExpression(e) && (e.operator === 'to' || e.operator === 'till'
         || inlineRange(e.left, budget) || inlineRange(e.right, budget))
         || isUnaryExpression(e) && inlineRange(e.operand, budget);
+}
+
+/** Invocation-private array registers; never accepted as ordinary host values. */
+export class NumericBuffer {
+    constructor(readonly cells: ArrayLike<number>, readonly shape: readonly number[]) {}
+}
+
+/** Borrow only completed tracked real storage, with no user-defined readers. */
+export function borrowNumericBuffer(value: RankValue | undefined): NumericBuffer | undefined {
+    const state = value && typeof value === 'object' ? ownedStorage.get(value as RankArray) : undefined;
+    if (!state?.stable || !state.scalarOnly || state.validity || state.readOnlyCells
+        || state.typed && !(state.typed instanceof Float64Array)) return undefined;
+    const descriptor = Object.getOwnPropertyDescriptor(value, 'shape');
+    if (!descriptor || !('value' in descriptor) || !same(descriptor.value, state.shape)
+        || Object.getOwnPropertyDescriptor(value, 'itemAt') || Object.getOwnPropertyDescriptor(value, 'columnNames')
+        || Object.getOwnPropertyDescriptor(value, 'tableScopes') || Object.getOwnPropertyDescriptor(value, 'sortKeys')
+        || storedScalarKinds(value as RankArray, true)?.join() !== 'real') return undefined;
+    const cells = realCells(value as RankArray), shape = [...state.shape];
+    return cells && shape.length && sizeOf(shape) === cells.length ? new NumericBuffer(cells, shape) : undefined;
 }
 
 /** A pure function boundary lets structural numeric intermediates stay virtual.
@@ -139,7 +159,8 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
     const expressions = product ? returned.items.map(item => item.value) : [returned];
     if (!expressions.length || expressions.length > 8) return undefined;
     const outputs = expressions.map(parse);
-    if (!structural || outputs.some(n => !n)) return undefined;
+    if (!structural || outputs.some(n => !n) || [...builtins].some(name => parameters.has(name)
+        || assignments.some(a => a.name === name))) return undefined;
     const roots = outputs as NumericNode[];
     const reachable = new Set<NumericNode>();
     function visit(node: NumericNode): void {
@@ -172,7 +193,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
     const inputNames = new Set([...reachable].flatMap(node => node.kind === 'input' ? [node.name] : []));
     for (const { name } of assignments) if (parameters.has(name)) inputNames.add(name);
     let unavailable = false;
-    return { run(): RankValue | undefined {
+    function invoke(raw: boolean): RankValue | NumericBuffer[] | undefined {
         if (unavailable || !privateLoopPolling() || interruptsEnabled()) return undefined;
         for (const name of builtins) if (!host.builtin(name)) return recordFallback(`numeric-function:builtin:${name}`);
         const bound = new Map<NumericNode, NumericBound>(), inputs = new Map<string, NumericBound>();
@@ -186,29 +207,25 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
         }
         function readInput(name: string): NumericBound {
             let info: NumericBound;
-            const value = host.lookup(name);
+            const buffer = host.buffer?.(name);
+            const value = buffer ? undefined : host.lookup(name);
             if (typeof value === 'bigint' && safe(Number(value))) info = { shape: [], size: 1, integer: true, scalar: Number(value), low: Number(value), high: Number(value) };
             else if (typeof value === 'number' && Number.isFinite(value)) info = { shape: [], size: 1, integer: false, scalar: value };
             else {
-                const state = value && typeof value === 'object' ? ownedStorage.get(value as RankArray) : undefined;
-                if (!state?.stable || !state.scalarOnly || state.validity || state.readOnlyCells
-                    || state.typed && !(state.typed instanceof Float64Array)) return bad(`input-storage:${name}`);
-                const descriptor = Object.getOwnPropertyDescriptor(value, 'shape');
-                if (!descriptor || !('value' in descriptor) || !same(descriptor.value, state.shape)
-                    || Object.getOwnPropertyDescriptor(value, 'itemAt') || Object.getOwnPropertyDescriptor(value, 'columnNames')
-                    || Object.getOwnPropertyDescriptor(value, 'tableScopes') || Object.getOwnPropertyDescriptor(value, 'sortKeys')
-                    || storedScalarKinds(value as RankArray, true)?.join() !== 'real') return bad();
-                const cells = realCells(value as RankArray);
-                if (!cells) return bad();
-                info = { shape: [...state.shape], size: sizeOf(state.shape), integer: false, data: data.length };
-                if (!info.shape.length || info.size !== cells.length) return bad();
-                data.push(cells);
+                const input = buffer ?? borrowNumericBuffer(value);
+                if (!input) return bad(`input-storage:${name}`);
+                info = { shape: input.shape, size: input.cells.length, integer: false, data: data.length };
+                data.push(input.cells);
             }
             return info;
         }
-        function execute(prepared: Prepared): RankValue | undefined {
+        function execute(prepared: Prepared): RankValue | NumericBuffer[] | undefined {
             const buffers = prepared.results.map(r => new Float64Array(r.size));
             if (!prepared.run(data, prepared.scalars, buffers)) return undefined;
+            if (raw) {
+                host.executed();
+                return buffers.map((buffer, i) => new NumericBuffer(buffer, prepared.results[i].shape));
+            }
             const values = buffers.map((buffer, i) => typedArray(buffer, prepared.results[i].shape, undefined, 'real'));
             host.executed();
             return product ? tuple(values) : values[0];
@@ -321,5 +338,10 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             if (preflight && error instanceof RankError && !(error instanceof InterruptedError)) return undefined;
             throw error;
         }
-    } };
+    }
+    return {
+        tupleResult: product, resultCount: roots.length,
+        run: () => invoke(false) as RankValue | undefined,
+        runBuffers: () => invoke(true) as NumericBuffer[] | undefined,
+    };
 }

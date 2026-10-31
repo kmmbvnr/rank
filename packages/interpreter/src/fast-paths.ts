@@ -13,6 +13,7 @@ import {
 import { compileBlock, type CompiledBlock } from './jit/block-compiler.js';
 import { compileTensorRegion } from './jit/tensor-region.js';
 import { compileNumericFunction } from './jit/numeric-function.js';
+import { compileNumericCallLoop } from './jit/numeric-call-loop.js';
 import { TailCallSignal } from './control-signals.js';
 import { registerFlatCombine } from './flat-combine.js';
 import { compileFusedReduction, compileFusedSum } from './jit/fused-reduction.js';
@@ -288,7 +289,7 @@ export class FastPaths {
         const compile = (host: LoopHost) => isFunctionStatement(statement)
             ? compileIntegerFunctionPrefix(statement, host) : compileIntegerLoop(statement, host, binding);
         const { loops, tensors, scalars, hooks } = this.compiler;
-        const compiled = loops.integer ? compile({
+        const ordinary = loops.integer ? compile({
             continuation,
             observableEntry: hooks.onIntegerLoopExecuted !== undefined,
             canDeferWrites: bindings => loops.number && this.context.bindings.canDeferWrites(bindings),
@@ -385,6 +386,36 @@ export class FastPaths {
             compiled: hooks.onIntegerLoopCompiled,
             executed: hooks.onIntegerLoopExecuted,
         }) : undefined;
+        const numeric = isForStatement(statement) && !continuation && loops.integer && loops.number
+            && this.compiler.functions.arrayFunctions && this.compiler.functions.bodies
+            ? compileNumericCallLoop(statement, {
+                read: name => this.context.bindings.find(name),
+                callee: name => {
+                    const fn = this.context.bindings.find(name);
+                    if (!fn || !isNativeFunction(fn)) return undefined;
+                    const definition = this.context.functions.definitionOf(fn);
+                    const call = Object.getOwnPropertyDescriptor(fn, 'call')?.value;
+                    return definition?.owner === this.context.functions && !definition.context
+                        && typeof call === 'function' && call === definition.call
+                        ? { identity: fn, statement: definition.statement,
+                            available: () => Object.getOwnPropertyDescriptor(fn, 'call')?.value === call
+                                && fn.arities.length === 1 && fn.arities[0] === definition.statement.parameters.length
+                                && fn.monadicRank === 'all' && (fn.dyadicRanks === undefined || fn.dyadicRanks.every(rank => rank === 'all')),
+                            check: (arguments_, result) => { definition.specialization(definition.bindParameters(arguments_)).check(result); },
+                        } : undefined;
+                },
+                builtin: name => name === 'concat' ? this.context.modules.has('sequences') : this.tensorHost().builtin(name),
+                enabled: () => this.compiler.loops.number && this.compiler.loops.arrayLocals && this.compiler.loops.arrays
+                    && this.compiler.functions.arrayFunctions && this.compiler.functions.bodies
+                    && !Object.values(this.compiler.hooks).some(Boolean),
+                canDeferWrites: bindings => this.context.bindings.canDeferWrites(bindings),
+                commit: (name, source, value) => {
+                    this.context.checkMutation(source);
+                    try { this.context.compileAssign(name)(value); }
+                    catch (error) { throw this.context.locate(error, source); }
+                },
+            }) : undefined;
+        const compiled = numeric ? { run: (...args: Parameters<CompiledLoop['run']>) => numeric.run(...args) ?? ordinary?.run(...args) } : ordinary;
         if (!loops.integer) recordFallback('loop:disabled');
         return compiled && { run: (...context) => {
             this.context.checkMutation(statement);

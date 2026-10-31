@@ -1,0 +1,273 @@
+{
+  "n": 4096,
+  "mode": "compiled",
+  "calls": 2435,
+  "samples": 16445,
+  "sampledMs": 2539.0000000000528,
+  "categoryMs": {
+    "contracts": 275.96999999999855,
+    "concatCopies": 6.6259999999999994,
+    "gc": 66.49800000000008
+  },
+  "categoryPercent": {
+    "contracts": 10.869239858211612,
+    "concatCopies": 0.26096888538794255,
+    "gc": 2.6190626230799015
+  },
+  "categoryNote": "inclusive categories; may overlap",
+  "self": [
+    {
+      "frame": "(anonymous)|:3",
+      "ms": 1333.7660000000535
+    },
+    {
+      "frame": "storedScalarKinds|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/owned-array.js:48",
+      "ms": 215.51400000000027
+    },
+    {
+      "frame": "state.convert|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/owned-array.js:1096",
+      "ms": 165.5810000000001
+    },
+    {
+      "frame": "(garbage collector)|:0",
+      "ms": 66.49800000000008
+    },
+    {
+      "frame": "mapStoredUnary|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/unary-array-kernel.js:7",
+      "ms": 52.950000000000074
+    },
+    {
+      "frame": "(program)|:0",
+      "ms": 49.17000000000009
+    },
+    {
+      "frame": "checked|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/modules/numbers.js:170",
+      "ms": 48.752000000000066
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-function.js:266",
+      "ms": 42.54300000000008
+    },
+    {
+      "frame": "post|node:inspector:115",
+      "ms": 37.708
+    },
+    {
+      "frame": "realArray|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/numeric-conversions.js:37",
+      "ms": 31.70600000000003
+    },
+    {
+      "frame": "createOwned|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/owned-array.js:1068",
+      "ms": 27.962999999999997
+    },
+    {
+      "frame": "prepareStoredScalarView|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/integer-view.js:167",
+      "ms": 25.552000000000017
+    },
+    {
+      "frame": "arrayElementTypes|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/array-element-types.js:7",
+      "ms": 25.453999999999997
+    },
+    {
+      "frame": "gather|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/selectors.js:460",
+      "ms": 24.576000000000022
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/selectors.js:92",
+      "ms": 22.418
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/modules/numbers.js:176",
+      "ms": 20.127999999999997
+    },
+    {
+      "frame": "invoke|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-function.js:233",
+      "ms": 14.876
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-call-loop.js:176",
+      "ms": 12.288
+    },
+    {
+      "frame": "visit|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/array-binding-contract.js:177",
+      "ms": 10.252
+    },
+    {
+      "frame": "filledArray|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/owned-array.js:724",
+      "ms": 9.792
+    },
+    {
+      "frame": "realKernel|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/tensor.js:328",
+      "ms": 9.787999999999997
+    },
+    {
+      "frame": "tensorSelection|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/selectors.js:88",
+      "ms": 9.753999999999998
+    },
+    {
+      "frame": "finiteDomain|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/modules/numbers.js:214",
+      "ms": 9.08
+    },
+    {
+      "frame": "materializeSequence|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/sequence.js:412",
+      "ms": 8.916
+    },
+    {
+      "frame": "advance|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/execution.js:92",
+      "ms": 8.745000000000001
+    },
+    {
+      "frame": "semanticArrayType|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/semantic-array-type.js:18",
+      "ms": 7.913
+    },
+    {
+      "frame": "sliceArray|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/selectors.js:401",
+      "ms": 6.872999999999998
+    },
+    {
+      "frame": "retain|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/number-loop-runtime.js:77",
+      "ms": 6.33
+    },
+    {
+      "frame": "vectorArray|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/number-loop-runtime.js:74",
+      "ms": 6.082999999999999
+    },
+    {
+      "frame": "iterator|file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/langium/lib/utils/stream.js:16",
+      "ms": 4.627
+    }
+  ],
+  "inclusive": [
+    {
+      "frame": "(root)|:0",
+      "ms": 2538.999999999734
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/benchmarks/fft.mjs:0",
+      "ms": 2417.7909999997346
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/benchmarks/fft.mjs:176",
+      "ms": 2379.039999999735
+    },
+    {
+      "frame": "call|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/function-invocation.js:428",
+      "ms": 2212.916999999736
+    },
+    {
+      "frame": "advance|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/execution.js:92",
+      "ms": 2201.7539999997375
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/block-compiler.js:15",
+      "ms": 1895.9649999998642
+    },
+    {
+      "frame": "continueCompiledBlock|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/blocks.js:84",
+      "ms": 1765.0399999998638
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/blocks.js:132",
+      "ms": 1504.12999999994
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/mutation-guards.js:36",
+      "ms": 1502.7139999999408
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/loops.js:200",
+      "ms": 1502.0489999999409
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/fast-paths.js:407",
+      "ms": 1501.5489999999409
+    },
+    {
+      "frame": "(anonymous)|:3",
+      "ms": 1381.7860000000446
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/integer-loop.js:104",
+      "ms": 1152.9590000000437
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/number-loop-runtime.js:324",
+      "ms": 1151.836000000044
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/expressions.js:255",
+      "ms": 366.94700000000046
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/expressions.js:270",
+      "ms": 365.24000000000035
+    },
+    {
+      "frame": "expression|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/checked-input.js:133",
+      "ms": 365.24000000000035
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/assignments.js:423",
+      "ms": 354.4610000000002
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/application.js:479",
+      "ms": 349.2480000000004
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/fast-paths.js:404",
+      "ms": 347.9629999999946
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/application.js:575",
+      "ms": 347.6650000000004
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-call-loop.js:176",
+      "ms": 346.29699999999474
+    },
+    {
+      "frame": "apply|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/application.js:612",
+      "ms": 338.83600000000035
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-call-loop.js:132",
+      "ms": 288.76099999999906
+    },
+    {
+      "frame": "invoke|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-function.js:233",
+      "ms": 282.1369999999996
+    },
+    {
+      "frame": "evaluate|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/expressions.js:57",
+      "ms": 279.54900000000026
+    },
+    {
+      "frame": "runBuffers|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-function.js:447",
+      "ms": 279.0119999999993
+    },
+    {
+      "frame": "applyIntrinsicRank|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/rank-application.js:109",
+      "ms": 259.8370000000002
+    },
+    {
+      "frame": "execute|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-function.js:265",
+      "ms": 259.7570000000002
+    },
+    {
+      "frame": "inputCall|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/interpreter.js:137",
+      "ms": 259.15100000000024
+    }
+  ],
+  "additionalInclusiveMs": {
+    "privateHelperLoop": 346.42199999999275,
+    "numberArrayLoop": 1151.8360000000187,
+    "outputBoxing": 165.5810000000001
+  },
+  "additionalInclusivePercent": {
+    "privateHelperLoop": 13.644033083890728,
+    "numberArrayLoop": 45.36573454115773,
+    "outputBoxing": 6.5215045293421285
+  },
+  "note": "Instrumented CPU samples locate remaining work, not speedup estimates. Inclusive categories overlap; timing evidence is from separate unprofiled runs. Both compiled loops are identified by runtime call ancestry."
+}

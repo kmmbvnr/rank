@@ -56,6 +56,7 @@ import {
 
 /** A user function as its call sites see it. `owner` tells this interpreter's functions from a module child's. */
 export interface FunctionDefinition {
+    readonly call: NativeFunction['call'];
     readonly specialization: (arguments_: RankValue[]) => ReturnContract;
     readonly bindParameters: (arguments_: RankValue[]) => RankValue[];
     readonly owner: FunctionInvocation;
@@ -467,7 +468,7 @@ export class FunctionInvocation {
             functionExecutions.set(fn, execute);
             // A memo call must return through its cache writer. Do not bypass it
             // via the tail-call path that enters an ordinary function body.
-            if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization, bindParameters });
+            if (!statement.memo) functionDefinitions.set(fn, { call: fn.call, owner: this, statement, context, direct, specialization, bindParameters });
             // Hits already passed the return contract. Misses retain the same
             // execution stack, validation and cache writer as ordinary calls.
             if (memoMiss && this.compiler.scalars.functions
