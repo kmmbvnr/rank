@@ -3054,7 +3054,7 @@ M`);
     });
 
     it('commits integer runs without unpacking a typed buffer', () => {
-        const r = new Interpreter(undefined, { scalarEntryCompilation: false });
+        const r = new Interpreter(undefined, { scalarEntryCompilation: false, numberLoopCompilation: false });
         const d = new RuntimeDiagnostics();
         try {
             d.run(() => r.execute(`Cnt = array shape 1001 fill 0

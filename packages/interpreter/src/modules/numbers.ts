@@ -50,6 +50,17 @@ function factorizer(context: RuntimeContext): Factorizer {
     return value;
 }
 
+// The loop binder proves safe integer registers and guards builtin identity.
+// Keep bounded modular powers in Number; wider moduli and invalid arguments
+// retain the ordinary exact implementation and its errors. Both bodies poll,
+// so the same kernel is safe at cooperative native boundaries.
+const modularPowerCalls = {
+    'integer,integer,integer': (base: number, exponent: number, modulus: number): number =>
+        exponent >= 0 && modulus > 0 && modulus <= 1073741824
+            ? safeIntegerModularPower(base, exponent, modulus)
+            : Number(checkedModularPower(BigInt(base), BigInt(exponent), BigInt(modulus))),
+};
+
 export const numbersModule: RuntimeModule = {
     abs: () => scalarNative('abs', argument => {
         if (argument === MISSING) return MISSING;
@@ -120,14 +131,14 @@ export const numbersModule: RuntimeModule = {
             return safeIntegerGcd(a, b);
         },
     }),
-    powmod: () => native('powmod', 3, args => powerStoredInt32(args[0], args[1], args[2]) ?? mapStoredIntegerTernary(args, checkedModularPower,
+    powmod: () => withNumberCalls(native('powmod', 3, args => powerStoredInt32(args[0], args[1], args[2]) ?? mapStoredIntegerTernary(args, checkedModularPower,
         (base, exponent, modulus) => exponent >= 0 && modulus > 0 && modulus <= 1073741824
             ? safeIntegerModularPower(base, exponent, modulus) : undefined)
         ?? mapScalarArrays(args, arguments_ => checkedModularPower(
         expectInteger(arguments_[0]),
         expectInteger(arguments_[1]),
         expectInteger(arguments_[2]),
-    ))),
+    ))), modularPowerCalls, modularPowerCalls),
     convolve: () => native('convolve', 2, arguments_ => convolveExact(arguments_[0], arguments_[1])),
     binomial: () => native('binomial', 2, arguments_ => mapBinaryValue(
         arguments_[0],

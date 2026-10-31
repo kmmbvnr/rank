@@ -1,0 +1,75 @@
+rem Panaitopol Primes
+rem https://projecteuler.net/problem=291
+rem Count the primes p below Limit of
+rem the form (x^4 - y^4) / (x^3 + y^3)
+rem with x and y positive integers
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 5000000000000000
+
+rem These primes are n^2 + (n + 1)^2 = 2
+rem n^2 + 2 n + 1. A prime q with q mod
+rem 4 = 1 up to the square root of Limit
+rem has r^2 = -1 mod q, where r is a
+rem power of a non residue, and divides
+rem the value when 2 n + 1 = +-r, so a
+rem sieve over n marks those n. The few
+rem small values that are q itself are
+rem tested apart.
+Top = ((((2 * Limit - 3) max 0) isqrt - 1) // 2) max 0
+Sq = Limit isqrt + 1
+Ps = primes to Sq
+Q = Ps filter (Ps mod 4 equal 1) array
+Qn = Q len
+Ra = array shape Qn fill 0
+for I in 0 till Qn
+  Qi = Q I
+  for Z in 2 to Qi
+    R = Z ((Qi - 1) // 4) Qi powmod
+    if R * R mod Qi equal Qi - 1
+      Ra I = R
+      break
+    end
+  end
+end
+Small = (Sq // 2) isqrt + 1
+if Top less Small
+  Small = Top
+end
+Count = 0
+for N in 1 to Small
+  if N * (N + 1) * 2 + 1 in primes
+    Count += 1
+  end
+end
+Blk = Top max 1
+for Lo in (Small + 1) to Top by Blk
+  Hi = Lo + Blk - 1
+  if Hi greater Top
+    Hi = Top
+  end
+  Sv = array shape (Hi - Lo + 1) fill 0
+  for I in 0 till Qn
+    Qi = Q I
+    for S in 1 to 2
+      Rt = Ra I
+      if S equal 2
+        Rt = Qi - Rt
+      end
+      Xh = Rt - 1
+      if Xh mod 2 equal 1
+        Xh += Qi
+      end
+      Rh = Xh // 2 mod Qi
+      Fs = Lo + (Rh - Lo) mod Qi
+      Sv (Fs - Lo to Hi - Lo by Qi) = 1
+    end
+  end
+  Count += (Sv equal 0) count
+end
+Answer = Count
+Answer print

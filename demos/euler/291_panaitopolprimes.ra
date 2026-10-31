@@ -20,35 +20,26 @@ rem the value when 2 n + 1 = +-r, so a
 rem sieve over n marks those n. The few
 rem small values that are q itself are
 rem tested apart.
-Top = ((Limit - 1) // 2) isqrt
+rem Strictly below Limit, even at a prime.
+Last = (2 * Limit - 3) max 0
+Top = ((Last isqrt - 1) // 2) max 0
 Sq = Limit isqrt + 1
-Ps = primes till (Sq + 100000)
+Ps = primes to Sq
 Q = Ps filter (Ps mod 4 equal 1) array
 Qn = Q len
 Ra = array shape Qn fill 0
 for I in 0 till Qn
   Qi = Q I
   for Z in 2 to Qi
-    E = (Qi - 1) // 4
-    B = Z
-    R = 1
-    for
-      if E equal 0
-        break
-      end
-      if E mod 2 equal 1
-        R = R * B mod Qi
-      end
-      B = B * B mod Qi
-      E = E // 2
-    end
+    R = Z ((Qi - 1) // 4) Qi powmod
     if R * R mod Qi equal Qi - 1
       Ra I = R
       break
     end
   end
 end
-Small = 6000
+rem Keep a prime from crossing itself out.
+Small = (Sq // 2) isqrt + 1
 if Top less Small
   Small = Top
 end
@@ -58,7 +49,9 @@ for N in 1 to Small
     Count += 1
   end
 end
-Blk = 10000000
+rem One block at the default limit,
+rem capped at 50M cells for larger inputs.
+Blk = 50000000
 for Lo in (Small + 1) to Top by Blk
   Hi = Lo + Blk - 1
   if Hi greater Top
@@ -67,21 +60,13 @@ for Lo in (Small + 1) to Top by Blk
   Sv = array shape (Hi - Lo + 1) fill 0
   for I in 0 till Qn
     Qi = Q I
-    for S in 1 to 2
-      Rt = Ra I
-      if S equal 2
-        Rt = Qi - Rt
-      end
-      Xh = Rt - 1
-      if Xh mod 2 equal 1
-        Xh += Qi
-      end
-      Rh = Xh // 2 mod Qi
-      Fs = Lo + (Rh - Lo) mod Qi
-      for N in Fs to Hi by Qi
-        Sv (N - Lo) = 1
-      end
-    end
+    Rt = Ra I
+    Odd = (Rt + 1) mod 2
+    Rh = (Rt - 1 + Odd * Qi) // 2
+    Fs = Lo + (Rh - Lo) mod Qi
+    Sv (Fs - Lo to Hi - Lo by Qi) = 1
+    Fs = Lo + (Qi - 1 - Rh - Lo) mod Qi
+    Sv (Fs - Lo to Hi - Lo by Qi) = 1
   end
   Count += (Sv equal 0) count
 end

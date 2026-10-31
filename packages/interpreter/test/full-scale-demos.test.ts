@@ -83,6 +83,19 @@ it('compiles Euler 290 row slices and keeps its large final answer exact', () =>
     } finally { runtime.dispose(); }
 }, 60_000);
 
+it('checks the full Euler 291 polynomial sieve and compiled root preparation', () => {
+    const url = new URL('../../../demos/euler/291_panaitopolprimes.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(4037526n);
+        expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(1);
+        expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(3);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    } finally { runtime.dispose(); }
+}, 60_000);
+
 // Independent representation: match individual balls and boxes, rather than
 // the Rank program's run stack and difference table of removal rounds.
 function perBallReference(last: number): number {

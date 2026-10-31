@@ -1,0 +1,3801 @@
+{
+  "revision": "b37b17407df1c3e0dad8430a131a943e338b1ad7",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "node": "v24.15.0",
+  "method": "Serial fresh processes; three samples per primary-series case; phase harness executes roots, small values, sieve, and output separately. Parse/JIT included; imports excluded. External host load uncontrolled. Diagnostics excluded from timing medians. Full original reference stopped at 90 seconds; this is a censored observation, not its completed time. Experimental loaders transpile TypeScript in a child before timed execution. Production files unchanged.",
+  "primarySeries": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "5000000000000000",
+      "probe": null,
+      "ms": 4443.312666999999,
+      "answer": "4037526",
+      "rssMiB": 638.078125,
+      "round": 0,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2546.174167,
+          "q": "2081138",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 17.03800000000001,
+          "q": "2081138",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 1877.8752080000004,
+          "q": "2081138",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.477375000000393,
+          "q": "2081138",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "compiled",
+      "variant": "powmod",
+      "limit": "5000000000000000",
+      "probe": "powmod",
+      "ms": 6059.406833,
+      "answer": "4037526",
+      "rssMiB": 637.21875,
+      "round": 0,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 3208.46675,
+          "q": "2081138",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 25.654417000000194,
+          "q": "2081138",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 2821.9230419999994,
+          "q": "2081138",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 2.2744590000002063,
+          "q": "2081138",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "compiled",
+      "variant": "arrayrootswholepair",
+      "limit": "5000000000000000",
+      "probe": "bulk",
+      "ms": 6154.178916,
+      "answer": "4037526",
+      "rssMiB": 887.296875,
+      "round": 0,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 4634.086792,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 19.479291999999987,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 1497.6634999999997,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.4750420000000304,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "arrayrootswholepair",
+      "limit": "5000000000000000",
+      "probe": "bulk",
+      "ms": 13839.066291,
+      "answer": "4037526",
+      "rssMiB": 958.25,
+      "round": 0,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2981.44,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 18.829833000000235,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 10834.442374999999,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 2.781750000000102,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "100000000000",
+      "probe": null,
+      "ms": 1196.899833,
+      "answer": "26516",
+      "rssMiB": 284.859375,
+      "round": 0,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 662.502625,
+          "q": "17509",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 24.80966699999999,
+          "q": "17509",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 506.9156659999999,
+          "q": "17509",
+          "count": "26516"
+        },
+        {
+          "phase": 3,
+          "ms": 1.6209579999999733,
+          "q": "17509",
+          "count": "26516"
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "bounded",
+      "limit": "100000000000",
+      "probe": "bulk",
+      "ms": 555.4495,
+      "answer": "26516",
+      "rssMiB": 255.859375,
+      "round": 0,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 296.066708,
+          "q": "13625",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 12.58279099999993,
+          "q": "13625",
+          "count": "104"
+        },
+        {
+          "phase": 2,
+          "ms": 244.15654099999995,
+          "q": "13625",
+          "count": "26516"
+        },
+        {
+          "phase": 3,
+          "ms": 1.7113329999999678,
+          "q": "13625",
+          "count": "26516"
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "bounded",
+      "limit": "100000000000",
+      "probe": "bulk",
+      "ms": 540.99725,
+      "answer": "26516",
+      "rssMiB": 236.25,
+      "round": 1,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 287.274959,
+          "q": "13625",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 11.78495799999996,
+          "q": "13625",
+          "count": "104"
+        },
+        {
+          "phase": 2,
+          "ms": 239.51812500000005,
+          "q": "13625",
+          "count": "26516"
+        },
+        {
+          "phase": 3,
+          "ms": 1.5281670000000531,
+          "q": "13625",
+          "count": "26516"
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "100000000000",
+      "probe": null,
+      "ms": 1108.5684170000002,
+      "answer": "26516",
+      "rssMiB": 282.796875,
+      "round": 1,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 620.8366659999999,
+          "q": "17509",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 20.904540999999995,
+          "q": "17509",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 464.61733400000014,
+          "q": "17509",
+          "count": "26516"
+        },
+        {
+          "phase": 3,
+          "ms": 1.4187919999999394,
+          "q": "17509",
+          "count": "26516"
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "arrayrootswholepair",
+      "limit": "5000000000000000",
+      "probe": "bulk",
+      "ms": 16145.476792000001,
+      "answer": "4037526",
+      "rssMiB": 958.109375,
+      "round": 1,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 3988.9799169999997,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 25.94891700000062,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 12126.0825,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 2.5820000000021537,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "compiled",
+      "variant": "arrayrootswholepair",
+      "limit": "5000000000000000",
+      "probe": "bulk",
+      "ms": 5605.704792,
+      "answer": "4037526",
+      "rssMiB": 884.84375,
+      "round": 1,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 4089.106333,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 21.89037499999995,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 1491.7782079999997,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.452291999999943,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "compiled",
+      "variant": "powmod",
+      "limit": "5000000000000000",
+      "probe": "powmod",
+      "ms": 4157.009333999999,
+      "answer": "4037526",
+      "rssMiB": 712.484375,
+      "round": 1,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2232.05725,
+          "q": "2081138",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 15.770790999999917,
+          "q": "2081138",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 1906.8422500000001,
+          "q": "2081138",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.6322079999999914,
+          "q": "2081138",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "5000000000000000",
+      "probe": null,
+      "ms": 4337.5047079999995,
+      "answer": "4037526",
+      "rssMiB": 675.609375,
+      "round": 1,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2394.669375,
+          "q": "2081138",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 18.042250000000422,
+          "q": "2081138",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 1922.29275,
+          "q": "2081138",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.6041660000000775,
+          "q": "2081138",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "5000000000000000",
+      "probe": null,
+      "ms": 4383.157958,
+      "answer": "4037526",
+      "rssMiB": 635.109375,
+      "round": 2,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2421.5585419999998,
+          "q": "2081138",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 16.539374999999836,
+          "q": "2081138",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 1942.6529580000006,
+          "q": "2081138",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.629000000000815,
+          "q": "2081138",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "compiled",
+      "variant": "powmod",
+      "limit": "5000000000000000",
+      "probe": "powmod",
+      "ms": 4228.815291,
+      "answer": "4037526",
+      "rssMiB": 713.0625,
+      "round": 2,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2290.027583,
+          "q": "2081138",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 15.755917000000409,
+          "q": "2081138",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 1919.2462909999995,
+          "q": "2081138",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 3.0221249999995052,
+          "q": "2081138",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "compiled",
+      "variant": "arrayrootswholepair",
+      "limit": "5000000000000000",
+      "probe": "bulk",
+      "ms": 5584.524458,
+      "answer": "4037526",
+      "rssMiB": 884.71875,
+      "round": 2,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 4037.816833,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 21.380167000000256,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 1522.2773749999997,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.527458000000479,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "arrayrootswholepair",
+      "limit": "5000000000000000",
+      "probe": "bulk",
+      "ms": 15675.988375,
+      "answer": "4037526",
+      "rssMiB": 959.09375,
+      "round": 2,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 4108.460833,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 27.059291999999914,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 11536.350583,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 2.17633300000125,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "limit": "100000000000",
+      "probe": null,
+      "ms": 803.6485,
+      "answer": "26516",
+      "rssMiB": 285.21875,
+      "round": 2,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 444.81270800000004,
+          "q": "17509",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 15.03125,
+          "q": "17509",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 341.9375839999999,
+          "q": "17509",
+          "count": "26516"
+        },
+        {
+          "phase": 3,
+          "ms": 1.2202920000000859,
+          "q": "17509",
+          "count": "26516"
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "bounded",
+      "limit": "100000000000",
+      "probe": "bulk",
+      "ms": 397.64858399999997,
+      "answer": "26516",
+      "rssMiB": 265.140625,
+      "round": 2,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 209.8195,
+          "q": "13625",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 9.451040999999918,
+          "q": "13625",
+          "count": "104"
+        },
+        {
+          "phase": 2,
+          "ms": 176.62649999999996,
+          "q": "13625",
+          "count": "26516"
+        },
+        {
+          "phase": 3,
+          "ms": 1.0966250000000173,
+          "q": "13625",
+          "count": "26516"
+        }
+      ]
+    },
+    {
+      "summary": [
+        {
+          "mode": "compiled",
+          "variant": "original",
+          "probe": null,
+          "limit": "5000000000000000",
+          "medianMs": 4383.157958,
+          "medianRssMiB": 638.078125
+        },
+        {
+          "mode": "compiled",
+          "variant": "powmod",
+          "probe": "powmod",
+          "limit": "5000000000000000",
+          "medianMs": 4228.815291,
+          "medianRssMiB": 712.484375
+        },
+        {
+          "mode": "compiled",
+          "variant": "arrayrootswholepair",
+          "probe": "bulk",
+          "limit": "5000000000000000",
+          "medianMs": 5605.704792,
+          "medianRssMiB": 884.84375
+        },
+        {
+          "mode": "reference",
+          "variant": "arrayrootswholepair",
+          "probe": "bulk",
+          "limit": "5000000000000000",
+          "medianMs": 15675.988375,
+          "medianRssMiB": 958.25
+        },
+        {
+          "mode": "reference",
+          "variant": "original",
+          "probe": null,
+          "limit": "100000000000",
+          "medianMs": 1108.5684170000002,
+          "medianRssMiB": 284.859375
+        },
+        {
+          "mode": "reference",
+          "variant": "bounded",
+          "probe": "bulk",
+          "limit": "100000000000",
+          "medianMs": 540.99725,
+          "medianRssMiB": 255.859375
+        }
+      ]
+    }
+  ],
+  "rank291-exploration": [
+    {
+      "mode": "compiled",
+      "variant": "powmod",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":2493.068375,\"q\":\"2081138\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":12.385875000000397,\"q\":\"2081138\",\"count\":\"1060\"}\n{\"phase\":2,\"ms\":1365.21225,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":1.1106669999999212,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"mode\":\"compiled\",\"variant\":\"powmod\",\"limit\":\"5000000000000000\",\"ms\":3872.909917,\"answer\":\"4037526\",\"rssMiB\":635.640625}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "compiled",
+      "variant": "slices",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":1710.2657080000001,\"q\":\"2081138\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":12.185833000000002,\"q\":\"2081138\",\"count\":\"1060\"}\n{\"phase\":2,\"ms\":3301.458375,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":1.2149159999999029,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"mode\":\"compiled\",\"variant\":\"slices\",\"limit\":\"5000000000000000\",\"ms\":5026.379833,\"answer\":\"4037526\",\"rssMiB\":637.734375}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "compiled",
+      "variant": "both",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":2505.2385,\"q\":\"2081138\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":12.162165999999615,\"q\":\"2081138\",\"count\":\"1060\"}\n{\"phase\":2,\"ms\":4513.85325,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":2.4168330000002243,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"mode\":\"compiled\",\"variant\":\"both\",\"limit\":\"5000000000000000\",\"ms\":7034.846415999999,\"answer\":\"4037526\",\"rssMiB\":637.203125}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "compiled",
+      "variant": "bounded",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":2649.5110419999996,\"q\":\"2078403\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":12.625625000000127,\"q\":\"2078403\",\"count\":\"1052\"}\n{\"phase\":2,\"ms\":3432.1801250000003,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":1.4155840000003082,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"mode\":\"compiled\",\"variant\":\"bounded\",\"limit\":\"5000000000000000\",\"ms\":6096.904375,\"answer\":\"4037526\",\"rssMiB\":657.78125}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "reference",
+      "variant": "bounded",
+      "limit": "100000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":303.72316600000005,\"q\":\"13625\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":12.539875000000052,\"q\":\"13625\",\"count\":\"104\"}\n{\"phase\":2,\"ms\":281.577084,\"q\":\"13625\",\"count\":\"26516\"}\n{\"phase\":3,\"ms\":1.9010830000000851,\"q\":\"13625\",\"count\":\"26516\"}\n{\"mode\":\"reference\",\"variant\":\"bounded\",\"limit\":\"100000000000\",\"ms\":601.327583,\"answer\":\"26516\",\"rssMiB\":267.328125}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "reference",
+      "variant": "bounded",
+      "limit": "5000000000000000",
+      "timeout": 60,
+      "stdout": "b'{\"phase\":0,\"ms\":12653.362084,\"q\":\"2078403\",\"count\":\"undefined\"}\\n{\"phase\":1,\"ms\":21.521708999998737,\"q\":\"2078403\",\"count\":\"1052\"}\\n'"
+    }
+  ],
+  "rank291-exploration-more": [
+    {
+      "mode": "compiled",
+      "variant": "arrayroots",
+      "limit": "100000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":162.81129199999998,\"q\":\"13625\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":8.306290999999987,\"q\":\"13625\",\"count\":\"104\"}\n{\"phase\":2,\"ms\":41.17812500000002,\"q\":\"13625\",\"count\":\"26516\"}\n{\"phase\":3,\"ms\":0.9150419999999713,\"q\":\"13625\",\"count\":\"26516\"}\n{\"mode\":\"compiled\",\"variant\":\"arrayroots\",\"limit\":\"100000000000\",\"ms\":214.43841700000002,\"answer\":\"26516\",\"rssMiB\":189.34375}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "compiled",
+      "variant": "arrayroots",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":3000.246375,\"q\":\"2078403\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":14.388541999999688,\"q\":\"2078403\",\"count\":\"1052\"}\n{\"phase\":2,\"ms\":3543.862583,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":1.1412090000003445,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"mode\":\"compiled\",\"variant\":\"arrayroots\",\"limit\":\"5000000000000000\",\"ms\":6561.103625,\"answer\":\"4037526\",\"rssMiB\":860.84375}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "compiled",
+      "variant": "originalwhole",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":2439.115375,\"q\":\"2081138\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":16.81008299999985,\"q\":\"2081138\",\"count\":\"1060\"}\n{\"phase\":2,\"ms\":1686.0505829999997,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":1.3779999999997017,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"mode\":\"compiled\",\"variant\":\"originalwhole\",\"limit\":\"5000000000000000\",\"ms\":4144.940959,\"answer\":\"4037526\",\"rssMiB\":876.375}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "reference",
+      "variant": "boundedwhole",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":14649.323667,\"q\":\"2078403\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":24.729041999999026,\"q\":\"2078403\",\"count\":\"1052\"}\n{\"phase\":2,\"ms\":28427.948041999996,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":4.6805830000012065,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"mode\":\"reference\",\"variant\":\"boundedwhole\",\"limit\":\"5000000000000000\",\"ms\":43109.141625,\"answer\":\"4037526\",\"rssMiB\":2323.609375}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "reference",
+      "variant": "arrayrootswhole",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":4194.407166,\"q\":\"2078403\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":25.89549999999963,\"q\":\"2078403\",\"count\":\"1052\"}\n{\"phase\":2,\"ms\":28872.259833,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":2.5985839999993914,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"mode\":\"reference\",\"variant\":\"arrayrootswhole\",\"limit\":\"5000000000000000\",\"ms\":33097.857124999995,\"answer\":\"4037526\",\"rssMiB\":2295.5625}\n",
+      "stderr": ""
+    }
+  ],
+  "rank291-probes": [
+    {
+      "mode": "compiled",
+      "variant": "powmod",
+      "probe": "powmod",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":2263.766125,\"q\":\"2081138\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":15.763124999999945,\"q\":\"2081138\",\"count\":\"1060\"}\n{\"phase\":2,\"ms\":1837.0696250000005,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":1.5208339999999225,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"mode\":\"compiled\",\"variant\":\"powmod\",\"limit\":\"5000000000000000\",\"ms\":4119.1923750000005,\"answer\":\"4037526\",\"rssMiB\":757.453125}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "reference",
+      "variant": "bounded",
+      "probe": "bulk",
+      "limit": "5000000000000000",
+      "timeout": 55,
+      "stdout": "b'{\"phase\":0,\"ms\":14170.5275,\"q\":\"2078403\",\"count\":\"undefined\"}\\n{\"phase\":1,\"ms\":24.74720900000102,\"q\":\"2078403\",\"count\":\"1052\"}\\n'"
+    },
+    {
+      "mode": "reference",
+      "variant": "boundedwholepair",
+      "probe": "bulk",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":14605.991958,\"q\":\"2078403\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":23.217624999999316,\"q\":\"2078403\",\"count\":\"1052\"}\n{\"phase\":2,\"ms\":11413.955874999998,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":2.6940840000024764,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"mode\":\"reference\",\"variant\":\"boundedwholepair\",\"limit\":\"5000000000000000\",\"ms\":26047.89975,\"answer\":\"4037526\",\"rssMiB\":747.046875}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "reference",
+      "variant": "arrayrootswholepair",
+      "probe": "bulk",
+      "limit": "5000000000000000",
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":3969.270917,\"q\":\"2078403\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":25.740125000000262,\"q\":\"2078403\",\"count\":\"1052\"}\n{\"phase\":2,\"ms\":11818.191125,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":4.839041999999608,\"q\":\"2078403\",\"count\":\"4037526\"}\n{\"mode\":\"reference\",\"variant\":\"arrayrootswholepair\",\"limit\":\"5000000000000000\",\"ms\":15820.031667,\"answer\":\"4037526\",\"rssMiB\":957.171875}\n",
+      "stderr": ""
+    }
+  ],
+  "rank291-probe-verification": [
+    {
+      "variant": "arrayrootswholepair",
+      "mode": "compiled",
+      "probe": "bulk",
+      "stdout": "{\"variant\":\"arrayrootswholepair\",\"mode\":\"compiled\",\"cases\":61,\"failures\":[]}\n"
+    },
+    {
+      "variant": "arrayrootswholepair",
+      "mode": "reference",
+      "probe": "bulk",
+      "stdout": "{\"variant\":\"arrayrootswholepair\",\"mode\":\"reference\",\"cases\":61,\"failures\":[]}\n"
+    },
+    {
+      "variant": "boundedwholepair",
+      "mode": "compiled",
+      "probe": "both",
+      "stdout": "{\"variant\":\"boundedwholepair\",\"mode\":\"compiled\",\"cases\":61,\"failures\":[]}\n"
+    }
+  ],
+  "balancedSeries": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "5000000000000000",
+      "probe": null,
+      "ms": 4192.584458,
+      "answer": "4037526",
+      "rssMiB": 714.921875,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2359.467,
+          "q": "2081138",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 15.78729199999998,
+          "q": "2081138",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 1813.529709,
+          "q": "2081138",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 3.0722500000001673,
+          "q": "2081138",
+          "count": "4037526"
+        }
+      ],
+      "round": 0
+    },
+    {
+      "mode": "compiled",
+      "variant": "boundedwholepair",
+      "limit": "5000000000000000",
+      "probe": "both",
+      "ms": 3442.906625,
+      "answer": "4037526",
+      "rssMiB": 692.421875,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2121.900708,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 17.437667000000147,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 1301.3667920000003,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.4927910000001248,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ],
+      "round": 0
+    },
+    {
+      "mode": "reference",
+      "variant": "boundedwholepair",
+      "limit": "5000000000000000",
+      "probe": "both",
+      "ms": 25262.523291,
+      "answer": "4037526",
+      "rssMiB": 748.578125,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 14488.980917,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 23.232500000000073,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 10745.897583,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 2.5238749999989523,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ],
+      "round": 0
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "5000000000000000",
+      "probe": null,
+      "whole": false,
+      "ms": 3959.4659999999994,
+      "answer": "4037526",
+      "rssMiB": 749.640625,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2192.295667,
+          "q": "2081138",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 15.603000000000065,
+          "q": "2081138",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 1749.3059580000004,
+          "q": "2081138",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.5004589999998643,
+          "q": "2081138",
+          "count": "4037526"
+        }
+      ],
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "boundedwholepair",
+      "limit": "5000000000000000",
+      "probe": "both",
+      "whole": false,
+      "ms": 3338.058333,
+      "answer": "4037526",
+      "rssMiB": 689.796875,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2073.122792,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 15.80749999999989,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 1247.0817500000003,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.3509170000002086,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ],
+      "round": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "boundedwholepair",
+      "limit": "5000000000000000",
+      "probe": "both",
+      "whole": false,
+      "ms": 24315.879834,
+      "answer": "4037526",
+      "rssMiB": 752.390625,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 13735.090542,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 22.83495799999946,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 10553.620084,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 2.5014999999984866,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ],
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "5000000000000000",
+      "probe": null,
+      "whole": false,
+      "ms": 3972.2507909999995,
+      "answer": "4037526",
+      "rssMiB": 636.90625,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2216.3175,
+          "q": "2081138",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 15.027042000000165,
+          "q": "2081138",
+          "count": "1060"
+        },
+        {
+          "phase": 2,
+          "ms": 1738.6796250000002,
+          "q": "2081138",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.5165420000002996,
+          "q": "2081138",
+          "count": "4037526"
+        }
+      ],
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "boundedwholepair",
+      "limit": "5000000000000000",
+      "probe": "both",
+      "whole": false,
+      "ms": 3361.853,
+      "answer": "4037526",
+      "rssMiB": 692.921875,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 2091.412291,
+          "q": "2078403",
+          "count": "undefined"
+        },
+        {
+          "phase": 1,
+          "ms": 15.781124999999975,
+          "q": "2078403",
+          "count": "1052"
+        },
+        {
+          "phase": 2,
+          "ms": 1252.4809999999998,
+          "q": "2078403",
+          "count": "4037526"
+        },
+        {
+          "phase": 3,
+          "ms": 1.4604169999997794,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ],
+      "round": 2
+    }
+  ],
+  "originalFullCompiled": "{\"phase\":0,\"ms\":1841.7408329999998,\"q\":\"2081138\",\"count\":\"undefined\"}\n{\"phase\":1,\"ms\":13.388834000000088,\"q\":\"2081138\",\"count\":\"1060\"}\n{\"phase\":2,\"ms\":1448.1005420000001,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"phase\":3,\"ms\":1.1164169999997284,\"q\":\"2081138\",\"count\":\"4037526\"}\n{\"mode\":\"compiled\",\"variant\":\"original\",\"limit\":\"5000000000000000\",\"ms\":3305.559958,\"answer\":\"4037526\",\"rssMiB\":636.03125}\n",
+  "originalFullReferenceTimeout": "b'{\"phase\":0,\"ms\":54896.051208,\"q\":\"2081138\",\"count\":\"undefined\"}\\n{\"phase\":1,\"ms\":16.19379199999821,\"q\":\"2081138\",\"count\":\"1060\"}\\n'",
+  "oracleRuns": [
+    {
+      "variant": "bounded",
+      "mode": "reference",
+      "cases": 61,
+      "failures": []
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "cases": 61,
+      "failures": [
+        {
+          "limit": 0,
+          "error": "RankError: isqrt expects a nonnegative integer"
+        },
+        {
+          "limit": 4,
+          "actual": "1",
+          "expected": "0"
+        },
+        {
+          "limit": 5,
+          "actual": "1",
+          "expected": "0"
+        },
+        {
+          "limit": 12,
+          "actual": "2",
+          "expected": "1"
+        },
+        {
+          "limit": 13,
+          "actual": "2",
+          "expected": "1"
+        },
+        {
+          "limit": 41,
+          "actual": "3",
+          "expected": "2"
+        },
+        {
+          "limit": 100,
+          "actual": "5",
+          "expected": "4"
+        },
+        {
+          "limit": 1000,
+          "actual": "11",
+          "expected": "10"
+        },
+        {
+          "limit": 40,
+          "actual": "3",
+          "expected": "2"
+        },
+        {
+          "limit": 60,
+          "actual": "4",
+          "expected": "3"
+        },
+        {
+          "limit": 61,
+          "actual": "4",
+          "expected": "3"
+        },
+        {
+          "limit": 112,
+          "actual": "5",
+          "expected": "4"
+        },
+        {
+          "limit": 113,
+          "actual": "5",
+          "expected": "4"
+        },
+        {
+          "limit": 180,
+          "actual": "6",
+          "expected": "5"
+        },
+        {
+          "limit": 181,
+          "actual": "6",
+          "expected": "5"
+        },
+        {
+          "limit": 312,
+          "actual": "7",
+          "expected": "6"
+        },
+        {
+          "limit": 313,
+          "actual": "7",
+          "expected": "6"
+        },
+        {
+          "limit": 420,
+          "actual": "8",
+          "expected": "7"
+        },
+        {
+          "limit": 421,
+          "actual": "8",
+          "expected": "7"
+        },
+        {
+          "limit": 612,
+          "actual": "9",
+          "expected": "8"
+        },
+        {
+          "limit": 613,
+          "actual": "9",
+          "expected": "8"
+        },
+        {
+          "limit": 760,
+          "actual": "10",
+          "expected": "9"
+        },
+        {
+          "limit": 761,
+          "actual": "10",
+          "expected": "9"
+        },
+        {
+          "limit": 1012,
+          "actual": "11",
+          "expected": "10"
+        },
+        {
+          "limit": 1013,
+          "actual": "11",
+          "expected": "10"
+        },
+        {
+          "limit": 1200,
+          "actual": "12",
+          "expected": "11"
+        },
+        {
+          "limit": 1201,
+          "actual": "12",
+          "expected": "11"
+        },
+        {
+          "limit": 1300,
+          "actual": "13",
+          "expected": "12"
+        },
+        {
+          "limit": 1301,
+          "actual": "13",
+          "expected": "12"
+        },
+        {
+          "limit": 1740,
+          "actual": "14",
+          "expected": "13"
+        },
+        {
+          "limit": 1741,
+          "actual": "14",
+          "expected": "13"
+        },
+        {
+          "limit": 1860,
+          "actual": "15",
+          "expected": "14"
+        },
+        {
+          "limit": 1861,
+          "actual": "15",
+          "expected": "14"
+        },
+        {
+          "limit": 2112,
+          "actual": "16",
+          "expected": "15"
+        },
+        {
+          "limit": 2113,
+          "actual": "16",
+          "expected": "15"
+        },
+        {
+          "limit": 2380,
+          "actual": "17",
+          "expected": "16"
+        },
+        {
+          "limit": 2381,
+          "actual": "17",
+          "expected": "16"
+        }
+      ]
+    },
+    {
+      "variant": "arrayroots",
+      "mode": "compiled",
+      "cases": 61,
+      "failures": []
+    },
+    {
+      "variant": "bounded",
+      "mode": "compiled",
+      "cases": 61,
+      "failures": []
+    }
+  ],
+  "diagnostics": {
+    "rank291-diagnostics-original-compiled-None.jsonl": [
+      {
+        "phase": 0,
+        "ms": 180.740583,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 1,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 1,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 1,
+          "numberLoopReadBufferCells": 17509,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 1,
+          "maskMaterializedCells": 17509,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 1,
+            "scalar-expression:unsupported-op:isqrt": 2,
+            "scalar-expression:unsupported-op:+": 2,
+            "scalar-expression:too-small": 2,
+            "scalar-expression:unsupported-op:till": 1,
+            "tensor:unsupported-op:till": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "tensor:unsupported-type:array": 1
+          },
+          "compilerRejections": []
+        },
+        "q": "17509",
+        "count": "undefined"
+      },
+      {
+        "phase": 1,
+        "ms": 18.04229200000003,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 1,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "scalar-expression:too-small": 1
+          },
+          "compilerRejections": []
+        },
+        "q": "17509",
+        "count": "1060"
+      },
+      {
+        "phase": 2,
+        "ms": 53.83270799999997,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 1,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 1,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 1,
+          "numberLoopReadBufferCells": 17509,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "loop:unsupported-op:count": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 3,
+            "tensor:output-shape": 1,
+            "tensor:unsupported-type:array": 1
+          },
+          "compilerRejections": []
+        },
+        "q": "17509",
+        "count": "26516"
+      },
+      {
+        "phase": 3,
+        "ms": 1.3372909999999933,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {},
+          "compilerRejections": []
+        },
+        "q": "17509",
+        "count": "26516"
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "limit": "100000000000",
+        "probe": null,
+        "ms": 254.765917,
+        "answer": "26516",
+        "rssMiB": 179.546875
+      }
+    ],
+    "rank291-diagnostics-bounded-reference-None.jsonl": [
+      {
+        "phase": 0,
+        "ms": 278.194292,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 1,
+          "maskMaterializedCells": 13625,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "loop:disabled": 2
+          },
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "undefined"
+      },
+      {
+        "phase": 1,
+        "ms": 10.925792000000001,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "104"
+      },
+      {
+        "phase": 2,
+        "ms": 253.29862499999996,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "loop:disabled": 3
+          },
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "26516"
+      },
+      {
+        "phase": 3,
+        "ms": 1.4399170000000368,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {},
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "26516"
+      },
+      {
+        "mode": "reference",
+        "variant": "bounded",
+        "limit": "100000000000",
+        "probe": null,
+        "ms": 544.718,
+        "answer": "26516",
+        "rssMiB": 269.828125
+      }
+    ],
+    "rank291-diagnostics-bounded-reference-bulk.jsonl": [
+      {
+        "phase": 0,
+        "ms": 277.062875,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 1,
+          "maskMaterializedCells": 13625,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "loop:disabled": 2
+          },
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "undefined"
+      },
+      {
+        "phase": 1,
+        "ms": 12.048625000000015,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "104"
+      },
+      {
+        "phase": 2,
+        "ms": 227.78562499999998,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 26032,
+          "bulkArrayWriteCells": 438735,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "loop:disabled": 3
+          },
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "26516"
+      },
+      {
+        "phase": 3,
+        "ms": 1.5012500000000273,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {},
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "26516"
+      },
+      {
+        "mode": "reference",
+        "variant": "bounded",
+        "limit": "100000000000",
+        "probe": "bulk",
+        "ms": 519.312208,
+        "answer": "26516",
+        "rssMiB": 265.296875
+      }
+    ],
+    "rank291-diagnostics-bounded-compiled-None.jsonl": [
+      {
+        "phase": 0,
+        "ms": 185.66783400000003,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 1,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 1,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 1,
+          "numberLoopReadBufferCells": 13625,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 1,
+          "maskMaterializedCells": 13625,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:binding:select": 1,
+            "scalar-expression:unsupported-op:isqrt": 9,
+            "scalar-expression:unsupported-op:-": 6,
+            "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+            "scalar-expression:unsupported-op://": 3,
+            "scalar-expression:unsupported-op:+": 2,
+            "scalar-expression:too-small": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "tensor:unsupported-op:to": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "tensor:unsupported-type:array": 1
+          },
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "undefined"
+      },
+      {
+        "phase": 1,
+        "ms": 10.837333000000001,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 1,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:isqrt": 2,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:scalar-evaluation-timing": 1,
+            "scalar-expression:too-small": 3
+          },
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "104"
+      },
+      {
+        "phase": 2,
+        "ms": 51.32379100000003,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 1,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 26032,
+          "bulkArrayWriteCells": 438735,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "loop:unsupported-op:count": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 3,
+            "tensor:output-shape": 1,
+            "tensor:unsupported-type:array": 1
+          },
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "26516"
+      },
+      {
+        "phase": 3,
+        "ms": 1.2377919999999563,
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "cellsComputed": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 0,
+          "numberLoopOverflows": 0,
+          "numberLoopReadBuffers": 0,
+          "numberLoopReadBufferCells": 0,
+          "numberLoopReadBufferHits": 0,
+          "compiledTensors": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {},
+          "compilerRejections": []
+        },
+        "q": "13625",
+        "count": "26516"
+      },
+      {
+        "mode": "compiled",
+        "variant": "bounded",
+        "limit": "100000000000",
+        "probe": null,
+        "ms": 249.862583,
+        "answer": "26516",
+        "rssMiB": 181.90625
+      }
+    ]
+  },
+  "sourceSha256": {
+    "benchmarks/experiments/euler291-powmod.ra": "17f6412110568c811858b29774175bcf4ff7c1c609a60924a82a90bc2d8d7586",
+    "benchmarks/experiments/euler291-arrayrootswholepair.ra": "5bbea9baa7854b786996f207e77b2e3fb04ca4302fdfcc2d20b7c88d016b2ccc",
+    "benchmarks/experiments/euler291-boundedwhole.ra": "014317f3707245baf6cd3474e4084c3e35156abfe6d6d7743293134490976719",
+    "benchmarks/experiments/euler291-probe-loader.mjs": "e62c979e8e767a7b8248d619b33f8a9e5b5d6d60e9467063b214969546410624",
+    "benchmarks/experiments/euler291-originalwhole.ra": "6c6954c945dee9efd6c272841790c928711d6e3cce1a07f57c50c6addac5f16e",
+    "benchmarks/experiments/euler291-boundedwholepair.ra": "c8fb03764a476c1f26c14f5158c55b0aa02b961e0ce10a1a2294abb7ac802ca3",
+    "benchmarks/experiments/euler291-both.ra": "4d037de25c9a7f6a62b2bcf0176545a78a9118274b26c302e631bfc1449cc48a",
+    "benchmarks/experiments/euler291-arrayroots.ra": "07ed981e1706a2d5183cd9d8fe19bb52e0d24378fc773b67a1f36daf269fcdbb",
+    "benchmarks/experiments/euler291-original.ra": "80625a8b9b6feeeda54fccbc4ac5b92066fbf8b0d6c3afb6eb757b2648c7abeb",
+    "benchmarks/experiments/euler291-slices.ra": "ac772a10cf164ff076099fee7e05ffe62c2c8479e7942639030cbf0e220857de",
+    "benchmarks/experiments/euler291-bounded.ra": "0d85e312ca29f1c2d61ab2ada49d1d74f84ce1e5409e845833664e2686ffef92",
+    "benchmarks/experiments/euler291-arrayrootswhole.ra": "ab01214558b559f4a8f6ee49132c86a6410c3e8d6216b19191639e407240c7ae"
+  },
+  "wholeSourceChecks": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "5000000000000000",
+      "probe": null,
+      "whole": true,
+      "ms": 3978.311625,
+      "answer": "4037526",
+      "rssMiB": 737.40625,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 3977.2301660000003,
+          "q": "2081138",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "compiled",
+      "variant": "boundedwholepair",
+      "limit": "5000000000000000",
+      "probe": "both",
+      "whole": true,
+      "ms": 3343.085042,
+      "answer": "4037526",
+      "rssMiB": 696.734375,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 3342.583083,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ]
+    },
+    {
+      "mode": "reference",
+      "variant": "boundedwholepair",
+      "limit": "5000000000000000",
+      "probe": "both",
+      "whole": true,
+      "ms": 24308.890709,
+      "answer": "4037526",
+      "rssMiB": 754.53125,
+      "phases": [
+        {
+          "phase": 0,
+          "ms": 24307.804083,
+          "q": "2078403",
+          "count": "4037526"
+        }
+      ]
+    }
+  ],
+  "balancedReferenceOracle": {
+    "variant": "boundedwholepair",
+    "mode": "reference",
+    "cases": 61,
+    "failures": []
+  },
+  "exploratoryProbeNote": "Initial exploratory powmod kernel did not register the cooperative call; primary and balanced series use the final cooperative loader.",
+  "delivery": {
+    "baselineRevision": "4a7cb2ae",
+    "integrationParent": "df78a6ae60b4b946127edc9ef6aed86be8818928",
+    "method": "Whole-source execution; 54 serial fresh-process samples, alternating case order, 3 per case. Three changed modules restored in memory for before runs; child transpilation avoids a retained TypeScript heap. External host load uncontrolled. Additional 6 mixed-fill samples and 8 isolated 093 control samples are stored separately. The censored original reference observation belongs to the earlier b37b1740 research phase, not this fresh compiled series.",
+    "records": [
+      {
+        "name": "before original",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "original",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 3052.142916,
+          "answer": "4037526",
+          "rssMiB": 738.5
+        }
+      },
+      {
+        "name": "before compact",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 4091.475792,
+          "answer": "4037526",
+          "rssMiB": 695.09375
+        }
+      },
+      {
+        "name": "after compact",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 3611.973792,
+          "answer": "4037526",
+          "rssMiB": 703.34375
+        }
+      },
+      {
+        "name": "after reference",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "mode": "reference",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 21029.636167,
+          "answer": "4037526",
+          "rssMiB": 707.609375
+        }
+      },
+      {
+        "name": "fill compiled before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "kind": "fill",
+          "mode": "compiled",
+          "ms": 90.309417,
+          "answer": "640000",
+          "rssMiB": 141.203125
+        }
+      },
+      {
+        "name": "fill compiled after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "kind": "fill",
+          "mode": "compiled",
+          "ms": 90.04008300000001,
+          "answer": "640000",
+          "rssMiB": 146.171875
+        }
+      },
+      {
+        "name": "fill reference before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "kind": "fill",
+          "mode": "reference",
+          "ms": 154.694166,
+          "answer": "640000",
+          "rssMiB": 179.984375
+        }
+      },
+      {
+        "name": "fill reference after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "kind": "fill",
+          "mode": "reference",
+          "ms": 122.99674999999999,
+          "answer": "640000",
+          "rssMiB": 178.578125
+        }
+      },
+      {
+        "name": "powmod compiled before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "kind": "powmod",
+          "mode": "compiled",
+          "ms": 125.27425,
+          "answer": "1600004",
+          "rssMiB": 171.109375
+        }
+      },
+      {
+        "name": "powmod compiled after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "kind": "powmod",
+          "mode": "compiled",
+          "ms": 85.91445800000002,
+          "answer": "1600004",
+          "rssMiB": 148.609375
+        }
+      },
+      {
+        "name": "026_reciprocal before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "file": "demos/euler/026_reciprocal.ra",
+          "mode": "compiled",
+          "ms": 108.69187499999998,
+          "answer": "983",
+          "rssMiB": 172.78125
+        }
+      },
+      {
+        "name": "026_reciprocal after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "file": "demos/euler/026_reciprocal.ra",
+          "mode": "compiled",
+          "ms": 103.284458,
+          "answer": "983",
+          "rssMiB": 167.953125
+        }
+      },
+      {
+        "name": "104_pandigitalfib before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 800.6614589999999,
+          "answer": "329468",
+          "rssMiB": 432.5
+        }
+      },
+      {
+        "name": "104_pandigitalfib after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 817.4199160000001,
+          "answer": "329468",
+          "rssMiB": 448.78125
+        }
+      },
+      {
+        "name": "129_repunitdiv before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 123.57487499999996,
+          "answer": "1000023",
+          "rssMiB": 175.09375
+        }
+      },
+      {
+        "name": "129_repunitdiv after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 121.71004099999999,
+          "answer": "1000023",
+          "rssMiB": 174.34375
+        }
+      },
+      {
+        "name": "093_arithmeticexpr before",
+        "sample": 0,
+        "before": true,
+        "result": {
+          "file": "demos/euler/093_arithmeticexpr.ra",
+          "mode": "compiled",
+          "ms": 2331.55875,
+          "answer": "1258",
+          "rssMiB": 495.109375
+        }
+      },
+      {
+        "name": "093_arithmeticexpr after",
+        "sample": 0,
+        "before": false,
+        "result": {
+          "file": "demos/euler/093_arithmeticexpr.ra",
+          "mode": "compiled",
+          "ms": 2594.289208,
+          "answer": "1258",
+          "rssMiB": 506.8125
+        }
+      },
+      {
+        "name": "093_arithmeticexpr after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "file": "demos/euler/093_arithmeticexpr.ra",
+          "mode": "compiled",
+          "ms": 2597.642125,
+          "answer": "1258",
+          "rssMiB": 507.875
+        }
+      },
+      {
+        "name": "093_arithmeticexpr before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "file": "demos/euler/093_arithmeticexpr.ra",
+          "mode": "compiled",
+          "ms": 2529.012166,
+          "answer": "1258",
+          "rssMiB": 501.203125
+        }
+      },
+      {
+        "name": "129_repunitdiv after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 165.717791,
+          "answer": "1000023",
+          "rssMiB": 174.4375
+        }
+      },
+      {
+        "name": "129_repunitdiv before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 160.82266700000002,
+          "answer": "1000023",
+          "rssMiB": 172.875
+        }
+      },
+      {
+        "name": "104_pandigitalfib after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 1092.270333,
+          "answer": "329468",
+          "rssMiB": 448.15625
+        }
+      },
+      {
+        "name": "104_pandigitalfib before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 1023.4944169999999,
+          "answer": "329468",
+          "rssMiB": 379.484375
+        }
+      },
+      {
+        "name": "026_reciprocal after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "file": "demos/euler/026_reciprocal.ra",
+          "mode": "compiled",
+          "ms": 146.299875,
+          "answer": "983",
+          "rssMiB": 167.515625
+        }
+      },
+      {
+        "name": "026_reciprocal before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "file": "demos/euler/026_reciprocal.ra",
+          "mode": "compiled",
+          "ms": 148.74758300000002,
+          "answer": "983",
+          "rssMiB": 158.546875
+        }
+      },
+      {
+        "name": "powmod compiled after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "kind": "powmod",
+          "mode": "compiled",
+          "ms": 111.99799999999999,
+          "answer": "1600004",
+          "rssMiB": 147.921875
+        }
+      },
+      {
+        "name": "powmod compiled before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "kind": "powmod",
+          "mode": "compiled",
+          "ms": 172.06175000000002,
+          "answer": "1600004",
+          "rssMiB": 171.78125
+        }
+      },
+      {
+        "name": "fill reference after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "kind": "fill",
+          "mode": "reference",
+          "ms": 166.66475,
+          "answer": "640000",
+          "rssMiB": 177.96875
+        }
+      },
+      {
+        "name": "fill reference before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "kind": "fill",
+          "mode": "reference",
+          "ms": 214.21216699999997,
+          "answer": "640000",
+          "rssMiB": 179.671875
+        }
+      },
+      {
+        "name": "fill compiled after",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "kind": "fill",
+          "mode": "compiled",
+          "ms": 130.092625,
+          "answer": "640000",
+          "rssMiB": 148.0625
+        }
+      },
+      {
+        "name": "fill compiled before",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "kind": "fill",
+          "mode": "compiled",
+          "ms": 120.54045800000006,
+          "answer": "640000",
+          "rssMiB": 155.3125
+        }
+      },
+      {
+        "name": "after reference",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "reference",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 23331.501916,
+          "answer": "4037526",
+          "rssMiB": 743.296875
+        }
+      },
+      {
+        "name": "after compact",
+        "sample": 1,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 2790.2126670000002,
+          "answer": "4037526",
+          "rssMiB": 694.625
+        }
+      },
+      {
+        "name": "before compact",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 3777.368,
+          "answer": "4037526",
+          "rssMiB": 694.84375
+        }
+      },
+      {
+        "name": "before original",
+        "sample": 1,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "original",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 3292.804,
+          "answer": "4037526",
+          "rssMiB": 776.375
+        }
+      },
+      {
+        "name": "before original",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "original",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 3277.4575,
+          "answer": "4037526",
+          "rssMiB": 738.140625
+        }
+      },
+      {
+        "name": "before compact",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 3832.030625,
+          "answer": "4037526",
+          "rssMiB": 694.78125
+        }
+      },
+      {
+        "name": "after compact",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "compiled",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 2765.346042,
+          "answer": "4037526",
+          "rssMiB": 694.546875
+        }
+      },
+      {
+        "name": "after reference",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "mode": "reference",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 26460.231792000002,
+          "answer": "4037526",
+          "rssMiB": 745.875
+        }
+      },
+      {
+        "name": "fill compiled before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "kind": "fill",
+          "mode": "compiled",
+          "ms": 126.81679200000002,
+          "answer": "640000",
+          "rssMiB": 141.140625
+        }
+      },
+      {
+        "name": "fill compiled after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "kind": "fill",
+          "mode": "compiled",
+          "ms": 125.93633300000002,
+          "answer": "640000",
+          "rssMiB": 148
+        }
+      },
+      {
+        "name": "fill reference before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "kind": "fill",
+          "mode": "reference",
+          "ms": 212.38654099999997,
+          "answer": "640000",
+          "rssMiB": 178.640625
+        }
+      },
+      {
+        "name": "fill reference after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "kind": "fill",
+          "mode": "reference",
+          "ms": 170.91074999999998,
+          "answer": "640000",
+          "rssMiB": 177.5625
+        }
+      },
+      {
+        "name": "powmod compiled before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "kind": "powmod",
+          "mode": "compiled",
+          "ms": 174.41649999999993,
+          "answer": "1600004",
+          "rssMiB": 174.046875
+        }
+      },
+      {
+        "name": "powmod compiled after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "kind": "powmod",
+          "mode": "compiled",
+          "ms": 114.931083,
+          "answer": "1600004",
+          "rssMiB": 147.671875
+        }
+      },
+      {
+        "name": "026_reciprocal before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "file": "demos/euler/026_reciprocal.ra",
+          "mode": "compiled",
+          "ms": 143.89249999999993,
+          "answer": "983",
+          "rssMiB": 160.703125
+        }
+      },
+      {
+        "name": "026_reciprocal after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "file": "demos/euler/026_reciprocal.ra",
+          "mode": "compiled",
+          "ms": 144.07249999999996,
+          "answer": "983",
+          "rssMiB": 149.328125
+        }
+      },
+      {
+        "name": "104_pandigitalfib before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 996.980166,
+          "answer": "329468",
+          "rssMiB": 404.765625
+        }
+      },
+      {
+        "name": "104_pandigitalfib after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "file": "demos/euler/104_pandigitalfib.ra",
+          "mode": "compiled",
+          "ms": 830.976042,
+          "answer": "329468",
+          "rssMiB": 383.796875
+        }
+      },
+      {
+        "name": "129_repunitdiv before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 124.156834,
+          "answer": "1000023",
+          "rssMiB": 175.40625
+        }
+      },
+      {
+        "name": "129_repunitdiv after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "file": "demos/euler/129_repunitdiv.ra",
+          "mode": "compiled",
+          "ms": 123.389916,
+          "answer": "1000023",
+          "rssMiB": 174.421875
+        }
+      },
+      {
+        "name": "093_arithmeticexpr before",
+        "sample": 2,
+        "before": true,
+        "result": {
+          "file": "demos/euler/093_arithmeticexpr.ra",
+          "mode": "compiled",
+          "ms": 2058.523083,
+          "answer": "1258",
+          "rssMiB": 467.515625
+        }
+      },
+      {
+        "name": "093_arithmeticexpr after",
+        "sample": 2,
+        "before": false,
+        "result": {
+          "file": "demos/euler/093_arithmeticexpr.ra",
+          "mode": "compiled",
+          "ms": 2084.795333,
+          "answer": "1258",
+          "rssMiB": 505.75
+        }
+      }
+    ],
+    "summary": [
+      {
+        "name": "before original",
+        "medianMs": 3277.4575,
+        "medianRssMiB": 738.5
+      },
+      {
+        "name": "before compact",
+        "medianMs": 3832.030625,
+        "medianRssMiB": 694.84375
+      },
+      {
+        "name": "after compact",
+        "medianMs": 2790.2126670000002,
+        "medianRssMiB": 694.625
+      },
+      {
+        "name": "after reference",
+        "medianMs": 23331.501916,
+        "medianRssMiB": 743.296875
+      },
+      {
+        "name": "fill compiled before",
+        "medianMs": 120.54045800000006,
+        "medianRssMiB": 141.203125
+      },
+      {
+        "name": "fill compiled after",
+        "medianMs": 125.93633300000002,
+        "medianRssMiB": 148
+      },
+      {
+        "name": "fill reference before",
+        "medianMs": 212.38654099999997,
+        "medianRssMiB": 179.671875
+      },
+      {
+        "name": "fill reference after",
+        "medianMs": 166.66475,
+        "medianRssMiB": 177.96875
+      },
+      {
+        "name": "powmod compiled before",
+        "medianMs": 172.06175000000002,
+        "medianRssMiB": 171.78125
+      },
+      {
+        "name": "powmod compiled after",
+        "medianMs": 111.99799999999999,
+        "medianRssMiB": 147.921875
+      },
+      {
+        "name": "026_reciprocal before",
+        "medianMs": 143.89249999999993,
+        "medianRssMiB": 160.703125
+      },
+      {
+        "name": "026_reciprocal after",
+        "medianMs": 144.07249999999996,
+        "medianRssMiB": 167.515625
+      },
+      {
+        "name": "104_pandigitalfib before",
+        "medianMs": 996.980166,
+        "medianRssMiB": 404.765625
+      },
+      {
+        "name": "104_pandigitalfib after",
+        "medianMs": 830.976042,
+        "medianRssMiB": 448.15625
+      },
+      {
+        "name": "129_repunitdiv before",
+        "medianMs": 124.156834,
+        "medianRssMiB": 175.09375
+      },
+      {
+        "name": "129_repunitdiv after",
+        "medianMs": 123.389916,
+        "medianRssMiB": 174.421875
+      },
+      {
+        "name": "093_arithmeticexpr before",
+        "medianMs": 2331.55875,
+        "medianRssMiB": 495.109375
+      },
+      {
+        "name": "093_arithmeticexpr after",
+        "medianMs": 2594.289208,
+        "medianRssMiB": 506.8125
+      }
+    ],
+    "mixedFill": {
+      "records": [
+        {
+          "before": true,
+          "sample": 0,
+          "result": {
+            "kind": "mixedfill",
+            "mode": "compiled",
+            "ms": 161.36599999999999,
+            "answer": "100804885",
+            "rssMiB": 174.125
+          }
+        },
+        {
+          "before": false,
+          "sample": 0,
+          "result": {
+            "kind": "mixedfill",
+            "mode": "compiled",
+            "ms": 121.87504100000001,
+            "answer": "100804885",
+            "rssMiB": 150.390625
+          }
+        },
+        {
+          "before": false,
+          "sample": 1,
+          "result": {
+            "kind": "mixedfill",
+            "mode": "compiled",
+            "ms": 123.10950000000003,
+            "answer": "100804885",
+            "rssMiB": 149.78125
+          }
+        },
+        {
+          "before": true,
+          "sample": 1,
+          "result": {
+            "kind": "mixedfill",
+            "mode": "compiled",
+            "ms": 159.54112500000002,
+            "answer": "100804885",
+            "rssMiB": 174.515625
+          }
+        },
+        {
+          "before": true,
+          "sample": 2,
+          "result": {
+            "kind": "mixedfill",
+            "mode": "compiled",
+            "ms": 159.81145800000002,
+            "answer": "100804885",
+            "rssMiB": 173.53125
+          }
+        },
+        {
+          "before": false,
+          "sample": 2,
+          "result": {
+            "kind": "mixedfill",
+            "mode": "compiled",
+            "ms": 131.621042,
+            "answer": "100804885",
+            "rssMiB": 150.171875
+          }
+        }
+      ],
+      "summary": [
+        {
+          "before": true,
+          "medianMs": 159.81145800000002,
+          "medianRssMiB": 174.125
+        },
+        {
+          "before": false,
+          "medianMs": 123.10950000000003,
+          "medianRssMiB": 150.171875
+        }
+      ]
+    },
+    "isolated093": {
+      "records": [
+        {
+          "before": true,
+          "sample": 0,
+          "result": {
+            "file": "demos/euler/093_arithmeticexpr.ra",
+            "mode": "compiled",
+            "ms": 2443.939792,
+            "answer": "1258",
+            "rssMiB": 498.671875
+          }
+        },
+        {
+          "before": false,
+          "sample": 0,
+          "result": {
+            "file": "demos/euler/093_arithmeticexpr.ra",
+            "mode": "compiled",
+            "ms": 2490.7335409999996,
+            "answer": "1258",
+            "rssMiB": 504.03125
+          }
+        },
+        {
+          "before": false,
+          "sample": 1,
+          "result": {
+            "file": "demos/euler/093_arithmeticexpr.ra",
+            "mode": "compiled",
+            "ms": 2410.5820830000002,
+            "answer": "1258",
+            "rssMiB": 494.234375
+          }
+        },
+        {
+          "before": true,
+          "sample": 1,
+          "result": {
+            "file": "demos/euler/093_arithmeticexpr.ra",
+            "mode": "compiled",
+            "ms": 2508.426708,
+            "answer": "1258",
+            "rssMiB": 505.125
+          }
+        },
+        {
+          "before": true,
+          "sample": 2,
+          "result": {
+            "file": "demos/euler/093_arithmeticexpr.ra",
+            "mode": "compiled",
+            "ms": 1997.293333,
+            "answer": "1258",
+            "rssMiB": 468.046875
+          }
+        },
+        {
+          "before": false,
+          "sample": 2,
+          "result": {
+            "file": "demos/euler/093_arithmeticexpr.ra",
+            "mode": "compiled",
+            "ms": 1885.9858330000002,
+            "answer": "1258",
+            "rssMiB": 506.90625
+          }
+        },
+        {
+          "before": false,
+          "sample": 3,
+          "result": {
+            "file": "demos/euler/093_arithmeticexpr.ra",
+            "mode": "compiled",
+            "ms": 1906.1899160000003,
+            "answer": "1258",
+            "rssMiB": 495.671875
+          }
+        },
+        {
+          "before": true,
+          "sample": 3,
+          "result": {
+            "file": "demos/euler/093_arithmeticexpr.ra",
+            "mode": "compiled",
+            "ms": 1898.052667,
+            "answer": "1258",
+            "rssMiB": 497.734375
+          }
+        }
+      ],
+      "summary": [
+        {
+          "before": true,
+          "medianMs": 2220.6165625000003,
+          "medianRssMiB": 498.203125
+        },
+        {
+          "before": false,
+          "medianMs": 2158.3859995000003,
+          "medianRssMiB": 499.8515625
+        }
+      ]
+    },
+    "oracle": [
+      {
+        "variant": "shipping",
+        "mode": "compiled",
+        "cases": 61,
+        "failures": []
+      },
+      {
+        "variant": "shipping",
+        "mode": "reference",
+        "cases": 61,
+        "failures": []
+      }
+    ],
+    "verification": {
+      "typescriptBuild": "passed",
+      "focused": {
+        "files": 28,
+        "passed": 1263,
+        "localTestTimeoutMs": 15000
+      },
+      "fullGoldens": [
+        "Euler 289",
+        "Euler 290",
+        "Euler 291"
+      ],
+      "scopedAudits": {
+        "passed": 4,
+        "skipped": 4249,
+        "scope": "euler/291_panaitopolprimes main and fixture, types and differential"
+      },
+      "baselineTimeout": "Unmodified scalar-function-kernel negative-stride/while test took 5601 ms on baseline 4a7cb2ae, exceeding the default 5000 ms. Same test passes with local --testTimeout 15000; no checked-in deadline or test source changed.",
+      "fullSuites": "not run",
+      "oracleComparisons": 122,
+      "catalogue": "Both 291 exclusions removed; full default fixture preserved."
+    },
+    "sourceSha256": {
+      "benchmarks/euler291-series.py": "6498e64a2d866f0a9f721cf9b8bda3ce0e85cb5a54b4a6277b1fbd1a68989dd8",
+      "benchmarks/euler291-investigation.md": "54b44a20ec256f9b993633026078bb6ca1bce93c04b62db9299f999d7f09c093",
+      "benchmarks/euler291-kernels.mjs": "a95ad148a3923614e9849e59c511d4eeb14be8a3ad6ac545a78a39b328c080e3",
+      "benchmarks/euler291-delivery-series.py": "15e2ba4f68358e4ecadc444ceb05c467b53cc1454ff2559f1cdb6260eb060c1f",
+      "benchmarks/euler291-verify.mjs": "7c62c472a86a2f29eb0a4e7c6f6b67acf677b4ba115b8c52b1ee87c4087df9f4",
+      "benchmarks/euler291-investigation.mjs": "103d84005c9f4735e5ac02b27b1d3d0b53242d080cd8935be5c06bc526369c3a",
+      "benchmarks/experiments/euler291-powmod.ra": "17f6412110568c811858b29774175bcf4ff7c1c609a60924a82a90bc2d8d7586",
+      "benchmarks/experiments/euler291-arrayrootswholepair.ra": "5bbea9baa7854b786996f207e77b2e3fb04ca4302fdfcc2d20b7c88d016b2ccc",
+      "benchmarks/experiments/euler291-boundedwhole.ra": "014317f3707245baf6cd3474e4084c3e35156abfe6d6d7743293134490976719",
+      "benchmarks/experiments/euler291-probe-loader.mjs": "e723fab654bbe20487a14aa7f121ea934039993162c489945afdb0c293342d9a",
+      "benchmarks/experiments/euler291-originalwhole.ra": "6c6954c945dee9efd6c272841790c928711d6e3cce1a07f57c50c6addac5f16e",
+      "benchmarks/experiments/euler291-boundedwholepair.ra": "c8fb03764a476c1f26c14f5158c55b0aa02b961e0ce10a1a2294abb7ac802ca3",
+      "benchmarks/experiments/euler291-both.ra": "4d037de25c9a7f6a62b2bcf0176545a78a9118274b26c302e631bfc1449cc48a",
+      "benchmarks/experiments/euler291-arrayroots.ra": "07ed981e1706a2d5183cd9d8fe19bb52e0d24378fc773b67a1f36daf269fcdbb",
+      "benchmarks/experiments/euler291-original.ra": "80625a8b9b6feeeda54fccbc4ac5b92066fbf8b0d6c3afb6eb757b2648c7abeb",
+      "benchmarks/experiments/euler291-slices.ra": "ac772a10cf164ff076099fee7e05ffe62c2c8479e7942639030cbf0e220857de",
+      "benchmarks/experiments/euler291-bounded.ra": "0d85e312ca29f1c2d61ab2ada49d1d74f84ce1e5409e845833664e2686ffef92",
+      "benchmarks/experiments/euler291-legacy-loader.mjs": "2a7b341bd8b898ff0be2bbb34818a0c8a81f020b92b12fda908ac375f53bf69a",
+      "benchmarks/experiments/euler291-arrayrootswhole.ra": "ab01214558b559f4a8f6ee49132c86a6410c3e8d6216b19191639e407240c7ae",
+      "demos/euler/291_panaitopolprimes.ra": "93c76c925c54aa39e638ca7354c52c59a3bebdebbcbc5cc74a5a2e676dde775b",
+      "demos/euler/291_panaitopolprimes_test.ra": "80d1654cf411a7b83fe8e01ba7beb4e0ad0366b1030417181646a149b6361d0e",
+      "packages/interpreter/src/eval/assignments.ts": "8679a1531d1c3f4fb76e6d42beb33978f907c0c0badf743d8e1693ef3a9c2314",
+      "packages/interpreter/src/jit/number-loop-slice.ts": "b87872d7d0a66afbd83a9ab12ea52b537526de3e9d93b9441360f1c0cdc7bf7d",
+      "packages/interpreter/src/modules/numbers.ts": "5cde14e25cc91b6e232704cbf52d02874cbe104b73e5256000abace18842c095"
+    },
+    "integrationVerification": {
+      "parent": "df78a6ae60b4b946127edc9ef6aed86be8818928",
+      "typescript": "passed",
+      "focusedTests": 207,
+      "goldenTests": 1,
+      "oracle": [
+        {
+          "variant": "shipping",
+          "mode": "compiled",
+          "cases": 61,
+          "failures": []
+        },
+        {
+          "variant": "shipping",
+          "mode": "reference",
+          "cases": 61,
+          "failures": []
+        }
+      ],
+      "wholeSourceSmoke": [
+        {
+          "mode": "compiled",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 2660.498084,
+          "answer": "4037526",
+          "rssMiB": 695.6875
+        },
+        {
+          "mode": "reference",
+          "variant": "shipping",
+          "limit": "5000000000000000",
+          "probe": null,
+          "whole": true,
+          "ms": 19048.950542000002,
+          "answer": "4037526",
+          "rssMiB": 747.1875
+        }
+      ]
+    }
+  }
+}

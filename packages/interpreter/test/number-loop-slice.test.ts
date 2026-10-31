@@ -35,6 +35,62 @@ end`);
         expect(result.diagnostics.numberLoops).toBe(1);
     });
 
+    it.each(['=', '+=', '-=', '*='])('compiles scalar fills with %s and returns the operand', op => {
+        const result = compare(`A = array shape 2 6 fill 3
+Alias = A
+for I in 0 to 1
+ A I (5 to 1 by -2) ${op} (I + 2)
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.state.result).toBe('3');
+        expect(result.state.variables).toContainEqual(['Alias', '3 3 3 3 3 3 3 3 3 3 3 3']);
+    });
+
+    it('snapshots a scalar read from the destination before filling', () => {
+        const result = compare(`A = array 1 2 3 4 5 6
+for I in 0 to 1
+ A (0 to 5) += A 0
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.state.variables).toContainEqual(['A', '4 5 6 7 8 9']);
+    });
+
+    it('widens local scalar fills past Int32', () => {
+        const result = compare(`S = 0
+for I in 0 to 1
+ A = array shape 2 3 fill 0
+ A I (0 till 3) = 3000000000 + I
+ S += A I 0
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.state.variables).toContainEqual(['S', '6000000001']);
+    });
+
+    it('replays overflowing compound scalar fills without publishing speculative stores', () => {
+        const result = compare(`A = array shape 2 3 fill 9007199254740990
+S = 0
+for I in 0 to 1
+ S += 1
+ A I (0 to 2) += 2
+end`);
+        expect(result.diagnostics.numberLoopOverflows).toBe(1);
+    });
+
+    it.each([
+        'A I (99 till 0) = 7',
+        'A I (99 till 0) = 1 // (1 - I)',
+        'A I (0 to 3) = 1 // (1 - I)',
+        'A I (0 to 2 by 0) = 1 // (1 - I)',
+        'A (I + 1) (0 to 2) = 1 // (1 - I)',
+    ])('retains scalar selection and operand evaluation ordering: %s', statement => {
+        compare(`A = array shape 2 3 fill 0
+S = 0
+for I in 0 to 1
+ S += 1
+ ${statement}
+end`, false);
+    });
+
     it('supports scalar prefixes of rank three and distinct strides', () => {
         const result = compare(`A = array shape 2 2 6 fill 3
 B = array shape 2 2 9 fill 2

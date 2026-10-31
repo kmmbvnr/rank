@@ -269,7 +269,12 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 (_, index) => readArrayItem(completed, index),
             );
         }
-        if (count > 0 && host.options().compilation !== false && !inspectionEnabled()
+        // Scalar integer replacement is an interpreter primitive as well as a
+        // compiled optimization. Keep compound/vector and observable host polling
+        // on their existing reference paths; no code is generated here.
+        if (count > 0 && (host.options().compilation !== false
+                || statement.operator === '=' && typeof result === 'bigint' && !statement.accumulate
+                    && selection.linear && privateLoopPolling()) && !inspectionEnabled()
             && (statement.operator === '=' || statement.operator === '+=' || statement.operator === '-=' || statement.operator === '*=')
             && (typeof result === 'bigint' || compactOperands || wideOperands || operands?.every(value => typeof value === 'bigint'))) {
             const cells = writableIntegerCells(target);

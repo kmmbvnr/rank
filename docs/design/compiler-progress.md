@@ -1,5 +1,25 @@
 # Compiler progress
 
+## Scalar integer slice fills (Euler 291)
+
+Number loops now lower scalar integer `=`, `+=`, `-=`, and `*=` over trailing
+arithmetic ranges, including scalar leading coordinates and reverse strides.
+The scalar is evaluated once before stores, including for an empty selection;
+Int32 widening, private publication and exact replay retain ordinary behavior.
+The existing array-slice RHS snapshots and live result contract are unchanged.
+
+The reference interpreter also uses the native integer selection writer for a
+simple scalar `=` into a linear selection when polling is private. This is a
+storage primitive without generated code. Compound/vector writes and observable
+host polling retain their existing reference paths. Guarded Number `powmod`
+calls reuse the existing exact modular kernel and cooperative checkpoints.
+
+Euler 291 fixes its strict upper limit and uses `powmod` and paired strided
+fills with blocks capped at 50 million cells. Copy-admission thresholds are
+unchanged: its large external sieve still uses the exact compiled writer when
+Number admission declines the copy. Small scalar fills can use Number directly.
+See [measurements and verification](../../benchmarks/euler291-investigation.md).
+
 ## Private integer row-slice updates (Euler 290)
 
 Number loops now lower integer `=`, `+=`, `-=`, and `*=` between trailing

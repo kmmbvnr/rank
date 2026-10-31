@@ -22,3 +22,31 @@ test "small limits"
 
   Answer equal 26516
 end
+
+test "strict upper limit"
+  use "291_panaitopolprimes"
+  Limit = 0
+  run
+
+  Answer equal 0
+  Limit = 5
+  run
+
+  Answer equal 0
+  Limit = 6
+  run
+
+  Answer equal 1
+  Limit = 12
+  run
+
+  Answer equal 1
+  Limit = 13
+  run
+
+  Answer equal 1
+  Limit = 14
+  run
+
+  Answer equal 2
+end

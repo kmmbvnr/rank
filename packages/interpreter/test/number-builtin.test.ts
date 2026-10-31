@@ -58,6 +58,34 @@ describe('catalogue scalar builtins in private Number loops', () => {
         expect(result.diagnostics.numberLoops).toBe(1);
     });
 
+    it.each([
+        '(-9007199254740991 + I) 3 1073741824 powmod',
+        '(I + 2) 4294967296 1000000007 powmod',
+        '(I + 2) 3 1073741825 powmod',
+        '(I + 2) 0 1 powmod',
+        '(9007199254740991 - I) 1 9007199254740991 powmod',
+        '(I + 2) 60 9007199254740991 powmod',
+        '(I + 2) 3 (2 - I) powmod',
+    ])('keeps modular-power boundaries and errors exact: %s', expression => {
+        const result = compare(`use numbers
+A = array shape 3 fill 0
+for I in 0 to 2
+ A I = I + 1
+ R = ${expression}
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('replays wide modular operands after preceding stores', () => {
+        const result = compare(`use numbers
+A = array 0 0
+for I in 0 to 1
+ A I = I + 1
+ R = (9007199254740991 + I) 2 9007199254740991 powmod
+end`);
+        expect(result.state.error).toBeUndefined();
+    });
+
     it('rechecks a cached builtin identity before selecting a Number kernel', () => {
         const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
         try {
