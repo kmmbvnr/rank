@@ -1,0 +1,18 @@
+diff --git a/packages/interpreter/src/jit/numeric-function-codegen.ts b/packages/interpreter/src/jit/numeric-function-codegen.ts
+index abcb315e..6c1b299f 100644
+--- a/packages/interpreter/src/jit/numeric-function-codegen.ts
++++ b/packages/interpreter/src/jit/numeric-function-codegen.ts
+@@ -57,7 +57,12 @@ export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<Num
+         } else throw new Error('unsupported numeric function node');
+         const name = `v${serial++}`;
+         let entries = emitted.get(node); if (!entries) emitted.set(node, entries = new Map()); entries.set(index, name);
+-        lines.push(`let ${name} = ${expression}; if (!${info.integer ? 'Number.isSafeInteger' : 'Number.isFinite'}(${name})) return false;`);
++        // Preparation proves virtual index bounds from checked scalar inputs.
++        // Numeric data loads still need their ordinary arithmetic guards.
++        const integerProof = info.integer && info.low !== undefined && info.high !== undefined
++            && Number.isSafeInteger(info.low) && Number.isSafeInteger(info.high);
++        const guard = integerProof ? '' : ` if (!${info.integer ? 'Number.isSafeInteger' : 'Number.isFinite'}(${name})) return false;`;
++        lines.push(`let ${name} = ${expression};${guard}`);
+         if (info.integer) lines.push(`if (${name} === 0) ${name} = 0;`);
+         return name;
+     }

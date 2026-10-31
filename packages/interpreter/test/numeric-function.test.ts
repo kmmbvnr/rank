@@ -45,6 +45,49 @@ function compare(args: RankValue[], source = stage, name = 'fftStage') {
 }
 
 describe('pure structural numeric functions', () => {
+    it('retains exact indexed differences and their arithmetic guards', () => {
+        const source = `use sequences
+fun X differences Stride
+ K = (0 till (X len // Stride - 1)) * Stride
+ Left = X K
+ Right = X (K + Stride)
+ return Right - Left
+end`;
+        const r = compare([typedArray(vector(32)), 2n], source, 'differences');
+        expect(r.executions).toBe(1);
+        expect(r.generated[0]).toContain('Number.isSafeInteger');
+        expect(r.generated[0]).toContain('Number.isFinite');
+    });
+    it('keeps integer-zero normalization when a proved range meets real signed zero', () => {
+        const source = `use sequences
+fun X signedIndices
+ Indices = 0 till (X len)
+ K = -Indices
+ R = K * -0.0
+ return (X reshape #) * R
+end`;
+        const r = compare([typedArray(new Float64Array(8).fill(1))], source, 'signedIndices');
+        expect(r.executions).toBe(1);
+        expect((r.value as { items: number[] }).items.map(x => Object.is(x, -0))).toEqual([true, false, false, false, false, false, false, false]);
+    });
+    it.each(['-(0 till (X len))', '-((0 till (X len)) * 2)'])('preserves unary sequence errors for %s', expression => {
+        const source = `use sequences
+fun X invalidSequence
+ K = ${expression}
+ return (X reshape #) + K
+end`;
+        const r = compare([typedArray(vector(8))], source, 'invalidSequence');
+        expect(r).toHaveProperty('error'); expect(r.executions).toBe(0);
+    });
+    it.each([9007199254740984n, -9007199254740991n, 9007199254740985n])('retains exact interval limits for offset %s', offset => {
+        const source = `use sequences
+fun X offsetRange Offset
+ K = (0 till (X len)) + Offset
+ return (X reshape #) + K
+end`;
+        const r = compare([typedArray(vector(8)), offset], source, 'offsetRange');
+        expect(r.executions).toBe(offset === 9007199254740985n ? 0 : 1);
+    });
     it('reuses preparation while reading fresh input buffers', () => {
         const f = fixture(), reference = fixture(false);
         try {

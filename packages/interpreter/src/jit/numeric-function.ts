@@ -38,6 +38,15 @@ const unwrap = (e: Expression): Expression => isParenthesizedExpression(e) ? unw
 const sizeOf = (shape: readonly number[]) => shape.reduce((a, b) => a * b, 1);
 const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
 const safe = (n: number) => Number.isSafeInteger(n);
+// A named binding completes a range into an array; an inline range is still
+// a sequence, and ordinary unary +/- do not accept sequence operands.
+function inlineRange(expression: Expression, budget = { left: 512 }): boolean {
+    if (--budget.left < 0) return true;
+    const e = unwrap(expression);
+    return isBinaryExpression(e) && (e.operator === 'to' || e.operator === 'till'
+        || inlineRange(e.left, budget) || inlineRange(e.right, budget))
+        || isUnaryExpression(e) && inlineRange(e.operand, budget);
+}
 
 /** A pure function boundary lets structural numeric intermediates stay virtual.
  * Inputs are completed tracked reals; all speculative storage is unpublished.
@@ -60,6 +69,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             return Number.isFinite(value) && (!integer || safe(value)) ? { kind: 'constant', value, integer } : undefined;
         }
         if (isUnaryExpression(e) && ['+', '-'].includes(e.operator)) {
+            if (inlineRange(e.operand)) return undefined;
             const child = parse(e.operand);
             return child && { kind: 'unary', op: e.operator, child };
         }

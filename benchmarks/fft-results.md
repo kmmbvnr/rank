@@ -654,6 +654,57 @@ node benchmarks/numeric-function-plans.mjs \
   --output=/tmp/numeric-function-plans.json
 ```
 
+### Step 2: integer-bound guard pruning rejected
+
+The next experiment used already prepared safe integer intervals to omit
+per-cell `Number.isSafeInteger` checks for virtual ranges/index arithmetic.
+Real arithmetic guards and integer-zero normalization remained. The baseline
+is a fixed build of step 1 (`fa9e1915`), and sources are unchanged.
+
+| FFT N | Step 1, ms | Experimental pruning, ms |
+| --- | ---: | ---: |
+| 256 | 0.37860 | 0.36976 |
+| 1024 | 0.71298 | 0.70901 |
+| 4096 | 1.35135 | 1.34006 |
+
+At N=4096 the 0.8% wall difference is within the overlapping process ranges
+(1.320–1.455 ms before, 1.310–1.440 ms after); CPU medians are essentially
+unchanged, 2.022 to 2.025 ms. The indexed helper initially appears 4.0% faster
+in five pairs, but a nine-pair confirmation reverses direction: 0.03127 to
+0.03164 ms, with CPU 0.05205 to 0.05239 ms. Affine and paired-channel helpers,
+whose emitted arithmetic did not benefit from integer-bound pruning, also
+show small shifts. There is no reproducible speed improvement here.
+
+The guard-pruning change was therefore removed from production code. Its
+[experimental patch](experiments/numeric-index-proof.patch) is retained only
+to reproduce the negative result; it applies to the step-1 code generator.
+Raw step-2 timings and diagnostics describe that rejected candidate, not
+the final retained implementation.
+
+The boundary tests exposed an independent existing eligibility defect:
+ordinary unary +/- reject inline sequences, whereas a named range binding
+has already completed into an array. The numeric compiler previously treated
+both as virtual arrays. It now conservatively declines unary expressions
+containing an inline range through arithmetic, preserving the ordinary error.
+The syntax check is bounded, and named-array unary arithmetic remains supported.
+This correctness fix, safe-integer boundary cases and signed-zero regressions
+are retained; runtime integer guards remain as in step 1.
+
+The experimental version passed 453 ordinary files / 10,423 tests. After
+removing guard pruning and its code-generator-only test, the final retained
+version passes all 453 ordinary files / 10,422 tests, including 45 numerical
+function tests. All 55 Deep-ML files and seven classic files pass again;
+TypeScript build, semantic boundaries and application-form checks pass.
+Exhaustive audits were not run. No end-to-end speedup is attributed to this
+second step; its retained production change is the unary-sequence repair.
+
+Evidence: [FFT experiment](baselines/2026-11-01-numeric-prepared-step2-fft.json),
+[helper experiment](baselines/2026-11-01-numeric-prepared-step2-helpers.json),
+[indexed confirmation](baselines/2026-11-01-numeric-prepared-step2-indexed-confirm.json),
+[rejected-candidate diagnostics](baselines/2026-11-01-numeric-prepared-step2-diagnostics.json).
+Timing again uses serial fresh processes with alternating order and no
+concurrent tests/profiling. Ratios from the two steps are not multiplied.
+
 ## Reproduction and checks
 
 ```sh
