@@ -768,6 +768,13 @@ export class IntegerCells {
         this.exact![index] = value;
     }
 
+    /** A safe-integer store from a checked Number kernel. */
+    setNumber(index: number, value: number): void {
+        const packed = this.packed;
+        if (packed instanceof Int32Array && (value | 0) === value) packed[index] = value;
+        else this.set(index, BigInt(value));
+    }
+
     array(shape: readonly number[]): RankArray {
         return this.packed ? typedArray(this.packed, shape) : ownedScalarArray(this.exact!, 'integer', shape);
     }

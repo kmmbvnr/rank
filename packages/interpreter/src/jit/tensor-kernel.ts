@@ -40,6 +40,11 @@ export interface TensorKernelHost {
     valid?(): boolean;
 }
 type KernelResult = RankValue | RankValue[] | Float64Array | IntegerCells | BooleanCells | undefined;
+const overflowSignal = {};
+function safeInteger(value: number): number {
+    if (!Number.isSafeInteger(value)) throw overflowSignal;
+    return value;
+}
 type KernelRun = (data: ArrayLike<RankValue>[], offsets: number[], scalars: RankValue[], size: number,
     checks: ((cell: RankValue, index: number) => RankValue)[], routes: ((index: number) => number)[], start?: number,
     visit?: (cell: RankValue, index: number) => void, dest?: Float64Array | BooleanCells | IntegerCells) => KernelResult;
@@ -1178,6 +1183,65 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     for (let cell = 0; cell < ${count}; cell++) {
                         const i = base + ${offset('cell', reduced)};`;
             }
+            // Integer copies over stored cells run in checked Number registers.
+            // Any unsafe value, zero divisor or range miss throws a private
+            // sentinel before the exact BigInt kernel below runs from scratch.
+            const numberBody = terminal === 'copy' && outputKind === 'integer' && !scanning && !visit && !axes && !compact
+                && !structural.length && !hasCalls && !readers.size ? numberKernelBody() : undefined;
+            function numberKernelBody(): string | undefined {
+                const names = new Map<TensorNode, Map<string, string>>();
+                const body: string[] = [];
+                let count = 0, ok = true;
+                const stored = (slot: number | undefined) => data[slot!] instanceof Int32Array || data[slot!] instanceof BigInt64Array;
+                const read = (slot: number, index: string) => {
+                    const cell = `data[${slot}][offsets[${slot}] + (${index})]`;
+                    if (data[slot] instanceof Int32Array) return cell;
+                    const name = `n${count++}`;
+                    body.push(`const ${name}c = ${cell}; if (${name}c > 9007199254740991n || ${name}c < -9007199254740991n) throw overflow; const ${name} = Number(${name}c);`);
+                    return name;
+                };
+                const go = (node: TensorNode, index: string, frame: readonly number[]): string => {
+                    const info = bound.get(node)!;
+                    const at = info.shape ? address(info.shape, frame, index) : '0';
+                    const known = names.get(node)?.get(at);
+                    if (known) return known;
+                    let value = '0';
+                    if (info.filter || info.progression || info.digits || info.segments || info.operands) ok = false;
+                    else if (info.scalar !== undefined) {
+                        if (typeof info.scalar !== 'bigint') ok = false;
+                        value = `scalars[${info.slot}]`;
+                    } else if (info.view) {
+                        if (info.view.kind !== 'integer' || !stored(info.slot)) ok = false;
+                        else value = read(info.slot!, at);
+                    } else if (node.kind === 'unary' && (node.op === '-' || node.op === '+')) {
+                        const a = go(node.operand, at, info.shape ?? frame);
+                        value = node.op === '-' ? `(-${a})` : a;
+                    } else if (node.kind === 'binary' && !node.native && ['+', '-', '*', 'mod', '//'].includes(node.op)) {
+                        const a = go(node.left, at, info.shape ?? frame), b = go(node.right, at, info.shape ?? frame);
+                        const name = `n${count++}`;
+                        if (node.op === 'mod' || node.op === '//') {
+                            body.push(`if (${b} === 0) throw overflow; const ${name}rem = ${a} % ${b};`);
+                            body.push(`const ${name} = ${binaryOperatorSource(findCompiledOperator(node.op)!, a, b, { number: true, remainder: `${name}rem`, safe: x => `safe(${x})` })};`);
+                        } else body.push(`const ${name} = safe(${a} ${node.op} ${b});`);
+                        value = name;
+                    } else if (node.kind === 'select' && !info.filter) {
+                        const source = bound.get(node.source)!;
+                        const selector = go(node.selector, at, info.shape ?? frame);
+                        if (source.view?.kind !== 'integer' || !stored(source.slot) || !source.shape) ok = false;
+                        else {
+                            body.push(`if (${selector} < 0 || ${selector} >= ${source.shape[0]}) throw overflow;`);
+                            value = read(source.slot!, selector);
+                        }
+                    } else ok = false;
+                    let entries = names.get(node);
+                    if (!entries) names.set(node, entries = new Map());
+                    entries.set(at, value);
+                    return value;
+                };
+                const result = go(root, 'i', output!.shape!);
+                if (!ok) return undefined;
+                return `"use strict"; /* number ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { const answer = new IntegerCells(size); for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${body.join('\n')}\nanswer.setNumber(i, ${result}); } return answer; };`;
+            }
             generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : ${initial}, length = 0; ${preparations.join('\n')} ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max', 'reduce-'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
@@ -1188,6 +1252,24 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     if (code.size >= 32) code.delete(code.keys().next().value!);
                     code.set(generated, execute);
                 }
+            }
+            if (compiled && numberBody) {
+                const exact = execute!;
+                try {
+                    const fast = new Function('checkpoint', 'IntegerCells', 'safe', 'overflow', numberBody)(checkpoint, IntegerCells, safeInteger, overflowSignal) as KernelRun;
+                    execute = (data, offsets, scalars, size, checks, routes, start, visit, dest) => {
+                        // A destination may alias an input; never overwrite it before the exact run.
+                        if (dest === undefined) {
+                            const numbers = scalars.map(scalar => typeof scalar === 'bigint' ? Number(scalar) : scalar);
+                            if (scalars.every((scalar, at) => typeof scalar !== 'bigint' || BigInt(numbers[at] as number) === scalar && Number.isSafeInteger(numbers[at]))) {
+                                try { return fast(data, offsets, numbers as RankValue[], size, checks, routes, start, visit, dest); }
+                                catch (error) { if (error !== overflowSignal) throw error; }
+                            }
+                        }
+                        return exact(data, offsets, scalars, size, checks, routes, start, visit, dest);
+                    };
+                    if (code) code.set(generated, execute);
+                } catch { execute = exact; }
             }
             cachedKey = key;
             cachedRun = execute;
