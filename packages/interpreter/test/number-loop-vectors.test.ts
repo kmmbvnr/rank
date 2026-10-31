@@ -27,6 +27,102 @@ function compare(source: string) {
 }
 
 describe('private numeric vector stages', () => {
+    it.each(['min', 'max', 'band', 'bor', 'bxor', 'shr', 'shl'])('joins native %s array stages with their consumers', operation => {
+        const r = compare(`use bits
+A = array 3 7 12 31
+B = array 1 2 3 1
+C = A
+Saved = C
+Total = 0
+for I in 1 to 3
+ C = (A ${operation} B) * 2 + A
+ Total += C sum
+end
+Saved`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+
+    it.each(['band', 'bor', 'bxor', 'shl', 'shr'])('retains exact wide and negative native %s results', operation => {
+        const r = compare(`use bits
+A = array 2147483648 1099511627776 -3
+B = array 1 40 2
+C = A
+Total = 0
+for I in 1 to 2
+ C = A ${operation} B
+ Total += C sum
+end
+C`);
+        expect(r.observation.error).toBeUndefined();
+    });
+
+    it.each(['min', 'max'])('retains real %s signed-zero order under broadcasting', operation => {
+        const r = compare(`use sequences
+A = (array -0.0 0.0 1.5) reshape 1 3
+B = (array 0.0 -0.0) reshape 2 1
+C = A
+Total = 0.0
+for I in 1 to 2
+ C = A ${operation} B
+ Total += C sum
+end
+C`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+
+    it.each(['min', 'max'])('preserves native %s NaN propagation in either operand', operation => {
+        const r = compare(`A = array shape 3 fill 1.0e308
+C = A
+for I in 1 to 2
+ Nan = A * 2 - A * 2
+ C = (Nan ${operation} A) + (A ${operation} Nan)
+end
+C`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('uses native bit predicates inside a vector filter', () => {
+        const r = compare(`use bits
+Total = 0
+for I in 1 to 3
+ A = 0 to 7 array
+ A = A filter (A bit 1)
+ Total += A sum
+end
+Total`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.observation.result).toBe('54');
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('replays invalid vector shift counts without publishing partial bindings', () => {
+        compare(`use bits
+A = array 1 2 3
+B = array 1 -1 2
+C = A
+for I in 1 to 2
+ C = A shl B
+end
+C`);
+    });
+
+    it('guards a shadowed native bitwise operation', () => {
+        const r = compare(`fun A band B
+ return A + B
+end
+A = array 1 2 3
+B = array 3 2 1
+C = A
+for I in 1 to 2
+ C = A band B
+end
+C`);
+        expect(r.observation.error).toBeUndefined();
+    });
+
     it.each([
         [[2, 3], [3]],
         [[2, 1], [1, 3]],

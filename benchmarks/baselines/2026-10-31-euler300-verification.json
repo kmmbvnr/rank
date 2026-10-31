@@ -1,0 +1,146 @@
+{
+  "records": [
+    {
+      "n": 2,
+      "maps": 1,
+      "maximal": 1,
+      "proteins": 4,
+      "numerator": 1,
+      "answer": 0.25,
+      "rankChecks": 8
+    },
+    {
+      "n": 3,
+      "maps": 1,
+      "maximal": 1,
+      "proteins": 8,
+      "numerator": 4,
+      "answer": 0.5,
+      "rankChecks": 8
+    },
+    {
+      "n": 4,
+      "maps": 2,
+      "maximal": 1,
+      "proteins": 16,
+      "numerator": 16,
+      "answer": 1,
+      "rankChecks": 8
+    },
+    {
+      "n": 5,
+      "maps": 3,
+      "maximal": 2,
+      "proteins": 32,
+      "numerator": 46,
+      "answer": 1.4375,
+      "rankChecks": 8
+    },
+    {
+      "n": 6,
+      "maps": 8,
+      "maximal": 4,
+      "proteins": 64,
+      "numerator": 133,
+      "answer": 2.078125,
+      "rankChecks": 8
+    },
+    {
+      "n": 7,
+      "maps": 14,
+      "maximal": 9,
+      "proteins": 128,
+      "numerator": 335,
+      "answer": 2.6171875,
+      "rankChecks": 8
+    },
+    {
+      "n": 8,
+      "maps": 41,
+      "maximal": 20,
+      "proteins": 256,
+      "numerator": 850,
+      "answer": 3.3203125,
+      "rankChecks": 8
+    },
+    {
+      "n": 9,
+      "maps": 78,
+      "maximal": 39,
+      "proteins": 512,
+      "numerator": 1997,
+      "answer": 3.900390625,
+      "rankChecks": 8
+    },
+    {
+      "n": 10,
+      "maps": 212,
+      "maximal": 95,
+      "proteins": 1024,
+      "numerator": 4733,
+      "answer": 4.6220703125,
+      "rankChecks": 8
+    },
+    {
+      "n": 11,
+      "maps": 424,
+      "maximal": 174,
+      "proteins": 2048,
+      "numerator": 10748,
+      "answer": 5.248046875,
+      "rankChecks": 8
+    },
+    {
+      "n": 12,
+      "maps": 1113,
+      "maximal": 420,
+      "proteins": 4096,
+      "numerator": 24555,
+      "answer": 5.994873046875,
+      "rankChecks": 8
+    }
+  ],
+  "rankChecks": 88,
+  "fixtures": [
+    {
+      "variant": "original",
+      "compilation": false,
+      "passed": 2
+    },
+    {
+      "variant": "original",
+      "compilation": true,
+      "passed": 2
+    },
+    {
+      "variant": "maximal",
+      "compilation": false,
+      "passed": 2
+    },
+    {
+      "variant": "maximal",
+      "compilation": true,
+      "passed": 2
+    },
+    {
+      "variant": "maximal-scalar",
+      "compilation": false,
+      "passed": 2
+    },
+    {
+      "variant": "maximal-scalar",
+      "compilation": true,
+      "passed": 2
+    },
+    {
+      "variant": "production",
+      "compilation": false,
+      "passed": 2
+    },
+    {
+      "variant": "production",
+      "compilation": true,
+      "passed": 2
+    }
+  ]
+}

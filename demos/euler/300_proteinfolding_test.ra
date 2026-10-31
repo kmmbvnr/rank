@@ -2,6 +2,14 @@ use testing
 
 test "short proteins"
   use "300_proteinfolding"
+  N = 2
+  run
+
+  Answer equal 0.25
+  N = 4
+  run
+
+  Answer equal 1
   N = 5
   run
 

@@ -298,9 +298,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             ...host.textLoops ? ['text' as const] : [], ...host.reals ? ['real' as const] : []];
         const inferred = inferCompiledExpression<CompiledLoopType, LoopInput>(e, {
             atom: type => types.find(candidate => candidate === type),
-            read: (source, expected) => {
+            substitute: source => {
                 const supplied = scalarInputs.get(source);
-                if (supplied) return { type: supplied.type, input: { term: supplied, lines: [] } };
+                return supplied && { type: supplied.type, input: { term: supplied, lines: [] } };
+            },
+            read: (source, expected) => {
                 // Scalar operators use the shared inference. Loop-specific cell
                 // reads, calls and literal powers retain their guarded lowering.
                 if (isUnaryExpression(source) || isBinaryExpression(source)
@@ -615,7 +617,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const operands = point.operands.map(arrayType);
                 if (operands.some(Boolean)) {
                     const types = operands.map((type, i) => type?.element ?? knownType(point.operands[i]) ?? 'integer');
-                    const type = point.name === 'gcd' ? types.every(type => type === 'integer') ? 'integer' : undefined
+                    const type = point.name === 'min' || point.name === 'max'
+                        ? types.every(type => type === types[0]) && (types[0] === 'integer' || types[0] === 'real') ? types[0] : undefined
+                        : point.module ? types.every(type => type === 'integer') ? point.name === 'bit' ? 'boolean' : 'integer' : undefined
                         : loopOperatorSignature(point.name, types, host.nativeCalls === true)?.result;
                     if (type === 'integer' || type === 'boolean' || type === 'real' && host.reals) {
                         return { kind: 'array', element: type, rank: Math.max(...operands.map(type => type?.rank ?? 0)) };
@@ -752,16 +756,22 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             for (let ${index} = ${block}; ${index} < ${end}; ${index}++) { ${body.join('\n')} }
         }`;
     }
-    function vectorOperation(e: Expression): { name: string; operands: Expression[] } | undefined {
+    function vectorOperation(e: Expression): { name: string; operands: Expression[]; module?: string } | undefined {
         const unwrap = (value: Expression) => { while (isParenthesizedExpression(value)) value = value.value; return value; };
         if (isBinaryExpression(e) && !e.step && ['+', '-', '*', '/', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(e.operator)) {
             return { name: e.operator, operands: [e.left, e.right].map(unwrap) };
         }
         if (host.nativeCalls && isApplicationExpression(e)) {
             const parts = flattenApplication(e), last = parts.at(-1);
-            if (parts.length === 3 && isNameExpression(last) && last.name === 'gcd'
-                && !localTypes.has('gcd') && !arrays.has('gcd') && !containers.has('gcd')) {
-                return { name: 'gcd', operands: parts.slice(0, -1).map(unwrap) };
+            if (parts.length === 3 && isNameExpression(last)
+                && !localTypes.has(last.name) && !arrays.has(last.name) && !containers.has(last.name)) {
+                // Share the scalar native guards and replay rules with vector
+                // cells; in particular, bitwise Number operations retain their
+                // Int32 checks instead of silently truncating wider integers.
+                const module = last.name === 'gcd' ? 'numbers'
+                    : host.extrema && (last.name === 'min' || last.name === 'max') ? 'core'
+                    : ['band', 'bor', 'bxor', 'bit', 'shl', 'shr'].includes(last.name) ? 'bits' : undefined;
+                if (module) return { name: last.name, module, operands: parts.slice(0, -1).map(unwrap) };
             }
         }
         return undefined;
@@ -790,7 +800,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 if (!input) return undefined;
                 inputs.push(input);
             }
-            if (point.name === 'gcd') builtins.set('gcd', 'numbers');
+            if (point.module) builtins.set(point.name, point.module);
             const size = `length${state.serial++}`;
             let shape: string;
             if (type.rank <= 1) {

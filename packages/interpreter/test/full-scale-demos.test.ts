@@ -211,3 +211,14 @@ it('compiles the full Euler 283 reduced-divisor search with an exact wide total'
         expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 }, 60_000);
+
+
+it('checks the full Euler 300 maximum-contact reduction', () => {
+    const url = new URL('../../../demos/euler/300_proteinfolding.ra', import.meta.url);
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        runtime.execute(readFileSync(url, 'utf8'));
+        expect(runtime.variables.get('Answer')).toBe(8.0540771484375);
+        expect(runtime.variables.get('Count')).toBe(3409n);
+    } finally { runtime.dispose(); }
+}, 60_000);

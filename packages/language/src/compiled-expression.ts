@@ -42,6 +42,9 @@ export interface CompiledExpressionContext<T, Input = string> {
     /** Consumer-proved inputs: slots, cell reads or other guarded operations.
      * The payload is lowering metadata, never a value observed by this pass. */
     readonly read: (source: Expression, hint?: T) => { readonly type: T; readonly input: Input } | undefined;
+    /** Already-lowered scalar subexpressions supplied by a consumer, before
+     * syntax recognition (for example one cell of a vector extrema stage). */
+    readonly substitute?: CompiledExpressionContext<T, Input>['read'];
     /** Whether a spelling is bound locally, independent of its scalar type. */
     readonly isBound: (name: string) => boolean;
     /** Additional entry-guarded scalar slots; excludes implicit nullary calls. */
@@ -113,6 +116,8 @@ export function inferCompiledExpression<T, Input>(
         const type = context.atom(actual);
         return type !== undefined ? { expression: { kind: 'literal', source, type, value: source.value } } : reject();
     }
+    const substituted = context.substitute?.(source, hint);
+    if (substituted) return { expression: { kind: 'input', source, ...substituted } };
     const extreme = context.extreme && scalarExtremeParts(source, name => !context.isBound(name));
     if (extreme) {
         const left = inferCompiledExpression(extreme.left, context);

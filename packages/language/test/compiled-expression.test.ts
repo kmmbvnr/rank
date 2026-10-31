@@ -1,7 +1,7 @@
 import { EmptyFileSystem } from 'langium';
 import { describe, expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
-import { isAssignmentStatement, isApplicationExpression, isBinaryExpression, isNameExpression, type Program } from '../src/generated/ast.js';
+import { isAssignmentStatement, isParenthesizedExpression, isApplicationExpression, isBinaryExpression, isNameExpression, type Program } from '../src/generated/ast.js';
 import { compiledScalarTypes, findCompiledOperator, matchCompiledOperatorSignature, matchCompiledOperatorDomains } from '../src/compiled-operators.js';
 import { inferCompiledExpression, type CompiledExpressionContext } from '../src/compiled-expression.js';
 import { matchCompiledCallSignature, type CompiledAtomType } from '../src/operations.js';
@@ -29,6 +29,22 @@ function context(
 }
 
 describe('shared compiled expression inference', () => {
+    it('uses an already lowered cell before recognizing extrema syntax', () => {
+        const source = expression('(A max B) * 2');
+        if (!isBinaryExpression(source) || !isParenthesizedExpression(source.left)) throw new Error('expected grouped left operand');
+        const cell = source.left.value;
+        const scope: CompiledExpressionContext<CompiledAtomType> = {
+            ...context(),
+            substitute: candidate => candidate === cell ? { type: 'integer', input: 'vector-cell' } : undefined,
+            extreme: () => { throw new Error('substituted extrema must not be inferred again'); },
+        };
+        expect(inferCompiledExpression(source, scope).expression).toMatchObject({
+            kind: 'binary', type: 'integer',
+            left: { kind: 'group', operand: { kind: 'input', input: 'vector-cell' } },
+            right: { kind: 'literal', value: 2n },
+        });
+    });
+
     it('shares scalar extrema inference without treating reductions or mixed types as scalar', () => {
         const scope = { ...context({ A: 'integer', B: 'integer' }),
             extreme: (_name: 'min' | 'max', inputs: readonly CompiledAtomType[]) => {
@@ -91,6 +107,7 @@ describe('shared compiled expression inference', () => {
         let inputs = 0;
         const result = inferCompiledExpression(source, {
             ...context(),
+            substitute: undefined,
             read: node => {
                 if (!isApplicationExpression(node)) return undefined;
                 inputs++;

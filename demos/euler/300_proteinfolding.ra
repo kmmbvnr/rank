@@ -104,6 +104,28 @@ for
     Dc D = 0
   end
 end
+rem A subset cannot improve any protein.
+rem Try denser maps first; only strictly
+rem larger maps can contain a new key.
+Ka = Keys array
+Pc = Ka popcount
+Order = Pc argsort reverse
+Kept = array shape (Ka len) fill 0
+Count = 0
+Previous = -1
+Bigger = 0
+for At in Order
+  if not (Pc At equal Previous)
+    Bigger = Count
+    Previous = Pc At
+  end
+  Ky = Ka At
+  if not (((Kept (0 till Bigger)) band Ky) equal Ky) any
+    Kept Count = Ky
+    Count += 1
+  end
+end
+Ka = Kept (0 till Count) copy
 Sz = 2 ** N
 Ms = 0 to (Sz - 1) array
 Bm = array shape (N * Sz) fill 0
@@ -113,7 +135,7 @@ for I in 0 till N
   Bm (Lo till (Lo + Sz)) = Ai band 1
 end
 Best = array shape Sz fill 0
-for Ky in Keys array
+for Ky in Ka
   Cn = array shape Sz fill 0
   for I in 0 to (N - 3)
     for J in (I + 2) to (N - 1)

@@ -1,0 +1,601 @@
+{
+  "note": "Exploratory stage-split single runs before repeated measurements; maximal pruning included in stage 0. Zero and empty diagnostic counters omitted.",
+  "cases": {
+    "c10": [
+      {
+        "mode": "compiled",
+        "n": "10",
+        "stage": 0,
+        "ms": 309.24220799999995,
+        "rss": 181.4375,
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledEffectCalls": 2034,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 8,
+            "tensor:output-shape": 1,
+            "scalar-expression:too-small": 5,
+            "tensor:unsupported-node:NewStructureExpression": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "10",
+        "stage": 1,
+        "ms": 29.287083999999936,
+        "rss": 183.4375,
+        "diagnostics": {
+          "bulkArrayWrites": 10,
+          "bulkArrayWriteCells": 10240,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:**": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 1,
+            "loop:deferred-binding:AssignmentStatement": 1,
+            "scalar-expression:unsupported-op:till": 2,
+            "tensor:deferred-binding:AssignmentStatement": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "10",
+        "stage": 2,
+        "ms": 171.93737499999997,
+        "rss": 205.203125,
+        "diagnostics": {
+          "compiledLoops": 212,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 2,
+            "loop:loop-header:ForStatement": 1,
+            "tensor:binding:max": 212
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "10",
+        "stage": 3,
+        "ms": 38.03366700000004,
+        "rss": 206.6875,
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "numberTensors": 1,
+          "tensorMapPreparations": 1,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:unsupported-op:/": 3,
+            "tensor:binding:sum": 1
+          }
+        },
+        "answer": "4.6220703125"
+      }
+    ],
+    "c12": [
+      {
+        "mode": "compiled",
+        "n": "12",
+        "stage": 0,
+        "ms": 228.31170799999998,
+        "rss": 183.015625,
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledEffectCalls": 15037,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 8,
+            "tensor:output-shape": 1,
+            "scalar-expression:too-small": 5,
+            "tensor:unsupported-node:NewStructureExpression": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "12",
+        "stage": 1,
+        "ms": 23.97225000000003,
+        "rss": 186.71875,
+        "diagnostics": {
+          "bulkArrayWrites": 12,
+          "bulkArrayWriteCells": 49152,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:**": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 1,
+            "loop:deferred-binding:AssignmentStatement": 1,
+            "scalar-expression:unsupported-op:till": 2,
+            "tensor:deferred-binding:AssignmentStatement": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "12",
+        "stage": 2,
+        "ms": 344.220084,
+        "rss": 318.5625,
+        "diagnostics": {
+          "compiledLoops": 1113,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 2,
+            "loop:loop-header:ForStatement": 1,
+            "tensor:binding:max": 1113
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "12",
+        "stage": 3,
+        "ms": 16.609874999999988,
+        "rss": 318.625,
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "numberTensors": 1,
+          "tensorMapPreparations": 1,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:unsupported-op:/": 3,
+            "tensor:binding:sum": 1
+          }
+        },
+        "answer": "5.994873046875"
+      }
+    ],
+    "c15": [
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 0,
+        "ms": 1271.588458,
+        "rss": 184.84375,
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledEffectCalls": 296806,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 8,
+            "tensor:output-shape": 1,
+            "scalar-expression:too-small": 5,
+            "tensor:unsupported-node:NewStructureExpression": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 1,
+        "ms": 23.687332999999853,
+        "rss": 195.984375,
+        "diagnostics": {
+          "bulkArrayWrites": 15,
+          "bulkArrayWriteCells": 491520,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:**": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 1,
+            "loop:deferred-binding:AssignmentStatement": 1,
+            "scalar-expression:unsupported-op:till": 2,
+            "tensor:deferred-binding:AssignmentStatement": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 2,
+        "ms": 11799.361458,
+        "rss": 412.8125,
+        "diagnostics": {
+          "compiledLoops": 12495,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 2,
+            "loop:loop-header:ForStatement": 1,
+            "tensor:binding:max": 12495
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 3,
+        "ms": 22.27508399999897,
+        "rss": 412.8125,
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "numberTensors": 1,
+          "tensorMapPreparations": 1,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:unsupported-op:/": 3,
+            "tensor:binding:sum": 1
+          }
+        },
+        "answer": "8.0540771484375"
+      }
+    ],
+    "r10": [
+      {
+        "mode": "reference",
+        "n": "10",
+        "stage": 0,
+        "ms": 218.06979199999995,
+        "rss": 182.609375,
+        "diagnostics": {
+          "fallbacks": {
+            "loop:disabled": 2
+          }
+        }
+      },
+      {
+        "mode": "reference",
+        "n": "10",
+        "stage": 1,
+        "ms": 15.996583999999984,
+        "rss": 184.6875,
+        "diagnostics": {
+          "fallbacks": {
+            "loop:disabled": 1
+          }
+        }
+      },
+      {
+        "mode": "reference",
+        "n": "10",
+        "stage": 2,
+        "ms": 71.72583299999997,
+        "rss": 201.3125,
+        "diagnostics": {
+          "fallbacks": {
+            "loop:disabled": 3
+          }
+        }
+      },
+      {
+        "mode": "reference",
+        "n": "10",
+        "stage": 3,
+        "ms": 15.064541000000077,
+        "rss": 206.640625,
+        "diagnostics": {
+          "fallbacks": {
+            "loop:disabled": 1
+          }
+        },
+        "answer": "4.6220703125"
+      }
+    ],
+    "r15": [
+      {
+        "mode": "reference",
+        "n": "15",
+        "stage": 0,
+        "ms": 15542.719167000001,
+        "rss": 404.5625,
+        "diagnostics": {
+          "fallbacks": {
+            "loop:disabled": 2
+          }
+        }
+      },
+      {
+        "mode": "reference",
+        "n": "15",
+        "stage": 1,
+        "ms": 60.32549999999901,
+        "rss": 436.40625,
+        "diagnostics": {
+          "fallbacks": {
+            "loop:disabled": 1
+          }
+        }
+      },
+      {
+        "mode": "reference",
+        "n": "15",
+        "stage": 2,
+        "ms": 12468.601082999998,
+        "rss": 640.78125,
+        "diagnostics": {
+          "fallbacks": {
+            "loop:disabled": 3
+          }
+        }
+      },
+      {
+        "mode": "reference",
+        "n": "15",
+        "stage": 3,
+        "ms": 18.210957999999664,
+        "rss": 640.78125,
+        "diagnostics": {
+          "fallbacks": {
+            "loop:disabled": 1
+          }
+        },
+        "answer": "8.0540771484375"
+      }
+    ],
+    "max12": [
+      {
+        "mode": "compiled",
+        "n": "12",
+        "stage": 0,
+        "ms": 294.109584,
+        "rss": 193.734375,
+        "diagnostics": {
+          "cellsComputed": 479490,
+          "compiledLoops": 1,
+          "compiledEffectCalls": 15037,
+          "numericSorts": 1,
+          "elementTypeScans": 1,
+          "elementTypeScannedCells": 1113,
+          "typedUnpacks": 1,
+          "typedUnpackedCells": 1113,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 9,
+            "tensor:output-shape": 421,
+            "scalar-expression:too-small": 7,
+            "tensor:unsupported-node:NewStructureExpression": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "loop:unsupported-op:any": 1,
+            "loop:no-text-specialization": 1,
+            "scalar-expression:unsupported-op:any": 2,
+            "scalar-expression:unsupported-op:not": 2,
+            "scalar-expression:unsupported-op:band": 3,
+            "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+            "scalar-expression:unsupported-op:equal": 3,
+            "scalar-expression:unsupported-op:till": 2,
+            "tensor:unsupported-op:till": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "12",
+        "stage": 1,
+        "ms": 19.268916999999988,
+        "rss": 199.796875,
+        "diagnostics": {
+          "bulkArrayWrites": 12,
+          "bulkArrayWriteCells": 49152,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:**": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 1,
+            "loop:deferred-binding:AssignmentStatement": 1,
+            "scalar-expression:unsupported-op:till": 2,
+            "tensor:deferred-binding:AssignmentStatement": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "12",
+        "stage": 2,
+        "ms": 183.41712499999994,
+        "rss": 328.6875,
+        "diagnostics": {
+          "compiledLoops": 420,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 2,
+            "loop:unbound-name:NameExpression": 1,
+            "loop:no-text-specialization": 1,
+            "tensor:binding:max": 420
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "12",
+        "stage": 3,
+        "ms": 16.364667000000054,
+        "rss": 328.734375,
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "numberTensors": 1,
+          "tensorMapPreparations": 1,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:unsupported-op:/": 3,
+            "tensor:binding:sum": 1
+          }
+        },
+        "answer": "5.994873046875"
+      }
+    ],
+    "max15": [
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 0,
+        "ms": 6622.084083,
+        "rss": 356.359375,
+        "diagnostics": {
+          "cellsComputed": 37005321,
+          "compiledLoops": 1,
+          "compiledEffectCalls": 296806,
+          "numericSorts": 1,
+          "elementTypeScans": 1,
+          "elementTypeScannedCells": 12495,
+          "typedUnpacks": 1,
+          "typedUnpackedCells": 12495,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 9,
+            "tensor:output-shape": 3410,
+            "scalar-expression:too-small": 7,
+            "tensor:unsupported-node:NewStructureExpression": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "loop:unsupported-op:any": 1,
+            "loop:no-text-specialization": 1,
+            "scalar-expression:unsupported-op:any": 2,
+            "scalar-expression:unsupported-op:not": 2,
+            "scalar-expression:unsupported-op:band": 3,
+            "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+            "scalar-expression:unsupported-op:equal": 3,
+            "scalar-expression:unsupported-op:till": 2,
+            "tensor:unsupported-op:till": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 1,
+        "ms": 33.616917000000285,
+        "rss": 372.8125,
+        "diagnostics": {
+          "bulkArrayWrites": 15,
+          "bulkArrayWriteCells": 491520,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:**": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 1,
+            "loop:deferred-binding:AssignmentStatement": 1,
+            "scalar-expression:unsupported-op:till": 2,
+            "tensor:deferred-binding:AssignmentStatement": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 2,
+        "ms": 4174.5668749999995,
+        "rss": 530,
+        "diagnostics": {
+          "compiledLoops": 3409,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 2,
+            "loop:unbound-name:NameExpression": 1,
+            "loop:no-text-specialization": 1,
+            "tensor:binding:max": 3409
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 3,
+        "ms": 23.017916999999215,
+        "rss": 530,
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "numberTensors": 1,
+          "tensorMapPreparations": 1,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:unsupported-op:/": 3,
+            "tensor:binding:sum": 1
+          }
+        },
+        "answer": "8.0540771484375"
+      }
+    ],
+    "maxscalar15": [
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 0,
+        "ms": 3242.8441669999997,
+        "rss": 186.609375,
+        "diagnostics": {
+          "cellsComputed": 12495,
+          "compiledLoops": 2,
+          "compiledEffectCalls": 296806,
+          "numericSorts": 1,
+          "exactLoopWorkSamples": 1,
+          "exactLoopWorkPromotions": 1,
+          "numberLoopCopyProbes": 1,
+          "numberLoopReadBuffers": 1,
+          "numberLoopReadBufferCells": 12495,
+          "elementTypeScans": 1,
+          "elementTypeScannedCells": 12495,
+          "typedUnpacks": 1,
+          "typedUnpackedCells": 12495,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 9,
+            "tensor:output-shape": 1,
+            "scalar-expression:too-small": 5,
+            "tensor:unsupported-node:NewStructureExpression": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "number-loop:unsafe-cell": 1,
+            "tensor:unsupported-op:till": 1,
+            "scalar-expression:unsupported-op:till": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 1,
+        "ms": 51.88291699999991,
+        "rss": 199.015625,
+        "diagnostics": {
+          "bulkArrayWrites": 15,
+          "bulkArrayWriteCells": 491520,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:**": 1,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 1,
+            "loop:deferred-binding:AssignmentStatement": 1,
+            "scalar-expression:unsupported-op:till": 2,
+            "tensor:deferred-binding:AssignmentStatement": 1
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 2,
+        "ms": 5471.455959,
+        "rss": 361.3125,
+        "diagnostics": {
+          "compiledLoops": 3409,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 2,
+            "loop:unbound-name:NameExpression": 1,
+            "loop:no-text-specialization": 1,
+            "tensor:binding:max": 3409
+          }
+        }
+      },
+      {
+        "mode": "compiled",
+        "n": "15",
+        "stage": 3,
+        "ms": 28.661082999999053,
+        "rss": 361.8125,
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "numberTensors": 1,
+          "tensorMapPreparations": 1,
+          "fallbacks": {
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:unsupported-op:/": 3,
+            "tensor:binding:sum": 1
+          }
+        },
+        "answer": "8.0540771484375"
+      }
+    ]
+  }
+}
