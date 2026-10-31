@@ -1,14 +1,12 @@
 use testing
 
-test "default input"
-  use "289_eulerianloops"
-  run
-
-  Answer equal 6567944538
-end
-
 test "small grids"
   use "289_eulerianloops"
+  M = 1
+  N = 1
+  run
+
+  Answer equal 1
   M = 1
   N = 2
   run
@@ -19,6 +17,16 @@ test "small grids"
   run
 
   Answer equal 37
+  M = 2
+  N = 3
+  run
+
+  Answer equal 672
+  M = 3
+  N = 2
+  run
+
+  Answer equal 672
   M = 3
   N = 3
   run

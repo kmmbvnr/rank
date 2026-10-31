@@ -9,7 +9,19 @@ import { MissingValueError } from '../errors.js';
 // key before evaluating their RHS, while compiled regions may reuse that key.
 export { indexKey, type IndexKey } from './index-key.js';
 
-export class IndexEntries extends IntegerEntries<IndexKey> {}
+const nativeEntries = new WeakSet<object>();
+
+export class IndexEntries extends IntegerEntries<IndexKey> {
+    constructor(valueOfEntry?: (value: RankValue) => RankValue) {
+        super(valueOfEntry);
+        if (valueOfEntry === undefined) nativeEntries.add(this);
+    }
+}
+
+/** Private publication must not invoke an embedding host's entry callback. */
+export function hasNativeIndexEntries(entries: Map<IndexKey, RankValue>): boolean {
+    return nativeEntries.has(entries);
+}
 
 export function indexRead(index: RankIndex, key: IndexKey, missing = 'missing keyed value'): RankValue {
     const value = indexGet(index, key);

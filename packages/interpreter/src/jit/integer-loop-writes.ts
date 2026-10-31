@@ -1,4 +1,5 @@
 import { findCompiledOperator, loopOperatorSignature, isParenthesizedExpression, isBinaryExpression, rangeSliceOperands, type ArrayAssignmentStatement } from '@arrrank/language';
+import { isRankIndex } from '../value.js';
 import type { LoopTerm } from './integer-loop-plan.js';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
@@ -18,6 +19,36 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 || assignment.indices.some(address => address.all || address.sign || !address.value)) return undefined;
             const compound = assignment.operator !== '=';
             if (compound && !host.compoundWrites) return undefined;
+            if (!arrays.has(assignment.name) && !destinations.has(assignment.name)
+                && isRankIndex(host.read(assignment.name)!)) {
+                const receiver = expressions.container(assignment.name, 'index', true);
+                if (!receiver) return undefined;
+                const lines: string[] = [], keys: string[] = [];
+                for (const address of assignment.indices) {
+                    const key = emit(address.value!, lines, 'integer');
+                    if (key?.type !== 'integer') return undefined;
+                    keys.push(key.code);
+                }
+                const key = `key${state.serial++}`, rhs = `operand${state.serial++}`;
+                lines.push(`const ${key} = key([${keys.join(',')}]);`, `${receiver}.checkMutable();`);
+                const value = emit(assignment.value, lines, 'integer');
+                if (value?.type !== 'integer') return undefined;
+                lines.push(`const ${rhs} = ${value.code};`);
+                let result = rhs;
+                if (compound) {
+                    const op = assignment.operator.slice(0, -1);
+                    const signature = loopOperatorSignature(op, ['integer', 'integer'], host.nativeCalls);
+                    const old = `old${state.serial++}`;
+                    lines.push(`const ${old} = ${receiver}.read(${key}, 'index key not found');`);
+                    const out = signature?.compound && signature.result === 'integer'
+                        ? arithmetic(op, { code: old, type: 'integer' }, { code: rhs, type: 'integer' }, 'integer', lines) : undefined;
+                    if (out === undefined) return undefined;
+                    result = out;
+                }
+                body.push(`location = ${location};`, ...lines,
+                    `${receiver}.set(${key}, ${result}); iterationResult = undefined; iterationType = 'integer';`);
+                return true;
+            }
             const previous = destinations.get(assignment.name), source = arrays.get(assignment.name);
             const rank = assignment.indices.length;
             if (source && source.rank !== rank || previous && previous.rank !== rank) return undefined;

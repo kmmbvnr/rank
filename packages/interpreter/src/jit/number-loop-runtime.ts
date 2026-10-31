@@ -7,8 +7,11 @@ import { completed } from '../execution.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { checkpoint, privateLoopPolling } from '../interrupt.js';
 import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, typedArray } from '../array-storage.js';
-import { isRankArray, type RankArray, type RankValue } from '../value.js';
+import { isRankArray, isRankIndex, type RankArray, type RankValue } from '../value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, LoopWorkFeedback } from './integer-loop-plan.js';
+
+import { indexKey } from '../index-storage.js';
+import { hasPrivateIndexStorage, PrivateIntegerIndex } from './number-loop-index.js';
 
 // Internal control transfer, never exposed as a Rank error or converted to BigInt.
 type NumberCells = ArrayLike<number | bigint>;
@@ -107,7 +110,9 @@ function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[
  * Inspection and custom host polling retain the existing publishing backend. */
 export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedback?: LoopWorkFeedback, compileCountedPlan?: () => IntegerLoopPlan | undefined): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, locations, statement } = plan;
-    if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length || plan.containers.size
+    if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length
+        || [...plan.containers.values()].some(info => info.kind !== 'index')
+        || plan.containers.size > 0 && plan.calls.length > 0
         || plan.hasReturn || plan.hasYield
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
         || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank < 1)
@@ -140,7 +145,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
-    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', code)(
+    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', code)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -154,7 +159,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower,
             (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number) => new PrivateIntegerArray(shape, fill),
             (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
-            (shape: number[], cells: NumberCells) => new PrivateIntegerArray([...shape], 0, cells), textLength);
+            (shape: number[], cells: NumberCells) => new PrivateIntegerArray([...shape], 0, cells), textLength, indexKey);
     try { run = compile(source); } catch { return undefined; }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These
@@ -196,6 +201,14 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     input[slot] = Number(value);
                 }
             }
+        }
+        const indices = new Map<object, PrivateIntegerIndex>();
+        for (const [name, info] of plan.containers) {
+            const value = host.read(name);
+            if (!value || !isRankIndex(value) || !hasPrivateIndexStorage(value)) return undefined;
+            let index = indices.get(value.entries);
+            if (!index) indices.set(value.entries, index = new PrivateIntegerIndex(value, overflow));
+            input[info.slot] = index;
         }
         let conditionWriteCells = 0;
         if (copyAdmission) for (const [name] of plan.destinations) {
@@ -322,6 +335,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             // Overflow never enters publication. Ordinary errors and cancellation
             // commit exactly the preceding stores; no polling/callback may split
             // this publication from the scalar bindings below.
+            for (const index of indices.values()) index.publish();
             for (const [name, info] of plan.destinations) {
                 if (plan.arrayDefinitions.has(name)) continue;
                 const dirty = changes[info.slot];

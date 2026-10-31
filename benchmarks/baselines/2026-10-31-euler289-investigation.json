@@ -1,0 +1,2297 @@
+{
+  "revision": "d580579bc0bbe6d6d4ed1aa10944e96a11491200",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "node": "v24.15.0",
+  "compiledSeries": [
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "original",
+      "ms": 2182.423916,
+      "answer": "6567944538",
+      "rss": 335.296875,
+      "round": 0
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "swap",
+      "ms": 2284.790875,
+      "answer": "6567944538",
+      "rss": 371.515625,
+      "round": 0
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "keyswap",
+      "ms": 2352.4685,
+      "answer": "6567944538",
+      "rss": 476.109375,
+      "round": 0
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "hash",
+      "ms": 646.017458,
+      "answer": "6567944538",
+      "rss": 325.421875,
+      "round": 0
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "hash",
+      "ms": 640.891709,
+      "answer": "6567944538",
+      "rss": 327.375,
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "keyswap",
+      "ms": 2085.679458,
+      "answer": "6567944538",
+      "rss": 271.703125,
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "swap",
+      "ms": 2039.9803749999999,
+      "answer": "6567944538",
+      "rss": 333.4375,
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "original",
+      "ms": 2082.47875,
+      "answer": "6567944538",
+      "rss": 370.359375,
+      "round": 1
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "original",
+      "ms": 2468.055666,
+      "answer": "6567944538",
+      "rss": 381.1875,
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "swap",
+      "ms": 2339.991125,
+      "answer": "6567944538",
+      "rss": 376.953125,
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "keyswap",
+      "ms": 2154.132625,
+      "answer": "6567944538",
+      "rss": 287.234375,
+      "round": 2
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "hash",
+      "ms": 791.80025,
+      "answer": "6567944538",
+      "rss": 339.546875,
+      "round": 2
+    }
+  ],
+  "referenceHashExploratory": {
+    "mode": "reference",
+    "m": "6",
+    "n": "10",
+    "variant": "hash",
+    "ms": 48148.074499999995,
+    "answer": "6567944538",
+    "rss": 484.765625
+  },
+  "oracleInitial": {
+    "comparisons": 36,
+    "results": [
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "1",
+        "variant": "original",
+        "ms": 181.662625,
+        "answer": "1",
+        "rss": 189.75
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "1",
+        "variant": "original",
+        "ms": 191.644292,
+        "answer": "1",
+        "rss": 191.34375
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "1",
+        "variant": "hash",
+        "ms": 193.264166,
+        "answer": "1",
+        "rss": 191.796875
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "1",
+        "variant": "hash",
+        "ms": 206.403417,
+        "answer": "1",
+        "rss": 194.28125
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "2",
+        "variant": "original",
+        "ms": 185.57399999999998,
+        "answer": "2",
+        "rss": 190.5625
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "2",
+        "variant": "original",
+        "ms": 192.412583,
+        "answer": "2",
+        "rss": 191.3125
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "2",
+        "variant": "hash",
+        "ms": 194.488666,
+        "answer": "2",
+        "rss": 192.234375
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "2",
+        "variant": "hash",
+        "ms": 209.055375,
+        "answer": "2",
+        "rss": 197.359375
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "3",
+        "variant": "original",
+        "ms": 184.297541,
+        "answer": "4",
+        "rss": 192.75
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "3",
+        "variant": "original",
+        "ms": 193.41437499999998,
+        "answer": "4",
+        "rss": 192.265625
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "3",
+        "variant": "hash",
+        "ms": 197.250792,
+        "answer": "4",
+        "rss": 192.09375
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "3",
+        "variant": "hash",
+        "ms": 216.294125,
+        "answer": "4",
+        "rss": 200.390625
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "4",
+        "variant": "original",
+        "ms": 188.266375,
+        "answer": "8",
+        "rss": 192.390625
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "4",
+        "variant": "original",
+        "ms": 193.945291,
+        "answer": "8",
+        "rss": 194.28125
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "4",
+        "variant": "hash",
+        "ms": 199.28229199999998,
+        "answer": "8",
+        "rss": 196.53125
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "4",
+        "variant": "hash",
+        "ms": 213.96104200000002,
+        "answer": "8",
+        "rss": 203.1875
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "5",
+        "variant": "original",
+        "ms": 190.14808399999998,
+        "answer": "16",
+        "rss": 193.25
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "5",
+        "variant": "original",
+        "ms": 193.89329199999997,
+        "answer": "16",
+        "rss": 194.875
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "5",
+        "variant": "hash",
+        "ms": 199.817292,
+        "answer": "16",
+        "rss": 195.890625
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "5",
+        "variant": "hash",
+        "ms": 213.262625,
+        "answer": "16",
+        "rss": 208.34375
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "1",
+        "variant": "original",
+        "ms": 187.02720799999997,
+        "answer": "2",
+        "rss": 189.640625
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "1",
+        "variant": "original",
+        "ms": 192.798292,
+        "answer": "2",
+        "rss": 191.84375
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "1",
+        "variant": "hash",
+        "ms": 196.846917,
+        "answer": "2",
+        "rss": 193.609375
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "1",
+        "variant": "hash",
+        "ms": 208.46970799999997,
+        "answer": "2",
+        "rss": 197.0625
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "2",
+        "variant": "original",
+        "ms": 199.64783300000002,
+        "answer": "37",
+        "rss": 192.90625
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "2",
+        "variant": "original",
+        "ms": 195.758292,
+        "answer": "37",
+        "rss": 193.046875
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "2",
+        "variant": "hash",
+        "ms": 213.42887500000003,
+        "answer": "37",
+        "rss": 196.140625
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "2",
+        "variant": "hash",
+        "ms": 218.824791,
+        "answer": "37",
+        "rss": 201.65625
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "3",
+        "variant": "original",
+        "ms": 212.571792,
+        "answer": "672",
+        "rss": 195.640625
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "3",
+        "variant": "original",
+        "ms": 196.54237499999996,
+        "answer": "672",
+        "rss": 195.015625
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "3",
+        "variant": "hash",
+        "ms": 228.76916699999998,
+        "answer": "672",
+        "rss": 199.203125
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "3",
+        "variant": "hash",
+        "ms": 219.414084,
+        "answer": "672",
+        "rss": 206.125
+      },
+      {
+        "mode": "reference",
+        "m": "3",
+        "n": "2",
+        "variant": "original",
+        "ms": 238.478042,
+        "answer": "672",
+        "rss": 199.375
+      },
+      {
+        "mode": "compiled",
+        "m": "3",
+        "n": "2",
+        "variant": "original",
+        "ms": 196.364292,
+        "answer": "672",
+        "rss": 196.859375
+      },
+      {
+        "mode": "reference",
+        "m": "3",
+        "n": "2",
+        "variant": "hash",
+        "ms": 258.83425,
+        "answer": "672",
+        "rss": 199.078125
+      },
+      {
+        "mode": "compiled",
+        "m": "3",
+        "n": "2",
+        "variant": "hash",
+        "ms": 216.56670799999998,
+        "answer": "672",
+        "rss": 205.921875
+      }
+    ]
+  },
+  "sources": {
+    "benchmarks/experiments/euler289-original.ra": "77aaf996152b44f3e61bc7763e797bbf2dd1734ca242e7940fa7dd8c59b1574e",
+    "benchmarks/experiments/euler289-swap.ra": "391c1fb38a223096d70b7769522395a9530015be8f9bd543d6a6fe78fe4aedd8",
+    "benchmarks/experiments/euler289-early-close.ra": "ee67848983187010328fea25fa518a29620c059393448ce3b290659719857b94",
+    "benchmarks/experiments/euler289-numeric-hash.ra": "e60ff287396124a08bb4803cbabc96f5130afa9c70251bab8b22fc4c6a90d15e",
+    "benchmarks/experiments/euler289-compact-key.ra": "58b40dc3697df23f9fe41680a16aa45d4a51a013d079fb35d9db4f8dfc19ae55",
+    "benchmarks/experiments/euler289-numeric-hash-early-close.ra": "3089c60a1c488958416ad5f66b3fb9e0865a394daef62efda20f72f6871dab39"
+  },
+  "earlyCloseSeries": [
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "prune",
+      "ms": 1977.144375,
+      "answer": "6567944538",
+      "rss": 366.046875
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "hashprune",
+      "ms": 549.9947500000001,
+      "answer": "6567944538",
+      "rss": 312.390625
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "prune",
+      "ms": 1938.0063750000002,
+      "answer": "6567944538",
+      "rss": 336.8125
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "hashprune",
+      "ms": 559.0526659999999,
+      "answer": "6567944538",
+      "rss": 313.828125
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "prune",
+      "ms": 1906.439417,
+      "answer": "6567944538",
+      "rss": 276.296875
+    },
+    {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "hashprune",
+      "ms": 577.554208,
+      "answer": "6567944538",
+      "rss": 304.234375
+    },
+    {
+      "mode": "reference",
+      "m": "6",
+      "n": "10",
+      "variant": "original",
+      "ms": 39405.471416,
+      "answer": "6567944538",
+      "rss": 474.171875
+    },
+    {
+      "mode": "reference",
+      "m": "6",
+      "n": "10",
+      "variant": "prune",
+      "ms": 38392.980874999994,
+      "answer": "6567944538",
+      "rss": 478.171875
+    },
+    {
+      "mode": "reference",
+      "m": "6",
+      "n": "10",
+      "variant": "hashprune",
+      "ms": 41849.578917000006,
+      "answer": "6567944538",
+      "rss": 488.703125
+    }
+  ],
+  "oracleEarlyClose": {
+    "comparisons": 36,
+    "results": [
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "1",
+        "variant": "prune",
+        "ms": 180.742625,
+        "answer": "1",
+        "rss": 190
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "1",
+        "variant": "prune",
+        "ms": 191.09941700000002,
+        "answer": "1",
+        "rss": 191.265625
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "1",
+        "variant": "hashprune",
+        "ms": 200.21025000000003,
+        "answer": "1",
+        "rss": 192.078125
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "1",
+        "variant": "hashprune",
+        "ms": 206.60425,
+        "answer": "1",
+        "rss": 197.109375
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "2",
+        "variant": "prune",
+        "ms": 185.600125,
+        "answer": "2",
+        "rss": 190.53125
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "2",
+        "variant": "prune",
+        "ms": 194.439625,
+        "answer": "2",
+        "rss": 193.078125
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "2",
+        "variant": "hashprune",
+        "ms": 197.521584,
+        "answer": "2",
+        "rss": 194.484375
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "2",
+        "variant": "hashprune",
+        "ms": 214.688875,
+        "answer": "2",
+        "rss": 198.390625
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "3",
+        "variant": "prune",
+        "ms": 185.1745,
+        "answer": "4",
+        "rss": 193.171875
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "3",
+        "variant": "prune",
+        "ms": 196.99287500000003,
+        "answer": "4",
+        "rss": 193.65625
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "3",
+        "variant": "hashprune",
+        "ms": 197.71970900000002,
+        "answer": "4",
+        "rss": 192.9375
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "3",
+        "variant": "hashprune",
+        "ms": 215.534541,
+        "answer": "4",
+        "rss": 197.984375
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "4",
+        "variant": "prune",
+        "ms": 187.301334,
+        "answer": "8",
+        "rss": 192.921875
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "4",
+        "variant": "prune",
+        "ms": 194.03520799999998,
+        "answer": "8",
+        "rss": 194.09375
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "4",
+        "variant": "hashprune",
+        "ms": 199.916917,
+        "answer": "8",
+        "rss": 197.0625
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "4",
+        "variant": "hashprune",
+        "ms": 217.560459,
+        "answer": "8",
+        "rss": 201.84375
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "5",
+        "variant": "prune",
+        "ms": 189.31525,
+        "answer": "16",
+        "rss": 194.078125
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "5",
+        "variant": "prune",
+        "ms": 195.00962499999997,
+        "answer": "16",
+        "rss": 195.109375
+      },
+      {
+        "mode": "reference",
+        "m": "1",
+        "n": "5",
+        "variant": "hashprune",
+        "ms": 199.17333299999999,
+        "answer": "16",
+        "rss": 195.296875
+      },
+      {
+        "mode": "compiled",
+        "m": "1",
+        "n": "5",
+        "variant": "hashprune",
+        "ms": 213.84916600000003,
+        "answer": "16",
+        "rss": 207.59375
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "1",
+        "variant": "prune",
+        "ms": 186.52962499999998,
+        "answer": "2",
+        "rss": 190.65625
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "1",
+        "variant": "prune",
+        "ms": 193.593166,
+        "answer": "2",
+        "rss": 192.203125
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "1",
+        "variant": "hashprune",
+        "ms": 193.154833,
+        "answer": "2",
+        "rss": 191.59375
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "1",
+        "variant": "hashprune",
+        "ms": 215.74133400000002,
+        "answer": "2",
+        "rss": 197.796875
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "2",
+        "variant": "prune",
+        "ms": 206.541709,
+        "answer": "37",
+        "rss": 194.140625
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "2",
+        "variant": "prune",
+        "ms": 197.09150000000002,
+        "answer": "37",
+        "rss": 194.828125
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "2",
+        "variant": "hashprune",
+        "ms": 213.37966699999998,
+        "answer": "37",
+        "rss": 197.828125
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "2",
+        "variant": "hashprune",
+        "ms": 218.504583,
+        "answer": "37",
+        "rss": 203.984375
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "3",
+        "variant": "prune",
+        "ms": 211.91329199999998,
+        "answer": "672",
+        "rss": 196.40625
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "3",
+        "variant": "prune",
+        "ms": 199.267375,
+        "answer": "672",
+        "rss": 197.53125
+      },
+      {
+        "mode": "reference",
+        "m": "2",
+        "n": "3",
+        "variant": "hashprune",
+        "ms": 231.64499999999998,
+        "answer": "672",
+        "rss": 198.09375
+      },
+      {
+        "mode": "compiled",
+        "m": "2",
+        "n": "3",
+        "variant": "hashprune",
+        "ms": 216.852792,
+        "answer": "672",
+        "rss": 210
+      },
+      {
+        "mode": "reference",
+        "m": "3",
+        "n": "2",
+        "variant": "prune",
+        "ms": 243.92162500000003,
+        "answer": "672",
+        "rss": 199.859375
+      },
+      {
+        "mode": "compiled",
+        "m": "3",
+        "n": "2",
+        "variant": "prune",
+        "ms": 198.06662500000002,
+        "answer": "672",
+        "rss": 196.234375
+      },
+      {
+        "mode": "reference",
+        "m": "3",
+        "n": "2",
+        "variant": "hashprune",
+        "ms": 257.736375,
+        "answer": "672",
+        "rss": 199.75
+      },
+      {
+        "mode": "compiled",
+        "m": "3",
+        "n": "2",
+        "variant": "hashprune",
+        "ms": 229.696625,
+        "answer": "672",
+        "rss": 237.40625
+      }
+    ]
+  },
+  "originalDiagnostics": {
+    "mode": "compiled",
+    "m": "6",
+    "n": "10",
+    "variant": "original",
+    "ms": 2074.925833,
+    "answer": "6567944538",
+    "rss": 304.59375,
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 134523,
+      "indexReadHits": 134523,
+      "indexReadMisses": 0,
+      "indexWrites": 21411,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 154,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 77,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 3,
+      "numberLoopReadBufferCells": 24,
+      "numberLoopReadBufferHits": 228,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 30,
+        "scalar-expression:too-small": 7,
+        "tensor:output-shape": 78,
+        "loop:unsupported-node:NewStructureExpression": 2,
+        "scalar-expression:unsupported-op:to": 2,
+        "tensor:unsupported-node:NewStructureExpression": 1
+      },
+      "compilerRejections": []
+    }
+  },
+  "hashpruneDiagnostics": {
+    "mode": "compiled",
+    "m": "6",
+    "n": "10",
+    "variant": "hashprune",
+    "ms": 568.036792,
+    "answer": "6567944538",
+    "rss": 307.25,
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 154,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 154,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 140,
+      "numberLoopReadBufferCells": 228762,
+      "numberLoopReadBufferHits": 302,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 302,
+      "cowCopiedCells": 10208000,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 33,
+        "scalar-expression:too-small": 8,
+        "tensor:output-shape": 78,
+        "loop:statement-budget:AssignmentStatement": 1,
+        "scalar-expression:unsupported-op:to": 2,
+        "loop:statement-budget:ForStatement": 1
+      },
+      "compilerRejections": []
+    }
+  },
+  "delivery": {
+    "baseRevision": "a9d84f8826e75df0f34dea79e215615409448560",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "node": "v24.15.0",
+    "method": "Fresh serial processes; three compiled samples, alternating forward/reverse order; single full reference sample per version. Legacy loop/index modules transpiled in a child process and substituted in memory; compiler heap not retained. Parse/JIT included, imports excluded. Host load uncontrolled.",
+    "series": [
+      {
+        "mode": "compiled",
+        "m": "6",
+        "n": "10",
+        "variant": "original",
+        "ms": 3765.4772080000002,
+        "answer": "6567944538",
+        "rss": 306.328125,
+        "case": "original-before",
+        "round": 0
+      },
+      {
+        "mode": "compiled",
+        "m": "6",
+        "n": "10",
+        "variant": "shipping",
+        "ms": 738.012,
+        "answer": "6567944538",
+        "rss": 304.9375,
+        "case": "shipping-after",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "compiled",
+        "ms": 814.955416,
+        "answer": "329468",
+        "rssMiB": 435.15625,
+        "case": "104-before",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "compiled",
+        "ms": 787.941,
+        "answer": "329468",
+        "rssMiB": 433.34375,
+        "case": "104-after",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "compiled",
+        "ms": 119.25466599999999,
+        "answer": "1000023",
+        "rssMiB": 173.78125,
+        "case": "129-before",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "compiled",
+        "ms": 115.939458,
+        "answer": "1000023",
+        "rssMiB": 173.96875,
+        "case": "129-after",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "compiled",
+        "ms": 99.78333300000003,
+        "answer": "983",
+        "rssMiB": 157.390625,
+        "case": "026-before",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "compiled",
+        "ms": 101.96745899999999,
+        "answer": "983",
+        "rssMiB": 166.9375,
+        "case": "026-after",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "compiled",
+        "ms": 1672.314084,
+        "answer": "1258",
+        "rssMiB": 500.171875,
+        "case": "093-before",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "compiled",
+        "ms": 1684.92225,
+        "answer": "1258",
+        "rssMiB": 497.75,
+        "case": "093-after",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "compiled",
+        "ms": 1691.587125,
+        "answer": "1258",
+        "rssMiB": 469.140625,
+        "case": "093-after",
+        "round": 1
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "compiled",
+        "ms": 1673.66225,
+        "answer": "1258",
+        "rssMiB": 492.8125,
+        "case": "093-before",
+        "round": 1
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "compiled",
+        "ms": 101.389666,
+        "answer": "983",
+        "rssMiB": 168.078125,
+        "case": "026-after",
+        "round": 1
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "compiled",
+        "ms": 99.50412499999999,
+        "answer": "983",
+        "rssMiB": 158.28125,
+        "case": "026-before",
+        "round": 1
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "compiled",
+        "ms": 120.37812499999998,
+        "answer": "1000023",
+        "rssMiB": 173.875,
+        "case": "129-after",
+        "round": 1
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "compiled",
+        "ms": 112.88129199999997,
+        "answer": "1000023",
+        "rssMiB": 172.171875,
+        "case": "129-before",
+        "round": 1
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "compiled",
+        "ms": 752.81575,
+        "answer": "329468",
+        "rssMiB": 376.921875,
+        "case": "104-after",
+        "round": 1
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "compiled",
+        "ms": 744.813375,
+        "answer": "329468",
+        "rssMiB": 402.78125,
+        "case": "104-before",
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "m": "6",
+        "n": "10",
+        "variant": "shipping",
+        "ms": 562.232959,
+        "answer": "6567944538",
+        "rss": 301.5625,
+        "case": "shipping-after",
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "m": "6",
+        "n": "10",
+        "variant": "original",
+        "ms": 2177.432,
+        "answer": "6567944538",
+        "rss": 404.703125,
+        "case": "original-before",
+        "round": 1
+      },
+      {
+        "mode": "compiled",
+        "m": "6",
+        "n": "10",
+        "variant": "original",
+        "ms": 2094.112584,
+        "answer": "6567944538",
+        "rss": 297.984375,
+        "case": "original-before",
+        "round": 2
+      },
+      {
+        "mode": "compiled",
+        "m": "6",
+        "n": "10",
+        "variant": "shipping",
+        "ms": 573.0203750000001,
+        "answer": "6567944538",
+        "rss": 296.09375,
+        "case": "shipping-after",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "compiled",
+        "ms": 728.0285000000001,
+        "answer": "329468",
+        "rssMiB": 432.125,
+        "case": "104-before",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "compiled",
+        "ms": 765.2172919999999,
+        "answer": "329468",
+        "rssMiB": 445.5,
+        "case": "104-after",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "compiled",
+        "ms": 218.15250000000003,
+        "answer": "1000023",
+        "rssMiB": 173.71875,
+        "case": "129-before",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "compiled",
+        "ms": 206.62404200000003,
+        "answer": "1000023",
+        "rssMiB": 174.1875,
+        "case": "129-after",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "compiled",
+        "ms": 186.58104200000002,
+        "answer": "983",
+        "rssMiB": 162.859375,
+        "case": "026-before",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "compiled",
+        "ms": 193.11775,
+        "answer": "983",
+        "rssMiB": 150.625,
+        "case": "026-after",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "compiled",
+        "ms": 2186.719167,
+        "answer": "1258",
+        "rssMiB": 510.15625,
+        "case": "093-before",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "compiled",
+        "ms": 2402.283458,
+        "answer": "1258",
+        "rssMiB": 468.046875,
+        "case": "093-after",
+        "round": 2
+      },
+      {
+        "mode": "reference",
+        "m": "6",
+        "n": "10",
+        "variant": "original",
+        "ms": 41201.882459,
+        "answer": "6567944538",
+        "rss": 479.5,
+        "case": "reference-before"
+      },
+      {
+        "mode": "reference",
+        "m": "6",
+        "n": "10",
+        "variant": "shipping",
+        "ms": 41877.83775,
+        "answer": "6567944538",
+        "rss": 479.96875,
+        "case": "reference-after"
+      }
+    ],
+    "summaryMs": {
+      "original-before": 2177.432,
+      "shipping-after": 573.0203750000001,
+      "104-before": 744.813375,
+      "104-after": 765.2172919999999,
+      "129-before": 119.25466599999999,
+      "129-after": 120.37812499999998,
+      "026-before": 99.78333300000003,
+      "026-after": 101.96745899999999,
+      "093-before": 1673.66225,
+      "093-after": 1691.587125,
+      "reference-before": 41201.882459,
+      "reference-after": 41877.83775
+    },
+    "diagnostics": {
+      "mode": "compiled",
+      "m": "6",
+      "n": "10",
+      "variant": "shipping",
+      "ms": 594.4552080000001,
+      "answer": "6567944538",
+      "rss": 297.84375,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 134523,
+        "indexReadHits": 134523,
+        "indexReadMisses": 0,
+        "indexWrites": 21411,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 154,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 154,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 140,
+        "numberLoopReadBufferCells": 228762,
+        "numberLoopReadBufferHits": 302,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 31,
+          "scalar-expression:too-small": 7,
+          "tensor:output-shape": 78,
+          "loop:unsupported-node:NewStructureExpression": 2,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-node:NewStructureExpression": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "oracle": {
+      "comparisons": 90,
+      "results": [
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "1",
+          "variant": "original",
+          "ms": 199.80116600000002,
+          "answer": "1",
+          "rss": 191.703125
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "1",
+          "variant": "original",
+          "ms": 194.437584,
+          "answer": "1",
+          "rss": 193.09375
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "1",
+          "variant": "hash",
+          "ms": 193.339334,
+          "answer": "1",
+          "rss": 192.65625
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "1",
+          "variant": "hash",
+          "ms": 206.19766700000002,
+          "answer": "1",
+          "rss": 194.671875
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "1",
+          "variant": "prune",
+          "ms": 182.481541,
+          "answer": "1",
+          "rss": 190.046875
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "1",
+          "variant": "prune",
+          "ms": 193.476833,
+          "answer": "1",
+          "rss": 193
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "1",
+          "variant": "hashprune",
+          "ms": 191.23166700000002,
+          "answer": "1",
+          "rss": 193.5625
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "1",
+          "variant": "hashprune",
+          "ms": 205.95875,
+          "answer": "1",
+          "rss": 196.890625
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "1",
+          "variant": "shipping",
+          "ms": 346.50595799999996,
+          "answer": "1",
+          "rss": 191.625
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "1",
+          "variant": "shipping",
+          "ms": 398.531,
+          "answer": "1",
+          "rss": 197.0625
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "2",
+          "variant": "original",
+          "ms": 337.46095800000006,
+          "answer": "2",
+          "rss": 192.90625
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "2",
+          "variant": "original",
+          "ms": 339.399709,
+          "answer": "2",
+          "rss": 193.90625
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "2",
+          "variant": "hash",
+          "ms": 357.837209,
+          "answer": "2",
+          "rss": 194.8125
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "2",
+          "variant": "hash",
+          "ms": 391.735375,
+          "answer": "2",
+          "rss": 200.359375
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "2",
+          "variant": "prune",
+          "ms": 196.91975000000002,
+          "answer": "2",
+          "rss": 194.140625
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "2",
+          "variant": "prune",
+          "ms": 206.28804100000002,
+          "answer": "2",
+          "rss": 197.0625
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "2",
+          "variant": "hashprune",
+          "ms": 209.284625,
+          "answer": "2",
+          "rss": 193.359375
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "2",
+          "variant": "hashprune",
+          "ms": 224.14775,
+          "answer": "2",
+          "rss": 200.09375
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "2",
+          "variant": "shipping",
+          "ms": 743.517542,
+          "answer": "2",
+          "rss": 166.84375
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "2",
+          "variant": "shipping",
+          "ms": 219.03962500000003,
+          "answer": "2",
+          "rss": 200.625
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "3",
+          "variant": "original",
+          "ms": 209.410209,
+          "answer": "4",
+          "rss": 193.09375
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "3",
+          "variant": "original",
+          "ms": 215.74570899999998,
+          "answer": "4",
+          "rss": 198.484375
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "3",
+          "variant": "hash",
+          "ms": 201.94525,
+          "answer": "4",
+          "rss": 194.359375
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "3",
+          "variant": "hash",
+          "ms": 213.20245799999998,
+          "answer": "4",
+          "rss": 202
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "3",
+          "variant": "prune",
+          "ms": 188.4715,
+          "answer": "4",
+          "rss": 192.03125
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "3",
+          "variant": "prune",
+          "ms": 200.19204200000001,
+          "answer": "4",
+          "rss": 198.5
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "3",
+          "variant": "hashprune",
+          "ms": 196.60099999999997,
+          "answer": "4",
+          "rss": 196.375
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "3",
+          "variant": "hashprune",
+          "ms": 220.62983400000002,
+          "answer": "4",
+          "rss": 201.0625
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "3",
+          "variant": "shipping",
+          "ms": 193.911625,
+          "answer": "4",
+          "rss": 192.6875
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "3",
+          "variant": "shipping",
+          "ms": 204.317041,
+          "answer": "4",
+          "rss": 199.21875
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "4",
+          "variant": "original",
+          "ms": 187.456041,
+          "answer": "8",
+          "rss": 193.296875
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "4",
+          "variant": "original",
+          "ms": 199.724459,
+          "answer": "8",
+          "rss": 202.046875
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "4",
+          "variant": "hash",
+          "ms": 205.1595,
+          "answer": "8",
+          "rss": 197.84375
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "4",
+          "variant": "hash",
+          "ms": 216.317209,
+          "answer": "8",
+          "rss": 201.96875
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "4",
+          "variant": "prune",
+          "ms": 187.47508400000004,
+          "answer": "8",
+          "rss": 192.921875
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "4",
+          "variant": "prune",
+          "ms": 204.18079100000003,
+          "answer": "8",
+          "rss": 200.296875
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "4",
+          "variant": "hashprune",
+          "ms": 198.806291,
+          "answer": "8",
+          "rss": 197.71875
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "4",
+          "variant": "hashprune",
+          "ms": 219.04012500000002,
+          "answer": "8",
+          "rss": 198.953125
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "4",
+          "variant": "shipping",
+          "ms": 194.608,
+          "answer": "8",
+          "rss": 194.078125
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "4",
+          "variant": "shipping",
+          "ms": 205.038084,
+          "answer": "8",
+          "rss": 201.0625
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "5",
+          "variant": "original",
+          "ms": 190.12070899999998,
+          "answer": "16",
+          "rss": 194.0625
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "5",
+          "variant": "original",
+          "ms": 199.61566699999997,
+          "answer": "16",
+          "rss": 203.234375
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "5",
+          "variant": "hash",
+          "ms": 199.87820800000003,
+          "answer": "16",
+          "rss": 195.703125
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "5",
+          "variant": "hash",
+          "ms": 215.499708,
+          "answer": "16",
+          "rss": 203.21875
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "5",
+          "variant": "prune",
+          "ms": 191.059084,
+          "answer": "16",
+          "rss": 195.796875
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "5",
+          "variant": "prune",
+          "ms": 201.24712499999998,
+          "answer": "16",
+          "rss": 203.34375
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "5",
+          "variant": "hashprune",
+          "ms": 198.794083,
+          "answer": "16",
+          "rss": 195.484375
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "5",
+          "variant": "hashprune",
+          "ms": 218.58175,
+          "answer": "16",
+          "rss": 202.921875
+        },
+        {
+          "mode": "reference",
+          "m": "1",
+          "n": "5",
+          "variant": "shipping",
+          "ms": 194.74787500000002,
+          "answer": "16",
+          "rss": 195.5
+        },
+        {
+          "mode": "compiled",
+          "m": "1",
+          "n": "5",
+          "variant": "shipping",
+          "ms": 203.61529199999998,
+          "answer": "16",
+          "rss": 207.5625
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "1",
+          "variant": "original",
+          "ms": 185.573417,
+          "answer": "2",
+          "rss": 190.296875
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "1",
+          "variant": "original",
+          "ms": 199.56870800000002,
+          "answer": "2",
+          "rss": 195.78125
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "1",
+          "variant": "hash",
+          "ms": 196.10379200000003,
+          "answer": "2",
+          "rss": 193.984375
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "1",
+          "variant": "hash",
+          "ms": 208.81287500000002,
+          "answer": "2",
+          "rss": 199.375
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "1",
+          "variant": "prune",
+          "ms": 185.54066699999998,
+          "answer": "2",
+          "rss": 190.765625
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "1",
+          "variant": "prune",
+          "ms": 199.018625,
+          "answer": "2",
+          "rss": 195.75
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "1",
+          "variant": "hashprune",
+          "ms": 195.26379199999997,
+          "answer": "2",
+          "rss": 194.5
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "1",
+          "variant": "hashprune",
+          "ms": 216.32483299999998,
+          "answer": "2",
+          "rss": 196.265625
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "1",
+          "variant": "shipping",
+          "ms": 190.778542,
+          "answer": "2",
+          "rss": 191.8125
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "1",
+          "variant": "shipping",
+          "ms": 202.521334,
+          "answer": "2",
+          "rss": 195.96875
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "2",
+          "variant": "original",
+          "ms": 205.14662500000003,
+          "answer": "37",
+          "rss": 194.125
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "2",
+          "variant": "original",
+          "ms": 199.579542,
+          "answer": "37",
+          "rss": 199.234375
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "2",
+          "variant": "hash",
+          "ms": 213.44025000000002,
+          "answer": "37",
+          "rss": 196.625
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "2",
+          "variant": "hash",
+          "ms": 215.403791,
+          "answer": "37",
+          "rss": 202.5
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "2",
+          "variant": "prune",
+          "ms": 201.50699999999998,
+          "answer": "37",
+          "rss": 195.5625
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "2",
+          "variant": "prune",
+          "ms": 198.717541,
+          "answer": "37",
+          "rss": 199.5625
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "2",
+          "variant": "hashprune",
+          "ms": 213.13299999999998,
+          "answer": "37",
+          "rss": 197.8125
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "2",
+          "variant": "hashprune",
+          "ms": 217.25225,
+          "answer": "37",
+          "rss": 198.734375
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "2",
+          "variant": "shipping",
+          "ms": 207.997958,
+          "answer": "37",
+          "rss": 195.765625
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "2",
+          "variant": "shipping",
+          "ms": 206.88941699999998,
+          "answer": "37",
+          "rss": 200.96875
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "3",
+          "variant": "original",
+          "ms": 384.0227080000001,
+          "answer": "672",
+          "rss": 195.296875
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "3",
+          "variant": "original",
+          "ms": 389.61774999999994,
+          "answer": "672",
+          "rss": 202.9375
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "3",
+          "variant": "hash",
+          "ms": 376.22345800000005,
+          "answer": "672",
+          "rss": 202.9375
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "3",
+          "variant": "hash",
+          "ms": 397.737459,
+          "answer": "672",
+          "rss": 208.125
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "3",
+          "variant": "prune",
+          "ms": 352.28083300000003,
+          "answer": "672",
+          "rss": 198.8125
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "3",
+          "variant": "prune",
+          "ms": 354.945041,
+          "answer": "672",
+          "rss": 205.40625
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "3",
+          "variant": "hashprune",
+          "ms": 251.06875,
+          "answer": "672",
+          "rss": 196.75
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "3",
+          "variant": "hashprune",
+          "ms": 233.93079200000003,
+          "answer": "672",
+          "rss": 212.53125
+        },
+        {
+          "mode": "reference",
+          "m": "2",
+          "n": "3",
+          "variant": "shipping",
+          "ms": 240.94054199999997,
+          "answer": "672",
+          "rss": 198.40625
+        },
+        {
+          "mode": "compiled",
+          "m": "2",
+          "n": "3",
+          "variant": "shipping",
+          "ms": 225.91083299999997,
+          "answer": "672",
+          "rss": 206.171875
+        },
+        {
+          "mode": "reference",
+          "m": "3",
+          "n": "2",
+          "variant": "original",
+          "ms": 614.205791,
+          "answer": "672",
+          "rss": 189.5
+        },
+        {
+          "mode": "compiled",
+          "m": "3",
+          "n": "2",
+          "variant": "original",
+          "ms": 227.20179199999998,
+          "answer": "672",
+          "rss": 208.734375
+        },
+        {
+          "mode": "reference",
+          "m": "3",
+          "n": "2",
+          "variant": "hash",
+          "ms": 282.413292,
+          "answer": "672",
+          "rss": 202.171875
+        },
+        {
+          "mode": "compiled",
+          "m": "3",
+          "n": "2",
+          "variant": "hash",
+          "ms": 222.231417,
+          "answer": "672",
+          "rss": 203.328125
+        },
+        {
+          "mode": "reference",
+          "m": "3",
+          "n": "2",
+          "variant": "prune",
+          "ms": 253.61566600000003,
+          "answer": "672",
+          "rss": 199.28125
+        },
+        {
+          "mode": "compiled",
+          "m": "3",
+          "n": "2",
+          "variant": "prune",
+          "ms": 205.40125000000003,
+          "answer": "672",
+          "rss": 203.078125
+        },
+        {
+          "mode": "reference",
+          "m": "3",
+          "n": "2",
+          "variant": "hashprune",
+          "ms": 264.383917,
+          "answer": "672",
+          "rss": 199.15625
+        },
+        {
+          "mode": "compiled",
+          "m": "3",
+          "n": "2",
+          "variant": "hashprune",
+          "ms": 226.14008299999998,
+          "answer": "672",
+          "rss": 217
+        },
+        {
+          "mode": "reference",
+          "m": "3",
+          "n": "2",
+          "variant": "shipping",
+          "ms": 264.763875,
+          "answer": "672",
+          "rss": 198.328125
+        },
+        {
+          "mode": "compiled",
+          "m": "3",
+          "n": "2",
+          "variant": "shipping",
+          "ms": 219.347792,
+          "answer": "672",
+          "rss": 204.8125
+        }
+      ]
+    },
+    "checks": {
+      "typescriptBuild": "passed: tsc -b packages/language packages/interpreter",
+      "focusedTests": 1043,
+      "focusedFiles": 25,
+      "fullCompiledGolden": 6567944538,
+      "fixtureTypeAndDifferentialTests": 2,
+      "fullSuiteAndExhaustiveAudits": "not run",
+      "intel": "not measured"
+    },
+    "sourceSha256": {
+      "demos/euler/289_eulerianloops.ra": "0d691999224f2e62d617805340be7ba43494527b324e9f1b06b2713d0c033f21",
+      "demos/euler/289_eulerianloops_test.ra": "68cbc56b19e1a15c072621f1effc0d4ab6d434f73e7f6e361ac97fe734dbb4b9",
+      "packages/interpreter/src/jit/integer-loop-expressions.ts": "a35ba70baae883e175c82cbf32d2f5e40cd3ed07be3029017566c7c9ea6dc1cb",
+      "packages/interpreter/src/jit/integer-loop-writes.ts": "3ff7d7863b83ccfa9e981fb5fb6986706aa7fcd97e7ca9951810c0023e041207",
+      "packages/interpreter/src/jit/number-loop-runtime.ts": "d55fc403fc3bd69858b1b8e11d13c83c82955d9f7c9b2e9ea7f1fcaaedccbffc",
+      "packages/interpreter/src/jit/number-loop-index.ts": "f5b6b27669a5cd4d54d43285deb25e2e978e9a4e5fe005eeed15bb4b06714fc4",
+      "packages/interpreter/src/runtime/index-storage.ts": "8c9ff639bfc51294d24a05a11c2b5ba5cd561a0853f4c66d0f22b8a9eea5888e",
+      "packages/interpreter/src/fast-paths.ts": "85af66cb9243c51995d817c1d43427fd7debd4774d9fce991f18a8486b9d11cf",
+      "packages/interpreter/test/number-loop-index.test.ts": "1ce5917041a72d5a4184d60303f7a172b2df25db549b95149080e2ba11fd1cc5",
+      "scripts/demo-execution-exclusions.json": "b07d02705e9b1bf5e00e6f5b4b70e3a24139cebe91a8f6f4da8711c9b6b29fa2"
+    }
+  }
+}

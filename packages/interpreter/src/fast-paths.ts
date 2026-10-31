@@ -284,7 +284,7 @@ export class FastPaths {
                 // A new snapshot must own its cells rather than rely on later COW.
                 const selected = sliceArray(source, tensorSelection(source, selectors));
                 // A bulk slice write snapshots its operand itself, so it takes the view.
-                return view ? selected : copyArray(selected, false);
+                return view && isRankArray(selected) ? selected : copyArray(selected, false);
             },
             arrayValues: {
                 range: (start, end, inclusive, step) => this.context.operators.evaluateBinary(inclusive ? 'to' : 'till', start, end, step),

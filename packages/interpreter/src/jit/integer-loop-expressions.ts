@@ -1034,7 +1034,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const [head, ...arguments_] = flattenApplication(e);
             if (!isNameExpression(head) || head.name.includes('.')) return undefined;
             const current = !localTypes.has(head.name) && !arrays.has(head.name) ? host.read(head.name) : undefined;
-            if (!numberMode && current && isRankIndex(current) && current.entries instanceof IndexEntries) {
+            if (current && isRankIndex(current) && current.entries instanceof IndexEntries) {
                 if (hint && hint !== 'integer' || !arguments_.length) return undefined;
                 const receiver = container(head.name, 'index', true);
                 if (!receiver) return undefined;
@@ -1045,7 +1045,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     keys.push(key.code);
                 }
                 const name = `v${state.serial++}`;
-                lines.push(`const ${name} = indexRead(${receiver}, key([${keys.join(',')}]));`);
+                lines.push(`const ${name} = ${state.numberMode ? `${receiver}.${wide ? 'readWide' : 'read'}(key([${keys.join(',')}]))` : `indexRead(${receiver}, key([${keys.join(',')}]))`};`);
                 return { code: name, type: 'integer', selection: true };
             }
             if (!numberMode && host.nativeCalls && host.textLoops && knownType(head) === 'text') {
@@ -1097,7 +1097,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return { code: name, type, selection: true };
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
-        if (!numberMode && ['in', 'notin'].includes(e.operator) && isNameExpression(e.right)) {
+        if (['in', 'notin'].includes(e.operator) && isNameExpression(e.right)
+            && (!numberMode || isRankIndex(host.read(e.right.name)!))) {
             const name = e.right.name;
             const key = emit(e.left, lines);
             if (key?.type !== 'integer') return undefined;
@@ -1119,7 +1120,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             }
             const receiver = container(name, 'index');
             if (!receiver) return undefined;
-            return { code: `${negate}indexHas(${receiver}, key([${key.code}]))`, type: 'boolean' };
+            return { code: state.numberMode ? `${negate}${receiver}.has(key([${key.code}]))`
+                : `${negate}indexHas(${receiver}, key([${key.code}]))`, type: 'boolean' };
         }
         if (isNameExpression(e.right) && ['reduce', 'scan', 'outer', 'segment'].includes(e.right.name)) return undefined;
         if (e.operator === '**') {

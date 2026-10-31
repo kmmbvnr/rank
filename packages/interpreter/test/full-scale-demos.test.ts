@@ -55,6 +55,19 @@ it('checks the full compiled Euler 288 tail without Number overflow', () => {
     } finally { runtime.dispose(); }
 }, 60_000);
 
+it('checks the full compiled Euler 289 with private integer index stores', () => {
+    const url = new URL('../../../demos/euler/289_eulerianloops.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(6567944538n);
+        expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(154);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+        expect(diagnostics.indexWrites).toBeGreaterThan(0);
+    } finally { runtime.dispose(); }
+}, 60_000);
+
 // Independent representation: match individual balls and boxes, rather than
 // the Rank program's run stack and difference table of removal rounds.
 function perBallReference(last: number): number {

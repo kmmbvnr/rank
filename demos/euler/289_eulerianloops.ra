@@ -76,6 +76,7 @@ Nv = array shape Cap fill 0
 Ta = array shape 40 fill 0
 Tp = array shape 40 fill 0
 Pa = array shape 8 fill 0
+Pos = array shape (M * N * 4) fill 0
 Nc = 1
 Cv 0 = 1
 Total = (M + 1) * (N + 1)
@@ -137,6 +138,9 @@ for Y in 0 to N
             Pta = Tp Ia
             if Pta equal B
               Closed += 1
+              if Last equal false
+                break
+              end
               Hi = Ia
               Lo = Ib
               if Ib greater Ia
@@ -234,10 +238,21 @@ for Y in 0 to N
             Ta (Jj + 1) = Xa
             Tp (Jj + 1) = Xp
           end
+          rem The cut has the same ends in
+          rem every state. Cache positions
+          rem from its first valid state.
+          rem Encode each pair once: at
+          rem most eight base-16 digits.
+          if Ns equal 0
+            for I in 0 till Tn
+              Pos (Ta I) = I
+            end
+          end
           Key = 0
           for I in 0 till Tn
-            Pk = Ta I * 256 + Tp I
-            Key = Key * 65536 + Pk
+            if Ta I less Tp I
+              Key = Key * 16 + Pos (Tp I)
+            end
           end
           Id = 0
           if Key in Idx
