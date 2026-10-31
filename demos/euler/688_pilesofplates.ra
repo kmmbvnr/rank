@@ -14,33 +14,30 @@ rem plates, so with D = k (k-1) / 2 and
 rem N - D = u k + v (0 <= v < k) the sum
 rem of f over n = 1 to N is
 rem   k u (u - 1) / 2 + u (v + 1)
-rem for every k with D < N. Sum these
-rem terms over k in blocks, reducing
-rem each product mod 10^9 + 7.
+rem for every k with D < N, that is
+rem k <= (1 + isqrt(8 N - 3)) // 2. Sum
+rem these terms over k in blocks,
+rem reducing each product mod 10^9 + 7.
 P = 1000000007
-Km = (2 * Nn) isqrt + 2
+Km = ((8 * Nn - 3) isqrt + 1) // 2
 Bl = 20000000
 Answer = 0
 for B0 in 1 to Km by Bl
-  Ks = B0 to (B0 + Bl - 1)
+  Ks = B0 to ((B0 + Bl - 1) min Km)
   Dl = Ks * (Ks - 1) // 2
-  Ks = Ks ((Dl less Nn) indices)
-  if Ks len greater 0
-    Dl = Ks * (Ks - 1) // 2
-    Mm = Nn - Dl
-    Uu = Mm // Ks
-    Vv = Mm mod Ks
-    Ev = (Uu mod 2 equal 0) integer
-    Xa = Ev * (Uu // 2) + (1 - Ev) * Uu
-    Ud = Uu - 1
-    Xb = Ev * Ud + (1 - Ev) * (Ud // 2)
-    Tr = (Xa mod P) * (Xb mod P) mod P
-    Tm = (Ks mod P) * Tr mod P
-    Vp = (Vv + 1) mod P
-    Tn = (Uu mod P) * Vp mod P
-    Ts = Tm + Tn
-    Bs = Ts sum
-    Answer = (Answer + Bs) mod P
-  end
+  Mm = Nn - Dl
+  Uu = Mm // Ks
+  Vv = Mm mod Ks
+  Ev = (Uu mod 2 equal 0) integer
+  Xa = Ev * (Uu // 2) + (1 - Ev) * Uu
+  Ud = Uu - 1
+  Xb = Ev * Ud + (1 - Ev) * (Ud // 2)
+  Tr = (Xa mod P) * (Xb mod P) mod P
+  Tm = (Ks mod P) * Tr mod P
+  Vp = (Vv + 1) mod P
+  Tn = (Uu mod P) * Vp mod P
+  Ts = Tm + Tn
+  Bs = Ts sum
+  Answer = (Answer + Bs) mod P
 end
 Answer print

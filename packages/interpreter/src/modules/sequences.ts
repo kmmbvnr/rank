@@ -25,7 +25,7 @@ import { semanticArrayType, setSemanticArrayType } from '../semantic-array-type.
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { prepareIntegerView, registerScalarView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, copyStoredNumericArray, copyMaterializedArrayItems, arrayValueTraversal, arrayValues, collectArrayCells, prepareArrayRead, readArrayItem, evaluateArrayItem, reshapeStoredArray } from '../array-storage.js';
+import { ownedArray, derivedArray, copyStoredNumericArray, typedArray, copyMaterializedArrayItems, arrayValueTraversal, arrayValues, collectArrayCells, prepareArrayRead, readArrayItem, evaluateArrayItem, reshapeStoredArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { rotateArray } from '../runtime/rotate.js';
@@ -262,6 +262,8 @@ function trueIndices(value: RankValue): RankArray {
     const rank = value.shape.length;
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
     const packed = packedTruePositions(value);
+    // Positions of a flat mask fit Int32 cells: no BigInt per index.
+    if (packed && rank === 1 && packed.length) return typedArray(Int32Array.from(packed));
     if (packed) {
         for (const index of packed) {
             if (rank === 1) positions.push(BigInt(index));

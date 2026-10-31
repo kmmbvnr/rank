@@ -168,6 +168,8 @@ function widenInt32(cells: Int32Array): BigInt64Array {
     return wide;
 }
 
+const scratch = new BigInt64Array(1), scratchWord = new Int32Array(scratch.buffer);
+const SCRATCH_LOW = LITTLE_ENDIAN ? 0 : 1;
 const fitsInt32 = (value: bigint) => value >= -2147483648n && value <= 2147483647n;
 
 const INT64_MIN = -(1n << 63n), INT64_MAX = (1n << 63n) - 1n;
@@ -746,10 +748,12 @@ export class IntegerCells {
         if (packed) {
             if (packed instanceof Int32Array) {
                 if (fitsInt32(value)) {
-                    packed[index] = Number(value);
+                    // A BigInt64 store and a word read convert faster than Number().
+                    scratch[0] = value;
+                    packed[index] = scratchWord[SCRATCH_LOW];
                     return;
                 }
-                this.packed = packed = BigInt64Array.from(packed, BigInt);
+                this.packed = packed = widenInt32(packed);
             }
             if (fitsInt64(value)) {
                 packed[index] = value;

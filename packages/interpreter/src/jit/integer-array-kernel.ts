@@ -179,7 +179,17 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
                 case 2: result = av * bv; break;
                 case 3: case 4: {
                     if (bv === 0) return undefined;
-                    const r = av % bv, m = r !== 0 && r < 0 !== bv < 0 ? r + bv : r;
+                    let m: number;
+                    if (Math.abs(av) + Math.abs(bv) <= MAX_SAFE_NUMBER) {
+                        // fmod is slow; |av| + |bv| is safe, so the product below is exact and one
+                        // correction step fixes the rounded quotient.
+                        m = av - Math.floor(av / bv) * bv;
+                        if (bv > 0) { if (m < 0) m += bv; else if (m >= bv) m -= bv; }
+                        else if (m > 0) m += bv; else if (m <= bv) m -= bv;
+                    } else {
+                        const r = av % bv;
+                        m = r !== 0 && r < 0 !== bv < 0 ? r + bv : r;
+                    }
                     result = code === 3 ? m : (av - m) / bv;
                     break;
                 }
