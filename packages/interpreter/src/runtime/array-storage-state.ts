@@ -23,8 +23,9 @@ export interface OwnedStorage {
     scalarOnly: boolean;
     stable: boolean;
     readOnlyCells?: boolean;
-    resources: ResourceSummary;
-    stored: StoredValueSummary;
+    /** Created on first use for typed storage, whose proof needs no summary. */
+    resources?: ResourceSummary;
+    stored?: StoredValueSummary;
     owners?: number;
     /** Conservative union of numeric views into this exact typed buffer. */
     slices?: { cells: Float64Array | BigInt64Array | Int32Array; start: number; end: number };

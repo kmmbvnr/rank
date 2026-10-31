@@ -1,4 +1,5 @@
 import { noteArrayBinding } from './array-storage.js';
+import { ownedStorage } from './runtime/array-storage-state.js';
 import type { RankValue } from './value.js';
 import { StoredValueSummary } from './stored-value.js';
 
@@ -11,7 +12,11 @@ export function isKnownFileFree(value: RankValue | undefined): boolean {
     if (value === undefined || typeof value !== 'object') return true;
     if (value.kind === 'bytes' || value.kind === 'label'
         || value.kind === 'date' || value.kind === 'datetime') return true;
-    return summaries.get(value)?.fileFree === true;
+    const summary = summaries.get(value);
+    if (summary) return summary.fileFree;
+    // Arrays keep their summary in their storage state, created on demand.
+    const owned = value.kind === 'array' ? ownedStorage.get(value) : undefined;
+    return owned !== undefined && (owned.resources?.fileFree ?? (owned.scalarOnly && owned.stable));
 }
 
 export class ResourceSummary {

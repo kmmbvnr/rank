@@ -1,5 +1,6 @@
 import { denseScalarItems } from './array-storage.js';
-import type { RankValue, SequencePlan } from './value.js';
+import { ownedStorage } from './array-storage-state.js';
+import type { RankArray, RankValue, SequencePlan } from './value.js';
 
 // Native finite sources backed entirely by immutable storage need no expansion
 // at a binding boundary. Freezing the plan keeps this constructor proof valid.
@@ -11,13 +12,19 @@ export function registerStoredSequence(plan: SequencePlan): void {
 let mutationEpoch = 0;
 const summaries = new WeakMap<object, StoredValueSummary>();
 
+function ownedComplete(value: RankArray): boolean {
+    const owned = ownedStorage.get(value);
+    if (!owned) return false;
+    return owned.stored?.complete ?? (owned.stable && (owned.scalarOnly || owned.validity !== undefined));
+}
+
 /** Storage evidence only: this lookup never evaluates a plan or reads cells. */
 export function isStoredValue(value: RankValue): boolean {
     if (typeof value !== 'object') return true;
     switch (value.kind) {
         case 'sequence': return storedSequences.has(value.plan);
         case 'plan': case 'sqlite-table': case 'sqlite-expression': case 'sqlite-scope': return false;
-        case 'array': return denseScalarItems(value) !== undefined || summaries.get(value)?.complete === true;
+        case 'array': return denseScalarItems(value) !== undefined || summaries.get(value)?.complete === true || ownedComplete(value);
         case 'tuple': case 'queue': case 'heap': case 'multiset': case 'table': case 'grouped-table':
             return summaries.get(value)?.complete === true;
         case 'table-alias': return isStoredValue(value.source);

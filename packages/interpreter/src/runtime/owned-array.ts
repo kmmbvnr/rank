@@ -854,17 +854,25 @@ export function hasMaskedCells(value: RankArray): boolean {
     return ownedStorage.get(value)?.validity !== undefined;
 }
 
+function resourcesOf(state: OwnedStorage): ResourceSummary {
+    return state.resources ??= new ResourceSummary(() => state.scalarOnly && state.stable);
+}
+
+function storedOf(state: OwnedStorage): StoredValueSummary {
+    return state.stored ??= new StoredValueSummary(() => state.stable && (state.scalarOnly || state.validity !== undefined));
+}
+
 function changedCell(state: OwnedStorage, value: RankValue): void {
     state.revision = noteMutation(state.birth);
-    state.resources.include(value);
-    state.stored.include(value);
+    resourcesOf(state).include(value);
+    storedOf(state).include(value);
     state.scalarOnly &&= typeof value !== 'object';
 }
 
 function uncertainStorage(state: OwnedStorage): void {
     state.revision = noteMutation(state.birth);
-    state.resources.invalidate();
-    state.stored.invalidate();
+    resourcesOf(state).invalidate();
+    storedOf(state).invalidate();
     state.scalarOnly = false;
     state.stable = false;
     state.elementKinds = undefined;
@@ -1023,12 +1031,12 @@ export function createOwned(
     const state: OwnedStorage = {
         items, typed, booleans, validity, shape: [...shape], revision: writeRevision, birth: nextCreationSerial(),
         scalarOnly: !validity && (typed !== undefined || scalarOnly || items.every(item => typeof item !== 'object')),
-        stable: true, resources: undefined!, stored: undefined!,
+        stable: true,
     };
-    state.resources = new ResourceSummary(() => state.scalarOnly && state.stable);
-    state.stored = new StoredValueSummary(() => state.stable && (state.scalarOnly || state.validity !== undefined));
-    if (!state.scalarOnly && !typed) for (const item of items) state.resources.include(item);
-    if (!state.scalarOnly && !typed) for (const item of items) state.stored.include(item);
+    if (!state.scalarOnly && !typed) {
+        for (const item of items) resourcesOf(state).include(item);
+        for (const item of items) storedOf(state).include(item);
+    }
     const raw = { kind: 'array' as const, items: undefined as unknown as RankValue[], shape: Object.freeze([...shape]),
         ...metadata,
         ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) };
@@ -1061,9 +1069,7 @@ export function createOwned(
     ownedStorage.set(raw, state);
     const value: RankArray = new Proxy(raw, ownedValueHandler);
     ownedStorage.set(value, state);
-    state.stored.track(raw);
-    state.stored.track(value);
-    return state.resources.track(value);
+    return value;
 }
 
 /** Prepare once per compiled region; avoid a WeakMap lookup on each write. */
