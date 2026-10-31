@@ -1,4 +1,4 @@
-import { findCompiledOperator, loopOperatorSignature, isParenthesizedExpression, isBinaryExpression, type ArrayAssignmentStatement } from '@arrrank/language';
+import { findCompiledOperator, loopOperatorSignature, isParenthesizedExpression, isBinaryExpression, rangeSliceOperands, type ArrayAssignmentStatement } from '@arrrank/language';
 import type { LoopTerm } from './integer-loop-plan.js';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
@@ -101,7 +101,11 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 }`);
             const expected = booleanUpdate ? 'boolean' : target.type ?? arrays.get(assignment.name)?.type
                 ?? (compound ? expressions.realInput(assignment.name) ?? 'integer' : undefined);
+            // A bulk write snapshots its operand, so a plain slice needs no copy.
+            state.sliceView = ['=', '+=', '-=', '*='].includes(assignment.operator) && !!rangeSliceOperands(assignment.value);
             const value = expressions.emitValue(assignment.value, lines, expected);
+            state.sliceView = false;
+            const viewed = !!value && state.viewResult === value.code;
             if (!value) return reject(assignment);
             const vector = typeof value.type !== 'string';
             const type = typeof value.type === 'string' ? value.type : value.type.element;
@@ -124,7 +128,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             // through `items` would unpack a typed buffer for the whole array.
             const bulk = type === 'integer' && ['=', '+=', '-=', '*='].includes(assignment.operator)
                 ? `${vector ? '' : `count${n} > 0 && `}fill(r${target.slot}, Number(first${n}), count${n}, Number(stride${n}), ${operand}, ${JSON.stringify(assignment.operator)})` : 'false';
-            body.push(`location = ${location};`, ...lines, `const ${operand} = ${vector ? `materializeValue(${value.code})` : value.code};
+            body.push(`location = ${location};`, ...lines, `const ${operand} = ${vector && !viewed ? `materializeValue(${value.code})` : value.code};
                 if (!(${bulk})) for (let index${n} = 0, ${offset} = Number(first${n}), delta${n} = Number(stride${n}); index${n} < count${n}; index${n}++, ${offset} += delta${n}) {
                     ${state.checkpoint} ${cell.join('\n')} write${target.slot}(${offset}, ${result});
                 }

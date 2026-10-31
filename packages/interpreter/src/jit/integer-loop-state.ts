@@ -110,7 +110,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         vectorIterations, iterators, destinations, locations, callouts, canCallout,
         get branchDepth() { return branchDepth; },
         set branchDepth(v: number) { branchDepth = v; },
-        exactInputs, serial: 0, hasArrayCall: false, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
+        exactInputs, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
         loopScopes, rootSetupLines, pushScope, popScope, currentScope,
     };
 }

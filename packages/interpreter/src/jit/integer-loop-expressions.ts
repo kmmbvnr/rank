@@ -790,6 +790,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         if (!state.numberMode && host.arrayLocals && host.arrayReads) {
             let selection = source, copied = false, selectedArguments = 0;
+            const view = state.sliceView;
+            state.sliceView = false;
             if (isApplicationExpression(selection)) {
                 const parts = flattenApplication(selection), last = parts.at(-1);
                 if (last && isNameExpression(last) && last.name === 'copy' && host.nativeCalls
@@ -820,7 +822,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     // A region writes directly into owned storage. Complete the
                     // selection now so later stores cannot change its snapshot.
                     const result = `v${state.serial++}`;
-                    const call = `copySlice(r${info.slot}, ${start.code}, ${end.code}, ${range.axis}, ${range.inclusive})`;
+                    if (view && !copied) state.viewResult = result;
+                    const call = `copySlice(r${info.slot}, ${start.code}, ${end.code}, ${range.axis}, ${range.inclusive}${view && !copied ? ', true' : ''})`;
                     lines.push(selectedArguments > 1
                         ? `let ${result}; try { ${result} = ${call}; } catch (error) { throw argumentSelectionError(error, 'copy', ${selectedArguments}); }`
                         : `const ${result} = ${call};`);

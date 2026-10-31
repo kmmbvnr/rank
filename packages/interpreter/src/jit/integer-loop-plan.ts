@@ -53,7 +53,7 @@ export interface LoopHost {
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
     textRead(source: string, index: bigint): string;
-    copySlice(source: RankArray, start: bigint, end: bigint, axis: number, inclusive: boolean): RankArray;
+    copySlice(source: RankArray, start: bigint, end: bigint, axis: number, inclusive: boolean, view?: boolean): RankArray;
     readonly arrayValues?: {
         range(start: bigint, end: bigint, inclusive: boolean, step?: bigint): RankValue;
         select(source: RankValue, selector: RankValue): RankArray;

@@ -37,6 +37,12 @@ describe('slice assignment from stored cells', () => {
         expect(loop(init, 'Xs (0 to 3) -= Ys (0 to 3)', 'Xs', 2)).toBe('3000000000 2999999998 2999999996 2999999994');
     });
 
+    it('reads a slice of an array that shares storage with the destination', () => {
+        const init = 'Xs = 0 to 9\nYs = Xs';
+        expect(loop(init, 'Xs (0 to 4) += Ys (5 to 9)', 'Xs', 2)).toBe('10 13 16 19 22 5 6 7 8 9');
+        expect(loop(init, 'Xs (0 to 4) += Ys (5 to 9)', 'Ys', 1)).toBe('0 1 2 3 4 5 6 7 8 9');
+    });
+
     it('rejects a right side of the wrong length', () => {
         const init = 'Xs = array shape 8 fill 1\nYs = array shape 8 fill 1';
         expect(() => loop(init, 'Xs (0 to 4) = Ys (0 to 5)', 'Xs')).toThrow('mismatch');

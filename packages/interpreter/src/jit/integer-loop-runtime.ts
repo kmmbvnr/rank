@@ -80,6 +80,11 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                         && view.kinds?.join() === 'integer') {
                         const { offset, stride } = view.linear;
                         view.validateUniform?.(BigInt(view.compact[offset]));
+                        const target = isRankArray(array) ? writableIntegerCells(array) as { buffer?: unknown } | undefined : undefined;
+                        if (stride === 1 && target && target.buffer !== view.compact.buffer) {
+                            writeIntegerSelection(array as RankArray, count, index => first + index, view.compact.subarray(offset, offset + count), operator, { offset: first, stride: 1 });
+                            return true;
+                        }
                         const cells = new Int32Array(count);
                         for (let start = 0; start < count; start += 4096) {
                             const end = Math.min(count, start + 4096);

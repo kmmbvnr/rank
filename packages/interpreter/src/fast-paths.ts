@@ -277,12 +277,14 @@ export class FastPaths {
             textArrayLoops: loops.textArrays,
             nestedLoops: loops.nested,
             arrayRead: atArray,
-            copySlice: (source, start, end, axis, inclusive) => {
+            copySlice: (source, start, end, axis, inclusive, view) => {
                 const selectors: RankValue[] = Array(axis).fill(ALL_AXIS);
                 selectors.push(this.context.operators.evaluateBinary(inclusive ? 'to' : 'till', start, end));
                 // Stores in this region already borrowed their destination storage.
                 // A new snapshot must own its cells rather than rely on later COW.
-                return copyArray(sliceArray(source, tensorSelection(source, selectors)), false);
+                const selected = sliceArray(source, tensorSelection(source, selectors));
+                // A bulk slice write snapshots its operand itself, so it takes the view.
+                return view ? selected : copyArray(selected, false);
             },
             arrayValues: {
                 range: (start, end, inclusive, step) => this.context.operators.evaluateBinary(inclusive ? 'to' : 'till', start, end, step),
