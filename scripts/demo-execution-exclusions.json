@@ -247,7 +247,6 @@
   "euler/648_skippingsquares.ra": "About 30 s: cubic series products to degree 1000; run manually.",
   "euler/650_binomialproduct.ra": "About 4.5 min: 20000 steps of vector powmod over 2262 primes (#479); run manually.",
   "euler/644_squaresontheline.ra": "About 26 min: 3 x 10^5 row sweeps with argsort axis 1 (#480); run manually.",
-  "euler/693_finitesequence.ra": "About 11 min: residue-set squaring; run manually (#496).",
   "euler/680_yarragnisrever.ra": "About 80 min: batched run list; run manually (#497).",
   "euler/671_colouringloop.ra": "About 9.5 min: dense 910-state steps; run manually (#499).",
   "euler/696_mahjong.ra": "About 49 s: sparse flat convolutions; run manually (#500).",

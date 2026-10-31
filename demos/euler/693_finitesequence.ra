@@ -3,6 +3,7 @@ rem https://projecteuler.net/problem=693
 
 use numbers
 use sequences
+use algo
 use io
 use cli
 
@@ -13,15 +14,26 @@ rem give the same square, so g(x) is
 rem found by squaring the set of
 rem distinct residues > 1 under the
 rem moduli x + 1, x + 2, ... until the
-rem set is empty or has one element,
-rem which is then followed by plain
-rem squaring. For u in [L, R] the
+rem set is empty. For u in [L, R] the
 rem chain from u reaches a state of
 rem R after R - u steps, so g(u) <= g(R)
 rem + (R - L). Evaluate g on a coarse
 rem grid, then repeatedly split the
-rem interval with the largest bound
+rem intervals with the largest bounds
 rem until none exceeds the best g.
+rem
+rem Points are evaluated in batches.
+rem One key Owner * Bb + residue holds
+rem the sets of a whole batch, so a
+rem step costs a few array operations
+rem for all points at once. Owner
+rem count * Bb stays below 2 ** 31.
+rem A set of one residue is followed
+rem by a plain scalar loop.
+Bb = 2 ** 23
+Cs = 16
+Ks = 8
+Tc = 128
 Stp = (Nn // 64) max 1
 Gx = 2 to Nn by Stp
 Gl = Gx len
@@ -29,115 +41,118 @@ if Gx (Gl - 1) less Nn
   Gx = concat Gx (array shape 1 fill Nn)
 end
 Ng = Gx len
-Gv = array shape Ng fill 0
+Gv = array shape 0 fill 0
 Il = array shape 0 fill 0
 Ir = array shape 0 fill 0
-Jl = array shape 0 fill 0
 Jr = array shape 0 fill 0
+Neg = 0 - 1000000000
 Best = 0
-Z1 = array shape 1 fill 0
 Phase = 0
 Kk = 0
-Lc = 0
-Rc = 0
-Ic = 0
-Spl = 0
 Go = 1
 for Go equal 1
-  Xq = 0
-  Spl = 0
+  Xs = array shape 0 fill 0
+  Sl = array shape 0 fill 0
   if Phase equal 0
-    Xq = Gx Kk
+    Ke = (Kk + Cs - 1) min (Ng - 1)
+    Xs = Gx (Kk to Ke)
   end
   if Phase equal 1
     Ub = Jr + Ir - Il
-    Mx = Ub max
-    if Mx at most Best
+    Ip = (Ub greater Best) indices
+    if Ip len equal 0
       Go = 0
     end
-    if Go equal 1
-      Ip = (Ub equal Mx) indices
-      Ic = Ip 0
-      Lc = Il Ic
-      Rc = Ir Ic
-      if Rc - Lc at most 1
-        Jr Ic = 0 - 1000000000
+    if Ip len greater 0
+      Wd = Ir Ip - Il Ip
+      Dd = Ip ((Wd at most 1) indices)
+      if Dd len greater 0
+        Jr Dd = Neg
       end
-      if Rc - Lc greater 1
-        Xq = (Lc + Rc) // 2
-        Spl = 1
+      Lv = Ip ((Wd greater 1) indices)
+      if Lv len greater 0
+        Od = (Ub Lv) argsort .descending
+        Nk = (Lv len min Ks) - 1
+        Sl = Lv (Od (0 to Nk))
+        Xs = (Il Sl + Ir Sl) // 2
       end
     end
   end
-  if Xq greater 0
-    Gq = 1
-    if Xq greater 2
-      Ys = 2 to (Xq // 2)
-      Vc = Ys * Ys mod Xq
-      Vc = Vc ((Vc greater 1) indices)
-      Vc = Vc unique
-      Gq = 2
-      if Vc len greater 0
-        Ln = 2
-        Zz = Xq
-        Ed = 0
-        for Ed equal 0
-          if Vc len equal 1
-            Vs = Vc 0
-            Zz += 1
-            Ln += 1
-            Ed = 1
-            for Vs greater 1
-              Vs = Vs * Vs mod Zz
-              if Vs greater 1
-                Ln += 1
-                Zz += 1
-              end
-            end
-            Gq = Ln
-          end
-          if Ed equal 0
-            Zz += 1
-            Wc = Vc * Vc mod Zz
-            Pk = (Wc greater 1) indices
-            Wc = Wc Pk
-            Wc = Wc unique
-            Ln += 1
-            if Wc len equal 0
-              Gq = Ln
-              Ed = 1
-            end
-            if Wc len greater 0
-              Vc = Wc
-            end
-          end
+  if Xs len greater 0
+    Qn = Xs len
+    Kc = array shape 0 fill 0
+    for Oi in 0 to (Qn - 1)
+      Xo = Xs Oi
+      if Xo greater 2
+        Vc = 2 to (Xo // 2)
+        Vc = Vc * Vc mod Xo
+        Vc = Vc ((Vc greater 1) indices)
+        Vc = Vc unique + Oi * Bb
+        Kc = concat Kc Vc
+      end
+    end
+    Cn = Xs * 0
+    Sk = 0
+    Tl = 0
+    if Kc len equal 0
+      Tl = 1
+    end
+    for Tl equal 0
+      Sk += 1
+      Ow = Kc // Bb
+      Cn Ow = Sk
+      Vl = Kc mod Bb
+      Wv = Vl * Vl mod (Xs Ow + Sk)
+      Kc = Ow * Bb + Wv
+      Kc = Kc ((Wv greater 1) indices)
+      Kc = Kc unique
+      if Sk mod 32 equal 0
+        Ow = Kc // Bb
+        Id = 0 to (Qn - 1)
+        Hi = Ow upperindex Id
+        Sz = Hi - (Ow lowerindex Id)
+        if Sz max at most Tc
+          Tl = 1
         end
       end
     end
-    if Gq greater Best
-      Best = Gq
+    if Kc len greater 0
+      Ow = Kc // Bb
+      for Oi in 0 to (Kc len - 1)
+        Oq = Ow Oi
+        Vs = Kc Oi mod Bb
+        Zz = Xs Oq + Sk
+        Ln = Sk
+        for Vs greater 1
+          Zz += 1
+          Vs = Vs * Vs mod Zz
+          Ln += 1
+        end
+        Cn Oq = Cn Oq max Ln
+      end
     end
+    Sm = (Xs less 3) integer
+    Gq = Cn + 2 - Sm
+    Best = Best max (Gq max)
     if Phase equal 0
-      Gv Kk = Gq
-      Kk += 1
-      if Kk equal Ng
+      Gv = concat Gv Gq
+      Kk += Cs
+      if Kk at least Ng
         Phase = 1
         Il = Gx (0 to Ng - 2)
         Ir = Gx (1 to Ng - 1)
-        Jl = Gv (0 to Ng - 2)
         Jr = Gv (1 to Ng - 1)
       end
     end
     if Phase equal 1
-      if Spl equal 1
-        Gr = Jr Ic
-        Jr Ic = Gq
-        Rr = Rc
-        Il = concat Il (Z1 + Xq)
-        Ir = concat Ir (Z1 + Rr)
-        Jl = concat Jl (Z1 + Gq)
-        Jr = concat Jr (Z1 + Gr)
-        Ir Ic = Xq
+      if Sl len greater 0
+        Gr = Jr Sl
+        Rr = Ir Sl
+        Jr Sl = Gq
+        Ir Sl = Xs
+        Il = concat Il Xs
+        Ir = concat Ir Rr
+        Jr = concat Jr Gr
       end
     end
   end
