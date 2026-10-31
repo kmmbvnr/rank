@@ -392,6 +392,90 @@ Evidence: [full timings](baselines/2026-10-31-fft-whole-stage.json),
 [diagnostics and generated stages](baselines/2026-10-31-fft-whole-stage-diagnostics.json),
 [CPU profile summary](baselines/2026-10-31-fft-whole-stage-profile.json).
 
+## Numeric loops with rebound entry arrays
+
+The next step enables the existing numeric vector backend for loops that
+read an entry array and then rebind its name to a fresh computed array.
+Previously, any overlap between `arrayDefinitions` and `arrayInputs` declined
+the numeric backend. Such loops used the exact publishing backend, which
+materialized separate array operations.
+
+Entry values, numeric cells and multidimensional shape registers are now
+initialized even for names that will be rebound. The input buffers remain
+read-only; subsequent arithmetic allocates private vector outputs. Existing
+overflow guards discard speculation before the exact backend replays it.
+No new arithmetic lowering or FFT-specific matching is introduced.
+
+The extension excludes regions with aliases inside the loop, indexed cell
+stores, callees or mixed BigInt scalar registers. External aliases remain
+valid snapshots because the borrowed inputs are never written. Observable
+demand budgets keep ordinary publication boundaries: existing array binding
+contracts can poll again while a completed speculative result is published.
+The previous safeguards for inspection and custom host callbacks remain.
+
+The FFT demo source is unchanged from `bfafd968`. Its permutation loop now
+uses one fused pass for `Order * 2 + Index mod 2` and another for `Index // 2`.
+That is two vector passes per iteration instead of four separate integer
+array kernels; it does not fuse both assignments into a single pass.
+
+### Paired measurements
+
+The baseline is the separately built interpreter at `bfafd968`, with the same
+FFT source and input. The candidate was measured as an uncommitted worktree
+based on that commit; the raw report's `commit` field records the base.
+Five fresh processes per size/mode run serially, alternating mode order.
+Tests and profiling were not running during timing.
+
+| N | Before, ms | After, ms | Before CPU ms | After CPU ms | Hand JS, ms | fft.js reuse, ms |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 256 | 0.7447 | 0.5950 | 1.3373 | 1.0222 | 0.02717 | 0.000877 |
+| 1024 | 1.4434 | 1.0085 | 2.6618 | 1.8121 | 0.10478 | 0.003423 |
+| 4096 | 1.7141 | 1.6095 | 2.7681 | 2.6712 | 0.42216 | 0.016470 |
+
+Wall medians decrease by 20.1%, 30.1% and 6.1%, respectively. This step is a
+modest improvement at N=4096, not another large jump. Its first-size call
+median increases from 13.87 to 15.09 ms, including code generation and other
+first-size work. Warm ranges overlap substantially: before 1.66–4.62 ms,
+after 1.55–4.61 ms.
+
+Because that largest-size result is noisy, a separate confirmation repeats
+only N=4096 in nine fresh-process pairs, alternating baseline/candidate order.
+It measures 1.6415 to 1.5318 ms (6.7% lower); CPU medians are 2.7583 to
+2.4808 ms (10.1% lower). Its ranges also overlap: before 1.58–3.23 ms,
+after 1.45–3.41 ms. Both series support a small improvement under this load;
+neither establishes a universal speedup.
+
+In the first series Rank is still 3.81 times slower than the handwritten
+same-algorithm JS control at N=4096, and about 98 times slower than the
+specialized reusable fft.js plan. The different preparation and allocation
+contracts described above still apply; ratios from separate historical
+series should not be multiplied into a claimed total speedup.
+
+Warm diagnostics record one numeric loop, no overflow replay, 12 compiled
+FFT stages and no new generated code. Element-type scans stay at
+6 / 18,432 cells. A separate CPU profile records no samples in the former
+`compactBinary` hotspot; the numeric-loop entry and its descendants now
+account for 26.7% inclusive time. Thus the remaining permutation work and
+guards still matter. Binding/type-contract frames account for 12.3%
+inclusive time and GC 3.9%. Categories overlap, and profiling is separate
+from performance timing.
+
+All 450 ordinary interpreter files / 10,362 tests pass on the final version,
+including the updated entry-value admission test and 13 added vector tests.
+The cases cover aliases outside the loop, conservative fallback for internal
+aliases and cell stores, conditional multidimensional inputs, empty loops,
+real nonfinite results, overflow replay, errors after completed bindings,
+and observable demand budgets. TypeScript build, semantic boundaries,
+application-form checks and all seven classic demo files pass. Exhaustive
+audits remain excluded.
+
+Evidence: [five-sample timings](baselines/2026-11-01-fft-integer-rebinding.json),
+[nine-pair confirmation](baselines/2026-11-01-fft-integer-rebinding-confirmation.json),
+[diagnostics and generated loops](baselines/2026-11-01-fft-integer-rebinding-diagnostics.json),
+[CPU profile summary](baselines/2026-11-01-fft-integer-rebinding-profile.json).
+The confirmation uses the existing `fft.mjs --worker=compiled --size=4096`
+with `--checkout` alternating between the two builds, nine times each.
+
 ## Reproduction and checks
 
 ```sh

@@ -162,6 +162,10 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // a separate ownership proof. Exact bindings snapshot writable aliases;
     // source stores can still invalidate existing compiled alias readers.
     if (numberMode && aliases.length && calls.length > 0) return reject(statement, 'array-alias-call');
+    // Entry arrays rebound later need complete lifetime tracking for aliases.
+    // Keep that case on the publishing backend until vector liveness covers it.
+    if (numberMode && aliases.length && [...arrayDefinitions].some(name => arrayInputs.has(name)))
+        return reject(statement, 'rebound-array-alias');
     if (aliases.some(([target, source]) => numberMode ? writable.has(target) || writable.has(source)
         : destinations.has(source))) return reject(statement, 'mutable-array-alias');
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'

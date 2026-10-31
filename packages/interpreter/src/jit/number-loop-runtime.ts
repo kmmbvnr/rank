@@ -193,6 +193,7 @@ function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[
  * Inspection and custom host polling retain the existing publishing backend. */
 export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedback?: LoopWorkFeedback, compileCountedPlan?: () => IntegerLoopPlan | undefined): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, locations, statement } = plan;
+    const reboundInputs = [...plan.arrayDefinitions].some(name => plan.arrayInputs.has(name));
     if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length
         || [...plan.containers.values()].some(info => info.kind !== 'index')
         || plan.containers.size > 0 && plan.calls.length > 0
@@ -203,10 +204,11 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         // A traversal must keep its original cells even when the same binding is
         // written. Other names have separate private buffers, preserving COW.
         || plan.vectorIterations.some(({ slot }) => plan.destinations.has(names[slot]) || plan.arrayDefinitions.has(names[slot]))
-        // An entry read (including one on an unassigned branch) needs the old
-        // array and its ownership guards. Only definitely local fresh arrays
-        // qualify; aliases retain the exact backend.
-        || [...plan.arrayDefinitions].some(name => plan.arrayInputs.has(name))) return undefined;
+        // Whole-array rebinding reads the entry buffer but only writes fresh
+        // private vectors. Cell stores, callees and mixed BigInt registers
+        // retain the publishing backend. Lowering
+        // also excludes aliases in regions with entry-array rebinding.
+        || reboundInputs && (plan.destinations.size > 0 || plan.calls.length > 0 || plan.wideScalars.size > 0)) return undefined;
     const cursor = plan.iteration?.names[0];
     const indexedPass = cursor !== undefined && !plan.writerNames.includes(cursor) && !locations.some(isForStatement) && !plan.vectorIterations.length;
     const storage = new Map<string, { slot: number; rank: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
@@ -219,7 +221,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     for (const info of storage.values()) {
         registers.push(`cells${info.slot} = cells[${info.slot}]`);
         if (info.rank > 1) for (let axis = 0; axis < info.rank; axis++) {
-            registers.push(`size${info.slot}_${axis} = ${plan.arrayDefinitions.has(names[info.slot]) ? 'undefined' : `input[${info.slot}].shape[${axis}]`}`);
+            registers.push(`size${info.slot}_${axis} = ${plan.arrayDefinitions.has(names[info.slot]) && !plan.arrayInputs.has(names[info.slot]) ? 'undefined' : `input[${info.slot}].shape[${axis}]`}`);
         }
     }
     for (const [name, info] of plan.destinations) if (!plan.arrayDefinitions.has(name)) registers.push(`changed${info.slot} = changes[${info.slot}]`);
@@ -296,6 +298,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         || !locations.some(isForStatement);
     return { run: (insideFinally = false) => {
         if (plan.hasControl && insideFinally || !privateLoopPolling()) return undefined;
+        // Existing array contracts can poll again while publishing a rebound
+        // binding. Retain ordinary statement boundaries for observable budgets.
+        if (reboundInputs && demandBudgetEnabled()) return undefined;
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return undefined;
         const calls: LoopCallable[] = [];
         for (const call of plan.calls) {
@@ -392,7 +397,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (diagnostics) diagnostics.numberLoopCopyProbes++;
         }
         for (const [name, info] of storage) {
-            if (plan.arrayDefinitions.has(name)) continue;
+            if (plan.arrayDefinitions.has(name) && !plan.arrayInputs.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
             // Named table rows can return positional products rather than

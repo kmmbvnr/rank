@@ -911,7 +911,7 @@ end`;
         expect(execute(source).observation.variables).toContainEqual(['Snapshot', '2 2']);
     });
 
-    it('declines a possibly unassigned local array that needs an entry value', () => {
+    it('preserves the entry value before a conditional local array assignment', () => {
         expect(compare(`A = array 5 6
 Total = 0
 for I in 1 to 2
@@ -919,7 +919,7 @@ for I in 1 to 2
   A = array shape 2 fill I
  end
  Total += A 0
-end`).numberLoops).toBe(0);
+end`).numberLoops).toBe(1);
     });
 
     it('checks an existing binding contract before allocating privately', () => {
