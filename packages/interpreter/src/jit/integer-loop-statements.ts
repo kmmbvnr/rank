@@ -38,10 +38,11 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
         writers.push(host.writer(assignment.name)); writerNames.push(assignment.name);
         const completed = `completed${state.serial++}`;
         if (numberMode) {
-            if (type !== 'integer') return reject(assignment);
+            if (type !== 'integer' && (type !== 'real' || !host.reals)) return reject(assignment);
             body.push(`location = ${location};`, ...lines,
                 `const ${completed} = ${value};`, dirty(destination),
                 `r${destination} = ${completed}; cells${destination} = cells[${destination}] = ${aliasSlot === undefined ? `${completed}.cells` : `cells${aliasSlot}`};`,
+                ...(state.numberVectors ? [`vectorLive[${destination}] = ${completed};`] : []),
                 ...Array.from({ length: rank > 1 ? rank : 0 }, (_, axis) => `size${destination}_${axis} = ${completed}.shape[${axis}];`),
                 `iterationResult = ${completed}; iterationType = 'array';`);
             recordAssigned(assignment.name);
@@ -286,7 +287,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                         if (!fill || fill.type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || fill.type === 'bytes' || fill.type === 'boolean' && !host.booleanArrays) return reject(assignment);
                         rank = dimensions.length; type = fill.type;
                         value = `created${state.serial++}`;
-                        lines.push(`const ${value} = ${numberMode ? `createArray(${shape}, ${fill.code})` : `ownedArray(Array(Number(${size})).fill(${fill.code}), ${shape}, true)`};`);
+                        lines.push(`const ${value} = ${numberMode ? `createArray(${shape}, ${fill.code}, ${type === 'real'})` : `ownedArray(Array(Number(${size})).fill(${fill.code}), ${shape}, true)`};`);
                     } else {
                         if (!isNameExpression(expression) || !source) return reject(assignment);
                         const name = expression.name;

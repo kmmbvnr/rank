@@ -1,0 +1,158 @@
+{
+  "baseline": "40adaba7",
+  "node": "v24.15.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": [
+    {
+      "repeat": 0,
+      "version": "baseline",
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 1329.523625,
+      "rssMiB": 606.140625
+    },
+    {
+      "repeat": 0,
+      "version": "current",
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 791.7675839999999,
+      "rssMiB": 175.234375
+    },
+    {
+      "repeat": 0,
+      "version": "current",
+      "mode": "compiled",
+      "variant": "symmetry",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 625.9272920000001,
+      "rssMiB": 157.03125
+    },
+    {
+      "repeat": 0,
+      "version": "current",
+      "mode": "reference",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 1339.690791,
+      "rssMiB": 665.75
+    },
+    {
+      "repeat": 0,
+      "version": "baseline",
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 4135.328834,
+      "rssMiB": 143.71875
+    },
+    {
+      "repeat": 1,
+      "version": "current",
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 1355.616583,
+      "rssMiB": 175.15625
+    },
+    {
+      "repeat": 1,
+      "version": "current",
+      "mode": "compiled",
+      "variant": "symmetry",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 756.257875,
+      "rssMiB": 148.453125
+    },
+    {
+      "repeat": 1,
+      "version": "current",
+      "mode": "reference",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 1949.3185839999999,
+      "rssMiB": 548.15625
+    },
+    {
+      "repeat": 1,
+      "version": "baseline",
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 2295.233625,
+      "rssMiB": 159.375
+    },
+    {
+      "repeat": 1,
+      "version": "baseline",
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 1360.096333,
+      "rssMiB": 598.6875
+    },
+    {
+      "repeat": 2,
+      "version": "current",
+      "mode": "compiled",
+      "variant": "symmetry",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 646.8108749999999,
+      "rssMiB": 151.671875
+    },
+    {
+      "repeat": 2,
+      "version": "current",
+      "mode": "reference",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 1445.052292,
+      "rssMiB": 674.359375
+    },
+    {
+      "repeat": 2,
+      "version": "baseline",
+      "mode": "compiled",
+      "variant": "original",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 3478.496333,
+      "rssMiB": 143.84375
+    },
+    {
+      "repeat": 2,
+      "version": "baseline",
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 3309.687292,
+      "rssMiB": 545.90625
+    },
+    {
+      "repeat": 2,
+      "version": "current",
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 1028.488166,
+      "rssMiB": 155.03125
+    }
+  ]
+}

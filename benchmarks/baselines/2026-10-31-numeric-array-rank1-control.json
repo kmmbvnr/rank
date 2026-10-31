@@ -1,0 +1,66 @@
+{
+  "baseline": "40adaba7",
+  "node": "v24.15.0",
+  "samples": [
+    {
+      "version": "baseline",
+      "round": 0,
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 3808.5240000000003,
+      "rssMiB": 607.4375
+    },
+    {
+      "version": "current",
+      "round": 0,
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 2286.871167,
+      "rssMiB": 161.03125
+    },
+    {
+      "version": "current",
+      "round": 1,
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 1329.373667,
+      "rssMiB": 176.640625
+    },
+    {
+      "version": "baseline",
+      "round": 1,
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 2460.627625,
+      "rssMiB": 560.234375
+    },
+    {
+      "version": "baseline",
+      "round": 2,
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 2878.5496669999998,
+      "rssMiB": 569.328125
+    },
+    {
+      "version": "current",
+      "round": 2,
+      "mode": "compiled",
+      "variant": "vector",
+      "limit": "100000000",
+      "answer": "549936643",
+      "ms": 1443.2075,
+      "rssMiB": 156.421875
+    }
+  ]
+}

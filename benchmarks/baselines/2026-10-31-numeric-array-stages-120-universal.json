@@ -1,0 +1,308 @@
+{
+  "baseline": "40adaba7",
+  "node": "v24.15.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": [
+    {
+      "repeat": 0,
+      "version": "baseline",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 251658240,
+      "ms": 156.88995900000003,
+      "rssMiB": 238.171875
+    },
+    {
+      "repeat": 0,
+      "version": "current",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 251658240,
+      "ms": 239.83429199999998,
+      "rssMiB": 147.078125
+    },
+    {
+      "repeat": 0,
+      "version": "baseline",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 505.217084,
+      "rssMiB": 246.765625
+    },
+    {
+      "repeat": 0,
+      "version": "current",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 251.695708,
+      "rssMiB": 181.734375
+    },
+    {
+      "repeat": 0,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 581.745417,
+      "rssMiB": 250.359375
+    },
+    {
+      "repeat": 0,
+      "version": "current",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 377.977167,
+      "rssMiB": 164.125
+    },
+    {
+      "repeat": 1,
+      "version": "current",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 251658240,
+      "ms": 241.70304099999998,
+      "rssMiB": 146.109375
+    },
+    {
+      "repeat": 1,
+      "version": "baseline",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 468.14575,
+      "rssMiB": 246.75
+    },
+    {
+      "repeat": 1,
+      "version": "current",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 276.274083,
+      "rssMiB": 174.71875
+    },
+    {
+      "repeat": 1,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 895.51525,
+      "rssMiB": 244.5
+    },
+    {
+      "repeat": 1,
+      "version": "current",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 688.170666,
+      "rssMiB": 151.03125
+    },
+    {
+      "repeat": 1,
+      "version": "baseline",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 251658240,
+      "ms": 282.800459,
+      "rssMiB": 228.5
+    },
+    {
+      "repeat": 2,
+      "version": "baseline",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 880.207666,
+      "rssMiB": 263.828125
+    },
+    {
+      "repeat": 2,
+      "version": "current",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 284.587708,
+      "rssMiB": 160.203125
+    },
+    {
+      "repeat": 2,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 704.525375,
+      "rssMiB": 248.015625
+    },
+    {
+      "repeat": 2,
+      "version": "current",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 471.82279200000005,
+      "rssMiB": 163.984375
+    },
+    {
+      "repeat": 2,
+      "version": "baseline",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 251658240,
+      "ms": 183.127625,
+      "rssMiB": 259.5
+    },
+    {
+      "repeat": 2,
+      "version": "current",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 251658240,
+      "ms": 256.953375,
+      "rssMiB": 147.203125
+    },
+    {
+      "repeat": 3,
+      "version": "current",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 451.763417,
+      "rssMiB": 159.046875
+    },
+    {
+      "repeat": 3,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 810.9465830000001,
+      "rssMiB": 240.203125
+    },
+    {
+      "repeat": 3,
+      "version": "current",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 431.88675,
+      "rssMiB": 167.703125
+    },
+    {
+      "repeat": 3,
+      "version": "baseline",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 251658240,
+      "ms": 145.369958,
+      "rssMiB": 239.921875
+    },
+    {
+      "repeat": 3,
+      "version": "current",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 251658240,
+      "ms": 218.944166,
+      "rssMiB": 138.40625
+    },
+    {
+      "repeat": 3,
+      "version": "baseline",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 486.43075,
+      "rssMiB": 246.4375
+    },
+    {
+      "repeat": 4,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 527.748625,
+      "rssMiB": 237.125
+    },
+    {
+      "repeat": 4,
+      "version": "current",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 386.79987500000004,
+      "rssMiB": 167.859375
+    },
+    {
+      "repeat": 4,
+      "version": "baseline",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 251658240,
+      "ms": 142.369209,
+      "rssMiB": 238.484375
+    },
+    {
+      "repeat": 4,
+      "version": "current",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 251658240,
+      "ms": 224.54520799999997,
+      "rssMiB": 146.421875
+    },
+    {
+      "repeat": 4,
+      "version": "baseline",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 486.2872080000001,
+      "rssMiB": 245.046875
+    },
+    {
+      "repeat": 4,
+      "version": "current",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "rounds": 120,
+      "answer": 196608000,
+      "ms": 235.57224999999997,
+      "rssMiB": 165.734375
+    }
+  ]
+}

@@ -10,7 +10,7 @@ import { compiledArgumentType, hasNativeDeque } from './compiled-argument-type.j
 import {
     applicationExpression, rangeSliceOperands, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
-    isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
+    isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex, isRankSet } from '../value.js';
@@ -75,6 +75,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     } = state;
     const numberMode = state.numberMode && !wide;
     const safe = wide ? (code: string) => code : state.safe;
+
+    const scalarInputs = new Map<Expression, LoopTerm>();
+    let vectorCellDepth = 0;
 
     function temporaryBudget(source: Expression): boolean {
         if (state.serial <= MAX_LOOP_TEMPORARIES) return true;
@@ -259,6 +262,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         return key;
     }
     function knownType(expression: Expression): LoopTerm['type'] | undefined {
+        while (isParenthesizedExpression(expression)) expression = expression.value;
+        const input = scalarInputs.get(expression);
+        if (input) return input.type;
         const fact = expressionFacts(expression, name => {
             const local = localTypes.get(name);
             if (local) return { types: [local] };
@@ -281,7 +287,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 : (denseScalarItems(value) ?? materializedArrayItems(value))?.[0] : value;
         return typeof first === 'number' ? 'real' : undefined;
     }
-    type LoopValue = LoopTerm | { readonly code: string; readonly type: CompiledArrayType; readonly deque?: boolean };
+    type LoopValue = LoopTerm | { readonly code: string; readonly type: CompiledArrayType; readonly deque?: boolean; readonly cells?: string };
     function isScalar(value: LoopValue): value is LoopTerm { return typeof value.type === 'string'; }
     interface LoopInput { readonly term: LoopTerm; readonly lines: readonly string[] }
     function emit(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopTerm | undefined {
@@ -293,6 +299,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const inferred = inferCompiledExpression<CompiledLoopType, LoopInput>(e, {
             atom: type => types.find(candidate => candidate === type),
             read: (source, expected) => {
+                const supplied = scalarInputs.get(source);
+                if (supplied) return { type: supplied.type, input: { term: supplied, lines: [] } };
                 // Scalar operators use the shared inference. Loop-specific cell
                 // reads, calls and literal powers retain their guarded lowering.
                 if (isUnaryExpression(source) || isBinaryExpression(source)
@@ -435,7 +443,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (token === '//' || token === '%') return undefined;
             const real = (term: LoopTerm) => term.type === 'integer' ? `Number(${term.code})` : `(${term.code})`;
             const mixed = left.type !== right.type;
-            if (op === '/') lines.push(`if (${zeroTestSource(b, right.type === 'integer' && !numberMode ? 'integer' : 'real')}) throw zero();`);
+            if (op === '/') lines.push(`if (${zeroTestSource(b, right.type === 'integer' && !numberMode ? 'integer' : 'real')}) throw ${vectorCellDepth ? 'overflow' : 'zero()'};`);
             if (op === '**') lines.push(`if (${zeroTestSource(a, left.type === 'integer' && !numberMode ? 'integer' : 'real')} && (${b}) < 0) throw powerZero();`);
             lines.push(`const ${name} = ${type === 'boolean' ? binaryOperatorSource(operation, a, b, { mixed }) : binaryOperatorSource(operation, real(left), real(right))};`);
             if (op === '**') lines.push(`if (Number.isNaN(${name})) throw powerDomain();`);
@@ -445,7 +453,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             lines.push(`const ${name} = ${type === 'integer' ? safe(binaryOperatorSource(operation, a, b)) : binaryOperatorSource(operation, a, b)};`);
             return name;
         }
-        lines.push(`if (${zeroTestSource(b, numberMode ? 'real' : 'integer')}) throw zero();`);
+        lines.push(`if (${zeroTestSource(b, numberMode ? 'real' : 'integer')}) throw ${vectorCellDepth ? 'overflow' : 'zero()'};`);
         if (numberMode && op === '//') {
             // Inline the bounded case so loop-invariant numerators can hoist
             // its guard and V8 need not inline a helper at every quotient.
@@ -595,6 +603,26 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     // evaluator, without re-entering expression evaluation on every iteration.
     function arrayType(e: Expression): CompiledArrayType | undefined {
         while (isParenthesizedExpression(e)) e = e.value;
+        if (scalarInputs.has(e)) return undefined;
+        if (numberMode && isMaterializeExpression(e)) return arrayType(e.source);
+        if (numberMode && isTableFilterExpression(e) && e.condition && !e.conditions.length && !e.sourceFields.length) {
+            const source = arrayType(e.source), mask = arrayType(e.condition);
+            if (source?.rank === 1 && ['integer', 'real'].includes(source.element) && mask?.rank === 1 && mask.element === 'boolean') return source;
+        }
+        if (numberMode) {
+            const point = vectorOperation(e);
+            if (point) {
+                const operands = point.operands.map(arrayType);
+                if (operands.some(Boolean)) {
+                    const types = operands.map((type, i) => type?.element ?? knownType(point.operands[i]) ?? 'integer');
+                    const type = point.name === 'gcd' ? types.every(type => type === 'integer') ? 'integer' : undefined
+                        : loopOperatorSignature(point.name, types, host.nativeCalls === true)?.result;
+                    if (type === 'integer' || type === 'boolean' || type === 'real' && host.reals) {
+                        return { kind: 'array', element: type, rank: Math.max(...operands.map(type => type?.rank ?? 0)) };
+                    }
+                }
+            }
+        }
         if (isNameExpression(e) && !e.name.includes('.') && !localTypes.has(e.name)) {
             const previous = arrays.get(e.name);
             if (previous && previous.type !== 'bytes') return { kind: 'array', element: previous.type, rank: previous.rank };
@@ -602,6 +630,12 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const kinds = current && isRankArray(current) ? storedScalarKinds(current) : undefined;
             if (current && isRankArray(current) && kinds && (kinds.length === 0 || kinds.join() === 'integer')) {
                 return { kind: 'array', element: 'integer', rank: current.shape.length };
+            }
+            if (numberMode && host.booleanArrays && current && isRankArray(current) && kinds?.join() === 'boolean') {
+                return { kind: 'array', element: 'boolean', rank: current.shape.length };
+            }
+            if (numberMode && host.reals && current && isRankArray(current) && kinds?.join() === 'real') {
+                return { kind: 'array', element: 'real', rank: current.shape.length };
             }
         }
         if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
@@ -683,10 +717,211 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         lines.push(`const ${name} = ${code};`);
         return { code: name, type };
     }
-    /** Integer vector reductions keep their scalar inputs in evaluation order.
-     * Only total pointwise operators fuse: divisions and calls retain their
-     * ordinary array evaluation/error order. Entry guards exclude lazy inputs. */
+    interface NumberVector {
+        readonly size: string;
+        readonly shape: string;
+        readonly rank: number;
+        readonly type: 'integer' | 'boolean' | 'real';
+        readonly sources: readonly string[];
+        cell(index: string, lines: string[], frame?: NumberVectorFrame): LoopTerm | undefined;
+    }
+    interface NumberVectorFrame {
+        readonly shape: string;
+        readonly rank: number;
+        readonly offsets: Map<string, string>;
+    }
+    /** Existing dense integer kernels prove bounds and avoid per-cell safe
+     * checks. On multidimensional +,-,* they beat the generic Number region
+     * (see numeric-array-stages-results.md). Keep that backend unless this
+     * region already needs private vector stages; mixed-real expressions and
+     * operators such as gcd still use the new path. */
+    function existingIntegerArrayArithmetic(source: Expression): boolean {
+        while (isParenthesizedExpression(source)) source = source.value;
+        return isNameExpression(source) || isNumberLiteral(source)
+            || isUnaryExpression(source) && ['+', '-'].includes(source.operator) && existingIntegerArrayArithmetic(source.operand)
+            || isBinaryExpression(source) && !source.step && ['+', '-', '*'].includes(source.operator)
+                && existingIntegerArrayArithmetic(source.left) && existingIntegerArrayArithmetic(source.right);
+    }
+    function numberVectorLoop(size: string, index: string, body: readonly string[]): string {
+        state.numberVectors = true;
+        const block = `block${state.serial++}`, end = `end${state.serial++}`;
+        return `for (let ${block} = 0; ${block} < ${size}; ${block} += vectorStep) {
+            const ${end} = Math.min(${size}, ${block} + vectorStep);
+            ${state.workCounting ? `work += ${end} - ${block};` : ''}
+            checkpoint(undefined, ${end} - ${block});
+            for (let ${index} = ${block}; ${index} < ${end}; ${index}++) { ${body.join('\n')} }
+        }`;
+    }
+    function vectorOperation(e: Expression): { name: string; operands: Expression[] } | undefined {
+        const unwrap = (value: Expression) => { while (isParenthesizedExpression(value)) value = value.value; return value; };
+        if (isBinaryExpression(e) && !e.step && ['+', '-', '*', '/', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(e.operator)) {
+            return { name: e.operator, operands: [e.left, e.right].map(unwrap) };
+        }
+        if (host.nativeCalls && isApplicationExpression(e)) {
+            const parts = flattenApplication(e), last = parts.at(-1);
+            if (parts.length === 3 && isNameExpression(last) && last.name === 'gcd'
+                && !localTypes.has('gcd') && !arrays.has('gcd') && !containers.has('gcd')) {
+                return { name: 'gcd', operands: parts.slice(0, -1).map(unwrap) };
+            }
+        }
+        return undefined;
+    }
+    /** Pointwise cells share scalar lowering, but scalar subexpressions are
+     * captured once, even on empty vectors. A zero divisor replays the original
+     * region so nested array errors keep their ordinary evaluation order. */
+    function numberVector(source: Expression, lines: string[]): NumberVector | undefined {
+        let e = source;
+        while (isParenthesizedExpression(e)) e = e.value;
+        const type = arrayType(e);
+        if (!type) {
+            if (!(isNameExpression(e) || isNumberLiteral(e) || isUnaryExpression(e) || isBinaryExpression(e))) return undefined;
+            const scalar = emit(e, lines);
+            if (!scalar || scalar.type !== 'integer' && scalar.type !== 'boolean' && scalar.type !== 'real') return undefined;
+            const captured = `scalar${state.serial++}`;
+            lines.push(`const ${captured} = ${scalar.code};`);
+            return { size: '1', shape: '[]', rank: 0, type: scalar.type, sources: [], cell: () => ({ code: captured, type: scalar.type }) };
+        }
+        if (type.element !== 'integer' && type.element !== 'boolean' && type.element !== 'real') return undefined;
+        const point = vectorOperation(e);
+        if (point) {
+            const inputs: NumberVector[] = [];
+            for (const operand of point.operands) {
+                const input = numberVector(operand, lines);
+                if (!input) return undefined;
+                inputs.push(input);
+            }
+            if (point.name === 'gcd') builtins.set('gcd', 'numbers');
+            const size = `length${state.serial++}`;
+            let shape: string;
+            if (type.rank <= 1) {
+                lines.push(`let ${size} = 1;`);
+                for (const input of inputs) lines.push(`if (${size} !== ${input.size} && ${size} !== 1 && ${input.size} !== 1) throw overflow; ${size} = ${size} === 1 ? ${input.size} : ${size};`);
+                shape = `[${size}]`;
+            } else {
+                const layout = `layout${state.serial++}`;
+                lines.push(`const ${layout} = vectorLayout(${inputs[0].shape}, ${inputs[1].shape}); const ${size} = ${layout}.size;`);
+                shape = `${layout}.shape`;
+            }
+            return { size, shape, rank: type.rank, type: type.element, sources: [...new Set(inputs.flatMap(input => input.sources))], cell: (index, body, frame) => {
+                // Trailing broadcasting composes: address each original leaf
+                // directly in the final frame, rather than remapping indices
+                // through every intermediate pointwise expression.
+                const root = frame ?? { shape, rank: type.rank, offsets: new Map<string, string>() };
+                const values = inputs.map(input => input.cell(index, body, root));
+                if (values.some(value => !value)) return undefined;
+                const previous = point.operands.map(operand => scalarInputs.get(operand));
+                point.operands.forEach((operand, i) => scalarInputs.set(operand, values[i]!));
+                vectorCellDepth++;
+                try { return emit(e, body); }
+                finally {
+                    vectorCellDepth--;
+                    point.operands.forEach((operand, i) => previous[i] ? scalarInputs.set(operand, previous[i]!) : scalarInputs.delete(operand));
+                }
+            } };
+        }
+        let cells: string, shape: string;
+        if (isNameExpression(e)) {
+            const info = arrays.get(e.name) ?? { slot: slot(e.name), rank: type.rank, type: type.element };
+            arrays.set(e.name, info);
+            if (!assigned.has(e.name)) arrayInputs.add(e.name);
+            cells = `cells${info.slot}`;
+            shape = `r${info.slot}.shape`;
+        } else {
+            const value = emitNumberArray(e, lines);
+            if (!value || typeof value.type === 'string') return undefined;
+            cells = value.cells ?? `${value.code}.cells`;
+            shape = `${value.code}.shape`;
+        }
+        const size = `length${state.serial++}`;
+        lines.push(`const ${size} = ${cells}.length;`);
+        return { size, shape, rank: type.rank, type: type.element, sources: [cells], cell: (index, body, frame) => {
+            let position = index;
+            if (frame && frame.rank <= 1) position = `(${size} === 1 ? 0 : ${index})`;
+            else if (frame) {
+                const key = `${cells}:${index}`;
+                const previous = frame.offsets.get(key);
+                if (previous) position = previous;
+                else {
+                    const layout = `leaf${state.serial++}`;
+                    lines.push(`const ${layout} = vectorLayout(${frame.shape}, ${shape});`);
+                    const terms = Array.from({ length: type.rank }, (_, axis) => {
+                        const aligned = frame.rank - type.rank + axis, stride = `${layout}.right[${aligned}]`;
+                        return `(${stride} === 0 ? 0 : (Math.floor(${index} / ${layout}.strides[${aligned}]) % ${frame.shape}[${aligned}]) * ${stride})`;
+                    });
+                    position = `offset${state.serial++}`;
+                    body.push(`const ${position} = ${layout}.rightLinear ? ${index} : ${terms.join(' + ')};`);
+                    frame.offsets.set(key, position);
+                }
+            }
+            return { code: type.element === 'boolean' ? `(${cells}[${position}] !== 0)`
+                : type.element === 'real' ? `Number(${cells}[${position}])` : `safe(Number(${cells}[${position}]))`, type: type.element };
+        } };
+    }
+    function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {
+        let e = source;
+        while (isParenthesizedExpression(e) || isMaterializeExpression(e)) e = isParenthesizedExpression(e) ? e.value : e.source;
+        const type = arrayType(e);
+        if (!type || type.element !== 'integer' && type.element !== 'real') return undefined;
+        if (!state.numberVectors && type.rank > 1 && type.element === 'integer' && existingIntegerArrayArithmetic(e)) return undefined;
+        if (isNameExpression(e)) {
+            const info = arrays.get(e.name) ?? { slot: slot(e.name), rank: type.rank, type: type.element };
+            arrays.set(e.name, info);
+            if (!assigned.has(e.name)) arrayInputs.add(e.name);
+            return { code: `r${info.slot}`, cells: `cells${info.slot}`, type };
+        }
+        const result = `vector${state.serial++}`;
+        if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
+            state.numberVectors = true;
+            const start = emit(e.left, lines, 'integer'), end = emit(e.right, lines, 'integer');
+            const step = e.step ? emit(e.step, lines, 'integer') : undefined;
+            if (!start || !end || e.step && !step) return undefined;
+            lines.push(`const ${result} = rangeArray(${start.code}, ${end.code}, ${e.operator === 'to'}, ${step?.code ?? '1'}, vectorPool, vectorLive, [result, iterationResult], vectorStep);`);
+            if (state.workCounting) lines.push(`work += ${result}.cells.length;`);
+        } else if (isTableFilterExpression(e) && e.condition && !e.conditions.length && !e.sourceFields.length) {
+            const input = emitNumberArray(e.source, lines), mask = numberVector(e.condition, lines);
+            if (!input || typeof input.type === 'string' || !mask || mask.type !== 'boolean') return undefined;
+            const cells = input.cells ?? `${input.code}.cells`, index = `cell${state.serial++}`, count = `count${state.serial++}`, body: string[] = [];
+            const selected = mask.cell(index, body);
+            if (!selected) return undefined;
+            lines.push(`if (${cells}.length !== ${mask.size}) throw overflow;
+                const ${result} = vectorArray([${cells}.length], ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${[cells, ...mask.sources].join(',')}]); let ${count} = 0;
+                ${numberVectorLoop(`${cells}.length`, index, [...body, `if (${selected.code}) ${result}.store(${count}++, ${type.element === 'real' ? `Number(${cells}[${index}])` : `safe(Number(${cells}[${index}]))`});`])}
+                ${result}.shape[0] = ${count}; ${result}.cells = ${result}.cells.subarray(0, ${count});`);
+        } else if (vectorOperation(e)) {
+            const input = numberVector(e, lines);
+            if (!input) return undefined;
+            const index = `cell${state.serial++}`, body: string[] = [];
+            const value = input.cell(index, body);
+            if (!value) return undefined;
+            lines.push(`const ${result} = vectorArray(${input.shape}, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${input.sources.join(',')}]);
+                ${numberVectorLoop(input.size, index, [...body, `${result}.store(${index}, ${value.code});`])}`);
+        } else return undefined;
+        return { code: result, cells: `${result}.cells`, type };
+    }
+    /** Scalar inputs retain evaluation order. Number-vector divisions replay
+     * the ordinary region on failure, preserving array error order; the exact
+     * path only fuses total arithmetic. Entry guards exclude lazy inputs. */
     function emitIntegerSum(source: Expression, lines: string[]): LoopTerm | undefined {
+        if (numberMode) {
+            const type = arrayType(source);
+            if (wide || !host.arrayReads || !type) return undefined;
+            if (!state.numberVectors && type.rank > 1 && type.element === 'integer' && existingIntegerArrayArithmetic(source)) return undefined;
+            // Unbound range reductions retain their analytic/streaming native
+            // consumers instead of introducing eager storage or linear work.
+            if ([source, ...AstUtils.streamAllContents(source)].some(node => isBinaryExpression(node) && ['to', 'till'].includes(node.operator))) return undefined;
+            const setup: string[] = [];
+            const vector = numberVector(source, setup);
+            if (!vector || vector.type !== 'integer' && vector.type !== 'real') return undefined;
+            const result = `sum${state.serial++}`, index = `cell${state.serial++}`, body: string[] = [];
+            const value = vector.cell(index, body);
+            if (!value) return undefined;
+            builtins.set('sum', 'core');
+            // An empty real sum has the integer identity 0 in the evaluator.
+            // Replay rather than publish it with an incorrect scalar type.
+            if (vector.type === 'real') setup.push(`if (${vector.size} === 0) throw overflow;`);
+            lines.push(...setup, `let ${result} = 0;`, numberVectorLoop(vector.size, index, [...body, `${result} = ${vector.type === 'integer' ? safe(`${result} + ${value.code}`) : `${result} + ${value.code}`};`]));
+            return { type: vector.type, code: result };
+        }
         type Vector = { size: string; cell(index: string, body: string[]): LoopTerm };
         function scalarSyntax(e: Expression): boolean {
             if (isParenthesizedExpression(e)) return scalarSyntax(e.value);
@@ -831,6 +1066,14 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 }
             }
         }
+        if (numberMode && host.arrayLocals && host.arrayReads && arrayType(source)) {
+            const setup: string[] = [];
+            const value = emitNumberArray(source, setup);
+            if (value) {
+                lines.push(...setup);
+                return value;
+            }
+        }
         if (!state.numberMode && host.arrayLocals && host.arrayReads && host.arrayValues && arrayType(source)) {
             return emitArrayValue(source, lines);
         }
@@ -846,6 +1089,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     }
     function emitInput(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
         if (!temporaryBudget(e)) return undefined;
+        const supplied = scalarInputs.get(e);
+        if (supplied) return supplied;
         if (isNameExpression(e) && !e.name.includes('.')) {
             if (arrays.has(e.name)) return undefined;
             const type = localTypes.get(e.name) ?? (textSources.has(e.name) ? 'text' : hint ?? realInput(e.name) ?? 'integer');
@@ -954,8 +1199,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     const types: CompiledCalleeType[] = [];
                     for (let part of parts.slice(0, -1)) {
                         while (isParenthesizedExpression(part)) part = part.value;
-                        const existing = isNameExpression(part) ? arrays.get(part.name) : undefined;
-                        const current = isNameExpression(part) && !localTypes.has(part.name) ? host.read(part.name) : undefined;
+                        const existing = isNameExpression(part) && !scalarInputs.has(part) ? arrays.get(part.name) : undefined;
+                        const current = isNameExpression(part) && !scalarInputs.has(part) && !localTypes.has(part.name) ? host.read(part.name) : undefined;
                         if (current && isNameExpression(part) && (current instanceof RankDeque
                             || isRankIndex(current) && current.entries instanceof ResourceMap
                             || isRankSet(current) && current.entries instanceof IntegerEntries && current.entries.integers)) {

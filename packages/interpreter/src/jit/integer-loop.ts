@@ -175,6 +175,6 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
         statement, names, wideScalars, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
-        needsAlgo: state.needsAlgo, arrayDefinitions, writable, iteration, workCounting, callouts: state.callouts,
+        needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, writable, iteration, workCounting, callouts: state.callouts,
     };
 }

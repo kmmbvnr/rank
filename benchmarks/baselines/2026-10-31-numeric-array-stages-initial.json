@@ -1,0 +1,170 @@
+{
+  "baseline": "40adaba7",
+  "node": "v24.15.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": [
+    {
+      "repeat": 0,
+      "version": "baseline",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "answer": 25165824,
+      "ms": 92.70729200000002,
+      "rssMiB": 155.84375
+    },
+    {
+      "repeat": 0,
+      "version": "current",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "answer": 25165824,
+      "ms": 106.12416699999997,
+      "rssMiB": 146.296875
+    },
+    {
+      "repeat": 0,
+      "version": "baseline",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 122.64266599999999,
+      "rssMiB": 190.546875
+    },
+    {
+      "repeat": 0,
+      "version": "current",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 118.66125,
+      "rssMiB": 167.25
+    },
+    {
+      "repeat": 0,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 260.49033299999996,
+      "rssMiB": 178.671875
+    },
+    {
+      "repeat": 0,
+      "version": "current",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 456.786417,
+      "rssMiB": 168.453125
+    },
+    {
+      "repeat": 1,
+      "version": "current",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "answer": 25165824,
+      "ms": 687.292792,
+      "rssMiB": 142.703125
+    },
+    {
+      "repeat": 1,
+      "version": "baseline",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 318.63554200000004,
+      "rssMiB": 194.046875
+    },
+    {
+      "repeat": 1,
+      "version": "current",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 341.28024999999997,
+      "rssMiB": 179.453125
+    },
+    {
+      "repeat": 1,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 362.203958,
+      "rssMiB": 190.296875
+    },
+    {
+      "repeat": 1,
+      "version": "current",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 410.668667,
+      "rssMiB": 174.578125
+    },
+    {
+      "repeat": 1,
+      "version": "baseline",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "answer": 25165824,
+      "ms": 273.917166,
+      "rssMiB": 155.78125
+    },
+    {
+      "repeat": 2,
+      "version": "baseline",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 196.01975,
+      "rssMiB": 181.90625
+    },
+    {
+      "repeat": 2,
+      "version": "current",
+      "variant": "real-matrix",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 183.76000000000002,
+      "rssMiB": 179.25
+    },
+    {
+      "repeat": 2,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 189.59874999999997,
+      "rssMiB": 191
+    },
+    {
+      "repeat": 2,
+      "version": "current",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "answer": 19660800,
+      "ms": 240.72525000000002,
+      "rssMiB": 167.40625
+    },
+    {
+      "repeat": 2,
+      "version": "baseline",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "answer": 25165824,
+      "ms": 142.260416,
+      "rssMiB": 149.25
+    },
+    {
+      "repeat": 2,
+      "version": "current",
+      "variant": "integer-matrix",
+      "mode": "compiled",
+      "answer": 25165824,
+      "ms": 148.85175,
+      "rssMiB": 141.8125
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "oracle": "Direct (a,b,d,x) enumeration, sorted squared side lengths, exact similarity cross-products, each triple counted once",
+  "checks": [
+    {
+      "variant": "original",
+      "limits": "1..100",
+      "modes": [
+        "reference",
+        "compiled"
+      ],
+      "checks": 200
+    },
+    {
+      "variant": "native",
+      "limits": "1..100",
+      "modes": [
+        "reference",
+        "compiled"
+      ],
+      "checks": 200
+    },
+    {
+      "variant": "symmetry",
+      "limits": "1..100",
+      "modes": [
+        "reference",
+        "compiled"
+      ],
+      "checks": 200
+    },
+    {
+      "variant": "vector",
+      "limits": "1..100",
+      "modes": [
+        "reference",
+        "compiled"
+      ],
+      "checks": 200
+    },
+    {
+      "variant": "hybrid",
+      "limits": "1..100",
+      "modes": [
+        "reference",
+        "compiled"
+      ],
+      "checks": 200
+    },
+    {
+      "variant": "lazy",
+      "limits": "1..100",
+      "modes": [
+        "reference",
+        "compiled"
+      ],
+      "checks": 200
+    },
+    {
+      "variant": "eager",
+      "limits": "1..100",
+      "modes": [
+        "reference",
+        "compiled"
+      ],
+      "checks": 200
+    },
+    {
+      "variant": "squares",
+      "limits": "1..100",
+      "modes": [
+        "reference",
+        "compiled"
+      ],
+      "checks": 200
+    }
+  ],
+  "total": 1600
+}

@@ -133,6 +133,7 @@ export interface IntegerLoopPlan {
     hasYield: boolean;
     needsAlgo: boolean;
     arrayDefinitions: Set<string>;
+    numberVectors?: boolean;
     writable: Set<string>;
     iteration: IterationBinding | undefined;
     workCounting?: boolean;

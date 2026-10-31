@@ -1,0 +1,9 @@
+{
+  "mode": "reference",
+  "variant": "original",
+  "limit": "100000000",
+  "timeoutMs": 30000,
+  "status": null,
+  "error": "ETIMEDOUT",
+  "signal": "SIGTERM"
+}

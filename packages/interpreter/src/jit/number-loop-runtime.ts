@@ -1,3 +1,4 @@
+import { broadcastShape, arrayStrides } from './tensor-layout.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { textLength } from '../text-storage.js';
 import { expressionFacts, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
@@ -5,7 +6,7 @@ import { loopTraversal } from '../loop-traversal.js';
 import { argumentSelectionError, MissingValueError, RankError } from '../errors.js';
 import { completed } from '../execution.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
-import { checkpoint, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
 import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, typedArray } from '../array-storage.js';
 import { isRankArray, isRankIndex, type RankArray, type RankValue } from '../value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, LoopWorkFeedback } from './integer-loop-plan.js';
@@ -20,16 +21,26 @@ export const numberOverflow = {};
 const overflow = numberOverflow;
 /** Fresh local storage stays private until publication. In particular, a later
  * allocation cannot replace the array retained as a previous iteration result. */
-class PrivateIntegerArray {
+interface VectorBuffer { cells: Int32Array | Float64Array }
+class PrivateNumericArray {
+    private pool?: VectorBuffer;
     private published?: RankArray;
     cells: Int32Array | Float64Array;
-    constructor(readonly shape: number[], fill: number, source?: NumberCells) {
+    constructor(readonly shape: number[], fill: number, source?: NumberCells, owned?: VectorBuffer, private readonly real = false) {
         const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
         // Keep lengths outside the publishing backend's Array(length) range
         // on the exact path, before allocating speculative typed cells.
         if (size > 0xffffffff) throw overflow;
-        this.cells = source ? source instanceof Int32Array ? source.slice() : Float64Array.from(source, Number)
-            : fill === (fill | 0) ? new Int32Array(size).fill(fill) : new Float64Array(size).fill(fill);
+        this.cells = owned ? owned.cells.subarray(0, size) : (source ? !real && source instanceof Int32Array ? source.slice() : Float64Array.from(source, Number)
+            : !real && fill === (fill | 0) ? new Int32Array(size).fill(fill) : new Float64Array(size).fill(fill));
+        if (owned) this.pool = owned;
+    }
+    store(index: number, value: number): void {
+        if (this.cells instanceof Int32Array && value !== (value | 0)) {
+            this.cells = Float64Array.from(this.cells);
+            if (this.pool) this.pool.cells = this.cells;
+        }
+        this.cells[index] = value;
     }
     value(): RankArray {
         // No polling during publication: errors/cancellation publish all the
@@ -37,7 +48,7 @@ class PrivateIntegerArray {
         // TypedArray.from takes the iterable path for typed-array inputs and
         // collects their values first. Index the numeric buffer directly so a
         // large publication needs only its destination, not that temporary list.
-        return this.published ??= typedArray(this.cells instanceof Int32Array
+        return this.published ??= typedArray(this.real ? this.cells.slice() : this.cells instanceof Int32Array
             ? this.cells : (() => {
                 const result = new BigInt64Array(this.cells.length);
                 for (let index = 0; index < result.length; index++) {
@@ -50,14 +61,51 @@ class PrivateIntegerArray {
 /** The RHS snapshot used by stores is separate from the selection returned by
  * an assignment. Build that live selection only when the loop result escapes. */
 class PrivateSliceResult {
-    constructor(readonly source: RankArray | PrivateIntegerArray, readonly first: number,
+    constructor(readonly source: RankArray | PrivateNumericArray, readonly first: number,
         readonly count: number, readonly stride: number) {}
     value(): RankValue {
-        return selectArraySlice(this.source instanceof PrivateIntegerArray ? this.source.value() : this.source, {
+        return selectArraySlice(this.source instanceof PrivateNumericArray ? this.source.value() : this.source, {
             shape: [this.count], offsetAt: index => this.first + index * this.stride,
             linear: { offset: this.first, stride: this.stride },
         });
     }
+}
+/** Pool only dead buffers within one speculative invocation. Named bindings,
+ * aliases, retained assignment results and current operands pin their storage.
+ * A buffer is fully overwritten before its new array binding is published. */
+function vectorArray(shape: readonly number[], real: boolean, pool: VectorBuffer[], live: unknown[], operands: unknown[]): PrivateNumericArray {
+    const size = shape.reduce((a, b) => a * b, 1);
+    const held = new Set<ArrayBufferLike>();
+    const retain = (value: unknown): void => {
+        if (value instanceof PrivateSliceResult) retain(value.source);
+        else if (value instanceof PrivateNumericArray) held.add(value.cells.buffer);
+        else if (ArrayBuffer.isView(value)) held.add(value.buffer);
+    };
+    live.forEach(retain); operands.forEach(retain);
+    let replace = -1;
+    for (let i = 0; i < pool.length; i++) {
+        if (held.has(pool[i].cells.buffer)) continue;
+        if (pool[i].cells.length >= size && (!real || pool[i].cells instanceof Float64Array)) return new PrivateNumericArray([...shape], 0, undefined, pool[i], real);
+        replace = i;
+    }
+    const buffer: VectorBuffer = { cells: real ? new Float64Array(size) : new Int32Array(size) };
+    if (replace >= 0) pool[replace] = buffer;
+    else pool.push(buffer);
+    return new PrivateNumericArray([...shape], 0, undefined, buffer, real);
+}
+/** The existing trailing-axis broadcast contract, prepared once per stage.
+ * Shape errors replay the ordinary region to preserve expression error order. */
+function vectorLayout(left: readonly number[], right: readonly number[]) {
+    let shape: readonly number[];
+    try { shape = broadcastShape(left, right); } catch { throw overflow; }
+    const aligned = (source: readonly number[]) => {
+        const strides = arrayStrides(source), leading = shape.length - source.length;
+        return shape.map((_, axis) => axis < leading || source[axis - leading] === 1 ? 0 : strides[axis - leading]);
+    };
+    const linear = (source: readonly number[]) => source.length === shape.length && source.every((size, axis) => size === shape[axis]);
+    const size = safe(Number(shape.reduce((a, b) => a * BigInt(b), 1n)));
+    return { shape, size, strides: arrayStrides(shape),
+        left: aligned(left), right: aligned(right), leftLinear: linear(left), rightLinear: linear(right) };
 }
 /** All selected cells were validated before this test. Distinct buffers or
  * disjoint arithmetic selections can be read directly, even after destination
@@ -115,14 +163,14 @@ function divide(a: number, b: number): number {
     return safe(quotient - ((a < 0) !== (b < 0) && remainder !== 0 ? 1 : 0));
 }
 const rankValue = (value: unknown, type: string | undefined): RankValue | undefined =>
-    value instanceof PrivateIntegerArray || value instanceof PrivateSliceResult ? value.value()
+    value instanceof PrivateNumericArray || value instanceof PrivateSliceResult ? value.value()
         : typeof value === 'number' && type === 'integer' ? BigInt(value) : value as RankValue | undefined;
 
 function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[], publish: string, workCounting = false): string {
     const { root, body } = plan;
     return `"use strict"; return function(input, cells, changes, calls, publish) {
         let ${registers.length ? `${registers.join(',')}, ` : ''}result, resultType = 'integer', location = -1, order = 0${workCounting ? ', work = 0' : ''};
-        const entered = [];
+        const entered = [];${plan.numberVectors ? '\n        const vectorPool = [], vectorLive = input.slice(), vectorStep = vectorBlockSize();' : ''}
         try {
             ${root.setup} ${root.header}
                 let iterationResult, iterationType = 'integer';
@@ -180,7 +228,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
-    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', code)(
+    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', code)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -192,9 +240,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             () => new RankError('power result is not real'),
             (index: number | bigint, axis = 0) => index < 0 ? new RankError(`array index must be nonnegative on axis ${axis}`)
                 : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower,
-            (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number) => new PrivateIntegerArray(shape, fill),
+            (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number, real = false) => new PrivateNumericArray(shape, fill, undefined, undefined, real),
             (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
-            (shape: number[], cells: NumberCells) => new PrivateIntegerArray([...shape], 0, cells), textLength, indexKey,
+            (shape: number[], cells: NumberCells) => new PrivateNumericArray([...shape], 0, cells), textLength, indexKey,
             (cells: NumberCells, first: number, count: number, stride: number) => {
                 const diagnostics = currentDiagnostics();
                 if (diagnostics) { diagnostics.numberLoopSliceCopies++; diagnostics.numberLoopSliceCopyCells += count; }
@@ -203,9 +251,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 // longer/strided selections retain bounded interrupt polling.
                 if (stride === 1 && count <= 4096 && (cells instanceof Int32Array || cells instanceof Float64Array)) {
                     checkpoint('preparing array write', count);
-                    return new PrivateIntegerArray([count], 0, cells.subarray(first, first + count));
+                    return new PrivateNumericArray([count], 0, cells.subarray(first, first + count));
                 }
-                const result = new PrivateIntegerArray([count], 0);
+                const result = new PrivateNumericArray([count], 0);
                 for (let index = 0; index < count; index++) {
                     checkpoint();
                     const value = safe(Number(cells[first + index * stride]));
@@ -213,8 +261,26 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     result.cells[index] = value;
                 }
                 return result;
-            }, (source: RankArray | PrivateIntegerArray, first: number, count: number, stride: number) =>
-                new PrivateSliceResult(source, first, count, stride), disjointSlices);
+            }, (source: RankArray | PrivateNumericArray, first: number, count: number, stride: number) =>
+                new PrivateSliceResult(source, first, count, stride), disjointSlices,
+            (shape: number[], real: boolean, pool: VectorBuffer[], live: unknown[], operands: unknown[]) => {
+                try { host.dimension(shape.reduce((size, axis) => size * BigInt(axis), 1n)); } catch { throw overflow; }
+                return vectorArray(shape, real, pool, live, operands);
+            },
+            (start: number, end: number, inclusive: boolean, step: number, pool: VectorBuffer[], live: unknown[], operands: unknown[], block: number) => {
+                if (step === 0) throw overflow;
+                const distance = safe(step > 0 ? end - start : start - end);
+                const count = distance < 0 || !inclusive && distance === 0 ? 0
+                    : safe(divide(inclusive ? distance : distance - 1, Math.abs(step)) + 1);
+                try { host.dimension(BigInt(count)); } catch { throw overflow; }
+                const result = vectorArray([count], false, pool, live, operands);
+                for (let first = 0; first < count; first += block) {
+                    const last = Math.min(count, first + block);
+                    checkpoint(undefined, last - first);
+                    for (let i = first; i < last; i++) result.store(i, safe(start + safe(i * step)));
+                }
+                return result;
+            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout);
     try { run = compile(source); } catch { return undefined; }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These
