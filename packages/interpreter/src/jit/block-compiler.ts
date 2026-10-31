@@ -3,6 +3,7 @@ import type { RankValue } from '../value.js';
 
 type Value = RankValue | undefined;
 interface Context {
+    readonly insideLoop?: boolean;
     readonly insideFinally: boolean;
     readonly insideGenerator: boolean;
     readonly loopControl?: { signal?: 'break' | 'continue' };
@@ -16,6 +17,7 @@ interface Step<C> {
 export type CompiledBlock<C> = (context: C, index?: number, previous?: Value) => Evaluation<Value>;
 interface Host<C> {
     prepare(index: number): Step<C>;
+    region?(index: number): { length: number; run(): Value } | undefined;
     locate(error: unknown, index: number): unknown;
     pause(index: number, task: Execution<Value>, context: C, block: CompiledBlock<C>): Evaluation<Value>;
     compiled?(source: string): void;
@@ -32,6 +34,11 @@ export function compileBlock<C extends Context>(length: number, host: Host<C>): 
         if (host.executed) host.executed();
         try {
             while (index < length) {
+                if (context.insideLoop && !context.insideFinally && !context.insideGenerator) {
+                    const region = host.region?.(index);
+                    const value = region?.run();
+                    if (value !== undefined) { result = value; index += region!.length; continue; }
+                }
                 const step = steps[index] ??= host.prepare(index);
                 if (step.tensor && !context.insideFinally && !context.insideGenerator) {
                     const value = step.tensor.run();

@@ -11,6 +11,7 @@ import {
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './jit/block-compiler.js';
+import { compileTensorRegion } from './jit/tensor-region.js';
 import { TailCallSignal } from './control-signals.js';
 import { registerFlatCombine } from './flat-combine.js';
 import { compileFusedReduction, compileFusedSum } from './jit/fused-reduction.js';
@@ -100,8 +101,29 @@ export class FastPaths {
         if (this.compiler.blocks.blocks && statements.length >= 2 && statements.length <= 64) {
             let block = this.blocks.get(statements);
             if (block === undefined) {
+                const regions = new Map<number, ReturnType<typeof compileTensorRegion>>();
+                const regionWriters = new Map<Statement, (value: RankValue) => void>();
                 block = compileBlock<ExecutionContext>(statements.length, {
                     prepare: index => steps.preparedStatement(statements, index),
+                    region: index => {
+                        if (!this.compiler.tensors.fusion) return undefined;
+                        if (!regions.has(index)) {
+                            const region = compileTensorRegion(statements, index, {
+                                lookup: name => this.context.bindings.find(name),
+                                commit: (statement, value) => {
+                                    let write = regionWriters.get(statement);
+                                    if (!write) regionWriters.set(statement, write = this.context.compileAssign(statement.name));
+                                    try { this.context.checkMutation(statement); write(value); }
+                                    catch (error) { throw this.context.locate(error, statement); }
+                                },
+                                compiled: source => this.compiler.hooks.onTensorKernelCompiled?.(source),
+                                executed: () => this.tensorExecuted(),
+                            });
+                            regions.set(index, region);
+                            if (region) for (let next = index + 1; next < index + region.length; next++) regions.set(next, undefined);
+                        }
+                        return regions.get(index);
+                    },
                     locate: (error, index) => this.context.locate(error, statements[index]),
                     pause: (index, task, context, compiled) => steps.continueCompiledBlock(
                         statements, index, task, context, compiled),

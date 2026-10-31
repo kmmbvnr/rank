@@ -183,6 +183,46 @@ compilation.
 
 Evidence: [step 2 timing](baselines/2026-10-31-fft-step2.json).
 
+### Step 3: fuse adjacent real-array arithmetic assignments
+
+A compiled loop block can now group up to eight adjacent pure real-array
+assignments into one kernel. It supports checked `+`, `-`, `*`, `/`, trailing
+broadcasts and dependent intermediate values. Each named output is still
+materialized and committed in the original order through the normal binding
+and mutation checks. Calls and structural operations terminate a region.
+Guard failure writes no published buffer and falls back to the original
+statements. Observable cancellation, generators and finally blocks retain
+ordinary dispatch. Executable variants are bounded to 32 per region.
+
+The initial unrestricted version added overhead on short vectors, so the
+selected path uses the existing 1024-cell dense-kernel minimum. Unsupported
+regions do not retry overlapping suffixes. In FFT the four assignments to
+`Dr`, `Di`, `Tr` and `Ti` become one kernel per stage at N=4096: 12 executions
+instead of 24. Type scans drop to 80 over 268,288 cells. The reshape, unpack
+and concat operations remain outside this arithmetic region.
+
+| N | Before, ms | After, ms |
+| --- | ---: | ---: |
+| 256 | 4.710 | 2.087 |
+| 1024 | 4.139 | 4.266 |
+| 4096 | 7.872 | 7.251 |
+
+The N=4096 median decreases by about 7.9%. Fusion is inactive for the two smaller
+FFT sizes, whose stage outputs are below the dense minimum. Their inconsistent
+timings, particularly the apparent N=256 speedup, show uncontrolled host noise
+and must not be credited to fusion. No improvement is established at N=1024.
+
+Validation includes an ordinary 449-file run with 10,316 passing tests and
+focused reruns after adding the dense minimum and non-overlapping planning.
+New tests cover dependent outputs, broadcasts, signed zero, NaN, infinities,
+overflow, division failure, preserved earlier assignments, retained values,
+unproved host objects and observable cancellation.
+
+Evidence: [selected step 3](baselines/2026-10-31-fft-step3.json),
+[diagnostics](baselines/2026-10-31-fft-step3-diagnostics.json),
+[initial unrestricted control](baselines/2026-10-31-fft-step3-unthresholded.json)
+and [overlapping-planning control](baselines/2026-10-31-fft-step3-thresholded-overlap.json).
+
 ## Reproduction and checks
 
 ```sh
