@@ -283,10 +283,114 @@ At N=4096 the observed wall median falls by 22.1%, and CPU time falls from
 15.846 to 12.553 ms (20.8%). Wall ranges still overlap widely: baseline
 9.27–29.24 ms, final 7.34–25.67 ms. These numbers are workload-specific
 measurements under noisy host load, not a universal performance guarantee.
-The remaining reshape, axis unpack and concat boundaries still prevent
+At this checkpoint, reshape, axis unpack and concat boundaries still prevented
 compiling the entire FFT stage as one structural kernel.
 
 Evidence: [combined comparison](baselines/2026-10-31-fft-improvements-total.json).
+
+## Whole-stage numeric function compilation
+
+The next change compiles a pure numerical function as a single array loop.
+The demo now puts one unchanged set of butterfly equations in `fftStage`.
+The compiler follows ordinary parameter and local bindings; it does not match
+the helper's name or recognize an FFT algorithm. A renamed helper and an
+unrelated reshape/broadcast/concat pipeline exercise the same compiler.
+
+Supported reshapes contribute flat indexing, axis unpack contributes block
+offsets, and indexed roots contribute gather addressing. Arithmetic nodes
+share scalar intermediates. Compatible concatenated outputs share one loop;
+only the two final real arrays are allocated for an FFT stage. The function
+does not publish intermediate bindings or speculative buffers.
+
+Eligibility is deliberately narrow: pure assignments and a final array or
+flat tuple of arrays, completed tracked real inputs, safe integer metadata,
+and supported layouts. The compiler preserves local rank/kind contracts,
+checks gather bounds and finite arithmetic, and uses exact scalar integer
+division/remainders. Dead or metadata-only array computations cannot silently
+skip an ordinary binding error. Unsupported cases, observable interruptions,
+and failed guards replay the ordinary function. Inputs and retained results
+are not reused as scratch storage.
+
+### Isolated stage
+
+Each input and the roots are prepared outside timing. The stage width is N/4.
+All three modes allocate two output buffers; Rank call/return validation is
+included. Ordinary Rank bindings complete all cells; converting the results
+to host arrays for comparison happens outside timing. The JS control uses the
+same DIF equations in a direct typed loop. These are five serial fresh-process
+samples per size and mode, with alternating mode order.
+
+| N | Rank control, ms | Compiled stage, ms | Direct JS stage, ms |
+| --- | ---: | ---: | ---: |
+| 256 | 0.16661 | 0.02458 | 0.000698 |
+| 1024 | 0.34258 | 0.02744 | 0.002303 |
+| 4096 | 0.42675 | 0.04829 | 0.008000 |
+
+At N=4096 the stage wall median is 8.84 times faster than the same helper
+with numeric function compilation disabled, and 6.04 times slower than direct
+JS. This comparison includes Rank's function interface and guards, beyond
+the generated arithmetic loop. It does not measure peak or retained memory.
+
+Evidence: [isolated stages](baselines/2026-10-31-fft-whole-stage-isolated.json).
+
+### Complete FFT and remaining gap
+
+The final paired series compares the original inline demo and interpreter at
+`b8759f7f` with the new build. `Function control` runs the new helper source
+with numeric function compilation disabled, so extracting a function alone
+cannot account for the improvement. Each mode has five serial fresh-process
+samples. The source hash is recorded per worker because the original and new
+demo have different structure. This series was run after the final exact
+scalar division/remainder correction, separately from the isolated stage
+series and CPU profiling. The candidate was measured as an uncommitted
+worktree based on `b8759f7f`; the raw report's `commit` field records that base.
+
+| N | Original, ms | Function control, ms | Compiled, ms | Hand JS, ms | fft.js reuse, ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 256 | 2.500 | 3.084 | 0.723 | 0.03395 | 0.000943 |
+| 1024 | 5.283 | 5.938 | 1.506 | 0.13280 | 0.004441 |
+| 4096 | 8.759 | 10.917 | 2.168 | 0.49795 | 0.020375 |
+
+At N=4096 this is 4.04 times faster than the previous implementation and
+5.04 times faster than the same helper without the new pass. CPU medians
+fall from 13.256 to 3.851 ms against the original (70.9%). The remaining wall
+gap is 4.35 times against handwritten JS using the same DIF algorithm.
+Ranges remain wide: original 8.33–17.57 ms, compiled 1.89–4.83 ms. Absolute
+timings should not be treated as stable across host loads.
+
+The specialized fft.js 4.0.4 real transform remains about 106 times faster
+in its reusable-plan mode. That mode retains its plan, roots and output
+buffer; the Rank demo and handwritten control rebuild roots, permutation
+and outputs per call. It is a useful optimized implementation target, but
+this change does not close that gap or establish that fft.js is the fastest
+possible JavaScript implementation.
+
+Diagnostics record all 12 stages compiled, with no warm code generation,
+no selected-view materializations and no older tensor kernels. Element-type
+scans fall to 6 / 18,432 cells per call. The previous step recorded
+80 / 268,288 cells. The emitted stage allocates two Float64 buffers rather
+than materializing the intermediate array expressions; this is an allocation
+count observation, not a process-memory measurement.
+
+In a separate N=4096 CPU profile, `compactBinary` in the integer array kernel
+accounts for 25.3% self time. In this demo those integer array operations
+build the bit-reversal permutation, making general integer array fusion the
+next concrete target. Binding/type-contract frames account for 10.6%
+inclusive time, GC 5.5%, reshape 0.42% and concat copying 0.13%. Inclusive
+categories overlap. The numeric function entry, including its recursive
+shape/domain preflight and execution, accounts for 19.0% inclusive time;
+reusing prepared shape metadata is another possible improvement. These are
+profile observations, not predicted speedups from future changes.
+
+The ordinary interpreter suite passed 450 files / 10,348 tests. After the
+final scalar integer correction, all 28 numeric function tests pass, including
+the added large negative-divisor remainder regression. The TypeScript build,
+semantic boundaries, application-form checks and all seven classic demo
+files pass. Exhaustive audits were not run.
+
+Evidence: [full timings](baselines/2026-10-31-fft-whole-stage.json),
+[diagnostics and generated stages](baselines/2026-10-31-fft-whole-stage-diagnostics.json),
+[CPU profile summary](baselines/2026-10-31-fft-whole-stage-profile.json).
 
 ## Reproduction and checks
 
@@ -306,12 +410,18 @@ node benchmarks/fft.mjs --worker=compiled --size=4096 \
   --profile=cpu --output=/tmp/fft.cpuprofile
 node benchmarks/fft.mjs --worker=compiled --size=4096 \
   --profile=allocation --output=/tmp/fft.heapprofile
+node benchmarks/fft-stage.mjs --samples=5 \
+  --output=/tmp/fft-stage-timings.json
 ```
 
 For a before/after comparison, build an unchanged checkout separately and pass
 its root with `--baseline=/path/to/baseline`. Select
 `--modes=baseline,compiled,reference,fftjs-reuse` to reproduce the comparison
 series. `--checkout` selects the candidate build; it defaults to this checkout.
+Use `--baseline-source=/path/to/original/fft.ra` when the original demo source
+also changed. Add `function-control` to the modes to run the current source
+with numeric function compilation disabled while retaining other compiler
+passes.
 
 Use `--worker=reference` for the uncompiled profiles. The library is downloaded
 only for benchmarking; workspace dependencies and lockfiles are unchanged.

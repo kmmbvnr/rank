@@ -1,0 +1,533 @@
+{
+  "date": "2026-10-31T18:55:22.703Z",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "sourceHash": "d7f9329442480693683601e0387975fedda59c90bc0de9ecf0a55a995b12bade",
+  "note": "serial fresh processes, 300 ms warmup and 150 ms target batch; roots/inputs precomputed outside timing; output allocation and Rank call/return validation included; ordinary bindings complete all output cells, boxing to host arrays excluded; stage width N/4",
+  "results": [
+    {
+      "trial": 0,
+      "n": 256,
+      "size": 64,
+      "mode": "rank-control",
+      "iterations": 1091,
+      "ms": 0.15834628047662688,
+      "cpuMs": 0.24630522456461962,
+      "numericCalls": 0
+    },
+    {
+      "trial": 0,
+      "n": 256,
+      "size": 64,
+      "mode": "rank",
+      "iterations": 5497,
+      "ms": 0.023342459523376383,
+      "cpuMs": 0.02776423503729307,
+      "numericCalls": 1
+    },
+    {
+      "trial": 0,
+      "n": 256,
+      "size": 64,
+      "mode": "js",
+      "iterations": 20690,
+      "ms": 0.0005724142097631712,
+      "cpuMs": 0.001199033349444176,
+      "numericCalls": 0
+    },
+    {
+      "trial": 0,
+      "n": 1024,
+      "size": 256,
+      "mode": "rank-control",
+      "iterations": 869,
+      "ms": 0.21268527042577684,
+      "cpuMs": 0.34407594936708863,
+      "numericCalls": 0
+    },
+    {
+      "trial": 0,
+      "n": 1024,
+      "size": 256,
+      "mode": "rank",
+      "iterations": 5697,
+      "ms": 0.026497381604353158,
+      "cpuMs": 0.04327259961383184,
+      "numericCalls": 1
+    },
+    {
+      "trial": 0,
+      "n": 1024,
+      "size": 256,
+      "mode": "js",
+      "iterations": 4396,
+      "ms": 0.0023026235213830684,
+      "cpuMs": 0.005788671519563239,
+      "numericCalls": 0
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "size": 1024,
+      "mode": "rank-control",
+      "iterations": 508,
+      "ms": 0.34894381496062993,
+      "cpuMs": 0.5086673228346457,
+      "numericCalls": 0
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "size": 1024,
+      "mode": "rank",
+      "iterations": 3892,
+      "ms": 0.06801858504624869,
+      "cpuMs": 0.12556320657759507,
+      "numericCalls": 1
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "size": 1024,
+      "mode": "js",
+      "iterations": 6133,
+      "ms": 0.014141502364258924,
+      "cpuMs": 0.022703733898581442,
+      "numericCalls": 0
+    },
+    {
+      "trial": 1,
+      "n": 256,
+      "size": 64,
+      "mode": "js",
+      "iterations": 18275,
+      "ms": 0.0007761810670314636,
+      "cpuMs": 0.001240218878248974,
+      "numericCalls": 0
+    },
+    {
+      "trial": 1,
+      "n": 256,
+      "size": 64,
+      "mode": "rank",
+      "iterations": 1935,
+      "ms": 0.05876649405684754,
+      "cpuMs": 0.10675968992248062,
+      "numericCalls": 1
+    },
+    {
+      "trial": 1,
+      "n": 256,
+      "size": 64,
+      "mode": "rank-control",
+      "iterations": 462,
+      "ms": 0.41126163419913425,
+      "cpuMs": 0.6652922077922078,
+      "numericCalls": 0
+    },
+    {
+      "trial": 1,
+      "n": 1024,
+      "size": 256,
+      "mode": "js",
+      "iterations": 17561,
+      "ms": 0.0046348157849780795,
+      "cpuMs": 0.007100563749217015,
+      "numericCalls": 0
+    },
+    {
+      "trial": 1,
+      "n": 1024,
+      "size": 256,
+      "mode": "rank",
+      "iterations": 4291,
+      "ms": 0.03006757375903055,
+      "cpuMs": 0.050714984852015844,
+      "numericCalls": 1
+    },
+    {
+      "trial": 1,
+      "n": 1024,
+      "size": 256,
+      "mode": "rank-control",
+      "iterations": 586,
+      "ms": 0.6371091433447099,
+      "cpuMs": 0.5995273037542662,
+      "numericCalls": 0
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "size": 1024,
+      "mode": "js",
+      "iterations": 11961,
+      "ms": 0.007420620516679211,
+      "cpuMs": 0.01792534069057771,
+      "numericCalls": 0
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "size": 1024,
+      "mode": "rank",
+      "iterations": 3884,
+      "ms": 0.04124046292481977,
+      "cpuMs": 0.074,
+      "numericCalls": 1
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "size": 1024,
+      "mode": "rank-control",
+      "iterations": 398,
+      "ms": 0.42674968592964846,
+      "cpuMs": 0.6547211055276382,
+      "numericCalls": 0
+    },
+    {
+      "trial": 2,
+      "n": 256,
+      "size": 64,
+      "mode": "rank-control",
+      "iterations": 1030,
+      "ms": 0.16661448252427177,
+      "cpuMs": 0.2621242718446602,
+      "numericCalls": 0
+    },
+    {
+      "trial": 2,
+      "n": 256,
+      "size": 64,
+      "mode": "rank",
+      "iterations": 5565,
+      "ms": 0.02458222515723272,
+      "cpuMs": 0.03317502246181491,
+      "numericCalls": 1
+    },
+    {
+      "trial": 2,
+      "n": 256,
+      "size": 64,
+      "mode": "js",
+      "iterations": 23686,
+      "ms": 0.0006982500211095159,
+      "cpuMs": 0.0012673731318078188,
+      "numericCalls": 0
+    },
+    {
+      "trial": 2,
+      "n": 1024,
+      "size": 256,
+      "mode": "rank-control",
+      "iterations": 871,
+      "ms": 0.22640466016073488,
+      "cpuMs": 0.3628231917336395,
+      "numericCalls": 0
+    },
+    {
+      "trial": 2,
+      "n": 1024,
+      "size": 256,
+      "mode": "rank",
+      "iterations": 5845,
+      "ms": 0.027326696663815233,
+      "cpuMs": 0.04307459366980325,
+      "numericCalls": 1
+    },
+    {
+      "trial": 2,
+      "n": 1024,
+      "size": 256,
+      "mode": "js",
+      "iterations": 4302,
+      "ms": 0.001848762203626219,
+      "cpuMs": 0.004045327754532775,
+      "numericCalls": 0
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "size": 1024,
+      "mode": "rank-control",
+      "iterations": 491,
+      "ms": 0.3572562790224032,
+      "cpuMs": 0.4815641547861507,
+      "numericCalls": 0
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "size": 1024,
+      "mode": "rank",
+      "iterations": 1537,
+      "ms": 0.037745256343526344,
+      "cpuMs": 0.07302732595966167,
+      "numericCalls": 1
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "size": 1024,
+      "mode": "js",
+      "iterations": 15001,
+      "ms": 0.006655770148656753,
+      "cpuMs": 0.015046396906872875,
+      "numericCalls": 0
+    },
+    {
+      "trial": 3,
+      "n": 256,
+      "size": 64,
+      "mode": "js",
+      "iterations": 18367,
+      "ms": 0.00068138280611967,
+      "cpuMs": 0.0014625687374094844,
+      "numericCalls": 0
+    },
+    {
+      "trial": 3,
+      "n": 256,
+      "size": 64,
+      "mode": "rank",
+      "iterations": 5798,
+      "ms": 0.024362969989651616,
+      "cpuMs": 0.033349948258020005,
+      "numericCalls": 1
+    },
+    {
+      "trial": 3,
+      "n": 256,
+      "size": 64,
+      "mode": "rank-control",
+      "iterations": 1116,
+      "ms": 0.1655148225806452,
+      "cpuMs": 0.2561926523297491,
+      "numericCalls": 0
+    },
+    {
+      "trial": 3,
+      "n": 1024,
+      "size": 256,
+      "mode": "js",
+      "iterations": 12766,
+      "ms": 0.002134719880933733,
+      "cpuMs": 0.0044915400281999055,
+      "numericCalls": 0
+    },
+    {
+      "trial": 3,
+      "n": 1024,
+      "size": 256,
+      "mode": "rank",
+      "iterations": 5256,
+      "ms": 0.027443857876712326,
+      "cpuMs": 0.04498230593607306,
+      "numericCalls": 1
+    },
+    {
+      "trial": 3,
+      "n": 1024,
+      "size": 256,
+      "mode": "rank-control",
+      "iterations": 697,
+      "ms": 0.3425786111908178,
+      "cpuMs": 0.5321190817790531,
+      "numericCalls": 0
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "size": 1024,
+      "mode": "js",
+      "iterations": 6871,
+      "ms": 0.015487386697715044,
+      "cpuMs": 0.026053849512443602,
+      "numericCalls": 0
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "size": 1024,
+      "mode": "rank",
+      "iterations": 7,
+      "ms": 1.67751785714287,
+      "cpuMs": 0.09428571428571429,
+      "numericCalls": 1
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "size": 1024,
+      "mode": "rank-control",
+      "iterations": 157,
+      "ms": 0.8512178853503185,
+      "cpuMs": 1.2340891719745224,
+      "numericCalls": 0
+    },
+    {
+      "trial": 4,
+      "n": 256,
+      "size": 64,
+      "mode": "rank-control",
+      "iterations": 263,
+      "ms": 0.5357401787072245,
+      "cpuMs": 0.8543574144486692,
+      "numericCalls": 0
+    },
+    {
+      "trial": 4,
+      "n": 256,
+      "size": 64,
+      "mode": "rank",
+      "iterations": 366,
+      "ms": 0.05326013114754093,
+      "cpuMs": 0.0644344262295082,
+      "numericCalls": 1
+    },
+    {
+      "trial": 4,
+      "n": 256,
+      "size": 64,
+      "mode": "js",
+      "iterations": 22929,
+      "ms": 0.0008747037812377314,
+      "cpuMs": 0.0017674124471193683,
+      "numericCalls": 0
+    },
+    {
+      "trial": 4,
+      "n": 1024,
+      "size": 256,
+      "mode": "rank-control",
+      "iterations": 580,
+      "ms": 0.3440030172413793,
+      "cpuMs": 0.6024534482758621,
+      "numericCalls": 0
+    },
+    {
+      "trial": 4,
+      "n": 1024,
+      "size": 256,
+      "mode": "rank",
+      "iterations": 3018,
+      "ms": 0.03856954108681246,
+      "cpuMs": 0.06317229953611664,
+      "numericCalls": 1
+    },
+    {
+      "trial": 4,
+      "n": 1024,
+      "size": 256,
+      "mode": "js",
+      "iterations": 2228,
+      "ms": 0.0041879115798922825,
+      "cpuMs": 0.011057450628366248,
+      "numericCalls": 0
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "size": 1024,
+      "mode": "rank-control",
+      "iterations": 272,
+      "ms": 0.4619920367647059,
+      "cpuMs": 0.8030220588235294,
+      "numericCalls": 0
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "size": 1024,
+      "mode": "rank",
+      "iterations": 3117,
+      "ms": 0.04829482162335578,
+      "cpuMs": 0.09227141482194418,
+      "numericCalls": 1
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "size": 1024,
+      "mode": "js",
+      "iterations": 11803,
+      "ms": 0.008000409472168093,
+      "cpuMs": 0.019310514276031518,
+      "numericCalls": 0
+    }
+  ],
+  "summary": [
+    {
+      "n": 256,
+      "mode": "rank-control",
+      "medianMs": 0.16661448252427177,
+      "cpuMedianMs": 0.2621242718446602,
+      "minMs": 0.15834628047662688,
+      "maxMs": 0.5357401787072245
+    },
+    {
+      "n": 256,
+      "mode": "rank",
+      "medianMs": 0.02458222515723272,
+      "cpuMedianMs": 0.033349948258020005,
+      "minMs": 0.023342459523376383,
+      "maxMs": 0.05876649405684754
+    },
+    {
+      "n": 256,
+      "mode": "js",
+      "medianMs": 0.0006982500211095159,
+      "cpuMedianMs": 0.0012673731318078188,
+      "minMs": 0.0005724142097631712,
+      "maxMs": 0.0008747037812377314
+    },
+    {
+      "n": 1024,
+      "mode": "rank-control",
+      "medianMs": 0.3425786111908178,
+      "cpuMedianMs": 0.5321190817790531,
+      "minMs": 0.21268527042577684,
+      "maxMs": 0.6371091433447099
+    },
+    {
+      "n": 1024,
+      "mode": "rank",
+      "medianMs": 0.027443857876712326,
+      "cpuMedianMs": 0.04498230593607306,
+      "minMs": 0.026497381604353158,
+      "maxMs": 0.03856954108681246
+    },
+    {
+      "n": 1024,
+      "mode": "js",
+      "medianMs": 0.0023026235213830684,
+      "cpuMedianMs": 0.005788671519563239,
+      "minMs": 0.001848762203626219,
+      "maxMs": 0.0046348157849780795
+    },
+    {
+      "n": 4096,
+      "mode": "rank-control",
+      "medianMs": 0.42674968592964846,
+      "cpuMedianMs": 0.6547211055276382,
+      "minMs": 0.34894381496062993,
+      "maxMs": 0.8512178853503185
+    },
+    {
+      "n": 4096,
+      "mode": "rank",
+      "medianMs": 0.04829482162335578,
+      "cpuMedianMs": 0.09227141482194418,
+      "minMs": 0.037745256343526344,
+      "maxMs": 1.67751785714287
+    },
+    {
+      "n": 4096,
+      "mode": "js",
+      "medianMs": 0.008000409472168093,
+      "cpuMedianMs": 0.019310514276031518,
+      "minMs": 0.006655770148656753,
+      "maxMs": 0.015487386697715044
+    }
+  ]
+}

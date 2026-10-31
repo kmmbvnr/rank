@@ -12,17 +12,17 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const { values } = parseArgs({ options: {
-  worker: { type: 'string' }, checkout: { type: 'string' }, baseline: { type: 'string' }, modes: { type: 'string' }, size: { type: 'string', default: '4096' },
+  worker: { type: 'string' }, checkout: { type: 'string' }, baseline: { type: 'string' }, 'baseline-source': { type: 'string' }, source: { type: 'string' }, modes: { type: 'string' }, size: { type: 'string', default: '4096' },
   samples: { type: 'string', default: '7' }, profile: { type: 'string' },
   output: { type: 'string' }, fftjs: { type: 'string' }, diagnostics: { type: 'boolean', default: false },
 } });
 const checkout = values.checkout ?? fileURLToPath(new URL('..', import.meta.url));
 const { Interpreter, RuntimeDiagnostics, createArraySnapshot } = await import(pathToFileURL(resolve(checkout, 'packages/interpreter/out/index.js')));
-const source = readFileSync(new URL('../demos/classic/fft.ra', import.meta.url), 'utf8');
+const source = readFileSync(values.source ?? new URL('../demos/classic/fft.ra', import.meta.url), 'utf8');
 const definitions = source.split('\nX = array')[0];
 const median = xs => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
 const sizes = [256, 1024, 4096];
-const availableModes = ['compiled', 'reference', 'js-stages', 'js-inplace', ...(values.fftjs ? ['fftjs-setup', 'fftjs-reuse'] : [])];
+const availableModes = ['compiled', 'function-control', 'reference', 'js-stages', 'js-inplace', ...(values.fftjs ? ['fftjs-setup', 'fftjs-reuse'] : [])];
 const modes = values.modes?.split(',') ?? availableModes;
 assert(modes.every(mode => availableModes.includes(mode) || mode === 'baseline' && values.baseline), 'unknown mode or missing --baseline');
 const FFT = values.fftjs ? createRequire(import.meta.url)(values.fftjs) : undefined;
@@ -139,7 +139,8 @@ if (!values.worker) {
   // Serial fresh processes, alternating mode order between samples.
   for (let trial = 0; trial < samples; trial++) for (const n of sizes) {
     for (const mode of trial % 2 ? [...modes].reverse() : modes) {
-      const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), `--worker=${mode === 'baseline' ? 'compiled' : mode}`, `--size=${n}`, `--checkout=${mode === 'baseline' ? values.baseline : checkout}`, ...(values.fftjs ? [`--fftjs=${values.fftjs}`] : [])], { encoding: 'utf8', timeout: 60000 });
+      const workerSource = mode === 'baseline' ? values['baseline-source'] ?? values.source : values.source;
+      const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), `--worker=${mode === 'baseline' ? 'compiled' : mode}`, `--size=${n}`, `--checkout=${mode === 'baseline' ? values.baseline : checkout}`, ...(values.fftjs ? [`--fftjs=${values.fftjs}`] : []), ...(workerSource ? [`--source=${workerSource}`] : [])], { encoding: 'utf8', timeout: 60000 });
       assert.ifError(child.error); assert.equal(child.status, 0, child.stderr);
       results.push({ trial, ...JSON.parse(child.stdout), mode });
     }
@@ -165,7 +166,7 @@ if (!values.worker) {
   const generated = [], hooks = {};
   if (values.diagnostics) for (const kind of ['TensorKernel', 'IntegerLoop', 'FunctionBody', 'Block', 'Scalar'])
     hooks[`on${kind}Compiled`] = text => generated.push({ kind, source: text });
-  const runtime = mode.startsWith('js-') || mode.startsWith('fftjs-') ? undefined : new Interpreter(() => {}, { compilation: mode === 'compiled', ...hooks });
+  const runtime = mode.startsWith('js-') || mode.startsWith('fftjs-') ? undefined : new Interpreter(() => {}, { compilation: mode !== 'reference', arrayFunctionCompilation: mode !== 'function-control', ...hooks });
   runtime?.execute(definitions);
   const rankCall = runtime?.variables.get('fftReal');
   const x = Array.from({ length: n }, (_, j) => Math.sin(2 * Math.PI * 17 * j / n) + 0.3 * Math.cos(2 * Math.PI * 41 * j / n));
@@ -197,7 +198,7 @@ if (!values.worker) {
   if (values.diagnostics) {
     generated.length = 0;
     // A fresh runtime captures first-call generation separately from timings.
-    const rt = new Interpreter(() => {}, { compilation: mode === 'compiled', ...hooks });
+    const rt = new Interpreter(() => {}, { compilation: mode !== 'reference', arrayFunctionCompilation: mode !== 'function-control', ...hooks });
     const diagnostics = new RuntimeDiagnostics();
     diagnostics.run(() => { rt.execute(definitions); check(rt.variables.get('fftReal').call([input]).items.map(v => v.items), expected); });
     const before = generated.length, warmDiagnostics = new RuntimeDiagnostics();
@@ -230,7 +231,7 @@ if (!values.worker) {
     const warmMs = (performance.now() - start) / iterations;
     const used = process.cpuUsage(cpu), cpuMs = (used.user + used.system) / 1000 / iterations;
     check(result, expected);
-    console.log(JSON.stringify({ n, mode, firstSizeCallMs, warmMs, cpuMs, iterations, warmups }));
+    console.log(JSON.stringify({ n, mode, firstSizeCallMs, warmMs, cpuMs, iterations, warmups, sourceHash: createHash('sha256').update(source).digest('hex') }));
   }
   runtime?.dispose();
 }

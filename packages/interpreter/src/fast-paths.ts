@@ -12,6 +12,7 @@ import {
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './jit/block-compiler.js';
 import { compileTensorRegion } from './jit/tensor-region.js';
+import { compileNumericFunction } from './jit/numeric-function.js';
 import { TailCallSignal } from './control-signals.js';
 import { registerFlatCombine } from './flat-combine.js';
 import { compileFusedReduction, compileFusedSum } from './jit/fused-reduction.js';
@@ -30,7 +31,7 @@ import { recordFallback } from './diagnostics.js';
 import { checkedArrayDimension } from './eval/expressions.js';
 import { forIteration, iterationAtoms, declareIterationTypes, type ForBinding } from './eval/loops.js';
 import type { FunctionInvocation } from './function-invocation.js';
-import { ReturnSignal } from './control-signals.js';
+import { ReturnSignal, returnFunctionValue } from './control-signals.js';
 import { compileIntegerLoop, compileIntegerFunctionPrefix } from './jit/integer-loop.js';
 import { resolveCompilerCapabilities, type CompilerCapabilities, type InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
@@ -179,6 +180,28 @@ export class FastPaths {
                         if (index === 0 && !context.insideFinally && !context.insideGenerator) {
                             const result = prefix.run();
                             if (result) return ordinary(context, commands.length - 1, runExecution(result));
+                        }
+                        return ordinary(context, index, previous);
+                    };
+                }
+            }
+            if (body && this.compiler.functions.arrayFunctions) {
+                const numeric = compileNumericFunction(statement, {
+                    lookup: name => this.context.bindings.find(name),
+                    builtin: name => name === 'concat' ? this.context.modules.has('sequences') : this.tensorHost().builtin(name),
+                    compiled: source => this.compiler.hooks.onFunctionBodyCompiled?.(source),
+                    executed: () => {
+                        this.compiler.hooks.onFunctionBodyExecuted?.();
+                        const diagnostics = currentDiagnostics();
+                        if (diagnostics) diagnostics.compiledArrayFunctions++;
+                    },
+                });
+                if (numeric) {
+                    const ordinary = body;
+                    body = (context, index = 0, previous) => {
+                        if (index === 0 && this.compiler.functions.arrayFunctions && !context.insideFinally && !context.insideGenerator) {
+                            const value = numeric.run();
+                            if (value !== undefined) { returnFunctionValue(context.functionControl, value); return completed(value); }
                         }
                         return ordinary(context, index, previous);
                     };

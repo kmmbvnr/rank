@@ -3,6 +3,27 @@ use numbers
 use sequences
 use io
 
+fun R I Cos Sin fftStage Size
+  N = R len
+  H = Size // 2
+  Rm = R reshape # 2 H
+  Im = I reshape # 2 H
+  unpack Ur Vr = Rm axis 1
+  unpack Ui Vi = Im axis 1
+  W = (0 till H) * (N // Size)
+  C = Cos W
+  S = Sin W
+  Dr = Ur - Vr
+  Di = Ui - Vi
+  Tr = Dr * C - Di * S
+  Ti = Dr * S + Di * C
+  NextR = concat (Ur + Vr) Tr axis 1
+  NextI = concat (Ui + Vi) Ti axis 1
+  OutR = NextR reshape N
+  OutI = NextI reshape N
+  return tuple OutR OutI
+end
+
 rem Radix-2 FFT with whole-array stages.
 fun X fftReal
   N = X len
@@ -22,22 +43,7 @@ fun X fftReal
 
   Size = N
   for Size greater 1
-    H = Size // 2
-    Rm = R reshape # 2 H
-    Im = I reshape # 2 H
-    unpack Ur Vr = Rm axis 1
-    unpack Ui Vi = Im axis 1
-    W = (0 till H) * (N // Size)
-    C = Cos W
-    S = Sin W
-    Dr = Ur - Vr
-    Di = Ui - Vi
-    Tr = Dr * C - Di * S
-    Ti = Dr * S + Di * C
-    NextR = concat (Ur + Vr) Tr axis 1
-    NextI = concat (Ui + Vi) Ti axis 1
-    R = NextR reshape N
-    I = NextI reshape N
+    unpack R I = R I Cos Sin fftStage Size
     Size //= 2
   end
 

@@ -35,7 +35,7 @@ const terminals = new Set(['copy', 'sum', 'mean', 'any', 'all', 'count', 'min', 
 export interface TensorKernelHost {
     readonly textDigits?: boolean;
     lookup(name: string): RankValue | undefined;
-    builtin(name: Terminal | 'text' | 'integer' | 'reshape' | 'shift' | Bitwise): boolean;
+    builtin(name: Terminal | 'text' | 'integer' | 'reshape' | 'shift' | 'len' | Bitwise): boolean;
     compiled?(source: string): void;
     valid?(): boolean;
 }

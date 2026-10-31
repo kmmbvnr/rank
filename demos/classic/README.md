@@ -10,6 +10,10 @@ The FFT accepts a real vector whose length is a positive power of two and
 returns a tuple of real and imaginary arrays in frequency order. It uses the
 negative-exponent convention without normalization. Each stage reshapes the
 signal into blocks and processes all butterflies with array operations.
+The pure `fftStage` helper lets the compiler combine a supported stage into
+one numeric loop, keeping reshapes and intermediate arrays virtual. Other
+inputs and unsupported cases use ordinary Rank evaluation. This is a general
+numeric function optimization; the compiler does not recognize FFT by name.
 
 The Queens examples retain their solutions and defer the board mask and text
 with apostrophe bindings. Printing consumes the rendered boards without storing
