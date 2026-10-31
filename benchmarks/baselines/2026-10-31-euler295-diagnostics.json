@@ -1,0 +1,439 @@
+{
+  "prefix": {
+    "counts": {
+      "Nf": "1304",
+      "Tt": "1454232",
+      "Dist": "1174794",
+      "Ng": "261476",
+      "Pm": "540914"
+    },
+    "hist": {
+      "2": 251093,
+      "3": 3062,
+      "4": 7130,
+      "5": 132,
+      "6": 54,
+      "7": 2,
+      "8": 3
+    },
+    "subsetCount": 890176,
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 1304,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 4,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 1,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 3,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 1,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 2,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:too-small": 1,
+        "tensor:unsupported-node:NewStructureExpression": 1,
+        "tensor:unsupported-type:array": 8,
+        "number-loop:condition-write-budget": 2
+      },
+      "compilerRejections": []
+    }
+  },
+  "originalPhasedTimeoutSeconds": 60,
+  "originalPhasedTimeoutTrace": "b'{\"until\":\"Cn = array shape Nf fill 0\",\"ms\":154.72600000000003}\\n{\"until\":\"Rr = array shape Tt fill 0\",\"ms\":9.720082999999988}\\n{\"until\":\"Od = Rr argsort\",\"ms\":56.78004100000004}\\n{\"until\":\"Dist = 0\",\"ms\":86.48041699999999}\\n{\"until\":\"Jx = new index\",\"ms\":144.00012500000003}\\n'",
+  "policyPhases": {
+    "mode": "compiled",
+    "variant": "original",
+    "n": "100000",
+    "answer": "4884650818",
+    "ms": 7859.230791,
+    "rssMiB": 460.421875,
+    "counts": {
+      "Nf": "1304",
+      "Tt": "1454232",
+      "Dist": "1174794",
+      "Ng": "261476",
+      "Pm": "540914",
+      "Nj": "18457"
+    },
+    "phases": [
+      {
+        "until": "Cn = array shape Nf fill 0",
+        "ms": 157.8185
+      },
+      {
+        "until": "Rr = array shape Tt fill 0",
+        "ms": 10.110124999999982
+      },
+      {
+        "until": "Od = Rr argsort",
+        "ms": 154.24400000000003
+      },
+      {
+        "until": "Dist = 0",
+        "ms": 88.48825
+      },
+      {
+        "until": "Jx = new index",
+        "ms": 136.128375
+      },
+      {
+        "until": "Total = Dist",
+        "ms": 7304.380959
+      },
+      {
+        "until": "end",
+        "ms": 7.443249999999352
+      }
+    ],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 330805,
+      "indexReadHits": 330805,
+      "indexReadMisses": 0,
+      "indexWrites": 19761,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 1413134,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 1,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 1413315,
+      "exactLoopWorkSamples": 1,
+      "exactLoopWorkPromotions": 1,
+      "numberLoopCopyProbes": 1,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 183,
+      "numberLoopOverflows": 184,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 261536,
+      "numberLoopReadBufferCells": 5230720,
+      "numberLoopReadBufferHits": 628823,
+      "compiledTensors": 2,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:too-small": 2,
+        "tensor:unsupported-node:NewStructureExpression": 2,
+        "tensor:unsupported-type:array": 11,
+        "number-loop:condition-write-budget": 261480,
+        "scalar-expression:unsupported-op:till": 1,
+        "scalar-expression:unsupported-op:to": 1,
+        "scalar-expression:unsupported-op:**": 2,
+        "scalar-expression:unsupported-op:-": 1,
+        "scalar-expression:unsupported-op:in": 1,
+        "tensor:output-shape": 18457
+      },
+      "compilerRejections": []
+    }
+  },
+  "bitsPhases": {
+    "mode": "compiled",
+    "variant": "bits",
+    "n": "100000",
+    "answer": "4884650818",
+    "ms": 1359.456334,
+    "rssMiB": 274.3125,
+    "counts": {
+      "Nf": "1304",
+      "Tt": "1454232",
+      "Dist": "1174794",
+      "Ng": "261476",
+      "Pm": "540914",
+      "Nj": "18457"
+    },
+    "phases": [
+      {
+        "until": "Cn = array shape Nf fill 0",
+        "ms": 266.094458
+      },
+      {
+        "until": "Rr = array shape Tt fill 0",
+        "ms": 13.467250000000035
+      },
+      {
+        "until": "Od = Rr argsort",
+        "ms": 108.0329579999999
+      },
+      {
+        "until": "Dist = 0",
+        "ms": 190.24691599999994
+      },
+      {
+        "until": "Jx = new index",
+        "ms": 253.2265
+      },
+      {
+        "until": "Total = Dist",
+        "ms": 520.7348750000001
+      },
+      {
+        "until": "end",
+        "ms": 6.965790999999854
+      }
+    ],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 340901,
+      "indexReadHits": 340901,
+      "indexReadMisses": 0,
+      "indexWrites": 19761,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 7,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 1,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 6,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 2,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 2,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:too-small": 1,
+        "tensor:unsupported-node:NewStructureExpression": 2,
+        "tensor:unsupported-type:array": 11,
+        "number-loop:condition-write-budget": 2
+      },
+      "compilerRejections": []
+    }
+  },
+  "referencePhases": [
+    {
+      "case": [
+        "reference",
+        "original",
+        "100000"
+      ],
+      "code": 0,
+      "stdout": "{\"mode\":\"reference\",\"variant\":\"original\",\"n\":\"100000\",\"answer\":\"4884650818\",\"ms\":11326.761665999999,\"rssMiB\":540.6875,\"counts\":{\"Nf\":\"1304\",\"Tt\":\"1454232\",\"Dist\":\"1174794\",\"Ng\":\"261476\",\"Pm\":\"540914\",\"Nj\":\"18457\"},\"phases\":[{\"until\":\"Cn = array shape Nf fill 0\",\"ms\":470.701542},{\"until\":\"Rr = array shape Tt fill 0\",\"ms\":16.475915999999984},{\"until\":\"Od = Rr argsort\",\"ms\":1707.03775},{\"until\":\"Dist = 0\",\"ms\":76.91704200000004},{\"until\":\"Jx = new index\",\"ms\":2863.651375},{\"until\":\"Total = Dist\",\"ms\":6154.294875},{\"until\":\"end\",\"ms\":32.729332999999315}],\"diagnostics\":{\"memoHits\":0,\"memoMisses\":0,\"indexReads\":330805,\"indexReadHits\":330805,\"indexReadMisses\":0,\"indexWrites\":19761,\"sequencePredicateCalls\":0,\"cellsComputed\":0,\"hoistedReaders\":0,\"loopElementScans\":0,\"nativeSequenceCopies\":0,\"compiledLoops\":0,\"compiledGeneratorLoops\":0,\"integerMembershipFilters\":0,\"compiledGraphAdds\":0,\"compiledEffectCalls\":0,\"numericSorts\":1,\"numericInPlaceSorts\":0,\"numericDistincts\":0,\"compiledDistincts\":0,\"numericUniqueSorts\":0,\"numericSmallestSelections\":0,\"numericUniqueSums\":0,\"numericSearches\":0,\"numericSearchIndexes\":0,\"numberLoops\":0,\"exactLoopWorkSamples\":0,\"exactLoopWorkPromotions\":0,\"numberLoopCopyProbes\":0,\"numberLoopCopyAmortized\":0,\"mixedIntegerLoops\":0,\"numberLoopOverflows\":0,\"numberLoopSliceCopies\":0,\"numberLoopSliceCopyCells\":0,\"numberLoopSliceDirectCells\":0,\"numberLoopReadBuffers\":0,\"numberLoopReadBufferCells\":0,\"numberLoopReadBufferHits\":0,\"compiledTensors\":0,\"tensorRangeScans\":0,\"tensorRangeScannedCells\":0,\"numberTensors\":0,\"compiledCounterBuilds\":0,\"compiledCounterSums\":0,\"compiledCounterKeys\":0,\"tensorMapPreparations\":0,\"compiledArrayFunctions\":0,\"rankedArrayBatches\":0,\"rankedBatches\":0,\"maskMaterializations\":0,\"maskMaterializedCells\":0,\"bulkArrayWrites\":0,\"bulkArrayWriteCells\":0,\"fusedArrayUpdates\":0,\"fusedArrayUpdateCells\":0,\"fusedArrayUpdateWidenings\":0,\"reusedTensorBuffers\":0,\"reusedTensorBufferCells\":0,\"cowCopies\":0,\"cowCopiedCells\":0,\"elementTypeScans\":0,\"elementTypeScannedCells\":0,\"rangeSelectorViews\":0,\"selectionSnapshots\":0,\"selectionSnapshotCells\":0,\"typedUnpacks\":0,\"typedUnpackedCells\":0,\"fallbacks\":{\"loop:disabled\":17},\"compilerRejections\":[]}}\n",
+      "stderr": "{\"until\":\"Cn = array shape Nf fill 0\",\"ms\":470.701542}\n{\"until\":\"Rr = array shape Tt fill 0\",\"ms\":16.475915999999984}\n{\"until\":\"Od = Rr argsort\",\"ms\":1707.03775}\n{\"until\":\"Dist = 0\",\"ms\":76.91704200000004}\n{\"until\":\"Jx = new index\",\"ms\":2863.651375}\n{\"until\":\"Total = Dist\",\"ms\":6154.294875}\n{\"until\":\"end\",\"ms\":32.729332999999315}\n"
+    },
+    {
+      "case": [
+        "reference",
+        "bits",
+        "100000"
+      ],
+      "code": 0,
+      "stdout": "{\"mode\":\"reference\",\"variant\":\"bits\",\"n\":\"100000\",\"answer\":\"4884650818\",\"ms\":14854.053334,\"rssMiB\":496.328125,\"counts\":{\"Nf\":\"1304\",\"Tt\":\"1454232\",\"Dist\":\"1174794\",\"Ng\":\"261476\",\"Pm\":\"540914\",\"Nj\":\"18457\"},\"phases\":[{\"until\":\"Cn = array shape Nf fill 0\",\"ms\":477.25929199999996},{\"until\":\"Rr = array shape Tt fill 0\",\"ms\":16.523374999999987},{\"until\":\"Od = Rr argsort\",\"ms\":2771.024167},{\"until\":\"Dist = 0\",\"ms\":188.6742919999997},{\"until\":\"Jx = new index\",\"ms\":4502.16325},{\"until\":\"Total = Dist\",\"ms\":6863.759791999999},{\"until\":\"end\",\"ms\":33.55524999999943}],\"diagnostics\":{\"memoHits\":0,\"memoMisses\":0,\"indexReads\":330805,\"indexReadHits\":330805,\"indexReadMisses\":0,\"indexWrites\":19761,\"sequencePredicateCalls\":0,\"cellsComputed\":0,\"hoistedReaders\":0,\"loopElementScans\":0,\"nativeSequenceCopies\":0,\"compiledLoops\":0,\"compiledGeneratorLoops\":0,\"integerMembershipFilters\":0,\"compiledGraphAdds\":0,\"compiledEffectCalls\":0,\"numericSorts\":1,\"numericInPlaceSorts\":0,\"numericDistincts\":0,\"compiledDistincts\":0,\"numericUniqueSorts\":0,\"numericSmallestSelections\":0,\"numericUniqueSums\":0,\"numericSearches\":0,\"numericSearchIndexes\":0,\"numberLoops\":0,\"exactLoopWorkSamples\":0,\"exactLoopWorkPromotions\":0,\"numberLoopCopyProbes\":0,\"numberLoopCopyAmortized\":0,\"mixedIntegerLoops\":0,\"numberLoopOverflows\":0,\"numberLoopSliceCopies\":0,\"numberLoopSliceCopyCells\":0,\"numberLoopSliceDirectCells\":0,\"numberLoopReadBuffers\":0,\"numberLoopReadBufferCells\":0,\"numberLoopReadBufferHits\":0,\"compiledTensors\":0,\"tensorRangeScans\":0,\"tensorRangeScannedCells\":0,\"numberTensors\":0,\"compiledCounterBuilds\":0,\"compiledCounterSums\":0,\"compiledCounterKeys\":0,\"tensorMapPreparations\":0,\"compiledArrayFunctions\":0,\"rankedArrayBatches\":0,\"rankedBatches\":0,\"maskMaterializations\":0,\"maskMaterializedCells\":0,\"bulkArrayWrites\":0,\"bulkArrayWriteCells\":0,\"fusedArrayUpdates\":0,\"fusedArrayUpdateCells\":0,\"fusedArrayUpdateWidenings\":0,\"reusedTensorBuffers\":0,\"reusedTensorBufferCells\":0,\"cowCopies\":0,\"cowCopiedCells\":0,\"elementTypeScans\":0,\"elementTypeScannedCells\":0,\"rangeSelectorViews\":0,\"selectionSnapshots\":0,\"selectionSnapshotCells\":0,\"typedUnpacks\":0,\"typedUnpackedCells\":0,\"fallbacks\":{\"loop:disabled\":17},\"compilerRejections\":[]}}\n",
+      "stderr": "{\"until\":\"Cn = array shape Nf fill 0\",\"ms\":477.25929199999996}\n{\"until\":\"Rr = array shape Tt fill 0\",\"ms\":16.523374999999987}\n{\"until\":\"Od = Rr argsort\",\"ms\":2771.024167}\n{\"until\":\"Dist = 0\",\"ms\":188.6742919999997}\n{\"until\":\"Jx = new index\",\"ms\":4502.16325}\n{\"until\":\"Total = Dist\",\"ms\":6863.759791999999}\n{\"until\":\"end\",\"ms\":33.55524999999943}\n"
+    }
+  ],
+  "policyControls": [
+    {
+      "policy": false,
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":176.51675}\n{\"mode\":\"compiled\",\"variant\":\"shipping\",\"n\":60,\"ms\":176.90808300000003,\"answer\":\"891045\",\"rssMiB\":190.21875}\n",
+      "stderr": ""
+    },
+    {
+      "policy": true,
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":183.20008299999998}\n{\"mode\":\"compiled\",\"variant\":\"shipping\",\"n\":60,\"ms\":183.59454199999996,\"answer\":\"891045\",\"rssMiB\":189.953125}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "benchmarks/euler292-investigation.mjs",
+      "args": [
+        "compiled",
+        "shipping",
+        "120"
+      ],
+      "policy": false,
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":585.828583}\n{\"mode\":\"compiled\",\"variant\":\"shipping\",\"n\":120,\"ms\":586.3194579999999,\"answer\":\"3600060866\",\"rssMiB\":223}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "benchmarks/euler292-investigation.mjs",
+      "args": [
+        "compiled",
+        "shipping",
+        "120"
+      ],
+      "policy": true,
+      "code": 0,
+      "stdout": "{\"phase\":0,\"ms\":12334.926125}\n{\"mode\":\"compiled\",\"variant\":\"shipping\",\"n\":120,\"ms\":12337.070917000001,\"answer\":\"3600060866\",\"rssMiB\":661.96875}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "benchmarks/euler295-investigation.mjs",
+      "args": [
+        "compiled",
+        "original",
+        "10000"
+      ],
+      "policy": false,
+      "code": 0,
+      "stdout": "{\"mode\":\"compiled\",\"variant\":\"original\",\"n\":\"10000\",\"answer\":\"44336604\",\"ms\":201.84791699999997,\"rssMiB\":195.75,\"counts\":{\"Nf\":\"268\",\"Tt\":\"68603\",\"Dist\":\"59273\",\"Ng\":\"8963\",\"Pm\":\"18293\",\"Nj\":\"1580\"},\"phases\":[],\"diagnostics\":{\"memoHits\":0,\"memoMisses\":0,\"indexReads\":8712,\"indexReadHits\":8712,\"indexReadMisses\":0,\"indexWrites\":1848,\"sequencePredicateCalls\":0,\"cellsComputed\":0,\"hoistedReaders\":0,\"loopElementScans\":0,\"nativeSequenceCopies\":0,\"compiledLoops\":7,\"compiledGeneratorLoops\":0,\"integerMembershipFilters\":0,\"compiledGraphAdds\":0,\"compiledEffectCalls\":0,\"numericSorts\":1,\"numericInPlaceSorts\":0,\"numericDistincts\":0,\"compiledDistincts\":0,\"numericUniqueSorts\":0,\"numericSmallestSelections\":0,\"numericUniqueSums\":0,\"numericSearches\":0,\"numericSearchIndexes\":0,\"numberLoops\":7,\"exactLoopWorkSamples\":0,\"exactLoopWorkPromotions\":0,\"numberLoopCopyProbes\":1,\"numberLoopCopyAmortized\":0,\"mixedIntegerLoops\":0,\"numberLoopOverflows\":0,\"numberLoopSliceCopies\":0,\"numberLoopSliceCopyCells\":0,\"numberLoopSliceDirectCells\":0,\"numberLoopReadBuffers\":0,\"numberLoopReadBufferCells\":0,\"numberLoopReadBufferHits\":0,\"compiledTensors\":2,\"tensorRangeScans\":0,\"tensorRangeScannedCells\":0,\"numberTensors\":0,\"compiledCounterBuilds\":0,\"compiledCounterSums\":0,\"compiledCounterKeys\":0,\"tensorMapPreparations\":0,\"compiledArrayFunctions\":0,\"rankedArrayBatches\":0,\"rankedBatches\":0,\"maskMaterializations\":0,\"maskMaterializedCells\":0,\"bulkArrayWrites\":0,\"bulkArrayWriteCells\":0,\"fusedArrayUpdates\":0,\"fusedArrayUpdateCells\":0,\"fusedArrayUpdateWidenings\":0,\"reusedTensorBuffers\":0,\"reusedTensorBufferCells\":0,\"cowCopies\":0,\"cowCopiedCells\":0,\"elementTypeScans\":0,\"elementTypeScannedCells\":0,\"rangeSelectorViews\":0,\"selectionSnapshots\":0,\"selectionSnapshotCells\":0,\"typedUnpacks\":0,\"typedUnpackedCells\":0,\"fallbacks\":{\"scalar-expression:too-small\":1,\"tensor:unsupported-node:NewStructureExpression\":2,\"tensor:unsupported-type:array\":11},\"compilerRejections\":[]}}\n",
+      "stderr": ""
+    },
+    {
+      "benchmark": "benchmarks/euler295-investigation.mjs",
+      "args": [
+        "compiled",
+        "original",
+        "10000"
+      ],
+      "policy": true,
+      "code": 0,
+      "stdout": "{\"mode\":\"compiled\",\"variant\":\"original\",\"n\":\"10000\",\"answer\":\"44336604\",\"ms\":442.21845799999994,\"rssMiB\":199.421875,\"counts\":{\"Nf\":\"268\",\"Tt\":\"68603\",\"Dist\":\"59273\",\"Ng\":\"8963\",\"Pm\":\"18293\",\"Nj\":\"1580\"},\"phases\":[],\"diagnostics\":{\"memoHits\":0,\"memoMisses\":0,\"indexReads\":8712,\"indexReadHits\":8712,\"indexReadMisses\":0,\"indexWrites\":1848,\"sequencePredicateCalls\":0,\"cellsComputed\":0,\"hoistedReaders\":0,\"loopElementScans\":0,\"nativeSequenceCopies\":0,\"compiledLoops\":46517,\"compiledGeneratorLoops\":0,\"integerMembershipFilters\":0,\"compiledGraphAdds\":0,\"compiledEffectCalls\":0,\"numericSorts\":1,\"numericInPlaceSorts\":0,\"numericDistincts\":0,\"compiledDistincts\":0,\"numericUniqueSorts\":0,\"numericSmallestSelections\":0,\"numericUniqueSums\":0,\"numericSearches\":0,\"numericSearchIndexes\":0,\"numberLoops\":46517,\"exactLoopWorkSamples\":0,\"exactLoopWorkPromotions\":0,\"numberLoopCopyProbes\":3,\"numberLoopCopyAmortized\":1,\"mixedIntegerLoops\":0,\"numberLoopOverflows\":0,\"numberLoopSliceCopies\":0,\"numberLoopSliceCopyCells\":0,\"numberLoopSliceDirectCells\":0,\"numberLoopReadBuffers\":8963,\"numberLoopReadBufferCells\":179260,\"numberLoopReadBufferHits\":19622,\"compiledTensors\":2,\"tensorRangeScans\":0,\"tensorRangeScannedCells\":0,\"numberTensors\":0,\"compiledCounterBuilds\":0,\"compiledCounterSums\":0,\"compiledCounterKeys\":0,\"tensorMapPreparations\":0,\"compiledArrayFunctions\":0,\"rankedArrayBatches\":0,\"rankedBatches\":0,\"maskMaterializations\":0,\"maskMaterializedCells\":0,\"bulkArrayWrites\":0,\"bulkArrayWriteCells\":0,\"fusedArrayUpdates\":0,\"fusedArrayUpdateCells\":0,\"fusedArrayUpdateWidenings\":0,\"reusedTensorBuffers\":0,\"reusedTensorBufferCells\":0,\"cowCopies\":0,\"cowCopiedCells\":0,\"elementTypeScans\":0,\"elementTypeScannedCells\":0,\"rangeSelectorViews\":0,\"selectionSnapshots\":0,\"selectionSnapshotCells\":0,\"typedUnpacks\":0,\"typedUnpackedCells\":0,\"fallbacks\":{\"scalar-expression:too-small\":2,\"tensor:unsupported-node:NewStructureExpression\":2,\"tensor:unsupported-type:array\":11,\"number-loop:condition-write-budget\":8964,\"scalar-expression:unsupported-op:till\":1,\"scalar-expression:unsupported-op:to\":1,\"scalar-expression:unsupported-op:**\":2,\"scalar-expression:unsupported-op:-\":1,\"scalar-expression:unsupported-op:in\":1,\"tensor:output-shape\":1580},\"compilerRejections\":[]}}\n",
+      "stderr": ""
+    }
+  ],
+  "profile": {
+    "durationSeconds": 15,
+    "ticks": 10030,
+    "writeInteger32CellsTicks": 5385,
+    "writeInteger32CellsSharePercent": 53.7
+  }
+}

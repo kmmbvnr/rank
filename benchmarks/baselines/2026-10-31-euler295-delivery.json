@@ -1,0 +1,91 @@
+{
+  "node": "v24.15.0",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "samples": [
+    {
+      "repeat": 0,
+      "mode": "compiled",
+      "fixture": false,
+      "ms": 717.64075,
+      "rssMiB": 279
+    },
+    {
+      "repeat": 0,
+      "mode": "compiled",
+      "fixture": true,
+      "ms": 1378.44875,
+      "rssMiB": 311.21875
+    },
+    {
+      "repeat": 0,
+      "mode": "reference",
+      "fixture": false,
+      "ms": 13588.436666,
+      "rssMiB": 480.71875
+    },
+    {
+      "repeat": 0,
+      "mode": "reference",
+      "fixture": true,
+      "ms": 11983.308458,
+      "rssMiB": 586.890625
+    },
+    {
+      "repeat": 1,
+      "mode": "compiled",
+      "fixture": false,
+      "ms": 773.217083,
+      "rssMiB": 279.71875
+    },
+    {
+      "repeat": 1,
+      "mode": "compiled",
+      "fixture": true,
+      "ms": 843.829708,
+      "rssMiB": 310.828125
+    },
+    {
+      "repeat": 1,
+      "mode": "reference",
+      "fixture": false,
+      "ms": 11962.142625,
+      "rssMiB": 564.21875
+    },
+    {
+      "repeat": 1,
+      "mode": "reference",
+      "fixture": true,
+      "ms": 11983.864375000001,
+      "rssMiB": 585.109375
+    },
+    {
+      "repeat": 2,
+      "mode": "compiled",
+      "fixture": false,
+      "ms": 772.043958,
+      "rssMiB": 277.46875
+    },
+    {
+      "repeat": 2,
+      "mode": "compiled",
+      "fixture": true,
+      "ms": 845.0472090000001,
+      "rssMiB": 317.9375
+    },
+    {
+      "repeat": 2,
+      "mode": "reference",
+      "fixture": false,
+      "ms": 15322.716833,
+      "rssMiB": 715.6875
+    },
+    {
+      "repeat": 2,
+      "mode": "reference",
+      "fixture": true,
+      "ms": 12033.093583,
+      "rssMiB": 586.703125
+    }
+  ]
+}

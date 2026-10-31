@@ -7,6 +7,22 @@ test "default input"
   Answer equal 4884650818
 end
 
+test "empty and smallest limits"
+  use "295_lenticularholes"
+  N = 0
+  run
+
+  Answer equal 0
+  N = 1
+  run
+
+  Answer equal 1
+  N = 2
+  run
+
+  Answer equal 1
+end
+
 test "small limits"
   use "295_lenticularholes"
   N = 10

@@ -1,0 +1,607 @@
+{
+  "oracle": "Explicit radius-pair union; same geometric family parametrization",
+  "cases": [
+    {
+      "n": 0,
+      "answer": "0"
+    },
+    {
+      "n": 1,
+      "answer": "1"
+    },
+    {
+      "n": 2,
+      "answer": "1"
+    },
+    {
+      "n": 3,
+      "answer": "3"
+    },
+    {
+      "n": 5,
+      "answer": "10"
+    },
+    {
+      "n": 9,
+      "answer": "23"
+    },
+    {
+      "n": 10,
+      "answer": "30"
+    },
+    {
+      "n": 11,
+      "answer": "38"
+    },
+    {
+      "n": 20,
+      "answer": "122"
+    },
+    {
+      "n": 21,
+      "answer": "143"
+    },
+    {
+      "n": 30,
+      "answer": "278"
+    },
+    {
+      "n": 50,
+      "answer": "808"
+    },
+    {
+      "n": 75,
+      "answer": "1893"
+    },
+    {
+      "n": 99,
+      "answer": "3319"
+    },
+    {
+      "n": 100,
+      "answer": "3442"
+    }
+  ],
+  "checks": [
+    {
+      "n": 0,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "0"
+    },
+    {
+      "n": 0,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "0"
+    },
+    {
+      "n": 0,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "0"
+    },
+    {
+      "n": 0,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "0"
+    },
+    {
+      "n": 0,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "0"
+    },
+    {
+      "n": 0,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "0"
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "1"
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "1"
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "1"
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "1"
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "1"
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "1"
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "1"
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "1"
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "3"
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "3"
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "3"
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "3"
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "3"
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "3"
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "10"
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "10"
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "10"
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "10"
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "10"
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "10"
+    },
+    {
+      "n": 9,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "23"
+    },
+    {
+      "n": 9,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "23"
+    },
+    {
+      "n": 9,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "23"
+    },
+    {
+      "n": 9,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "23"
+    },
+    {
+      "n": 9,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "23"
+    },
+    {
+      "n": 9,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "23"
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "30"
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "30"
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "30"
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "30"
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "30"
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "30"
+    },
+    {
+      "n": 11,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "38"
+    },
+    {
+      "n": 11,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "38"
+    },
+    {
+      "n": 11,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "38"
+    },
+    {
+      "n": 11,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "38"
+    },
+    {
+      "n": 11,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "38"
+    },
+    {
+      "n": 11,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "38"
+    },
+    {
+      "n": 20,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "122"
+    },
+    {
+      "n": 20,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "122"
+    },
+    {
+      "n": 20,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "122"
+    },
+    {
+      "n": 20,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "122"
+    },
+    {
+      "n": 20,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "122"
+    },
+    {
+      "n": 20,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "122"
+    },
+    {
+      "n": 21,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "143"
+    },
+    {
+      "n": 21,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "143"
+    },
+    {
+      "n": 21,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "143"
+    },
+    {
+      "n": 21,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "143"
+    },
+    {
+      "n": 21,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "143"
+    },
+    {
+      "n": 21,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "143"
+    },
+    {
+      "n": 30,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "278"
+    },
+    {
+      "n": 30,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "278"
+    },
+    {
+      "n": 30,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "278"
+    },
+    {
+      "n": 30,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "278"
+    },
+    {
+      "n": 30,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "278"
+    },
+    {
+      "n": 30,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "278"
+    },
+    {
+      "n": 50,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "808"
+    },
+    {
+      "n": 50,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "808"
+    },
+    {
+      "n": 50,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "808"
+    },
+    {
+      "n": 50,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "808"
+    },
+    {
+      "n": 50,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "808"
+    },
+    {
+      "n": 50,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "808"
+    },
+    {
+      "n": 75,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "1893"
+    },
+    {
+      "n": 75,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "1893"
+    },
+    {
+      "n": 75,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "1893"
+    },
+    {
+      "n": 75,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "1893"
+    },
+    {
+      "n": 75,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "1893"
+    },
+    {
+      "n": 75,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "1893"
+    },
+    {
+      "n": 99,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "3319"
+    },
+    {
+      "n": 99,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "3319"
+    },
+    {
+      "n": 99,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "3319"
+    },
+    {
+      "n": 99,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "3319"
+    },
+    {
+      "n": 99,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "3319"
+    },
+    {
+      "n": 99,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "3319"
+    },
+    {
+      "n": 100,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "3442"
+    },
+    {
+      "n": 100,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": "3442"
+    },
+    {
+      "n": 100,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": "3442"
+    },
+    {
+      "n": 100,
+      "mode": "reference",
+      "variant": "original",
+      "answer": "3442"
+    },
+    {
+      "n": 100,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": "3442"
+    },
+    {
+      "n": 100,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": "3442"
+    }
+  ]
+}

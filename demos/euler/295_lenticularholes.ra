@@ -8,6 +8,7 @@ rem radii is lenticular when two such
 rem circles have them. Count the pairs
 rem with r1 <= r2 <= N.
 
+use bits
 use numbers
 use sequences
 use algo
@@ -179,11 +180,11 @@ for Gi in 0 till Ng
     end
     Mem (Q + 1) = Tv
   end
-  for Mk in 1 to (2 ** Sz - 1)
+  for Mk in 1 to ((1 shl Sz) - 1)
     Bits = 0
     Key = 0
     for J in 0 till Sz
-      if (Mk // 2 ** J) mod 2 equal 1
+      if Mk bit J
         Bits += 1
         Key = Key * 2048 + Mem J + 1
       end
