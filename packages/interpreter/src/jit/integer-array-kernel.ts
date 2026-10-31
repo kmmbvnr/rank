@@ -4,6 +4,7 @@ import { createOwned } from '../owned-array.js';
 import { booleanCells, IntegerCells, ownedScalarArray, typedArray } from '../array-storage.js';
 import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
 import { RankError } from '../errors.js';
+import { modularPowerQuad, safeIntegerModularPower } from '../modular-power.js';
 import { prepareIntegerView, prepareStoredScalarView } from '../integer-view.js';
 import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
 import { floorDivide, floorRemainder } from '../numeric-division.js';
@@ -436,6 +437,43 @@ export function mapStoredIntegerTernary(args: readonly RankValue[],
         throw error;
     }
     return cells.array(shape);
+}
+
+/** powmod of packed Int32 bases with one scalar exponent and modulus. Four
+ * bases run in lockstep; anything else returns to the general mapper. */
+export function powerStoredInt32(base: RankValue, exponent: RankValue, modulus: RankValue): RankArray | undefined {
+    if (inspectionEnabled() || !privateLoopPolling() || !isRankArray(base)
+        || typeof exponent !== 'bigint' || typeof modulus !== 'bigint'
+        || exponent < 0n || exponent > 4294967295n || modulus < 1n || modulus > 1073741824n) return undefined;
+    const view = prepareStoredScalarView(base, true);
+    if (!view?.linear || !view.compact || !view.validateUniform
+        || !view.kinds?.every(kind => kind === 'integer')) return undefined;
+    const { offset, stride } = view.linear;
+    const e = Number(exponent), m = Number(modulus);
+    const size = base.shape.reduce((n, dimension) => n * dimension, 1);
+    const cells = new Int32Array(size);
+    view.validateUniform(view.items[offset]);
+    const compact = view.compact;
+    try {
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('computing integer array', end - start);
+            let i = start;
+            for (; i + 4 <= end; i += 4) {
+                const at = offset + i * stride;
+                if (compact[at] < 0 || compact[at] >= m || compact[at + stride] < 0 || compact[at + stride] >= m
+                    || compact[at + 2 * stride] < 0 || compact[at + 2 * stride] >= m
+                    || compact[at + 3 * stride] < 0 || compact[at + 3 * stride] >= m) break;
+                modularPowerQuad(compact, at, stride, e, m, cells, i);
+            }
+            for (; i < end; i++) cells[i] = safeIntegerModularPower(compact[offset + i * stride], e, m);
+        }
+    } catch (error) {
+        if (error instanceof InterruptedError) throw error;
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
+    return typedArray(cells, base.shape);
 }
 
 /** Borrow Number cells only from proven integer storage, and publish a packed

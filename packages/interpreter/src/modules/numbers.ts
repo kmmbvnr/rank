@@ -5,7 +5,7 @@ import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
 import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
 import { mapStoredUnary } from '../unary-array-kernel.js';
 import { mapScalarArrays } from '../scalar-array-map.js';
-import { mapStoredIntegerTernary } from '../integer-array-kernel.js';
+import { mapStoredIntegerTernary, powerStoredInt32 } from '../integer-array-kernel.js';
 import { expectMultiset } from '../multiset.js';
 import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
@@ -120,7 +120,7 @@ export const numbersModule: RuntimeModule = {
             return safeIntegerGcd(a, b);
         },
     }),
-    powmod: () => native('powmod', 3, args => mapStoredIntegerTernary(args, checkedModularPower,
+    powmod: () => native('powmod', 3, args => powerStoredInt32(args[0], args[1], args[2]) ?? mapStoredIntegerTernary(args, checkedModularPower,
         (base, exponent, modulus) => exponent >= 0 && modulus > 0 && modulus <= 1073741824
             ? safeIntegerModularPower(base, exponent, modulus) : undefined)
         ?? mapScalarArrays(args, arguments_ => checkedModularPower(

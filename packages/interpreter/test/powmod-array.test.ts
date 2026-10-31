@@ -23,6 +23,23 @@ describe('powmod array operands', () => {
         } finally { runtime.dispose(); }
     });
 
+    it('matches the scalar power for packed bases in lockstep', () => {
+        const check = (base: string, e: number, m: number) => {
+            const runtime = new Interpreter();
+            try {
+                const out = runtime.execute(`use numbers\nuse sequences\nA = ${base} copy\nA ${e} ${m} powmod`) as RankArray;
+                const input = (runtime.variables.get('A') as RankArray).items.map(BigInt);
+                expect(Array.from(out.items, BigInt)).toEqual(
+                    input.map(x => modularPower(x, BigInt(e), BigInt(m))));
+            } finally { runtime.dispose(); }
+        };
+        check('(-3 to 9)', 13, 1000000087);
+        check('(0 to 6)', 0, 1000000087);
+        check('(0 to 10)', 5, 1);
+        check('(1000000080 to 1000000094)', 1000000085, 1000000087);
+        check('(2 to 4098)', 4294967295, 1073741824);
+    });
+
     it('borrows signed 64-bit inputs exactly within the safe Number range', () => {
         const runtime = new Interpreter();
         const inputs = [-(2n ** 53n - 1n), 2n ** 53n - 1n, -4294967297n, 4294967297n, -1n, 0n];

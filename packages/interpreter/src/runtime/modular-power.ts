@@ -57,3 +57,26 @@ export function safeIntegerModularPower(base: number, exponent: number, modulus:
     }
     return result;
 }
+
+/** Powers of four bases with one shared exponent in lockstep. The squaring
+ * chains are independent, so the processor overlaps their latencies.
+ * Each base is a residue and 0 < modulus <= 2^30. */
+export function modularPowerQuad(bases: Int32Array, offset: number, stride: number,
+    exponent: number, modulus: number, out: Int32Array, at: number): void {
+    let f0 = bases[offset], f1 = bases[offset + stride];
+    let f2 = bases[offset + 2 * stride], f3 = bases[offset + 3 * stride];
+    const one = modulus === 1 ? 0 : 1;
+    let r0 = one, r1 = one, r2 = one, r3 = one;
+    for (let power = exponent >>> 0; power > 0;) {
+        if (power & 1) {
+            r0 = multiply(r0, f0, modulus); r1 = multiply(r1, f1, modulus);
+            r2 = multiply(r2, f2, modulus); r3 = multiply(r3, f3, modulus);
+        }
+        power >>>= 1;
+        if (power > 0) {
+            f0 = multiply(f0, f0, modulus); f1 = multiply(f1, f1, modulus);
+            f2 = multiply(f2, f2, modulus); f3 = multiply(f3, f3, modulus);
+        }
+    }
+    out[at] = r0; out[at + 1] = r1; out[at + 2] = r2; out[at + 3] = r3;
+}
