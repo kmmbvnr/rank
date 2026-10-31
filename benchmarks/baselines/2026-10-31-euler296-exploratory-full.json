@@ -1,0 +1,46 @@
+[
+  {
+    "mode": "compiled",
+    "variant": "vector",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 3944.549625,
+    "rssMiB": 671.296875
+  },
+  {
+    "mode": "compiled",
+    "variant": "sums",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 11893.295917000001,
+    "rssMiB": 1594.96875
+  },
+  {
+    "args": [
+      "reference",
+      "combined",
+      "100000"
+    ],
+    "status": null,
+    "error": "ETIMEDOUT",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "reference",
+      "vector",
+      "100000"
+    ],
+    "status": null,
+    "error": "ETIMEDOUT",
+    "stderr": ""
+  },
+  {
+    "mode": "reference",
+    "variant": "sums",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 12905.06375,
+    "rssMiB": 2028.46875
+  }
+]

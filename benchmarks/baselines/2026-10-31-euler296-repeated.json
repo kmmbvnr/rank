@@ -1,0 +1,164 @@
+[
+  {
+    "mode": "compiled",
+    "variant": "original",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 19549.074167000002,
+    "rssMiB": 160.203125,
+    "sample": 1
+  },
+  {
+    "mode": "compiled",
+    "variant": "pruned",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 4253.7775,
+    "rssMiB": 159.734375,
+    "sample": 1
+  },
+  {
+    "mode": "compiled",
+    "variant": "combined",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 2497.791708,
+    "rssMiB": 159.9375,
+    "sample": 1
+  },
+  {
+    "mode": "reference",
+    "variant": "original",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 9213.602417,
+    "rssMiB": 423.984375,
+    "sample": 1
+  },
+  {
+    "mode": "reference",
+    "variant": "pruned",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 2120.772792,
+    "rssMiB": 379.546875,
+    "sample": 1
+  },
+  {
+    "mode": "reference",
+    "variant": "combined",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 1315.5895420000002,
+    "rssMiB": 376.859375,
+    "sample": 1
+  },
+  {
+    "mode": "compiled",
+    "variant": "original",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 19606.1135,
+    "rssMiB": 160.15625,
+    "sample": 2
+  },
+  {
+    "mode": "compiled",
+    "variant": "pruned",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 4246.457332999999,
+    "rssMiB": 158.0625,
+    "sample": 2
+  },
+  {
+    "mode": "compiled",
+    "variant": "combined",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 2515.266917,
+    "rssMiB": 163.1875,
+    "sample": 2
+  },
+  {
+    "mode": "reference",
+    "variant": "original",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 9108.303542,
+    "rssMiB": 427.09375,
+    "sample": 2
+  },
+  {
+    "mode": "reference",
+    "variant": "pruned",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 2120.841209,
+    "rssMiB": 381.625,
+    "sample": 2
+  },
+  {
+    "mode": "reference",
+    "variant": "combined",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 1347.178458,
+    "rssMiB": 380.71875,
+    "sample": 2
+  },
+  {
+    "mode": "compiled",
+    "variant": "original",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 17300.153,
+    "rssMiB": 160.203125,
+    "sample": 3
+  },
+  {
+    "mode": "compiled",
+    "variant": "pruned",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 4262.210708,
+    "rssMiB": 159.1875,
+    "sample": 3
+  },
+  {
+    "mode": "compiled",
+    "variant": "combined",
+    "n": "100000",
+    "answer": "1137208419",
+    "ms": 2400.723125,
+    "rssMiB": 163.4375,
+    "sample": 3
+  },
+  {
+    "mode": "reference",
+    "variant": "original",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 9318.892041000001,
+    "rssMiB": 426.171875,
+    "sample": 3
+  },
+  {
+    "mode": "reference",
+    "variant": "pruned",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 2111.854542,
+    "rssMiB": 378.15625,
+    "sample": 3
+  },
+  {
+    "mode": "reference",
+    "variant": "combined",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 1333.569042,
+    "rssMiB": 380.390625,
+    "sample": 3
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "mode": "reference",
+    "variant": "original",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 9684.022707999999,
+    "rssMiB": 427.6875
+  },
+  {
+    "mode": "reference",
+    "variant": "pruned",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 2330.245,
+    "rssMiB": 381.84375
+  },
+  {
+    "mode": "reference",
+    "variant": "combined",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 1468.122583,
+    "rssMiB": 375.21875
+  },
+  {
+    "mode": "reference",
+    "variant": "vector",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 1456.766291,
+    "rssMiB": 405.875
+  },
+  {
+    "mode": "reference",
+    "variant": "sums",
+    "n": "10000",
+    "answer": "8740638",
+    "ms": 846.7159590000001,
+    "rssMiB": 531.625
+  }
+]

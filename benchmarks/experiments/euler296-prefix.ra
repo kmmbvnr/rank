@@ -1,0 +1,59 @@
+rem Angular Bisector and Tangent 1
+rem https://projecteuler.net/problem=296
+rem Count the integer sided triangles
+rem ABC with BC <= AC <= AB and
+rem perimeter up to Limit for which BE
+rem is an integer, E being where the
+rem bisector of C meets the parallel to
+rem the tangent at C through B
+
+use numbers
+use io
+use cli
+
+arg Limit integer = 100000
+
+rem BE = a c / (a + b) with a = BC, b =
+rem AC and c = AB. With g = gcd(a, b), a
+rem = g p and b = g q, BE is an integer
+rem when s = p + q divides c = t s. Then
+rem c < a + b gives t < g, c >= b gives
+rem t s >= g q, and the perimeter is s
+rem (g + t). For each coprime p <= q and
+rem t, the g from t + 1 to the smaller
+rem of t s / q and Limit / s - t all
+rem give a triangle.
+Total = 0
+Root = Limit isqrt
+for S in 2 to (Limit // 3)
+  Room = Limit // S
+  Top = (Room - 1) // 2
+  Low = (S + Top) // (Top + 1)
+  Hi = S // 2
+  if Low greater Hi
+    continue
+  end
+  if S at most Root
+    for P in Low to Hi
+      if S gcd P equal 1
+        Q = S - P
+        From = (Q + P - 1) // P
+        for T in From to Top
+          Total += (T * P // Q) min (Room - 2 * T)
+        end
+      end
+    end
+  else
+    Ps = Low to Hi array
+    Co = (Ps gcd S equal 1) choose 1 0
+    Cum = Co scan + with 0
+    Count = Cum (Co len)
+    for T in 1 to Top
+      Ks = 1 to (T min (Room - 2 * T)) array
+      Lo = ((Ks * S + T + Ks - 1) // (T + Ks)) max Low
+      Total += (Count - Cum (Lo - Low)) sum
+    end
+  end
+end
+Answer = Total
+Answer print

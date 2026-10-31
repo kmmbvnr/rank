@@ -1,6 +1,7 @@
 use testing
 
-rem The default input takes minutes.
+rem Full compiled input has a golden test.
+rem Keep cross-mode examples bounded.
 test "small limits"
   use "296_angularbisector"
   Limit = 30
@@ -15,4 +16,28 @@ test "small limits"
   run
 
   Answer equal 1762
+end
+
+test "first feasible perimeters"
+  use "296_angularbisector"
+  Limit = 0
+  run
+
+  Answer equal 0
+  Limit = 5
+  run
+
+  Answer equal 0
+  Limit = 6
+  run
+
+  Answer equal 1
+  Limit = 9
+  run
+
+  Answer equal 1
+  Limit = 10
+  run
+
+  Answer equal 2
 end

@@ -1,0 +1,1446 @@
+{
+  "oracle": "Direct sorted integer triangle enumeration; a*c divisible by a+b",
+  "runs": 240,
+  "rows": [
+    {
+      "n": 0,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 0,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 1,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 2,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 3,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 4,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 5,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 0
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 1
+    },
+    {
+      "n": 6,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 1
+    },
+    {
+      "n": 7,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 1
+    },
+    {
+      "n": 9,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 1
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 2
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 2
+    },
+    {
+      "n": 11,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 2
+    },
+    {
+      "n": 20,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 9
+    },
+    {
+      "n": 20,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 9
+    },
+    {
+      "n": 29,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 21
+    },
+    {
+      "n": 29,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 21
+    },
+    {
+      "n": 30,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 25
+    },
+    {
+      "n": 30,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 25
+    },
+    {
+      "n": 31,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 25
+    },
+    {
+      "n": 50,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 77
+    },
+    {
+      "n": 50,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 77
+    },
+    {
+      "n": 99,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 361
+    },
+    {
+      "n": 99,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 361
+    },
+    {
+      "n": 100,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 376
+    },
+    {
+      "n": 100,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 376
+    },
+    {
+      "n": 101,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 376
+    },
+    {
+      "n": 200,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "reference",
+      "variant": "original",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "compiled",
+      "variant": "pruned",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "reference",
+      "variant": "pruned",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "compiled",
+      "variant": "combined",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "reference",
+      "variant": "combined",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "compiled",
+      "variant": "vector",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "reference",
+      "variant": "vector",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "compiled",
+      "variant": "sums",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "reference",
+      "variant": "sums",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "compiled",
+      "variant": "shipping",
+      "answer": 1762
+    },
+    {
+      "n": 200,
+      "mode": "reference",
+      "variant": "shipping",
+      "answer": 1762
+    }
+  ]
+}
