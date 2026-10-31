@@ -17,7 +17,7 @@ interface Step<C> {
 export type CompiledBlock<C> = (context: C, index?: number, previous?: Value) => Evaluation<Value>;
 interface Host<C> {
     prepare(index: number): Step<C>;
-    region?(index: number): { length: number; run(): Value } | undefined;
+    region?(index: number): { length: number; run(session?: object): Value } | undefined;
     locate(error: unknown, index: number): unknown;
     pause(index: number, task: Execution<Value>, context: C, block: CompiledBlock<C>): Evaluation<Value>;
     compiled?(source: string): void;
@@ -36,7 +36,7 @@ export function compileBlock<C extends Context>(length: number, host: Host<C>): 
             while (index < length) {
                 if (context.insideLoop && !context.insideFinally && !context.insideGenerator) {
                     const region = host.region?.(index);
-                    const value = region?.run();
+                    const value = region?.run(context.loopControl);
                     if (value !== undefined) { result = value; index += region!.length; continue; }
                 }
                 const step = steps[index] ??= host.prepare(index);

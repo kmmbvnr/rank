@@ -4,7 +4,8 @@ import {
 } from '@arrrank/language';
 import { privateLoopPolling, interruptsEnabled } from '../interrupt.js';
 import { ownedStorage } from '../array-storage-state.js';
-import { typedArray } from '../array-storage.js';
+import { typedArray, isSharedArray } from '../array-storage.js';
+import { currentDiagnostics } from '../diagnostics.js';
 import { broadcastShape } from '../tensor.js';
 import { DENSE_MIN_CELLS } from './tensor-operands.js';
 import type { RankArray, RankValue } from '../value.js';
@@ -25,7 +26,8 @@ const same = (a: readonly number[], b: readonly number[]) => a.length === b.leng
 /** Fuse pure adjacent real-array assignments while retaining every binding.
  * Speculation writes only unpublished buffers; any guard failure replays the
  * ordinary statements in their original order. Calls and structural operations
- * terminate the region. No input storage or previous result is cached. */
+ * terminate the region. Inputs are never cached. Recycled output storage must
+ * be private and no longer published by any of the region's assignments. */
 export function compileTensorRegion(statements: readonly Statement[], start: number, host: Host) {
     const definitions = new Map<string, Node>();
     const commands: { statement: AssignmentStatement; root: Node }[] = [];
@@ -64,8 +66,11 @@ export function compileTensorRegion(statements: readonly Statement[], start: num
     }
     commands.forEach(command => collect(command.root));
     const variants = new Map<string, Run>();
+    // The loop invocation owns at most two banks. Re-entering the same parsed
+    // loop gets a new control object and cannot overwrite a retained result.
+    const pools = new WeakMap<object, RankArray[][]>();
     let unavailable = false;
-    return { length: commands.length, run(): RankValue | undefined {
+    return { length: commands.length, run(session?: object): RankValue | undefined {
         if (unavailable || !privateLoopPolling() || interruptsEnabled()) return undefined;
         // As with other dense kernels, preparation is not amortized on short arrays.
         let dense = false;
@@ -152,14 +157,37 @@ export function compileTensorRegion(statements: readonly Statement[], start: num
             if (variants.size >= 32) variants.delete(variants.keys().next().value!);
             variants.set(key, run); host.compiled(source);
         }
-        const outputs = commands.map(() => new Float64Array(size));
+        const banks = session ? pools.get(session) ?? [] : [];
+        const live = banks.length ? new Set(commands.map(command => host.lookup(command.statement.name))) : undefined;
+        const candidate = banks.findIndex(bank => bank.every(value => {
+            const state = ownedStorage.get(value);
+            return state?.stable && state.scalarOnly && !state.validity && !state.readOnlyCells
+                && state.owners === 1 && state.typed instanceof Float64Array && state.typed.length === size
+                && !live!.has(value) && !isSharedArray(value) && !Object.getOwnPropertyDescriptor(value, 'itemAt')
+                && !data.some(input => input.buffer === state.typed!.buffer);
+        }));
+        const recycled = candidate < 0 ? undefined : banks.splice(candidate, 1)[0];
+        const outputs = recycled ? recycled.map(value => ownedStorage.get(value)!.typed as Float64Array)
+            : commands.map(() => new Float64Array(size));
         if (!run(data, scalars, size, outputs)) return undefined;
         let result: RankValue | undefined;
+        const published: RankArray[] = [];
         for (let i = 0; i < commands.length; i++) {
             result = typedArray(outputs[i], shape, undefined, 'real');
             host.commit(commands[i].statement, result);
+            published.push(result);
         }
         host.executed();
+        if (session) {
+            banks.push(published);
+            if (banks.length > 2) banks.shift();
+            pools.set(session, banks);
+        }
+        const diagnostics = currentDiagnostics();
+        if (recycled && diagnostics) {
+            diagnostics.reusedTensorBuffers += outputs.length;
+            diagnostics.reusedTensorBufferCells += outputs.length * size;
+        }
         return result;
     } };
 }

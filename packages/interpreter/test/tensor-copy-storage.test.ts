@@ -7,17 +7,19 @@ describe('tensor copy storage', () => {
     it.each([false, true])('keeps axis-unpacked blocks independent (compilation=%s)', compilation => {
         const runtime = new Interpreter(undefined, { compilation });
         try {
+            runtime.variables.set('Input', typedArray(Float64Array.from({ length: 24 }, (_, i) => i)));
             runtime.execute(`use sequences
-Source = (0 till 24) array reshape 4 2 3
-unpack A B = Source axis 1
-Source 0 0 0 = 999
-A 1 0 = 777`);
+Source = Input reshape 4 2 3
+unpack A B = Source axis 1`);
+            expect(typedElementKind(runtime.variables.get('A') as RankArray)).toBe('real');
+            expect(typedElementKind(runtime.variables.get('B') as RankArray)).toBe('real');
+            runtime.execute('Source 0 0 0 = 999.0\nA 1 0 = 777.0');
             const a = runtime.variables.get('A') as RankArray;
             const b = runtime.variables.get('B') as RankArray;
-            expect(a.items).toEqual([0n, 1n, 2n, 777n, 7n, 8n, 12n, 13n, 14n, 18n, 19n, 20n]);
-            expect(b.items).toEqual([3n, 4n, 5n, 9n, 10n, 11n, 15n, 16n, 17n, 21n, 22n, 23n]);
-            expect(runtime.execute('Source 0 0 0')).toBe(999n);
-            expect(runtime.execute('Source 1 0 0')).toBe(6n);
+            expect(a.items).toEqual([0, 1, 2, 777, 7, 8, 12, 13, 14, 18, 19, 20]);
+            expect(b.items).toEqual([3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22, 23]);
+            expect(runtime.execute('Source 0 0 0')).toBe(999);
+            expect(runtime.execute('Source 1 0 0')).toBe(6);
         } finally { runtime.dispose(); }
     });
 

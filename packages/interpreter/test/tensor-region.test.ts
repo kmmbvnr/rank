@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, parse, type RankArray, type RankValue } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, parse, type NativeFunction, type RankArray, type RankValue } from '../src/index.js';
 import { typedArray } from '../src/array-storage.js';
 import { compileTensorRegion } from '../src/jit/tensor-region.js';
 import { DENSE_MIN_CELLS } from '../src/jit/tensor-operands.js';
@@ -24,14 +24,15 @@ function execute(source = body, compilation = true, x: readonly number[] = [1, 2
     runtime.variables.set('Y', typedArray(new Float64Array([0.25])));
     runtime.variables.set('Z', z);
     let error: string | undefined;
-    try { runtime.execute(source); } catch (caught) { error = (caught as Error).message; }
+    const diagnostics = new RuntimeDiagnostics();
+    try { diagnostics.run(() => runtime.execute(source)); } catch (caught) { error = (caught as Error).message; }
     const read = (name: string) => {
         const value = runtime.variables.get(name) as RankArray;
         return { shape: [...value.shape], items: [...value.items] };
     };
     const values = Object.fromEntries(['A', 'B', 'C', 'Saved', 'X'].map(name => [name, read(name)]));
     runtime.dispose();
-    return { values, error, compiled };
+    return { values, error, compiled, reused: diagnostics.reusedTensorBuffers };
 }
 function compare(source = body, x: readonly number[] = [1, 2, 3, 4], z = 0.5, shape = [x.length]) {
     const actual = execute(source, true, x, z, shape);
@@ -41,6 +42,53 @@ function compare(source = body, x: readonly number[] = [1, 2, 3, 4], z = 0.5, sh
 }
 
 describe('real tensor assignment regions', () => {
+    it('keeps a retained result when the same parsed loop executes again', () => {
+        const runtime = new Interpreter(undefined, { integerLoopCompilation: false });
+        try {
+            for (const name of ['A', 'B', 'C']) runtime.variables.set(name, typedArray(new Float64Array(1024)));
+            runtime.variables.set('X', typedArray(new Float64Array(1024).fill(1)));
+            runtime.variables.set('Y', 0.25);
+            runtime.variables.set('Z', 0.5);
+            const program = parse('A = X\nB = X\nC = X\n' + body.replace('till 2', 'till 6') + '\nC');
+            const first = runtime.executeProgram(program, []) as RankArray;
+            runtime.variables.set('X', typedArray(new Float64Array(1024).fill(2)));
+            const second = runtime.executeProgram(program, []) as RankArray;
+            expect(first.items).toEqual(Array(1024).fill(0.625));
+            expect(second.items).toEqual(Array(1024).fill(1.125));
+        } finally { runtime.dispose(); }
+    });
+    it('recycles unpublished banks after their bindings have been replaced', () => {
+        const result = compare(body.replace('till 2', 'till 6'));
+        expect(result.reused).toBeGreaterThan(0);
+    });
+    it('keeps active outputs intact when a recycled speculative pass declines', () => {
+        const source = body.replace('till 2', 'till 6').replace(' A = X + Y', ' if Iter equal 5\n  Z = 0.0\n end\n A = X + Y').replace('B = A * Z', 'B = A / Z');
+        const result = compare(source);
+        expect(result.error).toMatch(/zero/);
+        expect(result.reused).toBeGreaterThan(0);
+    });
+    it('does not recycle results across function invocations', () => {
+        const runtime = new Interpreter(undefined, { integerLoopCompilation: false });
+        try {
+            runtime.execute(`fun X sample Z
+ A = X
+ B = X
+ C = X
+ for Iter in 0 till 6
+  A = X + Z
+  B = A * Z
+  C = A - B
+ end
+ return A
+end`);
+            const fn = runtime.variables.get('sample') as NativeFunction;
+            const first = fn.call([typedArray(new Float64Array(1024).fill(1)), 0.5]) as RankArray;
+            const second = fn.call([typedArray(new Float64Array(1024).fill(2)), 0.5]) as RankArray;
+            expect(second).not.toBe(first);
+            expect(first.items).toEqual(Array(1024).fill(1.5));
+            expect(second.items).toEqual(Array(1024).fill(2.5));
+        } finally { runtime.dispose(); }
+    });
     it('retains ordinary execution when cancellation can be observed', () => {
         let reads = 0;
         const region = compileTensorRegion(parse('A = X + Y\nB = A * Y').statements, 0, {
@@ -83,7 +131,8 @@ describe('real tensor assignment regions', () => {
         compare(body.replace('B = A * Z', 'B = A + (1.0 / Z)'), [], 0);
     });
     it('retains outputs captured between iterations', () => {
-        compare(body.replace('\nend', '\n if Iter equal 0\n  Saved = A\n end\n X = X + Z\nend'));
+        const result = compare(body.replace('till 2', 'till 6').replace('\nend', '\n if Iter equal 0\n  Saved = A\n end\n X = X + Z\nend'));
+        expect(result.reused).toBeGreaterThan(0);
     });
     it('falls back to the original assignment order when a later name is missing', () => {
         const result = compare(body.replace('B = A * Z', 'B = A * Unknown'));

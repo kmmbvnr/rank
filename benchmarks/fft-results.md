@@ -223,6 +223,71 @@ Evidence: [selected step 3](baselines/2026-10-31-fft-step3.json),
 [initial unrestricted control](baselines/2026-10-31-fft-step3-unthresholded.json)
 and [overlapping-planning control](baselines/2026-10-31-fft-step3-thresholded-overlap.json).
 
+### Step 4: recycle unpublished region buffers within one loop invocation
+
+Each region now keeps at most two output banks, keyed weakly by the running
+loop's control object. A bank can be reused only when its arrays have one
+tracked owner, no pending views or aliases, no overlap with any input buffer,
+and none of the region's current bindings still publishes them. Boxed,
+read-only or otherwise unproved storage is excluded. A new function call or
+re-entry into the same parsed loop gets an independent pool. With direct loop
+control disabled, recycling is disabled too.
+
+Speculation still writes only unpublished buffers. If arithmetic declines,
+the bank is discarded and ordinary statement evaluation preserves existing
+values and error order. Successful outputs get fresh array wrappers, exact
+real-domain evidence and the ordinary binding/mutation checks.
+
+At N=4096 the diagnostic records 36 reused buffers, or 73,728 cells (589,824
+bytes of Float64 backing storage) per FFT call. This measures allocation traffic
+avoided for the fused arithmetic outputs, not peak or retained process memory.
+
+| N | Before, ms | After, ms | Before CPU ms | After CPU ms |
+| --- | ---: | ---: | ---: | ---: |
+| 256 | 3.109 | 3.159 | 5.440 | 5.413 |
+| 1024 | 6.707 | 6.918 | 11.371 | 10.692 |
+| 4096 | 10.016 | 9.325 | 16.247 | 13.800 |
+
+The N=4096 wall median decreases by 6.9%. Pooling is inactive at the two smaller
+FFT sizes; their differences cannot establish a benefit. CPU measurements
+include the process's user and system time across V8 helper threads and can
+exceed elapsed wall time. The harness records both metrics from this step on.
+All series have wide ranges under uncontrolled host load.
+
+The final ordinary interpreter run passed 448 files and 10,320 tests, with one
+failure in a newly added test fixture: its final `C` read was outside the
+variable's lexical block. The fixture now declares its outputs before the
+loop; all 17 tests in that file pass on rerun. Together these runs verify all
+449 ordinary files and 10,321 tests against the final production code. No
+production change was needed for that fixture error. The 15 copy-storage tests
+were also rerun after strengthening the block-copy snapshot cases to use
+actual Float64 storage in both compilation modes. Classic demo tests,
+TypeScript build, semantic boundaries and application-form checks also pass.
+The exhaustive audits remain excluded.
+
+Evidence: [step 4 timing](baselines/2026-10-31-fft-step4.json) and
+[diagnostics](baselines/2026-10-31-fft-step4-diagnostics.json).
+
+### Combined control against the state before all four steps
+
+This is a separate paired series against `e7d3706a`, not a multiplication of
+the individual step ratios.
+
+| N | Before, ms | Final, ms | Reusable fft.js, ms |
+| --- | ---: | ---: | ---: |
+| 256 | 3.827 | 3.635 | 0.001089 |
+| 1024 | 6.234 | 5.777 | 0.004293 |
+| 4096 | 11.451 | 8.925 | 0.020758 |
+
+At N=4096 the observed wall median falls by 22.1%, and CPU time falls from
+15.846 to 12.553 ms (20.8%). Wall ranges still overlap widely: baseline
+9.27–29.24 ms, final 7.34–25.67 ms. These numbers are workload-specific
+measurements under noisy host load, not a universal performance guarantee.
+The remaining reshape, axis unpack and concat boundaries still prevent
+compiling the entire FFT stage as one structural kernel.
+
+Evidence: [combined comparison](baselines/2026-10-31-fft-improvements-total.json).
+
 ## Reproduction and checks
 
 ```sh

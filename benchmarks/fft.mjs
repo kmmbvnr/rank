@@ -147,7 +147,8 @@ if (!values.worker) {
   }
   const summary = sizes.flatMap(n => modes.map(mode => {
     const rows = results.filter(r => r.n === n && r.mode === mode);
-    return { n, mode, firstSizeCallMedianMs: median(rows.map(r => r.firstSizeCallMs)), medianMs: median(rows.map(r => r.warmMs)), minMs: Math.min(...rows.map(r => r.warmMs)), maxMs: Math.max(...rows.map(r => r.warmMs)) };
+    return { n, mode, firstSizeCallMedianMs: median(rows.map(r => r.firstSizeCallMs)), medianMs: median(rows.map(r => r.warmMs)),
+      cpuMedianMs: median(rows.map(r => r.cpuMs)), minMs: Math.min(...rows.map(r => r.warmMs)), maxMs: Math.max(...rows.map(r => r.warmMs)) };
   }));
   const report = { date: new Date().toISOString(), cpu: cpus()[0].model, node: process.version,
     commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
@@ -223,11 +224,13 @@ if (!values.worker) {
   } else {
     const probeStart = performance.now(); run();
     const iterations = Math.max(runtime ? 3 : 100, Math.ceil(150 / Math.max(.001, performance.now() - probeStart)));
+    const cpu = process.cpuUsage();
     const start = performance.now(); let result;
     for (let j = 0; j < iterations; j++) result = run();
     const warmMs = (performance.now() - start) / iterations;
+    const used = process.cpuUsage(cpu), cpuMs = (used.user + used.system) / 1000 / iterations;
     check(result, expected);
-    console.log(JSON.stringify({ n, mode, firstSizeCallMs, warmMs, iterations, warmups }));
+    console.log(JSON.stringify({ n, mode, firstSizeCallMs, warmMs, cpuMs, iterations, warmups }));
   }
   runtime?.dispose();
 }
