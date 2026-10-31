@@ -19,7 +19,7 @@ rem exponent. A prime p > sqrt(Nn) hits
 rem i = j p only, ratio (2j+1)/(2j-1),
 rem one vector update per j. Small
 rem primes get all multiples at once.
-rem Prefixes use doubling passes.
+rem Prefixes use a modular scan.
 P = 1000000087
 Rt = Nn isqrt
 Pa = primes to Nn array
@@ -48,13 +48,6 @@ for J in 1 to Nn // (Rt + 1)
   Fj = (2 * J + 1) * Iq mod P
   Rr Ix = Rr Ix * Fj mod P
 end
-Sp = 0
-for 2 ** Sp at most Nn
-  Sh = 2 ** Sp
-  Pd = array shape Sh fill 1
-  Pd = concat Pd (Rr (0 to Nn - Sh))
-  Rr = Rr * Pd mod P
-  Sp += 1
-end
+Rr = Rr scan * mod P
 Answer = (Rr (2 to Nn)) sum mod P
 Answer print
