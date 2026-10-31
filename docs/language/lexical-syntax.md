@@ -81,10 +81,24 @@ call uses named intermediate values or a parenthesized argument.
 Rank code is designed for mobile touchscreens, pocket calculators, and narrow
 displays. Clean, idiomatic Rank balances brevity with readability:
 
+- Prefer array operations over loops.
+- Use existing library functions.
+- Chain operations when they read clearly.
+- Keep only useful intermediate variables.
+- Avoid unnecessary conversions and brackets.
+- Use short, meaningful names.
+- Prefer at most 40 characters per line,
+  including comments.
+- Prefer assigning each variable once.
+  In CPU code, reassign when simpler.
+- Comment on intent, not obvious steps.
+- Verify behavior with examples and edge cases.
+
 ### 1. 40-column budget
-Aim for lines of roughly 40 characters (up to 50 at most). Code that fits on a
-narrow screen without horizontal scrolling or arbitrary line wrapping is easier
-to read, review, and type on mobile keyboards.
+Prefer lines of at most 40 characters, including comments. This is a style
+preference, not a hard limit. Code that fits on a narrow screen without
+horizontal scrolling or arbitrary line wrapping is easier to read, review,
+and type on mobile keyboards.
 
 ### 2. Parenthesis budget: at most one pair per line
 Typing parentheses on mobile touchscreens requires switching keyboard layers
