@@ -476,6 +476,107 @@ Evidence: [five-sample timings](baselines/2026-11-01-fft-integer-rebinding.json)
 The confirmation uses the existing `fft.mjs --worker=compiled --size=4096`
 with `--checkout` alternating between the two builds, nine times each.
 
+## Checks on other demos before integration into main
+
+The integration candidate includes main at `f9863585` (private integer queue
+and buffer helpers) as well as the FFT changes. A separate clean checkout of
+that main commit was generated and built with its own workspace package links.
+The measured candidate is `de179b28`; only the benchmark harness and evidence
+were uncommitted. All demo sources and inputs are identical between versions.
+In particular, both interpreters execute the current FFT helper source.
+
+The additional review found a correctness defect in the new tensor-region
+and structural-function parsers: compound assignments could be interpreted
+as simple assignments. Both parsers now require `=`. Compound updates retain
+the existing evaluator/compiler path. Eight new tests exercise `+=`, `-=`,
+`*=` and `/=` in these contexts; seven initially reproduced the defect before
+the admission checks were corrected. This was fixed before integration.
+
+Final correctness checks on the combined production code pass:
+
+- 453 ordinary interpreter files / 10,409 tests.
+- All 55 Deep-ML test files and all seven classic test files.
+- TypeScript build, semantic boundaries and application-form checks.
+
+The slow exhaustive audits remain excluded.
+
+### Broader performance comparison
+
+`fft-demo-regression.mjs` runs seven existing numerical scenarios at the
+largest scale of `numerical-demos.mjs`, three existing array-stage fixtures,
+and FFT. Each version has five serial fresh-process samples, alternating
+order within each pair. Numerical demo workers use owned snapshot inputs,
+two warm calls and three measured calls; a process contributes its warm
+median. Array fixtures time a complete 12-round parse/execute. FFT uses its
+existing 300 ms warmup and target 150 ms timing batch. These timing contracts
+must only be compared within a row. Every worker checks the existing oracle;
+tests and CPU profiling are not run concurrently with timing.
+
+| Workload | Main, ms | Candidate, ms |
+| --- | ---: | ---: |
+| Euler 6, N=200000 | 12.629 | 12.603 |
+| Matrix-vector, 512x512 | 33.331 | 35.909 |
+| Row means, 512x512 | 24.599 | 24.388 |
+| Column means, 512x512 | 25.587 | 27.110 |
+| Matrix multiplication, 64x64 | 272.046 | 247.040 |
+| Gradient descent, 2048x8, 20 steps | 7.431 | 7.449 |
+| K-means, 2048x2 | 122.303 | 112.559 |
+| Integer matrix fixture, 12 rounds | 99.214 | 98.847 |
+| Real matrix fixture, 12 rounds | 120.480 | 124.182 |
+| Real broadcast fixture, 12 rounds | 151.133 | 151.652 |
+| FFT, 4096 points | 11.604 | 1.972 |
+
+The initial non-FFT shifts are small or noisy enough to require confirmation.
+Four separate nine-pair series repeat the apparent improvements and possible
+regressions with the same workers:
+
+| Workload | Main, ms | Candidate, ms |
+| --- | ---: | ---: |
+| Matrix-vector | 31.472 | 31.868 |
+| Column means | 27.449 | 24.585 |
+| Matrix multiplication | 239.645 | 239.494 |
+| K-means | 108.620 | 109.354 |
+
+The initial 8–9% matmul/k-means improvements do not repeat. Matvec's apparent
+7.7% regression shrinks to 1.3%; column mean reverses direction. Ranges
+overlap widely (for example confirmed matmul is 226.5–467.2 ms before and
+236.9–480.4 ms after). These runs do not establish a general speedup on the
+other existing demos, or a large reproducible regression. The real-matrix
+fixture's first series is 3.1% slower and includes startup/compilation; it is
+not evidence that all array programs improve.
+
+FFT does show a clear improvement in this series: 5.88 times faster, with
+nonoverlapping ranges, 10.05–24.67 ms before and 1.52–5.18 ms after. This
+compares compiler versions on the same source, rather than multiplying
+ratios from earlier experiments.
+
+Warm diagnostics explain why the non-FFT effects are limited. Matmul uses
+4,096 existing tensor kernels and no new numeric functions in both builds;
+k-means uses 8,192 tensor kernels, no numeric loops/functions, and the same
+16,390 type scans / 45,060 scanned cells in both builds. Full numerical
+outputs from diagnostic runs were checked for exact agreement. The new passes
+are general mechanisms for eligible array pipelines, structural pure helpers
+and entry-array rebinding, rather than a universal acceleration of numerical
+code. Unsupported reductions, calls and control flow keep existing paths.
+
+Evidence: [broad series](baselines/2026-11-01-fft-demo-regression.json),
+[matvec confirmation](baselines/2026-11-01-fft-demo-confirm-matvec.json),
+[column confirmation](baselines/2026-11-01-fft-demo-confirm-column.json),
+[matmul confirmation](baselines/2026-11-01-fft-demo-confirm-matmul.json),
+[k-means confirmation](baselines/2026-11-01-fft-demo-confirm-kmeans.json),
+[warm diagnostic counts](baselines/2026-11-01-fft-demo-diagnostics.json).
+
+Reproduce with an independently built baseline:
+
+```sh
+node benchmarks/fft-demo-regression.mjs \
+  --baseline=/path/to/main-checkout --samples=5 \
+  --output=/tmp/fft-demo-regression.json
+node benchmarks/fft-demo-regression.mjs \
+  --baseline=/path/to/main-checkout --samples=9 \
+  --only=matmul --output=/tmp/fft-demo-matmul.json
+```
+
 ## Reproduction and checks
 
 ```sh

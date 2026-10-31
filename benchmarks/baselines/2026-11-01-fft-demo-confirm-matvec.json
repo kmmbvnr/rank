@@ -1,0 +1,453 @@
+{
+  "date": "2026-10-31T19:38:41.798Z",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 9,
+  "versions": {
+    "baseline": {
+      "path": "/tmp/rank-fft-main-before",
+      "commit": "f986358561be10a51395833b7748d870da8223d4",
+      "dirty": false
+    },
+    "candidate": {
+      "path": "/private/tmp/rank-fft-worktree/",
+      "commit": "de179b289040a3292f4246558572f85de5be66cf",
+      "dirty": true
+    }
+  },
+  "sources": {
+    "euler": {
+      "path": "demos/euler/006_sumsquarediff.ra",
+      "sha256": "07857b0214aad226d9565d8e696ba5b3d08d4c0370e86da779998feed19a78b3"
+    },
+    "matvec": {
+      "path": "demos/deepml/001_matmul.ra",
+      "sha256": "04be3e6ce5992dcfe6fcf76f86559c822efb467fbcff38abc90ba05c120632d1"
+    },
+    "row": {
+      "path": "demos/deepml/004_mean.ra",
+      "sha256": "065143b7a2a28aff3d9bad4f4e80f8a9ceb8483802df83f9c0a9f71b78a58575"
+    },
+    "column": {
+      "path": "demos/deepml/004_mean.ra",
+      "sha256": "065143b7a2a28aff3d9bad4f4e80f8a9ceb8483802df83f9c0a9f71b78a58575"
+    },
+    "matmul": {
+      "path": "demos/deepml/009_matmul.ra",
+      "sha256": "2bec0ade2d2ff586980e8b49c91a7f8c2486ab18dc2159e2bee43091384ebcac"
+    },
+    "gradient": {
+      "path": "demos/deepml/015_gd.ra",
+      "sha256": "7f1756026b77ba85b35213f29dddee6e31f821d840c8b95feff3bfa9d09fdeae"
+    },
+    "kmeans": {
+      "path": "demos/deepml/017_kmeans.ra",
+      "sha256": "c03aabc2e28e90b8760e2a91f89a7c0a0b3e712cc3ef05a2a3d7e1b2f518d5a8"
+    },
+    "fft": {
+      "path": "demos/classic/fft.ra",
+      "sha256": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    "stages": {
+      "path": "benchmarks/experiments/numeric-array-stages.mjs",
+      "sha256": "ade8327c65a468ceb4bed195ea316693b5b384c62a80ddd3c362e3e2c8a1b0c8"
+    }
+  },
+  "timing": "Serial fresh processes; alternating order per pair. Demo workers use the largest existing numerical-demos.mjs scale, owned snapshot inputs, two warm calls and three measured calls; row is median of measured calls. Euler includes parsing. Array-stage fixtures time a complete parse/execute of 12 rounds. FFT uses the same current demo source in both builds, >=300 ms warmup and a batch targeting 150 ms, including output forcing. Every worker validates its output against the existing independent oracle. These are different timing contracts and should only be compared within a case.",
+  "results": [
+    {
+      "name": "matvec",
+      "trial": 0,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 92.11416699999995,
+      "warmMs": [
+        57.468791999999894,
+        53.114874999999984,
+        59.724875
+      ],
+      "memory": {
+        "rss": 224034816,
+        "heapTotal": 134840320,
+        "heapUsed": 84458152,
+        "external": 11902492,
+        "arrayBuffers": 9626439
+      },
+      "maxRSSKiB": 218784,
+      "measuredMs": 57.468791999999894
+    },
+    {
+      "name": "matvec",
+      "trial": 0,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 94.34874999999994,
+      "warmMs": [
+        58.93429100000003,
+        69.202,
+        64.54120799999998
+      ],
+      "memory": {
+        "rss": 223854592,
+        "heapTotal": 134053888,
+        "heapUsed": 81073040,
+        "external": 11517468,
+        "arrayBuffers": 9241415
+      },
+      "maxRSSKiB": 218608,
+      "measuredMs": 64.54120799999998
+    },
+    {
+      "name": "matvec",
+      "trial": 1,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 112.46712500000001,
+      "warmMs": [
+        64.26120800000001,
+        63.08487500000001,
+        65.12845800000002
+      ],
+      "memory": {
+        "rss": 225378304,
+        "heapTotal": 134053888,
+        "heapUsed": 83440952,
+        "external": 11800092,
+        "arrayBuffers": 9524039
+      },
+      "maxRSSKiB": 220096,
+      "measuredMs": 64.26120800000001
+    },
+    {
+      "name": "matvec",
+      "trial": 1,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 116.26337500000005,
+      "warmMs": [
+        69.59349999999995,
+        72.00541699999997,
+        75.83354099999997
+      ],
+      "memory": {
+        "rss": 227000320,
+        "heapTotal": 134316032,
+        "heapUsed": 82259016,
+        "external": 11636252,
+        "arrayBuffers": 9360199
+      },
+      "maxRSSKiB": 221680,
+      "measuredMs": 72.00541699999997
+    },
+    {
+      "name": "matvec",
+      "trial": 2,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 57.22370799999999,
+      "warmMs": [
+        32.36541599999998,
+        34.26966600000003,
+        33.520458000000076
+      ],
+      "memory": {
+        "rss": 227655680,
+        "heapTotal": 134578176,
+        "heapUsed": 81312016,
+        "external": 11709980,
+        "arrayBuffers": 9433927
+      },
+      "maxRSSKiB": 222320,
+      "measuredMs": 33.520458000000076
+    },
+    {
+      "name": "matvec",
+      "trial": 2,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 52.52058299999999,
+      "warmMs": [
+        31.11658299999999,
+        33.604709000000014,
+        32.845124999999996
+      ],
+      "memory": {
+        "rss": 224690176,
+        "heapTotal": 134840320,
+        "heapUsed": 79489264,
+        "external": 11476508,
+        "arrayBuffers": 9200455
+      },
+      "maxRSSKiB": 219424,
+      "measuredMs": 32.845124999999996
+    },
+    {
+      "name": "matvec",
+      "trial": 3,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 54.196167,
+      "warmMs": [
+        31.867999999999995,
+        33.04516699999999,
+        31.437667000000033
+      ],
+      "memory": {
+        "rss": 225247232,
+        "heapTotal": 135364608,
+        "heapUsed": 81388720,
+        "external": 11742748,
+        "arrayBuffers": 9466695
+      },
+      "maxRSSKiB": 219968,
+      "measuredMs": 31.867999999999995
+    },
+    {
+      "name": "matvec",
+      "trial": 3,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 177.11616600000002,
+      "warmMs": [
+        32.60958300000004,
+        33.32483300000001,
+        33.12354099999993
+      ],
+      "memory": {
+        "rss": 209649664,
+        "heapTotal": 134578176,
+        "heapUsed": 80804656,
+        "external": 11669020,
+        "arrayBuffers": 9392967
+      },
+      "maxRSSKiB": 204752,
+      "measuredMs": 33.12354099999993
+    },
+    {
+      "name": "matvec",
+      "trial": 4,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 50.914083000000005,
+      "warmMs": [
+        30.23795899999999,
+        31.47229200000004,
+        34.35420799999997
+      ],
+      "memory": {
+        "rss": 223657984,
+        "heapTotal": 134840320,
+        "heapUsed": 81599312,
+        "external": 11697692,
+        "arrayBuffers": 9421639
+      },
+      "maxRSSKiB": 218416,
+      "measuredMs": 31.47229200000004
+    },
+    {
+      "name": "matvec",
+      "trial": 4,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 54.462875,
+      "warmMs": [
+        34.29899999999998,
+        35.847666000000004,
+        36.70025000000004
+      ],
+      "memory": {
+        "rss": 226607104,
+        "heapTotal": 134840320,
+        "heapUsed": 80048256,
+        "external": 11558428,
+        "arrayBuffers": 9282375
+      },
+      "maxRSSKiB": 221296,
+      "measuredMs": 35.847666000000004
+    },
+    {
+      "name": "matvec",
+      "trial": 5,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 50.53550000000001,
+      "warmMs": [
+        29.836125000000038,
+        32.529791999999986,
+        30.793457999999987
+      ],
+      "memory": {
+        "rss": 226574336,
+        "heapTotal": 135364608,
+        "heapUsed": 81571536,
+        "external": 11693596,
+        "arrayBuffers": 9417543
+      },
+      "maxRSSKiB": 221264,
+      "measuredMs": 30.793457999999987
+    },
+    {
+      "name": "matvec",
+      "trial": 5,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 52.720624999999984,
+      "warmMs": [
+        29.29820799999999,
+        31.341583000000014,
+        29.894124999999974
+      ],
+      "memory": {
+        "rss": 224133120,
+        "heapTotal": 134316032,
+        "heapUsed": 82067632,
+        "external": 11685404,
+        "arrayBuffers": 9409351
+      },
+      "maxRSSKiB": 218880,
+      "measuredMs": 29.894124999999974
+    },
+    {
+      "name": "matvec",
+      "trial": 6,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 50.35608300000001,
+      "warmMs": [
+        29.18295900000004,
+        30.763750000000016,
+        31.95554199999998
+      ],
+      "memory": {
+        "rss": 224526336,
+        "heapTotal": 134840320,
+        "heapUsed": 81826664,
+        "external": 11689500,
+        "arrayBuffers": 9413447
+      },
+      "maxRSSKiB": 219264,
+      "measuredMs": 30.763750000000016
+    },
+    {
+      "name": "matvec",
+      "trial": 6,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 48.81512500000002,
+      "warmMs": [
+        29.339583000000005,
+        30.965458000000012,
+        30.996417000000008
+      ],
+      "memory": {
+        "rss": 225214464,
+        "heapTotal": 134578176,
+        "heapUsed": 82995352,
+        "external": 11808284,
+        "arrayBuffers": 9532231
+      },
+      "maxRSSKiB": 219936,
+      "measuredMs": 30.965458000000012
+    },
+    {
+      "name": "matvec",
+      "trial": 7,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 51.60204199999998,
+      "warmMs": [
+        28.618167000000028,
+        31.112791000000016,
+        31.098292000000015
+      ],
+      "memory": {
+        "rss": 224739328,
+        "heapTotal": 134840320,
+        "heapUsed": 82864832,
+        "external": 11779612,
+        "arrayBuffers": 9503559
+      },
+      "maxRSSKiB": 219472,
+      "measuredMs": 31.098292000000015
+    },
+    {
+      "name": "matvec",
+      "trial": 7,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 47.642875000000004,
+      "warmMs": [
+        30.842041999999992,
+        29.884916999999973,
+        31.532541000000037
+      ],
+      "memory": {
+        "rss": 224329728,
+        "heapTotal": 134840320,
+        "heapUsed": 80336240,
+        "external": 11451932,
+        "arrayBuffers": 9175879
+      },
+      "maxRSSKiB": 219072,
+      "measuredMs": 30.842041999999992
+    },
+    {
+      "name": "matvec",
+      "trial": 8,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 48.015874999999994,
+      "warmMs": [
+        28.36258300000003,
+        31.345124999999996,
+        33.49566600000003
+      ],
+      "memory": {
+        "rss": 226951168,
+        "heapTotal": 134316032,
+        "heapUsed": 82043736,
+        "external": 11685404,
+        "arrayBuffers": 9409351
+      },
+      "maxRSSKiB": 221632,
+      "measuredMs": 31.345124999999996
+    },
+    {
+      "name": "matvec",
+      "trial": 8,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 51.64437499999997,
+      "warmMs": [
+        29.295292000000018,
+        30.760500000000036,
+        29.762999999999977
+      ],
+      "memory": {
+        "rss": 223854592,
+        "heapTotal": 134316032,
+        "heapUsed": 83369864,
+        "external": 11804188,
+        "arrayBuffers": 9528135
+      },
+      "maxRSSKiB": 218608,
+      "measuredMs": 29.762999999999977
+    }
+  ],
+  "summary": [
+    {
+      "name": "matvec",
+      "version": "baseline",
+      "medianMs": 31.47229200000004,
+      "minMs": 29.894124999999974,
+      "maxMs": 72.00541699999997
+    },
+    {
+      "name": "matvec",
+      "version": "candidate",
+      "medianMs": 31.867999999999995,
+      "minMs": 29.762999999999977,
+      "maxMs": 64.54120799999998
+    }
+  ]
+}
