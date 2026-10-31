@@ -23,18 +23,17 @@ Now = array shape Rows Cols fill 0
 Now 0 Off = 1
 for Level in 1 to N
   Next = array shape Rows Cols fill 0
+  rem Reachable differences, intersected
+  rem with those the remaining digits
+  rem and final carry can cancel.
+  Lo = Off - 9 * (Level - 1) max (Off - 9 * (N - Level + 1) - 18)
+  Hi = Off + 9 * (Level - 1) min (Off + 9 * (N - Level + 1))
   for C in 0 till Rows
     for D in 0 to 9
       V = 137 * D + C
       Carry = V // 10
       Move = V mod 10 - D
-      for T in 0 till Cols
-        Old = Now C T
-        if Old greater 0
-          To = T + Move
-          Next Carry To += Old
-        end
-      end
+      Next Carry (Lo + Move to Hi + Move) += Now C (Lo to Hi)
     end
   end
   Now = Next

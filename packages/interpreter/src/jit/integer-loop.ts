@@ -167,10 +167,14 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))
         || state.localAliases.some(([target, source]) => writable.has(target) || writable.has(source))) return reject(statement, 'unstable-bindings');
+    // A slice assignment returns its RHS selection. When that same source is
+    // written in the region, the returned selection can observe those writes;
+    // retain the publishing backend until private live selections are supported.
+    if (numberMode && [...state.sliceReadSources].some(name => writable.has(name))) return reject(statement, 'mutable-slice-result');
     return {
         statement, names, wideScalars, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
-        binders, arrayInputs, calleeArrays, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
+        binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         needsAlgo: state.needsAlgo, arrayDefinitions, writable, iteration, workCounting, callouts: state.callouts,
     };
 }

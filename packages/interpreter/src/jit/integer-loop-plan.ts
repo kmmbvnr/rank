@@ -126,6 +126,7 @@ export interface IntegerLoopPlan {
     binders: ((value: RankValue) => void)[];
     arrayInputs: Set<string>;
     calleeArrays: Set<string>;
+    sliceReadSources: ReadonlySet<string>;
     indexedReads: Map<string, string | undefined>;
     hasControl: boolean;
     hasReturn: boolean;

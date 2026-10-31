@@ -1,0 +1,2588 @@
+{
+  "baseCommit": "8be3a4df3cfd493a4286bef3854b6e26135453fb",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "architecture": "arm64",
+  "node": "v24.15.0",
+  "method": "Fresh serial Node processes; three samples per case; alternate order; parse and JIT included, module import excluded; all full answers asserted; no own CPU-heavy work overlapped the timing series. Other host load is uncontrolled.",
+  "samples": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 18,
+      "ms": 174.432625,
+      "answer": "20444710234716473",
+      "rssMiB": 185.53125,
+      "trial": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "window",
+      "n": 18,
+      "ms": 154.30925000000002,
+      "answer": "20444710234716473",
+      "rssMiB": 187.09375,
+      "trial": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "prune",
+      "n": 18,
+      "ms": 153.775791,
+      "answer": "20444710234716473",
+      "rssMiB": 186.140625,
+      "trial": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "vector",
+      "n": 18,
+      "ms": 422.93916699999994,
+      "answer": "20444710234716473",
+      "rssMiB": 399.875,
+      "trial": 1
+    },
+    {
+      "mode": "compiled",
+      "variant": "lowered",
+      "n": 18,
+      "ms": 153.913083,
+      "answer": "20444710234716473",
+      "rssMiB": 187.046875,
+      "trial": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "n": 18,
+      "ms": 8513.72075,
+      "answer": "20444710234716473",
+      "rssMiB": 197.15625,
+      "trial": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "window",
+      "n": 18,
+      "ms": 3502.140709,
+      "answer": "20444710234716473",
+      "rssMiB": 197.390625,
+      "trial": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "prune",
+      "n": 18,
+      "ms": 3104.161708,
+      "answer": "20444710234716473",
+      "rssMiB": 357.578125,
+      "trial": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "vector",
+      "n": 18,
+      "ms": 583.07175,
+      "answer": "20444710234716473",
+      "rssMiB": 395.0625,
+      "trial": 1
+    },
+    {
+      "mode": "reference",
+      "variant": "vector",
+      "n": 18,
+      "ms": 587.009417,
+      "answer": "20444710234716473",
+      "rssMiB": 395.921875,
+      "trial": 2
+    },
+    {
+      "mode": "reference",
+      "variant": "prune",
+      "n": 18,
+      "ms": 3068.6763339999998,
+      "answer": "20444710234716473",
+      "rssMiB": 350.71875,
+      "trial": 2
+    },
+    {
+      "mode": "reference",
+      "variant": "window",
+      "n": 18,
+      "ms": 3489.723916,
+      "answer": "20444710234716473",
+      "rssMiB": 197.125,
+      "trial": 2
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "n": 18,
+      "ms": 8567.275708000001,
+      "answer": "20444710234716473",
+      "rssMiB": 196.484375,
+      "trial": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "lowered",
+      "n": 18,
+      "ms": 152.816875,
+      "answer": "20444710234716473",
+      "rssMiB": 188.078125,
+      "trial": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "vector",
+      "n": 18,
+      "ms": 425.6647079999999,
+      "answer": "20444710234716473",
+      "rssMiB": 399.125,
+      "trial": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "prune",
+      "n": 18,
+      "ms": 156.00233400000002,
+      "answer": "20444710234716473",
+      "rssMiB": 173.71875,
+      "trial": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "window",
+      "n": 18,
+      "ms": 158.2235,
+      "answer": "20444710234716473",
+      "rssMiB": 186.421875,
+      "trial": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 18,
+      "ms": 179.04495800000004,
+      "answer": "20444710234716473",
+      "rssMiB": 184.828125,
+      "trial": 2
+    },
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 18,
+      "ms": 183.21558299999998,
+      "answer": "20444710234716473",
+      "rssMiB": 186.84375,
+      "trial": 3
+    },
+    {
+      "mode": "compiled",
+      "variant": "window",
+      "n": 18,
+      "ms": 165.04049999999998,
+      "answer": "20444710234716473",
+      "rssMiB": 186.078125,
+      "trial": 3
+    },
+    {
+      "mode": "compiled",
+      "variant": "prune",
+      "n": 18,
+      "ms": 157.68,
+      "answer": "20444710234716473",
+      "rssMiB": 187.5,
+      "trial": 3
+    },
+    {
+      "mode": "compiled",
+      "variant": "vector",
+      "n": 18,
+      "ms": 425.41870800000004,
+      "answer": "20444710234716473",
+      "rssMiB": 397.109375,
+      "trial": 3
+    },
+    {
+      "mode": "compiled",
+      "variant": "lowered",
+      "n": 18,
+      "ms": 154.22733300000002,
+      "answer": "20444710234716473",
+      "rssMiB": 185.375,
+      "trial": 3
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "n": 18,
+      "ms": 8580.28075,
+      "answer": "20444710234716473",
+      "rssMiB": 196.484375,
+      "trial": 3
+    },
+    {
+      "mode": "reference",
+      "variant": "window",
+      "n": 18,
+      "ms": 3492.331625,
+      "answer": "20444710234716473",
+      "rssMiB": 196.90625,
+      "trial": 3
+    },
+    {
+      "mode": "reference",
+      "variant": "prune",
+      "n": 18,
+      "ms": 3079.426708,
+      "answer": "20444710234716473",
+      "rssMiB": 353.078125,
+      "trial": 3
+    },
+    {
+      "mode": "reference",
+      "variant": "vector",
+      "n": 18,
+      "ms": 584.04,
+      "answer": "20444710234716473",
+      "rssMiB": 395.265625,
+      "trial": 3
+    }
+  ],
+  "summary": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "medianMs": 179.04495800000004,
+      "medianPeakRssMiB": 185.53125
+    },
+    {
+      "mode": "compiled",
+      "variant": "window",
+      "medianMs": 158.2235,
+      "medianPeakRssMiB": 186.421875
+    },
+    {
+      "mode": "compiled",
+      "variant": "prune",
+      "medianMs": 156.00233400000002,
+      "medianPeakRssMiB": 186.140625
+    },
+    {
+      "mode": "compiled",
+      "variant": "vector",
+      "medianMs": 425.41870800000004,
+      "medianPeakRssMiB": 399.125
+    },
+    {
+      "mode": "compiled",
+      "variant": "lowered",
+      "medianMs": 153.913083,
+      "medianPeakRssMiB": 187.046875
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "medianMs": 8567.275708000001,
+      "medianPeakRssMiB": 196.484375
+    },
+    {
+      "mode": "reference",
+      "variant": "window",
+      "medianMs": 3492.331625,
+      "medianPeakRssMiB": 197.125
+    },
+    {
+      "mode": "reference",
+      "variant": "prune",
+      "medianMs": 3079.426708,
+      "medianPeakRssMiB": 353.078125
+    },
+    {
+      "mode": "reference",
+      "variant": "vector",
+      "medianMs": 584.04,
+      "medianPeakRssMiB": 395.265625
+    }
+  ],
+  "exploration": [
+    {
+      "mode": "compiled",
+      "variant": "original",
+      "n": 18,
+      "ms": 176.13375,
+      "answer": "20444710234716473",
+      "rssMiB": 185.53125
+    },
+    {
+      "mode": "reference",
+      "variant": "original",
+      "n": 18,
+      "ms": 8721.038166999999,
+      "answer": "20444710234716473",
+      "rssMiB": 196.953125
+    },
+    {
+      "mode": "compiled",
+      "variant": "reorder",
+      "n": 18,
+      "ms": 156.72037500000002,
+      "answer": "20444710234716473",
+      "rssMiB": 188.75
+    },
+    {
+      "mode": "reference",
+      "variant": "reorder",
+      "n": 18,
+      "ms": 4864.484416,
+      "answer": "20444710234716473",
+      "rssMiB": 372
+    },
+    {
+      "mode": "compiled",
+      "variant": "bounds",
+      "n": 18,
+      "ms": 160.29437499999997,
+      "answer": "20444710234716473",
+      "rssMiB": 184.625
+    },
+    {
+      "mode": "reference",
+      "variant": "bounds",
+      "n": 18,
+      "ms": 5293.081792,
+      "answer": "20444710234716473",
+      "rssMiB": 197.34375
+    },
+    {
+      "mode": "compiled",
+      "variant": "both",
+      "n": 18,
+      "ms": 159.89062499999997,
+      "answer": "20444710234716473",
+      "rssMiB": 175.34375
+    },
+    {
+      "mode": "reference",
+      "variant": "both",
+      "n": 18,
+      "ms": 4618.546834,
+      "answer": "20444710234716473",
+      "rssMiB": 362.078125
+    },
+    {
+      "mode": "compiled",
+      "variant": "prune",
+      "n": 18,
+      "ms": 157.12904200000003,
+      "answer": "20444710234716473",
+      "rssMiB": 186.359375
+    },
+    {
+      "mode": "reference",
+      "variant": "prune",
+      "n": 18,
+      "ms": 3035.9375,
+      "answer": "20444710234716473",
+      "rssMiB": 352.765625
+    },
+    {
+      "mode": "compiled",
+      "variant": "window",
+      "n": 18,
+      "ms": 171.352667,
+      "answer": "20444710234716473",
+      "rssMiB": 178.21875
+    },
+    {
+      "mode": "reference",
+      "variant": "window",
+      "n": 18,
+      "ms": 3594.593333,
+      "answer": "20444710234716473",
+      "rssMiB": 200.703125
+    },
+    {
+      "mode": "compiled",
+      "variant": "terminal",
+      "n": 18,
+      "ms": 193.36720900000003,
+      "answer": "20444710234716473",
+      "rssMiB": 189.40625
+    },
+    {
+      "mode": "reference",
+      "variant": "terminal",
+      "n": 18,
+      "ms": 3745.638375,
+      "answer": "20444710234716473",
+      "rssMiB": 193.140625
+    },
+    {
+      "mode": "compiled",
+      "variant": "vector",
+      "n": 18,
+      "ms": 460.79091700000004,
+      "answer": "20444710234716473",
+      "rssMiB": 362.765625
+    },
+    {
+      "mode": "reference",
+      "variant": "vector",
+      "n": 18,
+      "ms": 672.5090829999999,
+      "answer": "20444710234716473",
+      "rssMiB": 396.859375
+    }
+  ],
+  "verification": {
+    "oracle": {
+      "0": 1,
+      "1": 2,
+      "2": 4,
+      "3": 33,
+      "4": 306,
+      "5": 2902,
+      "6": 27955
+    },
+    "comparisons": 75,
+    "results": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 0,
+        "ms": 102.000541,
+        "answer": "1",
+        "rssMiB": 143.359375
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 1,
+        "ms": 109.99099999999999,
+        "answer": "2",
+        "rssMiB": 157.140625
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 2,
+        "ms": 110.99054199999998,
+        "answer": "4",
+        "rssMiB": 143.90625
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 3,
+        "ms": 111.62504099999998,
+        "answer": "33",
+        "rssMiB": 143.859375
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 4,
+        "ms": 113.16870800000001,
+        "answer": "306",
+        "rssMiB": 157.203125
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 5,
+        "ms": 113.68079099999997,
+        "answer": "2902",
+        "rssMiB": 158.40625
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 6,
+        "ms": 116.84441699999999,
+        "answer": "27955",
+        "rssMiB": 157.140625
+      },
+      {
+        "mode": "compiled",
+        "variant": "reorder",
+        "n": 0,
+        "ms": 101.02625,
+        "answer": "1",
+        "rssMiB": 158.953125
+      },
+      {
+        "mode": "compiled",
+        "variant": "reorder",
+        "n": 1,
+        "ms": 103.77129199999999,
+        "answer": "2",
+        "rssMiB": 157.546875
+      },
+      {
+        "mode": "compiled",
+        "variant": "reorder",
+        "n": 2,
+        "ms": 105.779125,
+        "answer": "4",
+        "rssMiB": 159.046875
+      },
+      {
+        "mode": "compiled",
+        "variant": "reorder",
+        "n": 3,
+        "ms": 107.81500000000003,
+        "answer": "33",
+        "rssMiB": 157.921875
+      },
+      {
+        "mode": "compiled",
+        "variant": "reorder",
+        "n": 4,
+        "ms": 106.797708,
+        "answer": "306",
+        "rssMiB": 157.578125
+      },
+      {
+        "mode": "compiled",
+        "variant": "reorder",
+        "n": 5,
+        "ms": 108.46995799999999,
+        "answer": "2902",
+        "rssMiB": 158.125
+      },
+      {
+        "mode": "compiled",
+        "variant": "reorder",
+        "n": 6,
+        "ms": 109.90258300000002,
+        "answer": "27955",
+        "rssMiB": 157.53125
+      },
+      {
+        "mode": "compiled",
+        "variant": "bounds",
+        "n": 0,
+        "ms": 104.8595,
+        "answer": "1",
+        "rssMiB": 157.9375
+      },
+      {
+        "mode": "compiled",
+        "variant": "bounds",
+        "n": 1,
+        "ms": 107.54583300000002,
+        "answer": "2",
+        "rssMiB": 159.65625
+      },
+      {
+        "mode": "compiled",
+        "variant": "bounds",
+        "n": 2,
+        "ms": 108.823083,
+        "answer": "4",
+        "rssMiB": 144.109375
+      },
+      {
+        "mode": "compiled",
+        "variant": "bounds",
+        "n": 3,
+        "ms": 108.900666,
+        "answer": "33",
+        "rssMiB": 153.078125
+      },
+      {
+        "mode": "compiled",
+        "variant": "bounds",
+        "n": 4,
+        "ms": 110.98462500000002,
+        "answer": "306",
+        "rssMiB": 159.75
+      },
+      {
+        "mode": "compiled",
+        "variant": "bounds",
+        "n": 5,
+        "ms": 111.433458,
+        "answer": "2902",
+        "rssMiB": 159.5625
+      },
+      {
+        "mode": "compiled",
+        "variant": "bounds",
+        "n": 6,
+        "ms": 113.045458,
+        "answer": "27955",
+        "rssMiB": 159.828125
+      },
+      {
+        "mode": "compiled",
+        "variant": "both",
+        "n": 0,
+        "ms": 104.26529199999999,
+        "answer": "1",
+        "rssMiB": 157.65625
+      },
+      {
+        "mode": "compiled",
+        "variant": "both",
+        "n": 1,
+        "ms": 106.63608400000001,
+        "answer": "2",
+        "rssMiB": 143.90625
+      },
+      {
+        "mode": "compiled",
+        "variant": "both",
+        "n": 2,
+        "ms": 107.73658400000002,
+        "answer": "4",
+        "rssMiB": 144.375
+      },
+      {
+        "mode": "compiled",
+        "variant": "both",
+        "n": 3,
+        "ms": 107.251125,
+        "answer": "33",
+        "rssMiB": 143.71875
+      },
+      {
+        "mode": "compiled",
+        "variant": "both",
+        "n": 4,
+        "ms": 107.680208,
+        "answer": "306",
+        "rssMiB": 158.6875
+      },
+      {
+        "mode": "compiled",
+        "variant": "both",
+        "n": 5,
+        "ms": 113.24137500000003,
+        "answer": "2902",
+        "rssMiB": 145.921875
+      },
+      {
+        "mode": "compiled",
+        "variant": "both",
+        "n": 6,
+        "ms": 109.508083,
+        "answer": "27955",
+        "rssMiB": 155.109375
+      },
+      {
+        "mode": "compiled",
+        "variant": "prune",
+        "n": 0,
+        "ms": 109.16416699999999,
+        "answer": "1",
+        "rssMiB": 164.53125
+      },
+      {
+        "mode": "compiled",
+        "variant": "prune",
+        "n": 1,
+        "ms": 112.18145799999999,
+        "answer": "2",
+        "rssMiB": 165.375
+      },
+      {
+        "mode": "compiled",
+        "variant": "prune",
+        "n": 2,
+        "ms": 111.44783300000003,
+        "answer": "4",
+        "rssMiB": 165.421875
+      },
+      {
+        "mode": "compiled",
+        "variant": "prune",
+        "n": 3,
+        "ms": 112.77349999999998,
+        "answer": "33",
+        "rssMiB": 159.984375
+      },
+      {
+        "mode": "compiled",
+        "variant": "prune",
+        "n": 4,
+        "ms": 112.672334,
+        "answer": "306",
+        "rssMiB": 165.859375
+      },
+      {
+        "mode": "compiled",
+        "variant": "prune",
+        "n": 5,
+        "ms": 114.80341700000002,
+        "answer": "2902",
+        "rssMiB": 145.78125
+      },
+      {
+        "mode": "compiled",
+        "variant": "prune",
+        "n": 6,
+        "ms": 115.04970799999998,
+        "answer": "27955",
+        "rssMiB": 166.796875
+      },
+      {
+        "mode": "compiled",
+        "variant": "window",
+        "n": 0,
+        "ms": 110.76620799999998,
+        "answer": "1",
+        "rssMiB": 145.5625
+      },
+      {
+        "mode": "compiled",
+        "variant": "window",
+        "n": 1,
+        "ms": 112.890875,
+        "answer": "2",
+        "rssMiB": 146.1875
+      },
+      {
+        "mode": "compiled",
+        "variant": "window",
+        "n": 2,
+        "ms": 114.02433300000001,
+        "answer": "4",
+        "rssMiB": 147.046875
+      },
+      {
+        "mode": "compiled",
+        "variant": "window",
+        "n": 3,
+        "ms": 115.40670899999998,
+        "answer": "33",
+        "rssMiB": 146.65625
+      },
+      {
+        "mode": "compiled",
+        "variant": "window",
+        "n": 4,
+        "ms": 114.35358299999999,
+        "answer": "306",
+        "rssMiB": 147.53125
+      },
+      {
+        "mode": "compiled",
+        "variant": "window",
+        "n": 5,
+        "ms": 115.977375,
+        "answer": "2902",
+        "rssMiB": 167.125
+      },
+      {
+        "mode": "compiled",
+        "variant": "window",
+        "n": 6,
+        "ms": 117.32595799999999,
+        "answer": "27955",
+        "rssMiB": 168.53125
+      },
+      {
+        "mode": "compiled",
+        "variant": "terminal",
+        "n": 0,
+        "ms": 112.05429199999998,
+        "answer": "1",
+        "rssMiB": 160.796875
+      },
+      {
+        "mode": "compiled",
+        "variant": "terminal",
+        "n": 1,
+        "ms": 115.33383300000003,
+        "answer": "2",
+        "rssMiB": 153.21875
+      },
+      {
+        "mode": "compiled",
+        "variant": "terminal",
+        "n": 2,
+        "ms": 118.85499999999999,
+        "answer": "4",
+        "rssMiB": 178.125
+      },
+      {
+        "mode": "compiled",
+        "variant": "terminal",
+        "n": 3,
+        "ms": 119.49808300000001,
+        "answer": "33",
+        "rssMiB": 155.15625
+      },
+      {
+        "mode": "compiled",
+        "variant": "terminal",
+        "n": 4,
+        "ms": 123.10637499999999,
+        "answer": "306",
+        "rssMiB": 175.953125
+      },
+      {
+        "mode": "compiled",
+        "variant": "terminal",
+        "n": 5,
+        "ms": 122.857,
+        "answer": "2902",
+        "rssMiB": 175.4375
+      },
+      {
+        "mode": "compiled",
+        "variant": "terminal",
+        "n": 6,
+        "ms": 121.98695799999999,
+        "answer": "27955",
+        "rssMiB": 155.765625
+      },
+      {
+        "mode": "compiled",
+        "variant": "vector",
+        "n": 0,
+        "ms": 110.274958,
+        "answer": "1",
+        "rssMiB": 167.34375
+      },
+      {
+        "mode": "compiled",
+        "variant": "vector",
+        "n": 1,
+        "ms": 138.378708,
+        "answer": "2",
+        "rssMiB": 175.59375
+      },
+      {
+        "mode": "compiled",
+        "variant": "vector",
+        "n": 2,
+        "ms": 154.40904200000003,
+        "answer": "4",
+        "rssMiB": 189.859375
+      },
+      {
+        "mode": "compiled",
+        "variant": "vector",
+        "n": 3,
+        "ms": 176.43191700000003,
+        "answer": "33",
+        "rssMiB": 206.21875
+      },
+      {
+        "mode": "compiled",
+        "variant": "vector",
+        "n": 4,
+        "ms": 191.92395899999997,
+        "answer": "306",
+        "rssMiB": 235.3125
+      },
+      {
+        "mode": "compiled",
+        "variant": "vector",
+        "n": 5,
+        "ms": 227.78737500000003,
+        "answer": "2902",
+        "rssMiB": 234.21875
+      },
+      {
+        "mode": "compiled",
+        "variant": "vector",
+        "n": 6,
+        "ms": 243.61558300000002,
+        "answer": "27955",
+        "rssMiB": 269.65625
+      },
+      {
+        "mode": "compiled",
+        "variant": "lowered",
+        "n": 0,
+        "ms": 108.229208,
+        "answer": "1",
+        "rssMiB": 143.953125
+      },
+      {
+        "mode": "compiled",
+        "variant": "lowered",
+        "n": 1,
+        "ms": 110.95345900000001,
+        "answer": "2",
+        "rssMiB": 164.734375
+      },
+      {
+        "mode": "compiled",
+        "variant": "lowered",
+        "n": 2,
+        "ms": 111.27179199999998,
+        "answer": "4",
+        "rssMiB": 164.53125
+      },
+      {
+        "mode": "compiled",
+        "variant": "lowered",
+        "n": 3,
+        "ms": 111.63987500000002,
+        "answer": "33",
+        "rssMiB": 166.703125
+      },
+      {
+        "mode": "compiled",
+        "variant": "lowered",
+        "n": 4,
+        "ms": 113.20945799999998,
+        "answer": "306",
+        "rssMiB": 165.46875
+      },
+      {
+        "mode": "compiled",
+        "variant": "lowered",
+        "n": 5,
+        "ms": 115.150709,
+        "answer": "2902",
+        "rssMiB": 144.25
+      },
+      {
+        "mode": "compiled",
+        "variant": "lowered",
+        "n": 6,
+        "ms": 123.80062499999997,
+        "answer": "27955",
+        "rssMiB": 167.625
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "n": 0,
+        "ms": 98.26925,
+        "answer": "1",
+        "rssMiB": 150.09375
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "n": 3,
+        "ms": 1018.030709,
+        "answer": "33",
+        "rssMiB": 180.421875
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "n": 6,
+        "ms": 2065.365667,
+        "answer": "27955",
+        "rssMiB": 184.125
+      },
+      {
+        "mode": "reference",
+        "variant": "window",
+        "n": 0,
+        "ms": 104.88887500000001,
+        "answer": "1",
+        "rssMiB": 164.5625
+      },
+      {
+        "mode": "reference",
+        "variant": "window",
+        "n": 3,
+        "ms": 174.906458,
+        "answer": "33",
+        "rssMiB": 180.796875
+      },
+      {
+        "mode": "reference",
+        "variant": "window",
+        "n": 6,
+        "ms": 458.592083,
+        "answer": "27955",
+        "rssMiB": 186.265625
+      },
+      {
+        "mode": "reference",
+        "variant": "vector",
+        "n": 0,
+        "ms": 105.98541599999999,
+        "answer": "1",
+        "rssMiB": 146.515625
+      },
+      {
+        "mode": "reference",
+        "variant": "vector",
+        "n": 3,
+        "ms": 167.17950000000002,
+        "answer": "33",
+        "rssMiB": 205.890625
+      },
+      {
+        "mode": "reference",
+        "variant": "vector",
+        "n": 6,
+        "ms": 255.639292,
+        "answer": "27955",
+        "rssMiB": 270.375
+      },
+      {
+        "mode": "reference",
+        "variant": "lowered",
+        "n": 0,
+        "ms": 103.680917,
+        "answer": "1",
+        "rssMiB": 162.484375
+      },
+      {
+        "mode": "reference",
+        "variant": "lowered",
+        "n": 3,
+        "ms": 278.410208,
+        "answer": "33",
+        "rssMiB": 181.015625
+      },
+      {
+        "mode": "reference",
+        "variant": "lowered",
+        "n": 6,
+        "ms": 682.785834,
+        "answer": "27955",
+        "rssMiB": 185.328125
+      }
+    ]
+  },
+  "diagnostics": {
+    "original": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 19,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 20,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 1,
+      "numberLoopOverflows": 1,
+      "numberLoopReadBuffers": 7,
+      "numberLoopReadBufferCells": 383600,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 1,
+      "bulkArrayWriteCells": 1,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 2,
+        "loop:mutable-array-alias:ForStatement": 1,
+        "scalar-expression:unsupported-op:to": 1
+      },
+      "compilerRejections": []
+    },
+    "vector": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 1,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 2,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 1,
+      "numberLoopOverflows": 1,
+      "numberLoopReadBuffers": 2,
+      "numberLoopReadBufferCells": 109600,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 24661,
+      "bulkArrayWriteCells": 2219401,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 2,
+        "loop:unsupported-op:to": 3,
+        "scalar-expression:unsupported-op:to": 4,
+        "tensor:dyadic-terminal:AssignmentStatement": 2,
+        "tensor:binding:select": 36,
+        "scalar-expression:unsupported-op:till": 1,
+        "tensor:output-shape": 24660,
+        "scalar-expression:too-small": 3,
+        "tensor:scalar-evaluation-timing": 24660
+      },
+      "compilerRejections": []
+    },
+    "lowered": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 19,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 20,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 1,
+      "numberLoopOverflows": 1,
+      "numberLoopReadBuffers": 7,
+      "numberLoopReadBufferCells": 383600,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 1,
+      "bulkArrayWriteCells": 1,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 2,
+        "loop:mutable-array-alias:ForStatement": 1,
+        "scalar-expression:unsupported-op:to": 1,
+        "tensor:dyadic-terminal:AssignmentStatement": 2,
+        "tensor:binding:select": 36
+      },
+      "compilerRejections": []
+    }
+  },
+  "sourceSha256": {
+    "demos/euler/290_digitalsignature.ra": "24aa9ce2f3e518416b599270cfbd213dcdabcf98df736e051b72821511d969dd",
+    "benchmarks/euler290-investigation.mjs": "8c4a4e07fa4813f054e4d23f9ba67a06a3d1dd1d90f161d28bc1288697374251",
+    "benchmarks/euler290-verify.py": "7e1365a098cc2ec69944f4fdfa35bd16488da4e4a589a26e40cee02423b07bb7",
+    "benchmarks/experiments/euler290-both.ra": "e3c6a3d1e21d33020fa2834580e9304c6d18782c8f8e0300795854b8907b5b91",
+    "benchmarks/experiments/euler290-bounds.ra": "395ae73ce3eecbca41fe25884d7fb1abfb4ab4e3a707bb93e00374840f053382",
+    "benchmarks/experiments/euler290-lowered.ra": "3364325291d526472834e9c56928e2d6f6837f45d25a6bde5188c0b127703491",
+    "benchmarks/experiments/euler290-original.ra": "24aa9ce2f3e518416b599270cfbd213dcdabcf98df736e051b72821511d969dd",
+    "benchmarks/experiments/euler290-prune.ra": "71ce2aecf052945903ecd6bd2bf4581bcf7bbfaece5c85574b03eed1eb6da687",
+    "benchmarks/experiments/euler290-reorder.ra": "97c0455dc873a5ef4bce4f33f66027f50bf27fcc26d596a8466adc6dc07b408a",
+    "benchmarks/experiments/euler290-terminal.ra": "aee254fb6ae4065032f7d8d1cd3c35bf6b6e4672d8632d3bb3346d3ca5607062",
+    "benchmarks/experiments/euler290-vector.ra": "c3d6d94c3ffba84c025adbf2f8806b206d25335986f49a0c2be21da620816f69",
+    "benchmarks/experiments/euler290-window.ra": "bf482b6be0d07503a4b1cfc3bb6b3e872bebea61ff1a55f1826d0958abbd941e"
+  },
+  "delivery": {
+    "beforeJitCommit": "2d1028e1bdc7cc352a7991d05f2143905c168ee6",
+    "integrationParent": "5f20d87b",
+    "method": "Three fresh serial processes, alternating order, parse/JIT included, module import excluded; legacy loader restores only four pre-change JIT modules and transpiles them in a child process. Other host load is uncontrolled. Concurrent main received an unrelated scalar mulmod fusion; focused integration checks rebuilt that main.",
+    "samples": [
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 18,
+        "ms": 178.32412499999998,
+        "answer": "20444710234716473",
+        "rssMiB": 186.921875,
+        "backend": "before",
+        "case": "original",
+        "trial": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "vector",
+        "n": 18,
+        "ms": 416.342667,
+        "answer": "20444710234716473",
+        "rssMiB": 366.984375,
+        "backend": "before",
+        "case": "vector",
+        "trial": 1
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 171.990166,
+        "answer": "20444710234716473",
+        "rssMiB": 195.890625,
+        "backend": "after",
+        "case": "shipping",
+        "trial": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "n": 18,
+        "ms": 8604.46975,
+        "answer": "20444710234716473",
+        "rssMiB": 196.4375,
+        "backend": "before",
+        "case": "original",
+        "trial": 1
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 570.1469169999999,
+        "answer": "20444710234716473",
+        "rssMiB": 361.171875,
+        "backend": "after",
+        "case": "shipping",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "control",
+        "ms": 102.076167,
+        "answer": "983",
+        "rssMiB": 173.5,
+        "backend": "before",
+        "case": "026_reciprocal.ra",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "control",
+        "ms": 100.40275000000003,
+        "answer": "983",
+        "rssMiB": 146.828125,
+        "backend": "after",
+        "case": "026_reciprocal.ra",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "control",
+        "ms": 748.223166,
+        "answer": "329468",
+        "rssMiB": 420.6875,
+        "backend": "before",
+        "case": "104_pandigitalfib.ra",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "control",
+        "ms": 760.754542,
+        "answer": "329468",
+        "rssMiB": 445.9375,
+        "backend": "after",
+        "case": "104_pandigitalfib.ra",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "control",
+        "ms": 114.951167,
+        "answer": "1000023",
+        "rssMiB": 173.828125,
+        "backend": "before",
+        "case": "129_repunitdiv.ra",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "control",
+        "ms": 115.27612500000001,
+        "answer": "1000023",
+        "rssMiB": 174.515625,
+        "backend": "after",
+        "case": "129_repunitdiv.ra",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "control",
+        "ms": 1696.410417,
+        "answer": "1258",
+        "rssMiB": 504.359375,
+        "backend": "before",
+        "case": "093_arithmeticexpr.ra",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "control",
+        "ms": 1684.9233339999998,
+        "answer": "1258",
+        "rssMiB": 502.046875,
+        "backend": "after",
+        "case": "093_arithmeticexpr.ra",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "control",
+        "ms": 1711.870375,
+        "answer": "1258",
+        "rssMiB": 505.296875,
+        "backend": "after",
+        "case": "093_arithmeticexpr.ra",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "control",
+        "ms": 1708.473,
+        "answer": "1258",
+        "rssMiB": 498.96875,
+        "backend": "before",
+        "case": "093_arithmeticexpr.ra",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "control",
+        "ms": 120.86791700000003,
+        "answer": "1000023",
+        "rssMiB": 173.78125,
+        "backend": "after",
+        "case": "129_repunitdiv.ra",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "control",
+        "ms": 116.532333,
+        "answer": "1000023",
+        "rssMiB": 174.234375,
+        "backend": "before",
+        "case": "129_repunitdiv.ra",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "control",
+        "ms": 776.6074169999999,
+        "answer": "329468",
+        "rssMiB": 407.40625,
+        "backend": "after",
+        "case": "104_pandigitalfib.ra",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "control",
+        "ms": 743.222792,
+        "answer": "329468",
+        "rssMiB": 431.53125,
+        "backend": "before",
+        "case": "104_pandigitalfib.ra",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "control",
+        "ms": 101.72699999999998,
+        "answer": "983",
+        "rssMiB": 169.53125,
+        "backend": "after",
+        "case": "026_reciprocal.ra",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "control",
+        "ms": 101.74158400000005,
+        "answer": "983",
+        "rssMiB": 158.0625,
+        "backend": "before",
+        "case": "026_reciprocal.ra",
+        "trial": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 605.107333,
+        "answer": "20444710234716473",
+        "rssMiB": 395.765625,
+        "backend": "after",
+        "case": "shipping",
+        "trial": 2
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "n": 18,
+        "ms": 8784.0595,
+        "answer": "20444710234716473",
+        "rssMiB": 193.9375,
+        "backend": "before",
+        "case": "original",
+        "trial": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 175.526667,
+        "answer": "20444710234716473",
+        "rssMiB": 196.9375,
+        "backend": "after",
+        "case": "shipping",
+        "trial": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "vector",
+        "n": 18,
+        "ms": 412.84829099999996,
+        "answer": "20444710234716473",
+        "rssMiB": 373.859375,
+        "backend": "before",
+        "case": "vector",
+        "trial": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 18,
+        "ms": 189.39250000000004,
+        "answer": "20444710234716473",
+        "rssMiB": 186.046875,
+        "backend": "before",
+        "case": "original",
+        "trial": 2
+      },
+      {
+        "mode": "compiled",
+        "variant": "original",
+        "n": 18,
+        "ms": 194.79545799999994,
+        "answer": "20444710234716473",
+        "rssMiB": 184.75,
+        "backend": "before",
+        "case": "original",
+        "trial": 3
+      },
+      {
+        "mode": "compiled",
+        "variant": "vector",
+        "n": 18,
+        "ms": 420.90254200000004,
+        "answer": "20444710234716473",
+        "rssMiB": 372.46875,
+        "backend": "before",
+        "case": "vector",
+        "trial": 3
+      },
+      {
+        "mode": "compiled",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 181.05591699999997,
+        "answer": "20444710234716473",
+        "rssMiB": 197.21875,
+        "backend": "after",
+        "case": "shipping",
+        "trial": 3
+      },
+      {
+        "mode": "reference",
+        "variant": "original",
+        "n": 18,
+        "ms": 8779.392791999999,
+        "answer": "20444710234716473",
+        "rssMiB": 195.859375,
+        "backend": "before",
+        "case": "original",
+        "trial": 3
+      },
+      {
+        "mode": "reference",
+        "variant": "shipping",
+        "n": 18,
+        "ms": 600.20875,
+        "answer": "20444710234716473",
+        "rssMiB": 396.953125,
+        "backend": "after",
+        "case": "shipping",
+        "trial": 3
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "control",
+        "ms": 102.45887499999998,
+        "answer": "983",
+        "rssMiB": 157.796875,
+        "backend": "before",
+        "case": "026_reciprocal.ra",
+        "trial": 3
+      },
+      {
+        "file": "demos/euler/026_reciprocal.ra",
+        "mode": "control",
+        "ms": 100.67666599999998,
+        "answer": "983",
+        "rssMiB": 166.453125,
+        "backend": "after",
+        "case": "026_reciprocal.ra",
+        "trial": 3
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "control",
+        "ms": 746.621458,
+        "answer": "329468",
+        "rssMiB": 433.09375,
+        "backend": "before",
+        "case": "104_pandigitalfib.ra",
+        "trial": 3
+      },
+      {
+        "file": "demos/euler/104_pandigitalfib.ra",
+        "mode": "control",
+        "ms": 744.3507079999999,
+        "answer": "329468",
+        "rssMiB": 432.75,
+        "backend": "after",
+        "case": "104_pandigitalfib.ra",
+        "trial": 3
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "control",
+        "ms": 116.99920900000001,
+        "answer": "1000023",
+        "rssMiB": 175.734375,
+        "backend": "before",
+        "case": "129_repunitdiv.ra",
+        "trial": 3
+      },
+      {
+        "file": "demos/euler/129_repunitdiv.ra",
+        "mode": "control",
+        "ms": 119.78491599999998,
+        "answer": "1000023",
+        "rssMiB": 173.609375,
+        "backend": "after",
+        "case": "129_repunitdiv.ra",
+        "trial": 3
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "control",
+        "ms": 1691.980709,
+        "answer": "1258",
+        "rssMiB": 470.96875,
+        "backend": "before",
+        "case": "093_arithmeticexpr.ra",
+        "trial": 3
+      },
+      {
+        "file": "demos/euler/093_arithmeticexpr.ra",
+        "mode": "control",
+        "ms": 1708.456375,
+        "answer": "1258",
+        "rssMiB": 494.65625,
+        "backend": "after",
+        "case": "093_arithmeticexpr.ra",
+        "trial": 3
+      }
+    ],
+    "summary": [
+      {
+        "backend": "before",
+        "mode": "compiled",
+        "case": "original",
+        "medianMs": 189.39250000000004,
+        "medianPeakRssMiB": 186.046875
+      },
+      {
+        "backend": "before",
+        "mode": "compiled",
+        "case": "vector",
+        "medianMs": 416.342667,
+        "medianPeakRssMiB": 372.46875
+      },
+      {
+        "backend": "after",
+        "mode": "compiled",
+        "case": "shipping",
+        "medianMs": 175.526667,
+        "medianPeakRssMiB": 196.9375
+      },
+      {
+        "backend": "before",
+        "mode": "reference",
+        "case": "original",
+        "medianMs": 8779.392791999999,
+        "medianPeakRssMiB": 195.859375
+      },
+      {
+        "backend": "after",
+        "mode": "reference",
+        "case": "shipping",
+        "medianMs": 600.20875,
+        "medianPeakRssMiB": 395.765625
+      },
+      {
+        "backend": "before",
+        "mode": "control",
+        "case": "026_reciprocal.ra",
+        "medianMs": 102.076167,
+        "medianPeakRssMiB": 158.0625
+      },
+      {
+        "backend": "after",
+        "mode": "control",
+        "case": "026_reciprocal.ra",
+        "medianMs": 100.67666599999998,
+        "medianPeakRssMiB": 166.453125
+      },
+      {
+        "backend": "before",
+        "mode": "control",
+        "case": "104_pandigitalfib.ra",
+        "medianMs": 746.621458,
+        "medianPeakRssMiB": 431.53125
+      },
+      {
+        "backend": "after",
+        "mode": "control",
+        "case": "104_pandigitalfib.ra",
+        "medianMs": 760.754542,
+        "medianPeakRssMiB": 432.75
+      },
+      {
+        "backend": "before",
+        "mode": "control",
+        "case": "129_repunitdiv.ra",
+        "medianMs": 116.532333,
+        "medianPeakRssMiB": 174.234375
+      },
+      {
+        "backend": "after",
+        "mode": "control",
+        "case": "129_repunitdiv.ra",
+        "medianMs": 119.78491599999998,
+        "medianPeakRssMiB": 173.78125
+      },
+      {
+        "backend": "before",
+        "mode": "control",
+        "case": "093_arithmeticexpr.ra",
+        "medianMs": 1696.410417,
+        "medianPeakRssMiB": 498.96875
+      },
+      {
+        "backend": "after",
+        "mode": "control",
+        "case": "093_arithmeticexpr.ra",
+        "medianMs": 1708.456375,
+        "medianPeakRssMiB": 502.046875
+      }
+    ],
+    "verification": {
+      "oracle": {
+        "0": 1,
+        "1": 2,
+        "2": 4,
+        "3": 33,
+        "4": 306,
+        "5": 2902,
+        "6": 27955
+      },
+      "comparisons": 85,
+      "results": [
+        {
+          "mode": "compiled",
+          "variant": "original",
+          "n": 0,
+          "ms": 113.15674999999999,
+          "answer": "1",
+          "rssMiB": 143.59375
+        },
+        {
+          "mode": "compiled",
+          "variant": "original",
+          "n": 1,
+          "ms": 123.99883299999999,
+          "answer": "2",
+          "rssMiB": 157.5
+        },
+        {
+          "mode": "compiled",
+          "variant": "original",
+          "n": 2,
+          "ms": 129.713167,
+          "answer": "4",
+          "rssMiB": 152.3125
+        },
+        {
+          "mode": "compiled",
+          "variant": "original",
+          "n": 3,
+          "ms": 138.052917,
+          "answer": "33",
+          "rssMiB": 142.984375
+        },
+        {
+          "mode": "compiled",
+          "variant": "original",
+          "n": 4,
+          "ms": 128.63583300000002,
+          "answer": "306",
+          "rssMiB": 152.625
+        },
+        {
+          "mode": "compiled",
+          "variant": "original",
+          "n": 5,
+          "ms": 123.91716699999998,
+          "answer": "2902",
+          "rssMiB": 156.125
+        },
+        {
+          "mode": "compiled",
+          "variant": "original",
+          "n": 6,
+          "ms": 134.095084,
+          "answer": "27955",
+          "rssMiB": 157.765625
+        },
+        {
+          "mode": "compiled",
+          "variant": "reorder",
+          "n": 0,
+          "ms": 115.90920799999998,
+          "answer": "1",
+          "rssMiB": 146.71875
+        },
+        {
+          "mode": "compiled",
+          "variant": "reorder",
+          "n": 1,
+          "ms": 115.44004199999998,
+          "answer": "2",
+          "rssMiB": 151.0625
+        },
+        {
+          "mode": "compiled",
+          "variant": "reorder",
+          "n": 2,
+          "ms": 115.70579200000003,
+          "answer": "4",
+          "rssMiB": 146.703125
+        },
+        {
+          "mode": "compiled",
+          "variant": "reorder",
+          "n": 3,
+          "ms": 115.29358299999998,
+          "answer": "33",
+          "rssMiB": 146.328125
+        },
+        {
+          "mode": "compiled",
+          "variant": "reorder",
+          "n": 4,
+          "ms": 129.63637500000002,
+          "answer": "306",
+          "rssMiB": 153.8125
+        },
+        {
+          "mode": "compiled",
+          "variant": "reorder",
+          "n": 5,
+          "ms": 111.44458300000002,
+          "answer": "2902",
+          "rssMiB": 158.59375
+        },
+        {
+          "mode": "compiled",
+          "variant": "reorder",
+          "n": 6,
+          "ms": 110.18966700000001,
+          "answer": "27955",
+          "rssMiB": 148.03125
+        },
+        {
+          "mode": "compiled",
+          "variant": "bounds",
+          "n": 0,
+          "ms": 106.310584,
+          "answer": "1",
+          "rssMiB": 158.96875
+        },
+        {
+          "mode": "compiled",
+          "variant": "bounds",
+          "n": 1,
+          "ms": 112.54816699999998,
+          "answer": "2",
+          "rssMiB": 153.96875
+        },
+        {
+          "mode": "compiled",
+          "variant": "bounds",
+          "n": 2,
+          "ms": 108.761,
+          "answer": "4",
+          "rssMiB": 160.734375
+        },
+        {
+          "mode": "compiled",
+          "variant": "bounds",
+          "n": 3,
+          "ms": 111.56895799999998,
+          "answer": "33",
+          "rssMiB": 159.84375
+        },
+        {
+          "mode": "compiled",
+          "variant": "bounds",
+          "n": 4,
+          "ms": 110.81020899999999,
+          "answer": "306",
+          "rssMiB": 159.390625
+        },
+        {
+          "mode": "compiled",
+          "variant": "bounds",
+          "n": 5,
+          "ms": 113.25154199999997,
+          "answer": "2902",
+          "rssMiB": 160.34375
+        },
+        {
+          "mode": "compiled",
+          "variant": "bounds",
+          "n": 6,
+          "ms": 116.12691599999997,
+          "answer": "27955",
+          "rssMiB": 161.6875
+        },
+        {
+          "mode": "compiled",
+          "variant": "both",
+          "n": 0,
+          "ms": 105.149709,
+          "answer": "1",
+          "rssMiB": 149.3125
+        },
+        {
+          "mode": "compiled",
+          "variant": "both",
+          "n": 1,
+          "ms": 107.02879100000001,
+          "answer": "2",
+          "rssMiB": 157.71875
+        },
+        {
+          "mode": "compiled",
+          "variant": "both",
+          "n": 2,
+          "ms": 107.53883300000001,
+          "answer": "4",
+          "rssMiB": 158.0625
+        },
+        {
+          "mode": "compiled",
+          "variant": "both",
+          "n": 3,
+          "ms": 108.83254099999999,
+          "answer": "33",
+          "rssMiB": 159.578125
+        },
+        {
+          "mode": "compiled",
+          "variant": "both",
+          "n": 4,
+          "ms": 109.46670800000001,
+          "answer": "306",
+          "rssMiB": 151.984375
+        },
+        {
+          "mode": "compiled",
+          "variant": "both",
+          "n": 5,
+          "ms": 108.816666,
+          "answer": "2902",
+          "rssMiB": 143.90625
+        },
+        {
+          "mode": "compiled",
+          "variant": "both",
+          "n": 6,
+          "ms": 110.43470800000003,
+          "answer": "27955",
+          "rssMiB": 159.109375
+        },
+        {
+          "mode": "compiled",
+          "variant": "prune",
+          "n": 0,
+          "ms": 121.00625000000002,
+          "answer": "1",
+          "rssMiB": 143.609375
+        },
+        {
+          "mode": "compiled",
+          "variant": "prune",
+          "n": 1,
+          "ms": 113.89420899999999,
+          "answer": "2",
+          "rssMiB": 159.21875
+        },
+        {
+          "mode": "compiled",
+          "variant": "prune",
+          "n": 2,
+          "ms": 115.63862499999996,
+          "answer": "4",
+          "rssMiB": 165.546875
+        },
+        {
+          "mode": "compiled",
+          "variant": "prune",
+          "n": 3,
+          "ms": 112.40337500000001,
+          "answer": "33",
+          "rssMiB": 166.078125
+        },
+        {
+          "mode": "compiled",
+          "variant": "prune",
+          "n": 4,
+          "ms": 114.09895800000001,
+          "answer": "306",
+          "rssMiB": 166.125
+        },
+        {
+          "mode": "compiled",
+          "variant": "prune",
+          "n": 5,
+          "ms": 114.56845899999996,
+          "answer": "2902",
+          "rssMiB": 160.296875
+        },
+        {
+          "mode": "compiled",
+          "variant": "prune",
+          "n": 6,
+          "ms": 115.37466599999999,
+          "answer": "27955",
+          "rssMiB": 167.015625
+        },
+        {
+          "mode": "compiled",
+          "variant": "window",
+          "n": 0,
+          "ms": 110.96916699999997,
+          "answer": "1",
+          "rssMiB": 158.8125
+        },
+        {
+          "mode": "compiled",
+          "variant": "window",
+          "n": 1,
+          "ms": 114.15904200000003,
+          "answer": "2",
+          "rssMiB": 159.296875
+        },
+        {
+          "mode": "compiled",
+          "variant": "window",
+          "n": 2,
+          "ms": 117.64462499999999,
+          "answer": "4",
+          "rssMiB": 146.890625
+        },
+        {
+          "mode": "compiled",
+          "variant": "window",
+          "n": 3,
+          "ms": 115.651542,
+          "answer": "33",
+          "rssMiB": 159.75
+        },
+        {
+          "mode": "compiled",
+          "variant": "window",
+          "n": 4,
+          "ms": 118.72162499999999,
+          "answer": "306",
+          "rssMiB": 159.640625
+        },
+        {
+          "mode": "compiled",
+          "variant": "window",
+          "n": 5,
+          "ms": 117.24970800000003,
+          "answer": "2902",
+          "rssMiB": 147.875
+        },
+        {
+          "mode": "compiled",
+          "variant": "window",
+          "n": 6,
+          "ms": 118.51929199999998,
+          "answer": "27955",
+          "rssMiB": 169.890625
+        },
+        {
+          "mode": "compiled",
+          "variant": "terminal",
+          "n": 0,
+          "ms": 114.733417,
+          "answer": "1",
+          "rssMiB": 174.875
+        },
+        {
+          "mode": "compiled",
+          "variant": "terminal",
+          "n": 1,
+          "ms": 115.41791599999999,
+          "answer": "2",
+          "rssMiB": 153.46875
+        },
+        {
+          "mode": "compiled",
+          "variant": "terminal",
+          "n": 2,
+          "ms": 120.27112499999998,
+          "answer": "4",
+          "rssMiB": 175.203125
+        },
+        {
+          "mode": "compiled",
+          "variant": "terminal",
+          "n": 3,
+          "ms": 120.55025000000003,
+          "answer": "33",
+          "rssMiB": 161.09375
+        },
+        {
+          "mode": "compiled",
+          "variant": "terminal",
+          "n": 4,
+          "ms": 121.56045899999998,
+          "answer": "306",
+          "rssMiB": 175.828125
+        },
+        {
+          "mode": "compiled",
+          "variant": "terminal",
+          "n": 5,
+          "ms": 128.8675,
+          "answer": "2902",
+          "rssMiB": 174.53125
+        },
+        {
+          "mode": "compiled",
+          "variant": "terminal",
+          "n": 6,
+          "ms": 129.36641699999998,
+          "answer": "27955",
+          "rssMiB": 176.140625
+        },
+        {
+          "mode": "compiled",
+          "variant": "vector",
+          "n": 0,
+          "ms": 111.26266700000002,
+          "answer": "1",
+          "rssMiB": 167.625
+        },
+        {
+          "mode": "compiled",
+          "variant": "vector",
+          "n": 1,
+          "ms": 113.19358299999996,
+          "answer": "2",
+          "rssMiB": 170.328125
+        },
+        {
+          "mode": "compiled",
+          "variant": "vector",
+          "n": 2,
+          "ms": 119.76045800000003,
+          "answer": "4",
+          "rssMiB": 174.09375
+        },
+        {
+          "mode": "compiled",
+          "variant": "vector",
+          "n": 3,
+          "ms": 118.25262500000002,
+          "answer": "33",
+          "rssMiB": 160.21875
+        },
+        {
+          "mode": "compiled",
+          "variant": "vector",
+          "n": 4,
+          "ms": 117.79054099999999,
+          "answer": "306",
+          "rssMiB": 173.171875
+        },
+        {
+          "mode": "compiled",
+          "variant": "vector",
+          "n": 5,
+          "ms": 119.625584,
+          "answer": "2902",
+          "rssMiB": 154.109375
+        },
+        {
+          "mode": "compiled",
+          "variant": "vector",
+          "n": 6,
+          "ms": 120.51441700000001,
+          "answer": "27955",
+          "rssMiB": 176.15625
+        },
+        {
+          "mode": "compiled",
+          "variant": "lowered",
+          "n": 0,
+          "ms": 108.41491699999997,
+          "answer": "1",
+          "rssMiB": 163.453125
+        },
+        {
+          "mode": "compiled",
+          "variant": "lowered",
+          "n": 1,
+          "ms": 111.33229199999997,
+          "answer": "2",
+          "rssMiB": 144.15625
+        },
+        {
+          "mode": "compiled",
+          "variant": "lowered",
+          "n": 2,
+          "ms": 109.689,
+          "answer": "4",
+          "rssMiB": 145.359375
+        },
+        {
+          "mode": "compiled",
+          "variant": "lowered",
+          "n": 3,
+          "ms": 115.460083,
+          "answer": "33",
+          "rssMiB": 144.96875
+        },
+        {
+          "mode": "compiled",
+          "variant": "lowered",
+          "n": 4,
+          "ms": 118.7175,
+          "answer": "306",
+          "rssMiB": 144.8125
+        },
+        {
+          "mode": "compiled",
+          "variant": "lowered",
+          "n": 5,
+          "ms": 115.63362499999997,
+          "answer": "2902",
+          "rssMiB": 165.3125
+        },
+        {
+          "mode": "compiled",
+          "variant": "lowered",
+          "n": 6,
+          "ms": 117.77999999999997,
+          "answer": "27955",
+          "rssMiB": 160.5625
+        },
+        {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 0,
+          "ms": 110.42787499999997,
+          "answer": "1",
+          "rssMiB": 167.859375
+        },
+        {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 1,
+          "ms": 114.66262499999999,
+          "answer": "2",
+          "rssMiB": 169.6875
+        },
+        {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 2,
+          "ms": 115.40775000000002,
+          "answer": "4",
+          "rssMiB": 170.9375
+        },
+        {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 3,
+          "ms": 115.98983400000003,
+          "answer": "33",
+          "rssMiB": 161.15625
+        },
+        {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 4,
+          "ms": 117.64675,
+          "answer": "306",
+          "rssMiB": 161.46875
+        },
+        {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 5,
+          "ms": 118.291875,
+          "answer": "2902",
+          "rssMiB": 174.328125
+        },
+        {
+          "mode": "compiled",
+          "variant": "shipping",
+          "n": 6,
+          "ms": 121.43116700000002,
+          "answer": "27955",
+          "rssMiB": 177.640625
+        },
+        {
+          "mode": "reference",
+          "variant": "original",
+          "n": 0,
+          "ms": 97.74616600000002,
+          "answer": "1",
+          "rssMiB": 157.171875
+        },
+        {
+          "mode": "reference",
+          "variant": "original",
+          "n": 3,
+          "ms": 1046.491375,
+          "answer": "33",
+          "rssMiB": 180
+        },
+        {
+          "mode": "reference",
+          "variant": "original",
+          "n": 6,
+          "ms": 2073.8060419999997,
+          "answer": "27955",
+          "rssMiB": 183.53125
+        },
+        {
+          "mode": "reference",
+          "variant": "window",
+          "n": 0,
+          "ms": 103.73791599999998,
+          "answer": "1",
+          "rssMiB": 144.765625
+        },
+        {
+          "mode": "reference",
+          "variant": "window",
+          "n": 3,
+          "ms": 179.380167,
+          "answer": "33",
+          "rssMiB": 180.484375
+        },
+        {
+          "mode": "reference",
+          "variant": "window",
+          "n": 6,
+          "ms": 461.983167,
+          "answer": "27955",
+          "rssMiB": 185.8125
+        },
+        {
+          "mode": "reference",
+          "variant": "vector",
+          "n": 0,
+          "ms": 106.58683399999998,
+          "answer": "1",
+          "rssMiB": 166.890625
+        },
+        {
+          "mode": "reference",
+          "variant": "vector",
+          "n": 3,
+          "ms": 170.416167,
+          "answer": "33",
+          "rssMiB": 205.6875
+        },
+        {
+          "mode": "reference",
+          "variant": "vector",
+          "n": 6,
+          "ms": 249.850792,
+          "answer": "27955",
+          "rssMiB": 254.703125
+        },
+        {
+          "mode": "reference",
+          "variant": "lowered",
+          "n": 0,
+          "ms": 104.336375,
+          "answer": "1",
+          "rssMiB": 162.734375
+        },
+        {
+          "mode": "reference",
+          "variant": "lowered",
+          "n": 3,
+          "ms": 276.574208,
+          "answer": "33",
+          "rssMiB": 181.671875
+        },
+        {
+          "mode": "reference",
+          "variant": "lowered",
+          "n": 6,
+          "ms": 687.859417,
+          "answer": "27955",
+          "rssMiB": 184.84375
+        },
+        {
+          "mode": "reference",
+          "variant": "shipping",
+          "n": 0,
+          "ms": 106.38525000000001,
+          "answer": "1",
+          "rssMiB": 167.359375
+        },
+        {
+          "mode": "reference",
+          "variant": "shipping",
+          "n": 3,
+          "ms": 165.474667,
+          "answer": "33",
+          "rssMiB": 201.125
+        },
+        {
+          "mode": "reference",
+          "variant": "shipping",
+          "n": 6,
+          "ms": 252.81862500000003,
+          "answer": "27955",
+          "rssMiB": 271.6875
+        }
+      ]
+    },
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 19,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 20,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 1,
+      "numberLoopOverflows": 1,
+      "numberLoopReadBuffers": 7,
+      "numberLoopReadBufferCells": 383600,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 1,
+      "bulkArrayWriteCells": 1,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 2,
+        "loop:unsupported-op:to": 1,
+        "scalar-expression:unsupported-op:to": 1,
+        "tensor:dyadic-terminal:AssignmentStatement": 2,
+        "tensor:binding:select": 36
+      },
+      "compilerRejections": []
+    },
+    "checks": {
+      "build": "passed",
+      "focused": "23 files, 1045 tests passed",
+      "fullCompiled": "Euler 289 and 290 passed",
+      "scopedAudits": "4 targeted type/differential checks passed",
+      "postIntegration": "27 slice tests, full Euler 290 and 3 modular-product tests passed after rebuilding main",
+      "exhaustive": "not run",
+      "intel": "not measured"
+    },
+    "sourceSha256": {
+      "demos/euler/290_digitalsignature.ra": "b8ab3bc357953d8f137162e31066d06e6409ec97b95184bd15d99bfd3f9cf69b",
+      "demos/euler/290_digitalsignature_test.ra": "0720a2faed81ab6971f858ca664a047bc6b5891d1d2e36540c79e10d67af6ca8",
+      "packages/interpreter/src/jit/number-loop-runtime.ts": "9ea15c0a3580f564c4313031c5d867bb4978ae6cbe60eec631ac219b13710f76",
+      "packages/interpreter/src/jit/number-loop-index.ts": "f5b6b27669a5cd4d54d43285deb25e2e978e9a4e5fe005eeed15bb4b06714fc4",
+      "packages/interpreter/src/jit/number-loop-slice.ts": "640dd658b7058e71570dd52832a46d03a5c0c346136b3eb7ad7cb2a0c261e167",
+      "packages/interpreter/src/jit/integer-loop.ts": "140c4a534cf26430d265df3395d9de16dfbc45eb0dbbbd5db92986884a4819ef",
+      "packages/interpreter/src/jit/integer-loop-state.ts": "5c5af17adf19a287243374433fc6ae75c1b12471740a268ab71f0901f231034c",
+      "packages/interpreter/src/jit/integer-loop-plan.ts": "82b2ba23993ac58132babb3f68a9c22a1557caa429111554e9eaf102e7ba0211",
+      "packages/interpreter/src/jit/integer-loop-writes.ts": "0debce58dabc0b50f3724df146b9f237d886e98473129723f63ea001aceaaefb",
+      "benchmarks/euler290-delivery-series.py": "bd06e0301fd947ca09733ab570447e659dcac36a65bc723d25c6317e34aa92d0",
+      "benchmarks/euler290-investigation.mjs": "9a22413823242fcc5cb2de4d2f5d58c37b9ac5d7bbab58d75df95a681b579ebc",
+      "benchmarks/euler290-verify.py": "d1d5cfa2d713a5c8173c462d57a9c92b1707f1646c3564dc0aab13fd580eef71"
+    }
+  }
+}

@@ -9,6 +9,18 @@ end
 
 test "few digits"
   use "290_digitalsignature"
+  N = 0
+  run
+
+  Answer equal 1
+  N = 1
+  run
+
+  Answer equal 2
+  N = 2
+  run
+
+  Answer equal 4
   N = 3
   run
 

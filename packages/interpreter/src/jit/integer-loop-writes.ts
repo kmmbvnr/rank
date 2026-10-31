@@ -3,6 +3,7 @@ import { isRankIndex } from '../value.js';
 import type { LoopTerm } from './integer-loop-plan.js';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
+import { emitNumberSlice } from './number-loop-slice.js';
 
 /** Indexed stores prepare selectors before the RHS, then commit through the
  * selected array writer or index storage. Keep that ordering in one place. */
@@ -19,6 +20,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 || assignment.indices.some(address => address.all || address.sign || !address.value)) return undefined;
             const compound = assignment.operator !== '=';
             if (compound && !host.compoundWrites) return undefined;
+            if (emitNumberSlice(state, expressions, assignment, body, location)) return true;
             if (!arrays.has(assignment.name) && !destinations.has(assignment.name)
                 && isRankIndex(host.read(assignment.name)!)) {
                 const receiver = expressions.container(assignment.name, 'index', true);

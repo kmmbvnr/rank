@@ -12,6 +12,7 @@ import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, L
 
 import { indexKey } from '../index-storage.js';
 import { hasPrivateIndexStorage, PrivateIntegerIndex } from './number-loop-index.js';
+import { sliceArray as selectArraySlice } from '../selectors.js';
 
 // Internal control transfer, never exposed as a Rank error or converted to BigInt.
 type NumberCells = ArrayLike<number | bigint>;
@@ -44,6 +45,18 @@ class PrivateIntegerArray {
                 }
                 return result;
             })(), this.shape);
+    }
+}
+/** The RHS snapshot used by stores is separate from the selection returned by
+ * an assignment. Build that live selection only when the loop result escapes. */
+class PrivateSliceResult {
+    constructor(readonly source: RankArray | PrivateIntegerArray, readonly first: number,
+        readonly count: number, readonly stride: number) {}
+    value(): RankValue {
+        return selectArraySlice(this.source instanceof PrivateIntegerArray ? this.source.value() : this.source, {
+            shape: [this.count], offsetAt: index => this.first + index * this.stride,
+            linear: { offset: this.first, stride: this.stride },
+        });
     }
 }
 function safe(value: number): number {
@@ -80,7 +93,7 @@ function divide(a: number, b: number): number {
     return safe(quotient - ((a < 0) !== (b < 0) && remainder !== 0 ? 1 : 0));
 }
 const rankValue = (value: unknown, type: string | undefined): RankValue | undefined =>
-    value instanceof PrivateIntegerArray ? value.value()
+    value instanceof PrivateIntegerArray || value instanceof PrivateSliceResult ? value.value()
         : typeof value === 'number' && type === 'integer' ? BigInt(value) : value as RankValue | undefined;
 
 function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[], publish: string, workCounting = false): string {
@@ -145,7 +158,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
-    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', code)(
+    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', code)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -159,7 +172,25 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower,
             (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number) => new PrivateIntegerArray(shape, fill),
             (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
-            (shape: number[], cells: NumberCells) => new PrivateIntegerArray([...shape], 0, cells), textLength, indexKey);
+            (shape: number[], cells: NumberCells) => new PrivateIntegerArray([...shape], 0, cells), textLength, indexKey,
+            (cells: NumberCells, first: number, count: number, stride: number) => {
+                // Entry-checked numeric buffers and private integer cells are
+                // already exact. Keep short contiguous snapshots in native code;
+                // longer/strided selections retain bounded interrupt polling.
+                if (stride === 1 && count <= 4096 && (cells instanceof Int32Array || cells instanceof Float64Array)) {
+                    checkpoint('preparing array write', count);
+                    return new PrivateIntegerArray([count], 0, cells.subarray(first, first + count));
+                }
+                const result = new PrivateIntegerArray([count], 0);
+                for (let index = 0; index < count; index++) {
+                    checkpoint();
+                    const value = safe(Number(cells[first + index * stride]));
+                    if (result.cells instanceof Int32Array && value !== (value | 0)) result.cells = new Float64Array(result.cells);
+                    result.cells[index] = value;
+                }
+                return result;
+            }, (source: RankArray | PrivateIntegerArray, first: number, count: number, stride: number) =>
+                new PrivateSliceResult(source, first, count, stride));
     try { run = compile(source); } catch { return undefined; }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These
@@ -274,6 +305,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (plan.arrayDefinitions.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
+            // Named table rows can return positional products rather than
+            // plain arrays. Keep their selection/result contract in the evaluator.
+            if (plan.sliceReadSources.has(name) && value.columnNames) return undefined;
             const revision = arrayRevision(value);
             if (revision === undefined) return undefined;
             if (plan.destinations.has(name) && (hasPendingSelections(value) || !value.shape.includes(0)

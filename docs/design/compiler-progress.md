@@ -1,5 +1,18 @@
 # Compiler progress
 
+## Private integer row-slice updates (Euler 290)
+
+Number loops now lower integer `=`, `+=`, `-=`, and `*=` between trailing
+arithmetic ranges with scalar leading coordinates to private cell loops.
+The RHS is snapshotted before stores; the assignment result remains a live
+selection when it escapes. Both sides can use distinct positive or negative
+steps. Int32 cells widen when necessary, and unsafe integers replay exactly.
+Invalid selectors and shapes retain ordinary errors through replay. Sources
+written in the region, named table rows and unsupported domains retain ordinary
+execution. Copy-admission thresholds are unchanged. Euler 290 uses bounded
+row-slice additions while its large final total remains exact.
+See [measurements and verification](../../benchmarks/euler290-investigation.md).
+
 ## Compact integer comparison masks (Euler 196)
 
 Completed compact integer arrays now compare directly into bitmaps, including

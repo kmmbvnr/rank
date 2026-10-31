@@ -68,6 +68,21 @@ it('checks the full compiled Euler 289 with private integer index stores', () =>
     } finally { runtime.dispose(); }
 }, 60_000);
 
+it('compiles Euler 290 row slices and keeps its large final answer exact', () => {
+    const url = new URL('../../../demos/euler/290_digitalsignature.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(20444710234716473n);
+        expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(19);
+        expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(19);
+        // The DP cells fit Number; the final total crosses its safe range.
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.bulkArrayWriteCells).toBe(1);
+    } finally { runtime.dispose(); }
+}, 60_000);
+
 // Independent representation: match individual balls and boxes, rather than
 // the Rank program's run stack and difference table of removal rounds.
 function perBallReference(last: number): number {
