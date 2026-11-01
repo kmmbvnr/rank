@@ -1,0 +1,117 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "method": "Five fresh processes per version, alternating sequentially; peak process RSS; unchanged original demo; parse/analysis/compile/execution included, imports and interpreter construction excluded",
+  "records": [
+    {
+      "trial": 0,
+      "version": "before",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 2674.644812,
+      "rssMiB": 325.38671875,
+      "answer": "268457129"
+    },
+    {
+      "trial": 0,
+      "version": "after",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 1254.750313,
+      "rssMiB": 243.70703125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 1,
+      "version": "after",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 1273.7721179999999,
+      "rssMiB": 243.02734375,
+      "answer": "268457129"
+    },
+    {
+      "trial": 1,
+      "version": "before",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 2690.875735,
+      "rssMiB": 325.02734375,
+      "answer": "268457129"
+    },
+    {
+      "trial": 2,
+      "version": "before",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 2761.068855,
+      "rssMiB": 325.98828125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 2,
+      "version": "after",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 1251.457526,
+      "rssMiB": 241.96484375,
+      "answer": "268457129"
+    },
+    {
+      "trial": 3,
+      "version": "after",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 1262.31093,
+      "rssMiB": 247.02734375,
+      "answer": "268457129"
+    },
+    {
+      "trial": 3,
+      "version": "before",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 2767.7364740000003,
+      "rssMiB": 326.2109375,
+      "answer": "268457129"
+    },
+    {
+      "trial": 4,
+      "version": "before",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 2730.0628349999997,
+      "rssMiB": 324.8828125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 4,
+      "version": "after",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 1272.019265,
+      "rssMiB": 242.4765625,
+      "answer": "268457129"
+    }
+  ]
+}

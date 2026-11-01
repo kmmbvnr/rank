@@ -1,0 +1,11 @@
+Mu = array shape (Limit + 1) fill 1
+Mu 0 = 0
+for P in primes to (Limit isqrt)
+  Mu (P to Limit by P) *= -P
+  Square = P * P
+  Mu (Square to Limit by Square) = 0
+end
+Full = (Mu abs) equal (0 to Limit)
+Positive = (Mu greater 0) equal Full
+Mu = (Mu equal 0) choose 0 (Positive choose 1 (-1))
+Mu = Mu scan + array

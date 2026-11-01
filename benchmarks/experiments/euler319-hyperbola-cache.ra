@@ -1,0 +1,30 @@
+for Slot in Top to 1 by -1
+  X = N // Slot
+  Root = X isqrt
+  Small = 0
+  if Root at most Limit
+    Small = Mu Root
+  else
+    Small = Cache (N // Root)
+  end
+  Total = 1 - X + Root * Small
+  Before = 1
+  for D in 2 to Root
+    Small = 0
+    if D at most Limit
+      Small = Mu D
+    else
+      Small = Cache (N // D)
+    end
+    Q = X // D
+    Part = 0
+    if Q at most Limit
+      Part = Mu Q
+    else
+      Part = Cache (N // Q)
+    end
+    Total -= (Small - Before) * Q + Part
+    Before = Small
+  end
+  Cache Slot = Total
+end

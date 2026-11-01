@@ -1,0 +1,36 @@
+for Slot in Top to 1 by -1
+  X = N // Slot
+  Root = X isqrt
+  Total = 0
+  if Root at most Limit
+    Total = 1 + Root * (Mu Root)
+    Total -= ((Mu (1 to Root) - Mu (0 till Root))
+      * (X // (1 to Root))) sum
+    Cut = Root min (X // (Limit + 1))
+    if Cut at least 2
+      Total -= (Cache
+        (N // (X // (2 to Cut)))) sum
+    end
+    Start = 2 max (Cut + 1)
+    if Start at most Root
+      Total -= (Mu
+        (X // (Start to Root))) sum
+    end
+  else
+    Total = 1
+    Left = 2
+    for Left at most X
+      Q = X // Left
+      Right = X // Q
+      Part = 0
+      if Q at most Limit
+        Part = Mu Q
+      else
+        Part = Cache (N // Q)
+      end
+      Total -= (Right - Left + 1) * Part
+      Left = Right + 1
+    end
+  end
+  Cache Slot = Total
+end

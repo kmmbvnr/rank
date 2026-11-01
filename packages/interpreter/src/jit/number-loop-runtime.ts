@@ -19,6 +19,9 @@ import { sliceArray as selectArraySlice } from '../selectors.js';
 type NumberCells = ArrayLike<number | bigint>;
 export const numberOverflow = {};
 const overflow = numberOverflow;
+const SMALL_COPY_CELLS = 64;
+const COPY_PROBE_CAP = 262144;
+
 /** Fresh local storage stays private until publication. In particular, a later
  * allocation cannot replace the array retained as a previous iteration result. */
 interface VectorBuffer { cells: Int32Array | Float64Array }
@@ -373,7 +376,13 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 return typeof value === 'bigint' || typeof value === 'number'
                     ? { types: ['integer'], rank: 0, shape: [], integer: String(value) } : undefined;
             }).shape?.[0];
-            if (count !== undefined && count !== null && count >= conditionWriteCells) conditionWriteCells = 0;
+            // Above the probe cap, a few sentinel cells must not turn an
+            // otherwise complete pass into an exact-only loop (Euler 319).
+            // Reuse the small-copy allowance: at most 64 extra cells for
+            // at least 262081 iterations, with no early exit. Below the
+            // cap retain measured admission, including short-call feedback.
+            if (count !== undefined && count !== null && (count >= conditionWriteCells
+                || conditionWriteCells > COPY_PROBE_CAP && conditionWriteCells - count <= SMALL_COPY_CELLS)) conditionWriteCells = 0;
         }
         // Copy-cost heuristic, not a Number precision limit: <=64 cells keep
         // the small-store fast path; larger stores get a bounded first probe.
@@ -391,9 +400,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         // ranges now share this policy and exact-work feedback; proven full
         // passes retain Number above the probe cap. Nested range regions keep
         // their previous admission. See euler253-investigation.md.
-        const probe = conditionWriteCells > 64;
+        const probe = conditionWriteCells > SMALL_COPY_CELLS;
         if (probe) {
-            if (conditionWriteCells > 262144 || !feedback) return recordFallback('number-loop:condition-write-budget');
+            if (conditionWriteCells > COPY_PROBE_CAP || !feedback) return recordFallback('number-loop:condition-write-budget');
             feedback.cells = conditionWriteCells;
             if (!feedback.allow) return recordFallback('number-loop:condition-work');
             // On failure, learn from exact execution before making another copy.

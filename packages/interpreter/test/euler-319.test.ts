@@ -5,6 +5,14 @@ import { Interpreter } from '../src/index.js';
 const source = readFileSync(new URL('../../../demos/euler/319_bounded.ra', import.meta.url), 'utf8');
 const mod = 1_000_000_000n;
 
+it('retains the full compiled Euler 319 answer', () => {
+    const runtime = new Interpreter(() => {});
+    try {
+        runtime.execute(source);
+        expect(runtime.variables.get('Answer')).toBe(268457129n);
+    } finally { runtime.dispose(); }
+});
+
 // Trial division and an ungrouped divisor sum are independent of the demo's
 // linear sieve, quotient cache and grouped final sum.
 function reference(n: number) {

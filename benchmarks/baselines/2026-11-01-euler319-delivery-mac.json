@@ -1,0 +1,117 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "method": "Five fresh processes per version, alternating sequentially; peak process RSS; unchanged original demo; parse/analysis/compile/execution included, imports and interpreter construction excluded",
+  "records": [
+    {
+      "trial": 0,
+      "version": "before",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 1167.588084,
+      "rssMiB": 345.46875,
+      "answer": "268457129"
+    },
+    {
+      "trial": 0,
+      "version": "after",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 558.095167,
+      "rssMiB": 261.78125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 1,
+      "version": "after",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 560.0051669999999,
+      "rssMiB": 262.171875,
+      "answer": "268457129"
+    },
+    {
+      "trial": 1,
+      "version": "before",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 1096.790833,
+      "rssMiB": 345.0625,
+      "answer": "268457129"
+    },
+    {
+      "trial": 2,
+      "version": "before",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 1096.632083,
+      "rssMiB": 343.84375,
+      "answer": "268457129"
+    },
+    {
+      "trial": 2,
+      "version": "after",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 563.0465,
+      "rssMiB": 261.90625,
+      "answer": "268457129"
+    },
+    {
+      "trial": 3,
+      "version": "after",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 560.079375,
+      "rssMiB": 261.828125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 3,
+      "version": "before",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 1095.361625,
+      "rssMiB": 343.5,
+      "answer": "268457129"
+    },
+    {
+      "trial": 4,
+      "version": "before",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 1104.8566660000001,
+      "rssMiB": 344.578125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 4,
+      "version": "after",
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "original",
+      "ms": 562.0516250000001,
+      "rssMiB": 262.203125,
+      "answer": "268457129"
+    }
+  ]
+}

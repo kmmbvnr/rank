@@ -1,0 +1,138 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "records": [
+    {
+      "trial": 0,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "scan",
+      "ms": 1229.612382,
+      "rssMiB": 251.53125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 0,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 3400.291403,
+      "rssMiB": 416.11328125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 0,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "reference",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 14803.707002000001,
+      "rssMiB": 1160.0078125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 0,
+      "nodeArgs": [
+        "--max-old-space-size=128"
+      ],
+      "status": null,
+      "stderr": "\n<--- Last few GCs --->\n\n[779970:0x3f208000]     1089 ms: Mark-Compact 156.7 (222.0) -> 111.8 (241.3) MB, pooled: 0 MB, 100.72 / 0.00 ms  (average mu = 0.612, current mu = 0.302) allocation failure; scavenge might not succeed\n[779970:0x3f208000]     1262 ms: Mark-Compact (reduce) 181.5 (259.2) -> 144.4 (146.5) MB, pooled: 0 MB, 113.70 / 0.00 ms  (+ 0.0 ms in 1 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 141 ms) (average mu = 0.480, curren\nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x73f8c4 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 2: 0xc06f90  [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 3: 0xc0707f  [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 4: 0xeaa885  [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 5: 0xe"
+    },
+    {
+      "trial": 1,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 3437.3482480000002,
+      "rssMiB": 426.42578125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 1,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "reference",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 13899.529257,
+      "rssMiB": 1159.87109375,
+      "answer": "268457129"
+    },
+    {
+      "trial": 1,
+      "nodeArgs": [
+        "--max-old-space-size=128"
+      ],
+      "status": null,
+      "stderr": "\n<--- Last few GCs --->\n\n[780060:0x2962e000]     1061 ms: Mark-Compact 156.6 (221.8) -> 111.7 (241.0) MB, pooled: 0 MB, 89.14 / 0.00 ms  (average mu = 0.617, current mu = 0.331) allocation failure; scavenge might not succeed\n[780060:0x2962e000]     1265 ms: Mark-Compact (reduce) 181.7 (259.2) -> 144.4 (146.7) MB, pooled: 0 MB, 129.56 / 0.00 ms  (+ 0.0 ms in 1 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 173 ms) (average mu = 0.483, curren\nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x73f8c4 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 2: 0xc06f90  [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 3: 0xc0707f  [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 4: 0xeaa885  [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 5: 0xeb"
+    },
+    {
+      "trial": 1,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "scan",
+      "ms": 1262.1810690000002,
+      "rssMiB": 251.83203125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 2,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "reference",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 13929.693145,
+      "rssMiB": 1159.16796875,
+      "answer": "268457129"
+    },
+    {
+      "trial": 2,
+      "nodeArgs": [
+        "--max-old-space-size=128"
+      ],
+      "status": null,
+      "stderr": "\n<--- Last few GCs --->\n\n[780145:0x3895e000]     1070 ms: Mark-Compact 156.5 (221.8) -> 111.7 (240.8) MB, pooled: 0 MB, 90.29 / 0.00 ms  (average mu = 0.628, current mu = 0.330) allocation failure; scavenge might not succeed\n[780145:0x3895e000]     1268 ms: Mark-Compact (reduce) 181.7 (258.7) -> 144.4 (146.5) MB, pooled: 0 MB, 140.84 / 0.00 ms  (+ 0.0 ms in 1 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 167 ms) (average mu = 0.450, curren\nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x73f8c4 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 2: 0xc06f90  [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 3: 0xc0707f  [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 4: 0xeaa885  [/tmp/rank-fft-priority.YxU7V7/tools/node-v24.15.0-linux-x64/bin/node]\n 5: 0xeb"
+    },
+    {
+      "trial": 2,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "scan",
+      "ms": 1253.556645,
+      "rssMiB": 252.12890625,
+      "answer": "268457129"
+    },
+    {
+      "trial": 2,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 3443.9015670000003,
+      "rssMiB": 424.16796875,
+      "answer": "268457129"
+    }
+  ]
+}

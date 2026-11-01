@@ -1,0 +1,138 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "records": [
+    {
+      "trial": 0,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "scan",
+      "ms": 540.760667,
+      "rssMiB": 275.59375,
+      "answer": "268457129"
+    },
+    {
+      "trial": 0,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 1235.651458,
+      "rssMiB": 533.59375,
+      "answer": "268457129"
+    },
+    {
+      "trial": 0,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "reference",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 4952.138999999999,
+      "rssMiB": 1162.140625,
+      "answer": "268457129"
+    },
+    {
+      "trial": 0,
+      "nodeArgs": [
+        "--max-old-space-size=128"
+      ],
+      "status": null,
+      "stderr": "\n<--- Last few GCs --->\n\n[93513:0x84e80c000]      414 ms: Mark-Compact 156.6 (222.1) -> 111.6 (241.1) MB, pooled: 0 MB, 27.54 / 0.00 ms  (average mu = 0.645, current mu = 0.391) allocation failure; scavenge might not succeed\n[93513:0x84e80c000]      489 ms: Mark-Compact (reduce) 181.6 (259.1) -> 144.3 (146.1) MB, pooled: 0 MB, 40.58 / 0.00 ms  (+ 0.0 ms in 1 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 61 ms) (average mu = 0.543, current \nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x100745aec node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/Users/kmmbvnr/.local/share/fnm/node-versions/v24.15.0/installation/bin/node]\n 2: 0x100998314 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/Users/kmmbvnr/.local/share/fnm/node-versions/v24.15.0/installation/bin/node]\n 3: 0x100bf7700 v8::internal::Heap::stack() [/Users/kmm"
+    },
+    {
+      "trial": 1,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 1231.052666,
+      "rssMiB": 535.546875,
+      "answer": "268457129"
+    },
+    {
+      "trial": 1,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "reference",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 5034.182958,
+      "rssMiB": 1026.15625,
+      "answer": "268457129"
+    },
+    {
+      "trial": 1,
+      "nodeArgs": [
+        "--max-old-space-size=128"
+      ],
+      "status": null,
+      "stderr": "\n<--- Last few GCs --->\n\n[93538:0x76a80c000]      411 ms: Mark-Compact 156.6 (222.1) -> 111.6 (241.1) MB, pooled: 0 MB, 26.62 / 0.00 ms  (average mu = 0.652, current mu = 0.408) allocation failure; scavenge might not succeed\n[93538:0x76a80c000]      485 ms: Mark-Compact (reduce) 181.6 (259.1) -> 144.3 (146.1) MB, pooled: 0 MB, 37.21 / 0.00 ms  (+ 0.0 ms in 1 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 59 ms) (average mu = 0.566, current \nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x100d85aec node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/Users/kmmbvnr/.local/share/fnm/node-versions/v24.15.0/installation/bin/node]\n 2: 0x100fd8314 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/Users/kmmbvnr/.local/share/fnm/node-versions/v24.15.0/installation/bin/node]\n 3: 0x101237700 v8::internal::Heap::stack() [/Users/kmm"
+    },
+    {
+      "trial": 1,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "scan",
+      "ms": 549.916291,
+      "rssMiB": 276.28125,
+      "answer": "268457129"
+    },
+    {
+      "trial": 2,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "reference",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 4900.805333,
+      "rssMiB": 1158.484375,
+      "answer": "268457129"
+    },
+    {
+      "trial": 2,
+      "nodeArgs": [
+        "--max-old-space-size=128"
+      ],
+      "status": null,
+      "stderr": "\n<--- Last few GCs --->\n\n[93559:0xcbe80c000]      415 ms: Mark-Compact 156.6 (221.9) -> 111.7 (240.9) MB, pooled: 0 MB, 27.62 / 0.00 ms  (average mu = 0.649, current mu = 0.408) allocation failure; scavenge might not succeed\n[93559:0xcbe80c000]      482 ms: Mark-Compact (reduce) 181.6 (258.8) -> 144.3 (146.1) MB, pooled: 0 MB, 40.54 / 0.00 ms  (+ 0.0 ms in 1 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 52 ms) (average mu = 0.518, current \nFATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x1045b5aec node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/Users/kmmbvnr/.local/share/fnm/node-versions/v24.15.0/installation/bin/node]\n 2: 0x104808314 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/Users/kmmbvnr/.local/share/fnm/node-versions/v24.15.0/installation/bin/node]\n 3: 0x104a67700 v8::internal::Heap::stack() [/Users/kmm"
+    },
+    {
+      "trial": 2,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "scan",
+      "ms": 549.611125,
+      "rssMiB": 277.21875,
+      "answer": "268457129"
+    },
+    {
+      "trial": 2,
+      "nodeArgs": [],
+      "status": 0,
+      "mode": "compiled",
+      "n": "10000000000",
+      "limit": "4641589",
+      "variant": "array-sieve-views",
+      "ms": 1223.073875,
+      "rssMiB": 533.5625,
+      "answer": "268457129"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+Spf = Limit factorsieve
+Mu = array shape (Limit + 1) fill 0
+Mu 1 = 1
+for I in 2 to Limit
+  P = Spf I
+  Q = I // P
+  if Q mod P not equal 0
+    Mu I = -(Mu Q)
+  end
+end
+Mu = Mu scan + array

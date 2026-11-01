@@ -774,6 +774,15 @@ can instead read their original buffer, as described below. Every indexed read
 checks bounds; neither path narrows integer values to Int32. A loop-entry
 execution hook keeps the BigInt backend because that hook may mutate inputs or binding contracts.
 
+Private destination copies retain the 64-cell small-store allowance and the
+262144-cell speculative probe cap. A guarded range without early exits can
+amortize a larger copy through its iteration count. Above the probe cap, that
+proof tolerates up to 64 extra destination cells, such as a prefix-sum sentinel;
+the remaining pass still has at least 262081 iterations. Below the cap, partial
+passes retain measured work feedback. All destinations contribute to the copy
+cost; stepped ranges use their actual iteration count. This admission changes
+neither overflow replay nor publication of preceding stores on an ordinary error.
+
 Stored-vector traversal captures its invocation-owned buffer once and maintains
 an independent numeric cursor/ordinal; assignments to visible loop variables do
 not change traversal. The plan distinguishes this case from opaque iterators.

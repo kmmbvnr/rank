@@ -154,6 +154,46 @@ describe('adaptive range-loop copying', () => {
             expect(d.numberLoops).toBe(1);
             expect(d.numberLoopCopyProbes).toBe(0);
         });
+    it.each(['1 to 262144', '262144 to 1 by -1', '32 till 262113'])(
+        'amortizes a large pass with at most 64 sentinel cells (%s)', range => {
+            const d = compare(`A = array shape 262145 fill 0\nAlias = A\nfor J in ${range}\n A J = J\nend`);
+            expect(d.numberLoops).toBe(1);
+            expect(d.numberLoopCopyProbes).toBe(0);
+        });
+    it('compiles a prefix recurrence without copying a separate scan result', () => {
+        const d = compare('A = array shape 262145 fill 1\nA 0 = 0\nfor J in 1 to 262144\n A J += A (J - 1)\nend');
+        expect(d.numberLoops).toBe(1);
+        expect(d.typedUnpacks).toBe(0);
+    });
+    it('retains the cap outside the small sentinel allowance', () => {
+        const d = compare('A = array shape 262145 fill 0\nfor J in 65 to 262144\n A J = J\nend');
+        expect(d.numberLoops).toBe(0);
+        expect(d.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
+    });
+    it('charges every destination before admitting a near-complete pass', () => {
+        const d = compare('A = array shape 262145 fill 0\nB = array shape 262145 fill 0\nfor J in 1 to 262144\n A J = J\n B J = J\nend');
+        expect(d.numberLoops).toBe(0);
+        expect(d.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
+    });
+    it('does not apply sentinel admission to an early-exit range', () => {
+        const d = compare('A = array shape 262145 fill 0\nfor J in 1 to 262144\n A J = J\n break\nend');
+        expect(d.numberLoops).toBe(0);
+        expect(d.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
+    });
+    it('replays overflow and preserves stores before a subsequent bounds error', () => {
+        const source = `A = array shape 262145 fill 0
+Alias = A
+X = 9007199254740991
+for J in 1 to 262144
+ A J = X + J
+ if J equal 2
+  A 262145 = 7
+ end
+end`;
+        const d = compare(source);
+        expect(d.numberLoopOverflows).toBe(1);
+        expect(run(source).result.error).toContain('array index out of bounds');
+    });
     it('counts stepped ranges rather than just comparing endpoints', () => {
         const d = compare('A = array shape 262145 fill 0\nfor J in 0 to 262144 by 2\n A J = J\nend');
         expect(d.numberLoops).toBe(0);

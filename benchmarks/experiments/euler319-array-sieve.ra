@@ -1,0 +1,11 @@
+Mu = array shape (Limit + 1) fill 1
+Mu 0 = 0
+Prod = array shape (Limit + 1) fill 1
+for P in primes to (Limit isqrt)
+  Mu (P to Limit by P) *= -1
+  Prod (P to Limit by P) *= P
+  Square = P * P
+  Mu (Square to Limit by Square) = 0
+end
+Mu *= (Prod less (0 to Limit)) choose (-1) 1
+Mu = Mu scan + array
