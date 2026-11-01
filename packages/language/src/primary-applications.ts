@@ -4,7 +4,7 @@ import { AstUtils, type AstNode } from 'langium';
 import {
     isApplicationExpression, isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression,
     isLabelLiteral, isNameExpression, isNumberLiteral, isOperationAssignmentStatement,
-    isPrimaryTailExpression, isUnaryExpression, type ApplicationExpression, type Expression,
+    isPrimaryTailExpression, isUnaryExpression, isParenthesizedExpression, type ApplicationExpression, type Expression,
     type KeyedGroupExpression, type KeyedJoinExpression, type KeyedMergeExpression,
     type KeyedReachExpression, type KeyedRollingExpression, type KeyedSortExpression,
     type Program, type TableWriteExpression, type NameExpression,
@@ -14,6 +14,17 @@ type Fields<T extends AstNode> = Omit<T, keyof AstNode> & Pick<T, '$type'>;
 
 const SORT_BY_WORDS = new Set(['sort', 'argsort', 'merge']);
 const GROUP_BY_WORDS = new Set(['group', 'rollup']);
+
+function inRangeBound(node: AstNode): boolean {
+    for (let current = node; current.$container; current = current.$container) {
+        const parent = current.$container;
+        if (isParenthesizedExpression(parent)) return false;
+        if (isBinaryExpression(parent) && ['to', 'till', 'until'].includes(parent.operator)) {
+            return parent.right === current;
+        }
+    }
+    return false;
+}
 
 /** Restore the public AST after sharing the two-operand grammar prefix. */
 export function normalizePrimaryApplications(program: Program, operatorOffsets: ReadonlySet<number> = new Set()): void {
@@ -29,7 +40,8 @@ export function normalizePrimaryApplications(program: Program, operatorOffsets: 
         const tailArguments = [...(node.secondArgument ? [node.secondArgument] : []), ...node.arguments];
         const keyedWord = isNameExpression(node.argument) ? node.argument.name : '';
         const keyed = ['reduce', 'scan', 'quantile', 'percentile'].includes(keyedWord)
-            || findOperation(keyedWord)?.axisReduction;
+            || findOperation(keyedWord)?.axisReduction
+            || !findOperation(keyedWord) && !inRangeBound(node);
         const clause = keyed ? [{ $type: 'NameExpression', name: node.clause } as NameExpression] : [];
         let properties: Fields<ApplicationExpression> | Fields<KeyedGroupExpression>
             | Fields<KeyedSortExpression> | Fields<KeyedRollingExpression>

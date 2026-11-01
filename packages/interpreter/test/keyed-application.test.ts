@@ -51,3 +51,20 @@ it('validates singleton sums and skips missing aggregate samples', () => {
     }
     expect(run('V = array .NA\nK = array 0\nV sum by K')).toBe('0');
 });
+
+it('accepts a captured builtin aggregate alias', () => {
+    expect(run('use stats\naverage = mean\n'
+        + 'V = array 10 20 30 40\nK = array 0 1 0 1\nV average by K')).toBe('20 30');
+    expect(run('use stats\naverage = mean\nV = array 10 20 30 40\nK = array 0 1 0 1\nV average by K sum')).toBe('50');
+});
+
+it('broadcasts group means back through ranked key addressing', () => {
+    const source = 'use sequences\nuse stats\nV = (array 10 20 30 40) reshape 2 2\n'
+        + 'K = (array 0 1 0 1) reshape 2 2\nMeans = V mean by K\nR = V - (Means K rank 0)';
+    expect(run(source + '\nR')).toBe('-10 -10 10 10');
+    expect(run(source + '\nR shape')).toBe('2 2');
+});
+it('scans an ordered user function with independent seeded states', () => {
+    expect(run('fun A digits B = A * 10 + B\nV = array 1 2 3 4\nK = array 0 1 0 1\n'
+        + 'V scan digits by K with 100')).toBe('1001 1002 10013 10024');
+});

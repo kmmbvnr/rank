@@ -77,8 +77,9 @@ function boundary(parts: Expression[], standard: StandardName): number | undefin
     }
     const by = parts.findIndex((part, index) => (index === 2 || index === 3) && named(part, 'by'));
     const aggregate = parts[by - 1];
-    if (by > 0 && isNameExpression(aggregate) && standard(aggregate)
-        && (findOperation(aggregate.name)?.axisReduction || ['quantile', 'percentile'].includes(aggregate.name))) {
+    if (by > 0 && isNameExpression(aggregate) && (standard(aggregate) || !findOperation(aggregate.name))
+        && (findOperation(aggregate.name)?.axisReduction || ['quantile', 'percentile'].includes(aggregate.name)
+            || !findOperation(aggregate.name))) {
         const end = foldModifierEnd(parts, by);
         return parts.length > end ? end : undefined;
     }
