@@ -1,0 +1,29 @@
+{
+  "revision": "f76b2cc7",
+  "build": "node node_modules/typescript/bin/tsc -b tsconfig.build.json",
+  "ordinary": {
+    "command": "node scripts/test.mjs --exclude test/types.test.ts --exclude test/differential.test.ts --exclude test/nurikabe.test.ts",
+    "directory": "packages/interpreter",
+    "files": 460,
+    "tests": 10537,
+    "failed": 0,
+    "seconds": 304.76
+  },
+  "demoTests": {
+    "deepmlFiles": 55,
+    "classicFiles": 7,
+    "failed": 0
+  },
+  "semanticBoundaries": {
+    "owners": 65,
+    "scriptTests": 11,
+    "failed": 0
+  },
+  "applicationForms": "passed",
+  "excludedAudits": [
+    "types",
+    "differential",
+    "nurikabe"
+  ],
+  "note": "Ordinary and demo tests completed before the clean final timing run. The first final timing series was contaminated by an independent Vitest audit and is qualified separately."
+}

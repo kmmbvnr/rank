@@ -1369,3 +1369,100 @@ Int32 endpoints, intermediate widening, overflow, aliases, modulo/division
 at 2^31, and the non-eligible 2^32 cases. No change to the FFT source.
 
 [Incremental FFT timings](baselines/2026-11-01-fft-priority-shifts.json).
+
+
+### Rejected step 3: copy completed real buffers directly
+
+In the rejected experiment, public `.items` conversion uses an indexed copy for native Float64 buffers
+of at least 1,024 cells, instead of Array.from's iterator path. Small arrays,
+subclasses, custom iterators, own length overrides and detached buffers
+retain the previous behavior. Publication, tracked writes, validity masks
+and ownership are unchanged. The FFT source is unchanged.
+
+Incremental whole-FFT measurements against step 2 are mixed: the first
+seven-pair series is slower (1.2692 -> 1.5342 ms), while a second, longer
+seven-pair series is faster (0.8738 -> 0.7086 ms). Process CPU in the latter
+falls 1.2135 -> 1.1615 ms (4.3%). The large wall-time drift prevents a claim
+of a stable 19% FFT gain from this step.
+
+A separate component check confirms the mechanism, not the FFT speedup.
+Three fresh processes alternate seven within-process pairs, publishing and
+fully converting the same readonly 8,192-cell input. Median CPU per copy is
+0.2222 -> 0.0427, 0.2147 -> 0.0407 and 0.2750 -> 0.0419 ms. This includes
+ownership publication; it does not measure full FFT or count allocations.
+Reproduce with `node benchmarks/real-buffer-materialization.mjs
+--baseline=/path/to/built/b4b9da00 --checkout=/path/to/built/f76b2cc7`. Raw FFT series, including the negative
+one, are retained. Build and 126 storage/readonly tests pass, including
+subarray offsets, signed zero, nonfinite reals, mutations, custom iteration,
+subclass length observations and detached-buffer errors.
+
+[First FFT series](baselines/2026-11-01-fft-priority-boxing.json),
+[FFT confirmation](baselines/2026-11-01-fft-priority-boxing-confirm.json),
+[Component checks](baselines/2026-11-01-fft-priority-boxing-component.json).
+
+### Three-step experiment, not selected for main
+
+All three changes, unchanged FFT source, against `2a43b3bd` and handwritten
+JS with fused in-place butterflies. Both implementations compute roots and
+permutation per call; full output materialization is included. Seven fresh
+process sets per size, alternating order, >=2 s warmup and three measured
+batches of >=1 s each. No test/build workers were active when this rerun
+started; own measurements remain serial. Slow workers are retained.
+
+| FFT size | Previous main, ms | New Rank, ms | JS in-place, ms | Rank time reduction | Rank / JS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 1,024 | 0.4430 | 0.3827 | 0.1433 | 13.6% | 2.67x |
+| 4,096 | 1.0988 | 0.7290 | 0.4970 | 33.7% | 1.47x |
+| 16,384 | 3.9113 | 2.4341 | 1.9653 | 37.8% | 1.24x |
+
+Process CPU decreases 9.5%, 23.3% and 27.8% respectively. These totals
+are measured directly; incremental percentages above are not multiplied.
+Individual worker times still vary substantially: at 4,096, baseline is
+0.847-2.439 ms and candidate 0.557-2.817 ms. The table describes medians
+in this series, not a universal multiplier or a cold-start guarantee.
+
+The earlier combined run was found to overlap an independent Euler-305
+Vitest audit (110% CPU at inspection). Its raw report is retained and
+explicitly qualified; it is excluded from the final speedup claim. No
+external processes were stopped. Correctness testing completed before the
+clean rerun.
+
+Build, 460 ordinary interpreter files / 10,537 tests, all 55 Deep-ML and
+seven classic demo test files, 11 semantic-source script tests, 65 semantic
+owners and application-form checks pass. Types/differential/Nurikabe audits
+were not run.
+
+[Combined timings](baselines/2026-11-01-fft-priority-final-clean.json),
+[Contaminated exploratory series](baselines/2026-11-01-fft-priority-final.json),
+[Verification](baselines/2026-11-01-fft-priority-verification.json).
+
+
+### Admission decision
+
+Only steps 1 and 2 are selected for main. The completed-real-buffer copy
+experiment remains at `f76b2cc7` on `perf/fft-priority`, outside the main
+integration branch. No production runtime change or dedicated copy test
+from that experiment is included. Raw reports and its component harness
+are retained for reproducibility, not as an enabled optimization.
+
+A final incremental check against step 2 gives FFT-4096 0.8505 -> 0.8768 ms
+and CPU 1.2114 -> 1.4316 ms: no reproduced benefit at the primary size.
+FFT-16384 improves 3.3382 -> 2.3156 ms, but the inconsistent size-dependent
+whole-FFT evidence does not justify including this optional runtime path
+now. The three-step table above describes an experiment, not the final
+main version. The selected two-step version is measured separately below.
+
+The first short control series showed large apparent regressions in
+quotient and broadcast. Longer checks (five fresh-process pairs, >=2 s
+warmup, three >=750 ms batches) do not reproduce those large regressions:
+quotient 0.3459 -> 0.3530 ms (2.1% slower wall, 4.7% CPU; ranges overlap),
+broadcast 1.1899 -> 0.6783 ms (ranges remain broad). Short remainder and
+affine controls improve 0.5199 -> 0.4212 and 0.3646 -> 0.3092 ms. No
+blanket claim of an improvement for every program is made. These controls
+still include the optional copy experiment; final controls use the exact
+selected compiler version.
+
+[Copy admission check](baselines/2026-11-01-fft-priority-boxing-admission.json),
+[Initial controls, including negatives](baselines/2026-11-01-fft-priority-final-controls.json),
+[Quotient confirmation](baselines/2026-11-01-fft-priority-controls-quotient-confirm.json),
+[Broadcast confirmation](baselines/2026-11-01-fft-priority-controls-broadcast-confirm.json).

@@ -29,7 +29,7 @@ assert(sizes.length && sizes.every(n => Number.isSafeInteger(n) && n > 0 && (n &
 const warmupMs = Number(values['warmup-ms']), batchMs = Number(values['batch-ms']), batches = Number(values.batches);
 assert(Number.isFinite(warmupMs) && warmupMs >= 300 && Number.isFinite(batchMs) && batchMs >= 150);
 assert(Number.isSafeInteger(batches) && batches >= 1 && batches <= 9);
-const availableModes = ['compiled', 'function-control', 'reference', 'js-stages', 'js-inplace', ...(values.fftjs ? ['fftjs-setup', 'fftjs-reuse'] : [])];
+const availableModes = ['compiled', 'function-control', 'reference', 'js-stages', 'js-inplace', 'js-direct', ...(values.fftjs ? ['fftjs-setup', 'fftjs-reuse'] : [])];
 const modes = values.modes?.split(',') ?? availableModes;
 assert(modes.every(mode => availableModes.includes(mode) || mode === 'baseline' && values.baseline), 'unknown mode or missing --baseline');
 const FFT = values.fftjs ? createRequire(import.meta.url)(values.fftjs) : undefined;
@@ -86,6 +86,39 @@ function jsFft(input, inplace) {
   }
   return [Float64Array.from(order, j => r[j]), Float64Array.from(order, j => im[j])];
 }
+// Stronger scalar JS control: no coefficient or permutation cache.
+// Reversed indices are generated while gathering, without index arrays.
+function jsFftDirect(input) {
+  const n = input.length, r = new Float64Array(n), im = new Float64Array(n);
+  r.set(input);
+  const c = new Float64Array(n / 2), s = new Float64Array(n / 2);
+  for (let k = 0; k < n / 2; k++) {
+    const angle = -2 * Math.PI * k / n;
+    c[k] = Math.cos(angle); s[k] = Math.sin(angle);
+  }
+  for (let size = n; size > 1; size /= 2) {
+    const half = size / 2, stride = n / size;
+    for (let start = 0; start < n; start += size) {
+      for (let k = 0, w = 0; k < half; k++, w += stride) {
+        const lo = start + k, hi = lo + half;
+        const ur = r[lo], ui = im[lo], vr = r[hi], vi = im[hi];
+        r[lo] = ur + vr; im[lo] = ui + vi;
+        const dr = ur - vr, di = ui - vi;
+        r[hi] = dr * c[w] - di * s[w];
+        im[hi] = dr * s[w] + di * c[w];
+      }
+    }
+  }
+  const outR = new Float64Array(n), outI = new Float64Array(n);
+  let reversed = 0;
+  for (let i = 0; i < n; i++) {
+    outR[i] = r[reversed]; outI[i] = im[reversed];
+    let bit = n >>> 1;
+    while (reversed & bit) { reversed ^= bit; bit >>>= 1; }
+    reversed ^= bit;
+  }
+  return [outR, outI];
+}
 function check(got, expected) {
   if (typeof got[0] === 'number') got = [0, 1].map(p => Array.from({ length: got.length / 2 }, (_, j) => got[j * 2 + p]));
   assert.equal(got.length, 2);
@@ -101,7 +134,10 @@ function dft(x) {
     return total + v * (p ? Math.sin(a) : Math.cos(a));
   }, 0)));
 }
-function profileSummary(profile) {
+function profileSummary(profile, sources = []) {
+  const kinds = new Map(sources.map(({ scriptId, source }) => [scriptId,
+    source.includes('numeric-array-function') ? 'numeric-array-function'
+      : source.includes('vectorArray') ? 'integer-vector-loop' : 'compiled-expression']));
   const nodes = new Map(profile.nodes.map(n => [n.id, n]));
   const parents = new Map();
   for (const node of profile.nodes) for (const id of node.children ?? []) parents.set(id, node.id);
@@ -116,7 +152,7 @@ function profileSummary(profile) {
     const sums = new Map();
     for (const [id, ms] of entries) {
       const f = nodes.get(id).callFrame;
-      const key = `${f.functionName || '(anonymous)'}|${f.url}:${f.lineNumber + 1}`;
+      const key = `${f.functionName || kinds.get(f.scriptId) || '(anonymous)'}|${f.url}:${f.lineNumber + 1}`;
       sums.set(key, (sums.get(key) ?? 0) + ms);
     }
     return [...sums].sort((a, b) => b[1] - a[1]).slice(0, 30).map(([frame, ms]) => ({ frame, ms }));
@@ -163,6 +199,7 @@ if (!values.worker) {
     fftjs: FFT ? { version: createRequire(import.meta.url)(values.fftjs.replace(/lib\/fft\.js$/, 'package.json')).version, path: values.fftjs } : undefined,
     checkout, baseline: values.baseline,
     sourceHash: createHash('sha256').update(source).digest('hex'),
+    benchmarkHash: createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).digest('hex'),
     timing: `serial fresh processes; each has >=${warmupMs} ms warmup; ${batches} measured batch(es) targeting ${batchMs} ms; parsing, input creation and result validation excluded; coefficients, permutation and output materialization included; when batches > 1, each batch runs for at least the target duration and each worker reports its median`,
     results, summary };
   if (values.output) writeFileSync(values.output, JSON.stringify(report, null, 2) + '\n');
@@ -182,6 +219,7 @@ if (!values.worker) {
   const libraryInput = Float64Array.from(x), libraryOutput = new Float64Array(n * 2);
   const run = () => {
     if (runtime) return rankCall.call([input]).items.map(v => v.items);
+    if (mode === 'js-direct') return jsFftDirect(x);
     if (!mode.startsWith('fftjs-')) return jsFft(x, mode === 'js-inplace');
     const f = mode === 'fftjs-reuse' ? plan : new FFT(n);
     const out = mode === 'fftjs-reuse' ? libraryOutput : new Float64Array(n * 2);
@@ -192,7 +230,7 @@ if (!values.worker) {
   for (const count of [2, 4, 8, 16, 32]) {
     const small = Array.from({ length: count }, (_, j) => Math.sin(j * 1.71) + Math.cos(j * .37));
     const expected = dft(small);
-    check(jsFft(small, false), expected); check(jsFft(small, true), expected);
+    check(jsFft(small, false), expected); check(jsFft(small, true), expected); check(jsFftDirect(small), expected);
     if (runtime) check(rankCall.call([createArraySnapshot(small, [count])]).items.map(v => v.items), expected);
   }
   const expected = jsFft(x, true);
@@ -230,12 +268,12 @@ if (!values.worker) {
     const start = performance.now(); let calls = 0;
     while (performance.now() - start < 2500) { run(); calls++; }
     const { profile } = await session.post(values.profile === 'cpu' ? 'Profiler.stop' : 'HeapProfiler.stopSampling');
+    const sources = [];
     if (values.profile === 'cpu') {
       // Inspect generated code after sampling, without compiler hooks.
       await session.post('Debugger.enable');
       const scripts = [...new Set(profile.nodes.filter(node => !node.callFrame.url && node.callFrame.scriptId !== '0')
         .map(node => node.callFrame.scriptId))];
-      const sources = [];
       for (const scriptId of scripts) {
         try { const { scriptSource } = await session.post('Debugger.getScriptSource', { scriptId }); sources.push({ scriptId, source: scriptSource }); }
         catch { /* A collected script may no longer be available. */ }
@@ -244,7 +282,7 @@ if (!values.worker) {
     }
     session.disconnect(); writeFileSync(values.output, JSON.stringify(profile));
     const bytes = node => node.selfSize + node.children.reduce((sum, child) => sum + bytes(child), 0);
-    const summary = values.profile === 'cpu' ? profileSummary(profile) : { sampledAllocationBytes: bytes(profile.head), bytesPerCall: bytes(profile.head) / calls, note: 'V8 allocation sampling estimate, includes collected objects; not retained or peak heap' };
+    const summary = values.profile === 'cpu' ? profileSummary(profile, sources) : { sampledAllocationBytes: bytes(profile.head), bytesPerCall: bytes(profile.head) / calls, note: 'V8 allocation sampling estimate, includes collected objects; not retained or peak heap' };
     writeFileSync(values.output + '.summary.json', JSON.stringify({ n, mode, calls, ...summary }, null, 2) + '\n');
     console.log(JSON.stringify({ n, mode, calls, ...summary }, null, 2));
   } else {

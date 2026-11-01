@@ -1,0 +1,364 @@
+{
+  "runs": [
+    {
+      "roots": {
+        "baseline": "/tmp/rank-fft-priority-step2",
+        "candidate": "/tmp/rank-fft-priority"
+      },
+      "size": 8192,
+      "note": "Within-process alternating component check; includes ownership publication and full public items conversion, reuses readonly input. Not full FFT timings.",
+      "rows": [
+        {
+          "pair": 0,
+          "name": "baseline",
+          "count": 1507,
+          "ms": 0.19923053483742512,
+          "cpuMs": 0.22219575315195753
+        },
+        {
+          "pair": 0,
+          "name": "candidate",
+          "count": 11895,
+          "ms": 0.0252215286254729,
+          "cpuMs": 0.04284968474148802
+        },
+        {
+          "pair": 1,
+          "name": "candidate",
+          "count": 12900,
+          "ms": 0.023256246821705427,
+          "cpuMs": 0.04058558139534883
+        },
+        {
+          "pair": 1,
+          "name": "baseline",
+          "count": 1380,
+          "ms": 0.21747980072463757,
+          "cpuMs": 0.24164130434782607
+        },
+        {
+          "pair": 2,
+          "name": "baseline",
+          "count": 1606,
+          "ms": 0.1868318804483186,
+          "cpuMs": 0.2037079701120797
+        },
+        {
+          "pair": 2,
+          "name": "candidate",
+          "count": 11751,
+          "ms": 0.02582397949110713,
+          "cpuMs": 0.04212807420645052
+        },
+        {
+          "pair": 3,
+          "name": "candidate",
+          "count": 11951,
+          "ms": 0.025103837168437785,
+          "cpuMs": 0.0432674253200569
+        },
+        {
+          "pair": 3,
+          "name": "baseline",
+          "count": 1367,
+          "ms": 0.21947765764447708,
+          "cpuMs": 0.234781272860278
+        },
+        {
+          "pair": 4,
+          "name": "baseline",
+          "count": 1483,
+          "ms": 0.2023971112609578,
+          "cpuMs": 0.23128860418071476
+        },
+        {
+          "pair": 4,
+          "name": "candidate",
+          "count": 7005,
+          "ms": 0.04361644668094221,
+          "cpuMs": 0.04957244825124911
+        },
+        {
+          "pair": 5,
+          "name": "candidate",
+          "count": 8269,
+          "ms": 0.036281437658725456,
+          "cpuMs": 0.042717378159390494
+        },
+        {
+          "pair": 5,
+          "name": "baseline",
+          "count": 1420,
+          "ms": 0.21206895563380282,
+          "cpuMs": 0.2207169014084507
+        },
+        {
+          "pair": 6,
+          "name": "baseline",
+          "count": 1846,
+          "ms": 0.16254354008667385,
+          "cpuMs": 0.17446153846153845
+        },
+        {
+          "pair": 6,
+          "name": "candidate",
+          "count": 13358,
+          "ms": 0.022458626515945528,
+          "cpuMs": 0.04120137745171433
+        }
+      ],
+      "summary": [
+        {
+          "name": "baseline",
+          "ms": 0.2023971112609578,
+          "cpuMs": 0.22219575315195753
+        },
+        {
+          "name": "candidate",
+          "ms": 0.0252215286254729,
+          "cpuMs": 0.042717378159390494
+        }
+      ]
+    },
+    {
+      "roots": {
+        "baseline": "/tmp/rank-fft-priority-step2",
+        "candidate": "/tmp/rank-fft-priority"
+      },
+      "size": 8192,
+      "note": "Within-process alternating component check; includes ownership publication and full public items conversion, reuses readonly input. Not full FFT timings.",
+      "rows": [
+        {
+          "pair": 0,
+          "name": "baseline",
+          "count": 1515,
+          "ms": 0.19884326204620467,
+          "cpuMs": 0.2177782178217822
+        },
+        {
+          "pair": 0,
+          "name": "candidate",
+          "count": 12875,
+          "ms": 0.023301038834951434,
+          "cpuMs": 0.04114943689320388
+        },
+        {
+          "pair": 1,
+          "name": "candidate",
+          "count": 12970,
+          "ms": 0.02313137047031612,
+          "cpuMs": 0.040739013107170395
+        },
+        {
+          "pair": 1,
+          "name": "baseline",
+          "count": 1465,
+          "ms": 0.2048832197952216,
+          "cpuMs": 0.22534402730375427
+        },
+        {
+          "pair": 2,
+          "name": "baseline",
+          "count": 1531,
+          "ms": 0.19602386806009134,
+          "cpuMs": 0.21465578053559764
+        },
+        {
+          "pair": 2,
+          "name": "candidate",
+          "count": 13289,
+          "ms": 0.02279107720671232,
+          "cpuMs": 0.04074753555572278
+        },
+        {
+          "pair": 3,
+          "name": "candidate",
+          "count": 14226,
+          "ms": 0.021161669970476586,
+          "cpuMs": 0.040813369886123996
+        },
+        {
+          "pair": 3,
+          "name": "baseline",
+          "count": 1482,
+          "ms": 0.20291779149797592,
+          "cpuMs": 0.21662213225371119
+        },
+        {
+          "pair": 4,
+          "name": "baseline",
+          "count": 1622,
+          "ms": 0.1849582053020963,
+          "cpuMs": 0.20384956843403207
+        },
+        {
+          "pair": 4,
+          "name": "candidate",
+          "count": 14079,
+          "ms": 0.02159109610057535,
+          "cpuMs": 0.03930847361318275
+        },
+        {
+          "pair": 5,
+          "name": "candidate",
+          "count": 14143,
+          "ms": 0.0216826080039596,
+          "cpuMs": 0.03987824365410451
+        },
+        {
+          "pair": 5,
+          "name": "baseline",
+          "count": 1588,
+          "ms": 0.1890204395465996,
+          "cpuMs": 0.2047462216624685
+        },
+        {
+          "pair": 6,
+          "name": "baseline",
+          "count": 1565,
+          "ms": 0.19179126709265132,
+          "cpuMs": 0.20915974440894566
+        },
+        {
+          "pair": 6,
+          "name": "candidate",
+          "count": 13209,
+          "ms": 0.022712525550760858,
+          "cpuMs": 0.04037164054811114
+        }
+      ],
+      "summary": [
+        {
+          "name": "baseline",
+          "ms": 0.19602386806009134,
+          "cpuMs": 0.21465578053559764
+        },
+        {
+          "name": "candidate",
+          "ms": 0.022712525550760858,
+          "cpuMs": 0.040739013107170395
+        }
+      ]
+    },
+    {
+      "roots": {
+        "baseline": "/tmp/rank-fft-priority-step2",
+        "candidate": "/tmp/rank-fft-priority"
+      },
+      "size": 8192,
+      "note": "Within-process alternating component check; includes ownership publication and full public items conversion, reuses readonly input. Not full FFT timings.",
+      "rows": [
+        {
+          "pair": 0,
+          "name": "baseline",
+          "count": 1374,
+          "ms": 0.21854542721979633,
+          "cpuMs": 0.23172052401746726
+        },
+        {
+          "pair": 0,
+          "name": "candidate",
+          "count": 9658,
+          "ms": 0.031062525885276446,
+          "cpuMs": 0.04137823565955684
+        },
+        {
+          "pair": 1,
+          "name": "candidate",
+          "count": 9453,
+          "ms": 0.03173933767058076,
+          "cpuMs": 0.03875140167142706
+        },
+        {
+          "pair": 1,
+          "name": "baseline",
+          "count": 660,
+          "ms": 0.4546830181818181,
+          "cpuMs": 0.29402424242424247
+        },
+        {
+          "pair": 2,
+          "name": "baseline",
+          "count": 522,
+          "ms": 0.5767947796934865,
+          "cpuMs": 0.26919348659003833
+        },
+        {
+          "pair": 2,
+          "name": "candidate",
+          "count": 5155,
+          "ms": 0.05819773676042676,
+          "cpuMs": 0.04186808923375364
+        },
+        {
+          "pair": 3,
+          "name": "candidate",
+          "count": 6186,
+          "ms": 0.04874767620433242,
+          "cpuMs": 0.044785806660200454
+        },
+        {
+          "pair": 3,
+          "name": "baseline",
+          "count": 578,
+          "ms": 0.5193811280276815,
+          "cpuMs": 0.28119204152249133
+        },
+        {
+          "pair": 4,
+          "name": "baseline",
+          "count": 828,
+          "ms": 0.363868357487922,
+          "cpuMs": 0.2749830917874396
+        },
+        {
+          "pair": 4,
+          "name": "candidate",
+          "count": 6920,
+          "ms": 0.04335525043352601,
+          "cpuMs": 0.04358684971098266
+        },
+        {
+          "pair": 5,
+          "name": "candidate",
+          "count": 8120,
+          "ms": 0.03713676613300488,
+          "cpuMs": 0.04139544334975369
+        },
+        {
+          "pair": 5,
+          "name": "baseline",
+          "count": 459,
+          "ms": 0.6550784313725481,
+          "cpuMs": 0.26774291938997824
+        },
+        {
+          "pair": 6,
+          "name": "baseline",
+          "count": 458,
+          "ms": 0.655403019650655,
+          "cpuMs": 0.3312554585152839
+        },
+        {
+          "pair": 6,
+          "name": "candidate",
+          "count": 5133,
+          "ms": 0.05844561328657708,
+          "cpuMs": 0.04531404636664719
+        }
+      ],
+      "summary": [
+        {
+          "name": "baseline",
+          "ms": 0.5193811280276815,
+          "cpuMs": 0.2749830917874396
+        },
+        {
+          "name": "candidate",
+          "ms": 0.04335525043352601,
+          "cpuMs": 0.04186808923375364
+        }
+      ]
+    }
+  ]
+}

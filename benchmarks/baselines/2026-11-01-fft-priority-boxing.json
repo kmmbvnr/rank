@@ -1,0 +1,424 @@
+{
+  "date": "2026-11-01T06:07:26.583Z",
+  "cpu": "Apple M5",
+  "node": "v24.15.0",
+  "commit": "b4b9da00a1ba4cd5dcadc83739a04de2e5451ff3",
+  "checkout": "/private/tmp/rank-fft-priority/",
+  "baseline": "/tmp/rank-fft-priority-step2",
+  "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+  "timing": "serial fresh processes; each has >=1500 ms warmup; 3 measured batch(es) targeting 750 ms; parsing, input creation and result validation excluded; coefficients, permutation and output materialization included; when batches > 1, each batch runs for at least the target duration and each worker reports its median",
+  "results": [
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 39.61474999999996,
+      "warmMs": 3.711553509803921,
+      "cpuMs": 3.145357843137255,
+      "iterations": 636,
+      "warmups": 315,
+      "measured": [
+        {
+          "iterations": 204,
+          "warmMs": 3.711553509803921,
+          "cpuMs": 3.145357843137255
+        },
+        {
+          "iterations": 256,
+          "warmMs": 2.9865633124999995,
+          "cpuMs": 2.72340234375
+        },
+        {
+          "iterations": 176,
+          "warmMs": 4.266760176136361,
+          "cpuMs": 3.247460227272727
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 42.771499999999946,
+      "warmMs": 2.0100217245989307,
+      "cpuMs": 2.5944839572192513,
+      "iterations": 1236,
+      "warmups": 536,
+      "measured": [
+        {
+          "iterations": 311,
+          "warmMs": 2.4155819935691323,
+          "cpuMs": 2.61616077170418
+        },
+        {
+          "iterations": 374,
+          "warmMs": 2.0100217245989307,
+          "cpuMs": 2.5944839572192513
+        },
+        {
+          "iterations": 551,
+          "warmMs": 1.3621772540834844,
+          "cpuMs": 1.936508166969147
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 23.105000000000018,
+      "warmMs": 1.4482931138996133,
+      "cpuMs": 2.03080223880597,
+      "iterations": 1516,
+      "warmups": 990,
+      "measured": [
+        {
+          "iterations": 462,
+          "warmMs": 1.6245827034632037,
+          "cpuMs": 2.2426926406926406
+        },
+        {
+          "iterations": 518,
+          "warmMs": 1.4482931138996133,
+          "cpuMs": 2.028988416988417
+        },
+        {
+          "iterations": 536,
+          "warmMs": 1.4000162481343281,
+          "cpuMs": 2.03080223880597
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 23.942458999999985,
+      "warmMs": 1.2692435837563452,
+      "cpuMs": 1.7967732656514384,
+      "iterations": 1768,
+      "warmups": 926,
+      "measured": [
+        {
+          "iterations": 591,
+          "warmMs": 1.2692435837563452,
+          "cpuMs": 1.7967732656514384
+        },
+        {
+          "iterations": 594,
+          "warmMs": 1.2626607053872052,
+          "cpuMs": 1.6583131313131314
+        },
+        {
+          "iterations": 583,
+          "warmMs": 1.287539665523156,
+          "cpuMs": 1.859008576329331
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 22.539041999999995,
+      "warmMs": 1.2511546533333338,
+      "cpuMs": 1.7468816666666664,
+      "iterations": 1787,
+      "warmups": 1075,
+      "measured": [
+        {
+          "iterations": 579,
+          "warmMs": 1.2961935803108808,
+          "cpuMs": 1.7916269430051814
+        },
+        {
+          "iterations": 608,
+          "warmMs": 1.234814075657895,
+          "cpuMs": 1.7030888157894737
+        },
+        {
+          "iterations": 600,
+          "warmMs": 1.2511546533333338,
+          "cpuMs": 1.7468816666666664
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 21.55204200000003,
+      "warmMs": 2.2725065240963858,
+      "cpuMs": 2.335120481927711,
+      "iterations": 1001,
+      "warmups": 1154,
+      "measured": [
+        {
+          "iterations": 478,
+          "warmMs": 1.5714749832635986,
+          "cpuMs": 1.905399581589958
+        },
+        {
+          "iterations": 332,
+          "warmMs": 2.2725065240963858,
+          "cpuMs": 2.335120481927711
+        },
+        {
+          "iterations": 191,
+          "warmMs": 3.9349834188481663,
+          "cpuMs": 2.6912198952879582
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 63.770667,
+      "warmMs": 2.680173067857142,
+      "cpuMs": 2.907,
+      "iterations": 878,
+      "warmups": 405,
+      "measured": [
+        {
+          "iterations": 280,
+          "warmMs": 2.680173067857142,
+          "cpuMs": 2.907
+        },
+        {
+          "iterations": 244,
+          "warmMs": 3.0779100040983627,
+          "cpuMs": 3.028077868852459
+        },
+        {
+          "iterations": 354,
+          "warmMs": 2.120923963276835,
+          "cpuMs": 2.5089406779661014
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 28.98420800000008,
+      "warmMs": 1.6812539062500005,
+      "cpuMs": 2.1410050000000003,
+      "iterations": 1361,
+      "warmups": 818,
+      "measured": [
+        {
+          "iterations": 513,
+          "warmMs": 1.4634194288499027,
+          "cpuMs": 2.2012397660818714
+        },
+        {
+          "iterations": 448,
+          "warmMs": 1.6812539062500005,
+          "cpuMs": 1.9828816964285714
+        },
+        {
+          "iterations": 400,
+          "warmMs": 1.8757185399999992,
+          "cpuMs": 2.1410050000000003
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 23.784874999999943,
+      "warmMs": 1.401362143122677,
+      "cpuMs": 1.902271375464684,
+      "iterations": 1595,
+      "warmups": 833,
+      "measured": [
+        {
+          "iterations": 517,
+          "warmMs": 1.4527008375241774,
+          "cpuMs": 2.1430290135396515
+        },
+        {
+          "iterations": 540,
+          "warmMs": 1.3897503092592598,
+          "cpuMs": 1.7586444444444445
+        },
+        {
+          "iterations": 538,
+          "warmMs": 1.401362143122677,
+          "cpuMs": 1.902271375464684
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 20.154667000000018,
+      "warmMs": 1.10994273964497,
+      "cpuMs": 1.7177334293948125,
+      "iterations": 2016,
+      "warmups": 1198,
+      "measured": [
+        {
+          "iterations": 646,
+          "warmMs": 1.161057082043343,
+          "cpuMs": 1.7190510835913313
+        },
+        {
+          "iterations": 676,
+          "warmMs": 1.10994273964497,
+          "cpuMs": 1.6912011834319527
+        },
+        {
+          "iterations": 694,
+          "warmMs": 1.081401237752162,
+          "cpuMs": 1.7177334293948125
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 5,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 18.01629200000002,
+      "warmMs": 1.5342414785276075,
+      "cpuMs": 2.1334186046511627,
+      "iterations": 1499,
+      "warmups": 1261,
+      "measured": [
+        {
+          "iterations": 537,
+          "warmMs": 1.4051720204841718,
+          "cpuMs": 1.9668919925512105
+        },
+        {
+          "iterations": 473,
+          "warmMs": 1.5883533298097257,
+          "cpuMs": 2.1334186046511627
+        },
+        {
+          "iterations": 489,
+          "warmMs": 1.5342414785276075,
+          "cpuMs": 2.2178609406952967
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 5,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 14.139875000000075,
+      "warmMs": 1.1332908474320238,
+      "cpuMs": 1.4657054380664654,
+      "iterations": 2069,
+      "warmups": 928,
+      "measured": [
+        {
+          "iterations": 415,
+          "warmMs": 1.807552108433735,
+          "cpuMs": 2.4075927710843374
+        },
+        {
+          "iterations": 662,
+          "warmMs": 1.1332908474320238,
+          "cpuMs": 1.4657054380664654
+        },
+        {
+          "iterations": 992,
+          "warmMs": 0.7561778820564512,
+          "cpuMs": 1.126015120967742
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 6,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 13.165250000000015,
+      "warmMs": 0.6220416318407962,
+      "cpuMs": 0.8861293532338309,
+      "iterations": 3365,
+      "warmups": 1839,
+      "measured": [
+        {
+          "iterations": 939,
+          "warmMs": 0.7992867412140575,
+          "cpuMs": 1.1269605963791267
+        },
+        {
+          "iterations": 1206,
+          "warmMs": 0.6220416318407962,
+          "cpuMs": 0.8861293532338309
+        },
+        {
+          "iterations": 1220,
+          "warmMs": 0.6151440229508196,
+          "cpuMs": 0.8449319672131148
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 6,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 9.772416999999962,
+      "warmMs": 0.5862467773437501,
+      "cpuMs": 0.9626344505066251,
+      "iterations": 3821,
+      "warmups": 2430,
+      "measured": [
+        {
+          "iterations": 1258,
+          "warmMs": 0.5963312798092208,
+          "cpuMs": 0.9836534181240063
+        },
+        {
+          "iterations": 1280,
+          "warmMs": 0.5862467773437501,
+          "cpuMs": 0.9065453124999999
+        },
+        {
+          "iterations": 1283,
+          "warmMs": 0.5847609446609511,
+          "cpuMs": 0.9626344505066251
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    }
+  ],
+  "summary": [
+    {
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMedianMs": 23.784874999999943,
+      "medianMs": 1.2692435837563452,
+      "cpuMedianMs": 1.7967732656514384,
+      "minMs": 0.6220416318407962,
+      "maxMs": 3.711553509803921
+    },
+    {
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMedianMs": 21.55204200000003,
+      "medianMs": 1.5342414785276075,
+      "cpuMedianMs": 2.1334186046511627,
+      "minMs": 0.5862467773437501,
+      "maxMs": 2.680173067857142
+    }
+  ]
+}
