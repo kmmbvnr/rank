@@ -21,6 +21,19 @@ function items(value: RankValue): RankValue[] {
 }
 
 describe('numeric collection kernels', () => {
+    it.each([3n, -3n, 7n, -7n, 9007199254740991n, -9007199254740991n])
+        ('keeps wide signed array division exact for divisor %s', divisor => {
+            const values = [-9007199254740991n, -9007199254740990n, -4503599627370495n,
+                -1n, 0n, 1n, 4503599627370495n, 9007199254740990n, 9007199254740991n];
+            const expected = values.map(x => x / divisor - (x % divisor !== 0n && (x < 0n) !== (divisor < 0n) ? 1n : 0n));
+            for (const input of [ownedArray([...values]), typedArray(BigInt64Array.from(values)),
+                typedArray(BigInt64Array.from(values), [3, 3])]) {
+                const result = mapStoredIntegers(input, divisor, '//')!;
+                expect(items(result)).toEqual(expected);
+                expect(result.shape).toEqual(input.shape);
+            }
+        });
+
     it('computes exact signed gcd and abs over stored broadcast operands', () => {
         const left = typedArray(new BigInt64Array([-12n, 0n, -(1n << 63n)]), [3, 1]);
         const right = typedArray(new BigInt64Array([0n, 18n]), [1, 2]);

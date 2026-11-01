@@ -190,6 +190,10 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
                         const r = av % bv;
                         m = r !== 0 && r < 0 !== bv < 0 ? r + bv : r;
                     }
+                    // Opposite signs can put the quotient product outside the
+                    // safe range although both operands and the quotient fit.
+                    // Keep that subtraction on the exact BigInt path.
+                    if (code === 4 && !Number.isSafeInteger(av - m)) return undefined;
                     result = code === 3 ? m : (av - m) / bv;
                     break;
                 }

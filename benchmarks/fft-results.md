@@ -798,6 +798,29 @@ about 3%. These instrumented proportions locate follow-up work, not predicted
 speedups, and categories can overlap. Generic integer array-loop execution
 is now a more promising large target than another helper-boundary change.
 
+### Step 4a: repair wide signed array division
+
+Boundary tests for the next loop experiment exposed an existing ordinary
+kernel bug, also reproduced on `4b0d6077`: `(array -9007199254740991) // 3`
+can throw a fractional-to-BigInt RangeError. Computing `(a - remainder) / b`
+can round the subtraction outside the safe integer range even when the
+operands and mathematical quotient fit. The stored integer kernel now
+checks that intermediate and declines to the exact BigInt backend.
+
+Six divisor cases check nine numerators, both signs, boxed and Int64 storage,
+and vector/matrix shapes against an independent BigInt oracle. Together
+with the loop boundary checks, 112 focused tests pass. This is a correctness
+repair; no speed improvement is attributed to it.
+
+The first five-pair FFT control was noisy (1.046 to 1.112 ms, process maxima
+above 2 ms). A separate nine-pair confirmation measures 1.00786 to 1.01080 ms,
+with overlapping ranges of 0.981–1.023 and 0.992–1.051 ms. FFT source and
+coefficients remain unchanged. The cell-reuse experiment was removed from
+the measured build, so this control isolates the division repair.
+
+Evidence: [initial control](baselines/2026-11-01-wide-array-division-fix-fft.json),
+[nine-pair confirmation](baselines/2026-11-01-wide-array-division-fix-fft-confirm.json).
+
 ## Reproduction and checks
 
 ```sh
