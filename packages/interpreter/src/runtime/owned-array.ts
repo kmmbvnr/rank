@@ -802,8 +802,8 @@ export function sharedTypedArray(data: Float64Array | BigInt64Array | Int32Array
     return value;
 }
 
-/** Completed numeric slices share their buffer. Source writes outside the
- * retained ranges remain in place; overlapping or whole-value writes detach. */
+/** Completed numeric slices share their buffer, except singletons. Source
+ * writes outside retained ranges remain in place; overlapping writes detach. */
 export function sliceStoredArray(value: RankArray, offset: number, shape: readonly number[]): RankArray | undefined {
     const state = ownedStorage.get(value);
     if (!state?.stable || !state.scalarOnly || !state.typed || state.validity || state.readOnlyCells
@@ -811,12 +811,16 @@ export function sliceStoredArray(value: RankArray, offset: number, shape: readon
     const size = shape.reduce((n, dimension) => n * dimension, 1);
     if (offset < 0 || offset + size > state.typed.length) return undefined;
     checkpoint('sharing numeric slice', size);
-    const result = sharedTypedArray(state.typed.subarray(offset, offset + size), shape);
+    // A singleton has no neighbouring cells to share. Retaining its source
+    // buffer would keep the whole allocation alive and make an overlapping
+    // source write copy that allocation just to protect one old scalar.
+    const result = size === 1 ? typedArray(state.typed.slice(offset, offset + 1), shape)
+        : sharedTypedArray(state.typed.subarray(offset, offset + size), shape);
     if (state.elementKinds?.size === 1) {
         const kind = state.elementKinds.keys().next().value!;
         ownedStorage.get(result)!.elementKinds = new Map(size ? [[kind, size]] : []);
     }
-    if (size) {
+    if (size > 1) {
         const previous = state.slices?.cells === state.typed ? state.slices : undefined;
         if (previous) {
             previous.start = Math.min(previous.start, offset);

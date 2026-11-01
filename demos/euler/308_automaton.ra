@@ -10,12 +10,18 @@ arg Target integer = 10001
 
 Ps = primes take Target array
 Top = Ps (Ps len - 1)
-Spf = array shape (Top + 1) fill 0
-for P in Ps
-  Ix = P to Top by P array
-  Old = Spf Ix
-  Free' = Ix filter Old equal 0 array
-  Spf Free = P
+Spf = array shape 0 fill 0
+rem factorsieve covers up to 2^20 - 1.
+if Top at most 1048575
+  Spf = Top factorsieve
+else
+  Spf = array shape (Top + 1) fill 0
+  for P in Ps
+    Ix = P to Top by P array
+    Old = Spf Ix
+    Free' = Ix filter Old equal 0 array
+    Spf Free = P
+  end
 end
 Start = 2
 Found = 0

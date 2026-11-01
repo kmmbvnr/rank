@@ -1,0 +1,16 @@
+{
+  "oracle": "Independent JS Eratosthenes smallest-factor sieve; every cell compared",
+  "engine": "compiled",
+  "results": [
+    {
+      "limit": 1048575,
+      "cells": 1048576,
+      "passed": true
+    },
+    {
+      "limit": 1048576,
+      "cells": 1048577,
+      "passed": true
+    }
+  ]
+}

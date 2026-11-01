@@ -1,0 +1,24 @@
+{
+  "checked": 164,
+  "oracle": "Direct BigInt FRACTRAN simulation; first 16 emitted powers of two",
+  "answers": [
+    "19",
+    "69",
+    "281",
+    "710",
+    "2375",
+    "3893",
+    "8102",
+    "11361",
+    "19268",
+    "36981",
+    "45680",
+    "75417",
+    "101354",
+    "118093",
+    "152344",
+    "215797"
+  ],
+  "oracleSteps": 215797,
+  "fixtures": 4
+}

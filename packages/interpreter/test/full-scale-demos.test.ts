@@ -13,6 +13,7 @@ for (const [file, expected] of [
     ['287_quadtree.ra', 313135496n],
     ['296_angularbisector.ra', 1137208419n],
     ['299_threesimilar.ra', 549936643n],
+    ['308_automaton.ra', 1539669807660924n],
     ['426_boxball.ra', 31591886008n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
