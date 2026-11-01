@@ -344,6 +344,14 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             return UNKNOWN_VALUE;
         case 'comparison-rank':
             return symbolicFormFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
+        case 'keyed-aggregate': {
+            const source = infer(form.source, lookup);
+            const elements = form.operation.name === 'all' || form.operation.name === 'any' ? ['boolean'] as const
+                : form.operation.name === 'count' ? ['integer'] as const
+                : form.operation.module === 'stats' && form.operation.name !== 'mode' ? ['real'] as const : source.elements;
+            return foldShapeFacts(false, form, source, expression => infer(expression, lookup),
+                elements ? [...elements] : undefined) ?? UNKNOWN_VALUE;
+        }
         case 'named-scan': case 'named-reduce': {
             const folded = namedFold(form, lookup, infer);
             const source = infer(form.source, lookup);

@@ -411,6 +411,8 @@ export type ApplicationForm =
     | Recognized<'axis-length', typeof explicitAxisLength>
     | Recognized<'axis-argsort', typeof explicitAxisArgsort>
     | Recognized<'axis-metric', typeof explicitAxisMetric>
+    | { readonly kind: 'keyed-aggregate'; readonly source: Expression; readonly operation: Operation;
+        readonly keys: Expression; readonly seed?: Expression; readonly size?: Expression }
     | Recognized<'axis-reduction', typeof axisReductionForm>
     | Recognized<'axis-transpose', typeof explicitAxisTranspose>
     | Recognized<'named-segment', typeof explicitNamedSegmentApplication>
@@ -586,6 +588,14 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
     if (form10) return { ...form10, kind: 'axis-argsort' };
     const form11 = explicitAxisMetric(parts, nameOf);
     if (form11) return { ...form11, kind: 'axis-metric' };
+    if (parts.length >= 4 && isNamed(parts[2], 'by', nameOf)) {
+        const operation = lookup(nameOf(parts[1]));
+        if (operation && operation.axisReduction) {
+            const modifiers = foldModifiers([...parts], 2, false, nameOf);
+            return { kind: 'keyed-aggregate', source: parts[0], operation,
+                keys: modifiers.keys!, seed: modifiers.seed, size: modifiers.size };
+        }
+    }
     const form12 = axisReductionForm(parts, undefined, nameOf);
     if (form12) return { ...form12, kind: 'axis-reduction' };
     const form13 = explicitAxisTranspose(parts, nameOf);

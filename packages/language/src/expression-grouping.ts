@@ -30,7 +30,7 @@ const modifiers = new Set(['repeat', 'axis', 'rank', 'outer', 'segment', 'scan',
 /** Operations that take their combining function as the word after them. */
 const higherOrder = new Set(['scan', 'reduce', 'segment', 'outer']);
 /** Words after a higher-order operation that are its own parameters, not the function. */
-const higherOrderParameters = new Set(['with', 'axis', 'rank']);
+const higherOrderParameters = new Set(['with', 'axis', 'rank', 'by', 'size']);
 
 export interface GroupingDiagnostic {
     readonly message: string;
@@ -261,7 +261,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                     if (final.leftOperand && !final.parts.slice(1).some(part => isNameExpression(part)
                         && (part.name === 'rank' || part.name === 'axis' || part.name === 'with'))) {
                         const suffix = parts.findIndex(part => isNameExpression(part)
-                            && (modifiers.has(part.name) || part.name === 'with'));
+                            && (modifiers.has(part.name) || part.name === 'with' || part.name === 'by' || part.name === 'size'));
                         const end = suffix < 0 ? parts.length : suffix;
                         return [...left.slice(0, -1), {
                             ...final,
@@ -400,7 +400,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             const modifier = parts[first + 1];
             const unary = arities?.join() === '1' && parts.slice(1, first).some(isAllAxisExpression)
                 || arities?.includes(1) && isNameExpression(modifier)
-                    && (modifier.name === 'axis' && !['quantile', 'percentile'].includes(operation!.name) || modifier.name === 'rank'
+                    && (modifier.name === 'by' || modifier.name === 'axis' && !['quantile', 'percentile'].includes(operation!.name) || modifier.name === 'rank'
                         && !isNumberLiteral(parts[first + 3]) && !isUnaryExpression(parts[first + 3]));
             if (first > 0) return [
                 { kind: 'value', value: first > 1 && unary
@@ -432,7 +432,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         let end = index + 1;
         while (end < parts.length) {
             const part = parts[end];
-            if (callable(part) || isNameExpression(part) && (modifiers.has(part.name) || part.name === 'with')
+            if (callable(part) || isNameExpression(part) && (modifiers.has(part.name) || part.name === 'with' || part.name === 'by' || part.name === 'size')
                 || isLabelLiteral(part) && (surfaceOperation(operation)?.sortDirection || surfaceOperation(operation)?.modifiers?.includes(part.name))) break;
             end++;
         }
@@ -451,6 +451,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             while (suffix < parts.length && !callable(parts[suffix])
                 && !(isNameExpression(parts[suffix]) && modifiers.has((parts[suffix] as NameExpression).name))) suffix++;
         }
+        while (isNameExpression(parts[suffix]) && ['by', 'size', 'with'].includes((parts[suffix] as NameExpression).name)) suffix += 2;
         if (suffix > end) (result.at(-1) as Token & { kind: 'call' }).parts.push(...parts.slice(end, suffix));
         if (suffix < parts.length) result.push(...calls(parts.slice(suffix), original));
         return result;

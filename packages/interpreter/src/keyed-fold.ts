@@ -57,3 +57,43 @@ export function keyedFold(values: RankValue, keys: RankValue,
     }
     return ownedArray(states);
 }
+
+
+/** Whole-group statistics retain values, unlike streaming binary folds. */
+export function keyedAggregate(values: RankValue, keys: RankValue,
+    aggregate: (values: RankArray) => RankValue, options: KeyedFoldOptions = {}): RankArray {
+    if (!isRankArray(values) || !isRankArray(keys)) {
+        throw new RankError('by expects values and keys arrays', 'TypeError');
+    }
+    if (!sameShape(values.shape, keys.shape)) {
+        throw new RankError('by keys must match the values shape', 'DimensionMismatch');
+    }
+    const { size, seed } = options;
+    if (size !== undefined && (!Number.isSafeInteger(size) || size < 0 || size >= 0xffffffff)) {
+        throw new RankError('by size must be a nonnegative array length', 'DimensionMismatch');
+    }
+    const groups: RankValue[][] = [];
+    const count = values.shape.reduce((a, b) => a * b, 1);
+    let length = size ?? 0;
+    for (let index = 0; index < count; index++) {
+        checkpoint('keyed aggregate');
+        const key = readArrayItem(keys, index);
+        if (typeof key !== 'bigint' || key < 0n || key >= 0xffffffffn) {
+            throw new RankError('by keys must be nonnegative integer array indices', 'TypeError');
+        }
+        const at = Number(key);
+        if (size !== undefined && at >= size) {
+            throw new RankError('by key is outside the result size', 'IndexError');
+        }
+        length = Math.max(length, at + 1);
+        (groups[at] ??= []).push(readArrayItem(values, index));
+    }
+    const result: RankValue[] = [];
+    for (let at = 0; at < length; at++) {
+        checkpoint('keyed aggregate');
+        const group = groups[at];
+        // A seed for a whole-group aggregate fills an absent group only.
+        result.push(!group && seed !== undefined ? seed : aggregate(ownedArray(group ?? [])));
+    }
+    return ownedArray(result);
+}

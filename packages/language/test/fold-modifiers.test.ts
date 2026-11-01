@@ -151,3 +151,9 @@ it('infers keyed reductions and shape-preserving seeded scans', () => {
     expect(facts(source, 'V reduce plus by K size 5'))
         .toMatchObject({ types: ['array'], rank: 1, shape: [5], elements: ['integer'] });
 });
+
+
+it.each(['sum', 'min', 'max'])('infers the keyed %s result', operation => {
+    expect(facts('V = array 10 20 30 40\nK = array 0 1 0 1\n', `V ${operation} by K size 3`))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
+});

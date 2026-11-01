@@ -75,6 +75,11 @@ function boundary(parts: Expression[], standard: StandardName): number | undefin
         const end = named(parts[2], 'segment') ? (named(parts[3], 'with') ? 5 : 3) : foldModifierEnd(parts, 3);
         return parts.length > end ? end : undefined;
     }
+    if (isNameExpression(parts[1]) && standard(parts[1]) && findOperation(parts[1].name)?.axisReduction
+        && named(parts[2], 'by')) {
+        const end = foldModifierEnd(parts, 2);
+        return parts.length > end ? end : undefined;
+    }
     const rank = parts.findIndex((part, index) => index >= 2 && named(part, 'rank'));
     if (rank >= 0) {
         // Addressing can have any number of ranked selectors. Keep its complete

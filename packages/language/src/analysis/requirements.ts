@@ -433,6 +433,13 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 forget();
                 return output;
             }
+            if (form.kind === 'keyed-aggregate') {
+                expression(form.source);
+                expression(form.keys);
+                if (form.seed) expression(form.seed);
+                if (form.size) expression(form.size);
+                return output;
+            }
             if (form.kind === 'axis-length' || form.kind === 'axis-reduction') {
                 const source = expression(form.source);
                 const axes = form.kind === 'axis-length' ? [form.axis] : form.axes;

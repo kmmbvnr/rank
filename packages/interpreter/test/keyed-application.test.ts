@@ -25,3 +25,14 @@ it('handles empty arrays and missing groups', () => {
     expect(run('V = array 10 20\nK = array 1 3\nV reduce + by K')).toBe('0 10 0 20');
     expect(run('V = array 10 20\nK = array 1 3\nV scan + by K with 100')).toBe('110 120');
 });
+it.each(['sum', 'min', 'max', 'mean', 'median', 'mode', 'std', 'variance', 'var', 'skew', 'skewness'])(
+    'groups the %s aggregate', operation => {
+        const prefix = 'use stats\nV = array 1 2 3 4 5 6\nK = array 0 1 0 1 0 1\n';
+        expect(run(prefix + `V ${operation} by K`)).toBe(run('use stats\n'
+            + `array ((array 1 3 5) ${operation}) ((array 2 4 6) ${operation})`));
+    });
+it.each(['all', 'any', 'count'])('groups boolean %s', operation => {
+    expect(run('use sequences\nV = array true false true true\nK = array 0 1 0 1\n'
+        + `V ${operation} by K`)).toBe(run('use sequences\n'
+        + `array ((array true true) ${operation}) ((array false true) ${operation})`));
+});

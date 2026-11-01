@@ -1782,6 +1782,23 @@ The seed does not add output cells. Without a seed, a group's first value
 initializes its state. `size` checks key bounds but does not change the scan
 shape. Keyed folds currently reject `rank` and `axis` modifiers.
 
+The same grouping modifier is available on `sum`, `min`, `max`,
+`all`, `any`, `count`, `mean`, `median`, `mode`, `std`, `variance` (`var`),
+and `skewness` (`skew`), with their usual module imports:
+
+```rank
+Values sum by Keys
+Values max by Keys with -infinity
+use stats
+Values median by Keys
+```
+
+`sum`, `min` and `max` accept an accumulator seed as their corresponding
+binary reductions do. For the other whole-group aggregates, `with` supplies
+only the value of an absent group; it is not inserted as a sample into
+nonempty groups. Without it, empty groups follow the ordinary aggregate's
+empty-input behavior. Whole-group statistics currently retain group values.
+
 Named reductions use the same data-first style:
 
 ```rank
