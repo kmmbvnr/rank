@@ -1,6 +1,7 @@
 import { checkPlan, isRankPlan } from './plan.js';
 import { ArrayBindingContract } from './array-binding-contract.js';
 import { semanticArrayType, semanticValueType } from './semantic-array-type.js';
+import { semanticValueSignature } from './runtime/semantic-signature.js';
 import { arrayRevision } from './array-storage.js';
 import { RankError } from './errors.js';
 import { isRankArray, isRankRecord, isRankTuple, collectionElementType, mergeCollectionElementType, typeName, valueRank,
@@ -8,7 +9,9 @@ import { isRankArray, isRankRecord, isRankTuple, collectionElementType, mergeCol
 import { retainRecordContract } from './record-contract.js';
 
 export function argumentRankSignature(values: readonly RankValue[]): string {
-    return JSON.stringify(values.map(value => semanticValueType(value, false)));
+    return values.some(isRankRecord)
+        ? '[' + values.map(value => semanticValueSignature(value, false)).join(',') + ']'
+        : JSON.stringify(values.map(value => semanticValueType(value, false)));
 }
 
 // WeakRef pins each target until the current host job ends. A synchronous Rank
@@ -26,6 +29,7 @@ interface SignatureMemo {
     readonly revisions: readonly (number | undefined)[];
     readonly ranks: readonly number[];
     readonly key: string;
+    readonly records: readonly (string | undefined)[];
 }
 
 let signatureMemo: SignatureMemo | undefined;
@@ -34,20 +38,33 @@ let signatureMemo: SignatureMemo | undefined;
  * One call asks for the same signature several times (body cache, contract,
  * frame layout). Scalars and arrays with known scalar cells cannot change type behind
  * the same identity and revision, so the last key is reused for them; any other
- * value (records, sequences, host arrays) recomputes. Tokens do not retain their input objects.
+ * value (sequences, host arrays) recomputes. Records recheck their live field
+ * contracts. Tokens do not retain their input objects.
  */
 function memoizedSignature(values: readonly RankValue[]): string | undefined {
     const memo = signatureMemo;
     if (!memo || memo.held.length !== values.length) return undefined;
+    let records = false;
     for (let index = 0; index < values.length; index++) {
         const value = values[index], held = memo.held[index];
         if (typeof value !== 'object') {
             if (held !== value || typeof held === 'object') return undefined;
         } else {
+            if (isRankRecord(value)) {
+                if (memo.records[index] === undefined) return undefined;
+                records = true;
+                continue;
+            }
             if (!isRankArray(value) || signatureIdentities.get(value) !== held) return undefined;
             const revision = arrayRevision(value);
             if (revision === undefined || revision !== memo.revisions[index] || value.shape.length !== memo.ranks[index]) return undefined;
         }
+    }
+    // Reject changed scalar/array arguments before walking record metadata.
+    // Otherwise a miss would encode the same record again in argumentSignature.
+    if (records) for (let index = 0; index < values.length; index++) {
+        const value = values[index];
+        if (isRankRecord(value) && memo.records[index] !== semanticValueSignature(value)) return undefined;
     }
     return memo.key;
 }
@@ -55,12 +72,14 @@ function memoizedSignature(values: readonly RankValue[]): string | undefined {
 export function argumentSignature(values: readonly RankValue[]): string {
     const memoized = memoizedSignature(values);
     if (memoized !== undefined) return memoized;
-    const key = JSON.stringify(values.map(value => semanticValueType(value)));
+    const signatures = values.some(isRankRecord) ? values.map(value => semanticValueSignature(value)) : undefined;
+    const key = signatures ? '[' + signatures.join(',') + ']' : JSON.stringify(values.map(value => semanticValueType(value)));
     signatureMemo = values.every(value => typeof value !== 'object'
-        || isRankArray(value) && semanticArrayType(value).scalar !== undefined && arrayRevision(value) !== undefined)
+        || isRankRecord(value) || isRankArray(value) && semanticArrayType(value).scalar !== undefined && arrayRevision(value) !== undefined)
         ? { held: values.map(value => typeof value === 'object' ? signatureIdentity(value) : value),
             revisions: values.map(value => isRankArray(value) ? arrayRevision(value) : undefined),
-            ranks: values.map(value => isRankArray(value) ? value.shape.length : 0), key } : undefined;
+            ranks: values.map(value => isRankArray(value) ? value.shape.length : 0),
+            records: signatures ? values.map((value, index) => isRankRecord(value) ? signatures[index] : undefined) : [], key } : undefined;
     return key;
 }
 

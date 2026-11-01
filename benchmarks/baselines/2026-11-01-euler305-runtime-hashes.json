@@ -1,0 +1,22 @@
+{
+  "record-contract.js": {
+    "before": "a606a3915803598879f28378edad9f9221e32d0889e0761a912e6eb9e8dd69c2",
+    "after": "66bd361ba431f47222f88bbd8720bbe918c1f3f523e6a94e00ad56404213618b"
+  },
+  "return-contract.js": {
+    "before": "a43a9817090827253f19dab525afad8b3616759cbde54fe35e36e3ea056f4e00",
+    "after": "10e496410ae532454b9afd3e57d13b46af0c6aac191ccc092ab0438b055f30e1"
+  },
+  "field-contracts.js": {
+    "before": "a1ea455d2d3e4d7db7c6f48f4e1b07f224a2115a452fa5f1cc07c67ae79a3e49",
+    "after": "a1ea455d2d3e4d7db7c6f48f4e1b07f224a2115a452fa5f1cc07c67ae79a3e49"
+  },
+  "runtime/semantic-signature.js": {
+    "before": "66a2c3cab6f2b59fd49ee1cfbcbc672c97a6587399193b2aefdb744ea4513f9d",
+    "after": "66a2c3cab6f2b59fd49ee1cfbcbc672c97a6587399193b2aefdb744ea4513f9d"
+  },
+  "runtime/semantic-array-type.js": {
+    "before": "c971ed8952a4ff21fbb33564a5cb69c9bbdbffcd437347eaaacba2d4868fec90",
+    "after": "c971ed8952a4ff21fbb33564a5cb69c9bbdbffcd437347eaaacba2d4868fec90"
+  }
+}

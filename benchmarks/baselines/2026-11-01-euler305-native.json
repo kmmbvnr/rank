@@ -1,0 +1,82 @@
+{
+  "records": [
+    {
+      "round": 0,
+      "variant": "original",
+      "power": 13,
+      "answer": "18174995535140",
+      "ms": 63.00925,
+      "cpuMs": 82.309,
+      "rssMiB": 61.828125,
+      "merges": 101894,
+      "interns": 102037,
+      "blocks": 63086,
+      "states": 4730
+    },
+    {
+      "round": 0,
+      "variant": "prefix",
+      "power": 13,
+      "answer": "18174995535140",
+      "ms": 45.856500000000004,
+      "cpuMs": 68.632,
+      "rssMiB": 62.71875,
+      "merges": 72320,
+      "interns": 72463,
+      "blocks": 33512,
+      "states": 4730
+    },
+    {
+      "round": 1,
+      "variant": "original",
+      "power": 13,
+      "answer": "18174995535140",
+      "ms": 63.435333,
+      "cpuMs": 82.589,
+      "rssMiB": 61.90625,
+      "merges": 101894,
+      "interns": 102037,
+      "blocks": 63086,
+      "states": 4730
+    },
+    {
+      "round": 1,
+      "variant": "prefix",
+      "power": 13,
+      "answer": "18174995535140",
+      "ms": 47.662833,
+      "cpuMs": 70.421,
+      "rssMiB": 62.921875,
+      "merges": 72320,
+      "interns": 72463,
+      "blocks": 33512,
+      "states": 4730
+    },
+    {
+      "round": 2,
+      "variant": "original",
+      "power": 13,
+      "answer": "18174995535140",
+      "ms": 67.018833,
+      "cpuMs": 87.433,
+      "rssMiB": 61.65625,
+      "merges": 101894,
+      "interns": 102037,
+      "blocks": 63086,
+      "states": 4730
+    },
+    {
+      "round": 2,
+      "variant": "prefix",
+      "power": 13,
+      "answer": "18174995535140",
+      "ms": 46.091916000000005,
+      "cpuMs": 68.578,
+      "rssMiB": 62.8125,
+      "merges": 72320,
+      "interns": 72463,
+      "blocks": 33512,
+      "states": 4730
+    }
+  ]
+}

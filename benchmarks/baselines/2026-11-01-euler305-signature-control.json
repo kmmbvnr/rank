@@ -1,0 +1,65 @@
+{
+  "kind": "same process, separate runtime-owned records; 16 flat integer-array fields; 10000 signatures per block",
+  "records": [
+    {
+      "round": 0,
+      "phase": "before",
+      "ms": 39.08720800000003,
+      "cpuMs": 69.391
+    },
+    {
+      "round": 0,
+      "phase": "after",
+      "ms": 1.0862919999999576,
+      "cpuMs": 3.426
+    },
+    {
+      "round": 1,
+      "phase": "after",
+      "ms": 1.3529580000000578,
+      "cpuMs": 4.978
+    },
+    {
+      "round": 1,
+      "phase": "before",
+      "ms": 36.67029200000002,
+      "cpuMs": 39.994
+    },
+    {
+      "round": 2,
+      "phase": "before",
+      "ms": 36.46016700000007,
+      "cpuMs": 37.541
+    },
+    {
+      "round": 2,
+      "phase": "after",
+      "ms": 0.8009580000000369,
+      "cpuMs": 0.798
+    },
+    {
+      "round": 3,
+      "phase": "after",
+      "ms": 0.791667000000075,
+      "cpuMs": 0.788
+    },
+    {
+      "round": 3,
+      "phase": "before",
+      "ms": 36.45804099999998,
+      "cpuMs": 36.431
+    },
+    {
+      "round": 4,
+      "phase": "before",
+      "ms": 36.9107919999999,
+      "cpuMs": 36.894
+    },
+    {
+      "round": 4,
+      "phase": "after",
+      "ms": 0.79424999999992,
+      "cpuMs": 0.794
+    }
+  ]
+}
