@@ -1,0 +1,1373 @@
+{
+  "cpu": "Apple M5",
+  "node": "v24.15.0",
+  "loadBefore": [
+    3.5732421875,
+    2.822265625,
+    2.73876953125
+  ],
+  "commit": "b6bdadafdb408b1b8d033088112c6bc555e3318d",
+  "timing": "Serial fresh processes, rotating mode order; >=1.5 s warmup and three >=750 ms batches. Inputs prepared outside timing. Scalar ports compute roots and output permutation per call. Full output allocated each call. numpy-public includes input-list to ndarray and output to two Python lists; numpy-native receives a prebuilt ndarray and returns a complex ndarray. Native mode is a separate contract. Independent small DFT and full signal spectrum checks outside timing.",
+  "sources": {
+    "benchmarks/fft.mjs": "71a9206c820daee9d8919a65c829e1ed1d6657f866170893d7262336c1cce268",
+    "benchmarks/experiments/fft-python.py": "c97b7c70842d77d6551b047401cdcac29aa8998583629aa3b3173eee850c3e5d",
+    "benchmarks/experiments/fft-ruby.rb": "9966a545433b9ea7fddd61f772874664123820ee09f63dfc4a693e5b43f060ae",
+    "demos/classic/fft.ra": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+  },
+  "date": "2026-11-01T07:45:55.078Z",
+  "n": 4096,
+  "samples": 7,
+  "loadAfter": [
+    6.38330078125,
+    4.6083984375,
+    3.5107421875
+  ],
+  "summary": [
+    {
+      "mode": "rank",
+      "ms": 0.8904272930011863,
+      "cpuMs": 1.2900616844602608,
+      "minMs": 0.5835133164852256,
+      "maxMs": 1.9449314559585495
+    },
+    {
+      "mode": "js",
+      "ms": 0.11415056049307565,
+      "cpuMs": 0.14742109267995737,
+      "minMs": 0.0741577887087206,
+      "maxMs": 0.21543442446869607
+    },
+    {
+      "mode": "python",
+      "ms": 5.531292586751721,
+      "cpuMs": 5.530676470588234,
+      "minMs": 3.6793770439758458,
+      "maxMs": 12.300825951951406
+    },
+    {
+      "mode": "ruby",
+      "ms": 6.0390320010483265,
+      "cpuMs": 6.037352000000002,
+      "minMs": 4.267346591487612,
+      "maxMs": 12.948593219458047
+    },
+    {
+      "mode": "ruby-yjit",
+      "ms": 2.406371794700718,
+      "cpuMs": 2.4062564102564097,
+      "minMs": 1.6523788545674558,
+      "maxMs": 4.578951219517011
+    },
+    {
+      "mode": "numpy-public",
+      "ms": 0.16448954692143097,
+      "cpuMs": 0.16445789473684214,
+      "minMs": 0.13649422201659323,
+      "maxMs": 0.41903878052266286
+    },
+    {
+      "mode": "numpy-native",
+      "ms": 0.032926961725705445,
+      "cpuMs": 0.0329037228905084,
+      "minMs": 0.019868883781752476,
+      "maxMs": 0.06481351893758314
+    }
+  ],
+  "rows": [
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "rank",
+      "firstSizeCallMs": 12.120083000000022,
+      "warmMs": 0.5835133164852256,
+      "cpuMs": 0.841216360856269,
+      "iterations": 3840,
+      "warmups": 2228,
+      "measured": [
+        {
+          "iterations": 1246,
+          "warmMs": 0.6022218434991975,
+          "cpuMs": 0.8905898876404494
+        },
+        {
+          "iterations": 1286,
+          "warmMs": 0.5835133164852256,
+          "cpuMs": 0.8266345256609642
+        },
+        {
+          "iterations": 1308,
+          "warmMs": 0.5736391116207948,
+          "cpuMs": 0.841216360856269
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "js",
+      "firstSizeCallMs": 0.691584000000006,
+      "warmMs": 0.0741577887087206,
+      "cpuMs": 0.09731110009910802,
+      "iterations": 30325,
+      "warmups": 19788,
+      "measured": [
+        {
+          "iterations": 10121,
+          "warmMs": 0.0741035717814445,
+          "cpuMs": 0.0969155221816026
+        },
+        {
+          "iterations": 10114,
+          "warmMs": 0.0741577887087206,
+          "cpuMs": 0.09735683211390153
+        },
+        {
+          "iterations": 10090,
+          "warmMs": 0.07433225966303268,
+          "cpuMs": 0.09731110009910802
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 0,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "python",
+      "n": 4096,
+      "warmMs": 6.560241661803878,
+      "cpuMs": 6.362,
+      "measured": [
+        {
+          "iterations": 110,
+          "warmMs": 6.840410599993034,
+          "cpuMs": 6.591272727272728
+        },
+        {
+          "iterations": 115,
+          "warmMs": 6.560241661803878,
+          "cpuMs": 6.362
+        },
+        {
+          "iterations": 116,
+          "warmMs": 6.489936061653084,
+          "cpuMs": 6.353198275862069
+        }
+      ]
+    },
+    {
+      "trial": 0,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [arm64-darwin25]",
+      "yjit": false,
+      "n": 4096,
+      "warmMs": 4.787420382379157,
+      "cpuMs": 4.747535031847133,
+      "measured": [
+        {
+          "iterations": 155,
+          "warmMs": 4.846451613270948,
+          "cpuMs": 4.837225806451613
+        },
+        {
+          "iterations": 157,
+          "warmMs": 4.787420382379157,
+          "cpuMs": 4.747535031847133
+        },
+        {
+          "iterations": 159,
+          "warmMs": 4.722396226646672,
+          "cpuMs": 4.721308176100627
+        }
+      ],
+      "mode": "ruby"
+    },
+    {
+      "trial": 0,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +YJIT +PRISM [arm64-darwin25]",
+      "yjit": true,
+      "n": 4096,
+      "warmMs": 1.6523788545674558,
+      "cpuMs": 1.6517180616740081,
+      "measured": [
+        {
+          "iterations": 475,
+          "warmMs": 1.582069473929311,
+          "cpuMs": 1.5811684210526322
+        },
+        {
+          "iterations": 454,
+          "warmMs": 1.6523788545674558,
+          "cpuMs": 1.6517180616740081
+        },
+        {
+          "iterations": 404,
+          "warmMs": 1.8592599005954764,
+          "cpuMs": 1.8579009900990093
+        }
+      ],
+      "mode": "ruby-yjit"
+    },
+    {
+      "trial": 0,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-public",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.13649422201659323,
+      "cpuMs": 0.13643075523202916,
+      "measured": [
+        {
+          "iterations": 4913,
+          "warmMs": 0.1526843069176973,
+          "cpuMs": 0.15246081823732957
+        },
+        {
+          "iterations": 5495,
+          "warmMs": 0.13649422201659323,
+          "cpuMs": 0.13643075523202916
+        },
+        {
+          "iterations": 5650,
+          "warmMs": 0.13274520652088445,
+          "cpuMs": 0.13266283185840713
+        }
+      ]
+    },
+    {
+      "trial": 0,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-native",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.0368519924347122,
+      "cpuMs": 0.03478007075471699,
+      "measured": [
+        {
+          "iterations": 20352,
+          "warmMs": 0.0368519924347122,
+          "cpuMs": 0.03478007075471699
+        },
+        {
+          "iterations": 21529,
+          "warmMs": 0.03483704343367896,
+          "cpuMs": 0.03191527706814065
+        },
+        {
+          "iterations": 20202,
+          "warmMs": 0.03712589511321982,
+          "cpuMs": 0.03561884961884964
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "js",
+      "firstSizeCallMs": 1.5849170000000186,
+      "warmMs": 0.1001213900680817,
+      "cpuMs": 0.13678120411160058,
+      "iterations": 22944,
+      "warmups": 11006,
+      "measured": [
+        {
+          "iterations": 8445,
+          "warmMs": 0.08881058318531675,
+          "cpuMs": 0.11939407933688573
+        },
+        {
+          "iterations": 7491,
+          "warmMs": 0.1001213900680817,
+          "cpuMs": 0.13678120411160058
+        },
+        {
+          "iterations": 7008,
+          "warmMs": 0.10703157705479457,
+          "cpuMs": 0.14351626712328766
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 1,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "python",
+      "n": 4096,
+      "warmMs": 3.6793770439758458,
+      "cpuMs": 3.6777009803921565,
+      "measured": [
+        {
+          "iterations": 203,
+          "warmMs": 3.710241788732154,
+          "cpuMs": 3.7085566502463054
+        },
+        {
+          "iterations": 204,
+          "warmMs": 3.6793770439758458,
+          "cpuMs": 3.6777009803921565
+        },
+        {
+          "iterations": 206,
+          "warmMs": 3.6482896398101907,
+          "cpuMs": 3.646699029126214
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [arm64-darwin25]",
+      "yjit": false,
+      "n": 4096,
+      "warmMs": 4.267346591487612,
+      "cpuMs": 4.265386363636363,
+      "measured": [
+        {
+          "iterations": 178,
+          "warmMs": 4.23001685425681,
+          "cpuMs": 4.2280168539325835
+        },
+        {
+          "iterations": 176,
+          "warmMs": 4.281375000242736,
+          "cpuMs": 4.2794204545454555
+        },
+        {
+          "iterations": 176,
+          "warmMs": 4.267346591487612,
+          "cpuMs": 4.265386363636363
+        }
+      ],
+      "mode": "ruby"
+    },
+    {
+      "trial": 1,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +YJIT +PRISM [arm64-darwin25]",
+      "yjit": true,
+      "n": 4096,
+      "warmMs": 2.6743167255643847,
+      "cpuMs": 2.6370533807829184,
+      "measured": [
+        {
+          "iterations": 281,
+          "warmMs": 2.6743167255643847,
+          "cpuMs": 2.5964733096085415
+        },
+        {
+          "iterations": 267,
+          "warmMs": 2.8136704118803757,
+          "cpuMs": 2.7187415730337072
+        },
+        {
+          "iterations": 281,
+          "warmMs": 2.671854092418034,
+          "cpuMs": 2.6370533807829184
+        }
+      ],
+      "mode": "ruby-yjit"
+    },
+    {
+      "trial": 1,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-public",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.1550572582073656,
+      "cpuMs": 0.15394624767417814,
+      "measured": [
+        {
+          "iterations": 4787,
+          "warmMs": 0.15668626822156126,
+          "cpuMs": 0.15664173804052642
+        },
+        {
+          "iterations": 4837,
+          "warmMs": 0.1550572582073656,
+          "cpuMs": 0.15394624767417814
+        },
+        {
+          "iterations": 5025,
+          "warmMs": 0.14926874787727398,
+          "cpuMs": 0.14873592039800995
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-native",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.027760147568365416,
+      "cpuMs": 0.027569805314975205,
+      "measured": [
+        {
+          "iterations": 27018,
+          "warmMs": 0.027760147568365416,
+          "cpuMs": 0.027569805314975205
+        },
+        {
+          "iterations": 23113,
+          "warmMs": 0.032449332280850486,
+          "cpuMs": 0.03212179293038549
+        },
+        {
+          "iterations": 29300,
+          "warmMs": 0.02559764218538898,
+          "cpuMs": 0.025592150170648476
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "rank",
+      "firstSizeCallMs": 9.850957999999991,
+      "warmMs": 0.5926882722967639,
+      "cpuMs": 0.8657998430141287,
+      "iterations": 3785,
+      "warmups": 2308,
+      "measured": [
+        {
+          "iterations": 1244,
+          "warmMs": 0.6035448151125403,
+          "cpuMs": 0.876564308681672
+        },
+        {
+          "iterations": 1267,
+          "warmMs": 0.5926882722967639,
+          "cpuMs": 0.8250828729281768
+        },
+        {
+          "iterations": 1274,
+          "warmMs": 0.5890307103610677,
+          "cpuMs": 0.8657998430141287
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 2,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "python",
+      "n": 4096,
+      "warmMs": 6.359518210192313,
+      "cpuMs": 6.18038655462185,
+      "measured": [
+        {
+          "iterations": 198,
+          "warmMs": 3.7899244543767034,
+          "cpuMs": 3.781328282828282
+        },
+        {
+          "iterations": 119,
+          "warmMs": 6.359518210192313,
+          "cpuMs": 6.18038655462185
+        },
+        {
+          "iterations": 93,
+          "warmMs": 8.127747311366983,
+          "cpuMs": 7.840129032258063
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [arm64-darwin25]",
+      "yjit": false,
+      "n": 4096,
+      "warmMs": 10.073746669416627,
+      "cpuMs": 9.819720000000002,
+      "measured": [
+        {
+          "iterations": 75,
+          "warmMs": 10.073746669416627,
+          "cpuMs": 9.819720000000002
+        },
+        {
+          "iterations": 69,
+          "warmMs": 11.000043479725718,
+          "cpuMs": 10.22233333333333
+        },
+        {
+          "iterations": 111,
+          "warmMs": 6.786801801944101,
+          "cpuMs": 6.780432432432433
+        }
+      ],
+      "mode": "ruby"
+    },
+    {
+      "trial": 2,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +YJIT +PRISM [arm64-darwin25]",
+      "yjit": true,
+      "n": 4096,
+      "warmMs": 2.2967278292339968,
+      "cpuMs": 2.293810397553517,
+      "measured": [
+        {
+          "iterations": 344,
+          "warmMs": 2.1843662787347946,
+          "cpuMs": 2.1667005813953484
+        },
+        {
+          "iterations": 327,
+          "warmMs": 2.2967278292339968,
+          "cpuMs": 2.293810397553517
+        },
+        {
+          "iterations": 273,
+          "warmMs": 2.748959707164448,
+          "cpuMs": 2.739117216117216
+        }
+      ],
+      "mode": "ruby-yjit"
+    },
+    {
+      "trial": 2,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-public",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.16448954692143097,
+      "cpuMs": 0.16445789473684214,
+      "measured": [
+        {
+          "iterations": 4560,
+          "warmMs": 0.16447471663061725,
+          "cpuMs": 0.16444210526315792
+        },
+        {
+          "iterations": 4560,
+          "warmMs": 0.16448954692143097,
+          "cpuMs": 0.16445789473684214
+        },
+        {
+          "iterations": 4495,
+          "warmMs": 0.16686872437231665,
+          "cpuMs": 0.16683359288097885
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-native",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.025252157605953448,
+      "cpuMs": 0.02524598498367058,
+      "measured": [
+        {
+          "iterations": 31534,
+          "warmMs": 0.023783950151414532,
+          "cpuMs": 0.023777161159383515
+        },
+        {
+          "iterations": 29701,
+          "warmMs": 0.025252157605953448,
+          "cpuMs": 0.02524598498367058
+        },
+        {
+          "iterations": 28780,
+          "warmMs": 0.026060289268390307,
+          "cpuMs": 0.02605243224461431
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "rank",
+      "firstSizeCallMs": 23.437999999999988,
+      "warmMs": 1.9449314559585495,
+      "cpuMs": 2.34443661971831,
+      "iterations": 1162,
+      "warmups": 674,
+      "measured": [
+        {
+          "iterations": 350,
+          "warmMs": 2.143905951428571,
+          "cpuMs": 2.604908571428571
+        },
+        {
+          "iterations": 426,
+          "warmMs": 1.7632768967136156,
+          "cpuMs": 2.34443661971831
+        },
+        {
+          "iterations": 386,
+          "warmMs": 1.9449314559585495,
+          "cpuMs": 2.252435233160622
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "js",
+      "firstSizeCallMs": 2.31737499999997,
+      "warmMs": 0.12087763239323127,
+      "cpuMs": 0.1601443996776793,
+      "iterations": 17238,
+      "warmups": 7672,
+      "measured": [
+        {
+          "iterations": 4434,
+          "warmMs": 0.1691552961208841,
+          "cpuMs": 0.20169305367613893
+        },
+        {
+          "iterations": 6205,
+          "warmMs": 0.12087763239323127,
+          "cpuMs": 0.1601443996776793
+        },
+        {
+          "iterations": 6599,
+          "warmMs": 0.11366794211244131,
+          "cpuMs": 0.1497808758902864
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 3,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [arm64-darwin25]",
+      "yjit": false,
+      "n": 4096,
+      "warmMs": 5.908125983991139,
+      "cpuMs": 5.906519685039371,
+      "measured": [
+        {
+          "iterations": 107,
+          "warmMs": 7.059514019899418,
+          "cpuMs": 7.051775700934579
+        },
+        {
+          "iterations": 127,
+          "warmMs": 5.908125983991139,
+          "cpuMs": 5.906519685039371
+        },
+        {
+          "iterations": 131,
+          "warmMs": 5.739129770490277,
+          "cpuMs": 5.737946564885496
+        }
+      ],
+      "mode": "ruby"
+    },
+    {
+      "trial": 3,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +YJIT +PRISM [arm64-darwin25]",
+      "yjit": true,
+      "n": 4096,
+      "warmMs": 2.0886833333255104,
+      "cpuMs": 2.0882527777777775,
+      "measured": [
+        {
+          "iterations": 360,
+          "warmMs": 2.0886833333255104,
+          "cpuMs": 2.0882527777777775
+        },
+        {
+          "iterations": 361,
+          "warmMs": 2.078146814985247,
+          "cpuMs": 2.0777202216066497
+        },
+        {
+          "iterations": 357,
+          "warmMs": 2.1026302520342233,
+          "cpuMs": 2.1020756302521004
+        }
+      ],
+      "mode": "ruby-yjit"
+    },
+    {
+      "trial": 3,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-public",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.23315845740666166,
+      "cpuMs": 0.23030453697949038,
+      "measured": [
+        {
+          "iterations": 3995,
+          "warmMs": 0.187770411015508,
+          "cpuMs": 0.18773817271589488
+        },
+        {
+          "iterations": 3218,
+          "warmMs": 0.23315845740666166,
+          "cpuMs": 0.23030453697949038
+        },
+        {
+          "iterations": 1893,
+          "warmMs": 0.39636590963301366,
+          "cpuMs": 0.3819978869519282
+        }
+      ]
+    },
+    {
+      "trial": 3,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-native",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.06481351893758314,
+      "cpuMs": 0.061907243666043214,
+      "measured": [
+        {
+          "iterations": 11037,
+          "warmMs": 0.06795689118324852,
+          "cpuMs": 0.06466530760170336
+        },
+        {
+          "iterations": 11572,
+          "warmMs": 0.06481351893758314,
+          "cpuMs": 0.06072856895955752
+        },
+        {
+          "iterations": 11762,
+          "warmMs": 0.0637684882586973,
+          "cpuMs": 0.061907243666043214
+        }
+      ]
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "rank",
+      "firstSizeCallMs": 19.55320800000004,
+      "warmMs": 1.195081078025478,
+      "cpuMs": 1.563215361445783,
+      "iterations": 1961,
+      "warmups": 1370,
+      "measured": [
+        {
+          "iterations": 669,
+          "warmMs": 1.3315457159940207,
+          "cpuMs": 1.47655754857997
+        },
+        {
+          "iterations": 628,
+          "warmMs": 1.195081078025478,
+          "cpuMs": 1.6996019108280254
+        },
+        {
+          "iterations": 664,
+          "warmMs": 1.1304413268072284,
+          "cpuMs": 1.563215361445783
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "js",
+      "firstSizeCallMs": 1.6351659999999697,
+      "warmMs": 0.11108820216232226,
+      "cpuMs": 0.14547630331753555,
+      "iterations": 20362,
+      "warmups": 10889,
+      "measured": [
+        {
+          "iterations": 6902,
+          "warmMs": 0.10867114604462476,
+          "cpuMs": 0.1440834540712837
+        },
+        {
+          "iterations": 6708,
+          "warmMs": 0.11182127683363152,
+          "cpuMs": 0.14581708407871197
+        },
+        {
+          "iterations": 6752,
+          "warmMs": 0.11108820216232226,
+          "cpuMs": 0.14547630331753555
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 3,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "python",
+      "n": 4096,
+      "warmMs": 4.917989921713479,
+      "cpuMs": 4.917058823529411,
+      "measured": [
+        {
+          "iterations": 153,
+          "warmMs": 4.917989921713479,
+          "cpuMs": 4.917058823529411
+        },
+        {
+          "iterations": 154,
+          "warmMs": 4.8977031959099815,
+          "cpuMs": 4.896506493506492
+        },
+        {
+          "iterations": 153,
+          "warmMs": 4.918645157363096,
+          "cpuMs": 4.917588235294117
+        }
+      ]
+    },
+    {
+      "trial": 4,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +YJIT +PRISM [arm64-darwin25]",
+      "yjit": true,
+      "n": 4096,
+      "warmMs": 4.578951219517011,
+      "cpuMs": 4.451859756097561,
+      "measured": [
+        {
+          "iterations": 252,
+          "warmMs": 2.980194444442907,
+          "cpuMs": 2.914757936507937
+        },
+        {
+          "iterations": 164,
+          "warmMs": 4.578951219517011,
+          "cpuMs": 4.451859756097561
+        },
+        {
+          "iterations": 148,
+          "warmMs": 5.09919594608348,
+          "cpuMs": 4.620662162162161
+        }
+      ],
+      "mode": "ruby-yjit"
+    },
+    {
+      "trial": 4,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-public",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.41903878052266286,
+      "cpuMs": 0.40472569832402244,
+      "measured": [
+        {
+          "iterations": 1790,
+          "warmMs": 0.41903878052266286,
+          "cpuMs": 0.40472569832402244
+        },
+        {
+          "iterations": 1722,
+          "warmMs": 0.43577272077193796,
+          "cpuMs": 0.4047711962833915
+        },
+        {
+          "iterations": 2248,
+          "warmMs": 0.3337045525386267,
+          "cpuMs": 0.31875578291814943
+        }
+      ]
+    },
+    {
+      "trial": 4,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-native",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.032926961725705445,
+      "cpuMs": 0.0329037228905084,
+      "measured": [
+        {
+          "iterations": 22968,
+          "warmMs": 0.03265480233375171,
+          "cpuMs": 0.03261781609195403
+        },
+        {
+          "iterations": 20997,
+          "warmMs": 0.03572080734604985,
+          "cpuMs": 0.035223031861694544
+        },
+        {
+          "iterations": 22778,
+          "warmMs": 0.032926961725705445,
+          "cpuMs": 0.0329037228905084
+        }
+      ]
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "rank",
+      "firstSizeCallMs": 17.412958000000003,
+      "warmMs": 0.972930068741894,
+      "cpuMs": 1.4269364461738,
+      "iterations": 2220,
+      "warmups": 1113,
+      "measured": [
+        {
+          "iterations": 658,
+          "warmMs": 1.1400742781155013,
+          "cpuMs": 1.6003556231003042
+        },
+        {
+          "iterations": 791,
+          "warmMs": 0.949112093552465,
+          "cpuMs": 1.3539013906447535
+        },
+        {
+          "iterations": 771,
+          "warmMs": 0.972930068741894,
+          "cpuMs": 1.4269364461738
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "js",
+      "firstSizeCallMs": 1.0936659999999847,
+      "warmMs": 0.12151810596241092,
+      "cpuMs": 0.15883327932598834,
+      "iterations": 18740,
+      "warmups": 12517,
+      "measured": [
+        {
+          "iterations": 5960,
+          "warmMs": 0.1258453088926174,
+          "cpuMs": 0.16503590604026847
+        },
+        {
+          "iterations": 6172,
+          "warmMs": 0.12151810596241092,
+          "cpuMs": 0.15883327932598834
+        },
+        {
+          "iterations": 6608,
+          "warmMs": 0.11350599016343826,
+          "cpuMs": 0.14945868644067797
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 4,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "python",
+      "n": 4096,
+      "warmMs": 5.324095949976587,
+      "cpuMs": 5.3175915492957735,
+      "measured": [
+        {
+          "iterations": 148,
+          "warmMs": 5.084178493849027,
+          "cpuMs": 5.0829662162162155
+        },
+        {
+          "iterations": 142,
+          "warmMs": 5.324095949976587,
+          "cpuMs": 5.3175915492957735
+        },
+        {
+          "iterations": 71,
+          "warmMs": 10.679875592320737,
+          "cpuMs": 10.306478873239437
+        }
+      ]
+    },
+    {
+      "trial": 4,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [arm64-darwin25]",
+      "yjit": false,
+      "n": 4096,
+      "warmMs": 12.948593219458047,
+      "cpuMs": 12.363508474576276,
+      "measured": [
+        {
+          "iterations": 56,
+          "warmMs": 13.569357143881332,
+          "cpuMs": 12.463625000000002
+        },
+        {
+          "iterations": 59,
+          "warmMs": 12.948593219458047,
+          "cpuMs": 12.348677966101691
+        },
+        {
+          "iterations": 59,
+          "warmMs": 12.89533898313293,
+          "cpuMs": 12.363508474576276
+        }
+      ],
+      "mode": "ruby"
+    },
+    {
+      "trial": 5,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-public",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.2546101069275115,
+      "cpuMs": 0.25453835709436523,
+      "measured": [
+        {
+          "iterations": 2517,
+          "warmMs": 0.2980395144367436,
+          "cpuMs": 0.2953746523639253
+        },
+        {
+          "iterations": 2946,
+          "warmMs": 0.2546101069275115,
+          "cpuMs": 0.25453835709436523
+        },
+        {
+          "iterations": 3045,
+          "warmMs": 0.24638427750242656,
+          "cpuMs": 0.24634942528735637
+        }
+      ]
+    },
+    {
+      "trial": 5,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-native",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.04002331467067054,
+      "cpuMs": 0.03996830309498398,
+      "measured": [
+        {
+          "iterations": 18740,
+          "warmMs": 0.04002331467067054,
+          "cpuMs": 0.03996830309498398
+        },
+        {
+          "iterations": 18995,
+          "warmMs": 0.039484656018002245,
+          "cpuMs": 0.03947038694393262
+        },
+        {
+          "iterations": 16865,
+          "warmMs": 0.044471825250188925,
+          "cpuMs": 0.04271479395197155
+        }
+      ]
+    },
+    {
+      "trial": 5,
+      "n": 4096,
+      "mode": "rank",
+      "firstSizeCallMs": 17.12987499999997,
+      "warmMs": 0.8904272930011863,
+      "cpuMs": 1.2900616844602608,
+      "iterations": 2507,
+      "warmups": 1476,
+      "measured": [
+        {
+          "iterations": 849,
+          "warmMs": 0.884248036513545,
+          "cpuMs": 1.2392862190812721
+        },
+        {
+          "iterations": 843,
+          "warmMs": 0.8904272930011863,
+          "cpuMs": 1.2900616844602608
+        },
+        {
+          "iterations": 815,
+          "warmMs": 0.9211056748466259,
+          "cpuMs": 1.3172650306748466
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 5,
+      "n": 4096,
+      "mode": "js",
+      "firstSizeCallMs": 1.3328750000000014,
+      "warmMs": 0.11415056049307565,
+      "cpuMs": 0.14742109267995737,
+      "iterations": 19843,
+      "warmups": 12380,
+      "measured": [
+        {
+          "iterations": 6571,
+          "warmMs": 0.11415056049307565,
+          "cpuMs": 0.14742109267995737
+        },
+        {
+          "iterations": 6713,
+          "warmMs": 0.11173990764188882,
+          "cpuMs": 0.14627513779234322
+        },
+        {
+          "iterations": 6559,
+          "warmMs": 0.11435709833816132,
+          "cpuMs": 0.14994633328251258
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 5,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "python",
+      "n": 4096,
+      "warmMs": 12.300825951951406,
+      "cpuMs": 11.764725806451608,
+      "measured": [
+        {
+          "iterations": 60,
+          "warmMs": 12.657250681271156,
+          "cpuMs": 11.944766666666665
+        },
+        {
+          "iterations": 63,
+          "warmMs": 12.016283063631919,
+          "cpuMs": 11.6352380952381
+        },
+        {
+          "iterations": 62,
+          "warmMs": 12.300825951951406,
+          "cpuMs": 11.764725806451608
+        }
+      ]
+    },
+    {
+      "trial": 5,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [arm64-darwin25]",
+      "yjit": false,
+      "n": 4096,
+      "warmMs": 9.828454545735346,
+      "cpuMs": 9.69496103896104,
+      "measured": [
+        {
+          "iterations": 54,
+          "warmMs": 14.158851850812358,
+          "cpuMs": 12.46396296296296
+        },
+        {
+          "iterations": 77,
+          "warmMs": 9.828454545735346,
+          "cpuMs": 9.69496103896104
+        },
+        {
+          "iterations": 99,
+          "warmMs": 7.60490909181159,
+          "cpuMs": 7.6038989898989895
+        }
+      ],
+      "mode": "ruby"
+    },
+    {
+      "trial": 5,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +YJIT +PRISM [arm64-darwin25]",
+      "yjit": true,
+      "n": 4096,
+      "warmMs": 2.902845559915003,
+      "cpuMs": 2.891119691119692,
+      "measured": [
+        {
+          "iterations": 232,
+          "warmMs": 3.25097413813888,
+          "cpuMs": 3.2000948275862067
+        },
+        {
+          "iterations": 259,
+          "warmMs": 2.902845559915003,
+          "cpuMs": 2.891119691119692
+        },
+        {
+          "iterations": 336,
+          "warmMs": 2.2332410714755366,
+          "cpuMs": 2.2327529761904756
+        }
+      ],
+      "mode": "ruby-yjit"
+    },
+    {
+      "trial": 6,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-native",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.019868883781752476,
+      "cpuMs": 0.01985996609091873,
+      "measured": [
+        {
+          "iterations": 38295,
+          "warmMs": 0.019585118811557615,
+          "cpuMs": 0.01957832615223919
+        },
+        {
+          "iterations": 37748,
+          "warmMs": 0.019868883781752476,
+          "cpuMs": 0.01985996609091873
+        },
+        {
+          "iterations": 37154,
+          "warmMs": 0.020186260778054056,
+          "cpuMs": 0.020178796361091673
+        }
+      ]
+    },
+    {
+      "trial": 6,
+      "n": 4096,
+      "mode": "rank",
+      "firstSizeCallMs": 9.939082999999982,
+      "warmMs": 0.729618116618076,
+      "cpuMs": 1.036609329446064,
+      "iterations": 3105,
+      "warmups": 1981,
+      "measured": [
+        {
+          "iterations": 993,
+          "warmMs": 0.7555138056394762,
+          "cpuMs": 1.0896767371601208
+        },
+        {
+          "iterations": 1029,
+          "warmMs": 0.729618116618076,
+          "cpuMs": 1.036609329446064
+        },
+        {
+          "iterations": 1083,
+          "warmMs": 0.6930672123730381,
+          "cpuMs": 0.9464709141274238
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 6,
+      "n": 4096,
+      "mode": "js",
+      "firstSizeCallMs": 0.8488749999999925,
+      "warmMs": 0.21543442446869607,
+      "cpuMs": 0.25981705916140146,
+      "iterations": 10174,
+      "warmups": 7668,
+      "measured": [
+        {
+          "iterations": 3195,
+          "warmMs": 0.23479012769953045,
+          "cpuMs": 0.2690372456964006
+        },
+        {
+          "iterations": 3482,
+          "warmMs": 0.21543442446869607,
+          "cpuMs": 0.25981705916140146
+        },
+        {
+          "iterations": 3497,
+          "warmMs": 0.2144780883614526,
+          "cpuMs": 0.2581527023162711
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 6,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "python",
+      "n": 4096,
+      "warmMs": 5.531292586751721,
+      "cpuMs": 5.530676470588234,
+      "measured": [
+        {
+          "iterations": 70,
+          "warmMs": 10.791155356647712,
+          "cpuMs": 10.53022857142857
+        },
+        {
+          "iterations": 136,
+          "warmMs": 5.531292586751721,
+          "cpuMs": 5.530676470588234
+        },
+        {
+          "iterations": 160,
+          "warmMs": 4.695338019519113,
+          "cpuMs": 4.694212500000001
+        }
+      ]
+    },
+    {
+      "trial": 6,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +PRISM [arm64-darwin25]",
+      "yjit": false,
+      "n": 4096,
+      "warmMs": 6.0390320010483265,
+      "cpuMs": 6.037352000000002,
+      "measured": [
+        {
+          "iterations": 120,
+          "warmMs": 6.264499999815598,
+          "cpuMs": 6.263483333333335
+        },
+        {
+          "iterations": 125,
+          "warmMs": 6.0390320010483265,
+          "cpuMs": 6.037352000000002
+        },
+        {
+          "iterations": 153,
+          "warmMs": 4.924241830807885,
+          "cpuMs": 4.922758169934642
+        }
+      ],
+      "mode": "ruby"
+    },
+    {
+      "trial": 6,
+      "ruby": "ruby 4.0.6 (2026-07-14 revision 03b6d3f889) +YJIT +PRISM [arm64-darwin25]",
+      "yjit": true,
+      "n": 4096,
+      "warmMs": 2.406371794700718,
+      "cpuMs": 2.4062564102564097,
+      "measured": [
+        {
+          "iterations": 390,
+          "warmMs": 1.9266051282055485,
+          "cpuMs": 1.9262000000000006
+        },
+        {
+          "iterations": 272,
+          "warmMs": 2.7672904415179373,
+          "cpuMs": 2.7663198529411774
+        },
+        {
+          "iterations": 312,
+          "warmMs": 2.406371794700718,
+          "cpuMs": 2.4062564102564097
+        }
+      ],
+      "mode": "ruby-yjit"
+    },
+    {
+      "trial": 6,
+      "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "mode": "numpy-public",
+      "numpy": "2.5.4",
+      "n": 4096,
+      "warmMs": 0.14321184936703196,
+      "cpuMs": 0.1431321114929363,
+      "measured": [
+        {
+          "iterations": 5259,
+          "warmMs": 0.1426251663770268,
+          "cpuMs": 0.14255771059136724
+        },
+        {
+          "iterations": 5238,
+          "warmMs": 0.14321184936703196,
+          "cpuMs": 0.1431321114929363
+        },
+        {
+          "iterations": 3215,
+          "warmMs": 0.23335115339543272,
+          "cpuMs": 0.2295085536547434
+        }
+      ]
+    }
+  ]
+}

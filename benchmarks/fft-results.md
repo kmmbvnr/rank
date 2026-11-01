@@ -1627,3 +1627,11 @@ the isolated baseline checkout was later advanced to the new main.
 
 [Final integration timings](baselines/2026-11-01-fft-priority-jack-integration.json),
 [Integration verification and host snapshots](baselines/2026-11-01-fft-priority-integration-verification.json).
+
+
+### Ruby and Python controls
+
+The same-machine Apple M5 comparison adds scalar Ruby (with and without
+YJIT), scalar CPython, and NumPy's library FFT. Full results, version details,
+output-conversion contracts, raw trials and repeat commands are in
+[the cross-language report](fft-languages-results.md).
