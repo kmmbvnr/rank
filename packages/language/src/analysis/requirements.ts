@@ -311,6 +311,8 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                     `axis ${index} needs rank >= ${index < 0 ? -index : index + 1}`);
             }
             if (form.seed) expression(form.seed);
+            if (form.keys) expression(form.keys);
+            if (form.size) expression(form.size);
         }
         function expression(node: Expression): Value {
             if (isParenthesizedExpression(node)) {

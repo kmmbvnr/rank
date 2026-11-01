@@ -346,7 +346,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         complete,
     });
     function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>, deferred = false): void {
-        const syntax = new Set(['reduce', 'scan', 'outer', 'rank', 'axis', 'with', 'segment', 'from', 'check', 'repeat', 'till']);
+        const syntax = new Set(['reduce', 'scan', 'outer', 'rank', 'axis', 'with', 'by', 'size', 'segment', 'from', 'check', 'repeat', 'till']);
         const effects = functionEffects(name => env.get(name) === functionBindings.get(name) ? functions.get(name) : undefined,
             name => env.get(name)?.types.includes('function') ?? false,
             name => env.has(name), name => env.get(name));

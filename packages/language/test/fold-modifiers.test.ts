@@ -138,3 +138,16 @@ it.each(['+', 'plus'])('requires explicit fold axes for %s even with unknown inp
         }
     }
 });
+
+
+it('infers keyed reductions and shape-preserving seeded scans', () => {
+    const source = 'V = array 10 20 30 40\nK = array 0 1 0 1\n';
+    expect(facts(source, 'V reduce + by K size 5'))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [5], elements: ['integer'] });
+    expect(facts(source, 'V reduce + by K'))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [2], elements: ['integer'] });
+    expect(facts(source, 'V scan + by K with 100'))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [4], elements: ['integer'] });
+    expect(facts(source, 'V reduce plus by K size 5'))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [5], elements: ['integer'] });
+});

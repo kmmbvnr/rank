@@ -10,6 +10,22 @@ export function foldShapeFacts(
     scan: boolean, form: FoldModifiers, source: ValueFacts,
     infer: (expression: Expression) => ValueFacts, cells?: Types, preservesCell = false,
 ): ValueFacts | undefined {
+    if (form.keys) {
+        if (source.types.join() !== 'array') return undefined;
+        const keys = infer(form.keys);
+        let length: number | null = null;
+        if (form.size) {
+            const value = infer(form.size).integer;
+            const number = value === undefined ? NaN : Number(value);
+            if (Number.isSafeInteger(number) && number >= 0) length = number;
+        } else if (source.shape?.includes(0)) length = 0;
+        else if (keys.integers?.every(value => value !== null && value >= 0)) {
+            length = keys.integers.reduce<number>((max, value) => Math.max(max, value! + 1), 0);
+        }
+        const shape = scan ? source.shape : [length];
+        return { types: ['array'], rank: scan ? source.rank : 1,
+            ...(shape ? { shape } : {}), ...(cells?.length ? { elements: cells } : {}) };
+    }
     if (form.rank && !form.axis && !form.axes) return undefined;
     if (source.rank === undefined) return undefined;
     const sourceRank = source.rank;

@@ -1755,6 +1755,33 @@ regardless of the number of leading frame axes.
 states. For a matrix, `M sum rank 1` sums each row, while `M reduce + rank 1 axis 0`
 passes rows to `+` and combines them. Use `M reduce + axis -1` for row sums.
 
+Keyed folds use `by Keys` to maintain one accumulator per nonnegative
+integer key. Values and keys must be arrays with identical shapes; cells
+are visited in source order, including multidimensional arrays:
+
+```rank
+Values = array 10 20 30 40
+Keys = array 0 1 0 1
+Values reduce + by Keys
+rem 40 60
+Values scan + by Keys with 100
+rem 110 120 140 160
+Values reduce + by Keys size 4
+rem 40 60 0 0
+```
+
+Keyed reduction returns a dense vector indexed by key. Its default length is
+one plus the largest key, or zero for empty input. `size N` supplies the
+length explicitly and rejects keys outside it. Missing groups use the seed,
+or the symbolic reducer's identity; reducers without an identity require a
+seed when groups are missing. Named reducers can be binary user functions.
+
+Keyed scan preserves the input shape. Each key starts from its own seed;
+the output at each input position is the state after including that value.
+The seed does not add output cells. Without a seed, a group's first value
+initializes its state. `size` checks key bounds but does not change the scan
+shape. Keyed folds currently reject `rank` and `axis` modifiers.
+
 Named reductions use the same data-first style:
 
 ```rank
