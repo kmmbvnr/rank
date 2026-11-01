@@ -1,8 +1,9 @@
 import { compiledCalleeTypeKey, sameCompiledCalleeType, isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
+import { positionalDeclaredCall, strictDataCall } from './declared-scalar-call.js';
 import {
     functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead, terminalReductionForm,
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
-    type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression,
+    type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression, isDeclaredCallExpression,
     isNameExpression, isExpressionStatement, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
     isCountClauseExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement, type Operation,
 } from '@arrrank/language';
@@ -216,6 +217,12 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         const inferred = inferCompiledExpression<CompiledCalleeType, ScalarFunctionInput>(expression, {
             atom: type => compiledScalarTypes.find(candidate => candidate === type),
             read: source => {
+                if (isDeclaredCallExpression(source)) {
+                    const parts = positionalDeclaredCall(source);
+                    const callee = isNameExpression(source.callee)
+                        ? (lexical?.reads.get(source.callee) ?? lexicalBinding(scope, source.callee.name))?.function : undefined;
+                    return parts && callee && strictDataCall(callee) ? userCall(parts, env, source) : undefined;
+                }
                 if (loops && isBinaryExpression(source) && source.operator === '**') {
                     const signed = isUnaryExpression(source.left) && ['+', '-'].includes(source.left.operator) ? source.left : undefined;
                     const base = signed?.operand ?? source.left;

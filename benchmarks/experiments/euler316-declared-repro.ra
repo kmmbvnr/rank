@@ -1,0 +1,12 @@
+fun N sum3 A B
+  return N + A + B
+end
+
+fun N caller
+  return N sum3 2 3
+end
+
+Total = 0
+for I in 1 to 3
+  Total += I caller
+end

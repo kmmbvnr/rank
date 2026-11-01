@@ -1,0 +1,18 @@
+{
+  "revision": "8598c2ba6ab54fe7cc141bcb6ba7478625278b92",
+  "note": "Workspace includes uncommitted Euler 315 captured-len compiler fix. No production Euler 316 fix. Copied Intel runtime matches the two lowering module hashes below. Series records the measured revision independently.",
+  "sha256": {
+    "packages/interpreter/out/jit/scalar-function-proof.js": "937008659b128cd1218ba20604ac06e26f81dc060269c7abd69ba7edb55d2a94",
+    "packages/interpreter/out/jit/integer-loop-expressions.js": "cd2ea195c457035258d78b600d96da2671b1565e6955939e6f950684f7add331",
+    "packages/interpreter/src/jit/scalar-function-proof.ts": "baa3f1cbd5a7dd955e08a332ac0911ef4b60e9e0b67122ac6ef6abe6f018eca8",
+    "packages/interpreter/src/function-invocation.ts": "dcd03ad535fc6086346c0ad065cbbf6f76ab7d455ffee58864c4bfa66203c896",
+    "packages/interpreter/src/fast-paths.ts": "df6871a9a8601d785df1fc1ac510897f92d084703d82ff2f8d78ea1dc76c0a24",
+    "packages/interpreter/src/jit/scalar-function-kernel.ts": "17d8871ebcebf09f98f49851036dcf78ffc53c6d3d2be082790a456905f5f36f",
+    "packages/interpreter/src/runtime/array-revision.ts": "65187b439733783db21d0d7fd46264424b4c18bacf28859eca7f0a7319f1a6ee",
+    "packages/interpreter/src/runtime/array-storage.ts": "d116884d74269b14450a004c894a1b7c62245286df36da4f3716192da8ae3b78"
+  },
+  "prototypeSha256": {
+    "packages/interpreter/out/jit/scalar-function-proof.js": "c2771cc9d70991e886ff0644c91130b700468f8d87a0c66a6ed3a600f96dab6e",
+    "packages/interpreter/out/jit/integer-loop-expressions.js": "532f68d7d166b535ea4ab26c7d3061a07157e81437a08a826e452e9f980614b8"
+  }
+}

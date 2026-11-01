@@ -1,0 +1,24 @@
+{
+  "runtimeBaseRevision": "8598c2ba6ab54fe7cc141bcb6ba7478625278b92",
+  "runtime": "Isolated staged compiler repair; excludes uncommitted Euler 315 repair. Timing harness revision is separate from runtime base.",
+  "tests": {
+    "initialCleanParent": {
+      "files": 17,
+      "passed": 727,
+      "newRegressionCases": 19
+    },
+    "finalIntegration": {
+      "parentRevision": "09219f64",
+      "files": 18,
+      "passed": 757
+    }
+  },
+  "stagedSourceSha256": {
+    "packages/interpreter/src/fast-paths.ts": "912054038ab6ced50a06a2702e52199e44ea2250096e56f3213ec9640b1915be",
+    "packages/interpreter/src/jit/declared-scalar-call.ts": "094efa82eaac9bd6a7b72c0c733a9c498691db3f5e6db724b178cd675c3ab02a",
+    "packages/interpreter/src/jit/integer-loop-expressions.ts": "d420cf1eb062703d44c23a8e1d622b3650f40bc7f3af2c8f536af745f98df2bf",
+    "packages/interpreter/src/jit/integer-loop-plan.ts": "04723712746e901e89d1bb7aac58145ed03052760907dd13f433f114a52efee2",
+    "packages/interpreter/src/jit/scalar-function-proof.ts": "23b267db9b3c56d9cb4e4b90a92c0077b11be17eebbc4c35523f3935170c9c2d",
+    "packages/interpreter/test/compiled-declared-call.test.ts": "1ce82585f6871c01ca60c084c3e1793663d090775c2c41a72ea41cc120144692"
+  }
+}

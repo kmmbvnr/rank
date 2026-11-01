@@ -1,0 +1,7 @@
+import {readFileSync} from 'node:fs';
+const {Interpreter,RuntimeDiagnostics}=await import(process.env.RANK_BENCH_RUNTIME || new URL('../packages/interpreter/out/index.js',import.meta.url).href);
+const [mode='compiled',top='999999',num='10000000000000000',variant='original']=process.argv.slice(2);
+if(!['compiled','reference','exact','prefix'].includes(mode) || !/^-?\d+$/.test(top) || !/^-?\d+$/.test(num) || !["original", "grouped", "carried", "carried-postfix", "original-function", "carried-postfix-function", "grouped-function"].includes(variant)) throw Error('mode top num variant');
+const source=readFileSync(new URL(`./experiments/euler316-${variant}.ra`,import.meta.url),'utf8').replace('arg Top integer = 999999',`arg Top integer = ${top}`).replace('arg Num integer = 10000000000000000',`arg Num integer = ${num}`);
+const r=new Interpreter(()=>{},{compilation:mode!=='reference',numberLoopCompilation:mode!=='exact',scalarFunctionCompilation:mode!=='prefix'}),d=new RuntimeDiagnostics();r.execute('');const t=performance.now(),cpu=process.cpuUsage();
+try{if(process.env.DIAGNOSTICS)d.run(()=>r.execute(source));else r.execute(source);const c=process.cpuUsage(cpu);if(top==='999999' && num==='10000000000000000' && String(r.variables.get('Answer'))!=='542934735751917735')throw Error('full answer');console.log(JSON.stringify({mode,top,num,variant,ms:performance.now()-t,cpuMs:(c.user+c.system)/1000,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(r.variables.get('Answer')),...(process.env.DIAGNOSTICS?{diagnostics:d}:{})}));}finally{r.dispose()}

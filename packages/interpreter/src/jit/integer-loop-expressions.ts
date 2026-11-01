@@ -1,4 +1,5 @@
 import { floorDivide } from '../numeric-division.js';
+import { positionalDeclaredCall } from './declared-scalar-call.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { numericBoundSource } from './numeric-bound-codegen.js';
 import { AstUtils } from 'langium';
@@ -11,7 +12,7 @@ import { IndexEntries } from '../index-storage.js';
 import { compiledArgumentType, hasNativeDeque } from './compiled-argument-type.js';
 import {
     applicationExpression, rangeSliceOperands, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
-    loopOperatorSignature, isApplicationExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
+    loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
     isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType,
 } from '@arrrank/language';
@@ -1337,12 +1338,15 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 return { code: name, type: 'integer' };
             }
         }
-        if (isApplicationExpression(e)) {
-            const parts = flattenApplication(e), last = parts.at(-1);
+        if (isApplicationExpression(e) || isDeclaredCallExpression(e)) {
+            const declared = isDeclaredCallExpression(e);
+            const parts = declared ? positionalDeclaredCall(e) : flattenApplication(e);
+            if (!parts) return undefined;
+            const last = parts.at(-1);
             if (last && isNameExpression(last) && !last.name.includes('.')) {
-                const operation = host.nativeCalls ? findOperation(last.name) : undefined;
+                const operation = !declared && host.nativeCalls ? findOperation(last.name) : undefined;
                 const signature = operation?.compiledCall;
-                const prepareCallee = host.scalarFunction(last.name, parts.length - 1);
+                const prepareCallee = host.scalarFunction(last.name, parts.length - 1, declared);
                 // Prefer a known user function while its namesake module is unopened.
                 // An unresolved name can still bind the builtin after a later import.
                 if (operation && signature && signature.inputs.length === parts.length - 1

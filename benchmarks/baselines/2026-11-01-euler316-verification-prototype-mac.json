@@ -1,0 +1,90 @@
+{
+  "cases": 1109,
+  "checks": 15526,
+  "samples": [
+    {
+      "variant": "original",
+      "compilation": true,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "original",
+      "compilation": false,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "grouped",
+      "compilation": true,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "grouped",
+      "compilation": false,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "carried",
+      "compilation": true,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "carried",
+      "compilation": false,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "carried-postfix",
+      "compilation": true,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "carried-postfix",
+      "compilation": false,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "original-function",
+      "compilation": true,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "original-function",
+      "compilation": false,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "carried-postfix-function",
+      "compilation": true,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "carried-postfix-function",
+      "compilation": false,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "grouped-function",
+      "compilation": true,
+      "passed": 1109,
+      "rejections": []
+    },
+    {
+      "variant": "grouped-function",
+      "compilation": false,
+      "passed": 1109,
+      "rejections": []
+    }
+  ]
+}

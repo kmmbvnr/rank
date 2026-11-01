@@ -42,7 +42,7 @@ export interface LoopHost {
     prepareEffectCall(name: string, receiver: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
     readonly sequenceMembership: boolean;
-    scalarFunction(name: string, arity: number): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined;
+    scalarFunction(name: string, arity: number, strictData?: boolean): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;

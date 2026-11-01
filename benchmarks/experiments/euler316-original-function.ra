@@ -1,0 +1,41 @@
+rem Numbers in Decimal Expansions
+rem https://projecteuler.net/problem=316
+
+use sequences
+use io
+use cli
+
+arg Top integer = 999999
+arg Num integer = 10000000000000000
+
+Answer = Top solve Num
+Answer print
+
+fun N waiting
+  Power = 10
+  Len = 1
+  for Power less (N + 1)
+    Power *= 10
+    Len += 1
+  end
+  Total = Power - Len + 1
+  Suffix = 10
+  Prefix = Power // 10
+  rem Each matching border adds 10 ** K.
+  for Prefix greater 1
+    if (N // Prefix) equal (N mod Suffix)
+      Total += Suffix
+    end
+    Prefix = Prefix // 10
+    Suffix *= 10
+  end
+  return Total
+end
+
+fun Top solve Num
+  Total = 0
+  for N in 2 to Top
+    Total += (Num // N) waiting
+  end
+  return Total
+end

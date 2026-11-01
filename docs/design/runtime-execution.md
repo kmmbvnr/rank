@@ -1469,6 +1469,10 @@ Loop-capable scalar kernels can link statically resolved user helpers with
 primitive arguments and a scalar result. The existing lexical-scope analysis
 resolves declarations, including later declarations and known imported helpers.
 Each helper has its own cached kernel; no function body is copied into another.
+Declared calls such as `N helper A B` can use the same linked kernels in
+function bodies and loop regions. The parser's bound argument order is retained;
+this path requires strict data parameters and no rank/axis modifiers. Deferred,
+function-valued and optional-word parameters retain their ordinary evaluator.
 Analysis rejects cycles, paths deeper than 16 functions and call expansions
 larger than 64 sites. Nested memo/generator calls, ranked calls, callback or
 optional-word parameters, containers and array writes retain ordinary execution.

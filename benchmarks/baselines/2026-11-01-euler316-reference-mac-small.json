@@ -1,0 +1,84 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "revision": "8598c2ba6ab54fe7cc141bcb6ba7478625278b92",
+  "sources": {
+    "original": "bc36d2ed4c1c625ce4f69390290930e4784d47ca3d3f8c974f71a2338ad9acb4",
+    "grouped": "c5bcab64ff9c587b0db74fdf256a6f3299a8ffafad017e2fe5c75830d897c439"
+  },
+  "method": "Three serial fresh processes, rotating case order; imports excluded; parse/execute included; diagnostics separate; process peak RSS",
+  "samples": [
+    {
+      "name": "original",
+      "round": 0,
+      "mode": "reference",
+      "top": "9999",
+      "num": "10000000000000000",
+      "variant": "original",
+      "ms": 151.32833399999998,
+      "cpuMs": 267.036,
+      "rssMiB": 222.125,
+      "answer": "362923722610659137"
+    },
+    {
+      "name": "grouped",
+      "round": 0,
+      "mode": "reference",
+      "top": "9999",
+      "num": "10000000000000000",
+      "variant": "grouped",
+      "ms": 149.18125,
+      "cpuMs": 301.264,
+      "rssMiB": 210.96875,
+      "answer": "362923722610659137"
+    },
+    {
+      "name": "grouped",
+      "round": 1,
+      "mode": "reference",
+      "top": "9999",
+      "num": "10000000000000000",
+      "variant": "grouped",
+      "ms": 149.43758400000002,
+      "cpuMs": 297.719,
+      "rssMiB": 228.578125,
+      "answer": "362923722610659137"
+    },
+    {
+      "name": "original",
+      "round": 1,
+      "mode": "reference",
+      "top": "9999",
+      "num": "10000000000000000",
+      "variant": "original",
+      "ms": 155.17170799999997,
+      "cpuMs": 277.817,
+      "rssMiB": 238.9375,
+      "answer": "362923722610659137"
+    },
+    {
+      "name": "original",
+      "round": 2,
+      "mode": "reference",
+      "top": "9999",
+      "num": "10000000000000000",
+      "variant": "original",
+      "ms": 154.91970799999999,
+      "cpuMs": 277.602,
+      "rssMiB": 240.390625,
+      "answer": "362923722610659137"
+    },
+    {
+      "name": "grouped",
+      "round": 2,
+      "mode": "reference",
+      "top": "9999",
+      "num": "10000000000000000",
+      "variant": "grouped",
+      "ms": 150.38404199999997,
+      "cpuMs": 301.217,
+      "rssMiB": 210.59375,
+      "answer": "362923722610659137"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { mapStoredIntegers } from './integer-array-kernel.js';
+import { strictDataCall } from './jit/declared-scalar-call.js';
 import { selectValues } from './value-selection.js';
 import { sumCounterTensor } from './collections.js';
 import type { LoopHost, LoopContinuation, LoopCallable } from './jit/integer-loop-plan.js';
@@ -367,7 +368,7 @@ export class FastPaths {
             prepareEffectCall: (name, receiver, types) => prepareEffectCall({
                 read: name => this.context.bindings.find(name), module: name => this.context.modules.has(name),
             }, name, receiver, types),
-            scalarFunction: (name, arity) => this.scalarCall(name, arity),
+            scalarFunction: (name, arity, strictData) => this.scalarCall(name, arity, strictData),
             sequenceMembership: scalars.sequenceMembership,
             absolute: loops.absolute,
             reals: loops.reals,
@@ -553,12 +554,13 @@ export class FastPaths {
      * when the callee's body has a proven scalar or array result. `bind` rechecks the
      * binding at loop entry, since the name can be rebound between runs.
      */
-    scalarCall(name: string, arity: number): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined {
+    scalarCall(name: string, arity: number, strictData = false): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined {
         if (!this.compiler.scalars.calls) return undefined;
         const value = this.context.bindings.find(name);
         const definition = value && isNativeFunction(value) ? this.context.functions.definitionOf(value) : undefined;
         if (!definition || definition.statement.parameters.length !== arity) return undefined;
         const statement = definition.statement;
+        if (strictData && !strictDataCall(statement)) return undefined;
         if (statement.memo || statement.ranks.some(rank => rank !== 'all')) return undefined;
         return types => {
             const scalarTypes = definition.owner.scalarCaptureTypes(statement, definition.context);
