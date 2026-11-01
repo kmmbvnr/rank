@@ -1208,3 +1208,12 @@ Exhaustive type, differential and Nurikabe audits and full root `npm test`
 were not run, following AGENTS.md. Euler 550 companion tests and source-format
 checks pass. TypeScript, web build, application-form and semantic-boundary
 checks are verified separately.
+
+Final focused follow-up: 232 interpreter tests passed after the Float64 and
+sum-zero changes, including all keyed tests and related missing-cell,
+scalar-extrema, scan, axis-reduction and fold-modifier tests. TypeScript and
+the web production build passed. The ordinary common/editor suite, excluding
+`name-facts-corpus.test.ts`, passed 447 tests; its one symbol-keyboard failure
+for missing `chunks`, `rope` and `runs` manual pages also reproduces on
+68546f1b. All 11 CLI source-format tests and Euler 550 companion tests passed.
+The common name-facts corpus audit was not run.
