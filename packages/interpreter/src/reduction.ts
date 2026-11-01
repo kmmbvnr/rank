@@ -1,7 +1,7 @@
 import { foldAxisPartition, foldAxisDiagnostic } from '@arrrank/language';
 import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
-import { scanInt32Axis, scanInt64, sumRealAxis } from './axis-order.js';
+import { extremeRealAxis, scanInt32Axis, scanInt64, sumRealAxis } from './axis-order.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
 import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, registerArrayDependencies, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
@@ -150,6 +150,16 @@ export class ReductionEvaluator {
     evaluateNamedReduction(operation: NativeFunction, value: RankValue, seed?: RankValue,
         rank?: number, axes?: readonly number[]): RankValue {
         axes = this.foldAxes(value, rank, axes, 'reduce');
+        if ((rank ?? 0) === 0 && axes?.length === 1 && seed === undefined && isRankArray(value)
+            && this.isTensorFusion() && !inspectionEnabled() && hasNativeImplementation(operation)) {
+            const extreme = operation === this.standardFunctions.get(standardModules.core.min) ? 'min'
+                : operation === this.standardFunctions.get(standardModules.core.max) ? 'max' : undefined;
+            if (extreme) {
+                const axis = resolveAxes(axes, value.shape.length, 'reduce')[0];
+                const folded = extremeRealAxis(value, axis, extreme);
+                if (folded !== undefined) return folded;
+            }
+        }
         if (rank !== undefined && rank > 0 || axes !== undefined) {
             const scalar = this.scalarCallback(operation);
             return this.reduceInputCells(value, rank ?? 0, axes, seed,

@@ -101,6 +101,63 @@ export function argsortStoredAxis(value: RankArray, axis: number, down: boolean)
 
 const INT32_MAX = 2147483647;
 
+/** Scalar min/max folds over stored reals, preserving axis order and the
+ * first value on ties or unordered comparisons (including NaN and -0).
+ * Empty axes retain the ordinary fold's deferred errors. */
+export function extremeRealAxis(value: RankArray, axis: number, operation: 'min' | 'max'): RankArray | number | undefined {
+    if (!privateLoopPolling() || value.columnNames || typedElementKind(value) !== 'real') return undefined;
+    const cells = float64Cells(value);
+    const length = value.shape[axis];
+    if (!cells || !length) return undefined;
+    let inner = 1;
+    for (let d = axis + 1; d < value.shape.length; d++) inner *= value.shape[d];
+    const shape = value.shape.filter((_, index) => index !== axis);
+    const size = shape.reduce((n, d) => n * d, 1);
+    const out = new Float64Array(size);
+    const outer = inner ? size / inner : 0;
+    for (let block = 0; block < outer; block++) {
+        const target = block * inner;
+        const source = block * length * inner;
+        if (inner === 1) {
+            checkpoint('reducing real axis');
+            let result = cells[source];
+            for (let at = source + 1; at < source + length; at += 4096) {
+                const end = Math.min(source + length, at + 4096);
+                checkpoint('reducing real axis', end - at);
+                if (operation === 'min') for (let i = at; i < end; i++) {
+                    if (cells[i] < result) result = cells[i];
+                }
+                else for (let i = at; i < end; i++) {
+                    if (cells[i] > result) result = cells[i];
+                }
+            }
+            out[target] = result;
+            continue;
+        }
+        for (let lane = 0; lane < inner; lane += 4096) {
+            const end = Math.min(inner, lane + 4096);
+            checkpoint('reducing real axis', end - lane);
+            out.set(cells.subarray(source + lane, source + end), target + lane);
+        }
+        for (let row = 1; row < length; row++) {
+            const at = source + row * inner;
+            for (let lane = 0; lane < inner; lane += 4096) {
+                const end = Math.min(inner, lane + 4096);
+                checkpoint('reducing real axis', end - lane);
+                if (operation === 'min') for (let i = lane; i < end; i++) {
+                    const x = cells[at + i];
+                    if (x < out[target + i]) out[target + i] = x;
+                }
+                else for (let i = lane; i < end; i++) {
+                    const x = cells[at + i];
+                    if (x > out[target + i]) out[target + i] = x;
+                }
+            }
+        }
+    }
+    return shape.length ? typedArray(out, shape) : out[0];
+}
+
 /** Stored Int64 prefixes stay packed until a prefix needs arbitrary precision.
  * Decline before publishing on overflow; the ordinary scan then remains exact. */
 export function scanInt64(value: RankArray): RankArray | undefined {

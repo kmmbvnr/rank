@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-01",
+  "baseCommit": "28ffa1db49c014a9c47f37d8655a57b49b3c9425",
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5"
+  },
+  "method": "Fresh sequential processes, three before and three after; parse and execute included, imports and constructor excluded. No demo source changes.",
+  "before": [
+    {
+      "nt": 20000,
+      "ms": 13581.041333,
+      "cpuMs": 18422.998,
+      "rssMiB": 407.40625,
+      "answer": "1.5276527929"
+    },
+    {
+      "nt": 20000,
+      "ms": 13480.58225,
+      "cpuMs": 18201.72,
+      "rssMiB": 414.171875,
+      "answer": "1.5276527929"
+    },
+    {
+      "nt": 20000,
+      "ms": 11965.012458,
+      "cpuMs": 16488.179,
+      "rssMiB": 354.1875,
+      "answer": "1.5276527929"
+    }
+  ],
+  "after": [
+    {
+      "nt": 20000,
+      "ms": 5878.586292,
+      "cpuMs": 10138.535,
+      "rssMiB": 401.90625,
+      "answer": "1.5276527929"
+    },
+    {
+      "nt": 20000,
+      "ms": 4849.793,
+      "cpuMs": 8807.286,
+      "rssMiB": 363.859375,
+      "answer": "1.5276527929"
+    },
+    {
+      "nt": 20000,
+      "ms": 7717.734291999999,
+      "cpuMs": 11997.613,
+      "rssMiB": 417.34375,
+      "answer": "1.5276527929"
+    }
+  ],
+  "medianMs": {
+    "before": 13480.58225,
+    "after": 5878.586292
+  },
+  "speedup": 2.29316736718577
+}
