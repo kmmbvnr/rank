@@ -8,6 +8,8 @@ import { isRankArray, type RankArray, type RankValue } from './value.js';
 export interface KeyedFoldOptions {
     readonly scan?: boolean;
     readonly operator?: string;
+    readonly valueAt?: (index: number) => RankValue;
+    readonly keyAt?: (index: number) => RankValue;
     readonly size?: number;
     readonly seed?: RankValue;
     readonly identity?: () => RankValue;
@@ -41,7 +43,7 @@ export function keyedFold(values: RankValue, keys: RankValue,
     let length = size ?? 0;
     for (let index = 0; index < count; index++) {
         checkpoint('keyed fold');
-        const key = readArrayItem(keys, index);
+        const key = options.keyAt ? options.keyAt(index) : readArrayItem(keys, index);
         if (typeof key !== 'bigint' || key < 0n || key >= 0xffffffffn) {
             throw new RankError('by keys must be nonnegative integer array indices', 'TypeError');
         }
@@ -50,7 +52,7 @@ export function keyedFold(values: RankValue, keys: RankValue,
             throw new RankError('by key is outside the result size', 'IndexError');
         }
         length = Math.max(length, at + 1);
-        const value = readArrayItem(values, index);
+        const value = options.valueAt ? options.valueAt(index) : readArrayItem(values, index);
         const previous = states[at];
         states[at] = previous !== undefined ? combine(previous, value)
             : seed !== undefined ? combine(seed, value) : value;

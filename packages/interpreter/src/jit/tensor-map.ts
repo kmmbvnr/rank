@@ -1,3 +1,4 @@
+import { keyedIntegerReader } from './keyed-reader.js';
 import { prepareNumberTensor } from './tensor-number.js';
 import { registerPackedBooleanMap, countPackedBooleans } from '../packed-booleans.js';
 import { matchCompiledOperatorDomains, tensorOperatorSignatures, type CompiledAtomType } from '@arrrank/language';
@@ -97,10 +98,10 @@ export function registerTensorMap<T extends RankValue>(value: T, operator: strin
         if (isRankArray(operand)) scope = mapScope(operand);
         if (scope) break;
     }
-    if (scope?.enabled()) {
-        maps.set(value, { reader: value.itemAt, shape: [...value.shape], operator, operands, layout });
-        owners.set(value, scope);
-    }
+    // A later keyed consumer can establish a scope for ordinary expression
+    // producers too. Weak recipes retain no computed cell buffers.
+    maps.set(value, { reader: value.itemAt, shape: [...value.shape], operator, operands, layout });
+    if (scope?.enabled()) owners.set(value, scope);
     return value;
 }
 
@@ -356,6 +357,19 @@ function prepareTensorGraph(value: RankArray) {
     const host = { ...scope.host, valid: () => consumerCompilation && scope.enabled()
         && scope.host.valid?.() !== false && guards.every(guard => guard()) };
     return { root, domains, host, scope, transformed, nonReplayableChecks };
+}
+
+/** Pure native sources can stream into a keyed fold without materialization.
+ * The consumer must neither invoke callbacks nor mutate the captured operands. */
+export function prepareKeyedTensorReader(value: RankArray): ((index: number) => bigint) | undefined {
+    const graph = prepareTensorGraph(value);
+    if (!graph || graph.nonReplayableChecks || graph.host.valid?.() === false) return undefined;
+    const reader = keyedIntegerReader(graph.root, graph.domains);
+    if (!reader || reader.shape.length !== value.shape.length
+        || reader.shape.some((length, axis) => length !== value.shape[axis])) return undefined;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.keyedNativeReaders++;
+    return reader.read;
 }
 
 /** Mask construction still precedes reading any selected source values. */

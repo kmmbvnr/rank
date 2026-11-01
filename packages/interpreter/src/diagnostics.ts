@@ -20,6 +20,7 @@ export class RuntimeDiagnostics {
     compiledGeneratorLoops = 0;
     integerMembershipFilters = 0;
     integerKeyedFolds = 0;
+    keyedNativeReaders = 0;
     compiledGraphAdds = 0;
     compiledEffectCalls = 0;
     numericSorts = 0;

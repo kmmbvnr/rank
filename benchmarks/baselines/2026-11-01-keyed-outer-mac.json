@@ -1,0 +1,105 @@
+{
+  "cpu": "Apple M5",
+  "node": "v24.15.0",
+  "rows": 600,
+  "columns": 800,
+  "memory": "each mode in a fresh process; absolute process peak RSS includes runtime and input preparation",
+  "results": [
+    {
+      "mode": "direct",
+      "samplesMs": [
+        3.332958000000019,
+        1.7302500000000123,
+        1.4137920000000008
+      ],
+      "medianMs": 1.7302500000000123,
+      "peakRssKiB": 166240,
+      "before": {
+        "rss": 151584768,
+        "heapTotal": 100859904,
+        "heapUsed": 28392592,
+        "external": 1964708,
+        "arrayBuffers": 48355
+      },
+      "after": {
+        "rss": 170229760,
+        "heapTotal": 100859904,
+        "heapUsed": 55228792,
+        "external": 1954849,
+        "arrayBuffers": 48355
+      }
+    },
+    {
+      "mode": "generic",
+      "samplesMs": [
+        71.22145900000001,
+        57.70770799999997,
+        57.25491599999998
+      ],
+      "medianMs": 57.70770799999997,
+      "peakRssKiB": 172176,
+      "before": {
+        "rss": 150437888,
+        "heapTotal": 100335616,
+        "heapUsed": 28346720,
+        "external": 2003384,
+        "arrayBuffers": 48355
+      },
+      "after": {
+        "rss": 176308224,
+        "heapTotal": 100335616,
+        "heapUsed": 41584976,
+        "external": 1958868,
+        "arrayBuffers": 81931
+      }
+    },
+    {
+      "mode": "native",
+      "samplesMs": [
+        25.807458999999994,
+        32.97945900000002,
+        31.23670800000002
+      ],
+      "medianMs": 31.23670800000002,
+      "peakRssKiB": 173888,
+      "before": {
+        "rss": 152027136,
+        "heapTotal": 100597760,
+        "heapUsed": 28364168,
+        "external": 1999771,
+        "arrayBuffers": 48355
+      },
+      "after": {
+        "rss": 178061312,
+        "heapTotal": 100597760,
+        "heapUsed": 38368544,
+        "external": 1958868,
+        "arrayBuffers": 81931
+      }
+    },
+    {
+      "mode": "materialized",
+      "samplesMs": [
+        165.20995799999997,
+        157.60537500000004,
+        138.69624999999996
+      ],
+      "medianMs": 157.60537500000004,
+      "peakRssKiB": 302048,
+      "before": {
+        "rss": 150503424,
+        "heapTotal": 101122048,
+        "heapUsed": 28476032,
+        "external": 2021340,
+        "arrayBuffers": 48355
+      },
+      "after": {
+        "rss": 309297152,
+        "heapTotal": 209928192,
+        "heapUsed": 78815752,
+        "external": 21158868,
+        "arrayBuffers": 19281931
+      }
+    }
+  ]
+}

@@ -221,7 +221,8 @@ export class ApplicationEvaluator {
                     if (scan.keys) {
                         const keys = yield* resume(context.evaluate(scan.keys));
                         const size = scan.size ? yield* resume(context.evaluate(scan.size)) : undefined;
-                        return context.reductions.evaluateKeyed('scan', scan.operator, source, keys, seed, size);
+                        return context.fastPaths.tensorPlanScope(expression)(() =>
+                            context.reductions.evaluateKeyed('scan', scan.operator, source, keys, seed, size));
                     }
                     return context.reductions.evaluateScan(
                         scan.operator,
@@ -246,7 +247,8 @@ export class ApplicationEvaluator {
                     if (reduction.keys) {
                         const keys = yield* resume(context.evaluate(reduction.keys));
                         const size = reduction.size ? yield* resume(context.evaluate(reduction.size)) : undefined;
-                        return context.reductions.evaluateKeyed('reduce', reduction.operator, source, keys, seed, size);
+                        return context.fastPaths.tensorPlanScope(expression)(() =>
+                            context.reductions.evaluateKeyed('reduce', reduction.operator, source, keys, seed, size));
                     }
                     return context.reductions.evaluateReduction(
                         reduction.operator,
@@ -373,7 +375,8 @@ export class ApplicationEvaluator {
                     const seed = form.seed ? yield* resume(context.evaluate(form.seed)) : undefined;
                     const size = form.size ? yield* resume(context.evaluate(form.size)) : undefined;
                     const parameter = form.parameter ? yield* resume(context.evaluate(form.parameter)) : undefined;
-                    return context.reductions.evaluateKeyedAggregate(form.operation.name, source, keys, seed, size, parameter);
+                    return context.fastPaths.tensorPlanScope(expression)(() =>
+                        context.reductions.evaluateKeyedAggregate(form.operation.name, source, keys, seed, size, parameter));
                 };
             case 'axis-reduction': {
                 const axisReduction = form;
@@ -438,8 +441,9 @@ export class ApplicationEvaluator {
                     if (namedScan.keys) {
                         const keys = yield* resume(context.evaluate(namedScan.keys));
                         const size = namedScan.size ? yield* resume(context.evaluate(namedScan.size)) : undefined;
-                        return context.reductions.evaluateKeyed(form.kind === 'named-reduce' ? 'reduce' : 'scan',
-                            operation, source, keys, seed, size);
+                        return context.fastPaths.tensorPlanScope(expression)(() =>
+                            context.reductions.evaluateKeyed(form.kind === 'named-reduce' ? 'reduce' : 'scan',
+                                operation, source, keys, seed, size));
                     }
                     if (form.kind === 'named-reduce') {
                         return context.reductions.evaluateNamedReduction(operation, source, seed, rank, axes);

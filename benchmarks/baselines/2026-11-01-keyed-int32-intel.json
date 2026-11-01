@@ -1,0 +1,25 @@
+{
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "node": "v24.15.0",
+  "count": 10000000,
+  "bins": 512,
+  "timing": "prepared arrays and parsed programs; alternating order; all bins independently checked outside timing",
+  "genericMs": 572.1499880000001,
+  "optimizedMs": 90.00777200000039,
+  "samplesMs": [
+    [
+      572.1499880000001,
+      568.2144940000003,
+      566.215029,
+      572.440568,
+      589.1231550000002
+    ],
+    [
+      90.00777200000039,
+      89.98680200000035,
+      90.22639700000036,
+      89.99096599999939,
+      90.61427399999957
+    ]
+  ]
+}

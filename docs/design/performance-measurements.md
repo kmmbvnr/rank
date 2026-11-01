@@ -1117,3 +1117,40 @@ are skipped). Semantic-boundary and application-form checks pass. All 23
 benchmark cases retain their exact answers; concurrent test activity makes
 that smoke run unsuitable for timing comparisons. The additional full-demo
 name-facts audit was stopped and is not counted as passed.
+
+## Keyed reductions: Int32 and computed producers (2026-11-01)
+
+Issue #507, Node v24.15.0 on both hosts. Raw samples are under
+`benchmarks/baselines/2026-11-01-keyed-*.json`.
+
+`node benchmarks/keyed-fold.mjs 10000000` measures 10 million prepared Int32
+values grouped into 512 bins. Parsing and input preparation are excluded;
+five alternating warmed samples verify every output bin independently.
+
+| CPU | General path | Int32 path |
+| --- | ---: | ---: |
+| Apple M5 | 233.60 ms | 38.30 ms |
+| Intel i7-10750H | 572.15 ms | 90.01 ms |
+
+`node benchmarks/keyed-outer.mjs 600 800` compares the polynomial-product
+anti-diagonal example with independent nested-loop output checks. Each mode
+runs in a fresh process; timings are medians of three executions. Peak RSS
+is absolute process memory, including runtime and input preparation, not an
+allocation delta or a measurement of only live tensor buffers.
+
+| CPU | Direct JS loop | General lazy path | Prepared integer readers | Explicit matrices |
+| --- | ---: | ---: | ---: | ---: |
+| Apple M5 | 1.73 ms | 57.71 ms | 31.24 ms | 157.61 ms |
+| Intel i7-10750H | 5.12 ms | 149.08 ms | 76.70 ms | 338.32 ms |
+
+| CPU | General lazy peak RSS | Prepared-reader peak RSS | Explicit-matrix peak RSS |
+| --- | ---: | ---: | ---: |
+| Apple M5 | 168.1 MiB | 169.8 MiB | 295.0 MiB |
+| Intel i7-10750H | 156.1 MiB | 155.3 MiB | 282.2 MiB |
+
+Both lazy paths avoid product/key matrix storage. Prepared readers traverse
+native integer recipes directly; they are not a dedicated convolution
+kernel and remain slower than the specialized JS loop. No speed parity with
+that loop or sub-quadratic convolution is claimed. Scalar callbacks and
+unsupported recipes retain ordinary reads. The benchmarks cover these
+specific integer cases, not all reducers or real-number workloads.

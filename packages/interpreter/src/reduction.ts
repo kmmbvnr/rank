@@ -1,3 +1,4 @@
+import { prepareKeyedTensorReader } from './tensor-map.js';
 import { keyedAggregate, keyedFold } from './keyed-fold.js';
 import { foldAxisPartition, foldAxisDiagnostic } from '@arrrank/language';
 import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
@@ -55,7 +56,11 @@ export class ReductionEvaluator {
         const scalar = !symbolic && this.scalarCallback(operation);
         const combine = symbolic ? numericKernel(operation, fallback)
             : scalar ? (left: RankValue, right: RankValue) => scalar([left, right]) : fallback;
+        const native = this.isTensorFusion() && !inspectionEnabled() && (symbolic || extreme !== undefined);
+        const valueAt = native && isRankArray(source) ? prepareKeyedTensorReader(source) : undefined;
+        const keyAt = native && isRankArray(keys) ? prepareKeyedTensorReader(keys) : undefined;
         return keyedFold(source, keys, combine, {
+                valueAt: keyAt ? valueAt : undefined, keyAt: valueAt ? keyAt : undefined,
                 operator: this.isTensorFusion() && !inspectionEnabled() ? symbolic ? operation : extreme : undefined,
                 scan: kind === 'scan', seed,
                 size: size === undefined ? undefined : Number(size),

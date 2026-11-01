@@ -1782,6 +1782,14 @@ The seed does not add output cells. Without a seed, a group's first value
 initializes its state. `size` checks key bounds but does not change the scan
 shape. Keyed folds currently reject `rank` and `axis` modifiers.
 
+Native integer arithmetic producers, including `outer`, can feed values and
+keys directly into the grouped fold. For example,
+`(A B outer *) reduce + by (I J outer +)` need not create either matrix.
+For nonempty vectors of lengths N and M, this uses O(N*M) work and O(N+M)
+additional storage, including the output. An already stored input matrix is
+still retained. Unsupported producers and user reducers use ordinary reads;
+whole-group statistics can retain O(number of input cells) group storage.
+
 Stored Int32 values and keys have a direct path for `+`, `*`, `min` and
 `max` reductions/scans. Partial integer states stay in the exact safe-number
 range and widen independently to BigInt when needed. Input order and exact
