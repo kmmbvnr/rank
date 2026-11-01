@@ -52,8 +52,9 @@ function scalarKind(value: RankValue | undefined): string | undefined {
 
 /** Physical kinds in trusted scalar storage, without forcing a reader. Contract
  * checks request exact numeric-limit counts; ordinary Float64 type queries do
- * not need to distinguish infinities from other real cells. */
-export function storedScalarKinds(value: RankArray, numericLimits = false): readonly string[] | undefined {
+ * not need to distinguish infinities from other real cells. Disable scanning
+ * when a consumer only wants evidence that is already available. */
+export function storedScalarKinds(value: RankArray, numericLimits = false, allowScan = true): readonly string[] | undefined {
     const state = ownedStorage.get(value);
     if (!state?.stable || !state.scalarOnly) return undefined;
     // An integer buffer can hold nothing else, and scanning it would box every cell.
@@ -61,6 +62,7 @@ export function storedScalarKinds(value: RankArray, numericLimits = false): read
     if (state.typed instanceof BigInt64Array || state.typed instanceof Int32Array) return state.typed.length ? ['integer'] : [];
     if (state.typed instanceof Float64Array && !numericLimits) return state.typed.length ? ['real'] : [];
     if (!state.elementKinds) {
+        if (!allowScan) return undefined;
         const kinds = new Map<string, number>();
         const diagnostics = currentDiagnostics();
         if (diagnostics) {

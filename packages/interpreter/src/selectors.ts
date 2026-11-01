@@ -12,7 +12,7 @@ import { registerScalarView, deferSelectionCopy, prepareIntegerRange, type Linea
 import { positionalValue } from './positional-value.js';
 import { materializeTensorMap } from './tensor-map.js';
 import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, sliceStoredArray, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
-import { checkpoint } from './interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { sequenceValues } from './sequence.js';
 import { arrayOffset, coordinatesAt } from './tensor-index.js';
@@ -352,6 +352,13 @@ function producerSelection(source: RankArray, selection: TensorSelection, observ
     return permutation.some((axis, position) => axis !== position) ? permutedArray(selected, permutation) : selected;
 }
 
+/** A copy may reuse uniform physical evidence, without inspecting more cells. */
+function knownUniformKind(source: RankArray): string | undefined {
+    if (demandBudgetEnabled() || inspectionEnabled() || !privateLoopPolling()) return undefined;
+    const kinds = storedScalarKinds(source, true, false);
+    return kinds?.length === 1 ? kinds[0] : undefined;
+}
+
 export function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
     const shape = source.shape;
     if (indices.length > shape.length) {
@@ -389,7 +396,7 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
     const stored = kind ? denseScalarItems(source) as Float64Array | BigInt64Array : undefined;
     if (stored) {
         const length = arraySize(rest);
-        return inheritSemanticArrayType(source, typedArray(stored.slice(offset, offset + length), rest));
+        return inheritSemanticArrayType(source, typedArray(stored.slice(offset, offset + length), rest, undefined, knownUniformKind(source)));
     }
     return inheritSemanticArrayType(source, selectionArray(rest, source, index => offset + index, { offset, stride: 1 }));
 }
@@ -436,7 +443,7 @@ export function sliceArray(
         const out: RankValue[] | Float64Array | BigInt64Array | Int32Array = compact ? new Int32Array(total) : reals ? new Float64Array(total)
             : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
         gather(compact ?? stored, out as unknown as RankValue[], selection, total);
-        const result = Array.isArray(out) ? ownedArray(out, selection.shape, true, columnNames) : typedArray(out, selection.shape, columnNames);
+        const result = Array.isArray(out) ? ownedArray(out, selection.shape, true, columnNames) : typedArray(out, selection.shape, columnNames, knownUniformKind(source));
         return source.columnNames ? result : inheritSemanticArrayType(source, result);
     }
     const result = selectionArray(selection.shape, source, selection.offsetAt, selection.linear, !!regular, contiguousSelectionBlock(selection));

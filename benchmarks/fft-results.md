@@ -1112,3 +1112,37 @@ Use `fft.mjs --worker=compiled --storage-diagnostics` to collect counters
 without the compiler hooks that disable the private call loop.
 [Conversion timing and counters](baselines/2026-11-01-buffer-facts-real-general.json),
 [FFT counters without hooks](baselines/2026-11-01-buffer-facts-real-diagnostics.json).
+
+## Step 6c: preserve known kinds through selection copies
+
+Contiguous typed rows and eager irregular typed gathers reuse a uniform
+physical source kind only when that evidence is already available. The new
+`storedScalarKinds(..., true, false)` query does not discover unknown source
+kinds; a tiny selection must not scan its larger source. Mixed sources keep
+ordinary output discovery. Budgeted execution, inspection and host polling
+retain the previous path. Source and selection writes retain independent,
+tracked kind evidence; semantic declarations are never used as proof.
+
+Compared with step 6b (`d686ff9b`), FFT-4096 scanning falls from **10,240 to
+2,048** cells, with the private call loop still enabled. Seven-pair FFT
+timing is **0.809 -> 0.820 ms**; no timing improvement is established.
+The tuple-returning gather fixture exercises eager selectors (the earlier
+`gather ... copy` fixture uses tensor fusion and already avoids the scan).
+It eliminates a 4,096-cell scan, but initial timings are negative:
+**0.0895 -> 0.1098 ms**. Candidate processes split between roughly 0.062 and
+0.12 ms, so a separate confirmation is retained. These scan reductions
+are correctness/performance-mechanism evidence, not proof of faster FFT.
+
+Build, 95 existing focused selection/storage tests and eight new selection
+kind tests pass. Cases include NaN/infinities, duplicates, row shape,
+independent copies, writes, unknown/mixed sources, host readers and budgets.
+
+Evidence: [FFT timing](baselines/2026-11-01-buffer-facts-selection-fft.json),
+[FFT counters](baselines/2026-11-01-buffer-facts-selection-diagnostics.json),
+[general selection timing and counters](baselines/2026-11-01-buffer-facts-selection-general.json).
+
+The nine-pair selection confirmation reverses the wall-time result:
+**0.0904 -> 0.0736 ms** (18.6% less time), while process CPU medians are
+**0.1096 -> 0.1222 ms**. Both full series remain available; a stable selection
+speedup is not established. The deterministic result is removing the scan.
+[Selection confirmation](baselines/2026-11-01-buffer-facts-selection-general-confirm.json).

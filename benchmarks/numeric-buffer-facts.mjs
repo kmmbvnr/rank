@@ -18,6 +18,7 @@ const sources = {
   squareRoot: `fun X transform\n return X sqrt copy\nend`,
   real: `fun X transform\n return X real copy\nend`,
   gather: `fun X transform Indices\n return X Indices copy\nend`,
+  tupleGather: `fun X transform Indices\n return tuple (X Indices)\nend`,
   copy: `fun X transform\n return X copy\nend`,
 };
 const median = xs => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
@@ -58,10 +59,10 @@ if (!values.worker) {
   const indices = Int32Array.from({ length: n }, (_, i) => (i * 17) % n);
   const input = name === 'real' ? Int32Array.from({ length: n }, (_, i) => i) : cells;
   const args = [typedArray(input, [n], undefined, name === 'real' ? 'integer' : 'real')];
-  if (name === 'gather') args.push(typedArray(indices));
-  const fn = runtime.variables.get('transform'), run = () => fn.call(args).items;
+  if (name === 'gather' || name === 'tupleGather') args.push(typedArray(indices));
+  const fn = runtime.variables.get('transform'), run = () => { const out = fn.call(args); return name === 'tupleGather' ? out.items[0].items : out.items; };
   const expected = Array.from(input, (x, i) => name === 'cosine' ? Math.cos(x)
-    : name === 'squareRoot' ? Math.sqrt(x) : name === 'gather' ? input[indices[i]] : x);
+    : name === 'squareRoot' ? Math.sqrt(x) : name === 'gather' || name === 'tupleGather' ? input[indices[i]] : x);
   const check = actual => { assert.equal(actual.length, expected.length); for (let i = 0; i < expected.length; i++) assert(Math.abs(actual[i] - expected[i]) < 1e-12); };
   check(run()); let count = 0, start = performance.now();
   while (performance.now() - start < 1000 || count < 3) { run(); count++; }
