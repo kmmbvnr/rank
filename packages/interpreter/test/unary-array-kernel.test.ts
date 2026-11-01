@@ -1,15 +1,74 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, isRankArray, MISSING, type RankArray } from '../src/index.js';
-import { derivedArray, integer32Cells, ownedArray, readArrayItem, typedArray, typedElementKind } from '../src/array-storage.js';
+import { Interpreter, isRankArray, MISSING, RuntimeDiagnostics, type RankArray } from '../src/index.js';
+import { borrowArrayStorage, derivedArray, integer32Cells, ownedArray, prepareScalarArrayWriter, readArrayItem, storedScalarKinds, typedArray, typedElementKind } from '../src/array-storage.js';
+import { arrayElementTypes } from '../src/array-element-types.js';
 import { registerScalarView } from '../src/integer-view.js';
 import { mapStoredUnary } from '../src/unary-array-kernel.js';
 import { scalarBuiltinArray } from '../src/scalar-builtin.js';
 import { scalarNative } from '../src/modules/shared.js';
-import { InterruptedError, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
+import { InterruptedError, withDemandBudget, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
 
 const size = 2048;
 
 describe('stored unary numeric kernels', () => {
+    it.each(['compact', 'real'])('carries exact real/limit evidence from %s inputs', storage => {
+        const input = storage === 'compact' ? typedArray(new Int32Array(size).fill(9))
+            : typedArray(new Float64Array(size).fill(9), [size], undefined, 'real');
+        for (const expected of [1.5, NaN, Infinity, -Infinity, -0]) {
+            const diagnostics = new RuntimeDiagnostics();
+            const result = diagnostics.run(() => {
+                const out = mapStoredUnary(input, 'number', () => expected)!;
+                expect(arrayElementTypes(out, true)).toEqual([expected === Infinity || expected === -Infinity ? 'numeric-limit' : 'real']);
+                return out;
+            });
+            expect(diagnostics.elementTypeScannedCells).toBe(0);
+            expect(readArrayItem(result, 0)).toBe(expected);
+            expect(readArrayItem(result, size - 1)).toBe(expected);
+        }
+    });
+
+    it('classifies stored numeric coercions without invoking them again', () => {
+        const input = typedArray(new Int32Array(size));
+        let conversions = 0;
+        const result = mapStoredUnary(input, 'number', () => ({ valueOf() { conversions++; return Infinity; } }) as unknown as number)!;
+        expect(conversions).toBe(size);
+        expect(arrayElementTypes(result, true)).toEqual(['numeric-limit']);
+        expect(conversions).toBe(size);
+    });
+
+    it('retains ordinary discovery for mixed real and numeric-limit outputs', () => {
+        const input = typedArray(Int32Array.from({ length: size }, (_, i) => i));
+        const result = mapStoredUnary(input, 'integer', n => n % 2 ? Infinity : NaN)!;
+        const diagnostics = new RuntimeDiagnostics();
+        diagnostics.run(() => expect(arrayElementTypes(result, true)).toEqual(['numeric-limit', 'real']));
+        expect(diagnostics.elementTypeScannedCells).toBe(size);
+    });
+
+    it('updates producer evidence through public and compiled writes', () => {
+        const result = mapStoredUnary(typedArray(new Int32Array(size).fill(9)), 'number', Math.sqrt)!;
+        const writer = prepareScalarArrayWriter(borrowArrayStorage(result));
+        writer(0, Infinity);
+        expect(storedScalarKinds(result, true)).toEqual(['numeric-limit', 'real']);
+        writer(0, NaN);
+        expect(storedScalarKinds(result, true)).toEqual(['real']);
+        result.items[1] = -Infinity;
+        expect(storedScalarKinds(result, true)).toEqual(['numeric-limit', 'real']);
+        result.items[1] = 2.5;
+        expect(storedScalarKinds(result, true)).toEqual(['real']);
+        result.items.length = 0;
+        expect(storedScalarKinds(result, true)).toEqual([]);
+    });
+
+    it('retains validation polling when producing under an observable budget', () => {
+        const input = typedArray(new Int32Array(size).fill(9));
+        const diagnostics = new RuntimeDiagnostics();
+        withDemandBudget(100000, () => diagnostics.run(() => {
+            const result = mapStoredUnary(input, 'number', Math.sqrt)!;
+            expect(arrayElementTypes(result, true)).toEqual(['real']);
+        }));
+        expect(diagnostics.elementTypeScannedCells).toBe(size);
+    });
+
     it.each(['sqrt', 'abs'])('maps real %s to typed storage with scalar parity', name => {
         const runtime = new Interpreter();
         try {

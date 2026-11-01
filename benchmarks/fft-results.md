@@ -1048,3 +1048,41 @@ Raw evidence: [timings](baselines/2026-10-31-fft.json),
 [CPU and allocation summaries](baselines/2026-10-31-fft-profiles.json),
 [compiled diagnostics and generated code](baselines/2026-10-31-fft-compiled-diagnostics.json),
 [reference diagnostics](baselines/2026-10-31-fft-reference-diagnostics.json).
+
+## Step 6a: retain unary output kind evidence
+
+This independent experiment starts at main `7e04577a`; it does not include
+`perf/vector-stores`. Unary numeric kernels already visit every output cell.
+Count infinities during that pass and pass the existing `typedArray` uniform
+kind hint when all cells have one physical kind. NaN remains `real`, not
+`numeric-limit`. Mixed results and execution under a demand budget retain
+ordinary discovery. Existing storage writers maintain or invalidate the hint.
+No FFT source, coefficients or permutation change.
+
+FFT-4096 exact kind scanning falls from 18,432 to 14,336 cells per warm call
+without compiler hooks. Five alternating fresh process pairs, 1 s warmup and
+three 500 ms batches, give **0.825 -> 0.792 ms** (4.0% less time). Baseline
+contains a 1.621 ms outlier; first-size calls **12.01 -> 12.29 ms** do not
+improve. This is a small preliminary timing gain, not a large FFT speedup.
+
+General producer checks include function contracts, allocation, copying and
+full host-array forcing, with input and an independent Math oracle outside
+timing. The same 4,096-cell scan disappears for `cos` and `sqrt`; both improve
+in all five pairs. Pooled medians are 0.211 -> 0.099 ms and
+0.094 -> 0.069 ms, but cosine has large process-to-process variation, so its
+2.14x pooled ratio should not be treated as a stable gain. Gather and copy
+controls differ by about 1.5% and 1.3%. The untouched real conversion control
+regresses in the initial series (0.123 -> 0.228 ms); all raw batches are kept,
+with a separate confirmation series rather than attributing it to this change.
+
+Build and 107 focused tests pass: unary kernels, physical kind evidence,
+numeric functions and private call loops. Tests cover NaN, signed infinities,
+negative zero, mixed results, coercion, mutation and budgeted execution.
+
+Evidence: [FFT](baselines/2026-11-01-buffer-facts-unary-fft.json),
+[general producers and controls](baselines/2026-11-01-buffer-facts-unary-general.json).
+
+The nine-pair real-conversion confirmation gives **0.1261 -> 0.1253 ms**
+(0.6% less time), with slow processes on both sides. The initial large
+regression does not reproduce; no conversion improvement is claimed here.
+[Control confirmation](baselines/2026-11-01-buffer-facts-unary-real-confirm.json).
