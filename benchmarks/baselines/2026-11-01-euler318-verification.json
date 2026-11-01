@@ -1,0 +1,132 @@
+{
+  "verify-mac": {
+    "checks": 936,
+    "node": "v24.15.0"
+  },
+  "verify-intel": {
+    "checks": 936,
+    "node": "v24.15.0"
+  },
+  "fixture-baseline": [
+    {
+      "compilation": true,
+      "tests": [
+        {
+          "name": "sqrt two plus sqrt three",
+          "passed": true,
+          "output": [],
+          "durationMs": 8.489625000000046
+        },
+        {
+          "name": "small sum",
+          "passed": false,
+          "output": [],
+          "error": "RangeError: The number 0.41421356237309515 cannot be converted to a BigInt because it is not an integer",
+          "durationMs": 8.562375000000031
+        }
+      ]
+    },
+    {
+      "compilation": false,
+      "tests": [
+        {
+          "name": "sqrt two plus sqrt three",
+          "passed": true,
+          "output": [],
+          "durationMs": 3.3096249999999827
+        },
+        {
+          "name": "small sum",
+          "passed": true,
+          "output": [
+            "8"
+          ],
+          "durationMs": 4.681750000000022
+        }
+      ]
+    }
+  ],
+  "fixture-mac": [
+    {
+      "compilation": true,
+      "tests": [
+        {
+          "name": "sqrt two plus sqrt three",
+          "passed": true,
+          "output": [],
+          "durationMs": 8.75283300000001
+        },
+        {
+          "name": "small sum",
+          "passed": true,
+          "output": [
+            "8"
+          ],
+          "durationMs": 9.427499999999952
+        }
+      ]
+    },
+    {
+      "compilation": false,
+      "tests": [
+        {
+          "name": "sqrt two plus sqrt three",
+          "passed": true,
+          "output": [],
+          "durationMs": 3.2777920000000336
+        },
+        {
+          "name": "small sum",
+          "passed": true,
+          "output": [
+            "8"
+          ],
+          "durationMs": 4.451750000000004
+        }
+      ]
+    }
+  ],
+  "fixture-intel": [
+    {
+      "compilation": true,
+      "tests": [
+        {
+          "name": "sqrt two plus sqrt three",
+          "passed": true,
+          "output": [],
+          "durationMs": 17.652555000000007
+        },
+        {
+          "name": "small sum",
+          "passed": true,
+          "output": [
+            "8"
+          ],
+          "durationMs": 19.249754999999936
+        }
+      ]
+    },
+    {
+      "compilation": false,
+      "tests": [
+        {
+          "name": "sqrt two plus sqrt three",
+          "passed": true,
+          "output": [],
+          "durationMs": 6.866600000000062
+        },
+        {
+          "name": "small sum",
+          "passed": true,
+          "output": [
+            "8"
+          ],
+          "durationMs": 8.494853000000035
+        }
+      ]
+    }
+  ],
+  "parent": "68546f1b",
+  "demoSha256": "ba021f6d8477da1c1f3b0d7dedad02055aa8768c65fd86acdd3d5b50403274ee",
+  "prototype": "Built JS copy of 68546f1b with only inline log added; production sources unchanged"
+}

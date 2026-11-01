@@ -56,6 +56,9 @@ const inlineBuiltins = new Map<string, InlineBuiltin>([
     ['acos', { module: 'numbers', types: { integer: 'real', real: 'real' }, enabled: host => host.reals,
         domain: { test: value => `!((${value}) >= -1 && (${value}) <= 1)`, message: 'acos input is outside its domain' },
         code: value => `Math.acos(Number(${value}))` }],
+    ['log', { module: 'numbers', types: { integer: 'real', real: 'real' }, enabled: host => host.reals,
+        domain: { test: value => `!Number.isFinite(Number(${value})) || !(${value} > 0)`, message: 'log input is outside its domain' },
+        code: value => `Math.log(Number(${value}))` }],
     ['floor', bound('floor')],
     ['ceil', bound('ceil')],
 ]);
@@ -359,12 +362,23 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     }
     function callout(source: Expression, lines: string[], hint?: LoopTerm['type']): LoopTerm | undefined {
         if (!state.canCallout(source, hint)) return undefined;
+        const type = knownType(source) ?? hint;
+        if (type !== 'integer' && type !== 'real' && type !== 'boolean') return undefined;
+        // Facts about catalogued calls require the same binding guards as
+        // inline lowering. Rebound functions must take the ordinary path.
+        for (const node of [source, ...AstUtils.streamAllContents(source)]) {
+            if (!isNameExpression(node)) continue;
+            const operation = findOperation(node.name);
+            if (operation) builtins.set(operation.name, operation.module);
+        }
         const id = state.callouts.length;
-        state.callouts.push({ expression: source, expectedType: hint });
+        state.callouts.push({ expression: source, expectedType: type });
         const spilled = [...state.assigned].filter(name => !name.includes('.'));
         for (const name of spilled) {
             const s = slot(name);
-            const val = `(typeof r${s} === 'number' ? BigInt(r${s}) : r${s})`;
+            // Callouts only run in the exact backend: integer registers are
+            // already BigInts, while Number registers hold real values.
+            const val = `r${s}`;
             const wIdx = state.writerNames.indexOf(name);
             if (wIdx >= 0) {
                 lines.push(`writers[${wIdx}](${val});`);
@@ -376,11 +390,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             }
         }
         const temp = `v${state.serial++}`;
-        lines.push(
-            `const raw_${temp} = callouts[${id}]();`,
-            `const ${temp} = typeof raw_${temp} === 'number' && !Number.isNaN(raw_${temp}) ? BigInt(Math.trunc(raw_${temp})) : raw_${temp};`
-        );
-        return { code: temp, type: hint ?? 'integer' };
+        lines.push(`const ${temp} = callouts[${id}]();`);
+        return { code: temp, type };
     }
     function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[], selection?: { name: string; count: number }): LoopTerm | undefined {
         if (!temporaryBudget(node.source)) return undefined;
