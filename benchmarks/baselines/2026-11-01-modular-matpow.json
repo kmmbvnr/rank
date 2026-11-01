@@ -1,0 +1,221 @@
+{
+  "date": "2026-11-01",
+  "baseCommit": "3fbb64ec4181299875e472e4fe8b4a0dc5ad24c0",
+  "environment": {
+    "cpu": "Apple M5",
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "engine": [
+    {
+      "mode": "exact",
+      "n": "16384",
+      "ms": 1870.5269580000001,
+      "cpuMs": 1977.291,
+      "answer": "692479040",
+      "fused": 0,
+      "rssMiB": 255.171875
+    },
+    {
+      "mode": "fused",
+      "n": "16384",
+      "ms": 87.232583,
+      "cpuMs": 179.483,
+      "answer": "692479040",
+      "fused": 1,
+      "rssMiB": 170.03125
+    },
+    {
+      "mode": "fused",
+      "n": "1000000000000000000",
+      "ms": 173.413875,
+      "cpuMs": 327.025,
+      "answer": "145353810",
+      "fused": 1,
+      "rssMiB": 170.609375
+    },
+    {
+      "mode": "exact",
+      "n": "16384",
+      "ms": 2830.5997079999997,
+      "cpuMs": 2959.02,
+      "answer": "692479040",
+      "fused": 0,
+      "rssMiB": 257.09375
+    },
+    {
+      "mode": "fused",
+      "n": "16384",
+      "ms": 106.888375,
+      "cpuMs": 214.619,
+      "answer": "692479040",
+      "fused": 1,
+      "rssMiB": 170.5625
+    },
+    {
+      "mode": "fused",
+      "n": "1000000000000000000",
+      "ms": 136.66866599999997,
+      "cpuMs": 285.797,
+      "answer": "145353810",
+      "fused": 1,
+      "rssMiB": 172.21875
+    },
+    {
+      "mode": "exact",
+      "n": "16384",
+      "ms": 2189.449708,
+      "cpuMs": 2313.319,
+      "answer": "692479040",
+      "fused": 0,
+      "rssMiB": 226.59375
+    },
+    {
+      "mode": "fused",
+      "n": "16384",
+      "ms": 102.63575,
+      "cpuMs": 214.352,
+      "answer": "692479040",
+      "fused": 1,
+      "rssMiB": 167.765625
+    },
+    {
+      "mode": "fused",
+      "n": "1000000000000000000",
+      "ms": 142.153083,
+      "cpuMs": 293.629,
+      "answer": "145353810",
+      "fused": 1,
+      "rssMiB": 170.234375
+    }
+  ],
+  "demos": [
+    {
+      "mode": "before",
+      "name": "dice",
+      "ms": 128.00066700000002,
+      "answer": "106021903",
+      "fused": 0
+    },
+    {
+      "mode": "before",
+      "name": "paths",
+      "ms": 21.19762499999996,
+      "answer": "748778899",
+      "fused": 0
+    },
+    {
+      "mode": "before",
+      "name": "euler435",
+      "ms": 173.47274999999996,
+      "answer": "252541322550",
+      "fused": 0
+    },
+    {
+      "mode": "after",
+      "name": "dice",
+      "ms": 111.07320899999999,
+      "answer": "106021903",
+      "fused": 1
+    },
+    {
+      "mode": "after",
+      "name": "paths",
+      "ms": 18.590082999999993,
+      "answer": "748778899",
+      "fused": 1
+    },
+    {
+      "mode": "after",
+      "name": "euler435",
+      "ms": 74.39999999999998,
+      "answer": "252541322550",
+      "fused": 100
+    },
+    {
+      "mode": "before",
+      "name": "dice",
+      "ms": 127.88808400000002,
+      "answer": "106021903",
+      "fused": 0
+    },
+    {
+      "mode": "before",
+      "name": "paths",
+      "ms": 20.832042,
+      "answer": "748778899",
+      "fused": 0
+    },
+    {
+      "mode": "before",
+      "name": "euler435",
+      "ms": 174.85775,
+      "answer": "252541322550",
+      "fused": 0
+    },
+    {
+      "mode": "after",
+      "name": "dice",
+      "ms": 110.51908300000002,
+      "answer": "106021903",
+      "fused": 1
+    },
+    {
+      "mode": "after",
+      "name": "paths",
+      "ms": 17.568750000000023,
+      "answer": "748778899",
+      "fused": 1
+    },
+    {
+      "mode": "after",
+      "name": "euler435",
+      "ms": 77.07933399999996,
+      "answer": "252541322550",
+      "fused": 100
+    },
+    {
+      "mode": "before",
+      "name": "dice",
+      "ms": 128.632917,
+      "answer": "106021903",
+      "fused": 0
+    },
+    {
+      "mode": "before",
+      "name": "paths",
+      "ms": 20.484666000000004,
+      "answer": "748778899",
+      "fused": 0
+    },
+    {
+      "mode": "before",
+      "name": "euler435",
+      "ms": 175.72537500000004,
+      "answer": "252541322550",
+      "fused": 0
+    },
+    {
+      "mode": "after",
+      "name": "dice",
+      "ms": 113.33550000000002,
+      "answer": "106021903",
+      "fused": 1
+    },
+    {
+      "mode": "after",
+      "name": "paths",
+      "ms": 17.329499999999996,
+      "answer": "748778899",
+      "fused": 1
+    },
+    {
+      "mode": "after",
+      "name": "euler435",
+      "ms": 77.15104200000002,
+      "answer": "252541322550",
+      "fused": 100
+    }
+  ]
+}

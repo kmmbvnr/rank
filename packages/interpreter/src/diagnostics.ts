@@ -45,6 +45,7 @@ export class RuntimeDiagnostics {
     numberLoopReadBufferHits = 0;
     numberLoopBorrowedRealBuffers = 0;
     numberLoopBorrowedRealCells = 0;
+    modularMatrixPowers = 0;
     compiledTensors = 0;
     tensorRangeScans = 0;
     tensorRangeScannedCells = 0;

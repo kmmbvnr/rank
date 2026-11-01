@@ -7,6 +7,7 @@ import { tuple } from '../value.js';
 import { checkpoint, interruptibleCallback, InterruptedError, privateLoopPolling } from '../interrupt.js';
 import { denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
+import { currentDiagnostics } from '../diagnostics.js';
 import { isRankArray, isRankLabel, type RankArray, type RankValue } from '../value.js';
 import { expectNumeric, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
@@ -707,8 +708,9 @@ function stridesOf(shape: readonly number[]): number[] {
     return strides;
 }
 
-/** Exponentiation by squaring: O(log |power|) products, exact for integer cells. */
-function matrixPower(value: RankValue, power: RankValue): RankArray {
+/** Validate and snapshot before evaluating a following modulus. Ineligible
+ * powers must finish exact evaluation before that expression is evaluated. */
+export function prepareMatrixPower(value: RankValue, power: RankValue) {
     value = tensorSource(value) ?? value;
     if (!isRankArray(value) || value.shape.length !== 2 || value.shape[0] !== value.shape[1]) {
         throw new RankError('matpow expects a square rank-2 matrix', 'DimensionMismatch');
@@ -717,29 +719,51 @@ function matrixPower(value: RankValue, power: RankValue): RankArray {
 
     const size = value.shape[0];
     // Products stay lazy otherwise, and squaring would recompute them.
-    const settle = (matrix: RankValue): RankArray => {
+    const settle = (matrix: RankValue, modulus?: bigint): RankArray => {
         const cells = matrix as RankArray;
-        return ownedArray(Array.from({ length: size * size }, (_, index) => arrayItem(cells, index)), [size, size]);
+        return ownedArray(Array.from({ length: size * size }, (_, index) => {
+            if ((index & 4095) === 0) checkpoint('preparing matrix power', Math.min(4096, size * size - index));
+            const item = arrayItem(cells, index);
+            if (modulus === undefined) return item;
+            const remainder = (item as bigint) % modulus;
+            return remainder < 0n ? remainder + modulus : remainder;
+        }), [size, size]);
     };
-    let base = settle(value);
-    const integers = Array.from({ length: size * size }, (_, index) => arrayItem(base, index))
+    const input = settle(value);
+    const integers = Array.from({ length: size * size }, (_, index) => arrayItem(input, index))
         .every(item => typeof item === 'bigint');
-    let exponent = power;
-    if (exponent < 0n) {
-        base = inverseMatrix(base);
-        exponent = -exponent;
-    }
-    let result: RankArray | undefined;
-    while (exponent > 0n) {
-        checkpoint('computing linear algebra');
-        if (exponent & 1n) result = result ? settle(matmulValues(result, base)) : base;
-        exponent >>= 1n;
-        if (exponent > 0n) base = settle(matmulValues(base, base));
-    }
-    if (result) return result;
-    const one = integers && power === 0n ? 1n : 1, zero = integers && power === 0n ? 0n : 0;
-    return ownedArray(Array.from({ length: size * size }, (_, index) =>
-        index % (size + 1) === 0 ? one : zero), [size, size]);
+    return {
+        modular: integers && power >= 0n,
+        run(modulus?: bigint): RankArray {
+            if (modulus !== undefined) {
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) diagnostics.modularMatrixPowers++;
+            }
+            let base = modulus === undefined ? input : settle(input, modulus);
+            let exponent = power;
+            if (exponent < 0n) {
+                base = inverseMatrix(base);
+                exponent = -exponent;
+            }
+            let result: RankArray | undefined;
+            while (exponent > 0n) {
+                checkpoint('computing linear algebra');
+                if (exponent & 1n) result = result ? settle(matmulValues(result, base), modulus) : base;
+                exponent >>= 1n;
+                if (exponent > 0n) base = settle(matmulValues(base, base), modulus);
+            }
+            if (result) return result;
+            const one = integers && power === 0n ? modulus === 1n ? 0n : 1n : 1;
+            const zero = integers && power === 0n ? 0n : 0;
+            return ownedArray(Array.from({ length: size * size }, (_, index) =>
+                index % (size + 1) === 0 ? one : zero), [size, size]);
+        },
+    };
+}
+
+/** Exponentiation by squaring, exact for integer cells. */
+function matrixPower(value: RankValue, power: RankValue): RankArray {
+    return prepareMatrixPower(value, power).run();
 }
 
 function inverseMatrix(value: RankValue): RankArray {

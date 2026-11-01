@@ -22,11 +22,11 @@ steps.
 | Demo | State | Notes |
 | --- | --- | --- |
 | [ACMP 0083 Pretty Patterns](../../demos/acmp/0083_pretty_patterns.ra) | colors of one column | `Compat matpow (Cols - 1) sum` |
-| [CSES 1096 Throwing Dice](../../demos/cses/math/022_throwingdice.ra) | last 6 sums | linear recurrence, modular |
-| [CSES 1723 Graph Paths I](../../demos/cses/math/023_graphpaths1.ra) | vertex | walks of exact length, modular |
+| [CSES 1096 Throwing Dice](../../demos/cses/math/022_throwingdice.ra) | last 6 sums | `Steps matpow N mod Mod` |
+| [CSES 1723 Graph Paths I](../../demos/cses/math/023_graphpaths1.ra) | vertex | `Paths matpow Length mod Mod` |
 | [CSES 1724 Graph Paths II](../../demos/cses/math/024_graphpaths2.ra) | vertex | min-plus instead of plus-times |
 | [CSES 1726 Moving Robots](../../demos/cses/math/029_movingrobots.ra) | board cell | Markov chain, real matrix |
-| [Euler 435](../../demos/euler/435_polynomialsfib.ra) | `a(k)`, `a(k-1)`, `F(k)` | 3 x 3, huge `N`, modular |
+| [Euler 435](../../demos/euler/435_polynomialsfib.ra) | `a(k)`, `a(k-1)`, `F(k)` | `Tm matpow (N - 1) mod Mod` |
 | [Euler 584](../../demos/euler/584_birthdayrevisited.ra) | counts of the last `D` days | trace of the `N`-th power |
 
 Pages: [matrix powers in the spec](../CURRENT_SPEC.md#matrix-powers),

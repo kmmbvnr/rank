@@ -254,6 +254,29 @@ Integer cells stay exact. The work is
 about log2 of the power in products, not
 the power itself.
 
+For integer cells, nonnegative N and a
+positive integer M, both forms below
+reduce after each matrix product:
+
+```text
+A matpow N mod M
+(A matpow N) mod M
+```
+
+This keeps intermediates bounded even
+for huge N. Power 0 gives the identity
+modulo M; M = 1 gives all zeros.
+Other inputs keep exact power followed
+by ordinary elementwise mod, including
+negative powers and real matrices.
+
+A separately named result stays exact:
+
+```text
+P = A matpow N
+P mod M
+```
+
 ### Notes
 
 A ** 2 squares each cell. To multiply

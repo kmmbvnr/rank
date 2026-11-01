@@ -22,16 +22,7 @@ for X in 1 to Top
   X2 = X * X
   Fl = array X X2 0 1 0 0 X X2 1
   Tm = Fl reshape 3 3
-  Id = array 1 0 0 0 1 0 0 0 1
-  Rm = Id reshape 3 3
-  Ex = N - 1
-  for Ex greater 0
-    if Ex mod 2 equal 1
-      Rm = Rm matmul Tm mod Mod
-    end
-    Tm = Tm matmul Tm mod Mod
-    Ex //= 2
-  end
+  Rm = Tm matpow (N - 1) mod Mod
   V0 = array X 0 X
   Tot += (Rm matmul V0) 2
 end

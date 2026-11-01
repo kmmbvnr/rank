@@ -6825,6 +6825,18 @@ matrix. A negative power inverts the matrix first and raises the inverse, so a
 singular matrix raises `inverse expects a nonsingular matrix`. A matrix that is
 not square, or a power that is not an integer, is an error.
 
+`A matpow N mod M` and `(A matpow N) mod M` fuse for integer matrix cells,
+integer `N >= 0` and integer `M > 0`. Each matrix product is reduced modulo
+`M`, keeping intermediate bit lengths bounded independently of `N`. Negative
+cells use floored `mod`. The identity for `N = 0` is also reduced, so `M = 1`
+gives all zeros. Other inputs retain exact power followed by elementwise
+`mod`, with the same results and errors. This includes real matrices, negative
+powers, nonpositive moduli and non-integer operands.
+
+A separately assigned `P = A matpow N` stays exact; a later `P mod M` does
+not fuse across that binding. Runtime diagnostics count fused
+calls in `modularMatrixPowers`.
+
 `**` stays elementwise: `A ** 2` squares every cell, and `A matpow 2` is
 `A matmul A`.
 

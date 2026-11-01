@@ -5,6 +5,8 @@ import { materializeValue } from '../materialize.js';
 import { checkedArrayDimension, safeDimension } from '../tensor-index.js';
 import { integerLiteral } from './application.js';
 import { convolveExact, convolveModular } from '../convolution.js';
+import { prepareMatrixPower } from '../modules/linalg.js';
+import { hasNativeImplementation } from '../native-implementation.js';
 export { checkedArrayDimension } from '../tensor-index.js';
 import { ArrayBindingContract } from '../array-binding-contract.js';
 import { tuple } from '../value.js';
@@ -685,6 +687,8 @@ export class ExpressionEvaluator {
         while (isParenthesizedExpression(left)) left = left.value;
         const product = this.modularConvolution(left, expression);
         if (product) return product;
+        const power = this.modularMatrixPower(left, expression);
+        if (power) return power;
         if (!isBinaryExpression(left)) return undefined;
         const form = applicationForm(left, name => this.operationOf(name), false, name => isNativeFunction(this.context.findVariable(name) ?? MISSING));
         if (form.kind !== 'scan' && form.kind !== 'reduce' || form.kind === 'reduce' && (form.rank || form.axes)
@@ -703,6 +707,46 @@ export class ExpressionEvaluator {
                 ? expressions.context.reductions.evaluateScan(form.operator, source, seed, axis)
                 : expressions.context.reductions.evaluateReduction(form.operator, source, undefined, seed);
             return expressions.context.operators.evaluateBinary('mod', exact, modulus);
+        };
+    }
+
+    /** Integer matrix powers reduce after each product instead of growing
+     * exact cells to a bit length proportional to the exponent. */
+    private modularMatrixPower(left: Expression, expression: BinaryExpression): (() => Evaluation<RankValue>) | undefined {
+        const parts = flattenApplication(left);
+        const word = parts[2];
+        const operation = findOperation('matpow');
+        if (parts.length !== 3 || !isNameExpression(word)) return undefined;
+        const builtin = () => {
+            const value = this.context.findVariable(word.name) ?? this.context.builtins.standard('linalg', 'matpow');
+            return this.operationOf(word.name) === operation
+                && (value === undefined || isNativeFunction(value) && hasNativeImplementation(value));
+        };
+        if (!builtin()) return undefined;
+        const expressions = this;
+        return function* (): Execution<RankValue> {
+            // A cached expression may run after its function binding changes.
+            if (!builtin()) {
+                const exact = yield* resume(expressions.evaluate(expression.left));
+                const modulus = yield* resume(expressions.evaluate(expression.right));
+                return expressions.context.operators.evaluateBinary('mod', exact, modulus);
+            }
+            const source = yield* resume(expressions.evaluate(parts[0]));
+            const exponent = yield* resume(expressions.evaluate(parts[1]));
+            // Operand effects may also replace the function before its call.
+            if (!builtin()) {
+                const fn = yield* resume(expressions.evaluate(word));
+                const exact = yield* resume(expressions.context.application.apply([source, exponent, fn]));
+                const modulus = yield* resume(expressions.evaluate(expression.right));
+                return expressions.context.operators.evaluateBinary('mod', exact, modulus);
+            }
+            expressions.context.requireModule('linalg', 'matpow');
+            const power = prepareMatrixPower(source, exponent);
+            // Real cells, inverses and their errors precede the modulus as usual.
+            const exact = power.modular ? undefined : power.run();
+            const modulus = yield* resume(expressions.evaluate(expression.right));
+            if (power.modular && typeof modulus === 'bigint' && modulus > 0n) return power.run(modulus);
+            return expressions.context.operators.evaluateBinary('mod', exact ?? power.run(), modulus);
         };
     }
 
