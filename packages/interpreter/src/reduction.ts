@@ -72,6 +72,33 @@ export class ReductionEvaluator {
         });
     }
 
+    modularKeyedFold(kind: 'reduce' | 'scan', operator: string, source: RankValue,
+        keys: RankValue, seed: RankValue | undefined, size: RankValue | undefined,
+        modulus: RankValue): RankValue | undefined {
+        if ((operator !== '+' && operator !== '*') || typeof modulus !== 'bigint' || modulus <= 0n
+            || seed !== undefined && typeof seed !== 'bigint' || !isRankArray(source)) return undefined;
+        const stored = denseScalarItems(source);
+        if (!stored) return undefined;
+        const count = arraySize(source.shape);
+        for (let at = 0; at < count; at++) {
+            checkpoint('modular keyed fold');
+            if (typeof stored[at] !== 'bigint') return undefined;
+        }
+        if (size !== undefined && typeof size !== 'bigint') {
+            throw new RankError('by size must be an integer', 'TypeError');
+        }
+        const mod = (value: RankValue): bigint => {
+            const remainder = (value as bigint) % modulus;
+            return remainder < 0n ? remainder + modulus : remainder;
+        };
+        const residues = derivedArray(source.shape, [source], at => mod(stored[at]), true);
+        return keyedFold(residues, keys, (left, right) => mod(operator === '+'
+            ? (left as bigint) + (right as bigint) : (left as bigint) * (right as bigint)), {
+            scan: kind === 'scan', seed: seed === undefined ? undefined : mod(seed),
+            size: size === undefined ? undefined : Number(size), identity: () => mod(reductionIdentity(operator)),
+        });
+    }
+
     private isTensorFusion(): boolean {
         return typeof this.tensorFusion === 'function' ? this.tensorFusion() : this.tensorFusion;
     }

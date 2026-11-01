@@ -1782,6 +1782,12 @@ The seed does not add output cells. Without a seed, a group's first value
 initializes its state. `size` checks key bounds but does not change the scan
 shape. Keyed folds currently reject `rank` and `axis` modifiers.
 
+Integer keyed `reduce +`, `reduce *`, `scan +`, `scan *` and `sum`
+followed by `mod M` can reduce intermediate states modulo a positive integer
+`M`, avoiding growth of exact products. Other reducers, noninteger inputs
+and unsupported cases compute the exact grouped result followed by `mod`.
+This rewrite never applies to arbitrary user callbacks.
+
 The same grouping modifier is available on `sum`, `min`, `max`,
 `all`, `any`, `count`, `mean`, `median`, `mode`, `std`, `variance` (`var`),
 and `skewness` (`skew`), with their usual module imports. `quantile` and

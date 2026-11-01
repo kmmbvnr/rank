@@ -689,6 +689,26 @@ export class ExpressionEvaluator {
         if (product) return product;
         const power = this.modularMatrixPower(left, expression);
         if (power) return power;
+        const keyed = applicationForm(left, name => this.operationOf(name), false,
+            name => isNativeFunction(this.context.findVariable(name) ?? MISSING));
+        if ((keyed.kind === 'scan' || keyed.kind === 'reduce') && keyed.keys
+            || keyed.kind === 'keyed-aggregate' && keyed.operation.name === 'sum') {
+            const expressions = this;
+            return function* (): Execution<RankValue> {
+                const source = yield* resume(expressions.evaluate(keyed.source));
+                const seed = keyed.seed ? yield* resume(expressions.evaluate(keyed.seed)) : undefined;
+                const keys = yield* resume(expressions.evaluate(keyed.keys!));
+                const size = keyed.size ? yield* resume(expressions.evaluate(keyed.size)) : undefined;
+                const modulus = yield* resume(expressions.evaluate(expression.right));
+                const kind = keyed.kind === 'scan' ? 'scan' : 'reduce';
+                const operator = keyed.kind === 'keyed-aggregate' ? '+' : keyed.operator;
+                const fused = expressions.context.reductions.modularKeyedFold(kind, operator,
+                    source, keys, seed, size, modulus);
+                if (fused !== undefined) return fused;
+                const exact = expressions.context.reductions.evaluateKeyed(kind, operator, source, keys, seed, size);
+                return expressions.context.operators.evaluateBinary('mod', exact, modulus);
+            };
+        }
         if (!isBinaryExpression(left)) return undefined;
         const form = applicationForm(left, name => this.operationOf(name), false, name => isNativeFunction(this.context.findVariable(name) ?? MISSING));
         if (form.kind !== 'scan' && form.kind !== 'reduce' || form.kind === 'reduce' && (form.rank || form.axes)
