@@ -1,0 +1,10 @@
+[
+  {
+    "compilation": true,
+    "passed": 3
+  },
+  {
+    "compilation": false,
+    "passed": 3
+  }
+]

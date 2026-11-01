@@ -12,6 +12,16 @@ export function arrayRevision(value: RankArray): number | undefined {
     return valueRevision(value);
 }
 
+/** Header-only proof: never visit dependencies, elements or a shape getter. */
+export function hasNativeArrayHeader(value: RankValue): value is RankArray {
+    if (typeof value !== 'object' || value === null) return false;
+    const state = ownedStorage.get(value as RankArray);
+    if (state) return state.stable;
+    if (!derivedRevisions.has(value as RankArray)) return false;
+    const shape = Object.getOwnPropertyDescriptor(value, 'shape');
+    return shape !== undefined && 'value' in shape;
+}
+
 /** Inspect declared dependencies without evaluating a native cell recipe. */
 export function arrayResourceValues(value: RankArray): Iterable<RankValue> | undefined {
     return derivedRevisions.get(value)?.values();

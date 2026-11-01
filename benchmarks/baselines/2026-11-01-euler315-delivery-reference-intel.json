@@ -1,0 +1,84 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "revision": "",
+  "sources": {
+    "original": "821de08b1a750961a9a2d9775b2a4e853814a859a15af996fb9274b72e4497a8",
+    "production": "663183b7e0e22a23dde474b0cfe981392c3247d4b7a5260a0f58e3905c6b246e"
+  },
+  "method": "Three serial fresh processes, rotating case order; import excluded; parse/execute included; no diagnostics; process peak RSS",
+  "samples": [
+    {
+      "name": "original",
+      "round": 0,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "original",
+      "ms": 3483.694485,
+      "cpuMs": 5409.009,
+      "rssMiB": 412.3046875,
+      "answer": "181328"
+    },
+    {
+      "name": "production",
+      "round": 0,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "production",
+      "ms": 1793.812758,
+      "cpuMs": 2934.328,
+      "rssMiB": 296.06640625,
+      "answer": "181328"
+    },
+    {
+      "name": "production",
+      "round": 1,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "production",
+      "ms": 1727.9549499999998,
+      "cpuMs": 2828.255,
+      "rssMiB": 297.6171875,
+      "answer": "181328"
+    },
+    {
+      "name": "original",
+      "round": 1,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "original",
+      "ms": 3617.46648,
+      "cpuMs": 5572.524,
+      "rssMiB": 408.7578125,
+      "answer": "181328"
+    },
+    {
+      "name": "original",
+      "round": 2,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "original",
+      "ms": 3619.490735,
+      "cpuMs": 5572.103,
+      "rssMiB": 408.08203125,
+      "answer": "181328"
+    },
+    {
+      "name": "production",
+      "round": 2,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "production",
+      "ms": 1803.3655099999996,
+      "cpuMs": 2956.942,
+      "rssMiB": 296.87109375,
+      "answer": "181328"
+    }
+  ]
+}

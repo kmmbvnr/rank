@@ -19,6 +19,6 @@ export {
     privateArrayCopy, arrayForWrite,
 } from './array-ownership.js';
 export {
-    arrayRevision, arrayResourceValues, ownedObject, arrayDependencyNode, registerArrayDependencies,
+    arrayRevision, hasNativeArrayHeader, arrayResourceValues, ownedObject, arrayDependencyNode, registerArrayDependencies,
 } from './array-revision.js';
 export { arrayCellValidator, derivedArray } from './derived-array.js';

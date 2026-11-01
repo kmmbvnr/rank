@@ -392,7 +392,9 @@ export class FastPaths {
                 if (!this.context.modules.has(module)) return false;
                 try {
                     const value = this.context.resolve(name);
-                    return isNativeFunction(value) && hasNativeImplementation(value) && this.context.builtins.is(module, name, value);
+                    // Catalogued sequences are values, not callable intrinsics.
+                    return this.context.builtins.is(module, name, value)
+                        && (!isNativeFunction(value) || hasNativeImplementation(value));
                 }
                 catch { return false; }
             },
@@ -569,7 +571,7 @@ export class FastPaths {
             const captures = definition.context !== undefined;
             const isScalarType = (type: CompiledCalleeType): boolean =>
                 type === 'integer' || type === 'real' || type === 'boolean' || type === 'text';
-            const stableReads = typeof proof.type === 'string' && !proof.containers && !proof.arrayWrites.size;
+            const stableReads = typeof proof.type === 'string' && !proof.containers && !proof.arrayWrites.size && !proof.observableCaptures;
             const numberSafe = stableReads && isScalarType(proof.type) && types.every(isScalarType);
             return {
                 parameters: types,

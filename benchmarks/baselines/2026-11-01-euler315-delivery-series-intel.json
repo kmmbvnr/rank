@@ -1,0 +1,121 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "revision": "",
+  "sources": {
+    "original": "821de08b1a750961a9a2d9775b2a4e853814a859a15af996fb9274b72e4497a8",
+    "captured-len": "298c304bf4c378e5a07d8e68b8e3965f7a213ffe2165049317d320256468f869",
+    "production": "663183b7e0e22a23dde474b0cfe981392c3247d4b7a5260a0f58e3905c6b246e"
+  },
+  "method": "Three serial fresh processes, rotating case order; import excluded; parse/execute included; no diagnostics; process peak RSS",
+  "samples": [
+    {
+      "name": "original",
+      "round": 0,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "original",
+      "ms": 4778.854,
+      "cpuMs": 4895.643,
+      "rssMiB": 162.2734375,
+      "answer": "13625242"
+    },
+    {
+      "name": "captured-len",
+      "round": 0,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "captured-len",
+      "ms": 913.8153830000001,
+      "cpuMs": 1044.974,
+      "rssMiB": 166.72265625,
+      "answer": "13625242"
+    },
+    {
+      "name": "production",
+      "round": 0,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "production",
+      "ms": 876.3704440000001,
+      "cpuMs": 1006.841,
+      "rssMiB": 163.39453125,
+      "answer": "13625242"
+    },
+    {
+      "name": "captured-len",
+      "round": 1,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "captured-len",
+      "ms": 898.566818,
+      "cpuMs": 1032.01,
+      "rssMiB": 163.77734375,
+      "answer": "13625242"
+    },
+    {
+      "name": "production",
+      "round": 1,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "production",
+      "ms": 876.4566039999999,
+      "cpuMs": 1012.9,
+      "rssMiB": 164.35546875,
+      "answer": "13625242"
+    },
+    {
+      "name": "original",
+      "round": 1,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "original",
+      "ms": 4883.990401999999,
+      "cpuMs": 5000.261,
+      "rssMiB": 161.8671875,
+      "answer": "13625242"
+    },
+    {
+      "name": "production",
+      "round": 2,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "production",
+      "ms": 873.9535300000001,
+      "cpuMs": 1006.1,
+      "rssMiB": 164.515625,
+      "answer": "13625242"
+    },
+    {
+      "name": "original",
+      "round": 2,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "original",
+      "ms": 4923.36634,
+      "cpuMs": 5037.696,
+      "rssMiB": 163.41796875,
+      "answer": "13625242"
+    },
+    {
+      "name": "captured-len",
+      "round": 2,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "captured-len",
+      "ms": 914.939217,
+      "cpuMs": 1065.689,
+      "rssMiB": 164.1953125,
+      "answer": "13625242"
+    }
+  ]
+}

@@ -21,7 +21,7 @@ const noCaptures: ScalarCaptureTypes = new Map();
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len';
     readonly plan?: FunctionPlanConsumer;
     readonly negative?: boolean;
     readonly keyed?: boolean;
@@ -45,6 +45,8 @@ export interface ScalarFunctionProof {
     readonly recursive: boolean;
     readonly arrayWrites: ReadonlySet<Statement>;
     readonly localArrayWrites: boolean;
+    /** A captured collection's size may run a host header/sequence reader. */
+    readonly observableCaptures: boolean;
     readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>;
     readonly planCalls: readonly { readonly name: string; readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof; readonly captures: ScalarCaptureTypes }[];
     readonly planBindings: ReadonlyMap<Statement, FunctionPlan>;
@@ -94,7 +96,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const dependencies = new Set<string>();
     const lexical = functionScope(statement);
     const scope = lexical?.scope;
-    let callDepth = 1, callCount = 0, recursive = false;
+    let callDepth = 1, callCount = 0, recursive = false, observableCaptures = false;
     const modules = new Set<string>();
     const arrayWrites = new Set<Statement>();
     let containers = types.some(isCompiledContainer);
@@ -157,6 +159,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     || proof.nonnegative.length || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
                 callDepth = Math.max(callDepth, proof.callDepth + 1);
                 callCount += proof.callCount + 1;
+                observableCaptures ||= proof.observableCaptures;
                 dependencies.add(name);
                 for (const dependency of [...proof.dependencies, ...proof.nativeReads, ...proof.locals]) dependencies.add(dependency);
                 const key = planCalls.push({ name, statement: callee, types: [element], proof, captures }) - 1;
@@ -196,6 +199,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         if (proof.nonnegative.some(index => !nonnegative(arguments_[index]))) return undefined;
         callDepth = Math.max(callDepth, proof.callDepth + 1);
         callCount += proof.callCount + 1;
+        observableCaptures ||= proof.observableCaptures;
         dependencies.add(last.name);
         for (const name of [...proof.dependencies, ...proof.nativeReads, ...proof.locals]) dependencies.add(name);
         return { type: proof.type, input: { name: last.name, operation: 'user-call' as const,
@@ -340,6 +344,17 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                         && !env.has('len') && !lexicalBinding(scope, 'len')) {
                         nativeReads.add('len');
                         return { type: 'integer', input: { name: receiver.name, operation: 'array-len' } };
+                    }
+                    if (parts.length === 2 && isNameExpression(receiver) && !domain
+                        && isNameExpression(operation) && operation.name === 'len'
+                        && !env.has('len') && !lexicalBinding(scope, 'len') && !receiver.name.includes('.')) {
+                        const binding = lexical?.reads.get(receiver) ?? lexicalBinding(scope, receiver.name);
+                        if (binding && binding.scope.owner !== statement && !binding.function) {
+                            nativeReads.add('len');
+                            dependencies.add(receiver.name);
+                            observableCaptures = true;
+                            return { type: 'integer', input: { name: receiver.name, operation: 'captured-len' } };
+                        }
                     }
                     if (parts.length === 2 && isNameExpression(receiver) && domain && isCompiledContainer(domain)
                         && domain.kind === 'deque'
@@ -642,7 +657,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     // their arguments; writes through parameters or aliases still fail ownership.
     const result = outcome === null && resultType && !(recursive && (!localArrayWrites || nonnegativeParameters.size))
         && !(planBindings.size && (containers || arrayWrites.size))
-        ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, recursive, arrayWrites, localArrayWrites, expressions,
+        ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, recursive, arrayWrites, localArrayWrites, observableCaptures, expressions,
             planCalls, planBindings, planReturn, planReturns, loopIterables, nonnegative: [...nonnegativeParameters] } : undefined;
     const failure = rejection ?? { ...describeCompilerRejection('scalar-function', statement), reason: 'scalar-function:missing-return' };
     // A path-depth limit must not poison a helper that is shallow on its own.

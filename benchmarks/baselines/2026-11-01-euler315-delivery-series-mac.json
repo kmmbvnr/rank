@@ -1,0 +1,121 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "revision": "bd911a89cd8a71477e4f467393ce78463810a283",
+  "sources": {
+    "original": "821de08b1a750961a9a2d9775b2a4e853814a859a15af996fb9274b72e4497a8",
+    "captured-len": "298c304bf4c378e5a07d8e68b8e3965f7a213ffe2165049317d320256468f869",
+    "production": "663183b7e0e22a23dde474b0cfe981392c3247d4b7a5260a0f58e3905c6b246e"
+  },
+  "method": "Three serial fresh processes, rotating case order; import excluded; parse/execute included; no diagnostics; process peak RSS",
+  "samples": [
+    {
+      "name": "original",
+      "round": 0,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "original",
+      "ms": 1645.2269999999999,
+      "cpuMs": 1703.288,
+      "rssMiB": 175.84375,
+      "answer": "13625242"
+    },
+    {
+      "name": "captured-len",
+      "round": 0,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "captured-len",
+      "ms": 321.04229200000003,
+      "cpuMs": 388.518,
+      "rssMiB": 178.859375,
+      "answer": "13625242"
+    },
+    {
+      "name": "production",
+      "round": 0,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "production",
+      "ms": 318.79562500000003,
+      "cpuMs": 381.837,
+      "rssMiB": 177.59375,
+      "answer": "13625242"
+    },
+    {
+      "name": "captured-len",
+      "round": 1,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "captured-len",
+      "ms": 323.94995900000004,
+      "cpuMs": 391.658,
+      "rssMiB": 178.828125,
+      "answer": "13625242"
+    },
+    {
+      "name": "production",
+      "round": 1,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "production",
+      "ms": 323.570209,
+      "cpuMs": 387.099,
+      "rssMiB": 177.71875,
+      "answer": "13625242"
+    },
+    {
+      "name": "original",
+      "round": 1,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "original",
+      "ms": 1643.501792,
+      "cpuMs": 1703.225,
+      "rssMiB": 176.484375,
+      "answer": "13625242"
+    },
+    {
+      "name": "production",
+      "round": 2,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "production",
+      "ms": 328.37975000000006,
+      "cpuMs": 391.449,
+      "rssMiB": 177.296875,
+      "answer": "13625242"
+    },
+    {
+      "name": "original",
+      "round": 2,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "original",
+      "ms": 1668.664375,
+      "cpuMs": 1727.373,
+      "rssMiB": 175.984375,
+      "answer": "13625242"
+    },
+    {
+      "name": "captured-len",
+      "round": 2,
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "variant": "captured-len",
+      "ms": 324.899667,
+      "cpuMs": 393.361,
+      "rssMiB": 177.6875,
+      "answer": "13625242"
+    }
+  ]
+}

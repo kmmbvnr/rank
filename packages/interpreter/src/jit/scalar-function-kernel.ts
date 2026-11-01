@@ -46,7 +46,7 @@ interface Kernel {
     readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
     readonly captures: readonly { name: string; rank: number }[];
-    readonly calls: readonly { operation: Operation; inputs: readonly string[]; iterator?: boolean }[];
+    readonly calls: readonly { operation: Operation; inputs: readonly string[]; iterator?: boolean; capturedArgument?: string }[];
     readonly guards: readonly string[];
     readonly modules: readonly string[];
     readonly locations: readonly (Statement | Expression)[];
@@ -422,7 +422,8 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const expressions = proof.expressions;
     // Guarded captures cannot change when assignments are local, polling is
     // private, and the invocation makes no native or nested user calls.
-    const stableCaptures = !proof.callCount && ![...expressions.values()].some(expression => expression.kind === 'call');
+    const stableCaptures = !proof.callCount && !proof.observableCaptures
+        && ![...expressions.values()].some(expression => expression.kind === 'call');
     const slots = new Map<string, number>();
     const slot = (name: string): string => {
         if (!slots.has(name)) slots.set(name, slots.size);
@@ -430,7 +431,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     };
     statement.parameters.forEach(slot);
     const locations: (Statement | Expression)[] = [];
-    const calls: { operation: Operation; inputs: readonly string[]; iterator?: boolean }[] = [];
+    const calls: { operation: Operation; inputs: readonly string[]; iterator?: boolean; capturedArgument?: string }[] = [];
     const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[] = [];
     const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
     const memberships: string[] = [];
@@ -558,6 +559,14 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 lines.push(selection ? `let ${result}; try { ${result} = captures[${index}]([${indices.join(',')}]); }
                     catch (error) { throw argumentSelectionError(error, ${JSON.stringify(selection.name)}, ${selection.count}); }`
                     : `const ${result} = captures[${index}]([${indices.join(',')}]);`);
+                return result;
+            }
+            if (operation === 'captured-len') {
+                const index = calls.push({ operation: findOperation('len')!, inputs: ['sized'], capturedArgument: expression.input.name }) - 1;
+                const result = `v${serial++}`;
+                // Resolve only when this expression executes, not at entry.
+                // The native size protocol never asks arrays for their cells.
+                lines.push(`const ${result} = calls[${index}]();`);
                 return result;
             }
             const receiver = slot(expression.input.name);

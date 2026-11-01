@@ -1,0 +1,84 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "revision": "",
+  "sources": {
+    "original": "821de08b1a750961a9a2d9775b2a4e853814a859a15af996fb9274b72e4497a8",
+    "split": "1bac97c3018b53e69ff2db8c8a92fd221ce5a87867cfec2dc332b2708a4eec3d"
+  },
+  "method": "Three serial fresh processes, rotating case order; import excluded; parse/execute included; no diagnostics; process peak RSS",
+  "samples": [
+    {
+      "name": "original",
+      "round": 0,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "original",
+      "ms": 3606.684266,
+      "cpuMs": 5530.089,
+      "rssMiB": 407.91796875,
+      "answer": "181328"
+    },
+    {
+      "name": "split",
+      "round": 0,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "split",
+      "ms": 652.926335,
+      "cpuMs": 1131.893,
+      "rssMiB": 253.79296875,
+      "answer": "181328"
+    },
+    {
+      "name": "split",
+      "round": 1,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "split",
+      "ms": 640.2459709999999,
+      "cpuMs": 1115.174,
+      "rssMiB": 253.01953125,
+      "answer": "181328"
+    },
+    {
+      "name": "original",
+      "round": 1,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "original",
+      "ms": 3495.89062,
+      "cpuMs": 5419.47,
+      "rssMiB": 408.8359375,
+      "answer": "181328"
+    },
+    {
+      "name": "original",
+      "round": 2,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "original",
+      "ms": 3432.0884379999998,
+      "cpuMs": 5385.196,
+      "rssMiB": 408.69921875,
+      "answer": "181328"
+    },
+    {
+      "name": "split",
+      "round": 2,
+      "mode": "reference",
+      "from": "100000",
+      "to": "200000",
+      "variant": "split",
+      "ms": 666.32158,
+      "cpuMs": 1129,
+      "rssMiB": 251.30859375,
+      "answer": "181328"
+    }
+  ]
+}

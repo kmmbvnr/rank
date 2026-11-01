@@ -1,0 +1,110 @@
+[
+  {
+    "ms": 793.535,
+    "name": "",
+    "url": "",
+    "line": 4
+  },
+  {
+    "ms": 501.297,
+    "name": "",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/modules/bits.js",
+    "line": 19
+  },
+  {
+    "ms": 289.171,
+    "name": "read",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/scalar-selection.js",
+    "line": 48
+  },
+  {
+    "ms": 193.208,
+    "name": "call",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/modules/shared.js",
+    "line": 49
+  },
+  {
+    "ms": 136.582,
+    "name": "prepare",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/prime-sieve.js",
+    "line": 37
+  },
+  {
+    "ms": 135.959,
+    "name": "",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/function-invocation.js",
+    "line": 742
+  },
+  {
+    "ms": 123.583,
+    "name": "directFn",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/function-invocation.js",
+    "line": 813
+  },
+  {
+    "ms": 98.542,
+    "name": "get",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js",
+    "line": 63
+  },
+  {
+    "ms": 74.459,
+    "name": "(garbage collector)",
+    "url": "",
+    "line": 0
+  },
+  {
+    "ms": 64.501,
+    "name": "check",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/return-contract.js",
+    "line": 87
+  },
+  {
+    "ms": 50.251,
+    "name": "(program)",
+    "url": "",
+    "line": 0
+  },
+  {
+    "ms": 46.459,
+    "name": "primeIterator",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/prime-sequence.js",
+    "line": 82
+  },
+  {
+    "ms": 42.374,
+    "name": "compileSourceTextModule",
+    "url": "node:internal/modules/esm/utils",
+    "line": 316
+  },
+  {
+    "ms": 14.457,
+    "name": "",
+    "url": "",
+    "line": 3
+  },
+  {
+    "ms": 11.372,
+    "name": "get",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/call-specializations.js",
+    "line": 25
+  },
+  {
+    "ms": 11.25,
+    "name": "getAlternativesForProd",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+    "line": 172
+  },
+  {
+    "ms": 9.582,
+    "name": "possiblePathsFrom",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+    "line": 162
+  },
+  {
+    "ms": 7.958,
+    "name": "",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/typed-native.js",
+    "line": 117
+  }
+]

@@ -12,6 +12,10 @@ arg To integer = 20000000
 Masks = array 125 80 55 115 90
 Tail = array 107 111 89 127 123
 Masks = concat Masks Tail
+Rows = Masks reshape 10 1
+Common = (Rows band Masks) popcount
+Top = 9 * (To text len)
+Small = (0 to Top) clock_tail rank 0 array
 Answer = 0
 for P in primes from From till To
   Answer += P clock_diff
@@ -37,39 +41,33 @@ fun N segments
   return Count
 end
 
-fun A changes B
+fun A overlap B
   Count = 0
-  for A greater 0 or B greater 0
-    MA = 0
-    MB = 0
-    if A greater 0
-      MA = Masks (A mod 10)
-      A //= 10
-    end
-    if B greater 0
-      MB = Masks (B mod 10)
-      B //= 10
-    end
-    X = MA bxor MB
-    Count += X popcount
+  for B greater 0
+    Count += Common (A mod 10) (B mod 10)
+    A //= 10
+    B //= 10
   end
   return Count
 end
 
-fun N clock_diff
-  Sam = 0
-  Max = 0
-  Prev = 0
-  Cur = N
-  for true
-    Sam += 2 * (Cur segments)
-    Max += Prev changes Cur
-    if Cur less 10
-      break
-    end
-    Prev = Cur
-    Cur = Cur digit_sum
+fun N clock_tail
+  Count = 0
+  for N at least 10
+    Next = N digit_sum
+    Count += N overlap Next
+    N = Next
   end
-  Max += Cur changes 0
-  return Sam - Max
+  return 2 * Count
+end
+
+fun N clock_diff
+  if N less 10
+    return 0
+  end
+  Next = N digit_sum
+  if Next at least (Small len)
+    return N clock_tail
+  end
+  return 2 * (N overlap Next) + Small Next
 end

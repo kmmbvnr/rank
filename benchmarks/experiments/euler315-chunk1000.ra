@@ -1,0 +1,68 @@
+rem Digital Root Clocks
+rem https://projecteuler.net/problem=315
+
+use bits
+use sequences
+use io
+use cli
+
+arg From integer = 10000000
+arg To integer = 20000000
+
+Masks = array 125 80 55 115 90
+Tail = array 107 111 89 127 123
+Masks = concat Masks Tail
+Common = ((Masks reshape 10 1) band Masks) popcount
+Top = 9 * (To text len)
+Small = (0 to Top) clock_diff rank 0 array
+Sums = (0 till 1000) digit_sum rank 0 array
+Answer = 0
+for P in primes from From till To
+  if P less 10
+    continue
+  end
+  Next = (P // 1000) digit_sum
+  Next += Sums (P mod 1000)
+  Answer += 2 * (P overlap Next)
+  Answer += Small Next
+end
+Answer print
+
+fun N digit_sum
+  Sum = 0
+  for N greater 0
+    Sum += N mod 10
+    N //= 10
+  end
+  return Sum
+end
+
+fun N segments
+  Count = 0
+  for N greater 0
+    D = N mod 10
+    Count += (Masks D) popcount
+    N //= 10
+  end
+  return Count
+end
+
+fun A overlap B
+  Count = 0
+  for B greater 0
+    Count += Common (A mod 10) (B mod 10)
+    A //= 10
+    B //= 10
+  end
+  return Count
+end
+
+fun N clock_diff
+  Count = 0
+  for N at least 10
+    Next = N digit_sum
+    Count += N overlap Next
+    N = Next
+  end
+  return 2 * Count
+end

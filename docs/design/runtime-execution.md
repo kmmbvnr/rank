@@ -1485,6 +1485,14 @@ replace the logical frame, preserving call-depth limits and error stacks.
 `scalarCallCompilation: false` disables nested linking as well as loop linking;
 `compiledScalarTailCalls: false` retains the ordinary path for nested tail calls.
 
+Scalar kernels can read `len` from a captured native array or text binding.
+The binding is resolved at the expression's execution point; entry checks use
+native header metadata without reading cells or invoking host shape getters.
+Opaque headers, deferred captures, overridden builtins, budgets and inspection
+retain ordinary execution. This observable read propagates through linked and
+ranked calls, disabling private caller writes and captured-scalar snapshots
+that could hide a rebinding or callback observation.
+
 Integer `in` and `not in` against an external binding can compile in scalar
 functions and integer loops. Sequence operands require constructor registration:
 this covers `primes`, its bounded forms, and immutable integer neighbor snapshots

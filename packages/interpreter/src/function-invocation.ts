@@ -16,7 +16,7 @@ import {
     type KnownShape, type Expression, type FunctionBindingStatement, type FunctionStatement,
     type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { arrayRevision } from './array-storage.js';
+import { arrayRevision, hasNativeArrayHeader } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './jit/block-compiler.js';
@@ -30,7 +30,7 @@ import {
 import { LocalFrame } from './frame.js';
 import { FunctionFrames } from './function-frame.js';
 import { type CompilerCapabilities, type InterpreterOptions } from './interpreter-options.js';
-import { checkpoint, inspectionEnabled, privateLoopPolling } from './interrupt.js';
+import { checkpoint, inspectionEnabled, privateLoopPolling, demandBudgetEnabled } from './interrupt.js';
 import { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
@@ -777,7 +777,24 @@ export class FunctionInvocation {
         const scalars = kernel.scalarCaptures.map(({ name }) => () => resolve(name)!);
         const captureReaders: ReturnType<typeof capturedIntegerReader>[] = [];
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
-        const binders = kernel.calls.map(({ operation, inputs, iterator }) => iterator ? () => {
+        const binders = kernel.calls.map(({ operation, inputs, iterator, capturedArgument }) => capturedArgument ? () => {
+            const value = resolve(operation.name);
+            if (!privateLoopPolling() || demandBudgetEnabled() || !this.modules.has(operation.module)
+                || !value || !isNativeFunction(value) || !this.builtins.is(operation.module, operation.name, value)
+                || !hasNativeImplementation(value)) return undefined;
+            const current = resolve(capturedArgument);
+            // Opaque headers can observe interpreter dispatch/type checks.
+            // Probe only storage metadata, never shape, items or element types.
+            if (current === undefined || typeof current === 'object' && !hasNativeArrayHeader(current)) return undefined;
+            return (() => {
+                const argument = resolve(capturedArgument);
+                if (argument === undefined) throw this.builtins.unknown(capturedArgument);
+                // A linked call can replace the binding after the entry guard.
+                // Such replacements keep ordinary intrinsic-rank dispatch.
+                return typeof argument === 'string' || hasNativeArrayHeader(argument)
+                    ? value.call([argument]) : runExecution(this.host.apply(value, [argument]));
+            }) as LoopCallable;
+        } : iterator ? () => {
             // Finite iterator stages use the original native implementation and
             // interpreter-owned workspace. No callbacks can invalidate entry guards.
             const value = resolve(operation.name);

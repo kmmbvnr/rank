@@ -1,0 +1,275 @@
+{
+  "baseline-small": {
+    "mode": "compiled",
+    "from": "100000",
+    "to": "200000",
+    "ms": 70.042709,
+    "cpuMs": 125.143,
+    "rssMiB": 175.71875,
+    "answer": "181328"
+  },
+  "baseline-small-diagnostic": {
+    "mode": "compiled",
+    "from": "100000",
+    "to": "200000",
+    "ms": 71.690125,
+    "cpuMs": 125.367,
+    "rssMiB": 175.890625,
+    "answer": "181328",
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 1,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "numberFunctions": 18691,
+      "numberFunctionFallbacks": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "numberLoopBorrowedRealBuffers": 0,
+      "numberLoopBorrowedRealCells": 0,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 0,
+      "typedArrayPublishedCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 2
+      },
+      "compilerRejections": []
+    }
+  },
+  "baseline-full": {
+    "mode": "compiled",
+    "from": "10000000",
+    "to": "20000000",
+    "ms": 1627.100834,
+    "cpuMs": 1686.454,
+    "rssMiB": 175.4375,
+    "answer": "13625242"
+  },
+  "reference-small": {
+    "mode": "reference",
+    "from": "100000",
+    "to": "101000",
+    "ms": 60.908000000000015,
+    "cpuMs": 114.449,
+    "rssMiB": 165.875,
+    "answer": "1412"
+  },
+  "exact-small": {
+    "mode": "exact",
+    "from": "100000",
+    "to": "200000",
+    "ms": 71.01020899999997,
+    "cpuMs": 124.617,
+    "rssMiB": 176.140625,
+    "answer": "181328"
+  },
+  "prefix-small": {
+    "mode": "prefix",
+    "from": "100000",
+    "to": "101000",
+    "ms": 61.49520899999999,
+    "cpuMs": 106.091,
+    "rssMiB": 177.328125,
+    "answer": "1412"
+  },
+  "fastpopcount-full": {
+    "mode": "compiled",
+    "from": "10000000",
+    "to": "20000000",
+    "ms": 1714.6117499999998,
+    "cpuMs": 1794.632,
+    "rssMiB": 177,
+    "answer": "13625242"
+  },
+  "tails-fixed-full": {
+    "mode": "compiled",
+    "from": "10000000",
+    "to": "20000000",
+    "ms": 21598.485291999998,
+    "cpuMs": 28595.499,
+    "rssMiB": 464.859375,
+    "answer": "13625242"
+  },
+  "tails-bound-full": {
+    "mode": "compiled",
+    "from": "10000000",
+    "to": "20000000",
+    "ms": 477.30029199999996,
+    "cpuMs": 568.924,
+    "rssMiB": 177.65625,
+    "answer": "13625242"
+  },
+  "tails-argument-full": {
+    "mode": "compiled",
+    "from": "10000000",
+    "to": "20000000",
+    "ms": 4942.486958,
+    "cpuMs": 6032.745,
+    "rssMiB": 433.453125,
+    "answer": "13625242"
+  },
+  "alternatives-full": [
+    {
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "ms": 479.66974999999996,
+      "cpuMs": 542.982,
+      "rssMiB": 179.53125,
+      "answer": "13625242"
+    },
+    {
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "ms": 407.732209,
+      "cpuMs": 470.56,
+      "rssMiB": 178.828125,
+      "answer": "13625242"
+    },
+    {
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "ms": 272.8315,
+      "cpuMs": 332.167,
+      "rssMiB": 177.453125,
+      "answer": "13625242"
+    }
+  ],
+  "chunks-full": [
+    {
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "ms": 250.104667,
+      "cpuMs": 301.981,
+      "rssMiB": 176.828125,
+      "answer": "13625242"
+    },
+    {
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "ms": 249.172708,
+      "cpuMs": 303.464,
+      "rssMiB": 176.765625,
+      "answer": "13625242"
+    },
+    {
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "ms": 248.460125,
+      "cpuMs": 308.098,
+      "rssMiB": 176.96875,
+      "answer": "13625242"
+    }
+  ],
+  "split-array-full": [
+    {
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "ms": 246.99325,
+      "cpuMs": 297.693,
+      "rssMiB": 176.203125,
+      "answer": "13625242"
+    },
+    {
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "ms": 605.072166,
+      "cpuMs": 788.589,
+      "rssMiB": 378.328125,
+      "answer": "13625242"
+    }
+  ],
+  "lazy-mapped-full": [
+    {
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "ms": 579.157459,
+      "cpuMs": 738.266,
+      "rssMiB": 296.5625,
+      "answer": "13625242"
+    },
+    {
+      "mode": "compiled",
+      "from": "10000000",
+      "to": "20000000",
+      "ms": 818.426875,
+      "cpuMs": 952.996,
+      "rssMiB": 262.21875,
+      "answer": "13625242"
+    }
+  ],
+  "caveat": "Separate exploratory runs; not interleaved repeated comparisons. Captured-len is the correct parenthesized expression, not an initial discarded precedence error."
+}
