@@ -1,0 +1,294 @@
+{
+  "n": 4096,
+  "mode": "compiled",
+  "calls": 3635,
+  "samples": 16408,
+  "sampledMs": 2547.7079999999733,
+  "categoryMs": {
+    "contracts": 115.49100000000004,
+    "gc": 109.45500000000007,
+    "concatCopies": 11.083999999999998
+  },
+  "categoryPercent": {
+    "contracts": 4.533133310410818,
+    "gc": 4.2962144798383965,
+    "concatCopies": 0.4350577067701681
+  },
+  "categoryNote": "inclusive categories; may overlap",
+  "self": [
+    {
+      "frame": "integer-vector-loop|:3",
+      "ms": 527.7019999999808,
+      "percent": 20.712813242333358
+    },
+    {
+      "frame": "numeric-array-function|:3",
+      "ms": 362.8910000000009,
+      "percent": 14.24382229046675
+    },
+    {
+      "frame": "state.convert|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/runtime/owned-array.js:1112",
+      "ms": 281.833999999998,
+      "percent": 11.062256742138462
+    },
+    {
+      "frame": "(garbage collector)|:0",
+      "ms": 109.45500000000007,
+      "percent": 4.2962144798383965
+    },
+    {
+      "frame": "mapStoredUnary|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/unary-array-kernel.js:7",
+      "ms": 95.92200000000012,
+      "percent": 3.765031157416828
+    },
+    {
+      "frame": "checked|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/modules/numbers.js:170",
+      "ms": 89.5730000000002,
+      "percent": 3.5158267744969653
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/numeric-function.js:266",
+      "ms": 86.83500000000008,
+      "percent": 3.408357629681305
+    },
+    {
+      "frame": "(program)|:0",
+      "ms": 60.909000000000056,
+      "percent": 2.390737086039715
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/selectors.js:92",
+      "ms": 59.35700000000003,
+      "percent": 2.329819586860058
+    },
+    {
+      "frame": "realArray|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/runtime/numeric-conversions.js:37",
+      "ms": 58.59200000000007,
+      "percent": 2.2997925978958613
+    },
+    {
+      "frame": "createOwned|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/runtime/owned-array.js:1084",
+      "ms": 48.73899999999999,
+      "percent": 1.9130528302301715
+    },
+    {
+      "frame": "post|node:inspector:115",
+      "ms": 47.333,
+      "percent": 1.8578659720815924
+    },
+    {
+      "frame": "gather|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/selectors.js:466",
+      "ms": 46.21500000000006,
+      "percent": 1.813983392131302
+    },
+    {
+      "frame": "tensorSelection|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/selectors.js:88",
+      "ms": 41.03900000000007,
+      "percent": 1.6108203922898738
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/modules/numbers.js:176",
+      "ms": 38.469000000000094,
+      "percent": 1.5099454097565537
+    },
+    {
+      "frame": "storedScalarKinds|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/runtime/owned-array.js:48",
+      "ms": 31.537000000000063,
+      "percent": 1.237857713678349
+    },
+    {
+      "frame": "invoke|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/numeric-function.js:233",
+      "ms": 25.372000000000046,
+      "percent": 0.9958755084962765
+    },
+    {
+      "frame": "arrayElementTypes|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/runtime/array-element-types.js:7",
+      "ms": 19.28900000000001,
+      "percent": 0.7571118825234372
+    },
+    {
+      "frame": "visit|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/runtime/array-binding-contract.js:177",
+      "ms": 18.498,
+      "percent": 0.7260643684441151
+    },
+    {
+      "frame": "finiteDomain|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/modules/numbers.js:214",
+      "ms": 17.339,
+      "percent": 0.6805724988892048
+    },
+    {
+      "frame": "realKernel|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/runtime/tensor.js:328",
+      "ms": 15.593999999999996,
+      "percent": 0.6120795632780586
+    },
+    {
+      "frame": "semanticArrayType|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/runtime/semantic-array-type.js:18",
+      "ms": 14.123999999999999,
+      "percent": 0.5543806433076376
+    },
+    {
+      "frame": "vectorArray|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/number-loop-runtime.js:74",
+      "ms": 14.084,
+      "percent": 0.5528106046689867
+    },
+    {
+      "frame": "filledArray|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/runtime/owned-array.js:735",
+      "ms": 13.796999999999997,
+      "percent": 0.5415455774366663
+    },
+    {
+      "frame": "materializeSequence|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/sequence.js:413",
+      "ms": 12.043999999999999,
+      "percent": 0.47273863409779004
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/numeric-call-loop.js:176",
+      "ms": 11.336999999999998,
+      "percent": 0.44498820115963517
+    },
+    {
+      "frame": "advance|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/execution.js:92",
+      "ms": 10.668999999999999,
+      "percent": 0.4187685558941649
+    },
+    {
+      "frame": "sliceArray|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/selectors.js:407",
+      "ms": 10.246,
+      "percent": 0.4021653972904316
+    },
+    {
+      "frame": "copyStoredArrayBlocks|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/runtime/array-copy.js:93",
+      "ms": 7.500999999999996,
+      "percent": 0.2944214957130124
+    },
+    {
+      "frame": "retain|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/number-loop-runtime.js:77",
+      "ms": 6.791999999999999,
+      "percent": 0.2665925608429251
+    }
+  ],
+  "inclusive": [
+    {
+      "frame": "(root)|:0",
+      "ms": 2547.7079999997327
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-priority-step2/benchmarks/fft.mjs:0",
+      "ms": 2370.2169999997295
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-priority-step2/benchmarks/fft.mjs:220",
+      "ms": 2322.3849999997283
+    },
+    {
+      "frame": "call|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/function-invocation.js:428",
+      "ms": 2038.7189999997288
+    },
+    {
+      "frame": "advance|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/execution.js:92",
+      "ms": 2026.6369999997328
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/block-compiler.js:15",
+      "ms": 1669.8019999998849
+    },
+    {
+      "frame": "continueCompiledBlock|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/eval/blocks.js:84",
+      "ms": 1554.965999999884
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/eval/blocks.js:132",
+      "ms": 1185.8740000000084
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/mutation-guards.js:36",
+      "ms": 1184.666000000009
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/eval/loops.js:200",
+      "ms": 1183.7090000000094
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/fast-paths.js:407",
+      "ms": 1183.3760000000095
+    },
+    {
+      "frame": "evaluate|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/eval/expressions.js:57",
+      "ms": 599.6989999999953
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/fast-paths.js:404",
+      "ms": 597.5499999999943
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/numeric-call-loop.js:176",
+      "ms": 596.0069999999942
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/integer-loop.js:104",
+      "ms": 584.9919999999905
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/number-loop-runtime.js:337",
+      "ms": 584.8249999999905
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/eval/expressions.js:255",
+      "ms": 580.4509999999982
+    },
+    {
+      "frame": "integer-vector-loop|:3",
+      "ms": 579.4919999999895
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/eval/expressions.js:270",
+      "ms": 577.4939999999982
+    },
+    {
+      "frame": "expression|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/checked-input.js:133",
+      "ms": 577.4939999999982
+    },
+    {
+      "frame": "inputCall|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/interpreter.js:137",
+      "ms": 577.4939999999982
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/eval/application.js:479",
+      "ms": 556.9529999999984
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/eval/application.js:575",
+      "ms": 554.9549999999984
+    },
+    {
+      "frame": "apply|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/eval/application.js:612",
+      "ms": 539.5369999999989
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/numeric-call-loop.js:132",
+      "ms": 504.50899999997927
+    },
+    {
+      "frame": "runBuffers|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/numeric-function.js:447",
+      "ms": 497.6789999999797
+    },
+    {
+      "frame": "invoke|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/numeric-function.js:233",
+      "ms": 494.2629999999799
+    },
+    {
+      "frame": "execute|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/jit/numeric-function.js:265",
+      "ms": 455.47499999998274
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/eval/assignments.js:423",
+      "ms": 431.3409999999935
+    },
+    {
+      "frame": "evaluate|file:///private/tmp/rank-fft-priority-step2/packages/interpreter/out/interpreter.js:185",
+      "ms": 404.08799999999525
+    }
+  ],
+  "note": "Selected two-step compiler version; CPU sampling is diagnostic, not an FFT timing comparison. Generated sources fetched only after sampling; no compiler hooks.",
+  "commit": "464e5c59"
+}

@@ -1466,3 +1466,164 @@ selected compiler version.
 [Initial controls, including negatives](baselines/2026-11-01-fft-priority-final-controls.json),
 [Quotient confirmation](baselines/2026-11-01-fft-priority-controls-quotient-confirm.json),
 [Broadcast confirmation](baselines/2026-11-01-fft-priority-controls-broadcast-confirm.json).
+
+
+### Final selected version: two compiler changes only
+
+The main integration branch excludes `f76b2cc7` and its runtime copy path.
+Its compiler changes are exactly `5820950e` and `b4b9da00`. Main's separate
+Euler-023 array rewrite is merged for integration; the timing baseline stays
+at `2a43b3bd`, whose compiler/runtime are otherwise unchanged by that demo.
+
+The JS control is strengthened. `js-inplace` above retained repeated
+whole-array passes to construct the permutation and callback-based gathers.
+It was not the strongest ordinary JS implementation. New `js-direct` uses
+the same DIF butterflies, computes fresh sine/cosine tables each call, and
+advances reversed indices while gathering both channels in one pass. It
+uses no coefficient/order cache and is checked against the direct DFT too.
+Consequently, earlier claims of being within roughly 1.5x of efficient JS
+must not be reused: they describe the weaker control only.
+
+Five fresh-process sets per size, alternating order, >=1.5 s warmup, three
+>=750 ms measured batches, complete results and per-call preparation:
+
+| FFT size | Previous main, ms | Selected Rank, ms | Stronger JS, ms | Rank time reduction | Rank / JS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 1,024 | 0.5319 | 0.3852 | 0.0256 | 27.6% | 15.03x |
+| 4,096 | 0.8452 | 0.6987 | 0.0889 | 17.3% | 7.86x |
+| 16,384 | 4.0343 | 3.7862 | 0.5370 | 6.1% | 7.05x |
+
+At the primary 4,096 size, process CPU falls 1.1730 -> 1.0418 ms (11.2%).
+Worker wall-time ranges still overlap: baseline 0.745-1.028 ms, selected
+0.611-1.482 ms. At 16,384, CPU rises 5.9514 -> 6.1868 ms (+4.0%) despite
+the 6.1% lower wall median. That size is inconclusive; do not present it as
+an established gain. Slow workers are retained, not filtered out. No claim
+of a universal factor, 3x improvement or proximity to JS is justified.
+
+A fresh CPU profile puts integer vector code at 20.7% of self samples,
+numeric function kernels at 14.2%, public typed-buffer conversion at 11.1%
+and GC at 4.3%. These are sampling shares, not independent speedup factors.
+The next substantial work is eliminating array passes and private output
+allocations across regions, plus reducing wrapper/preparation work across
+a numeric function. The stronger JS control illustrates why merely lowering
+individual checks cannot close the remaining gap. No FFT recognizer or
+precomputed coefficient/permutation mechanism has been introduced.
+
+Selected-version validation: build passes; the ordinary suite passes 458
+files / 10,528 tests and finds one stale assertion in the remaining file.
+Main's independently rewritten Euler-023 demo no longer executes the three
+collection loops that assertion was intended to test. Preserve its original
+program in a dedicated fixture rather than weaken the compiler counter
+assertion. After this test-only repair, all 17 tests in that file pass on
+repeat. The three tests of the actual new Euler-023 demo also pass. No
+production demo or compiler change is made for that integration repair.
+A clean entire-suite rerun after the fixture-only repair was not repeated.
+
+All 55 Deep-ML and seven classic demo files pass on the selected build,
+as do the semantic boundary checks (11 script tests, 65 owners) and
+application-form checks. Exhaustive audits remain excluded.
+
+[Selected-version FFT timings](baselines/2026-11-01-fft-priority-selected.json),
+[Selected CPU profile](baselines/2026-11-01-fft-priority-selected-profile.json).
+
+
+Selected-version integer controls use five fresh-process pairs, >=1.5 s
+warmup, and three >=500 ms batches. Medians: remainder 0.4961 -> 0.2884 ms,
+quotient 0.8027 -> 0.4213, affine 0.6530 -> 0.3736; broadcast is slower
+0.8888 -> 1.0342 ms (+16.4% wall, +8.9% CPU). Large overlapping worker
+ranges persist. Do not hide that negative result or call this universally
+regression-free.
+
+A supplemental broadcast experiment alternates eleven 250 ms block pairs
+within one process, with two independent runtimes, complete output forcing
+and a BigInt oracle. Three fresh processes give wall medians 0.5832 ->
+0.5202, 1.4277 -> 1.0644, and 1.1066 -> 1.2480 ms. CPU changes -13.8%,
+-17.9% and +2.6%. These shared-heap checks also do not establish a consistent
+broadcast regression or a portable gain; use the independent Linux host
+measurements below as an additional admission check.
+
+[Selected integer controls](baselines/2026-11-01-fft-priority-selected-controls.json),
+[Paired broadcast checks](baselines/2026-11-01-fft-priority-selected-paired-controls.json),
+[Selected verification](baselines/2026-11-01-fft-priority-selected-verification.json).
+
+
+### Independent Linux host: root@jack.lan
+
+Intel i7-10750H, 12 threads, Linux x64, Node v24.15.0 matching the local
+Apple M5's Node release. System Node v20.19.2 is not replaced: the official
+Node archive is SHA256-verified and unpacked under an isolated temporary
+tools directory. Both compiled snapshots, their module dependencies and
+the benchmark source are staged separately. The runner checks 2,795 file
+hashes before each phase. Dependency installation finishes before timing.
+No CPU governor, process priorities or unrelated processes are changed.
+
+Baseline `2a43b3bd`, selected compiler `90eeb4ec` (same two production
+changes as above). Five fresh-process sets at each size, alternating order,
+>=1.5 s warmup and three >=750 ms batches. All preparation and output forcing
+included. No coefficient/permutation cache in either JS control.
+
+| FFT size | Baseline, ms | Selected Rank, ms | Strong JS, ms | Rank time reduction | Rank / strong JS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 4,096 | 2.4591 | 1.6334 | 0.1922 | 33.6% | 8.50x |
+| 16,384 | 9.5683 | 5.8376 | 0.8743 | 39.0% | 6.68x |
+
+The FFT ranges do not overlap: at 4,096 baseline 2.377-2.548 versus selected
+1.577-1.895 ms; at 16,384 baseline 9.382-9.811 versus selected 5.632-6.162.
+Process CPU falls 31.3% and 27.6% respectively. This supports a real gain on
+this host; it does not justify replacing the noisier M5 observations with
+one universal multiplier. The weaker JS control is 0.9196 and 4.3155 ms,
+showing why it understated the gap to efficient scalar JS.
+
+General integer controls, five fresh pairs, >=1.5 s warmup and three
+>=500 ms batches, all retain independent BigInt output oracles:
+
+| Control | Baseline, ms | Selected, ms | Time reduction |
+| --- | ---: | ---: | ---: |
+| remainder | 1.3099 | 0.8765 | 33.1% |
+| quotient | 1.1441 | 0.8370 | 26.8% |
+| affine | 0.9232 | 0.7421 | 19.6% |
+| broadcast | 1.8755 | 1.4755 | 21.3% |
+
+All four controls have non-overlapping old/new worker ranges on this host.
+Broadcast CPU falls 22.2%; the large local apparent regression is not
+reproduced on Linux. Keep the local negative and contradictory paired data
+above, rather than infer that every workload benefits on every CPU.
+
+A separate post-timing CPU sample puts integer vector code at 15.0%, numeric
+function kernels at 14.7%, public conversion at 9.4% and GC at 4.5% of self
+samples. The remainder is distributed across runtime preparation, checks,
+array routing and other frames. Sampling percentages are diagnostic, not
+measured gains. The optional real-buffer copy remains excluded from main.
+
+[Linux FFT](baselines/2026-11-01-fft-priority-jack-fft.json),
+[Linux controls](baselines/2026-11-01-fft-priority-jack-controls.json),
+[Host and dependency metadata](baselines/2026-11-01-fft-priority-jack-metadata.json),
+[Linux CPU profile summary](baselines/2026-11-01-fft-priority-jack-profile.json).
+
+
+### Final integration against the updated main
+
+Main advanced independently to `9b53e58c` (record signatures / Euler-305).
+Merge it into the selected branch as `1aece5d2`, build both the new main
+baseline and integration checkout, and rerun the primary FFT on jack.lan.
+The optional runtime-copy experiment is not an ancestor of this branch.
+
+Five fresh-process sets, >=1.5 s warmup, three >=750 ms batches:
+FFT-4096 **2.5087 -> 1.6560 ms** (34.0% less time, 1.515x throughput).
+Process CPU **3.3667 -> 2.2713 ms** (32.5% less). Worker ranges again do
+not overlap: main 2.394-2.970 ms, integration 1.610-1.717 ms. Strong JS is
+**0.1946 ms**, leaving an **8.51x** gap. No root/permutation cache is used.
+These are the final delivery numbers against the actual updated main.
+
+After integration, both builds pass, as do 11 focused files / 446 tests,
+all 55 Deep-ML and seven classic demo test files, semantic boundaries and
+application forms. No fresh exhaustive audits or entire ordinary-suite
+rerun is claimed after merging the independently tested record changes.
+Earlier full-suite and test-fixture repair results are recorded above.
+
+Temporary checkout paths in reports identify the historical run locations;
+use the captured revision hashes and manifests to reproduce them, since
+the isolated baseline checkout was later advanced to the new main.
+
+[Final integration timings](baselines/2026-11-01-fft-priority-jack-integration.json),
+[Integration verification and host snapshots](baselines/2026-11-01-fft-priority-integration-verification.json).

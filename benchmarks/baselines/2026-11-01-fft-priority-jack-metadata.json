@@ -1,0 +1,243 @@
+{
+  "host": "root@jack.lan",
+  "directory": "/tmp/rank-fft-priority.YxU7V7",
+  "versions": {
+    "baseline": "2a43b3bd62ff7d0109517f11542f788b0c5fe05b",
+    "candidate": "90eeb4ecf8dfd062f09045f11edfaf5d132b0046"
+  },
+  "fileHashesChecked": 2795,
+  "sourceManifestSha256": "199a72980788a1dc0c87c27db071626e79f6e109e84e28d58b0bed8c6c9ca2b3",
+  "payloadSha256": "76e252527ceef9f5c4d0ef487021874b5163af77d544fd8187a367b83ad26a3c",
+  "nodeInstallation": "Official Node v24.15.0 Linux x64 archive, SHASUMS256 checked; temporary tools directory; system Node v20.19.2 retained.",
+  "hostSnapshots": {
+    "host-before": {
+      "node": "v24.15.0",
+      "platform": "linux",
+      "arch": "x64",
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+      "threads": 12,
+      "load": [
+        0.13,
+        0.08,
+        0.07
+      ],
+      "uptime": 16565718.34
+    },
+    "host-fft-after": {
+      "node": "v24.15.0",
+      "platform": "linux",
+      "arch": "x64",
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+      "threads": 12,
+      "load": [
+        1.15,
+        0.58,
+        0.27
+      ]
+    },
+    "host-controls-before": {
+      "node": "v24.15.0",
+      "platform": "linux",
+      "arch": "x64",
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+      "threads": 12,
+      "load": [
+        1.19,
+        0.63,
+        0.29
+      ]
+    },
+    "host-controls-after": {
+      "node": "v24.15.0",
+      "platform": "linux",
+      "arch": "x64",
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+      "threads": 12,
+      "load": [
+        1.2,
+        0.85,
+        0.43
+      ]
+    },
+    "host-fft-before": {
+      "node": "v24.15.0",
+      "platform": "linux",
+      "arch": "x64",
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+      "threads": 12,
+      "load": [
+        0.1,
+        0.08,
+        0.07
+      ]
+    }
+  },
+  "dependencies": {
+    "name": "rank-fft-host-bench",
+    "dependencies": {
+      "@noble/hashes": {
+        "version": "2.4.0",
+        "resolved": "https://registry.npmjs.org/@noble/hashes/-/hashes-2.4.0.tgz",
+        "overridden": false
+      },
+      "apache-arrow": {
+        "version": "21.2.0",
+        "resolved": "https://registry.npmjs.org/apache-arrow/-/apache-arrow-21.2.0.tgz",
+        "overridden": false,
+        "dependencies": {
+          "@types/node": {
+            "version": "25.9.9",
+            "resolved": "https://registry.npmjs.org/@types/node/-/node-25.9.9.tgz",
+            "overridden": false,
+            "dependencies": {
+              "undici-types": {
+                "version": "7.24.6",
+                "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-7.24.6.tgz",
+                "overridden": false
+              }
+            }
+          },
+          "flatbuffers": {
+            "version": "25.9.23",
+            "resolved": "https://registry.npmjs.org/flatbuffers/-/flatbuffers-25.9.23.tgz",
+            "overridden": false
+          },
+          "json-with-bigint": {
+            "version": "3.5.12",
+            "resolved": "https://registry.npmjs.org/json-with-bigint/-/json-with-bigint-3.5.12.tgz",
+            "overridden": false
+          },
+          "tslib": {
+            "version": "2.9.1",
+            "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.9.1.tgz",
+            "overridden": false
+          }
+        }
+      },
+      "langium": {
+        "version": "4.3.1",
+        "resolved": "https://registry.npmjs.org/langium/-/langium-4.3.1.tgz",
+        "overridden": false,
+        "dependencies": {
+          "@chevrotain/regexp-to-ast": {
+            "version": "12.0.0",
+            "resolved": "https://registry.npmjs.org/@chevrotain/regexp-to-ast/-/regexp-to-ast-12.0.0.tgz",
+            "overridden": false
+          },
+          "chevrotain-allstar": {
+            "version": "0.4.4",
+            "resolved": "https://registry.npmjs.org/chevrotain-allstar/-/chevrotain-allstar-0.4.4.tgz",
+            "overridden": false,
+            "dependencies": {
+              "chevrotain": {
+                "version": "12.0.0"
+              },
+              "lodash-es": {
+                "version": "4.18.1",
+                "resolved": "https://registry.npmjs.org/lodash-es/-/lodash-es-4.18.1.tgz",
+                "overridden": false
+              }
+            }
+          },
+          "chevrotain": {
+            "version": "12.0.0",
+            "resolved": "https://registry.npmjs.org/chevrotain/-/chevrotain-12.0.0.tgz",
+            "overridden": false,
+            "dependencies": {
+              "@chevrotain/cst-dts-gen": {
+                "version": "12.0.0",
+                "resolved": "https://registry.npmjs.org/@chevrotain/cst-dts-gen/-/cst-dts-gen-12.0.0.tgz",
+                "overridden": false,
+                "dependencies": {
+                  "@chevrotain/gast": {
+                    "version": "12.0.0"
+                  },
+                  "@chevrotain/types": {
+                    "version": "12.0.0"
+                  }
+                }
+              },
+              "@chevrotain/gast": {
+                "version": "12.0.0",
+                "resolved": "https://registry.npmjs.org/@chevrotain/gast/-/gast-12.0.0.tgz",
+                "overridden": false,
+                "dependencies": {
+                  "@chevrotain/types": {
+                    "version": "12.0.0"
+                  }
+                }
+              },
+              "@chevrotain/regexp-to-ast": {
+                "version": "12.0.0"
+              },
+              "@chevrotain/types": {
+                "version": "12.0.0",
+                "resolved": "https://registry.npmjs.org/@chevrotain/types/-/types-12.0.0.tgz",
+                "overridden": false
+              },
+              "@chevrotain/utils": {
+                "version": "12.0.0",
+                "resolved": "https://registry.npmjs.org/@chevrotain/utils/-/utils-12.0.0.tgz",
+                "overridden": false
+              }
+            }
+          },
+          "vscode-languageserver-protocol": {
+            "version": "3.18.5",
+            "resolved": "https://registry.npmjs.org/vscode-languageserver-protocol/-/vscode-languageserver-protocol-3.18.5.tgz",
+            "overridden": false,
+            "dependencies": {
+              "vscode-jsonrpc": {
+                "version": "10.0.0",
+                "resolved": "https://registry.npmjs.org/vscode-jsonrpc/-/vscode-jsonrpc-10.0.0.tgz",
+                "overridden": false
+              },
+              "vscode-languageserver-types": {
+                "version": "3.18.5"
+              }
+            }
+          },
+          "vscode-languageserver-textdocument": {
+            "version": "1.0.16",
+            "resolved": "https://registry.npmjs.org/vscode-languageserver-textdocument/-/vscode-languageserver-textdocument-1.0.16.tgz",
+            "overridden": false
+          },
+          "vscode-languageserver-types": {
+            "version": "3.18.5",
+            "resolved": "https://registry.npmjs.org/vscode-languageserver-types/-/vscode-languageserver-types-3.18.5.tgz",
+            "overridden": false
+          },
+          "vscode-languageserver": {
+            "version": "10.0.1",
+            "resolved": "https://registry.npmjs.org/vscode-languageserver/-/vscode-languageserver-10.0.1.tgz",
+            "overridden": false,
+            "dependencies": {
+              "vscode-languageserver-protocol": {
+                "version": "3.18.1",
+                "resolved": "https://registry.npmjs.org/vscode-languageserver-protocol/-/vscode-languageserver-protocol-3.18.1.tgz",
+                "overridden": false,
+                "dependencies": {
+                  "vscode-jsonrpc": {
+                    "version": "9.0.0",
+                    "resolved": "https://registry.npmjs.org/vscode-jsonrpc/-/vscode-jsonrpc-9.0.0.tgz",
+                    "overridden": false
+                  },
+                  "vscode-languageserver-types": {
+                    "version": "3.18.0",
+                    "resolved": "https://registry.npmjs.org/vscode-languageserver-types/-/vscode-languageserver-types-3.18.0.tgz",
+                    "overridden": false
+                  }
+                }
+              }
+            }
+          },
+          "vscode-uri": {
+            "version": "3.1.0",
+            "resolved": "https://registry.npmjs.org/vscode-uri/-/vscode-uri-3.1.0.tgz",
+            "overridden": false
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "revision": "464e5c59",
+  "compilerCommits": [
+    "5820950e",
+    "b4b9da00"
+  ],
+  "excludedExperiment": "f76b2cc7",
+  "build": "passed",
+  "ordinary": {
+    "command": "node scripts/test.mjs --exclude test/types.test.ts --exclude test/differential.test.ts --exclude test/nurikabe.test.ts",
+    "filesPassed": 458,
+    "filesFailed": 1,
+    "testsPassed": 10528,
+    "testsFailed": 1,
+    "seconds": 309.39,
+    "failure": "Euler-023 demo independently rewritten in main; stale assertion expects 3 compiled collection loops. Restore original coverage as dedicated fixture, keep assertion."
+  },
+  "afterFixtureRepair": {
+    "file": "test/compiled-integer-collections.test.ts",
+    "testsPassed": 17,
+    "testsFailed": 0,
+    "seconds": 13.71,
+    "fullSuiteRepeated": false
+  },
+  "demoTests": {
+    "deepmlFiles": 55,
+    "classicFiles": 7,
+    "euler023Tests": 3,
+    "failed": 0
+  },
+  "semanticBoundaries": {
+    "owners": 65,
+    "scriptTests": 11,
+    "failed": 0
+  },
+  "applicationForms": "passed",
+  "excludedAudits": [
+    "types",
+    "differential",
+    "nurikabe"
+  ]
+}

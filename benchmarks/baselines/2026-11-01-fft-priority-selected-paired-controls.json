@@ -1,0 +1,533 @@
+{
+  "note": "Supplemental broadcast checks, shared process/heap per pair of runtimes; three fresh processes. Large variation persists, so not a portable regression-free claim.",
+  "runs": [
+    {
+      "roots": {
+        "baseline": "/tmp/rank-fft-priority-base",
+        "candidate": "/tmp/rank-fft-priority-step2"
+      },
+      "source": "A = InputA\nB = InputB\nCount = 12\nfor Count greater 0\n A = (A mod 97) + (B mod 89)\n Count -= 1\nend\nA",
+      "note": "Within-process alternating broadcast control; supplemental to fresh-process comparisons; complete array output, independent BigInt oracle; shared process/heap.",
+      "rows": [
+        {
+          "pair": 0,
+          "name": "baseline",
+          "count": 400,
+          "ms": 0.6257859374999998,
+          "cpuMs": 0.73812
+        },
+        {
+          "pair": 0,
+          "name": "candidate",
+          "count": 470,
+          "ms": 0.5326195914893609,
+          "cpuMs": 0.6052595744680851
+        },
+        {
+          "pair": 1,
+          "name": "candidate",
+          "count": 490,
+          "ms": 0.5106649653061233,
+          "cpuMs": 0.5777367346938775
+        },
+        {
+          "pair": 1,
+          "name": "baseline",
+          "count": 430,
+          "ms": 0.5816334302325591,
+          "cpuMs": 0.6832674418604652
+        },
+        {
+          "pair": 2,
+          "name": "baseline",
+          "count": 433,
+          "ms": 0.5798486327944574,
+          "cpuMs": 0.684270207852194
+        },
+        {
+          "pair": 2,
+          "name": "candidate",
+          "count": 486,
+          "ms": 0.51444727366255,
+          "cpuMs": 0.5884958847736625
+        },
+        {
+          "pair": 3,
+          "name": "candidate",
+          "count": 465,
+          "ms": 0.5383560043010749,
+          "cpuMs": 0.6363096774193548
+        },
+        {
+          "pair": 3,
+          "name": "baseline",
+          "count": 425,
+          "ms": 0.5886571576470584,
+          "cpuMs": 0.6547670588235295
+        },
+        {
+          "pair": 4,
+          "name": "baseline",
+          "count": 417,
+          "ms": 0.5999701223021588,
+          "cpuMs": 0.6572829736211031
+        },
+        {
+          "pair": 4,
+          "name": "candidate",
+          "count": 470,
+          "ms": 0.5327664893617015,
+          "cpuMs": 0.6397893617021277
+        },
+        {
+          "pair": 5,
+          "name": "candidate",
+          "count": 485,
+          "ms": 0.5161914948453619,
+          "cpuMs": 0.5829237113402063
+        },
+        {
+          "pair": 5,
+          "name": "baseline",
+          "count": 429,
+          "ms": 0.5831781282051286,
+          "cpuMs": 0.6543682983682984
+        },
+        {
+          "pair": 6,
+          "name": "baseline",
+          "count": 426,
+          "ms": 0.5879367183098589,
+          "cpuMs": 0.7047464788732394
+        },
+        {
+          "pair": 6,
+          "name": "candidate",
+          "count": 488,
+          "ms": 0.5131048504098372,
+          "cpuMs": 0.5825696721311475
+        },
+        {
+          "pair": 7,
+          "name": "candidate",
+          "count": 486,
+          "ms": 0.5146520905349791,
+          "cpuMs": 0.5891275720164608
+        },
+        {
+          "pair": 7,
+          "name": "baseline",
+          "count": 428,
+          "ms": 0.5849388621495308,
+          "cpuMs": 0.6918878504672897
+        },
+        {
+          "pair": 8,
+          "name": "baseline",
+          "count": 430,
+          "ms": 0.5825770348837216,
+          "cpuMs": 0.6874697674418605
+        },
+        {
+          "pair": 8,
+          "name": "candidate",
+          "count": 481,
+          "ms": 0.5202102390852391,
+          "cpuMs": 0.5826839916839918
+        },
+        {
+          "pair": 9,
+          "name": "candidate",
+          "count": 476,
+          "ms": 0.5262320546218475,
+          "cpuMs": 0.6302457983193278
+        },
+        {
+          "pair": 9,
+          "name": "baseline",
+          "count": 431,
+          "ms": 0.581187837587004,
+          "cpuMs": 0.6351461716937354
+        },
+        {
+          "pair": 10,
+          "name": "baseline",
+          "count": 431,
+          "ms": 0.5812414918793509,
+          "cpuMs": 0.6472273781902552
+        },
+        {
+          "pair": 10,
+          "name": "candidate",
+          "count": 473,
+          "ms": 0.5291393594080348,
+          "cpuMs": 0.6356955602536999
+        }
+      ],
+      "summary": [
+        {
+          "name": "baseline",
+          "ms": 0.5831781282051286,
+          "cpuMs": 0.6832674418604652
+        },
+        {
+          "name": "candidate",
+          "ms": 0.5202102390852391,
+          "cpuMs": 0.5891275720164608
+        }
+      ]
+    },
+    {
+      "roots": {
+        "baseline": "/tmp/rank-fft-priority-base",
+        "candidate": "/tmp/rank-fft-priority-step2"
+      },
+      "source": "A = InputA\nB = InputB\nCount = 12\nfor Count greater 0\n A = (A mod 97) + (B mod 89)\n Count -= 1\nend\nA",
+      "note": "Within-process alternating broadcast control; supplemental to fresh-process comparisons; complete array output, independent BigInt oracle; shared process/heap.",
+      "rows": [
+        {
+          "pair": 0,
+          "name": "baseline",
+          "count": 438,
+          "ms": 0.571074961187215,
+          "cpuMs": 0.6851917808219178
+        },
+        {
+          "pair": 0,
+          "name": "candidate",
+          "count": 490,
+          "ms": 0.5107434530612242,
+          "cpuMs": 0.584395918367347
+        },
+        {
+          "pair": 1,
+          "name": "candidate",
+          "count": 474,
+          "ms": 0.5282872721518997,
+          "cpuMs": 0.6225506329113925
+        },
+        {
+          "pair": 1,
+          "name": "baseline",
+          "count": 428,
+          "ms": 0.5851221775700923,
+          "cpuMs": 0.6409322429906542
+        },
+        {
+          "pair": 2,
+          "name": "baseline",
+          "count": 424,
+          "ms": 0.5900622051886776,
+          "cpuMs": 0.6587216981132076
+        },
+        {
+          "pair": 2,
+          "name": "candidate",
+          "count": 476,
+          "ms": 0.5258751764705886,
+          "cpuMs": 0.6401680672268908
+        },
+        {
+          "pair": 3,
+          "name": "candidate",
+          "count": 487,
+          "ms": 0.5135318275154007,
+          "cpuMs": 0.5764845995893224
+        },
+        {
+          "pair": 3,
+          "name": "baseline",
+          "count": 433,
+          "ms": 0.5779730577367206,
+          "cpuMs": 0.637459584295612
+        },
+        {
+          "pair": 4,
+          "name": "baseline",
+          "count": 252,
+          "ms": 0.9945889563492052,
+          "cpuMs": 1.171345238095238
+        },
+        {
+          "pair": 4,
+          "name": "candidate",
+          "count": 235,
+          "ms": 1.0644145404255316,
+          "cpuMs": 1.167068085106383
+        },
+        {
+          "pair": 5,
+          "name": "candidate",
+          "count": 199,
+          "ms": 1.2598706030150753,
+          "cpuMs": 1.3322562814070353
+        },
+        {
+          "pair": 5,
+          "name": "baseline",
+          "count": 159,
+          "ms": 1.5761244716981104,
+          "cpuMs": 1.6190503144654087
+        },
+        {
+          "pair": 6,
+          "name": "baseline",
+          "count": 155,
+          "ms": 1.6214994645161267,
+          "cpuMs": 1.6522645161290324
+        },
+        {
+          "pair": 6,
+          "name": "candidate",
+          "count": 176,
+          "ms": 1.4231240511363643,
+          "cpuMs": 1.6348124999999998
+        },
+        {
+          "pair": 7,
+          "name": "candidate",
+          "count": 181,
+          "ms": 1.383255524861882,
+          "cpuMs": 1.4012099447513813
+        },
+        {
+          "pair": 7,
+          "name": "baseline",
+          "count": 161,
+          "ms": 1.5627471552795118,
+          "cpuMs": 1.8769006211180124
+        },
+        {
+          "pair": 8,
+          "name": "baseline",
+          "count": 168,
+          "ms": 1.4937604166666678,
+          "cpuMs": 1.5865357142857144
+        },
+        {
+          "pair": 8,
+          "name": "candidate",
+          "count": 188,
+          "ms": 1.3350403351063835,
+          "cpuMs": 1.3717606382978724
+        },
+        {
+          "pair": 9,
+          "name": "candidate",
+          "count": 184,
+          "ms": 1.363219429347826,
+          "cpuMs": 1.3988260869565219
+        },
+        {
+          "pair": 9,
+          "name": "baseline",
+          "count": 176,
+          "ms": 1.4276884488636432,
+          "cpuMs": 1.4216477272727273
+        },
+        {
+          "pair": 10,
+          "name": "baseline",
+          "count": 158,
+          "ms": 1.584185392405064,
+          "cpuMs": 1.7249936708860758
+        },
+        {
+          "pair": 10,
+          "name": "candidate",
+          "count": 239,
+          "ms": 1.0463570418410029,
+          "cpuMs": 1.100305439330544
+        }
+      ],
+      "summary": [
+        {
+          "name": "baseline",
+          "ms": 1.4276884488636432,
+          "cpuMs": 1.4216477272727273
+        },
+        {
+          "name": "candidate",
+          "ms": 1.0644145404255316,
+          "cpuMs": 1.167068085106383
+        }
+      ]
+    },
+    {
+      "roots": {
+        "baseline": "/tmp/rank-fft-priority-base",
+        "candidate": "/tmp/rank-fft-priority-step2"
+      },
+      "source": "A = InputA\nB = InputB\nCount = 12\nfor Count greater 0\n A = (A mod 97) + (B mod 89)\n Count -= 1\nend\nA",
+      "note": "Within-process alternating broadcast control; supplemental to fresh-process comparisons; complete array output, independent BigInt oracle; shared process/heap.",
+      "rows": [
+        {
+          "pair": 0,
+          "name": "baseline",
+          "count": 444,
+          "ms": 0.5635561193693697,
+          "cpuMs": 0.6717567567567567
+        },
+        {
+          "pair": 0,
+          "name": "candidate",
+          "count": 499,
+          "ms": 0.5014981623246499,
+          "cpuMs": 0.6173426853707414
+        },
+        {
+          "pair": 1,
+          "name": "candidate",
+          "count": 510,
+          "ms": 0.49044248431372417,
+          "cpuMs": 0.5440156862745098
+        },
+        {
+          "pair": 1,
+          "name": "baseline",
+          "count": 446,
+          "ms": 0.560636865470851,
+          "cpuMs": 0.6347017937219731
+        },
+        {
+          "pair": 2,
+          "name": "baseline",
+          "count": 441,
+          "ms": 0.5670729410430836,
+          "cpuMs": 0.6863446712018141
+        },
+        {
+          "pair": 2,
+          "name": "candidate",
+          "count": 503,
+          "ms": 0.4970873101391649,
+          "cpuMs": 0.5762286282306164
+        },
+        {
+          "pair": 3,
+          "name": "candidate",
+          "count": 498,
+          "ms": 0.5020603253012057,
+          "cpuMs": 0.5683293172690763
+        },
+        {
+          "pair": 3,
+          "name": "baseline",
+          "count": 275,
+          "ms": 0.9107581818181808,
+          "cpuMs": 0.9815345454545455
+        },
+        {
+          "pair": 4,
+          "name": "baseline",
+          "count": 226,
+          "ms": 1.106614305309731,
+          "cpuMs": 1.2899823008849558
+        },
+        {
+          "pair": 4,
+          "name": "candidate",
+          "count": 201,
+          "ms": 1.2480395920398015,
+          "cpuMs": 1.4005820895522387
+        },
+        {
+          "pair": 5,
+          "name": "candidate",
+          "count": 199,
+          "ms": 1.2582217336683417,
+          "cpuMs": 1.3345326633165828
+        },
+        {
+          "pair": 5,
+          "name": "baseline",
+          "count": 164,
+          "ms": 1.5307497439024391,
+          "cpuMs": 1.5712012195121952
+        },
+        {
+          "pair": 6,
+          "name": "baseline",
+          "count": 167,
+          "ms": 1.500508233532937,
+          "cpuMs": 1.5742754491017963
+        },
+        {
+          "pair": 6,
+          "name": "candidate",
+          "count": 184,
+          "ms": 1.3622574728260834,
+          "cpuMs": 1.552320652173913
+        },
+        {
+          "pair": 7,
+          "name": "candidate",
+          "count": 183,
+          "ms": 1.3803146612021844,
+          "cpuMs": 1.477158469945355
+        },
+        {
+          "pair": 7,
+          "name": "baseline",
+          "count": 176,
+          "ms": 1.425941761363633,
+          "cpuMs": 1.6827954545454546
+        },
+        {
+          "pair": 8,
+          "name": "baseline",
+          "count": 168,
+          "ms": 1.490095982142856,
+          "cpuMs": 1.551779761904762
+        },
+        {
+          "pair": 8,
+          "name": "candidate",
+          "count": 191,
+          "ms": 1.3123433664921473,
+          "cpuMs": 1.3330157068062827
+        },
+        {
+          "pair": 9,
+          "name": "candidate",
+          "count": 196,
+          "ms": 1.28899170918368,
+          "cpuMs": 1.3241020408163264
+        },
+        {
+          "pair": 9,
+          "name": "baseline",
+          "count": 176,
+          "ms": 1.4255812045454583,
+          "cpuMs": 1.4386931818181818
+        },
+        {
+          "pair": 10,
+          "name": "baseline",
+          "count": 247,
+          "ms": 1.0131467611336047,
+          "cpuMs": 1.099008097165992
+        },
+        {
+          "pair": 10,
+          "name": "candidate",
+          "count": 315,
+          "ms": 0.7955891555555556,
+          "cpuMs": 0.8460190476190476
+        }
+      ],
+      "summary": [
+        {
+          "name": "baseline",
+          "ms": 1.106614305309731,
+          "cpuMs": 1.2899823008849558
+        },
+        {
+          "name": "candidate",
+          "ms": 1.2480395920398015,
+          "cpuMs": 1.3241020408163264
+        }
+      ]
+    }
+  ]
+}

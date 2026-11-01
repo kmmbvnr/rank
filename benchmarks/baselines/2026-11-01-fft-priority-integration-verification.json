@@ -1,0 +1,53 @@
+{
+  "versions": {
+    "baseline": "9b53e58ca7e2dfa5eceb1be91faa045a7955c2c7",
+    "candidate": "1aece5d25da7ca3faba6cd6f169205885f458a15"
+  },
+  "fileHashesChecked": 2805,
+  "payloadSha256": "caf2f25f15b5d0401582f880fd7d951d36d8044807ff75df368a41a7d80c9dcc",
+  "sourceManifestSha256": "ca028f8d853681d665d0e796f719378c2633557d64f3cf8b3e892f8d37a8d6bb",
+  "hostSnapshots": {
+    "host-integration-before": {
+      "node": "v24.15.0",
+      "platform": "linux",
+      "arch": "x64",
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+      "threads": 12,
+      "load": [
+        0.28,
+        0.48,
+        0.36
+      ]
+    },
+    "host-integration-after": {
+      "node": "v24.15.0",
+      "platform": "linux",
+      "arch": "x64",
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+      "threads": 12,
+      "load": [
+        1.04,
+        0.68,
+        0.44
+      ]
+    }
+  },
+  "builds": "both passed",
+  "integrationTests": {
+    "files": 11,
+    "tests": 446,
+    "failed": 0
+  },
+  "demoFiles": {
+    "deepml": 55,
+    "classic": 7,
+    "failed": 0
+  },
+  "semanticBoundaries": {
+    "scriptTests": 11,
+    "owners": 65,
+    "failed": 0
+  },
+  "applicationForms": "passed",
+  "note": "Current main 9b53e58c compared with merged two-step compiler 1aece5d2. Optional runtime-copy experiment f76b2cc7 is not an ancestor of integration."
+}
