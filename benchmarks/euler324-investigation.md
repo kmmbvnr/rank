@@ -61,6 +61,36 @@ node benchmarks/experiments/euler324-verify.mjs production
 
 `baselines/2026-11-02-euler324-delivery-{mac,intel,verification}.json`.
 
+## Source-style follow-up
+
+The [current demo](../demos/euler/324_tower.ra) initializes A0 and C with one
+`array shape K` block each, replacing repeated concat assignments. The new C
+constructor already supplies a materialized array, so its extra copy is removed.
+The period comment now starts with its purpose, x^Period = 1, before the factor
+and certificate details. Every demo/fixture line remains within 40 columns.
+Algorithm, coefficient values, final result copy and audit eligibility are
+unchanged.
+
+The existing 16 Euler tests passed on both hosts, and four scoped main/fixture
+type/differential audits passed. The tests read the actual table values, certify
+the period and execute the full default in all three configurations.
+
+Seven fresh-process alternating compiled medians before/after the style change:
+
+| Host | Time before | Time after | Peak MiB before | Peak MiB after |
+| --- | ---: | ---: | ---: | ---: |
+| Mac M5 | 188.3 ms | 181.4 ms | 186.3 | 183.9 |
+| Intel | 498.2 ms | 478.2 ms | 171.8 | 171.5 |
+
+Reference medians from three samples stayed near 411/407 ms on Mac and
+1121/1123 ms on Intel, with slightly lower peak RSS. An initial short Mac
+series had large outliers and suggested a slowdown; the seven-sample follow-up
+did not reproduce it. Diagnostics reported the same execution paths and work
+counters. These checks establish no observed regression; the small timing
+changes are not presented as another algorithmic speedup. All full runs returned
+96972774. Raw samples, runner and verification are in
+`baselines/2026-11-02-euler324-style.json`.
+
 ## Finding
 
 The [problem statement](https://projecteuler.net/problem=324) asks for the
