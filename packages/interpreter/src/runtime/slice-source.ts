@@ -5,6 +5,7 @@ import { registerScalarView } from './integer-view.js';
 import { checkpoint } from '../interrupt.js';
 import { arraySliceLayout } from '../jit/tensor-layout.js';
 import { sequence } from '../sequence.js';
+import { isRope, ropeSlice } from '../rope.js';
 import type { RankArray, RankSequence, RankValue, SequenceSize } from './value.js';
 
 export interface SliceSource {
@@ -35,6 +36,7 @@ const adapters = {
             readArrayItem(source, position(index))), source, position, { linear: () => ({ offset, stride: 1 }) });
     } }),
     sequence: (source: RankSequence): SliceSource => ({ slice(count, drop) {
+        if (isRope(source)) return ropeSlice(source, count, drop);
         const name = drop ? 'drop' : 'take';
         const plan = source.plan;
         const size: SequenceSize = plan.size.kind === 'exact'

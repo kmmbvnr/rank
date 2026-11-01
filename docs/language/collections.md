@@ -4,6 +4,70 @@
 named structures and `Size groups` for bounded integer groups. There are no
 implicit per-function instances.
 
+## Ropes
+
+`use sequences` provides `Values rope`, an immutable indexed finite sequence
+backed by a balanced tree of chunks. It is separate from `segment`, which
+stores range aggregates. A rope has runtime type `.sequence` and supports the
+ordinary sequence operations, including indexing, `len`, `first`, `last`,
+iteration, `take` and `drop`.
+
+Construction snapshots a rank-1 array, finite sequence or text in `O(N)` time.
+Text is read by Unicode code point. Native arithmetic ranges are stored as
+one run in `O(1)` time, with exact integer lengths and positions, including
+lengths above `2^53`. Known infinite sequences are rejected. Array elements
+may be numeric, text, records or other ordinary Rank values; normal element
+type and nested-array snapshot rules still apply.
+
+```rank
+use sequences
+A = (0 till 1000000000000000000) rope
+B = A 2 7 reverse
+Head = B take 4
+Tail = B drop 4
+Joined = concat Head Tail
+Saved = Joined
+Back = Joined reverse
+```
+
+`Rope Left Right reverse` uses inclusive bounds. Negative or out-of-bounds
+indices raise `.Missing`; reversed bounds raise a domain error. Bounds must
+be integers. A complete `Rope reverse` also accepts an empty rope.
+All operations return new values; aliases such as `Saved` keep their previous
+contents. Unchanged tree nodes and immutable chunks are shared.
+
+Indexing, `take`, `drop` and range reversal take `O(log R)` time for `R` chunks.
+Concatenating two ropes takes `O(log R)` time. Complete reversal takes `O(1)`.
+`take` and `drop` retain their normal nonnegative-count and clamping rules.
+`concat` preserves this representation when every input is a rope; convert
+inserted material with `rope` too. Mixing a rope with other sequences keeps
+ordinary lazy concatenation semantics but loses the indexed rope structure.
+
+Insertion, deletion and replacement use the same operations:
+
+```rank
+Small = (0 till 10) rope
+Piece = (array 40 41) rope
+Inserted = concat (Small take 3) Piece
+Inserted = concat Inserted (Small drop 3)
+Deleted = concat (Small take 3) (Small drop 6)
+```
+
+`Rope chunks` yields the finite storage chunks in logical order; each chunk
+is an array or an indexed finite sequence. Chunk boundaries are an
+implementation detail. `Rope runs` requires integer elements and returns a
+matrix whose rows are **first value, step, count**. It enumerates compressed
+arithmetic chunks without expanding their logical elements; uncompressed
+integer chunks may produce singleton runs. Runs need not be maximal, and
+their values and lengths retain arbitrary integer precision. Other element
+types raise a type error. These operations let programs reduce or serialize
+compressed data without enumerating a huge sequence.
+
+`copy`, postfix `array`, ordinary elementwise arithmetic and general folds
+retain their normal materialization or traversal behavior. They do not
+implicitly perform algebra over compressed runs. Bound a large rope before
+materializing it, or operate on its runs/chunks explicitly.
+
 ## Named structures
 
 Use `new` to create an independent empty structure. Each evaluation creates

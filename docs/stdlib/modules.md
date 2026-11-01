@@ -692,6 +692,9 @@ sort
 argsort
 indices
 reverse
+rope
+chunks
+runs
 first
 last
 count
@@ -856,6 +859,11 @@ axis, and a queue, stack, deque or finite sequence, which becomes an array
 of the same shape and element type; a matrix keeps each row and reverses their
 order. Unbounded sequences and other values are rejected. `reverse` is a
 `sequences` operation, not a `text` one.
+
+Ropes are an exception to sequence materialization: their reversal returns
+another rope. `Rope Left Right reverse` reverses an inclusive positional range.
+See [Ropes](../language/collections.md#ropes) for indexed persistent sequences,
+splitting, concatenation and compressed arithmetic runs.
 
 ```rank
 Back = "A😀Б" reverse

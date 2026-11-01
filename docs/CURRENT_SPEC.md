@@ -1109,6 +1109,13 @@ without imports. The catalogue groups them under `core`; no `use core` is
 needed. User code cannot redefine these available names. `numbers` still provides `sqrt`, `abs` and number theory; `sequences` provides shapes, ordering and sources such as
 `fibonacci`.
 
+`use sequences` also provides `Values rope`: a persistent indexed finite
+sequence with logarithmic splitting (`take`/`drop`), concatenation and
+inclusive range reversal. Arithmetic ranges stay compressed even above
+`2^53` elements. See [Ropes](language/collections.md#ropes) for the contract
+and compressed `chunks`/`runs` access. Range aggregates remain the role of
+`segment`.
+
 ```rank
 Values = 1 to 5
 Values len

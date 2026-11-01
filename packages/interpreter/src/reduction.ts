@@ -1,7 +1,7 @@
 import { foldAxisPartition, foldAxisDiagnostic } from '@arrrank/language';
 import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
-import { scanInt32Axis, sumRealAxis } from './axis-order.js';
+import { scanInt32Axis, scanInt64, sumRealAxis } from './axis-order.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
 import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, registerArrayDependencies, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
@@ -106,7 +106,7 @@ export class ReductionEvaluator {
         }
         if (axis !== undefined) return this.evaluateScanAxis(operator, value, axis, seed);
         if (operator === '+' && seed === undefined && isRankArray(value) && value.shape.length === 1) {
-            const compact = scanInt32Axis('+', value, value.shape, 0);
+            const compact = scanInt32Axis('+', value, value.shape, 0) ?? scanInt64(value);
             if (compact) return compact;
         }
         if (operator === '+' && isRankArray(value) && this.isTensorFusion()) {
@@ -311,7 +311,7 @@ export class ReductionEvaluator {
             return ownedArray(out, outShape);
         }
         const compact = nativeOperator === '+' || nativeOperator === 'max' || nativeOperator === 'min'
-            ? scanInt32Axis(nativeOperator, value, shape, axis) : undefined;
+            ? scanInt32Axis(nativeOperator, value, shape, axis) ?? (nativeOperator === '+' && axis === 0 ? scanInt64(value) : undefined) : undefined;
         if (compact) return compact;
         const cells = eagerOperandItems(value)
             ?? Array.from({ length: size }, (_, index) => arrayItem(value, index));

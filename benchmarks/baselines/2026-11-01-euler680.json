@@ -1,0 +1,246 @@
+{
+  "date": "2026-11-01",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "baselineCommit": "241708d2950053157600b0da958a8fffc78db78b",
+  "policy": "Fresh process per sample, sequential, no diagnostics/profiler; elapsed execution includes parsing. Checksums and expected answers asserted. Baseline was archived from the recorded commit and compiled in an isolated temporary directory; earlier samples using the main working tree were discarded. The baseline default K=1000000 was not run.",
+  "sha256": {
+    "benchmarks/fixtures/680-batched.ra": "2ba7f64fa7f5caee087b05ee6bbc6c9571a7ec65bbcc17b387c1800f3db8d696",
+    "demos/euler/680_yarragnisrever.ra": "bbb9da0653693df6414ec65dbc6132b94aad34305c29a0eaab5ef63736841722"
+  },
+  "samples": [
+    {
+      "stage": "scan",
+      "trial": 0,
+      "mode": "batched",
+      "k": "3200",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 5974.7051249999995,
+      "cpuMs": 11546.062,
+      "rssMiB": 626.84375,
+      "answer": "801393719"
+    },
+    {
+      "stage": "scan",
+      "trial": 1,
+      "mode": "batched",
+      "k": "3200",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 9802.741875000002,
+      "cpuMs": 17226.366,
+      "rssMiB": 635.171875,
+      "answer": "801393719"
+    },
+    {
+      "stage": "scan",
+      "trial": 2,
+      "mode": "batched",
+      "k": "3200",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 6500.664584,
+      "cpuMs": 12573.042,
+      "rssMiB": 650.6875,
+      "answer": "801393719"
+    },
+    {
+      "stage": "rope",
+      "trial": 0,
+      "mode": "rope",
+      "k": "3200",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 177.4515,
+      "cpuMs": 390.487,
+      "rssMiB": 182.625,
+      "answer": "801393719"
+    },
+    {
+      "stage": "rope",
+      "trial": 1,
+      "mode": "rope",
+      "k": "3200",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 171.49329199999997,
+      "cpuMs": 375.386,
+      "rssMiB": 182.859375,
+      "answer": "801393719"
+    },
+    {
+      "stage": "rope",
+      "trial": 2,
+      "mode": "rope",
+      "k": "3200",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 169.16295799999997,
+      "cpuMs": 374.761,
+      "rssMiB": 182.421875,
+      "answer": "801393719"
+    },
+    {
+      "stage": "rope",
+      "trial": 0,
+      "mode": "rope",
+      "k": "12800",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 304.440375,
+      "cpuMs": 637.298,
+      "rssMiB": 264.21875,
+      "answer": "5458811"
+    },
+    {
+      "stage": "rope",
+      "trial": 1,
+      "mode": "rope",
+      "k": "12800",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 296.828084,
+      "cpuMs": 632.436,
+      "rssMiB": 264.328125,
+      "answer": "5458811"
+    },
+    {
+      "stage": "rope",
+      "trial": 2,
+      "mode": "rope",
+      "k": "12800",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 301.815916,
+      "cpuMs": 636.42,
+      "rssMiB": 264.46875,
+      "answer": "5458811"
+    },
+    {
+      "stage": "rope",
+      "trial": 0,
+      "mode": "rope",
+      "k": "1000000",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 21792.081374999998,
+      "cpuMs": 39817.363,
+      "rssMiB": 2999.640625,
+      "answer": "563917241"
+    },
+    {
+      "stage": "rope",
+      "trial": 1,
+      "mode": "rope",
+      "k": "1000000",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 20693.496334,
+      "cpuMs": 38273.977,
+      "rssMiB": 2749.6875,
+      "answer": "563917241"
+    },
+    {
+      "stage": "rope",
+      "trial": 2,
+      "mode": "rope",
+      "k": "1000000",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 28781.197042,
+      "cpuMs": 47965.245,
+      "rssMiB": 2528.15625,
+      "answer": "563917241"
+    },
+    {
+      "stage": "baseline",
+      "trial": 0,
+      "mode": "scan",
+      "ms": 53.36574999999999,
+      "answer": "960000000000000499500"
+    },
+    {
+      "stage": "baseline",
+      "trial": 1,
+      "mode": "scan",
+      "ms": 53.58295799999999,
+      "answer": "960000000000000499500"
+    },
+    {
+      "stage": "baseline",
+      "trial": 2,
+      "mode": "scan",
+      "ms": 53.46420800000004,
+      "answer": "960000000000000499500"
+    },
+    {
+      "stage": "scan",
+      "trial": 0,
+      "mode": "scan",
+      "ms": 34.077,
+      "answer": "960000000000000499500"
+    },
+    {
+      "stage": "scan",
+      "trial": 1,
+      "mode": "scan",
+      "ms": 35.54720800000001,
+      "answer": "960000000000000499500"
+    },
+    {
+      "stage": "scan",
+      "trial": 2,
+      "mode": "scan",
+      "ms": 35.011708,
+      "answer": "960000000000000499500"
+    },
+    {
+      "stage": "baseline",
+      "trial": 0,
+      "mode": "batched",
+      "k": "3200",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 5775.297875,
+      "cpuMs": 11089.701,
+      "rssMiB": 630.046875,
+      "answer": "801393719"
+    },
+    {
+      "stage": "baseline",
+      "trial": 1,
+      "mode": "batched",
+      "k": "3200",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 5938.555583,
+      "cpuMs": 11388.828,
+      "rssMiB": 634.53125,
+      "answer": "801393719"
+    },
+    {
+      "stage": "baseline",
+      "trial": 2,
+      "mode": "batched",
+      "k": "3200",
+      "b": "800",
+      "n": "1000000000000000000",
+      "ms": 6037.207542,
+      "cpuMs": 11618.31,
+      "rssMiB": 637.59375,
+      "answer": "801393719"
+    }
+  ],
+  "integratedVerification": {
+    "baseCommit": "4584dc827460dde2e39c72825d696638e0460514",
+    "mode": "rope",
+    "k": "1000000",
+    "b": "800",
+    "n": "1000000000000000000",
+    "ms": 29064.758541,
+    "cpuMs": 50337.982,
+    "rssMiB": 2971.375,
+    "answer": "563917241"
+  }
+}

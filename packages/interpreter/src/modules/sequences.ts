@@ -17,6 +17,7 @@ import { primePlan } from '../prime-sequence.js';
 import { registerSequenceMembership } from '../sequence-membership.js';
 import { above, within, strongerLower, strongerUpper, membershipInteger, type Boundary } from '../sequence-bounds.js';
 import { concatArrays } from '../concat-array.js';
+import { isRope, rope, ropeChunks, ropeConcat, ropeReverse, ropeRuns } from '../rope.js';
 import { orderedSource } from '../ordered-source.js';
 import { collectionSize } from '../collection-size.js';
 import { elementSource } from '../element-source.js';
@@ -64,6 +65,15 @@ import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const sequencesModule: RuntimeModule = {
+    rope: () => native('rope', 1, args => rope(args[0])),
+    chunks: () => native('chunks', 1, args => {
+        if (!isRope(args[0])) throw new RankError('chunks expects a rope', 'TypeError');
+        return ropeChunks(args[0]);
+    }),
+    runs: () => native('runs', 1, args => {
+        if (!isRope(args[0])) throw new RankError('runs expects a rope', 'TypeError');
+        return ropeRuns(args[0]);
+    }),
     flat: () => native('flat', [1, 2], flatRecords),
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
@@ -96,7 +106,15 @@ export const sequencesModule: RuntimeModule = {
     find: () => native('find', 2, arguments_ => findValue(arguments_[0], arguments_[1])),
     findall: () => native('findall', 2, arguments_ => findAllValues(arguments_[0], arguments_[1])),
     indices: () => native('indices', 1, arguments_ => trueIndices(arguments_[0])),
-    reverse: () => native('reverse', 1, arguments_ => reverseValue(arguments_[0])),
+    reverse: () => native('reverse', [1, 3], args => {
+        if (isRope(args[0])) {
+            if (args.length === 1) return ropeReverse(args[0]);
+            if (typeof args[1] !== 'bigint' || typeof args[2] !== 'bigint') throw new RankError('rope reverse expects integer bounds', 'TypeError');
+            return ropeReverse(args[0], args[1], args[2]);
+        }
+        if (args.length !== 1) throw new RankError('range reverse expects a rope', 'TypeError');
+        return reverseValue(args[0]);
+    }),
     rotate: () => native('rotate', 2, arguments_ => rotateArray(arguments_[0], arguments_[1])),
     first: () => native('first', 1, arguments_ => endItem(arguments_[0], false)),
     last: () => native('last', 1, arguments_ => endItem(arguments_[0], true)),
@@ -433,6 +451,7 @@ export function concatValues(values: readonly RankValue[], axis = 0): RankArray 
             throw mismatch('concat sequences require rank-one inputs and axis 0');
         }
         const sources = values as readonly (RankArray | RankSequence)[];
+        if (sources.every(isRope)) return ropeConcat(sources);
         let exact = 0n;
         let unknown = false;
         let infinite = false;

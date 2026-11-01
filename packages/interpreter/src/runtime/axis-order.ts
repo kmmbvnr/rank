@@ -1,6 +1,6 @@
 import { checkpoint, privateLoopPolling } from '../interrupt.js';
 import { collectArrayCells } from './array-read.js';
-import { float64Cells, integer32Cells, typedArray, typedElementKind } from './owned-array.js';
+import { float64Cells, integer32Cells, integer64Cells, typedArray, typedElementKind } from './owned-array.js';
 import type { RankArray } from './value.js';
 
 type Keys = Float64Array | Int32Array;
@@ -100,6 +100,26 @@ export function argsortStoredAxis(value: RankArray, axis: number, down: boolean)
 }
 
 const INT32_MAX = 2147483647;
+
+/** Stored Int64 prefixes stay packed until a prefix needs arbitrary precision.
+ * Decline before publishing on overflow; the ordinary scan then remains exact. */
+export function scanInt64(value: RankArray): RankArray | undefined {
+    if (value.shape.length !== 1 || value.columnNames || !privateLoopPolling()) return undefined;
+    const cells = integer64Cells(value);
+    if (!cells) return undefined;
+    const out = new BigInt64Array(cells.length);
+    let sum = 0n;
+    for (let start = 0; start < cells.length; start += 4096) {
+        const end = Math.min(start + 4096, cells.length);
+        checkpoint('scanning', end - start);
+        for (let i = start; i < end; i++) {
+            sum += cells[i];
+            if (sum < -9223372036854775808n || sum > 9223372036854775807n) return undefined;
+            out[i] = sum;
+        }
+    }
+    return typedArray(out, value.shape);
+}
 
 /** Prefix `+`, `max` or `min` along an axis of stored Int32 cells. Axes up to
  * 2^21 cells have safe Number sums even for worst-case Int32 inputs. Longer
