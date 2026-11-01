@@ -1,0 +1,292 @@
+{
+  "n": 4096,
+  "mode": "compiled",
+  "diagnostics": {
+    "memoHits": 0,
+    "memoMisses": 0,
+    "indexReads": 0,
+    "indexReadHits": 0,
+    "indexReadMisses": 0,
+    "indexWrites": 0,
+    "sequencePredicateCalls": 0,
+    "cellsComputed": 0,
+    "hoistedReaders": 0,
+    "loopElementScans": 0,
+    "nativeSequenceCopies": 0,
+    "compiledLoops": 1,
+    "compiledGeneratorLoops": 0,
+    "integerMembershipFilters": 0,
+    "compiledGraphAdds": 0,
+    "compiledEffectCalls": 0,
+    "numericSorts": 0,
+    "numericInPlaceSorts": 0,
+    "numericDistincts": 0,
+    "compiledDistincts": 0,
+    "numericUniqueSorts": 0,
+    "numericSmallestSelections": 0,
+    "numericUniqueSums": 0,
+    "numericSearches": 0,
+    "numericSearchIndexes": 0,
+    "numberLoops": 1,
+    "numberFunctions": 0,
+    "numberFunctionFallbacks": 0,
+    "exactLoopWorkSamples": 0,
+    "exactLoopWorkPromotions": 0,
+    "numberLoopCopyProbes": 0,
+    "numberLoopCopyAmortized": 0,
+    "mixedIntegerLoops": 0,
+    "numberLoopOverflows": 0,
+    "numberLoopSliceCopies": 0,
+    "numberLoopSliceCopyCells": 0,
+    "numberLoopSliceDirectCells": 0,
+    "numberLoopReadBuffers": 0,
+    "numberLoopReadBufferCells": 0,
+    "numberLoopReadBufferHits": 0,
+    "compiledTensors": 0,
+    "tensorRangeScans": 0,
+    "tensorRangeScannedCells": 0,
+    "numberTensors": 0,
+    "compiledCounterBuilds": 0,
+    "compiledCounterSums": 0,
+    "compiledCounterKeys": 0,
+    "tensorMapPreparations": 0,
+    "compiledArrayFunctions": 12,
+    "numericFunctionPreparations": 12,
+    "numericFunctionPlanHits": 0,
+    "rankedArrayBatches": 0,
+    "rankedBatches": 0,
+    "maskMaterializations": 0,
+    "maskMaterializedCells": 0,
+    "bulkArrayWrites": 0,
+    "bulkArrayWriteCells": 0,
+    "fusedArrayUpdates": 0,
+    "fusedArrayUpdateCells": 0,
+    "fusedArrayUpdateWidenings": 0,
+    "reusedTensorBuffers": 0,
+    "reusedTensorBufferCells": 0,
+    "cowCopies": 0,
+    "cowCopiedCells": 0,
+    "elementTypeScans": 6,
+    "elementTypeScannedCells": 18432,
+    "rangeSelectorViews": 0,
+    "selectionSnapshots": 0,
+    "selectionSnapshotCells": 0,
+    "typedUnpacks": 2,
+    "typedUnpackedCells": 8192,
+    "fallbacks": {
+      "scalar-function:unsupported-op:len": 2,
+      "scalar-function:unbound-name:NameExpression": 1,
+      "scalar-expression:unsupported-op:len": 2,
+      "scalar-expression:unsupported-op:notequal": 2,
+      "scalar-expression:too-small": 11,
+      "scalar-expression:unsupported-op:or": 1,
+      "tensor:binding:real": 1,
+      "tensor:unsupported-type:array": 2,
+      "tensor:unsupported-node:MaterializeExpression": 2,
+      "scalar-expression:unsupported-op:till": 2,
+      "scalar-expression:unsupported-op:/": 3,
+      "scalar-expression:unsupported-op:acos": 7,
+      "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+      "scalar-expression:unsupported-op:*": 9,
+      "tensor:binding:acos": 1,
+      "scalar-expression:operator-guard:*": 2,
+      "tensor:binding:cos": 1,
+      "tensor:binding:sin": 1,
+      "loop:unsupported-node:DeclaredCallExpression": 1,
+      "scalar-function:application-form:ApplicationExpression": 1,
+      "tensor:unsupported-node:TupleExpression": 1
+    },
+    "compilerRejections": [
+      {
+        "reason": "scalar-function:unsupported-op:len",
+        "node": "ApplicationExpression",
+        "function": "fftStage",
+        "expression": "R len",
+        "line": 7,
+        "column": 7
+      },
+      {
+        "reason": "scalar-function:unsupported-op:len",
+        "node": "ApplicationExpression",
+        "function": "fftReal",
+        "expression": "X len",
+        "line": 29,
+        "column": 7
+      },
+      {
+        "reason": "scalar-function:unbound-name:NameExpression",
+        "node": "NameExpression",
+        "name": "shape",
+        "function": "fftReal",
+        "expression": "shape",
+        "line": 30,
+        "column": 8
+      },
+      {
+        "reason": "scalar-function:application-form:ApplicationExpression",
+        "node": "ApplicationExpression",
+        "function": "fftStage",
+        "expression": "R reshape # 2 H",
+        "line": 9,
+        "column": 8
+      }
+    ]
+  },
+  "warmDiagnostics": {
+    "memoHits": 0,
+    "memoMisses": 0,
+    "indexReads": 0,
+    "indexReadHits": 0,
+    "indexReadMisses": 0,
+    "indexWrites": 0,
+    "sequencePredicateCalls": 0,
+    "cellsComputed": 0,
+    "hoistedReaders": 0,
+    "loopElementScans": 0,
+    "nativeSequenceCopies": 0,
+    "compiledLoops": 1,
+    "compiledGeneratorLoops": 0,
+    "integerMembershipFilters": 0,
+    "compiledGraphAdds": 0,
+    "compiledEffectCalls": 0,
+    "numericSorts": 0,
+    "numericInPlaceSorts": 0,
+    "numericDistincts": 0,
+    "compiledDistincts": 0,
+    "numericUniqueSorts": 0,
+    "numericSmallestSelections": 0,
+    "numericUniqueSums": 0,
+    "numericSearches": 0,
+    "numericSearchIndexes": 0,
+    "numberLoops": 1,
+    "numberFunctions": 0,
+    "numberFunctionFallbacks": 0,
+    "exactLoopWorkSamples": 0,
+    "exactLoopWorkPromotions": 0,
+    "numberLoopCopyProbes": 0,
+    "numberLoopCopyAmortized": 0,
+    "mixedIntegerLoops": 0,
+    "numberLoopOverflows": 0,
+    "numberLoopSliceCopies": 0,
+    "numberLoopSliceCopyCells": 0,
+    "numberLoopSliceDirectCells": 0,
+    "numberLoopReadBuffers": 0,
+    "numberLoopReadBufferCells": 0,
+    "numberLoopReadBufferHits": 0,
+    "compiledTensors": 0,
+    "tensorRangeScans": 0,
+    "tensorRangeScannedCells": 0,
+    "numberTensors": 0,
+    "compiledCounterBuilds": 0,
+    "compiledCounterSums": 0,
+    "compiledCounterKeys": 0,
+    "tensorMapPreparations": 0,
+    "compiledArrayFunctions": 12,
+    "numericFunctionPreparations": 0,
+    "numericFunctionPlanHits": 12,
+    "rankedArrayBatches": 0,
+    "rankedBatches": 0,
+    "maskMaterializations": 0,
+    "maskMaterializedCells": 0,
+    "bulkArrayWrites": 0,
+    "bulkArrayWriteCells": 0,
+    "fusedArrayUpdates": 0,
+    "fusedArrayUpdateCells": 0,
+    "fusedArrayUpdateWidenings": 0,
+    "reusedTensorBuffers": 0,
+    "reusedTensorBufferCells": 0,
+    "cowCopies": 0,
+    "cowCopiedCells": 0,
+    "elementTypeScans": 6,
+    "elementTypeScannedCells": 18432,
+    "rangeSelectorViews": 0,
+    "selectionSnapshots": 0,
+    "selectionSnapshotCells": 0,
+    "typedUnpacks": 2,
+    "typedUnpackedCells": 8192,
+    "fallbacks": {
+      "tensor:binding:real": 1,
+      "tensor:binding:acos": 1,
+      "scalar-expression:unsupported-op:acos": 1,
+      "scalar-expression:operator-guard:*": 2,
+      "tensor:binding:cos": 1,
+      "tensor:binding:sin": 1
+    },
+    "compilerRejections": []
+  },
+  "generated": [
+    {
+      "kind": "Block",
+      "source": "direct-step-dispatch"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "direct-step-dispatch"
+    },
+    {
+      "kind": "Block",
+      "source": "direct-step-dispatch"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "direct-step-dispatch"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 2048) * 4096 + i % 2048 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 2048) * 4096 + i % 2048 + 2048;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 2048;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "direct-step-dispatch"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 1024) * 2048 + i % 1024 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 1024) * 2048 + i % 1024 + 1024;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 1024;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 512) * 1024 + i % 512 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 512) * 1024 + i % 512 + 512;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 512;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 256) * 512 + i % 256 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 256) * 512 + i % 256 + 256;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 256;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 128) * 256 + i % 128 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 128) * 256 + i % 128 + 128;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 128;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 64) * 128 + i % 64 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 64) * 128 + i % 64 + 64;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 64;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 32) * 64 + i % 32 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 32) * 64 + i % 32 + 32;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 32;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 16) * 32 + i % 16 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 16) * 32 + i % 16 + 16;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 16;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 8) * 16 + i % 8 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 8) * 16 + i % 8 + 8;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 8;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 4) * 8 + i % 4 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 4) * 8 + i % 4 + 4;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 4;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 2) * 4 + i % 2 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 2) * 4 + i % 2 + 2;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nconst p9 = i % 2;\nlet v10 = scalars[6] + (p9); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = (v10) * (scalars[8]); if (!Number.isSafeInteger(v11)) return false;\nif (v11 === 0) v11 = 0;\nlet v12 = data[1][v11]; if (!Number.isFinite(v12)) return false;\nlet v13 = (v8) * (v12); if (!Number.isFinite(v13)) return false;\nlet v14 = (v5) - (v6); if (!Number.isFinite(v14)) return false;\nlet v15 = data[3][v11]; if (!Number.isFinite(v15)) return false;\nlet v16 = (v14) * (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v13) - (v16); if (!Number.isFinite(v17)) return false;\nlet v18 = (v8) * (v15); if (!Number.isFinite(v18)) return false;\nlet v19 = (v14) * (v12); if (!Number.isFinite(v19)) return false;\nlet v20 = (v18) + (v19); if (!Number.isFinite(v20)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v17;\noutput[1][p2] = v20; } return true; };"
+    },
+    {
+      "kind": "FunctionBody",
+      "source": "\"use strict\"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < 2048; i++) { const p0 = Math.floor(i / 1) * 2 + i % 1 + 0;\nlet v1 = data[0][p0]; if (!Number.isFinite(v1)) return false;\nconst p2 = Math.floor(i / 1) * 2 + i % 1 + 1;\nlet v3 = data[0][p2]; if (!Number.isFinite(v3)) return false;\nlet v4 = (v1) + (v3); if (!Number.isFinite(v4)) return false;\nlet v5 = data[2][p0]; if (!Number.isFinite(v5)) return false;\nlet v6 = data[2][p2]; if (!Number.isFinite(v6)) return false;\nlet v7 = (v5) + (v6); if (!Number.isFinite(v7)) return false;\nlet v8 = (v1) - (v3); if (!Number.isFinite(v8)) return false;\nlet v9 = scalars[6] + (0); if (!Number.isSafeInteger(v9)) return false;\nif (v9 === 0) v9 = 0;\nlet v10 = (v9) * (scalars[8]); if (!Number.isSafeInteger(v10)) return false;\nif (v10 === 0) v10 = 0;\nlet v11 = data[1][v10]; if (!Number.isFinite(v11)) return false;\nlet v12 = (v8) * (v11); if (!Number.isFinite(v12)) return false;\nlet v13 = (v5) - (v6); if (!Number.isFinite(v13)) return false;\nlet v14 = data[3][v10]; if (!Number.isFinite(v14)) return false;\nlet v15 = (v13) * (v14); if (!Number.isFinite(v15)) return false;\nlet v16 = (v12) - (v15); if (!Number.isFinite(v16)) return false;\nlet v17 = (v8) * (v14); if (!Number.isFinite(v17)) return false;\nlet v18 = (v13) * (v11); if (!Number.isFinite(v18)) return false;\nlet v19 = (v17) + (v18); if (!Number.isFinite(v19)) return false; output[0][p0] = v4;\noutput[1][p0] = v7;\noutput[0][p2] = v16;\noutput[1][p2] = v19; } return true; };"
+    },
+    {
+      "kind": "IntegerLoop",
+      "source": "\"use strict\"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads, callouts) {\n        let r0 = input[0],r1 = input[1], storage1 = access(input[1]), reader1 = read(storage1, stableReads, 1), write1 = write(storage1, batchWrites),r2 = input[2], storage2 = access(input[2]), reader2 = read(storage2, stableReads, 1), write2 = write(storage2, batchWrites);\n        let result = initialResult, location = -1;\n        try {  for (;;) { location = -1; checkpoint(); const v0 = (r0) > (1n); if (!(v0)) break;\n            let iterationResult;\n             location = 0;\nconst v1 = arrayValues.binary(\"*\", r1, 2n);\nconst v2 = arrayValues.binary(\"mod\", r2, 2n);\nconst v3 = arrayValues.binary(\"+\", v1, v2);\nconst completed4 = materializeValue(v3);\nwriters[0](completed4); r1 = completed4; storage1 = access(completed4); reader1 = read(storage1, stableReads, 1); write1 = write(storage1, batchWrites); iterationResult = completed4;\nlocation = 1;\nconst v5 = arrayValues.binary(\"//\", r2, 2n);\nconst completed6 = materializeValue(v5);\nwriters[1](completed6); r2 = completed6; storage2 = access(completed6); reader2 = read(storage2, stableReads, 1); write2 = write(storage2, batchWrites); iterationResult = completed6;\nlocation = 2;\nif (((2n) === 0n)) throw zero();\nconst v7 = (r0) / (2n) - ((((r0) < 0n) !== ((2n) < 0n) && ((r0) % (2n)) !== 0n) ? 1n : 0n);\nconst out2 = v7;\nwriters[2](out2); r0 = out2; iterationResult = out2; \n            result = iterationResult; location = -1;\n        } return result; } catch (error) { throw locate(error, location); }\n    };\n\"use strict\"; return function(input, cells, changes, calls, publish) {\n        let r0 = input[0],r1 = input[1],r2 = input[2],d1 = 0,d2 = 0,d0 = 0,cells1 = cells[1],cells2 = cells[2], result, resultType = 'integer', location = -1, order = 0;\n        const entered = [];\n        const vectorPool = [], vectorLive = input.slice(), vectorStep = vectorBlockSize();\n        try {\n             for (;;) { location = -1; checkpoint(); const v0 = (r0) > (1); if (!(v0)) break;\n                let iterationResult, iterationType = 'integer';\n                 location = 0;\nconst length2 = cells1.length;\nconst scalar3 = 2;\nlet length4 = 1;\nif (length4 !== length2 && length4 !== 1 && length2 !== 1) throw overflow; length4 = length4 === 1 ? length2 : length4;\nif (length4 !== 1 && length4 !== 1 && 1 !== 1) throw overflow; length4 = length4 === 1 ? 1 : length4;\nconst length5 = cells2.length;\nconst scalar6 = 2;\nlet length7 = 1;\nif (length7 !== length5 && length7 !== 1 && length5 !== 1) throw overflow; length7 = length7 === 1 ? length5 : length7;\nif (length7 !== 1 && length7 !== 1 && 1 !== 1) throw overflow; length7 = length7 === 1 ? 1 : length7;\nlet length8 = 1;\nif (length8 !== length4 && length8 !== 1 && length4 !== 1) throw overflow; length8 = length8 === 1 ? length4 : length8;\nif (length8 !== length7 && length8 !== 1 && length7 !== 1) throw overflow; length8 = length8 === 1 ? length7 : length8;\nconst vector1 = vectorArray([length8], false, vectorPool, vectorLive, [result, iterationResult, cells1,cells2]);\n                for (let block14 = 0; block14 < length8; block14 += vectorStep) {\n            const end15 = Math.min(length8, block14 + vectorStep);\n            \n            checkpoint(undefined, end15 - block14);\n            for (let cell9 = block14; cell9 < end15; cell9++) { const v10 = safe((safe(Number(cells1[(length2 === 1 ? 0 : cell9)]))) * (2));\nif (((2) === 0)) throw overflow;\nconst m12 = (safe(Number(cells2[(length5 === 1 ? 0 : cell9)]))) >= 0 && (safe(Number(cells2[(length5 === 1 ? 0 : cell9)]))) < 4503599627370496 && (2) > 0 ? (safe(Number(cells2[(length5 === 1 ? 0 : cell9)]))) - Math.floor((safe(Number(cells2[(length5 === 1 ? 0 : cell9)]))) / (2)) * (2) : (safe(Number(cells2[(length5 === 1 ? 0 : cell9)]))) % (2);\nconst v11 = safe(m12 + ((((safe(Number(cells2[(length5 === 1 ? 0 : cell9)]))) < 0) !== ((2) < 0) && m12 !== 0) ? (2) : 0));\nconst v13 = safe((v10) + (v11));\nvector1.store(cell9, v13); }\n        }\nconst completed16 = vector1;\nif (!d1) d1 = ++order;\nr1 = completed16; cells1 = cells[1] = completed16.cells;\nvectorLive[1] = completed16;\niterationResult = completed16; iterationType = 'array';\nlocation = 1;\nconst length18 = cells2.length;\nconst scalar19 = 2;\nlet length20 = 1;\nif (length20 !== length18 && length20 !== 1 && length18 !== 1) throw overflow; length20 = length20 === 1 ? length18 : length20;\nif (length20 !== 1 && length20 !== 1 && 1 !== 1) throw overflow; length20 = length20 === 1 ? 1 : length20;\nconst vector17 = vectorArray([length20], false, vectorPool, vectorLive, [result, iterationResult, cells2]);\n                for (let block23 = 0; block23 < length20; block23 += vectorStep) {\n            const end24 = Math.min(length20, block23 + vectorStep);\n            \n            checkpoint(undefined, end24 - block23);\n            for (let cell21 = block23; cell21 < end24; cell21++) { if (((2) === 0)) throw overflow;\nconst v22 = Math.abs(safe(Number(cells2[(length18 === 1 ? 0 : cell21)]))) < 4503599627370496 ? Math.floor((safe(Number(cells2[(length18 === 1 ? 0 : cell21)]))) / (2)) || 0 : divide(safe(Number(cells2[(length18 === 1 ? 0 : cell21)])), 2);\nvector17.store(cell21, v22); }\n        }\nconst completed25 = vector17;\nif (!d2) d2 = ++order;\nr2 = completed25; cells2 = cells[2] = completed25.cells;\nvectorLive[2] = completed25;\niterationResult = completed25; iterationType = 'array';\nlocation = 2;\nif (((2) === 0)) throw zero();\nconst v26 = Math.abs(r0) < 4503599627370496 ? Math.floor((r0) / (2)) || 0 : divide(r0, 2);\nconst out2 = v26;\nif (!d0) d0 = ++order; r0 = out2; iterationResult = out2; iterationType = \"integer\";\n                result = iterationResult; resultType = iterationType; location = -1;\n            }\n        } catch (error) {\n            if (error === overflow) return undefined;\n            publish(entered, [[d1, 1, r1],[d2, 2, r2],[d0, 0, r0]]);\n            throw locate(error, location);\n        }\n        publish(entered, [[d1, 1, r1],[d2, 2, r2],[d0, 0, r0]]);\n        return { value: result, type: resultType };\n    };"
+    }
+  ],
+  "warmGenerated": []
+}

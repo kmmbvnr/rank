@@ -1,0 +1,327 @@
+{
+  "date": "2026-11-01T01:29:42.012Z",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 9,
+  "versions": {
+    "baseline": {
+      "path": "/tmp/rank-integer-vector-base",
+      "commit": "4b0d6077b70c41020a4280db3c42fe61d046855d",
+      "dirty": false
+    },
+    "candidate": {
+      "path": "/private/tmp/rank-numeric-plans/",
+      "commit": "4b0d6077b70c41020a4280db3c42fe61d046855d",
+      "dirty": true
+    }
+  },
+  "sources": {
+    "euler": {
+      "path": "demos/euler/006_sumsquarediff.ra",
+      "sha256": "07857b0214aad226d9565d8e696ba5b3d08d4c0370e86da779998feed19a78b3"
+    },
+    "matvec": {
+      "path": "demos/deepml/001_matmul.ra",
+      "sha256": "04be3e6ce5992dcfe6fcf76f86559c822efb467fbcff38abc90ba05c120632d1"
+    },
+    "row": {
+      "path": "demos/deepml/004_mean.ra",
+      "sha256": "065143b7a2a28aff3d9bad4f4e80f8a9ceb8483802df83f9c0a9f71b78a58575"
+    },
+    "column": {
+      "path": "demos/deepml/004_mean.ra",
+      "sha256": "065143b7a2a28aff3d9bad4f4e80f8a9ceb8483802df83f9c0a9f71b78a58575"
+    },
+    "matmul": {
+      "path": "demos/deepml/009_matmul.ra",
+      "sha256": "2bec0ade2d2ff586980e8b49c91a7f8c2486ab18dc2159e2bee43091384ebcac"
+    },
+    "gradient": {
+      "path": "demos/deepml/015_gd.ra",
+      "sha256": "7f1756026b77ba85b35213f29dddee6e31f821d840c8b95feff3bfa9d09fdeae"
+    },
+    "kmeans": {
+      "path": "demos/deepml/017_kmeans.ra",
+      "sha256": "c03aabc2e28e90b8760e2a91f89a7c0a0b3e712cc3ef05a2a3d7e1b2f518d5a8"
+    },
+    "fft": {
+      "path": "demos/classic/fft.ra",
+      "sha256": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    "stages": {
+      "path": "benchmarks/experiments/numeric-array-stages.mjs",
+      "sha256": "ade8327c65a468ceb4bed195ea316693b5b384c62a80ddd3c362e3e2c8a1b0c8"
+    }
+  },
+  "timing": "Serial fresh processes; alternating order per pair. Demo workers use the largest existing numerical-demos.mjs scale, owned snapshot inputs, two warm calls and three measured calls; row is median of measured calls. Euler includes parsing. Array-stage fixtures time a complete parse/execute of 12 rounds. FFT uses the same current demo source in both builds, >=300 ms warmup and a batch targeting 150 ms, including output forcing. Every worker validates its output against the existing independent oracle. These are different timing contracts and should only be compared within a case.",
+  "results": [
+    {
+      "name": "fft",
+      "trial": 0,
+      "version": "baseline",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.181500000000028,
+      "warmMs": 0.9810605337837838,
+      "cpuMs": 1.2747635135135134,
+      "iterations": 148,
+      "warmups": 250,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 0.9810605337837838
+    },
+    {
+      "name": "fft",
+      "trial": 0,
+      "version": "candidate",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.09983299999999,
+      "warmMs": 1.0379236573426576,
+      "cpuMs": 1.4887132867132866,
+      "iterations": 143,
+      "warmups": 226,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0379236573426576
+    },
+    {
+      "name": "fft",
+      "trial": 1,
+      "version": "candidate",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 11.834000000000003,
+      "warmMs": 1.0141050420168065,
+      "cpuMs": 1.3759159663865548,
+      "iterations": 119,
+      "warmups": 248,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0141050420168065
+    },
+    {
+      "name": "fft",
+      "trial": 1,
+      "version": "baseline",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.386750000000006,
+      "warmMs": 0.9975072580645159,
+      "cpuMs": 1.304941935483871,
+      "iterations": 155,
+      "warmups": 242,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 0.9975072580645159
+    },
+    {
+      "name": "fft",
+      "trial": 2,
+      "version": "baseline",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.364040999999986,
+      "warmMs": 0.9919738269230771,
+      "cpuMs": 1.296673076923077,
+      "iterations": 156,
+      "warmups": 245,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 0.9919738269230771
+    },
+    {
+      "name": "fft",
+      "trial": 2,
+      "version": "candidate",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.309415999999999,
+      "warmMs": 1.0079777635135134,
+      "cpuMs": 1.3266554054054054,
+      "iterations": 148,
+      "warmups": 242,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0079777635135134
+    },
+    {
+      "name": "fft",
+      "trial": 3,
+      "version": "candidate",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.357583999999974,
+      "warmMs": 0.9957471632653059,
+      "cpuMs": 1.3184625850340135,
+      "iterations": 147,
+      "warmups": 244,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 0.9957471632653059
+    },
+    {
+      "name": "fft",
+      "trial": 3,
+      "version": "baseline",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.284125000000017,
+      "warmMs": 1.0152959452054802,
+      "cpuMs": 1.3444109589041096,
+      "iterations": 146,
+      "warmups": 244,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0152959452054802
+    },
+    {
+      "name": "fft",
+      "trial": 4,
+      "version": "baseline",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 13.232875000000035,
+      "warmMs": 1.022631652777778,
+      "cpuMs": 1.4839930555555556,
+      "iterations": 144,
+      "warmups": 234,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.022631652777778
+    },
+    {
+      "name": "fft",
+      "trial": 4,
+      "version": "candidate",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.50908400000003,
+      "warmMs": 0.9916981161290324,
+      "cpuMs": 1.2954322580645161,
+      "iterations": 155,
+      "warmups": 243,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 0.9916981161290324
+    },
+    {
+      "name": "fft",
+      "trial": 5,
+      "version": "candidate",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.122375000000034,
+      "warmMs": 1.0107979862068963,
+      "cpuMs": 1.3341793103448276,
+      "iterations": 145,
+      "warmups": 240,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0107979862068963
+    },
+    {
+      "name": "fft",
+      "trial": 5,
+      "version": "baseline",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.419624999999996,
+      "warmMs": 0.9899419873417723,
+      "cpuMs": 1.289379746835443,
+      "iterations": 158,
+      "warmups": 243,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 0.9899419873417723
+    },
+    {
+      "name": "fft",
+      "trial": 6,
+      "version": "baseline",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.261374999999987,
+      "warmMs": 1.0128879527027028,
+      "cpuMs": 1.328939189189189,
+      "iterations": 148,
+      "warmups": 239,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0128879527027028
+    },
+    {
+      "name": "fft",
+      "trial": 6,
+      "version": "candidate",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.441499999999962,
+      "warmMs": 1.0304068965517241,
+      "cpuMs": 1.4887586206896553,
+      "iterations": 145,
+      "warmups": 231,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0304068965517241
+    },
+    {
+      "name": "fft",
+      "trial": 7,
+      "version": "candidate",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.327124999999967,
+      "warmMs": 1.0092991379310339,
+      "cpuMs": 1.3334827586206897,
+      "iterations": 145,
+      "warmups": 246,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0092991379310339
+    },
+    {
+      "name": "fft",
+      "trial": 7,
+      "version": "baseline",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.497749999999996,
+      "warmMs": 1.0078619322033893,
+      "cpuMs": 1.4168389830508477,
+      "iterations": 118,
+      "warmups": 232,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0078619322033893
+    },
+    {
+      "name": "fft",
+      "trial": 8,
+      "version": "baseline",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.425625000000025,
+      "warmMs": 1.0145076338028167,
+      "cpuMs": 1.3408169014084506,
+      "iterations": 142,
+      "warmups": 243,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0145076338028167
+    },
+    {
+      "name": "fft",
+      "trial": 8,
+      "version": "candidate",
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.529875000000004,
+      "warmMs": 1.0507557517241382,
+      "cpuMs": 1.5094,
+      "iterations": 145,
+      "warmups": 228,
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+      "measuredMs": 1.0507557517241382
+    }
+  ],
+  "summary": [
+    {
+      "name": "fft",
+      "version": "baseline",
+      "medianMs": 1.0078619322033893,
+      "minMs": 0.9810605337837838,
+      "maxMs": 1.022631652777778
+    },
+    {
+      "name": "fft",
+      "version": "candidate",
+      "medianMs": 1.0107979862068963,
+      "minMs": 0.9916981161290324,
+      "maxMs": 1.0507557517241382
+    }
+  ]
+}

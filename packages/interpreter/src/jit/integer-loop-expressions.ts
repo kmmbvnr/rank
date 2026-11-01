@@ -733,6 +733,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         readonly shape: string;
         readonly rank: number;
         readonly offsets: Map<string, string>;
+        readonly values: Map<string, LoopTerm>;
     }
     /** Existing dense integer kernels prove bounds and avoid per-cell safe
      * checks. On multidimensional +,-,* they beat the generic Number region
@@ -816,7 +817,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 // Trailing broadcasting composes: address each original leaf
                 // directly in the final frame, rather than remapping indices
                 // through every intermediate pointwise expression.
-                const root = frame ?? { shape, rank: type.rank, offsets: new Map<string, string>() };
+                const root = frame ?? { shape, rank: type.rank, offsets: new Map<string, string>(), values: new Map<string, LoopTerm>() };
                 const values = inputs.map(input => input.cell(index, body, root));
                 if (values.some(value => !value)) return undefined;
                 const previous = point.operands.map(operand => scalarInputs.get(operand));
@@ -845,6 +846,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const size = `length${state.serial++}`;
         lines.push(`const ${size} = ${cells}.length;`);
         return { size, shape, rank: type.rank, type: type.element, sources: [cells], cell: (index, body, frame) => {
+            const key = `${cells}:${index}`;
+            const previous = frame?.values.get(key);
+            if (previous) return previous;
             let position = index;
             if (frame && frame.rank <= 1) position = `(${size} === 1 ? 0 : ${index})`;
             else if (frame) {
@@ -863,8 +867,14 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     frame.offsets.set(key, position);
                 }
             }
-            return { code: type.element === 'boolean' ? `(${cells}[${position}] !== 0)`
-                : type.element === 'real' ? `Number(${cells}[${position}])` : `safe(Number(${cells}[${position}]))`, type: type.element };
+            // A pointwise cell never mutates its inputs. Freeze each leaf once
+            // before arithmetic expands it into division/remainder guards.
+            const value = `cellValue${state.serial++}`;
+            body.push(`const ${value} = ${type.element === 'boolean' ? `(${cells}[${position}] !== 0)`
+                : type.element === 'real' ? `Number(${cells}[${position}])` : `safe(Number(${cells}[${position}]))`};`);
+            const term = { code: value, type: type.element };
+            frame?.values.set(key, term);
+            return term;
         } };
     }
     function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {

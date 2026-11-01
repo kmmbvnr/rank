@@ -577,6 +577,435 @@ node benchmarks/fft-demo-regression.mjs \
   --only=matmul --output=/tmp/fft-demo-matmul.json
 ```
 
+## General compiler follow-up: prepared numeric functions
+
+### Step 1: cache the full preparation
+
+The compiler previously cached generated code but rebuilt the entire bound
+node graph, shape arithmetic, local contracts and scalar-slot mapping before
+every lookup. It now retains a bounded prepared specialization selected from
+the current input shapes, scalar kinds and scalar values. Negative real zero
+has its own key. Every call still validates current storage, metadata and
+native operations, reads fresh input cells, and allocates fresh outputs.
+No input arrays or output buffers are retained by these plans. Unsupported
+inputs and arithmetic failures retain ordinary replay.
+
+This changes the compiler only. The FFT source is unchanged: sine/cosine
+tables and frequency ordering are still computed inside each FFT call.
+The baseline is an independently built clean `31f2acaa` checkout; the
+candidate was measured as uncommitted changes based on the same commit.
+
+Five serial fresh-process samples per mode, alternating order, give:
+
+| FFT N | Before, ms | After, ms |
+| --- | ---: | ---: |
+| 256 | 0.526 | 0.383 |
+| 1024 | 0.869 | 0.732 |
+| 4096 | 1.780 | 1.380 |
+
+The N=4096 first-series wall median decreases 22.5%, but host load causes
+large outliers, including a 12.43 ms baseline at N=256. A separate nine-pair
+N=4096 confirmation measures 1.504 to 1.350 ms (10.2% lower); CPU medians
+fall from 2.480 to 1.997 ms (19.5%). Confirmation ranges still overlap:
+before 1.37–3.55 ms, after 1.27–3.04 ms. The confirmation supports a more
+modest gain than the initial largest-size median.
+
+Three independent pure array helpers use the same compiler, without any
+FFT operations or name matching. They force the complete host output within
+timing and check every value against independent JS expressions:
+
+| Helper, 4096 input cells | Before, ms | After, ms |
+| --- | ---: | ---: |
+| Reshape + affine transform | 0.10962 | 0.06336 |
+| Strided finite differences | 0.03747 | 0.03291 |
+| Paired-channel mean/spread | 0.05778 | 0.05432 |
+
+Finite differences improve 12.2%, with first-series process ranges
+0.03627–0.03960 ms before and 0.03212–0.03598 ms after. The affine result
+has very wide ranges (0.0559–0.3024 before, 0.0581–0.1220 after), so its
+large median change is not a reliable standalone speedup claim.
+
+Existing demo controls remain unchanged in the stable series: matrix-vector
+30.864 to 30.715 ms; gradient descent's nine-pair confirmation 7.126 to
+7.115 ms. The first gradient series was noisy and appeared 14.2% slower
+(12.275 to 14.017 ms); the confirmation does not reproduce that regression.
+Programs that do not use eligible numerical helpers are not expected to
+benefit from this preparation cache.
+
+Warm FFT diagnostics record 12 prepared-plan hits, zero preparations and
+12 executed numerical functions; no new code is generated. The cache remains
+bounded to 32 variants, and eviction/rebuilding, new input values, shape/type
+changes, signed zero, builtin guards and post-warm arithmetic failure have
+dedicated tests. All 453 ordinary interpreter files / 10,415 tests, 55
+Deep-ML files, seven classic files, TypeScript build, semantic boundaries
+and application-form checks pass. Exhaustive audits remain excluded.
+
+Evidence: [FFT series](baselines/2026-11-01-numeric-prepared-step1-fft.json),
+[FFT confirmation](baselines/2026-11-01-numeric-prepared-step1-fft-confirm.json),
+[general helpers](baselines/2026-11-01-numeric-prepared-step1-helpers.json),
+[matvec control](baselines/2026-11-01-numeric-prepared-step1-matvec.json),
+[gradient first series](baselines/2026-11-01-numeric-prepared-step1-gradient.json),
+[gradient confirmation](baselines/2026-11-01-numeric-prepared-step1-gradient-confirm.json),
+[warm/cold diagnostics](baselines/2026-11-01-numeric-prepared-step1-diagnostics.json).
+
+```sh
+node benchmarks/numeric-function-plans.mjs \
+  --baseline=/path/to/baseline --samples=5 \
+  --output=/tmp/numeric-function-plans.json
+```
+
+### Step 2: integer-bound guard pruning rejected
+
+The next experiment used already prepared safe integer intervals to omit
+per-cell `Number.isSafeInteger` checks for virtual ranges/index arithmetic.
+Real arithmetic guards and integer-zero normalization remained. The baseline
+is a fixed build of step 1 (`fa9e1915`), and sources are unchanged.
+
+| FFT N | Step 1, ms | Experimental pruning, ms |
+| --- | ---: | ---: |
+| 256 | 0.37860 | 0.36976 |
+| 1024 | 0.71298 | 0.70901 |
+| 4096 | 1.35135 | 1.34006 |
+
+At N=4096 the 0.8% wall difference is within the overlapping process ranges
+(1.320–1.455 ms before, 1.310–1.440 ms after); CPU medians are essentially
+unchanged, 2.022 to 2.025 ms. The indexed helper initially appears 4.0% faster
+in five pairs, but a nine-pair confirmation reverses direction: 0.03127 to
+0.03164 ms, with CPU 0.05205 to 0.05239 ms. Affine and paired-channel helpers,
+whose emitted arithmetic did not benefit from integer-bound pruning, also
+show small shifts. There is no reproducible speed improvement here.
+
+The guard-pruning change was therefore removed from production code. Its
+[experimental patch](experiments/numeric-index-proof.patch) is retained only
+to reproduce the negative result; it applies to the step-1 code generator.
+Raw step-2 timings and diagnostics describe that rejected candidate, not
+the final retained implementation.
+
+The boundary tests exposed an independent existing eligibility defect:
+ordinary unary +/- reject inline sequences, whereas a named range binding
+has already completed into an array. The numeric compiler previously treated
+both as virtual arrays. It now conservatively declines unary expressions
+containing an inline range through arithmetic, preserving the ordinary error.
+The syntax check is bounded, and named-array unary arithmetic remains supported.
+This correctness fix, safe-integer boundary cases and signed-zero regressions
+are retained; runtime integer guards remain as in step 1.
+
+The experimental version passed 453 ordinary files / 10,423 tests. After
+removing guard pruning and its code-generator-only test, the final retained
+version passes all 453 ordinary files / 10,422 tests, including 45 numerical
+function tests. All 55 Deep-ML files and seven classic files pass again;
+TypeScript build, semantic boundaries and application-form checks pass.
+Exhaustive audits were not run. No end-to-end speedup is attributed to this
+second step; its retained production change is the unary-sequence repair.
+
+Evidence: [FFT experiment](baselines/2026-11-01-numeric-prepared-step2-fft.json),
+[helper experiment](baselines/2026-11-01-numeric-prepared-step2-helpers.json),
+[indexed confirmation](baselines/2026-11-01-numeric-prepared-step2-indexed-confirm.json),
+[rejected-candidate diagnostics](baselines/2026-11-01-numeric-prepared-step2-diagnostics.json).
+Timing again uses serial fresh processes with alternating order and no
+concurrent tests/profiling. Ratios from the two steps are not multiplied.
+
+### Step 3: private array registers across pure helper calls
+
+The baseline is a fixed build of `cfcefda9`, after steps 1 and 2. The FFT
+source is unchanged: every invocation still computes its coefficients and
+permutation. This step adds a generic conditional-loop plan, using the
+existing numerical helper compiler through a private buffer interface.
+
+An eligible loop calls pure global helpers, assigns an array or unpacks a
+flat tuple of arrays, and updates safe integer control variables. Array
+ranks must remain fixed, and scalar control must prove a finite schedule of
+at most 1024 iterations independently of array results. Existing input
+storage is borrowed read-only; helper outputs remain private until the loop
+succeeds. A failed guard replays the original loop with untouched bindings.
+Captures, effects, memoization, explicit call ranks, generators, finally,
+inspection hooks, cancellation and demand budgets retain the ordinary path.
+
+The first two passes retain public return-contract observations: the first
+can consume inputs with unresolved element declarations; by the second,
+loop-written arrays are real with fixed ranks. Later shapes/scalar values do
+not change the argument specialization. Final bindings and return values
+are wrapped and published once. Numeric output buffers are still freshly
+allocated for every call; buffer recycling is not part of this step.
+
+Five alternating pairs in fresh processes, including all output forcing:
+
+| FFT N | Before, ms | Private calls, ms | Less time | JS in-place, ms |
+| --- | ---: | ---: | ---: | ---: |
+| 256 | 0.35811 | 0.20549 | 42.6% | 0.02412 |
+| 1024 | 0.68093 | 0.46178 | 32.2% | 0.09621 |
+| 4096 | 1.30343 | 1.01823 | 21.9% | 0.38910 |
+
+At N=4096, process ranges do not overlap: 1.295–1.307 ms before and
+0.987–1.026 ms after. CPU medians improve from 1.933 to 1.336 ms. The
+remaining gap against this handwritten JS implementation is about 2.62x;
+this step alone is a 1.28x speedup, not a threefold gain.
+
+A second five-pair run on the final build confirms the result: 1.30105 to
+1.00930 ms at N=4096, with JS at 0.38785 ms (about 2.60x gap). At N=256 and
+1024 it measures 0.36149 to 0.20650 and 0.68282 to 0.46333 ms.
+
+Unhooked runtime diagnostics show one private call loop and twelve helper
+calls. A warm call has twelve prepared-plan hits and zero preparations.
+The benchmark's `--diagnostics` mode installs compilation hooks and therefore
+retains the ordinary loop path; those hook-based runs must not be used to
+count this new optimization.
+
+Independent helpers repeat 16 calls over 4096 real elements. Their inputs
+and full independent JS oracles are prepared outside timing:
+
+| Helper | Before, ms | Private calls, ms |
+| --- | ---: | ---: |
+| Repeated affine transform | 0.27574 | 0.12312 |
+| Repeated pair transform | 0.27580 | 0.12465 |
+| Standalone affine control | 0.04922 | 0.04952 |
+| Standalone indexed control | 0.03080 | 0.03099 |
+| Standalone pair control | 0.04926 | 0.04940 |
+
+The caller-loop examples improve about 2.2x; standalone controls change by
+less than 1%. These controls also cover the refactored ordinary helper
+input path. No FFT-specific operation, coefficient cache or source rewrite
+is involved.
+
+The unchanged matrix/vector demo measures 29.233 to 29.212 ms; gradient
+descent measures 6.968 to 7.012 ms with overlapping process ranges. Neither
+control shows a material change.
+
+Verification: all 453 existing ordinary interpreter files / 10,422 tests
+pass, and all 29 new caller-loop cases pass. The ordinary run exposed an
+incorrect expectation in the new memo fixture (array memo keys are rejected);
+that expectation was corrected and its full 29-case file rerun successfully.
+Tests compare complete results, retained aliases and located errors against
+uncompiled and number-loop-disabled execution, including post-progress
+failures, changing shapes, signed zero, negative floor division, effects,
+captures, hooks, cancellation, demand budgets and the unchanged 4096-point
+FFT. All 55 Deep-ML files and seven classic files pass; TypeScript build,
+semantic boundaries and application-form checks pass. Exhaustive audits
+remain excluded, as required by AGENTS.md.
+
+Evidence: [FFT series](baselines/2026-11-01-numeric-call-loop-fft.json),
+[FFT confirmation](baselines/2026-11-01-numeric-call-loop-fft-confirm.json),
+[general helpers and standalone controls](baselines/2026-11-01-numeric-call-loop-helpers.json),
+[matrix/vector control](baselines/2026-11-01-numeric-call-loop-matvec.json),
+[gradient control](baselines/2026-11-01-numeric-call-loop-gradient.json),
+[unhooked diagnostics](baselines/2026-11-01-numeric-call-loop-diagnostics.json),
+[CPU summary](baselines/2026-11-01-numeric-call-loop-cpu.json).
+
+A separate 2.5-second CPU sample places roughly 45% of inclusive time in the
+existing numerical array loop used for output permutation, versus about 14%
+in the new helper-call loop. Output boxing takes about 7%; garbage collection
+about 3%. These instrumented proportions locate follow-up work, not predicted
+speedups, and categories can overlap. Generic integer array-loop execution
+is now a more promising large target than another helper-boundary change.
+
+### Step 4a: repair wide signed array division
+
+Boundary tests for the next loop experiment exposed an existing ordinary
+kernel bug, also reproduced on `4b0d6077`: `(array -9007199254740991) // 3`
+can throw a fractional-to-BigInt RangeError. Computing `(a - remainder) / b`
+can round the subtraction outside the safe integer range even when the
+operands and mathematical quotient fit. The stored integer kernel now
+checks that intermediate and declines to the exact BigInt backend.
+
+Six divisor cases check nine numerators, both signs, boxed and Int64 storage,
+and vector/matrix shapes against an independent BigInt oracle. Together
+with the loop boundary checks, 112 focused tests pass. This is a correctness
+repair; no speed improvement is attributed to it.
+
+The first five-pair FFT control was noisy (1.046 to 1.112 ms, process maxima
+above 2 ms). A separate nine-pair confirmation measures 1.00786 to 1.01080 ms,
+with overlapping ranges of 0.981–1.023 and 0.992–1.051 ms. FFT source and
+coefficients remain unchanged. The cell-reuse experiment was removed from
+the measured build, so this control isolates the division repair.
+
+Evidence: [initial control](baselines/2026-11-01-wide-array-division-fix-fft.json),
+[nine-pair confirmation](baselines/2026-11-01-wide-array-division-fix-fft-confirm.json).
+
+### Step 4b: reuse pointwise leaf loads
+
+The confirmed baseline is `fbea7e4b`, including the separate division repair.
+The numerical loop compiler now freezes each original array leaf in a local
+per-cell temporary. Division/remainder expansion reuses that value instead
+of repeating the load, Number conversion and safe-integer check. Repeated
+references to the same leaf in one pointwise frame share the temporary.
+The temporary executes afresh for every cell and iteration; no input values
+are cached across assignments or calls. Integer overflow guards remain, and
+allocation/publication, division algorithms and FFT source are unchanged.
+
+An initial five-pair run against `4b0d6077` and a nine-pair run against the
+repaired baseline both contain severe wall-time outliers. For example,
+N=1024 before/after medians in the latter are 0.828/0.465 ms, but baseline
+individual processes range from 0.475 to 5.197 ms. No small-size percentage
+is attributed to that noisy comparison.
+
+A focused confirmation at N=4096 uses five alternating fresh-process pairs,
+at least 1000 ms warmup, and three batches of at least 500 ms per process.
+Every worker reports its median batch, and all batches remain in the raw
+report. Both implementations recompute coefficients and output ordering
+on every call, and full outputs are forced and checked.
+
+| FFT N=4096 | Median, ms | CPU median, ms |
+| --- | ---: | ---: |
+| Before leaf reuse | 0.97994 | 1.24237 |
+| Leaf reuse | 0.82613 | 1.09608 |
+| Handwritten JS in-place | 0.42650 | 0.42729 |
+
+That is 15.7% less wall time (1.19x), with 11.8% less CPU time. Three of five
+paired worker medians improve; two candidate processes are slower, at 1.152
+and 1.819 ms. The separate nine-pair short-batch series improves in seven
+pairs and has medians of 1.11166 to 0.89651 ms. No outliers were discarded. The JS gap in this same series is about 1.94x. This is evidence
+for a roughly 15–20% improvement on this FFT workload, not a threefold gain
+or a claim that every array program becomes faster.
+
+```sh
+node benchmarks/fft.mjs --baseline=/path/to/baseline \
+  --sizes=4096 --samples=5 --warmup-ms=1000 \
+  --batch-ms=500 --batches=3 \
+  --modes=baseline,compiled,js-inplace
+node benchmarks/integer-vector-loops.mjs \
+  --baseline=/path/to/baseline --samples=5
+```
+
+The general whole-loop benchmark parses once, prepares Int32 inputs and an
+independent full BigInt oracle outside timing, then resets input bindings and
+runs twelve array iterations with full result publication/forcing. Every
+worker asserts that the numerical loop backend really executed.
+
+| Whole-loop case, 4096 output cells | Before, ms | Leaf reuse, ms |
+| --- | ---: | ---: |
+| Repeated remainders | 0.45327 | 0.36730 |
+| Quotient and remainder | 0.41785 | 0.39556 |
+| Affine numerator / scalar divisor | 0.33383 | 0.33901 |
+| Two-dimensional broadcasting | 0.59756 | 0.59447 |
+
+The repeated-remainder case improves 19.0%, with nonoverlapping process
+ranges (0.446–0.460 versus 0.355–0.368 ms) and CPU 0.549 to 0.457 ms.
+The quotient series contains large outliers; the affine and broadcast
+controls have overlapping ranges and do not establish a general gain.
+The affine division already uses a scalar arithmetic temporary for its
+numerator. These controls show that fewer generated leaf expressions do
+not by themselves establish an end-to-end gain.
+
+The nine-pair affine confirmation reverses the small initial difference:
+0.33812 to 0.32476 ms wall, but CPU is 0.42082 to 0.42571 ms, with wide
+and overlapping process ranges. There is no reproducible affine regression
+or speed improvement.
+
+Real matrix and real broadcast controls measure 111.020 to 110.585 ms and
+121.932 to 121.128 ms respectively, both with overlapping process ranges.
+There is no measurable regression or improvement in these two controls.
+
+Verification: all 454 ordinary interpreter files / 10,464 tests pass,
+including the new repeated-operand cases at safe integer boundaries,
+negative divisors, empty/multidimensional broadcasting, overflow replay,
+retained aliases and located errors after completed stages. All 55 Deep-ML
+files and seven classic files pass, along with the TypeScript build,
+semantic boundaries and application-form checks. Exhaustive audits remain
+excluded as required by AGENTS.md.
+
+A separate instrumented CPU sample now places about 35% of inclusive time
+in the numerical array loop, 16% in the helper-call loop and 8% in output
+boxing. These proportions locate remaining work; they are not timing
+speedups or forecasts, and inclusive categories can overlap.
+
+Evidence: [pre-repair preliminary FFT series](baselines/2026-11-01-vector-cell-cse-fft.json),
+[nine-pair short-batch FFT series](baselines/2026-11-01-vector-cell-cse-fft-confirm.json),
+[focused long-batch confirmation](baselines/2026-11-01-vector-cell-cse-fft-long.json),
+[general integer loops](baselines/2026-11-01-vector-cell-cse-integers.json),
+[affine confirmation](baselines/2026-11-01-vector-cell-cse-affine-confirm.json),
+[real matrix control](baselines/2026-11-01-vector-cell-cse-real-matrix.json),
+[real broadcast control](baselines/2026-11-01-vector-cell-cse-real-broadcast.json),
+[CPU summary](baselines/2026-11-01-vector-cell-cse-cpu.json).
+
+### Pre-merge audit against main
+
+The complete branch at `dd870052` was compared with an independently built
+current main, `31f2acaa`. This measures all five commits together rather than
+multiplying ratios from separate experiments. Five alternating pairs of
+fresh processes run seven unchanged numerical demo scenarios and three array
+controls plus FFT; every worker validates complete outputs independently.
+
+| Scenario | Main, ms | Candidate, ms |
+| --- | ---: | ---: |
+| Euler 6 | 12.444 | 12.450 |
+| Matrix × vector, 512 × 512 | 29.681 | 29.552 |
+| Row means, 512 × 512, nine-pair confirmation | 23.590 | 23.509 |
+| Column means, 512 × 512 | 24.011 | 23.887 |
+| Matrix × matrix, 64 × 64 | 232.225 | 232.274 |
+| Gradient descent, 2048 samples | 7.091 | 7.165 |
+| K-means, 2048 points | 101.770 | 101.506 |
+| Integer matrix stages | 91.490 | 91.282 |
+| Real matrix stages, nine-pair confirmation | 110.328 | 111.002 |
+| Real broadcast stages | 123.432 | 124.082 |
+| FFT, 4096 | 1.42037 | 0.85576 |
+
+The first row-mean series suggested a 10% gain but had large overlapping
+ranges; nine fresh pairs reduce that difference to 0.3%. The initial real
+matrix series suggested a 2.4% regression; its nine-pair confirmation is
+0.6% slower with overlapping ranges. No material change is established for
+the ten non-FFT controls. FFT improves about 1.66x (39.8% less time) in this
+whole-branch comparison, with nonoverlapping process ranges.
+
+There is also measured non-FFT benefit in the independent numerical helper
+workloads, again compared directly with main in five fresh-process pairs:
+
+| Pure helper scenario | Main, ms | Candidate, ms |
+| --- | ---: | ---: |
+| Standalone affine | 0.05092 | 0.04944 |
+| Standalone indexed differences | 0.03654 | 0.03366 |
+| Standalone paired-channel transform | 0.05467 | 0.04912 |
+| Sixteen affine helper calls in a loop | 0.31366 | 0.12389 |
+| Sixteen paired-channel calls in a loop | 0.35153 | 0.12567 |
+
+The two caller-loop cases improve 2.53x and 2.80x; their process ranges do
+not overlap. Warm diagnostics record one private loop, sixteen helper calls
+and sixteen prepared-plan hits in each. These are controlled helper
+benchmarks, not claims about unchanged Deep-ML demo performance. The
+separate integer-remainder workload in step 4b also benefits outside FFT.
+
+A further, untimed diagnostic call on each of the seven numerical demo
+scenarios records zero prepared numerical helper hits and zero private
+helper-call loops. Their existing native/tensor execution paths do the
+work: matrix multiplication, reductions, indexed writes and a captured
+k-means helper are outside the new pure-callee protocol. This explains the
+limited coverage rather than treating unchanged timings as an acceleration.
+
+The retained mechanisms are general: bounded preparation caches depend on
+input contracts; private buffers cross eligible pure helper calls; pointwise
+leaf reuse applies to supported numerical array expressions; the wide signed
+division repair restores exact semantics. None recognizes FFT names, sizes
+or coefficient values. The rejected integer-guard experiment remains only
+an archived patch. Existing faster dense integer kernels retain admission.
+
+Further coverage could include range-controlled caller loops, scalar and
+array operations mixed with helper calls, safe captures, and additional
+numeric IR operations such as reductions/matmul. These are possible separate
+extensions, not implemented behavior or prerequisites for merging this
+verified subset. Profiles of the intended next workload should determine
+which extension earns its cost; expanding the outer loop form alone would
+not accelerate a body dominated by unsupported matmul/reductions.
+
+The compiler/runtime source is identical to the version that passed all 454
+ordinary interpreter files / 10,464 tests, 55 Deep-ML files and seven classic
+files. The audit adds optional worker-only diagnostics to the benchmark,
+without changing demo sources or timed execution when diagnostics are off.
+Exhaustive audits remain excluded.
+
+Evidence: [all demo/control timings](baselines/2026-11-01-numeric-merge-demo-audit.json),
+[row confirmation](baselines/2026-11-01-numeric-merge-row-confirm.json),
+[real matrix confirmation](baselines/2026-11-01-numeric-merge-real-matrix-confirm.json),
+[general helpers](baselines/2026-11-01-numeric-merge-helper-audit.json),
+[untimed demo diagnostics](baselines/2026-11-01-numeric-merge-demo-diagnostics.json).
+
+Example diagnostic invocation (an additional checked call after timing,
+without compilation hooks):
+
+```sh
+node benchmarks/numerical-demos.mjs --worker=gradient \
+  --scale=2 --samples=3 --storage=snapshot \
+  --diagnostics=true
+```
+
 ## Reproduction and checks
 
 ```sh

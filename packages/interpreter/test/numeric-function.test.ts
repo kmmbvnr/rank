@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RuntimeDiagnostics, type NativeFunction, type RankArray, type RankTuple, type RankValue } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, parse, type NativeFunction, type RankArray, type RankTuple, type RankValue } from '../src/index.js';
+import { isFunctionStatement } from '@arrrank/language';
+import { compileNumericFunction } from '../src/jit/numeric-function.js';
 import { createArraySnapshot, typedArray } from '../src/array-storage.js';
 import { withInterrupt } from '../src/interrupt.js';
 
@@ -43,6 +45,123 @@ function compare(args: RankValue[], source = stage, name = 'fftStage') {
 }
 
 describe('pure structural numeric functions', () => {
+    it('retains exact indexed differences and their arithmetic guards', () => {
+        const source = `use sequences
+fun X differences Stride
+ K = (0 till (X len // Stride - 1)) * Stride
+ Left = X K
+ Right = X (K + Stride)
+ return Right - Left
+end`;
+        const r = compare([typedArray(vector(32)), 2n], source, 'differences');
+        expect(r.executions).toBe(1);
+        expect(r.generated[0]).toContain('Number.isSafeInteger');
+        expect(r.generated[0]).toContain('Number.isFinite');
+    });
+    it('keeps integer-zero normalization when a proved range meets real signed zero', () => {
+        const source = `use sequences
+fun X signedIndices
+ Indices = 0 till (X len)
+ K = -Indices
+ R = K * -0.0
+ return (X reshape #) * R
+end`;
+        const r = compare([typedArray(new Float64Array(8).fill(1))], source, 'signedIndices');
+        expect(r.executions).toBe(1);
+        expect((r.value as { items: number[] }).items.map(x => Object.is(x, -0))).toEqual([true, false, false, false, false, false, false, false]);
+    });
+    it.each(['-(0 till (X len))', '-((0 till (X len)) * 2)'])('preserves unary sequence errors for %s', expression => {
+        const source = `use sequences
+fun X invalidSequence
+ K = ${expression}
+ return (X reshape #) + K
+end`;
+        const r = compare([typedArray(vector(8))], source, 'invalidSequence');
+        expect(r).toHaveProperty('error'); expect(r.executions).toBe(0);
+    });
+    it.each([9007199254740984n, -9007199254740991n, 9007199254740985n])('retains exact interval limits for offset %s', offset => {
+        const source = `use sequences
+fun X offsetRange Offset
+ K = (0 till (X len)) + Offset
+ return (X reshape #) + K
+end`;
+        const r = compare([typedArray(vector(8)), offset], source, 'offsetRange');
+        expect(r.executions).toBe(offset === 9007199254740985n ? 0 : 1);
+    });
+    it('reuses preparation while reading fresh input buffers', () => {
+        const f = fixture(), reference = fixture(false);
+        try {
+            for (let i = 0; i < 4; i++) {
+                const args = argumentsFor(64);
+                args[0] = typedArray(vector(64, i * .29));
+                expect(normalized(f.call(args))).toEqual(normalized(reference.call(args)));
+            }
+            expect(f.diagnostics.numericFunctionPreparations).toBe(1);
+            expect(f.diagnostics.numericFunctionPlanHits).toBe(3);
+        } finally { f.runtime.dispose(); reference.runtime.dispose(); }
+    });
+    it('distinguishes scalar negative zero and uses current scalar values', () => {
+        const source = `use sequences
+fun X scaled Scale
+ return (X reshape #) * Scale
+end`;
+        const f = fixture(true, source, 'scaled'), reference = fixture(false, source, 'scaled');
+        try {
+            for (const scalar of [-0, 0, -0, 2.5, -1.5]) {
+                const args = [typedArray(new Float64Array(8).fill(1)), scalar];
+                expect(normalized(f.call(args))).toEqual(normalized(reference.call(args)));
+            }
+            expect(f.diagnostics.numericFunctionPreparations).toBe(4);
+            expect(f.diagnostics.numericFunctionPlanHits).toBe(1);
+        } finally { f.runtime.dispose(); reference.runtime.dispose(); }
+    });
+    it('guards shape, scalar kind and bounds after warming', () => {
+        const f = fixture(), reference = fixture(false);
+        try {
+            for (const [n, size] of [[16, 16n], [64, 16n], [16, 16n], [16, 6n], [16, 16.0], [16, 0n]] as const) {
+                expect(result(f, argumentsFor(n, size))).toEqual(result(reference, argumentsFor(n, size)));
+            }
+        } finally { f.runtime.dispose(); reference.runtime.dispose(); }
+    });
+    it('rechecks input kinds and failed arithmetic on a cached plan', () => {
+        const f = fixture(), reference = fixture(false), args = argumentsFor(16);
+        try {
+            expect(result(f, args)).toEqual(result(reference, args));
+            (args[0] as RankArray).items[0] = NaN;
+            expect(result(f, args)).toEqual(result(reference, args));
+            (args[0] as RankArray).items[0] = 3n;
+            expect(result(f, args)).toEqual(result(reference, args));
+            expect(f.diagnostics.compiledArrayFunctions).toBe(1);
+        } finally { f.runtime.dispose(); reference.runtime.dispose(); }
+    });
+    it('rechecks native operations on a warm specialization', () => {
+        const statement = parse('use sequences\nfun X flattened\n N = X len\n return X reshape N\nend').statements[1];
+        if (!isFunctionStatement(statement)) throw new Error('fixture');
+        let available = true, executed = 0, generated = 0, reads = 0;
+        const input = typedArray(vector(16));
+        const plan = compileNumericFunction(statement, {
+            lookup: () => { reads++; return input; }, builtin: () => available,
+            compiled: () => generated++, executed: () => executed++,
+        })!;
+        expect(plan.run()).toBeDefined(); expect(generated).toBe(1);
+        available = false; reads = 0;
+        expect(plan.run()).toBeUndefined(); expect(reads).toBe(0); expect(executed).toBe(1);
+        available = true;
+        expect(plan.run()).toBeDefined(); expect(generated).toBe(1); expect(executed).toBe(2);
+    });
+    it('bounds the preparation cache and rebuilds an evicted specialization', () => {
+        const statement = parse('use sequences\nfun X scaled Scale\n return (X reshape #) * Scale\nend').statements[1];
+        expect(isFunctionStatement(statement)).toBe(true);
+        if (!isFunctionStatement(statement)) throw new Error('fixture');
+        const variables = new Map<string, RankValue>([['X', typedArray(vector(8))], ['Scale', 1.0]]);
+        let generated = 0;
+        const plan = compileNumericFunction(statement, { lookup: name => variables.get(name),
+            builtin: () => true, compiled: () => generated++, executed: () => {} })!;
+        for (let i = 1; i <= 40; i++) { variables.set('Scale', i); expect(plan.run()).toBeDefined(); }
+        expect(generated).toBe(40);
+        expect(plan.run()).toBeDefined(); expect(generated).toBe(40);
+        variables.set('Scale', 1.0); expect(plan.run()).toBeDefined(); expect(generated).toBe(41);
+    });
     it.each(['+=', '-=', '*=', '/='])('retains compound assignment semantics for %s', operator => {
         const source = `use sequences
 fun X update
