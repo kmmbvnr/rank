@@ -1,7 +1,7 @@
 import { RankError } from '../errors.js';
 import { booleanCells, IntegerCells, typedArray } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
-import { checkpoint, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, privateLoopPolling } from '../interrupt.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 /** Convert completed scalar storage directly into compact exact integers.
@@ -37,11 +37,14 @@ export function realArray(value: RankValue): RankArray | undefined {
     if (!view) return undefined;
     const size = value.shape.reduce((total, length) => total * length, 1);
     const cells = new Float64Array(size);
+    let limits = 0;
     for (let i = 0; i < size; i++) {
         if ((i & 4095) === 0) checkpoint('converting real array', Math.min(4096, size - i));
         cells[i] = realValue(view.read(i));
+        if (cells[i] === Infinity || cells[i] === -Infinity) limits++;
     }
-    return typedArray(cells, value.shape);
+    return typedArray(cells, value.shape, undefined, demandBudgetEnabled() ? undefined
+        : limits === 0 ? 'real' : limits === size ? 'numeric-limit' : undefined);
 }
 
 export function integerValue(value: RankValue): bigint {

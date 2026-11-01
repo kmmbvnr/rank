@@ -1,0 +1,453 @@
+{
+  "date": "2026-11-01T04:23:52.439Z",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 9,
+  "versions": {
+    "baseline": {
+      "path": "/tmp/rank-buffer-facts-step6c",
+      "commit": "9ffb921a02f7fa14511b839d52435a2cdde2f44a",
+      "dirty": false
+    },
+    "candidate": {
+      "path": "/private/tmp/rank-buffer-facts/",
+      "commit": "9ffb921a02f7fa14511b839d52435a2cdde2f44a",
+      "dirty": true
+    }
+  },
+  "sources": {
+    "euler": {
+      "path": "demos/euler/006_sumsquarediff.ra",
+      "sha256": "07857b0214aad226d9565d8e696ba5b3d08d4c0370e86da779998feed19a78b3"
+    },
+    "matvec": {
+      "path": "demos/deepml/001_matmul.ra",
+      "sha256": "04be3e6ce5992dcfe6fcf76f86559c822efb467fbcff38abc90ba05c120632d1"
+    },
+    "row": {
+      "path": "demos/deepml/004_mean.ra",
+      "sha256": "065143b7a2a28aff3d9bad4f4e80f8a9ceb8483802df83f9c0a9f71b78a58575"
+    },
+    "column": {
+      "path": "demos/deepml/004_mean.ra",
+      "sha256": "065143b7a2a28aff3d9bad4f4e80f8a9ceb8483802df83f9c0a9f71b78a58575"
+    },
+    "matmul": {
+      "path": "demos/deepml/009_matmul.ra",
+      "sha256": "2bec0ade2d2ff586980e8b49c91a7f8c2486ab18dc2159e2bee43091384ebcac"
+    },
+    "gradient": {
+      "path": "demos/deepml/015_gd.ra",
+      "sha256": "7f1756026b77ba85b35213f29dddee6e31f821d840c8b95feff3bfa9d09fdeae"
+    },
+    "kmeans": {
+      "path": "demos/deepml/017_kmeans.ra",
+      "sha256": "c03aabc2e28e90b8760e2a91f89a7c0a0b3e712cc3ef05a2a3d7e1b2f518d5a8"
+    },
+    "fft": {
+      "path": "demos/classic/fft.ra",
+      "sha256": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    "stages": {
+      "path": "benchmarks/experiments/numeric-array-stages.mjs",
+      "sha256": "ade8327c65a468ceb4bed195ea316693b5b384c62a80ddd3c362e3e2c8a1b0c8"
+    }
+  },
+  "timing": "Serial fresh processes; alternating order per pair. Demo workers use the largest existing numerical-demos.mjs scale, owned snapshot inputs, two warm calls and three measured calls; row is median of measured calls. Euler includes parsing. Array-stage fixtures time a complete parse/execute of 12 rounds. FFT uses the same current demo source in both builds, >=300 ms warmup and a batch targeting 150 ms, including output forcing. Every worker validates its output against the existing independent oracle. These are different timing contracts and should only be compared within a case.",
+  "results": [
+    {
+      "name": "row",
+      "trial": 0,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 86.4543329999999,
+      "warmMs": [
+        45.25495799999999,
+        28.513041999999928,
+        28.872749999999996
+      ],
+      "memory": {
+        "rss": 215662592,
+        "heapTotal": 127352832,
+        "heapUsed": 79385600,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 212704,
+      "measuredMs": 28.872749999999996
+    },
+    {
+      "name": "row",
+      "trial": 0,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 45.34612500000003,
+      "warmMs": [
+        32.86433299999999,
+        29.190458999999976,
+        28.672082999999986
+      ],
+      "memory": {
+        "rss": 214433792,
+        "heapTotal": 127090688,
+        "heapUsed": 79288912,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 210848,
+      "measuredMs": 29.190458999999976
+    },
+    {
+      "name": "row",
+      "trial": 1,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 45.765083000000004,
+      "warmMs": [
+        29.204917000000023,
+        27.11766700000004,
+        29.09383399999996
+      ],
+      "memory": {
+        "rss": 211697664,
+        "heapTotal": 126828544,
+        "heapUsed": 79472040,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 208736,
+      "measuredMs": 29.09383399999996
+    },
+    {
+      "name": "row",
+      "trial": 1,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 44.27912500000002,
+      "warmMs": [
+        36.724707999999964,
+        27.19766699999991,
+        28.501792000000023
+      ],
+      "memory": {
+        "rss": 206389248,
+        "heapTotal": 127090688,
+        "heapUsed": 80412208,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 203408,
+      "measuredMs": 28.501792000000023
+    },
+    {
+      "name": "row",
+      "trial": 2,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 49.074374999999975,
+      "warmMs": [
+        30.073915999999997,
+        28.296125000000018,
+        28.430957999999976
+      ],
+      "memory": {
+        "rss": 212533248,
+        "heapTotal": 127352832,
+        "heapUsed": 80314104,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 209712,
+      "measuredMs": 28.430957999999976
+    },
+    {
+      "name": "row",
+      "trial": 2,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 43.589458000000036,
+      "warmMs": [
+        27.851165999999978,
+        26.369166000000007,
+        26.16104200000001
+      ],
+      "memory": {
+        "rss": 211582976,
+        "heapTotal": 127090688,
+        "heapUsed": 79281928,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 208720,
+      "measuredMs": 26.369166000000007
+    },
+    {
+      "name": "row",
+      "trial": 3,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 44.55654199999998,
+      "warmMs": [
+        29.55616699999996,
+        28.07383299999998,
+        26.046333000000004
+      ],
+      "memory": {
+        "rss": 215171072,
+        "heapTotal": 127877120,
+        "heapUsed": 79308504,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 211344,
+      "measuredMs": 28.07383299999998
+    },
+    {
+      "name": "row",
+      "trial": 3,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 42.67895899999996,
+      "warmMs": [
+        27.318832999999984,
+        27.389708999999982,
+        26.44987500000002
+      ],
+      "memory": {
+        "rss": 213925888,
+        "heapTotal": 127090688,
+        "heapUsed": 79683520,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 211008,
+      "measuredMs": 27.318832999999984
+    },
+    {
+      "name": "row",
+      "trial": 4,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 42.6995,
+      "warmMs": [
+        26.834249999999997,
+        23.85383300000001,
+        25.196208000000013
+      ],
+      "memory": {
+        "rss": 213417984,
+        "heapTotal": 127090688,
+        "heapUsed": 79937352,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 210128,
+      "measuredMs": 25.196208000000013
+    },
+    {
+      "name": "row",
+      "trial": 4,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 39.41983299999998,
+      "warmMs": [
+        27.405417,
+        24.078457999999955,
+        24.326832999999965
+      ],
+      "memory": {
+        "rss": 213221376,
+        "heapTotal": 126828544,
+        "heapUsed": 80208808,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 210048,
+      "measuredMs": 24.326832999999965
+    },
+    {
+      "name": "row",
+      "trial": 5,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 41.98033299999997,
+      "warmMs": [
+        28.47166599999997,
+        24.83658399999996,
+        23.991416999999956
+      ],
+      "memory": {
+        "rss": 213041152,
+        "heapTotal": 126828544,
+        "heapUsed": 79873704,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 209904,
+      "measuredMs": 24.83658399999996
+    },
+    {
+      "name": "row",
+      "trial": 5,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 40.43662500000002,
+      "warmMs": [
+        27.224417000000017,
+        24.856832999999995,
+        24.385290999999995
+      ],
+      "memory": {
+        "rss": 213139456,
+        "heapTotal": 126828544,
+        "heapUsed": 80635432,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 209888,
+      "measuredMs": 24.856832999999995
+    },
+    {
+      "name": "row",
+      "trial": 6,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 40.10416699999999,
+      "warmMs": [
+        28.37537500000002,
+        24.797583999999972,
+        24.228665999999976
+      ],
+      "memory": {
+        "rss": 213188608,
+        "heapTotal": 126828544,
+        "heapUsed": 80485232,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 210016,
+      "measuredMs": 24.797583999999972
+    },
+    {
+      "name": "row",
+      "trial": 6,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 43.242542000000014,
+      "warmMs": [
+        30.11450000000002,
+        25.266999999999996,
+        24.578666999999996
+      ],
+      "memory": {
+        "rss": 213090304,
+        "heapTotal": 126304256,
+        "heapUsed": 80943656,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 209888,
+      "measuredMs": 25.266999999999996
+    },
+    {
+      "name": "row",
+      "trial": 7,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 39.59716700000001,
+      "warmMs": [
+        30.89749999999998,
+        23.996749999999963,
+        25.32000000000005
+      ],
+      "memory": {
+        "rss": 213532672,
+        "heapTotal": 126828544,
+        "heapUsed": 80327544,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 210176,
+      "measuredMs": 25.32000000000005
+    },
+    {
+      "name": "row",
+      "trial": 7,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 41.47745900000001,
+      "warmMs": [
+        27.644375000000025,
+        24.80166600000001,
+        24.110584000000017
+      ],
+      "memory": {
+        "rss": 215334912,
+        "heapTotal": 126828544,
+        "heapUsed": 80619544,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 212448,
+      "measuredMs": 24.80166600000001
+    },
+    {
+      "name": "row",
+      "trial": 8,
+      "version": "baseline",
+      "size": 512,
+      "firstMs": 40.220124999999996,
+      "warmMs": [
+        26.450249999999983,
+        24.461707999999987,
+        25.71991700000001
+      ],
+      "memory": {
+        "rss": 213336064,
+        "heapTotal": 126566400,
+        "heapUsed": 80247288,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 209728,
+      "measuredMs": 25.71991700000001
+    },
+    {
+      "name": "row",
+      "trial": 8,
+      "version": "candidate",
+      "size": 512,
+      "firstMs": 43.27287499999997,
+      "warmMs": [
+        29.87325000000004,
+        23.45875000000001,
+        25.273082999999986
+      ],
+      "memory": {
+        "rss": 212762624,
+        "heapTotal": 126566400,
+        "heapUsed": 80038688,
+        "external": 2313756,
+        "arrayBuffers": 37703
+      },
+      "maxRSSKiB": 209616,
+      "measuredMs": 25.273082999999986
+    }
+  ],
+  "summary": [
+    {
+      "name": "row",
+      "version": "baseline",
+      "medianMs": 25.71991700000001,
+      "minMs": 24.797583999999972,
+      "maxMs": 28.872749999999996
+    },
+    {
+      "name": "row",
+      "version": "candidate",
+      "medianMs": 25.32000000000005,
+      "minMs": 24.326832999999965,
+      "maxMs": 29.190458999999976
+    }
+  ]
+}

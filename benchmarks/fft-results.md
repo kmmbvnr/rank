@@ -1048,3 +1048,256 @@ Raw evidence: [timings](baselines/2026-10-31-fft.json),
 [CPU and allocation summaries](baselines/2026-10-31-fft-profiles.json),
 [compiled diagnostics and generated code](baselines/2026-10-31-fft-compiled-diagnostics.json),
 [reference diagnostics](baselines/2026-10-31-fft-reference-diagnostics.json).
+
+## Step 6a: retain unary output kind evidence
+
+This independent experiment starts at main `7e04577a`; it does not include
+`perf/vector-stores`. Unary numeric kernels already visit every output cell.
+Count infinities during that pass and pass the existing `typedArray` uniform
+kind hint when all cells have one physical kind. NaN remains `real`, not
+`numeric-limit`. Mixed results and execution under a demand budget retain
+ordinary discovery. Existing storage writers maintain or invalidate the hint.
+No FFT source, coefficients or permutation change.
+
+FFT-4096 exact kind scanning falls from 18,432 to 14,336 cells per warm call
+without compiler hooks. Five alternating fresh process pairs, 1 s warmup and
+three 500 ms batches, give **0.825 -> 0.792 ms** (4.0% less time). Baseline
+contains a 1.621 ms outlier; first-size calls **12.01 -> 12.29 ms** do not
+improve. This is a small preliminary timing gain, not a large FFT speedup.
+
+General producer checks include function contracts, allocation, copying and
+full host-array forcing, with input and an independent Math oracle outside
+timing. The same 4,096-cell scan disappears for `cos` and `sqrt`; both improve
+in all five pairs. Pooled medians are 0.211 -> 0.099 ms and
+0.094 -> 0.069 ms, but cosine has large process-to-process variation, so its
+2.14x pooled ratio should not be treated as a stable gain. Gather and copy
+controls differ by about 1.5% and 1.3%. The untouched real conversion control
+regresses in the initial series (0.123 -> 0.228 ms); all raw batches are kept,
+with a separate confirmation series rather than attributing it to this change.
+
+Build and 107 focused tests pass: unary kernels, physical kind evidence,
+numeric functions and private call loops. Tests cover NaN, signed infinities,
+negative zero, mixed results, coercion, mutation and budgeted execution.
+
+Evidence: [FFT](baselines/2026-11-01-buffer-facts-unary-fft.json),
+[general producers and controls](baselines/2026-11-01-buffer-facts-unary-general.json).
+
+The nine-pair real-conversion confirmation gives **0.1261 -> 0.1253 ms**
+(0.6% less time), with slow processes on both sides. The initial large
+regression does not reproduce; no conversion improvement is claimed here.
+[Control confirmation](baselines/2026-11-01-buffer-facts-unary-real-confirm.json).
+
+## Step 6b: retain real conversion evidence
+
+Apply the same existing uniform-kind hint while `realArray` writes its
+Float64 output. Count actual stored infinities; conversions of text and
+BigInt still reject nonfinite conversion, and existing numeric NaN/infinities
+retain their values. Mixed results and budgeted execution retain discovery.
+This step is compared against step 6a (`f32f8a7d`), not against main.
+
+Build and 86 focused tests pass, including 12 new cases covering conversion
+kinds, mutation, invalid/overflowing inputs, empty shapes, host readers and
+budgeted validation. The five-pair FFT timing is **0.895 -> 1.101 ms**; both
+versions range from about 0.79 to 1.7 ms. No FFT timing improvement is claimed
+from this series; raw negative evidence is retained.
+
+Evidence: [incremental FFT timings](baselines/2026-11-01-buffer-facts-real-fft.json).
+
+The targeted conversion pipeline improves **0.1238 -> 0.0988 ms** (20.1%
+less time) over seven alternating process pairs; scanning falls from 4,096
+to zero cells. Warm FFT exact-kind scanning falls again, from 14,336 to
+10,240 cells; its private call loop remains enabled. This establishes
+less repeated work and a general conversion benefit, not FFT timing progress.
+Use `fft.mjs --worker=compiled --storage-diagnostics` to collect counters
+without the compiler hooks that disable the private call loop.
+[Conversion timing and counters](baselines/2026-11-01-buffer-facts-real-general.json),
+[FFT counters without hooks](baselines/2026-11-01-buffer-facts-real-diagnostics.json).
+
+## Step 6c: preserve known kinds through selection copies
+
+Contiguous typed rows and eager irregular typed gathers reuse a uniform
+physical source kind only when that evidence is already available. The new
+`knownStoredScalarKind` query (refined in step 6d) does not discover unknown source
+kinds; a tiny selection must not scan its larger source. Mixed sources keep
+ordinary output discovery. Budgeted execution, inspection and host polling
+retain the previous path. Source and selection writes retain independent,
+tracked kind evidence; semantic declarations are never used as proof.
+
+Compared with step 6b (`d686ff9b`), FFT-4096 scanning falls from **10,240 to
+2,048** cells, with the private call loop still enabled. Seven-pair FFT
+timing is **0.809 -> 0.820 ms**; no timing improvement is established.
+The tuple-returning gather fixture exercises eager selectors (the earlier
+`gather ... copy` fixture uses tensor fusion and already avoids the scan).
+It eliminates a 4,096-cell scan, but initial timings are negative:
+**0.0895 -> 0.1098 ms**. Candidate processes split between roughly 0.062 and
+0.12 ms, so a separate confirmation is retained. These scan reductions
+are correctness/performance-mechanism evidence, not proof of faster FFT.
+
+Build, 95 existing focused selection/storage tests and eight new selection
+kind tests pass. Cases include NaN/infinities, duplicates, row shape,
+independent copies, writes, unknown/mixed sources, host readers and budgets.
+
+Evidence: [FFT timing](baselines/2026-11-01-buffer-facts-selection-fft.json),
+[FFT counters](baselines/2026-11-01-buffer-facts-selection-diagnostics.json),
+[general selection timing and counters](baselines/2026-11-01-buffer-facts-selection-general.json).
+
+The nine-pair selection confirmation reverses the wall-time result:
+**0.0904 -> 0.0736 ms** (18.6% less time), while process CPU medians are
+**0.1096 -> 0.1222 ms**. Both full series remain available; a stable selection
+speedup is not established. The deterministic result is removing the scan.
+[Selection confirmation](baselines/2026-11-01-buffer-facts-selection-general-confirm.json).
+
+## Combined buffer-evidence result
+
+Nine alternating fresh process sets compare main `7e04577a`, step 6c
+`9ffb921a`, and handwritten per-call in-place JS. Each uses at least 1 s
+warmup and three target 500 ms batches, validates all output components,
+and includes coefficient/permutation computation. FFT source is identical.
+
+| FFT-4096 | Warm wall median | Process CPU median | First-size median |
+| --- | ---: | ---: | ---: |
+| Main | 0.8548 ms | 1.1404 ms | 13.410 ms |
+| Buffer evidence | 0.7720 ms | 1.0980 ms | 12.448 ms |
+| JS in-place | 0.4708 ms | 0.4716 ms | 1.851 ms |
+
+The combined candidate uses **9.7% less warm wall time** (1.107x), and
+3.7% less process CPU time. Exact-kind scans drop **18,432 -> 2,048 cells**
+(88.9%). It is 1.64x slower than this handwritten JS implementation; this
+is not a claim against every optimized JS FFT library. Both Rank series
+contain slow processes (up to 1.90/1.68 ms), and incremental series did not
+establish gains for every individual step. Do not multiply their ratios.
+The useful general result is retaining physical evidence across unary
+functions, explicit conversions and typed selection copies; no FFT-specific
+cache, pattern or arithmetic shortcut was added.
+
+[Combined FFT measurements](baselines/2026-11-01-buffer-facts-final-fft.json).
+
+The broad step-6c audit covers seven unchanged numerical demo scenarios,
+three array-stage fixtures and FFT. Large initial slowdowns do not reproduce
+on separate nine-pair confirmations: real matrix **119.90 -> 117.86 ms**,
+k-means **106.88 -> 104.04 ms**. Row means remain slightly slower
+(**26.22 -> 27.45 ms**, 4.7%); this is investigated in step 6d. Other initial
+medians include matvec **31.63 -> 31.84**, column means **30.73 -> 28.73**,
+matmul **242.06 -> 240.88**, gradient **7.66 -> 7.44**, integer matrix
+**101.57 -> 103.60**, real broadcast **148.19 -> 152.64 ms**. These are
+short demo timings with a different contract from the warmed FFT batches.
+
+[Broad audit](baselines/2026-11-01-buffer-facts-final-demo-audit.json),
+[row confirmation](baselines/2026-11-01-buffer-facts-final-row-confirm.json),
+[real matrix confirmation](baselines/2026-11-01-buffer-facts-final-real-matrix-confirm.json),
+[k-means confirmation](baselines/2026-11-01-buffer-facts-final-kmeans-confirm.json).
+
+## Step 6d: separate the known-only kind query
+
+Restore the hot `storedScalarKinds` API and implementation to main's
+behavior. Export a separate `knownStoredScalarKind` helper for uniform
+physical evidence; it never scans and returns one kind directly, without
+allocating/sorting an array of kinds. The selection behavior and scan count
+are unchanged. This avoids imposing a new optional mode on all existing
+contract/storage queries. It does not establish the cause of the earlier
+row variation.
+
+Against step 6c, nine-pair row means give **25.72 -> 25.32 ms** (1.6% less
+wall time), with overlapping ranges; this is not a significant new speedup.
+Build and 20 focused selection/storage tests pass.
+[Incremental row measurements](baselines/2026-11-01-buffer-facts-known-kind-row.json).
+
+The five-pair selection comparison gives **0.0797 -> 0.0682 ms** wall and
+**0.1074 -> 0.0853 ms** process CPU medians, again with overlapping,
+variable process ranges. [Incremental selection measurements](baselines/2026-11-01-buffer-facts-known-kind-selection.json).
+
+## Final refined candidate
+
+The final implementation (`e90a19a8`) repeats the combined result over seven
+fresh process sets: main **0.8377 ms**, candidate **0.7585 ms**, per-call
+in-place JS **0.4640 ms**. This is **9.5% less wall time / 1.104x speedup**
+over main, with Rank still **1.635x** slower than this JS implementation.
+Process CPU medians are **1.1235 -> 1.0388 ms** (7.5% less). First-size calls
+are **12.149 -> 11.969 ms**; the warm result should not be read as a large
+cold-start improvement. No-hooks counters still show **one exact-kind scan /
+2,048 cells**, 12 numeric function executions and one private call loop.
+The two combined series agree on roughly 10% less warm time; individual
+step timings and general selection timings remain much less stable.
+
+[Final refined FFT comparison](baselines/2026-11-01-buffer-facts-refined-fft.json),
+[final no-hooks counters](baselines/2026-11-01-buffer-facts-refined-diagnostics.json).
+
+The final nine-pair row-mean check against main gives **29.30 -> 25.82 ms**,
+with both versions having slow runs around 53 ms. The earlier row slowdown
+does not reproduce consistently; no universal demo speedup is claimed.
+[Refined row check](baselines/2026-11-01-buffer-facts-refined-row.json).
+
+Final checks: incremental TypeScript project build, semantic boundaries
+(65 owners, 11 script tests), application forms, all 55 Deep-ML demo files
+and all seven classic demo files pass. The ordinary interpreter suite is
+run through its package script, excluding `types`, `differential` and
+`nurikabe`; exhaustive audits are not run. Timings precede these checks,
+with no tests/profiles running concurrently with the timed workers.
+
+Final ordinary interpreter result: **456 files / 10,490 tests passed**
+(191.79 s), through `node scripts/test.mjs --exclude test/types.test.ts
+--exclude test/differential.test.ts --exclude test/nurikabe.test.ts`.
+The FFT demo source has no diff against main. Production changes are five
+files, 39 added and 11 removed lines; each implementation step has its own
+commit, followed by this final validation record.
+
+## Merge audit: effects beyond FFT
+
+Rebuilt main `7e04577a` (including Langium generation) and the final branch
+`18413f5c`; production source is unchanged from the full 456-file / 10,490-test
+validation above. This audit adds measurements and documentation only.
+All workers run serially in fresh processes, alternating baseline/candidate
+order per pair, with independent output oracles and full output forcing.
+No tests or profiles run concurrently with timing.
+
+Seven process pairs cover the unchanged numerical demos and matrix fixtures:
+
+| Task | Main, ms | Candidate, ms | Time change |
+| --- | ---: | ---: | ---: |
+| euler | 12.4640 | 12.4880 | +0.2% |
+| matvec | 29.5179 | 29.6378 | +0.4% |
+| row | 23.7747 | 24.4826 | +3.0% |
+| column | 24.0870 | 24.1196 | +0.1% |
+| matmul | 237.3570 | 236.3220 | -0.4% |
+| gradient | 7.6598 | 7.5280 | -1.7% |
+| kmeans | 105.7270 | 105.8768 | +0.1% |
+| integer-matrix | 96.7317 | 95.5005 | -1.3% |
+| real-matrix | 119.1087 | 117.5288 | -1.3% |
+| real-broadcast | 130.1825 | 130.9739 | +0.6% |
+| fft | 0.8890 | 0.7838 | -11.8% |
+
+Nine controls differ by less than 2%. Row means have a +3.0% pooled median
+but a -0.6% median within-pair change; the earlier large slowdown is not
+reproduced. FFT again improves, by 11.8% in this shorter timing contract.
+These are workload-specific results, not evidence of faster arbitrary code.
+
+Five process pairs cover 4,096-cell producer/copy pipelines, with at least
+1 s warmup and three target 300 ms batches per process:
+
+| Pipeline | Main, ms | Candidate, ms | Time change |
+| --- | ---: | ---: | ---: |
+| cosine | 0.1170 | 0.0915 | -21.8% |
+| squareRoot | 0.0931 | 0.0684 | -26.5% |
+| real | 0.1213 | 0.0952 | -21.5% |
+| gather | 0.0875 | 0.0884 | +1.1% |
+| tupleGather | 0.0865 | 0.0611 | -29.3% |
+| copy | 0.0470 | 0.0468 | -0.5% |
+
+`cosine`, `squareRoot`, `real` and `tupleGather` each eliminate a 4,096-cell
+exact-kind scan. Their wall-time reductions range from 21.5% to 29.3%.
+The already-fused gather and plain copy already scan zero cells and remain
+close to baseline. Earlier noisy/negative series are retained above.
+
+No further FFT-specific or operation-specific optimization was added. The
+existing physical-kind hint is retained by completed unary numeric kernels,
+real conversion, and typed row/gather copies with already known uniform
+source kinds. Unknown/mixed sources keep discovery; lazy/host readers are
+not forced to prove a kind. This is general runtime evidence propagation,
+with the existing mutation and observation rules retained.
+
+The measured general benefits, unchanged-source correctness validation and
+absence of a reproduced substantial demo slowdown support merging this
+branch into main. Exhaustive audits were not run.
+
+[Full demo audit](baselines/2026-11-01-buffer-facts-merge-demos.json),
+[producer pipelines and counters](baselines/2026-11-01-buffer-facts-merge-producers.json).

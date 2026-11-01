@@ -1,6 +1,6 @@
 // Stable storage API; implementation modules own storage, readers and dependency policies.
 export {
-    createArraySnapshot, isFlatScalarArray, denseScalarItems, storedScalarKinds, realCells,
+    createArraySnapshot, isFlatScalarArray, denseScalarItems, storedScalarKinds, knownStoredScalarKind, realCells,
     writableIntegerCells, writableRealCells, writeArrayCell, hasWritableBooleanCells, fillBooleanSelection,
     writeIntegerSelection, writeComputedSelection, accumulateIntegerSelection, reduceIntegerUpdates, copyStoredNumericArray, sortStoredIntegerArray, booleanCells, float64Cells, storedOperandItems, eagerOperandItems, ownedArray, ownedScalarArray,
     filledArray, typedArray, integer32Cells, integer64Cells, writeInteger32Cells, IntegerCells, sharedTypedArray, sliceStoredArray, reshapeStoredArray, typedElementKind, maskedArray, maskedCells,

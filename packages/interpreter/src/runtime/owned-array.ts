@@ -78,6 +78,15 @@ export function storedScalarKinds(value: RankArray, numericLimits = false): read
     return [...state.elementKinds.keys()].sort();
 }
 
+/** Reuse a uniform physical kind, without discovering unknown cells. */
+export function knownStoredScalarKind(value: RankArray): string | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.scalarOnly) return undefined;
+    if (state.booleans) return state.booleans.length ? 'boolean' : undefined;
+    if (state.typed instanceof BigInt64Array || state.typed instanceof Int32Array) return state.typed.length ? 'integer' : undefined;
+    return state.elementKinds?.size === 1 ? state.elementKinds.keys().next().value : undefined;
+}
+
 function updateScalarKinds(state: OwnedStorage, previous: RankValue | undefined, value: RankValue): void {
     const kinds = state.elementKinds;
     if (!kinds) return;
