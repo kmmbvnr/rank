@@ -16,25 +16,24 @@ for N in 1 to Limit
   K = 1 to Root array
   V = G (N - K * K)
   Seen V = N
-  Missing = Seen not equal N
-  G N = Seen first index where Missing
+  G N = Seen first index where Seen not equal N
 end
 Max = G max
-Pre = array shape (Max + 1) fill 0
-Suf = array shape (Max + 1) fill 0
+Freq = array shape (Max + 1) fill 0
 for V in G
-  Suf V += 1
+  Freq V += 1
 end
-Answer = 0
-for B in 0 to Limit
-  Gb = G B
-  Pre Gb += 1
-  for Ga in 0 to Max
-    Gc = Ga bxor Gb
-    if Gc at most Max
-      Answer += Pre Ga * Suf Gc
+Ordered = 0
+for A in 0 to Max
+  for B in 0 to Max
+    C = A bxor B
+    if C at most Max
+      Ordered += Freq A * Freq B * Freq C
     end
   end
-  Suf Gb -= 1
 end
+rem Fixes of the three transpositions
+rem and the two three-cycles.
+Fixed = (3 * (Limit + 1) + 2) * Freq 0
+Answer = (Ordered + Fixed) // 6
 Answer print

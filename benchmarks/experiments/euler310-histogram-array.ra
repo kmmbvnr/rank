@@ -1,0 +1,37 @@
+rem Nim Square
+rem https://projecteuler.net/problem=310
+
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 100000
+
+G = array shape (Limit + 1) fill 0
+Seen = array shape 128 fill -1
+for N in 1 to Limit
+  Root = (N ** 0.5) floor
+  K = 1 to Root array
+  V = G (N - K * K)
+  Seen V = N
+  Missing = Seen not equal N
+  G N = Seen first index where Missing
+end
+Max = G max
+Freq = array shape (Max + 1) fill 0
+for V in G
+  Freq V += 1
+end
+Ordered = 0
+for A in 0 to Max
+  for B in 0 to Max
+    C = A bxor B
+    if C at most Max
+      Ordered += Freq A * Freq B * Freq C
+    end
+  end
+end
+Answer = (Ordered + (3 * (Limit + 1) + 2) * Freq 0) // 6
+Answer print

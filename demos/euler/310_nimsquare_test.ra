@@ -7,3 +7,43 @@ test "statement limit"
 
   Answer equal 1160
 end
+
+test "limit 0"
+  use "310_nimsquare"
+  Limit = 0
+  run
+
+  Answer equal 1
+end
+
+test "limit 1"
+  use "310_nimsquare"
+  Limit = 1
+  run
+
+  Answer equal 2
+end
+
+test "limit 2"
+  use "310_nimsquare"
+  Limit = 2
+  run
+
+  Answer equal 6
+end
+
+test "limit 4"
+  use "310_nimsquare"
+  Limit = 4
+  run
+
+  Answer equal 12
+end
+
+test "limit 10"
+  use "310_nimsquare"
+  Limit = 10
+  run
+
+  Answer equal 100
+end

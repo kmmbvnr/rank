@@ -78,7 +78,10 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     let failure: string | undefined;
     const failed = (reason: string) => { failure ??= reason; };
     const plan = lowerTypedLoop(statement, host, iteration, textSources, textArrays, failed);
-    const feedback: LoopWorkFeedback | undefined = numberVariant && plan?.destinations.size
+    // Replay-safe vector regions may have no publishing exact plan. They still
+    // need one bounded copy-cost probe; overflow falls back to interpretation.
+    const numberPlan = numberVariant ? lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true) : undefined;
+    const feedback: LoopWorkFeedback | undefined = numberVariant && (plan || numberPlan)?.destinations.size
         ? { cells: 0, allow: true } : undefined;
     const compileExactCounted = feedback ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, false, new Set(), true) : undefined;
     const exact = plan && prepareIntegerLoop(plan, host, () => {
@@ -87,7 +90,6 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     }, feedback, compileExactCounted);
     // A replay-safe backend can support expressions the publishing backend
     // cannot type statically (integer powers may become real for negative exponents).
-    const numberPlan = numberVariant && lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true);
     const compileFastCounted = feedback ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), true) : undefined;
     const fast = numberPlan && prepareNumberLoop(numberPlan, host, feedback, compileFastCounted);
     if (!fast) {

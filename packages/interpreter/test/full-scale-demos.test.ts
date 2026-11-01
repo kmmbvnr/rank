@@ -15,6 +15,7 @@ for (const [file, expected] of [
     ['299_threesimilar.ra', 549936643n],
     ['308_automaton.ra', 1539669807660924n],
     ['309_ladders.ra', 210139n],
+    ['310_nimsquare.ra', 2586528661783n],
     ['426_boxball.ra', 31591886008n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
@@ -26,6 +27,7 @@ for (const [file, expected] of [
         try {
             diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
             expect(runtime.variables.get('Answer')).toBe(expected);
+            if (file === '310_nimsquare.ra') expect(diagnostics.numberLoops).toBe(3);
             expect(diagnostics.numberLoops).toBeGreaterThan(0);
             expect(diagnostics.numberLoopOverflows).toBe(0);
         } finally { runtime.dispose(); }

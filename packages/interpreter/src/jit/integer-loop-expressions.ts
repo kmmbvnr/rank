@@ -11,7 +11,7 @@ import { compiledArgumentType, hasNativeDeque } from './compiled-argument-type.j
 import {
     applicationExpression, rangeSliceOperands, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
-    isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
+    isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex, isRankSet } from '../value.js';
@@ -837,7 +837,12 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const input = numberVector(operand, lines);
                 if (!input) return undefined;
                 inputs.push(input);
+                // A later operand may allocate pooled gathers. Keep earlier
+                // temporary leaves alive until all operands are prepared.
+                if (input.sources.length) lines.push(`vectorLive.push(${input.sources.join(',')});`);
             }
+            const pinned = inputs.reduce((count, input) => count + input.sources.length, 0);
+            if (pinned) lines.push(`vectorLive.length -= ${pinned};`);
             if (point.module) builtins.set(point.name, point.module);
             const size = `length${state.serial++}`;
             let shape: string;
@@ -945,6 +950,29 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const ${result} = vectorArray([${cells}.length], ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${[cells, ...mask.sources].join(',')}]); let ${count} = 0;
                 ${numberVectorLoop(`${cells}.length`, index, [...body, `if (${selected.code}) ${result}.store(${count}++, ${type.element === 'real' ? `Number(${cells}[${index}])` : `safe(Number(${cells}[${index}]))`});`])}
                 ${result}.shape[0] = ${count}; ${result}.cells = ${result}.cells.subarray(0, ${count});`);
+        } else if (isApplicationExpression(e) && flattenApplication(e).length === 2
+            && arrayType(flattenApplication(e)[0])?.rank === 1 && arrayType(flattenApplication(e)[1])?.element === 'integer') {
+            // A rank-one source accepts an integer selector of any shape.
+            // Complete the gather before binding it, retaining ordinary `=`
+            // snapshots even when its source is written later in the region.
+            const parts = flattenApplication(e);
+            if (parts.length !== 2 || arrayType(parts[0])?.rank !== 1
+                || arrayType(parts[1])?.element !== 'integer') return undefined;
+            state.numberVectors = true;
+            const source = emitNumberArray(parts[0], lines);
+            if (!source || typeof source.type === 'string') return undefined;
+            lines.push(`vectorLive.push(${source.cells ?? `${source.code}.cells`});`);
+            const selectors = emitNumberArray(parts[1], lines);
+            if (!selectors || typeof selectors.type === 'string') return undefined;
+            lines.push('vectorLive.pop();');
+            const cells = source.cells ?? `${source.code}.cells`, keys = selectors.cells ?? `${selectors.code}.cells`;
+            const index = `cell${state.serial++}`, key = `key${state.serial++}`;
+            lines.push(`const ${result} = vectorArray(${selectors.code}.shape, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${cells}, ${keys}]);
+                ${numberVectorLoop(`${keys}.length`, index, [
+                    `const ${key} = safe(Number(${keys}[${index}]));`,
+                    `if (${key} < 0 || ${key} >= ${cells}.length) throw overflow;`,
+                    `${result}.store(${index}, ${type.element === 'real' ? `Number(${cells}[${key}])` : `safe(Number(${cells}[${key}]))`});`,
+                ])}`);
         } else if (vectorOperation(e)) {
             const input = numberVector(e, lines);
             if (!input) return undefined;
@@ -1159,6 +1187,29 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     }
     function emitInput(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
         if (!temporaryBudget(e)) return undefined;
+        if (numberMode && !wide && isFirstIndexWhereExpression(e)) {
+            const setup: string[] = [];
+            const source = emitNumberArray(e.source, setup);
+            if (!source || typeof source.type === 'string' || source.type.rank !== 1) return undefined;
+            // Subject comparisons are pure pointwise expressions. Other masks
+            // retain their own source and are validated before the first read.
+            const condition = isSubjectComparisonExpression(e.mask) ? {
+                $type: 'BinaryExpression', operator: e.mask.operator,
+                left: e.mask.stepOperator && e.mask.stepOperand ? {
+                    $type: 'BinaryExpression', operator: e.mask.stepOperator,
+                    left: e.source, right: e.mask.stepOperand,
+                } : e.source, right: e.mask.right,
+            } as Expression : e.mask;
+            const mask = numberVector(condition, setup);
+            if (!mask || mask.type !== 'boolean' || mask.rank !== 1) return undefined;
+            const found = `found${state.serial++}`, index = `cell${state.serial++}`, label = `search${state.serial++}`;
+            const body: string[] = [], value = mask.cell(index, body);
+            if (!value) return undefined;
+            lines.push(...setup, `if (${source.code}.shape[0] !== ${mask.size}) throw overflow; let ${found} = -1;`,
+                `${label}: { ${numberVectorLoop(mask.size, index, [...body, `if (${value.code}) { ${found} = ${index}; break ${label}; }`])} }`,
+                `if (${found} < 0) throw overflow;`);
+            return { type: 'integer', code: found };
+        }
         const supplied = scalarInputs.get(e);
         if (supplied) return supplied;
         if (isNameExpression(e) && !e.name.includes('.')) {
@@ -1482,7 +1533,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         return undefined;
     }
-    return { container, slot, knownType, realInput, emit, emitValue, arithmetic, numberOffset, arrayType };
+    return { container, slot, knownType, realInput, emit, emitValue, arithmetic, numberOffset, arrayType, numberVectorLoop };
 }
 
 export type LoopExpressions = ReturnType<typeof createLoopExpressions>;
