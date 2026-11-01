@@ -1,0 +1,195 @@
+{
+  "date": "2026-11-01T01:38:54.539Z",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 5,
+  "versions": {
+    "baseline": {
+      "path": "/tmp/rank-integer-vector-base",
+      "commit": "fbea7e4b2f141315123fcc77eaf96896c9dd3c45",
+      "dirty": false
+    },
+    "candidate": {
+      "path": "/private/tmp/rank-numeric-plans/",
+      "commit": "fbea7e4b2f141315123fcc77eaf96896c9dd3c45",
+      "dirty": true
+    }
+  },
+  "sources": {
+    "euler": {
+      "path": "demos/euler/006_sumsquarediff.ra",
+      "sha256": "07857b0214aad226d9565d8e696ba5b3d08d4c0370e86da779998feed19a78b3"
+    },
+    "matvec": {
+      "path": "demos/deepml/001_matmul.ra",
+      "sha256": "04be3e6ce5992dcfe6fcf76f86559c822efb467fbcff38abc90ba05c120632d1"
+    },
+    "row": {
+      "path": "demos/deepml/004_mean.ra",
+      "sha256": "065143b7a2a28aff3d9bad4f4e80f8a9ceb8483802df83f9c0a9f71b78a58575"
+    },
+    "column": {
+      "path": "demos/deepml/004_mean.ra",
+      "sha256": "065143b7a2a28aff3d9bad4f4e80f8a9ceb8483802df83f9c0a9f71b78a58575"
+    },
+    "matmul": {
+      "path": "demos/deepml/009_matmul.ra",
+      "sha256": "2bec0ade2d2ff586980e8b49c91a7f8c2486ab18dc2159e2bee43091384ebcac"
+    },
+    "gradient": {
+      "path": "demos/deepml/015_gd.ra",
+      "sha256": "7f1756026b77ba85b35213f29dddee6e31f821d840c8b95feff3bfa9d09fdeae"
+    },
+    "kmeans": {
+      "path": "demos/deepml/017_kmeans.ra",
+      "sha256": "c03aabc2e28e90b8760e2a91f89a7c0a0b3e712cc3ef05a2a3d7e1b2f518d5a8"
+    },
+    "fft": {
+      "path": "demos/classic/fft.ra",
+      "sha256": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    "stages": {
+      "path": "benchmarks/experiments/numeric-array-stages.mjs",
+      "sha256": "ade8327c65a468ceb4bed195ea316693b5b384c62a80ddd3c362e3e2c8a1b0c8"
+    }
+  },
+  "timing": "Serial fresh processes; alternating order per pair. Demo workers use the largest existing numerical-demos.mjs scale, owned snapshot inputs, two warm calls and three measured calls; row is median of measured calls. Euler includes parsing. Array-stage fixtures time a complete parse/execute of 12 rounds. FFT uses the same current demo source in both builds, >=300 ms warmup and a batch targeting 150 ms, including output forcing. Every worker validates its output against the existing independent oracle. These are different timing contracts and should only be compared within a case.",
+  "results": [
+    {
+      "name": "real-broadcast",
+      "trial": 0,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 12,
+      "answer": 19660800,
+      "ms": 131.76170799999997,
+      "rssMiB": 165.65625,
+      "measuredMs": 131.76170799999997
+    },
+    {
+      "name": "real-broadcast",
+      "trial": 0,
+      "version": "candidate",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 12,
+      "answer": 19660800,
+      "ms": 128.76325000000003,
+      "rssMiB": 172.859375,
+      "measuredMs": 128.76325000000003
+    },
+    {
+      "name": "real-broadcast",
+      "trial": 1,
+      "version": "candidate",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 12,
+      "answer": 19660800,
+      "ms": 120.61425,
+      "rssMiB": 151.890625,
+      "measuredMs": 120.61425
+    },
+    {
+      "name": "real-broadcast",
+      "trial": 1,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 12,
+      "answer": 19660800,
+      "ms": 121.93237500000001,
+      "rssMiB": 155.796875,
+      "measuredMs": 121.93237500000001
+    },
+    {
+      "name": "real-broadcast",
+      "trial": 2,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 12,
+      "answer": 19660800,
+      "ms": 120.85933299999996,
+      "rssMiB": 157.53125,
+      "measuredMs": 120.85933299999996
+    },
+    {
+      "name": "real-broadcast",
+      "trial": 2,
+      "version": "candidate",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 12,
+      "answer": 19660800,
+      "ms": 121.12825000000001,
+      "rssMiB": 150.84375,
+      "measuredMs": 121.12825000000001
+    },
+    {
+      "name": "real-broadcast",
+      "trial": 3,
+      "version": "candidate",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 12,
+      "answer": 19660800,
+      "ms": 127.85270800000004,
+      "rssMiB": 173.203125,
+      "measuredMs": 127.85270800000004
+    },
+    {
+      "name": "real-broadcast",
+      "trial": 3,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 12,
+      "answer": 19660800,
+      "ms": 121.56770900000001,
+      "rssMiB": 161.90625,
+      "measuredMs": 121.56770900000001
+    },
+    {
+      "name": "real-broadcast",
+      "trial": 4,
+      "version": "baseline",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 12,
+      "answer": 19660800,
+      "ms": 123.295083,
+      "rssMiB": 164.8125,
+      "measuredMs": 123.295083
+    },
+    {
+      "name": "real-broadcast",
+      "trial": 4,
+      "version": "candidate",
+      "variant": "real-broadcast",
+      "mode": "compiled",
+      "rounds": 12,
+      "answer": 19660800,
+      "ms": 118.432042,
+      "rssMiB": 162.515625,
+      "measuredMs": 118.432042
+    }
+  ],
+  "summary": [
+    {
+      "name": "real-broadcast",
+      "version": "baseline",
+      "medianMs": 121.93237500000001,
+      "minMs": 120.85933299999996,
+      "maxMs": 131.76170799999997
+    },
+    {
+      "name": "real-broadcast",
+      "version": "candidate",
+      "medianMs": 121.12825000000001,
+      "minMs": 118.432042,
+      "maxMs": 128.76325000000003
+    }
+  ]
+}

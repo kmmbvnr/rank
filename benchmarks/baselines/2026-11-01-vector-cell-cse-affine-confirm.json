@@ -1,0 +1,292 @@
+{
+  "date": "2026-11-01T01:40:01.060Z",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "versions": {
+    "baseline": "/tmp/rank-integer-vector-base",
+    "candidate": "/private/tmp/rank-numeric-plans/"
+  },
+  "commits": {
+    "baseline": "fbea7e4b2f141315123fcc77eaf96896c9dd3c45",
+    "candidate": "fbea7e4b2f141315123fcc77eaf96896c9dd3c45"
+  },
+  "timing": "Serial fresh processes, alternating order; >=300 ms warmup and a batch targeting 150 ms. Program execution, twelve whole-array iterations, allocation, publication and complete output forcing included. Input creation, parsing and independent BigInt oracle outside timing; resetting input bindings and program admission included.",
+  "sources": {
+    "remainder": "A = InputA\nB = InputB\nCount = 12\nfor Count greater 0\n  A = (A mod 97) + (A mod 89)\n  Count -= 1\nend\nA",
+    "quotient": "A = InputA\nB = InputB\nCount = 12\nfor Count greater 0\n  A = A // 3 + A mod 3\n  Count -= 1\nend\nA",
+    "affine": "A = InputA\nB = InputB\nCount = 12\nfor Count greater 0\n  A = (A * 3 + B) // 7\n  Count -= 1\nend\nA",
+    "broadcast": "A = InputA\nB = InputB\nCount = 12\nfor Count greater 0\n  A = (A mod 97) + (B mod 89)\n  Count -= 1\nend\nA"
+  },
+  "results": [
+    {
+      "trial": 0,
+      "version": "baseline",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 530,
+      "ms": 0.43491006226415097,
+      "cpuMs": 0.5430547169811321,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 0,
+      "version": "candidate",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 289,
+      "ms": 0.6578098304498269,
+      "cpuMs": 0.7462491349480969,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 1,
+      "version": "candidate",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 188,
+      "ms": 0.4744195478723405,
+      "cpuMs": 0.5460425531914894,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 1,
+      "version": "baseline",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 155,
+      "ms": 0.5866782258064515,
+      "cpuMs": 0.6630451612903226,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 2,
+      "version": "baseline",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 458,
+      "ms": 0.3664526943231441,
+      "cpuMs": 0.43784279475982535,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 2,
+      "version": "candidate",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 405,
+      "ms": 0.32475936296296276,
+      "cpuMs": 0.4305827160493827,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 3,
+      "version": "candidate",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 473,
+      "ms": 0.3263608160676532,
+      "cpuMs": 0.425708245243129,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 3,
+      "version": "baseline",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 434,
+      "ms": 0.33811923963133633,
+      "cpuMs": 0.4358110599078341,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 4,
+      "version": "baseline",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 514,
+      "ms": 0.3989925428015565,
+      "cpuMs": 0.4208171206225681,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 4,
+      "version": "candidate",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 544,
+      "ms": 0.30295496323529414,
+      "cpuMs": 0.38953125,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 5,
+      "version": "candidate",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 546,
+      "ms": 0.3023202069597069,
+      "cpuMs": 0.38944139194139193,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 5,
+      "version": "baseline",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 518,
+      "ms": 0.3044839922779923,
+      "cpuMs": 0.40923166023166024,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 6,
+      "version": "baseline",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 476,
+      "ms": 0.3057387962184873,
+      "cpuMs": 0.40444537815126047,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 6,
+      "version": "candidate",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 535,
+      "ms": 0.30354579439252344,
+      "cpuMs": 0.3998411214953271,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 7,
+      "version": "candidate",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 537,
+      "ms": 0.30217590130353816,
+      "cpuMs": 0.40524953445065176,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 7,
+      "version": "baseline",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 524,
+      "ms": 0.30286362977099246,
+      "cpuMs": 0.4066641221374046,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 8,
+      "version": "baseline",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 382,
+      "ms": 0.3098777277486914,
+      "cpuMs": 0.41050000000000003,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    },
+    {
+      "trial": 8,
+      "version": "candidate",
+      "name": "affine",
+      "outputCells": 4096,
+      "iterations": 402,
+      "ms": 0.32765226119402996,
+      "cpuMs": 0.42967661691542286,
+      "sourceHash": "644e23fe412ab622cac88682dc12614ae170e69b9033792de2898f29d9431828",
+      "diagnostics": {
+        "numberLoops": 1,
+        "compiledLoops": 1
+      }
+    }
+  ],
+  "summary": [
+    {
+      "name": "affine",
+      "version": "baseline",
+      "medianMs": 0.33811923963133633,
+      "cpuMedianMs": 0.4208171206225681,
+      "minMs": 0.30286362977099246,
+      "maxMs": 0.5866782258064515
+    },
+    {
+      "name": "affine",
+      "version": "candidate",
+      "medianMs": 0.32475936296296276,
+      "cpuMedianMs": 0.425708245243129,
+      "minMs": 0.30217590130353816,
+      "maxMs": 0.6578098304498269
+    }
+  ]
+}

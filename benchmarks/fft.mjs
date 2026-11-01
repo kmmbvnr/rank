@@ -13,6 +13,8 @@ import { pathToFileURL } from 'node:url';
 
 const { values } = parseArgs({ options: {
   worker: { type: 'string' }, checkout: { type: 'string' }, baseline: { type: 'string' }, 'baseline-source': { type: 'string' }, source: { type: 'string' }, modes: { type: 'string' }, size: { type: 'string', default: '4096' },
+  sizes: { type: 'string' }, 'warmup-ms': { type: 'string', default: '300' },
+  'batch-ms': { type: 'string', default: '150' }, batches: { type: 'string', default: '1' },
   samples: { type: 'string', default: '7' }, profile: { type: 'string' },
   output: { type: 'string' }, fftjs: { type: 'string' }, diagnostics: { type: 'boolean', default: false },
 } });
@@ -21,7 +23,11 @@ const { Interpreter, RuntimeDiagnostics, createArraySnapshot } = await import(pa
 const source = readFileSync(values.source ?? new URL('../demos/classic/fft.ra', import.meta.url), 'utf8');
 const definitions = source.split('\nX = array')[0];
 const median = xs => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
-const sizes = [256, 1024, 4096];
+const sizes = values.sizes ? values.sizes.split(',').map(Number) : [256, 1024, 4096];
+assert(sizes.length && sizes.every(n => Number.isSafeInteger(n) && n > 0 && (n & (n - 1)) === 0));
+const warmupMs = Number(values['warmup-ms']), batchMs = Number(values['batch-ms']), batches = Number(values.batches);
+assert(Number.isFinite(warmupMs) && warmupMs >= 300 && Number.isFinite(batchMs) && batchMs >= 150);
+assert(Number.isSafeInteger(batches) && batches >= 1 && batches <= 9);
 const availableModes = ['compiled', 'function-control', 'reference', 'js-stages', 'js-inplace', ...(values.fftjs ? ['fftjs-setup', 'fftjs-reuse'] : [])];
 const modes = values.modes?.split(',') ?? availableModes;
 assert(modes.every(mode => availableModes.includes(mode) || mode === 'baseline' && values.baseline), 'unknown mode or missing --baseline');
@@ -140,7 +146,7 @@ if (!values.worker) {
   for (let trial = 0; trial < samples; trial++) for (const n of sizes) {
     for (const mode of trial % 2 ? [...modes].reverse() : modes) {
       const workerSource = mode === 'baseline' ? values['baseline-source'] ?? values.source : values.source;
-      const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), `--worker=${mode === 'baseline' ? 'compiled' : mode}`, `--size=${n}`, `--checkout=${mode === 'baseline' ? values.baseline : checkout}`, ...(values.fftjs ? [`--fftjs=${values.fftjs}`] : []), ...(workerSource ? [`--source=${workerSource}`] : [])], { encoding: 'utf8', timeout: 60000 });
+      const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), `--worker=${mode === 'baseline' ? 'compiled' : mode}`, `--size=${n}`, `--warmup-ms=${warmupMs}`, `--batch-ms=${batchMs}`, `--batches=${batches}`, `--checkout=${mode === 'baseline' ? values.baseline : checkout}`, ...(values.fftjs ? [`--fftjs=${values.fftjs}`] : []), ...(workerSource ? [`--source=${workerSource}`] : [])], { encoding: 'utf8', timeout: 60000 });
       assert.ifError(child.error); assert.equal(child.status, 0, child.stderr);
       results.push({ trial, ...JSON.parse(child.stdout), mode });
     }
@@ -156,7 +162,7 @@ if (!values.worker) {
     fftjs: FFT ? { version: createRequire(import.meta.url)(values.fftjs.replace(/lib\/fft\.js$/, 'package.json')).version, path: values.fftjs } : undefined,
     checkout, baseline: values.baseline,
     sourceHash: createHash('sha256').update(source).digest('hex'),
-    timing: 'serial fresh processes; each has >=300 ms warmup; per-call average of a batch targeting 150 ms; parsing, input creation and result validation excluded; coefficients, permutation and output materialization included',
+    timing: `serial fresh processes; each has >=${warmupMs} ms warmup; ${batches} measured batch(es) targeting ${batchMs} ms; parsing, input creation and result validation excluded; coefficients, permutation and output materialization included; when batches > 1, each batch runs for at least the target duration and each worker reports its median`,
     results, summary };
   if (values.output) writeFileSync(values.output, JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify(summary, null, 2));
@@ -193,7 +199,7 @@ if (!values.worker) {
   check(first, expected);
   const warmupStart = performance.now();
   let warmups = 0;
-  while (performance.now() - warmupStart < 300 || warmups < 3) { run(); warmups++; }
+  while (performance.now() - warmupStart < warmupMs || warmups < 3) { run(); warmups++; }
   check(run(), expected);
   if (values.diagnostics) {
     generated.length = 0;
@@ -223,8 +229,22 @@ if (!values.worker) {
     writeFileSync(values.output + '.summary.json', JSON.stringify({ n, mode, calls, ...summary }, null, 2) + '\n');
     console.log(JSON.stringify({ n, mode, calls, ...summary }, null, 2));
   } else {
+    const measured = [];
+    if (batches > 1) {
+      for (let batch = 0; batch < batches; batch++) {
+        const cpu = process.cpuUsage(), start = performance.now(); let iterations = 0, result;
+        do { result = run(); iterations++; } while (performance.now() - start < batchMs);
+        const elapsed = performance.now() - start, used = process.cpuUsage(cpu); check(result, expected);
+        measured.push({ iterations, warmMs: elapsed / iterations, cpuMs: (used.user + used.system) / 1000 / iterations });
+      }
+      console.log(JSON.stringify({ n, mode, firstSizeCallMs, warmMs: median(measured.map(r => r.warmMs)),
+        cpuMs: median(measured.map(r => r.cpuMs)), iterations: measured.reduce((sum, r) => sum + r.iterations, 0),
+        warmups, measured, sourceHash: createHash('sha256').update(source).digest('hex') }));
+      runtime?.dispose();
+      process.exit(0);
+    }
     const probeStart = performance.now(); run();
-    const iterations = Math.max(runtime ? 3 : 100, Math.ceil(150 / Math.max(.001, performance.now() - probeStart)));
+    const iterations = Math.max(runtime ? 3 : 100, Math.ceil(batchMs / Math.max(.001, performance.now() - probeStart)));
     const cpu = process.cpuUsage();
     const start = performance.now(); let result;
     for (let j = 0; j < iterations; j++) result = run();

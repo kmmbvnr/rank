@@ -1,0 +1,273 @@
+{
+  "n": 4096,
+  "mode": "compiled",
+  "calls": 2962,
+  "samples": 16388,
+  "sampledMs": 2544.5830000000324,
+  "categoryMs": {
+    "contracts": 321.8519999999946,
+    "gc": 78.49900000000005,
+    "concatCopies": 8.042
+  },
+  "categoryPercent": {
+    "contracts": 12.64851647598017,
+    "gc": 3.084945549034913,
+    "concatCopies": 0.316043925468334
+  },
+  "categoryNote": "inclusive categories; may overlap",
+  "self": [
+    {
+      "frame": "(anonymous)|:3",
+      "ms": 1124.2730000000347
+    },
+    {
+      "frame": "state.convert|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/owned-array.js:1096",
+      "ms": 210.5020000000001
+    },
+    {
+      "frame": "storedScalarKinds|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/owned-array.js:48",
+      "ms": 200.09400000000036
+    },
+    {
+      "frame": "(garbage collector)|:0",
+      "ms": 78.49900000000005
+    },
+    {
+      "frame": "arrayElementTypes|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/array-element-types.js:7",
+      "ms": 73.55100000000013
+    },
+    {
+      "frame": "(program)|:0",
+      "ms": 64.17200000000008
+    },
+    {
+      "frame": "checked|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/modules/numbers.js:170",
+      "ms": 59.57100000000008
+    },
+    {
+      "frame": "mapStoredUnary|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/unary-array-kernel.js:7",
+      "ms": 58.91600000000009
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-function.js:266",
+      "ms": 54.042000000000066
+    },
+    {
+      "frame": "post|node:inspector:115",
+      "ms": 44.375
+    },
+    {
+      "frame": "createOwned|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/owned-array.js:1068",
+      "ms": 38.881999999999984
+    },
+    {
+      "frame": "realArray|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/numeric-conversions.js:37",
+      "ms": 36.95400000000007
+    },
+    {
+      "frame": "prepareStoredScalarView|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/integer-view.js:167",
+      "ms": 35.13100000000011
+    },
+    {
+      "frame": "gather|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/selectors.js:460",
+      "ms": 31.497000000000067
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/selectors.js:92",
+      "ms": 27.129000000000055
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/modules/numbers.js:176",
+      "ms": 22.581000000000035
+    },
+    {
+      "frame": "visit|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/array-binding-contract.js:177",
+      "ms": 20.745000000000005
+    },
+    {
+      "frame": "invoke|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-function.js:233",
+      "ms": 15.004999999999999
+    },
+    {
+      "frame": "finiteDomain|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/modules/numbers.js:214",
+      "ms": 12.46
+    },
+    {
+      "frame": "materializeSequence|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/sequence.js:412",
+      "ms": 10.956999999999999
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-call-loop.js:176",
+      "ms": 10.749999999999998
+    },
+    {
+      "frame": "realKernel|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/tensor.js:328",
+      "ms": 10.665999999999999
+    },
+    {
+      "frame": "semanticArrayType|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/semantic-array-type.js:18",
+      "ms": 9.753
+    },
+    {
+      "frame": "filledArray|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/owned-array.js:724",
+      "ms": 9.375
+    },
+    {
+      "frame": "advance|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/execution.js:92",
+      "ms": 9.038999999999998
+    },
+    {
+      "frame": "vectorArray|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/number-loop-runtime.js:74",
+      "ms": 8.126999999999999
+    },
+    {
+      "frame": "check|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/array-binding-contract.js:145",
+      "ms": 5.958
+    },
+    {
+      "frame": "sliceArray|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/selectors.js:401",
+      "ms": 5.917999999999998
+    },
+    {
+      "frame": "tensorSelection|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/selectors.js:88",
+      "ms": 5.5
+    },
+    {
+      "frame": "copyStoredArrayBlocks|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/runtime/array-copy.js:93",
+      "ms": 5.374999999999999
+    }
+  ],
+  "inclusive": [
+    {
+      "frame": "(root)|:0",
+      "ms": 2544.5829999997327
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/benchmarks/fft.mjs:0",
+      "ms": 2396.952999999732
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/benchmarks/fft.mjs:182",
+      "ms": 2351.4529999997317
+    },
+    {
+      "frame": "call|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/function-invocation.js:428",
+      "ms": 2140.201999999733
+    },
+    {
+      "frame": "advance|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/execution.js:92",
+      "ms": 2131.411999999732
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/block-compiler.js:15",
+      "ms": 1785.098999999869
+    },
+    {
+      "frame": "continueCompiledBlock|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/blocks.js:84",
+      "ms": 1636.5519999998683
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/blocks.js:132",
+      "ms": 1310.1459999999713
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/mutation-guards.js:36",
+      "ms": 1309.9799999999714
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/loops.js:200",
+      "ms": 1309.6879999999715
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/fast-paths.js:407",
+      "ms": 1309.5629999999715
+    },
+    {
+      "frame": "(anonymous)|:3",
+      "ms": 1172.8240000000394
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/integer-loop.js:104",
+      "ms": 889.9740000000395
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/number-loop-runtime.js:324",
+      "ms": 889.4740000000394
+    },
+    {
+      "frame": "evaluate|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/expressions.js:57",
+      "ms": 438.9810000000002
+    },
+    {
+      "frame": "stream|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/assignments.js:423",
+      "ms": 433.94399999999615
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/expressions.js:255",
+      "ms": 423.69000000000005
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/expressions.js:270",
+      "ms": 421.9800000000001
+    },
+    {
+      "frame": "expression|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/checked-input.js:133",
+      "ms": 421.9800000000001
+    },
+    {
+      "frame": "inputCall|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/interpreter.js:137",
+      "ms": 421.9800000000001
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/fast-paths.js:404",
+      "ms": 418.9219999999874
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-call-loop.js:176",
+      "ms": 417.5059999999875
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/application.js:479",
+      "ms": 403.7690000000001
+    },
+    {
+      "frame": "(anonymous)|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/application.js:575",
+      "ms": 402.2690000000002
+    },
+    {
+      "frame": "apply|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/eval/application.js:612",
+      "ms": 388.3960000000002
+    },
+    {
+      "frame": "run|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-call-loop.js:132",
+      "ms": 357.5049999999924
+    },
+    {
+      "frame": "runBuffers|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-function.js:447",
+      "ms": 351.7999999999928
+    },
+    {
+      "frame": "invoke|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-function.js:233",
+      "ms": 350.42899999999287
+    },
+    {
+      "frame": "evaluate|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/interpreter.js:185",
+      "ms": 339.4760000000001
+    },
+    {
+      "frame": "execute|file:///private/tmp/rank-numeric-plans/packages/interpreter/out/jit/numeric-function.js:265",
+      "ms": 325.4669999999948
+    }
+  ],
+  "additionalInclusiveMs": {
+    "privateHelperLoop": 417.5059999999875,
+    "numberArrayLoop": 889.6400000000394,
+    "outputBoxing": 210.5020000000001
+  },
+  "additionalInclusivePercent": {
+    "privateHelperLoop": 16.407639287065198,
+    "numberArrayLoop": 34.962113635123245,
+    "outputBoxing": 8.272553891934255
+  },
+  "note": "Separate instrumented profile after 1000 ms warmup. Inclusive categories can overlap; they locate remaining work and are not timing speedup estimates."
+}

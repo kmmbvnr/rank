@@ -27,6 +27,60 @@ function compare(source: string) {
 }
 
 describe('private numeric vector stages', () => {
+    it.each(['(A mod 97) + (A mod 89)', 'A // 3 + A mod 3',
+        'A // -3 + A mod -3'])('retains exact repeated operands in %s', formula => {
+        const r = compare(`A = array -9007199254740991 -4503599627370495 -1 0 1 4503599627370495 9007199254740991
+Saved = A
+Count = 3
+for Count greater 0
+ A = ${formula}
+ Count -= 1
+end
+tuple A Saved`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+
+    it.each([[[2, 1]], [[0, 1]]])('reuses repeated leaves in broadcast shape %j', shape => {
+        const r = compare(`use sequences
+A = array shape ${shape.join(' ')} fill -103
+B = (array -3 0 7) reshape 1 3
+C = A
+Count = 3
+for Count greater 0
+ C = (A mod 97) + (A mod 89) + B mod 7
+ Count -= 1
+end
+C`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('replays unsafe repeated operands without publishing private progress', () => {
+        const r = compare(`A = array 4503599627370495 -4503599627370495
+Saved = A
+Count = 3
+for Count greater 0
+ A = A * 2 + A mod 3
+ Count -= 1
+end
+tuple A Saved`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+    });
+
+    it('retains the located failure after earlier repeated-operand stages', () => {
+        const r = compare(`A = array -100 0 103
+Saved = A
+Count = 3
+for Count greater 0
+ A = (A mod 97) + (A mod 89)
+ A = A // (Count - 2) + A mod (Count - 2)
+ Count -= 1
+end`);
+        expect(r.observation.error).toBeDefined();
+    });
+
     it.each(['min', 'max', 'band', 'bor', 'bxor', 'shr', 'shl'])('joins native %s array stages with their consumers', operation => {
         const r = compare(`use bits
 A = array 3 7 12 31

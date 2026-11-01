@@ -821,6 +821,102 @@ the measured build, so this control isolates the division repair.
 Evidence: [initial control](baselines/2026-11-01-wide-array-division-fix-fft.json),
 [nine-pair confirmation](baselines/2026-11-01-wide-array-division-fix-fft-confirm.json).
 
+### Step 4b: reuse pointwise leaf loads
+
+The confirmed baseline is `fbea7e4b`, including the separate division repair.
+The numerical loop compiler now freezes each original array leaf in a local
+per-cell temporary. Division/remainder expansion reuses that value instead
+of repeating the load, Number conversion and safe-integer check. Repeated
+references to the same leaf in one pointwise frame share the temporary.
+The temporary executes afresh for every cell and iteration; no input values
+are cached across assignments or calls. Integer overflow guards remain, and
+allocation/publication, division algorithms and FFT source are unchanged.
+
+An initial five-pair run against `4b0d6077` and a nine-pair run against the
+repaired baseline both contain severe wall-time outliers. For example,
+N=1024 before/after medians in the latter are 0.828/0.465 ms, but baseline
+individual processes range from 0.475 to 5.197 ms. No small-size percentage
+is attributed to that noisy comparison.
+
+A focused confirmation at N=4096 uses five alternating fresh-process pairs,
+at least 1000 ms warmup, and three batches of at least 500 ms per process.
+Every worker reports its median batch, and all batches remain in the raw
+report. Both implementations recompute coefficients and output ordering
+on every call, and full outputs are forced and checked.
+
+| FFT N=4096 | Median, ms | CPU median, ms |
+| --- | ---: | ---: |
+| Before leaf reuse | 0.97994 | 1.24237 |
+| Leaf reuse | 0.82613 | 1.09608 |
+| Handwritten JS in-place | 0.42650 | 0.42729 |
+
+That is 15.7% less wall time (1.19x), with 11.8% less CPU time. Three of five
+paired worker medians improve; two candidate processes are slower, at 1.152
+and 1.819 ms. The separate nine-pair short-batch series improves in seven
+pairs and has medians of 1.11166 to 0.89651 ms. No outliers were discarded. The JS gap in this same series is about 1.94x. This is evidence
+for a roughly 15–20% improvement on this FFT workload, not a threefold gain
+or a claim that every array program becomes faster.
+
+```sh
+node benchmarks/fft.mjs --baseline=/path/to/baseline \
+  --sizes=4096 --samples=5 --warmup-ms=1000 \
+  --batch-ms=500 --batches=3 \
+  --modes=baseline,compiled,js-inplace
+node benchmarks/integer-vector-loops.mjs \
+  --baseline=/path/to/baseline --samples=5
+```
+
+The general whole-loop benchmark parses once, prepares Int32 inputs and an
+independent full BigInt oracle outside timing, then resets input bindings and
+runs twelve array iterations with full result publication/forcing. Every
+worker asserts that the numerical loop backend really executed.
+
+| Whole-loop case, 4096 output cells | Before, ms | Leaf reuse, ms |
+| --- | ---: | ---: |
+| Repeated remainders | 0.45327 | 0.36730 |
+| Quotient and remainder | 0.41785 | 0.39556 |
+| Affine numerator / scalar divisor | 0.33383 | 0.33901 |
+| Two-dimensional broadcasting | 0.59756 | 0.59447 |
+
+The repeated-remainder case improves 19.0%, with nonoverlapping process
+ranges (0.446–0.460 versus 0.355–0.368 ms) and CPU 0.549 to 0.457 ms.
+The quotient series contains large outliers; the affine and broadcast
+controls have overlapping ranges and do not establish a general gain.
+The affine division already uses a scalar arithmetic temporary for its
+numerator. These controls show that fewer generated leaf expressions do
+not by themselves establish an end-to-end gain.
+
+The nine-pair affine confirmation reverses the small initial difference:
+0.33812 to 0.32476 ms wall, but CPU is 0.42082 to 0.42571 ms, with wide
+and overlapping process ranges. There is no reproducible affine regression
+or speed improvement.
+
+Real matrix and real broadcast controls measure 111.020 to 110.585 ms and
+121.932 to 121.128 ms respectively, both with overlapping process ranges.
+There is no measurable regression or improvement in these two controls.
+
+Verification: all 454 ordinary interpreter files / 10,464 tests pass,
+including the new repeated-operand cases at safe integer boundaries,
+negative divisors, empty/multidimensional broadcasting, overflow replay,
+retained aliases and located errors after completed stages. All 55 Deep-ML
+files and seven classic files pass, along with the TypeScript build,
+semantic boundaries and application-form checks. Exhaustive audits remain
+excluded as required by AGENTS.md.
+
+A separate instrumented CPU sample now places about 35% of inclusive time
+in the numerical array loop, 16% in the helper-call loop and 8% in output
+boxing. These proportions locate remaining work; they are not timing
+speedups or forecasts, and inclusive categories can overlap.
+
+Evidence: [pre-repair preliminary FFT series](baselines/2026-11-01-vector-cell-cse-fft.json),
+[nine-pair short-batch FFT series](baselines/2026-11-01-vector-cell-cse-fft-confirm.json),
+[focused long-batch confirmation](baselines/2026-11-01-vector-cell-cse-fft-long.json),
+[general integer loops](baselines/2026-11-01-vector-cell-cse-integers.json),
+[affine confirmation](baselines/2026-11-01-vector-cell-cse-affine-confirm.json),
+[real matrix control](baselines/2026-11-01-vector-cell-cse-real-matrix.json),
+[real broadcast control](baselines/2026-11-01-vector-cell-cse-real-broadcast.json),
+[CPU summary](baselines/2026-11-01-vector-cell-cse-cpu.json).
+
 ## Reproduction and checks
 
 ```sh
