@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-01T01:56:28.628076+00:00",
+  "commit": "dd87005287784ef005104b24fac474572b218d00",
+  "note": "One extra fully forced call under RuntimeDiagnostics after timing; no compiler hooks. Timing observations from these diagnostic workers are not used as performance evidence. Sources/sizes match the demo audit.",
+  "results": {
+    "euler": {
+      "size": 200000,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0
+      }
+    },
+    "matvec": {
+      "size": 512,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0
+      }
+    },
+    "row": {
+      "size": 512,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0
+      }
+    },
+    "column": {
+      "size": 512,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0
+      }
+    },
+    "matmul": {
+      "size": 64,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 4096,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0
+      }
+    },
+    "gradient": {
+      "size": 2048,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 20,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0
+      }
+    },
+    "kmeans": {
+      "size": 2048,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 8192,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0
+      }
+    }
+  }
+}

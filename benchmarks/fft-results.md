@@ -917,6 +917,95 @@ Evidence: [pre-repair preliminary FFT series](baselines/2026-11-01-vector-cell-c
 [real broadcast control](baselines/2026-11-01-vector-cell-cse-real-broadcast.json),
 [CPU summary](baselines/2026-11-01-vector-cell-cse-cpu.json).
 
+### Pre-merge audit against main
+
+The complete branch at `dd870052` was compared with an independently built
+current main, `31f2acaa`. This measures all five commits together rather than
+multiplying ratios from separate experiments. Five alternating pairs of
+fresh processes run seven unchanged numerical demo scenarios and three array
+controls plus FFT; every worker validates complete outputs independently.
+
+| Scenario | Main, ms | Candidate, ms |
+| --- | ---: | ---: |
+| Euler 6 | 12.444 | 12.450 |
+| Matrix × vector, 512 × 512 | 29.681 | 29.552 |
+| Row means, 512 × 512, nine-pair confirmation | 23.590 | 23.509 |
+| Column means, 512 × 512 | 24.011 | 23.887 |
+| Matrix × matrix, 64 × 64 | 232.225 | 232.274 |
+| Gradient descent, 2048 samples | 7.091 | 7.165 |
+| K-means, 2048 points | 101.770 | 101.506 |
+| Integer matrix stages | 91.490 | 91.282 |
+| Real matrix stages, nine-pair confirmation | 110.328 | 111.002 |
+| Real broadcast stages | 123.432 | 124.082 |
+| FFT, 4096 | 1.42037 | 0.85576 |
+
+The first row-mean series suggested a 10% gain but had large overlapping
+ranges; nine fresh pairs reduce that difference to 0.3%. The initial real
+matrix series suggested a 2.4% regression; its nine-pair confirmation is
+0.6% slower with overlapping ranges. No material change is established for
+the ten non-FFT controls. FFT improves about 1.66x (39.8% less time) in this
+whole-branch comparison, with nonoverlapping process ranges.
+
+There is also measured non-FFT benefit in the independent numerical helper
+workloads, again compared directly with main in five fresh-process pairs:
+
+| Pure helper scenario | Main, ms | Candidate, ms |
+| --- | ---: | ---: |
+| Standalone affine | 0.05092 | 0.04944 |
+| Standalone indexed differences | 0.03654 | 0.03366 |
+| Standalone paired-channel transform | 0.05467 | 0.04912 |
+| Sixteen affine helper calls in a loop | 0.31366 | 0.12389 |
+| Sixteen paired-channel calls in a loop | 0.35153 | 0.12567 |
+
+The two caller-loop cases improve 2.53x and 2.80x; their process ranges do
+not overlap. Warm diagnostics record one private loop, sixteen helper calls
+and sixteen prepared-plan hits in each. These are controlled helper
+benchmarks, not claims about unchanged Deep-ML demo performance. The
+separate integer-remainder workload in step 4b also benefits outside FFT.
+
+A further, untimed diagnostic call on each of the seven numerical demo
+scenarios records zero prepared numerical helper hits and zero private
+helper-call loops. Their existing native/tensor execution paths do the
+work: matrix multiplication, reductions, indexed writes and a captured
+k-means helper are outside the new pure-callee protocol. This explains the
+limited coverage rather than treating unchanged timings as an acceleration.
+
+The retained mechanisms are general: bounded preparation caches depend on
+input contracts; private buffers cross eligible pure helper calls; pointwise
+leaf reuse applies to supported numerical array expressions; the wide signed
+division repair restores exact semantics. None recognizes FFT names, sizes
+or coefficient values. The rejected integer-guard experiment remains only
+an archived patch. Existing faster dense integer kernels retain admission.
+
+Further coverage could include range-controlled caller loops, scalar and
+array operations mixed with helper calls, safe captures, and additional
+numeric IR operations such as reductions/matmul. These are possible separate
+extensions, not implemented behavior or prerequisites for merging this
+verified subset. Profiles of the intended next workload should determine
+which extension earns its cost; expanding the outer loop form alone would
+not accelerate a body dominated by unsupported matmul/reductions.
+
+The compiler/runtime source is identical to the version that passed all 454
+ordinary interpreter files / 10,464 tests, 55 Deep-ML files and seven classic
+files. The audit adds optional worker-only diagnostics to the benchmark,
+without changing demo sources or timed execution when diagnostics are off.
+Exhaustive audits remain excluded.
+
+Evidence: [all demo/control timings](baselines/2026-11-01-numeric-merge-demo-audit.json),
+[row confirmation](baselines/2026-11-01-numeric-merge-row-confirm.json),
+[real matrix confirmation](baselines/2026-11-01-numeric-merge-real-matrix-confirm.json),
+[general helpers](baselines/2026-11-01-numeric-merge-helper-audit.json),
+[untimed demo diagnostics](baselines/2026-11-01-numeric-merge-demo-diagnostics.json).
+
+Example diagnostic invocation (an additional checked call after timing,
+without compilation hooks):
+
+```sh
+node benchmarks/numerical-demos.mjs --worker=gradient \
+  --scale=2 --samples=3 --storage=snapshot \
+  --diagnostics=true
+```
+
 ## Reproduction and checks
 
 ```sh

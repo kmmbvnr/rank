@@ -10,7 +10,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const script = fileURLToPath(import.meta.url);
 const options = Object.fromEntries(process.argv.slice(2).map(arg => {
-  const match = /^--(baseline|samples|only|worker|checkout|scale|mode|order|storage|features|steps)=(.+)$/.exec(arg);
+  const match = /^--(baseline|samples|only|worker|checkout|scale|mode|order|storage|features|steps|diagnostics)=(.+)$/.exec(arg);
   assert(match, `Unknown argument: ${arg}`);
   return [match[1], match[2]];
 }));
@@ -38,7 +38,7 @@ if (options.worker) {
   const scale = Number(options.scale);
   assert(Number.isInteger(scale) && scale >= 0 && scale < 3);
   const size = sizes[name][scale];
-  const { Interpreter, createArraySnapshot } = await import(pathToFileURL(resolve(options.checkout ?? root, 'packages/interpreter/out/index.js')));
+  const { Interpreter, createArraySnapshot, RuntimeDiagnostics } = await import(pathToFileURL(resolve(options.checkout ?? root, 'packages/interpreter/out/index.js')));
   const source = readFileSync(resolve(root, sources[name]), 'utf8');
   const array = storage === 'snapshot'
     ? (items, shape) => createArraySnapshot ? createArraySnapshot(items, shape) : { kind: 'array', items: [...items], shape: [...shape] }
@@ -118,8 +118,16 @@ if (options.worker) {
   const firstMs = measure();
   if (options.mode !== 'cold') for (let i = 0; i < 2; i++) measure();
   const warmMs = options.mode === 'cold' ? [] : Array.from({ length: samples }, measure);
+  let diagnostics;
+  if (options.diagnostics === 'true') {
+    const counters = new RuntimeDiagnostics();
+    counters.run(() => { const value = run(); if (value && typeof value === 'object' && 'items' in value) void value.items; check(value); });
+    diagnostics = Object.fromEntries(['compiledLoops', 'numberLoops', 'compiledTensors', 'compiledArrayFunctions',
+      'numericFunctionPreparations', 'numericFunctionPlanHits', 'compiledNumericCallLoops', 'numericLoopCalls'].map(key => [key, counters[key]]));
+  }
   runtime.dispose();
-  console.log(JSON.stringify({ size, firstMs, warmMs, memory: process.memoryUsage(), maxRSSKiB: process.resourceUsage().maxRSS }));
+  console.log(JSON.stringify({ size, firstMs, warmMs, memory: process.memoryUsage(), maxRSSKiB: process.resourceUsage().maxRSS,
+    ...(diagnostics ? { diagnostics } : {}) }));
 } else {
   const checkouts = { candidate: root, ...(options.baseline ? { baseline: resolve(options.baseline) } : {}) };
   const report = { metadata: { date: new Date().toISOString(), node: process.version, cpu: cpus()[0]?.model,
