@@ -1,0 +1,132 @@
+{
+  "baseline": "2a43b3bd",
+  "sampledMs": 2539.709,
+  "note": "CPU self samples; inspector overhead included. Generated sources fetched only after sampling; no compiler hooks.",
+  "self": [
+    {
+      "name": "integer-vector-loop",
+      "ms": 941.3080000000151,
+      "percent": 37.06361634344782
+    },
+    {
+      "name": "numeric-function",
+      "ms": 288.69299999999924,
+      "percent": 11.367168443313751
+    },
+    {
+      "name": "state.convert",
+      "ms": 227.62600000000003,
+      "percent": 8.962680370073896
+    },
+    {
+      "name": "(anonymous)",
+      "ms": 190.92200000000005,
+      "percent": 7.517475427302894
+    },
+    {
+      "name": "(garbage collector)",
+      "ms": 91.54200000000003,
+      "percent": 3.604428696358521
+    },
+    {
+      "name": "mapStoredUnary",
+      "ms": 76.99800000000005,
+      "percent": 3.0317646628019217
+    },
+    {
+      "name": "checked",
+      "ms": 60.16800000000006,
+      "percent": 2.369090317040262
+    },
+    {
+      "name": "realArray",
+      "ms": 47.49700000000003,
+      "percent": 1.8701748901153648
+    },
+    {
+      "name": "(program)",
+      "ms": 46.83200000000001,
+      "percent": 1.8439907879209787
+    },
+    {
+      "name": "gather",
+      "ms": 40.87900000000005,
+      "percent": 1.6095938550440247
+    },
+    {
+      "name": "createOwned",
+      "ms": 40.038000000000025,
+      "percent": 1.5764798250508238
+    },
+    {
+      "name": "post",
+      "ms": 38.875,
+      "percent": 1.530687177152973
+    },
+    {
+      "name": "tensorSelection",
+      "ms": 31.666000000000032,
+      "percent": 1.2468357595299318
+    },
+    {
+      "name": "storedScalarKinds",
+      "ms": 27.084000000000028,
+      "percent": 1.0664213892221521
+    },
+    {
+      "name": "run",
+      "ms": 25.87500000000001,
+      "percent": 1.018817510195066
+    },
+    {
+      "name": "invoke",
+      "ms": 19.584000000000007,
+      "percent": 0.7711119659772049
+    },
+    {
+      "name": "arrayElementTypes",
+      "ms": 14.788,
+      "percent": 0.5822714334595027
+    },
+    {
+      "name": "visit",
+      "ms": 14.418,
+      "percent": 0.5677028352460853
+    },
+    {
+      "name": "realKernel",
+      "ms": 13.291999999999998,
+      "percent": 0.5233670471695773
+    },
+    {
+      "name": "finiteDomain",
+      "ms": 11.997000000000002,
+      "percent": 0.47237695342261665
+    },
+    {
+      "name": "materializeSequence",
+      "ms": 10.668,
+      "percent": 0.420048123623612
+    },
+    {
+      "name": "vectorArray",
+      "ms": 9.959999999999999,
+      "percent": 0.392170914069289
+    },
+    {
+      "name": "semanticArrayType",
+      "ms": 9.584999999999999,
+      "percent": 0.3774054429070417
+    },
+    {
+      "name": "filledArray",
+      "ms": 9.210999999999999,
+      "percent": 0.36267934633456034
+    },
+    {
+      "name": "advance",
+      "ms": 8.916,
+      "percent": 0.3510638423535925
+    }
+  ]
+}

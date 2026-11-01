@@ -230,6 +230,18 @@ if (!values.worker) {
     const start = performance.now(); let calls = 0;
     while (performance.now() - start < 2500) { run(); calls++; }
     const { profile } = await session.post(values.profile === 'cpu' ? 'Profiler.stop' : 'HeapProfiler.stopSampling');
+    if (values.profile === 'cpu') {
+      // Inspect generated code after sampling, without compiler hooks.
+      await session.post('Debugger.enable');
+      const scripts = [...new Set(profile.nodes.filter(node => !node.callFrame.url && node.callFrame.scriptId !== '0')
+        .map(node => node.callFrame.scriptId))];
+      const sources = [];
+      for (const scriptId of scripts) {
+        try { const { scriptSource } = await session.post('Debugger.getScriptSource', { scriptId }); sources.push({ scriptId, source: scriptSource }); }
+        catch { /* A collected script may no longer be available. */ }
+      }
+      writeFileSync(values.output + '.sources.json', JSON.stringify(sources, null, 2) + '\n');
+    }
     session.disconnect(); writeFileSync(values.output, JSON.stringify(profile));
     const bytes = node => node.selfSize + node.children.reduce((sum, child) => sum + bytes(child), 0);
     const summary = values.profile === 'cpu' ? profileSummary(profile) : { sampledAllocationBytes: bytes(profile.head), bytesPerCall: bytes(profile.head) / calls, note: 'V8 allocation sampling estimate, includes collected objects; not retained or peak heap' };

@@ -93,6 +93,17 @@ function vectorArray(shape: readonly number[], real: boolean, pool: VectorBuffer
     else pool.push(buffer);
     return new PrivateNumericArray([...shape], 0, undefined, buffer, real);
 }
+/** Physical Int32 values need no per-cell precision check only when the
+ * broadcast geometry also proves that every addressed cell exists. */
+function compactVector(cells: NumberCells, shape: readonly number[]): boolean {
+    if (!(cells instanceof Int32Array)) return false;
+    let size = 1;
+    for (const dimension of shape) {
+        if (!Number.isSafeInteger(dimension) || dimension < 0) return false;
+        size *= dimension;
+    }
+    return size === cells.length;
+}
 /** The existing trailing-axis broadcast contract, prepared once per stage.
  * Shape errors replay the ordinary region to preserve expression error order. */
 function vectorLayout(left: readonly number[], right: readonly number[]) {
@@ -230,7 +241,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
-    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', code)(
+    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', code)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -282,7 +293,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     for (let i = first; i < last; i++) result.store(i, safe(start + safe(i * step)));
                 }
                 return result;
-            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout);
+            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout, compactVector);
     try { run = compile(source); } catch { return undefined; }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These

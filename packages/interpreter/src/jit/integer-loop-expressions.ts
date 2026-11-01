@@ -1,3 +1,4 @@
+import { floorDivide } from '../numeric-division.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { AstUtils } from 'langium';
 import { loopValueType, type LoopHost, type LoopTerm } from './integer-loop-plan.js';
@@ -385,7 +386,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (node.kind === 'literal') {
             const value = node.value;
             if (numberMode && typeof value === 'bigint' && !Number.isSafeInteger(Number(value))) return undefined;
-            return { type: node.type, code: typeof value === 'bigint' ? `${value}${numberMode ? '' : 'n'}`
+            return { type: node.type, bounds: numberMode && typeof value === 'bigint' ? [Number(value), Number(value)] : undefined, code: typeof value === 'bigint' ? `${value}${numberMode ? '' : 'n'}`
                 : typeof value === 'number' ? Object.is(value, -0) ? '-0' : String(value) : JSON.stringify(value) };
         }
         if (node.kind === 'input') {
@@ -430,7 +431,25 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return { code: name, type: node.type };
         }
         const code = arithmetic(node.operation.name, left, right, node.type, lines);
-        return code === undefined ? undefined : { code, type: node.type };
+        return code === undefined ? undefined : { code, type: node.type, bounds: node.type === 'integer' ? integerBounds(node.operation.name, left, right) : undefined };
+    }
+    /** Exact interval arithmetic is a proof about all cells, not a scan.
+     * Unknown or unsafe bounds retain the existing checked Number path. */
+    function integerBounds(op: string, left: LoopTerm, right: LoopTerm): readonly [number, number] | undefined {
+        if (!numberMode || !left.bounds || !right.bounds) return undefined;
+        const [a, b] = left.bounds.map(BigInt), [c, d] = right.bounds.map(BigInt);
+        let ends: bigint[];
+        if (op === '+') ends = [a + c, b + d];
+        else if (op === '-') ends = [a - d, b - c];
+        else if (op === '*') ends = [a * c, a * d, b * c, b * d];
+        else if ((op === '//' || op === 'mod') && (c > 0n || d < 0n)) {
+            if (op === 'mod') ends = c > 0n ? [0n, d - 1n] : [c + 1n, 0n];
+            else {
+                ends = [floorDivide(a, c), floorDivide(a, d), floorDivide(b, c), floorDivide(b, d)];
+            }
+        } else return undefined;
+        if (ends.some(n => n < -9007199254740991n || n > 9007199254740991n)) return undefined;
+        return [Math.min(...ends.map(Number)), Math.max(...ends.map(Number))];
     }
     /** One checked binary operator. Compound assignments lower through it
      * too, so division by zero and floor rounding are written once. */
@@ -439,6 +458,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const token = operation?.binary;
         if (!operation || !token) return undefined;
         const a = left.code, b = right.code, name = `v${state.serial++}`;
+        const checked = type === 'integer' && integerBounds(op, left, right) ? (code: string) => code : safe;
         if (op === '/' || left.type === 'real' || right.type === 'real') {
             // The interpreter's coercions: Number for arithmetic, exact
             // bigint/number relations, and `==` for integral equality.
@@ -452,7 +472,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return name;
         }
         if (token !== '//' && token !== '%') {
-            lines.push(`const ${name} = ${type === 'integer' ? safe(binaryOperatorSource(operation, a, b)) : binaryOperatorSource(operation, a, b)};`);
+            lines.push(`const ${name} = ${type === 'integer' ? checked(binaryOperatorSource(operation, a, b)) : binaryOperatorSource(operation, a, b)};`);
             return name;
         }
         lines.push(`if (${zeroTestSource(b, numberMode ? 'real' : 'integer')}) throw ${vectorCellDepth ? 'overflow' : 'zero()'};`);
@@ -473,7 +493,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 : `(${a}) % (${b})`;
             lines.push(`const ${remainder} = ${code};`);
         }
-        lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b, { remainder, number: numberMode, safe })};`);
+        lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b, { remainder, number: numberMode, safe: checked })};`);
         return name;
     }
     /** Lower an audited catalogue call. Argument reads remain in source order;
@@ -727,11 +747,13 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         readonly rank: number;
         readonly type: 'integer' | 'boolean' | 'real';
         readonly sources: readonly string[];
+        readonly compactGuards: readonly string[];
         cell(index: string, lines: string[], frame?: NumberVectorFrame): LoopTerm | undefined;
     }
     interface NumberVectorFrame {
         readonly shape: string;
         readonly rank: number;
+        readonly compact?: boolean;
         readonly offsets: Map<string, string>;
         readonly values: Map<string, LoopTerm>;
     }
@@ -790,7 +812,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (!scalar || scalar.type !== 'integer' && scalar.type !== 'boolean' && scalar.type !== 'real') return undefined;
             const captured = `scalar${state.serial++}`;
             lines.push(`const ${captured} = ${scalar.code};`);
-            return { size: '1', shape: '[]', rank: 0, type: scalar.type, sources: [], cell: () => ({ code: captured, type: scalar.type }) };
+            return { size: '1', shape: '[]', rank: 0, type: scalar.type, sources: [], compactGuards: [], cell: () => ({ code: captured, type: scalar.type, bounds: scalar.bounds }) };
         }
         if (type.element !== 'integer' && type.element !== 'boolean' && type.element !== 'real') return undefined;
         const point = vectorOperation(e);
@@ -813,7 +835,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 lines.push(`const ${layout} = vectorLayout(${inputs[0].shape}, ${inputs[1].shape}); const ${size} = ${layout}.size;`);
                 shape = `${layout}.shape`;
             }
-            return { size, shape, rank: type.rank, type: type.element, sources: [...new Set(inputs.flatMap(input => input.sources))], cell: (index, body, frame) => {
+            return { size, shape, rank: type.rank, type: type.element, sources: [...new Set(inputs.flatMap(input => input.sources))],
+                compactGuards: [...new Set(inputs.flatMap(input => input.compactGuards))], cell: (index, body, frame) => {
                 // Trailing broadcasting composes: address each original leaf
                 // directly in the final frame, rather than remapping indices
                 // through every intermediate pointwise expression.
@@ -845,7 +868,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         const size = `length${state.serial++}`;
         lines.push(`const ${size} = ${cells}.length;`);
-        return { size, shape, rank: type.rank, type: type.element, sources: [cells], cell: (index, body, frame) => {
+        return { size, shape, rank: type.rank, type: type.element, sources: [cells], compactGuards: [`compactVector(${cells}, ${shape})`], cell: (index, body, frame) => {
             const key = `${cells}:${index}`;
             const previous = frame?.values.get(key);
             if (previous) return previous;
@@ -871,8 +894,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             // before arithmetic expands it into division/remainder guards.
             const value = `cellValue${state.serial++}`;
             body.push(`const ${value} = ${type.element === 'boolean' ? `(${cells}[${position}] !== 0)`
-                : type.element === 'real' ? `Number(${cells}[${position}])` : `safe(Number(${cells}[${position}]))`};`);
-            const term = { code: value, type: type.element };
+                : type.element === 'real' ? `Number(${cells}[${position}])` : frame?.compact ? `${cells}[${position}]` : `safe(Number(${cells}[${position}]))`};`);
+            const term: LoopTerm = { code: value, type: type.element, bounds: frame?.compact && type.element === 'integer' ? [-2147483648, 2147483647] : undefined };
             frame?.values.set(key, term);
             return term;
         } };
@@ -913,8 +936,20 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const index = `cell${state.serial++}`, body: string[] = [];
             const value = input.cell(index, body);
             if (!value) return undefined;
-            lines.push(`const ${result} = vectorArray(${input.shape}, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${input.sources.join(',')}]);
-                ${numberVectorLoop(input.size, index, [...body, `${result}.store(${index}, ${value.code});`])}`);
+            let loop = numberVectorLoop(input.size, index, [...body, `${result}.store(${index}, ${value.code});`]);
+            if (type.element === 'integer' && input.sources.length) {
+                const fast: string[] = [];
+                const proven = input.cell(index, fast, { shape: input.shape, rank: input.rank,
+                    compact: true, offsets: new Map(), values: new Map() });
+                if (proven?.bounds) {
+                    const direct = proven.bounds[0] >= -2147483648 && proven.bounds[1] <= 2147483647;
+                    const store = direct ? `${result}.cells[${index}] = ${proven.code};` : `${result}.store(${index}, ${proven.code});`;
+                    loop = `if (${input.compactGuards.join(' && ')}) {
+                        ${numberVectorLoop(input.size, index, [...fast, store])}
+                    } else { ${loop} }`;
+                }
+            }
+            lines.push(`const ${result} = vectorArray(${input.shape}, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${input.sources.join(',')}]); ${loop}`);
         } else return undefined;
         return { code: result, cells: `${result}.cells`, type };
     }

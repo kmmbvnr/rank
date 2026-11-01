@@ -1,0 +1,629 @@
+{
+  "date": "2026-11-01T05:43:21.027Z",
+  "cpu": "Apple M5",
+  "node": "v24.15.0",
+  "commit": "2a43b3bd62ff7d0109517f11542f788b0c5fe05b",
+  "checkout": "/private/tmp/rank-fft-priority/",
+  "baseline": "/tmp/rank-fft-priority-base",
+  "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd",
+  "timing": "serial fresh processes; each has >=1000 ms warmup; 3 measured batch(es) targeting 500 ms; parsing, input creation and result validation excluded; coefficients, permutation and output materialization included; when batches > 1, each batch runs for at least the target duration and each worker reports its median",
+  "results": [
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 11.394499999999994,
+      "warmMs": 1.4500725855072456,
+      "cpuMs": 1.7890405797101452,
+      "iterations": 1044,
+      "warmups": 1091,
+      "measured": [
+        {
+          "iterations": 329,
+          "warmMs": 1.5200308996960485,
+          "cpuMs": 1.8699088145896658
+        },
+        {
+          "iterations": 345,
+          "warmMs": 1.4500725855072456,
+          "cpuMs": 1.7890405797101452
+        },
+        {
+          "iterations": 370,
+          "warmMs": 1.356416778378379,
+          "cpuMs": 1.6753891891891892
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 20.78016600000001,
+      "warmMs": 1.1554380277136258,
+      "cpuMs": 1.5777759815242494,
+      "iterations": 1524,
+      "warmups": 770,
+      "measured": [
+        {
+          "iterations": 433,
+          "warmMs": 1.1554380277136258,
+          "cpuMs": 1.5777759815242494
+        },
+        {
+          "iterations": 383,
+          "warmMs": 1.3056447989556141,
+          "cpuMs": 1.616331592689295
+        },
+        {
+          "iterations": 708,
+          "warmMs": 0.7065710324858754,
+          "cpuMs": 1.0228516949152542
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 0,
+      "n": 4096,
+      "mode": "js-inplace",
+      "firstSizeCallMs": 2.234749999999991,
+      "warmMs": 0.42862839160239935,
+      "cpuMs": 0.42979777206512426,
+      "iterations": 3486,
+      "warmups": 2277,
+      "measured": [
+        {
+          "iterations": 1167,
+          "warmMs": 0.42862839160239935,
+          "cpuMs": 0.42979777206512426
+        },
+        {
+          "iterations": 1171,
+          "warmMs": 0.42729031511528626,
+          "cpuMs": 0.4279222886421861
+        },
+        {
+          "iterations": 1148,
+          "warmMs": 0.43576342944250873,
+          "cpuMs": 0.4367726480836237
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "js-inplace",
+      "firstSizeCallMs": 0.7647089999999821,
+      "warmMs": 0.4021805337620577,
+      "cpuMs": 0.4029292604501608,
+      "iterations": 3734,
+      "warmups": 2465,
+      "measured": [
+        {
+          "iterations": 1244,
+          "warmMs": 0.4021805337620577,
+          "cpuMs": 0.4029292604501608
+        },
+        {
+          "iterations": 1248,
+          "warmMs": 0.4007766762820513,
+          "cpuMs": 0.4013317307692308
+        },
+        {
+          "iterations": 1242,
+          "warmMs": 0.4025969871175524,
+          "cpuMs": 0.4029855072463768
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 11.304832999999974,
+      "warmMs": 0.6372402331210191,
+      "cpuMs": 0.8981293969849246,
+      "iterations": 2358,
+      "warmups": 1431,
+      "measured": [
+        {
+          "iterations": 785,
+          "warmMs": 0.6372402331210191,
+          "cpuMs": 0.8931477707006369
+        },
+        {
+          "iterations": 777,
+          "warmMs": 0.6440565740025742,
+          "cpuMs": 0.9377413127413128
+        },
+        {
+          "iterations": 796,
+          "warmMs": 0.6290232927135679,
+          "cpuMs": 0.8981293969849246
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 1,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 11.839790999999991,
+      "warmMs": 0.7489955089820362,
+      "cpuMs": 1.0256041358936483,
+      "iterations": 2009,
+      "warmups": 1242,
+      "measured": [
+        {
+          "iterations": 664,
+          "warmMs": 0.7530714743975905,
+          "cpuMs": 0.9928177710843373
+        },
+        {
+          "iterations": 677,
+          "warmMs": 0.7388102540620387,
+          "cpuMs": 1.0256041358936483
+        },
+        {
+          "iterations": 668,
+          "warmMs": 0.7489955089820362,
+          "cpuMs": 1.0403308383233534
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 11.906083999999964,
+      "warmMs": 1.4806743076923066,
+      "cpuMs": 1.8564647435897434,
+      "iterations": 1109,
+      "warmups": 1239,
+      "measured": [
+        {
+          "iterations": 459,
+          "warmMs": 1.0894893790849671,
+          "cpuMs": 1.3606361655773422
+        },
+        {
+          "iterations": 312,
+          "warmMs": 1.6038062243589735,
+          "cpuMs": 1.8564647435897434
+        },
+        {
+          "iterations": 338,
+          "warmMs": 1.4806743076923066,
+          "cpuMs": 1.9330118343195264
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 22.067709000000036,
+      "warmMs": 1.4635548611111113,
+      "cpuMs": 1.6171822916666667,
+      "iterations": 1082,
+      "warmups": 584,
+      "measured": [
+        {
+          "iterations": 360,
+          "warmMs": 1.4635548611111113,
+          "cpuMs": 1.4504555555555556
+        },
+        {
+          "iterations": 338,
+          "warmMs": 1.4797681213017757,
+          "cpuMs": 1.8782396449704142
+        },
+        {
+          "iterations": 384,
+          "warmMs": 1.3034689661458334,
+          "cpuMs": 1.6171822916666667
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 2,
+      "n": 4096,
+      "mode": "js-inplace",
+      "firstSizeCallMs": 2.6317499999999825,
+      "warmMs": 0.45855243629697545,
+      "cpuMs": 0.4542215743440233,
+      "iterations": 3227,
+      "warmups": 2183,
+      "measured": [
+        {
+          "iterations": 1107,
+          "warmMs": 0.45206575609756094,
+          "cpuMs": 0.45348870822041554
+        },
+        {
+          "iterations": 1091,
+          "warmMs": 0.45855243629697545,
+          "cpuMs": 0.45944637946837763
+        },
+        {
+          "iterations": 1029,
+          "warmMs": 0.5102276890184646,
+          "cpuMs": 0.4542215743440233
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "js-inplace",
+      "firstSizeCallMs": 1.0866660000000081,
+      "warmMs": 0.40655301463414645,
+      "cpuMs": 0.40727642276422765,
+      "iterations": 3681,
+      "warmups": 2262,
+      "measured": [
+        {
+          "iterations": 1230,
+          "warmMs": 0.40655301463414645,
+          "cpuMs": 0.40727642276422765
+        },
+        {
+          "iterations": 1215,
+          "warmMs": 0.4118042864197533,
+          "cpuMs": 0.4123958847736625
+        },
+        {
+          "iterations": 1236,
+          "warmMs": 0.4045616577669905,
+          "cpuMs": 0.40494093851132684
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 12.081666999999982,
+      "warmMs": 0.6496020025974029,
+      "cpuMs": 0.9378275401069519,
+      "iterations": 2298,
+      "warmups": 1403,
+      "measured": [
+        {
+          "iterations": 780,
+          "warmMs": 0.6414090807692309,
+          "cpuMs": 0.8734307692307691
+        },
+        {
+          "iterations": 770,
+          "warmMs": 0.6496020025974029,
+          "cpuMs": 0.9542935064935065
+        },
+        {
+          "iterations": 748,
+          "warmMs": 0.6686055588235289,
+          "cpuMs": 0.9378275401069519
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 3,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 12.154875000000004,
+      "warmMs": 0.7494341931137726,
+      "cpuMs": 0.9993802395209581,
+      "iterations": 1980,
+      "warmups": 1231,
+      "measured": [
+        {
+          "iterations": 674,
+          "warmMs": 0.7418690029673591,
+          "cpuMs": 0.9947032640949555
+        },
+        {
+          "iterations": 638,
+          "warmMs": 0.7839164059561131,
+          "cpuMs": 1.1014561128526645
+        },
+        {
+          "iterations": 668,
+          "warmMs": 0.7494341931137726,
+          "cpuMs": 0.9993802395209581
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 16.88945799999999,
+      "warmMs": 0.8648506753022451,
+      "cpuMs": 1.2168445595854922,
+      "iterations": 1728,
+      "warmups": 1064,
+      "measured": [
+        {
+          "iterations": 579,
+          "warmMs": 0.8648506753022451,
+          "cpuMs": 1.2168445595854922
+        },
+        {
+          "iterations": 568,
+          "warmMs": 0.8805776848591548,
+          "cpuMs": 1.188161971830986
+        },
+        {
+          "iterations": 581,
+          "warmMs": 0.861641638554217,
+          "cpuMs": 1.2276265060240963
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 11.541958000000022,
+      "warmMs": 0.7444543645833331,
+      "cpuMs": 1.0730268656716417,
+      "iterations": 2022,
+      "warmups": 1247,
+      "measured": [
+        {
+          "iterations": 680,
+          "warmMs": 0.735584375,
+          "cpuMs": 0.9972294117647058
+        },
+        {
+          "iterations": 672,
+          "warmMs": 0.7444543645833331,
+          "cpuMs": 1.091952380952381
+        },
+        {
+          "iterations": 670,
+          "warmMs": 0.7463598880597011,
+          "cpuMs": 1.0730268656716417
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 4,
+      "n": 4096,
+      "mode": "js-inplace",
+      "firstSizeCallMs": 0.8449999999999989,
+      "warmMs": 0.46505200557620824,
+      "cpuMs": 0.46591627906976746,
+      "iterations": 3237,
+      "warmups": 2102,
+      "measured": [
+        {
+          "iterations": 1076,
+          "warmMs": 0.46505200557620824,
+          "cpuMs": 0.4662899628252788
+        },
+        {
+          "iterations": 1086,
+          "warmMs": 0.46044666942909757,
+          "cpuMs": 0.4614659300184162
+        },
+        {
+          "iterations": 1075,
+          "warmMs": 0.4651254260465117,
+          "cpuMs": 0.46591627906976746
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 5,
+      "n": 4096,
+      "mode": "js-inplace",
+      "firstSizeCallMs": 0.8652079999999955,
+      "warmMs": 0.4195122487437186,
+      "cpuMs": 0.4198031825795645,
+      "iterations": 3136,
+      "warmups": 2234,
+      "measured": [
+        {
+          "iterations": 1227,
+          "warmMs": 0.40763983944580284,
+          "cpuMs": 0.4083634881825591
+        },
+        {
+          "iterations": 1194,
+          "warmMs": 0.4195122487437186,
+          "cpuMs": 0.4198031825795645
+        },
+        {
+          "iterations": 715,
+          "warmMs": 0.6999387538461538,
+          "cpuMs": 0.6817986013986014
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 5,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 15.864958000000001,
+      "warmMs": 1.3272138439153434,
+      "cpuMs": 1.7484821002386635,
+      "iterations": 1154,
+      "warmups": 632,
+      "measured": [
+        {
+          "iterations": 419,
+          "warmMs": 1.193601334128878,
+          "cpuMs": 1.7484821002386635
+        },
+        {
+          "iterations": 378,
+          "warmMs": 1.3272138439153434,
+          "cpuMs": 1.8496269841269841
+        },
+        {
+          "iterations": 357,
+          "warmMs": 1.4031178795518204,
+          "cpuMs": 1.6876946778711484
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 5,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 13.01504200000005,
+      "warmMs": 1.0012319180000004,
+      "cpuMs": 1.262748,
+      "iterations": 1601,
+      "warmups": 1063,
+      "measured": [
+        {
+          "iterations": 493,
+          "warmMs": 1.5193419533468562,
+          "cpuMs": 1.2853123732251521
+        },
+        {
+          "iterations": 500,
+          "warmMs": 1.0012319180000004,
+          "cpuMs": 1.262748
+        },
+        {
+          "iterations": 608,
+          "warmMs": 0.8236140345394737,
+          "cpuMs": 1.1643552631578948
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 6,
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMs": 11.939250000000015,
+      "warmMs": 0.7658719372128638,
+      "cpuMs": 1.0520481366459626,
+      "iterations": 1952,
+      "warmups": 1058,
+      "measured": [
+        {
+          "iterations": 653,
+          "warmMs": 0.7658719372128638,
+          "cpuMs": 1.0232251148545177
+        },
+        {
+          "iterations": 655,
+          "warmMs": 0.7643708015267175,
+          "cpuMs": 1.0559007633587787
+        },
+        {
+          "iterations": 644,
+          "warmMs": 0.776717260869565,
+          "cpuMs": 1.0520481366459626
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 6,
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMs": 11.523040999999978,
+      "warmMs": 0.6538895973856211,
+      "cpuMs": 0.9094679738562093,
+      "iterations": 2268,
+      "warmups": 1357,
+      "measured": [
+        {
+          "iterations": 768,
+          "warmMs": 0.65133056640625,
+          "cpuMs": 0.872640625
+        },
+        {
+          "iterations": 735,
+          "warmMs": 0.6810924612244899,
+          "cpuMs": 1.0088027210884354
+        },
+        {
+          "iterations": 765,
+          "warmMs": 0.6538895973856211,
+          "cpuMs": 0.9094679738562093
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    },
+    {
+      "trial": 6,
+      "n": 4096,
+      "mode": "js-inplace",
+      "firstSizeCallMs": 2.2028329999999983,
+      "warmMs": 0.41498883153526983,
+      "cpuMs": 0.4156871369294606,
+      "iterations": 3587,
+      "warmups": 2402,
+      "measured": [
+        {
+          "iterations": 1205,
+          "warmMs": 0.41493973029045644,
+          "cpuMs": 0.4156871369294606
+        },
+        {
+          "iterations": 1205,
+          "warmMs": 0.41498883153526983,
+          "cpuMs": 0.4153668049792531
+        },
+        {
+          "iterations": 1177,
+          "warmMs": 0.4249862285471538,
+          "cpuMs": 0.42535089209855564
+        }
+      ],
+      "sourceHash": "ebefb033dd4c42e214c7b2b3b6e306b443e10b972edde2f0772dc20bb266ecdd"
+    }
+  ],
+  "summary": [
+    {
+      "n": 4096,
+      "mode": "baseline",
+      "firstSizeCallMedianMs": 11.939250000000015,
+      "medianMs": 0.8648506753022451,
+      "cpuMedianMs": 1.2168445595854922,
+      "minMs": 0.7489955089820362,
+      "maxMs": 1.4806743076923066
+    },
+    {
+      "n": 4096,
+      "mode": "compiled",
+      "firstSizeCallMedianMs": 12.081666999999982,
+      "medianMs": 0.7444543645833331,
+      "cpuMedianMs": 1.0730268656716417,
+      "minMs": 0.6372402331210191,
+      "maxMs": 1.4635548611111113
+    },
+    {
+      "n": 4096,
+      "mode": "js-inplace",
+      "firstSizeCallMedianMs": 1.0866660000000081,
+      "medianMs": 0.4195122487437186,
+      "cpuMedianMs": 0.4198031825795645,
+      "minMs": 0.4021805337620577,
+      "maxMs": 0.46505200557620824
+    }
+  ]
+}

@@ -1301,3 +1301,51 @@ branch into main. Exhaustive audits were not run.
 
 [Full demo audit](baselines/2026-11-01-buffer-facts-merge-demos.json),
 [producer pipelines and counters](baselines/2026-11-01-buffer-facts-merge-producers.json).
+
+## FFT-first follow-up: guarded Int32 interval kernels
+
+Start at main `2a43b3bd`. FFT is the optimization target; other programs are
+regression/generality controls. Fresh CPU sampling without compiler hooks
+puts the integer vector loop at about 37% of self samples, numeric stages
+near 11%, and final typed-buffer conversion near 9%. Generated code is
+captured with Debugger.getScriptSource only after sampling, preserving the
+private call loop during the profile. Profiles are diagnostic, not timings.
+
+### Step 1: eliminate proven integer cell checks
+
+An Int32 buffer plus matching valid broadcast geometry proves every leaf
+load is an exact integer. Exact BigInt interval arithmetic propagates
+bounds through +, -, *, floor division and modulo. Only ranges entirely
+inside safe Number remove intermediate safe checks; only ranges entirely
+inside Int32 write directly without per-cell widening checks. Other paths
+retain the previous guards and arbitrary-precision replay. Buffer kinds
+are checked per stage, so a widened next iteration uses the generic path.
+No input-value scan, FFT source recognition, coefficient or order cache.
+
+The first seven fresh-process sets give FFT-4096 **0.8649 -> 0.7445 ms**
+(13.9% less wall time), with process CPU **1.2168 -> 1.0730 ms**. Nine-pair
+confirmation gives **0.9828 -> 0.8255 ms** (16.0% less wall time), CPU
+**1.3229 -> 1.1767 ms**. Absolute times vary substantially; slow processes
+are retained. Both series use >=1 s warmup and three target 500 ms batches.
+JS per-call in-place is 0.4195 ms in the first series; no twiddles are cached.
+The post-change profile shifts integer-loop self samples toward 28%.
+
+A final metadata-admission check also requires valid nonnegative dimensions
+and an exact shape/buffer length match, without reading cells. Its five-pair
+series has a severely shifted baseline median **2.088 -> 0.822 ms**, with
+baseline workers spanning 0.837-2.504 ms. This is not evidence of an
+additional 2.5x improvement; use the independent confirmations and final
+combined comparison rather than multiplying or selecting their ratios.
+
+Build and 341 focused tests pass, including new exact BigInt oracles at
+Int32 endpoints, signed division/remainders, widening, overflow, retained
+aliases and malformed buffer geometry. A small integer-vector control set
+also improves (remainder, quotient, affine and broadcast); those gains do
+not determine whether this FFT-focused change is retained.
+
+Evidence: [before profile](baselines/2026-11-01-fft-priority-profile-before.json),
+[post-change profile](baselines/2026-11-01-fft-priority-profile-int32.json),
+[first FFT series](baselines/2026-11-01-fft-priority-int32.json),
+[FFT confirmation](baselines/2026-11-01-fft-priority-int32-confirm.json),
+[metadata-guard series](baselines/2026-11-01-fft-priority-int32-geometry.json),
+[integer controls](baselines/2026-11-01-fft-priority-int32-controls.json).

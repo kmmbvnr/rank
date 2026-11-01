@@ -77,7 +77,7 @@ export interface LoopHost {
  * the call site: positional registers for builtins and memberships, an
  * argument array (plus tail flag) for user scalar functions. */
 export type LoopCallable = (...arguments_: never[]) => RankValue;
-export interface LoopTerm { code: string; type: CompiledLoopType; ascii?: boolean; selection?: boolean }
+export interface LoopTerm { code: string; type: CompiledLoopType; ascii?: boolean; selection?: boolean; bounds?: readonly [number, number] }
 
 /** The loop register type of a runtime value: one mapping for entry
  * guards, cell scans and type selection. */
