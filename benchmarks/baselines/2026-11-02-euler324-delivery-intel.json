@@ -1,0 +1,88 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "method": "Three fresh processes per case in rotating sequential order; all cases use the full 10000-digit input; parse/analysis/compilation/execution included, imports and interpreter construction excluded; peak process RSS",
+  "records": [
+    {
+      "trial": 0,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 15636.154013000001,
+      "rssMiB": 427.1796875,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 491.50905400000005,
+      "rssMiB": 176.56640625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 1163.51358,
+      "rssMiB": 182.9453125,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 497.33545399999997,
+      "rssMiB": 175.85546875,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 1134.687145,
+      "rssMiB": 181.5,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 16091.809866000001,
+      "rssMiB": 513.73046875,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 1143.7297669999998,
+      "rssMiB": 185.87890625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 15851.537786,
+      "rssMiB": 515.5078125,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 501.949813,
+      "rssMiB": 173.96875,
+      "answer": "96972774"
+    }
+  ]
+}

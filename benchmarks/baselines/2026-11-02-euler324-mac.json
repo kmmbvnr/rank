@@ -1,0 +1,390 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "records": [
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "10000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 6910.058375,
+      "rssMiB": 441.5,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 200.252291,
+      "rssMiB": 184.203125,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 200.20937500000002,
+      "rssMiB": 186.109375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "reference",
+        "100",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "100",
+      "variant": "original",
+      "ms": 863.4984579999999,
+      "rssMiB": 256.171875,
+      "answer": "39709433"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "reference",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 711.7138749999999,
+      "rssMiB": 206.015625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "reference",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 392.967709,
+      "rssMiB": 196.515625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "1000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "original",
+      "ms": 661.266625,
+      "rssMiB": 269.984375,
+      "answer": "45254049"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "1000",
+        "convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "convolve",
+      "ms": 637.169917,
+      "rssMiB": 271.265625,
+      "answer": "45254049"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 187.723834,
+      "rssMiB": 184.09375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 186.46516599999998,
+      "rssMiB": 186.203125,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "reference",
+        "100",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "100",
+      "variant": "original",
+      "ms": 765.754459,
+      "rssMiB": 260,
+      "answer": "39709433"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "reference",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 653.6081250000001,
+      "rssMiB": 204.28125,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "reference",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 382.752042,
+      "rssMiB": 196.59375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "1000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "original",
+      "ms": 655.5095,
+      "rssMiB": 269.953125,
+      "answer": "45254049"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "1000",
+        "convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "convolve",
+      "ms": 617.811084,
+      "rssMiB": 270.9375,
+      "answer": "45254049"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "10000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 5250.913833,
+      "rssMiB": 438.984375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 187.23954200000003,
+      "rssMiB": 186.109375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "reference",
+        "100",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "100",
+      "variant": "original",
+      "ms": 762.783875,
+      "rssMiB": 265.796875,
+      "answer": "39709433"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "reference",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 650.365709,
+      "rssMiB": 234.9375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "reference",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 386.61316700000003,
+      "rssMiB": 199.234375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "1000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "original",
+      "ms": 793.3322909999999,
+      "rssMiB": 271.59375,
+      "answer": "45254049"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "1000",
+        "convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "convolve",
+      "ms": 1232.168042,
+      "rssMiB": 264.734375,
+      "answer": "45254049"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "10000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 6904.426332999999,
+      "rssMiB": 400.515625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 187.37191699999997,
+      "rssMiB": 183.546875,
+      "answer": "96972774"
+    }
+  ]
+}

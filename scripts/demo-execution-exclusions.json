@@ -28,7 +28,6 @@
   "euler/316_decimals.ra": "Computes decimal-pattern expectations for 999998 divisors.",
   "euler/319_bounded.ra": "Builds multi-million-cell tables for N=10^10.",
   "euler/320_factorials.ra": "Computes factorial divisibility minima through 1000000.",
-  "euler/324_tower.ra": "Performs polynomial recurrence arithmetic for a 10000-digit exponent.",
   "euler/326_modulosums.ra": "Processes a 6000000-step period for a 10^12-term query.",
   "euler/328_lowestcost.ra": "Full N=200000 search: compiled execution is fast, but 500 million candidates exceed the reference audit budget (#359).",
   "euler/328_lowestcost_default_test.ra": "Manual full-input assertion; smaller independent minimax checks remain in the ordinary suites (#359).",

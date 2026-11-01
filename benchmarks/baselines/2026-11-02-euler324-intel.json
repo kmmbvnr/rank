@@ -1,0 +1,390 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "records": [
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "10000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 15360.236609,
+      "rssMiB": 428.39453125,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 501.166629,
+      "rssMiB": 179.54296875,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 496.78534900000005,
+      "rssMiB": 172.04296875,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "reference",
+        "100",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "100",
+      "variant": "original",
+      "ms": 2467.894019,
+      "rssMiB": 255.0078125,
+      "answer": "39709433"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "reference",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 2098.509428,
+      "rssMiB": 191.5234375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "reference",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 1155.745625,
+      "rssMiB": 181.29296875,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "1000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "original",
+      "ms": 1906.4602530000002,
+      "rssMiB": 261.88671875,
+      "answer": "45254049"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "1000",
+        "convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "convolve",
+      "ms": 1966.8735490000001,
+      "rssMiB": 259.06640625,
+      "answer": "45254049"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 497.594676,
+      "rssMiB": 179.92578125,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 503.04168799999997,
+      "rssMiB": 172.91015625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "reference",
+        "100",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "100",
+      "variant": "original",
+      "ms": 2357.666231,
+      "rssMiB": 251.26171875,
+      "answer": "39709433"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "reference",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 2072.4560149999998,
+      "rssMiB": 191.1015625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "reference",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 1183.194139,
+      "rssMiB": 183.87890625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "1000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "original",
+      "ms": 1895.7940459999998,
+      "rssMiB": 269.90234375,
+      "answer": "45254049"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "1000",
+        "convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "convolve",
+      "ms": 1916.0008670000002,
+      "rssMiB": 259.625,
+      "answer": "45254049"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "10000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 16148.663276,
+      "rssMiB": 425.87109375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 500.65308,
+      "rssMiB": 172.68359375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "reference",
+        "100",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "100",
+      "variant": "original",
+      "ms": 2402.269067,
+      "rssMiB": 251.48828125,
+      "answer": "39709433"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "reference",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 2113.049819,
+      "rssMiB": 191.21875,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "reference",
+        "10000",
+        "period-convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "period-convolve",
+      "ms": 1152.600217,
+      "rssMiB": 180.61328125,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "1000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "original",
+      "ms": 1885.8250899999998,
+      "rssMiB": 261.4921875,
+      "answer": "45254049"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "1000",
+        "convolve"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "1000",
+      "variant": "convolve",
+      "ms": 1896.520966,
+      "rssMiB": 259.83984375,
+      "answer": "45254049"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "10000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 16423.678248,
+      "rssMiB": 515.90234375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "10000",
+        "period"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "period",
+      "ms": 486.269603,
+      "rssMiB": 179.59765625,
+      "answer": "96972774"
+    }
+  ]
+}

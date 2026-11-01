@@ -8,3 +8,12 @@ test "given tower values"
   500 recurrence equal 24806056
   500000 recurrence equal 30808124
 end
+
+test "certified period boundary"
+  use "324_tower"
+  Exp = 0
+  run
+  Period recurrence equal 1
+  (Period + 1) recurrence equal 229
+  (Period + 5) recurrence equal 96149360
+end

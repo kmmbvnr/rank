@@ -1,0 +1,88 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "method": "Three fresh processes per case in rotating sequential order; all cases use the full 10000-digit input; parse/analysis/compilation/execution included, imports and interpreter construction excluded; peak process RSS",
+  "records": [
+    {
+      "trial": 0,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 6041.410708,
+      "rssMiB": 407.90625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 186.868083,
+      "rssMiB": 185.984375,
+      "answer": "96972774"
+    },
+    {
+      "trial": 0,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 387.589958,
+      "rssMiB": 198.5625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 186.223375,
+      "rssMiB": 186.171875,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 378.105,
+      "rssMiB": 197.5625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 1,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 6928.674916999999,
+      "rssMiB": 443.078125,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "mode": "reference",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 414.40333300000003,
+      "rssMiB": 195.890625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "original",
+      "ms": 5813.4332079999995,
+      "rssMiB": 420.15625,
+      "answer": "96972774"
+    },
+    {
+      "trial": 2,
+      "mode": "compiled",
+      "digits": "10000",
+      "variant": "production",
+      "ms": 188.287584,
+      "rssMiB": 186.125,
+      "answer": "96972774"
+    }
+  ]
+}

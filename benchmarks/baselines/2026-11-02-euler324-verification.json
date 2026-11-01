@@ -1,0 +1,462 @@
+{
+  "diagnostics": {
+    "mode": "compiled",
+    "digits": "100",
+    "variant": "original",
+    "ms": 389.23049999999995,
+    "rssMiB": 180.515625,
+    "answer": "39709433",
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 1,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "integerKeyedFolds": 0,
+      "realKeyedFolds": 0,
+      "keyedNativeReaders": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "numberFunctions": 0,
+      "numberFunctionFallbacks": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "numberLoopBorrowedRealBuffers": 0,
+      "numberLoopBorrowedRealCells": 0,
+      "modularMatrixPowers": 0,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 0,
+      "typedArrayPublishedCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-op:**": 2,
+        "scalar-expression:unsupported-op:*": 1,
+        "tensor:unsupported-type:array": 24,
+        "scalar-function:unsupported-op:odd": 1,
+        "scalar-expression:too-small": 3,
+        "scalar-expression:unsupported-op:sum": 2,
+        "scalar-expression:unsupported-op:mod": 2,
+        "tensor:binding:sum": 1
+      },
+      "compilerRejections": [
+        {
+          "reason": "scalar-function:unsupported-op:odd",
+          "node": "ApplicationExpression",
+          "function": "recurrence",
+          "expression": "N odd",
+          "line": 48,
+          "column": 8
+        }
+      ]
+    }
+  },
+  "parity-diagnostics": {
+    "mode": "compiled",
+    "digits": "100",
+    "variant": "period-parity",
+    "ms": 184.13216700000004,
+    "rssMiB": 183.875,
+    "answer": "39709433",
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 1,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "integerKeyedFolds": 0,
+      "realKeyedFolds": 0,
+      "keyedNativeReaders": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "numberFunctions": 0,
+      "numberFunctionFallbacks": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "numberLoopBorrowedRealBuffers": 0,
+      "numberLoopBorrowedRealCells": 0,
+      "modularMatrixPowers": 0,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 0,
+      "typedArrayPublishedCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-op:**": 10,
+        "scalar-expression:unsupported-op:*": 2,
+        "tensor:unsupported-type:array": 24,
+        "scalar-expression:unsupported-op:-": 4,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+        "tensor:scalar-evaluation-timing": 1,
+        "scalar-expression:too-small": 5,
+        "scalar-function:unsupported-op:combine": 1,
+        "scalar-expression:unsupported-op:sum": 2,
+        "scalar-expression:unsupported-op:mod": 2,
+        "tensor:binding:sum": 1
+      },
+      "compilerRejections": [
+        {
+          "reason": "scalar-function:unsupported-op:combine",
+          "node": "ApplicationExpression",
+          "function": "recurrence",
+          "expression": "A combine B",
+          "line": 54,
+          "column": 11
+        }
+      ]
+    }
+  },
+  "full-initial": {
+    "mode": "compiled",
+    "digits": "10000",
+    "variant": "original",
+    "ms": 7703.9652909999995,
+    "rssMiB": 377.546875,
+    "answer": "96972774"
+  },
+  "profile": {
+    "mode": "compiled",
+    "digits": "1000",
+    "variant": "original",
+    "ms": 736.5728750000001,
+    "rssMiB": 274.90625,
+    "answer": "45254049"
+  },
+  "period": {
+    "modulus": 100000007,
+    "degrees": [
+      1,
+      2,
+      3,
+      3,
+      5,
+      5
+    ],
+    "squarefreeDegree": 19,
+    "repeatedDegree": 4,
+    "period": "1000000650000187800031655003430420247856611939800369774636680613053644752",
+    "periodBits": 240,
+    "certificate": "x^period == 1 mod characteristic polynomial",
+    "ms": 79.11441599999999
+  },
+  "oracle": {
+    "period": "1000000650000187800031655003430420247856611939800369774636680613053644752",
+    "bits": 240,
+    "fullAnswer": "96972774",
+    "towerChecks": 51,
+    "certificate": true,
+    "ms": 12.395959000000001
+  },
+  "full-direct-oracle": {
+    "fullUnreducedExponent": true,
+    "answer": "96972774",
+    "ms": 336.43983299999996,
+    "rssMiB": 62.84375
+  },
+  "verify-mac": {
+    "programs": 495,
+    "combinations": 60,
+    "periodCertificate": true,
+    "failures": 0
+  },
+  "verify-intel": {
+    "programs": 495,
+    "combinations": 60,
+    "periodCertificate": true,
+    "failures": 0
+  },
+  "profileSelfMilliseconds": [
+    {
+      "name": "",
+      "file": "",
+      "line": 4,
+      "ms": 197.917
+    },
+    {
+      "name": "arrayForWrite",
+      "file": "array-ownership.js",
+      "line": 176,
+      "ms": 77.418
+    },
+    {
+      "name": "isSharedArray",
+      "file": "array-ownership.js",
+      "line": 129,
+      "ms": 41.751
+    },
+    {
+      "name": "(garbage collector)",
+      "file": "",
+      "line": 0,
+      "ms": 30.042
+    },
+    {
+      "name": "(program)",
+      "file": "",
+      "line": 0,
+      "ms": 30.041
+    },
+    {
+      "name": "read",
+      "file": "scalar-selection.js",
+      "line": 48,
+      "ms": 27.083
+    },
+    {
+      "name": "post",
+      "file": "node:inspector",
+      "line": 115,
+      "ms": 25.916
+    },
+    {
+      "name": "directFn",
+      "file": "function-invocation.js",
+      "line": 833,
+      "ms": 23.166
+    },
+    {
+      "name": "readPosition",
+      "file": "array-read.js",
+      "line": 280,
+      "ms": 19.5
+    },
+    {
+      "name": "sharesNumericSlices",
+      "file": "array-ownership.js",
+      "line": 136,
+      "ms": 17.916
+    },
+    {
+      "name": "readArrayItem",
+      "file": "array-read.js",
+      "line": 367,
+      "ms": 16.333
+    },
+    {
+      "name": "",
+      "file": "owned-array.js",
+      "line": 1154,
+      "ms": 16.041
+    },
+    {
+      "name": "getAlternativesForProd",
+      "file": "interpreter.js",
+      "line": 172,
+      "ms": 14.917
+    },
+    {
+      "name": "ownership",
+      "file": "array-ownership.js",
+      "line": 8,
+      "ms": 11.624
+    },
+    {
+      "name": "add",
+      "file": "dfa.js",
+      "line": 20,
+      "ms": 10.585
+    },
+    {
+      "name": "storeCell",
+      "file": "owned-array.js",
+      "line": 192,
+      "ms": 10.583
+    },
+    {
+      "name": "copyArray",
+      "file": "sequences.js",
+      "line": 295,
+      "ms": 9.084
+    },
+    {
+      "name": "get",
+      "file": "frame.js",
+      "line": 63,
+      "ms": 8.874
+    },
+    {
+      "name": "updateScalarKinds",
+      "file": "owned-array.js",
+      "line": 89,
+      "ms": 5.917
+    },
+    {
+      "name": "",
+      "file": "scalar-function-proof.js",
+      "line": 10,
+      "ms": 5.625
+    },
+    {
+      "name": "possiblePathsFrom",
+      "file": "interpreter.js",
+      "line": 162,
+      "ms": 5.542
+    },
+    {
+      "name": "remainingPathWith",
+      "file": "interpreter.js",
+      "line": 168,
+      "ms": 4.875
+    },
+    {
+      "name": "createOwned",
+      "file": "owned-array.js",
+      "line": 1088,
+      "ms": 4.541
+    },
+    {
+      "name": "firstForSequence",
+      "file": "first.js",
+      "line": 28,
+      "ms": 4.375
+    },
+    {
+      "name": "addDFAState",
+      "file": "all-star-lookahead.js",
+      "line": 520,
+      "ms": 4.25
+    }
+  ],
+  "revision": "50256d57",
+  "sourceHashes": {
+    "benchmarks/experiments/euler324-verify.mjs": "54388073abcd8b24f6bb39e41f03fa09512d8b3461a0112b88dcfeec5c69aab6",
+    "benchmarks/experiments/euler324-period-convolve.ra": "469eaf1b3b22dc8496ae80c59b60e54f42497e47dff5b365f46cddc5e5cc3d46",
+    "benchmarks/experiments/euler324-original.ra": "cac6ab520d0b77fc4483589118a6c8af2006378cdf207853319d457d76ad0f82",
+    "benchmarks/experiments/euler324-period.py": "243a4df47f4e5ac560d1556222503dd552f85973d7803a042c1ca57a6bbf3b6d",
+    "benchmarks/experiments/euler324-variants.mjs": "06e67ed1bd2dbfd7850e7975abc9e7dd6fee5897a2258aa6ae9580770fc4d27a",
+    "benchmarks/experiments/euler324-oracle.mjs": "4882e6ac8e938473f3115128f60c4a6b7e486a7d8a6dd9edcdcdcb12a7ee784a",
+    "benchmarks/experiments/euler324-series.mjs": "3f959afb261e9856649073736b9f9dfcd9b59dce398b50e9756440758d7fad43"
+  },
+  "notes": [
+    "Production code, compiler and issue unchanged.",
+    "Three fresh-process samples per timing-series case, sequential per host, rotating order.",
+    "Profiling and diagnostics are separate from uninstrumented timing medians.",
+    "Full original reference was not run; reduced 100-digit reference timings are a different workload.",
+    "The exact polynomial certificate is for the fixed modulus and recurrence coefficients, not a generic exponent reduction rule.",
+    "An initial squarefree assumption was rejected; the final period includes the characteristic factor for repeated roots."
+  ]
+}

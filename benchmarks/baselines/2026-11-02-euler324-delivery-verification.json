@@ -1,0 +1,35 @@
+{
+  "baseRevision": "50256d57",
+  "productionChanges": "Certified 240-bit exponent period, native modular convolve, full corpus audit eligibility restored; compiler unchanged",
+  "verificationMac": {
+    "programs": 99,
+    "combinations": 12,
+    "periodCertificate": true,
+    "failures": 0
+  },
+  "verificationIntel": {
+    "programs": 99,
+    "combinations": 12,
+    "periodCertificate": true,
+    "failures": 0
+  },
+  "focusedTestsMac": "\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\n \u2713 test/modular-fold.test.ts (133 tests) 338ms\n \u2713 test/convolution.test.ts (80 tests) 703ms\n   \u2713 convolve mod > squares a vector as the Kitamasa step does  341ms\n \u2713 test/euler-324.test.ts (16 tests) 1991ms\n   \u2713 Euler 324 (reference) > matches unreduced polynomial powering across period boundaries  802ms\n   \u2713 Euler 324 (reference) > retains the full 10000-digit default answer  591ms\n\n Test Files  3 passed (3)\n      Tests  229 passed (229)\n   Start at  03:49:25\n   Duration  3.96s (transform 1.07s, setup 0ms, collect 5.00s, tests 3.03s, environment 0ms, prepare 99ms)\n\n",
+  "focusedTestsIntel": "\n RUN  v3.2.7 /tmp/rank319-delivery/packages/interpreter\n\n \u2713 test/modular-fold.test.ts (133 tests) 700ms\n \u2713 test/convolution.test.ts (80 tests) 1567ms\n   \u2713 convolve mod > squares a vector as the Kitamasa step does  801ms\n \u2713 test/euler-324.test.ts (16 tests) 5638ms\n   \u2713 Euler 324 (reference) > matches direct domino enumeration across the initial-term boundary  351ms\n   \u2713 Euler 324 (reference) > matches unreduced polynomial powering across period boundaries  2347ms\n   \u2713 Euler 324 (reference) > retains the full 10000-digit default answer  1735ms\n\n Test Files  3 passed (3)\n      Tests  229 passed (229)\n   Start at  03:49:53\n   Duration  9.10s (transform 2.06s, setup 0ms, collect 8.80s, tests 7.91s, environment 0ms, prepare 188ms)\n\n",
+  "scopedAudits": "\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/324_tower.ra\nauditing euler/324_tower.ra\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/324_tower_test.ra\nauditing euler/324_tower_test.ra\n\n \u2713 test/types.test.ts (2145 tests | 2143 skipped) 469ms\n   \u2713 inferred types against the values a run produced > euler/324_tower.ra  442ms\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/324_tower.ra\ncomparing euler/324_tower.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/324_tower_test.ra\ncomparing euler/324_tower_test.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution\ndifferential: 2/2145 compared, 2 completed, 2 test blocks, 2412 compiled entries, 401 Number loop entries\n\n \u2713 test/differential.test.ts (2146 tests | 2144 skipped) 1112ms\n   \u2713 compiled and reference demo execution > euler/324_tower.ra  915ms\n\n Test Files  2 passed (2)\n      Tests  4 passed | 4287 skipped (4291)\n   Start at  03:49:25\n   Duration  3.25s (transform 1.06s, setup 0ms, collect 3.71s, tests 1.58s, environment 0ms, prepare 67ms)\n\n",
+  "semanticBoundaries": "\n> rank-workspace@0.0.1 check:semantic-boundaries\n> node --test scripts/semantic-source.test.mjs scripts/demo-execution-exclusions.test.mjs scripts/local-demo-audits.test.mjs && node scripts/check-semantic-boundaries.mjs\n\n\u2714 execution exclusions name existing workloads and explain the resource cost (1.915625ms)\n\u2714 recorded timeouts stay excluded while corrected compiler cases remain eligible (0.07ms)\n\u2714 new full-scale exclusions retain their small test fixtures unless they timed out (24.746583ms)\n\u2714 local concurrency uses CPU and memory limits, with a serial CI path (0.643292ms)\n\u2714 shards execute concurrently and all results enter the coverage gate (554.408458ms)\n\u2714 a failing worker fails the audit (525.614833ms)\n\u2714 successful workers with incomplete summaries still fail coverage (548.791333ms)\n\u2714 comments and ordinary strings do not create dependencies or semantic violations (2.741167ms)\n\u2714 distinguishes runtime dependencies from all forms of type-only imports and exports (4.379541ms)\n\u2714 recognizes semantic owner helpers from declarations and typed closures (3.79ms)\n\u2714 retains requirement restrictions for aliases, properties, types, and module paths (0.441792ms)\n\u2139 tests 11\n\u2139 suites 0\n\u2139 pass 11\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1664.265083\nSemantic boundaries: 65 owners checked\n",
+  "applicationForms": "\n> rank-workspace@0.0.1 check:application-forms\n> node scripts/check-application-forms.mjs\n\nApplication forms: both consumers reject an unhandled form\nApplication forms: isolated #24 pilot uses unchanged runtime and analysis handlers\n",
+  "sourceHashes": {
+    "demos/euler/324_tower.ra": "9d328779593d8f33aa779cd6627ff2b44d171a68e4e53f1379ad83dc98de0f9d",
+    "demos/euler/324_tower_test.ra": "90cf4ed8fc6e6ba24fb5299686a0360f1bde71def055c2d2641433027b09012b",
+    "packages/interpreter/test/euler-324.test.ts": "6ffdc8eac8528cfc40397868f28444d424aed21935d263a4dd4eebeba1fb35a4",
+    "scripts/demo-execution-exclusions.json": "a4af3d2dd8253b069f38707c312cd2827e18c9555448f5310a24e01b595855e3",
+    "scripts/demo-execution-exclusions.test.mjs": "b2be50dcbfc92cdb82601b9ec5281f765b99a2657b7ba04d553f5cb8926aa252"
+  },
+  "notes": [
+    "Certificate test reads actual Mod, C and Period by executing the production source with Exp=0.",
+    "Full default passed in reference, compiled and exact-loop modes.",
+    "Both main and fixture passed scoped type/differential corpus audits after removing the exclusion.",
+    "No timeout increase or exhaustive audit run.",
+    "No interpreter/compiler source changed."
+  ]
+}
