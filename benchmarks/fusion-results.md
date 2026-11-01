@@ -113,3 +113,69 @@ Evidence: [Conv2D](baselines/2026-11-01-fusion-index-convolution.json),
 [gradient control](baselines/2026-11-01-fusion-index-gradient.json),
 [distance control](baselines/2026-11-01-fusion-index-distance.json),
 [row-stat control](baselines/2026-11-01-fusion-index-rowStats.json).
+
+## Combined final comparison
+
+Compare final implementation `40460453` with unchanged main `51362d77`.
+Five fresh process pairs per pipeline, alternating order, >=1 s warmup,
+three target 300 ms batches. Coefficients, demo code and numeric operation
+order are unchanged; all output cells are checked against independent JS.
+Instrumentation overhead is included in the candidate timings.
+
+| Task | Main, ms | Final, ms | Time change |
+| --- | ---: | ---: | ---: |
+| kmeans | 12.7576 | 12.8751 | +0.9% |
+| convolution | 2.8928 | 0.8523 | -70.5% |
+| softmax | 0.2877 | 0.2895 | +0.6% |
+| logsoftmax | 0.7395 | 0.7430 | +0.5% |
+| gradient | 0.9796 | 0.9898 | +1.0% |
+| distance | 0.0511 | 0.0503 | -1.7% |
+| moving | 46.5499 | 9.5094 | -79.6% |
+| rowStats | 0.2757 | 0.2726 | -1.1% |
+
+The real Deep-ML Conv2D demo (24x24 input, 3x3 kernel, no padding) improves
+**3.39x**. The general 4,096-element moving-mean fixture improves **4.90x**.
+The other six controls differ by less than 2%; the large earlier gradient
+shift does not reproduce. These are matched final measurements, not a
+product of ratios from separate runs.
+
+Seven FFT-4096 process pairs, >=1 s warmup and three target 500 ms batches,
+give **0.7524 -> 0.7483 ms** (0.5% less wall time, effectively unchanged).
+First-size calls **12.025 -> 12.712 ms** do not improve. This optimization
+helps window/fold pipelines, not FFT stages already using numeric-function
+fusion. No sin/cos values or order vectors are cached.
+
+Counter evidence: Conv2D derived-cell computations **13,068 -> 0**; moving
+means **520,448 -> 0**, with two graph preparations per call. Output frame
+folds remain separate scalar reductions in natural order. Native routes no
+longer allocate coordinate/slice arrays per logical cell. Publication
+counters do not measure those JS allocations, total bytes or peak memory.
+No memory multiplier is claimed.
+
+### Corpus decisions
+
+- K-means: square/sum is already fused. Its ordinary difference binding
+  remains a completion boundary; eliminating it needs pure-region/liveness
+  analysis that preserves all mandatory errors, including unused cells.
+- Softmax: Exps is shared by the sum and normalization; retaining it avoids
+  repeated exp calls. No speculative removal of this multi-consumer value.
+- Log-softmax: the rounding probe did not reach intrinsic scalar lifting,
+  so it was removed. Parameterized scalar-call plans are a separate boundary.
+- Gradient descent: existing eight tensor kernels and publication counts
+  are unchanged; no timing improvement is attributed to this work.
+- FFT: structural stages are already fused; retained as a regression control.
+
+[Final pipeline timings](baselines/2026-11-01-fusion-final-general.json),
+[FFT regression control](baselines/2026-11-01-fusion-final-fft.json).
+
+Final build, semantic-boundary checks (65 owners), application forms and all
+55 Deep-ML / seven classic demo test files pass. The ordinary interpreter
+suite runs through the package script with types/differential/Nurikabe
+excluded. Exhaustive audits are not run. All timing completed before tests.
+
+Final ordinary result: **457 files / 10,511 tests passed**, 140.29 s.
+Command: `node scripts/test.mjs --exclude test/types.test.ts --exclude
+test/differential.test.ts --exclude test/nurikabe.test.ts` from the
+interpreter package. The benchmark comparison remains against the explicit
+starting revision `51362d77`; separate prime work in main is outside this
+branch and outside these timing comparisons.
