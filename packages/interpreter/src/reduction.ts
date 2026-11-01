@@ -1,3 +1,4 @@
+import { expectNumeric } from './modules/shared.js';
 import { prepareKeyedTensorReader } from './tensor-map.js';
 import { keyedAggregate, keyedFold } from './keyed-fold.js';
 import { foldAxisPartition, foldAxisDiagnostic } from '@arrrank/language';
@@ -43,10 +44,12 @@ export class ReductionEvaluator {
     ) {}
 
     evaluateKeyed(kind: 'reduce' | 'scan', operation: string | NativeFunction,
-        source: RankValue, keys: RankValue, seed?: RankValue, size?: RankValue): RankValue {
+        source: RankValue, keys: RankValue, seed?: RankValue, size?: RankValue,
+        aggregate?: 'sum' | 'min' | 'max'): RankValue {
         if (size !== undefined && typeof size !== 'bigint') {
             throw new RankError('by size must be an integer', 'TypeError');
         }
+        if (aggregate === 'sum' && seed !== undefined) expectNumeric(seed, 'sum');
         const symbolic = typeof operation === 'string';
         const fallback = (left: RankValue, right: RankValue) => symbolic ? this.binary(operation, left, right)
             : this.invoke(operation, [left, right]);
@@ -62,6 +65,9 @@ export class ReductionEvaluator {
         return keyedFold(source, keys, combine, {
                 valueAt: keyAt ? valueAt : undefined, keyAt: valueAt ? keyAt : undefined,
                 operator: this.isTensorFusion() && !inspectionEnabled() ? symbolic ? operation : extreme : undefined,
+                skipMissing: aggregate !== undefined,
+                validate: aggregate === 'sum' ? value => expectNumeric(value, 'sum') : undefined,
+                initial: aggregate && aggregate !== 'sum' && !symbolic ? value => this.invoke(operation, [value]) : undefined,
                 scan: kind === 'scan', seed,
                 size: size === undefined ? undefined : Number(size),
                 identity: symbolic ? () => reductionIdentity(operation) : undefined,
@@ -75,9 +81,9 @@ export class ReductionEvaluator {
         }
         const operation = this.resolve(name);
         if (!isNativeFunction(operation)) throw new RankError(`${name} is not an operation`);
-        if (name === 'sum') return this.evaluateKeyed('reduce', '+', source, keys, seed, size);
+        if (name === 'sum') return this.evaluateKeyed('reduce', '+', source, keys, seed, size, 'sum');
         if (name === 'min' || name === 'max') {
-            return this.evaluateKeyed('reduce', operation, source, keys, seed, size);
+            return this.evaluateKeyed('reduce', operation, source, keys, seed, size, name);
         }
         return keyedAggregate(source, keys, group => this.invoke(operation, parameter === undefined ? [group] : [group, parameter]), {
             seed, size: size === undefined ? undefined : Number(size),
@@ -90,7 +96,7 @@ export class ReductionEvaluator {
         if ((operator !== '+' && operator !== '*') || typeof modulus !== 'bigint' || modulus <= 0n
             || seed !== undefined && typeof seed !== 'bigint' || !isRankArray(source)) return undefined;
         const stored = denseScalarItems(source);
-        if (!stored) return undefined;
+        if (!stored || !isRankArray(keys) || !denseScalarItems(keys)) return undefined;
         const count = arraySize(source.shape);
         for (let at = 0; at < count; at++) {
             checkpoint('modular keyed fold');

@@ -3,7 +3,7 @@ import { integer32Cells, ownedArray, readArrayItem } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { sameShape } from './tensor-index.js';
-import { isRankArray, type RankArray, type RankValue } from './value.js';
+import { isRankArray, MISSING, type RankArray, type RankValue } from './value.js';
 
 export interface KeyedFoldOptions {
     readonly scan?: boolean;
@@ -12,6 +12,9 @@ export interface KeyedFoldOptions {
     readonly keyAt?: (index: number) => RankValue;
     readonly size?: number;
     readonly seed?: RankValue;
+    readonly skipMissing?: boolean;
+    readonly validate?: (value: RankValue) => RankValue;
+    readonly initial?: (value: RankValue) => RankValue;
     readonly identity?: () => RankValue;
 }
 
@@ -52,10 +55,12 @@ export function keyedFold(values: RankValue, keys: RankValue,
             throw new RankError('by key is outside the result size', 'IndexError');
         }
         length = Math.max(length, at + 1);
-        const value = options.valueAt ? options.valueAt(index) : readArrayItem(values, index);
+        let value = options.valueAt ? options.valueAt(index) : readArrayItem(values, index);
+        if (options.skipMissing && value === MISSING) continue;
+        if (options.validate) value = options.validate(value);
         const previous = states[at];
         states[at] = previous !== undefined ? combine(previous, value)
-            : seed !== undefined ? combine(seed, value) : value;
+            : seed !== undefined ? combine(seed, value) : options.initial ? options.initial(value) : value;
         if (scan) output.push(states[at]);
     }
     if (scan) return ownedArray(output, values.shape);

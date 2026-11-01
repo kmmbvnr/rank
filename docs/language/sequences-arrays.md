@@ -1815,6 +1815,11 @@ Values quantile 0.25 by Keys
 Values percentile 90 by Keys
 ```
 
+`sum`, `min` and `max` skip `.NA` samples as their ordinary aggregate forms
+do; `sum` validates every present sample as numeric, including singleton
+groups. Generic `reduce` keeps the selected binary operation's missing-value
+behavior.
+
 `sum`, `min` and `max` accept an accumulator seed as their corresponding
 binary reductions do. For the other whole-group aggregates, `with` supplies
 only the value of an absent group; it is not inserted as a sample into

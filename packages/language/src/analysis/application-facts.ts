@@ -348,7 +348,8 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             const source = infer(form.source, lookup);
             const elements = form.operation.name === 'all' || form.operation.name === 'any' ? ['boolean'] as const
                 : form.operation.name === 'count' ? ['integer'] as const
-                : form.operation.module === 'stats' && form.operation.name !== 'mode' ? ['real'] as const : source.elements;
+                : form.operation.module === 'stats' && form.operation.name !== 'mode' ? ['real'] as const
+                : source.elements?.filter(type => type !== 'missing');
             return foldShapeFacts(false, form, source, expression => infer(expression, lookup),
                 elements ? [...elements] : undefined) ?? UNKNOWN_VALUE;
         }

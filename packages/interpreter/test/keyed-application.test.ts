@@ -42,3 +42,12 @@ it.each(['quantile 0.25', 'percentile 25', 'quantile', 'percentile'])(
             + `V ${operation} by K`)).toBe(run('use stats\n'
             + `array ((array 1 3 5) ${operation}) ((array 2 4 6) ${operation})`));
     });
+it('validates singleton sums and skips missing aggregate samples', () => {
+    expect(() => run('V = array true false\nK = array 0 1\nV sum by K')).toThrow();
+    expect(() => run('V = array "x"\nK = array 0\nV sum by K')).toThrow(/numeric/);
+    for (const operation of ['sum', 'min', 'max']) {
+        expect(run('V = array 1 .NA 3 4\nK = array 0 0 1 1\n' + `V ${operation} by K`))
+            .toBe(run(`array ((array 1 .NA) ${operation}) ((array 3 4) ${operation})`));
+    }
+    expect(run('V = array .NA\nK = array 0\nV sum by K')).toBe('0');
+});

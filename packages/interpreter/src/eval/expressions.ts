@@ -19,7 +19,7 @@ import {
     isUnpackExpression, nameNeedsExecution, requiresDataOperand, applicationForm, findOperation,
     type AddressItem, type ArrayItem, type BinaryExpression, type Expression, type SortField,
 } from '@arrrank/language';
-import { allValid, createArraySnapshot, filledArray, derivedArray, isPresentAt, maskedNumericCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
+import { allValid, createArraySnapshot, denseScalarItems, filledArray, derivedArray, isPresentAt, maskedNumericCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { compileClauseExpression, isBoundCondition, type ClauseExpressionContext } from '../clause-expression.js';
 import { newStructure } from '../collections.js';
@@ -696,17 +696,39 @@ export class ExpressionEvaluator {
             const expressions = this;
             return function* (): Execution<RankValue> {
                 const source = yield* resume(expressions.evaluate(keyed.source));
-                const seed = keyed.seed ? yield* resume(expressions.evaluate(keyed.seed)) : undefined;
-                const keys = yield* resume(expressions.evaluate(keyed.keys!));
+                let seed: RankValue | undefined, keys: RankValue;
+                if (keyed.kind === 'keyed-aggregate') {
+                    keys = yield* resume(expressions.evaluate(keyed.keys));
+                    seed = keyed.seed ? yield* resume(expressions.evaluate(keyed.seed)) : undefined;
+                } else {
+                    seed = keyed.seed ? yield* resume(expressions.evaluate(keyed.seed)) : undefined;
+                    keys = yield* resume(expressions.evaluate(keyed.keys!));
+                }
                 const size = keyed.size ? yield* resume(expressions.evaluate(keyed.size)) : undefined;
-                const modulus = yield* resume(expressions.evaluate(expression.right));
                 const kind = keyed.kind === 'scan' ? 'scan' : 'reduce';
                 const operator = keyed.kind === 'keyed-aggregate' ? '+' : keyed.operator;
+                const exact = () => keyed.kind === 'keyed-aggregate'
+                    ? expressions.context.reductions.evaluateKeyedAggregate('sum', source, keys, seed, size)
+                    : expressions.context.reductions.evaluateKeyed(kind, operator, source, keys, seed, size);
+                let right = expression.right;
+                while (isParenthesizedExpression(right)) right = right.value;
+                const literal = isNumberLiteral(right) || isUnaryExpression(right)
+                    && isNumberLiteral(right.operand);
+                const stored = isRankArray(source) && denseScalarItems(source)
+                    && isRankArray(keys) && denseScalarItems(keys);
+                const scalarName = isNameExpression(right)
+                    && typeof expressions.context.findVariable(right.name) === 'bigint';
+                // Effectful RHS evaluation must follow the complete left fold.
+                if (!literal && !(stored && scalarName)) {
+                    const result = exact();
+                    const modulus = yield* resume(expressions.evaluate(expression.right));
+                    return expressions.context.operators.evaluateBinary('mod', result, modulus);
+                }
+                const modulus = yield* resume(expressions.evaluate(expression.right));
                 const fused = expressions.context.reductions.modularKeyedFold(kind, operator,
                     source, keys, seed, size, modulus);
-                if (fused !== undefined) return fused;
-                const exact = expressions.context.reductions.evaluateKeyed(kind, operator, source, keys, seed, size);
-                return expressions.context.operators.evaluateBinary('mod', exact, modulus);
+                return fused !== undefined ? fused
+                    : expressions.context.operators.evaluateBinary('mod', exact(), modulus);
             };
         }
         if (!isBinaryExpression(left)) return undefined;

@@ -28,3 +28,6 @@ it('does not move mod through a user callback', () => {
     expect(run(source + '(V reduce mix by K) mod 7'))
         .toBe(run(source + 'Exact = V reduce mix by K\nExact mod 7'));
 });
+it('preserves missing-value sum behavior in a modular expression', () => {
+    expect(run('V = array 1 .NA 3\nK = array 0 0 1\n(V sum by K) mod 2')).toBe('1 1');
+});
