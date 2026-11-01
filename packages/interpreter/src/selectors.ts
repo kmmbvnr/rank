@@ -11,7 +11,7 @@ import { inheritSemanticArrayType, semanticArrayType } from './semantic-array-ty
 import { registerScalarView, deferSelectionCopy, prepareIntegerRange, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
 import { materializeTensorMap } from './tensor-map.js';
-import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, sliceStoredArray, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
+import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, sliceStoredArray, storedScalarKinds, knownStoredScalarKind, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { sequenceValues } from './sequence.js';
@@ -355,8 +355,7 @@ function producerSelection(source: RankArray, selection: TensorSelection, observ
 /** A copy may reuse uniform physical evidence, without inspecting more cells. */
 function knownUniformKind(source: RankArray): string | undefined {
     if (demandBudgetEnabled() || inspectionEnabled() || !privateLoopPolling()) return undefined;
-    const kinds = storedScalarKinds(source, true, false);
-    return kinds?.length === 1 ? kinds[0] : undefined;
+    return knownStoredScalarKind(source);
 }
 
 export function atArray(source: RankArray, indices: readonly bigint[]): RankValue {

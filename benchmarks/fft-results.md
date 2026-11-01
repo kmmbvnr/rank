@@ -1117,7 +1117,7 @@ without the compiler hooks that disable the private call loop.
 
 Contiguous typed rows and eager irregular typed gathers reuse a uniform
 physical source kind only when that evidence is already available. The new
-`storedScalarKinds(..., true, false)` query does not discover unknown source
+`knownStoredScalarKind` query (refined in step 6d) does not discover unknown source
 kinds; a tiny selection must not scan its larger source. Mixed sources keep
 ordinary output discovery. Budgeted execution, inspection and host polling
 retain the previous path. Source and selection writes retain independent,
@@ -1146,3 +1146,62 @@ The nine-pair selection confirmation reverses the wall-time result:
 **0.1096 -> 0.1222 ms**. Both full series remain available; a stable selection
 speedup is not established. The deterministic result is removing the scan.
 [Selection confirmation](baselines/2026-11-01-buffer-facts-selection-general-confirm.json).
+
+## Combined buffer-evidence result
+
+Nine alternating fresh process sets compare main `7e04577a`, step 6c
+`9ffb921a`, and handwritten per-call in-place JS. Each uses at least 1 s
+warmup and three target 500 ms batches, validates all output components,
+and includes coefficient/permutation computation. FFT source is identical.
+
+| FFT-4096 | Warm wall median | Process CPU median | First-size median |
+| --- | ---: | ---: | ---: |
+| Main | 0.8548 ms | 1.1404 ms | 13.410 ms |
+| Buffer evidence | 0.7720 ms | 1.0980 ms | 12.448 ms |
+| JS in-place | 0.4708 ms | 0.4716 ms | 1.851 ms |
+
+The combined candidate uses **9.7% less warm wall time** (1.107x), and
+3.7% less process CPU time. Exact-kind scans drop **18,432 -> 2,048 cells**
+(88.9%). It is 1.64x slower than this handwritten JS implementation; this
+is not a claim against every optimized JS FFT library. Both Rank series
+contain slow processes (up to 1.90/1.68 ms), and incremental series did not
+establish gains for every individual step. Do not multiply their ratios.
+The useful general result is retaining physical evidence across unary
+functions, explicit conversions and typed selection copies; no FFT-specific
+cache, pattern or arithmetic shortcut was added.
+
+[Combined FFT measurements](baselines/2026-11-01-buffer-facts-final-fft.json).
+
+The broad step-6c audit covers seven unchanged numerical demo scenarios,
+three array-stage fixtures and FFT. Large initial slowdowns do not reproduce
+on separate nine-pair confirmations: real matrix **119.90 -> 117.86 ms**,
+k-means **106.88 -> 104.04 ms**. Row means remain slightly slower
+(**26.22 -> 27.45 ms**, 4.7%); this is investigated in step 6d. Other initial
+medians include matvec **31.63 -> 31.84**, column means **30.73 -> 28.73**,
+matmul **242.06 -> 240.88**, gradient **7.66 -> 7.44**, integer matrix
+**101.57 -> 103.60**, real broadcast **148.19 -> 152.64 ms**. These are
+short demo timings with a different contract from the warmed FFT batches.
+
+[Broad audit](baselines/2026-11-01-buffer-facts-final-demo-audit.json),
+[row confirmation](baselines/2026-11-01-buffer-facts-final-row-confirm.json),
+[real matrix confirmation](baselines/2026-11-01-buffer-facts-final-real-matrix-confirm.json),
+[k-means confirmation](baselines/2026-11-01-buffer-facts-final-kmeans-confirm.json).
+
+## Step 6d: separate the known-only kind query
+
+Restore the hot `storedScalarKinds` API and implementation to main's
+behavior. Export a separate `knownStoredScalarKind` helper for uniform
+physical evidence; it never scans and returns one kind directly, without
+allocating/sorting an array of kinds. The selection behavior and scan count
+are unchanged. This avoids imposing a new optional mode on all existing
+contract/storage queries. It does not establish the cause of the earlier
+row variation.
+
+Against step 6c, nine-pair row means give **25.72 -> 25.32 ms** (1.6% less
+wall time), with overlapping ranges; this is not a significant new speedup.
+Build and 20 focused selection/storage tests pass.
+[Incremental row measurements](baselines/2026-11-01-buffer-facts-known-kind-row.json).
+
+The five-pair selection comparison gives **0.0797 -> 0.0682 ms** wall and
+**0.1074 -> 0.0853 ms** process CPU medians, again with overlapping,
+variable process ranges. [Incremental selection measurements](baselines/2026-11-01-buffer-facts-known-kind-selection.json).

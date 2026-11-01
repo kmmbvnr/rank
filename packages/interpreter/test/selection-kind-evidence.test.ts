@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { RuntimeDiagnostics, type RankArray } from '../src/index.js';
-import { typedArray, storedScalarKinds, readArrayItem } from '../src/array-storage.js';
+import { typedArray, storedScalarKinds, knownStoredScalarKind, readArrayItem } from '../src/array-storage.js';
 import { arrayElementTypes } from '../src/array-element-types.js';
 import { atArray, sliceArray } from '../src/selectors.js';
 import { withDemandBudget } from '../src/interrupt.js';
@@ -36,7 +36,7 @@ describe('selection physical kind evidence', () => {
         const diagnostics = new RuntimeDiagnostics();
         const out = diagnostics.run(() => gather(source, [3, 1, 5]));
         expect(diagnostics.elementTypeScannedCells).toBe(0);
-        expect(storedScalarKinds(source, true, false)).toBeUndefined();
+        expect(knownStoredScalarKind(source)).toBeUndefined();
         diagnostics.run(() => expect(arrayElementTypes(out, true)).toEqual(['real']));
         expect(diagnostics.elementTypeScannedCells).toBe(3);
     });
@@ -47,7 +47,7 @@ describe('selection physical kind evidence', () => {
         const out = gather(source, [3, 1, 2]);
         expect(arrayElementTypes(out, true)).toEqual(['real']);
         source.items[1] = -Infinity;
-        expect(storedScalarKinds(source, true, false)).toEqual(['numeric-limit', 'real']);
+        expect(knownStoredScalarKind(source)).toBeUndefined();
         expect(gather(source, [1, 0]).items).toEqual([-Infinity, Infinity]);
     });
 
@@ -64,13 +64,13 @@ describe('selection physical kind evidence', () => {
     it('offers known-only evidence without forcing discovery or host readers', () => {
         const source = typedArray(new Float64Array([NaN, Infinity]));
         const diagnostics = new RuntimeDiagnostics();
-        diagnostics.run(() => expect(storedScalarKinds(source, true, false)).toBeUndefined());
+        diagnostics.run(() => expect(knownStoredScalarKind(source)).toBeUndefined());
         expect(diagnostics.elementTypeScannedCells).toBe(0);
         expect(storedScalarKinds(source, true)).toEqual(['numeric-limit', 'real']);
-        expect(storedScalarKinds(source, true, false)).toEqual(['numeric-limit', 'real']);
+        expect(knownStoredScalarKind(source)).toBeUndefined();
         let reads = 0;
         const host: RankArray = { kind: 'array', shape: [1], items: [], itemAt() { reads++; return 1.5; } };
-        expect(storedScalarKinds(host, true, false)).toBeUndefined();
+        expect(knownStoredScalarKind(host)).toBeUndefined();
         expect(reads).toBe(0);
     });
 });
