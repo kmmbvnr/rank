@@ -1205,3 +1205,38 @@ Build and 20 focused selection/storage tests pass.
 The five-pair selection comparison gives **0.0797 -> 0.0682 ms** wall and
 **0.1074 -> 0.0853 ms** process CPU medians, again with overlapping,
 variable process ranges. [Incremental selection measurements](baselines/2026-11-01-buffer-facts-known-kind-selection.json).
+
+## Final refined candidate
+
+The final implementation (`e90a19a8`) repeats the combined result over seven
+fresh process sets: main **0.8377 ms**, candidate **0.7585 ms**, per-call
+in-place JS **0.4640 ms**. This is **9.5% less wall time / 1.104x speedup**
+over main, with Rank still **1.635x** slower than this JS implementation.
+Process CPU medians are **1.1235 -> 1.0388 ms** (7.5% less). First-size calls
+are **12.149 -> 11.969 ms**; the warm result should not be read as a large
+cold-start improvement. No-hooks counters still show **one exact-kind scan /
+2,048 cells**, 12 numeric function executions and one private call loop.
+The two combined series agree on roughly 10% less warm time; individual
+step timings and general selection timings remain much less stable.
+
+[Final refined FFT comparison](baselines/2026-11-01-buffer-facts-refined-fft.json),
+[final no-hooks counters](baselines/2026-11-01-buffer-facts-refined-diagnostics.json).
+
+The final nine-pair row-mean check against main gives **29.30 -> 25.82 ms**,
+with both versions having slow runs around 53 ms. The earlier row slowdown
+does not reproduce consistently; no universal demo speedup is claimed.
+[Refined row check](baselines/2026-11-01-buffer-facts-refined-row.json).
+
+Final checks: incremental TypeScript project build, semantic boundaries
+(65 owners, 11 script tests), application forms, all 55 Deep-ML demo files
+and all seven classic demo files pass. The ordinary interpreter suite is
+run through its package script, excluding `types`, `differential` and
+`nurikabe`; exhaustive audits are not run. Timings precede these checks,
+with no tests/profiles running concurrently with the timed workers.
+
+Final ordinary interpreter result: **456 files / 10,490 tests passed**
+(191.79 s), through `node scripts/test.mjs --exclude test/types.test.ts
+--exclude test/differential.test.ts --exclude test/nurikabe.test.ts`.
+The FFT demo source has no diff against main. Production changes are five
+files, 39 added and 11 removed lines; each implementation step has its own
+commit, followed by this final validation record.
