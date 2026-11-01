@@ -20,7 +20,6 @@
   "euler/198_ambiguous_test.ra": "Existing differential execution-budget exclusion (#311, #316).",
   "euler/302_strongachilles.ra": "Full compiled answer is covered by full-scale-demos.test.ts; the exact recursive search remains above the reference audit budget.",
   "euler/303_smalldigits.ra": "Full compiled answer is covered by full-scale-demos.test.ts; the reference remainder BFS remains above the audit execution budget.",
-  "euler/304_primonacci.ra": "Finds and processes 100000 primes above 10^14.",
   "euler/305_reflexive.ra": "Enumerates decimal occurrence patterns through power 13.",
   "euler/309_ladders.ra": "Enumerates scaled Pythagorean ladders through 1000000.",
   "euler/310_nimsquare.ra": "Computes square-game states through 100000 with nested square moves.",

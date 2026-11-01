@@ -1,0 +1,55 @@
+{
+  "checked": 112,
+  "cases": [
+    [
+      0,
+      1,
+      97
+    ],
+    [
+      1,
+      8,
+      2
+    ],
+    [
+      2,
+      10,
+      1
+    ],
+    [
+      10,
+      4,
+      1000000007
+    ],
+    [
+      31,
+      12,
+      1234567891011
+    ],
+    [
+      60,
+      4,
+      97
+    ],
+    [
+      127,
+      10,
+      997
+    ],
+    [
+      250,
+      20,
+      1000000007
+    ]
+  ],
+  "variants": [
+    "original",
+    "eager",
+    "scalar",
+    "gaps",
+    "prefix",
+    "prefixeager",
+    "production"
+  ],
+  "oracle": "Trial division for primes; linear Fibonacci recurrence for each index"
+}

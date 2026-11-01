@@ -9,6 +9,7 @@ export class RuntimeDiagnostics {
     indexReadMisses = 0;
     indexWrites = 0;
     sequencePredicateCalls = 0;
+    primeRunSieves = 0;
     cellsComputed = 0;
     hoistedReaders = 0;
     loopElementScans = 0;

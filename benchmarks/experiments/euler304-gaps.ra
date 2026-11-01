@@ -1,0 +1,40 @@
+fun N fibmod
+  A = 0
+  B = 1
+  for Bit in (N binary len - 1) to 0 by -1
+    C = A * (2 * B - A) mod Mod
+    D = (A * A + B * B) mod Mod
+    if ((N shr Bit) band 1) equal 1
+      A = D
+      B = (C + D) mod Mod
+    else
+      A = C
+      B = D
+    end
+  end
+  return A
+end
+Previous = Pr 0
+MaxGap = 0
+for P in Pr
+  MaxGap = MaxGap max (P - Previous)
+  Previous = P
+end
+Fib = array shape (MaxGap + 2) fill 0
+Fib 1 = 1 mod Mod
+for I in 2 to (MaxGap + 1)
+  Fib I = (Fib (I - 1) + Fib (I - 2)) mod Mod
+end
+Previous = Pr 0
+A = Previous fibmod
+B = (Previous + 1) fibmod
+Answer = 0
+for P in Pr
+  Gap = P - Previous
+  C = (A * Fib (Gap + 1) + (B - A) * Fib Gap) mod Mod
+  B = (B * Fib (Gap + 1) + A * Fib Gap) mod Mod
+  A = C
+  Answer = (Answer + A) mod Mod
+  Previous = P
+end
+Answer print

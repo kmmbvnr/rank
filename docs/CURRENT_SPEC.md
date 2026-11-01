@@ -7546,9 +7546,13 @@ probable-prime test, wrong for a composite with probability below `4 ** -14`.
 Prime enumeration uses an odd-only segmented bit sieve for values below
 `2 ** 40`. Each traversal owns its buffer and prepares only the next demanded
 segment; a huge upper bound does not trigger an eager sieve through its square
-root. Larger starting points use the direct primality path. Segment storage and
-the base-prime table have fixed limits, so an infinite traversal does not retain
-every prime it has yielded.
+root. At larger starting points, the first 1024 primes use direct primality
+testing. Continued demand may switch to a larger segmented sieve below `2 ** 48`,
+with a base bitmap capped at 1 MiB and a typed prime list of about 4 MiB.
+Beyond that bound, enumeration retains direct primality testing. Segment storage
+and the base-prime table have fixed limits, so an infinite traversal does not
+retain every prime it has yielded. Short reads do not prepare the larger table;
+a read that stops just after promotion can still pay its setup cost.
 
 Membership in a bounded prime source uses an on-demand sieve segment in that
 same numeric region, with one cached segment per source plan. Unbounded prime

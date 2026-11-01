@@ -249,3 +249,15 @@ it('checks Euler 303 with private Number state and exact wide reconstruction', (
         expect(diagnostics.numberFunctionFallbacks).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 }, 60_000);
+
+it('checks Euler 304 with the full prime range and array Fibonacci suffix', () => {
+    const url = new URL('../../../demos/euler/304_primonacci.ra', import.meta.url);
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(283988410192n);
+        expect(diagnostics.primeRunSieves).toBe(1);
+        expect(diagnostics.compiledTensors).toBeGreaterThan(0);
+    } finally { runtime.dispose(); }
+}, 60_000);

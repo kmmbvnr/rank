@@ -9,3 +9,33 @@ test "small prime range"
 
   Answer equal 6100
 end
+
+test "one prime and no shared suffix variation"
+  use "304_primonacci"
+  Start = 10
+  Count = 1
+  Mod = 97
+  run
+
+  Answer equal 89
+end
+
+test "indices across a binary boundary"
+  use "304_primonacci"
+  Start = 127
+  Count = 10
+  Mod = 997
+  run
+
+  Answer equal 275
+end
+
+test "zero start and unit modulus"
+  use "304_primonacci"
+  Start = 0
+  Count = 1
+  Mod = 1
+  run
+
+  Answer equal 0
+end

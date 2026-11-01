@@ -1,0 +1,21 @@
+fun N fibmod
+  A = 0
+  B = 1
+  for Bit in (N binary len - 1) to 0 by -1
+    C = A * (2 * B - A) mod Mod
+    D = (A * A + B * B) mod Mod
+    if ((N shr Bit) band 1) equal 1
+      A = D
+      B = (C + D) mod Mod
+    else
+      A = C
+      B = D
+    end
+  end
+  return A
+end
+Answer = 0
+for P in Pr
+  Answer = (Answer + (P fibmod)) mod Mod
+end
+Answer print

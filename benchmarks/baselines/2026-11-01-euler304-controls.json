@@ -1,0 +1,112 @@
+{
+  "records": [
+    {
+      "round": 0,
+      "file": "060_primepairs",
+      "phase": "before",
+      "ms": 3051.815959,
+      "cpuMs": 4151.806,
+      "rssMiB": 500.6875,
+      "answer": "26033"
+    },
+    {
+      "round": 0,
+      "file": "060_primepairs",
+      "phase": "after",
+      "ms": 3104.170375,
+      "cpuMs": 4174.725,
+      "rssMiB": 481.125,
+      "answer": "26033"
+    },
+    {
+      "round": 0,
+      "file": "263_engineersdream",
+      "phase": "before",
+      "ms": 4715.2056250000005,
+      "cpuMs": 4790.34,
+      "rssMiB": 198.375,
+      "answer": "2039506520"
+    },
+    {
+      "round": 0,
+      "file": "263_engineersdream",
+      "phase": "after",
+      "ms": 3548.092875,
+      "cpuMs": 3636.046,
+      "rssMiB": 195.90625,
+      "answer": "2039506520"
+    },
+    {
+      "round": 1,
+      "file": "060_primepairs",
+      "phase": "after",
+      "ms": 3217.6545419999998,
+      "cpuMs": 4359.794,
+      "rssMiB": 486.34375,
+      "answer": "26033"
+    },
+    {
+      "round": 1,
+      "file": "060_primepairs",
+      "phase": "before",
+      "ms": 3191.7112500000003,
+      "cpuMs": 4321.343,
+      "rssMiB": 482.640625,
+      "answer": "26033"
+    },
+    {
+      "round": 1,
+      "file": "263_engineersdream",
+      "phase": "after",
+      "ms": 2922.854625,
+      "cpuMs": 3153.194,
+      "rssMiB": 198.46875,
+      "answer": "2039506520"
+    },
+    {
+      "round": 1,
+      "file": "263_engineersdream",
+      "phase": "before",
+      "ms": 2850.3552090000003,
+      "cpuMs": 3056.968,
+      "rssMiB": 199.6875,
+      "answer": "2039506520"
+    },
+    {
+      "round": 2,
+      "file": "060_primepairs",
+      "phase": "before",
+      "ms": 5084.868166,
+      "cpuMs": 6022.994,
+      "rssMiB": 486.078125,
+      "answer": "26033"
+    },
+    {
+      "round": 2,
+      "file": "060_primepairs",
+      "phase": "after",
+      "ms": 3145.041125,
+      "cpuMs": 4181.373,
+      "rssMiB": 458.34375,
+      "answer": "26033"
+    },
+    {
+      "round": 2,
+      "file": "263_engineersdream",
+      "phase": "before",
+      "ms": 2686.583792,
+      "cpuMs": 2894.458,
+      "rssMiB": 197.03125,
+      "answer": "2039506520"
+    },
+    {
+      "round": 2,
+      "file": "263_engineersdream",
+      "phase": "after",
+      "ms": 2627.363458,
+      "cpuMs": 2825.89,
+      "rssMiB": 197,
+      "answer": "2039506520"
+    }
+  ]
+}

@@ -1,11 +1,21 @@
+import { currentDiagnostics } from '../diagnostics.js';
 import { checkpoint } from '../interrupt.js';
-import { PrimeSieve, maxSieveInteger, primeSegmentSpan } from './prime-sieve.js';
+import { PrimeSieve, maxSieveInteger, maxPrimeRunInteger, primeSegmentSpan } from './prime-sieve.js';
 import { primeMembership } from './primality.js';
 import { registerSequenceMembership } from '../sequence-membership.js';
 import { above, within, strongerLower, strongerUpper, membershipInteger, registerMetadataBounds, type Boundary } from '../sequence-bounds.js';
 import type { SequencePlan } from './value.js';
 
 const membershipSieveDemand = 64;
+// Do not build a large sqrt(Start) table for a short take/index lookup. After
+// 1024 delivered primes, a continued traversal can amortize the wider workspace.
+// Measured on M5/Node 24 at Start=10^14: threshold 256 made take 1000
+// ~5x slower; 1024 retains its ~23 ms path while reducing take 100000
+// from ~1.65 s to ~0.26 s. Thresholds 4096/8192 delayed that benefit.
+// Unknown future demand can still stop immediately after paying setup.
+// The bit base is capped at 1 MiB and its prime list at about 4 MiB; values
+// beyond 2^48 retain the arbitrary-precision path. No wall-clock heuristics.
+const primeRunSieveDemand = 1024;
 
 export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     let membershipSieve: PrimeSieve | undefined;
@@ -97,8 +107,23 @@ function* primeIterator(
         }
         candidate = BigInt(current);
     }
+    let delivered = 0;
     for (; !boundary || within(candidate, boundary); candidate += 2n) {
+        if (delivered >= primeRunSieveDemand && candidate <= BigInt(maxPrimeRunInteger)) {
+            const end = boundary ? boundary.limit - (boundary.inclusive ? 0n : 1n) : BigInt(maxPrimeRunInteger);
+            const last = Number(end < BigInt(maxPrimeRunInteger) ? end : BigInt(maxPrimeRunInteger));
+            const sieve = new PrimeSieve(true);
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) diagnostics.primeRunSieves++;
+            let current = Number(candidate);
+            for (; current <= last; current += 2) {
+                checkpoint('reading sequence');
+                if (sieve.contains(current)) yield BigInt(current);
+            }
+            candidate = BigInt(current);
+            if (boundary && !within(candidate, boundary)) return;
+        }
         checkpoint('reading sequence');
-        if (primeMembership(candidate)) yield candidate;
+        if (primeMembership(candidate)) { delivered++; yield candidate; }
     }
 }

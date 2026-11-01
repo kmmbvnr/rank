@@ -11,18 +11,39 @@ arg Count integer = 100000
 arg Mod integer = 1234567891011
 
 Pr = primes from Start take Count array
-F0 = Pr * 0
-F1 = F0 + 1
-Text = Pr max binary
+rem The high binary prefix is shared by every prime.
+rem Process it once, then double the suffix as arrays.
+fun N fibmod
+  A = 0
+  B = 1
+  for Bit in (N binary len - 1) to 0 by -1
+    C = A * (2 * B - A) mod Mod
+    D = (A * A + B * B) mod Mod
+    if ((N shr Bit) band 1) equal 1
+      A = D
+      B = (C + D) mod Mod
+    else
+      A = C
+      B = D
+    end
+  end
+  return A
+end
+Text = ((Pr min) bxor (Pr max)) binary
+Prefix = (Pr min) shr (Text len)
+Base = Prefix fibmod
+Following = (Prefix + 1) fibmod
+F0 = Pr * 0 + Base
+F1 = Pr * 0 + Following
 Bits = 0 till (Text len) array
 for Bit in Bits reverse
-  Twice' = 2 * F1 - F0
+  Twice = 2 * F1 - F0
   Even = F0 * Twice mod Mod
   Odd = (F0 * F0 + F1 * F1) mod Mod
-  Shifted' = Pr shr Bit
+  Shifted = Pr shr Bit
   Set = (Shifted band 1) equal 1
   F0 = Set choose Odd Even
-  Next' = (Even + Odd) mod Mod
+  Next = (Even + Odd) mod Mod
   F1 = Set choose Next Odd
 end
 Answer = F0 sum mod Mod
