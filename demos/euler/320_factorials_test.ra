@@ -12,3 +12,18 @@ test "statement sample"
   run
   Answer equal 614538266565663
 end
+
+test "inverse valuation carry boundaries"
+  use "320_factorials"
+  2 2 0 minimum equal 4
+  2 4 0 minimum equal 6
+  2 5 0 minimum equal 8
+  3 4 0 minimum equal 9
+  3 5 0 minimum equal 12
+end
+
+test "inverse valuation lower bound"
+  use "320_factorials"
+  2 0 0 minimum equal 0
+  2 5 9 minimum equal 9
+end

@@ -1,0 +1,18 @@
+fun P Target Prev minimum
+  Weight = 1
+  Power = P
+  for Weight at most (Target - 1) // P
+    Weight = Weight * P + 1
+    Power *= P
+  end
+  Result = 0
+  Remain = Target
+  for Remain greater 0
+    Digit = Remain // Weight
+    Result += Digit * Power
+    Remain = Remain mod Weight
+    Weight = (Weight - 1) // P
+    Power //= P
+  end
+  return Result max Prev
+end

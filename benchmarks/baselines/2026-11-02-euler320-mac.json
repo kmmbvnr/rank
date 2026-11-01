@@ -1,0 +1,390 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "records": [
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "1000000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "original",
+      "ms": 7140.475416,
+      "rssMiB": 219.40625,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "1000000",
+        "inline"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "inline",
+      "ms": 2561.1033749999997,
+      "rssMiB": 233.15625,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "1000000",
+        "prune"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune",
+      "ms": 2086.2494580000002,
+      "rssMiB": 211,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "1000000",
+        "prune-inline"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-inline",
+      "ms": 1306.961333,
+      "rssMiB": 215.015625,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "compiled",
+        "1000000",
+        "prune-greedy"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 653.968542,
+      "rssMiB": 210.703125,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "reference",
+        "10000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "upper": "10000",
+      "variant": "original",
+      "ms": 3234.624917,
+      "rssMiB": 439.359375,
+      "answer": "61690942682501005"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "reference",
+        "10000",
+        "prune"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "upper": "10000",
+      "variant": "prune",
+      "ms": 907.3383340000001,
+      "rssMiB": 438.234375,
+      "answer": "61690942682501005"
+    },
+    {
+      "trial": 0,
+      "args": [
+        "reference",
+        "10000",
+        "prune-greedy"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "upper": "10000",
+      "variant": "prune-greedy",
+      "ms": 575.791875,
+      "rssMiB": 341.078125,
+      "answer": "61690942682501005"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "1000000",
+        "inline"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "inline",
+      "ms": 2499.9351669999996,
+      "rssMiB": 233.984375,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "1000000",
+        "prune"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune",
+      "ms": 1294.320833,
+      "rssMiB": 211.125,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "1000000",
+        "prune-inline"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-inline",
+      "ms": 759.429167,
+      "rssMiB": 210.328125,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "1000000",
+        "prune-greedy"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 1031.275041,
+      "rssMiB": 208.6875,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "reference",
+        "10000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "upper": "10000",
+      "variant": "original",
+      "ms": 4052.531583,
+      "rssMiB": 453.578125,
+      "answer": "61690942682501005"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "reference",
+        "10000",
+        "prune"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "upper": "10000",
+      "variant": "prune",
+      "ms": 1059.696,
+      "rssMiB": 432.921875,
+      "answer": "61690942682501005"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "reference",
+        "10000",
+        "prune-greedy"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "upper": "10000",
+      "variant": "prune-greedy",
+      "ms": 612.238375,
+      "rssMiB": 338.859375,
+      "answer": "61690942682501005"
+    },
+    {
+      "trial": 1,
+      "args": [
+        "compiled",
+        "1000000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "original",
+      "ms": 6796.909417,
+      "rssMiB": 234.625,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "1000000",
+        "prune"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune",
+      "ms": 1286.509791,
+      "rssMiB": 211.40625,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "1000000",
+        "prune-inline"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-inline",
+      "ms": 775.0009170000001,
+      "rssMiB": 211.171875,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "1000000",
+        "prune-greedy"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 613.9015420000001,
+      "rssMiB": 208.5625,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "reference",
+        "10000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "upper": "10000",
+      "variant": "original",
+      "ms": 2654.3257080000003,
+      "rssMiB": 448.28125,
+      "answer": "61690942682501005"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "reference",
+        "10000",
+        "prune"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "upper": "10000",
+      "variant": "prune",
+      "ms": 882.5466250000001,
+      "rssMiB": 437.703125,
+      "answer": "61690942682501005"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "reference",
+        "10000",
+        "prune-greedy"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "reference",
+      "upper": "10000",
+      "variant": "prune-greedy",
+      "ms": 576.020166,
+      "rssMiB": 339.53125,
+      "answer": "61690942682501005"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "1000000",
+        "original"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "original",
+      "ms": 8429.379375,
+      "rssMiB": 234.6875,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 2,
+      "args": [
+        "compiled",
+        "1000000",
+        "inline"
+      ],
+      "status": 0,
+      "signal": null,
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "inline",
+      "ms": 2854.0783330000004,
+      "rssMiB": 218.6875,
+      "answer": "278157919195482643"
+    }
+  ]
+}

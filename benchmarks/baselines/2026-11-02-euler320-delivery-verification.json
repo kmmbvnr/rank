@@ -1,0 +1,40 @@
+{
+  "baseRevision": "94776aeb",
+  "productionChanges": "Covered-prime pruning; remove Need; greedy inverse retaining Prev; original sieve/input range retained; compiler unchanged",
+  "verificationMac": {
+    "helpers": 25788,
+    "programs": 27,
+    "failures": 0
+  },
+  "verificationIntel": {
+    "helpers": 25788,
+    "programs": 27,
+    "failures": 0
+  },
+  "independentFullOracle": {
+    "upper": 1000000,
+    "answer": "278157919195482643",
+    "best": 1234559248024796,
+    "searches": 293510,
+    "checks": 2853708,
+    "ms": 472.235625,
+    "rssMiB": 65.1875
+  },
+  "testsMac": "\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\n \u2713 test/euler-320.test.ts (28 tests) 2140ms\n   \u2713 Euler 320 (reference) > matches binary-search inversion, including carry digits and wide integers  768ms\n   \u2713 retains the full compiled Euler 320 answer  597ms\n\n Test Files  1 passed (1)\n      Tests  28 passed (28)\n   Start at  02:59:33\n   Duration  5.41s (transform 2.01s, setup 0ms, collect 3.09s, tests 2.14s, environment 0ms, prepare 53ms)\n\n",
+  "testsIntel": "\n RUN  v3.2.7 /tmp/rank319-delivery/packages/interpreter\n\n \u2713 test/euler-320.test.ts (28 tests) 4681ms\n   \u2713 Euler 320 (reference) > matches binary-search inversion, including carry digits and wide integers  918ms\n   \u2713 Euler 320 (reference) > retains the statement checkpoint  325ms\n   \u2713 Euler 320 (compiled) > matches binary-search inversion, including carry digits and wide integers  564ms\n   \u2713 Euler 320 (exact) > matches binary-search inversion, including carry digits and wide integers  582ms\n   \u2713 retains the full compiled Euler 320 answer  1696ms\n\n Test Files  1 passed (1)\n      Tests  28 passed (28)\n   Start at  03:01:36\n   Duration  7.51s (transform 1.86s, setup 0ms, collect 2.63s, tests 4.68s, environment 0ms, prepare 56ms)\n\n",
+  "scopedFixtureAudits": "\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/320_factorials_test.ra\nauditing euler/320_factorials_test.ra\n\n \u2713 test/types.test.ts (2144 tests | 2143 skipped) 104ms\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/320_factorials_test.ra\ncomparing euler/320_factorials_test.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution\ndifferential: 1/2144 compared, 1 completed, 4 test blocks, 2656 compiled entries, 2 Number loop entries\n\n \u2713 test/differential.test.ts (2145 tests | 2144 skipped) 363ms\n   \u2713 compiled and reference demo execution > euler/320_factorials_test.ra  359ms\n\n Test Files  2 passed (2)\n      Tests  2 passed | 4287 skipped (4289)\n   Start at  03:01:10\n   Duration  2.07s (transform 892ms, setup 0ms, collect 2.98s, tests 467ms, environment 0ms, prepare 63ms)\n\n",
+  "semanticBoundaries": "\n> rank-workspace@0.0.1 check:semantic-boundaries\n> node --test scripts/semantic-source.test.mjs scripts/demo-execution-exclusions.test.mjs scripts/local-demo-audits.test.mjs && node scripts/check-semantic-boundaries.mjs\n\n\u2714 execution exclusions name existing workloads and explain the resource cost (1.530458ms)\n\u2714 recorded timeouts stay excluded while corrected compiler cases remain eligible (0.072666ms)\n\u2714 new full-scale exclusions retain their small test fixtures unless they timed out (21.298ms)\n\u2714 local concurrency uses CPU and memory limits, with a serial CI path (0.455833ms)\n\u2714 shards execute concurrently and all results enter the coverage gate (550.591709ms)\n\u2714 a failing worker fails the audit (522.841416ms)\n\u2714 successful workers with incomplete summaries still fail coverage (545.587416ms)\n\u2714 comments and ordinary strings do not create dependencies or semantic violations (2.507625ms)\n\u2714 distinguishes runtime dependencies from all forms of type-only imports and exports (1.453708ms)\n\u2714 recognizes semantic owner helpers from declarations and typed closures (0.764541ms)\n\u2714 retains requirement restrictions for aliases, properties, types, and module paths (0.362083ms)\n\u2139 tests 11\n\u2139 suites 0\n\u2139 pass 11\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1652.416041\nSemantic boundaries: 65 owners checked\n",
+  "applicationForms": "\n> rank-workspace@0.0.1 check:application-forms\n> node scripts/check-application-forms.mjs\n\nApplication forms: both consumers reject an unhandled form\nApplication forms: isolated #24 pilot uses unchanged runtime and analysis handlers\n",
+  "sourceHashes": {
+    "demos/euler/320_factorials.ra": "d621bf55432c24e388591e2b01d4885ee44ab95a50f9c248551562fd14b64aa2",
+    "demos/euler/320_factorials_test.ra": "db5406c079c3ea6d99e06820b72e4a112407faf1a639d362c21d3fa62f6deda1",
+    "packages/interpreter/test/euler-320.test.ts": "0fdc80eec5e9b9d9922419c7acde0c037422424ad211c89871cedeae9424d94b"
+  },
+  "notes": [
+    "Full compiled default covered in ordinary focused tests.",
+    "Reference default exclusion retained; full optimized reference did not finish in the earlier 45-second control.",
+    "Rejected Number min/max admission and native-sieve prototypes are not production changes.",
+    "No exhaustive audits run.",
+    "No interpreter/compiler source modified."
+  ]
+}

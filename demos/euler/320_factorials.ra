@@ -21,7 +21,6 @@ for P in 2 to Root
     end
   end
 end
-Need = array shape (Upper + 1) fill 0
 Want = array shape (Upper + 1) fill 0
 Best = 0
 Answer = 0
@@ -35,8 +34,10 @@ for I in 2 to Upper
       E += 1
     end
     Want P += K * E
-    Need P = P (Want P) (Need P) minimum
-    Best = Best max (Need P)
+    rem Only an uncovered prime raises Best.
+    if (Best valuation P) less (Want P)
+      Best = P (Want P) Best minimum
+    end
   end
   if I at least 10
     Answer = (Answer + Best) mod Mod
@@ -44,22 +45,24 @@ for I in 2 to Upper
 end
 Answer print
 
+rem Greedy weights are v_p((p^k)!).
 fun P Target Prev minimum
-  Low = Prev max (Target * (P - 1))
-  High = Low
-  for (High valuation P) less Target
-    Have = High valuation P
-    High += (Target - Have) * (P - 1)
+  Weight = 1
+  Power = P
+  for Weight at most (Target - 1) // P
+    Weight = Weight * P + 1
+    Power *= P
   end
-  for Low less High
-    Mid = Low + (High - Low) // 2
-    if (Mid valuation P) at least Target
-      High = Mid
-    else
-      Low = Mid + 1
-    end
+  Result = 0
+  Remain = Target
+  for Remain greater 0
+    Digit = Remain // Weight
+    Result += Digit * Power
+    Remain = Remain mod Weight
+    Weight = (Weight - 1) // P
+    Power //= P
   end
-  return Low
+  return Result max Prev
 end
 
 fun N valuation P

@@ -1,0 +1,66 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "records": [
+    {
+      "trial": 0,
+      "runtime": "baseline",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 1616.587076,
+      "rssMiB": 190.1484375,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 0,
+      "runtime": "prototype",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 1402.800418,
+      "rssMiB": 193.87890625,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 1,
+      "runtime": "prototype",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 1399.317661,
+      "rssMiB": 195.4296875,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 1,
+      "runtime": "baseline",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 1644.869861,
+      "rssMiB": 192.234375,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 2,
+      "runtime": "baseline",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 1617.4639040000002,
+      "rssMiB": 190.30078125,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 2,
+      "runtime": "prototype",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 1402.462538,
+      "rssMiB": 196.5703125,
+      "answer": "278157919195482643"
+    }
+  ]
+}

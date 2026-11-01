@@ -1,0 +1,34 @@
+fun P Target Prev minimum
+  Low = Prev max (Target * (P - 1))
+  High = Low
+  V = High
+  Have = 0
+  for V greater 0
+    V //= P
+    Have += V
+  end
+  for Have less Target
+    High += (Target - Have) * (P - 1)
+    V = High
+    Have = 0
+    for V greater 0
+      V //= P
+      Have += V
+    end
+  end
+  for Low less High
+    Mid = Low + (High - Low) // 2
+    V = Mid
+    Have = 0
+    for V greater 0
+      V //= P
+      Have += V
+    end
+    if Have at least Target
+      High = Mid
+    else
+      Low = Mid + 1
+    end
+  end
+  return Low
+end

@@ -1,0 +1,66 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "records": [
+    {
+      "trial": 0,
+      "runtime": "baseline",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 610.661375,
+      "rssMiB": 207.546875,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 0,
+      "runtime": "prototype",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 870.0423749999999,
+      "rssMiB": 212.34375,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 1,
+      "runtime": "prototype",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 868.141667,
+      "rssMiB": 212.59375,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 1,
+      "runtime": "baseline",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 624.715875,
+      "rssMiB": 208.3125,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 2,
+      "runtime": "baseline",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 616.314958,
+      "rssMiB": 208.5625,
+      "answer": "278157919195482643"
+    },
+    {
+      "trial": 2,
+      "runtime": "prototype",
+      "mode": "compiled",
+      "upper": "1000000",
+      "variant": "prune-greedy",
+      "ms": 956.2303750000001,
+      "rssMiB": 212.328125,
+      "answer": "278157919195482643"
+    }
+  ]
+}
