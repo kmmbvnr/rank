@@ -22,15 +22,23 @@ fun State E A id
   if K in Ids
     return Ids K
   end
-  Ids K = K
   Ends = State .ends
+  Id = State .next
+  State .next = Id + 1
+  Ids K = Id
   Adds = State .adds
-  Ends K = E
-  Adds K = A
-  return K
+  Ends Id = E
+  Adds Id = A
+  return Id
 end
 
 fun State X Y merge
+  Pairs = State .pairs
+  rem Interned transformations never change.
+  Cached = Pairs X Y default -1
+  if Cached at least 0
+    return Cached
+  end
   Ends = State .ends
   Adds = State .adds
   EX = Ends X
@@ -39,7 +47,9 @@ fun State X Y merge
   AY = Adds Y
   E = EY EX
   A = AX + AY EX
-  return State E A id
+  Id = State E A id
+  Pairs X Y = Id
+  return Id
 end
 
 fun State X D adddig
@@ -49,7 +59,8 @@ end
 
 fun State X R block
   Full = State .full
-  K = X + ":"
+  K = X text
+  K += ":"
   K += R text
   if K in Full
     return Full K
@@ -86,20 +97,33 @@ fun State X R Top partial
   return State Z C merge
 end
 
+rem Reuse all complete shorter widths during binary search.
+fun State prefix W
+  if W equal 0
+    return State .unit
+  end
+  Prefixes = State .prefixes
+  if W in Prefixes
+    return Prefixes W
+  end
+  Z = State prefix (W - 1)
+  Dig = State .dig
+  for F in 1 to 9
+    C = State (Dig F) (W - 1) block
+    Z = State Z C merge
+  end
+  Prefixes W = Z
+  return Z
+end
+
 fun State ranged N
   if N equal 0
     return State .unit
   end
   T = N text
   D = T len
-  Z = State .unit
+  Z = State prefix (D - 1)
   Dig = State .dig
-  for W in 1 till D
-    for F in 1 to 9
-      C = State (Dig F) (W - 1) block
-      Z = State Z C merge
-    end
-  end
   F = (T 0) integer
   R = D - 1
   for A in 1 till F
@@ -222,8 +246,11 @@ fun Need solve
     .adds = new index
     .ids = new index
     .full = new index
-    .dig = array shape 10 fill ""
-    .unit = ""
+    .prefixes = new index
+    .dig = array shape 10 fill 0
+    .unit = 0
+    .pairs = new index
+    .next = 0
   end
   E0 = 0 to L array
   A0 = array shape (L + 1) fill 0

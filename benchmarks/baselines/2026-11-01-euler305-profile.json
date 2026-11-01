@@ -1,0 +1,130 @@
+{
+  "totalSelfSamples": 8960,
+  "topSelfSamples": [
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "samples": 864
+    },
+    {
+      "function": "argumentSignature",
+      "file": "interpreter/out/return-contract.js",
+      "samples": 453
+    },
+    {
+      "function": "get",
+      "file": "interpreter/out/jit/call-specializations.js",
+      "samples": 312
+    },
+    {
+      "function": "",
+      "file": "interpreter/out/eval/expressions.js",
+      "samples": 246
+    },
+    {
+      "function": "advance",
+      "file": "interpreter/out/execution.js",
+      "samples": 207
+    },
+    {
+      "function": "",
+      "file": "interpreter/out/eval/application.js",
+      "samples": 205
+    },
+    {
+      "function": "iterator",
+      "file": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/langium/lib/utils/stream.js",
+      "samples": 203
+    },
+    {
+      "function": "nameOf",
+      "file": "language/out/application-forms.js",
+      "samples": 180
+    },
+    {
+      "function": "contractType",
+      "file": "interpreter/out/runtime/semantic-array-type.js",
+      "samples": 166
+    },
+    {
+      "function": "classifyParts",
+      "file": "language/out/application-forms.js",
+      "samples": 156
+    },
+    {
+      "function": "get",
+      "file": "interpreter/out/frame.js",
+      "samples": 144
+    },
+    {
+      "function": "",
+      "file": "interpreter/out/execution.js",
+      "samples": 141
+    },
+    {
+      "function": "isNamed",
+      "file": "language/out/application-forms.js",
+      "samples": 129
+    },
+    {
+      "function": "retainRecordContract",
+      "file": "interpreter/out/record-contract.js",
+      "samples": 122
+    },
+    {
+      "function": "visit",
+      "file": "interpreter/out/runtime/array-binding-contract.js",
+      "samples": 121
+    },
+    {
+      "function": "",
+      "file": "interpreter/out/runtime/semantic-array-type.js",
+      "samples": 121
+    },
+    {
+      "function": "createOwned",
+      "file": "interpreter/out/runtime/owned-array.js",
+      "samples": 105
+    },
+    {
+      "function": "",
+      "file": "interpreter/out/modules/text.js",
+      "samples": 102
+    },
+    {
+      "function": "(program)",
+      "file": "",
+      "samples": 90
+    },
+    {
+      "function": "assign",
+      "file": "interpreter/out/binding-environment.js",
+      "samples": 88
+    },
+    {
+      "function": "applySelectors",
+      "file": "interpreter/out/value-selection.js",
+      "samples": 86
+    },
+    {
+      "function": "expression",
+      "file": "interpreter/out/checked-input.js",
+      "samples": 77
+    },
+    {
+      "function": "callFunction",
+      "file": "interpreter/out/function-invocation.js",
+      "samples": 77
+    },
+    {
+      "function": "selectionArray",
+      "file": "interpreter/out/selectors.js",
+      "samples": 77
+    },
+    {
+      "function": "mapStoredInt32Binary",
+      "file": "interpreter/out/jit/integer-array-kernel.js",
+      "samples": 77
+    }
+  ]
+}

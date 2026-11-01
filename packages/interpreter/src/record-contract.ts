@@ -1,3 +1,5 @@
+import { ResourceMap } from './resource-summary.js';
+import { FieldContracts, fieldRetentionIsNoop } from './field-contracts.js';
 import { MissingValueError, RankError } from './errors.js';
 import { ArrayBindingContract } from './array-binding-contract.js';
 import { readArrayItem } from './array-storage.js';
@@ -5,13 +7,23 @@ import { collectionElementType, isRankTuple, isRankArray, isRankRecord, mergeCol
     type CollectionElementType, type RankRecord, type RankValue } from './value.js';
 
 const inspecting = new Set<RankRecord>();
+const nativeGet = Map.prototype.get;
+function plainEntries(value: RankRecord): boolean {
+    const property = Object.getOwnPropertyDescriptor(value, 'entries');
+    if (!property || !('value' in property)) return false;
+    const entries = property.value as RankRecord['entries'], prototype = Object.getPrototypeOf(entries);
+    return (prototype === Map.prototype || prototype === ResourceMap.prototype
+        && !Object.getOwnPropertyDescriptor(ResourceMap.prototype, 'get'))
+        && !Object.getOwnPropertyDescriptor(entries, 'get') && Map.prototype.get === nativeGet;
+}
+const wrappers = new WeakMap<ReadonlyMap<string, CollectionElementType>, CollectionElementType>();
 /** Native records acquire the same contract before their first mutation or use as a return value. */
 export function recordContract(value: RankRecord): CollectionElementType {
     if (!value.fieldContracts) {
         if (inspecting.has(value)) throw new RankError('cyclic records cannot establish a structural type', 'TypeError');
         inspecting.add(value);
         try {
-            const fields = new Map<string, CollectionElementType>();
+            const fields = new FieldContracts();
             const checked: [string, RankValue][] = [];
             let constructing = true;
             for (const [name, item] of value.entries) {
@@ -27,8 +39,12 @@ export function recordContract(value: RankRecord): CollectionElementType {
             constructing = false;
         } finally { inspecting.delete(value); }
     }
-    const contract = { type: 'record', fields: value.fieldContracts };
-    retainRecordContract(value, contract);
+    let contract = wrappers.get(value.fieldContracts);
+    if (!contract) wrappers.set(value.fieldContracts, contract = { type: 'record', fields: value.fieldContracts });
+    // A flat map has no record descendants to refine. Reapplying its own
+    // contracts would only traverse scalar/array metadata without changing it.
+    // Tuple readers and host entry-map overrides retain ordinary traversal.
+    if (!fieldRetentionIsNoop(value.fieldContracts) || !plainEntries(value)) retainRecordContract(value, contract);
     return contract;
 }
 
@@ -56,7 +72,7 @@ export function retainRecordContract(value: RankValue, contract: CollectionEleme
         return;
     }
     if (!isRankRecord(value) || !contract.fields) return;
-    const fields = value.fieldContracts ??= new Map();
+    const fields = value.fieldContracts ??= new FieldContracts();
     for (const [name, field] of contract.fields) {
         const item = value.entries.get(name)!;
         retainRecordContract(item, field);

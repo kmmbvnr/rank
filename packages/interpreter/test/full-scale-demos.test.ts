@@ -261,3 +261,12 @@ it('checks Euler 304 with the full prime range and array Fibonacci suffix', () =
         expect(diagnostics.compiledTensors).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 }, 60_000);
+
+it('checks Euler 305 with the full reflexive-position sum', () => {
+    const url = new URL('../../../demos/euler/305_reflexive.ra', import.meta.url);
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        runtime.execute(readFileSync(url, 'utf8'));
+        expect(runtime.variables.get('Answer')).toBe(18174995535140n);
+    } finally { runtime.dispose(); }
+}, 60_000);

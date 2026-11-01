@@ -63,8 +63,13 @@ export function semanticValueType(value: RankValue, elements = true): unknown {
     if (isRankArray(value)) return [typeName(value), valueRank(value), elements ? semanticArrayType(value).key : null];
     if (isRankTuple(value)) return ['tuple', 0, value.items.map(item => semanticValueType(item, elements))];
     // Records already require eager field validation, independently of calls.
-    if (isRankRecord(value)) return ['record', 0, contractType(collectionElementType(value, new Set(), true), elements)];
+    if (isRankRecord(value)) return semanticRecordType(collectionElementType(value, new Set(), true), elements);
     return [typeName(value), valueRank(value)];
+}
+
+/** The same record encoding serves ordinary and version-guarded signatures. */
+export function semanticRecordType(contract: CollectionElementType, elements = true): unknown {
+    return ['record', 0, contractType(contract, elements)];
 }
 
 /** Result facts describe a plan without demanding it or observing host cells. */

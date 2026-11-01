@@ -22,3 +22,18 @@ it('releases completed argument arrays during one synchronous host job', () => {
     collect();
     expect(used() - before).toBeLessThan(8 * 1024 * 1024);
 });
+
+it('does not retain record values or their arrays through encoded field keys', () => {
+    const record = (value: bigint) => ({ kind: 'record' as const, types: new Map([['values', 'array']]),
+        entries: new Map([['values', setSemanticArrayType(ownedArray(Array(4096).fill(value)),
+            { key: '["integer"]', scalar: 'integer' })]]) });
+    const key = argumentSignature([record(0n)]);
+    collect();
+    const before = used();
+    for (let i = 0; i < 2000; i++) {
+        expect(argumentSignature([record(BigInt(i))])).toBe(key);
+        if (i % 200 === 0) collect();
+    }
+    collect();
+    expect(used() - before).toBeLessThan(8 * 1024 * 1024);
+});

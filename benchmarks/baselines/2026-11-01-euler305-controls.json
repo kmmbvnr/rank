@@ -1,0 +1,166 @@
+{
+  "records": [
+    {
+      "round": 0,
+      "name": "record",
+      "phase": "before",
+      "ms": 275.00045900000003,
+      "cpuMs": 563.67,
+      "rssMiB": 251.953125,
+      "answer": "704104"
+    },
+    {
+      "round": 0,
+      "name": "record",
+      "phase": "after",
+      "ms": 273.890917,
+      "cpuMs": 573.86,
+      "rssMiB": 240,
+      "answer": "704104"
+    },
+    {
+      "round": 0,
+      "name": "303_smalldigits",
+      "phase": "before",
+      "ms": 550.701709,
+      "cpuMs": 716.103,
+      "rssMiB": 175.5,
+      "answer": "1111981904675169"
+    },
+    {
+      "round": 0,
+      "name": "303_smalldigits",
+      "phase": "after",
+      "ms": 540.603416,
+      "cpuMs": 695.434,
+      "rssMiB": 177.875,
+      "answer": "1111981904675169"
+    },
+    {
+      "round": 0,
+      "name": "304_primonacci",
+      "phase": "before",
+      "ms": 952.489541,
+      "cpuMs": 1238.553,
+      "rssMiB": 261.75,
+      "answer": "283988410192"
+    },
+    {
+      "round": 0,
+      "name": "304_primonacci",
+      "phase": "after",
+      "ms": 2309.7487920000003,
+      "cpuMs": 2890.274,
+      "rssMiB": 267.171875,
+      "answer": "283988410192"
+    },
+    {
+      "round": 1,
+      "name": "record",
+      "phase": "after",
+      "ms": 815.1771249999999,
+      "cpuMs": 1407.943,
+      "rssMiB": 243.484375,
+      "answer": "704104"
+    },
+    {
+      "round": 1,
+      "name": "record",
+      "phase": "before",
+      "ms": 812.186209,
+      "cpuMs": 1454.002,
+      "rssMiB": 247.4375,
+      "answer": "704104"
+    },
+    {
+      "round": 1,
+      "name": "303_smalldigits",
+      "phase": "after",
+      "ms": 1070.80125,
+      "cpuMs": 1362.42,
+      "rssMiB": 178.53125,
+      "answer": "1111981904675169"
+    },
+    {
+      "round": 1,
+      "name": "303_smalldigits",
+      "phase": "before",
+      "ms": 634.49375,
+      "cpuMs": 824.409,
+      "rssMiB": 177.796875,
+      "answer": "1111981904675169"
+    },
+    {
+      "round": 1,
+      "name": "304_primonacci",
+      "phase": "after",
+      "ms": 1685.680042,
+      "cpuMs": 1472.496,
+      "rssMiB": 253,
+      "answer": "283988410192"
+    },
+    {
+      "round": 1,
+      "name": "304_primonacci",
+      "phase": "before",
+      "ms": 1188.446625,
+      "cpuMs": 1603.745,
+      "rssMiB": 259.453125,
+      "answer": "283988410192"
+    },
+    {
+      "round": 2,
+      "name": "record",
+      "phase": "before",
+      "ms": 317.115709,
+      "cpuMs": 648.53,
+      "rssMiB": 255.046875,
+      "answer": "704104"
+    },
+    {
+      "round": 2,
+      "name": "record",
+      "phase": "after",
+      "ms": 291.616542,
+      "cpuMs": 598.709,
+      "rssMiB": 243,
+      "answer": "704104"
+    },
+    {
+      "round": 2,
+      "name": "303_smalldigits",
+      "phase": "before",
+      "ms": 541.569334,
+      "cpuMs": 704.305,
+      "rssMiB": 175.46875,
+      "answer": "1111981904675169"
+    },
+    {
+      "round": 2,
+      "name": "303_smalldigits",
+      "phase": "after",
+      "ms": 516.549583,
+      "cpuMs": 660.969,
+      "rssMiB": 177.75,
+      "answer": "1111981904675169"
+    },
+    {
+      "round": 2,
+      "name": "304_primonacci",
+      "phase": "before",
+      "ms": 917.029792,
+      "cpuMs": 1226.404,
+      "rssMiB": 263.515625,
+      "answer": "283988410192"
+    },
+    {
+      "round": 2,
+      "name": "304_primonacci",
+      "phase": "after",
+      "ms": 937.6965830000001,
+      "cpuMs": 1250.471,
+      "rssMiB": 264.015625,
+      "answer": "283988410192"
+    }
+  ]
+}

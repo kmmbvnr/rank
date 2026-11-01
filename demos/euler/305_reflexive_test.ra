@@ -15,3 +15,13 @@ test "published checkpoints"
   12 solve equal 271
   7780 solve equal 111111365
 end
+
+test "overlaps and decimal width boundaries"
+  use "305_reflexive"
+  1 solve equal 1
+  9 solve equal 169
+  10 solve equal 214
+  11 solve equal 235
+  99 solve equal 18088
+  101 solve equal 39715
+end

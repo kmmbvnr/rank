@@ -119,6 +119,14 @@ so changing integer, real, boolean or text values reuses the prepared instance
 without constructing or serializing a signature. Text's rank remains one.
 Structural arguments retain `argumentSignature` and its existing semantic type
 and mutation checks; this stage does not infer types by reading lazy cells.
+Runtime-owned field-contract maps track an opaque version token. When their
+immutable array/tuple metadata has no live record descendants, unchanged versions
+reuse encoded signatures and avoid reapplying the record's own flat contracts.
+Field refinements invalidate that token. Tuple readers and custom/accessor-backed
+entry maps keep ordinary retention. Nested record maps and external maps
+retain recursive signature and retention checks. The cache holds strings and weak
+metadata keys, not record values or computed cells; it does not infer field types
+by reading lazy data or remove field-write/return validation.
 
 The interpreter also prepares expression handlers on first evaluation. A handler
 remembers how to evaluate an expression, including recognized `rank`, `axis`,
