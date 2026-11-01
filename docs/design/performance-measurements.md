@@ -1172,3 +1172,39 @@ Raw samples: `2026-11-01-keyed-compare-mac.json` and
 The keyed kernel is close to, but slower than, the compiled scalar loop in
 this workload. These Int32 results do not describe all `.accumulate` paths,
 particularly its different storage/weight combinations.
+
+The Float64 follow-up uses `node benchmarks/keyed-fold.mjs 10000000 real`.
+Values are exact quarter-integers, keys are Int32, and every output bin is
+checked against an ordered Number reference. Input/parse exclusion and
+alternating warmed sampling match the integer comparison above.
+
+| CPU | General keyed | Float64 keyed | `.accumulate` | Compiled scalar loop |
+| --- | ---: | ---: | ---: | ---: |
+| Apple M5 | 279.10 ms | 37.87 ms | 448.18 ms | 43.10 ms |
+| Intel i7-10750H | 695.01 ms | 85.78 ms | 807.14 ms | 93.04 ms |
+
+Raw samples are `2026-11-01-keyed-real-{mac,intel}.json` under
+`benchmarks/baselines`. This measures only the shown sum workload; NaN,
+signed-zero, overflow and seeded extrema behavior are covered by runtime
+tests rather than inferred from these timings.
+
+### Verification scope for #507
+
+The ordinary interpreter run at d3602491, with the three repository-required
+audit exclusions, passed 10879 tests and failed seven existing tests. Those
+same failures were reproduced in an isolated baseline worktree at 68546f1b:
+the operation-catalogue profile list (`ceil`), one local gather-fusion counter,
+four overlapping slice publication counters, and the missing `rope` manual
+entry. The language run passed 1495 tests; its CSES graph-path inferred-type
+failure also reproduces on that baseline. These are not clean full-suite
+results and are not claimed as such.
+
+The subsequent Float64 change has focused checks for ordered real arithmetic,
+NaN, signed zero, independent seeds, mixed BigInt extrema, and the sum zero
+seed, in both compilation modes. The keyed tests also cover integer widening,
+opaque/effectful inputs, modular evaluation order, rectangular/empty shapes,
+user functions, aliases, formatting, and matrix-shaped group broadcast.
+Exhaustive type, differential and Nurikabe audits and full root `npm test`
+were not run, following AGENTS.md. Euler 550 companion tests and source-format
+checks pass. TypeScript, web build, application-form and semantic-boundary
+checks are verified separately.

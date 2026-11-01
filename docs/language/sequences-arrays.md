@@ -1820,6 +1820,11 @@ additional storage, including the output. An already stored input matrix is
 still retained. Unsupported producers and user reducers use ordinary reads;
 whole-group statistics can retain O(number of input cells) group storage.
 
+Stored Float64 values with Int32 keys also have direct `+`, `*`, `min`,
+and `max` paths. They retain traversal order, the first extreme on ties,
+NaN behavior and signed zero. Mixed BigInt extrema seeds retain the general
+path to preserve exact comparisons and result types.
+
 Stored Int32 values and keys have a direct path for `+`, `*`, `min` and
 `max` reductions/scans. Partial integer states stay in the exact safe-number
 range and widen independently to BigInt when needed. Input order and exact
@@ -1845,6 +1850,7 @@ Values quantile 0.25 by Keys
 Values percentile 90 by Keys
 ```
 
+`sum` starts each group from numeric zero unless `with` supplies a seed.
 `sum`, `min` and `max` skip `.NA` samples as their ordinary aggregate forms
 do; `sum` validates every present sample as numeric, including singleton
 groups. Generic `reduce` keeps the selected binary operation's missing-value

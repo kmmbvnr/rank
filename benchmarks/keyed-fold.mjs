@@ -6,11 +6,13 @@ import { typedArray, readArrayItem } from '../packages/interpreter/out/array-sto
 
 const count = Number(process.argv[2] ?? 1000000);
 assert(Number.isSafeInteger(count) && count > 0);
+const real = process.argv[3] === 'real';
 const bins = 512, samples = 5;
-const values = Int32Array.from({ length: count }, (_, i) => i % 11 - 5);
+const values = real ? Float64Array.from({ length: count }, (_, i) => (i % 11 - 5) / 4)
+    : Int32Array.from({ length: count }, (_, i) => i % 11 - 5);
 const keys = Int32Array.from(values, (_, i) => (Math.imul(i, 7919) >>> 0) % bins);
-const expected = Array(bins).fill(0n);
-for (let i = 0; i < count; i++) expected[keys[i]] += BigInt(values[i]);
+const expected = Array(bins).fill(real ? 0 : 0n);
+for (let i = 0; i < count; i++) expected[keys[i]] += real ? values[i] : BigInt(values[i]);
 const modes = ['generic', 'optimized', 'accumulate', 'scalarLoop'];
 const runtimes = modes.map(mode => {
     const compilation = mode !== 'generic';
@@ -22,8 +24,8 @@ const runtimes = modes.map(mode => {
 const sources = [
     `V reduce + by K size ${bins}`,
     `V reduce + by K size ${bins}`,
-    `H = array shape ${bins} fill 0\nH K += V .accumulate\nH`,
-    `H = array shape ${bins} fill 0\nfor I in 0 till V len\n H (K I) += V I\nend\nH`,
+    `H = array shape ${bins} fill ${real ? '0.0' : '0'}\nH K += V .accumulate\nH`,
+    `H = array shape ${bins} fill ${real ? '0.0' : '0'}\nfor I in 0 till V len\n H (K I) += V I\nend\nH`,
 ];
 const programs = runtimes.map((runtime, i) => runtime.parse(sources[i]));
 const times = modes.map(() => []);
@@ -41,7 +43,7 @@ try {
         for (const index of sample % 2 ? [3, 2, 1, 0] : [0, 1, 2, 3]) times[index].push(run(index));
     }
     const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
-    console.log(JSON.stringify({ cpu: cpus()[0]?.model, node: process.version, count, bins,
+    console.log(JSON.stringify({ cpu: cpus()[0]?.model, node: process.version, count, bins, elementKind: real ? 'real' : 'integer',
         timing: 'prepared arrays and parsed programs; alternating order; all bins independently checked outside timing',
         genericMs: median(times[0]), optimizedMs: median(times[1]), accumulateMs: median(times[2]), scalarLoopMs: median(times[3]), modes, samplesMs: times }, null, 2));
 } finally { for (const runtime of runtimes) runtime.dispose(); }

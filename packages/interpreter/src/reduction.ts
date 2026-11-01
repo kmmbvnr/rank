@@ -81,7 +81,7 @@ export class ReductionEvaluator {
         }
         const operation = this.resolve(name);
         if (!isNativeFunction(operation)) throw new RankError(`${name} is not an operation`);
-        if (name === 'sum') return this.evaluateKeyed('reduce', '+', source, keys, seed, size, 'sum');
+        if (name === 'sum') return this.evaluateKeyed('reduce', '+', source, keys, seed ?? 0n, size, 'sum');
         if (name === 'min' || name === 'max') {
             return this.evaluateKeyed('reduce', operation, source, keys, seed, size, name);
         }

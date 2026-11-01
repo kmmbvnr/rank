@@ -1,5 +1,5 @@
 import { currentDiagnostics } from './diagnostics.js';
-import { integer32Cells, ownedArray, readArrayItem } from './array-storage.js';
+import { integer32Cells, ownedArray, readArrayItem, realCells, typedElementKind } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { sameShape } from './tensor-index.js';
@@ -39,6 +39,14 @@ export function keyedFold(values: RankValue, keys: RankValue,
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.integerKeyedFolds++;
         return integerKeyedFold(integers, indices, values.shape, options);
+    }
+    const reals = typedElementKind(values) === 'real' ? realCells(values) : undefined;
+    if (reals && indices && ['+', '*', 'min', 'max'].includes(options.operator ?? '')
+        && (seed === undefined || typeof seed === 'number'
+            || typeof seed === 'bigint' && (options.operator === '+' || options.operator === '*'))) {
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.realKeyedFolds++;
+        return realKeyedFold(reals, indices, values.shape, options);
     }
     const count = values.shape.reduce((a, b) => a * b, 1);
     const states: RankValue[] = [];
@@ -155,6 +163,41 @@ function integerKeyedFold(values: Int32Array, keys: Int32Array, shape: readonly 
         checkpoint('integer keyed fold');
         const state = states[key];
         if (state !== undefined) result.push(exact(state));
+        else if (seed !== undefined) result.push(seed);
+        else if (identity) result.push(identity());
+        else throw new RankError('empty keyed group requires an initial value', 'MissingValueError');
+    }
+    return ownedArray(result);
+}
+
+
+/** Ordered Float64 folds retain the first extreme on ties, NaN and signed zero. */
+function realKeyedFold(values: ArrayLike<number>, keys: Int32Array, shape: readonly number[],
+    options: KeyedFoldOptions): RankArray {
+    const { seed, identity, size, scan, operator } = options;
+    const states: (number | undefined)[] = [];
+    const output: RankValue[] = [];
+    let length = size ?? 0;
+    for (let index = 0; index < values.length; index++) {
+        checkpoint('real keyed fold');
+        const key = keys[index];
+        if (key < 0) throw new RankError('by keys must be nonnegative integer array indices', 'TypeError');
+        if (size !== undefined && key >= size) throw new RankError('by key is outside the result size', 'IndexError');
+        length = Math.max(length, key + 1);
+        const value = values[index];
+        const previous = states[key] ?? (seed === undefined ? undefined : Number(seed));
+        const next = previous === undefined ? value : operator === '+' ? previous + value
+            : operator === '*' ? previous * value : operator === 'min'
+                ? value < previous ? value : previous : value > previous ? value : previous;
+        states[key] = next;
+        if (scan) output.push(next);
+    }
+    if (scan) return ownedArray(output, shape);
+    const result: RankValue[] = [];
+    for (let key = 0; key < length; key++) {
+        checkpoint('real keyed fold');
+        const state = states[key];
+        if (state !== undefined) result.push(state);
         else if (seed !== undefined) result.push(seed);
         else if (identity) result.push(identity());
         else throw new RankError('empty keyed group requires an initial value', 'MissingValueError');
