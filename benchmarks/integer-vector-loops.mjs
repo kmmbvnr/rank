@@ -55,7 +55,8 @@ if (!values.worker) {
   }));
   const report = { date: new Date().toISOString(), node: process.version, cpu: cpus()[0].model, versions,
     commits: Object.fromEntries(Object.entries(versions).map(([name, path]) => [name,
-      execFileSync('git', ['-C', path, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()])),
+      JSON.parse(process.env.RANK_BENCH_REVISIONS ?? '{}')[name]
+        ?? execFileSync('git', ['-C', path, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()])),
     timing: `Serial fresh processes, alternating order; >=${warmupMs} ms warmup and ${batches} batch(es) targeting ${batchMs} ms. Program execution, twelve whole-array iterations, allocation, publication and complete output forcing included. Input creation, parsing and independent BigInt oracle outside timing; resetting input bindings and program admission included. Workers with multiple batches report their medians.`,
     sources, results, summary };
   if (values.output) writeFileSync(values.output, JSON.stringify(report, null, 2) + '\n');

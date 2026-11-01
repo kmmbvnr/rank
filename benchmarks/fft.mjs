@@ -195,7 +195,8 @@ if (!values.worker) {
       cpuMedianMs: median(rows.map(r => r.cpuMs)), minMs: Math.min(...rows.map(r => r.warmMs)), maxMs: Math.max(...rows.map(r => r.warmMs)) };
   }));
   const report = { date: new Date().toISOString(), cpu: cpus()[0].model, node: process.version,
-    commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+    commit: process.env.RANK_BENCH_COMMIT ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+    baselineCommit: process.env.RANK_BENCH_BASELINE_COMMIT,
     fftjs: FFT ? { version: createRequire(import.meta.url)(values.fftjs.replace(/lib\/fft\.js$/, 'package.json')).version, path: values.fftjs } : undefined,
     checkout, baseline: values.baseline,
     sourceHash: createHash('sha256').update(source).digest('hex'),
