@@ -1,3 +1,4 @@
+import { findOperation } from './operations.js';
 import { applicationExpression, attachedSign, flattenApplication } from './expressions.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
@@ -26,6 +27,10 @@ export function normalizePrimaryApplications(program: Program, operatorOffsets: 
         }
         if (!isPrimaryTailExpression(node)) continue;
         const tailArguments = [...(node.secondArgument ? [node.secondArgument] : []), ...node.arguments];
+        const keyedWord = isNameExpression(node.argument) ? node.argument.name : '';
+        const keyed = ['reduce', 'scan', 'quantile', 'percentile'].includes(keyedWord)
+            || findOperation(keyedWord)?.axisReduction;
+        const clause = keyed ? [{ $type: 'NameExpression', name: node.clause } as NameExpression] : [];
         let properties: Fields<ApplicationExpression> | Fields<KeyedGroupExpression>
             | Fields<KeyedSortExpression> | Fields<KeyedRollingExpression>
             | Fields<KeyedReachExpression> | Fields<KeyedJoinExpression> | Fields<KeyedMergeExpression>
@@ -62,7 +67,7 @@ export function normalizePrimaryApplications(program: Program, operatorOffsets: 
             } else {
                 properties = {
                     $type: 'ApplicationExpression', head: node.head,
-                    arguments: [node.argument, { $type: 'NameExpression', name: 'by' } as NameExpression, ...node.sortFields.map(field => field.field), ...(node.sortKey ? [node.sortKey] : []), ...node.arguments],
+                    arguments: [node.argument, ...clause, ...node.sortFields.map(field => field.field), ...(node.sortKey ? [node.sortKey] : []), ...node.arguments],
                 };
             }
         } else if (node.secondArgument && (node.clause === 'by' || node.clause === 'on')) {
@@ -100,7 +105,7 @@ export function normalizePrimaryApplications(program: Program, operatorOffsets: 
             } else {
                 properties = {
                     $type: 'ApplicationExpression', head: node.head,
-                    arguments: [node.argument, node.secondArgument, { $type: 'NameExpression', name: node.clause } as NameExpression, ...node.sortFields.map(field => field.field), ...(node.sortKey ? [node.sortKey] : []), ...node.arguments],
+                    arguments: [node.argument, node.secondArgument, ...clause, ...node.sortFields.map(field => field.field), ...(node.sortKey ? [node.sortKey] : []), ...node.arguments],
                 };
             }
         } else {

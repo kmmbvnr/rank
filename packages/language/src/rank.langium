@@ -569,16 +569,13 @@ UnpackExpression:
     'unpack' value=PrimaryExpression;
 
 ApplicationArgument returns Expression:
-    FoldByName | UnmodifiedArgument;
+    UnmodifiedArgument;
 
 UnmodifiedArgument returns Expression:
     NonPrimaryArgument | PrimaryExpression;
 
 NonPrimaryArgument returns Expression:
     UnpackExpression | ArrayExpression | TupleExpression;
-
-FoldByName infers NameExpression:
-    name='by';
 
 PrimaryExpression returns Expression:
     ArrayAtom | AllAxisExpression;

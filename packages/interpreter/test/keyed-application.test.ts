@@ -18,7 +18,7 @@ it('continues pipelines and accepts computed keys', () => {
 it('validates keys and conflicting modifiers', () => {
     expect(() => run(setup + 'V reduce + by (array 0)')).toThrow(/shape/);
     expect(() => run(setup + 'V reduce + by K size 1')).toThrow(/outside/);
-    expect(() => run(setup + 'V reduce + axis 0 by K')).toThrow(/by cannot/);
+    expect(() => run(setup + 'V reduce + by K axis 0')).toThrow(/by cannot/);
 });
 it('handles empty arrays and missing groups', () => {
     expect(run('E = array shape 0 fill 0\nE reduce + by E size 3')).toBe('0 0 0');
