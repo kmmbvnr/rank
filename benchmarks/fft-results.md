@@ -1086,3 +1086,29 @@ The nine-pair real-conversion confirmation gives **0.1261 -> 0.1253 ms**
 (0.6% less time), with slow processes on both sides. The initial large
 regression does not reproduce; no conversion improvement is claimed here.
 [Control confirmation](baselines/2026-11-01-buffer-facts-unary-real-confirm.json).
+
+## Step 6b: retain real conversion evidence
+
+Apply the same existing uniform-kind hint while `realArray` writes its
+Float64 output. Count actual stored infinities; conversions of text and
+BigInt still reject nonfinite conversion, and existing numeric NaN/infinities
+retain their values. Mixed results and budgeted execution retain discovery.
+This step is compared against step 6a (`f32f8a7d`), not against main.
+
+Build and 86 focused tests pass, including 12 new cases covering conversion
+kinds, mutation, invalid/overflowing inputs, empty shapes, host readers and
+budgeted validation. The five-pair FFT timing is **0.895 -> 1.101 ms**; both
+versions range from about 0.79 to 1.7 ms. No FFT timing improvement is claimed
+from this series; raw negative evidence is retained.
+
+Evidence: [incremental FFT timings](baselines/2026-11-01-buffer-facts-real-fft.json).
+
+The targeted conversion pipeline improves **0.1238 -> 0.0988 ms** (20.1%
+less time) over seven alternating process pairs; scanning falls from 4,096
+to zero cells. Warm FFT exact-kind scanning falls again, from 14,336 to
+10,240 cells; its private call loop remains enabled. This establishes
+less repeated work and a general conversion benefit, not FFT timing progress.
+Use `fft.mjs --worker=compiled --storage-diagnostics` to collect counters
+without the compiler hooks that disable the private call loop.
+[Conversion timing and counters](baselines/2026-11-01-buffer-facts-real-general.json),
+[FFT counters without hooks](baselines/2026-11-01-buffer-facts-real-diagnostics.json).

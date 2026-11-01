@@ -16,6 +16,7 @@ const { values } = parseArgs({ options: {
   sizes: { type: 'string' }, 'warmup-ms': { type: 'string', default: '300' },
   'batch-ms': { type: 'string', default: '150' }, batches: { type: 'string', default: '1' },
   samples: { type: 'string', default: '7' }, profile: { type: 'string' },
+  'storage-diagnostics': { type: 'boolean', default: false },
   output: { type: 'string' }, fftjs: { type: 'string' }, diagnostics: { type: 'boolean', default: false },
 } });
 const checkout = values.checkout ?? fileURLToPath(new URL('..', import.meta.url));
@@ -201,7 +202,13 @@ if (!values.worker) {
   let warmups = 0;
   while (performance.now() - warmupStart < warmupMs || warmups < 3) { run(); warmups++; }
   check(run(), expected);
-  if (values.diagnostics) {
+  if (values['storage-diagnostics']) {
+    const diagnostics = new RuntimeDiagnostics();
+    diagnostics.run(() => check(run(), expected));
+    const report = { n, mode, diagnostics, compilerHooks: values.diagnostics };
+    if (values.output) writeFileSync(values.output, JSON.stringify(report, null, 2) + '\n');
+    console.log(JSON.stringify(report));
+  } else if (values.diagnostics) {
     generated.length = 0;
     // A fresh runtime captures first-call generation separately from timings.
     const rt = new Interpreter(() => {}, { compilation: mode !== 'reference', arrayFunctionCompilation: mode !== 'function-control', ...hooks });
