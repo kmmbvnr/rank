@@ -44,8 +44,7 @@ for W in 2 to Wm
 end
 rem Histogram by Grundy value, then the
 rem 64-point Walsh-Hadamard transform.
-Hg = array shape 64 fill 0
-Hg (G (0 to Wm)) += Hw .accumulate
+Hg = Hw sum by G size 64
 J = (0 till 64) copy
 Sg = ((J J outer band) popcount) mod 2
 Ht = ((1 - 2 * Sg) * Hg) reduce + axis 1

@@ -4279,6 +4279,72 @@ regardless of the number of leading frame axes.
 states. For a matrix, `M sum rank 1` sums each row, while `M reduce + rank 1 axis 0`
 passes rows to `+` and combines them. Use `M reduce + axis -1` for row sums.
 
+Keyed folds use `by Keys` to maintain one accumulator per nonnegative
+integer key. Values and keys must be arrays with identical shapes; cells
+are visited in source order, including multidimensional arrays:
+
+```rank
+Values = array 10 20 30 40
+Keys = array 0 1 0 1
+Values reduce + by Keys
+rem 40 60
+Values scan + by Keys with 100
+rem 110 120 140 160
+Values reduce + by Keys size 4
+rem 40 60 0 0
+```
+
+Keyed reduction returns a dense vector indexed by key. Its default length is
+one plus the largest key, or zero for empty input. `size N` supplies the
+length explicitly and rejects keys outside it. Missing groups use the seed,
+or the symbolic reducer's identity; reducers without an identity require a
+seed when groups are missing. Named reducers can be binary user functions.
+
+Keyed scan preserves the input shape. Each key starts from its own seed;
+the output at each input position is the state after including that value.
+The seed does not add output cells. Without a seed, a group's first value
+initializes its state. `size` checks key bounds but does not change the scan
+shape. Keyed folds currently reject `rank` and `axis` modifiers.
+
+Native integer arithmetic producers, including `outer`, can feed values and
+keys directly into the grouped fold. For example,
+`(A B outer *) reduce + by (I J outer +)` need not create either matrix.
+For nonempty vectors of lengths N and M, this uses O(N*M) work and O(N+M)
+additional storage, including the output. An already stored input matrix is
+still retained. Unsupported producers and user reducers use ordinary reads;
+whole-group statistics can retain O(number of input cells) group storage.
+
+Stored Int32 values and keys have a direct path for `+`, `*`, `min` and
+`max` reductions/scans. Partial integer states stay in the exact safe-number
+range and widen independently to BigInt when needed. Input order and exact
+integer results are preserved. Other inputs retain the general path.
+
+Integer keyed `reduce +`, `reduce *`, `scan +`, `scan *` and `sum`
+followed by `mod M` can reduce intermediate states modulo a positive integer
+`M`, avoiding growth of exact products. Other reducers, noninteger inputs
+and unsupported cases compute the exact grouped result followed by `mod`.
+This rewrite never applies to arbitrary user callbacks.
+
+The same grouping modifier is available on `sum`, `min`, `max`,
+`all`, `any`, `count`, `mean`, `median`, `mode`, `std`, `variance` (`var`),
+and `skewness` (`skew`), with their usual module imports. `quantile` and
+`percentile` also accept `by` after their optional parameter:
+
+```rank
+Values sum by Keys
+Values max by Keys with -infinity
+use stats
+Values median by Keys
+Values quantile 0.25 by Keys
+Values percentile 90 by Keys
+```
+
+`sum`, `min` and `max` accept an accumulator seed as their corresponding
+binary reductions do. For the other whole-group aggregates, `with` supplies
+only the value of an absent group; it is not inserted as a sample into
+nonempty groups. Without it, empty groups follow the ordinary aggregate's
+empty-input behavior. Whole-group statistics currently retain group values.
+
 Named reductions use the same data-first style:
 
 ```rank

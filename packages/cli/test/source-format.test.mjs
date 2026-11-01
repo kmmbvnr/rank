@@ -171,3 +171,20 @@ Total`);
     assert.equal(evaluate(whileSource), '6');
     assert.equal(evaluate(formattedWhile), '6');
 });
+
+
+test('preserves keyed fold modifiers and computed keys when formatting', () => {
+    const prefix = 'use numbers\nuse sequences\nuse stats\nValuesWithLongName = array 10 20 30 40\nKeysWithLongName = array 0 1 0 1\n';
+    for (const expression of [
+        'ValuesWithLongName reduce + by KeysWithLongName size 3 with 100',
+        'ValuesWithLongName scan + by KeysWithLongName with 100',
+        'ValuesWithLongName max by KeysWithLongName size 3 with -infinity',
+        'ValuesWithLongName mean by KeysWithLongName',
+        'ValuesWithLongName quantile 0.25 by KeysWithLongName',
+    ]) {
+        const source = prefix + 'Result = ' + expression + '\nResult';
+        const formatted = formatSource(source);
+        assert.equal(evaluate(formatted), evaluate(source));
+        assert.equal(formatSource(formatted), formatted);
+    }
+});

@@ -56,3 +56,27 @@ it('keeps effectful user reducers on ordinary reads', () => {
         expect(diagnostics.keyedNativeReaders).toBe(0);
     } finally { runtime.dispose(); }
 });
+it('matches direct anti-diagonal folds on rectangular and empty shapes', () => {
+    for (const [rows, columns] of [[0, 3], [3, 0], [1, 5], [5, 1], [2, 3], [4, 4]]) {
+        for (const compilation of [true, false]) {
+            const runtime = new Interpreter(() => {}, { compilation });
+            try {
+                runtime.execute(`use sequences\nM = (1 to ${rows * columns}) reshape ${rows} ${columns}\n`
+                    + `I = 0 till ${rows}\nJ = 0 till ${columns}\nfun A append B = A * 10 + B`);
+                for (const operation of ['+', '-', 'max', 'append']) {
+                    const expected: (bigint | undefined)[] = [];
+                    for (let i = 0; i < rows; i++) for (let j = 0; j < columns; j++) {
+                        const key = i + j, value = BigInt(i * columns + j + 1), previous = expected[key];
+                        expected[key] = previous === undefined ? value : operation === '+' ? previous + value
+                            : operation === '-' ? previous - value : operation === 'max' ? previous > value ? previous : value
+                                : previous * 10n + value;
+                    }
+                    const result = runtime.execute(`M reduce ${operation} by (I J outer +)`);
+                    if (result === undefined || !isRankArray(result)) throw new Error('expected array');
+                    expect(result.shape).toEqual([expected.length]);
+                    expect(expected.map((_, i) => readArrayItem(result, i))).toEqual(expected);
+                }
+            } finally { runtime.dispose(); }
+        }
+    }
+});

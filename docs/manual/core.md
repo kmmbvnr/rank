@@ -1419,19 +1419,30 @@ operator.
 Values reduce Operator
 Values reduce Operator with Start
 Matrix reduce Function rank 1 axis 0
+Values reduce Operator by Keys
+Values reduce Operator by Keys size N
 ```
 
 Works left to right: ((2 + 3) + 4).
 `with Start` is optional. Without it,
 the first input cell starts the fold.
 
-Rank selects trailing input cells;
-rank 0, the default, selects scalars.
-Axis selects traversal axes outside
-those cells. Other axes form independent
+Rank selects trailing input cells; rank
+0, the default, selects scalars. Axis
+selects traversal axes outside those
+cells. Other axes form independent
 folds. Without axis, fold all cells in
 row-major order. `rank 1 axis 0` passes
 whole matrix rows to the function.
+
+`by Keys` combines values with the same
+nonnegative integer key. Keys match the
+input shape. The result is a dense
+vector indexed by key; `size N` fixes
+its length. Missing groups use the seed
+or operator identity, otherwise they
+raise an error. See the language guide
+for keyed folds.
 
 ### Notes
 
@@ -1465,6 +1476,11 @@ Values scan Operator with Start
 The result is a sequence, so it also
 works on endless input when you take
 only part of it.
+
+With `by Keys`, each key has its own
+running state. The output keeps the
+input shape. `with Start` initializes
+each key without adding output cells.
 
 ### See also
 
