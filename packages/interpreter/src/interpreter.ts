@@ -13,7 +13,7 @@ import { CheckedInputContracts } from './checked-input.js';
 import { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
 import { ApplicationEvaluator } from './eval/application.js';
-import type { AssignmentContext } from './eval/assignments.js';
+import { prepareRegionArrayWrite, type AssignmentContext } from './eval/assignments.js';
 import { BlockExecution } from './eval/blocks.js';
 import { ExpressionEvaluator } from './eval/expressions.js';
 import type { LoopContext } from './eval/loops.js';
@@ -159,6 +159,10 @@ export class Interpreter {
             builtins: this.builtins,
             functions: this.functions,
             resolve: name => this.resolve(name),
+            prepareArrayWrite: statement => {
+                const write = prepareRegionArrayWrite(statement, this.writes);
+                return (selectors, rhs) => { this.mutations.statement(statement); return write(selectors, rhs); };
+            },
             compileAssign: name => this.compileAssign(name),
             locate: (error, node) => this.locateError(error, node),
             options: () => this.options,

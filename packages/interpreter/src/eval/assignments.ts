@@ -20,7 +20,7 @@ import { expectPushCollection, pushCollection } from '../containers.js';
 import { RankError } from '../errors.js';
 import { checkValueMutable } from '../value-protection.js';
 import {
-    completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
+    completed, flatMapResult, mapExecution, mapResult, resume, runExecution, type Evaluation, type Execution,
 } from '../execution.js';
 import { FlatRecords } from '../flat.js';
 import { structureWrite } from '../modules/algo.js';
@@ -104,6 +104,22 @@ export function prepareUnpackStatement(statement: UnpackStatement, host: Assignm
         for (let index = 0; index < writes.length; index += 1) writes[index]?.(values[index]);
         return result;
     } };
+}
+
+/** Region operands are already lowered; reuse the ordinary write contract
+ * without evaluating their syntax again or adding update-chain fusion. */
+export function prepareRegionArrayWrite(statement: ArrayAssignmentStatement, host: AssignmentContext) {
+    return (selectors: RankValue[], rhs: () => RankValue) => {
+        const value = { $type: 'NameExpression', name: '__regionValue' } as Expression;
+        const prepared = prepareArrayAssignment({ ...statement, value }, {
+            ...host, compileDirect: () => undefined,
+            evaluate: () => completed(rhs()),
+            evaluateAddressParts: address => completed([selectors[statement.indices.indexOf(address)]]),
+        });
+        const context = { assertBooleanExpressions: false, insideLoop: true, insideFinally: false, insideGenerator: false };
+        const result = 'stream' in prepared ? runExecution(prepared.stream(context)) : prepared.run(context);
+        return { result, target: host.resolveVariable(statement.name) };
+    };
 }
 
 /** `Name Selectors = Value` and `op=`: a write into what a name holds. */

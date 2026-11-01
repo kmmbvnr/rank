@@ -1,5 +1,5 @@
 import type { RankDeque } from '../containers.js';
-import type { Expression, ForStatement, FunctionStatement, Statement, CompiledLoopType } from '@arrrank/language';
+import type { Expression, ForStatement, FunctionStatement, Statement, ArrayAssignmentStatement, CompiledLoopType } from '@arrrank/language';
 import type { CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
 import type { Evaluation } from '../execution.js';
@@ -54,10 +54,12 @@ export interface LoopHost {
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
     textRead(source: string, index: bigint): string;
     copySlice(source: RankArray, start: bigint, end: bigint, axis: number, inclusive: boolean, view?: boolean): RankArray;
+    prepareArrayWrite?(statement: ArrayAssignmentStatement): (selectors: RankValue[], rhs: () => RankValue) => { target: RankValue; result: RankValue | undefined };
     readonly arrayValues?: {
         range(start: bigint, end: bigint, inclusive: boolean, step?: bigint): RankValue;
         select(source: RankValue, selector: RankValue): RankArray;
         copy(value: RankValue): RankArray;
+        call(name: string, operands: RankValue[]): RankValue;
         binary(operator: string, left: RankValue, right: RankValue): RankValue;
         reduceAxis(operation: string, source: RankValue, axes: readonly number[]): RankArray;
     };

@@ -97,6 +97,29 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 `cells${target.slot}[${key}] = ${result}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key}] = 1;`} iterationResult = ${rhs}; iterationType = ${JSON.stringify(type)};`);
             return true;
         }
+        // Bulk selectors use the same checked assignment as interpretation.
+        // The RHS is a thunk: selector validation still precedes its reads.
+        if (host.arrayWrites && host.arrayValues && host.prepareArrayWrite && host.arrayLocals
+            && (assignment.operator === '=' || host.compoundWrites && ['+=', '-=', '*='].includes(assignment.operator))
+            && assignment.indices.length === 1
+            && assignment.indices[0].value && !assignment.indices[0].all && !assignment.indices[0].sign
+            && expressions.arrayType(assignment.indices[0].value)?.element === 'integer'
+            && expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as import('@arrrank/language').Expression)?.element === 'integer') {
+            const type = expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as import('@arrrank/language').Expression);
+            if (!type || type.rank !== 1 || type.element !== 'integer') return undefined;
+            const lines: string[] = [], rhsLines: string[] = [];
+            const selector = expressions.emitValue(assignment.indices[0].value, lines);
+            const rhs = expressions.emitValue(assignment.value, rhsLines);
+            if (!selector || !rhs) return undefined;
+            const slot = expressions.slot(assignment.name), result = `bulk${state.serial++}`;
+            arrays.set(assignment.name, { slot, rank: 1, type: 'integer' });
+            destinations.set(assignment.name, { slot, rank: 1, type: 'integer', compound: assignment.operator !== '=', slice: true });
+            if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
+            body.push(`location = ${location};`, ...lines,
+                `const ${result} = arrayValues.write(${location}, [${selector.code}], () => { ${rhsLines.join('\n')} return ${rhs.code}; });`,
+                `r${slot} = ${result}.target; storage${slot} = access(r${slot}); reader${slot} = read(storage${slot}, stableReads, 1); write${slot} = write(storage${slot}, batchWrites); iterationResult = ${result}.result;`);
+            return true;
+        }
         const compound = assignment.operator !== '=';
         const booleanUpdate = loopOperatorSignature(assignment.operator.slice(0, -1), ['boolean', 'boolean'], host.nativeCalls)?.compound;
         if (compound && (!host.compoundWrites || !findCompiledOperator(assignment.operator.slice(0, -1))?.integerLoop.some(signature => signature.compound))) return reject(assignment);

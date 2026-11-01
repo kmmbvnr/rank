@@ -50,6 +50,17 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
     const nonintegerDestinations = integerIndexInputs.length
         ? [...destinations].filter(([, info]) => info.type !== 'integer') : [];
     const checkedCells = new WeakMap<RankArray, { revision: number; type: LoopTerm['type'] | undefined }>();
+    const writes = new Map<number, NonNullable<ReturnType<NonNullable<LoopHost['prepareArrayWrite']>>>>();
+    const arrayValues = host.arrayValues && { ...host.arrayValues,
+        write(location: number, selectors: RankValue[], rhs: () => RankValue) {
+            let write = writes.get(location);
+            if (!write) {
+                write = host.prepareArrayWrite!(locations[location] as import('@arrrank/language').ArrayAssignmentStatement);
+                writes.set(location, write);
+            }
+            return write(selectors, rhs);
+        },
+    };
     const source = emitIntegerLoopSource(plan, false);
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, callouts?: (() => RankValue)[]) => RankValue | undefined;
     const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', 'shapeMismatch', 'aliasValue', code)(
@@ -101,7 +112,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                 writeIntegerSelection(array, count, index => first + index * stride, values, operator, { offset: first, stride });
                 return true;
             }, indexRead, () => new RankError('zero cannot be raised to a negative power'),
-            () => new RankError('power result is not real'), textLength, primeRange, materializeValue, argumentSelectionError, integerSquareRoot, host.copySlice, host.arrayValues, host.continuation?.result, setHas,
+            () => new RankError('power result is not real'), textLength, primeRange, materializeValue, argumentSelectionError, integerSquareRoot, host.copySlice, arrayValues, host.continuation?.result, setHas,
             (value: RankValue, count: number) => {
                 const items = unpackApplicationItems(value);
                 if (items.length !== count) throw new RankError(`unpack expects ${count} values, got ${items.length}`);

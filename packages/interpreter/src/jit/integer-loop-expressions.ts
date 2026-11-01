@@ -647,6 +647,16 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const source = arrayType(e.source), mask = arrayType(e.condition);
             if (source?.rank === 1 && ['integer', 'real'].includes(source.element) && mask?.rank === 1 && mask.element === 'boolean') return source;
         }
+        if (!numberMode && host.booleanArrays && isBinaryExpression(e)
+            && ['equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(e.operator)) {
+            const left = arrayType(e.left), right = arrayType(e.right);
+            if ((left || right) && (!left || left.element === 'integer') && (!right || right.element === 'integer'))
+                return { kind: 'array', element: 'boolean', rank: Math.max(left?.rank ?? 0, right?.rank ?? 0) };
+        }
+        if (!numberMode) {
+            const call = arrayCall(e);
+            if (call) return call.type;
+        }
         if (numberMode) {
             const point = vectorOperation(e);
             if (point) {
@@ -671,7 +681,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (current && isRankArray(current) && kinds && (kinds.length === 0 || kinds.join() === 'integer')) {
                 return { kind: 'array', element: 'integer', rank: current.shape.length };
             }
-            if (numberMode && host.booleanArrays && current && isRankArray(current) && kinds?.join() === 'boolean') {
+            if (host.booleanArrays && current && isRankArray(current) && kinds?.join() === 'boolean') {
                 return { kind: 'array', element: 'boolean', rank: current.shape.length };
             }
             if (numberMode && host.reals && current && isRankArray(current) && kinds?.join() === 'real') {
@@ -702,6 +712,23 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         return undefined;
     }
+    /** Array-valued native calls retain the evaluator's broadcasting and
+     * demand semantics; this compiles dispatch, not a fused element loop. */
+    function arrayCall(e: Expression) {
+        if (!host.nativeCalls || !isApplicationExpression(e)) return undefined;
+        const parts = flattenApplication(e), word = parts.at(-1);
+        if (!word || !isNameExpression(word) || localTypes.has(word.name) || arrays.has(word.name) || containers.has(word.name)) return undefined;
+        const name = word.name;
+        if (!(host.extrema && ['min', 'max'].includes(name) && parts.length === 3
+            || host.booleanArrays && name === 'choose' && parts.length === 4)) return undefined;
+        const operands = parts.slice(0, -1), types = operands.map(arrayType);
+        const elements = operands.map((operand, i) => types[i]?.element ?? knownType(operand));
+        const branches = name === 'choose' ? elements.slice(1) : elements;
+        if (name === 'choose' && types[0]?.element !== 'boolean' || !types.some(Boolean)
+            || !branches.every(type => type === 'integer')) return undefined;
+        return { name, operands, type: { kind: 'array' as const, element: 'integer' as const,
+            rank: Math.max(...types.map(type => type?.rank ?? 0)) } };
+    }
     function emitArrayValue(e: Expression, lines: string[]): LoopValue | undefined {
         while (isParenthesizedExpression(e)) e = e.value;
         const type = arrayType(e);
@@ -714,7 +741,13 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         let code: string;
         const reduction = axisReduction(e);
-        if (reduction) {
+        const call = arrayCall(e);
+        if (call) {
+            const operands = call.operands.map(operand => emitValue(operand, lines));
+            if (operands.some(value => !value)) return undefined;
+            builtins.set(call.name, 'core');
+            code = `arrayValues.call(${JSON.stringify(call.name)}, [${operands.map(value => value!.code).join(',')}])`;
+        } else if (reduction) {
             const input = emitValue(reduction.form.source, lines);
             if (!input || typeof input.type === 'string' || input.type.element !== 'integer') return undefined;
             const { name, module } = reduction.form.operation;

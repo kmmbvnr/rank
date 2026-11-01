@@ -1,3 +1,4 @@
+import { mapStoredIntegers } from './integer-array-kernel.js';
 import { selectValues } from './value-selection.js';
 import { sumCounterTensor } from './collections.js';
 import type { LoopHost, LoopContinuation, LoopCallable } from './jit/integer-loop-plan.js';
@@ -7,7 +8,7 @@ import type { CompiledCallee } from './jit/compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
     findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement,
-    type ApplicationForm, type Operation, isAssignmentStatement,
+    type ApplicationForm, type Operation, type ArrayAssignmentStatement, isAssignmentStatement,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './jit/block-compiler.js';
@@ -53,6 +54,7 @@ export interface FastPathContext {
     readonly functions: FunctionInvocation;
     checkMutation(statement: Statement): void;
     resolve(name: string): RankValue;
+    prepareArrayWrite(statement: ArrayAssignmentStatement): (selectors: RankValue[], rhs: () => RankValue) => { target: RankValue; result: RankValue | undefined };
     compileAssign(name: string): (value: RankValue) => void;
     locate(error: unknown, node: AstNode): unknown;
     options(): InterpreterOptions;
@@ -332,7 +334,14 @@ export class FastPaths {
                 // A bulk slice write snapshots its operand itself, so it takes the view.
                 return view && isRankArray(selected) ? selected : copyArray(selected, false);
             },
+            prepareArrayWrite: statement => this.context.prepareArrayWrite(statement),
             arrayValues: {
+                call: (name, operands) => {
+                    const fn = this.context.builtins.lookup(name);
+                    if (!isNativeFunction(fn!)) throw new Error('expected builtin');
+                    return (name === 'min' || name === 'max'
+                        ? mapStoredIntegers(operands[0], operands[1], name) : undefined) ?? fn.call(operands);
+                },
                 range: (start, end, inclusive, step) => this.context.operators.evaluateBinary(inclusive ? 'to' : 'till', start, end, step),
                 select: (source, selector) => copyArray(selectValues(this.context.modules, [source, selector]), false),
                 copy: source => copyArray(source, false),
@@ -379,7 +388,10 @@ export class FastPaths {
             module: name => this.context.modules.has(name),
             builtin: (module, name) => {
                 if (!this.context.modules.has(module)) return false;
-                try { return this.context.builtins.is(module, name, this.context.resolve(name)); }
+                try {
+                    const value = this.context.resolve(name);
+                    return isNativeFunction(value) && hasNativeImplementation(value) && this.context.builtins.is(module, name, value);
+                }
                 catch { return false; }
             },
             locate: (error, command) => this.context.locate(error, command),

@@ -1,0 +1,114 @@
+{
+  "date": "2026-11-01",
+  "baseCommit": "5c82e1464444eaff7e90f9bd8a567aa1e82361c0",
+  "environment": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "method": "Fresh sequential processes; off disables integerLoopCompilation on the same build, matching the original uncompiled prime loops. Includes parse/execute, excludes imports and constructor. Three reduced-input pairs and one default-input pair.",
+  "reduced": [
+    {
+      "mode": "off",
+      "n": "1000000000",
+      "ms": 1817.748458,
+      "cpuMs": 2759.115,
+      "answer": "895017934",
+      "compiledLoops": 0,
+      "numberLoops": 0,
+      "fusedArrayUpdates": 697,
+      "rssMiB": 477.890625
+    },
+    {
+      "mode": "on",
+      "n": "1000000000",
+      "ms": 1350.8684580000001,
+      "cpuMs": 2538.575,
+      "answer": "895017934",
+      "compiledLoops": 2,
+      "numberLoops": 0,
+      "fusedArrayUpdates": 0,
+      "rssMiB": 565.96875
+    },
+    {
+      "mode": "off",
+      "n": "1000000000",
+      "ms": 1284.0529159999999,
+      "cpuMs": 2458.358,
+      "answer": "895017934",
+      "compiledLoops": 0,
+      "numberLoops": 0,
+      "fusedArrayUpdates": 697,
+      "rssMiB": 572.265625
+    },
+    {
+      "mode": "on",
+      "n": "1000000000",
+      "ms": 1281.356333,
+      "cpuMs": 2400.643,
+      "answer": "895017934",
+      "compiledLoops": 2,
+      "numberLoops": 0,
+      "fusedArrayUpdates": 0,
+      "rssMiB": 567.265625
+    },
+    {
+      "mode": "off",
+      "n": "1000000000",
+      "ms": 1276.2755,
+      "cpuMs": 2403.868,
+      "answer": "895017934",
+      "compiledLoops": 0,
+      "numberLoops": 0,
+      "fusedArrayUpdates": 697,
+      "rssMiB": 514.53125
+    },
+    {
+      "mode": "on",
+      "n": "1000000000",
+      "ms": 1293.8491669999999,
+      "cpuMs": 2424.987,
+      "answer": "895017934",
+      "compiledLoops": 2,
+      "numberLoops": 0,
+      "fusedArrayUpdates": 0,
+      "rssMiB": 566.484375
+    }
+  ],
+  "default": [
+    {
+      "mode": "off",
+      "n": "201820182018",
+      "ms": 23753.067291,
+      "cpuMs": 37499.314,
+      "answer": "631499044",
+      "compiledLoops": 0,
+      "numberLoops": 0,
+      "fusedArrayUpdates": 6164,
+      "rssMiB": 1100.796875
+    },
+    {
+      "mode": "on",
+      "n": "201820182018",
+      "ms": 24888.481874999998,
+      "cpuMs": 40360.538,
+      "answer": "631499044",
+      "compiledLoops": 2,
+      "numberLoops": 0,
+      "fusedArrayUpdates": 0,
+      "rssMiB": 1528.390625
+    }
+  ],
+  "postValidationSmoke": {
+    "mode": "on",
+    "n": "1000000000",
+    "ms": 1305.2516249999999,
+    "cpuMs": 2413.093,
+    "answer": "895017934",
+    "compiledLoops": 2,
+    "numberLoops": 0,
+    "fusedArrayUpdates": 0,
+    "rssMiB": 561.875
+  }
+}
