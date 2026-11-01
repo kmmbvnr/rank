@@ -1154,3 +1154,21 @@ kernel and remain slower than the specialized JS loop. No speed parity with
 that loop or sub-quadratic convolution is claimed. Scalar callbacks and
 unsupported recipes retain ordinary reads. The benchmarks cover these
 specific integer cases, not all reducers or real-number workloads.
+
+The follow-up four-way comparison uses the same 10 million Int32 values and
+512 bins, five alternating warmed samples, and verifies every bin against an
+independent reference. Sources are parsed before timing. Both `.accumulate`
+and the scalar loop include creation of their 512-cell result array, as keyed
+reduction includes creation of its result. The scalar loop uses the existing
+loop compiler. Input creation is excluded for every mode.
+
+| CPU | General keyed | Int32 keyed | `.accumulate` | Compiled scalar loop |
+| --- | ---: | ---: | ---: | ---: |
+| Apple M5 | 247.17 ms | 43.96 ms | 783.92 ms | 41.44 ms |
+| Intel i7-10750H | 628.23 ms | 92.68 ms | 2005.63 ms | 90.90 ms |
+
+Raw samples: `2026-11-01-keyed-compare-mac.json` and
+`2026-11-01-keyed-compare-intel.json` in `benchmarks/baselines`.
+The keyed kernel is close to, but slower than, the compiled scalar loop in
+this workload. These Int32 results do not describe all `.accumulate` paths,
+particularly its different storage/weight combinations.

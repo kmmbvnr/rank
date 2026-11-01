@@ -1782,6 +1782,36 @@ The seed does not add output cells. Without a seed, a group's first value
 initializes its state. `size` checks key bounds but does not change the scan
 shape. Keyed folds currently reject `rank` and `axis` modifiers.
 
+Anti-diagonals are groups whose row and column indices have the same sum:
+
+```rank
+use sequences
+M = (1 to 6) reshape 2 3
+I = 0 to 1
+J = 0 to 2
+M reduce + by (I J outer +)
+rem 1 6 8 6
+```
+
+To broadcast a group aggregate back to input positions, gather it with the
+original keys. Ranked addressing handles keys of any matching array shape:
+
+```rank
+Totals = Values sum by Keys
+PerItem = Totals Keys rank 0
+use stats
+Means = Values mean by Keys
+Centered = Values - (Means Keys rank 0)
+```
+
+For T input cells and K result bins, the general binary reduction takes
+O(T + K) work plus reducer costs and O(K) state/output storage. Scan takes
+O(T) work plus reducer costs, O(T) output storage and per-key state. Dense
+reductions with large gaps therefore need memory proportional to the largest
+key, not just the number of distinct keys. Whole-group aggregate costs also
+include the ordinary aggregate's work on each group, such as sorting for a
+median.
+
 Native integer arithmetic producers, including `outer`, can feed values and
 keys directly into the grouped fold. For example,
 `(A B outer *) reduce + by (I J outer +)` need not create either matrix.
