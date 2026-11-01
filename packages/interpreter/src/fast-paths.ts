@@ -334,6 +334,7 @@ export class FastPaths {
                 // A bulk slice write snapshots its operand itself, so it takes the view.
                 return view && isRankArray(selected) ? selected : copyArray(selected, false);
             },
+            arrayRegions: this.compiler.tensors.fusion,
             prepareArrayWrite: statement => this.context.prepareArrayWrite(statement),
             arrayValues: {
                 call: (name, operands) => {

@@ -1,3 +1,4 @@
+import type { ArrayRegion } from './array-region.js';
 import type { RankDeque } from '../containers.js';
 import type { Expression, ForStatement, FunctionStatement, Statement, ArrayAssignmentStatement, CompiledLoopType } from '@arrrank/language';
 import type { CompiledCalleeType } from './compiled-callee-type.js';
@@ -55,6 +56,7 @@ export interface LoopHost {
     textRead(source: string, index: bigint): string;
     copySlice(source: RankArray, start: bigint, end: bigint, axis: number, inclusive: boolean, view?: boolean): RankArray;
     prepareArrayWrite?(statement: ArrayAssignmentStatement): (selectors: RankValue[], rhs: () => RankValue) => { target: RankValue; result: RankValue | undefined };
+    readonly arrayRegions?: boolean;
     readonly arrayValues?: {
         range(start: bigint, end: bigint, inclusive: boolean, step?: bigint): RankValue;
         select(source: RankValue, selector: RankValue): RankArray;
@@ -135,6 +137,7 @@ export interface IntegerLoopPlan {
     hasYield: boolean;
     needsAlgo: boolean;
     arrayDefinitions: Set<string>;
+    arrayRegions?: { region: ArrayRegion; location: number }[];
     numberVectors?: boolean;
     writable: Set<string>;
     iteration: IterationBinding | undefined;

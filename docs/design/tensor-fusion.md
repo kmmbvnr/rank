@@ -85,6 +85,27 @@ these operations also retain ordinary execution so scalar errors are not skipped
 Function calls, inspection and observable host polling retain ordinary expression
 execution.
 
+### Integer array statement regions
+
+Inside compiled integer loops, eligible chains of local array assignments can
+feed a unique linear rank-1 destination slice without materializing the intermediate
+arrays. Supported chains include +, -, *, //, mod, comparisons, min/max,
+tracked integer gathers and choose. Common subexpressions are shared per cell;
+choose reads only its selected branch. Index and divisor bounds must also prove
+that eliminating an earlier named intermediate cannot hide its ordinary error.
+
+Only local names without readers or writes outside the chain can disappear.
+Pre-existing bindings, escaping results, lazy inputs, inspection and observable
+polling keep ordinary execution. The destination is computed into a private
+buffer before any stores, preserving overlapping reads and writes. Unsafe
+integer arithmetic, invalid indices or zero divisors decline before mutation
+and replay the original statements. Compound updates are computed once and
+committed through the existing checked assignment path with unique selectors.
+
+`tensorFusion: false` disables these regions too. CLI `--diagnostics` prints
+`fusedArrayRegions` and `fusedArrayRegionCells`; both count completed updates.
+See [Euler 642 region measurements](../../benchmarks/euler642-fusion-results.md).
+
 Runtime binding
 supplies shapes, scalar values and storage offsets before emitting a cached
 JavaScript loop. Source kernels never eliminate or skip other assignments.

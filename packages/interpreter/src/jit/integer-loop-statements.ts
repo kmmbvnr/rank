@@ -1,3 +1,4 @@
+import { compileArrayRegion } from './array-region.js';
 import { type LoopTerm } from './integer-loop-plan.js';
 import {
     applicationForm, isExpressionStatement, findOperation, matchCompiledEffectSignature, loopOperatorSignature,
@@ -59,8 +60,28 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
         return true;
     }
 
-    function statements(commands: readonly Statement[], body: string[], allowTail: boolean, breakLabel?: string): 'next' | 'stop' | undefined {
-        for (const assignment of commands) {
+    function statements(commands: readonly Statement[], body: string[], allowTail: boolean, breakLabel?: string, fusion = true): 'next' | 'stop' | undefined {
+        for (let commandIndex = 0; commandIndex < commands.length; commandIndex++) {
+            const assignment = commands[commandIndex];
+            if (fusion && !numberMode && host.arrayRegions && host.prepareArrayWrite) {
+                const region = compileArrayRegion(commands, commandIndex);
+                if (region && region.locals.every(name => !assigned.has(name) && host.read(name) === undefined)
+                    && region.builtins.every(name => !localTypes.has(name) && !arrays.has(name) && !state.containers.has(name) && host.builtin('core', name))) {
+                    const setup: string[] = [], values = region.inputs.map(name => emitValue({ $type: 'NameExpression', name } as import('@arrrank/language').Expression, setup));
+                    if (values.every(value => !!value)) {
+                        const fallback: string[] = [];
+                        const span = commands.slice(commandIndex, commandIndex + region.length);
+                        if (statements(span, fallback, allowTail, breakLabel, false) === undefined) return reject(assignment);
+                        const location = locations.indexOf(region.consumer), id = state.arrayRegions.length;
+                        state.arrayRegions.push({ region, location });
+                        const target = slot(region.target), result = `fusedRegion${state.serial++}`;
+                        body.push(`location = ${location};`, ...setup, `const ${result} = arrayValues.fuse(${id}, [${values.map(value => value!.code).join(',')}]);`,
+                            `if (${result} === undefined) { ${fallback.join('\n')} } else { r${target} = ${result}; storage${target} = access(r${target}); reader${target} = read(storage${target}, stableReads, 1); write${target} = write(storage${target}, batchWrites); iterationResult = undefined; }`);
+                        commandIndex += region.length - 1;
+                        continue;
+                    }
+                }
+            }
             const location = locations.length;
             // Bound the complete region, including nested branches and loops.
             // Search loops exceed 32 statements even with a small outer body.

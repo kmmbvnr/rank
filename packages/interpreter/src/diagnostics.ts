@@ -15,6 +15,8 @@ export class RuntimeDiagnostics {
     loopElementScans = 0;
     nativeSequenceCopies = 0;
     compiledLoops = 0;
+    fusedArrayRegions = 0;
+    fusedArrayRegionCells = 0;
     compiledGeneratorLoops = 0;
     integerMembershipFilters = 0;
     compiledGraphAdds = 0;

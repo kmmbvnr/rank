@@ -85,6 +85,8 @@ async function runFile(file: string, args: readonly string[], diagnostic = false
         console.error('Loop diagnostics:');
         console.error(`  compiledLoops: ${diagnostics.compiledLoops}`);
         console.error(`  numberLoops: ${diagnostics.numberLoops}`);
+        console.error(`  fusedArrayRegions: ${diagnostics.fusedArrayRegions}`);
+        console.error(`  fusedArrayRegionCells: ${diagnostics.fusedArrayRegionCells}`);
         for (const [reason, count] of Object.entries(diagnostics.fallbacks).sort(([a], [b]) => a.localeCompare(b))) {
             if (reason.startsWith('loop:')) console.error(`  ${reason}: ${count}`);
         }

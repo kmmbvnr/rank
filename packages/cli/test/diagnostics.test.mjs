@@ -62,3 +62,26 @@ test('diagnostics requires a file and appears in help', () => {
     assert.equal(help.status, 0, help.stderr);
     assert.match(help.stdout, /--diagnostics <file>/);
 });
+
+
+test('diagnostics identifies fused gather/update regions', t => {
+    const directory = mkdtempSync(join(tmpdir(), 'rank-array-diagnostics-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const file = join(directory, 'program.ra');
+    writeFileSync(file, `use io
+use sequences
+A = array 1 2 3 4
+for P in 1 to 2
+ Ix = 0 to 3
+ V = A Ix
+ W = V + P
+ A Ix = W mod 100
+end
+A sum print
+`);
+    const result = run(['--diagnostics', file]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, '22\n');
+    assert.match(result.stderr, /fusedArrayRegions: 2/);
+    assert.match(result.stderr, /fusedArrayRegionCells: 8/);
+});

@@ -61,6 +61,27 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             return write(selectors, rhs);
         },
     };
+    const regionWrites = new Map<number, ReturnType<NonNullable<LoopHost['prepareArrayWrite']>>>();
+    const regionValues = arrayValues && { ...arrayValues,
+        fuse(id: number, values: RankValue[]) {
+            const entry = plan.arrayRegions![id];
+            const output = entry.region.run(values);
+            if (!output) return undefined;
+            const last = output.first + BigInt(output.count - 1) * output.step;
+            const selector = host.arrayValues!.range(output.first, last, true, output.step);
+            let write = regionWrites.get(id);
+            if (!write) {
+                // The private output already includes the old destination for
+                // compound stores; unique linear selectors permit replacement.
+                write = host.prepareArrayWrite!({ ...entry.region.consumer, operator: '=' });
+                regionWrites.set(id, write);
+            }
+            const written = write([selector], () => output.value);
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) { diagnostics.fusedArrayRegions++; diagnostics.fusedArrayRegionCells += output.count; }
+            return written.target;
+        },
+    };
     const source = emitIntegerLoopSource(plan, false);
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, callouts?: (() => RankValue)[]) => RankValue | undefined;
     const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', 'shapeMismatch', 'aliasValue', code)(
@@ -112,7 +133,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                 writeIntegerSelection(array, count, index => first + index * stride, values, operator, { offset: first, stride });
                 return true;
             }, indexRead, () => new RankError('zero cannot be raised to a negative power'),
-            () => new RankError('power result is not real'), textLength, primeRange, materializeValue, argumentSelectionError, integerSquareRoot, host.copySlice, arrayValues, host.continuation?.result, setHas,
+            () => new RankError('power result is not real'), textLength, primeRange, materializeValue, argumentSelectionError, integerSquareRoot, host.copySlice, regionValues, host.continuation?.result, setHas,
             (value: RankValue, count: number) => {
                 const items = unpackApplicationItems(value);
                 if (items.length !== count) throw new RankError(`unpack expects ${count} values, got ${items.length}`);

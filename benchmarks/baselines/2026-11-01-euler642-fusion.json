@@ -1,0 +1,188 @@
+{
+  "date": "2026-11-01",
+  "baseCommit": "8598c2ba6ab54fe7cc141bcb6ba7478625278b92",
+  "environment": {
+    "cpu": "Apple M5",
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "method": "Three fresh sequential off/on process pairs per input. tensorFusion false/true on the same build; both modes retain the exact compiled prime loops. Includes parsing and execution, excludes imports and interpreter construction. The switch also controls pre-existing expression fusion.",
+  "prototype": {
+    "N": 40000000000,
+    "rankMs": 3781.5099169999994,
+    "nativeMs": 183.44608400000016,
+    "loops": 1,
+    "equal": true
+  },
+  "exploratoryImplementationSteps": [
+    {
+      "step": "snapshot region kernel",
+      "n": "201820182018",
+      "ms": 16387.438167,
+      "answer": "631499044",
+      "regions": 76632,
+      "regionCells": 319554515
+    },
+    {
+      "step": "shared scalar subexpressions and proved integer bounds",
+      "n": "201820182018",
+      "ms": 12381.33125,
+      "answer": "631499044",
+      "regions": 76632,
+      "regionCells": 319554515
+    }
+  ],
+  "reduced": [
+    {
+      "mode": "off",
+      "n": "1000000000",
+      "ms": 2798.1123749999997,
+      "cpuMs": 4508.86,
+      "answer": "895017934",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "rssMiB": 572
+    },
+    {
+      "mode": "on",
+      "n": "1000000000",
+      "ms": 1199.898792,
+      "cpuMs": 1827.813,
+      "answer": "895017934",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 7205,
+      "fusedArrayRegionCells": 8420329,
+      "rssMiB": 416.703125
+    },
+    {
+      "mode": "off",
+      "n": "1000000000",
+      "ms": 1393.222417,
+      "cpuMs": 2666.265,
+      "answer": "895017934",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "rssMiB": 577.15625
+    },
+    {
+      "mode": "on",
+      "n": "1000000000",
+      "ms": 714.473125,
+      "cpuMs": 1404.381,
+      "answer": "895017934",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 7205,
+      "fusedArrayRegionCells": 8420329,
+      "rssMiB": 453.859375
+    },
+    {
+      "mode": "off",
+      "n": "1000000000",
+      "ms": 1321.387958,
+      "cpuMs": 2490.293,
+      "answer": "895017934",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "rssMiB": 573.828125
+    },
+    {
+      "mode": "on",
+      "n": "1000000000",
+      "ms": 648.1738330000001,
+      "cpuMs": 1256.023,
+      "answer": "895017934",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 7205,
+      "fusedArrayRegionCells": 8420329,
+      "rssMiB": 459.75
+    }
+  ],
+  "default": [
+    {
+      "mode": "off",
+      "n": "201820182018",
+      "ms": 25620.315834,
+      "cpuMs": 41018.869,
+      "answer": "631499044",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "rssMiB": 1321.984375
+    },
+    {
+      "mode": "on",
+      "n": "201820182018",
+      "ms": 12917.5295,
+      "cpuMs": 17032.444,
+      "answer": "631499044",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 76632,
+      "fusedArrayRegionCells": 319554515,
+      "rssMiB": 950.84375
+    },
+    {
+      "mode": "off",
+      "n": "201820182018",
+      "ms": 25416.382375,
+      "cpuMs": 41280.863,
+      "answer": "631499044",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "rssMiB": 1505.09375
+    },
+    {
+      "mode": "on",
+      "n": "201820182018",
+      "ms": 13279.323792,
+      "cpuMs": 17687.341,
+      "answer": "631499044",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 76632,
+      "fusedArrayRegionCells": 319554515,
+      "rssMiB": 840.75
+    },
+    {
+      "mode": "off",
+      "n": "201820182018",
+      "ms": 25912.600667000002,
+      "cpuMs": 41206.001,
+      "answer": "631499044",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "rssMiB": 1307.09375
+    },
+    {
+      "mode": "on",
+      "n": "201820182018",
+      "ms": 13009.29,
+      "cpuMs": 16974.964,
+      "answer": "631499044",
+      "compiledLoops": 2,
+      "fusedArrayRegions": 76632,
+      "fusedArrayRegionCells": 319554515,
+      "rssMiB": 950.5
+    }
+  ],
+  "defaultMedianMs": {
+    "off": 25620.315834,
+    "on": 13009.29
+  },
+  "defaultSpeedup": 1.9693861720355224,
+  "deliverySmoke": {
+    "mode": "on",
+    "n": "1000000000",
+    "ms": 654.528,
+    "cpuMs": 1250.407,
+    "answer": "895017934",
+    "compiledLoops": 2,
+    "fusedArrayRegions": 7205,
+    "fusedArrayRegionCells": 8420329,
+    "rssMiB": 440.640625
+  }
+}
