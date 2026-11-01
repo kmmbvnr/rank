@@ -16,6 +16,8 @@ for P in 1 till Top
       Rate = (Beta * Beta) log
       Rate = -Rate / (10 log)
       Answer += (Nines / Rate) ceil
+    else
+      break
     end
   end
 end

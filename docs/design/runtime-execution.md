@@ -854,7 +854,16 @@ Only selected conditions and bodies execute. Definite assignments after a branch
 are the intersection of all outgoing paths; other reads require an initial
 integer guard or decline compilation. Branch-local writes still use checked
 writers, and errors point to the original nested statement. An empty selected
-branch retains the reference result (`undefined`). General calls and suspension remain on the reference path.
+branch retains the reference result (`undefined`). Unsupported scalar expressions
+inside a selected branch can use a guarded interpreter callout in the exact
+backend. Before that call, assigned registers are published with their original
+scalar types; integer registers already contain BigInts and real registers stay
+Numbers. A known scalar result keeps its type without truncation. Catalogue
+bindings used to infer that result are checked on entry. Unclassified results
+retain the ordinary path; callouts are not permitted in private Number loops.
+Scalar `log` has direct lowering in exact and Number loops, with the ordinary
+positive-finite domain check and a guarded native binding. General calls and
+suspension otherwise remain on the reference path.
 
 
 ### Guarded containers in integer loops

@@ -48,5 +48,6 @@ test('new full-scale exclusions retain their small test fixtures unless they tim
         assert.ok(!files.has(fixture), fixture);
         assert.match(readFileSync(new URL('../demos/' + fixture, import.meta.url), 'utf8'), /^test /m, fixture);
     }
+    assert.ok(!files.has('euler/318_nines.ra'), 'bounded pair search keeps the full real-log workload eligible');
     assert.ok(!files.has('euler/301_nim.ra'), 'small default programs remain eligible');
 });

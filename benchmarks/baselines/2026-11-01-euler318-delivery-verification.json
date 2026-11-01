@@ -1,0 +1,301 @@
+{
+  "verify-mac": {
+    "checks": 1170,
+    "node": "v24.15.0"
+  },
+  "verify-intel": {
+    "checks": 1170,
+    "node": "v24.15.0"
+  },
+  "fixture-mac": [
+    {
+      "compilation": true,
+      "tests": [
+        {
+          "name": "sqrt two plus sqrt three",
+          "passed": true,
+          "output": [],
+          "durationMs": 7.513625000000019
+        },
+        {
+          "name": "small sum",
+          "passed": true,
+          "output": [
+            "8"
+          ],
+          "durationMs": 7.663000000000011
+        }
+      ]
+    },
+    {
+      "compilation": false,
+      "tests": [
+        {
+          "name": "sqrt two plus sqrt three",
+          "passed": true,
+          "output": [],
+          "durationMs": 2.415458000000001
+        },
+        {
+          "name": "small sum",
+          "passed": true,
+          "output": [
+            "8"
+          ],
+          "durationMs": 2.899417000000028
+        }
+      ]
+    }
+  ],
+  "fixture-intel": [
+    {
+      "compilation": true,
+      "tests": [
+        {
+          "name": "sqrt two plus sqrt three",
+          "passed": true,
+          "output": [],
+          "durationMs": 18.30719099999999
+        },
+        {
+          "name": "small sum",
+          "passed": true,
+          "output": [
+            "8"
+          ],
+          "durationMs": 22.216151999999965
+        }
+      ]
+    },
+    {
+      "compilation": false,
+      "tests": [
+        {
+          "name": "sqrt two plus sqrt three",
+          "passed": true,
+          "output": [],
+          "durationMs": 10.378624000000059
+        },
+        {
+          "name": "small sum",
+          "passed": true,
+          "output": [
+            "8"
+          ],
+          "durationMs": 10.264116000000058
+        }
+      ]
+    }
+  ],
+  "parent": "68546f1b",
+  "macUniqueFocusedTests": 851,
+  "intelUniqueFocusedTests": 387,
+  "scopedAuditTests": 4,
+  "checks": {
+    "typescriptBuild": "passed",
+    "semanticBoundaries": "65 owners passed",
+    "applicationForms": "passed",
+    "fullSuite": "not run",
+    "exhaustiveAudits": "not run"
+  },
+  "sources": {
+    "demos/euler/318_nines.ra": "a2268e56f3e76925606b916ceaa5b933a60e2353d6d6352e4d66be472a713881",
+    "packages/interpreter/src/jit/integer-loop-expressions.ts": "a246997328e05c90c2ecc7db0a3a0ebabd47c8a5129bc007650fd3a293aa8527",
+    "packages/interpreter/test/loop-callout-real.test.ts": "ea81eb4ff90e4795d9efa39ce5613453b3a5bcb3aafad16d0fe28f8af3d03764"
+  },
+  "logs": {
+    "rank318-suites.log": "\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\n \u2713 test/number-loop-vectors.test.ts (87 tests) 833ms\n \u2713 test/array-region.test.ts (30 tests) 879ms\n \u2713 test/real-loop.test.ts (39 tests) 303ms\n \u2713 test/integer-loop.test.ts (328 tests) 1675ms\n \u2713 test/scalar-function-number-builtins.test.ts (23 tests) 430ms\n \u2713 test/scalar-function-real.test.ts (21 tests) 341ms\n \u2713 test/scalar-function-kernel.test.ts (24 tests) 271ms\n \u2713 test/number-loop-read-buffers.test.ts (21 tests) 280ms\n \u2713 test/number-loop.test.ts (186 tests) 2508ms\n   \u2713 private safe-integer loop registers > reports the temporary budget when a large region retains exact execution  1004ms\n \u2713 test/number-loop-exact-consumers.test.ts (16 tests) 219ms\n \u2713 test/loop-callout-real.test.ts (19 tests) 219ms\n \u2713 test/compiled-declared-call.test.ts (19 tests) 233ms\n \u2713 test/number-loop-aliases.test.ts (9 tests) 155ms\n \u2713 test/prime-loops.test.ts (10 tests) 140ms\n \u2713 test/scalar-function-domains.test.ts (18 tests) 160ms\n\n Test Files  15 passed (15)\n      Tests  850 passed (850)\n   Start at  21:56:29\n   Duration  4.71s (transform 945ms, setup 0ms, collect 7.98s, tests 8.65s, environment 1ms, prepare 335ms)\n\n",
+    "rank318-new-final.log": "\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\n \u2713 test/loop-callout-real.test.ts (20 tests) 176ms\n\n Test Files  1 passed (1)\n      Tests  20 passed (20)\n   Start at  21:58:06\n   Duration  1.37s (transform 756ms, setup 0ms, collect 1.10s, tests 176ms, environment 0ms, prepare 23ms)\n\n",
+    "rank318-tests-intel.log": "\n RUN  v3.2.7 /tmp/rank318-delivery/packages/interpreter\n\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/index.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/rank-module.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/error-lookahead.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/expression-grouping.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/application-forms.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/call-words.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/generated/ast.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/operations.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/collection-capabilities.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/expressions.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-declaration.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/declared-calls.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-binding.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-call-signature.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-pipeline.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/modifier-grouping.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/bindings.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/completion-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/types.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/signature-matching.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/shape-index.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/shape-signature.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/value-domain.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/clause-conditions.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/signature-lexer.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/primary-applications.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/generated/module.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/generated/grammar.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/rank-validator.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/value-diagnostics.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/axis-diagnostics.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/operation-shape.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/axis-index.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/fold-axes.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/type-signature.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/signature-compaction.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-ranks.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/application-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/fold-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/ranked-function-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/binary-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/operation-proofs.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/array-binding-contract.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/requirements.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-effects.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/value-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/value-safety.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/collection-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/control-flow.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/return-contract.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/binding-rule.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/requirement-graph.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/requirement-solver.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/requirement-diagnostics.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/builtin-bindings.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/builtin-renames.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-yields.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-calls.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-relationships.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/compiled-operators.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/operator-signature.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/numeric-recursion.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/return-paths.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/loop-analysis.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-scope-diagnostics.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-scopes.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-escape.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-escape-calls.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/deferred-bindings.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-mutations.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/block-scope.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/compiled-expression.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/type-names.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/flat-array-borrow.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/test-examples.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/next-tokens.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/compiled-function-type.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-signature.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-contracts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/symbolic-function-contracts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/generator-contracts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/last-array-use.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/numeric-array-update.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/lazy-function.js\" points to missing source files\n \u2713 test/loop-callout-real.test.ts (19 tests) 647ms\n   \u2713 real values across exact-loop interpreter callouts > publishes real 0.5 before an integer callout  316ms\n \u2713 test/real-loop.test.ts (39 tests) 863ms\n \u2713 test/integer-loop.test.ts (328 tests) 3176ms\n   \u2713 whole integer loops > compiles a flat body of 32 statements  402ms\n\n Test Files  3 passed (3)\n      Tests  386 passed (386)\n   Start at  21:57:47\n   Duration  6.05s (transform 2.14s, setup 0ms, collect 7.96s, tests 4.69s, environment 1ms, prepare 195ms)\n\n",
+    "rank318-new-final-intel.log": "\n RUN  v3.2.7 /tmp/rank318-delivery/packages/interpreter\n\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/index.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/rank-module.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/error-lookahead.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/expression-grouping.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/application-forms.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/call-words.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/generated/ast.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/operations.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/collection-capabilities.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/expressions.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-declaration.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/declared-calls.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-binding.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-call-signature.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-pipeline.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/modifier-grouping.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/bindings.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/completion-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/types.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/signature-matching.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/shape-index.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/shape-signature.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/value-domain.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/clause-conditions.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/signature-lexer.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/primary-applications.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/generated/module.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/generated/grammar.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/rank-validator.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/value-diagnostics.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/axis-diagnostics.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/operation-shape.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/axis-index.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/fold-axes.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/type-signature.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/signature-compaction.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-ranks.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/application-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/fold-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/ranked-function-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/binary-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/operation-proofs.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/array-binding-contract.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/requirements.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-effects.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/value-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/value-safety.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/collection-facts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/control-flow.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/return-contract.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/binding-rule.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/requirement-graph.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/requirement-solver.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/requirement-diagnostics.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/builtin-bindings.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/builtin-renames.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-yields.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-calls.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-relationships.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/compiled-operators.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/operator-signature.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/numeric-recursion.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/return-paths.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/loop-analysis.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-scope-diagnostics.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-scopes.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-escape.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-escape-calls.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/deferred-bindings.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-mutations.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/block-scope.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/compiled-expression.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/type-names.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/flat-array-borrow.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/test-examples.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/next-tokens.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/compiled-function-type.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/function-signature.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/function-contracts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/symbolic-function-contracts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/generator-contracts.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/last-array-use.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/numeric-array-update.js\" points to missing source files\nSourcemap for \"/tmp/rank315-delivery/packages/language/out/analysis/lazy-function.js\" points to missing source files\n \u2713 test/loop-callout-real.test.ts (20 tests) 445ms\n\n Test Files  1 passed (1)\n      Tests  20 passed (20)\n   Start at  21:58:16\n   Duration  3.15s (transform 1.80s, setup 0ms, collect 2.52s, tests 445ms, environment 0ms, prepare 55ms)\n\n",
+    "rank318-audit-scoped.log": "\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/318_nines.ra\nauditing euler/318_nines.ra\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/318_nines_test.ra\nauditing euler/318_nines_test.ra\n\n \u2713 test/types.test.ts (2144 tests | 2142 skipped) 137ms\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/318_nines.ra\ncomparing euler/318_nines.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/318_nines_test.ra\ncomparing euler/318_nines_test.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution\ndifferential: 2/2144 compared, 2 completed, 2 test blocks, 24 compiled entries, 2 Number loop entries\n\n \u2713 test/differential.test.ts (2145 tests | 2143 skipped) 356ms\n   \u2713 compiled and reference demo execution > euler/318_nines.ra  319ms\n\n Test Files  2 passed (2)\n      Tests  4 passed | 4285 skipped (4289)\n   Start at  21:56:50\n   Duration  1.86s (transform 809ms, setup 0ms, collect 2.62s, tests 493ms, environment 0ms, prepare 46ms)\n\n"
+  },
+  "diagnostics": {
+    "mac": {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "production",
+      "ms": 29.099625000000003,
+      "rssMiB": 162.03125,
+      "answer": "709313889",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {},
+        "compilerRejections": []
+      }
+    },
+    "intel": {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "production",
+      "ms": 74.94981599999994,
+      "rssMiB": 141.8125,
+      "answer": "709313889",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {},
+        "compilerRejections": []
+      }
+    }
+  }
+}

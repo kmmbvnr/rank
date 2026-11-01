@@ -1,0 +1,206 @@
+{
+  "node": "v24.15.0",
+  "host": "mac",
+  "rows": [
+    {
+      "mode": "reference",
+      "top": "2011",
+      "variant": "original",
+      "ms": 741.2865,
+      "rssMiB": 176.796875,
+      "answer": "709313889"
+    },
+    {
+      "mode": "reference",
+      "top": "2011",
+      "variant": "production",
+      "ms": 110.20675,
+      "rssMiB": 176.1875,
+      "answer": "709313889"
+    },
+    {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "original",
+      "ms": 33.79929100000001,
+      "rssMiB": 171.90625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "production",
+      "ms": 30.073458999999986,
+      "rssMiB": 156.921875,
+      "answer": "709313889"
+    },
+    {
+      "mode": "exact",
+      "top": "2011",
+      "variant": "production",
+      "ms": 33.07333299999999,
+      "rssMiB": 165.546875,
+      "answer": "709313889"
+    },
+    {
+      "mode": "reference",
+      "top": "2011",
+      "variant": "production",
+      "ms": 112.4555,
+      "rssMiB": 176.40625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "original",
+      "ms": 34.24466700000002,
+      "rssMiB": 172.15625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "production",
+      "ms": 30.100583,
+      "rssMiB": 146.859375,
+      "answer": "709313889"
+    },
+    {
+      "mode": "exact",
+      "top": "2011",
+      "variant": "production",
+      "ms": 33.236665999999985,
+      "rssMiB": 165.40625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "reference",
+      "top": "2011",
+      "variant": "original",
+      "ms": 755.075459,
+      "rssMiB": 176.265625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "original",
+      "ms": 34.26000000000002,
+      "rssMiB": 171.5625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "production",
+      "ms": 29.879166999999995,
+      "rssMiB": 142.046875,
+      "answer": "709313889"
+    },
+    {
+      "mode": "exact",
+      "top": "2011",
+      "variant": "production",
+      "ms": 33.13870800000001,
+      "rssMiB": 165.515625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "reference",
+      "top": "2011",
+      "variant": "original",
+      "ms": 722.293459,
+      "rssMiB": 175.828125,
+      "answer": "709313889"
+    },
+    {
+      "mode": "reference",
+      "top": "2011",
+      "variant": "production",
+      "ms": 113.88245900000001,
+      "rssMiB": 175.484375,
+      "answer": "709313889"
+    },
+    {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "production",
+      "ms": 29.714999999999975,
+      "rssMiB": 162.140625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "exact",
+      "top": "2011",
+      "variant": "production",
+      "ms": 33.156125,
+      "rssMiB": 165.625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "reference",
+      "top": "2011",
+      "variant": "original",
+      "ms": 750.4682090000001,
+      "rssMiB": 175.734375,
+      "answer": "709313889"
+    },
+    {
+      "mode": "reference",
+      "top": "2011",
+      "variant": "production",
+      "ms": 115.516084,
+      "rssMiB": 177.296875,
+      "answer": "709313889"
+    },
+    {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "original",
+      "ms": 34.042833,
+      "rssMiB": 172,
+      "answer": "709313889"
+    },
+    {
+      "mode": "exact",
+      "top": "2011",
+      "variant": "production",
+      "ms": 32.860084,
+      "rssMiB": 165.515625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "reference",
+      "top": "2011",
+      "variant": "original",
+      "ms": 786.0355,
+      "rssMiB": 176,
+      "answer": "709313889"
+    },
+    {
+      "mode": "reference",
+      "top": "2011",
+      "variant": "production",
+      "ms": 165.967625,
+      "rssMiB": 176.515625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "original",
+      "ms": 38.766458,
+      "rssMiB": 161.40625,
+      "answer": "709313889"
+    },
+    {
+      "mode": "compiled",
+      "top": "2011",
+      "variant": "production",
+      "ms": 34.787458000000015,
+      "rssMiB": 161.8125,
+      "answer": "709313889"
+    }
+  ]
+}
