@@ -1,0 +1,209 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "revision": "67e415c8bd9d0a41c201d0d96777ab6c73277723",
+  "sourceSha256": "40a9383e19d69707b862627203d612a05ed83f516844688f6968b74ed14b5e5d",
+  "method": "Three serial fresh processes per case, rotating order; import excluded; parse/execute included; no diagnostics; process peak RSS",
+  "samples": [
+    {
+      "name": "current",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3545.792375,
+      "cpuMs": 3898.623,
+      "rssMiB": 338.703125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "continuous",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 2409.502,
+      "cpuMs": 2696.496,
+      "rssMiB": 311.296875,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1612.702542,
+      "cpuMs": 1885.897,
+      "rssMiB": 334.390625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-continuous",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1130.937375,
+      "cpuMs": 1388.537,
+      "rssMiB": 265.265625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1398.9757920000002,
+      "cpuMs": 1651.144,
+      "rssMiB": 278.984375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow-continuous",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 993.5882500000001,
+      "cpuMs": 1227.205,
+      "rssMiB": 203.59375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "continuous",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 3906.854167,
+      "cpuMs": 4201.23,
+      "rssMiB": 349.78125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 2321.302208,
+      "cpuMs": 2213.901,
+      "rssMiB": 342.34375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-continuous",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1277.990708,
+      "cpuMs": 1572.233,
+      "rssMiB": 326.828125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1476.155625,
+      "cpuMs": 1726.497,
+      "rssMiB": 277.53125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow-continuous",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1032.525167,
+      "cpuMs": 1269.241,
+      "rssMiB": 277.734375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "current",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3719.4445,
+      "cpuMs": 4057.591,
+      "rssMiB": 346.359375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1701.299083,
+      "cpuMs": 2011.017,
+      "rssMiB": 343.984375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-continuous",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1207.30825,
+      "cpuMs": 1456.365,
+      "rssMiB": 323.921875,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1472.1059999999998,
+      "cpuMs": 1741.299,
+      "rssMiB": 279.625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow-continuous",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1052.938958,
+      "cpuMs": 1299.163,
+      "rssMiB": 252.78125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "current",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3759.18725,
+      "cpuMs": 4098.62,
+      "rssMiB": 325.90625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "continuous",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 2534.801083,
+      "cpuMs": 2822.713,
+      "rssMiB": 339.609375,
+      "answer": 132.52756425686314
+    }
+  ],
+  "prototypeReadMode": "Direct stored real cells, boxed or packed; all-present stored operands required",
+  "harnessSha256": "02acaa154b8bbc3f3b180448e6fd8f64e5d81e66ed5a61330aa7bdeaf2fa795b"
+}

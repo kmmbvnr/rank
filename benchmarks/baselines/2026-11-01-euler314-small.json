@@ -1,0 +1,62 @@
+[
+  {
+    "round": 0,
+    "mode": "compiled",
+    "grid": "25",
+    "variant": "original",
+    "ms": 121.99091700000002,
+    "cpuMs": 203.572,
+    "rssMiB": 188.828125,
+    "answer": 13.232250104320302
+  },
+  {
+    "round": 0,
+    "mode": "reference",
+    "grid": "25",
+    "variant": "original",
+    "ms": 911.752333,
+    "cpuMs": 1487.898,
+    "rssMiB": 431.875,
+    "answer": 13.232250104320302
+  },
+  {
+    "round": 1,
+    "mode": "reference",
+    "grid": "25",
+    "variant": "original",
+    "ms": 926.6629589999999,
+    "cpuMs": 1532.887,
+    "rssMiB": 457,
+    "answer": 13.232250104320302
+  },
+  {
+    "round": 1,
+    "mode": "compiled",
+    "grid": "25",
+    "variant": "original",
+    "ms": 122.31724999999997,
+    "cpuMs": 207.019,
+    "rssMiB": 192.34375,
+    "answer": 13.232250104320302
+  },
+  {
+    "round": 2,
+    "mode": "compiled",
+    "grid": "25",
+    "variant": "original",
+    "ms": 123.56429099999997,
+    "cpuMs": 206.393,
+    "rssMiB": 190.140625,
+    "answer": 13.232250104320302
+  },
+  {
+    "round": 2,
+    "mode": "reference",
+    "grid": "25",
+    "variant": "original",
+    "ms": 914.586666,
+    "cpuMs": 1501.633,
+    "rssMiB": 446.5625,
+    "answer": 13.232250104320302
+  }
+]

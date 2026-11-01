@@ -3,6 +3,21 @@ import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 
+it('checks the full 314_mousemoon.ra answer with borrowed real tables', () => {
+    const url = new URL('../../../demos/euler/314_mousemoon.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect((runtime.variables.get('Answer') as number).toFixed(8)).toBe('132.52756426');
+        expect(diagnostics.numberLoops).toBe(500);
+        expect(diagnostics.numberLoopBorrowedRealCells).toBe(94501500);
+        expect(diagnostics.numberLoopReadBufferCells).toBe(0);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+        expect(diagnostics.numberFunctionFallbacks).toBe(0);
+    } finally { runtime.dispose(); }
+}, 60_000);
+
 it('checks the full 311_biclinic.ra answer in private Number helpers', () => {
     const url = new URL('../../../demos/euler/311_biclinic.ra', import.meta.url);
     const diagnostics = new RuntimeDiagnostics();

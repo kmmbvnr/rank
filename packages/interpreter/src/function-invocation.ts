@@ -29,7 +29,7 @@ import {
 } from './execution.js';
 import { LocalFrame } from './frame.js';
 import { FunctionFrames } from './function-frame.js';
-import { resolveCompilerCapabilities, type CompilerCapabilities, type InterpreterOptions } from './interpreter-options.js';
+import { type CompilerCapabilities, type InterpreterOptions } from './interpreter-options.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
@@ -67,6 +67,8 @@ export interface FunctionDefinition {
 
 /** What defining and running a function body needs from execution and the fast-path owner. */
 export interface FunctionHost {
+    /** Selects the interpreter's captured base/reference capabilities. */
+    compiler(): CompilerCapabilities;
     resolve(name: string): RankValue;
     evaluateReturn(expression: Expression): Evaluation<RankValue>;
     apply(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue>;
@@ -133,7 +135,7 @@ export class FunctionInvocation {
     }
 
     private get compiler(): CompilerCapabilities {
-        return resolveCompilerCapabilities(this.options());
+        return this.host.compiler();
     }
 
     /** Calls a function, through its Rank body when it has one so the call can suspend. */

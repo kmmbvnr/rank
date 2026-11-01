@@ -1,0 +1,375 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "revision": "67e415c8bd9d0a41c201d0d96777ab6c73277723",
+  "sourceSha256": "8c3624c7c2d5de9ebc33aa6f5873481265c00db24933273a8c9aebe9f539559a",
+  "method": "Three serial fresh processes per timing case, rotating before/after order; imports excluded; parse/execute included; RSS before oracle; diagnostics separate",
+  "samples": [
+    {
+      "name": "before",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3572.40675,
+      "cpuMs": 3919.571,
+      "rssMiB": 343.84375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "before",
+      "round": 0,
+      "mode": "reference",
+      "grid": "25",
+      "variant": "original",
+      "ms": 920.571416,
+      "cpuMs": 1518.534,
+      "rssMiB": 457.46875,
+      "answer": 13.232250104320302
+    },
+    {
+      "name": "after",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "production",
+      "ms": 986.898708,
+      "cpuMs": 1221.359,
+      "rssMiB": 204.15625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "after",
+      "round": 0,
+      "mode": "reference",
+      "grid": "25",
+      "variant": "production",
+      "ms": 504.62354200000004,
+      "cpuMs": 898.227,
+      "rssMiB": 336.640625,
+      "answer": 13.232250104320302
+    },
+    {
+      "name": "after",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "production",
+      "ms": 986.6590830000001,
+      "cpuMs": 1212.918,
+      "rssMiB": 251.71875,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "after",
+      "round": 1,
+      "mode": "reference",
+      "grid": "25",
+      "variant": "production",
+      "ms": 503.49854100000005,
+      "cpuMs": 903.521,
+      "rssMiB": 325.53125,
+      "answer": 13.232250104320302
+    },
+    {
+      "name": "before",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3574.8445,
+      "cpuMs": 3887.928,
+      "rssMiB": 320.328125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "before",
+      "round": 1,
+      "mode": "reference",
+      "grid": "25",
+      "variant": "original",
+      "ms": 911.092291,
+      "cpuMs": 1498.292,
+      "rssMiB": 446.09375,
+      "answer": 13.232250104320302
+    },
+    {
+      "name": "before",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3578.237834,
+      "cpuMs": 3886.33,
+      "rssMiB": 345.28125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "before",
+      "round": 2,
+      "mode": "reference",
+      "grid": "25",
+      "variant": "original",
+      "ms": 914.1607079999999,
+      "cpuMs": 1504.334,
+      "rssMiB": 446.375,
+      "answer": 13.232250104320302
+    },
+    {
+      "name": "after",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "production",
+      "ms": 992.4620840000001,
+      "cpuMs": 1238.436,
+      "rssMiB": 275.578125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "after",
+      "round": 2,
+      "mode": "reference",
+      "grid": "25",
+      "variant": "production",
+      "ms": 507.30225,
+      "cpuMs": 903.543,
+      "rssMiB": 326.28125,
+      "answer": 13.232250104320302
+    }
+  ],
+  "verification": [
+    {
+      "grid": 1,
+      "mode": "compiled",
+      "answer": 0.5
+    },
+    {
+      "grid": 1,
+      "mode": "reference",
+      "answer": 0.5
+    },
+    {
+      "grid": 1,
+      "mode": "exact",
+      "answer": 0.5
+    },
+    {
+      "grid": 2,
+      "mode": "compiled",
+      "answer": 1.0251262658470837
+    },
+    {
+      "grid": 2,
+      "mode": "reference",
+      "answer": 1.0251262658470837
+    },
+    {
+      "grid": 2,
+      "mode": "exact",
+      "answer": 1.0251262658470837
+    },
+    {
+      "grid": 3,
+      "mode": "compiled",
+      "answer": 1.5699417657020496
+    },
+    {
+      "grid": 3,
+      "mode": "reference",
+      "answer": 1.5699417657020496
+    },
+    {
+      "grid": 3,
+      "mode": "exact",
+      "answer": 1.5699417657020496
+    },
+    {
+      "grid": 5,
+      "mode": "compiled",
+      "answer": 2.605220576101344
+    },
+    {
+      "grid": 5,
+      "mode": "reference",
+      "answer": 2.605220576101344
+    },
+    {
+      "grid": 5,
+      "mode": "exact",
+      "answer": 2.605220576101344
+    },
+    {
+      "grid": 10,
+      "mode": "compiled",
+      "answer": 5.283358681334832
+    },
+    {
+      "grid": 10,
+      "mode": "reference",
+      "answer": 5.283358681334832
+    },
+    {
+      "grid": 10,
+      "mode": "exact",
+      "answer": 5.283358681334832
+    },
+    {
+      "grid": 15,
+      "mode": "compiled",
+      "answer": 7.92330511435695
+    },
+    {
+      "grid": 15,
+      "mode": "reference",
+      "answer": 7.92330511435695
+    },
+    {
+      "grid": 15,
+      "mode": "exact",
+      "answer": 7.92330511435695
+    },
+    {
+      "grid": 25,
+      "mode": "compiled",
+      "answer": 13.232250104320302
+    },
+    {
+      "grid": 25,
+      "mode": "reference",
+      "answer": 13.232250104320302
+    },
+    {
+      "grid": 25,
+      "mode": "exact",
+      "answer": 13.232250104320302
+    }
+  ],
+  "diagnostic": {
+    "mode": "compiled",
+    "grid": "250",
+    "variant": "production",
+    "ms": 1005.1308750000001,
+    "cpuMs": 1226.322,
+    "rssMiB": 275.90625,
+    "answer": 132.52756425686314,
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 500,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 500,
+      "numberFunctions": 16559965,
+      "numberFunctionFallbacks": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "numberLoopBorrowedRealBuffers": 1500,
+      "numberLoopBorrowedRealCells": 94501500,
+      "compiledTensors": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 506,
+      "elementTypeScannedCells": 127006,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 1508,
+      "typedArrayPublishedCells": 378508,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-function:unsupported-op:to": 4,
+        "scalar-expression:too-small": 8,
+        "scalar-expression:unsupported-op:/": 4,
+        "scalar-expression:unsupported-op:**": 4,
+        "scalar-expression:unsupported-op:+": 1,
+        "tensor:scalar-evaluation-timing": 3,
+        "loop:unsupported-node:AssignmentStatement": 1,
+        "scalar-expression:unsupported-op:to": 3,
+        "scalar-expression:unsupported-op:*": 1,
+        "tensor:unsupported-type:array": 6,
+        "tensor:unsupported-node:MaterializeExpression": 1,
+        "scalar-expression:operator-guard:*": 2,
+        "scalar-expression:operator-guard:-": 2,
+        "loop:unsupported-node:ArrayAssignmentStatement": 1,
+        "tensor:unsupported-node:RecordExpression": 1,
+        "tensor:unsupported-node:LabelLiteral": 1,
+        "scalar-expression:unsupported-op:abs": 2,
+        "scalar-expression:unsupported-op:less": 2
+      },
+      "compilerRejections": [
+        {
+          "reason": "scalar-function:unsupported-op:to",
+          "node": "BinaryExpression",
+          "function": "optimize",
+          "expression": "0 to Grid array",
+          "line": 64,
+          "column": 8
+        }
+      ]
+    }
+  },
+  "baselineRevision": "5654217b0289bbe0843667cb6dbf4860ed399caf (compiler/demo unchanged at 67e415c8)",
+  "deliveryParent": "67e415c8bd9d0a41c201d0d96777ab6c73277723",
+  "sourceHashes": {
+    "demos/euler/314_mousemoon.ra": "8c3624c7c2d5de9ebc33aa6f5873481265c00db24933273a8c9aebe9f539559a",
+    "packages/interpreter/src/function-invocation.ts": "46b80a510ec72a4ba2a372d9fe10e3e10198fbda4da84513587533c4aed25501",
+    "packages/interpreter/src/interpreter.ts": "670c9e25a009e3c5491d3194efde2b400d972b8bb41673b0e694453095cf0c4f",
+    "packages/interpreter/src/jit/number-loop-runtime.ts": "c6603937f17e6a09317a7653208439a0fc805a2307188a45d0434f25c5dfe7ac"
+  }
+}

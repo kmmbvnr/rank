@@ -126,6 +126,7 @@ export class Interpreter {
         });
         this.functions = new FunctionInvocation(this.bindings, this.resources, this.builtins, this.inspection,
             this.modules, () => this.options, {
+                compiler: () => this.compiler,
                 resolve: name => this.resolve(name),
                 evaluateReturn: expression => this.expressions.returnValue(expression),
                 inputs: this.checkedInputs,

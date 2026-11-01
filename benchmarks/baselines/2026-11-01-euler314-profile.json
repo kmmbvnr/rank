@@ -1,0 +1,110 @@
+[
+  {
+    "ms": 1425.9,
+    "name": "resolveCompilerCapabilities",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/interpreter-options.js",
+    "line": 25
+  },
+  {
+    "ms": 1075.1,
+    "name": "",
+    "url": "",
+    "line": 3
+  },
+  {
+    "ms": 817.6,
+    "name": "flag",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/interpreter-options.js",
+    "line": 28
+  },
+  {
+    "ms": 531.5,
+    "name": "get compiler",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/function-invocation.js",
+    "line": 73
+  },
+  {
+    "ms": 317.9,
+    "name": "",
+    "url": "",
+    "line": 4
+  },
+  {
+    "ms": 296.5,
+    "name": "run",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/number-loop-runtime.js",
+    "line": 337
+  },
+  {
+    "ms": 216.5,
+    "name": "run.numberDirect",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/function-invocation.js",
+    "line": 943
+  },
+  {
+    "ms": 115.4,
+    "name": "(garbage collector)",
+    "url": "",
+    "line": 0
+  },
+  {
+    "ms": 85.9,
+    "name": "checkpoint",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/interrupt.js",
+    "line": 123
+  },
+  {
+    "ms": 79.8,
+    "name": "PrivateNumericArray",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/number-loop-runtime.js",
+    "line": 18
+  },
+  {
+    "ms": 68.1,
+    "name": "writeArrayCell",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js",
+    "line": 217
+  },
+  {
+    "ms": 53.5,
+    "name": "compileSourceTextModule",
+    "url": "node:internal/modules/esm/utils",
+    "line": 316
+  },
+  {
+    "ms": 37.7,
+    "name": "set",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/owned-array.js",
+    "line": 955
+  },
+  {
+    "ms": 22.0,
+    "name": "add",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/dfa.js",
+    "line": 20
+  },
+  {
+    "ms": 19.2,
+    "name": "general",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js",
+    "line": 94
+  },
+  {
+    "ms": 17.9,
+    "name": "rawNumber",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/function-invocation.js",
+    "line": 807
+  },
+  {
+    "ms": 17.0,
+    "name": "(program)",
+    "url": "",
+    "line": 0
+  },
+  {
+    "ms": 14.5,
+    "name": "advance",
+    "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js",
+    "line": 92
+  }
+]

@@ -1,0 +1,208 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "revision": "67e415c8bd9d0a41c201d0d96777ab6c73277723",
+  "sourceSha256": "40a9383e19d69707b862627203d612a05ed83f516844688f6968b74ed14b5e5d",
+  "method": "Three serial fresh processes per case, rotating order; import excluded; parse/execute included; no diagnostics; process peak RSS",
+  "samples": [
+    {
+      "name": "current",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3550.514333,
+      "cpuMs": 3889.079,
+      "rssMiB": 337.046875,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "continuous",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 2453.612875,
+      "cpuMs": 2743.848,
+      "rssMiB": 338.3125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1630.799667,
+      "cpuMs": 1929.597,
+      "rssMiB": 341.984375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-continuous",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1152.8747079999998,
+      "cpuMs": 1400.324,
+      "rssMiB": 265.828125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1657.593292,
+      "cpuMs": 1951.932,
+      "rssMiB": 343.625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow-continuous",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1156.736,
+      "cpuMs": 1412.411,
+      "rssMiB": 315.15625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "continuous",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 2490.4703329999998,
+      "cpuMs": 2791.401,
+      "rssMiB": 334.28125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1633.9299999999998,
+      "cpuMs": 1906.211,
+      "rssMiB": 345.25,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-continuous",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1150.858667,
+      "cpuMs": 1393.471,
+      "rssMiB": 261.078125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1673.047625,
+      "cpuMs": 1965.167,
+      "rssMiB": 338.5,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow-continuous",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1168.851625,
+      "cpuMs": 1434.555,
+      "rssMiB": 330.0625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "current",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 6282.804583,
+      "cpuMs": 5998.801,
+      "rssMiB": 343.3125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1801.9592499999999,
+      "cpuMs": 2126.884,
+      "rssMiB": 341.265625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-continuous",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1215.593125,
+      "cpuMs": 1479.848,
+      "rssMiB": 328.53125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 1687.8781250000002,
+      "cpuMs": 1985.853,
+      "rssMiB": 340.015625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow-continuous",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 1196.92375,
+      "cpuMs": 1464.983,
+      "rssMiB": 326.5625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "current",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3768.1659579999996,
+      "cpuMs": 4138.213,
+      "rssMiB": 338.859375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "continuous",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 2548.384125,
+      "cpuMs": 2864.186,
+      "rssMiB": 336.515625,
+      "answer": 132.52756425686314
+    }
+  ],
+  "prototypeCaveat": "Historical Float64-only borrowing: inactive on Euler 314 boxed real matrices. Borrow-labelled results still copied read tables; see final series for actual direct real reads."
+}

@@ -7,7 +7,7 @@ import { argumentSelectionError, MissingValueError, RankError } from '../errors.
 import { completed } from '../execution.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { checkpoint, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
-import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, typedArray } from '../array-storage.js';
+import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, typedArray, realCells, storedOperandItems } from '../array-storage.js';
 import { isRankArray, isRankIndex, type RankArray, type RankValue } from '../value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, LoopWorkFeedback } from './integer-loop-plan.js';
 
@@ -425,7 +425,19 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             // place. Check safe conversion at each actual load; an unsafe cell
             // discards the private scalar attempt before exact replay.
             const compact = info.type === 'integer' ? integer32Cells(value) : undefined;
-            if (compact) {
+            const real = info.type === 'real' && !plan.destinations.has(name) && !demandBudgetEnabled() ? realCells(value) : undefined;
+            if (real && storedOperandItems(value)) {
+                // Stored, all-present real cells need no conversion. The entry
+                // guards exclude observable callbacks; destinations still get
+                // private copies, including aliases of this read-only source.
+                // Budgets retain the original preparation checkpoints.
+                buffers[info.slot] = real;
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) {
+                    diagnostics.numberLoopBorrowedRealBuffers++;
+                    diagnostics.numberLoopBorrowedRealCells += real.length;
+                }
+            } else if (compact) {
                 // Private writes retain exact replay on overflow. Read-only
                 // regions can borrow Int32 values directly: every cell is safe.
                 // Stores widen the private copy before a value can truncate.

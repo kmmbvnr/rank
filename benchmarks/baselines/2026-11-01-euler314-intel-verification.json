@@ -1,0 +1,387 @@
+[
+  {
+    "name": "current",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "reference",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "continuous",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "borrow",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "borrow-continuous",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "borrow-inline",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "borrow-arity",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "cache",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "cache-continuous",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "cache-borrow",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "cache-borrow-continuous",
+    "grid": 1,
+    "answer": 0.5
+  },
+  {
+    "name": "current",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "reference",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "continuous",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "borrow",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "borrow-continuous",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "borrow-inline",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "borrow-arity",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "cache",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "cache-continuous",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "cache-borrow",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "cache-borrow-continuous",
+    "grid": 2,
+    "answer": 1.0251262658470837
+  },
+  {
+    "name": "current",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "reference",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "continuous",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "borrow",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "borrow-continuous",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "borrow-inline",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "borrow-arity",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "cache",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "cache-continuous",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "cache-borrow",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "cache-borrow-continuous",
+    "grid": 3,
+    "answer": 1.5699417657020496
+  },
+  {
+    "name": "current",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "reference",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "continuous",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "borrow",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "borrow-continuous",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "borrow-inline",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "borrow-arity",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "cache",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "cache-continuous",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "cache-borrow",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "cache-borrow-continuous",
+    "grid": 5,
+    "answer": 2.605220576101344
+  },
+  {
+    "name": "current",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "reference",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "continuous",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "borrow",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "borrow-continuous",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "borrow-inline",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "borrow-arity",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "cache",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "cache-continuous",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "cache-borrow",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "cache-borrow-continuous",
+    "grid": 10,
+    "answer": 5.283358681334832
+  },
+  {
+    "name": "current",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "reference",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "continuous",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "borrow",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "borrow-continuous",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "borrow-inline",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "borrow-arity",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "cache",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "cache-continuous",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "cache-borrow",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "cache-borrow-continuous",
+    "grid": 15,
+    "answer": 7.92330511435695
+  },
+  {
+    "name": "current",
+    "grid": 25,
+    "answer": 13.232250104320302
+  },
+  {
+    "name": "reference",
+    "grid": 25,
+    "answer": 13.232250104320302
+  },
+  {
+    "name": "continuous",
+    "grid": 25,
+    "answer": 13.232250104320302
+  },
+  {
+    "name": "borrow",
+    "grid": 25,
+    "answer": 13.232250104320302
+  },
+  {
+    "name": "borrow-continuous",
+    "grid": 25,
+    "answer": 13.232250104320302
+  },
+  {
+    "name": "borrow-inline",
+    "grid": 25,
+    "answer": 13.232250104320302
+  },
+  {
+    "name": "borrow-arity",
+    "grid": 25,
+    "answer": 13.232250104320302
+  },
+  {
+    "name": "cache",
+    "grid": 25,
+    "answer": 13.232250104320302
+  },
+  {
+    "name": "cache-continuous",
+    "grid": 25,
+    "answer": 13.232250104320302
+  },
+  {
+    "name": "cache-borrow",
+    "grid": 25,
+    "answer": 13.232250104320302
+  },
+  {
+    "name": "cache-borrow-continuous",
+    "grid": 25,
+    "answer": 13.232250104320302
+  }
+]

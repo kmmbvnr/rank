@@ -1,6 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
 import { detachInspection, withInterrupt } from '../src/interrupt.js';
+import * as configuration from '../src/interpreter-options.js';
 
 const program = `Total = 0
 for I in 1 to 100
@@ -8,6 +9,32 @@ for I in 1 to 100
 end
 Total`;
 const signal = () => new Int32Array(new SharedArrayBuffer(12));
+
+it('uses captured capabilities across linked helper calls and inspection', () => {
+    const resolver = vi.spyOn(configuration, 'resolveCompilerCapabilities');
+    let calls = 0;
+    const runtime = new Interpreter(() => {}, { onScalarFunctionExecuted: () => calls++ });
+    const source = `Total = 0
+for I in 1 to 100
+ Total += I square
+end
+Total`;
+    try {
+        runtime.execute('fun X square\n return X * X\nend');
+        const captured = resolver.mock.calls.length;
+        expect(runtime.execute(source)).toBe(338350n);
+        expect(calls).toBe(100);
+        expect(resolver.mock.calls.length).toBe(captured);
+        calls = 0;
+        withInterrupt(signal(), () => {
+            expect(runtime.execute(source)).toBe(338350n);
+            expect(calls).toBe(0);
+        }, () => {});
+        expect(runtime.execute(source)).toBe(338350n);
+        expect(calls).toBe(100);
+        expect(resolver.mock.calls.length).toBe(captured);
+    } finally { runtime.dispose(); resolver.mockRestore(); }
+});
 
 it.each([true, false])('reuses readonly capabilities, compilation=%s', compilation => {
     const runtime = new Interpreter(() => {}, { compilation });

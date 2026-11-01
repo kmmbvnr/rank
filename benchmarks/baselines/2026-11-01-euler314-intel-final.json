@@ -1,0 +1,209 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "revision": "5654217b0289bbe0843667cb6dbf4860ed399caf",
+  "sourceSha256": "40a9383e19d69707b862627203d612a05ed83f516844688f6968b74ed14b5e5d",
+  "method": "Three serial fresh processes per case, rotating order; import excluded; parse/execute included; no diagnostics; process peak RSS",
+  "samples": [
+    {
+      "name": "current",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 9071.622024,
+      "cpuMs": 9698.628,
+      "rssMiB": 293.34765625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "continuous",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 6140.994696,
+      "cpuMs": 6755.235,
+      "rssMiB": 297.55078125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 4429.900393,
+      "cpuMs": 5082.04,
+      "rssMiB": 326.18359375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-continuous",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 3229.6938520000003,
+      "cpuMs": 3903.193,
+      "rssMiB": 284.64453125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3818.400129,
+      "cpuMs": 4386.189,
+      "rssMiB": 272.515625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow-continuous",
+      "round": 0,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 2715.125302,
+      "cpuMs": 3240.015,
+      "rssMiB": 263.71484375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "continuous",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 6315.280024,
+      "cpuMs": 6971.781,
+      "rssMiB": 298.3359375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 4357.597791,
+      "cpuMs": 4980.707,
+      "rssMiB": 320.06640625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-continuous",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 3035.4900230000003,
+      "cpuMs": 3584.784,
+      "rssMiB": 294.05859375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3778.345709,
+      "cpuMs": 4344.422,
+      "rssMiB": 275.3203125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow-continuous",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 2757.914472,
+      "cpuMs": 3248.297,
+      "rssMiB": 263.49609375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "current",
+      "round": 1,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 9215.713036,
+      "cpuMs": 9825.55,
+      "rssMiB": 288.46875,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 4463.944085,
+      "cpuMs": 5105.393,
+      "rssMiB": 320.6171875,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-continuous",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 3068.10242,
+      "cpuMs": 3614.587,
+      "rssMiB": 297.34375,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 3844.380749,
+      "cpuMs": 4398.427,
+      "rssMiB": 260.53125,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "cache-borrow-continuous",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 2672.2158680000002,
+      "cpuMs": 3160.238,
+      "rssMiB": 261.87890625,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "current",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "original",
+      "ms": 9204.527371,
+      "cpuMs": 9870.969,
+      "rssMiB": 287.8671875,
+      "answer": 132.52756425686314
+    },
+    {
+      "name": "continuous",
+      "round": 2,
+      "mode": "compiled",
+      "grid": "250",
+      "variant": "continuous",
+      "ms": 6337.173551,
+      "cpuMs": 6934.777,
+      "rssMiB": 276.390625,
+      "answer": 132.52756425686314
+    }
+  ],
+  "revisionNote": "Copied runtime; concurrent Mac HEAD 67e415c8 changed Euler 696 only, not compiler or Euler 314",
+  "prototypeReadMode": "Direct stored real cells, boxed or packed; all-present stored operands required"
+}
