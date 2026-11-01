@@ -31,3 +31,43 @@ Gradient descent already runs eight tensor kernels. Start with window
 addressing, then inspect the next actual boundary.
 
 [Initial evidence](baselines/2026-11-01-fusion-initial-audit.json).
+
+## Step 1: native window views and shared ranked folds
+
+Unpadded native array windows publish scalar addressing through the existing
+trusted view API. The lowerer must still prove the source, so opaque/lazy
+readers keep ordinary evaluation. Padded/wrapped-padding windows keep their
+previous path. Ranked sum/mean/min/max over natural cell order can prepare
+one graph per observation and reuse it across all frames. Replaced native
+calls, inspection, host polling, stale guards and reordered axes fall back.
+No demo source or arithmetic reduction order changes.
+
+The first probe only added window addressing and prepared one graph for
+every window: **3.571 -> 9.773 ms**, a regression. That implementation was
+not committed. The final version reuses the graph: Conv2D preparation count
+falls from 484 in that probe to two, and derived-cell computations fall
+from 13,068 to zero. This removes intermediate scalar-cache work; typed
+buffer publications remain zero for this fixture and are not an allocation
+metric for its boxed output.
+
+Five alternating fresh process pairs compare against unchanged main:
+
+| Task | Main, ms | Candidate, ms |
+| --- | ---: | ---: |
+| kmeans | 14.2025 | 14.4344 |
+| convolution | 2.9947 | 1.2431 |
+| softmax | 0.2996 | 0.2994 |
+| logsoftmax | 0.8578 | 0.8634 |
+| gradient | 2.1207 | 1.4050 |
+| distance | 0.0575 | 0.0533 |
+| moving | 60.2716 | 17.9414 |
+| rowStats | 0.3364 | 0.3042 |
+
+Conv2D improves 2.41x and moving means 3.36x. Other timing shifts are not
+attributed to this change without mechanism evidence or confirmation.
+Build and 174 focused tests pass, including 18 new checks for geometry,
+mutation, aliases, host demand, replacement, wide/nonfinite values and budgets.
+
+[Negative first probe](baselines/2026-11-01-fusion-window-probe.json),
+[final step timings](baselines/2026-11-01-fusion-window-general.json),
+[final step counters](baselines/2026-11-01-fusion-window-audit.json).

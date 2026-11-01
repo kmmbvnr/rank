@@ -1,4 +1,5 @@
-import { registerTensorShift } from './tensor-map.js';
+import { registerScalarView } from './integer-view.js';
+import { registerTensorResult, registerTensorShift } from './tensor-map.js';
 import { completeNativeSequence } from './sequence-completion.js';
 import { resolveAxis } from './tensor-index.js';
 import { registerPackedBooleanShift } from './packed-booleans.js';
@@ -777,7 +778,7 @@ function arrayWindows(
         );
     });
     const resultShape = [...positionShape, ...widths];
-    const read = (linear: number): RankValue => {
+    const inputAt = (linear: number): number[] => {
         const output = arrayCoordinates(resultShape, linear);
         const input = output.slice(0, sourceShape.length);
         const offsets = output.slice(sourceShape.length);
@@ -786,11 +787,22 @@ function arrayWindows(
                 - padding[index]
                 + offsets[index];
         });
+        return input;
+    };
+    const read = (linear: number): RankValue => {
+        const input = inputAt(linear);
         return hasPadding ? readInput(input) : sourceItem(arrayOffset(sourceShape, input));
     };
     const result = derivedArray(resultShape, hasPadding ? [...dependencies, fill] : dependencies, read,
         dependencies.every(isKnownFileFree) && isKnownFileFree(fill), undefined, values);
 
+    // Complete windows are scalar address maps, not stored tensor copies.
+    // The graph lowerer still proves the source; opaque readers stay ordinary.
+    const source = dependencies.length === 1 ? dependencies[0] : undefined;
+    if (!hasPadding && source !== undefined && isRankArray(source)) {
+        registerScalarView(result, source, index => arrayOffset(sourceShape, inputAt(index)));
+        registerTensorResult(result);
+    }
     const size = arraySize(widths);
     windowCells.set(result, { size, fold(frameIndex, operation) {
         if (sourceShape.length === 1 && widths.length === 1 && !hasPadding) {

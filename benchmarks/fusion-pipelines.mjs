@@ -23,6 +23,8 @@ const paths = {
 const sources = Object.fromEntries(Object.entries(paths).map(([name, path]) =>
   [name, readFileSync(resolve(root, path), 'utf8')]));
 sources.distance = `fun A distance B\n D = A - B\n return D * D sum\nend`;
+sources.moving = `fun X moving\n W' = X window 32\n return (W * 0.5 + 1) mean rank 1\nend`;
+sources.rowStats = `fun X rowStats\n return ((X - 1) * (X + 1)) sum rank 1\nend`;
 const median = xs => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
 if (!values.worker) {
   assert(values.baseline, 'Pass an independently built --baseline');
@@ -57,7 +59,7 @@ if (!values.worker) {
   const { demandValue } = await import(pathToFileURL(resolve(checkout, 'packages/interpreter/out/plan.js')));
   const { typedArray } = await import(pathToFileURL(resolve(checkout, 'packages/interpreter/out/array-storage.js')));
   const runtime = new Interpreter(() => {});
-  runtime.execute('use numbers\nuse sequences\n' + sources[name]);
+  runtime.execute('use numbers\nuse sequences\nuse stats\n' + sources[name]);
   const vector = xs => typedArray(Float64Array.from(xs), [xs.length], undefined, 'real');
   const matrix = (rows, cols, f) => typedArray(Float64Array.from({ length: rows * cols },
     (_, i) => f(Math.floor(i / cols), i % cols)), [rows, cols], undefined, 'real');
@@ -77,6 +79,18 @@ if (!values.worker) {
       for (let i = 0; i < k; i++) for (let j = 0; j < k; j++) sum += a(r + i, c + j) * weight(i, j);
       expected.push(sum);
     }
+  } else if (name === 'moving') {
+    const xs = Array.from({ length: 4096 }, (_, i) => Math.sin(i * .19));
+    args = [vector(xs)]; fn = 'moving';
+    expected = Array.from({ length: xs.length - 31 }, (_, start) => {
+      let sum = 0; for (let i = 0; i < 32; i++) sum += xs[start + i] * .5 + 1; return sum / 32;
+    });
+  } else if (name === 'rowStats') {
+    const rows = 128, cols = 32, x = (r, c) => Math.sin(r * .3 + c * .17);
+    args = [matrix(rows, cols, x)]; fn = 'rowStats';
+    expected = Array.from({ length: rows }, (_, r) => {
+      let sum = 0; for (let c = 0; c < cols; c++) sum += (x(r, c) - 1) * (x(r, c) + 1); return sum;
+    });
   } else if (name === 'kmeans') {
     args = [matrix(256, 2, (r, c) => (r % 2) * 10 + (Math.floor(r / 2) % 2) * 2 + c),
       2n, matrix(2, 2, (r, c) => r * 10 + c), 5n]; fn = 'k_means'; expected = [1, 2, 11, 12];

@@ -13,6 +13,7 @@ export function rankedCells(
     scalar: ((arguments_: RankValue[]) => RankValue) | undefined,
     ownFiles: (value: RankValue) => void,
     arrayBatch: (() => (RankedMembership & { available(): boolean }) | undefined) | undefined,
+    scalarBatch?: () => ((index: number) => RankValue | undefined) | undefined,
 ): RankArray {
     const read = (index: number): RankValue => {
         const args = [cells.cellAt(index)];
@@ -27,6 +28,10 @@ export function rankedCells(
         ),
         prepare(shape) {
             if (inspectionEnabled()) return undefined;
+            if (shape.length === 0) {
+                const fold = scalarBatch?.();
+                if (fold) return index => fold(index) ?? read(index);
+            }
             if (scalar && shape.length === 0) {
                 const diagnostics = currentDiagnostics();
                 if (diagnostics) diagnostics.rankedBatches++;
