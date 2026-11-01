@@ -6,7 +6,8 @@ import { ResourceMap } from '../resource-summary.js';
 import { checkValueMutable } from '../runtime/value-protection.js';
 import type { RankIndex } from '../value.js';
 
-const get = Map.prototype.get, has = Map.prototype.has, mapSet = Map.prototype.set;
+const get = Map.prototype.get, has = Map.prototype.has, mapSet = Map.prototype.set, clear = Map.prototype.clear;
+const size = Object.getOwnPropertyDescriptor(Map.prototype, 'size')!.get!;
 const set = IndexEntries.prototype.set, resourceSet = ResourceMap.prototype.set;
 const integerProof = Object.getOwnPropertyDescriptor(IntegerEntries.prototype, 'integers')!.get;
 
@@ -22,20 +23,22 @@ export function hasPrivateIndexStorage(value: RankIndex): boolean {
         && (entries as IndexEntries).integers;
 }
 
-/** A write overlay avoids copying large sparse maps. Aliases of the same entries
- * share one overlay. Real errors publish it; overflow discards it for exact replay.
- * Calls are excluded from these regions, so neither reads nor publication can
- * observe an intermediate mixture of index, array and scalar state. */
+/** Nonempty indices use an overlay; initially empty ones need no duplicate Map:
+ * guarded in-place stores can be cleared on overflow before exact replay. Aliases
+ * share a transaction. Real errors retain preceding writes. Only audited scalar
+ * natives can run here; callbacks and observable polling retain the exact path. */
 export class PrivateIntegerIndex {
-    private readonly changes = new Map<IndexKey, number>();
+    private readonly changes?: Map<IndexKey, number>;
     private writes = 0;
 
-    constructor(private readonly source: RankIndex, private readonly overflow: object) {}
+    constructor(private readonly source: RankIndex, private readonly overflow: object) {
+        if (size.call(source.entries) > 0) this.changes = new Map();
+    }
 
-    has(key: IndexKey): boolean { return this.changes.has(key) || this.source.entries.has(key); }
+    has(key: IndexKey): boolean { return this.changes?.has(key) || this.source.entries.has(key); }
 
     private value(key: IndexKey, missing: string): number | bigint {
-        const changed = this.changes.get(key);
+        const changed = this.changes?.get(key);
         const value = changed === undefined ? this.source.entries.get(key) : changed;
         const diagnostics = currentDiagnostics();
         if (diagnostics) {
@@ -61,12 +64,19 @@ export class PrivateIntegerIndex {
 
     set(key: IndexKey, value: number): void {
         if (!Number.isSafeInteger(value)) throw this.overflow;
-        this.changes.set(key, value);
+        if (this.changes) this.changes.set(key, value);
+        else this.source.entries.set(key, BigInt(value));
         this.writes++;
     }
 
+    rollback(): void {
+        // Every stored value was a BigInt, so clearing preserves the integer
+        // and resource proofs. Bypass host clear hooks on this private rollback.
+        if (!this.changes) clear.call(this.source.entries);
+    }
+
     publish(): void {
-        for (const [key, value] of this.changes) this.source.entries.set(key, BigInt(value));
+        for (const [key, value] of this.changes ?? []) this.source.entries.set(key, BigInt(value));
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.indexWrites += this.writes;
     }

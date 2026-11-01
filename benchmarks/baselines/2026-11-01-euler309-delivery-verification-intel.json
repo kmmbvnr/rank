@@ -1,0 +1,23 @@
+{
+  "node": "v24.15.0",
+  "arch": "x64",
+  "smallAndFixtureChecks": 68,
+  "transactionComparisons": 8,
+  "hookChecks": 3,
+  "answers": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    3,
+    5,
+    5,
+    5,
+    11,
+    29,
+    76
+  ]
+}

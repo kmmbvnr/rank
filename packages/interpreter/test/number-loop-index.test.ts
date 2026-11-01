@@ -27,6 +27,110 @@ function compare(source: string, setup?: (runtime: Interpreter) => void) {
 }
 
 describe('private integer index loops', () => {
+    it.each(['I gcd 6', 'I lcm 6', 'I isqrt'])('admits audited scalar natives with an index: %s', call => {
+        const result = compare(`use algo
+use numbers
+Cache = new index
+Total = 0
+for I in 1 to 5
+ Cache I = I
+ Total += ${call}
+end`);
+        expect(result.observation.error).toBeUndefined();
+        expect(result.diagnostics.numberLoops).toBe(1);
+    });
+
+    it.each([false, true])('rolls back indices, aliases and arrays before replay (seeded: %s)', seeded => {
+        const result = compare(`use algo
+use numbers
+Cache = new index
+Alias = Cache
+Other = new index
+${seeded ? 'Cache -1 = 77\nOther -2 = 88' : ''}
+A = array 0 0 0
+Done = 0
+for I in 0 to 2
+ Cache I 0 = I
+ Alias I 0 += 1
+ Other (-I) = I + 10
+ A I += 1
+ Done += I gcd 2
+ Wide = 9007199254740991 + I
+end`);
+        expect(result.observation.error).toBeUndefined();
+        expect(result.diagnostics.numberLoops).toBeGreaterThan(0);
+        expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+    });
+
+    it('does not invoke host clear hooks while rolling back an empty index', () => {
+        const result = compare(`for I in 0 to 1
+ Cache I = I
+ Cache I += 1
+ Wide = 9007199254740991 + I
+end`, runtime => {
+            runtime.execute('use algo\nCache = new index');
+            const cache = runtime.variables.get('Cache')!;
+            if (!isRankIndex(cache)) throw Error('expected index');
+            cache.entries.clear = () => { throw Error('host clear'); };
+        });
+        expect(result.observation.error).toBeUndefined();
+        expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+    });
+
+    it('does not invoke a host size getter to choose private storage', () => {
+        const result = compare(`for I in 1 to 3
+ Cache I = I
+end`, runtime => {
+            runtime.execute('use algo\nCache = new index');
+            const cache = runtime.variables.get('Cache')!;
+            if (!isRankIndex(cache)) throw Error('expected index');
+            Object.defineProperty(cache.entries, 'size', { get() { throw Error('host size'); } });
+        });
+        expect(result.observation.error).toBeUndefined();
+        expect(result.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('keeps Rank callees on the publishing backend beside an index', () => {
+        const result = compare(`use algo
+Cache = new index
+Cache 0 = 0
+fun bump N
+ return N + 1
+end
+for I in 1 to 3
+ Cache I = bump I
+end`);
+        expect(result.observation.error).toBeUndefined();
+        expect(result.diagnostics.numberLoops).toBe(0);
+    });
+
+    it('rechecks a replaced gcd native on cached loop entry', () => {
+        for (const compilation of [false, true]) {
+            const runtime = new Interpreter(() => {}, { compilation, scalarEntryCompilation: false });
+            try {
+                runtime.execute(`use algo
+use numbers
+Cache = new index
+fun score Cache N
+ Total = 0
+ for I in 1 to N
+  Cache I = I
+  Total += I gcd 6
+ end
+ return Total
+end`);
+                expect(runtime.execute('Cache score 3')).toBe(6n);
+                runtime.variables.set('gcd', { kind: 'function', name: 'gcd', arities: [2],
+                    monadicRank: 0, call: () => {
+                        const cache = runtime.variables.get('Cache')!;
+                        if (!isRankIndex(cache)) throw Error('expected index');
+                        return BigInt(cache.entries.size);
+                    } });
+                expect(runtime.execute('Cache score 5')).toBe(18n);
+            } finally { runtime.dispose(); }
+        }
+    });
+
     it('shares tuple and negative keys through aliases and preserves insertion order', () => {
         const result = compare(`use algo
 Cache = new index
@@ -66,8 +170,9 @@ end`);
         if (mode === 'read') expect(result.diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
     });
 
-    it.each(['Cache 99', '1 // 0', 'A 2', 'Cache 99 += 1'])('publishes preceding index/array/scalar stores on %s', failure => {
+    it.each(['Cache 99', '1 // 0', 'A 2', 'Cache 99 += 1', '-1 isqrt'])('publishes preceding index/array/scalar stores on %s', failure => {
         const result = compare(`use algo
+use numbers
 Cache = new index
 Alias = Cache
 A = array 0 0

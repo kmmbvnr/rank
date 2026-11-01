@@ -1,0 +1,38 @@
+[
+  {
+    "variant": "current",
+    "count": 1000000,
+    "ms": 362.69158300000004,
+    "cpuMs": 483.27,
+    "heapMiB": 95.67595672607422,
+    "rssMiB": 282.625,
+    "maxRssMiB": 282.65625
+  },
+  {
+    "variant": "flat-only",
+    "count": 1000000,
+    "ms": 307.309084,
+    "cpuMs": 355.355,
+    "heapMiB": 79.64982604980469,
+    "rssMiB": 263.375,
+    "maxRssMiB": 263.390625
+  },
+  {
+    "variant": "number-only",
+    "count": 1000000,
+    "ms": 275.042917,
+    "cpuMs": 383.999,
+    "heapMiB": 95.67574310302734,
+    "rssMiB": 273.859375,
+    "maxRssMiB": 273.875
+  },
+  {
+    "variant": "combined",
+    "count": 1000000,
+    "ms": 268.641,
+    "cpuMs": 316.805,
+    "heapMiB": 79.64988708496094,
+    "rssMiB": 255.609375,
+    "maxRssMiB": 255.625
+  }
+]

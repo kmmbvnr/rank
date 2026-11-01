@@ -207,7 +207,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     const reboundInputs = [...plan.arrayDefinitions].some(name => plan.arrayInputs.has(name));
     if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length
         || [...plan.containers.values()].some(info => info.kind !== 'index')
-        || plan.containers.size > 0 && plan.calls.length > 0
+        || plan.containers.size > 0 && plan.calls.some(call => !call.privateIndexSafe)
         || plan.hasReturn || plan.hasYield
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
         || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank < 1)
@@ -507,6 +507,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             }
         });
         if (!result) {
+            for (const index of indices.values()) index.rollback();
             if (diagnostics) diagnostics.numberLoopOverflows++;
             return undefined;
         }

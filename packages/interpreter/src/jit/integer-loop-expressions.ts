@@ -510,6 +510,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
      * runtime binding still checks the module and current builtin on every entry. */
     function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
         const signature = operation.compiledCall!;
+        // Only audited scalar natives can run while an index transaction is
+        // private. Rank helpers and host/operand callbacks may observe it.
+        const privateIndexSafe = signature.callbacks === 'none' && !signature.hostFunction
+            && !operation.effects?.length;
         // Pure integer-to-text/predicate calls cannot round a numeric result.
         // Keep their operands exact while the surrounding arithmetic stays in
         // checked Number registers. Entry binding still verifies the native.
@@ -528,7 +532,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 arguments_.push(value.code);
             }
             const name = `v${state.serial++}`, index = calls.length;
-            calls.push({ name: operation.name, locals: [], stableArrayReads: true, numberSafe: true,
+            calls.push({ name: operation.name, locals: [], stableArrayReads: true, numberSafe: true, privateIndexSafe,
                 bind: host.prepareBuiltinCall(operation.module, operation.name, signature.inputs, false) });
             lines.push(`const ${name} = calls[${index}](${arguments_.join(',')});`);
             return { code: name, type: signature.result };
@@ -595,6 +599,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         // Catalogue compiled calls are synchronous operations with
         // no Rank callbacks; bind() checks the current builtin.
         calls.push({ name: operation.name, locals: [], stableArrayReads: true, numberSafe: numberMode,
+            privateIndexSafe: privateIndexSafe && types.every(type => ['integer', 'real', 'boolean', 'text'].includes(type)),
             bind: host.prepareBuiltinCall(operation.module, operation.name, types, numberMode) });
         let code = `calls[${index}](${arguments_.join(',')})`;
         // Exact bitsets need no native dispatch per cell. Retain the bound call

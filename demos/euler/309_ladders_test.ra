@@ -31,3 +31,19 @@ test "many width groups"
 
   Answer equal 1438
 end
+
+test "strict ladder length boundary"
+  use "309_ladders"
+  Limit = 119
+  run
+
+  Answer equal 2
+end
+
+test "length 119 becomes eligible"
+  use "309_ladders"
+  Limit = 120
+  run
+
+  Answer equal 3
+end

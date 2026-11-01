@@ -1,0 +1,10 @@
+{
+  "limit": 1000000,
+  "primitiveTriples": 159139,
+  "storedHeights": 3961272,
+  "candidatePairs": 61023819,
+  "widthsWithPairs": 394068,
+  "maxGroup": 337,
+  "answer": 210139,
+  "note": "JS Euclid/packed cross-check shares the mathematical enumeration; small brute oracle is independent."
+}

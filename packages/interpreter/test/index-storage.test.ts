@@ -49,6 +49,12 @@ describe('index storage', () => {
         expect(indexKey([1n, 2n])).not.toBe(indexKey([1n, 2n, 0n]));
     });
 
+    it('retains the exact decimal tuple encoding for safe and wide coordinates', () => {
+        expect(indexKey([-0, 9007199254740991])).toBe('integers:0,9007199254740991');
+        expect(indexKey([1e21, -1n])).toBe('integers:1000000000000000000000,-1');
+        expect(indexKey([10n ** 30n, 9007199254740992])).toBe('integers:1000000000000000000000000000000,9007199254740992');
+    });
+
     it('keeps aliases, insertion order, cached false/zero and detached previews', () => {
         const index = newStructure('index');
         if (!isRankIndex(index)) throw new Error('expected index');

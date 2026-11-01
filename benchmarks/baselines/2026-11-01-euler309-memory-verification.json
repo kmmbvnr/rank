@@ -1,0 +1,6 @@
+{
+  "focusedTests": 80,
+  "differentialComparisons": 48,
+  "exactEncodedKeyComparisons": 1734,
+  "note": "Diagnostic runtime copies; not a production compiler fix."
+}

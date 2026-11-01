@@ -23,7 +23,11 @@ export function indexKey(values: readonly RankValue[]): IndexKey {
     // comma-delimited exact integers avoid structural set codecs and JSON.
     if (values.length > 1 && values.every(value => typeof value === 'bigint'
         || typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value))) {
-        return `integers:${values.map(value => typeof value === 'bigint' ? value : BigInt(value as number)).join(',')}`;
+        // A final join avoids retaining a prefix/suffix concatenation per key.
+        // Safe Number decimals are already canonical; wider ones need BigInt
+        // to avoid exponential notation and match exact integer coordinates.
+        return ['integers:', values.map(value => typeof value === 'bigint' || Number.isSafeInteger(value)
+            ? value : BigInt(value as number)).join(',')].join('');
     }
     return JSON.stringify(values.map(value => {
         if (typeof value === 'bigint' || typeof value === 'number'
