@@ -1240,3 +1240,64 @@ Final ordinary interpreter result: **456 files / 10,490 tests passed**
 The FFT demo source has no diff against main. Production changes are five
 files, 39 added and 11 removed lines; each implementation step has its own
 commit, followed by this final validation record.
+
+## Merge audit: effects beyond FFT
+
+Rebuilt main `7e04577a` (including Langium generation) and the final branch
+`18413f5c`; production source is unchanged from the full 456-file / 10,490-test
+validation above. This audit adds measurements and documentation only.
+All workers run serially in fresh processes, alternating baseline/candidate
+order per pair, with independent output oracles and full output forcing.
+No tests or profiles run concurrently with timing.
+
+Seven process pairs cover the unchanged numerical demos and matrix fixtures:
+
+| Task | Main, ms | Candidate, ms | Time change |
+| --- | ---: | ---: | ---: |
+| euler | 12.4640 | 12.4880 | +0.2% |
+| matvec | 29.5179 | 29.6378 | +0.4% |
+| row | 23.7747 | 24.4826 | +3.0% |
+| column | 24.0870 | 24.1196 | +0.1% |
+| matmul | 237.3570 | 236.3220 | -0.4% |
+| gradient | 7.6598 | 7.5280 | -1.7% |
+| kmeans | 105.7270 | 105.8768 | +0.1% |
+| integer-matrix | 96.7317 | 95.5005 | -1.3% |
+| real-matrix | 119.1087 | 117.5288 | -1.3% |
+| real-broadcast | 130.1825 | 130.9739 | +0.6% |
+| fft | 0.8890 | 0.7838 | -11.8% |
+
+Nine controls differ by less than 2%. Row means have a +3.0% pooled median
+but a -0.6% median within-pair change; the earlier large slowdown is not
+reproduced. FFT again improves, by 11.8% in this shorter timing contract.
+These are workload-specific results, not evidence of faster arbitrary code.
+
+Five process pairs cover 4,096-cell producer/copy pipelines, with at least
+1 s warmup and three target 300 ms batches per process:
+
+| Pipeline | Main, ms | Candidate, ms | Time change |
+| --- | ---: | ---: | ---: |
+| cosine | 0.1170 | 0.0915 | -21.8% |
+| squareRoot | 0.0931 | 0.0684 | -26.5% |
+| real | 0.1213 | 0.0952 | -21.5% |
+| gather | 0.0875 | 0.0884 | +1.1% |
+| tupleGather | 0.0865 | 0.0611 | -29.3% |
+| copy | 0.0470 | 0.0468 | -0.5% |
+
+`cosine`, `squareRoot`, `real` and `tupleGather` each eliminate a 4,096-cell
+exact-kind scan. Their wall-time reductions range from 21.5% to 29.3%.
+The already-fused gather and plain copy already scan zero cells and remain
+close to baseline. Earlier noisy/negative series are retained above.
+
+No further FFT-specific or operation-specific optimization was added. The
+existing physical-kind hint is retained by completed unary numeric kernels,
+real conversion, and typed row/gather copies with already known uniform
+source kinds. Unknown/mixed sources keep discovery; lazy/host readers are
+not forced to prove a kind. This is general runtime evidence propagation,
+with the existing mutation and observation rules retained.
+
+The measured general benefits, unchanged-source correctness validation and
+absence of a reproduced substantial demo slowdown support merging this
+branch into main. Exhaustive audits were not run.
+
+[Full demo audit](baselines/2026-11-01-buffer-facts-merge-demos.json),
+[producer pipelines and counters](baselines/2026-11-01-buffer-facts-merge-producers.json).
