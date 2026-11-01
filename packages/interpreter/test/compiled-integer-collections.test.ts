@@ -270,8 +270,10 @@ end`);
         expect(Object.keys(result.fallbacks)).toEqual([]);
     }, 30000);
 
-    it('compiles the Euler 023 top-level search at full size', () => {
-        const source = readFileSync(new URL('../../../demos/euler/023_abundantsums.ra', import.meta.url), 'utf8');
+    it('compiles the abundant-sum collection search at full size', () => {
+        // Retain collection compiler coverage
+        // independently of the current demo.
+        const source = readFileSync(new URL('./fixtures/euler023-integer-collections.ra', import.meta.url), 'utf8');
         const result = compare(source);
         expect(result.value).toBe(4179871n);
         expect(result.output).toEqual(['4179871']);
