@@ -26,18 +26,17 @@ describe('keyed fold core', () => {
     it('fills missing groups and handles empty inputs', () => {
         const values = array([10, 20, 30]);
         const keys = array([2, 5, 2]);
-        expect(items(keyedFold(values, keys, add, { identity: () => 0n })))
-            .toEqual([0n, 0n, 40n, 0n, 0n, 20n]);
+        expect(items(keyedFold(values, keys, add, { size: 7, identity: () => 0n })))
+            .toEqual([0n, 0n, 40n, 0n, 0n, 20n, 0n]);
         expect(() => keyedFold(values, keys, add)).toThrow(/initial value/);
-        expect(items(keyedFold(values, keys, add, { seed: 9n })))
-            .toEqual([9n, 9n, 49n, 9n, 9n, 29n]);
-        expect(items(keyedFold(array([]), array([]), add, { seed: 9n })))
-            .toEqual([]);
+        expect(items(keyedFold(array([]), array([]), add, { size: 2, seed: 9n })))
+            .toEqual([9n, 9n]);
         expect(items(keyedFold(array([]), array([]), add))).toEqual([]);
     });
-    it('rejects invalid shapes and keys', () => {
+    it('rejects invalid shapes, keys and sizes', () => {
         expect(() => keyedFold(array([1, 2]), array([0]), add)).toThrow(/shape/);
         expect(() => keyedFold(array([1]), array([-1]), add)).toThrow(/keys/);
-        expect(() => keyedFold(array([1]), ownedArray([1.5]), add)).toThrow(/keys/);
+        expect(() => keyedFold(array([1]), array([2]), add, { size: 2 })).toThrow(/outside/);
+        expect(() => keyedFold(array([]), array([]), add, { size: -1 })).toThrow(/size/);
     });
 });
