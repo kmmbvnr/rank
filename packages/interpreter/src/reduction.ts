@@ -1,3 +1,4 @@
+import { keyedFold } from './keyed-fold.js';
 import { foldAxisPartition, foldAxisDiagnostic } from '@arrrank/language';
 import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
@@ -39,6 +40,21 @@ export class ReductionEvaluator {
         private readonly invoke: (fn: NativeFunction, arguments_: RankValue[]) => RankValue,
         private readonly ownFiles: (value: RankValue) => void,
     ) {}
+
+    evaluateKeyed(kind: 'reduce' | 'scan', operation: string | NativeFunction,
+        source: RankValue, keys: RankValue, seed?: RankValue, size?: RankValue): RankValue {
+        if (size !== undefined && typeof size !== 'bigint') {
+            throw new RankError('by size must be an integer', 'TypeError');
+        }
+        const symbolic = typeof operation === 'string';
+        return keyedFold(source, keys,
+            (left, right) => symbolic ? this.binary(operation, left, right)
+                : this.invoke(operation, [left, right]), {
+                scan: kind === 'scan', seed,
+                size: size === undefined ? undefined : Number(size),
+                identity: symbolic ? () => reductionIdentity(operation) : undefined,
+            });
+    }
 
     private isTensorFusion(): boolean {
         return typeof this.tensorFusion === 'function' ? this.tensorFusion() : this.tensorFusion;

@@ -6,7 +6,7 @@ import {
     isPrimaryTailExpression, isUnaryExpression, type ApplicationExpression, type Expression,
     type KeyedGroupExpression, type KeyedJoinExpression, type KeyedMergeExpression,
     type KeyedReachExpression, type KeyedRollingExpression, type KeyedSortExpression,
-    type Program, type TableWriteExpression,
+    type Program, type TableWriteExpression, type NameExpression,
 } from './generated/ast.js';
 
 type Fields<T extends AstNode> = Omit<T, keyof AstNode> & Pick<T, '$type'>;
@@ -62,7 +62,7 @@ export function normalizePrimaryApplications(program: Program, operatorOffsets: 
             } else {
                 properties = {
                     $type: 'ApplicationExpression', head: node.head,
-                    arguments: [node.argument, ...node.sortFields.map(field => field.field), ...(node.sortKey ? [node.sortKey] : [])],
+                    arguments: [node.argument, { $type: 'NameExpression', name: 'by' } as NameExpression, ...node.sortFields.map(field => field.field), ...(node.sortKey ? [node.sortKey] : []), ...node.arguments],
                 };
             }
         } else if (node.secondArgument && (node.clause === 'by' || node.clause === 'on')) {
@@ -100,13 +100,19 @@ export function normalizePrimaryApplications(program: Program, operatorOffsets: 
             } else {
                 properties = {
                     $type: 'ApplicationExpression', head: node.head,
-                    arguments: [node.argument, node.secondArgument, ...node.sortFields.map(field => field.field), ...(node.sortKey ? [node.sortKey] : [])],
+                    arguments: [node.argument, node.secondArgument, { $type: 'NameExpression', name: node.clause } as NameExpression, ...node.sortFields.map(field => field.field), ...(node.sortKey ? [node.sortKey] : []), ...node.arguments],
                 };
             }
         } else {
             properties = {
                 $type: 'ApplicationExpression', head: node.head,
                 arguments: [node.argument, ...tailArguments],
+            };
+        }
+        if (node.clause === 'by' && node.arguments.length && properties.$type !== 'ApplicationExpression') {
+            properties = {
+                $type: 'ApplicationExpression', head: properties as Expression,
+                arguments: node.arguments,
             };
         }
         for (const key of Object.keys(node)) {

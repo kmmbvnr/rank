@@ -1,0 +1,27 @@
+import { expect, it } from 'vitest';
+import { run } from './support.js';
+
+const setup = 'V = array 10 20 30 40\nK = array 0 1 0 1\n';
+it('reduces and scans by integer keys', () => {
+    expect(run(setup + 'V reduce + by K')).toBe('40 60');
+    expect(run(setup + 'V scan + by K with 100')).toBe('110 120 140 160');
+    expect(run(setup + 'V reduce + by K size 4')).toBe('40 60 0 0');
+});
+it('calls an ordered user reducer', () => {
+    expect(run('fun A sub B = A - B\n' + setup + 'V reduce sub by K')).toBe('-20 -20');
+});
+it('continues pipelines and accepts computed keys', () => {
+    expect(run(setup + 'V reduce + by K sum')).toBe('100');
+    expect(run('use sequences\nM = (array 1 2 3 4 5 6) reshape 2 3\nI = 0 to 1\nJ = 0 to 2\nM reduce + by (I J outer +)'))
+        .toBe('1 6 8 6');
+});
+it('validates keys and conflicting modifiers', () => {
+    expect(() => run(setup + 'V reduce + by (array 0)')).toThrow(/shape/);
+    expect(() => run(setup + 'V reduce + by K size 1')).toThrow(/outside/);
+    expect(() => run(setup + 'V reduce + axis 0 by K')).toThrow(/by cannot/);
+});
+it('handles empty arrays and missing groups', () => {
+    expect(run('E = array shape 0 fill 0\nE reduce + by E size 3')).toBe('0 0 0');
+    expect(run('V = array 10 20\nK = array 1 3\nV reduce + by K')).toBe('0 10 0 20');
+    expect(run('V = array 10 20\nK = array 1 3\nV scan + by K with 100')).toBe('110 120');
+});

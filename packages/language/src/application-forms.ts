@@ -106,6 +106,8 @@ export interface FoldModifiers {
     readonly axis?: Expression;
     readonly axes?: readonly Expression[];
     readonly seed?: Expression;
+    readonly keys?: Expression;
+    readonly size?: Expression;
 }
 
 function foldNumber(value: Expression | undefined): boolean {
@@ -115,7 +117,7 @@ function foldNumber(value: Expression | undefined): boolean {
 /** Include all fold modifiers before a following pipeline operation. */
 export function foldModifierEnd(parts: Expression[], start: number, nameOf: NameOf = rawName): number {
     let end = start;
-    while (['rank', 'axis', 'with'].some(word => isNamed(parts[end], word, nameOf))) {
+    while (['rank', 'axis', 'with', 'by', 'size'].some(word => isNamed(parts[end], word, nameOf))) {
         const axis = isNamed(parts[end], 'axis', nameOf);
         end += 2;
         if (axis) while (foldNumber(parts[end])) end++;
@@ -125,10 +127,15 @@ export function foldModifierEnd(parts: Expression[], start: number, nameOf: Name
 
 function foldModifiers(parts: Expression[], start: number, scan: boolean, nameOf: NameOf = rawName): FoldModifiers {
     let rank: Expression | undefined, seed: Expression | undefined, axes: Expression[] | undefined;
+    let keys: Expression | undefined, size: Expression | undefined;
     for (let index = start; index < parts.length;) {
         const word = parts[index++];
-        if (isNamed(word, 'with', nameOf) && seed === undefined && index === parts.length - 1) {
+        if (isNamed(word, 'with', nameOf) && seed === undefined && parts[index]) {
             seed = parts[index++];
+        } else if (isNamed(word, 'by', nameOf) && keys === undefined && parts[index]) {
+            keys = parts[index++];
+        } else if (isNamed(word, 'size', nameOf) && size === undefined && parts[index]) {
+            size = parts[index++];
         } else if (isNamed(word, 'rank', nameOf) && rank === undefined && seed === undefined && parts[index]) {
             rank = parts[index++];
         } else if (isNamed(word, 'axis', nameOf) && axes === undefined && seed === undefined) {
@@ -142,16 +149,19 @@ function foldModifiers(parts: Expression[], start: number, scan: boolean, nameOf
             ? 'scan expects optional rank R and axis N, followed by optional with Seed'
             : 'reduce expects optional rank R and axis axes, followed by optional with Seed');
     }
-    return { rank, seed, ...(scan ? { axis: axes?.[0] } : { axes }) };
+    if (size && !keys) throw new ApplicationSyntaxError('size requires by Keys');
+    if (keys && (rank || axes)) throw new ApplicationSyntaxError('by cannot combine with rank or axis');
+    return { rank, seed, keys, size, ...(scan ? { axis: axes?.[0] } : { axes }) };
 }
 
 export type SymbolicApplicationForm =
     | { readonly kind: 'outer'; readonly operator: string; readonly operands: readonly Expression[] }
     | { readonly kind: 'segment'; readonly operator: string; readonly source: Expression }
     | { readonly kind: 'scan'; readonly operator: string; readonly source: Expression; readonly seed?: Expression;
-        readonly axis?: Expression; readonly rank?: Expression }
+        readonly axis?: Expression; readonly rank?: Expression; readonly keys?: Expression; readonly size?: Expression }
     | { readonly kind: 'reduce'; readonly operator: string; readonly source: Expression;
-        readonly rank?: Expression; readonly axes?: readonly Expression[]; readonly seed?: Expression };
+        readonly rank?: Expression; readonly axes?: readonly Expression[]; readonly seed?: Expression;
+        readonly keys?: Expression; readonly size?: Expression };
 
 /** Recognize the current symbolic modifier syntax once for runtime and analysis. */
 export function symbolicApplicationForm(

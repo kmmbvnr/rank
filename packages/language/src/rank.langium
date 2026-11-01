@@ -500,14 +500,14 @@ PrimaryApplicationExpression returns Expression:
             clause='by' (
                 sortFields+=SortField+ |
                 sortKey=SortKeyExpression direction=SortDirection?
-            ) |
+            ) (arguments+=NameExpression arguments+=ApplicationArgument*)? |
             secondArgument=PrimaryExpression (
                 clause='by' (
                     sortFields+=SortField+ |
-                    sortKey=NameExpression direction=SortDirection?
-                ) |
+                    sortKey=SortKeyExpression direction=SortDirection?
+                ) (arguments+=NameExpression arguments+=ApplicationArgument*)? |
                 clause='on' NL* pairs+=JoinFieldPair+ |
-                arguments+=ApplicationArgument*
+                (arguments+=UnmodifiedArgument arguments+=ApplicationArgument*)?
                     ({infer MaterializeExpression.source=current} 'array')?
             ) |
             arguments+=NonPrimaryArgument arguments+=ApplicationArgument*
@@ -569,10 +569,16 @@ UnpackExpression:
     'unpack' value=PrimaryExpression;
 
 ApplicationArgument returns Expression:
+    FoldByName | UnmodifiedArgument;
+
+UnmodifiedArgument returns Expression:
     NonPrimaryArgument | PrimaryExpression;
 
 NonPrimaryArgument returns Expression:
     UnpackExpression | ArrayExpression | TupleExpression;
+
+FoldByName infers NameExpression:
+    name='by';
 
 PrimaryExpression returns Expression:
     ArrayAtom | AllAxisExpression;

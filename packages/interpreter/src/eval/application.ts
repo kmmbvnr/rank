@@ -218,6 +218,11 @@ export class ApplicationEvaluator {
                     const seed = scan.seed === undefined
                         ? undefined
                         : yield* resume(context.evaluate(scan.seed));
+                    if (scan.keys) {
+                        const keys = yield* resume(context.evaluate(scan.keys));
+                        const size = scan.size ? yield* resume(context.evaluate(scan.size)) : undefined;
+                        return context.reductions.evaluateKeyed('scan', scan.operator, source, keys, seed, size);
+                    }
                     return context.reductions.evaluateScan(
                         scan.operator,
                         source,
@@ -228,7 +233,7 @@ export class ApplicationEvaluator {
             case 'reduce': {
                 const reduction = { ...form, rank: form.rank === undefined ? undefined
                     : safeDimension(integerLiteral(form.rank, 'rank'), 'rank') };
-                const fused = context.fastPaths.application(form, parts, {
+                const fused = form.keys ? undefined : context.fastPaths.application(form, parts, {
                     reduce: (operator, value) => context.reductions.evaluateReduction(operator, value),
                     apply: values => application.apply(values, missing, 0, [], tail),
                 });
@@ -238,6 +243,11 @@ export class ApplicationEvaluator {
                     const seed = reduction.seed === undefined
                         ? undefined
                         : yield* resume(context.evaluate(reduction.seed));
+                    if (reduction.keys) {
+                        const keys = yield* resume(context.evaluate(reduction.keys));
+                        const size = reduction.size ? yield* resume(context.evaluate(reduction.size)) : undefined;
+                        return context.reductions.evaluateKeyed('reduce', reduction.operator, source, keys, seed, size);
+                    }
                     return context.reductions.evaluateReduction(
                         reduction.operator,
                         source,
@@ -414,6 +424,12 @@ export class ApplicationEvaluator {
                     const operation = yield* resume(functionReference(namedScan.operation, context));
                     if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
                         throw new RankError(`${form.kind === 'named-reduce' ? 'reduce' : 'scan'} requires a binary operation`);
+                    }
+                    if (namedScan.keys) {
+                        const keys = yield* resume(context.evaluate(namedScan.keys));
+                        const size = namedScan.size ? yield* resume(context.evaluate(namedScan.size)) : undefined;
+                        return context.reductions.evaluateKeyed(form.kind === 'named-reduce' ? 'reduce' : 'scan',
+                            operation, source, keys, seed, size);
                     }
                     if (form.kind === 'named-reduce') {
                         return context.reductions.evaluateNamedReduction(operation, source, seed, rank, axes);
