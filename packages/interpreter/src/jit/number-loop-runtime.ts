@@ -151,7 +151,7 @@ function int32(value: number): number {
 /** Repeated squaring uses only checked integer products. JS ** can round a
  * mathematical integer to a different safe integer, so checking its result alone
  * would not establish exactness. Negative exponents replay with real semantics. */
-function power(base: number, exponent: number): number {
+export function checkedNumberPower(base: number, exponent: number): number {
     if (exponent < 0) throw overflow;
     let result = 1;
     while (exponent > 0) {
@@ -252,7 +252,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
             (index: number | bigint, axis = 0) => index < 0 ? new RankError(`array index must be nonnegative on axis ${axis}`)
-                : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower,
+                : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, checkedNumberPower, widePower,
             (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number, real = false) => new PrivateNumericArray(shape, fill, undefined, undefined, real),
             (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
             (shape: number[], cells: NumberCells) => new PrivateNumericArray([...shape], 0, cells), textLength, indexKey,

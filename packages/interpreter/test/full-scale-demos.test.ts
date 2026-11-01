@@ -3,6 +3,18 @@ import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 
+it('checks the full 311_biclinic.ra answer in private Number helpers', () => {
+    const url = new URL('../../../demos/euler/311_biclinic.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, {sourceId: fileURLToPath(url)});
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(2466018557n);
+        expect(diagnostics.numberFunctions).toBe(2500);
+        expect(diagnostics.numberFunctionFallbacks).toBe(0);
+    } finally { runtime.dispose(); }
+}, 90_000);
+
 // Retain full bounds and require compiled execution here.
 // Fixture-level reference comparisons belong to the corpus audits.
 for (const [file, expected] of [

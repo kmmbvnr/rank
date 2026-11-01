@@ -117,7 +117,7 @@ it('uses audited overloads rather than a compiled subset or operand names', () =
     expect(operationSignature({ ...split, signatures: undefined })).toBeUndefined();
     expect(operationSignature(split, 1)).toBeUndefined();
     expect(operationSignature(findOperation('reverse')!)).toBe(
-        "text → text ; c<a> → c<a>");
+        "text → text ; c<a> → c<a> ; c<a> integer integer → c<a>");
 });
 
 it('selects overloads using known argument facts and preserves alternatives for unknowns', () => {

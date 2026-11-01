@@ -1,0 +1,60 @@
+rem Biclinic Integral Quadrilaterals
+rem https://projecteuler.net/problem=311
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 10
+arg Block integer = 4000000
+
+Top = Limit // 4
+Answer = 0
+for Low in 1 to Top by Block
+  High = (Low + Block - 1) min Top
+  Answer += Low biclinic_block High
+end
+Answer print
+
+fun Low biclinic_block High
+  Size = High - Low + 1
+  Cnt = array shape Size fill 0
+  Root = (High / 2) ** 0.5 floor
+  Answer = 0
+  for Y in 1 to Root
+    Y2 = Y * Y
+    Min = Y2 + (Y + 1) ** 2
+    if Min greater High
+      continue
+    end
+    X1 = Y + 1
+    Need = Low - Y2
+    if Need greater X1 * X1
+      X1 = Need ** 0.5 floor
+      if X1 * X1 less Need
+        X1 += 1
+      end
+      if X1 at most Y
+        X1 = Y + 1
+      end
+    end
+    X2 = (High - Y2) ** 0.5 floor
+    for X in X1 to X2
+      T = Y2 + X * X
+      R = Cnt (T - Low)
+      Answer += R * (R - 1) // 2
+      Cnt (T - Low) = R + 1
+    end
+  end
+  First = ((Low + 1) // 2) ** 0.5 floor
+  if 2 * First * First less Low
+    First += 1
+  end
+  Last = (High // 2) ** 0.5 floor
+  for S in First to Last
+    R = Cnt (2 * S * S - Low)
+    Answer += R * (R - 1) // 2
+  end
+  return Answer
+end

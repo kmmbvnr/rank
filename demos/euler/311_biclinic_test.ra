@@ -1,5 +1,22 @@
 use testing
 
+test "empty search"
+  use "311_biclinic"
+  Limit = 0
+  run
+
+  Answer equal 0
+end
+
+test "small block boundaries"
+  use "311_biclinic"
+  Limit = 10000
+  Block = 97
+  run
+
+  Answer equal 49
+end
+
 test "published ten thousand"
   use "311_biclinic"
   Limit = 10000

@@ -45,7 +45,7 @@ import { hasNativeImplementation } from './native-implementation.js';
 import { FunctionPlanDemandError } from './function-plan.js';
 import { preparePositionalBuiltin } from './jit/typed-native.js';
 import type { LoopCallable } from './jit/integer-loop-plan.js';
-import { numberOverflow } from './jit/number-loop-runtime.js';
+import { numberOverflow, checkedNumberPower } from './jit/number-loop-runtime.js';
 import { nativeSetMembership } from './collections.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
@@ -800,6 +800,7 @@ export class FunctionInvocation {
             () => new RankError('division by zero'),
             numberOverflow,
             checkpoint,
+            checkedNumberPower,
             () => new RankError('range step must be a nonzero integer'),
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
@@ -976,7 +977,7 @@ export class FunctionInvocation {
                 const operation = findOperation(name);
                 const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
                 if (!operation || !this.modules.has(operation.module) || !value || !this.builtins.is(operation.module, name, value)
-                    || kernel.plans && (!isNativeFunction(value) || !hasNativeImplementation(value))) return false;
+                    || (kernel.plans || kernel.numberDirect) && (!isNativeFunction(value) || !hasNativeImplementation(value))) return false;
             }
             for (let index = 0; index < binders.length; index++) {
                 const call = binders[index]();

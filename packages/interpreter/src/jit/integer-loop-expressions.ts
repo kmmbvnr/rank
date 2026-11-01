@@ -1,5 +1,6 @@
 import { floorDivide } from '../numeric-division.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
+import { numericBoundSource } from './numeric-bound-codegen.js';
 import { AstUtils } from 'langium';
 import { loopValueType, type LoopHost, type LoopTerm } from './integer-loop-plan.js';
 import { compiledIntegerMembership } from '../integer-membership.js';
@@ -38,7 +39,7 @@ const parity = (even: boolean): InlineBuiltin => ({ module: 'numbers', types: { 
 const bound = (name: 'floor' | 'ceil'): InlineBuiltin => ({ module: 'numbers', types: { integer: 'integer', real: 'integer' },
     enabled: host => host.reals,
     domain: { test: (value, type) => type === 'real' ? `!Number.isFinite(${value})` : undefined, message: `${name} expects a finite number` },
-    code: (value, type, numberMode) => type === 'real' ? numberMode ? `safe(Math.${name}(${value}))` : `BigInt(Math.${name}(${value}))` : value });
+    code: (value, type, numberMode) => numericBoundSource(name, value, type === 'real' ? 'real' : 'integer', numberMode) });
 const inlineBuiltins = new Map<string, InlineBuiltin>([
     ['abs', { module: 'numbers', types: { integer: 'integer', real: 'real' }, enabled: host => host.absolute,
         code: (value, type, numberMode) => type === 'real' ? `Math.abs(${value})`

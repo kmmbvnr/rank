@@ -1,6 +1,7 @@
 import { checkValueMutable } from '../value-protection.js';
 import { materializeValue } from '../materialize.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
+import { numericBoundSource } from './numeric-bound-codegen.js';
 import { membershipLookup } from '../membership-lookup.js';
 import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-type.js';
 import { newStructure, addToCollection, expectAddCollection, setHas } from '../collections.js';
@@ -67,6 +68,7 @@ interface Kernel {
         zero: () => Error,
         overflow: unknown,
         checkpoint: () => void,
+        power: (base: number, exponent: number) => number,
         badStep?: () => Error,
         powerZero?: () => Error,
         powerDomain?: () => Error) => LoopCallable;
@@ -80,7 +82,7 @@ function compileScalarNumberKernel(
     locations: readonly (Statement | Expression)[],
 ): Kernel['numberDirect'] | undefined {
     if (!proof.localArrayWrites || proof.planCalls.length
-        || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => name !== 'len')
+        || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => !['len', 'floor', 'ceil'].includes(name))
         || proof.dependencies.length || proof.callCount > 0) return undefined;
     const isNumType = (t: CompiledCalleeType) => t === 'integer' || t === 'real' || t === 'boolean';
     if (!isNumType(proof.type) || !parameterTypes.every(isNumType)) return undefined;
@@ -164,6 +166,21 @@ function compileScalarNumberKernel(
             }
             if ((input.operation === 'array-len' && arrays.has(input.name))
                 || (input.operation === 'len' && queues.has(input.name))) return `${slot(input.name)}.length`;
+            if (input.operation === 'integer-power') {
+                // The proof restricts the exponent to nonnegative integers.
+                // Preserve unary-minus precedence and replay any unsafe result.
+                const base = lowerNum(input.indices![0], lines), exponent = lowerNum(input.indices![1], lines);
+                if (!base || !exponent) return undefined;
+                const result = `v${serial++}`, literal = input.indices![1];
+                // Match the loop backend: multiply squares inline; higher or
+                // computed powers use checked products, never approximate pow.
+                const code = literal.kind === 'literal' && literal.value === 0n ? '1'
+                    : literal.kind === 'literal' && literal.value === 1n ? base
+                    : literal.kind === 'literal' && literal.value === 2n ? `(${base}) * (${base})`
+                    : `power(${base}, ${exponent})`;
+                lines.push(`const ${result} = safe(${input.negative ? '-' : ''}(${code}));`);
+                return result;
+            }
             if (input.operation) return undefined;
             if (input.indices) {
                 if (!arrays.has(input.name) || input.indices.length !== 1) return undefined;
@@ -195,7 +212,20 @@ function compileScalarNumberKernel(
             lines.push(`const ${res} = ${scalarExtremeSource(compiled.name, left, right)};`);
             return res;
         }
-        if (compiled.kind === 'call') return undefined;
+        if (compiled.kind === 'call') {
+            const name = compiled.operation.name;
+            if (compiled.operation.module !== 'numbers' || name !== 'floor' && name !== 'ceil'
+                || compiled.arguments.length !== 1) return undefined;
+            const argument = compiled.arguments[0];
+            if (argument.type !== 'integer' && argument.type !== 'real') return undefined;
+            const value = lowerNum(argument, lines);
+            if (!value) return undefined;
+            const result = `v${serial++}`;
+            // Native binding guards are shared with the exact kernel. Nonfinite
+            // or unsafe results replay there, retaining its domain errors.
+            lines.push(`const ${result} = ${numericBoundSource(name, value, argument.type, true)};`);
+            return result;
+        }
         const op = compiled.operation.name;
         if (op === 'and' || op === 'or') {
             const left = lowerNum(compiled.left, lines);
@@ -225,7 +255,7 @@ function compileScalarNumberKernel(
             } else if (op === '**') {
                 lines.push(`if (${zeroTestSource(left, 'numeric')} && (${right}) < 0) throw powerZero();`);
                 const isInteger = compiled.signature.result === 'integer';
-                lines.push(`const ${res} = ${isInteger ? `safe((${left}) ** (${right}))` : `(${left}) ** (${right})`};`);
+                lines.push(`const ${res} = ${isInteger ? `power(${left}, ${right})` : `(${left}) ** (${right})`};`);
                 if (!isInteger) lines.push(`if (Number.isNaN(${res})) throw powerDomain();`);
             }
         } else if (['<', '<=', '>', '>=', '==', '!=', 'equal', 'notequal'].includes(op) || compiled.operation.binary) {
@@ -369,7 +399,7 @@ function compileScalarNumberKernel(
     if (!lowerCommands(statement.statements, lines)) return undefined;
     const paramNames = statement.parameters.map((_, i) => `r${i}`);
     const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
-    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint, badStep, powerZero, powerDomain) {
+    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint, power, badStep, powerZero, powerDomain) {
         return function(${paramNames.join(',')}) {
             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
             let location = -1;

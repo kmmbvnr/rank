@@ -7,7 +7,7 @@ use io
 use cli
 
 arg Limit integer = 10 ** 10
-arg Block integer = 4000000
+arg Block integer = 1000000
 
 Top = Limit // 4
 Answer = 0

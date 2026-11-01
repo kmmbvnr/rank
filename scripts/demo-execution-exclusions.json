@@ -22,7 +22,7 @@
   "euler/303_smalldigits.ra": "Full compiled answer is covered by full-scale-demos.test.ts; the reference remainder BFS remains above the audit execution budget.",
   "euler/309_ladders.ra": "Enumerates scaled Pythagorean ladders through 1000000.",
   "euler/310_nimsquare.ra": "Full compiled answer is covered by full-scale-demos.test.ts; the array Grundy recurrence remains above the reference audit budget.",
-  "euler/311_biclinic.ra": "Processes a geometric search through 10^10 in blocks of 4000000.",
+  "euler/311_biclinic.ra": "Full compiled answer is covered by full-scale-demos.test.ts; roughly a billion square-pair updates and 2.5 billion counter visits remain above the reference audit budget.",
   "euler/314_mousemoon.ra": "Runs repeated lattice optimization on a 250 by 250 grid.",
   "euler/315_digitalclocks.ra": "Processes digital-root chains for primes between 10^7 and 2*10^7.",
   "euler/316_decimals.ra": "Computes decimal-pattern expectations for 999998 divisors.",
