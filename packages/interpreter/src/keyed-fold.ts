@@ -6,7 +6,6 @@ import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 export interface KeyedFoldOptions {
     readonly scan?: boolean;
-    readonly size?: number;
     readonly seed?: RankValue;
     readonly identity?: () => RankValue;
 }
@@ -22,14 +21,11 @@ export function keyedFold(values: RankValue, keys: RankValue,
     if (!sameShape(values.shape, keys.shape)) {
         throw new RankError('by keys must match the values shape', 'DimensionMismatch');
     }
-    const { size, seed, identity, scan } = options;
-    if (size !== undefined && (!Number.isSafeInteger(size) || size < 0 || size >= 0xffffffff)) {
-        throw new RankError('by size must be a nonnegative array length', 'DimensionMismatch');
-    }
+    const { seed, identity, scan } = options;
     const count = values.shape.reduce((a, b) => a * b, 1);
     const states: RankValue[] = [];
     const output: RankValue[] = [];
-    let length = size ?? 0;
+    let length = 0;
     for (let index = 0; index < count; index++) {
         checkpoint('keyed fold');
         const key = readArrayItem(keys, index);
@@ -37,9 +33,6 @@ export function keyedFold(values: RankValue, keys: RankValue,
             throw new RankError('by keys must be nonnegative integer array indices', 'TypeError');
         }
         const at = Number(key);
-        if (size !== undefined && at >= size) {
-            throw new RankError('by key is outside the result size', 'IndexError');
-        }
         length = Math.max(length, at + 1);
         const value = readArrayItem(values, index);
         const previous = states[at];
