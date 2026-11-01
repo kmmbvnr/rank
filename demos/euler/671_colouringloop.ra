@@ -1,6 +1,7 @@
 rem Colouring a Loop
 rem https://projecteuler.net/problem=671
 
+use linalg
 use numbers
 use sequences
 use io
@@ -97,9 +98,8 @@ Vm = Rmk
 Nt = 100
 Ts = array shape Nt fill 0
 for M in 0 to Nt - 1
-  Vq = Vm reshape Nr Nv 1
-  Vt = Vq * (Am reshape 1 Nv Nv) mod P
-  Vm = Vt sum axis 1 mod P
+  rem Binary transitions keep sums exact.
+  Vm = Vm matmul Am mod P
   Dh = Vm * Rmk
   Dg = Dh sum axis 1
   Ts M = (Dg * Wt mod P) sum mod P

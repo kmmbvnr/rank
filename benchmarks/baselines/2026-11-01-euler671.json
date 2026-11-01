@@ -1,0 +1,42 @@
+{
+  "issue": 499,
+  "baseCommit": "205906ca",
+  "environment": {
+    "cpu": "Apple M5",
+    "architecture": "arm64",
+    "node": "v24.15.0"
+  },
+  "timing": "Fresh sequential processes; parsing and execution included; imports and Interpreter construction excluded.",
+  "runs": [
+    {
+      "mode": "broadcast",
+      "ms": 56400.529333000006,
+      "cpuMs": 61180.001,
+      "rssMiB": 694.28125,
+      "answer": "946106780"
+    },
+    {
+      "mode": "matmul",
+      "ms": 3295.595459,
+      "cpuMs": 3855.53,
+      "rssMiB": 399.640625,
+      "answer": "946106780"
+    },
+    {
+      "mode": "matmul",
+      "ms": 3476.989375,
+      "cpuMs": 4091.011,
+      "rssMiB": 399.984375,
+      "answer": "946106780"
+    },
+    {
+      "mode": "matmul",
+      "ms": 3336.956708,
+      "cpuMs": 3931.753,
+      "rssMiB": 400.578125,
+      "answer": "946106780"
+    }
+  ],
+  "matmulMedianMs": 3336.956708,
+  "speedupVsBroadcastSample": 16.901786348556968
+}
