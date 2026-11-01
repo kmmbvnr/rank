@@ -1349,3 +1349,23 @@ Evidence: [before profile](baselines/2026-11-01-fft-priority-profile-before.json
 [FFT confirmation](baselines/2026-11-01-fft-priority-int32-confirm.json),
 [metadata-guard series](baselines/2026-11-01-fft-priority-int32-geometry.json),
 [integer controls](baselines/2026-11-01-fft-priority-int32-controls.json).
+
+### Step 2: power-of-two division/remainder on proven Int32 values
+
+Only a proven Int32 dividend and a fixed positive power-of-two divisor up
+to 2^31 qualify. Signed right shift implements floor division; a mask gives
+the nonnegative modulo for negative dividends too. Wider intermediate
+values, divisors above 2^31 and unknown bounds retain guarded arithmetic.
+This is a scalar lowering rule, not recognition of the FFT permutation.
+
+Seven fresh-process pairs against step 1 (`5820950e`), >=1.5 s warmup and
+three target 750 ms batches, give FFT-4096 **0.7913 -> 0.7266 ms** (8.2%
+less wall time), process CPU **1.1571 -> 1.0716 ms** (7.4% less). Ranges
+still overlap because of slow processes. First-size **12.259 -> 11.186 ms**
+is retained but not presented as an established cold-start improvement.
+
+Build and 345 focused tests pass. Exact BigInt oracles cover negative
+Int32 endpoints, intermediate widening, overflow, aliases, modulo/division
+at 2^31, and the non-eligible 2^32 cases. No change to the FFT source.
+
+[Incremental FFT timings](baselines/2026-11-01-fft-priority-shifts.json).

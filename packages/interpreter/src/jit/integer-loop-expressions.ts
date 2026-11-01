@@ -471,6 +471,16 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (op === '**') lines.push(`if (Number.isNaN(${name})) throw powerDomain();`);
             return name;
         }
+        const divisor = right.bounds?.[0];
+        if (numberMode && type === 'integer' && (op === '//' || op === 'mod')
+            && left.bounds && left.bounds[0] >= -2147483648 && left.bounds[1] <= 2147483647
+            && divisor !== undefined && right.bounds![1] === divisor && divisor >= 1 && divisor <= 2147483648
+            && (BigInt(divisor) & (BigInt(divisor) - 1n)) === 0n) {
+            // Signed shifts implement floor division; the mask gives the
+            // nonnegative remainder even for negative Int32 dividends.
+            lines.push(`const ${name} = (${a}) ${op === '//' ? `>> ${Math.log2(divisor)}` : `& ${divisor - 1}`};`);
+            return name;
+        }
         if (token !== '//' && token !== '%') {
             lines.push(`const ${name} = ${type === 'integer' ? checked(binaryOperatorSource(operation, a, b)) : binaryOperatorSource(operation, a, b)};`);
             return name;
