@@ -1,4 +1,4 @@
-// Completed numeric producers and copies, with full output forcing.
+// Numerical pipelines and materialization boundaries; build before running.
 import assert from 'node:assert/strict';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';

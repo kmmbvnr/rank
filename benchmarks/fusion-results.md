@@ -71,3 +71,45 @@ mutation, aliases, host demand, replacement, wide/nonfinite values and budgets.
 [Negative first probe](baselines/2026-11-01-fusion-window-probe.json),
 [final step timings](baselines/2026-11-01-fusion-window-general.json),
 [final step counters](baselines/2026-11-01-fusion-window-audit.json).
+
+## Rejected probe: rounding fallback metadata
+
+Registering the array result in `roundValue` as a scalar-map recipe leaves
+log-softmax unchanged: zero tensor executions, four published typed buffers,
+16,384 published cells and 4,096 derived-cell computations. Intrinsic round
+has ranks 0/0, so the ordinary lifted call executes the scalar path; the
+array fallback is not the effective graph boundary. This change is removed.
+A future general solution belongs at parameterized native scalar lifting,
+with argument-validation and observation ordering preserved.
+
+## Step 2: allocation-free native window addresses
+
+The first step still computed each route with an output-coordinate array
+and two slices. Capture affine index terms once, then compute only the flat
+source offset in a scalar loop. Native-plan capture checks both geometries;
+if the live geometry changed, the ordinary coordinate mapper is used.
+Ordinary readers and integer-view adapters retain their original mapping.
+This improves window routing generally, not a Conv2D-specific loop.
+
+Five fresh alternating pairs compare against step 1 (`7d8260c8`):
+
+| Task | Step 1, ms | Step 2, ms |
+| --- | ---: | ---: |
+| convolution | 1.1016 | 0.8631 |
+| moving | 16.8312 | 9.6265 |
+| gradient | 1.2879 | 1.1191 |
+| distance | 0.0531 | 0.0528 |
+| rowStats | 0.2877 | 0.2864 |
+
+Conv2D improves another 1.28x, moving means another 1.75x. Distance and
+row-stat controls are effectively unchanged. Gradient timing changes are
+not attributed to window work: its diagnostic pipeline is unchanged.
+Do not multiply these ratios by earlier series; use a final comparison.
+Build and 97 focused tests pass, including new checks for multidimensional
+axis order and stale source geometry. No FFT or demo source is changed.
+
+Evidence: [Conv2D](baselines/2026-11-01-fusion-index-convolution.json),
+[moving means](baselines/2026-11-01-fusion-index-moving.json),
+[gradient control](baselines/2026-11-01-fusion-index-gradient.json),
+[distance control](baselines/2026-11-01-fusion-index-distance.json),
+[row-stat control](baselines/2026-11-01-fusion-index-rowStats.json).

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray, isNativeFunction, type RankArray } from '../src/index.js';
 import { ownedArray, typedArray } from '../src/array-storage.js';
 import { demandValue } from '../src/plan.js';
+import { prepareNativeScalarView } from '../src/integer-view.js';
+import { windowValue } from '../src/sequence.js';
 import { withDemandBudget } from '../src/interrupt.js';
 
 function run(expression: string, input: () => RankArray, compilation = true) {
@@ -44,6 +46,32 @@ describe('native window addressing and ranked folds', () => {
 
     it.each([NaN, Infinity, -Infinity, 2n ** 100n])('retains nonfinite and wide arithmetic: %s', cell => {
         compare('((A window 2) * 2) sum rank 1', () => ownedArray([cell, cell, cell, cell]));
+    });
+
+    it.each([
+        [[2, 3, 4], [2, 2], [2, 0]],
+        [[3, 4], [2, 3], [0, 1]],
+    ])('matches native address order for %j windows %j axes %j', (shape, widths, axes) => {
+        const source = ownedArray(Array.from({ length: shape.reduce((n, d) => n * d, 1) }, (_, i) => BigInt(i)), shape);
+        const window = windowValue(source, ownedArray(widths.map(BigInt)), axes) as RankArray;
+        const view = prepareNativeScalarView(window);
+        if (!view) throw Error('missing native window view');
+        for (let i = 0; i < window.shape.reduce((n, d) => n * d, 1); i++) {
+            expect(source.items[view.offset(i)]).toBe(window.itemAt!(i));
+        }
+    });
+
+    it('invalidates prepared addressing when live source geometry changes', () => {
+        const shape = [3, 4];
+        const source: RankArray = { kind: 'array', shape, items: Array.from({ length: 12 }, (_, i) => BigInt(i)) };
+        const window = windowValue(source, ownedArray([2n, 2n])) as RankArray;
+        const before = prepareNativeScalarView(window);
+        if (!before) throw Error('missing view');
+        shape[0] = 4; shape[1] = 3;
+        expect(before.valid()).toBe(false);
+        const after = prepareNativeScalarView(window);
+        if (!after) throw Error('missing updated view');
+        for (let i = 0; i < 24; i++) expect(source.items[after.offset(i)]).toBe(window.itemAt!(i));
     });
 
     it('preserves empty output geometry', () => {

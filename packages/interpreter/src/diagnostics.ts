@@ -76,11 +76,11 @@ export class RuntimeDiagnostics {
     rangeSelectorViews = 0;
     selectionSnapshots = 0;
     selectionSnapshotCells = 0;
-    /** Typed buffers turned back into boxed cells, which costs 4 to 8 times the memory. */
     /** Completed typed buffers published through the ownership-taking API.
      * Excludes private scratch buffers and shared stored views. */
     typedArrayPublications = 0;
     typedArrayPublishedCells = 0;
+    /** Typed buffers turned back into boxed cells, which costs 4 to 8 times the memory. */
     typedUnpacks = 0;
     typedUnpackedCells = 0;
     readonly fallbacks: Record<string, number> = Object.create(null);
