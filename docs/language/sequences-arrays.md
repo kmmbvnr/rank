@@ -1782,6 +1782,11 @@ The seed does not add output cells. Without a seed, a group's first value
 initializes its state. `size` checks key bounds but does not change the scan
 shape. Keyed folds currently reject `rank` and `axis` modifiers.
 
+Stored Int32 values and keys have a direct path for `+`, `*`, `min` and
+`max` reductions/scans. Partial integer states stay in the exact safe-number
+range and widen independently to BigInt when needed. Input order and exact
+integer results are preserved. Other inputs retain the general path.
+
 Integer keyed `reduce +`, `reduce *`, `scan +`, `scan *` and `sum`
 followed by `mod M` can reduce intermediate states modulo a positive integer
 `M`, avoiding growth of exact products. Other reducers, noninteger inputs

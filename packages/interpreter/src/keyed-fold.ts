@@ -1,4 +1,5 @@
-import { ownedArray, readArrayItem } from './array-storage.js';
+import { currentDiagnostics } from './diagnostics.js';
+import { integer32Cells, ownedArray, readArrayItem } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { sameShape } from './tensor-index.js';
@@ -6,6 +7,7 @@ import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 export interface KeyedFoldOptions {
     readonly scan?: boolean;
+    readonly operator?: string;
     readonly size?: number;
     readonly seed?: RankValue;
     readonly identity?: () => RankValue;
@@ -25,6 +27,13 @@ export function keyedFold(values: RankValue, keys: RankValue,
     const { size, seed, identity, scan } = options;
     if (size !== undefined && (!Number.isSafeInteger(size) || size < 0 || size >= 0xffffffff)) {
         throw new RankError('by size must be a nonnegative array length', 'DimensionMismatch');
+    }
+    const integers = integer32Cells(values), indices = integer32Cells(keys);
+    if (integers && indices && ['+', '*', 'min', 'max'].includes(options.operator ?? '')
+        && (seed === undefined || typeof seed === 'bigint')) {
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.integerKeyedFolds++;
+        return integerKeyedFold(integers, indices, values.shape, options);
     }
     const count = values.shape.reduce((a, b) => a * b, 1);
     const states: RankValue[] = [];
@@ -94,6 +103,54 @@ export function keyedAggregate(values: RankValue, keys: RankValue,
         const group = groups[at];
         // A seed for a whole-group aggregate fills an absent group only.
         result.push(!group && seed !== undefined ? seed : aggregate(ownedArray(group ?? [])));
+    }
+    return ownedArray(result);
+}
+
+
+/** Raw Int32 operands keep safe partials unboxed; each group widens independently. */
+function integerKeyedFold(values: Int32Array, keys: Int32Array, shape: readonly number[],
+    options: KeyedFoldOptions): RankArray {
+    const { seed, identity, size, scan, operator } = options;
+    const states: (number | bigint | undefined)[] = [];
+    const output: RankValue[] = [];
+    let length = size ?? 0;
+    const exact = (value: number | bigint): bigint => typeof value === 'bigint' ? value : BigInt(value);
+    for (let index = 0; index < values.length; index++) {
+        checkpoint('integer keyed fold');
+        const key = keys[index];
+        if (key < 0) throw new RankError('by keys must be nonnegative integer array indices', 'TypeError');
+        if (size !== undefined && key >= size) throw new RankError('by key is outside the result size', 'IndexError');
+        length = Math.max(length, key + 1);
+        const value = values[index];
+        const previous = states[key] ?? seed as bigint | undefined;
+        let next: number | bigint = value;
+        if (previous !== undefined) {
+            if (typeof previous === 'number') {
+                next = operator === '+' ? previous + value : operator === '*' ? previous * value
+                    : operator === 'min' ? Math.min(previous, value) : Math.max(previous, value);
+                if (!Number.isSafeInteger(next)) next = operator === '+' ? exact(previous) + BigInt(value)
+                    : exact(previous) * BigInt(value);
+            } else {
+                const right = BigInt(value);
+                next = operator === '+' ? previous + right : operator === '*' ? previous * right
+                    : operator === 'min' ? previous < right ? previous : right : previous > right ? previous : right;
+                const number = Number(next);
+                if (Number.isSafeInteger(number)) next = number;
+            }
+        }
+        states[key] = next;
+        if (scan) output.push(exact(next));
+    }
+    if (scan) return ownedArray(output, shape);
+    const result: RankValue[] = [];
+    for (let key = 0; key < length; key++) {
+        checkpoint('integer keyed fold');
+        const state = states[key];
+        if (state !== undefined) result.push(exact(state));
+        else if (seed !== undefined) result.push(seed);
+        else if (identity) result.push(identity());
+        else throw new RankError('empty keyed group requires an initial value', 'MissingValueError');
     }
     return ownedArray(result);
 }

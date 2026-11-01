@@ -1,0 +1,25 @@
+{
+  "cpu": "Apple M5",
+  "node": "v24.15.0",
+  "count": 10000000,
+  "bins": 512,
+  "timing": "prepared arrays and parsed programs; alternating order; all bins independently checked outside timing",
+  "genericMs": 233.59720799999968,
+  "optimizedMs": 38.299375000000055,
+  "samplesMs": [
+    [
+      233.44612499999994,
+      233.70399999999995,
+      233.59720799999968,
+      233.15374999999995,
+      234.57787499999995
+    ],
+    [
+      42.60679200000004,
+      38.13779199999999,
+      38.299375000000055,
+      42.028999999999996,
+      38.121374999999716
+    ]
+  ]
+}

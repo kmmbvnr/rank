@@ -47,9 +47,16 @@ export class ReductionEvaluator {
             throw new RankError('by size must be an integer', 'TypeError');
         }
         const symbolic = typeof operation === 'string';
-        return keyedFold(source, keys,
-            (left, right) => symbolic ? this.binary(operation, left, right)
-                : this.invoke(operation, [left, right]), {
+        const fallback = (left: RankValue, right: RankValue) => symbolic ? this.binary(operation, left, right)
+            : this.invoke(operation, [left, right]);
+        const builtin = !symbolic && hasNativeImplementation(operation);
+        const extreme = builtin && operation === this.standardFunctions.get(standardModules.core.min) ? 'min'
+            : builtin && operation === this.standardFunctions.get(standardModules.core.max) ? 'max' : undefined;
+        const scalar = !symbolic && this.scalarCallback(operation);
+        const combine = symbolic ? numericKernel(operation, fallback)
+            : scalar ? (left: RankValue, right: RankValue) => scalar([left, right]) : fallback;
+        return keyedFold(source, keys, combine, {
+                operator: this.isTensorFusion() && !inspectionEnabled() ? symbolic ? operation : extreme : undefined,
                 scan: kind === 'scan', seed,
                 size: size === undefined ? undefined : Number(size),
                 identity: symbolic ? () => reductionIdentity(operation) : undefined,
