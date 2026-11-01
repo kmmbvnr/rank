@@ -136,17 +136,8 @@ for K in 0 to Tt + 1
         Xa = B1s
         Xb = Gold
       end
-      Rr = array shape Lf fill 0
-      Nz = (Xa not equal 0) indices
-      for Ix in Nz
-        Vv = Xa Ix
-        Hi = Lf - 1 - Ix
-        Pr = Vv * Xb (0 to Hi) mod P
-        Ie = Lf - 1
-        Pq = Rr (Ix to Ie) + Pr
-        Rr (Ix to Ie) = Pq mod P
-      end
-      Rr = Rr * Uk
+      Cv = Xa convolve Xb mod P
+      Rr = (Cv take Lf) * Uk
       if W equal 0
         Gv = Rr
       end
@@ -189,13 +180,8 @@ for Ee greater 0
       if W equal 1
         Ya = Bs
       end
-      Zz = array shape (Tt + 1) fill 0
-      for I in 0 to Tt
-        Hh = Tt - I
-        Pw = Ya I * Bs (0 to Hh) mod P
-        Zs = Zz (I to Tt) + Pw
-        Zz (I to Tt) = Zs mod P
-      end
+      Cv = Ya convolve Bs mod P
+      Zz = Cv take (Tt + 1)
       if W equal 0
         Rs = Zz
       end

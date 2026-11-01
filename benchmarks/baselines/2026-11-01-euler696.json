@@ -1,0 +1,106 @@
+{
+  "issue": 500,
+  "baseCommit": "5654217b",
+  "environment": {
+    "cpu": "Apple M5",
+    "architecture": "arm64",
+    "node": "v24.15.0"
+  },
+  "timing": "Fresh sequential processes; full parsing and execution included; imports and Interpreter construction excluded.",
+  "runs": [
+    {
+      "mode": "baseline",
+      "ms": 10413.687583,
+      "cpuMs": 14714.733,
+      "rssMiB": 768.03125,
+      "answer": "436944244"
+    },
+    {
+      "mode": "blocks",
+      "ms": 2321.816041,
+      "cpuMs": 3462.761,
+      "rssMiB": 672.71875,
+      "answer": "436944244"
+    },
+    {
+      "mode": "convolve",
+      "ms": 2289.256625,
+      "cpuMs": 3573.856,
+      "rssMiB": 685.8125,
+      "answer": "436944244"
+    },
+    {
+      "mode": "baseline",
+      "ms": 12388.31925,
+      "cpuMs": 16730.279,
+      "rssMiB": 759.515625,
+      "answer": "436944244"
+    },
+    {
+      "mode": "blocks",
+      "ms": 2328.575625,
+      "cpuMs": 3452.306,
+      "rssMiB": 666.515625,
+      "answer": "436944244"
+    },
+    {
+      "mode": "convolve",
+      "ms": 2656.50825,
+      "cpuMs": 3936.659,
+      "rssMiB": 688.46875,
+      "answer": "436944244"
+    },
+    {
+      "mode": "baseline",
+      "ms": 12256.161583,
+      "cpuMs": 17496.274,
+      "rssMiB": 831.375,
+      "answer": "436944244"
+    },
+    {
+      "mode": "blocks",
+      "ms": 2412.312292,
+      "cpuMs": 3528.956,
+      "rssMiB": 651.21875,
+      "answer": "436944244"
+    },
+    {
+      "mode": "convolve",
+      "ms": 2451.667542,
+      "cpuMs": 3556.971,
+      "rssMiB": 632.515625,
+      "answer": "436944244"
+    }
+  ],
+  "medianMs": {
+    "baseline": 12256.161583,
+    "blocks": 2328.575625,
+    "convolve": 2451.667542
+  },
+  "speedup": 4.999112389032068,
+  "tailRuns": [
+    {
+      "mode": "blocks",
+      "tailMs": [
+        84.20650000000023,
+        51.25691599999982,
+        61.56945799999994,
+        46.87008300000025,
+        64.09704200000033
+      ],
+      "answer": "436944244"
+    },
+    {
+      "mode": "convolve",
+      "tailMs": [
+        14.364207999999962,
+        5.37329200000022,
+        4.956541999999899,
+        4.956416999999874,
+        7.449333999999908
+      ],
+      "answer": "436944244"
+    }
+  ],
+  "tailTiming": "Five executions of the final suit-series exponentiation in one process after computing the shared prefix; each asserts the golden answer."
+}
