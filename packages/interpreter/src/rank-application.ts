@@ -2,7 +2,7 @@ import { resolveAxes } from './tensor-index.js';
 import { permutedArray } from './array-permutation.js';
 import { demand, demandValue, isRankPlan } from './plan.js';
 import { scalarBuiltinArray } from './scalar-builtin.js';
-import { registerTensorMap } from './tensor-map.js';
+import { prepareTensorAxisReduction, registerTensorMap } from './tensor-map.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
 import { mapStoredRealExtreme } from './real-extreme-kernel.js';
 import { rankedCells } from './ranked-cells.js';
@@ -351,9 +351,24 @@ export class RankApplication {
         const scalarBuiltin = scalarBuiltinArray(value, fn, frameAxes);
         if (scalarBuiltin) return scalarBuiltin;
 
+        const operation = fn.name;
+        const reducedAxes = value.shape.map((_, axis) => axis).filter(axis => !frameAxes.includes(axis));
+        const natural = frameAxes.every((axis, i) => i === 0 || axis > frameAxes[i - 1])
+            && (!cellAxes || cellAxes.every((axis, i) => axis === reducedAxes[i]));
+        const reduction = cells.cellShape.length > 0 && natural
+            && ['sum', 'mean', 'min', 'max'].includes(operation)
+            && ['core', 'stats'].some(module => {
+                const definition = standardModules[module][operation];
+                return definition !== undefined && this.standardFunctions.get(definition) === fn;
+            });
         return rankedCells(value, fn, cells,
             cells.cellShape.length === 0 ? this.scalarCallback(fn) : undefined,
-            this.ownFiles, () => this.arrayBatch?.(fn, value, frameAxes));
+            this.ownFiles, () => this.arrayBatch?.(fn, value, frameAxes),
+            reduction ? () => {
+                if (!hasNativeImplementation(fn) || !privateLoopPolling()) return undefined;
+                const fold = prepareTensorAxisReduction(value, operation, reducedAxes);
+                return fold && (index => hasNativeImplementation(fn) && privateLoopPolling() ? fold(index) : undefined);
+            } : undefined);
     }
 
     private isPureBuiltin(fn: Extract<RankValue, { kind: 'function' }>): boolean {

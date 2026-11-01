@@ -713,6 +713,11 @@ export function typedArray(
     data: Float64Array | BigInt64Array | Int32Array, shape: readonly number[] = [data.length],
     columnNames?: readonly string[], scalarKind?: string,
 ): RankArray {
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) {
+        diagnostics.typedArrayPublications++;
+        diagnostics.typedArrayPublishedCells += data.length;
+    }
     const value = createOwned(data, shape, true, columnNames);
     // Internal copies may carry a proved uniform domain, including infinities.
     if (scalarKind) ownedStorage.get(value)!.elementKinds = new Map(data.length ? [[scalarKind, data.length]] : []);

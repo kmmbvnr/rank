@@ -1,4 +1,5 @@
-import { registerTensorShift } from './tensor-map.js';
+import { registerScalarView } from './integer-view.js';
+import { registerTensorResult, registerTensorShift } from './tensor-map.js';
 import { completeNativeSequence } from './sequence-completion.js';
 import { resolveAxis } from './tensor-index.js';
 import { registerPackedBooleanShift } from './packed-booleans.js';
@@ -777,7 +778,7 @@ function arrayWindows(
         );
     });
     const resultShape = [...positionShape, ...widths];
-    const read = (linear: number): RankValue => {
+    const inputAt = (linear: number): number[] => {
         const output = arrayCoordinates(resultShape, linear);
         const input = output.slice(0, sourceShape.length);
         const offsets = output.slice(sourceShape.length);
@@ -786,11 +787,43 @@ function arrayWindows(
                 - padding[index]
                 + offsets[index];
         });
+        return input;
+    };
+    const read = (linear: number): RankValue => {
+        const input = inputAt(linear);
         return hasPadding ? readInput(input) : sourceItem(arrayOffset(sourceShape, input));
     };
     const result = derivedArray(resultShape, hasPadding ? [...dependencies, fill] : dependencies, read,
         dependencies.every(isKnownFileFree) && isKnownFileFree(fill), undefined, values);
 
+    // Complete windows are scalar address maps, not stored tensor copies.
+    // The graph lowerer still proves the source; opaque readers stay ordinary.
+    const source = dependencies.length === 1 ? dependencies[0] : undefined;
+    if (!hasPadding && source !== undefined && isRankArray(source)) {
+        const ordinaryOffset = (index: number) => arrayOffset(sourceShape, inputAt(index));
+        const inputShape = [...sourceShape], outputShape = [...resultShape];
+        const terms = outputShape.map((length, axis) => {
+            const selected = axis < inputShape.length ? axes.indexOf(axis) : axis - inputShape.length;
+            const inputAxis = axis < inputShape.length ? axis : axes[selected];
+            const divisor = arraySize(outputShape.slice(axis + 1));
+            const stride = arraySize(inputShape.slice(inputAxis + 1))
+                * (axis < inputShape.length && selected >= 0 ? strides[selected] : 1);
+            return { length, divisor, stride };
+        });
+        const offset = (index: number): number => {
+            let position = 0;
+            for (const term of terms) position += Math.floor(index / term.divisor) % term.length * term.stride;
+            return position;
+        };
+        // Ordinary readers retain live geometry. Only a matching native plan
+        // uses the allocation-free address formula captured at construction.
+        registerScalarView(result, source, ordinaryOffset, { capture: () => ({ source,
+            offset: sourceShape.length === inputShape.length && resultShape.length === outputShape.length
+                && sourceShape.every((n, i) => n === inputShape[i]) && resultShape.every((n, i) => n === outputShape[i])
+                ? offset : ordinaryOffset,
+        }) });
+        registerTensorResult(result);
+    }
     const size = arraySize(widths);
     windowCells.set(result, { size, fold(frameIndex, operation) {
         if (sourceShape.length === 1 && widths.length === 1 && !hasPadding) {
