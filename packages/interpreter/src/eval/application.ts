@@ -372,7 +372,8 @@ export class ApplicationEvaluator {
                     const keys = yield* resume(context.evaluate(form.keys));
                     const seed = form.seed ? yield* resume(context.evaluate(form.seed)) : undefined;
                     const size = form.size ? yield* resume(context.evaluate(form.size)) : undefined;
-                    return context.reductions.evaluateKeyedAggregate(form.operation.name, source, keys, seed, size);
+                    const parameter = form.parameter ? yield* resume(context.evaluate(form.parameter)) : undefined;
+                    return context.reductions.evaluateKeyedAggregate(form.operation.name, source, keys, seed, size, parameter);
                 };
             case 'axis-reduction': {
                 const axisReduction = form;

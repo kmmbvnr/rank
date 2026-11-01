@@ -412,7 +412,7 @@ export type ApplicationForm =
     | Recognized<'axis-argsort', typeof explicitAxisArgsort>
     | Recognized<'axis-metric', typeof explicitAxisMetric>
     | { readonly kind: 'keyed-aggregate'; readonly source: Expression; readonly operation: Operation;
-        readonly keys: Expression; readonly seed?: Expression; readonly size?: Expression }
+        readonly keys: Expression; readonly seed?: Expression; readonly size?: Expression; readonly parameter?: Expression }
     | Recognized<'axis-reduction', typeof axisReductionForm>
     | Recognized<'axis-transpose', typeof explicitAxisTranspose>
     | Recognized<'named-segment', typeof explicitNamedSegmentApplication>
@@ -588,12 +588,15 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
     if (form10) return { ...form10, kind: 'axis-argsort' };
     const form11 = explicitAxisMetric(parts, nameOf);
     if (form11) return { ...form11, kind: 'axis-metric' };
-    if (parts.length >= 4 && isNamed(parts[2], 'by', nameOf)) {
-        const operation = lookup(nameOf(parts[1]));
-        if (operation && operation.axisReduction) {
-            const modifiers = foldModifiers([...parts], 2, false, nameOf);
+    const keyedBy = isNamed(parts[2], 'by', nameOf) ? 2 : isNamed(parts[3], 'by', nameOf) ? 3 : -1;
+    if (keyedBy > 0 && parts.length > keyedBy + 1) {
+        const operation = lookup(nameOf(parts[keyedBy - 1]));
+        const quantile = operation && ['quantile', 'percentile'].includes(operation.name);
+        if (operation && (operation.axisReduction && keyedBy === 2 || quantile)) {
+            const modifiers = foldModifiers([...parts], keyedBy, false, nameOf);
             return { kind: 'keyed-aggregate', source: parts[0], operation,
-                keys: modifiers.keys!, seed: modifiers.seed, size: modifiers.size };
+                keys: modifiers.keys!, seed: modifiers.seed, size: modifiers.size,
+                parameter: keyedBy === 3 ? parts[1] : undefined };
         }
     }
     const form12 = axisReductionForm(parts, undefined, nameOf);

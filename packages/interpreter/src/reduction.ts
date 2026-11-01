@@ -57,7 +57,7 @@ export class ReductionEvaluator {
     }
 
     evaluateKeyedAggregate(name: string, source: RankValue, keys: RankValue,
-        seed?: RankValue, size?: RankValue): RankValue {
+        seed?: RankValue, size?: RankValue, parameter?: RankValue): RankValue {
         if (size !== undefined && typeof size !== 'bigint') {
             throw new RankError('by size must be an integer', 'TypeError');
         }
@@ -67,7 +67,7 @@ export class ReductionEvaluator {
         if (name === 'min' || name === 'max') {
             return this.evaluateKeyed('reduce', operation, source, keys, seed, size);
         }
-        return keyedAggregate(source, keys, group => this.invoke(operation, [group]), {
+        return keyedAggregate(source, keys, group => this.invoke(operation, parameter === undefined ? [group] : [group, parameter]), {
             seed, size: size === undefined ? undefined : Number(size),
         });
     }

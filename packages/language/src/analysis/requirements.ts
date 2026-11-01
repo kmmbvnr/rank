@@ -434,6 +434,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 return output;
             }
             if (form.kind === 'keyed-aggregate') {
+                if (form.parameter) expression(form.parameter);
                 expression(form.source);
                 expression(form.keys);
                 if (form.seed) expression(form.seed);

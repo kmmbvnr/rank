@@ -36,3 +36,9 @@ it.each(['all', 'any', 'count'])('groups boolean %s', operation => {
         + `V ${operation} by K`)).toBe(run('use sequences\n'
         + `array ((array true true) ${operation}) ((array false true) ${operation})`));
 });
+it.each(['quantile 0.25', 'percentile 25', 'quantile', 'percentile'])(
+    'groups %s with its ordinary parameter rules', operation => {
+        expect(run('use stats\nV = array 1 2 3 4 5 6\nK = array 0 1 0 1 0 1\n'
+            + `V ${operation} by K`)).toBe(run('use stats\n'
+            + `array ((array 1 3 5) ${operation}) ((array 2 4 6) ${operation})`));
+    });

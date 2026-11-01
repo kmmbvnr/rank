@@ -75,9 +75,11 @@ function boundary(parts: Expression[], standard: StandardName): number | undefin
         const end = named(parts[2], 'segment') ? (named(parts[3], 'with') ? 5 : 3) : foldModifierEnd(parts, 3);
         return parts.length > end ? end : undefined;
     }
-    if (isNameExpression(parts[1]) && standard(parts[1]) && findOperation(parts[1].name)?.axisReduction
-        && named(parts[2], 'by')) {
-        const end = foldModifierEnd(parts, 2);
+    const by = parts.findIndex((part, index) => (index === 2 || index === 3) && named(part, 'by'));
+    const aggregate = parts[by - 1];
+    if (by > 0 && isNameExpression(aggregate) && standard(aggregate)
+        && (findOperation(aggregate.name)?.axisReduction || ['quantile', 'percentile'].includes(aggregate.name))) {
+        const end = foldModifierEnd(parts, by);
         return parts.length > end ? end : undefined;
     }
     const rank = parts.findIndex((part, index) => index >= 2 && named(part, 'rank'));

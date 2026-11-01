@@ -1784,13 +1784,16 @@ shape. Keyed folds currently reject `rank` and `axis` modifiers.
 
 The same grouping modifier is available on `sum`, `min`, `max`,
 `all`, `any`, `count`, `mean`, `median`, `mode`, `std`, `variance` (`var`),
-and `skewness` (`skew`), with their usual module imports:
+and `skewness` (`skew`), with their usual module imports. `quantile` and
+`percentile` also accept `by` after their optional parameter:
 
 ```rank
 Values sum by Keys
 Values max by Keys with -infinity
 use stats
 Values median by Keys
+Values quantile 0.25 by Keys
+Values percentile 90 by Keys
 ```
 
 `sum`, `min` and `max` accept an accumulator seed as their corresponding
