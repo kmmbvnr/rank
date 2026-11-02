@@ -172,7 +172,8 @@ separate from timing runs. `euler344-warm.mjs` measures repeated one-prime calls
 The library-weight variant is now used by `demos/euler/344_silverdollar.ra`.
 The final source documents W[0] = 1, keeps required argument parentheses, and
 simplifies the CRT expression. No interpreter code or ownership guard changes
-are included. The alias-bypass patch remains a clearly marked research artifact.
+are included. Both full-scale 344 execution exclusions are removed: the
+optimized program now completes within the reference audit budget on both hosts. The alias-bypass patch remains a clearly marked research artifact.
 
 Verified again on the newer main base `da9619ab`, Node 24.15.0:
 
