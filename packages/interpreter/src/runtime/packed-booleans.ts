@@ -1,8 +1,10 @@
+import { currentDiagnostics } from '../diagnostics.js';
 import { popcountWord } from './bitmap.js';
 import { BooleanCells } from './boolean-cells.js';
+import { arrayRevision } from './array-revision.js';
 import { ownedStorage } from './array-storage-state.js';
 import { createOwned } from './owned-array.js';
-import { checkpoint, inspectionEnabled } from '../interrupt.js';
+import { checkpoint, inspectionEnabled, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 interface BitReader {
@@ -32,6 +34,32 @@ export function mapPackedBooleanArrays(left: RankArray, right?: RankArray, opera
     }
     cells.trim();
     return createOwned(cells, left.shape, true);
+}
+
+/** Validated irregular indices can gather stored bits without proxy reads or
+ * an intermediate boxed array. Callers retain the ordinary eager threshold. */
+export function gatherPackedBooleans(source: RankArray, offsets: Float64Array | Int32Array,
+    shape: readonly number[]): RankArray | undefined {
+    const stored = ownedStorage.get(source);
+    if (inspectionEnabled() || demandBudgetEnabled() || !privateLoopPolling()
+        || !stored?.stable || !stored.scalarOnly || stored.validity || !stored.booleans
+        || arrayRevision(source) === undefined || source.itemAt !== undefined || source.shape.length !== 1
+        || source.shape[0] !== stored.booleans.length
+        || shape.reduce((n, size) => n * size, 1) !== offsets.length) return undefined;
+    const cells = new BooleanCells(offsets.length), input = stored.booleans.words;
+    for (let start = 0; start < offsets.length; start += 32) {
+        if ((start & 4095) === 0) checkpoint('computing array', Math.min(4096, offsets.length - start));
+        let word = 0;
+        const length = Math.min(32, offsets.length - start);
+        for (let bit = 0; bit < length; bit++) {
+            const index = offsets[start + bit];
+            word |= (input[index >>> 5] >>> (index & 31) & 1) << bit;
+        }
+        cells.words[start >>> 5] = word;
+    }
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) { diagnostics.packedBooleanGathers++; diagnostics.packedBooleanGatherCells += offsets.length; }
+    return createOwned(cells, shape, true);
 }
 
 /** No cell reads, speculative packing, or cached values. A live native recipe

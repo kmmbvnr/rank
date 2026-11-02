@@ -1,0 +1,87 @@
+rem Eight Divisors
+rem https://projecteuler.net/problem=501
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 1000000000000
+
+rem d(x) = 8 for p^7, p^3 q and p q r.
+rem Lucy's sieve keeps pi(v) and
+rem pi(N // v) in two table rows.
+rem Ascending quotient indices and
+rem descending values read the prior
+rem prime's counts before overwriting.
+fun N sieve
+  R = N isqrt
+  Ct = array shape 2 (R + 1) fill 0
+  for V in 1 to R
+    Ct 0 V = V - 1
+    Ct 1 V = N // V - 1
+  end
+  for P in 2 to R
+    if Ct 0 P greater (Ct 0 (P - 1))
+      P2 = P * P
+      Pc = Ct 0 (P - 1)
+      Lm = R min (N // P2)
+      for I in 1 to Lm
+        Ip = I * P
+        V = 0
+        if Ip at most R
+          V = Ct 1 Ip
+        else
+          V = Ct 0 (N // Ip)
+        end
+        Ct 1 I -= V - Pc
+      end
+      for V in R to P2 by -1
+        Ct 0 V -= Ct 0 (V // P) - Pc
+      end
+    end
+  end
+  return Ct
+end
+fun N Counts Ps count8
+  R = N isqrt
+  Total = 0
+  for I in 0 till Ps len
+    P = Ps I
+    P3 = P * P * P
+    if P3 greater N
+      break
+    end
+    X = N // P3
+    if X at most R
+      Total += Counts 0 X
+    else
+      Total += Counts 1 (N // X)
+    end
+    if P3 at most (N // P)
+      Total -= 1
+    end
+    if P3 at most (N // P3 // P)
+      Total += 1
+    end
+    for J in I + 1 till Ps len
+      Q = Ps J
+      if P * Q * Q greater N
+        break
+      end
+      X = N // (P * Q)
+      if X at most R
+        Total += Counts 0 X
+      else
+        Total += Counts 1 (N // X)
+      end
+      Total -= J + 1
+    end
+  end
+  return Total
+end
+R = N isqrt
+Counts = N sieve
+Ps = primes to R array
+Answer = N Counts Ps count8
+Answer print

@@ -1,0 +1,79 @@
+rem Eight Divisors
+rem https://projecteuler.net/problem=501
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 1000000000000
+
+rem d(x) = 8 for p^7, p^3 q and p q r.
+rem Counts need pi at the values N //
+rem m: Lucy's sieve keeps Lo v = pi(v)
+rem for v <= sqrt N and Hi i = pi(N //
+rem i), each prime p removing the
+rem numbers with least factor p.
+fun N sieve
+  R = N isqrt
+  Ct = array shape 2 (R + 1) fill 0
+  for V in 1 to R
+    Ct 0 V = V - 1
+    Ct 1 V = N // V - 1
+  end
+  for P in 2 to R
+    if Ct 0 P greater (Ct 0 (P - 1))
+      P2 = P * P
+      Pc = Ct 0 (P - 1)
+      Lm = R min (N // P2)
+      for I in 1 to Lm
+        Ip = I * P
+        V = 0
+        if Ip at most R
+          V = Ct 1 Ip
+        else
+          V = Ct 0 (N // Ip)
+        end
+        Ct 1 I -= V - Pc
+      end
+      for V in R to P2 by -1
+        Ct 0 V -= Ct 0 (V // P) - Pc
+      end
+    end
+  end
+  return Ct
+end
+R = N isqrt
+Counts = N sieve
+Lo = Counts 0
+Hi = Counts 1
+rem pi(x) for x of the form N // m.
+fun X pin
+  Xs = X min R
+  Xb = (N // (X max 1)) min R
+  Sm = X at most R
+  return Sm choose (Lo Xs) (Hi Xb)
+end
+Ps = primes to R array
+rem p^3 q, minus q = p; and p^7.
+C3 = Ps * Ps * Ps at most N indices
+P3 = Ps C3
+Answer = (N // (P3 * P3 * P3)) pin sum
+Answer -= N isqrt isqrt pin
+Q7 = P3 ** 7 at most N count
+Answer += Q7
+rem p < q < r: q runs to sqrt(N / p).
+Qh = N // P3 isqrt pin
+Cn = Qh - 1 - C3 max 0
+Of = Cn scan + with 0
+Tl = Of last
+Ow = array shape Tl fill 0
+Ix = Cn greater 0 indices
+Ow (Of Ix) = Ix
+Ow = Ow scan max
+Qi = (0 till Tl) - Of Ow + C3 Ow + 1
+Pp = P3 Ow
+Qq = Ps Qi
+Pq = (N // (Pp * Qq)) pin - Qi - 1
+Answer += Pq sum
+Answer print

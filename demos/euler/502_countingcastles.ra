@@ -25,17 +25,8 @@ rem difference of h and h - 1.
 Md = 1000000007
 I2 = (Md + 1) // 2
 fun A pmul B
-  rem Product mod Md by a skew
-  rem reshape of the outer product.
-  La = A len
-  Lb = B len
-  Pr = (A reshape La 1) * B mod Md
-  Z = array shape La La fill 0
-  Pz = concat Pr Z axis 1
-  Fl = Pz reshape (La * (Lb + La))
-  Fl = Fl (0 till La * (Lb + La - 1))
-  Sk = Fl reshape La (Lb + La - 1)
-  return Sk sum axis 0 mod Md
+  Pr = A convolve B mod Md
+  return Pr
 end
 fun P Q N bm
   rem [x^N] P / Q by Bostan-Mori.
@@ -47,35 +38,13 @@ fun P Q N bm
     Qm = Qq * Sg mod Md
     U = Pp pmul Qm
     V = Qq pmul Qm
-    Pp = U (Nn mod 2 till U len by 2)
-    Qq = V (0 till V len by 2)
+    Up = U len
+    Pp = U ((Nn mod 2) till Up by 2)
+    Qq = V (0 till (V len) by 2)
     Nn //= 2
   end
   Iv = (Qq 0) (Md - 2) Md powmod
   return Pp 0 * Iv mod Md
-end
-fun P Q N lin
-  rem [x^N] P / Q from the recurrence
-  rem of the coefficients.
-  Cr = array shape (N + 1) fill 0
-  Iq = (Q 0) (Md - 2) Md powmod
-  Lq = Q len
-  Lp = P len
-  for Nk in 0 to N
-    Pk = 0
-    if Nk less Lp
-      Pk = P Nk
-    end
-    J = Nk min (Lq - 1)
-    Ac = 0
-    if J greater 0
-      Qs = Q (1 to J)
-      Cs = Cr (Nk - J to Nk - 1) reverse
-      Ac = Qs * Cs mod Md sum
-    end
-    Cr Nk = (Pk - Ac) mod Md * Iq mod Md
-  end
-  return Cr N
 end
 fun A mmul B
   rem 2 x 2 polynomial matrices as rows
@@ -150,15 +119,8 @@ for Ti in 0 to 2
       P = S * (Pa + Sx) mod Md
       Q = (Qa - Sx) mod Md
     end
-    Ch = 0
-    Cl = 0
-    if W at most 20000
-      Ch = P Q W lin
-      Cl = Pa Qa W lin
-    else
-      Ch = P Q W bm
-      Cl = Pa Qa W bm
-    end
+    Ch = P Q W bm
+    Cl = Pa Qa W bm
     Ev Si = (Ch - Cl) mod Md
   end
   Answer += (Ev sum) * I2 mod Md

@@ -12,78 +12,52 @@ rem Following the eulersolve method:
 rem the triangles map to lattice
 rem points of trapezoids in two
 rem parameter pairs, counted by
-rem Euclidean floor sums (all calls at
-rem once), with a hyperbola split at
+rem Euclidean floor sums, with a
+rem hyperbola split at
 rem sqrt(3n/2); F(n) = f(n) - sum of
 rem F(n // k) over odd k >= 3.
-fun Sl It Dn Lo Hi Bd trap
-  rem Sum of floor((Sl x + It)/Dn) for
-  rem Lo < x <= Hi, minus 1 inside when
-  rem not Bd, for many calls at once.
-  Res = Sl * 0
-  Ss = Sl copy
-  Is = It copy
-  Ds = Dn copy
-  Ls = Lo copy
-  Hs = Hi copy
-  Bs = Bd copy
-  Ac = 0 till Sl len copy
-  for Ac len greater 0
-    A = Ss Ac
-    B = Is Ac
-    D = Ds Ac
-    L = Ls Ac
-    U = Hs Ac
-    Q = Bs Ac
-    Sm = (U - L abs) at most 8
-    rem Short ranges: add directly.
-    Si = Sm indices
-    Mn = L Si min (U Si)
-    Wd = ((U Si) - (L Si)) abs
-    Aj = Q Si choose 0 1
-    Ui = U Si
-    Li = L Si
-    Sg = Ui greater Li choose 1 0
-    Sg = 2 * Sg - 1
-    Sv = Si * 0
-    for O in 1 to 8
-      X = Mn + O
-      Fv = (A Si) * X + (B Si) - Aj
-      Fv = Fv // (D Si)
-      Sv += O at most Wd choose Fv 0
-    end
-    Res (Ac Si) += Sg * Sv
-    rem Long ranges: one Euclid step.
-    Gi = Sm equal false indices
-    A = A Gi
-    B = B Gi
-    D = D Gi
-    L = L Gi
-    U = U Gi
-    Q = Q Gi
-    Rd = (U - L) * (B // D)
-    B = B mod D
-    Tg = (U - L) * (U + L + 1) // 2
-    Rd += Tg * (A // D)
+rem Normalize signed coefficients,
+rem then swap the Euclidean remainder.
+fun Sl It Dn Lo Hi Bd trapone
+  L = Lo min Hi
+  C = Hi - Lo abs
+  B = It + Sl * (L + 1)
+  if Bd equal false
+    B -= 1
+  end
+  A = Sl
+  D = Dn
+  R = 0
+  for C greater 0
+    R += C * (C - 1) // 2 * (A // D)
+    R += C * (B // D)
     A = A mod D
-    Nz = A not equal 0
-    Uv = (A * U + B) // D
-    Lv = (A * L + B) // D
-    Rd += Nz choose (U * Uv - L * Lv) 0
-    Zc = B equal 0 and (Q equal false)
-    Zc = Nz equal false and Zc
-    Rd -= Zc choose (U - L) 0
-    Ix = Ac Gi
-    Res Ix += Rd
-    Kp = Nz indices
-    Ix = Ix Kp
-    Ss Ix = D Kp
-    Ds Ix = A Kp
-    Is Ix = 0 - B Kp
-    Ls Ix = Uv Kp
-    Hs Ix = Lv Kp
-    Bs Ix = Q Kp equal false
-    Ac = Ix
+    B = B mod D
+    Y = A * C + B
+    if Y less D
+      break
+    end
+    C = Y // D
+    B = Y mod D
+    Old = D
+    D = A
+    A = Old
+  end
+  if Hi less Lo
+    R = 0 - R
+  end
+  return R
+end
+fun Sl It Dn Lo Hi Bd trap
+  Res = array shape (Sl len) fill 0
+  for I in 0 till Sl len
+    A = Sl I
+    B = It I
+    D = Dn I
+    L = Lo I
+    H = Hi I
+    Q = Bd I
+    Res I = A B D L H Q trapone
   end
   return Res
 end

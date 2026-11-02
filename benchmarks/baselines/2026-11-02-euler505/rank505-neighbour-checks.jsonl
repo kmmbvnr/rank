@@ -1,0 +1,7 @@
+{"id":502,"variant":"convolve","compilation":false,"fixtures":[{"name":"statement values","passed":true,"output":["852200717"],"durationMs":67.57175000000001},{"name":"huge width and huge height","passed":true,"output":["364553235","635147632"],"durationMs":257.69562499999995}]}
+{"id":502,"variant":"convolve","compilation":true,"fixtures":[{"name":"statement values","passed":true,"output":["852200717"],"durationMs":52.519541000000004},{"name":"huge width and huge height","passed":true,"output":["364553235","635147632"],"durationMs":214.04495899999995}]}
+{"id":504,"variant":"loop","compilation":false,"fixtures":[{"name":"statement value","passed":true,"output":["42"],"durationMs":5.527917000000002}]}
+{"id":504,"variant":"loop","compilation":true,"fixtures":[{"name":"statement value","passed":true,"output":["42"],"durationMs":8.965374999999995}]}
+{"id":511,"variant":"convolve","compilation":false,"fixtures":[{"name":"statement values","passed":true,"output":["4","8","840643584"],"durationMs":7.969124999999963}]}
+{"id":511,"variant":"convolve","compilation":true,"fixtures":[{"name":"statement values","passed":true,"output":["4","8","840643584"],"durationMs":12.934958000000051}]}
+{"checks":244}

@@ -13,10 +13,10 @@ import { hasNativeFenwick } from '../fenwick.js';
 import { hasNativeIntegerGroups } from '../runtime/integer-groups.js';
 import { compiledArgumentType, hasNativeDeque } from './compiled-argument-type.js';
 import {
-    applicationExpression, rangeSliceOperands, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
+    compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
     isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
-    type CompiledExpression, type Operation, type CompiledArrayType, type CompiledCallSignature, compiledCallSignatures, matchCompiledCallSignature,
+    type CompiledExpression, type Operation, type CompiledArrayType, type CompiledCallSignature,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex, isRankSet } from '../value.js';
 import { integerLiteral } from '../eval/application.js';
@@ -1312,6 +1312,27 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         const supplied = scalarInputs.get(e);
         if (supplied) return supplied;
+        const choice = host.nativeCalls && scalarChooseOperands(e,
+            name => !localTypes.has(name) && !arrays.has(name) && !containers.has(name));
+        if (choice) {
+            const callStart = calls.length, calloutStart = state.callouts.length;
+            const values: LoopTerm[] = [];
+            for (const [index, operand] of choice.entries()) {
+                const value = emit(operand, lines, index === 0 ? 'boolean' : undefined);
+                if (!value || index === 0 && value.type !== 'boolean'
+                    || index === 2 && value.type !== values[1].type) return undefined;
+                // Native choose evaluates every operand before selection.
+                const name = `v${state.serial++}`;
+                lines.push(`const ${name} = ${value.code};`);
+                values.push({ ...value, code: name });
+            }
+            // A callback could replace choose while its operands evaluate.
+            if (state.callouts.length !== calloutStart || calls.slice(callStart).some(call => !call.privateIndexSafe)) return undefined;
+            builtins.set('choose', 'core');
+            const result = `v${state.serial++}`;
+            lines.push(`const ${result} = ${values[0].code} ? ${values[1].code} : ${values[2].code};`);
+            return { code: result, type: values[1].type };
+        }
         if (isNameExpression(e) && !e.name.includes('.')) {
             if (arrays.has(e.name)) return undefined;
             const type = localTypes.get(e.name) ?? (textSources.has(e.name) ? 'text' : hint ?? realInput(e.name) ?? 'integer');
@@ -1548,7 +1569,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 return { code: name, type: 'integer', selection: true };
             }
             const previous = arrays.get(head.name);
-            const type = previous?.type ?? destinations.get(head.name)?.type ?? hint ?? realInput(head.name) ?? 'integer';
+            const kinds = current && isRankArray(current) && arrayRevision(current) !== undefined ? storedScalarKinds(current) : undefined;
+            const kind = kinds?.length === 1 ? kinds[0] : undefined;
+            const stored = kind === 'integer' || kind === 'boolean' || kind === 'text'
+                || kind === 'real' && host.reals ? kind : undefined;
+            const type = previous?.type ?? destinations.get(head.name)?.type ?? hint ?? stored ?? realInput(head.name) ?? 'integer';
             if (type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || type === 'bytes') return undefined;
             if (hint && hint !== type || type === 'boolean' && !host.booleanArrays) return undefined;
             if (previous && previous.rank !== arguments_.length

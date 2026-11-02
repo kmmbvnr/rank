@@ -1,0 +1,1236 @@
+[
+  {
+    "id": "501",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 7950.5229899999995,
+    "answer": "197912312715",
+    "sourceHash": "11e2794190a0745748ac06e2f7970779a628655d05216ddb797b3fbd8ed021da",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 580.70703125,
+    "kind": "final"
+  },
+  {
+    "id": "502",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 16845.337089,
+    "answer": "749485217",
+    "sourceHash": "81bad54cb2c9af582eea19f4b27dbfa83b24c3189004145988e5899fa75e864b",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 324.09375,
+    "kind": "final"
+  },
+  {
+    "id": "504",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 2744.1413620000003,
+    "answer": "694687",
+    "sourceHash": "d28c0c264ec6bedc6a5990c36330e69c9e6f76523d9c98949794323cedb9004d",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 436.10546875,
+    "kind": "final"
+  },
+  {
+    "id": "507",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 16713.184705,
+    "answer": "316558047002627270",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 184.5625,
+    "kind": "final"
+  },
+  {
+    "id": "511",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 1447.788703,
+    "answer": "935247012",
+    "sourceHash": "8bd3bb2543aaeb09bfd9cb4040f246b38a678c0355eb087e98215b49a77954b4",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 195.26953125,
+    "kind": "final"
+  },
+  {
+    "id": "513",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 9344.084953,
+    "answer": "2925619196",
+    "sourceHash": "9073649f3cc5a0e9d7202a86618146637e85e9060ba0ddef166f4ff84e75ddbe",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 605.82421875,
+    "kind": "final"
+  },
+  {
+    "id": "501",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 8259.900176000001,
+    "answer": "197912312715",
+    "sourceHash": "11e2794190a0745748ac06e2f7970779a628655d05216ddb797b3fbd8ed021da",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 581.91796875,
+    "kind": "final"
+  },
+  {
+    "id": "502",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 16962.502709,
+    "answer": "749485217",
+    "sourceHash": "81bad54cb2c9af582eea19f4b27dbfa83b24c3189004145988e5899fa75e864b",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 316.4765625,
+    "kind": "final"
+  },
+  {
+    "id": "504",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 2783.697505,
+    "answer": "694687",
+    "sourceHash": "d28c0c264ec6bedc6a5990c36330e69c9e6f76523d9c98949794323cedb9004d",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 437.63671875,
+    "kind": "final"
+  },
+  {
+    "id": "507",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 17134.713579,
+    "answer": "316558047002627270",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 183.06640625,
+    "kind": "final"
+  },
+  {
+    "id": "511",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 1466.629712,
+    "answer": "935247012",
+    "sourceHash": "8bd3bb2543aaeb09bfd9cb4040f246b38a678c0355eb087e98215b49a77954b4",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 196.12109375,
+    "kind": "final"
+  },
+  {
+    "id": "513",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 9424.553905,
+    "answer": "2925619196",
+    "sourceHash": "9073649f3cc5a0e9d7202a86618146637e85e9060ba0ddef166f4ff84e75ddbe",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 595.5703125,
+    "kind": "final"
+  },
+  {
+    "id": "501",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 8328.165945,
+    "answer": "197912312715",
+    "sourceHash": "11e2794190a0745748ac06e2f7970779a628655d05216ddb797b3fbd8ed021da",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 581.42578125,
+    "kind": "final"
+  },
+  {
+    "id": "502",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 17170.353575,
+    "answer": "749485217",
+    "sourceHash": "81bad54cb2c9af582eea19f4b27dbfa83b24c3189004145988e5899fa75e864b",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 317.7109375,
+    "kind": "final"
+  },
+  {
+    "id": "504",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 2785.690624,
+    "answer": "694687",
+    "sourceHash": "d28c0c264ec6bedc6a5990c36330e69c9e6f76523d9c98949794323cedb9004d",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 442.328125,
+    "kind": "final"
+  },
+  {
+    "id": "507",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 17232.507863,
+    "answer": "316558047002627270",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 183.921875,
+    "kind": "final"
+  },
+  {
+    "id": "511",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 1484.290287,
+    "answer": "935247012",
+    "sourceHash": "8bd3bb2543aaeb09bfd9cb4040f246b38a678c0355eb087e98215b49a77954b4",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 195.890625,
+    "kind": "final"
+  },
+  {
+    "id": "513",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 9513.04753,
+    "answer": "2925619196",
+    "sourceHash": "9073649f3cc5a0e9d7202a86618146637e85e9060ba0ddef166f4ff84e75ddbe",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 588.22265625,
+    "kind": "final"
+  },
+  {
+    "id": "505",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 165533.665067,
+    "answer": "714591308667615832",
+    "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 164.85546875,
+    "kind": "final"
+  },
+  {
+    "id": "501",
+    "size": "10000000000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000000000"
+    ],
+    "ms": 2861.0756499999998,
+    "answer": "2087650968",
+    "sourceHash": "434747b7fae709ddb0a358652b39f49a6425dc45925ef09ad105298cb408d345",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 419.3359375,
+    "kind": "source-control"
+  },
+  {
+    "id": "501",
+    "size": "10000000000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000000000"
+    ],
+    "ms": 794.622944,
+    "answer": "2087650968",
+    "sourceHash": "11e2794190a0745748ac06e2f7970779a628655d05216ddb797b3fbd8ed021da",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 201.62890625,
+    "kind": "source-control"
+  },
+  {
+    "id": "507",
+    "size": "100000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=100000",
+      "--lc=14"
+    ],
+    "ms": 3553.470319,
+    "answer": "1581779457157564",
+    "sourceHash": "c8253bb592030c3cd4b1ddc70c193c5c3b70d3815e806680cb708f096ee7f846",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 338.9765625,
+    "kind": "source-control"
+  },
+  {
+    "id": "507",
+    "size": "100000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=100000",
+      "--lc=14"
+    ],
+    "ms": 497.925066,
+    "answer": "1581779457157564",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 180.234375,
+    "kind": "source-control"
+  },
+  {
+    "id": "513",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000"
+    ],
+    "ms": 16833.234873999998,
+    "answer": "22083294",
+    "sourceHash": "4d377a3b743ce79111a8c00ee4f94a8225672cd44efb9929bd5747e8ba48877a",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 1334.16015625,
+    "kind": "source-control"
+  },
+  {
+    "id": "513",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000"
+    ],
+    "ms": 3258.195474,
+    "answer": "22083294",
+    "sourceHash": "9073649f3cc5a0e9d7202a86618146637e85e9060ba0ddef166f4ff84e75ddbe",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 394.6875,
+    "kind": "source-control"
+  },
+  {
+    "id": "504",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      "packed"
+    ],
+    "args": [],
+    "ms": 11526.200273999999,
+    "answer": "694687",
+    "sourceHash": "d28c0c264ec6bedc6a5990c36330e69c9e6f76523d9c98949794323cedb9004d",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 503.3671875,
+    "kind": "runtime-control"
+  },
+  {
+    "id": "504",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 2689.0492209999998,
+    "answer": "694687",
+    "sourceHash": "d28c0c264ec6bedc6a5990c36330e69c9e6f76523d9c98949794323cedb9004d",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 441.96875,
+    "kind": "runtime-control"
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      "choose"
+    ],
+    "args": [
+      "--n=1000000000"
+    ],
+    "ms": 21758.210647,
+    "answer": "1551491048361091",
+    "sourceHash": "a8ebac3afb2c4f39ce803c6dc1e316a9cd8955db4024fae5008def229b209a5b",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 462.32421875,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=1000000000"
+    ],
+    "ms": 934.937952,
+    "answer": "1551491048361091",
+    "sourceHash": "a8ebac3afb2c4f39ce803c6dc1e316a9cd8955db4024fae5008def229b209a5b",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 191.86328125,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "507",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      "abs"
+    ],
+    "args": [
+      "--n=10000",
+      "--lc=14"
+    ],
+    "ms": 1165.888722,
+    "answer": "159478576673950",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 264.39453125,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "507",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000",
+      "--lc=14"
+    ],
+    "ms": 412.71244099999996,
+    "answer": "159478576673950",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 181.5,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "501",
+    "size": "10000000000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000000000"
+    ],
+    "ms": 2525.044529,
+    "answer": "2087650968",
+    "sourceHash": "434747b7fae709ddb0a358652b39f49a6425dc45925ef09ad105298cb408d345",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 426.78125,
+    "kind": "source-control"
+  },
+  {
+    "id": "501",
+    "size": "10000000000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000000000"
+    ],
+    "ms": 797.4458179999999,
+    "answer": "2087650968",
+    "sourceHash": "11e2794190a0745748ac06e2f7970779a628655d05216ddb797b3fbd8ed021da",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 200.92578125,
+    "kind": "source-control"
+  },
+  {
+    "id": "507",
+    "size": "100000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=100000",
+      "--lc=14"
+    ],
+    "ms": 3566.3952929999996,
+    "answer": "1581779457157564",
+    "sourceHash": "c8253bb592030c3cd4b1ddc70c193c5c3b70d3815e806680cb708f096ee7f846",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 332.99609375,
+    "kind": "source-control"
+  },
+  {
+    "id": "507",
+    "size": "100000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=100000",
+      "--lc=14"
+    ],
+    "ms": 551.474165,
+    "answer": "1581779457157564",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 177.92578125,
+    "kind": "source-control"
+  },
+  {
+    "id": "513",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000"
+    ],
+    "ms": 16632.387399,
+    "answer": "22083294",
+    "sourceHash": "4d377a3b743ce79111a8c00ee4f94a8225672cd44efb9929bd5747e8ba48877a",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 1306.015625,
+    "kind": "source-control"
+  },
+  {
+    "id": "513",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000"
+    ],
+    "ms": 3185.350423,
+    "answer": "22083294",
+    "sourceHash": "9073649f3cc5a0e9d7202a86618146637e85e9060ba0ddef166f4ff84e75ddbe",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 394.41015625,
+    "kind": "source-control"
+  },
+  {
+    "id": "504",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      "packed"
+    ],
+    "args": [],
+    "ms": 11101.331322,
+    "answer": "694687",
+    "sourceHash": "d28c0c264ec6bedc6a5990c36330e69c9e6f76523d9c98949794323cedb9004d",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 498.99609375,
+    "kind": "runtime-control"
+  },
+  {
+    "id": "504",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 2595.265051,
+    "answer": "694687",
+    "sourceHash": "d28c0c264ec6bedc6a5990c36330e69c9e6f76523d9c98949794323cedb9004d",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 445.8125,
+    "kind": "runtime-control"
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      "choose"
+    ],
+    "args": [
+      "--n=1000000000"
+    ],
+    "ms": 20852.79999,
+    "answer": "1551491048361091",
+    "sourceHash": "a8ebac3afb2c4f39ce803c6dc1e316a9cd8955db4024fae5008def229b209a5b",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 462.67578125,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=1000000000"
+    ],
+    "ms": 903.261887,
+    "answer": "1551491048361091",
+    "sourceHash": "a8ebac3afb2c4f39ce803c6dc1e316a9cd8955db4024fae5008def229b209a5b",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 192.28515625,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "507",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      "abs"
+    ],
+    "args": [
+      "--n=10000",
+      "--lc=14"
+    ],
+    "ms": 1150.215416,
+    "answer": "159478576673950",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 260.8984375,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "507",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000",
+      "--lc=14"
+    ],
+    "ms": 400.011235,
+    "answer": "159478576673950",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 180.63671875,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "501",
+    "size": "10000000000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000000000"
+    ],
+    "ms": 2700.010343,
+    "answer": "2087650968",
+    "sourceHash": "434747b7fae709ddb0a358652b39f49a6425dc45925ef09ad105298cb408d345",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 370.33984375,
+    "kind": "source-control"
+  },
+  {
+    "id": "501",
+    "size": "10000000000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000000000"
+    ],
+    "ms": 829.110318,
+    "answer": "2087650968",
+    "sourceHash": "11e2794190a0745748ac06e2f7970779a628655d05216ddb797b3fbd8ed021da",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 196.87109375,
+    "kind": "source-control"
+  },
+  {
+    "id": "507",
+    "size": "100000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=100000",
+      "--lc=14"
+    ],
+    "ms": 3545.883878,
+    "answer": "1581779457157564",
+    "sourceHash": "c8253bb592030c3cd4b1ddc70c193c5c3b70d3815e806680cb708f096ee7f846",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 334.21484375,
+    "kind": "source-control"
+  },
+  {
+    "id": "507",
+    "size": "100000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=100000",
+      "--lc=14"
+    ],
+    "ms": 531.427476,
+    "answer": "1581779457157564",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 178.38671875,
+    "kind": "source-control"
+  },
+  {
+    "id": "513",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000"
+    ],
+    "ms": 17217.360253,
+    "answer": "22083294",
+    "sourceHash": "4d377a3b743ce79111a8c00ee4f94a8225672cd44efb9929bd5747e8ba48877a",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 1334.8671875,
+    "kind": "source-control"
+  },
+  {
+    "id": "513",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000"
+    ],
+    "ms": 3162.762334,
+    "answer": "22083294",
+    "sourceHash": "9073649f3cc5a0e9d7202a86618146637e85e9060ba0ddef166f4ff84e75ddbe",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 393.85546875,
+    "kind": "source-control"
+  },
+  {
+    "id": "504",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      "packed"
+    ],
+    "args": [],
+    "ms": 11322.82036,
+    "answer": "694687",
+    "sourceHash": "d28c0c264ec6bedc6a5990c36330e69c9e6f76523d9c98949794323cedb9004d",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 502.44140625,
+    "kind": "runtime-control"
+  },
+  {
+    "id": "504",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 2868.67515,
+    "answer": "694687",
+    "sourceHash": "d28c0c264ec6bedc6a5990c36330e69c9e6f76523d9c98949794323cedb9004d",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 426.34375,
+    "kind": "runtime-control"
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      "choose"
+    ],
+    "args": [
+      "--n=1000000000"
+    ],
+    "ms": 21360.615418999998,
+    "answer": "1551491048361091",
+    "sourceHash": "a8ebac3afb2c4f39ce803c6dc1e316a9cd8955db4024fae5008def229b209a5b",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 461.7578125,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=1000000000"
+    ],
+    "ms": 916.788831,
+    "answer": "1551491048361091",
+    "sourceHash": "a8ebac3afb2c4f39ce803c6dc1e316a9cd8955db4024fae5008def229b209a5b",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 193.19140625,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "507",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      "abs"
+    ],
+    "args": [
+      "--n=10000",
+      "--lc=14"
+    ],
+    "ms": 1175.8522349999998,
+    "answer": "159478576673950",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 257.01953125,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "507",
+    "size": "10000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000",
+      "--lc=14"
+    ],
+    "ms": 407.13272800000004,
+    "answer": "159478576673950",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 180.6796875,
+    "kind": "compiler-control"
+  },
+  {
+    "id": "502",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "range-fixed",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 39923.285786,
+    "answer": "749485217",
+    "sourceHash": "0e2873e5c38136a06f5691aedb31c0858f0b29a1eeb86a6113e58569d16ad17c",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 383.171875,
+    "kind": "source-control"
+  },
+  {
+    "id": "502",
+    "size": "full",
+    "mode": "reference",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 20263.961554999998,
+    "answer": "749485217",
+    "sourceHash": "81bad54cb2c9af582eea19f4b27dbfa83b24c3189004145988e5899fa75e864b",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 317.3515625,
+    "kind": "reference-full"
+  },
+  {
+    "id": "504",
+    "size": "full",
+    "mode": "reference",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 3026.056996,
+    "answer": "694687",
+    "sourceHash": "d28c0c264ec6bedc6a5990c36330e69c9e6f76523d9c98949794323cedb9004d",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 307.3359375,
+    "kind": "reference-full"
+  },
+  {
+    "id": "511",
+    "size": "full",
+    "mode": "reference",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 1421.647597,
+    "answer": "935247012",
+    "sourceHash": "8bd3bb2543aaeb09bfd9cb4040f246b38a678c0355eb087e98215b49a77954b4",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 192.546875,
+    "kind": "reference-full"
+  },
+  {
+    "id": "513",
+    "size": "full",
+    "mode": "reference",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 54618.643562,
+    "answer": "2925619196",
+    "sourceHash": "9073649f3cc5a0e9d7202a86618146637e85e9060ba0ddef166f4ff84e75ddbe",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 536.0859375,
+    "kind": "reference-full"
+  },
+  {
+    "id": "501",
+    "size": "100000000",
+    "mode": "reference",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=100000000"
+    ],
+    "ms": 846.814063,
+    "answer": "21902470",
+    "sourceHash": "434747b7fae709ddb0a358652b39f49a6425dc45925ef09ad105298cb408d345",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 201.15625,
+    "kind": "reference-small"
+  },
+  {
+    "id": "501",
+    "size": "100000000",
+    "mode": "reference",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=100000000"
+    ],
+    "ms": 4736.486622,
+    "answer": "21902470",
+    "sourceHash": "11e2794190a0745748ac06e2f7970779a628655d05216ddb797b3fbd8ed021da",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 178.77734375,
+    "kind": "reference-small"
+  },
+  {
+    "id": "507",
+    "size": "1000",
+    "mode": "reference",
+    "variant": "baseline",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=1000",
+      "--lc=14"
+    ],
+    "ms": 575.243462,
+    "answer": "15785611955222",
+    "sourceHash": "c8253bb592030c3cd4b1ddc70c193c5c3b70d3815e806680cb708f096ee7f846",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 180.4296875,
+    "kind": "reference-small"
+  },
+  {
+    "id": "507",
+    "size": "1000",
+    "mode": "reference",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=1000",
+      "--lc=14"
+    ],
+    "ms": 674.837025,
+    "answer": "15785611955222",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "arch": "x64",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "rssMiB": 175.44921875,
+    "kind": "reference-small"
+  }
+]

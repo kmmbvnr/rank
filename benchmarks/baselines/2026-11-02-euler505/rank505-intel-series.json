@@ -1,0 +1,83 @@
+[
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "original",
+    "ms": 19788.28482,
+    "answer": "1551491048361091",
+    "rssMiB": 462.33984375
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "branches",
+    "ms": 897.796636,
+    "answer": "1551491048361091",
+    "rssMiB": 190.7578125
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "recursive",
+    "ms": 355.763766,
+    "answer": "1551491048361091",
+    "rssMiB": 165.56640625
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "original",
+    "ms": 20160.709966,
+    "answer": "1551491048361091",
+    "rssMiB": 462.609375
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "branches",
+    "ms": 883.661731,
+    "answer": "1551491048361091",
+    "rssMiB": 197.3125
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "recursive",
+    "ms": 362.285983,
+    "answer": "1551491048361091",
+    "rssMiB": 165.1875
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "original",
+    "ms": 20843.837232,
+    "answer": "1551491048361091",
+    "rssMiB": 461.8671875
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "branches",
+    "ms": 878.8236499999999,
+    "answer": "1551491048361091",
+    "rssMiB": 193.46875
+  },
+  {
+    "id": "505",
+    "size": "1000000000",
+    "mode": "compiled",
+    "variant": "recursive",
+    "ms": 364.30141199999997,
+    "answer": "1551491048361091",
+    "rssMiB": 164.81640625
+  }
+]

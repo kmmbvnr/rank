@@ -16,18 +16,14 @@ rem ring Z[x]/(x^k - 1), so raise that
 rem vector to the n-th power by
 rem squaring and read residue -n.
 Md = 1000000000
-fun F G Ti conv
-  rem Cyclic convolution: sum over i of
-  rem F(-i) G(t + i), rows of the
-  rem rotations of G by a reshape.
+rem Fold the polynomial product modulo
+rem x^K - 1, using exact modular NTT.
+fun F conv G
   Kk = G len
-  K1 = Kk + 1
-  H = (G Ti) reshape Kk K1
-  Ft = (F (1 till Kk)) reverse
-  Fr = concat (F (0 till 1)) Ft
-  Fp = concat Fr (array 0)
-  Pr = H * Fp mod Md
-  return Pr sum axis 1 mod Md
+  Pr = F convolve G mod Md
+  Pd = concat Pr (array 0)
+  Mt = Pd reshape 2 Kk
+  return Mt sum axis 0 mod Md
 end
 rem Divisors of N from its factors.
 Ds = array 1
@@ -56,14 +52,12 @@ for D in Ds
 end
 R = array shape K fill 0
 R 0 = 1
-rem Ti tiles G k + 1 times.
-Ti = (0 till K * (K + 1)) mod K
 E = N
 for E greater 0
   if E mod 2 equal 1
-    R = R C Ti conv
+    R = R conv C
   end
-  C = C C Ti conv
+  C = C conv C
   E //= 2
 end
 Answer = R ((0 - N) mod K)

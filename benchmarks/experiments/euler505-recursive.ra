@@ -1,0 +1,46 @@
+use numbers
+use sequences
+use cli
+use io
+arg N integer = 1000000000000
+Q = 1152921504606846976
+Mk = Q - 1
+fun K X P A B search
+  if K at least N
+    return X
+  end
+  L = (3 * X + 2 * P) mod Q
+  R = (2 * X + 3 * P) mod Q
+  Z = K
+  H = 0
+  for Z less N
+    Z *= 2
+    H += 1
+  end
+  Sw = false
+  if H mod 2 equal 1
+    Sw = R greater L
+  else
+    Sw = R less L
+  end
+  F = L
+  S = R
+  Ki = 2 * K
+  Kj = Ki + 1
+  if Sw
+    F = R
+    S = L
+    Ki += 1
+    Kj -= 1
+  end
+  V = Ki F X (Mk - B) (Mk - A) search
+  V = Mk - V
+  Bb = B min V
+  if Bb at most A
+    return V
+  end
+  W = Kj S X (Mk - Bb) (Mk - A) search
+  return V min (Mk - W)
+end
+Answer = 1 1 0 0 Mk search
+Answer print

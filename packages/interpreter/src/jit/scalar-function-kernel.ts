@@ -83,7 +83,7 @@ function compileScalarNumberKernel(
     locations: readonly (Statement | Expression)[],
 ): Kernel['numberDirect'] | undefined {
     if (!proof.localArrayWrites || proof.planCalls.length
-        || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => !['len', 'floor', 'ceil'].includes(name))
+        || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max'].includes(name))
         || proof.dependencies.length || proof.callCount > 0) return undefined;
     const isNumType = (t: CompiledCalleeType) => t === 'integer' || t === 'real' || t === 'boolean';
     const arrayParameter = (t: CompiledCalleeType) => typeof t !== 'string' && !isCompiledContainer(t)
@@ -185,6 +185,19 @@ function compileScalarNumberKernel(
                 lines.push(`const ${result} = safe(${input.negative ? '-' : ''}(${code}));`);
                 return result;
             }
+            if (input.operation === 'choose') {
+                const values: string[] = [];
+                for (const operand of input.indices!) {
+                    const value = lowerNum(operand, lines);
+                    if (value === undefined) return undefined;
+                    const name = `v${serial++}`;
+                    lines.push(`const ${name} = ${value};`);
+                    values.push(name);
+                }
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = ${values[0]} ? ${values[1]} : ${values[2]};`);
+                return result;
+            }
             if (input.operation) return undefined;
             if (input.indices) {
                 if (!arrays.has(input.name) || input.indices.length !== 1) return undefined;
@@ -219,7 +232,7 @@ function compileScalarNumberKernel(
         }
         if (compiled.kind === 'call') {
             const name = compiled.operation.name;
-            if (compiled.operation.module !== 'numbers' || name !== 'floor' && name !== 'ceil'
+            if (compiled.operation.module !== 'numbers' || name !== 'floor' && name !== 'ceil' && name !== 'abs'
                 || compiled.arguments.length !== 1) return undefined;
             const argument = compiled.arguments[0];
             if (argument.type !== 'integer' && argument.type !== 'real') return undefined;
@@ -228,7 +241,10 @@ function compileScalarNumberKernel(
             const result = `v${serial++}`;
             // Native binding guards are shared with the exact kernel. Nonfinite
             // or unsafe results replay there, retaining its domain errors.
-            lines.push(`const ${result} = ${numericBoundSource(name, value, argument.type, true)};`);
+            const absolute = `Math.abs(${value})`;
+            const code = name === 'abs' ? compiled.type === 'integer' ? `safe(${absolute})` : absolute
+                : numericBoundSource(name, value, argument.type, true);
+            lines.push(`const ${result} = ${code};`);
             return result;
         }
         const op = compiled.operation.name;
@@ -486,6 +502,16 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 ? Object.is(expression.value, -0) ? '-0' : String(expression.value) : JSON.stringify(expression.value);
         if (expression.kind === 'input') {
             const operation = expression.input.operation;
+            if (operation === 'choose') {
+                const values = expression.input.indices!.map(operand => {
+                    const value = lower(operand, lines), name = `v${serial++}`;
+                    lines.push(`const ${name} = ${value};`);
+                    return name;
+                });
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = ${values[0]} ? ${values[1]} : ${values[2]};`);
+                return result;
+            }
             if (operation === 'gather' || operation === 'compare-array') {
                 const values = expression.input.indices!.map(input => lower(input, lines)), result = `v${serial++}`;
                 lines.push(`const ${result} = ${operation === 'gather' ? `applySelectors([${slot(expression.input.name)}, ${values[0]}])`

@@ -1,0 +1,1112 @@
+{
+  "rank505-profile.json": {
+    "sampledMicroseconds": 6933667,
+    "selfTime": [
+      {
+        "function": "",
+        "file": "expressions.js",
+        "microseconds": 782372,
+        "percent": 11.283668511914403
+      },
+      {
+        "function": "get",
+        "file": "frame.js",
+        "microseconds": 583622,
+        "percent": 8.417219921291288
+      },
+      {
+        "function": "",
+        "file": "application.js",
+        "microseconds": 444078,
+        "percent": 6.404662929442674
+      },
+      {
+        "function": "advance",
+        "file": "execution.js",
+        "microseconds": 363334,
+        "percent": 5.240142048933126
+      },
+      {
+        "function": "stream",
+        "file": "assignments.js",
+        "microseconds": 268915,
+        "percent": 3.878395083005861
+      },
+      {
+        "function": "writeArrayCell",
+        "file": "owned-array.js",
+        "microseconds": 267751,
+        "percent": 3.861607429373231
+      },
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "microseconds": 255502,
+        "percent": 3.684947661893771
+      },
+      {
+        "function": "",
+        "file": "execution.js",
+        "microseconds": 255288,
+        "percent": 3.681861271964748
+      },
+      {
+        "function": "bindNode",
+        "file": "tensor-kernel.js",
+        "microseconds": 241283,
+        "percent": 3.4798758002078842
+      },
+      {
+        "function": "isNativeFunction",
+        "file": "value.js",
+        "microseconds": 181127,
+        "percent": 2.6122829377297756
+      },
+      {
+        "function": "set",
+        "file": "owned-array.js",
+        "microseconds": 174584,
+        "percent": 2.517917286769036
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "microseconds": 174499,
+        "percent": 2.5166913842271343
+      },
+      {
+        "function": "executeContext",
+        "file": "blocks.js",
+        "microseconds": 160878,
+        "percent": 2.3202441074830964
+      },
+      {
+        "function": "apply",
+        "file": "application.js",
+        "microseconds": 141799,
+        "percent": 2.0450794651661233
+      },
+      {
+        "function": "splitQualified",
+        "file": "interpreter.js",
+        "microseconds": 132960,
+        "percent": 1.9176000231911916
+      },
+      {
+        "function": "selectValues",
+        "file": "value-selection.js",
+        "microseconds": 105875,
+        "percent": 1.5269697838099234
+      },
+      {
+        "function": "run",
+        "file": "block-compiler.js",
+        "microseconds": 104292,
+        "percent": 1.5041391517648597
+      },
+      {
+        "function": "resolve",
+        "file": "interpreter.js",
+        "microseconds": 84958,
+        "percent": 1.2252968018221817
+      },
+      {
+        "function": "stream",
+        "file": "mutation-guards.js",
+        "microseconds": 82583,
+        "percent": 1.1910436425631632
+      },
+      {
+        "function": "assign",
+        "file": "binding-environment.js",
+        "microseconds": 75291,
+        "percent": 1.0858756268508425
+      },
+      {
+        "function": "arrayForWrite",
+        "file": "array-ownership.js",
+        "microseconds": 72832,
+        "percent": 1.0504109874327683
+      },
+      {
+        "function": "continueCompiledBlock",
+        "file": "blocks.js",
+        "microseconds": 72500,
+        "percent": 1.0456227563279286
+      },
+      {
+        "function": "prepare",
+        "file": "expressions.js",
+        "microseconds": 67082,
+        "percent": 0.9674822860688291
+      },
+      {
+        "function": "run",
+        "file": "tensor-kernel.js",
+        "microseconds": 58540,
+        "percent": 0.8442862917991302
+      },
+      {
+        "function": "checkMutable",
+        "file": "binding-environment.js",
+        "microseconds": 57664,
+        "percent": 0.8316522844261197
+      },
+      {
+        "function": "store",
+        "file": "assignments.js",
+        "microseconds": 52626,
+        "percent": 0.758992319648463
+      },
+      {
+        "function": "stream",
+        "file": "statement-control.js",
+        "microseconds": 51545,
+        "percent": 0.7434017237920425
+      },
+      {
+        "function": "isRankArray",
+        "file": "value.js",
+        "microseconds": 51417,
+        "percent": 0.741555658787767
+      },
+      {
+        "function": "readArrayItem",
+        "file": "array-read.js",
+        "microseconds": 50167,
+        "percent": 0.7235276802303889
+      },
+      {
+        "function": "",
+        "file": "",
+        "microseconds": 48790,
+        "percent": 0.7036680590515813
+      }
+    ]
+  },
+  "rank507-larger-profile.json": {
+    "sampledMicroseconds": 1821208,
+    "selfTime": [
+      {
+        "function": "",
+        "file": "",
+        "microseconds": 237748,
+        "percent": 13.054412236273945
+      },
+      {
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "microseconds": 234877,
+        "percent": 12.896769616650047
+      },
+      {
+        "function": "chooseStoredIntegers",
+        "file": "integer-array-kernel.js",
+        "microseconds": 146210,
+        "percent": 8.028187884085728
+      },
+      {
+        "function": "mapStoredIntegers",
+        "file": "integer-array-kernel.js",
+        "microseconds": 108335,
+        "percent": 5.948524276194702
+      },
+      {
+        "function": "evaluateBinaryValue",
+        "file": "operators.js",
+        "microseconds": 79835,
+        "percent": 4.383628888078682
+      },
+      {
+        "function": "",
+        "file": "integer-view.js",
+        "microseconds": 71417,
+        "percent": 3.921408208178308
+      },
+      {
+        "function": "mapDenseArrays",
+        "file": "tensor.js",
+        "microseconds": 47211,
+        "percent": 2.5922903918717686
+      },
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "microseconds": 46082,
+        "percent": 2.5302985710583306
+      },
+      {
+        "function": "readArrayItem",
+        "file": "array-read.js",
+        "microseconds": 38335,
+        "percent": 2.10492156854132
+      },
+      {
+        "function": "ownedArray",
+        "file": "owned-array.js",
+        "microseconds": 36210,
+        "percent": 1.988240772058985
+      },
+      {
+        "function": "execute",
+        "file": "tensor-kernel.js",
+        "microseconds": 35082,
+        "percent": 1.926303859855656
+      },
+      {
+        "function": "constructor",
+        "file": "operators.js",
+        "microseconds": 28835,
+        "percent": 1.5832897725026465
+      },
+      {
+        "function": "set",
+        "file": "owned-array.js",
+        "microseconds": 27749,
+        "percent": 1.52365902192391
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "microseconds": 26665,
+        "percent": 1.4641380885653916
+      },
+      {
+        "function": "applyToTensorCells",
+        "file": "rank-application.js",
+        "microseconds": 26333,
+        "percent": 1.4459084300090927
+      },
+      {
+        "function": "chooseDenseArrays",
+        "file": "tensor.js",
+        "microseconds": 23917,
+        "percent": 1.313249227984942
+      },
+      {
+        "function": "post",
+        "file": "node:inspector",
+        "microseconds": 22917,
+        "percent": 1.2583406178756078
+      },
+      {
+        "function": "run",
+        "file": "tensor-bounds.js",
+        "microseconds": 22498,
+        "percent": 1.2353339102397969
+      },
+      {
+        "function": "compareKernel",
+        "file": "tensor.js",
+        "microseconds": 21499,
+        "percent": 1.1804802087405721
+      },
+      {
+        "function": "from",
+        "file": "boolean-cells.js",
+        "microseconds": 19583,
+        "percent": 1.075275311771088
+      },
+      {
+        "function": "gather",
+        "file": "selectors.js",
+        "microseconds": 17499,
+        "percent": 0.9608457683032361
+      },
+      {
+        "function": "inputBounds",
+        "file": "tensor-bounds.js",
+        "microseconds": 16459,
+        "percent": 0.9037408137895288
+      },
+      {
+        "function": "evaluateBinary",
+        "file": "operators.js",
+        "microseconds": 16334,
+        "percent": 0.8968772375258619
+      },
+      {
+        "function": "evaluateArrayItem",
+        "file": "array-read.js",
+        "microseconds": 13459,
+        "percent": 0.7390149834615266
+      },
+      {
+        "function": "bindRun",
+        "file": "tensor-kernel.js",
+        "microseconds": 12959,
+        "percent": 0.7115606784068597
+      },
+      {
+        "function": "setNumber",
+        "file": "owned-array.js",
+        "microseconds": 12916,
+        "percent": 0.7091996081721582
+      },
+      {
+        "function": "getAlternativesForProd",
+        "file": "interpreter.js",
+        "microseconds": 11125,
+        "percent": 0.610858287466341
+      },
+      {
+        "function": "remainingPathWith",
+        "file": "interpreter.js",
+        "microseconds": 10834,
+        "percent": 0.5948798819245248
+      },
+      {
+        "function": "",
+        "file": "operators.js",
+        "microseconds": 10667,
+        "percent": 0.5857101440362661
+      },
+      {
+        "function": "",
+        "file": "selectors.js",
+        "microseconds": 10083,
+        "percent": 0.553643515732415
+      }
+    ]
+  },
+  "rank504-larger-profile.json": {
+    "sampledMicroseconds": 5063625,
+    "selfTime": [
+      {
+        "function": "gather",
+        "file": "selectors.js",
+        "microseconds": 2965119,
+        "percent": 58.557239132044735
+      },
+      {
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "microseconds": 430334,
+        "percent": 8.498536127774074
+      },
+      {
+        "function": "ownedArray",
+        "file": "owned-array.js",
+        "microseconds": 398340,
+        "percent": 7.866696289713397
+      },
+      {
+        "function": "get",
+        "file": "boolean-cells.js",
+        "microseconds": 284924,
+        "percent": 5.6268779777333435
+      },
+      {
+        "function": "",
+        "file": "",
+        "microseconds": 265831,
+        "percent": 5.2498160902515485
+      },
+      {
+        "function": "sliceArray",
+        "file": "selectors.js",
+        "microseconds": 165333,
+        "percent": 3.2651114567133233
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "microseconds": 97750,
+        "percent": 1.9304352119282138
+      },
+      {
+        "function": "",
+        "file": "selectors.js",
+        "microseconds": 75498,
+        "percent": 1.4909871880322891
+      },
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "microseconds": 46457,
+        "percent": 0.9174652546347726
+      },
+      {
+        "function": "slice",
+        "file": "owned-array.js",
+        "microseconds": 40791,
+        "percent": 0.805569132785307
+      },
+      {
+        "function": "from",
+        "file": "boolean-cells.js",
+        "microseconds": 27543,
+        "percent": 0.5439383840628009
+      },
+      {
+        "function": "post",
+        "file": "node:inspector",
+        "microseconds": 24250,
+        "percent": 0.47890592214075883
+      },
+      {
+        "function": "readArrayItem",
+        "file": "array-read.js",
+        "microseconds": 17251,
+        "percent": 0.3406847860969167
+      },
+      {
+        "function": "getAlternativesForProd",
+        "file": "interpreter.js",
+        "microseconds": 14500,
+        "percent": 0.28635611839344344
+      },
+      {
+        "function": "countPhysical",
+        "file": "packed-booleans.js",
+        "microseconds": 12666,
+        "percent": 0.25013700659112786
+      },
+      {
+        "function": "add",
+        "file": "dfa.js",
+        "microseconds": 7584,
+        "percent": 0.14977412426868103
+      },
+      {
+        "function": "tensorSelection",
+        "file": "selectors.js",
+        "microseconds": 7542,
+        "percent": 0.14894467896023106
+      },
+      {
+        "function": "typeName",
+        "file": "value.js",
+        "microseconds": 7291,
+        "percent": 0.14398775580735146
+      },
+      {
+        "function": "materializeValue",
+        "file": "materialize.js",
+        "microseconds": 6916,
+        "percent": 0.1365819941247624
+      },
+      {
+        "function": "collectArrayValues",
+        "file": "array-read.js",
+        "microseconds": 4916,
+        "percent": 0.09708459848428744
+      },
+      {
+        "function": "arrayValues",
+        "file": "array-read.js",
+        "microseconds": 4167,
+        "percent": 0.08229282381692957
+      },
+      {
+        "function": "",
+        "file": "rest.js",
+        "microseconds": 3999,
+        "percent": 0.07897504258312968
+      },
+      {
+        "function": "possiblePathsFrom",
+        "file": "interpreter.js",
+        "microseconds": 3959,
+        "percent": 0.07818509467032018
+      },
+      {
+        "function": "execute",
+        "file": "tensor-kernel.js",
+        "microseconds": 3791,
+        "percent": 0.07486731343652028
+      },
+      {
+        "function": "remainingPathWith",
+        "file": "interpreter.js",
+        "microseconds": 3750,
+        "percent": 0.07405761682589054
+      },
+      {
+        "function": "Alternative",
+        "file": "model.js",
+        "microseconds": 3542,
+        "percent": 0.06994988767928115
+      },
+      {
+        "function": "lookAheadSequenceFromAlternatives",
+        "file": "lookahead.js",
+        "microseconds": 3374,
+        "percent": 0.06663210644548125
+      },
+      {
+        "function": "addDFAState",
+        "file": "all-star-lookahead.js",
+        "microseconds": 3167,
+        "percent": 0.0625441259966921
+      },
+      {
+        "function": "containsPath",
+        "file": "lookahead.js",
+        "microseconds": 3084,
+        "percent": 0.060904984077612384
+      },
+      {
+        "function": "checkCell",
+        "file": "derived-array.js",
+        "microseconds": 2958,
+        "percent": 0.05841664815226246
+      }
+    ]
+  },
+  "rank501-larger-profile.json": {
+    "sampledMicroseconds": 1030333,
+    "selfTime": [
+      {
+        "function": "",
+        "file": "",
+        "microseconds": 186541,
+        "percent": 18.10492335972933
+      },
+      {
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "microseconds": 104627,
+        "percent": 10.154678147744466
+      },
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "microseconds": 78459,
+        "percent": 7.614916730804507
+      },
+      {
+        "function": "createOwned",
+        "file": "owned-array.js",
+        "microseconds": 34083,
+        "percent": 3.307959659644018
+      },
+      {
+        "function": "writeIntegerSelection",
+        "file": "owned-array.js",
+        "microseconds": 27248,
+        "percent": 2.644581897308928
+      },
+      {
+        "function": "bindRun",
+        "file": "tensor-kernel.js",
+        "microseconds": 26583,
+        "percent": 2.5800396570817394
+      },
+      {
+        "function": "post",
+        "file": "node:inspector",
+        "microseconds": 23750,
+        "percent": 2.305080008113882
+      },
+      {
+        "function": "compactBinary",
+        "file": "integer-array-kernel.js",
+        "microseconds": 15668,
+        "percent": 1.5206734133527704
+      },
+      {
+        "function": "selectionArray",
+        "file": "selectors.js",
+        "microseconds": 13874,
+        "percent": 1.3465549487398734
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "microseconds": 12708,
+        "percent": 1.2333876523415246
+      },
+      {
+        "function": "",
+        "file": "selectors.js",
+        "microseconds": 12378,
+        "percent": 1.2013591722287842
+      },
+      {
+        "function": "remainingPathWith",
+        "file": "interpreter.js",
+        "microseconds": 12251,
+        "percent": 1.1890330601853965
+      },
+      {
+        "function": "materializeSequence",
+        "file": "sequence.js",
+        "microseconds": 11667,
+        "percent": 1.1323523559858804
+      },
+      {
+        "function": "getAlternativesForProd",
+        "file": "interpreter.js",
+        "microseconds": 10541,
+        "percent": 1.023067299601197
+      },
+      {
+        "function": "semanticArrayType",
+        "file": "semantic-array-type.js",
+        "microseconds": 10083,
+        "percent": 0.9786156514447271
+      },
+      {
+        "function": "getConflictingAltSets",
+        "file": "all-star-lookahead.js",
+        "microseconds": 10000,
+        "percent": 0.9705600034163712
+      },
+      {
+        "function": "general",
+        "file": "assignments.js",
+        "microseconds": 9875,
+        "percent": 0.9584280033736665
+      },
+      {
+        "function": "",
+        "file": "expressions.js",
+        "microseconds": 9000,
+        "percent": 0.8735040030747342
+      },
+      {
+        "function": "sliceArray",
+        "file": "selectors.js",
+        "microseconds": 8917,
+        "percent": 0.8654483550463782
+      },
+      {
+        "function": "add",
+        "file": "dfa.js",
+        "microseconds": 8792,
+        "percent": 0.8533163550036736
+      },
+      {
+        "function": "tensorSelection",
+        "file": "selectors.js",
+        "microseconds": 8250,
+        "percent": 0.8007120028185063
+      },
+      {
+        "function": "",
+        "file": "application.js",
+        "microseconds": 7874,
+        "percent": 0.7642189466900506
+      },
+      {
+        "function": "",
+        "file": "tensor-kernel.js",
+        "microseconds": 7751,
+        "percent": 0.7522810586480294
+      },
+      {
+        "function": "mapStoredIntegers",
+        "file": "integer-array-kernel.js",
+        "microseconds": 7539,
+        "percent": 0.7317051865756022
+      },
+      {
+        "function": "revisionFrame",
+        "file": "array-revision.js",
+        "microseconds": 7459,
+        "percent": 0.7239407065482713
+      },
+      {
+        "function": "possiblePathsFrom",
+        "file": "interpreter.js",
+        "microseconds": 6375,
+        "percent": 0.6187320021779366
+      },
+      {
+        "function": "applySelectors",
+        "file": "value-selection.js",
+        "microseconds": 6332,
+        "percent": 0.6145585941632462
+      },
+      {
+        "function": "addDFAState",
+        "file": "all-star-lookahead.js",
+        "microseconds": 6168,
+        "percent": 0.5986414101072177
+      },
+      {
+        "function": "broadcastOffset",
+        "file": "tensor-layout.js",
+        "microseconds": 5750,
+        "percent": 0.5580720019644134
+      },
+      {
+        "function": "materializeSelectedView",
+        "file": "array-copy.js",
+        "microseconds": 5417,
+        "percent": 0.5257523538506482
+      }
+    ]
+  },
+  "rank511-larger-profile.json": {
+    "sampledMicroseconds": 568084,
+    "selfTime": [
+      {
+        "function": "",
+        "file": "",
+        "microseconds": 171039,
+        "percent": 30.10804740144063
+      },
+      {
+        "function": "sumIntegerAxis",
+        "file": "reduction.js",
+        "microseconds": 69962,
+        "percent": 12.315432224811824
+      },
+      {
+        "function": "post",
+        "file": "node:inspector",
+        "microseconds": 23750,
+        "percent": 4.180719752712627
+      },
+      {
+        "function": "gather",
+        "file": "selectors.js",
+        "microseconds": 19165,
+        "percent": 3.3736208025573684
+      },
+      {
+        "function": "execute",
+        "file": "tensor-kernel.js",
+        "microseconds": 12541,
+        "percent": 2.2075960597376447
+      },
+      {
+        "function": "getAlternativesForProd",
+        "file": "interpreter.js",
+        "microseconds": 12375,
+        "percent": 2.1783750290450006
+      },
+      {
+        "function": "add",
+        "file": "dfa.js",
+        "microseconds": 12251,
+        "percent": 2.156547271178206
+      },
+      {
+        "function": "run",
+        "file": "number-loop-runtime.js",
+        "microseconds": 11334,
+        "percent": 1.9951274811471544
+      },
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "microseconds": 11292,
+        "percent": 1.9877342083213048
+      },
+      {
+        "function": "remainingPathWith",
+        "file": "interpreter.js",
+        "microseconds": 11126,
+        "percent": 1.9585131776286606
+      },
+      {
+        "function": "possiblePathsFrom",
+        "file": "interpreter.js",
+        "microseconds": 7874,
+        "percent": 1.386062624541441
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "microseconds": 7540,
+        "percent": 1.3272685025453983
+      },
+      {
+        "function": "run",
+        "file": "tensor-bounds.js",
+        "microseconds": 7417,
+        "percent": 1.3056167749839813
+      },
+      {
+        "function": "addDFAState",
+        "file": "all-star-lookahead.js",
+        "microseconds": 6292,
+        "percent": 1.1075826814344358
+      },
+      {
+        "function": "assign",
+        "file": "binding-environment.js",
+        "microseconds": 5041,
+        "percent": 0.8873687694073411
+      },
+      {
+        "function": "closure",
+        "file": "all-star-lookahead.js",
+        "microseconds": 4083,
+        "percent": 0.7187317368558171
+      },
+      {
+        "function": "getConflictingAltSets",
+        "file": "all-star-lookahead.js",
+        "microseconds": 3875,
+        "percent": 0.6821174333373233
+      },
+      {
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "microseconds": 3833,
+        "percent": 0.6747241605114737
+      },
+      {
+        "function": "firstSet",
+        "file": "all-star-lookahead.js",
+        "microseconds": 3751,
+        "percent": 0.660289675470529
+      },
+      {
+        "function": "",
+        "file": "array-binding-contract.js",
+        "microseconds": 3625,
+        "percent": 0.63810985699298
+      },
+      {
+        "function": "",
+        "file": "selectors.js",
+        "microseconds": 3584,
+        "percent": 0.6308926144725076
+      },
+      {
+        "function": "",
+        "file": "helpers.js",
+        "microseconds": 3125,
+        "percent": 0.5500947043042931
+      },
+      {
+        "function": "run",
+        "file": "tensor-kernel.js",
+        "microseconds": 3125,
+        "percent": 0.5500947043042931
+      },
+      {
+        "function": "getATNConfigKey",
+        "file": "dfa.js",
+        "microseconds": 2916,
+        "percent": 0.5133043704804219
+      },
+      {
+        "function": "isOptionalProd",
+        "file": "helpers.js",
+        "microseconds": 2709,
+        "percent": 0.4768660972673055
+      },
+      {
+        "function": "",
+        "file": "interpreter.js",
+        "microseconds": 2542,
+        "percent": 0.4474690362692841
+      },
+      {
+        "function": "",
+        "file": "concat-array.js",
+        "microseconds": 2542,
+        "percent": 0.4474690362692841
+      },
+      {
+        "function": "streamContents",
+        "file": "ast-utils.js",
+        "microseconds": 2500,
+        "percent": 0.44007576344343446
+      },
+      {
+        "function": "",
+        "file": "gast_recorder.js",
+        "microseconds": 2500,
+        "percent": 0.44007576344343446
+      },
+      {
+        "function": "get key",
+        "file": "dfa.js",
+        "microseconds": 2500,
+        "percent": 0.44007576344343446
+      }
+    ]
+  },
+  "rank513-larger-profile.json": {
+    "sampledMicroseconds": 5263625,
+    "selfTime": [
+      {
+        "function": "(garbage collector)",
+        "file": "",
+        "microseconds": 742663,
+        "percent": 14.109344795649386
+      },
+      {
+        "function": "createOwned",
+        "file": "owned-array.js",
+        "microseconds": 259413,
+        "percent": 4.928409603647676
+      },
+      {
+        "function": "bindRun",
+        "file": "tensor-kernel.js",
+        "microseconds": 129164,
+        "percent": 2.453898216533283
+      },
+      {
+        "function": "readArrayItem",
+        "file": "array-read.js",
+        "microseconds": 122790,
+        "percent": 2.3328029637369685
+      },
+      {
+        "function": "prepareStoredScalarView",
+        "file": "integer-view.js",
+        "microseconds": 120713,
+        "percent": 2.293343465767413
+      },
+      {
+        "function": "derivedArray",
+        "file": "derived-array.js",
+        "microseconds": 118498,
+        "percent": 2.2512622004797076
+      },
+      {
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "microseconds": 104458,
+        "percent": 1.984525873328742
+      },
+      {
+        "function": "(program)",
+        "file": "",
+        "microseconds": 95794,
+        "percent": 1.8199244817022489
+      },
+      {
+        "function": "registerScalarView",
+        "file": "integer-view.js",
+        "microseconds": 92211,
+        "percent": 1.7518535229998338
+      },
+      {
+        "function": "isRankArray",
+        "file": "value.js",
+        "microseconds": 79375,
+        "percent": 1.5079911657840368
+      },
+      {
+        "function": "",
+        "file": "",
+        "microseconds": 77503,
+        "percent": 1.472426322163908
+      },
+      {
+        "function": "setSemanticArrayType",
+        "file": "semantic-array-type.js",
+        "microseconds": 75334,
+        "percent": 1.4312189793155858
+      },
+      {
+        "function": "semanticArrayType",
+        "file": "semantic-array-type.js",
+        "microseconds": 72332,
+        "percent": 1.3741860409888622
+      },
+      {
+        "function": "",
+        "file": "expressions.js",
+        "microseconds": 66252,
+        "percent": 1.2586762924790424
+      },
+      {
+        "function": "selectionArray",
+        "file": "selectors.js",
+        "microseconds": 61749,
+        "percent": 1.1731268849889571
+      },
+      {
+        "function": "",
+        "file": "selectors.js",
+        "microseconds": 55957,
+        "percent": 1.0630886508822344
+      },
+      {
+        "function": "revisionFrame",
+        "file": "array-revision.js",
+        "microseconds": 50416,
+        "percent": 0.9578189935643211
+      },
+      {
+        "function": "visit",
+        "file": "array-binding-contract.js",
+        "microseconds": 48791,
+        "percent": 0.9269467334774039
+      },
+      {
+        "function": "checkCell",
+        "file": "derived-array.js",
+        "microseconds": 46334,
+        "percent": 0.880267876225985
+      },
+      {
+        "function": "bindNode",
+        "file": "tensor-kernel.js",
+        "microseconds": 46083,
+        "percent": 0.875499299437175
+      },
+      {
+        "function": "evaluateBinaryValue",
+        "file": "operators.js",
+        "microseconds": 45169,
+        "percent": 0.8581348405329027
+      },
+      {
+        "function": "invoke",
+        "file": "tensor-kernel.js",
+        "microseconds": 44960,
+        "percent": 0.8541641929278776
+      },
+      {
+        "function": "",
+        "file": "tensor-kernel.js",
+        "microseconds": 42710,
+        "percent": 0.8114179866536845
+      },
+      {
+        "function": "valueRevision",
+        "file": "array-revision.js",
+        "microseconds": 41080,
+        "percent": 0.780450734997269
+      },
+      {
+        "function": "advance",
+        "file": "execution.js",
+        "microseconds": 39874,
+        "percent": 0.7575387684343015
+      },
+      {
+        "function": "evaluateArrayItem",
+        "file": "array-read.js",
+        "microseconds": 37793,
+        "percent": 0.7180032772091477
+      },
+      {
+        "function": "",
+        "file": "operators.js",
+        "microseconds": 36083,
+        "percent": 0.6855161604407608
+      },
+      {
+        "function": "check",
+        "file": "array-binding-contract.js",
+        "microseconds": 35168,
+        "percent": 0.668132703222589
+      },
+      {
+        "function": "mapBinary",
+        "file": "operators.js",
+        "microseconds": 33167,
+        "percent": 0.6301170771094066
+      },
+      {
+        "function": "applySelectors",
+        "file": "value-selection.js",
+        "microseconds": 32709,
+        "percent": 0.6214158493433708
+      }
+    ]
+  }
+}

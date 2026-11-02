@@ -95,6 +95,17 @@ export function scalarExtremeParts(source: Expression, unbound: (name: string) =
     return undefined;
 }
 
+/** Scalar choose accepts its ordinary infix and postfix call layouts.
+ * Consumers prove the domains and guard the native binding separately. */
+export function scalarChooseOperands(source: Expression, unbound: (name: string) => boolean): readonly Expression[] | undefined {
+    if (!isApplicationExpression(source) || !unbound('choose')) return undefined;
+    const parts = flattenApplication(source);
+    if (parts.length !== 4) return undefined;
+    if (isNameExpression(parts[1]) && parts[1].name === 'choose') return [parts[0], parts[2], parts[3]];
+    if (isNameExpression(parts[3]) && parts[3].name === 'choose') return parts.slice(0, 3);
+    return undefined;
+}
+
 /** Infer once, then let backends lower the proved tree. This is the common
  * atomic-expression frontend; storage/layout and binding identity remain
  * consumer guards. Unknown names and syntax never acquire guessed types.

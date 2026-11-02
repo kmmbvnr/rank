@@ -9,71 +9,80 @@ use cli
 arg N integer = 1000000000000
 
 rem d(x) = 8 for p^7, p^3 q and p q r.
-rem Counts need pi at the values N //
-rem m: Lucy's sieve keeps Lo v = pi(v)
-rem for v <= sqrt N and Hi i = pi(N //
-rem i), each prime p removing the
-rem numbers with least factor p.
+rem Lucy's sieve keeps pi(v) and
+rem pi(N // v) in two table rows.
+rem Ascending quotient indices and
+rem descending values read the prior
+rem prime's counts before overwriting.
+fun N sieve
+  R = N isqrt
+  Ct = array shape 2 (R + 1) fill 0
+  for V in 1 to R
+    Ct 0 V = V - 1
+    Ct 1 V = N // V - 1
+  end
+  for P in 2 to R
+    if Ct 0 P greater (Ct 0 (P - 1))
+      P2 = P * P
+      Pc = Ct 0 (P - 1)
+      Lm = R min (N // P2)
+      for I in 1 to Lm
+        Ip = I * P
+        V = 0
+        if Ip at most R
+          V = Ct 1 Ip
+        else
+          V = Ct 0 (N // Ip)
+        end
+        Ct 1 I -= V - Pc
+      end
+      for V in R to P2 by -1
+        Ct 0 V -= Ct 0 (V // P) - Pc
+      end
+    end
+  end
+  return Ct
+end
+fun N Counts Ps count8
+  R = N isqrt
+  Total = 0
+  for I in 0 till Ps len
+    P = Ps I
+    P3 = P * P * P
+    if P3 greater N
+      break
+    end
+    X = N // P3
+    if X at most R
+      Total += Counts 0 X
+    else
+      Total += Counts 1 (N // X)
+    end
+    rem Bound p^4 and p^7 by division.
+    if P3 at most (N // P)
+      Total -= 1
+    end
+    if P3 at most (N // P3 // P)
+      Total += 1
+    end
+    for J in I + 1 till Ps len
+      Q = Ps J
+      if P * Q * Q greater N
+        break
+      end
+      X = N // (P * Q)
+      if X at most R
+        Total += Counts 0 X
+      else
+        Total += Counts 1 (N // X)
+      end
+      Total -= J + 1
+    end
+  end
+  return Total
+end
 R = N isqrt
-Lo = (0 to R) - 1
-Lo 0 = 0
-Ii = 1 to R copy
-Hi = concat (array 0) (N // Ii - 1)
-Zr = Lo * 0
-for P in primes to R
-  P2 = P * P
-  Pc = Lo (P - 1)
-  Lm = R min (N // P2)
-  rem i p <= R: Hi at i p, a slice.
-  M1 = R // P min Lm
-  if M1 greater 0
-    Hs = Hi (P to M1 * P by P)
-    Hi (1 to M1) -= Hs - Pc
-  end
-  if Lm greater M1
-    Ib = M1 + 1 to Lm copy
-    Lb = Lo (N // (Ib * P))
-    Hi (M1 + 1 to Lm) -= Lb - Pc
-  end
-  rem Lo at v // p: each value p times.
-  if P2 at most R
-    Rp = R // P
-    Nl = Rp - P + 1
-    Ls = Lo (P to Rp)
-    Lr = Ls reshape Nl 1
-    Lr = Lr + Zr (0 till P)
-    Rr = Lr reshape (Nl * P)
-    Rt = Rr (0 to R - P2)
-    Lo (P2 to R) -= Rt - Pc
-  end
-end
-rem pi(x) for x of the form N // m.
-fun X pin
-  Xs = X min R
-  Xb = (N // (X max 1)) min R
-  Sm = X at most R
-  return Sm choose (Lo Xs) (Hi Xb)
-end
+Counts = N sieve
 Ps = primes to R array
-rem p^3 q, minus q = p; and p^7.
-C3 = Ps * Ps * Ps at most N indices
-P3 = Ps C3
-Answer = (N // (P3 * P3 * P3)) pin sum
-Answer -= N isqrt isqrt pin
-Q7 = P3 ** 7 at most N count
-Answer += Q7
-rem p < q < r: q runs to sqrt(N / p).
-Qh = N // P3 isqrt pin
-Cn = Qh - 1 - C3 max 0
-Of = Cn scan + with 0
-Tl = Of last
-Ow = array shape Tl fill 0
-Ix = Cn greater 0 indices
-Ow (Of Ix) = Ix
-Ow = Ow scan max
-Qi = (0 till Tl) - Of Ow + C3 Ow + 1
-Pp = P3 Ow
-Qq = Ps Qi
-Pq = (N // (Pp * Qq)) pin - Qi - 1
-Answer += Pq sum
+Answer = N Counts Ps count8
 Answer print

@@ -1016,7 +1016,7 @@ export class FunctionInvocation {
                 const operation = findOperation(name);
                 const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
                 if (!operation || !this.modules.has(operation.module) || !value || !this.builtins.is(operation.module, name, value)
-                    || (kernel.plans || kernel.numberDirect) && (!isNativeFunction(value) || !hasNativeImplementation(value))) return false;
+                    || (kernel.plans || kernel.numberDirect || name === 'choose') && (!isNativeFunction(value) || !hasNativeImplementation(value))) return false;
             }
             for (let index = 0; index < binders.length; index++) {
                 const call = binders[index]();

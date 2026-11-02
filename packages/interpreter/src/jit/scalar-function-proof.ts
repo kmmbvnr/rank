@@ -1,7 +1,7 @@
 import { compiledCalleeTypeKey, sameCompiledCalleeType, isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import { positionalDeclaredCall, strictDataCall } from './declared-scalar-call.js';
 import {
-    functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead, terminalReductionForm,
+    scalarChooseOperands, functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead, terminalReductionForm,
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, flattenApplication, isApplicationExpression, isDeclaredCallExpression,
     isNameExpression, isExpressionStatement, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
@@ -21,7 +21,7 @@ const noCaptures: ScalarCaptureTypes = new Map();
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort' | 'choose';
     readonly plan?: FunctionPlanConsumer;
     readonly negative?: boolean;
     readonly keyed?: boolean;
@@ -104,7 +104,9 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const parameters = new Set(statement.parameters);
     const locals = new Set<string>();
     const settled = new Map<string, CompiledCalleeType>(statement.parameters.map((name, index) => [name, types[index]]));
-    const budget = { remaining: blocks ? 256 : 129 };
+    // Medium numeric kernels exceed 256 proof visits; traversal and call
+    // graph budgets remain bounded independently of runtime work.
+    const budget = { remaining: blocks ? 512 : 129 };
     let resultType: CompiledCalleeType | undefined;
     const stages = new Map<string, FunctionPlan>();
     const planCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; proof: ScalarFunctionProof; captures: ScalarCaptureTypes }[] = [];
@@ -222,6 +224,15 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         const inferred = inferCompiledExpression<CompiledCalleeType, ScalarFunctionInput>(expression, {
             atom: type => compiledScalarTypes.find(candidate => candidate === type),
             read: source => {
+                const choice = scalarChooseOperands(source, name => !env.has(name) && !lexicalBinding(scope, name));
+                if (choice) {
+                    const types = choice.map(operand => type(operand, env));
+                    if (types[0] !== 'boolean' || typeof types[1] !== 'string' || types[1] !== types[2]
+                        || !choice.every(operand => callbackFreeChoice(expressions.get(operand)!))) return undefined;
+                    nativeReads.add('choose');
+                    return { type: types[1], input: { name: '', operation: 'choose',
+                        indices: choice.map(operand => expressions.get(operand)!) } };
+                }
                 if (isDeclaredCallExpression(source)) {
                     const parts = positionalDeclaredCall(source);
                     const callee = isNameExpression(source.callee)
@@ -453,6 +464,17 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         if (inferred.failure) return reject(inferred.failure.source, inferred.failure.detail);
         expressions.set(expression, inferred.expression);
         return inferred.expression.type;
+    }
+    function callbackFreeChoice(expression: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>): boolean {
+        if (expression.kind === 'literal') return true;
+        if (expression.kind === 'group' || expression.kind === 'unary') return callbackFreeChoice(expression.operand);
+        if (expression.kind === 'binary' || expression.kind === 'extreme') return callbackFreeChoice(expression.left)
+            && (!expression.right || callbackFreeChoice(expression.right));
+        if (expression.kind === 'call') return expression.signature.callbacks === 'none' && !expression.signature.hostFunction
+            && expression.arguments.every(callbackFreeChoice);
+        const input = expression.input;
+        return (!input.operation || ['choose', 'captured-scalar', 'captured-read', 'integer-power', 'text-at', 'array-len'].includes(input.operation))
+            && (!input.indices || input.indices.every(callbackFreeChoice));
     }
     function loopIterable(source: Expression, env: ReadonlyMap<string, CompiledCalleeType>): ScalarLoopIterable | undefined {
         if (--budget.remaining < 0) return undefined;

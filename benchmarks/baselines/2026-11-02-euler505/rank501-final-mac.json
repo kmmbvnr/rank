@@ -1,0 +1,129 @@
+[
+  {
+    "id": "501",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 2106.494417,
+    "answer": "197912312715",
+    "sourceHash": "0b3e637450ee0b6e85522fc583b8f3584775e77cf0d99ae73b063040f8f54c6c",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "rssMiB": 222.796875
+  },
+  {
+    "id": "501",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 2141.11,
+    "answer": "197912312715",
+    "sourceHash": "0b3e637450ee0b6e85522fc583b8f3584775e77cf0d99ae73b063040f8f54c6c",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "rssMiB": 222.5625
+  },
+  {
+    "id": "501",
+    "size": "full",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 2142.1400830000002,
+    "answer": "197912312715",
+    "sourceHash": "0b3e637450ee0b6e85522fc583b8f3584775e77cf0d99ae73b063040f8f54c6c",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "rssMiB": 222.28125
+  },
+  {
+    "id": "501",
+    "size": "10000000000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000000000"
+    ],
+    "ms": 246.49274999999997,
+    "answer": "2087650968",
+    "sourceHash": "0b3e637450ee0b6e85522fc583b8f3584775e77cf0d99ae73b063040f8f54c6c",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "rssMiB": 184.28125
+  },
+  {
+    "id": "501",
+    "size": "10000000000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000000000"
+    ],
+    "ms": 248.154292,
+    "answer": "2087650968",
+    "sourceHash": "0b3e637450ee0b6e85522fc583b8f3584775e77cf0d99ae73b063040f8f54c6c",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "rssMiB": 184.515625
+  },
+  {
+    "id": "501",
+    "size": "10000000000",
+    "mode": "compiled",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=10000000000"
+    ],
+    "ms": 249.40462499999998,
+    "answer": "2087650968",
+    "sourceHash": "0b3e637450ee0b6e85522fc583b8f3584775e77cf0d99ae73b063040f8f54c6c",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "rssMiB": 184.59375
+  },
+  {
+    "id": "501",
+    "size": "100000000",
+    "mode": "reference",
+    "variant": "original",
+    "controls": [
+      ""
+    ],
+    "args": [
+      "--n=100000000"
+    ],
+    "ms": 1373.1372920000001,
+    "answer": "21902470",
+    "sourceHash": "0b3e637450ee0b6e85522fc583b8f3584775e77cf0d99ae73b063040f8f54c6c",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "rssMiB": 187.75
+  }
+]

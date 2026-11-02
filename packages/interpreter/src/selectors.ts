@@ -1,7 +1,7 @@
 import { arrayRevision } from './array-revision.js';
 import { resolveAxis } from './tensor-index.js';
 import { registerArrayCopy, copyStoredArrayBlocks } from './array-copy.js';
-import { registerPackedBooleanSelection } from './packed-booleans.js';
+import { gatherPackedBooleans, registerPackedBooleanSelection } from './packed-booleans.js';
 import type { ArrayCellRead } from './array-cell-read.js';
 import { framedArray } from './framed-array.js';
 import { permutedArray } from './array-permutation.js';
@@ -437,6 +437,11 @@ export function sliceArray(
     const regular = selection.linear || selection.axes?.every(axis => axis.linear);
     const material = stored && (kind !== undefined || total >= DENSE_SLICE_CELLS);
     if (!regular && material) {
+        const indices = source.shape.length === 1 && selection.axes?.length === 1
+            ? selection.axes[0].offsets : undefined;
+        const booleans = indices && !columnNames && !source.columnNames
+            ? gatherPackedBooleans(source, indices, selection.shape) : undefined;
+        if (booleans) return inheritSemanticArrayType(source, booleans);
         const compact = integer32Cells(source);
         const reals = kind === 'real' || (kind === undefined && realCells(source) !== undefined);
         const out: RankValue[] | Float64Array | BigInt64Array | Int32Array = compact ? new Int32Array(total) : reals ? new Float64Array(total)

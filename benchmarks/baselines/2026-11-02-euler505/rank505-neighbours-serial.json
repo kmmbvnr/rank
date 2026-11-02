@@ -1,0 +1,110 @@
+[
+  {
+    "id": "504",
+    "size": "100",
+    "mode": "compiled",
+    "variant": "original",
+    "ms": 4547.634,
+    "answer": "694687",
+    "rssMiB": 595.25
+  },
+  {
+    "id": "504",
+    "size": "100",
+    "mode": "compiled",
+    "variant": "loop",
+    "ms": 315.656334,
+    "answer": "694687",
+    "rssMiB": 183.6875
+  },
+  {
+    "id": "504",
+    "size": "100",
+    "mode": "compiled",
+    "variant": "original",
+    "ms": 4326.799916,
+    "answer": "694687",
+    "rssMiB": 595.015625
+  },
+  {
+    "id": "504",
+    "size": "100",
+    "mode": "compiled",
+    "variant": "loop",
+    "ms": 317.25250000000005,
+    "answer": "694687",
+    "rssMiB": 183.46875
+  },
+  {
+    "id": "504",
+    "size": "100",
+    "mode": "compiled",
+    "variant": "original",
+    "ms": 4349.759083,
+    "answer": "694687",
+    "rssMiB": 597.703125
+  },
+  {
+    "id": "504",
+    "size": "100",
+    "mode": "compiled",
+    "variant": "loop",
+    "ms": 321.869542,
+    "answer": "694687",
+    "rssMiB": 182.296875
+  },
+  {
+    "id": "511",
+    "size": "1024",
+    "mode": "compiled",
+    "variant": "original",
+    "ms": 1161.107125,
+    "answer": "833781248",
+    "rssMiB": 284.9375
+  },
+  {
+    "id": "511",
+    "size": "1024",
+    "mode": "compiled",
+    "variant": "convolve",
+    "ms": 232.750417,
+    "answer": "833781248",
+    "rssMiB": 191.828125
+  },
+  {
+    "id": "511",
+    "size": "1024",
+    "mode": "compiled",
+    "variant": "original",
+    "ms": 1138.172708,
+    "answer": "833781248",
+    "rssMiB": 286.65625
+  },
+  {
+    "id": "511",
+    "size": "1024",
+    "mode": "compiled",
+    "variant": "convolve",
+    "ms": 240.36758299999997,
+    "answer": "833781248",
+    "rssMiB": 189.96875
+  },
+  {
+    "id": "511",
+    "size": "1024",
+    "mode": "compiled",
+    "variant": "original",
+    "ms": 1132.7171250000001,
+    "answer": "833781248",
+    "rssMiB": 281.765625
+  },
+  {
+    "id": "511",
+    "size": "1024",
+    "mode": "compiled",
+    "variant": "convolve",
+    "ms": 237.42154200000002,
+    "answer": "833781248",
+    "rssMiB": 189.6875
+  }
+]
