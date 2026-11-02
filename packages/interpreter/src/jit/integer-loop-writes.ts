@@ -1,4 +1,4 @@
-import { findCompiledOperator, loopOperatorSignature, isParenthesizedExpression, isBinaryExpression, rangeSliceOperands, type ArrayAssignmentStatement } from '@arrrank/language';
+import { flattenApplication, isApplicationExpression, isNameExpression, isFunctionStatement, statementResultDiscarded, findCompiledOperator, loopOperatorSignature, isParenthesizedExpression, isBinaryExpression, rangeSliceOperands, type ArrayAssignmentStatement } from '@arrrank/language';
 import { isRankIndex } from '../value.js';
 import { hasNativeFenwick } from '../fenwick.js';
 import type { LoopTerm } from './integer-loop-plan.js';
@@ -129,6 +129,16 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             && assignment.indices[0].value && !assignment.indices[0].all && !assignment.indices[0].sign
             && expressions.arrayType(assignment.indices[0].value)?.element === 'integer'
             && expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as import('@arrrank/language').Expression)?.element === 'integer') {
+            // An escaping self-selection follows the current binding after a
+            // COW rebind. Lowered register operands would retain the old buffer.
+            const boundary = isFunctionStatement(state.statement) ? state.statement.statements.at(-2) : state.statement;
+            let value = assignment.value;
+            while (isParenthesizedExpression(value)) value = value.value;
+            const parts = isApplicationExpression(value) ? flattenApplication(value) : [];
+            if (parts.length > 1 && isNameExpression(parts[0]) && parts[0].name === assignment.name
+                && !(boundary && statementResultDiscarded(assignment, boundary))) {
+                return reject(assignment, 'escaping-self-slice-result');
+            }
             const type = expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as import('@arrrank/language').Expression);
             if (!type || type.rank !== 1 || type.element !== 'integer') return undefined;
             const lines: string[] = [], rhsLines: string[] = [];
