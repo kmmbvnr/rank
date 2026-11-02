@@ -1,3 +1,4 @@
+# Install with root:root ownership and mode 0644.
 SHELL=/bin/bash
 PATH=/opt/rank-bench-node/bin:/usr/local/bin:/usr/bin:/bin
 # jack uses Asia/Almaty (UTC+05).

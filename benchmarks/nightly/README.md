@@ -89,3 +89,15 @@ measurement loop on CPU 2. It generates `dashboard.html` from the latest JSON;
 nginx prefers that file for `/bench/`. This allows report UI updates during a
 long pass without restarting measurements. Publication still happens through
 the existing minute-by-minute rsync heartbeat.
+
+Install the cron file as root on jack; cron rejects files with another owner:
+
+```sh
+install -o root -g root -m 0644 \
+  /srv/rank-bench/repo/deploy/nightly-bench.cron \
+  /etc/cron.d/rank-bench
+```
+
+When copying deployment files with rsync, use `--no-owner --no-group` to avoid
+preserving the Mac's numeric owner. The nightly wrapper also reinstalls the
+cron file with explicit root ownership after each successful pull.

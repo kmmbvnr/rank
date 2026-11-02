@@ -66,5 +66,8 @@ document.querySelector('#rows').onclick=async e=>{const path=e.target.dataset.pa
 fetch('history.json').then(r=>r.json()).then(data=>{history=data;document.querySelector('#baseline').innerHTML+=[...data].reverse().filter(x=>x.id!==run.id&&x.status==='complete'&&x.method===run.method&&x.node===run.node&&x.cpu===run.cpu).map(x=>'<option value="'+esc(x.id)+'">'+esc(x.id.slice(0,19))+' · '+esc(x.commit.slice(0,8))+'</option>').join('')}).catch(()=>{});
 fetch('job.json').then(r=>r.json()).then(x=>{document.querySelector('#job').textContent='Nightly job: '+(x.phase||('exit '+x.exitCode))+' · '+(x.updated||x.finished)}).catch(()=>{});
 paint();
+if(run.status==='running')setInterval(()=>{
+ if(!document.hidden&&!document.querySelector('#query').value&&!document.querySelector('#status').value&&document.querySelector('#detail').hidden)location.reload();
+},60000);
 </script></html>`;
 }

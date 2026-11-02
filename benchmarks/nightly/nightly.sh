@@ -46,6 +46,9 @@ PYTHON
 phase updating
 printf 'Nightly started %s\n' "$(date -Is)"
 timeout 120 git pull --ff-only origin main
+if [ -f deploy/nightly-bench.cron ]; then
+  install -o root -g root -m 0644 deploy/nightly-bench.cron /etc/cron.d/rank-bench
+fi
 # Keep the deployed harness until its version is available in origin/main.
 if [ -f benchmarks/nightly/run.mjs ]; then
   cp benchmarks/nightly/{run.mjs,report.mjs,worker.mjs,render-latest.mjs} "$BASE/controller/"
