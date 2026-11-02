@@ -360,6 +360,14 @@ end`);
     it.each([
         'Value = Base\nfor I in 0 to 2\n Value += 1\n if Value greater Base\n  Last = I\n end\nend',
         'Value = Base\nfor I in 0 to 2\n Copy = Value\n Value += 1\n if Copy greater Base\n  Last = I\n end\nend',
+    ])('keeps predicate-only wide dependencies in mixed registers: %s', loop => {
+        const diagnostics = compare(`A = array 0 0 0\nBase = 9007199254740993\n${loop}`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.mixedIntegerLoops).toBe(1);
+        expect(diagnostics.compiledLoops).toBe(1);
+    });
+
+    it.each([
         'Value = Base\nfor I in 0 to 2\n Copy = Value\n Value += 1\n A I = Copy\nend',
         'for I in 0 to 1\n for J in 1 to Base\n  Last = J\n  break\n end\nend',
     ])('retains exact fallback for wide control, loop-carried and cell-store dependencies: %s', loop => {

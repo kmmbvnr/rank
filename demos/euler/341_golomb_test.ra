@@ -2,10 +2,16 @@ use testing
 
 test "given Golomb terms"
   use "341_golomb"
+  1 term equal 1
+  2 term equal 2
+  3 term equal 2
   1000 term equal 86
 end
 
 test "given Golomb cube sum"
   use "341_golomb"
+  1 cubes equal 0
+  2 cubes equal 1
+  3 cubes equal 5
   1000 cubes equal 153506976
 end

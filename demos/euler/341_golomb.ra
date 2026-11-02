@@ -1,6 +1,8 @@
 rem Golomb's Self-describing Sequence
 rem https://projecteuler.net/problem=341
 
+use algo
+use numbers
 use io
 use cli
 
@@ -9,39 +11,45 @@ arg Count integer = 1000000
 Count cubes print
 
 fun Count cubes
-  Max = (Count - 1) ** 3
-  Cap = 12 * Count
-  G = array shape Cap fill 0
+  rem Store only the run-length prefix.
+  G = new index
   G 1 = 1
-  Prod = 1
-  I = 2
-  for Prod less Max
-    Prev = I - 1
-    PrevG = G Prev
-    At = I - (G PrevG)
-    G I = 1 + G At
-    Prod += I * (G I)
-    I += 1
-  end
-  Idx = 1
+  V = 1
+  End = 1
   Sum = 1
-  Products = 1
+  Prod = 1
+  PrevEnd = 0
   PrevSum = 0
   PrevProd = 0
   Answer = 0
   for N in 1 till Count
     Cube = N ** 3
-    for Products less Cube
-      Idx += 1
+    for Prod less Cube
+      V += 1
+      Prev = G (V - 1)
+      At = V - G Prev
+      Len = 1 + G At
+      G V = Len
+      PrevEnd = End
       PrevSum = Sum
-      PrevProd = Products
-      V = G Idx
-      Sum += V
-      Products += Idx * V
+      PrevProd = Prod
+      End += Len
+      Sum += V * Len
+      rem Add one constant-value run.
+      Tri = End * (End + 1) // 2
+      Old = PrevEnd * (PrevEnd + 1) // 2
+      Prod += V * (Tri - Old)
     end
-    Gap = Cube - PrevProd
-    Offset = (Gap + Idx - 1) // Idx
-    Answer += PrevSum + Offset
+    rem Invert the triangular prefix.
+    Old = PrevEnd * (PrevEnd + 1) // 2
+    Gap = (Cube - PrevProd - 1) // V
+    Root = 8 * (Old + Gap) + 1 isqrt
+    K = (Root + 1) // 2
+    Before = K * (K - 1) // 2 - Old
+    Rest = Cube - PrevProd - V * Before
+    Offset = (Rest + K - 1) // K
+    Part = (K - PrevEnd - 1) * V
+    Answer += PrevSum + Part + Offset
   end
   return Answer
 end
@@ -51,7 +59,7 @@ fun N term
   G 1 = 1
   for I in 2 to N
     Prev = I - 1
-    At = I - (G (G Prev))
+    At = I - G (G Prev)
     G I = 1 + G At
   end
   return G N

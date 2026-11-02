@@ -1,8 +1,8 @@
 import { AstUtils, type AstNode } from 'langium';
-import { flattenApplication, isApplicationExpression, isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isIfStatement, isNameExpression, type Expression } from '@arrrank/language';
+import { forIteration, flattenApplication, isApplicationExpression, isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isNameExpression, type Expression } from '@arrrank/language';
 import type { IntegerLoopPlan } from './integer-loop-plan.js';
 
-/** Keep addresses, numeric control and cell stores checked Numbers. Integer
+/** Keep addresses, iteration bounds and cell stores checked Numbers. Integer
  * scalars consumed by exact scalar results, predicates or formatting can remain BigInts.
  * Propagate numeric requirements backwards through every assignment, including
  * branches and loop-carried dependencies; never rely on one observed value. */
@@ -16,11 +16,9 @@ export function wideLoopScalars(plan: IntegerLoopPlan): Set<string> {
         for (const child of AstUtils.streamContents(node)) read(child);
     };
     for (const node of nodes) {
-        if (isForStatement(node)) read(node.condition);
-        if (isIfStatement(node)) {
-            read(node.condition);
-            node.elifClauses.forEach(branch => read(branch.condition));
-        }
+        // Predicate arithmetic can be exact; iteration geometry still needs
+        // checked Numbers, including nested range bounds and strides.
+        if (isForStatement(node) && forIteration(node.condition)) read(node.condition);
         if (isArrayAssignmentStatement(node)) {
             node.indices.forEach(index => read(index.value));
             read(node.value);

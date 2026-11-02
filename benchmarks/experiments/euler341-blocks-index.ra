@@ -1,0 +1,45 @@
+use algo
+use numbers
+use io
+use cli
+arg Count integer = 1000000
+Count cubes print
+
+fun Count cubes
+  G = new index
+  G 1 = 1
+  V = 1
+  End = 1
+  Sum = 1
+  Prod = 1
+  PrevEnd = 0
+  PrevSum = 0
+  PrevProd = 0
+  Answer = 0
+  for N in 1 till Count
+    Cube = N ** 3
+    for Prod less Cube
+      V += 1
+      At = V - (G (G (V - 1)))
+      Len = 1 + G At
+      G V = Len
+      PrevEnd = End
+      PrevSum = Sum
+      PrevProd = Prod
+      End += Len
+      Sum += V * Len
+      Tri = End * (End + 1) // 2
+      Old = PrevEnd * (PrevEnd + 1) // 2
+      Prod += V * (Tri - Old)
+    end
+    Old = PrevEnd * (PrevEnd + 1) // 2
+    Gap = (Cube - PrevProd - 1) // V
+    Root = (8 * (Old + Gap) + 1) isqrt
+    K = (Root + 1) // 2
+    Before = K * (K - 1) // 2 - Old
+    Rest = Cube - PrevProd - V * Before
+    Offset = (Rest + K - 1) // K
+    Answer += PrevSum + (K - PrevEnd - 1) * V + Offset
+  end
+  return Answer
+end

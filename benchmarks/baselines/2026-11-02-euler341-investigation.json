@@ -1,0 +1,1565 @@
+{
+  "date": "2026-11-02",
+  "baseCommit": "90cd13c5",
+  "scope": "research only; no production changes",
+  "methodology": "three alternating serial fresh processes per host; parse/compile/execute time; whole process maxRSS; no diagnostics during timed series; uncontrolled background work",
+  "samples": [
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 10809.332208,
+      "rssMiB": 223.21875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 529.8098749999999,
+      "rssMiB": 220.125,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "runtime": "/tmp/rank341-research",
+      "host": "Mac"
+    },
+    {
+      "variant": "stream",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 1706.660833,
+      "rssMiB": 316.5,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "runs",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 914.028833,
+      "rssMiB": 192.8125,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 425.693458,
+      "rssMiB": 193.953125,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 250.417208,
+      "rssMiB": 179.796875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 12420.6085,
+      "rssMiB": 478.796875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 567.8202080000001,
+      "rssMiB": 221.578125,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "runtime": "/tmp/rank341-research",
+      "host": "Mac"
+    },
+    {
+      "variant": "stream",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 1670.223667,
+      "rssMiB": 316.859375,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "runs",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 828.299708,
+      "rssMiB": 194.59375,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 383.449125,
+      "rssMiB": 192.421875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 221.8885,
+      "rssMiB": 178.515625,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 11788.714542,
+      "rssMiB": 221,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 523.0756250000001,
+      "rssMiB": 222.921875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "runtime": "/tmp/rank341-research",
+      "host": "Mac"
+    },
+    {
+      "variant": "stream",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 1514.602541,
+      "rssMiB": 317.71875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "runs",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 761.498959,
+      "rssMiB": 195.5625,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 346.964417,
+      "rssMiB": 192.015625,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 202.043125,
+      "rssMiB": 179.125,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Mac"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 29561.552764,
+      "rssMiB": 212.35546875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Intel"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1260.796905,
+      "rssMiB": 210.22265625,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "runtime": "/tmp/rank341-research",
+      "host": "Intel"
+    },
+    {
+      "variant": "runs",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1816.533474,
+      "rssMiB": 184.52734375,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Intel"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 586.524171,
+      "rssMiB": 169.66015625,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Intel"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 29262.180161999997,
+      "rssMiB": 212.140625,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Intel"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1249.953179,
+      "rssMiB": 209.58984375,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "runtime": "/tmp/rank341-research",
+      "host": "Intel"
+    },
+    {
+      "variant": "runs",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1817.253953,
+      "rssMiB": 183.48828125,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Intel"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 574.5178080000001,
+      "rssMiB": 168.0234375,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Intel"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 30170.725492999998,
+      "rssMiB": 211.41796875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Intel"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1239.9764240000002,
+      "rssMiB": 208.88671875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "runtime": "/tmp/rank341-research",
+      "host": "Intel"
+    },
+    {
+      "variant": "runs",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1827.167388,
+      "rssMiB": 183.89453125,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Intel"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 577.857085,
+      "rssMiB": 166.171875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "runtime": "/tmp/rank338-delivery",
+      "host": "Intel"
+    }
+  ],
+  "summary": [
+    {
+      "host": "Mac",
+      "variant": "original",
+      "runtime": "/tmp/rank338-delivery",
+      "samples": 3,
+      "medianMs": 11788.714542,
+      "medianPeakMiB": 223.21875
+    },
+    {
+      "host": "Mac",
+      "variant": "original",
+      "runtime": "/tmp/rank341-research",
+      "samples": 3,
+      "medianMs": 529.8098749999999,
+      "medianPeakMiB": 221.578125
+    },
+    {
+      "host": "Mac",
+      "variant": "stream",
+      "runtime": "/tmp/rank338-delivery",
+      "samples": 3,
+      "medianMs": 1670.223667,
+      "medianPeakMiB": 316.859375
+    },
+    {
+      "host": "Mac",
+      "variant": "runs",
+      "runtime": "/tmp/rank338-delivery",
+      "samples": 3,
+      "medianMs": 828.299708,
+      "medianPeakMiB": 194.59375
+    },
+    {
+      "host": "Mac",
+      "variant": "blocks",
+      "runtime": "/tmp/rank338-delivery",
+      "samples": 3,
+      "medianMs": 383.449125,
+      "medianPeakMiB": 192.421875
+    },
+    {
+      "host": "Mac",
+      "variant": "blocks-index",
+      "runtime": "/tmp/rank338-delivery",
+      "samples": 3,
+      "medianMs": 221.8885,
+      "medianPeakMiB": 179.125
+    },
+    {
+      "host": "Intel",
+      "variant": "original",
+      "runtime": "/tmp/rank338-delivery",
+      "samples": 3,
+      "medianMs": 29561.552764,
+      "medianPeakMiB": 212.140625
+    },
+    {
+      "host": "Intel",
+      "variant": "original",
+      "runtime": "/tmp/rank341-research",
+      "samples": 3,
+      "medianMs": 1249.953179,
+      "medianPeakMiB": 209.58984375
+    },
+    {
+      "host": "Intel",
+      "variant": "runs",
+      "runtime": "/tmp/rank338-delivery",
+      "samples": 3,
+      "medianMs": 1817.253953,
+      "medianPeakMiB": 183.89453125
+    },
+    {
+      "host": "Intel",
+      "variant": "blocks-index",
+      "runtime": "/tmp/rank338-delivery",
+      "samples": 3,
+      "medianMs": 577.857085,
+      "medianPeakMiB": 168.0234375
+    }
+  ],
+  "referenceAndTermMac": [
+    {
+      "variant": "original",
+      "mode": "reference",
+      "count": "10000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 332.261791,
+      "rssMiB": 177.890625,
+      "output": [
+        "109822485241"
+      ],
+      "trial": 0,
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "reference",
+      "count": "10000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 185.79704100000004,
+      "rssMiB": 177.21875,
+      "output": [
+        "109822485241"
+      ],
+      "trial": 0,
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 2644.210458,
+      "rssMiB": 181.4375,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 0,
+      "host": "Mac"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "count": "10000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 305.61924999999997,
+      "rssMiB": 175.953125,
+      "output": [
+        "109822485241"
+      ],
+      "trial": 1,
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "reference",
+      "count": "10000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 166.768834,
+      "rssMiB": 177.640625,
+      "output": [
+        "109822485241"
+      ],
+      "trial": 1,
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 2481.108625,
+      "rssMiB": 180.46875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 1,
+      "host": "Mac"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "count": "10000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 308.626042,
+      "rssMiB": 175.859375,
+      "output": [
+        "109822485241"
+      ],
+      "trial": 2,
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "reference",
+      "count": "10000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 166.32712499999997,
+      "rssMiB": 178.28125,
+      "output": [
+        "109822485241"
+      ],
+      "trial": 2,
+      "host": "Mac"
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 2501.15775,
+      "rssMiB": 180.1875,
+      "output": [
+        "56098610614277014"
+      ],
+      "trial": 2,
+      "host": "Mac"
+    },
+    {
+      "variant": "term",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 133.272,
+      "rssMiB": 163.96875,
+      "output": [
+        "6137"
+      ],
+      "host": "Mac"
+    },
+    {
+      "variant": "term",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 1548.20675,
+      "rssMiB": 182.15625,
+      "output": [
+        "6137"
+      ],
+      "host": "Mac"
+    }
+  ],
+  "referenceAndTermIntel": [
+    {
+      "variant": "term",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 298.962691,
+      "rssMiB": 163.8203125,
+      "output": [
+        "6137"
+      ]
+    },
+    {
+      "variant": "term",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 3544.0386580000004,
+      "rssMiB": 167.8359375,
+      "output": [
+        "6137"
+      ]
+    },
+    {
+      "variant": "blocks-index",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 6378.247514,
+      "rssMiB": 168.15625,
+      "output": [
+        "56098610614277014"
+      ]
+    }
+  ],
+  "originalReferenceFull": {
+    "variant": "original",
+    "mode": "reference",
+    "count": "1000000",
+    "timeoutSeconds": 20,
+    "wallSeconds": 20.007001582999997,
+    "host": "Mac"
+  },
+  "verification": {
+    "macBaseline": [
+      {
+        "variant": "original",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "stream",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "runs",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks-index",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "original",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "stream",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "runs",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks-index",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "largerCount": 127,
+        "answer": "420575",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 256,
+        "answer": "3128199",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 999,
+        "answer": "153069045",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 1001,
+        "answer": "153945720",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 10000,
+        "answer": "109822485241",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "mixedBoundaryPrograms": 4
+      }
+    ],
+    "macPrototype": [
+      {
+        "variant": "original",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "stream",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "runs",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks-index",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "original",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "stream",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "runs",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks-index",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "largerCount": 127,
+        "answer": "420575",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 256,
+        "answer": "3128199",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 999,
+        "answer": "153069045",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 1001,
+        "answer": "153945720",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 10000,
+        "answer": "109822485241",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "mixedBoundaryPrograms": 4
+      }
+    ],
+    "intelBaseline": [
+      {
+        "variant": "original",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "stream",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "runs",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks-index",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "original",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "stream",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "runs",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "blocks-index",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "largerCount": 127,
+        "answer": "420575",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 256,
+        "answer": "3128199",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 999,
+        "answer": "153069045",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 1001,
+        "answer": "153945720",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 10000,
+        "answer": "109822485241",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "mixedBoundaryPrograms": 4
+      }
+    ]
+  },
+  "diagnostics": {
+    "original": {
+      "file": "demos/euler/341_golomb.ra",
+      "mode": "compiled",
+      "count": "1000000",
+      "ms": 10807.046416,
+      "rssMiB": 477.0625,
+      "output": [
+        "56098610614277014"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 3,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 1,
+        "typedArrayPublishedCells": 12000000,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 1,
+          "scalar-expression:too-small": 3,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:unsupported-type:array": 1,
+          "number-loop:unsafe-input": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "originalMixedPrototype": {
+      "file": "/tmp/rank341-research/original.ra",
+      "mode": "compiled",
+      "count": "1000000",
+      "ms": 495.38408300000003,
+      "rssMiB": 222.234375,
+      "output": [
+        "56098610614277014"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 1,
+        "typedArrayPublishedCells": 12000000,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {},
+        "compilerRejections": []
+      }
+    },
+    "indexBlocksCurrent": {
+      "variant": "blocks-index",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 221.574125,
+      "rssMiB": 177.140625,
+      "output": [
+        "56098610614277014"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 76914,
+        "indexReadHits": 76914,
+        "indexReadMisses": 0,
+        "indexWrites": 25639,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {},
+        "compilerRejections": []
+      }
+    },
+    "indexBlocksPrototype": {
+      "variant": "blocks-index",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 194.448375,
+      "rssMiB": 178.6875,
+      "output": [
+        "56098610614277014"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 76914,
+        "indexReadHits": 76914,
+        "indexReadMisses": 0,
+        "indexWrites": 25639,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {},
+        "compilerRejections": []
+      }
+    },
+    "runStats": {
+      "file": "/tmp/rank341-research/stats.ra",
+      "mode": "compiled",
+      "count": "1000000",
+      "ms": 300.090541,
+      "rssMiB": 181.375,
+      "output": [
+        "25639",
+        "10105600",
+        "56098610614277014"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 102210,
+        "indexReadHits": 102210,
+        "indexReadMisses": 0,
+        "indexWrites": 25639,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 1,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unsupported-op:print": 1,
+          "tensor:unsupported-node:NewStructureExpression": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:print",
+            "node": "ApplicationExpression",
+            "function": "cubes",
+            "expression": "V print",
+            "line": 44,
+            "column": 3
+          }
+        ]
+      }
+    }
+  },
+  "hashes": {
+    "files": {
+      "benchmarks/experiments/euler341-blocks-index.ra": "61394cf30a2f31b242db80a9b3299ed50ffdcdc4e587a9219add75ee115a81d8",
+      "benchmarks/experiments/euler341-original.ra": "9f5560d87c6715c100330df008b0dc7cf6f5cdb8e320806f4dede709b8078ec7",
+      "benchmarks/experiments/euler341-blocks.ra": "c51f61bd2ff7abc5d14c33945e3d9ec3aef76e15472ee268f4034ed50539c5a4",
+      "benchmarks/experiments/euler341-mixed-prototype.patch": "d757834a0fbe706f55e92b61d42542b085504fc0a2cb51eb811d464c1fa441d3",
+      "benchmarks/experiments/euler341-stream.ra": "f83ed67105cb67b723f9a8ab8f4d84cf448c7d6b0fe45a986e121ed34ee38cf0",
+      "benchmarks/experiments/euler341-runs.ra": "c56cde83e66ffd3c0ca128e4962d2044d5aaaea7f3446a48963470cd67532454",
+      "benchmarks/euler341-investigation.mjs": "7a485650e24a59aba810f414e60433ffab660052ef90456178b9e2ce7cd89e8d",
+      "benchmarks/euler341-verify.mjs": "19f3638dcb6e9ab433a1e8e0df48c60d7e6950749bb3b4675a70801ce0685ca3"
+    },
+    "baselineKernels": {
+      "integer-loop.js": "b02f938fed364358876e3465ab5703dda945c99ece12004dd47aed3bb77e2003",
+      "integer-loop-wide.js": "e62743d2f32a25c13d8ba9ac74f1a6ae0db52ce56b965b16d16121845bc4a47d",
+      "integer-loop-expressions.js": "e635c71f9b13afc9d5477a02d46555494ae5fa5a989b6658f38dce7709d968ed"
+    },
+    "prototypeKernels": {
+      "integer-loop.js": "abbbf796e9c1879521f50825526fff3c6d71199f91901b7b2cb1279c8f3a299d",
+      "integer-loop-wide.js": "0a2a8121af9707a4fb7c75da28c482b319398a169860b208e6ca283facc4188b",
+      "integer-loop-expressions.js": "08c686a9ac006f65deddf42b5b9c96552d4cf23f0515c683e356b0d1854497fa"
+    }
+  }
+}

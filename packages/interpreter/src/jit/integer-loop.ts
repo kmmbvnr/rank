@@ -71,7 +71,19 @@ export function compileIntegerFunctionPrefix(statement: FunctionStatement, host:
     // stores retain their ordinary per-loop transactions and copy-cost feedback.
     if (!plan?.arrayDefinitions.size || plan.destinations.size === 0
         || [...plan.destinations.keys()].some(name => !plan.arrayDefinitions.has(name))) return undefined;
-    return prepareNumberLoop(plan, host);
+    const fast = prepareNumberLoop(plan, host);
+    let mixed: CompiledLoop | undefined, preparedMixed = false;
+    return fast && { run: (...context) => {
+        const result = fast.run(...context);
+        if (result) return result;
+        if (!preparedMixed) {
+            preparedMixed = true;
+            const wide = wideLoopScalars(plan);
+            const mixedPlan = wide.size && lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, wide);
+            mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host) : undefined;
+        }
+        return mixed?.run(...context);
+    } };
 }
 
 function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, numberVariant = false): CompiledLoop | undefined {

@@ -1,0 +1,674 @@
+{
+  "date": "2026-11-02",
+  "baseSourceCommit": "179ccf1e",
+  "baselineCompilerCommit": "90cd13c5",
+  "hardware": {
+    "Mac": "Apple M5 arm64",
+    "Intel": "Intel Core i7-10750H x86_64",
+    "node": "v24.15.0"
+  },
+  "methodology": "three alternating serial fresh processes per host; parse/compile/execute time, excluding imports/startup; whole process peak RSS; no diagnostic observers during timing; background load uncontrolled",
+  "samples": [
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 12934.653125,
+      "rssMiB": 223.5,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 0,
+      "runtime": "/tmp/rank338-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 618.0264159999999,
+      "rssMiB": 224.40625,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 0,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 241.93329100000003,
+      "rssMiB": 180.75,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 0,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 2943.435792,
+      "rssMiB": 182.203125,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 0,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 13976.457124999999,
+      "rssMiB": 224.859375,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 1,
+      "runtime": "/tmp/rank338-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 633.042208,
+      "rssMiB": 221.71875,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 1,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 250.97025,
+      "rssMiB": 177.1875,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 1,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 2907.418667,
+      "rssMiB": 182.375,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 1,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 15752.114917,
+      "rssMiB": 487.640625,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 2,
+      "runtime": "/tmp/rank338-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 637.733416,
+      "rssMiB": 219.828125,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 2,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 254.43629200000004,
+      "rssMiB": 176.796875,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 2,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 2923.433292,
+      "rssMiB": 180.1875,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Mac",
+      "trial": 2,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 29972.205957000002,
+      "rssMiB": 212.64453125,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 0,
+      "runtime": "/tmp/rank338-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1242.526961,
+      "rssMiB": 210.01953125,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 0,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 606.138929,
+      "rssMiB": 167.296875,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 0,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 6428.756516,
+      "rssMiB": 166.65625,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 0,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 30202.336955000002,
+      "rssMiB": 213.33984375,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 1,
+      "runtime": "/tmp/rank338-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1232.171691,
+      "rssMiB": 210.3359375,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 1,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 578.945787,
+      "rssMiB": 163.9375,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 1,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 6414.708985,
+      "rssMiB": 168.8671875,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 1,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 30503.456446,
+      "rssMiB": 211.18359375,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 2,
+      "runtime": "/tmp/rank338-delivery"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1268.68953,
+      "rssMiB": 207.546875,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 2,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 599.4697490000001,
+      "rssMiB": 168.046875,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 2,
+      "runtime": "/tmp/rank341-delivery"
+    },
+    {
+      "variant": "production",
+      "mode": "reference",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 6575.188754,
+      "rssMiB": 167.0390625,
+      "output": [
+        "56098610614277014"
+      ],
+      "host": "Intel",
+      "trial": 2,
+      "runtime": "/tmp/rank341-delivery"
+    }
+  ],
+  "summary": [
+    {
+      "host": "Mac",
+      "variant": "original",
+      "mode": "compiled",
+      "runtime": "/tmp/rank338-delivery",
+      "samples": 3,
+      "medianMs": 13976.457124999999,
+      "medianPeakMiB": 224.859375
+    },
+    {
+      "host": "Mac",
+      "variant": "original",
+      "mode": "compiled",
+      "runtime": "/tmp/rank341-delivery",
+      "samples": 3,
+      "medianMs": 633.042208,
+      "medianPeakMiB": 221.71875
+    },
+    {
+      "host": "Mac",
+      "variant": "production",
+      "mode": "compiled",
+      "runtime": "/tmp/rank341-delivery",
+      "samples": 3,
+      "medianMs": 250.97025,
+      "medianPeakMiB": 177.1875
+    },
+    {
+      "host": "Mac",
+      "variant": "production",
+      "mode": "reference",
+      "runtime": "/tmp/rank341-delivery",
+      "samples": 3,
+      "medianMs": 2923.433292,
+      "medianPeakMiB": 182.203125
+    },
+    {
+      "host": "Intel",
+      "variant": "original",
+      "mode": "compiled",
+      "runtime": "/tmp/rank338-delivery",
+      "samples": 3,
+      "medianMs": 30202.336955000002,
+      "medianPeakMiB": 212.64453125
+    },
+    {
+      "host": "Intel",
+      "variant": "original",
+      "mode": "compiled",
+      "runtime": "/tmp/rank341-delivery",
+      "samples": 3,
+      "medianMs": 1242.526961,
+      "medianPeakMiB": 210.01953125
+    },
+    {
+      "host": "Intel",
+      "variant": "production",
+      "mode": "compiled",
+      "runtime": "/tmp/rank341-delivery",
+      "samples": 3,
+      "medianMs": 599.4697490000001,
+      "medianPeakMiB": 167.296875
+    },
+    {
+      "host": "Intel",
+      "variant": "production",
+      "mode": "reference",
+      "runtime": "/tmp/rank341-delivery",
+      "samples": 3,
+      "medianMs": 6428.756516,
+      "medianPeakMiB": 167.0390625
+    }
+  ],
+  "verification": {
+    "mac": [
+      {
+        "variant": "production",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "production",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "largerCount": 127,
+        "answer": "420575",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 256,
+        "answer": "3128199",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 999,
+        "answer": "153069045",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 1001,
+        "answer": "153945720",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 10000,
+        "answer": "109822485241",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "mixedBoundaryPrograms": 4
+      }
+    ],
+    "intel": [
+      {
+        "variant": "production",
+        "compilation": true,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "variant": "production",
+        "compilation": false,
+        "checks": 102,
+        "oracle": "direct Golomb recurrence at each cube plus fixture golden"
+      },
+      {
+        "largerCount": 127,
+        "answer": "420575",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 256,
+        "answer": "3128199",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 999,
+        "answer": "153069045",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 1001,
+        "answer": "153945720",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "largerCount": 10000,
+        "answer": "109822485241",
+        "engines": 2,
+        "algorithms": 2
+      },
+      {
+        "mixedBoundaryPrograms": 4
+      }
+    ],
+    "logs": {
+      "focusedMac": "\n RUN  v3.2.7 /private/tmp/rank341-delivery/packages/interpreter\n\n \u2713 test/number-loop-vectors.test.ts (87 tests) 2663ms\n   \u2713 private numeric vector stages > retains exact repeated operands in (A mod 97) + (A mod 89)  321ms\n \u2713 test/euler338.test.ts (3 tests) 3644ms\n   \u2713 Euler 338 hyperbola counting > computes the full target without materializing reciprocal ranges  1832ms\n   \u2713 Euler 338 hyperbola counting > matches enumeration around square and cube boundaries (compilation=true)  894ms\n   \u2713 Euler 338 hyperbola counting > matches enumeration around square and cube boundaries (compilation=false)  916ms\n \u2713 test/range-fold.test.ts (21 tests) 1059ms\n \u2713 test/number-loop-index.test.ts (28 tests) 946ms\n   \u2713 private integer index loops > admits audited scalar natives with an index: I gcd 6  333ms\n \u2713 test/number-function-private-state.test.ts (22 tests) 938ms\n   \u2713 checked Number functions with private integer state > iterates a live queue with ordinals and keeps all storage private  397ms\n \u2713 test/mixed-predicates.test.ts (25 tests) 1159ms\n   \u2713 wide integer predicates with checked numeric storage > crosses the safe boundary in a predicate-only counter: 9007199254740990  393ms\n \u2713 test/number-loop.test.ts (186 tests) 8186ms\n   \u2713 private safe-integer loop registers > compiles a larger guarded array region with normal semantics  562ms\n   \u2713 private safe-integer loop registers > reports the temporary budget when a large region retains exact execution  3432ms\n   \u2713 private fresh integer arrays in Number loops > does not charge fresh buffers against the condition-loop copy budget  339ms\n   \u2713 keeps integer remainder exact at the bounded quotient edges and for every sign  458ms\n \u2713 test/modular-fold.test.ts (133 tests) 766ms\n   \u2713 modular scan and reduce > scan + mod 7 120 axis 0 seed undefined  311ms\n \u2713 test/loop-control.test.ts (64 tests) 708ms\n   \u2713 loop control: direct=false, blocks=false, prepared=false > 'nearest loop, branches and skipped st\u2026'  315ms\n \u2713 test/number-function-prefix.test.ts (22 tests) 822ms\n   \u2713 numeric function prefixes with fresh arrays > joins one outer array loop and private allocations above the copy budget  332ms\n \u2713 test/number-loop-vector-bounds.test.ts (10 tests) 611ms\n   \u2713 guarded Int32 vector intervals > keeps exact results and aliases for (A * 2 + 1) // 2  366ms\n \u2713 test/number-loop-exact-consumers.test.ts (16 tests) 656ms\n   \u2713 exact integer consumers inside Number loops > keeps 2 array addresses numeric when loaded cells feed a wide sum  319ms\n \u2713 test/number-loop-aliases.test.ts (9 tests) 479ms\n   \u2713 read-only array aliases in Number regions > refreshes dimensions when a matrix alias switches tables in a mixed region  347ms\n \u2713 test/euler341.test.ts (5 tests) 24022ms\n   \u2713 Euler 341 self-describing runs > matches direct Golomb values at every small cube (compilation=true)  724ms\n   \u2713 Euler 341 self-describing runs > keeps the complete default answer (compilation=true)  546ms\n   \u2713 Euler 341 self-describing runs > matches direct Golomb values at every small cube (compilation=false)  11843ms\n   \u2713 Euler 341 self-describing runs > keeps the complete default answer (compilation=false)  9670ms\n   \u2713 Euler 341 self-describing runs > keeps the original array recurrence in one mixed private region  1237ms\n\n Test Files  14 passed (14)\n      Tests  631 passed (631)\n   Start at  16:51:05\n   Duration  29.28s (transform 3.41s, setup 0ms, collect 27.70s, tests 46.66s, environment 3ms, prepare 1.57s)\n\n",
+      "eulerAfterStyleMac": "\n RUN  v3.2.7 /private/tmp/rank341-delivery/packages/interpreter\n\n \u2713 test/euler341.test.ts (5 tests) 8808ms\n   \u2713 Euler 341 self-describing runs > matches direct Golomb values at every small cube (compilation=false)  3045ms\n   \u2713 Euler 341 self-describing runs > keeps the complete default answer (compilation=false)  5031ms\n   \u2713 Euler 341 self-describing runs > keeps the original array recurrence in one mixed private region  391ms\n\n Test Files  1 passed (1)\n      Tests  5 passed (5)\n   Start at  17:28:37\n   Duration  10.12s (transform 847ms, setup 0ms, collect 1.21s, tests 8.81s, environment 0ms, prepare 23ms)\n\n",
+      "focusedIntel": "\n RUN  v3.2.7 /tmp/rank341-delivery/packages/interpreter\n\n \u2713 test/number-loop-exact-consumers.test.ts (16 tests) 720ms\n   \u2713 exact integer consumers inside Number loops > keeps 2 array addresses numeric when loaded cells feed a wide sum  350ms\n \u2713 test/number-function-prefix.test.ts (22 tests) 827ms\n   \u2713 numeric function prefixes with fresh arrays > joins one outer array loop and private allocations above the copy budget  368ms\n \u2713 test/mixed-predicates.test.ts (25 tests) 1014ms\n   \u2713 wide integer predicates with checked numeric storage > crosses the safe boundary in a predicate-only counter: 9007199254740990  363ms\n \u2713 test/euler341.test.ts (5 tests) 31447ms\n   \u2713 Euler 341 self-describing runs > matches direct Golomb values at every small cube (compilation=true)  853ms\n   \u2713 Euler 341 self-describing runs > keeps the complete default answer (compilation=true)  436ms\n   \u2713 Euler 341 self-describing runs > matches direct Golomb values at every small cube (compilation=false)  10658ms\n   \u2713 Euler 341 self-describing runs > keeps the complete default answer (compilation=false)  18531ms\n   \u2713 Euler 341 self-describing runs > keeps the original array recurrence in one mixed private region  966ms\n\n Test Files  4 passed (4)\n      Tests  68 passed (68)\n   Start at  17:26:49\n   Duration  34.52s (transform 2.03s, setup 0ms, collect 11.40s, tests 34.01s, environment 1ms, prepare 283ms)\n\n",
+      "cliMac": "ok demos/euler/341_golomb_test.ra: given Golomb terms (23ms)\nok demos/euler/341_golomb_test.ra: given Golomb cube sum (11ms)\n1 files, 0 failed\nok demos/euler/341_golomb_default_test.ra: millionth Golomb term (29ms)\n1 files, 0 failed\n",
+      "metadataMac": "\u2714 execution exclusions name existing workloads and explain the resource cost (1.431542ms)\n\u2714 recorded timeouts stay excluded while corrected compiler cases remain eligible (0.062ms)\n\u2714 new full-scale exclusions retain their small test fixtures unless they timed out (14.747917ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 46.485458\n",
+      "buildMac": ""
+    },
+    "diagnostics": {
+      "variant": "production",
+      "mode": "compiled",
+      "count": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 332.50458299999997,
+      "rssMiB": 180,
+      "output": [
+        "56098610614277014"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 76914,
+        "indexReadHits": 76914,
+        "indexReadMisses": 0,
+        "indexWrites": 25639,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {},
+        "compilerRejections": []
+      }
+    },
+    "exhaustiveAuditsRun": false
+  },
+  "hashes": {
+    "source": {
+      "demos/euler/341_golomb.ra": "26125fe233d7a33df4ac8c2961c3894f7c5352a1a7dc44c5dfb59bf5933b455f",
+      "demos/euler/341_golomb_test.ra": "ab406ec1f87cfeeec59291a457371b8aae38f0163157504ed745c6fc3901ee17",
+      "demos/euler/341_golomb_default_test.ra": "fb5770d75756088853fc60e0eb3d38b92882857e7bdc8eb72739d75d458ab5a7",
+      "packages/interpreter/src/jit/integer-loop-expressions.ts": "1430fc6d1960be383b45b1cfcb24c63f4e2319b5e1071c3aecc9c12af903ed54",
+      "packages/interpreter/src/jit/integer-loop.ts": "07e79fb0c752980ea30a240a8c2f16b212fc139c387226a8caaa46b877a9dca9",
+      "packages/interpreter/src/jit/integer-loop-wide.ts": "0d493958aba0e8c52ed9af186cb5585548cbf6f782caa52e79b3c262efc6498b",
+      "packages/interpreter/test/euler341.test.ts": "6dc7475aef38340f1ab58df831ca3ec5a779f4f64a5a448f516bdbf09d8cddda",
+      "packages/interpreter/test/mixed-predicates.test.ts": "9607cecefe9ef4afb46f421c2a535fe2f70e4d78db1b0c34f122323f785503e8",
+      "packages/interpreter/test/number-loop.test.ts": "ddc35dced1ec72d146175e77cfaff686829418ad6da711291c566b5f21e2ab5b",
+      "scripts/demo-execution-exclusions.json": "3ecd4131917994f7bd1374f1868f027cfc382e24f797fc617768626b42bd402a",
+      "scripts/demo-execution-exclusions.test.mjs": "7bab50cfaa4d57969b5a6f7ac9751ebab441fddc7238eeced77ce5423ad612bd"
+    },
+    "output": {
+      "integer-loop.js": "03b45e6b8c9b932a8268cb454738c30701d3257be9629fc626456dc4bc114466",
+      "integer-loop-wide.js": "fb9d734e206d819e8acf388d3cff3c533194637da524ecc74319175dee4057f5",
+      "integer-loop-expressions.js": "1f8022913a1132a3f2a0790193a1b3b5bc6534ec0badeddfcf1904a74f1a864d"
+    },
+    "intelOutputMatchesMac": true
+  },
+  "intelSystem": "03b45e6b8c9b932a8268cb454738c30701d3257be9629fc626456dc4bc114466  /tmp/rank341-delivery/packages/interpreter/out/jit/integer-loop.js\nfb9d734e206d819e8acf388d3cff3c533194637da524ecc74319175dee4057f5  /tmp/rank341-delivery/packages/interpreter/out/jit/integer-loop-wide.js\n1f8022913a1132a3f2a0790193a1b3b5bc6534ec0badeddfcf1904a74f1a864d  /tmp/rank341-delivery/packages/interpreter/out/jit/integer-loop-expressions.js\n26125fe233d7a33df4ac8c2961c3894f7c5352a1a7dc44c5dfb59bf5933b455f  /tmp/rank341-delivery/demos/euler/341_golomb.ra\nArchitecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           39 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  12\nOn-line CPU(s) list:                     0-11\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz\nCPU family:                              6\nModel:                                   165\nThread(s) per core:                      2\nCore(s) per socket:                      6\nSocket(s):                               1\nStepping:                                2\nCPU(s) scaling MHz:                      73%\nCPU max MHz:                             5000.0000\nCPU min MHz:                             800.0000\nBogoMIPS:                                5199.98\n"
+}

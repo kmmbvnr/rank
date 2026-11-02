@@ -297,6 +297,13 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function isScalar(value: LoopValue): value is LoopTerm { return typeof value.type === 'string'; }
     interface LoopInput { readonly term: LoopTerm; readonly lines: readonly string[] }
     function emit(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopTerm | undefined {
+        // A predicate may read exact counters while array addresses and range
+        // geometry retain their independently checked Number dependencies.
+        if (numberMode && hint === 'boolean' && state.wideScalars.size
+            && [e, ...AstUtils.streamAllContents(e)].some(node => isNameExpression(node) && state.wideScalars.has(node.name))) {
+            return createLoopExpressions(state, true).emit(e, lines, hint, tail);
+        }
+
         let tailSource = e;
         while (isParenthesizedExpression(tailSource)) tailSource = tailSource.value;
         const booleanPairs = new Map<Expression, boolean>();
@@ -536,7 +543,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (exactConsumer) operands.forEach(operand => state.exactInputs.add(operand));
         const wideInput = operands.some(operand => [operand, ...AstUtils.streamAllContents(operand)]
             .some(node => isNameExpression(node) && state.wideScalars.has(node.name)));
-        if (numberMode && exactConsumer && (signature.result === 'text' || wideInput)) {
+        if (state.numberMode && exactConsumer && (wide || signature.result === 'text' || wideInput)) {
             const exact = createLoopExpressions(state, true);
             const arguments_: string[] = [];
             for (const operand of operands) {

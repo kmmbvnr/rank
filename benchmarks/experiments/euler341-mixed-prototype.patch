@@ -1,0 +1,59 @@
+--- a/packages/interpreter/out/jit/integer-loop-wide.js
++++ b/packages/interpreter/out/jit/integer-loop-wide.js
+@@ -1,5 +1,5 @@
+ import { AstUtils } from 'langium';
+-import { flattenApplication, isApplicationExpression, isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isIfStatement, isNameExpression } from '@arrrank/language';
++import { forIteration, flattenApplication, isApplicationExpression, isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isIfStatement, isNameExpression } from '@arrrank/language';
+ /** Keep addresses, numeric control and cell stores checked Numbers. Integer
+  * scalars consumed by exact scalar results, predicates or formatting can remain BigInts.
+  * Propagate numeric requirements backwards through every assignment, including
+@@ -17,12 +17,8 @@
+             read(child);
+     };
+     for (const node of nodes) {
+-        if (isForStatement(node))
++        if (isForStatement(node) && forIteration(node.condition))
+             read(node.condition);
+-        if (isIfStatement(node)) {
+-            read(node.condition);
+-            node.elifClauses.forEach(branch => read(branch.condition));
+-        }
+         if (isArrayAssignmentStatement(node)) {
+             node.indices.forEach(index => read(index.value));
+             read(node.value);
+--- a/packages/interpreter/out/jit/integer-loop-expressions.js
++++ b/packages/interpreter/out/jit/integer-loop-expressions.js
+@@ -275,6 +275,10 @@
+     }
+     function isScalar(value) { return typeof value.type === 'string'; }
+     function emit(e, lines, hint, tail = false) {
++        if (state.numberMode && !wide && hint === 'boolean' && state.wideScalars.size &&
++            [e, ...AstUtils.streamAllContents(e)].some(n => isNameExpression(n) && state.wideScalars.has(n.name)))
++            return createLoopExpressions(state, true).emit(e, lines, hint, tail);
++
+         let tailSource = e;
+         while (isParenthesizedExpression(tailSource))
+             tailSource = tailSource.value;
+--- a/packages/interpreter/out/jit/integer-loop.js
++++ b/packages/interpreter/out/jit/integer-loop.js
+@@ -77,7 +77,19 @@
+     if (!plan?.arrayDefinitions.size || plan.destinations.size === 0
+         || [...plan.destinations.keys()].some(name => !plan.arrayDefinitions.has(name)))
+         return undefined;
+-    return prepareNumberLoop(plan, host);
++    const fast = prepareNumberLoop(plan, host);
++    let mixed, prepared = false;
++    return fast && {run: (...context) => {
++        const result = fast.run(...context);
++        if (result) return result;
++        if (!prepared) {
++            prepared = true;
++            const wide = wideLoopScalars(plan);
++            const candidate = wide.size && lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, wide);
++            mixed = candidate && prepareNumberLoop(candidate, host);
++        }
++        return mixed?.run(...context);
++    }};
+ }
+ function compileTypedLoop(statement, host, iteration, textSources, textArrays, numberVariant = false) {
+     let failure;
