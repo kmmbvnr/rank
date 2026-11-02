@@ -1,0 +1,183 @@
+rem Keys (Ключи)
+rem https://acmp.ru/index.asp?main=task&id_task=740
+rem Difficulty: 61%
+rem Find maximum overlapping rectangular holes between two keys under translation.
+rem Solved via 2D open rectangle intersection coverage:
+rem Project shift bounds into closed integer intervals [2*Xmin + 1, 2*Xmax - 1],
+rem compress Y coordinates, and sweep-line with iterative range-add segment tree.
+
+use io
+use text
+use cli
+use algo
+use sequences
+
+arg Input text = "10 10
+2
+1 1 2 2
+3 3 4 4
+1
+1 1 3 3"
+
+Tokens = Input split "\r" join " " split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = Tokens 0 integer
+M = Tokens 1 integer
+K1 = Tokens 2 integer
+
+Idx = 3
+Ax1 = array shape K1 fill 0
+Ay1 = array shape K1 fill 0
+Ax2 = array shape K1 fill 0
+Ay2 = array shape K1 fill 0
+
+for I in 0 till K1
+  Ax1 I = Tokens Idx integer
+  Ay1 I = (Tokens (Idx + 1)) integer
+  Ax2 I = (Tokens (Idx + 2)) integer
+  Ay2 I = (Tokens (Idx + 3)) integer
+  Idx = Idx + 4
+end
+
+K2 = Tokens Idx integer
+Idx = Idx + 1
+
+Bu1 = array shape K2 fill 0
+Bv1 = array shape K2 fill 0
+Bu2 = array shape K2 fill 0
+Bv2 = array shape K2 fill 0
+
+for J in 0 till K2
+  Bu1 J = Tokens Idx integer
+  Bv1 J = (Tokens (Idx + 1)) integer
+  Bu2 J = (Tokens (Idx + 2)) integer
+  Bv2 J = (Tokens (Idx + 3)) integer
+  Idx = Idx + 4
+end
+
+TotalPairs = K1 * K2
+
+DiffX1 = Ax1 Bu2 outer - reshape TotalPairs
+DiffX2 = Ax2 Bu1 outer - reshape TotalPairs
+DiffY1 = Ay1 Bv2 outer - reshape TotalPairs
+DiffY2 = Ay2 Bv1 outer - reshape TotalPairs
+
+LX = (DiffX1 * 2) + 1
+RX = (DiffX2 * 2) - 1
+LY = (DiffY1 * 2) + 1
+RY = (DiffY2 * 2) - 1
+
+Valid = LX at most RX and (LY at most RY)
+LX = LX Valid
+RX = RX Valid
+LY = LY Valid
+RY = RY Valid
+NumRects = LX len
+
+MaxHoles = 0
+
+if NumRects greater 0
+  AllY = concat LY RY
+  SortedY = AllY sort unique
+  NumY = SortedY len
+
+  QL = SortedY lowerindex LY
+  QR = SortedY lowerindex RY
+
+  EventX = concat LX (RX + 1)
+  EventType = concat (array shape NumRects fill 1) (array shape NumRects fill -1)
+  EventQL = concat QL QL
+  EventQR = concat QR QR
+  NumEvents = EventX len
+
+  XMin = EventX min
+  XOffset = 0
+  if XMin less 0
+    XOffset = 0 - XMin
+  end
+
+  EventKey = (((EventX + XOffset) * 2) + ((1 - EventType) // 2))
+  Order = EventKey argsort
+  EventX = EventX Order
+  EventType = EventType Order
+  EventQL = EventQL Order
+  EventQR = EventQR Order
+
+  P = 1
+  for Step in 0 till 30
+    if P at least NumY
+      break
+    end
+    P = P * 2
+  end
+
+  TreeSize = 2 * P
+  Cover = array shape TreeSize fill 0
+  MaxVal = array shape TreeSize fill 0
+
+  EvIdx = 0
+  for Step in 0 till (NumEvents + 1)
+    if EvIdx at least NumEvents
+      break
+    end
+    CurX = EventX EvIdx
+    for Inner in 0 till (NumEvents + 1)
+      if EvIdx at least NumEvents
+        break
+      end
+      if EventX EvIdx not equal CurX
+        break
+      end
+      Val = EventType EvIdx
+      L = P + (EventQL EvIdx)
+      R = P + (EventQR EvIdx)
+      L0 = L
+      R0 = R
+      for Up in 0 till 35
+        if L greater R
+          break
+        end
+        if L mod 2 equal 1
+          Cover L = (Cover L) + Val
+          MaxVal L = (MaxVal L) + Val
+          L = L + 1
+        end
+        if R mod 2 equal 0
+          Cover R = (Cover R) + Val
+          MaxVal R = (MaxVal R) + Val
+          R = R - 1
+        end
+        L = L // 2
+        R = R // 2
+      end
+
+      Curr = L0 // 2
+      for Up in 0 till 35
+        if Curr less 1
+          break
+        end
+        ChildMax = (MaxVal (2 * Curr)) max (MaxVal ((2 * Curr) + 1))
+        MaxVal Curr = (Cover Curr) + ChildMax
+        Curr = Curr // 2
+      end
+
+      Curr = R0 // 2
+      for Up in 0 till 35
+        if Curr less 1
+          break
+        end
+        ChildMax = (MaxVal (2 * Curr)) max (MaxVal ((2 * Curr) + 1))
+        MaxVal Curr = (Cover Curr) + ChildMax
+        Curr = Curr // 2
+      end
+
+      EvIdx = EvIdx + 1
+    end
+    if MaxVal 1 greater MaxHoles
+      MaxHoles = MaxVal 1
+    end
+  end
+end
+
+MaxHoles text print
