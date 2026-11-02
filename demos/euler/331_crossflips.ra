@@ -37,34 +37,37 @@ fun N boundary
   Fix = 0.0
   Edge = 2.0 * (N - 1.0)
   for X less Y
-    if 2.0 * X less Edge - R
+    for 2.0 * X less Edge - R
       R += X
       X += 1.0
       R += X
       C += 1.0
       Parity = 1.0 - Parity
-    else
-      R -= Y
-      Y -= 1.0
-      R -= Y
-      New = 1.0
-      if R less 0.0
-        R += X
-        X += 1.0
-        R += X
-        New = 0.0
-      end
-      Was += New
-      if Parity equal 1.0
-        Fix += 2.0 * (C - 2.0 * Was)
-      else
-        Fix -= 2.0 * (C - 2.0 * Was)
-      end
-      Odd += C + Parity - Was
-      Was = New
-      C = 1.0
-      Parity = 1.0
     end
+    rem Count diagonal cells below.
+    if X at least Y
+      break
+    end
+    R -= Y
+    Y -= 1.0
+    R -= Y
+    New = 1.0
+    if R less 0.0
+      R += X
+      X += 1.0
+      R += X
+      New = 0.0
+    end
+    Was += New
+    if Parity equal 1.0
+      Fix += 2.0 * (C - 2.0 * Was)
+    else
+      Fix -= 2.0 * (C - 2.0 * Was)
+    end
+    Odd += C + Parity - Was
+    Was = New
+    C = 1.0
+    Parity = 1.0
   end
   if X equal Y
     Odd += 1.0 - Was

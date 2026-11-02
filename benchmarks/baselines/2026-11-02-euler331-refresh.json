@@ -1,0 +1,401 @@
+{
+  "date": "2026-11-02",
+  "baselineCommit": "75a6ff63",
+  "node": "v24.15.0",
+  "mac": [
+    {
+      "trial": 0,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 1903.5617499999998,
+      "rssMiB": 161.5,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 0,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 1426.849167,
+      "rssMiB": 174.21875,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 1,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 1425.25375,
+      "rssMiB": 175.859375,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 1,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 1910.5609999999997,
+      "rssMiB": 161.84375,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 2,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 1926.808208,
+      "rssMiB": 161.171875,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 2,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 1430.2676669999998,
+      "rssMiB": 161.640625,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 0,
+      "mode": "reference",
+      "input": "1000000",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 872.748166,
+      "rssMiB": 180.375,
+      "answer": "379838331772",
+      "executions": 0
+    },
+    {
+      "trial": 0,
+      "mode": "reference",
+      "input": "1000000",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 955.6402919999999,
+      "rssMiB": 177.8125,
+      "answer": "379838331772",
+      "executions": 0
+    },
+    {
+      "trial": 1,
+      "mode": "reference",
+      "input": "1000000",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 959.361583,
+      "rssMiB": 178.265625,
+      "answer": "379838331772",
+      "executions": 0
+    },
+    {
+      "trial": 1,
+      "mode": "reference",
+      "input": "1000000",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 889.9168340000001,
+      "rssMiB": 177.984375,
+      "answer": "379838331772",
+      "executions": 0
+    },
+    {
+      "trial": 2,
+      "mode": "reference",
+      "input": "1000000",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 910.0664580000001,
+      "rssMiB": 177.359375,
+      "answer": "379838331772",
+      "executions": 0
+    },
+    {
+      "trial": 2,
+      "mode": "reference",
+      "input": "1000000",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 964.4463750000001,
+      "rssMiB": 177.625,
+      "answer": "379838331772",
+      "executions": 0
+    }
+  ],
+  "intel": [
+    {
+      "trial": 0,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 4584.571359,
+      "rssMiB": 163.59765625,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 0,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 3529.13654,
+      "rssMiB": 161.203125,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 1,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 4631.8461290000005,
+      "rssMiB": 165.04296875,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 1,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 3536.316814,
+      "rssMiB": 162.15625,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 2,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 4793.971717,
+      "rssMiB": 162.94140625,
+      "answer": "467178235146843549",
+      "executions": 14
+    },
+    {
+      "trial": 2,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 3435.7430000000004,
+      "rssMiB": 163.2890625,
+      "answer": "467178235146843549",
+      "executions": 14
+    }
+  ],
+  "macGcControl": [
+    {
+      "trial": 0,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 1884.379125,
+      "rssMiB": 158.34375,
+      "answer": "467178235146843549",
+      "executions": 14,
+      "memory": {
+        "before": {
+          "rss": 110493696,
+          "heapTotal": 59195392,
+          "heapUsed": 23324880,
+          "external": 2018414,
+          "arrayBuffers": 31559
+        },
+        "after": {
+          "rss": 166346752,
+          "heapTotal": 105840640,
+          "heapUsed": 35743560,
+          "external": 1996773,
+          "arrayBuffers": 31559
+        },
+        "retainedHeapDeltaMiB": 11.843376159667969,
+        "retainedArrayBufferDeltaMiB": 0
+      }
+    },
+    {
+      "trial": 0,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 1438.0345,
+      "rssMiB": 158,
+      "answer": "467178235146843549",
+      "executions": 14,
+      "memory": {
+        "before": {
+          "rss": 110379008,
+          "heapTotal": 59195392,
+          "heapUsed": 23316912,
+          "external": 2024964,
+          "arrayBuffers": 31559
+        },
+        "after": {
+          "rss": 165658624,
+          "heapTotal": 105578496,
+          "heapUsed": 35683288,
+          "external": 1996773,
+          "arrayBuffers": 31559
+        },
+        "retainedHeapDeltaMiB": 11.793495178222656,
+        "retainedArrayBufferDeltaMiB": 0
+      }
+    },
+    {
+      "trial": 1,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 1431.2060410000001,
+      "rssMiB": 160.359375,
+      "answer": "467178235146843549",
+      "executions": 14,
+      "memory": {
+        "before": {
+          "rss": 110936064,
+          "heapTotal": 59457536,
+          "heapUsed": 23320552,
+          "external": 2011956,
+          "arrayBuffers": 31559
+        },
+        "after": {
+          "rss": 168345600,
+          "heapTotal": 106102784,
+          "heapUsed": 35683896,
+          "external": 1996773,
+          "arrayBuffers": 31559
+        },
+        "retainedHeapDeltaMiB": 11.790603637695312,
+        "retainedArrayBufferDeltaMiB": 0
+      }
+    },
+    {
+      "trial": 1,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 1906.0605,
+      "rssMiB": 141.9375,
+      "answer": "467178235146843549",
+      "executions": 14,
+      "memory": {
+        "before": {
+          "rss": 107560960,
+          "heapTotal": 58933248,
+          "heapUsed": 23359440,
+          "external": 2574693,
+          "arrayBuffers": 31559
+        },
+        "after": {
+          "rss": 151748608,
+          "heapTotal": 106364928,
+          "heapUsed": 35765792,
+          "external": 1996773,
+          "arrayBuffers": 31559
+        },
+        "retainedHeapDeltaMiB": 11.831619262695312,
+        "retainedArrayBufferDeltaMiB": 0
+      }
+    },
+    {
+      "trial": 2,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "original",
+      "node": "v24.15.0",
+      "ms": 1917.219583,
+      "rssMiB": 158.28125,
+      "answer": "467178235146843549",
+      "executions": 14,
+      "memory": {
+        "before": {
+          "rss": 110821376,
+          "heapTotal": 59719680,
+          "heapUsed": 23316136,
+          "external": 1999913,
+          "arrayBuffers": 31559
+        },
+        "after": {
+          "rss": 166330368,
+          "heapTotal": 106102784,
+          "heapUsed": 35741104,
+          "external": 1996773,
+          "arrayBuffers": 31559
+        },
+        "retainedHeapDeltaMiB": 11.849372863769531,
+        "retainedArrayBufferDeltaMiB": 0
+      }
+    },
+    {
+      "trial": 2,
+      "mode": "compiled",
+      "input": "full",
+      "variant": "production",
+      "node": "v24.15.0",
+      "ms": 1427.5134580000001,
+      "rssMiB": 160.46875,
+      "answer": "467178235146843549",
+      "executions": 14,
+      "memory": {
+        "before": {
+          "rss": 110592000,
+          "heapTotal": 59719680,
+          "heapUsed": 23319928,
+          "external": 2024964,
+          "arrayBuffers": 31559
+        },
+        "after": {
+          "rss": 168493056,
+          "heapTotal": 105840640,
+          "heapUsed": 35698872,
+          "external": 1996773,
+          "arrayBuffers": 31559
+        },
+        "retainedHeapDeltaMiB": 11.80548095703125,
+        "retainedArrayBufferDeltaMiB": 0
+      }
+    }
+  ],
+  "verification": {
+    "checks": 1088,
+    "fixtureTests": 32,
+    "boundaryChecks": 2088,
+    "failures": 0
+  },
+  "focusedTests": {
+    "files": 3,
+    "tests": 95,
+    "failures": 0
+  },
+  "notes": [
+    "Main speed/RSS measurements use normal Node processes, without forced GC.",
+    "GC controls use --expose-gc and MEMORY=1, in separate fresh processes; not headline timings.",
+    "Intel reached through ssh -p 22022 root@viewflow.io; same host as root@jack.lan.",
+    "Reference measurements use N=1000000; no full reference or exhaustive audit.",
+    "Mac RSS has a bimodal range; report the higher production median rather than claiming a memory saving."
+  ]
+}
