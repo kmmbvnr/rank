@@ -3,7 +3,7 @@ import { MemoryIo } from './support.js';
 import { describe, expect, it, vi } from 'vitest';
 import { isFunctionStatement } from '@arrrank/language';
 import { compileScalarFunction } from '../src/scalar-function-kernel.js';
-import { Interpreter, RankError, formatValue, parse } from '../src/index.js';
+import { Interpreter, RankError, RuntimeDiagnostics, formatValue, parse } from '../src/index.js';
 
 function run(source: string, enabled: boolean, module?: string) {
     let calls = 0;
@@ -26,6 +26,46 @@ function compare(source: string, module?: string) {
 }
 
 describe('compiled scalar function bodies', () => {
+    it('compiles integer and real abs with their exact result domains', () => {
+        for (const value of ['0', '(-1)', '(-9007199254740993)', '(-1267650600228229401496703205376)', '(-0.0)', '(-2.5)']) {
+            const result = compare(`use numbers
+fun X magnitude
+  return X abs
+end
+${value} magnitude`);
+            expect(result.calls).toBe(1);
+        }
+    });
+
+    it('guards abs identity, imports, missing values and destructive reads', () => {
+        for (const source of [
+            'fun X magnitude\n  return X abs\nend\n(-2) magnitude',
+            'use numbers\nfun X magnitude\n  return X abs\nend\nmissing magnitude',
+            'fun X abs\n  return X + 7\nend\nfun X magnitude\n  return X abs\nend\n(-2) magnitude',
+            'use numbers\nfun X magnitude\n  return X abs\nend\n"wrong" magnitude',
+        ]) compare(source);
+        let calls = 0;
+        const runtime = new Interpreter(() => {}, {onScalarFunctionExecuted:() => calls++});
+        try {
+            runtime.execute('use numbers\nfun X magnitude\n  return X abs\nend');
+            expect(runtime.execute('(-2) magnitude')).toBe(2n);
+            expect(calls).toBe(1);
+            runtime.variables.set('abs', native('replacement', 1, () => 17n));
+            expect(runtime.execute('(-2) magnitude')).toBe(17n);
+        } finally {runtime.dispose();}
+        const result = compare(`use algo
+use numbers
+fun X magnitude
+  Q = new queue
+  Q push X
+  V = Q pop abs
+  return V + (Q len)
+end
+(-2) magnitude`);
+        expect(result.value).toBe('2');
+        expect(result.calls).toBe(1);
+    });
+
     it('compiles text take/drop with code-point bounds and ordinary errors', () => {
         for (const text of ['', 'ABCDE', 'A😀éZ', '\ud800X\udfff']) {
             for (const count of [-1n, 0n, 1n, 2n, 5n, 99n, 9007199254740993n]) {
@@ -316,6 +356,47 @@ end`);
 });
 
 describe('scalar function speculative number mode and BigInt overflow fallback', () => {
+    it('backs off repeated overflow and recovers after the input scale changes', () => {
+        const runtime = new Interpreter();
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute(`fun X square
+  return X * X
+end`);
+            diagnostics.run(() => {
+                for (let i = 0; i < 600; i++) {
+                    expect(runtime.execute('1000000000 square')).toBe(1000000000000000000n);
+                }
+            });
+            expect(diagnostics.numberFunctionFallbacks).toBeGreaterThan(0);
+            expect(diagnostics.numberFunctionFallbacks).toBeLessThan(30);
+            expect(diagnostics.numberFunctionSkips).toBeGreaterThan(500);
+            const attempts = diagnostics.numberFunctions;
+            diagnostics.run(() => {
+                for (let i = 0; i < 600; i++) expect(runtime.execute('3 square')).toBe(9n);
+            });
+            expect(diagnostics.numberFunctions - attempts).toBeGreaterThan(300);
+        } finally {runtime.dispose();}
+    });
+
+    it('retains exact errors and private array results while speculation cools down', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute(`fun X ratio
+  A = array shape 2 fill 0
+  A 0 = X * X
+  A 1 = A 0 // (X - 1)
+  return A
+end`);
+            for (let i = 0; i < 20; i++) {
+                const value = runtime.execute('1000000000 ratio');
+                expect(formatValue(value!)).toBe('1000000000000000000 1000000001');
+            }
+            expect(() => runtime.execute('1 ratio')).toThrow('division by zero');
+            expect(formatValue(runtime.execute('3 ratio')!)).toBe('9 4');
+        } finally {runtime.dispose();}
+    });
+
     it('runs small loop arithmetic in number mode and replays on BigInt overflow', () => {
         let calls = 0;
         const runtime = new Interpreter(undefined, {

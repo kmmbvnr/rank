@@ -530,8 +530,8 @@ export class FastPaths {
         if (!this.compiler.scalars.entries || generator) return undefined;
         const proof = scalarFunctionResult(statement, true, types, true, [], captures);
         // Entry arguments admit scalars, checked arrays and tracked integer indices/deques.
-        // Container storage is integer-only, cannot escape through a scalar return,
-        // and needs no resource frame. Only constructor-owned array writes can
+        // Container storage is integer-only; checked reference returns keep
+        // their identity without a resource frame. Constructor-owned array writes can
         // enter here; writes through arguments or aliases still need a frame.
         // Array-only bodies retain the private Number loop tier. Containers
         // already require exact, publishing loops. Recursive owned-array bodies also
@@ -567,7 +567,9 @@ export class FastPaths {
         return types => {
             const scalarTypes = definition.owner.scalarCaptureTypes(statement, definition.context);
             const proof = scalarFunctionResult(statement, this.compiler.scalars.blockCalls, types, true, [], scalarTypes);
-            if (!proof || proof.planReturn || proof.nonnegative.length) return undefined;
+            // Whole-loop registers do not yet accept returned containers.
+            // Scalar helper chains retain their reference-valued result.
+            if (!proof || isCompiledContainer(proof.type) || proof.planReturn || proof.nonnegative.length) return undefined;
             const captures = definition.context !== undefined;
             const isScalarType = (type: CompiledCalleeType): boolean =>
                 type === 'integer' || type === 'real' || type === 'boolean' || type === 'text';

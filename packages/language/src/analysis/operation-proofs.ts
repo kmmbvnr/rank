@@ -1,5 +1,5 @@
 import { mapsScalarCells } from './types.js';
-import { matchCompiledCallSignature, type CompiledAtomType, type Operation } from '../operations.js';
+import { compiledCallSignatures, matchCompiledCallSignature, type CompiledAtomType, type Operation } from '../operations.js';
 import { isAtom, type ValueFacts } from './value-domain.js';
 
 const inScalarDomain = (domain: Operation['scalarNoCallback'], type: string): boolean =>
@@ -72,17 +72,17 @@ export function hasCallbackFreeFindProof(source: ValueFacts, target: ValueFacts)
  * Text stays rank one. Array types alone never prove that cell reads are safe;
  * bytes and host overrides need representation/runtime facts unavailable here. */
 export function hasCompiledCallNoCallbackProof(operation: Operation, operands: readonly ValueFacts[]): boolean {
-    const signature = operation.compiledCall;
-    if (!signature || signature.hostFunction || operation.effects?.length) return false;
+    if (!operation.compiledCall || operation.effects?.length) return false;
     const types: (CompiledAtomType | 'text-array')[] = [];
     for (const value of operands) {
         const type = value.types.length === 1 ? value.types[0] : undefined;
         if (type === 'text' && value.rank === 1) types.push(type);
         else if ((type === 'integer' || type === 'real' || type === 'boolean') && value.rank === 0) types.push(type);
-        else if (type === 'array' && signature.callbacks === 'read-cells' && value.rank === 1
+        else if (type === 'array' && compiledCallSignatures(operation).some(signature => signature.callbacks === 'read-cells') && value.rank === 1
             && value.elements?.join() === 'text'
             && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)) types.push('text-array');
         else return false;
     }
-    return !!matchCompiledCallSignature(operation, types);
+    const signature = matchCompiledCallSignature(operation, types);
+    return !!signature && !signature.hostFunction;
 }

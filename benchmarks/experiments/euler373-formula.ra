@@ -1,0 +1,47 @@
+rem Circumscribed Circles
+rem https://projecteuler.net/problem=373
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10000000
+
+Pr = primes to Limit array
+Ps = Pr (Pr mod 4 equal 1)
+Answer = Limit raysum Ps 0 1 1 1 true
+Answer print
+
+rem Enumerate only products of primes
+rem congruent to one modulo four.
+fun N raysum Ps I V F W Even
+  Top = N // V
+  Sum = 0
+  for J in I till Ps len
+    P = Ps J
+    if P greater Top
+      break
+    end
+    J1 = J + 1
+    Pow = V
+    E = 1
+    for Pow at most (N // P)
+      Pow *= P
+      F2 = F * 6 * E
+      W2 = W * 2
+      E2 = Even and (E mod 2 equal 0)
+      Weight = F2 // 3
+      if not E2
+        Weight -= W2 // 2
+      end
+      Q = N // Pow
+      Tri = Q * (Q + 1) // 2
+      Sum += Pow * Weight * Tri
+      More = N raysum Ps J1 Pow F2 W2 E2
+      Sum += More
+      E += 1
+    end
+  end
+  return Sum
+end

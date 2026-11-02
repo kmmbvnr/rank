@@ -1551,3 +1551,23 @@ membership retain cancellation checkpoints. Real scalar inputs, sequence
 parameters and unsupported storage retain ordinary kernel evaluation.
 `sequenceMembershipCompilation: false` disables trusted membership linking and
 the prepared filter path for comparison with ordinary execution.
+
+Scalar native-call profiles can contain multiple signatures, including integer
+and real `abs`. Matching uses operand types and retains module and binding
+guards. Checked scalar helper chains can return integer containers by reference;
+whole-loop registers still reject unsupported container-valued results.
+
+Read-only scalar Number kernels may borrow trusted rank-one Int32/Int64 array
+buffers. Every loaded value is checked before Number arithmetic, with exact
+replay on an unsafe load. Argument writes retain ordinary execution. Repeated
+scalar overflow uses bounded probe backoff, periodically retrying Number mode.
+Native integer-group consumers capture finite endpoints without allocating an
+intermediate Rank plan; ordinary sequence pipelines retain Rank sequences.
+
+Native Fenwick receivers compile in exact regions with identity, prototype,
+readonly and index guards. Number regions reject their external writes to avoid
+replaying published mutations. Fenwick storage uses Float64 cells for safe
+integers and promotes to bigint cells before an unsafe store; unsafe combined
+prefix sums are recomputed exactly. Small integer sort/argsort buffers use
+Int32 cells, widening as required. Measurements and controls are recorded in
+`benchmarks/euler-neighbours-runtime.md`.

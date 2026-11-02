@@ -63,7 +63,7 @@ describe('scalar function operator eligibility', () => {
         'X ** Y', 'X to Y', 'X to Y step 2',
         'X and Y', 'not X', '-true', '+true', 'true + false',
         'true less false', 'X equal true', 'true not equal X',
-        'X abs', 'Missing',
+        'Missing',
     ])('keeps %s outside the compiler subset', expression => {
         const fn = statement(`return ${expression}`);
         expect(scalarFunctionResult(fn)).toBeUndefined();

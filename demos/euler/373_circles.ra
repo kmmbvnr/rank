@@ -1,7 +1,6 @@
 rem Circumscribed Circles
 rem https://projecteuler.net/problem=373
 
-use algo
 use numbers
 use sequences
 use io
@@ -9,99 +8,43 @@ use cli
 
 arg Limit integer = 10000000
 
-Root = Limit isqrt
-Data = Limit + 1 groups
-for M in 2 to Root
-  for N in 1 till M
-    if (M + N) mod 2 equal 0
-      continue
-    end
-    if M gcd N not equal 1
-      continue
-    end
-    D = M * M + N * N
-    if D greater Limit
-      break
-    end
-    Data D (M * M - N * N) insert
-    Data D (2 * M * N) insert
-  end
-end
-Spf = array shape (Limit + 1) fill 0
-for P in 2 to Root
-  if Spf P not equal 0
-    continue
-  end
-  for Q in P to Limit by P
-    if Spf Q equal 0
-      Spf Q = P
-    end
-  end
-end
-Answer = 0
-for R in 1 to Limit
-  Answer += R * (R Spf Data circles)
-end
+Pr = primes to Limit array
+Ps = Pr (Pr mod 4 equal 1)
+Answer = Limit raysum Ps 0 1 1 1 true
 Answer print
 
-fun R Spf Data circles
-  Ds = R divs Spf
-  Sides = new queue
-  Sides push 2 * R
-  for D in Ds
-    for Numerator in Data D
-      Scale = 2 * (R // D)
-      Sides push Scale * Numerator
+rem Divisor weights use F=prod(6e),
+rem W=2^number_of_primes, for p=1 mod4.
+rem Weight=F/3 minus W/2 unless all
+rem exponents are even. Summing over
+rem multiples gives Q*(Q+1)/2.
+fun N raysum Ps I V F W Even
+  Top = N // V
+  Sum = 0
+  for J in I till Ps len
+    P = Ps J
+    if P greater Top
+      break
     end
-  end
-  Vals = Sides array unique sort
-  Len = Vals len
-  Total = 0
-  for I in 0 till Len
-    A = Vals I
-    for J in I till Len
-      B = Vals J
-      for K in J till Len
-        C = Vals K
-        if A + B at most C
-          break
-        end
-        if A B C R radius
-          Total += 1
-        end
-      end
-    end
-  end
-  return Total
-end
-
-fun N divs Spf
-  Ds = new queue
-  Ds push 1
-  for N greater 1
-    P = Spf N
-    if P equal 0
-      P = N
-    end
-    Pow = 1
-    Base = Ds len
-    for N mod P equal 0
-      N //= P
+    J1 = J + 1
+    Pow = V
+    E = 1
+    for Pow at most (N // P)
       Pow *= P
-      for I in 0 till Base
-        Ds push (Ds I) * Pow
+      F2 = F * 6 * E
+      W2 = W * 2
+      E2 = Even and (E mod 2 equal 0)
+      Weight = F2 // 3
+      if not E2
+        Weight -= W2 // 2
       end
+      Q = N // Pow
+      Tri = Q * (Q + 1) // 2
+      Sum += Pow * Weight * Tri
+      More = N raysum Ps J1 Pow F2 W2 E2
+      Sum += More
+      E += 1
     end
   end
-  return Ds
-end
-
-fun A B C R radius
-  Left = A * A * B * B * C * C
-  X = A + B + C
-  Y = A + B - C
-  Z = A - B + C
-  W = -A + B + C
-  Right = R * R * X * Y * Z * W
-  return Left equal Right
+  return Sum
 end

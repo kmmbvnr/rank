@@ -119,7 +119,7 @@ export interface IntegerLoopPlan {
     locations: Statement[];
     required: Set<number>;
     localTypes: Map<string, LoopTerm['type']>;
-    containers: Map<string, { slot: number; kind: 'index' | 'deque' | 'set'; integers: boolean; mode?: RankDeque['mode']; array?: { rank: number; type: LoopTerm['type'] } }>;
+    containers: Map<string, { slot: number; kind: 'index' | 'deque' | 'set' | 'fenwick' | 'groups'; integers: boolean; mode?: RankDeque['mode']; array?: { rank: number; type: LoopTerm['type'] } }>;
     builtins: Map<string, string>;
     calls: { privateIndexSafe?: boolean; numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): LoopCallable | undefined }[];
     vectorIterations: { slot: number; binding: IterationBinding }[];

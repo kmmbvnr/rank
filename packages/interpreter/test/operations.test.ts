@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-    findOperation, resultTypes, isArrayExpression, isExpressionStatement, validateShapeSignature, moduleForms, modules, operations, type Operation, type SignatureType,
+    findOperation, resultTypes, isArrayExpression, isExpressionStatement, validateShapeSignature, moduleForms, modules, operations, compiledCallSignatures, type Operation, type SignatureType,
 } from '@arrrank/language';
 import { Interpreter, parse, standardModules } from '../src/index.js';
 import type { RuntimeContext } from '../src/modules/types.js';
@@ -269,9 +269,7 @@ describe('the operation catalogue', () => {
     });
 
     it('keeps direct compiled-call profiles consistent with the operation contract', () => {
-        for (const entry of operations) {
-            const signature = entry.compiledCall;
-            if (!signature) continue;
+        for (const entry of operations) for (const signature of compiledCallSignatures(entry)) {
             expect(entry.arities, entry.name).toContain(signature.inputs.length);
             const results = resultTypes(entry);
             if (results.length) expect(results, entry.name).toContain(signature.result);
@@ -285,12 +283,13 @@ describe('the operation catalogue', () => {
 
     it('verifies every compiled profile against real calls, including Unicode and bytes', () => {
         const examples: Record<string, string[]> = {
-            abs: ['(-0.0)', '(-2.5)'], sqrt: ['0', '4.0'], exp: ['0', '(-0.5)'],
+            abs: ['(-0.0)', '(-2.5)', '(-2)', '(-9007199254740993)'], sqrt: ['0', '4.0'], exp: ['0', '(-0.5)'],
             sin: ['0', '0.5'], cos: ['0', '0.5'], tan: ['0', '0.5'],
             asin: ['0', '0.5'], acos: ['0', '0.5'], atan: ['0', '0.5'], atan2: ['1 2', '1.0 2', '1 2.0'],
             sinh: ['0', '0.5'], cosh: ['0', '0.5'], tanh: ['0', '0.5'],
             asinh: ['0', '0.5'], acosh: ['1', '1.5'], atanh: ['0', '0.5'],
             floor: ['0.5', '(-1.5)', '9007199254740992.0'],
+            ceil: ['0.5', '(-1.5)', '9007199254740992.0'],
             text: ['0', '(-123)', '9007199254740993'],
             integer: ['"0"', '"-123"', '"+42"', '"9007199254740993"'],
             reverse: ['""', '"😀é"'], len: ['""', '"😀é"', '(array 1 2)', '(array shape 0 fill 0)', '(array shape 2 3 fill 0)'],
@@ -321,7 +320,7 @@ describe('the operation catalogue', () => {
                 const arguments_ = parse(`array ${operands}`).statements[0];
                 const values = isExpressionStatement(arguments_) && isArrayExpression(arguments_.value)
                     ? arguments_.value.items.map(item => item.$cstNode!.text) : [];
-                const call = entry.compiledCall!.inputs.length === 2
+                const call = compiledCallSignatures(entry).some(signature => signature.inputs.length === 2)
                     ? `${values[0]} ${entry.name} ${values[1]}` : `${operands} ${entry.name}`;
                 const value = runtime.execute(`use text
 use crypto
@@ -330,7 +329,7 @@ use bits
 use numbers
 use algo
 ${call}`)!;
-                expect(typeName(value), `${entry.name}: ${operands}`).toBe(entry.compiledCall!.result);
+                expect(compiledCallSignatures(entry).map(signature => signature.result), `${entry.name}: ${operands}`).toContain(typeName(value));
             } finally { runtime.dispose(); }
         }
     });

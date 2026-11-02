@@ -8,7 +8,7 @@ import { checkpoint, interruptsEnabled, privateLoopPolling } from '../interrupt.
 import { isRankArray, isRankSequence, type RankArray, type RankValue } from './value.js';
 
 const MIN_INT64 = -(1n << 63n), MAX_INT64 = (1n << 63n) - 1n;
-type NumericBuffer = BigInt64Array | Float64Array | Uint8Array;
+type NumericBuffer = BigInt64Array | Int32Array | Float64Array | Uint8Array;
 
 /** Only a proved self-rebinding sort may consume a uniquely held buffer. */
 export function numericSortInPlace(value: RankValue, descending = false): RankArray | undefined {
@@ -32,10 +32,11 @@ export function numericCells(value: RankValue): ArrayLike<RankValue> | undefined
 /** A private, exactly representable homogeneous numeric copy. NaNs and negative
  * zeros retain generic ordering, which differs from native Float64 sort. */
 function orderingCopy(items: ArrayLike<RankValue>): NumericBuffer | undefined {
-    const kind = typeof items[0];
+    const first = items[0], kind = typeof first;
     if (!items.length) return undefined;
     if (kind !== 'bigint' && kind !== 'number' && kind !== 'boolean') return undefined;
-    const out: NumericBuffer = kind === 'bigint' ? new BigInt64Array(items.length)
+    let out: NumericBuffer = kind === 'bigint' ? typeof first === 'bigint' && first >= -2147483648n && first <= 2147483647n
+        ? new Int32Array(items.length) : new BigInt64Array(items.length)
         : kind === 'number' ? new Float64Array(items.length) : new Uint8Array(items.length);
     for (let index = 0; index < items.length; index++) {
         if ((index & 4095) === 0) checkpoint('preparing numeric sort', 4096);
@@ -43,7 +44,16 @@ function orderingCopy(items: ArrayLike<RankValue>): NumericBuffer | undefined {
         if (typeof cell !== kind) return undefined;
         if (typeof cell === 'bigint') {
             if (cell < MIN_INT64 || cell > MAX_INT64) return undefined;
-            (out as BigInt64Array)[index] = cell;
+            if (out instanceof Int32Array && (cell < -2147483648n || cell > 2147483647n)) {
+                const wide = new BigInt64Array(items.length);
+                for (let previous = 0; previous < index; previous++) {
+                    if ((previous & 4095) === 0) checkpoint('widening numeric sort',4096);
+                    wide[previous] = BigInt(out[previous]);
+                }
+                out = wide;
+            }
+            if (out instanceof Int32Array) out[index] = Number(cell);
+            else (out as BigInt64Array)[index] = cell;
         } else if (typeof cell === 'number') {
             if (Number.isNaN(cell) || Object.is(cell, -0)) return undefined;
             (out as Float64Array)[index] = cell;
@@ -59,10 +69,11 @@ function resultValues(values: NumericBuffer, order?: Uint32Array): RankArray {
         return ownedScalarArray(items, 'boolean');
     }
     if (!order) return typedArray(values);
-    const out = values instanceof BigInt64Array ? new BigInt64Array(values.length) : new Float64Array(values.length);
+    const out = values instanceof BigInt64Array ? new BigInt64Array(values.length)
+        : values instanceof Int32Array ? new Int32Array(values.length) : new Float64Array(values.length);
     for (let index = 0; index < values.length; index++) {
         if (out instanceof BigInt64Array) out[index] = (values as BigInt64Array)[order[index]];
-        else out[index] = (values as Float64Array)[order[index]];
+        else out[index] = (values as Float64Array | Int32Array)[order[index]];
     }
     return typedArray(out);
 }
@@ -84,8 +95,11 @@ export function numericSort(value: RankValue, descending: boolean, mode: 'values
         return { values: resultValues(values) };
     }
     const order = numericOrder(values, descending);
-    const indexes = new BigInt64Array(order.length);
-    for (let index = 0; index < order.length; index++) indexes[index] = BigInt(order[index]);
+    const indexes = order.length <= 2147483647 ? new Int32Array(order.length) : new BigInt64Array(order.length);
+    for (let index = 0; index < order.length; index++) {
+        if (indexes instanceof Int32Array) indexes[index] = order[index];
+        else indexes[index] = BigInt(order[index]);
+    }
     return { indexes: typedArray(indexes), values: mode === 'indexed' ? resultValues(values, order) : undefined };
 }
 

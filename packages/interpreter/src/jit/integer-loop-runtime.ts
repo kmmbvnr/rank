@@ -20,6 +20,8 @@ import { RankDeque } from '../containers.js';
 import { hasIntegerDequeIteration, hasNativeDeque } from './compiled-argument-type.js';
 import { unpackApplicationItems } from '../value-selection.js';
 import { IndexEntries, indexHas, indexRead, indexSet, indexKey } from '../index-storage.js';
+import { hasNativeFenwick } from '../fenwick.js';
+import { hasNativeIntegerGroups } from '../runtime/integer-groups.js';
 import { readArrayItem, storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader, ownedArray, arrayRevision, arrayForWrite, privateArrayCopy, isSharedArray, typedElementKind, writableIntegerCells, writeIntegerSelection } from '../array-storage.js';
 
 function emitIntegerLoopSource(plan: IntegerLoopPlan, workCounting = false): string {
@@ -230,6 +232,16 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         for (const [name, info] of containers) {
             const value = host.read(name);
             if (value === undefined) return entryGuard('input-type', name);
+            if (info.kind === 'fenwick') {
+                if (!hasNativeFenwick(value)) return entryGuard('input-type', name);
+                values[info.slot] = value;
+                continue;
+            }
+            if (info.kind === 'groups') {
+                if (!hasNativeIntegerGroups(value)) return entryGuard('input-type', name);
+                values[info.slot] = value;
+                continue;
+            }
             if (info.kind === 'index' ? !isRankIndex(value) : info.kind === 'set' ? !isRankSet(value) : !(value instanceof RankDeque)) return entryGuard('input-type', name);
             if (info.mode && (!(value instanceof RankDeque) || value.mode !== info.mode)) return entryGuard('input-type', name);
             if (info.array) {

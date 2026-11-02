@@ -14,7 +14,7 @@ import { checkpoint, interruptsEnabled, privateLoopPolling, InterruptedError } f
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    flattenApplication, findOperation, unaryApplicationHead, findCompiledOperator, tensorOperatorSignatures, inferCompiledExpression, matchCompiledOperatorDomains,
+    flattenApplication, findOperation, unaryApplicationHead, findCompiledOperator, tensorOperatorSignatures, inferCompiledExpression, matchCompiledOperatorDomains, matchCompiledCallSignature,
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
     isNameExpression, isNumberLiteral, isFunctionOperator,
     isParenthesizedExpression, isUnaryExpression, isCountClauseExpression, isAllAxisExpression,
@@ -143,7 +143,7 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
             operator: (operation, inputs) => matchCompiledOperatorDomains(operation.tensor, inputs),
             call: (operation, inputs) => bitwise(operation.name)
                 && inputs.length === 2 && inputs.every(domain => domain.includes('integer'))
-                ? operation.compiledCall : undefined,
+                ? matchCompiledCallSignature(operation, ['integer', 'integer']) : undefined,
             budget: { remaining: 1024 },
         });
         if (result.failure) return reject(result.failure.source, result.failure.detail);

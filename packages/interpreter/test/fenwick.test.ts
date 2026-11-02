@@ -1,8 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
 import { run } from './support.js';
+import {RankFenwick} from '../src/fenwick.js';
 
 describe('fenwick tree', () => {
+    it('widens a partially updated tree before any integer rounds', () => {
+        const max=9007199254740991n, tree=new RankFenwick(8n);
+        tree.set(0n,max-1n);tree.set(1n,1n);tree.set(2n,2n);
+        expect(tree.sum(2n)).toBe(max+2n);
+        expect(tree.sum(7n)).toBe(max+2n);
+        expect(tree.at(2n)).toBe(2n);
+        tree.set(2n,-2n);
+        expect(tree.sum(7n)).toBe(max-2n);
+        tree.set(0n,1n<<100n);
+        expect(tree.sum(7n)).toBe((1n<<100n)-1n);
+    });
+
+    it('sums safe nodes exactly when their combined prefix is wide', () => {
+        const tree=new RankFenwick(3n), max=9007199254740991n;
+        tree.set(0n,max);tree.set(2n,max);
+        expect(tree.sum(2n)).toBe(2n*max);
+        tree.set(2n,-max);
+        expect(tree.sum(2n)).toBe(0n);
+        expect(tree.at(2n)).toBe(-max);
+    });
+
     it.each(['', 'use numbers'])('continues prefix sum pipelines with %s', numbers => {
         const output: string[] = [];
         const runtime = new Interpreter(line => output.push(line));

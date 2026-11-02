@@ -63,6 +63,7 @@ interface Kernel {
         planConsumed?: () => void,
         rankedCalls?: readonly (() => (arguments_: RankValue[]) => RankValue)[]) => LoopCallable;
     readonly numberStorage?: 'arrays' | 'queues';
+    readonly numberArrayArguments: readonly number[];
     readonly numberDirect?: (locate: (error: unknown, index: number) => unknown,
         safe: (val: number) => number,
         zero: () => Error,
@@ -85,7 +86,9 @@ function compileScalarNumberKernel(
         || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => !['len', 'floor', 'ceil'].includes(name))
         || proof.dependencies.length || proof.callCount > 0) return undefined;
     const isNumType = (t: CompiledCalleeType) => t === 'integer' || t === 'real' || t === 'boolean';
-    if (!isNumType(proof.type) || !parameterTypes.every(isNumType)) return undefined;
+    const arrayParameter = (t: CompiledCalleeType) => typeof t !== 'string' && !isCompiledContainer(t)
+        && t.rank === 1 && t.element === 'integer';
+    if (!isNumType(proof.type) || !parameterTypes.every(t => isNumType(t) || arrayParameter(t))) return undefined;
 
     const slots = new Map<string, number>();
     const slot = (name: string): string => {
@@ -94,7 +97,8 @@ function compileScalarNumberKernel(
     };
     statement.parameters.forEach(slot);
     let serial = 0;
-    const arrays = new Set<string>(), queues = new Set<string>();
+    const parameterArrays = new Set(statement.parameters.filter((_,i) => arrayParameter(parameterTypes[i])));
+    const arrays = new Set(parameterArrays), queues = new Set<string>();
     // Every object slot must be constructor-owned on every assignment. No
     // argument objects, aliases, user/native calls or escaping arrays enter
     // this Number region. A guard bailout can discard all private writes.
@@ -186,7 +190,8 @@ function compileScalarNumberKernel(
                 if (!arrays.has(input.name) || input.indices.length !== 1) return undefined;
                 const at = lowerNum(input.indices[0], lines);
                 if (!at) return undefined;
-                return `${slot(input.name)}[${index(slot(input.name), at, lines)}]`;
+                const value = `${slot(input.name)}[${index(slot(input.name), at, lines)}]`;
+                return parameterArrays.has(input.name) ? `safe(Number(${value}))` : value;
             }
             if (typeof compiled.type !== 'string') return undefined;
             return slot(input.name);
@@ -459,6 +464,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         return result;
     }
     function iterable(source: ScalarLoopIterable, lines: string[]): string {
+        if (source.kind === 'group') {
+            const key = lower(source.key,lines), result = `v${serial++}`;
+            lines.push(`const ${result} = ${slot(source.receiver)}.valuesAt(${key});`);
+            return result;
+        }
         if (source.kind === 'literal') return emit(source.expression, lines);
         const argument = 'kind' in source.source ? iterable(source.source, lines) : emit(source.source, lines);
         const index = calls.push({ operation: source.operation, inputs: [], iterator: true }) - 1;
@@ -510,6 +520,12 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             if (operation === 'materialize-deque') {
                 const value = lower(expression.input.indices![0], lines), result = `v${serial++}`;
                 lines.push(`const ${result} = materializeCollection(${value});`);
+                return result;
+            }
+            if (operation === 'sort' || operation === 'unique' || operation === 'argsort') {
+                const value = lower(expression.input.indices![0],lines), result = `v${serial++}`;
+                const call = operation === 'sort' ? 'sortValue' : operation === 'unique' ? 'uniqueValue' : 'argsortValue';
+                lines.push(`const ${result} = ${call}(${value});`);
                 return result;
             }
             if (operation === 'take' || operation === 'drop' || operation === 'copy') {
@@ -766,7 +782,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                         // Traversing a value is not an additional binding:
                         // ordinary array writes must remain visible to its iterator.
                         if (indexed) lines.push(`let ordinal${id} = 0n;`);
-                        lines.push(`for (const point${id} of loopValues(${source})) { location = ${location}; checkpoint();`);
+                        lines.push(`for (const point${id} of ${finite.kind === 'group' ? source : `loopValues(${source})`}) { location = ${location}; checkpoint();`);
                         binding.names.forEach((name, index) => {
                             if (name !== '#') lines.push(`${slot(name)} = ${index ? `ordinal${id}++` : `point${id}`};`);
                         });
@@ -935,8 +951,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             run,
             direct,
             numberDirect,
+            numberArrayArguments: (parameterTypes ?? []).flatMap((type,index) => typeof type !== 'string'
+                && !isCompiledContainer(type) && type.rank === 1 && type.element === 'integer' ? [index] : []),
             numberStorage: proof.containers ? 'queues' : [...expressions.values()].some(expression =>
-                expression.kind === 'input' && expression.input.operation === 'array') ? 'arrays' : undefined,
+                expression.kind === 'input' && expression.input.operation === 'array')
+                || parameterTypes?.some(type => typeof type !== 'string' && !isCompiledContainer(type)) ? 'arrays' : undefined,
         };
     }
     catch { /* CSP keeps the ordinary function implementation. */ }

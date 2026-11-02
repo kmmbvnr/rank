@@ -9,12 +9,14 @@ import { type CompiledCalleeType } from './compiled-callee-type.js';
 import { ResourceMap } from '../resource-summary.js';
 import { IntegerEntries } from '../integer-entries.js';
 import { IndexEntries } from '../index-storage.js';
+import { hasNativeFenwick } from '../fenwick.js';
+import { hasNativeIntegerGroups } from '../runtime/integer-groups.js';
 import { compiledArgumentType, hasNativeDeque } from './compiled-argument-type.js';
 import {
     applicationExpression, rangeSliceOperands, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
     isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
-    type CompiledExpression, type Operation, type CompiledArrayType,
+    type CompiledExpression, type Operation, type CompiledArrayType, type CompiledCallSignature, compiledCallSignatures, matchCompiledCallSignature,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex, isRankSet } from '../value.js';
 import { integerLiteral } from '../eval/application.js';
@@ -90,7 +92,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         recordCompilerRejection(describeCompilerRejection(state.numberMode ? 'number-loop' : 'loop', source, 'temporary-budget'));
         return false;
     }
-    function container(name: string, kind: 'index' | 'deque' | 'set', integers = false): string | undefined {
+    function container(name: string, kind: 'index' | 'deque' | 'set' | 'fenwick' | 'groups', integers = false): string | undefined {
         if (name.includes('.')) return undefined;
         const old = containers.get(name);
         if (old && (old.kind !== kind || integers && old.array)) return undefined;
@@ -528,8 +530,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     }
     /** Lower an audited catalogue call. Argument reads remain in source order;
      * runtime binding still checks the module and current builtin on every entry. */
-    function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
-        const signature = operation.compiledCall!;
+    function emitBuiltinCall(operation: Operation, signature: CompiledCallSignature, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
         // Only audited scalar natives can run while an index transaction is
         // private. Rank helpers and host/operand callbacks may observe it.
         const privateIndexSafe = signature.callbacks === 'none' && !signature.hostFunction
@@ -1409,13 +1410,15 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const last = parts.at(-1);
             if (last && isNameExpression(last) && !last.name.includes('.')) {
                 const operation = !declared && host.nativeCalls ? findOperation(last.name) : undefined;
-                const signature = operation?.compiledCall;
+                const signatures = operation ? compiledCallSignatures(operation) : [];
+                const signature = signatures.length === 1 ? signatures[0]
+                    : operation && matchCompiledCallSignature(operation, parts.slice(0, -1).map(part => knownType(part) ?? 'unknown'));
                 const prepareCallee = host.scalarFunction(last.name, parts.length - 1, declared);
                 // Prefer a known user function while its namesake module is unopened.
                 // An unresolved name can still bind the builtin after a later import.
                 if (operation && signature && signature.inputs.length === parts.length - 1
                     && (host.module(operation.module) || !prepareCallee)) {
-                    return emitBuiltinCall(operation, parts.slice(0, -1), lines);
+                    return emitBuiltinCall(operation, signature, parts.slice(0, -1), lines);
                 }
                 if (prepareCallee) {
                     const arguments_: string[] = [];
@@ -1426,9 +1429,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         const current = isNameExpression(part) && !scalarInputs.has(part) && !localTypes.has(part.name) ? host.read(part.name) : undefined;
                         if (current && isNameExpression(part) && (current instanceof RankDeque
                             || isRankIndex(current) && current.entries instanceof ResourceMap
+                            || hasNativeIntegerGroups(current)
                             || isRankSet(current) && current.entries instanceof IntegerEntries && current.entries.integers)) {
                             if (numberMode) return undefined;
-                            const kind = current instanceof RankDeque ? 'deque' : isRankSet(current) ? 'set' : 'index';
+                            const kind = current instanceof RankDeque ? 'deque' : hasNativeIntegerGroups(current) ? 'groups' : isRankSet(current) ? 'set' : 'index';
                             const receiver = container(part.name, kind);
                             if (!receiver) return undefined;
                             containers.get(part.name)!.integers = true;
@@ -1436,7 +1440,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                             if (current instanceof RankDeque) {
                                 containers.get(part.name)!.mode = current.mode;
                                 types.push({ kind: 'deque', mode: current.mode });
-                            } else types.push({ kind: isRankSet(current) ? 'set' : 'index' });
+                            } else types.push({ kind: kind === 'groups' ? 'groups' : isRankSet(current) ? 'set' : 'index' });
                             continue;
                         }
                         const type = existing ? { kind: 'array' as const, element: existing.type, rank: existing.rank }
@@ -1502,6 +1506,17 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const [head, ...arguments_] = flattenApplication(e);
             if (!isNameExpression(head) || head.name.includes('.')) return undefined;
             const current = !localTypes.has(head.name) && !arrays.has(head.name) ? host.read(head.name) : undefined;
+            if (!numberMode && hasNativeFenwick(current)) {
+                const prefix = arguments_.length === 2 && isNameExpression(arguments_[0]) && arguments_[0].name === 'sum';
+                if (hint && hint !== 'integer' || arguments_.length !== (prefix ? 2 : 1)) return undefined;
+                const receiver = container(head.name, 'fenwick');
+                const index = emit(arguments_[prefix ? 1 : 0], lines, 'integer');
+                if (!receiver || index?.type !== 'integer') return undefined;
+                if (prefix) builtins.set('sum', 'core');
+                const name = `v${state.serial++}`;
+                lines.push(`const ${name} = ${receiver}.${prefix ? 'sum' : 'at'}(${index.code});`);
+                return {code:name,type:'integer'};
+            }
             if (current && isRankIndex(current) && current.entries instanceof IndexEntries) {
                 if (hint && hint !== 'integer' || !arguments_.length) return undefined;
                 const receiver = container(head.name, 'index', true);

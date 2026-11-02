@@ -69,14 +69,19 @@ export function matchCompiledEffectSignature(signature: CompiledEffectSignature,
 
 /** Match a complete proven native input domain; no coercion or cell inspection. */
 export function matchCompiledCallSignature(operation: Operation, inputs: readonly string[]): CompiledCallSignature | undefined {
-    const signature = operation.compiledCall;
-    return signature && signature.inputs.length === inputs.length && signature.inputs.every((expected, index) =>
+    return compiledCallSignatures(operation).find(signature => signature.inputs.length === inputs.length && signature.inputs.every((expected, index) =>
         expected === 'number' ? inputs[index] === 'integer' || inputs[index] === 'real'
             : expected === 'scalar' ? ['integer', 'real', 'boolean', 'text'].includes(inputs[index])
             : expected === 'same' ? inputs[index] === inputs[0]
             : expected === 'text-or-array' ? ['text', 'array', 'text-array', 'integer-array'].includes(inputs[index])
             : expected === 'text-or-bytes' ? inputs[index] === 'text' || inputs[index] === 'bytes'
-            : expected === inputs[index]) ? signature : undefined;
+            : expected === inputs[index]));
+}
+
+/** Overloads share the same guarded builtin identity. */
+export function compiledCallSignatures(operation: Operation): readonly CompiledCallSignature[] {
+    const signatures = operation.compiledCall;
+    return signatures === undefined ? [] : 'inputs' in signatures ? [signatures] : signatures;
 }
 
 /** One builtin name, either always available in core or opened by a module. */
@@ -126,7 +131,7 @@ export interface Operation {
     };
     /** Direct-call eligibility for existing compiler backends. Never use this
      * restricted subset as a complete operand-domain rule or displayed signature. */
-    readonly compiledCall?: CompiledCallSignature;
+    readonly compiledCall?: CompiledCallSignature | readonly CompiledCallSignature[];
     /** Audited receiver effects, bound through the same loop call table as pure calls. */
     readonly compiledEffects?: readonly CompiledEffectSignature[];
     /** Field result kinds for a built-in record with a stable schema. */
@@ -862,7 +867,10 @@ export const operations: readonly Operation[] = [
         summary: 'Solves A * X = B for a square coefficient matrix.' },
 
     { name: 'abs', module: 'numbers', arities: [1], form: 'Value abs', result: 'number',
-        compiledCall: { inputs: ['real'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
+        compiledCall: [
+            { inputs: ['integer'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
+            { inputs: ['real'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
+        ],
         signatures: [{ inputs: [{ variable: 0, domain: ['integer', 'real'] }],
             result: { variable: 0 }, ranks: [0] }, { inputs: ['missing'], result: 'missing', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],

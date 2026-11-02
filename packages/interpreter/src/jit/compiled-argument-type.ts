@@ -7,6 +7,7 @@ import { IntegerEntries } from '../integer-entries.js';
 import { prepareSetAdd } from '../collections.js';
 import { IndexEntries } from '../index-storage.js';
 import { RankDeque } from '../containers.js';
+import { hasNativeIntegerGroups } from '../runtime/integer-groups.js';
 import { valueProtection } from '../value-protection.js';
 import type { CompiledCalleeType } from './compiled-callee-type.js';
 
@@ -36,6 +37,7 @@ export function hasIntegerDequeIteration(value: RankValue): value is RankDeque {
 
 /** Tracked integer indices retain a constant-time domain proof on mutation. */
 export function compiledEntryArgumentType(value: RankValue): CompiledCalleeType | undefined {
+    if (hasNativeIntegerGroups(value)) return {kind:'groups'};
     if (isRankIndex(value) && value.entries instanceof IndexEntries && value.entries.integers && !valueProtection(value)) return { kind: 'index' };
     if (isRankSet(value) && prepareSetAdd(value) && value.entries instanceof IntegerEntries && value.entries.integers) return { kind: 'set' };
     if (hasIntegerDequeIteration(value) && !valueProtection(value)) return { kind: 'deque', mode: value.mode };

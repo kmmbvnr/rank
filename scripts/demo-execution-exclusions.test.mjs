@@ -51,6 +51,7 @@ test('new full-scale exclusions retain their small test fixtures unless they tim
     assert.ok(!files.has('euler/318_nines.ra'), 'bounded pair search keeps the full real-log workload eligible');
     assert.ok(!files.has('euler/324_tower.ra'), 'certified period reduction keeps the full tower workload eligible');
     assert.ok(!files.has('euler/372_pencils.ra'), 'exact continued fractions keep the full ray count eligible');
+    assert.ok(!files.has('euler/373_circles.ra'), 'multiplicative divisor weights keep the full circle sum eligible');
     assert.ok(!files.has('euler/341_golomb.ra'), 'Golomb runs keep the full cube sum eligible');
     assert.ok(!files.has('euler/341_golomb_default_test.ra'), 'the millionth-term recurrence stays eligible');
     assert.ok(!files.has('euler/301_nim.ra'), 'small default programs remain eligible');

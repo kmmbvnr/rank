@@ -3,7 +3,7 @@ import { positionalDeclaredCall, strictDataCall } from './declared-scalar-call.j
 import {
     functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead, terminalReductionForm,
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
-    type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression, isDeclaredCallExpression,
+    type CompiledExpression, type CompiledScalarType, flattenApplication, isApplicationExpression, isDeclaredCallExpression,
     isNameExpression, isExpressionStatement, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
     isCountClauseExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement, type Operation,
 } from '@arrrank/language';
@@ -21,7 +21,7 @@ const noCaptures: ScalarCaptureTypes = new Map();
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort';
     readonly plan?: FunctionPlanConsumer;
     readonly negative?: boolean;
     readonly keyed?: boolean;
@@ -32,9 +32,10 @@ export interface ScalarFunctionInput {
 }
 /** A finite native stage is consumed only by its loop, never as an array value. */
 export type ScalarLoopIterable = { readonly kind: 'literal'; readonly expression: Expression; readonly element: CompiledScalarType }
+    | {readonly kind:'group'; readonly receiver:string; readonly key:CompiledExpression<CompiledCalleeType,ScalarFunctionInput>; readonly element:'integer'}
     | { readonly kind: 'native'; readonly element: CompiledScalarType; readonly operation: Operation; readonly source: ScalarLoopIterable | Expression };
 export interface ScalarFunctionProof {
-    readonly type: CompiledFunctionType;
+    readonly type: CompiledCalleeType;
     readonly dependencies: readonly string[];
     readonly callDepth: number;
     readonly callCount: number;
@@ -104,7 +105,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const locals = new Set<string>();
     const settled = new Map<string, CompiledCalleeType>(statement.parameters.map((name, index) => [name, types[index]]));
     const budget = { remaining: blocks ? 256 : 129 };
-    let resultType: CompiledFunctionType | undefined;
+    let resultType: CompiledCalleeType | undefined;
     const stages = new Map<string, FunctionPlan>();
     const planCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; proof: ScalarFunctionProof; captures: ScalarCaptureTypes }[] = [];
     const planBindings = new Map<Statement, FunctionPlan>();
@@ -329,6 +330,17 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     }
                 }
                 if (loops && isApplicationExpression(source)) {
+                    const last = source.arguments.length === 1 ? source.arguments[0] : undefined;
+                    if (last && isNameExpression(last) && ['sort','unique','argsort'].includes(last.name)
+                        && !env.has(last.name) && !lexicalBinding(scope,last.name)) {
+                        const array = type(source.head,env);
+                        if (array && typeof array !== 'string' && !isCompiledContainer(array) && array.rank === 1) {
+                            nativeReads.add(last.name);
+                            modules.add('sequences');
+                            return {type:last.name === 'argsort' ? {...array,element:'integer'} : array,
+                                input:{name:'',operation:last.name as 'sort'|'unique'|'argsort',indices:[expressions.get(source.head)!]}};
+                        }
+                    }
                     const parts = flattenApplication(source);
                     const [receiver, operation] = parts;
                     if (parts.length === 2 && isNameExpression(operation) && operation.name === 'copy'
@@ -445,6 +457,14 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     function loopIterable(source: Expression, env: ReadonlyMap<string, CompiledCalleeType>): ScalarLoopIterable | undefined {
         if (--budget.remaining < 0) return undefined;
         source = unwrap(source);
+        if (isApplicationExpression(source)) {
+            const parts = flattenApplication(source), [receiver,key] = parts;
+            const domain = isNameExpression(receiver) ? env.get(receiver.name) : undefined;
+            if (parts.length === 2 && isNameExpression(receiver) && domain && isCompiledContainer(domain) && domain.kind === 'groups'
+                && type(key,env) === 'integer') {
+                return {kind:'group',receiver:receiver.name,key:expressions.get(key)!,element:'integer'};
+            }
+        }
         if (isArrayExpression(source) || isNameExpression(source) && env.has(source.name)) {
             const domain = type(source, env);
             if (domain && typeof domain !== 'string' && !isCompiledContainer(domain) && domain.rank === 1) {
@@ -460,7 +480,12 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         let input: ScalarLoopIterable | Expression | undefined;
         if (operation.name === 'factors' || operation.name === 'divisors') {
             if (type(argument, env) === 'integer') input = argument;
-        } else if (operation.name === 'unique') input = loopIterable(argument, env);
+        } else if (operation.name === 'unique') {
+            input = loopIterable(argument, env);
+            // Group consumers use a private JS iterator, not a Rank value.
+            // A native pipeline must retain the ordinary captured sequence.
+            if (input?.kind === 'group') return undefined;
+        }
         if (!input) return undefined;
         nativeReads.add(operation.name);
         modules.add(operation.module);
@@ -481,7 +506,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     planReturn = true;
                     planReturns.add(command);
                 }
-                if (!value || isCompiledContainer(value) || resultType && !sameCompiledCalleeType(resultType, value)) return reject(command, 'return-type');
+                if (!value || resultType && !sameCompiledCalleeType(resultType, value)) return reject(command, 'return-type');
                 resultType = value;
                 // Reject unreachable syntax as well: local functions are hoisted.
                 return index === commands.length - 1 ? null : reject(commands[index + 1], 'unreachable');

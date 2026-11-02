@@ -16,7 +16,7 @@ import {
     type KnownShape, type Expression, type FunctionBindingStatement, type FunctionStatement,
     type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { arrayRevision, hasNativeArrayHeader } from './array-storage.js';
+import { arrayRevision, hasNativeArrayHeader, integer32Cells, integer64Cells } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './jit/block-compiler.js';
@@ -827,28 +827,46 @@ export class FunctionInvocation {
         const hasTailCalls = kernel.userCalls.some(call => call.tail);
         const hasUserCalls = kernel.userCalls.length > 0 || kernel.rankedCalls.length > 0;
         let directFn: ((...arguments_: RankValue[]) => RankValue) | undefined;
+        let directLeaf: ((arguments_: RankValue[], tail: boolean) => RankValue) | undefined;
         if (kernelDirect) {
             if (!hasUserCalls && !hasTailCalls) {
-                directFn = (...arguments_: RankValue[]) => {
-                    if (this.depth >= this.maxDepth) {
+                // Repeated wide results should not allocate Number arguments
+                // and throw on every call. Probe again after bounded delays
+                // so a later small-input phase can recover its fast path.
+                let numberDelay = 0, numberBackoff = 0;
+                directLeaf = (arguments_, tail) => {
+                    if (!tail && this.depth >= this.maxDepth) {
                         throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
                     }
                     this.compiler.hooks.onScalarFunctionExecuted?.();
-                    if (rawNumber && (!kernel.numberStorage || this.compiler.loops.number && privateLoopPolling()
+                    const probeNumber = numberDelay === 0;
+                    if (numberDelay > 0) {
+                        numberDelay--;
+                        const diagnostics = currentDiagnostics();
+                        if (diagnostics) diagnostics.numberFunctionSkips++;
+                    }
+                    if (rawNumber && probeNumber && (!kernel.numberStorage || this.compiler.loops.number && privateLoopPolling()
                         && (kernel.numberStorage !== 'queues' || nativeDequeMethods()))
-                        && arguments_.every(a => typeof a === 'bigint' || typeof a === 'number' || typeof a === 'boolean')) {
+                        && arguments_.every((a,index) => typeof a === 'bigint' || typeof a === 'number' || typeof a === 'boolean'
+                            || kernel.numberArrayArguments.includes(index) && isRankArray(a))) {
                         try {
-                            const numArgs = arguments_.map(a => typeof a === 'bigint' ? Number(a) : a as number);
-                            if (numArgs.every(a => typeof a === 'number' ? Number.isSafeInteger(a) : true)) {
+                            const numArgs = arguments_.map(a => typeof a === 'bigint' ? Number(a)
+                                : isRankArray(a) ? hasNativeArrayHeader(a) ? integer32Cells(a) ?? integer64Cells(a) : undefined : a);
+                            if (numArgs.every(a => typeof a === 'number' ? Number.isSafeInteger(a)
+                                : typeof a === 'boolean' || a instanceof Int32Array || a instanceof BigInt64Array)) {
                                 const diagnostics = currentDiagnostics();
                                 if (diagnostics) diagnostics.numberFunctions++;
+                                if (diagnostics) diagnostics.numberFunctionArrayBorrows += numArgs.filter(a => a instanceof Int32Array || a instanceof BigInt64Array).length;
                                 const numResult = rawNumber(...numArgs as never[]);
+                                numberBackoff = 0;
                                 return typeof numResult === 'number' && kernel.returnType === 'integer' ? BigInt(numResult) : numResult;
                             }
                         } catch (error) {
                             if (error === numberOverflow) {
                                 const diagnostics = currentDiagnostics();
                                 if (diagnostics) diagnostics.numberFunctionFallbacks++;
+                                numberBackoff = Math.min(255, numberBackoff * 2 + 1);
+                                numberDelay = numberBackoff;
                             } else {
                                 if (error instanceof FunctionPlanDemandError) throw error.error;
                                 if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
@@ -864,6 +882,7 @@ export class FunctionInvocation {
                         throw error;
                     }
                 };
+                directFn = (...arguments_) => directLeaf!(arguments_,false);
             } else {
                 directFn = (...arguments_: RankValue[]) => {
                     if (this.depth >= this.maxDepth) {
@@ -900,6 +919,7 @@ export class FunctionInvocation {
             }
         }
         const run: PreparedScalarCall = (arguments_, tail = false) => {
+            if (directLeaf) return directLeaf(arguments_,tail);
             if (!tail && directFn) return directFn(...arguments_);
             if (!tail && this.depth >= this.maxDepth) {
                 throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');

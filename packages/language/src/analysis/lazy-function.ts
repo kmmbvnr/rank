@@ -2,7 +2,7 @@ import { AstUtils } from 'langium';
 import { isDeclaredCallExpression, isFunctionBindingStatement, isFunctionStatement, isNameExpression, isStdinExpression,
     type FunctionStatement } from '../generated/ast.js';
 import { functionCallSignature } from '../function-call-signature.js';
-import { findOperation } from '../operations.js';
+import { compiledCallSignatures, findOperation } from '../operations.js';
 import { functionScope } from './function-scopes.js';
 import { mutatedFunctionParameters } from './function-mutations.js';
 
@@ -16,7 +16,10 @@ export function lazyBuiltinDependencies(statement: FunctionStatement): ReadonlyS
             .filter(isNameExpression).filter(node => {
                 const owner = AstUtils.getContainerOfType(node, isFunctionStatement);
                 return !owner || !functionScope(owner)?.reads.has(node);
-            }).map(node => node.name).filter(name => findOperation(name)?.compiledCall?.hostFunction !== undefined));
+            }).map(node => node.name).filter(name => {
+                const operation = findOperation(name);
+                return operation && compiledCallSignatures(operation).some(signature => signature.hostFunction !== undefined);
+            }));
         builtinNames.set(statement, result);
     }
     return result;

@@ -1,5 +1,5 @@
 import { ownedArray } from '../src/array-storage.js';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
 import { clonePreviewValue } from '../src/preview-values.js';
 import { argumentRankSignature, argumentSignature } from '../src/return-contract.js';
@@ -43,6 +43,22 @@ Ready = ${ready}`);
 });
 
 describe('argument signature memo', () => {
+    it('reuses a structural signature when only scalar values change', () => {
+        const value=ownedArray([1n,2n]);
+        const key=argumentSignature([1n,value,'first']);
+        const encode=vi.spyOn(JSON,'stringify');
+        let actual: string, calls: number;
+        try {
+            actual=argumentSignature([999999999999999999n,value,'a different text']);
+            calls=encode.mock.calls.length;
+        } finally {encode.mockRestore();}
+        expect(actual!).toBe(key);
+        expect(calls!).toBe(0);
+        expect(argumentSignature([1.0,value,'first'])).not.toBe(key);
+        value.items.splice(0,2,1.0,2.0);
+        expect(argumentSignature([1n,value,'first'])).not.toBe(key);
+    });
+
     it('invalidates signatures after a host replaces all cells with another homogeneous type', () => {
         const value = ownedArray([1n, 2n]);
         const first = argumentSignature([value]);

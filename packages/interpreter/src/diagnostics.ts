@@ -36,6 +36,8 @@ export class RuntimeDiagnostics {
     numberLoops = 0;
     numberFunctions = 0;
     numberFunctionFallbacks = 0;
+    numberFunctionSkips = 0;
+    numberFunctionArrayBorrows = 0;
     exactLoopWorkSamples = 0;
     exactLoopWorkPromotions = 0;
     numberLoopCopyProbes = 0;

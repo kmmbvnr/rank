@@ -1,5 +1,6 @@
 import { findCompiledOperator, loopOperatorSignature, isParenthesizedExpression, isBinaryExpression, rangeSliceOperands, type ArrayAssignmentStatement } from '@arrrank/language';
 import { isRankIndex } from '../value.js';
+import { hasNativeFenwick } from '../fenwick.js';
 import type { LoopTerm } from './integer-loop-plan.js';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
@@ -14,6 +15,29 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
     return (assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined => {
         // Accumulation has its own numeric-only validation and reduction contract.
         if (assignment.accumulate) return reject(assignment);
+        if (!numberMode && host.arrayWrites && !assignment.name.includes('.') && hasNativeFenwick(host.read(assignment.name))) {
+            if (assignment.indices.length !== 1 || assignment.indices[0].all || assignment.indices[0].sign || !assignment.indices[0].value) return reject(assignment);
+            const compound = assignment.operator !== '=';
+            const operation = assignment.operator.slice(0,-1);
+            if (compound && (!host.compoundWrites || !loopOperatorSignature(operation,['integer','integer'],host.nativeCalls)?.compound)) return reject(assignment);
+            const receiver = expressions.container(assignment.name,'fenwick');
+            const lines: string[] = [];
+            const index = emit(assignment.indices[0].value,lines,'integer');
+            if (!receiver || index?.type !== 'integer') return reject(assignment);
+            lines.push(`checkValueMutable(${receiver});`);
+            const value = emit(assignment.value,lines,'integer');
+            if (value?.type !== 'integer') return reject(assignment);
+            let result = value.code;
+            if (compound) {
+                const old = `old${state.serial++}`;
+                lines.push(`const ${old} = ${receiver}.at(${index.code});`);
+                const combined = arithmetic(operation,{code:old,type:'integer'},value,'integer',lines);
+                if (!combined) return reject(assignment);
+                result = combined;
+            }
+            body.push(`location = ${location};`,...lines,`${receiver}.set(${index.code},${result}); iterationResult = ${result};`);
+            return true;
+        }
         if (numberMode) {
             // Number regions mutate invocation-private cells. No array
             // store escapes until the region succeeds or raises an error.

@@ -190,6 +190,21 @@ describe('shared compiled expression inference', () => {
                 arguments: [{ kind: 'input', input: 'A' }, { kind: 'input', input: 'B' }] } }] });
     });
 
+    it('selects native overloads without changing the input domain', () => {
+        for (const type of ['integer', 'real'] as const) {
+            const result = inferCompiledExpression(expression('X abs'), {
+                ...context({X:type}), call:matchCompiledCallSignature,
+            });
+            expect(result.expression).toMatchObject({kind:'call', type,
+                signature:{inputs:[type], result:type}});
+        }
+        for (const type of ['boolean', 'text'] as const) {
+            expect(inferCompiledExpression(expression('X abs'), {
+                ...context({X:type}), call:matchCompiledCallSignature,
+            }).failure).toBeDefined();
+        }
+    });
+
     it('requires complete native domains and declines a shadowed spelling', () => {
         for (const [source, bindings] of [
             ['X reverse', { X: 'integer' }],

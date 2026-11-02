@@ -48,7 +48,8 @@ function memoizedSignature(values: readonly RankValue[]): string | undefined {
     for (let index = 0; index < values.length; index++) {
         const value = values[index], held = memo.held[index];
         if (typeof value !== 'object') {
-            if (held !== value || typeof held === 'object') return undefined;
+            // Signatures depend on scalar domains, never scalar values.
+            if (held !== typeof value) return undefined;
         } else {
             if (isRankRecord(value)) {
                 if (memo.records[index] === undefined) return undefined;
@@ -76,7 +77,7 @@ export function argumentSignature(values: readonly RankValue[]): string {
     const key = signatures ? '[' + signatures.join(',') + ']' : JSON.stringify(values.map(value => semanticValueType(value)));
     signatureMemo = values.every(value => typeof value !== 'object'
         || isRankRecord(value) || isRankArray(value) && semanticArrayType(value).scalar !== undefined && arrayRevision(value) !== undefined)
-        ? { held: values.map(value => typeof value === 'object' ? signatureIdentity(value) : value),
+        ? { held: values.map(value => typeof value === 'object' ? signatureIdentity(value) : typeof value),
             revisions: values.map(value => isRankArray(value) ? arrayRevision(value) : undefined),
             ranks: values.map(value => isRankArray(value) ? value.shape.length : 0),
             records: signatures ? values.map((value, index) => isRankRecord(value) ? signatures[index] : undefined) : [], key } : undefined;

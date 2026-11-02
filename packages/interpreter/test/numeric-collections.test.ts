@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue, type RankValue, type RankArray } from '../src/index.js';
-import { ownedArray, typedArray, maskedArray, typedElementKind, readArrayItem } from '../src/array-storage.js';
+import { ownedArray, typedArray, maskedArray, typedElementKind, readArrayItem, integer32Cells, integer64Cells } from '../src/array-storage.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
 import { withInterrupt, InterruptedError } from '../src/interrupt.js';
 import { numericSort, numericDistinct } from '../src/numeric-collections.js';
@@ -14,6 +14,28 @@ const cells = (value: RankValue): RankValue[] => {
 const signal = () => new Int32Array(new SharedArrayBuffer(4));
 
 describe('stored numeric collection kernels', () => {
+    it('keeps small sorted integers and stable indices in compact buffers', () => {
+        const source=ownedArray([2147483647n,-2147483648n,3n,3n]);
+        const sorted=numericSort(source,false,'indexed')!;
+        expect(cells(sorted.values!)).toEqual([-2147483648n,3n,3n,2147483647n]);
+        expect(cells(sorted.indexes!)).toEqual([1n,2n,3n,0n]);
+        expect(integer32Cells(sorted.values!)?.byteLength).toBe(16);
+        expect(integer32Cells(sorted.indexes!)?.byteLength).toBe(16);
+        expect(cells(source)).toEqual([2147483647n,-2147483648n,3n,3n]);
+    });
+
+    it('widens before either Int32 boundary and never truncates arbitrary integers', () => {
+        for(const wide of [2147483648n,-2147483649n,9007199254740993n,-(1n<<63n)]) {
+            const source=ownedArray([0n,1n,wide,0n]);
+            const expected=[0n,1n,wide,0n].sort((a,b)=>a<b?-1:a>b?1:0);
+            const result=numericSort(source,false)!.values!;
+            expect(cells(result)).toEqual(expected);
+            expect(integer64Cells(result)?.byteLength).toBe(32);
+        }
+        const runtime=new Interpreter();
+        try {expect(formatValue(runtime.execute('use sequences\n(array 0 1267650600228229401496703205376 1) sort')!)).toBe('0 1 1267650600228229401496703205376');}
+        finally {runtime.dispose();}
+    });
     it('uses numeric distinct through concat binding checks', () => {
         const runtime = new Interpreter();
         const d = new RuntimeDiagnostics();

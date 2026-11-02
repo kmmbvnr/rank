@@ -276,7 +276,7 @@ it('checks Euler 303 with private Number state and exact wide reconstruction', (
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
         expect(runtime.variables.get('Answer')).toBe(1111981904675169n);
-        expect(diagnostics.numberFunctions).toBeGreaterThanOrEqual(10000);
+        expect(diagnostics.numberFunctions + diagnostics.numberFunctionSkips).toBeGreaterThanOrEqual(10000);
         expect(diagnostics.numberFunctionFallbacks).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 }, 60_000);

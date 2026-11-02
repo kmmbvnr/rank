@@ -234,13 +234,13 @@ end`, [[0n], [4n], [2n]], 3);
         expect(values.map(value => value.value)).toEqual(['false', 'false', 'false']);
     });
 
-    it('retains framed calls for escaping containers and noninteger payloads', () => {
+    it('returns integer containers and keeps noninteger payloads framed', () => {
         compare(`use algo
 fun N helper
   Values = new stack
   Values push N
   return Values
-end`, [[0n], [3n]], 0);
+end`, [[0n], [3n]], 2);
         compare(`use algo
 fun N helper
   Cache = new index
