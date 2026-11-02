@@ -1,0 +1,35 @@
+rem 2-3 Tree (2-3 Дерево)
+rem https://acmp.ru/index.asp?main=task&id_task=752
+rem Count 2-3 trees with L leaves modulo R.
+rem A tree is a chain of level sizes; going from M
+rem nodes up to N nodes below, M parents choose
+rem N - 2M triples: C(M, N - 2M) ways.
+rem Push T(M) * C(M, 0 till M) into T(2M till 3M)
+rem with a rolling Pascal row mod R.
+
+use io
+use text
+use cli
+use sequences
+
+arg Input text = "6 1000000000"
+
+Tokens = Input split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+L = (Tokens 0) integer
+R = (Tokens 1) integer
+
+T = array shape (3 * L + 3) fill 0
+T 1 = 1 mod R
+
+Zero = array shape 1 fill 0
+Row = array shape 2 fill 1
+
+for M in 1 till (L // 2 + 1)
+  Spots = (2 * M) till (3 * M + 1)
+  T Spots = ((T Spots) + ((T M) * Row)) mod R
+  Row = ((concat Row Zero) + (concat Zero Row)) mod R
+end
+
+(T L text) print
