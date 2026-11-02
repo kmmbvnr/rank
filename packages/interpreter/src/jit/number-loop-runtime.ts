@@ -2,6 +2,7 @@ import { broadcastShape, arrayStrides } from './tensor-layout.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { textLength } from '../text-storage.js';
 import { expressionFacts, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
+import { prepareLoopEntryWork } from './loop-entry-work.js';
 import { loopTraversal } from '../loop-traversal.js';
 import { argumentSelectionError, MissingValueError, RankError } from '../errors.js';
 import { completed } from '../execution.js';
@@ -304,6 +305,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     // invalidate them after a store; weak keys do not retain earlier inputs.
     const readBuffers = new WeakMap<RankArray, { revision: number; type: LoopTerm['type']; cells: Float64Array }>();
     const traversal = plan.iteration && loopTraversal(plan.iteration);
+    const entryWork = prepareLoopEntryWork(plan, host);
     // A nested region can do much more work than its root range length (for
     // example a three-row stencil or a long stack-processing pass). Retain
     // its existing admission until the estimate accounts for nested work.
@@ -383,6 +385,15 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             // cap retain measured admission, including short-call feedback.
             if (count !== undefined && count !== null && (count >= conditionWriteCells
                 || conditionWriteCells > COPY_PROBE_CAP && conditionWriteCells - count <= SMALL_COPY_CELLS)) conditionWriteCells = 0;
+        }
+        // A condition loop can begin with several complete passes whose sum
+        // covers its private destination copies (Euler 333). Prove work only
+        // for an entered first iteration and unchanged, guarded scalar bounds.
+        // Keep the same small sentinel allowance as ordinary range admission.
+        if (conditionWriteCells > SMALL_COPY_CELLS && entryWork) {
+            const count = entryWork(input);
+            if (count >= conditionWriteCells || conditionWriteCells > COPY_PROBE_CAP
+                && count > 0 && conditionWriteCells - count <= SMALL_COPY_CELLS) conditionWriteCells = 0;
         }
         // Copy-cost heuristic, not a Number precision limit: <=64 cells keep
         // the small-store fast path; larger stores get a bounded first probe.

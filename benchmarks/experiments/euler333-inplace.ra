@@ -1,0 +1,45 @@
+rem Special Partitions
+rem https://projecteuler.net/problem=333
+
+use numbers
+use sequences
+use io
+use cli
+
+fun Limit solve
+  Cnt = Limit partitioncounts
+  Ps = primes till Limit
+  Good' = Cnt Ps equal 1
+  return Ps filter Good sum
+end
+
+fun Limit partitioncounts
+  Counts = array shape Limit fill 0
+  if Limit equal 0
+    return Counts
+  end
+  Counts 0 = 1
+  Power = 1
+  Stages = 0
+  for Power less Limit
+    Stages += 1
+    Power *= 3
+  end
+  Power = 1
+  for K in 0 till Stages
+    Top = Limit - 1
+    if Top mod 2 equal 0
+      Top -= 1
+    end
+    for N in Top to Power by -2
+      Half = (N - Power) // 2
+      Counts N += Counts Half
+    end
+    for N in 2 till Limit by 2
+      Half = N // 2
+      Counts N = Counts Half
+    end
+    Power *= 3
+  end
+  return Counts
+end

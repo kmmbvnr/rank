@@ -224,3 +224,70 @@ end`;
         compare('A = array shape 128 fill 0\nAlias = A\nfor J in 2 till 1\n A 0 = 7\nend');
     });
 });
+
+const conditionPasses = (first = '0 till Size by 2', second = '1 till Size by 2', tail = '') => `Size = 262145
+A = array shape Size fill 0
+Alias = A
+Round = 0
+for Round less 1
+ for I in ${first}
+  A I += I
+ end
+ for J in ${second}
+  A J += J
+ end
+ ${tail}
+ Round += 1
+end`;
+
+describe('condition-loop entry range work', () => {
+    it('combines complete strided passes above the copy cap', () => {
+        const d = compare(conditionPasses());
+        expect(d.numberLoops).toBe(1);
+        expect(d.numberLoopCopyProbes).toBe(0);
+        expect(d.fallbacks['number-loop:condition-write-budget']).toBeUndefined();
+    });
+    it('counts descending passes and keeps the existing sentinel allowance', () => {
+        const d = compare(conditionPasses('Size - 2 to 1 by -2', '2 till Size by 2'));
+        expect(d.numberLoops).toBe(1);
+    });
+    it('does not assume that a false root condition enters its ranges', () => {
+        const d = compare(conditionPasses().replace('Round less 1', 'Round less 0'));
+        expect(d.numberLoops).toBe(0);
+    });
+    it('retains the cap when combined passes are too short', () => {
+        const d = compare(conditionPasses('0 till 128', '128 till 256'));
+        expect(d.numberLoops).toBe(0);
+        expect(d.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
+    });
+    it('invalidates bounds assigned by a preceding pass', () => {
+        const source = conditionPasses('0 till 1', '1 till Size')
+            .replace('A I += I', 'A I += I\n  Size = 1');
+        const d = compare(source);
+        expect(d.numberLoops).toBe(0);
+    });
+    it('does not count passes with an early exit', () => {
+        const source = conditionPasses().replace('A I += I', 'A I += I\n  break');
+        const d = compare(source);
+        expect(d.numberLoops).toBe(0);
+    });
+    it('does not count a range hidden behind a conditional branch', () => {
+        const source = conditionPasses().replace(' for I in 0 till Size by 2',
+            ' if Round less 0\n for I in 0 till Size by 2').replace(' for J in', ' end\n for J in');
+        const d = compare(source);
+        expect(d.numberLoops).toBe(0);
+    });
+    it('charges all destination arrays rather than just the longest pass', () => {
+        const source = conditionPasses().replace('Alias = A', 'Alias = A\nB = array shape Size fill 0')
+            .replace('A J += J', 'A J += J\n  B J = J');
+        const d = compare(source);
+        expect(d.numberLoops).toBe(0);
+    });
+    it('replays overflow and preserves preceding writes before an error', () => {
+        const source = conditionPasses(undefined, undefined, 'A Size = 1')
+            .replace('A I += I', 'A I = 9007199254740991 + I');
+        const d = compare(source);
+        expect(d.numberLoopOverflows).toBe(1);
+        expect(run(source).result.error).toContain('array index out of bounds');
+    });
+});

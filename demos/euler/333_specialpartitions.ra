@@ -16,35 +16,29 @@ fun Limit solve
   return Ps filter Good sum
 end
 
-rem Counts include the empty partition at zero and exclude Limit.
+rem Include the empty partition at zero.
 fun Limit partitioncounts
   Counts = array shape Limit fill 0
   if Limit equal 0
     return Counts
   end
   Counts 0 = 1
+  Top = Limit - 1
+  if Top mod 2 equal 0
+    Top -= 1
+  end
   Power = 1
-  rem Each row admits the next power of three as the partition's odd term.
   for Power less Limit
-    Next = array shape Limit fill 0
-    Next 0 = 1
-    for N in 1 till Limit
-      Ways = 0
-      if N mod 2 equal 0
-        rem All terms are even: divide them by two.
-        Half = N // 2
-        Ways = Next Half
-      else
-        Ways = Counts N
-        rem The only odd term is a power of three; the rest divide by two.
-        if N greater Power - 1
-          Half = (N - Power) // 2
-          Ways += Counts Half
-        end
-      end
-      Next N = Ways
+    rem Read the previous layer below N.
+    for N in Top to Power by -2
+      Half = (N - Power) // 2
+      Counts N += Counts Half
     end
-    Counts = Next
+    rem Halves now belong to this layer.
+    for N in 2 till Limit by 2
+      Half = N // 2
+      Counts N = Counts Half
+    end
     Power *= 3
   end
   return Counts

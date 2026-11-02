@@ -782,6 +782,12 @@ the remaining pass still has at least 262081 iterations. Below the cap, partial
 passes retain measured work feedback. All destinations contribute to the copy
 cost; stepped ranges use their actual iteration count. This admission changes
 neither overflow replay nor publication of preceding stores on an ordinary error.
+A condition-controlled loop may also begin with several complete range passes.
+When a scalar integer entry comparison proves the first iteration is entered,
+the compiler sums those passes using guarded entry bounds and the same allowance.
+It stops at a non-range statement or a bound changed by a preceding pass; branches,
+early exits, calls, array-cell bounds and unknown lengths do not qualify.
+This proves enough work before copying without changing the probe cap.
 
 Stored-vector traversal captures its invocation-owned buffer once and maintains
 an independent numeric cursor/ordinal; assignments to visible loop variables do

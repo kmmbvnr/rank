@@ -58,3 +58,18 @@ describe.each([false, true])('Euler 333 layered counts (compilation=%s)', compil
         } finally { runtime.dispose(); }
     });
 });
+
+it('solves the full input with one count table and an admitted condition loop', () => {
+    const runtime = new Interpreter(() => {});
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        runtime.executeProgram(helpers, []);
+        expect(diagnostics.run(() => runtime.execute('1000000 solve'))).toBe(3053105n);
+        expect(diagnostics.numberLoops).toBeGreaterThan(0);
+        expect(diagnostics.fallbacks['number-loop:condition-write-budget']).toBeUndefined();
+        expect(diagnostics.cowCopies).toBe(0);
+        expect(diagnostics.typedUnpacks).toBe(0);
+        // One count table plus prime-selection outputs, rather than thirteen rows.
+        expect(diagnostics.typedArrayPublishedCells).toBeLessThan(2000000);
+    } finally { runtime.dispose(); }
+});

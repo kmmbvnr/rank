@@ -1,0 +1,51 @@
+rem Special Partitions
+rem https://projecteuler.net/problem=333
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 1000000
+Limit solve print
+
+fun Limit solve
+  Cnt = Limit partitioncounts
+  Ps = primes till Limit
+  Good' = Cnt Ps equal 1
+  return Ps filter Good sum
+end
+
+rem Counts include the empty partition at zero and exclude Limit.
+fun Limit partitioncounts
+  Counts = array shape Limit fill 0
+  if Limit equal 0
+    return Counts
+  end
+  Counts 0 = 1
+  Power = 1
+  rem Each row admits the next power of three as the partition's odd term.
+  for Power less Limit
+    Next = array shape Limit fill 0
+    Next 0 = 1
+    for N in 1 till Limit
+      Ways = 0
+      if N mod 2 equal 0
+        rem All terms are even: divide them by two.
+        Half = N // 2
+        Ways = Next Half
+      else
+        Ways = Counts N
+        rem The only odd term is a power of three; the rest divide by two.
+        if N greater Power - 1
+          Half = (N - Power) // 2
+          Ways += Counts Half
+        end
+      end
+      Next N = Ways
+    end
+    Counts = Next
+    Power *= 3
+  end
+  return Counts
+end
