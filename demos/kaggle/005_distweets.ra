@@ -43,7 +43,7 @@ fun Texts term_counts Vocab
     if Term not in Positions
       Positions Term = new queue
     end
-    (Positions Term) push Column
+    Positions Term push Column
   end
   for Text Row in Texts
     Words' = Text words

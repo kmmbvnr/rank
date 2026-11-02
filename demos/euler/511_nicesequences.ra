@@ -26,7 +26,7 @@ fun F G Ti conv
   Ft = (F (1 till Kk)) reverse
   Fr = concat (F (0 till 1)) Ft
   Fp = concat Fr (array 0)
-  Pr = (H * Fp) mod Md
+  Pr = H * Fp mod Md
   return Pr sum axis 1 mod Md
 end
 rem Divisors of N from its factors.

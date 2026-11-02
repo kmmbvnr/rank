@@ -25,7 +25,7 @@ rem with three blocks or more.
 Digs = 9 to Low by -1 array
 W = Digs len
 End = W - 1
-Full = (2 ** Digs) sum
+Full = 2 ** Digs sum
 Top = 2 ** End - 1
 Blk = array shape 10 fill 0
 Answer = 0
@@ -81,7 +81,7 @@ for P in Digs permutations
         N = M
         for N greater 0
           B = 1 shl (N mod 10)
-          if (Used band B) not equal 0
+          if Used band B not equal 0
             Dup = 1
             break
           end
@@ -95,7 +95,7 @@ for P in Digs permutations
           N = Blk J // M
           for N greater 0
             B = 1 shl (N mod 10)
-            if (Used band B) not equal 0
+            if Used band B not equal 0
               Dup = 1
               break
             end

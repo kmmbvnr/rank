@@ -41,11 +41,11 @@ fun Ks nxt X
   S2 = Sm bor Bd1
   Sc = Sd - Dc
   Cl = H bit Sc
-  Hn = (H shl Dc) band Fm
+  Hn = H shl Dc band Fm
   for B in 0 to Sd
-    Sb = (Dc - B) max 0
+    Sb = Dc - B max 0
     Sh = 1 shl Sb
-    Up = (S2 bit B) and (B at most Dc)
+    Up = S2 bit B and (B at most Dc)
     Ad = Up choose Sh 0
     Hn = Hn bor Ad
   end
@@ -64,11 +64,11 @@ for Fr len greater 0
   for X in 1 to 9
     Nx = concat Nx (Fr nxt X)
   end
-  Nx = Nx ((Nx at least 0) indices)
+  Nx = Nx (Nx at least 0 indices)
   Nx = Nx unique
   Nm = (Nx in Al) equal false
   Nw = Nx (Nm indices)
-  Al = (concat Al Nw) copy
+  Al = concat Al Nw copy
   Fr = Nw
 end
 Ks = Al sort
@@ -79,10 +79,10 @@ Tf = array shape (Ny * 10) fill Ns
 for X in 0 to 9
   Kx = Ks nxt X
   Ix = Ks lowerindex Kx
-  Ix = (Kx at least 0) choose Ix Ns
+  Ix = Kx at least 0 choose Ix Ns
   Tf (X till Ns * 10 by 10) = Ix
 end
-Ac = (Ks band Fm) equal 1
+Ac = Ks band Fm equal 1
 Ac = concat Ac (array false)
 rem Moore refinement: split classes by
 rem the classes of the ten successors.
@@ -93,7 +93,7 @@ for Rd in 1 to Ny
   for X in 0 to 9
     Sx = Cl (Tf (X till Ny * 10 by 10))
     V = Kq * Ny + Sx
-    Uq = (V unique) sort
+    Uq = V unique sort
     Kq = Uq lowerindex V
   end
   Nn = (Kq max) + 1
@@ -104,7 +104,7 @@ for Rd in 1 to Ny
   Nc = Nn
 end
 Rp = array shape Nc fill 0
-Rp Cl = (0 till Ny) copy
+Rp Cl = 0 till Ny copy
 Mt = array shape (Nc * 10) fill 0
 for X in 0 to 9
   Ct = Cl (Tf (Rp * 10 + X))
@@ -112,11 +112,11 @@ for X in 0 to 9
 end
 Dk = Cl Ns
 Sr = (0 till Nc * 10) // 10
-Kp = (Mt equal Dk) or (Sr equal Dk)
+Kp = Mt equal Dk or (Sr equal Dk)
 Kp = Kp equal false
 Src = Sr (Kp indices)
 Dst = Mt (Kp indices)
-Am = (Ac Rp) integer
+Am = Ac Rp integer
 rem T(L) for L < Nt by stepping counts.
 C0 = Cl (Ks lowerindex K0)
 Vv = array shape Nc fill 0
@@ -127,7 +127,7 @@ Nt = 2 * Nc + 10
 Ts = array shape Nt fill 0
 T = 0
 for L in 1 till Nt
-  Ta = (Vv * Am) sum
+  Ta = Vv * Am sum
   T = (T + Ta) mod P
   Ts L = T
   Nv = Vv * 0
@@ -147,7 +147,7 @@ for I in 0 till Nt
   if Lr greater 0
     Cs = C (1 to Lr)
     Sv = (Ts (I - Lr till I)) reverse
-    Dt = ((Cs * Sv) mod P) sum
+    Dt = Cs * Sv mod P sum
     D = (D + Dt) mod P
   end
   if D equal 0
@@ -160,7 +160,7 @@ for I in 0 till Nt
   Cn = C len
   if Cn less Nb
     Zp = array shape (Nb - Cn) fill 0
-    C = (concat C Zp) copy
+    C = concat C Zp copy
   end
   Sg = C (Mm till Nb)
   C (Mm till Nb) = (Sg - Cf * Bb) mod P
@@ -194,10 +194,10 @@ W = 2 * R - 1
 rem A square sums a(i) a(j) at i + j:
 rem the pairs i < j twice, then the
 rem squares, by indexed accumulation.
-Iq = (0 till R * R) copy
+Iq = 0 till R * R copy
 Ia = Iq // R
 Ja = Iq mod R
-Up = (Ia less Ja) indices
+Up = Ia less Ja indices
 Ia = Ia Up
 Ja = Ja Up
 Kd = Ia + Ja
@@ -205,9 +205,9 @@ Dg = 2 * (0 till R)
 Cv = array shape W fill 0
 Xc = array shape R fill 0
 Xc 0 = 1
-Nb = (N binary) len
+Nb = N binary len
 for J in Nb - 1 to 0 by -1
-  Pr = (Xc Ia) * (Xc Ja) mod P
+  Pr = (Xc Ia) * Xc Ja mod P
   Cv = array shape W fill 0
   Cv Kd += Pr .accumulate
   Cv = 2 * Cv
@@ -217,11 +217,11 @@ for J in Nb - 1 to 0 by -1
   Hl = Hg mod 32768
   Hh = Hg // 32768
   Hm = (stack Hl Hh) * 1.0
-  Ca = (Hm matmul Rl) integer
-  Cb = (Hm matmul Rh) integer
+  Ca = Hm matmul Rl integer
+  Cb = Hm matmul Rh integer
   Md = (Ca 1 + Cb 0) mod P
   Rd = Ca 0 + Md * 32768
-  Rd = Rd + ((Cb 1) mod P) * 1073741824
+  Rd = Rd + (Cb 1 mod P) * 1073741824
   Xc = (Cv (0 till R) + Rd) mod P
   if N bit J
     Tp = Xc (R - 1)
@@ -231,6 +231,6 @@ for J in Nb - 1 to 0 by -1
   end
 end
 Tr = Ts (0 till R)
-Answer = ((Xc * Tr) mod P) sum
+Answer = Xc * Tr mod P sum
 Answer = Answer mod P
 Answer print

@@ -56,7 +56,7 @@ fun N Lo Hi floors
   Left = Lo
   for Left at most Hi
     Q = N // Left
-    Right = (N // Q) min Hi
+    Right = N // Q min Hi
     Total += Q * (Right - Left + 1)
     Left = Right + 1
   end

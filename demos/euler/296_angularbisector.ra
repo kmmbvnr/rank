@@ -30,7 +30,7 @@ for S in 2 to (Limit // 3)
   Top = (Room - 1) // 2
   Low = (S + Top) // (Top + 1)
   for P in Low to (S // 2)
-    if (S gcd P) equal 1
+    if S gcd P equal 1
       Q = S - P
       From = (Q + P - 1) // P
       if From less 1

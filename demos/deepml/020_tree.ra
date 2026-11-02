@@ -41,7 +41,7 @@ fun Data Attrs Target learn_tree
     end
   end
 
-  Rest = (Attrs filter not equal Best) array
+  Rest = Attrs filter not equal Best array
   Nodes = Data Best Rest Target branch
   return record
     .leaf = false

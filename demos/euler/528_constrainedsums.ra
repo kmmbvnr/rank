@@ -24,7 +24,7 @@ for K in Lo to Hi
   Sn = array 1
   for Mm in 1 to K
     Cm = K ** Mm + 1
-    Ix = (Sg + Cm at most Nn) indices
+    Ix = Sg + Cm at most Nn indices
     Sg = (concat Sg (Sg Ix + Cm)) copy
     Sn = (concat Sn (0 - Sn Ix)) copy
   end
@@ -33,9 +33,9 @@ for K in Lo to Hi
   for I in 0 till K
     Pr = Pr * ((U - I) mod P) mod P
   end
-  Fk = (1 to K) reduce *
+  Fk = 1 to K reduce *
   Iv = Fk (P - 2) P powmod
-  T = (Sn * Pr) sum mod P
+  T = Sn * Pr sum mod P
   Answer = (Answer + T * Iv) mod P
 end
 Answer print

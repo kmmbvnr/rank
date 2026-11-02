@@ -51,7 +51,7 @@ Source = array 1 2
 Doubled = Source * 2
 Source 0 = 5
 Doubled print
-(Source * 2) print
+Source * 2 print
 
 rem A name that owns its array writes into it, with no copy.
 Counts = array shape 5 fill 0

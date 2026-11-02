@@ -83,7 +83,7 @@ for D in 1 to Root
     end
     Lo = Z divsum
     for V in M // (Z + 1) to 1 by -1
-      Hi = (M // V) divsum
+      Hi = M // V divsum
       H += (V lattice) * (Hi - Lo)
       Lo = Hi
     end

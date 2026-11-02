@@ -21,7 +21,7 @@ rem 2N // (U V) triples.
 Top = 3 * N isqrt isqrt + 2
 Tot = 0
 for M in 3 to Top
-  Ns = ((M // 2 + 1) to (M - 1)) copy
+  Ns = (M // 2 + 1 to (M - 1)) copy
   Cop = M gcd Ns equal 1
   Ok = Cop choose 1 0
   Mk = (M - 2 * Ns) mod 5 not equal 0

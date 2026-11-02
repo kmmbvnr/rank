@@ -96,15 +96,15 @@ describe('shared expression grouping', () => {
         });
     });
 
-    it('accepts separate operands and explicit groups but rejects a resumed call', async () => {
-        const valid = await parse('use sequences\nA len equal B len\n(A equal B) count', { validation: true });
-        expect(valid.diagnostics).toEqual([]);
-        const invalid = await parse('use numbers\n2 sqrt + 1 sqrt', { validation: true });
-        expect(invalid.diagnostics).toHaveLength(1);
-        expect(invalid.diagnostics![0]).toMatchObject({
-            message: expect.stringContaining('intermediate variable'),
-            range: { start: { line: 1, character: 11 } },
-        });
+    it('accepts calls resumed after arithmetic', async () => {
+        const document = await parse('use numbers\n2 sqrt + 1 sqrt', { validation: true });
+        expect(document.diagnostics).toEqual([]);
+        const statement = document.parseResult.value.statements.at(-1)!;
+        if (!isExpressionStatement(statement)) throw new Error('expected expression');
+        if (!isApplicationExpression(statement.value)) throw new Error('expected call');
+        expect(statement.value.arguments).toMatchObject([{ name: 'sqrt' }]);
+        if (!isParenthesizedExpression(statement.value.head)) throw new Error('expected grouped formula');
+        expect(statement.value.head.value).toMatchObject({ $type: 'BinaryExpression', operator: '+' });
     });
 
     describe('higher-order operations', () => {

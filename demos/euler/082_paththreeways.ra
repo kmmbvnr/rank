@@ -29,7 +29,7 @@ Id = 0 till Count array
 Col = Id mod Side
 Last = Side - 1
 Rows = Count - Side
-Right = Id filter (Col less Last) copy
+Right = Id filter Col less Last copy
 Down = Id filter less Rows copy
 East = Right + 1
 South = Down + Side
@@ -44,5 +44,5 @@ Net = new graph .directed
 Net add Id
 Net add Edges
 Dist = (Net dijkstra Count) .distance
-Answer = (Dist Far) min
+Answer = Dist Far min
 Answer print

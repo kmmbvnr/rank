@@ -41,5 +41,5 @@ Top = Goal max
 Tail' = Sorted drop 1
 Next' = concat Tail (array Top)
 Hit' = Sorted at most Goal and Goal less Next
-Answer = (Goal Hit) first
+Answer = Goal Hit first
 Answer print

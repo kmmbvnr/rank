@@ -37,10 +37,10 @@ for P in Ones
   Root = Vq isqrt
   Hit' = Root * Root equal Vq
   U = (Us filter Hit) 0
-  V = (P - U * U) isqrt
+  V = P - U * U isqrt
   First = Ones take H
   Same' = First equal P
-  Mine = (First filter Same) len
+  Mine = First filter Same len
   if Mine greater 0
     Tr' = Ar * U - Ai * V
     Ti' = Ar * V + Ai * U
@@ -98,7 +98,7 @@ for I in 0 till (Ar len)
     Right = N
     for Left less Right
       Mid = (Left + Right) // 2
-      if A * (Bi Mid) at most B * (Br Mid)
+      if A * Bi Mid at most B * (Br Mid)
         Left = Mid + 1
       else
         Right = Mid

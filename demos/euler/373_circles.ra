@@ -10,7 +10,7 @@ use cli
 arg Limit integer = 10000000
 
 Root = Limit isqrt
-Data = (Limit + 1) groups
+Data = Limit + 1 groups
 for M in 2 to Root
   for N in 1 till M
     if (M + N) mod 2 equal 0

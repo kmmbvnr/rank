@@ -36,7 +36,7 @@ TotalStars = A + 2 * B + 3 * C
 
 Answer = 0
 
-if (K less 1) or (TotalStars less K)
+if K less 1 or (TotalStars less K)
   Answer = 0
 else
   if K equal 1
@@ -74,9 +74,9 @@ else
             Valid = 0
             ReqI = 0
             if not (Sum23 less K)
-              Drop3 = (L greater 0) and (not ((Sum23 - 3) less K))
-              Drop2 = (J greater 0) and (not ((Sum23 - 2) less K))
-              if (not Drop3) and (not Drop2)
+              Drop3 = L greater 0 and (not (Sum23 - 3 less K))
+              Drop2 = J greater 0 and (not (Sum23 - 2 less K))
+              if not Drop3 and (not Drop2)
                 Valid = 1
                 ReqI = 0
               end
@@ -171,4 +171,4 @@ else
   end
 end
 
-(Answer text) print
+Answer text print

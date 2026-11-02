@@ -17,10 +17,10 @@ rem primes of N - k + 1 and k. Factors
 rem are undone with stored inverses.
 Mod = 1000000007
 Rs = N isqrt
-Ix = (0 to N) copy
+Ix = 0 to N copy
 Sp = Ix
 Ps = primes to Rs array
-for I in (Ps len - 1) to 0 by -1
+for I in Ps len - 1 to 0 by -1
   P = Ps I
   Sl = P to N by P
   Sp Sl = P

@@ -18,7 +18,7 @@ rem B over u >= w >= 1, u w <= N.
 Mod = 100000000
 M = 24 * Mod
 R = N isqrt
-U = (1 to R) copy
+U = 1 to R copy
 Q = N // U
 Args = concat (array N) (U + Q) U
 Args = concat Args (U + R) (Q - U)

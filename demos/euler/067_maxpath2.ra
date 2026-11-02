@@ -30,7 +30,7 @@ Id = 0 till Count array
 Eight' = Id * 8 + 1
 Row = (Eight isqrt - 1) // 2
 Last = Row max
-Parents = Id filter (Row less Last) copy
+Parents = Id filter Row less Last copy
 Level' = Row Parents
 Left = Parents + Level + 1
 Right' = Left + 1
@@ -43,6 +43,6 @@ Net add Id
 Net add Edges
 Dist = (Net dijkstra 0) .distance
 Base = Id (Row equal Last) array
-Short = (Dist Base) min
+Short = Dist Base min
 Answer = Vals 0 + Last * 100 - Short
 Answer print

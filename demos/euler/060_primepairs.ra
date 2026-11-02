@@ -81,7 +81,7 @@ fun Data Size Best min_clique
     for Rest greater 0
       Mine = Rest band (0 - Rest)
       Rest -= Mine
-      At = (Mine - 1) popcount
+      At = Mine - 1 popcount
       P = Vals At
       Total = Sum + P
       if Sum + P * Need at least Best

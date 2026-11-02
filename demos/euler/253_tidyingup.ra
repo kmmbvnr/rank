@@ -123,17 +123,17 @@ for K in 0 till Ns
   Rw = S * Jm
   rem Above the state bound G is 1.
   rem Below its present count G is 0.
-  for J in (MaxSeg S) till Jm
+  for J in MaxSeg S till Jm
     G (Rw + J) = 1.0
   end
-  for J in (Prt S) till (MaxSeg S)
+  for J in Prt S till (MaxSeg S)
     V = 0.0
-    for T in (Tb S) till (Tb (S + 1))
+    for T in Tb S till (Tb (S + 1))
       V += G (To T * Jm + J) * Wt T
     end
     G (Rw + J) = V / Tot S
   end
 end
 G0 = G (0 till Jm)
-Answer = (1 - G0) sum round 6
+Answer = 1 - G0 sum round 6
 Answer print

@@ -55,13 +55,13 @@ fun X popc
   As = A shr 2
   B = (A band M2) + (As band M2)
   Bs = B shr 4
-  C = (B + Bs) band M4
+  C = B + Bs band M4
   Cs = C shr 8
-  D = (C + Cs) band M8
+  D = C + Cs band M8
   Ds = D shr 16
-  E = (D + Ds) band M16
+  E = D + Ds band M16
   Es = E shr 32
-  F = (E + Es) band M32
+  F = E + Es band M32
   return F mod 18446744073709551615
 end
 Mod = 20300713
@@ -149,10 +149,10 @@ for
     if Has and not Done
       Up = B shr Ev
       Dn = B shl (Dw - Ev)
-      Turn = (Up bor Dn) band Full
+      Turn = Up bor Dn band Full
       New = Turn band Left
       Weight += (New popc) * (1 + Idx)
-      Cut = (New band Mask) popc
+      Cut = New band Mask popc
       Part += Cut * (1 + Idx)
       Left = Left bxor New
       Done = Left equal 0

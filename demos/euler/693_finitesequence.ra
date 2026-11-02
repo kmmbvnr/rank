@@ -34,7 +34,7 @@ Bb = 2 ** 23
 Cs = 16
 Ks = 8
 Tc = 128
-Stp = (Nn // 64) max 1
+Stp = Nn // 64 max 1
 Gx = 2 to Nn by Stp
 Gl = Gx len
 if Gx (Gl - 1) less Nn
@@ -54,24 +54,24 @@ for Go equal 1
   Xs = array shape 0 fill 0
   Sl = array shape 0 fill 0
   if Phase equal 0
-    Ke = (Kk + Cs - 1) min (Ng - 1)
+    Ke = Kk + Cs - 1 min (Ng - 1)
     Xs = Gx (Kk to Ke)
   end
   if Phase equal 1
     Ub = Jr + Ir - Il
-    Ip = (Ub greater Best) indices
+    Ip = Ub greater Best indices
     if Ip len equal 0
       Go = 0
     end
     if Ip len greater 0
       Wd = Ir Ip - Il Ip
-      Dd = Ip ((Wd at most 1) indices)
+      Dd = Ip (Wd at most 1 indices)
       if Dd len greater 0
         Jr Dd = Neg
       end
-      Lv = Ip ((Wd greater 1) indices)
+      Lv = Ip (Wd greater 1 indices)
       if Lv len greater 0
-        Od = (Ub Lv) argsort .descending
+        Od = Ub Lv argsort .descending
         Nk = (Lv len min Ks) - 1
         Sl = Lv (Od (0 to Nk))
         Xs = (Il Sl + Ir Sl) // 2
@@ -86,7 +86,7 @@ for Go equal 1
       if Xo greater 2
         Vc = 2 to (Xo // 2)
         Vc = Vc * Vc mod Xo
-        Vc = Vc ((Vc greater 1) indices)
+        Vc = Vc (Vc greater 1 indices)
         Vc = Vc unique + Oi * Bb
         Kc = concat Kc Vc
       end
@@ -104,7 +104,7 @@ for Go equal 1
       Vl = Kc mod Bb
       Wv = Vl * Vl mod (Xs Ow + Sk)
       Kc = Ow * Bb + Wv
-      Kc = Kc ((Wv greater 1) indices)
+      Kc = Kc (Wv greater 1 indices)
       Kc = Kc unique
       if Sk mod 32 equal 0
         Ow = Kc // Bb
@@ -131,7 +131,7 @@ for Go equal 1
         Cn Oq = Cn Oq max Ln
       end
     end
-    Sm = (Xs less 3) integer
+    Sm = Xs less 3 integer
     Gq = Cn + 2 - Sm
     Best = Best max (Gq max)
     if Phase equal 0

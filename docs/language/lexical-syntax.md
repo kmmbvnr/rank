@@ -515,8 +515,24 @@ Fibs till 1000 sum
 A max + 1
 ```
 
+These examples show the current evaluation order. Use `numbers` for `sqrt`
+and `bits` for `shr` and `band`. In the meaning column, `sqrt(...)` denotes
+the mathematical square root.
+
+| Expression | Meaning |
+| --- | --- |
+| `2 + 9 sqrt` | `sqrt(11)` |
+| `2 + 3 * 4 sqrt` | `sqrt(14)` |
+| `2 + 32 shr 1` | `(2 + 32) shr 1` → `17` |
+| `32 shr 1 + 1` | `(32 shr 1) + 1` → `17` |
+| `32 shr (1 + 1)` | `32 shr 2` → `8` |
+| `32 shr 2 band 3` | `(32 shr 2) band 3` → `0` |
+
 To process just one operand, group it explicitly: `A - (A mean)` or
-`0 till (Classes len)`.
+`0 till (Classes len)`. One case needs no parentheses: `len` right after a
+data name that bounds a range measures that name, so `0 till Classes len` and
+`1 to Items len` mean `0 till (Classes len)` and `1 to (Items len)`. After a
+number, `len` still counts the range: `1 till 5 len` is `4`.
 
 A comparison works like the arithmetic above it, as on a calculator: after a
 plain left operand, the comparison takes the next value and a following
@@ -529,19 +545,26 @@ processed one, put the processed side first (`Text reverse equal Text`,
 `Queue len greater Head`) or group it (`Head less (Queue len)`). `and`, `or`
 and `xor` always separate independent clauses.
 
-An unparenthesized value expression permits a formula, a block of successive
-function calls, and an optional arithmetic continuation. A new function after
-that continuation is a syntax error. Name the intermediate result:
+The goal is to minimize parentheses while keeping evaluation order readable:
+a chain of transformations with the usual arithmetic precedence. Each function
+processes the accumulated result on its left, then calculation continues.
+Between calls, multiplication comes before addition.
 
 ```rank
-Scores = X matmul W + Bias
-Scores sigmoid
+9 sqrt + 2 * 3 sqrt
+rem ((9 sqrt) + 2 * 3) sqrt
+X matmul W + Bias sigmoid
+rem ((X matmul W) + Bias) sigmoid
 ```
 
-`X matmul W + Bias sigmoid` is rejected with a message asking for an
-intermediate variable. Explicit parentheses start a separate expression;
-short names are preferred when they describe a useful intermediate result.
-There is no numeric limit on the number of operations, and no `|` operator.
+Parentheses delimit independent argument computations: `A sum / (A len)`
+divides the sum by the length. In contrast, `A sum + B sum` means
+`((A sum) + B) sum`; use `A sum + (B sum)` to add two independent sums.
+Named intermediate values remain useful when they explain a calculation.
+
+Some special call forms still need an explicit source boundary after another
+call. Write `(Mask choose 1 0) reshape N` or `(Values copy) reshape N`.
+These parentheses delimit the source of `reshape`; removing them is an error.
 
 When a function is supplied dynamically and its signature is unknown during
 parsing, make the input boundary explicit: `(2 + 9) Op`. An unresolved address

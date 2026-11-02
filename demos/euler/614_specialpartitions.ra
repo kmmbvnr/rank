@@ -23,14 +23,14 @@ rem each, smaller squares run in order.
 Md = 1000000007
 K = N // 4
 Bk = 8192
-Mb = (Bk - 1) isqrt
+Mb = Bk - 1 isqrt
 Mt = K isqrt
 A = (0 to K) * 0
 A 0 = 1
 for S in 0 to K by Bk
-  E = (S + Bk) min (K + 1)
+  E = S + Bk min (K + 1)
   Ac = (0 to (E - S - 1)) * 0
-  for M in (Mb + 1) to Mt
+  for M in Mb + 1 to Mt
     Sq = M * M
     Lo = S max Sq
     if Lo less E
@@ -57,7 +57,7 @@ for S in 0 to K by Bk
   end
 end
 Ts = N - 4 * (0 to K)
-Hc = ((8 * Ts + 1) isqrt - 1) // 2 + 1
-Tt = (A * Hc mod Md) sum
+Hc = (8 * Ts + 1 isqrt - 1) // 2 + 1
+Tt = A * Hc mod Md sum
 Answer = (Tt - 1) mod Md
 Answer print

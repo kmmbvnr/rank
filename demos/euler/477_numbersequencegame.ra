@@ -29,7 +29,7 @@ rem a stable sort. Prefix Pp, cycle Cl.
 Od = Sq argsort
 Vs = Sq Od
 Nx = Vs shift -1 with -1
-Eq = (Vs equal Nx) indices
+Eq = Vs equal Nx indices
 Js = Od (Eq + 1)
 Jm = Js min
 Pp = Od (Eq (Js min .index))
@@ -83,12 +83,12 @@ for Ph in 0 to 1
 end
 Wb = St (0 till Tp) sort .descending
 Sg = 1 - 2 * ((0 till Tp) mod 2)
-Db = (Wb * Sg) sum
+Db = Wb * Sg sum
 Answer = (Tot + Db) // 2
 if Kc greater 0
   Wa = Sa sort .descending
   Sg = 1 - 2 * ((0 till Wa len) mod 2)
-  Da = (Wa * Sg) sum
+  Da = Wa * Sg sum
   Ga = (Ta + Da) // 2
   Answer = Ga + Kc * (Answer - Ga)
 end

@@ -21,8 +21,8 @@ rem mu and phi by small primes; the
 rem cofactor in Rs is one big prime.
 Mu = array shape (N + 1) fill 1
 Mu 0 = 0
-Ph = (0 to N) copy
-Rs = (0 to N) copy
+Ph = 0 to N copy
+Rs = 0 to N copy
 Rt = N isqrt
 for P in primes to Rt
   Sl = P to N by P
@@ -43,7 +43,7 @@ Mt = Mu scan +
 rem Moebius sums group by m = N // d:
 rem Cm is the sum of mu over those d.
 Sn = N isqrt
-D1 = (1 to Sn) copy
+D1 = 1 to Sn copy
 Ms = (N // (Sn + 1)) to 1 by -1
 Ms = concat (N // D1) Ms
 Ms = Ms unique
@@ -54,7 +54,7 @@ rem H(L) - 1 = sum over m of Cm G(m,
 rem L), G the pairs a, b > 0 with a +
 rem L b <= m: q m - L q (q + 1) / 2.
 Hs = array shape (N + 1) fill 0
-Ls = (0 to N) copy
+Ls = 0 to N copy
 for I in 0 till Ms len
   C = Cm I
   if C not equal 0
@@ -69,10 +69,10 @@ Hs += 1
 rem 2^e mod Md from two tables.
 Hf = (Pt - 1) // 2
 Ex = (Hf - Hs (1 to N)) mod Fh
-E0 = (0 till 16384) copy
+E0 = 0 till 16384 copy
 T0 = 2 E0 Md powmod
 Tb = 2 16384 Md powmod
-E1 = (0 to Fh // 16384) copy
+E1 = 0 to Fh // 16384 copy
 T1 = Tb E1 Md powmod
 Pw = T0 (Ex mod 16384)
 Pw = Pw * (T1 (Ex // 16384)) mod Md

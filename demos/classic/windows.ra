@@ -4,7 +4,7 @@ use linalg
 use io
 
 fun N grid
-  Values = 1 to (N * N) array
+  Values = 1 to N * N array
   return Values reshape N N
 end
 

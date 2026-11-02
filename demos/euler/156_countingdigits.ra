@@ -34,7 +34,7 @@ for D in 1 to Last
       Row' = Lo reshape Cols 1
       Kid' = Kids reshape 1 10
       Num = Cols * 10
-      Lo = (Row + Kid) reshape Num
+      Lo = Row + Kid reshape Num
     end
     Ends = concat Lo (Lo + B)
     Col = Ends reshape (Ends len) 1

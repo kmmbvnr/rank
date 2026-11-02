@@ -29,7 +29,7 @@ rem Limit bounds the circumradius, so
 rem the direction (x, y) and g are
 rem small.
 Rw = 4 * Limit * Limit // 3
-Rq = (410 + Rw) isqrt
+Rq = 410 + Rw isqrt
 Rm = (10 + Rq) // 6 + 2
 Sm = Rm + 5
 Qm = 100 + 40 * Sm
@@ -45,7 +45,7 @@ rem C is the least vertex, so Cx <= 5/3
 rem and G * X = 5 - Cx > 0. G > 0,
 rem hence only positive X can fit.
 for X in 1 to Lm
-  for Y in (0 - Lm) to Lm
+  for Y in 0 - Lm to Lm
     Q = X * X + Y * Y
     if Q equal 0 or Q greater Qm
       continue
@@ -90,7 +90,7 @@ for X in 1 to Lm
     if G0 equal 0
       Gn = Mm
     end
-    Gx = (Sm * Sm // Q) isqrt + 1
+    Gx = Sm * Sm // Q isqrt + 1
     for G in Gn to Gx by Mm
       Num = 100 - 40 * G * X
       if Num mod Q not equal 0

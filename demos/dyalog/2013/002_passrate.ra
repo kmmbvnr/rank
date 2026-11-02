@@ -13,7 +13,7 @@ fun Grades passRate
   if Total equal 0
     return 100.0
   end
-  Passed = (Grades at least 65) count
+  Passed = Grades at least 65 count
   return 100.0 * Passed / Total
 end
 

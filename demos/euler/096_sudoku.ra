@@ -29,7 +29,7 @@ Band' = Ids // 27 * 3
 Stack' = Ids mod 9 // 3
 BoxK = Band + Stack + 18
 Bit = array 1 2 4 8 16 32 64 128 256
-Pop = (0 to 511 array) popcount
+Pop = 0 to 511 array popcount
 Weight = array 100 10 1
 rem Backtrack on the cell with fewest
 rem candidates. Spot, Left and Put hold,
@@ -101,7 +101,7 @@ for G in 0 till Count
     Left Depth = Rem - Mine
     Put Depth = Mine
     At = Spot Depth
-    Digit = (Mine - 1) popcount + 1
+    Digit = Mine - 1 popcount + 1
     Grid At = Digit
     Used (RowK At) += Mine
     Used (ColK At) += Mine

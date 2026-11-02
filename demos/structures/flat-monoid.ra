@@ -22,10 +22,10 @@ Values 1 .count = 1
 Values 2 .sum = 30
 Values 2 .count = 1
 Tree = Values segment combine with Identity
-(Tree 0 2 query) print
+Tree 0 2 query print
 
 State = Values 1
 State .sum = 50
 Tree 1 = State
-(Tree 0 2 query) print
-(Tree 1 0 query) print
+Tree 0 2 query print
+Tree 1 0 query print

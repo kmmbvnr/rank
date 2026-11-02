@@ -35,7 +35,7 @@ fun Data nested_range_counts
   Inside = array shape N fill 0
   F = Ends len fenwick
 
-  for K in (N - 1) to 0 by -1
+  for K in N - 1 to 0 by -1
     I = Order K
     R = Rank (Finish I)
     Contains I = F sum R

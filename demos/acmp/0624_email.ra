@@ -51,12 +51,12 @@ for TestIdx in 0 till T
   PosEvents = VerticesList (VerticesList greater 0)
   PosEvents = PosEvents sort
   UniquePos = PosEvents
-  if (PosEvents len) greater 1
-    Diff = concat (array true) ((PosEvents drop 1) not equal (PosEvents take ((PosEvents len) - 1)))
+  if PosEvents len greater 1
+    Diff = concat (array true) (PosEvents drop 1 not equal (PosEvents take ((PosEvents len) - 1)))
     UniquePos = PosEvents Diff
   end
 
-  if (UniquePos len) greater 0
+  if UniquePos len greater 0
     SendTos = 0 - UniquePos
     AllFrom = concat AllFrom UniquePos
     AllTo = concat AllTo SendTos
@@ -64,13 +64,13 @@ for TestIdx in 0 till T
   end
 
   G = new graph VerticesList .directed
-  if (AllFrom len) greater 0
+  if AllFrom len greater 0
     GEdges = stack AllFrom AllTo axis 1
     G add GEdges
   end
 
   Cycle = G cycle
-  if (Cycle len) equal 0
+  if Cycle len equal 0
     Results = concat Results (array "YES")
   else
     Results = concat Results (array "NO")

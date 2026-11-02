@@ -38,9 +38,9 @@ Cnts = array 1
 for C in 0 to Wide * High - 1
   X = C mod W
   R = C // W
-  Free = (Keys band 1) equal 0
+  Free = Keys band 1 equal 0
   Busy = not Free
-  NewK = (Keys filter Busy array) shr 1
+  NewK = Keys filter Busy array shr 1
   NewC = Cnts filter Busy array
   for P in 0 to 5
     if X + Left P at least 0
@@ -48,10 +48,10 @@ for C in 0 to Wide * High - 1
       Fits and= R + Down P less High
       if Fits
         Pm = Mask P
-        Hit' = (Keys band Pm) equal 0
+        Hit' = Keys band Pm equal 0
         Ok = Free and Hit
         Sel' = Keys filter Ok array
-        Moved' = (Sel bor Pm) shr 1
+        Moved' = Sel bor Pm shr 1
         More' = Cnts filter Ok array
         NewK = concat NewK Moved copy
         NewC = concat NewC More copy
@@ -65,7 +65,7 @@ for C in 0 to Wide * High - 1
   Prev' = K2 (0 till Len - 1)
   Edge' = K2 (1 to #) not equal Prev
   Head = array true
-  Starts = (concat Head Edge) indices
+  Starts = concat Head Edge indices
   Last = array Len
   Ends' = concat (Starts drop 1) Last
   Cum = C2 scan + with 0

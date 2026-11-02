@@ -57,7 +57,7 @@ rem Test the practical neighbours
 rem without finishing a failed candidate.
 fun N practical_neighbours
   for D in array -8 -4 0 4 8
-    if not ((N + D) practical)
+    if not (N + D practical)
       return false
     end
   end

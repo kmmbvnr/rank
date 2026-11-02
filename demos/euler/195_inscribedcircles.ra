@@ -25,15 +25,15 @@ rem Q = isqrt(C^2 // 3), their count is
 rem exactly Q // q, without a table.
 Cb = 2 * Limit
 Ca = 6 * Limit
-Qb = (Cb * Cb // 3) isqrt
-Qa = (Ca * Ca // 3) isqrt
+Qb = Cb * Cb // 3 isqrt
+Qa = Ca * Ca // 3 isqrt
 Total = 0
 for N in 1 to Qb
   if N * (N + 1) greater Qb
     break
   end
-  Ts = 1 to (Qb // N - N) array
-  Ok' = Ts mod 3 not equal 0 and (N gcd Ts) equal 1
+  Ts = 1 to Qb // N - N array
+  Ok' = Ts mod 3 not equal 0 and N gcd Ts equal 1
   Qv' = N * (N + Ts)
   Hit' = (Qb // Qv) filter Ok
   Total += Hit sum
@@ -44,7 +44,7 @@ for T in 1 to Qa
   end
   if T mod 3 not equal 0
     Ns = 1 to ((Qa // T - T) // 3) array
-    Ok' = (Ns gcd T) equal 1
+    Ok' = Ns gcd T equal 1
     Qv' = T * (3 * Ns + T)
     Hit' = (Qa // Qv) filter Ok
     Total += Hit sum

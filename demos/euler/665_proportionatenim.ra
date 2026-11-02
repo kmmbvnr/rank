@@ -59,7 +59,7 @@ for Xx in 1 to (Mm - 1) // 2
         Vv = Pf Vv
       end
       Yy = (Vv + Xx) // 2
-      Go = (Yy not equal Y0) integer
+      Go = Yy not equal Y0 integer
     end
     if Xx + Yy at most Mm
       Answer += Xx + Yy

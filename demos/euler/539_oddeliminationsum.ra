@@ -17,13 +17,13 @@ rem and S(2m) = S(2m + 1) - P(2m + 1).
 rem Walk up the bits of N from P(1) =
 rem S(1) = 1.
 Md = 987654321
-Nb = (N binary) len
+Nb = N binary len
 P = 1
 S = 1
 C = 1
 for J in Nb - 2 to 0 by -1
   M = C
-  Bt = (N bit J) integer
+  Bt = N bit J integer
   C = 2 * M + Bt
   P = 2 * (M + 1 - P)
   So = 1 + 2 * M * (M + 3) - 4 * S

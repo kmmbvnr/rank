@@ -15,7 +15,7 @@ fun Limit twoprimes
     if P * P greater Limit
       break
     end
-    for J in (I + 1) till (Ps len)
+    for J in I + 1 till (Ps len)
       Q = Ps J
       if P * Q greater Limit
         break

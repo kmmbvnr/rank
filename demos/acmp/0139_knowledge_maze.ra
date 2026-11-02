@@ -18,8 +18,8 @@ M = Tokens 1 integer
 Answer = ":("
 
 if M greater 0
-  EdgeCoords = ((Tokens drop 2) take (3 * M)) integer
-  EIdx = (0 till M) array
+  EdgeCoords = (Tokens drop 2 take (3 * M)) integer
+  EIdx = 0 till M array
   U = EdgeCoords (EIdx * 3)
   V = EdgeCoords (EIdx * 3 + 1)
   W = EdgeCoords (EIdx * 3 + 2)
@@ -29,7 +29,7 @@ if M greater 0
   Reach1 1 = true
   for Step in 1 to N
     Active = Reach1 U
-    if (Active count) greater 0
+    if Active count greater 0
       Reach1 (V Active) = true
     end
   end
@@ -39,13 +39,13 @@ if M greater 0
   ReachN N = true
   for Step in 1 to N
     Active = ReachN V
-    if (Active count) greater 0
+    if Active count greater 0
       ReachN (U Active) = true
     end
   end
 
   if Reach1 N
-    ValidMask = (Reach1 U) and ((ReachN U) and ((Reach1 V) and (ReachN V)))
+    ValidMask = Reach1 U and (ReachN U and (Reach1 V and (ReachN V)))
     ValidU = U ValidMask
     ValidV = V ValidMask
     ValidW = W ValidMask

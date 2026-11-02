@@ -23,21 +23,21 @@ rem the outer loop, 2^M mod 10^9 by CRT.
 Md = 1000000000
 Lc = 1562500
 F5 = 1953125
-Ps = primes till (N + 1) array
+Ps = primes till N + 1 array
 Cu = Ps
 Ex = Ps * 0
-Lv = (Cu at most N) integer
-for (Lv sum) greater 0
+Lv = Cu at most N integer
+for Lv sum greater 0
   Ex += Lv
   Cu = Cu * Ps
-  Lv = (Cu at most N) integer
+  Lv = Cu at most N integer
 end
 Dv = Ex + 1
 Cf = array 1
 Em = array 1
 Ec = array 1
 for U in Dv unique
-  C = ((Dv equal U) integer) sum
+  C = (Dv equal U integer) sum
   if U not equal 2
     I = 0 to C array
     Bn = C binomial I
@@ -60,7 +60,7 @@ for U in Dv unique
     Ec = Tm reshape (Nn * Mm)
   end
 end
-C2 = ((Dv equal 2) integer) sum
+C2 = (Dv equal 2 integer) sum
 Kt = 0 till Lc array
 T5 = 2 Kt F5 powmod
 Iv = 512 (Lc - 1) F5 powmod
@@ -69,18 +69,18 @@ Answer = 0
 for I in 0 to C2
   Fi = 2 ** (C2 - I)
   Fm = Fi mod Lc
-  E = (Em * Fm) mod Lc
+  E = Em * Fm mod Lc
   Fc = Fi min 9
-  Ecp = (Ec * Fc) min 9
+  Ecp = Ec * Fc min 9
   Tv = (T5 E) * Iv
   Vx = 512 * (Tv mod F5)
   Sm = 2 ** Ecp
-  Val = (Ecp equal 9) choose Vx Sm
-  Pv = (Cf * Val) mod Md
-  Sv = (Pv sum) mod Md
+  Val = Ecp equal 9 choose Vx Sm
+  Pv = Cf * Val mod Md
+  Sv = Pv sum mod Md
   Sg = 1 - 2 * (I mod 2)
   Bm = Bc mod Md
-  Answer += Sg * ((Bm * Sv) mod Md)
+  Answer += Sg * (Bm * Sv mod Md)
   Bc = Bc * (C2 - I) // (I + 1)
 end
 Answer = Answer mod Md

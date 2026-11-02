@@ -38,7 +38,7 @@ if SegLen2 greater 0.0
   rem Projection parameter t of circle center (origin) onto line segment A -> B
   rem t = - (A . V) / |V|^2
   T = (0.0 - (A * V sum)) / SegLen2
-  if (T greater 0.0) and (T less 1.0)
+  if T greater 0.0 and (T less 1.0)
     P = A + V * T
     H2 = P * P sum
     if H2 less (R * R - 1e-9)
@@ -54,13 +54,13 @@ if not Intersects
   Answer = Dist round 3
   Answer print
 else
-  DA = (A * A sum) sqrt
-  DB = (B * B sum) sqrt
-  LA = (DA * DA - R * R) sqrt
-  LB = (DB * DB - R * R) sqrt
+  DA = A * A sum sqrt
+  DB = B * B sum sqrt
+  LA = DA * DA - R * R sqrt
+  LB = DB * DB - R * R sqrt
   AlphaA = (1.0 min (R / DA)) acos
   AlphaB = (1.0 min (R / DB)) acos
-  CosTheta = (-1.0) max (1.0 min ((A * B sum) / (DA * DB)))
+  CosTheta = -1.0 max (1.0 min ((A * B sum) / (DA * DB)))
   Theta = CosTheta acos
   Delta = 0.0 max (Theta - AlphaA - AlphaB)
   Dist = LA + LB + R * Delta

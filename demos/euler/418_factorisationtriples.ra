@@ -28,7 +28,7 @@ if Num equal 0
   Pk = Pr
   for Pk min at most Fact
     Ex = Ex + Fact // Pk
-    Pk = (Pk * Pr) min (Fact + 1)
+    Pk = Pk * Pr min (Fact + 1)
   end
 else
   Rest = Num
@@ -50,11 +50,11 @@ else
   end
 end
 Lp = Pr log
-Ln = (Ex * Lp) sum
+Ln = Ex * Lp sum
 Cr = Ln / 3
 rem Split the primes in two groups of
 rem about equal divisor counts.
-Od = (0 - Ex) argsort
+Od = 0 - Ex argsort
 Pq = Pr Od
 Eq = Ex Od
 Gs = array shape (Pq len) fill 0
@@ -75,7 +75,7 @@ Eo = concat (Eq G0) (Eq G1)
 Lo = Po log
 Np = Po len
 N0 = G0 len
-Sc = (Eo + 1) scan * with 1
+Sc = Eo + 1 scan * with 1
 Best = array shape 0 fill 0
 rem Divisor lists of each group.
 Cd1 = array 0
@@ -121,12 +121,12 @@ for Step in 1 to 60
   for Bs in 1 to 24
     Md = (Lb + Ha) // 2
     Mc = Md min (N2 - 1)
-    Lt = (Lg2 Mc) less (Lw - Lg1)
+    Lt = Lg2 Mc less (Lw - Lg1)
     Lb = Lt choose (Md + 1) Lb
     Ha = Lt choose Ha Md
     Me = (Ub + Hb) // 2
     Mf = Me min (N2 - 1)
-    Le = (Lg2 Mf) at most (Hg - Lg1)
+    Le = Lg2 Mf at most (Hg - Lg1)
     Ub = Le choose (Me + 1) Ub
     Hb = Le choose Hb Me
   end
@@ -137,7 +137,7 @@ for Step in 1 to 60
   Wc = array shape 0 fill 0
   Wl = array shape 0 fill 0.0
   for Ix in Nz
-    Rg = (Lb Ix) to (Ub Ix - 1)
+    Rg = Lb Ix to (Ub Ix - 1)
     Wc = concat Wc ((Cd2 Rg) + (Cd1 Ix))
     Wl = concat Wl ((Lg2 Rg) + (Lg1 Ix))
   end
@@ -146,7 +146,7 @@ for Step in 1 to 60
   Wl = Wl Wo
   Nw = Wl len
   rem Pairs by index: a, b, c = n / ab.
-  Ia = (0 to Nw - 1) copy
+  Ia = 0 to Nw - 1 copy
   Wa = Wl reshape Nw 1
   Wb = Wl reshape 1 Nw
   Tg = Ln - Wa - Wb
@@ -162,13 +162,13 @@ for Step in 1 to 60
   for Bs in 1 to 24
     Md = (Lw2 + Hw2) // 2
     Mc = Md min (Nw - 1)
-    Lt = (Wl Mc) less (Tf - 0.0000001)
+    Lt = Wl Mc less (Tf - 0.0000001)
     Lw2 = Lt choose (Md + 1) Lw2
     Hw2 = Lt choose Hw2 Md
   end
   Kk = Lw2 min (Nw - 1)
   Df = ((Wl Kk) - Tf) abs
-  Mt = (Df less 0.0000001) choose 1 0
+  Mt = Df less 0.0000001 choose 1 0
   Mt = Mt * (Fi at most Fj choose 1 0)
   Mt = Mt * (Kk at least Fj choose 1 0)
   Cx = Mt greater 0 indices
@@ -208,7 +208,7 @@ for Q in 0 to 2
   Cdx = Best Q
   Val = 1
   for K in 0 to Np - 1
-    Ee = Cdx // (Sc K) mod (Eo K + 1)
+    Ee = Cdx // Sc K mod (Eo K + 1)
     Val = Val * Po K ** Ee
   end
   Answer += Val

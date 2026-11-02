@@ -23,7 +23,7 @@ fun Values increase_costs Queries
   Next = array shape Size fill Size
   Stack = new stack
 
-  for I in (N - 1) to 0 by -1
+  for I in N - 1 to 0 by -1
     for Stack len greater 0
       Top = Stack peek
       if Values Top greater Values I

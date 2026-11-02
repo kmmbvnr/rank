@@ -24,15 +24,15 @@ for 2 ** Lg less 2 * N + 1
   Lg += 1
 end
 L = 2 ** Lg
-I = (0 till L) copy
+I = 0 till L copy
 Br = I * 0
 for B in 0 till Lg
-  Bt = (I // 2 ** B) mod 2
+  Bt = I // 2 ** B mod 2
   Br += Bt * 2 ** (Lg - 1 - B)
 end
 rem Butterfly pairs and twiddles per
 rem stage, forward and inverse.
-J = (0 till L // 2) copy
+J = 0 till L // 2 copy
 Ie = array shape Lg (L // 2) fill 0
 Io = Ie
 Tf = Ie
@@ -56,7 +56,7 @@ fun X ntt Tw
     Ei = Ie S
     Oi = Io S
     E = Y Ei
-    O = (Y Oi) * (Tw S) mod M
+    O = (Y Oi) * Tw S mod M
     Y Ei = (E + O) mod M
     Y Oi = (E - O) mod M
   end
@@ -73,7 +73,7 @@ fun P pmul Q
   Fq (0 to N) = Q
   Fp = Fp ntt Tf
   Fq = Fq ntt Tf
-  R = (Fp * Fq mod M) ntt Ti
+  R = Fp * Fq mod M ntt Ti
   return (R (0 to N)) * Il mod M
 end
 R = array shape (N + 1) fill 0

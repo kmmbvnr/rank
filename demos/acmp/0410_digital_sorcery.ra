@@ -11,7 +11,7 @@ arg N integer = 5
 arg M integer = 8
 
 Answer = "0"
-if (N mod M) not equal 0
+if N mod M not equal 0
   TargetRem = (M - (N mod M)) mod M
 
   rem Step 1: Find minimal digit sum using Dial algorithm
@@ -31,8 +31,8 @@ if (N mod M) not equal 0
     for Changed
       Changed = false
       for U in 0 till M
-        if (Dist U) equal C
-          V = (U * 10) mod M
+        if Dist U equal C
+          V = U * 10 mod M
           if C less (Dist V)
             Dist V = C
             Changed = true
@@ -46,10 +46,10 @@ if (N mod M) not equal 0
     end
 
     for U in 0 till M
-      if (Dist U) equal C
+      if Dist U equal C
         for D in 1 to 9
           V = (U * 10 + D) mod M
-          if (C + D) less (Dist V)
+          if C + D less (Dist V)
             Dist V = C + D
           end
         end
@@ -85,7 +85,7 @@ if (N mod M) not equal 0
   end
 
   TargetReached = Reached TargetState
-  for (not TargetReached) and (Frontier len greater 0)
+  for not TargetReached and (Frontier len greater 0)
     NextFrontier = array shape 0 fill 0
 
     for I in 0 till (Frontier len)

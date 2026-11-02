@@ -32,8 +32,8 @@ W1 = Ex * (Ex + 1) // 2
 Cc = (Ex + 1) * (Ex + 2) // 2
 Ic = Cc (M - 2) M powmod
 Fp = (M - W1) * Ic mod M
-Ts = (1 to 1) array
-Ws = (1 to 1) array
+Ts = 1 to 1 array
+Ws = 1 to 1 array
 Np = Pr len
 Nq = Np - 1
 for J in 0 to Nq
@@ -65,6 +65,6 @@ end
 Bg = Ts greater B
 Ib = Bg indices
 Tv = Tb (N // Ts Ib)
-Answer += (Tv mod M * Ws Ib mod M) sum
+Answer += Tv mod M * Ws Ib mod M sum
 Answer = Answer mod M
 Answer print

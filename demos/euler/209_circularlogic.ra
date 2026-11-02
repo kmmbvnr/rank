@@ -34,7 +34,7 @@ for I in 1 to S
 end
 Own' = Lab equal X
 Col' = X reshape S 1
-Size' = (Lab equal Col) count axis 1
+Size' = Lab equal Col count axis 1
 Lens = Size filter Own array
 Fs = fibonacci take (S + 2) array
 Fib = concat (array 0 1) Fs

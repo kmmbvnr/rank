@@ -35,7 +35,7 @@ for I in 2 to Upper
     end
     Want P += K * E
     rem Only an uncovered prime raises Best.
-    if (Best valuation P) less (Want P)
+    if Best valuation P less (Want P)
       Best = P (Want P) Best minimum
     end
   end

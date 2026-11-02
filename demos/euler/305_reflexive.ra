@@ -124,7 +124,7 @@ fun State ranged N
   D = T len
   Z = State prefix (D - 1)
   Dig = State .dig
-  F = (T 0) integer
+  F = T 0 integer
   R = D - 1
   for A in 1 till F
     C = State (Dig A) R block
@@ -182,10 +182,10 @@ fun State nth Target
   Hit = State .hit
   Nxt = State .nxt
   L = State .l
-  Pos = (N - 1) before
+  Pos = N - 1 before
   T = N text
   for I in 0 till T len
-    D = (T I) integer
+    D = T I integer
     if Hit E D equal 1
       Left -= 1
       if Left equal 0

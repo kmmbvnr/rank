@@ -53,7 +53,7 @@ fun Graph longest_route N
   Length = Distance N
   Path = array shape Length fill 0
   Current = N
-  for i in (Length - 1) to 0 by -1
+  for i in Length - 1 to 0 by -1
     Path i = Current
     Current = Parent Current
   end

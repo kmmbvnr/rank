@@ -54,12 +54,12 @@ for U in 0 to 5
   Rs = array 0
   Mr = 1
   for M in Ms
-    Ks = (1 till M) copy
-    Ok = (64 Ks M powmod) equal 1
+    Ks = 1 till M copy
+    Ok = 64 Ks M powmod equal 1
     Or = Ks ((Ok indices) 0)
-    Ss = (0 till Or) copy
-    Ys = (0 till M) copy
-    Iy = (Ys * 200 mod M) equal 1
+    Ss = 0 till Or copy
+    Ys = 0 till M copy
+    Iy = Ys * 200 mod M equal 1
     I2 = Ys ((Iy indices) 0)
     Tw = 2 (10 + U) M powmod
     Pw = 64 Ss M powmod
@@ -68,13 +68,13 @@ for U in 0 to 5
     Pm = Or lcm M
     rem Pairs with earlier residues.
     Nb = Bm len
-    Ip = (0 till Rs len * Nb) copy
+    Ip = 0 till Rs len * Nb copy
     Ra = Rs (Ip // Nb)
     Rs = Ra Mr (Bm (Ip mod Nb)) Pm crt
     Mr = Mr lcm Pm
   end
   Lv = Rs at most Tm
   Ct = (Tm - Rs) // Mr + 1
-  Answer += (Lv choose Ct 0) sum
+  Answer += Lv choose Ct 0 sum
 end
 Answer print

@@ -12,11 +12,11 @@ arg Input text = "3 3\n7\n1 1 3\n1 2 2\n1 3 4\n2 1 3\n2 2 9\n3 1 2\n3 3 11"
 
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
-N = (Tokens 0) integer
-M = (Tokens 1) integer
-R = (Tokens 2) integer
+N = Tokens 0 integer
+M = Tokens 1 integer
+R = Tokens 2 integer
 
-EdgeData = (Tokens drop 3) integer
+EdgeData = Tokens drop 3 integer
 Idx = (0 till R) * 3
 Uarr = EdgeData Idx
 Varr = EdgeData (Idx + 1)
@@ -70,7 +70,7 @@ for Step in 0 till N
   PrevG = array shape (M + 1) fill 0
 
   for U in 1 till (N + 1)
-    if (MatchB U) equal 0
+    if MatchB U equal 0
       DB U = 0
     end
   end
@@ -80,10 +80,10 @@ for Step in 0 till N
     Updated = false
 
     for U in 1 till (N + 1)
-      if (DB U) greater -100000000
+      if DB U greater -100000000
         for V in 1 till (M + 1)
           Gain = BestS U V
-          if (Gain greater 0) and (not ((MatchB U) equal V))
+          if Gain greater 0 and (not (MatchB U equal V))
             CandG = (DB U) + Gain
             if CandG greater (DG V)
               DG V = CandG
@@ -96,7 +96,7 @@ for Step in 0 till N
     end
 
     for V in 1 till (M + 1)
-      if ((MatchG V) greater 0) and ((DG V) greater -100000000)
+      if (MatchG V greater 0) and (DG V greater -100000000)
         U = MatchG V
         CandB = (DG V) - (BestS U V)
         if CandB greater (DB U)
@@ -114,13 +114,13 @@ for Step in 0 till N
   BestV = 0
   BestGain = 0
   for V in 1 till (M + 1)
-    if ((MatchG V) equal 0) and ((DG V) greater BestGain)
+    if (MatchG V equal 0) and (DG V greater BestGain)
       BestGain = DG V
       BestV = V
     end
   end
 
-  if (BestV equal 0) or (not (BestGain greater 0))
+  if BestV equal 0 or (not (BestGain greater 0))
     break
   end
 
@@ -140,7 +140,7 @@ end
 Chosen = array shape (R + 1) fill 0
 
 for U in 1 till (N + 1)
-  if (MatchB U) greater 0
+  if MatchB U greater 0
     V = MatchB U
     Eid = BestIdx U V
     Chosen Eid = 1
@@ -148,21 +148,21 @@ for U in 1 till (N + 1)
 end
 
 for U in 1 till (N + 1)
-  if (MatchB U) equal 0
+  if MatchB U equal 0
     Eid = BestEu U
     Chosen Eid = 1
   end
 end
 
 for V in 1 till (M + 1)
-  if (MatchG V) equal 0
+  if MatchG V equal 0
     Eid = BestEv V
     Chosen Eid = 1
   end
 end
 
 AllEids = 1 till (R + 1)
-ChosenMask = (Chosen drop 1) equal 1
+ChosenMask = Chosen drop 1 equal 1
 ChosenIdx = AllEids ChosenMask
 NumChosen = ChosenIdx len
 

@@ -52,7 +52,7 @@ for F in 3 to Fm
       Vp = Mi * 0 + 1
       Pk = P * P
       for Pk at most Cm
-        Dk = (Mi mod Pk equal 0) integer
+        Dk = Mi mod Pk equal 0 integer
         Vp = Vp + Dk
         Pk *= P
       end
@@ -68,12 +68,12 @@ for F in 3 to Fm
       Rr Ix = Rr Ix * Fc
     end
     Sq = Nv isqrt
-    Ax = (Sq * Sq equal Nv) integer
+    Ax = Sq * Sq equal Nv integer
     Ax = Ax * 4
     Hf = Nv // 2
     Sh = Hf isqrt
-    Ev = (Nv mod 2 equal 0) integer
-    Eq = (Sh * Sh equal Hf) integer
+    Ev = Nv mod 2 equal 0 integer
+    Eq = Sh * Sh equal Hf integer
     Eq = Ev * Eq * 4
     E2 += ((Rr - Ax - Eq) // 8) sum
     if F mod 3 not equal 0
@@ -95,24 +95,24 @@ for F in 3 to Fm
         end
         Nc = C ** F
         U3 = Dv * Dv * Dv
-        Ok = (U3 greater Nc) integer
-        Wn = (U3 at most 4 * Nc) integer
+        Ok = U3 greater Nc integer
+        Wn = U3 at most 4 * Nc integer
         Ok = Ok * Wn
-        Us = Dv ((Ok equal 1) indices)
+        Us = Dv (Ok equal 1 indices)
         Vv = Nc // Us
         Dd = 4 * Vv - Us * Us
-        Ok = (Dd at least 0) integer
-        M3 = (Dd mod 3 equal 0) integer
+        Ok = Dd at least 0 integer
+        M3 = Dd mod 3 equal 0 integer
         Ok = Ok * M3
         Ds = Dd // 3
         Sr = Ds isqrt
-        Sg = (Sr * Sr equal Ds) integer
+        Sg = Sr * Sr equal Ds integer
         Ok = Ok * Sg
-        Pz = (Sr greater 0) integer
+        Pz = Sr greater 0 integer
         Ok = Ok * Pz
         Pa = (Us - Sr) mod 2 equal 0
         Ok = Ok * (Pa integer)
-        Ok = Ok * ((Sr less Us) integer)
+        Ok = Ok * (Sr less Us integer)
         Mm = (Us * Us - Vv) mod 3
         Md = Mm equal 0
         Ok = Ok * (Md integer)
@@ -149,11 +149,11 @@ for E in 4 to Fm
       Ss = Sl + Be
       Hb = Bm (Ss mod Mq) equal 1
       Sx = Ss (Hb indices)
-      Sx = Sx ((Sx at most Nn) indices)
+      Sx = Sx (Sx at most Nn indices)
       if Sx len greater 0
         Lo = Cv lowerindex Sx
         Hh = Cv upperindex Sx
-        Ht = (Hh greater Lo) indices
+        Ht = Hh greater Lo indices
         for H in Ht
           Fs = Cf (Lo H to Hh H - 1)
           Nz = Fs mod E not equal 0

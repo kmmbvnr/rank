@@ -26,7 +26,7 @@ for N in array N1 N2
   First = (N - 2) * (N - 3) // 2 + 1
   Len = 5 * N
   Pr = array shape Len fill 1
-  Root = (First + Len) isqrt
+  Root = First + Len isqrt
   for P in primes to Root
     Start = (First + P - 1) // P * P
     Start = Start max (2 * P)
@@ -77,7 +77,7 @@ for N in array N1 N2
     end
   end
   Row0 = N * (N - 1) // 2 + 1
-  Hit = (Mk equal 1) indices
-  Answer += (Row0 + Hit) sum
+  Hit = Mk equal 1 indices
+  Answer += Row0 + Hit sum
 end
 Answer print

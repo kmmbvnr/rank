@@ -35,7 +35,7 @@ for Line in Input readlines
   Back' = Items reverse
   Big = (Back scan +) (Ks - 1)
   Apart = Sums unique len equal Count
-  Heavy = (Small greater Big) all
+  Heavy = Small greater Big all
   if Apart and Heavy
     Answer += Items sum
   end

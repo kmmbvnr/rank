@@ -97,7 +97,7 @@ fun Tape backward Out
 
   for I greater 0
     I -= 1
-    (Tape I) backward_node
+    Tape I backward_node
   end
   return Out
 end

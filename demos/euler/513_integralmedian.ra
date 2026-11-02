@@ -27,7 +27,7 @@ fun Sl It Dn Lo Hi Bd trap
   Ls = Lo copy
   Hs = Hi copy
   Bs = Bd copy
-  Ac = (0 till Sl len) copy
+  Ac = 0 till Sl len copy
   for Ac len greater 0
     A = Ss Ac
     B = Is Ac
@@ -35,26 +35,26 @@ fun Sl It Dn Lo Hi Bd trap
     L = Ls Ac
     U = Hs Ac
     Q = Bs Ac
-    Sm = ((U - L) abs) at most 8
+    Sm = (U - L abs) at most 8
     rem Short ranges: add directly.
     Si = Sm indices
-    Mn = (L Si) min (U Si)
+    Mn = L Si min (U Si)
     Wd = ((U Si) - (L Si)) abs
-    Aj = (Q Si) choose 0 1
+    Aj = Q Si choose 0 1
     Ui = U Si
     Li = L Si
-    Sg = (Ui greater Li) choose 1 0
+    Sg = Ui greater Li choose 1 0
     Sg = 2 * Sg - 1
     Sv = Si * 0
     for O in 1 to 8
       X = Mn + O
       Fv = (A Si) * X + (B Si) - Aj
       Fv = Fv // (D Si)
-      Sv += (O at most Wd) choose Fv 0
+      Sv += O at most Wd choose Fv 0
     end
     Res (Ac Si) += Sg * Sv
     rem Long ranges: one Euclid step.
-    Gi = (Sm equal false) indices
+    Gi = Sm equal false indices
     A = A Gi
     B = B Gi
     D = D Gi
@@ -70,8 +70,8 @@ fun Sl It Dn Lo Hi Bd trap
     Uv = (A * U + B) // D
     Lv = (A * L + B) // D
     Rd += Nz choose (U * Uv - L * Lv) 0
-    Zc = (B equal 0) and (Q equal false)
-    Zc = (Nz equal false) and Zc
+    Zc = B equal 0 and (Q equal false)
+    Zc = Nz equal false and Zc
     Rd -= Zc choose (U - L) 0
     Ix = Ac Gi
     Res Ix += Rd
@@ -82,7 +82,7 @@ fun Sl It Dn Lo Hi Bd trap
     Is Ix = 0 - B Kp
     Ls Ix = Uv Kp
     Hs Ix = Lv Kp
-    Bs Ix = (Q Kp) equal false
+    Bs Ix = Q Kp equal false
     Ac = Ix
   end
   return Res
@@ -99,15 +99,15 @@ fun Sl It Dn Lo Hi Bd Xr Yr trap2
   return S2 I2 D2 L2 H2 Bd trap
 end
 fun V fval
-  R = (V + V // 2) isqrt
+  R = V + V // 2 isqrt
   Cs = array 0 1 1 0 1 1
   Tot = 0
   for Ci in 0 to 2
     I = Cs (2 * Ci)
     J = Cs (2 * Ci + 1)
     rem Small generators (s, t).
-    Sv = (2 till R) copy
-    Tm = ((Sv * Sv // 3) isqrt) max 1
+    Sv = 2 till R copy
+    Tm = (Sv * Sv // 3 isqrt) max 1
     Ok = Sv mod 2 equal 0
     Ok = Ok or (I equal J)
     T0 = (Sv - 1) mod 2 + 1
@@ -117,7 +117,7 @@ fun V fval
     Tl = Of last
     if Tl greater 0
       Ow = array shape Tl fill 0
-      Ix = (Ct greater 0) indices
+      Ix = Ct greater 0 indices
       Ow (Of Ix) = Ix
       Ow = Ow scan max
       S = Sv Ow
@@ -145,14 +145,14 @@ fun V fval
     Um = (V + V // 2) // R
     U0 = 1 + (I + 1) mod 2
     V0 = 1 + (J + 1) mod 2
-    Uv = (U0 to Um by 2) copy
-    Vt = (V // 2) min (Uv - 1)
+    Uv = U0 to Um by 2 copy
+    Vt = V // 2 min (Uv - 1)
     Cv = ((Vt - V0) // 2 + 1) max 0
     Of = Cv scan + with 0
     Tl = Of last
     if Tl greater 0
       Ow = array shape Tl fill 0
-      Ix = (Cv greater 0) indices
+      Ix = Cv greater 0 indices
       Ow (Of Ix) = Ix
       Ow = Ow scan max
       U = Uv Ow
@@ -172,7 +172,7 @@ fun V fval
       Mn = Lt choose (U * 0 + R) Mc
       A0 = Lt choose (U - W) W
       A1 = Lt choose (3 * W - U) U
-      Gd = (Mx at least Mn) indices
+      Gd = Mx at least Mn indices
       U = U Gd
       W = W Gd
       Sr = Sr Gd
@@ -186,9 +186,9 @@ fun V fval
       Rc = Ag Z Bg Ml Mx Tr Sr Sr trap2
       Tot += Rc sum
       Md = (W + V) // U
-      Gm = (Md less Mx) indices
-      Lw = (Md Gm) max ((Mn Gm) - 1)
-      Fa = (Tr Gm) equal false
+      Gm = Md less Mx indices
+      Lw = Md Gm max ((Mn Gm) - 1)
+      Fa = Tr Gm equal false
       Ug = U Gm
       Zm = Z Gm - V
       Wm = W Gm
@@ -202,13 +202,13 @@ fun V fval
 end
 rem F over the values N // k, k odd,
 rem smallest first.
-Ko = (1 to N by 2) copy
-Vs = (N // Ko) unique sort
+Ko = 1 to N by 2 copy
+Vs = N // Ko unique sort
 Fd = array shape (N + 1) fill 0
 for X in Vs
   Fv = X fval
   if X at least 3
-    Kq = (3 to X by 2) copy
+    Kq = 3 to X by 2 copy
     Fv -= (Fd (X // Kq)) sum
   end
   Fd X = Fv

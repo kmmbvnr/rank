@@ -42,10 +42,10 @@ for Pass in 0 to 1
     for P in 0 to Pt
       Rm = Mp - P * K
       Ex = Mp - P * (K + 1)
-      Tm = Fa Rm * (If P) mod Mod
+      Tm = Fa Rm * If P mod Mod
       Tm = Tm * (If (Rm - P)) mod Mod
-      Tm = Tm * (Pn Ex) mod Mod
-      Tm = Tm * (Ps P) mod Mod
+      Tm = Tm * Pn Ex mod Mod
+      Tm = Tm * Ps P mod Mod
       Ac += Tm
     end
     Tot += (Ac mod Mod) * Sg
@@ -68,10 +68,10 @@ for Pass in 0 to 1
       Mk = N - 1 - Kk * Pass
       Rk = Mk - Pq * Kk
       Ek = Mk - Pq * (Kk + 1)
-      Tk = Fa Rk * (If Pq) mod Mod
+      Tk = Fa Rk * If Pq mod Mod
       Tk = Tk * (If (Rk - Pq)) mod Mod
-      Tk = Tk * (Pn Ek) mod Mod
-      Tk = Tk * (Ps Pq) mod Mod
+      Tk = Tk * Pn Ek mod Mod
+      Tk = Tk * Ps Pq mod Mod
       Ac += Tk
     end
     Tot += (Ac mod Mod) * Sg

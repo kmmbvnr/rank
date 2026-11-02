@@ -57,16 +57,16 @@ fun N recurrence
     B = B combine B
     N //= 2
   end
-  return (A * A0) sum mod Mod
+  return A * A0 sum mod Mod
 end
 
 fun A combine B
-  P = (A convolve B) mod Mod
-  for I in (K * 2 - 2) to K by -1
+  P = A convolve B mod Mod
+  for I in K * 2 - 2 to K by -1
     for J in 1 to K
       Add = P I * C (J - 1) mod Mod
       P (I - J) += Add
     end
   end
-  return (P take K) copy
+  return P take K copy
 end

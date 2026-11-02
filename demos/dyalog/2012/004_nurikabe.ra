@@ -25,7 +25,7 @@ fun Flat Height Width seaSquare
     for Column in 0 till (Width - 1)
       P = Row * Width + Column
       Square = array (Flat P) (Flat (P + 1)) (Flat (P + Width)) (Flat (P + Width + 1))
-      if (Square equal -1) all
+      if Square equal -1 all
         return true
       end
     end
@@ -35,7 +35,7 @@ end
 
 fun Board valid
   Shape = Board shape
-  if (Shape len) not equal 2
+  if Shape len not equal 2
     return 0
   end
   unpack Height Width = Shape
@@ -85,7 +85,7 @@ fun Board valid
         if Seen Next
           continue
         end
-        if ((Flat Next) equal -1) not equal Sea
+        if (Flat Next equal -1) not equal Sea
           continue
         end
         Seen Next = true
@@ -125,7 +125,7 @@ fun Flat Root Height Width islandOptions
   Pending = new queue
   Pending push Initial
   for Mask in Pending
-    if (Mask popcount) equal Target
+    if Mask popcount equal Target
       Halo = Mask
       for Position in 0 till (Flat len)
         if Mask bit Position
@@ -145,7 +145,7 @@ fun Flat Root Height Width islandOptions
         continue
       end
       for Next in Position Height Width adjacent
-        if not (Allowed Next) or (Mask bit Next)
+        if not Allowed Next or (Mask bit Next)
           continue
         end
         Candidate = Mask bor (1 shl Next)
@@ -179,7 +179,7 @@ fun Groups Index White Blocked Flat Height Width canFinish
   for Group in Groups drop Index
     Count = 0
     for Choice in Group .choices
-      if ((Choice .mask) band Blocked) equal 0
+      if Choice .mask band Blocked equal 0
         Possible = Possible bor (Choice .mask)
         Count += 1
       end
@@ -209,7 +209,7 @@ fun Groups Index White Blocked Flat Height Width canFinish
   Seen Start = true
   for Position in Pending
     for Next in Position Height Width adjacent
-      if not (Seen Next) and not (White bit Next)
+      if not Seen Next and not (White bit Next)
         Seen Next = true
         Pending push Next
       end
@@ -246,7 +246,7 @@ fun Groups Index White Blocked Flat Height Width solveIslands
   end
   Group = Groups Index
   for Choice in Group .choices
-    if ((Choice .mask) band Blocked) not equal 0
+    if Choice .mask band Blocked not equal 0
       continue
     end
     NextWhite = White bor (Choice .mask)
@@ -261,7 +261,7 @@ end
 
 fun Puzzle nurikabe
   Shape = Puzzle shape
-  if (Shape len) not equal 2
+  if Shape len not equal 2
     .InvalidPuzzle "Nurikabe requires an integer matrix" raise
   end
   unpack Height Width = Shape
@@ -274,10 +274,10 @@ fun Puzzle nurikabe
       .InvalidPuzzle "Nurikabe requires positive clues and zero empty cells" raise
     end
   end
-  if (Flat sum) greater (Height * Width)
+  if Flat sum greater (Height * Width)
     .NoSolution "Nurikabe puzzle has no solution: clues exceed the board size" raise
   end
-  if (Flat sum) equal (Height * Width)
+  if Flat sum equal (Height * Width)
     if Puzzle valid equal 1
       return Puzzle copy
     end

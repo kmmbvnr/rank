@@ -18,9 +18,9 @@ rem The closed form of problem 114 over
 rem all row lengths N at once.
 Most = Size // Min
 Cols = Size + 1
-N = (0 to Size array) reshape Cols 1 1
-K = (1 to Most array) reshape 1 Most 1
-R = (0 to Size array) reshape 1 1 Cols
+N = 0 to Size array reshape Cols 1 1
+K = 1 to Most array reshape 1 Most 1
+R = 0 to Size array reshape 1 1 Cols
 Gaps = N - R + 1
 Fits = R at least K * Min and Gaps at least K
 Cuts' = R - K * (Min - 1) - 1

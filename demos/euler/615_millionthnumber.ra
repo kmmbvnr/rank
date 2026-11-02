@@ -27,16 +27,16 @@ Sc = 1 shl 30
 Bd = Bound * Sc
 Lm = 2 * (Bound isqrt) + 1
 Gp = primes from 3 till Lm array
-Ks = (Sc to Sc) array
-Ps = (1 to 1) array
-Cs = (0 to 0) array
+Ks = Sc to Sc array
+Ps = 1 to 1 array
+Cs = 0 to 0 array
 for P in Gp reverse
   Ck = Ks
   Cp = Ps
   Cc = Cs
   for Ck len greater 0
     Nk = Ck * P // 2
-    Ix = (Nk at most Bd) indices
+    Ix = Nk at most Bd indices
     Ck = Nk Ix
     Cp = Cp Ix * P mod Md
     Cc = Cc Ix + 1
@@ -49,7 +49,7 @@ Ck = Ks
 Cp = Ps
 Cc = Cs
 for Ck len greater 0
-  Ix = ((Ck * 2) at most Bd) indices
+  Ix = (Ck * 2 at most Bd) indices
   Ck = Ck Ix * 2
   Cp = Cp Ix * 2 mod Md
   Cc = Cc Ix
@@ -86,7 +86,7 @@ end
 Ka = concat Sk Ko
 Pa = concat Sp Po
 Ca = concat (Sc1 - 1) Co
-Ok = (Ca at most Om) indices
+Ok = Ca at most Om indices
 Ka = Ka Ok
 Pa = Pa Ok
 Ca = Ca Ok

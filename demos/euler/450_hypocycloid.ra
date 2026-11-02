@@ -97,7 +97,7 @@ end
 Lm = N + 1
 Mu = array shape (Lm + 1) fill 1
 Sm = array shape (Lm + 1) fill 1
-Ix = (0 to Lm) copy
+Ix = 0 to Lm copy
 Rt = Lm isqrt + 1
 for P in primes to Rt
   Q = P
@@ -109,7 +109,7 @@ for P in primes to Rt
     end
     Q *= P
   end
-  Sl = (P * P) to Lm by (P * P)
+  Sl = P * P to Lm by (P * P)
   Mu Sl = 0
 end
 Bg = Ix // Sm greater 1

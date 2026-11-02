@@ -26,30 +26,30 @@ Uz = U0 min N
 rem Tables: least prime factor, then
 rem peel it off to get squarefree, the
 rem largest prime and lambda.
-Sp = (0 to Uz) copy
+Sp = 0 to Uz copy
 Rz = Uz isqrt
-for P in (primes to Rz array) reverse
+for P in primes to Rz array reverse
   Sp (P * P to Uz by P) = P
 end
 Sf = (0 to Uz) mod 2 equal 1
 Mp = array shape (Uz + 1) fill 1
 Lm = Mp
-Ix = (3 to Uz by 2) copy
+Ix = 3 to Uz by 2 copy
 Rr = Ix
 for It in 1 to 30
-  if (Ix len) equal 0
+  if Ix len equal 0
     break
   end
   Pq = Sp Rr
   Rn = Rr // Pq
-  Sq = (Rn mod Pq) equal 0
+  Sq = Rn mod Pq equal 0
   Sf (Ix (Sq indices)) = false
   Mp Ix = Pq
   La = Lm Ix
   P1 = Pq - 1
   Gc = La gcd P1
   Lm Ix = La // Gc * P1
-  Kp = (Rn greater 1) indices
+  Kp = Rn greater 1 indices
   Ix = Ix Kp
   Rr = Rn Kp
 end
@@ -77,12 +77,12 @@ fun A inv B
   T1 = T0 + 1
   Sv = T0
   Bn = B len
-  Ix = (0 till Bn) copy
+  Ix = 0 till Bn copy
   for It in 1 to 60
-    Dz = (R1 equal 0) indices
+    Dz = R1 equal 0 indices
     Sv (Ix Dz) = T0 Dz
-    Nz = (R1 greater 0) indices
-    if (Nz len) equal 0
+    Nz = R1 greater 0 indices
+    if Nz len equal 0
       break
     end
     Ix = Ix Nz
@@ -104,7 +104,7 @@ rem Level by level: chosen primes Bm,
 rem their product Q, Bi the index of
 rem the smallest (the next ones lie
 rem below it).
-Ok = (Pr at least 7) indices
+Ok = Pr at least 7 indices
 Q = Pr Ok
 Bi = Ok
 Bm = Q reshape (Q len) 1
@@ -116,7 +116,7 @@ Fb = Mv
 for Q len greater 0
   Nn = Q len
   Bf = Bm reshape (Nn * D)
-  Rw = (0 till Nn) copy
+  Rw = 0 till Nn copy
   R = Rw * 0
   M = R + 1
   V = R equal 0
@@ -124,21 +124,21 @@ for Q len greater 0
   for C in 0 till D
     Pc = Bf (Rw * D + C)
     Md = Pc - 1
-    A = (Q // Pc) mod Md
+    A = Q // Pc mod Md
     G = A gcd Md
     V = V and (3 mod G equal 0)
     M2 = Md // G
     Rh = (0 - 3 // G) mod M2
-    A2 = (A // G) mod M2
+    A2 = A // G mod M2
     Rp = Rh * (A2 inv M2) mod M2
     rem Merge with u = Rp mod M2.
-    Ck = (R mod M2) equal Rp
+    Ck = R mod M2 equal Rp
     G2 = M gcd M2
     Dr = Rp - R
     Gd = Dr mod G2 equal 0
     M1 = M // G2
     Mg = M2 // G2
-    Df = (Dr // G2) mod Mg
+    Df = Dr // G2 mod Mg
     Am = M1 mod Mg
     Iv = Am inv Mg
     Tt = Df * Iv mod Mg
@@ -151,7 +151,7 @@ for Q len greater 0
     rem Boolean choose returns numbers
     rem (#436), so mix with and / or.
     Nl = Cl equal false
-    Xv = (Cl and Ck) or (Nl and Vn)
+    Xv = Cl and Ck or (Nl and Vn)
     V = V and Xv
     R = Cl choose R Nr
     N1 = N + 1
@@ -163,37 +163,37 @@ for Q len greater 0
   Lq = N // Q
   Cb = Cp Bi
   Lt = Lq min Cb
-  F0 = (R equal 0) choose M R
+  F0 = R equal 0 choose M R
   Cn = (Lt - F0) // M + 1
-  Cn = (F0 greater Lt) choose 0 Cn
-  Cn = (V equal false) choose 0 Cn
-  En = (Lt at most Uz) or (Cn at most T)
+  Cn = F0 greater Lt choose 0 Cn
+  Cn = V equal false choose 0 Cn
+  En = Lt at most Uz or (Cn at most T)
   Ei = (En and (Cn greater 0)) indices
   Ce = Cn Ei
   Cs = Ce scan +
   Tc = Cs last default 0
   if Tc greater 0
-    Po = (0 till Tc) copy
+    Po = 0 till Tc copy
     Jx = Cs upperindex Po
     Tk = Po - (Cs - Ce) Jx
     Ni = Ei Jx
     U = (F0 Ni) + Tk * (M Ni)
     Qn = Q Ni
     Bp = Pr (Bi Ni)
-    Ts = (U at most Uz) indices
+    Ts = U at most Uz indices
     Ut = U Ts
     Mt = (Qn Ts) * Ut
     Lu = Lm Ut
     Bt = Bp Ts
-    Gt = (Sf Ut) and ((Mp Ut) less Bt)
+    Gt = Sf Ut and (Mp Ut less Bt)
     Dl = (Mt + 3) mod Lu
     Gt = Gt and (Dl equal 0)
     Mv = concat Mv (Mt (Gt indices))
-    Fs = (U greater Uz) indices
+    Fs = U greater Uz indices
     Uf = U Fs
     Qf = Qn Fs
     Mf = Qf * Uf
-    Go = (Uf gcd Qf) equal 1
+    Go = Uf gcd Qf equal 1
     Ex = Mf + 3
     Pw = 2 Ex Uf powmod
     Go = Go and (Pw equal 1)
@@ -204,14 +204,14 @@ for Q len greater 0
   end
   rem Children: primes below the
   rem smallest with Q q <= N.
-  Xi = ((En equal false) and V) indices
+  Xi = (En equal false and V) indices
   Lx = Lq Xi
   Kp = Pr upperindex Lx
   Bx = Bi Xi
   Kc = Kp min Bx
   Cs = Kc scan +
   Tc = Cs last default 0
-  Po = (0 till Tc) copy
+  Po = 0 till Tc copy
   Jx = Cs upperindex Po
   Pj = Xi Jx
   Cj = Po - (Cs - Kc) Jx
@@ -227,15 +227,15 @@ for K in 0 till Fu len
   Y = Fu K
   Mk = (Fq K) * Y
   Bk = Fb K
-  Pb = Pr ((Pr less Bk) indices)
-  Ds = Pb ((Y mod Pb equal 0) indices)
+  Pb = Pr (Pr less Bk indices)
+  Ds = Pb (Y mod Pb equal 0 indices)
   Pd = Ds reduce * with 1
   Dv = (Mk + 3) mod (Ds - 1)
-  Al = (Dv equal 0) all
-  Fine = (Pd equal Y) and Al
+  Al = Dv equal 0 all
+  Fine = Pd equal Y and Al
   if Fine
     Mv = concat Mv (array Mk)
   end
 end
-Answer = ((Mv unique) sum) + 11
+Answer = (Mv unique sum) + 11
 Answer print

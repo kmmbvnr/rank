@@ -32,11 +32,11 @@ for Si len greater 0
   Nq = Rt len
   Ky = concat (Pr * 2) (Rt * 2 + 1)
   Od = Ky argsort
-  Ip = ((Od less Np) choose 1 0) scan +
+  Ip = (Od less Np choose 1 0) scan +
   Hi = array shape Nq fill 0
-  Qp = (Od at least Np) indices
+  Qp = Od at least Np indices
   Hi (Od Qp - Np) = Ip Qp
-  Cn = (Hi - Si) max 0
+  Cn = Hi - Si max 0
   Cs = Cn scan + with 0
   Ni = array shape 0 fill 0
   Nl = Ni
@@ -45,13 +45,13 @@ for Si len greater 0
   for St less Nq
     Cb = Cs St
     Cm = Cb + Ch
-    En = (Cs at most Cm) count - 1
+    En = Cs at most Cm count - 1
     En = (En max (St + 1)) min Nq
     Tl = Cs En - Cb
     if Tl greater 0
       Of = Cs (St till En) - Cb
       Cr = Cn (St till En)
-      Ix = (Cr greater 0) indices
+      Ix = Cr greater 0 indices
       Ow = array shape Tl fill 0
       Ow (Of Ix) = Ix + St
       Ow = Ow scan max
@@ -68,8 +68,8 @@ for Si len greater 0
         Dv = E mod P equal 0
         Ge = Dv choose Pe (Pe // P)
         Cc = C0 * (Ge - Gp)
-        Answer += (Cc * L) sum
-        Kd = (L greater P * P) indices
+        Answer += Cc * L sum
+        Kd = L greater P * P indices
         Ni = concat Ni (Pi Kd + 1)
         Nl = concat Nl (L Kd)
         Nc = concat Nc (Cc Kd)

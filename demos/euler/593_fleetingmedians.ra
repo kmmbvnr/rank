@@ -29,19 +29,19 @@ Rt = Lm isqrt
 for I in 1 to Rt // 2
   if Cp I equal 0
     P = 2 * I + 1
-    for J in (P * P // 2) to Hf by P
+    for J in P * P // 2 to Hf by P
       Cp J = 1
     end
   end
 end
-Ix = (Cp equal 0) indices
-Ix = Ix ((Ix greater 0) indices)
+Ix = Cp equal 0 indices
+Ix = Ix (Ix greater 0 indices)
 Pr = concat (array 2) (2 * Ix + 1)
 Pr = Pr (0 till N array)
 Ks = 1 to N array
 Ex = Ks mod 10006
 Sv = Pr Ex 10007 powmod
-Z7 = (Pr mod 10007) equal 0
+Z7 = Pr mod 10007 equal 0
 Sv = Z7 choose 0 Sv
 S2 = Sv + Sv (Ks // 10000)
 Cn = array shape 20013 fill 0
@@ -52,13 +52,13 @@ T1 = (K + 1) // 2
 T2 = (K + 2) // 2
 V1 = 0
 B1 = 0
-for (B1 + Cn V1) less T1
+for B1 + Cn V1 less T1
   B1 += Cn V1
   V1 += 1
 end
 V2 = 0
 B2 = 0
-for (B2 + Cn V2) less T2
+for B2 + Cn V2 less T2
   B2 += Cn V2
   V2 += 1
 end
@@ -84,7 +84,7 @@ for I in K till N
     V1 -= 1
     B1 -= Cn V1
   end
-  for (B1 + Cn V1) less T1
+  for B1 + Cn V1 less T1
     B1 += Cn V1
     V1 += 1
   end
@@ -92,13 +92,13 @@ for I in K till N
     V2 -= 1
     B2 -= Cn V2
   end
-  for (B2 + Cn V2) less T2
+  for B2 + Cn V2 less T2
     B2 += Cn V2
     V2 += 1
   end
   Tot += V1 + V2
 end
-Whole = (Tot // 2) text
+Whole = Tot // 2 text
 Answer = Whole + ".0"
 if Tot mod 2 equal 1
   Answer = Whole + ".5"

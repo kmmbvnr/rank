@@ -20,7 +20,7 @@ rem child in a loop and stack the right.
 Half = Limit // 2
 rem Pending right children have strictly
 rem increasing D and D^2 less Half.
-StackSize = (1 max Half) isqrt
+StackSize = 1 max Half isqrt
 Sa = array shape StackSize fill 0
 Sb = array shape StackSize fill 0
 Sc = array shape StackSize fill 0

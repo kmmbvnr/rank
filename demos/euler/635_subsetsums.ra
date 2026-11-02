@@ -16,7 +16,7 @@ rem factorials needed are those at p,
 rem 2 p and 3 p, taken from a running
 rem k! mod M filled chunk by chunk.
 M = 1000000009
-Pr = primes from 3 till (L + 1) array
+Pr = primes from 3 till L + 1 array
 Np = Pr len
 F1 = (0 to (Np - 1)) * 0
 F2 = F1 * 1
@@ -55,11 +55,11 @@ Sq = F1 * F1 mod M
 D2 = Sq * Pr mod M
 N2 = (F2 + 2 * (Pr - 1) * Sq) mod M
 Ip = D2 (M - 2) M powmod
-S2 = (N2 * Ip mod M) sum
+S2 = N2 * Ip mod M sum
 Pq = F1 * F2 mod M
 D3 = Pq * Pr mod M
 N3 = (F3 + 3 * (Pr - 1) * Pq) mod M
 Iq = D3 (M - 2) M powmod
-S3 = (N3 * Iq mod M) sum
+S3 = N3 * Iq mod M sum
 Answer = (S2 + S3 + 8) mod M
 Answer print

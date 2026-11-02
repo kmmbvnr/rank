@@ -41,7 +41,7 @@ for S len greater 0
       HiD = MaxD min RemD
       if not (HiD less 2)
         for d in 2 to HiD
-          if (RemD mod d) equal 0
+          if RemD mod d equal 0
             PPow = P ** (d - 1)
             NextN = CurN * PPow
             if NextN less Best

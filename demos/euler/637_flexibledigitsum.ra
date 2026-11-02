@@ -39,10 +39,10 @@ for Bi in 0 to 1
     Cu = Cu // B
     Cg = Cu greater 0
   end
-  Ge = (Sv at least B) integer
-  Lt = (Dsv less B) integer
+  Ge = Sv at least B integer
+  Lt = Dsv less B integer
   F1 = Ge * Lt
-  Fs = (F1 greater 0) indices
+  Fs = F1 greater 0 indices
   Bt = B ** Tb
   Bv = 0 to (Bt - 1)
   Bz = (0 to (Tb - 1)) * 0 + B
@@ -56,7 +56,7 @@ for Bi in 0 to 1
     Fq = 0
     for K in 0 to Tb - 1
       Cur = Cur * B + Db K
-      Cb = (Mk shr K) band 1
+      Cb = Mk shr K band 1
       if Cb equal 1 or K equal Tb - 1
         Tot += Cur
         Cur = Bv * 0
@@ -81,7 +81,7 @@ for Bi in 0 to 1
       Sa = 0
       for K in 0 to Tb - 1
         Sc = Sc * B + Da K
-        Cx = (Ia shr K) band 1
+        Cx = Ia shr K band 1
         if Cx equal 1 or K equal Tb - 1
           Sa += Sc
           Sc = 0
@@ -94,9 +94,9 @@ for Bi in 0 to 1
         Ya Yv = 1
       end
     end
-    Hr = Hr max ((Ya Sbm) max axis 0)
+    Hr = Hr max (Ya Sbm max axis 0)
     for Kf in 1 to Tb
-      Rk = (Fl equal Kf) indices
+      Rk = Fl equal Kf indices
       Yb = Bv * 0
       for Ia in 0 to Nm - 1
         Sc = 0
@@ -104,7 +104,7 @@ for Bi in 0 to 1
         La = 0
         for K in 0 to Tb - 1
           Sc = Sc * B + Da K
-          Cx = (Ia shr K) band 1
+          Cx = Ia shr K band 1
           Ed = K equal Tb - 1
           if Cx equal 1 or Ed
             Sa += Sc
@@ -121,10 +121,10 @@ for Bi in 0 to 1
         end
       end
       Sk = Sbm Rk Bc
-      Hr = Hr max ((Yb Sk) max axis 0)
+      Hr = Hr max (Yb Sk max axis 0)
     end
     Lo = A * Bt
-    Hi = (Lo + Bt) min (Nn + 1)
+    Hi = Lo + Bt min (Nn + 1)
     Hw = Hr (0 till Hi - Lo)
     Hit (Lo till Hi) = Hw
   end
@@ -132,6 +132,6 @@ for Bi in 0 to 1
   Fm Bi = Fv * Ge
 end
 Ns = 0 to N
-Eq = (Fm 0 equal Fm 1) integer
-Answer = (Eq * Ns) sum
+Eq = Fm 0 equal Fm 1 integer
+Answer = Eq * Ns sum
 Answer print

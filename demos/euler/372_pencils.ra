@@ -80,7 +80,7 @@ fun A B C K surdfloor
     return A // C
   end
   BB = B abs
-  S = (BB * BB * K) isqrt
+  S = BB * BB * K isqrt
   if B greater 0
     T = (A + S) // C
     U = (T + 1) * C - A
@@ -111,7 +111,7 @@ fun A B C K surdinv
     Y = -Y
     Z = -Z
   end
-  G = (X abs) gcd (Y abs)
+  G = X abs gcd (Y abs)
   G = G gcd Z
   X //= G
   Y //= G

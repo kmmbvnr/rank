@@ -19,18 +19,18 @@ rem after. Each step gathers, for every
 rem new state, the four old states that
 rem lead to it. The windows are FREE
 rem 181, FARE 141, AREA 52, REEF 214.
-Sp = (0 to 63) reshape 64 1 1
-Mp = (0 to 15) reshape 1 16 1
-Kk = (0 to 3) reshape 1 1 4
+Sp = 0 to 63 reshape 64 1 1
+Mp = 0 to 15 reshape 1 16 1
+Kk = 0 to 3 reshape 1 1 4
 Sr = Sp // 4 + 16 * Kk
 Ww = Sp + 64 * Kk
-K1 = (Ww equal 181) integer
-K2 = (Ww equal 141) integer
-K3 = (Ww equal 52) integer
-K4 = (Ww equal 214) integer
+K1 = Ww equal 181 integer
+K2 = Ww equal 141 integer
+K3 = Ww equal 52 integer
+K4 = Ww equal 214 integer
 Bt = K1 + 2 * K2 + 4 * K3 + 8 * K4
-Hs = ((Mp band Bt) not equal 0) integer
-Z0 = (Bt equal 0) integer
+Hs = (Mp band Bt not equal 0) integer
+Z0 = Bt equal 0 integer
 Ok = Z0 + Hs
 Mx = (Mp bxor Bt) * (1 - Z0)
 Ms = Mx + Mp * Z0

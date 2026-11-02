@@ -27,7 +27,7 @@ P = P filter Use array
 Q = Q filter Use array
 N = P len
 Lo' = P * P
-Hi' = (Q * Q) min (Limit + 1)
+Hi' = Q * Q min (Limit + 1)
 Dv' = concat P Q (P * Q)
 D = Dv reshape 3 N
 K1 = (Hi - 1) // D
@@ -36,5 +36,5 @@ Tri1' = K1 * (K1 + 1) // 2
 Tri0' = K0 * (K0 + 1) // 2
 Mult' = D * (Tri1 - Tri0)
 Wt' = (array 1 1 -2) reshape 3 1
-Answer = (Mult * Wt) sum
+Answer = Mult * Wt sum
 Answer print

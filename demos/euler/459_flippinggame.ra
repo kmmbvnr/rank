@@ -21,8 +21,8 @@ rem times b equal to the board nimber.
 Kv = 512
 Hc = array shape 2 Kv fill 0
 Xt = array shape 2 fill 0
-Rq = (2 * N) isqrt + 1
-Ks = (1 to Rq) copy
+Rq = 2 * N isqrt + 1
+Ks = 1 to Rq copy
 for Ax in 0 to 1
   Ls = Ks * Ks
   if Ax equal 0
@@ -62,8 +62,8 @@ rem K to K^2 with H = K, H^2 = 3H/2.
 T = array 0 0 0 1
 K = 2
 for K less Kv
-  Kn = (K * K) min Kv
-  Fi = (0 till Kn * Kn) copy
+  Kn = K * K min Kv
+  Fi = 0 till Kn * Kn copy
   Ra = Fi // Kn
   Cb = Fi mod Kn
   A1 = Ra // K
@@ -75,7 +75,7 @@ for K less Kv
   P01 = T (A0 * K + B1)
   P00 = T (A0 * K + B0)
   Ph = T (P11 * K + K // 2)
-  Up = (P11 bxor P10) bxor P01
+  Up = P11 bxor P10 bxor P01
   T = (Up * K + (P00 bxor Ph)) copy
   K = Kn
 end
@@ -84,5 +84,5 @@ G = T (Xt 0 * Kv + Xt 1)
 Ct = Hc 0
 Cs = Hc 1
 Pr = Ct Cs outer *
-Answer = ((Nm equal G) choose Pr 0) sum
+Answer = (Nm equal G choose Pr 0) sum
 Answer print

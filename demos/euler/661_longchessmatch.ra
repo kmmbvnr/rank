@@ -19,7 +19,7 @@ rem   (1 - r1) / (t q (r2 - r1)).
 rem Sum it over the Nn - 2 parameter
 rem triples of H(n).
 Ks = (3 to Nn) * 1.0
-Aa = 1.0 / ((Ks + 3.0) sqrt)
+Aa = 1.0 / (Ks + 3.0 sqrt)
 Bb = Aa + 1.0 / (Ks * Ks)
 Tt = 1.0 / (Ks * Ks * Ks)
 Qq = 1.0 - Tt

@@ -9,4 +9,4 @@ Adjacent print
 
 Odd = Squares (0 to # by 2)
 Even = Squares (1 to # by 2)
-(Even - Odd) print
+Even - Odd print

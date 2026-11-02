@@ -22,15 +22,15 @@ rem reaches. The lowest layer solves
 rem (I - C) u_0 = q.
 H = 50
 D = T - 1
-Ey = (0 till D) copy
+Ey = 0 till D copy
 fun Ro J X rowpow
   rem Rows Ro of X^J, all at once.
   Nr = Ro len
-  Oh = (Ro reshape Nr 1) equal Ey
+  Oh = Ro reshape Nr 1 equal Ey
   V = Oh choose 1.0 0.0
   Xp = X
   Jr = J
-  for (Jr max) greater 0
+  for Jr max greater 0
     Bm = (Jr mod 2) * 1.0
     Vx = V matmul Xp
     V = V + (Bm reshape Nr 1) * (Vx - V)
@@ -55,8 +55,8 @@ Bd = 1.0
 St = 0
 for St less 30
   Wv = Gr Gj X rowpow * Pc
-  Xn = (Wv reshape D H D) sum axis 1
-  Df = ((Xn - X) abs) max
+  Xn = Wv reshape D H D sum axis 1
+  Df = (Xn - X abs) max
   X = Xn
   St += 1
   if Df less Bd
@@ -68,21 +68,21 @@ rem Lowest layer: c = r + 1.
 Cq = Rq + 2 ** Nn - D
 Lv = Cq greater 0
 Qr = Lv choose 0.0 Pq
-Q = (Qr reshape D H) sum axis 1
+Q = Qr reshape D H sum axis 1
 Cp = (Cq max 1) - 1
 Wb = (Cp mod D) (Cp // D) X rowpow
 Pl = Lv choose Pq 0.0
 Wb = Wb * (Pl reshape Nq 1)
-Cm = (Wb reshape D H D) sum axis 1
-I1 = (Ey * 0 + 1.0) diag
-U0 = (I1 - Cm) solve Q
+Cm = Wb reshape D H D sum axis 1
+I1 = Ey * 0 + 1.0 diag
+U0 = I1 - Cm solve Q
 Answer = 0.0
 C0 = B - D
 if C0 greater 0
   Ra = array ((C0 - 1) mod D)
   Ka = array ((C0 - 1) // D)
   Rw = Ra Ka X rowpow
-  Ru = (Rw 0 * U0) sum
+  Ru = Rw 0 * U0 sum
   Answer = 1.0 - Ru
 end
 Answer = Answer round 7

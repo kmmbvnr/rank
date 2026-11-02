@@ -16,7 +16,7 @@ Ps = (Pr (0 till N) - 1) mod 9 + 1
 Ip = array shape (Top + 1) fill 0
 Ip (Pr) = 1
 Ip (0 to 1) = 1
-Cs = (Ip equal 0) indices
+Cs = Ip equal 0 indices
 Cs = (Cs (0 till N) - 1) mod 9 + 1
 rem Shortest common supersequence =
 rem 2N - LCS. Bit-parallel LCS of the
@@ -29,15 +29,15 @@ Full = (1 shl N) - 1
 Two = Br * 0 + 2
 Mk = array shape 10 fill 0
 for C in 1 to 9
-  Dg = (Br equal C) choose 1 0
-  Mk C = (Dg reverse) fromDigits Two
+  Dg = Br equal C choose 1 0
+  Mk C = Dg reverse fromDigits Two
 end
 Vs = array shape (N + 1) fill 0
 V = Full
 Vs 0 = V
 for I in 1 to N
   U = V band (Mk (Ar (I - 1)))
-  V = ((V + U) bor (V - U)) band Full
+  V = (V + U bor (V - U)) band Full
   Vs I = V
 end
 rem Greedy from the front: take a
@@ -60,7 +60,7 @@ for I less N and J less N
     M2 = (1 shl (N - J - 1)) - 1
     Ri = N - I
     P1 = (Vs (Ri - 1)) band M1 popcount
-    P2 = (Vs Ri) band M2 popcount
+    P2 = Vs Ri band M2 popcount
     Df = P1 - P2 - 1
     Lw = Df equal 0 and A less B
     if Df less 0 or Lw

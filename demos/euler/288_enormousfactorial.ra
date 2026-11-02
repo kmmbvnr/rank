@@ -22,7 +22,7 @@ S = 290797
 Low = 0
 Pw = 1
 Weight = 0
-for K in 0 to ((Exp - 1) min Q)
+for K in 0 to (Exp - 1 min Q)
   T = S mod P
   Low += T * Weight
   Weight += Pw

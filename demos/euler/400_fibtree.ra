@@ -35,7 +35,7 @@ fun K Gs Stride Mod cuts
   Values = new stack
   Tasks push K * Stride + 1
   Value = 0
-  for (Tasks len) greater 0
+  for Tasks len greater 0
     Key = Tasks pop
     if Key equal -1
       rem Save the first child's result.

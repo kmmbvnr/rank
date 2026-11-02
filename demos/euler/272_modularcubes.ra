@@ -34,7 +34,7 @@ rem base is 9 * 7 * 13 * 19 * 31.
 Mm = Limit // 482391
 Pm = Limit // 15561 + 10
 Ps = primes till Pm
-P1 = Ps filter (Ps mod 3 equal 1) array
+P1 = Ps filter Ps mod 3 equal 1 array
 Np = P1 len
 Good = array shape (Mm + 1) fill 1
 Good 0 = 0
@@ -99,7 +99,7 @@ for Mode in 0 to 1
     end
     Fp 0 = P1 I1
     A1 = P1 I1
-    for I2 in (I1 + 1) till Np
+    for I2 in I1 + 1 till Np
       if I2 + 3 - Mode at least Np
         break
       end
@@ -112,7 +112,7 @@ for Mode in 0 to 1
       end
       Fp 1 = P1 I2
       A2 = A1 * P1 I2
-      for I3 in (I2 + 1) till Np
+      for I3 in I2 + 1 till Np
         if I3 + 2 - Mode at least Np
           break
         end
@@ -157,7 +157,7 @@ for Mode in 0 to 1
             end
           end
         end
-        for I4 in (I3 + 1) till Np
+        for I4 in I3 + 1 till Np
           if Mode equal 1 and A3 * P1 I4 greater Lim // 7
             break
           end

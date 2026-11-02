@@ -37,10 +37,10 @@ Lens = 100 * Fib
 N = 0 to 17 array
 Pos = (127 + 19 * N) * 7 ** N
 Col' = Pos reshape 18 1
-Lv = (Lens less Col) count axis 1
+Lv = Lens less Col count axis 1
 for Step in 1 to Top
   Live = Lv at least 3
-  Bk' = (Lv - 2) max 0
+  Bk' = Lv - 2 max 0
   Prev = Lens Bk
   Back = Live and (Pos greater Prev)
   Pos = Back choose (Pos - Prev) Pos
@@ -52,6 +52,6 @@ Ta' = A Ia
 Tb' = B Ia
 Da' = Ta integer rank 0
 Db' = Tb integer rank 0
-Digit' = (Lv equal 1) choose Da Db
-Answer = (Digit * 10 ** N) sum
+Digit' = Lv equal 1 choose Da Db
+Answer = Digit * 10 ** N sum
 Answer print

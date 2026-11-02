@@ -19,16 +19,16 @@ rem powers of the Walsh-Hadamard
 rem transform of c (length m).
 Md = 1000000007
 Lm = N - 1
-Ps = primes till (Lm + 1) array
+Ps = primes till Lm + 1 array
 Np = Ps len
 Cc = array shape Np fill 1
 Al = array shape (Lm + 1) fill 1
 Sq = Lm isqrt
-Ns = ((Ps at most Sq) integer) sum
+Ns = (Ps at most Sq integer) sum
 for I in 1 till Ns
   P = Ps I
-  Ix = (P to Lm by 2 * P) array
-  Cc I = (Al Ix) sum
+  Ix = P to Lm by 2 * P array
+  Cc I = Al Ix sum
   Al Ix = 0
 end
 Lg = 0
@@ -40,7 +40,7 @@ end
 Wt = array shape Mm fill 0
 Wt 0 = Lm // 2
 Wt 1 = 1
-Hi = 2 till (Np + 1) array
+Hi = 2 till Np + 1 array
 Wt Hi = Cc (1 till Np array)
 Ix = 0 till Mm array
 for E in 0 till Lg
@@ -52,6 +52,6 @@ end
 Th = Wt mod Md
 Pw = Th K Md powmod
 Iv = Mm (Md - 2) Md powmod
-Sm = (Pw sum) mod Md
-Answer = (Sm * Iv) mod Md
+Sm = Pw sum mod Md
+Answer = Sm * Iv mod Md
 Answer print

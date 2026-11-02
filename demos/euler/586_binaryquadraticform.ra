@@ -29,27 +29,27 @@ Ss 0 = 0
 Ss 1 = 0
 Pr = Pm isqrt
 for I in 2 to Pr
-  if (Ss I) equal 1
-    for J in (I * I) to Pm by I
+  if Ss I equal 1
+    for J in I * I to Pm by I
       Ss J = 0
     end
   end
 end
-Ix = (Ss equal 1) indices
+Ix = Ss equal 1 indices
 Rs = Ix mod 5
-Sl = (Rs equal 1) or (Rs equal 4)
+Sl = Rs equal 1 or (Rs equal 4)
 Sp = Ix (Sl indices)
 Np = Sp len
 Fl = Ss * 0
 Fl Sp = 1
-Cs = (Fl scan +) array
+Cs = Fl scan + array
 Ur = Qm isqrt
 Ine = array shape (Ur + 1) fill 1
 Ine 0 = 0
 for P in Ix
   if P at most Ur
     Rp = P mod 5
-    Bd = (Rp equal 0) or (Rp equal 1)
+    Bd = Rp equal 0 or (Rp equal 1)
     if Bd or (Rp equal 4)
       for J in P to Ur by P
         Ine J = 0
@@ -61,7 +61,7 @@ Mk = array shape (Qm + 1) fill 0
 Pw = 1
 for Pw at most Qm
   for U in 1 to Ur
-    if (Ine U) equal 1
+    if Ine U equal 1
       M = Pw * U * U
       if M at most Qm
         Mk M = 1
@@ -70,8 +70,8 @@ for Pw at most Qm
   end
   Pw *= 5
 end
-Gp = (Mk scan +) array
-Mv = (Mk equal 1) indices
+Gp = Mk scan + array
+Mv = Mk equal 1 indices
 Nm = Mv len
 Dv = array shape 82 20 fill 0
 Dn = array shape 82 fill 0
@@ -152,7 +152,7 @@ for Sp0 greater 0
               Gw = Gw and (I less Nm)
               for Gw
                 Mi = Mv I
-                Qv = (Mq // Mi) min Pm
+                Qv = Mq // Mi min Pm
                 Cn = (Cs Qv) - (J + 1)
                 if Cn greater 0
                   Tot += Cn

@@ -18,7 +18,7 @@ else
 
   for Running and (Bad less N)
     NextBad = Bad + Osn
-    if not ((Osn * Osn) greater NextBad)
+    if not (Osn * Osn greater NextBad)
       Osn += 1
       Bad += Osn
       if Bad equal N
@@ -41,7 +41,7 @@ else
         end
       else
         NextBad2 = Bad + Osn
-        if not ((Osn * Osn) greater NextBad2)
+        if not (Osn * Osn greater NextBad2)
           Osn += 1
         end
         Bad += Osn

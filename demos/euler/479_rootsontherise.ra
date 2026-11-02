@@ -15,7 +15,7 @@ rem geometric series u + .. + u^N =
 rem u (u^N - 1) / (u - 1), u - 1 =
 rem -k^2.
 Md = 1000000007
-K = (1 to N) copy
+K = 1 to N copy
 U = (1 - K * K) mod Md
 Un = U N Md powmod
 Iv = (K * K mod Md) (Md - 2) Md powmod

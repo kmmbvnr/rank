@@ -39,8 +39,8 @@ for Dl greater 0.00000000001
   Mn = A1 min A2 min A3
   En = 1.0 + (Mn sum axis 0) / Ft
   En (Sn - 1) = 0.0
-  Dl = ((En - Ee) abs) max
+  Dl = (En - Ee abs) max
   Ee = En
 end
-Answer = (Ee 0) text ".6f"
+Answer = Ee 0 text ".6f"
 Answer print

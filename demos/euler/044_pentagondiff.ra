@@ -30,7 +30,7 @@ fun Limit pentagonal_difference
   Best = -1
   for K in 2 to Limit
     PK = Values K
-    for J in (K - 1) to 1 by -1
+    for J in K - 1 to 1 by -1
       PJ = Values J
       Difference = PK - PJ
       if Best greater 0 and Difference at least Best

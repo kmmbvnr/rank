@@ -21,14 +21,14 @@ rem constant: r T(m) (sum of s).
 Rt = L isqrt
 Mu = array shape (Rt + 1) fill 1
 Mu 0 = 0
-Rs = (0 to Rt) copy
+Rs = 0 to Rt copy
 for P in primes to Rt
   Mu (P to Rt by P) *= -1
   Mu (P * P to Rt by P * P) = 0
   Rs (P to Rt by P) //= P
 end
-Mu = (Rs greater 1) choose (0 - Mu) Mu
-Ds = (Mu not equal 0) indices
+Mu = Rs greater 1 choose (0 - Mu) Mu
+Ds = Mu not equal 0 indices
 Xd = L // (Ds * Ds)
 Nr = Xd isqrt
 rem Pairs (d, r): r = 1 .. sqrt(X_d).
@@ -36,17 +36,17 @@ Of = Nr scan + with 0
 Tl = Of last
 Ow = array shape Tl fill 0
 Nd = Ds len
-Ow (Of (0 till Nd)) = (0 till Nd) copy
+Ow (Of (0 till Nd)) = 0 till Nd copy
 Ow = Ow scan max
 R = (0 till Tl) - Of Ow + 1
 X = Xd Ow
 Dw = Ds Ow
 W = (Mu Dw) * Dw * Dw
 A = R + 1
-U = (2 * R - 1) min (X // R)
+U = 2 * R - 1 min (X // R)
 Answer = 0
 for A len greater 0
-  Ac = (A at most U) indices
+  Ac = A at most U indices
   R = R Ac
   X = X Ac
   W = W Ac
@@ -56,7 +56,7 @@ for A len greater 0
   B = U min (X // (R * M))
   Sb = (B * (B + 1) - A * (A - 1)) // 2
   Tm = M * (M + 1) // 2
-  Answer += (W * R * Tm * Sb) sum
+  Answer += W * R * Tm * Sb sum
   A = B + 1
 end
 Answer print

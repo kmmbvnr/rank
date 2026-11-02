@@ -23,15 +23,15 @@ Wd = (Sq max) + 1
 I = (0 till (P len) * Wd) copy
 J = I // Wd
 K = I mod Wd
-Ok = (K at most Sq J) indices
+Ok = K at most Sq J indices
 J = J Ok
 K = K Ok
 Pk = P J
 rem p is no square, so k sqrt p never
 rem is an integer.
-Ce = (K * K * Pk) isqrt + 1
-Ce = (K greater 0) choose Ce 0
+Ce = K * K * Pk isqrt + 1
+Ce = K greater 0 choose Ce 0
 N = Pk - Ce + K
 T = N K M binomialmod
-Answer = (T sum) mod M
+Answer = T sum mod M
 Answer print

@@ -64,7 +64,7 @@ for N in Order to 1 by -1
   for J in 0 to 4
     K = Kind (5 * Ty + J)
     I = 2 * (N - 1) + K - 2
-    Run = (Go equal 1) and Rem greater 0
+    Run = Go equal 1 and Rem greater 0
     if Run and (K equal 1)
       X += Dx (T mod 4)
       Y += Dy (T mod 4)

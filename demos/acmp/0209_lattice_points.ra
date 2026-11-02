@@ -20,9 +20,9 @@ Shift = concat (1 till N array) (array 0)
 XsNext = Xs Shift
 YsNext = Ys Shift
 
-DoubleArea = (Xs * YsNext - XsNext * Ys sum) abs
-DX = (XsNext - Xs) abs
-DY = (YsNext - Ys) abs
+DoubleArea = Xs * YsNext - XsNext * Ys sum abs
+DX = XsNext - Xs abs
+DY = YsNext - Ys abs
 
 Boundary = DX gcd DY sum
 Answer = (DoubleArea - Boundary + 2) // 2

@@ -24,24 +24,24 @@ Nx = 256
 Xs = 0 to (Nx - 1)
 Ns = 0 to N
 Tr = array shape (N + 1) 4 Nx fill 0
-Tr 0 0 = (Xs equal 0) integer
+Tr 0 0 = Xs equal 0 integer
 G3 = Ns * 0
 for Nn in 1 to N
   if Nn at least 2
-    Rs = (Tr Nn 2) max (Tr Nn 3)
-    G3 Nn = ((Rs equal 0) indices) first
+    Rs = Tr Nn 2 max (Tr Nn 3)
+    G3 Nn = (Rs equal 0 indices) first
   end
   Xi = Xs bxor (G3 Nn)
   for Mm in Nn to N
     for Pp in 1 to 3
       Sr = (Tr (Mm - Nn) (Pp - 1)) Xi
-      Tr Mm Pp = (Tr Mm Pp) max Sr
+      Tr Mm Pp = Tr Mm Pp max Sr
     end
   end
 end
-Ev = ((Ns mod 2) equal 0) integer
-G2 = Ev * ((Ns greater 0) integer)
-G4 = (Ns - 1) max 0
+Ev = (Ns mod 2 equal 0) integer
+G2 = Ev * (Ns greater 0 integer)
+G4 = Ns - 1 max 0
 Gs = stack G2 G3 G4
 Answer = 0
 for Kc in 0 to 2
@@ -57,7 +57,7 @@ for Kc in 0 to 2
   end
   Row = Cn N
   Fk = (Row sum) - Row 0
-  Iq = (Kc equal 2) integer
+  Iq = Kc equal 2 integer
   Answer += Fk * (1 + (N - 4) * Iq)
 end
 Answer = Answer mod M

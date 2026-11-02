@@ -39,7 +39,7 @@ Lens = Succ functional lengths
 Ids = Succ - 1 copy
 Back' = Lens Ids copy
 Cycle = Lens equal Back copy
-Long = (Lens Cycle) max
+Long = Lens Cycle max
 Best = Cycle and Lens equal Long copy
-Answer = (Best indices) first + 1
+Answer = Best indices first + 1
 Answer print

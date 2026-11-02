@@ -64,18 +64,18 @@ for S in Ss
     Cr = Cr mod Md
     Od = Cr argsort
     Cr = Cr Od
-    Cs = (Cc Od) scan +
+    Cs = Cc Od scan +
     Nx = Cr shift -1 with -1
-    Ei = (Cr not equal Nx) indices
+    Ei = Cr not equal Nx indices
     Cr = Cr Ei
     Gs = Cs Ei
     Cc = Gs - (Gs shift 1)
     B1 = concat B1 (2 * Cr)
     C1 = concat C1 Cc
-    Ob = (Cr mod 6 equal 4) indices
+    Ob = Cr mod 6 equal 4 indices
     Y = (Cr Ob - 1) // 3
     if D equal 1
-      Answer += (Cc Ob) sum
+      Answer += Cc Ob sum
     else
       B2 = concat B2 (2 * Y)
       C2 = concat C2 (Cc Ob)

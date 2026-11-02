@@ -20,8 +20,8 @@ rem C(n, k) ways. By symmetry a tenth
 rem of the strings start with zero.
 Rows = Len + 1
 Cols = Most + 1
-Ns = (0 to Len array) reshape Rows 1
-Ks = (0 to Most array) reshape 1 Cols
+Ns = 0 to Len array reshape Rows 1
+Ks = 0 to Most array reshape 1 Cols
 Used' = Ks min Ns
 Fits' = Ks at most Ns
 Ways = Fits choose (Ns binomial Used) 0

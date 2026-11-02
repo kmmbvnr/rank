@@ -23,7 +23,7 @@ fun Heights visible Queries
   Next # = Sentinel
   Stack = new stack
 
-  for I in (N - 1) to 0 by -1
+  for I in N - 1 to 0 by -1
     for Stack len greater 0
       Top = Stack peek
       if Heights Top greater Heights I

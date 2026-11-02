@@ -39,20 +39,20 @@ for J in 0 to P0 - 1
   end
   Wk = J // 60
   Bt = J mod 60
-  Wm Wk = (Wm Wk) bor (Par shl Bt)
+  Wm Wk = Wm Wk bor (Par shl Bt)
 end
 Od = Rm argsort
 Rs = Rm Od
 Wr = Wm Wi Od
 Pv = Rs shift 1
-Sm = (Rs equal Pv) integer
-Lg = (Rs greater 1) integer
+Sm = Rs equal Pv integer
+Lg = Rs greater 1 integer
 Gc = (Lg * (1 - Sm)) sum
 Df = Lg * Sm
 Wp = Wr shift 1 axis 1
 Vc = Wr bxor (Wp * Df)
-Sz = (Rs equal 1) integer
-Kp = (Df + Sz) greater 0
+Sz = Rs equal 1 integer
+Kp = Df + Sz greater 0
 Ik = Kp indices
 Mx = Vc Wi Ik
 Mk = Ik len
@@ -61,7 +61,7 @@ for J in 0 to P0 - 1
   Wk = J // 60
   Row = Mx Wk
   Bt = J mod 60
-  Hit = ((Row shr Bt) band 1) equal 1
+  Hit = Row shr Bt band 1 equal 1
   Ix = Hit indices
   if Ix len greater 0
     Pc = Mx Wi (Ix first)

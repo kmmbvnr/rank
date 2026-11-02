@@ -17,9 +17,9 @@ rem pair sums and merge them in chunks
 rem to find near misses, then recover
 rem the pairs and rank them exactly.
 Pi = 4 * (1.0 atan)
-Bm = (N * ((Pi + 1) log)) floor + 1
-Ks = (0 to Bm) copy
-F = (Ks * 1.0 / N) exp - 1
+Bm = (N * (Pi + 1 log)) floor + 1
+Ks = 0 to Bm copy
+F = Ks * 1.0 / N exp - 1
 Ep = 0.000000001
 H = Pi / 2
 rem How many f(k) are at most T, for
@@ -34,17 +34,17 @@ for Sp less M1
 end
 for Sp greater 0
   Ix = Cn + Sp
-  Fv = F ((Ix - 1) min Bm)
-  Up = (Fv at most T) choose Ix Cn
-  Cn = (Ix at most M1) choose Up Cn
+  Fv = F (Ix - 1 min Bm)
+  Up = Fv at most T choose Ix Cn
+  Cn = Ix at most M1 choose Up Cn
   Sp //= 2
 end
 Lo = Cn
 Lb = Lo (0 till M1) - 1
 Ua = Lo (M1 till 2 * M1) max Ks
 Ub = Lo (2 * M1 till 3 * M1) - 1
-Ll = (Lb - Ks + 1) max 0
-Lu = (Ub - Ua + 1) max 0
+Ll = Lb - Ks + 1 max 0
+Lu = Ub - Ua + 1 max 0
 Lv = array shape (Ll sum) fill 0.0
 Uv = array shape (Lu sum) fill 0.0
 Ol = 0
@@ -78,12 +78,12 @@ Cl = array shape 0 fill 0.0
 Cq = array shape 0 fill 0.0
 Ce = array shape 0 fill 0.0
 for St in 0 till Nq by C
-  Se = (St + C) min Nq
+  Se = St + C min Nq
   Qc = Qs (St till Se)
   Q0 = Qc 0
   Q1 = Qc last
-  I0 = (Ls less Q0) count - 1
-  I1 = (Ls at most Q1) count + 1
+  I0 = Ls less Q0 count - 1
+  I1 = Ls at most Q1 count + 1
   I0 = I0 max 0
   I1 = I1 min Nl
   Lc = Ls (I0 till I1)
@@ -92,21 +92,21 @@ for St in 0 till Nq by C
   Mo = Mg argsort
   Ms = Mg Mo
   Il = Mo less Nc
-  Ps = (0 till Mg len) copy
-  Pv = (Il choose Ps 0) scan max
+  Ps = 0 till Mg len copy
+  Pv = Il choose Ps 0 scan max
   Lt = Mg len - 1
-  Rv = (Il choose Ps Lt) reverse
-  Nx = (Rv scan min) reverse
-  Qp = (Il equal false) indices
+  Rv = Il choose Ps Lt reverse
+  Nx = Rv scan min reverse
+  Qp = Il equal false indices
   Qv = Ms Qp
   Pl = Ms (Pv Qp)
   Nl2 = Ms (Nx Qp)
-  E1 = (Qv - Pl) abs
-  E2 = (Nl2 - Qv) abs
+  E1 = Qv - Pl abs
+  E2 = Nl2 - Qv abs
   E1 = (Il (Pv Qp)) choose E1 1.0
   E2 = (Il (Nx Qp)) choose E2 1.0
-  H1 = (E1 less Tau) indices
-  H2 = (E2 less Tau) indices
+  H1 = E1 less Tau indices
+  H2 = E2 less Tau indices
   Cl = concat Cl (Pl H1) (Nl2 H2)
   Cq = concat Cq (Qv H1) (Qv H2)
   Ce = concat Ce (E1 H1) (E2 H2)
@@ -114,7 +114,7 @@ end
 rem Keep those that rounding could
 rem still make the best.
 Cm = Ce min + 0.00000000000001
-Kp = (Ce at most Cm) indices
+Kp = Ce at most Cm indices
 Cl = Cl Kp
 Cq = Cq Kp
 rem Pairs with a given sum, then the
@@ -135,10 +135,10 @@ for I in 0 till Cl len
     if Sd equal 1
       Tg = Pi - Cq I
     end
-    Ar = (1 + Tg - F) max 1.0
+    Ar = 1 + Tg - F max 1.0
     Bb = (N * (Ar log) + 0.5) floor
-    Bb = (Bb max 0) min Bm
-    Dv = (F + F Bb - Tg) abs
+    Bb = Bb max 0 min Bm
+    Dv = F + F Bb - Tg abs
     Ok = Dv less 0.0000000000001
     Ok = Ok and (Bb at least Ks)
     if Sd equal 0
@@ -160,10 +160,10 @@ for I in 0 till Cl len
         Tm = Tm * Q4 // (N * R)
         Sm += Tm
       end
-      Er = (Sm sum - 4 * Sc - Pw) abs
+      Er = Sm sum - 4 * Sc - Pw abs
       if Be less 0 or Er less Be
         Be = Er
-        Answer = (Q4 * Q4) sum
+        Answer = Q4 * Q4 sum
       end
     end
   end

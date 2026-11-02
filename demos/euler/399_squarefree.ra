@@ -61,7 +61,7 @@ end
 
 rem Find the Count-th allowed index in bounded segments.
 rem Copy the sorted moduli once so marking loops read stored integers.
-SortedMods = (Mods sort) copy
+SortedMods = Mods sort copy
 Segment = 1000000
 Have = 0
 Index = Limit
@@ -103,7 +103,7 @@ Phi = (1 + Root) / 2
 Ten = 10 log
 Log = Phi log / Ten
 Half = (5 log) / (2 * Ten)
-Exp = (Index * Log - Half) floor
+Exp = Index * Log - Half floor
 Lead = 10 ** (Index * Log - Half - Exp)
 Answer = Last text + ","
 Answer += Lead text ".1f"

@@ -21,10 +21,10 @@ rem B(r) is the largest M with R = r,
 rem L(k) = max of B(r) over r >= k, and
 rem the answer is the sum of L(k).
 Ii = 0 to (Nn - 1)
-Tm = (Ii popcount) mod 2
+Tm = Ii popcount mod 2
 Ph = 1.618033988749895
 Fa = ((Ii + 1) / Ph) floor
-Fb = (Ii / Ph) floor
+Fb = Ii / Ph floor
 Cc = (Tm + Fa - Fb) mod 2
 Mx = 2 * Nn + 2
 Ln = array shape Mx fill 0

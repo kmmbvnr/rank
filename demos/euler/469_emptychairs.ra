@@ -16,11 +16,11 @@ rem function (1 - e^(-2x)) / (2 (1 -
 rem x)^2), so P(m) = 1/2 sum (m + 1 -
 rem j) c_j with c_j = -(-2)^j / j!.
 M = N - 3
-J = (1 to 60) copy
+J = 1 to 60 copy
 Fj = J scan *
 Cj = 0.0 - ((-2.0) ** J) / Fj
-Wt = (M + 1 - J) max 0
-P = (Wt * Cj) sum / 2
+Wt = M + 1 - J max 0
+P = Wt * Cj sum / 2
 E = 1.0 - (1 + P) / N
 Answer = E text ".14f"
 Answer print

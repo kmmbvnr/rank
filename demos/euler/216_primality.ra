@@ -8,7 +8,7 @@ arg Limit integer = 50000000
 fun Bound count_primes
   rem Every composite has a prime factor at most Root.
   rem Its smaller root modulo that prime is at most Cut.
-  Root = (2 * Bound * Bound - 1) isqrt
+  Root = 2 * Bound * Bound - 1 isqrt
   Cut = (Root - 1) // 2
   rem Keep residual factors in the prefix; the tail only
   rem needs a flag, since all its factors are found here.
@@ -28,7 +28,7 @@ fun Bound count_primes
       end
       if N + P at most Cut
         for K in N + P to Cut by P
-          for (R K) mod P equal 0
+          for R K mod P equal 0
             R K = R K // P
           end
         end
@@ -36,7 +36,7 @@ fun Bound count_primes
       Other = P - N
       if Other greater N and Other at most Cut
         for K in Other to Cut by P
-          for (R K) mod P equal 0
+          for R K mod P equal 0
             R K = R K // P
           end
         end
@@ -63,7 +63,7 @@ fun Bound count_primes
       end
     end
   end
-  for N in ((Cut + 1) max 2) to Bound
+  for N in (Cut + 1 max 2) to Bound
     Count += Tail (N - Cut - 1)
   end
   return Count

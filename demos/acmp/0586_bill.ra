@@ -27,10 +27,10 @@ M = Nums 1
 K = Nums 2
 
 Rank = array shape N K fill 0
-PosOrder = (0 till K) array
+PosOrder = 0 till K array
 
 for D in 0 till N
-  Prefs = Nums ((D * K + 3) till ((D + 1) * K + 3))
+  Prefs = Nums (D * K + 3 till ((D + 1) * K + 3))
   Row = array shape K fill 0
   Row (Prefs - 1) = PosOrder
   Rank D = Row
@@ -42,12 +42,12 @@ if K greater 1
   for I in ((0 till (K - 1)) array) reverse
     ColI = Rank # I
     ColNext = Rank # NextOutcome
-    Votes = (ColI less ColNext) count
+    Votes = ColI less ColNext count
     if Votes greater (M - 1)
       NextOutcome = I
     end
   end
 end
 
-Answer = (NextOutcome + 1) text
+Answer = NextOutcome + 1 text
 Answer print

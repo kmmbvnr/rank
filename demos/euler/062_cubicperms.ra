@@ -15,5 +15,5 @@ Cubes = (1 to 10000) ** 3 array
 Keys = Cubes text rank 0 sort rank 0
 Seen = new counter Keys
 Mask' = Seen Keys equal Perms
-Answer = (Cubes Mask) first
+Answer = Cubes Mask first
 Answer print

@@ -36,7 +36,7 @@ fun Prime has_eight_prime_family
   Places' = 0 till Last
 
   for Digit in 0 to 2
-    Same = (Digits Places equal Digit) indices
+    Same = Digits Places equal Digit indices
 
     for Pick in Same combinations 3
       Family = Prime replacement_family Pick

@@ -40,17 +40,17 @@ for P in primes to (L isqrt) array
     Mu (P * P to L by P * P) = 0
   end
 end
-Gt = (Rs greater 1) integer
+Gt = Rs greater 1 integer
 Mu = Mu * (1 - 2 * Gt)
 Mu 0 = 0
 Mt = Mu scan +
-Qt = ((Mu not equal 0) integer) scan +
+Qt = (Mu not equal 0 integer) scan +
 As = 1 to Ar
 Ys = (Ns // (As * As * As)) isqrt
-Sm = (Ys at most L) indices
+Sm = Ys at most L indices
 Yk = Ys Sm
 Answer = ((Qt Yk + Mt Yk) // 2) sum
-Bg = (Ys greater L) indices
+Bg = Ys greater L indices
 for Ia in Bg
   Y = Ys Ia
   Rt = Y isqrt
@@ -63,15 +63,15 @@ for Ia in Bg
     R = X isqrt
     Js = 2 to R
     Ix = Kk * Js
-    Hg = (Ix at most Kc) integer
+    Hg = Ix at most Kc integer
     Va = Mv (Ix min Kc)
-    Vb = Mt ((X // Js) min L)
+    Vb = Mt (X // Js min L)
     Wb = (1 - Hg) * Vb
     Tt = ((Hg * Va) + Wb) sum
     Vs = 1 to (X // (R + 1))
     Lw = (X // (Vs + 1)) max R
     Cn = X // Vs - Lw
-    Tt += (Mt Vs * Cn) sum
+    Tt += Mt Vs * Cn sum
     Mv Kk = 1 - Tt
   end
   Answer += (Qy + Mv 1) // 2

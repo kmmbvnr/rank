@@ -14,9 +14,9 @@ arg Input text = "10 1\n0 1 1 0 2 2 1 2 2 3"
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
-N = (Tokens 0) integer
-K = (Tokens 1) integer
-A = (Tokens drop 2) integer
+N = Tokens 0 integer
+K = Tokens 1 integer
+A = Tokens drop 2 integer
 
 MaxVal = (A max) + 2
 Counts = (0 till MaxVal) * 0
@@ -29,7 +29,7 @@ for J in 0 till N
   if V greater 0
     MinVal = Tree 0 (V - 1) query
     CurC = Counts V
-    if (CurC + 1) greater (MinVal + K)
+    if CurC + 1 greater (MinVal + K)
       MaxPrefix = J
       break
     end
@@ -40,4 +40,4 @@ for J in 0 till N
   Tree V = NewC
 end
 
-(MaxPrefix text) print
+MaxPrefix text print

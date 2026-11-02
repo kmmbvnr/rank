@@ -18,8 +18,8 @@ rem small side s, arrays over L > s.
 B = array shape (N + 1) fill 1
 Rt = N isqrt
 for S in 1 to Rt
-  R = (0 till S) copy
-  U = (R gcd S) equal 1
+  R = 0 till S copy
+  U = R gcd S equal 1
   rem T r = 2 / r mod S by powering.
   Rs = R * 0 + 1
   Bs = R
@@ -33,12 +33,12 @@ for S in 1 to Rt
   end
   T = 2 * Rs mod S
   if S odd and S greater 1
-    Ls = (S + 2 to N // S by 2) copy
+    Ls = S + 2 to N // S by 2 copy
     Ls = Ls (U (Ls mod S) indices)
     M = Ls * S
     X = (Ls * T (Ls mod S) - 1) mod M
     C = X max (M - X)
-    B M = (B M) max C
+    B M = B M max C
   end
   Lo = S + 1
   if S equal 1
@@ -55,7 +55,7 @@ for S in 1 to Rt
   C1 = V1 choose A1 1
   C = C1 max (V2 choose A2 1)
   N2 = 2 * M
-  B N2 = (B N2) max C
+  B N2 = B N2 max C
 end
 B 0 = 0
 B 1 = 0

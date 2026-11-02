@@ -19,8 +19,8 @@ rem digits. Grow Free until every digit
 rem has primes.
 Low = 10 ** (Size - 1)
 Pos = 0 till Size array
-Ones = (10 ** Pos) sum
-Digs = (0 to 9 array) reshape 10 1 1
+Ones = 10 ** Pos sum
+Digs = 0 to 9 array reshape 10 1 1
 Found = array shape 10 fill false
 Answer = 0
 for Free in 1 to Size - 1
@@ -44,7 +44,7 @@ for Free in 1 to Size - 1
   Seen' = Hit reshape 10 Cells
   Has = Seen any rank 1
   Fresh' = Has and not Found
-  Answer += (Fresh choose Sums 0) sum
+  Answer += Fresh choose Sums 0 sum
   Found = Found or Has
   if Found all
     break

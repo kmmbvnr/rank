@@ -14,10 +14,10 @@ arg Input text = "3 50 50 50"
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
-K = (Tokens 0) integer
-P1 = (Tokens 1) integer
-P2 = (Tokens 2) integer
-P3 = (Tokens 3) integer
+K = Tokens 0 integer
+P1 = Tokens 1 integer
+P2 = Tokens 2 integer
+P3 = Tokens 3 integer
 
 rem Expected score diff per match scaled by 100:
 rem A = 2 * P1 + P3 - 100 (chess)
@@ -31,4 +31,4 @@ Diffs = ((C * (A - B)) + (K * B)) abs
 MinDiff = Diffs min
 BestC = (C (Diffs equal MinDiff)) 0
 
-(BestC text) print
+BestC text print

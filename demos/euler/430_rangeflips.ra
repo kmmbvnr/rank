@@ -23,12 +23,12 @@ if N greater 2 * Edge
   Cnt = Edge
   Fac = 2
 end
-Is = (1 to Cnt) copy
+Is = 1 to Cnt copy
 Xs = (N + 1) * 1.0 - 2.0 * Is
 Nf = N * 1.0
 Qs = Xs * Xs - 2.0 * Nf + 1.0
 Rs = Qs / Nf / Nf
-Ps = (Rs ** M) copy
+Ps = Rs ** M copy
 E = N / 2.0 + Fac * (Ps sum) / 2.0
 Answer = E round Digits
 Answer print

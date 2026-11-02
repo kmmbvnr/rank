@@ -15,11 +15,11 @@ rem is 0 -> 1 -> n -> 0, so f = 0; the
 rem other orbits end in a fixed point
 rem within 13 steps.
 Md = 1000000000
-Ns = (2 to N) copy
+Ns = 2 to N copy
 Ns = Ns (Ns mod 10 greater 0 indices)
 X = Ns * 0
 Nx = Ns X Md powmod
-for (Nx not equal X) any
+for Nx not equal X any
   X = Nx
   Nx = Ns X Md powmod
 end

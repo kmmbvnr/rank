@@ -11,11 +11,11 @@ fun N maximix Rank
   Text = "ABCDEFGHIJK" (0 till N)
   Text = Text revsuffix (N - 2)
   All = array Text
-  for I in (N - 3) to 0 by -1
+  for I in N - 3 to 0 by -1
     Next = new queue
     for Arrangement in All
       After = Arrangement revsuffix I
-      for P in (I + 1) till (N - 1)
+      for P in I + 1 till (N - 1)
         Next push (After revsuffix P)
       end
     end

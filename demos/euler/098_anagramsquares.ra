@@ -35,8 +35,8 @@ for Key in Groups
     for B in Group drop (i + 1)
       Size = A len
       Low = 10 ** (Size - 1)
-      From = (Low - 1) isqrt + 1
-      To = (10 * Low - 1) isqrt
+      From = Low - 1 isqrt + 1
+      To = 10 * Low - 1 isqrt
       Roots = From to To array
       Sq = Roots * Roots
       Bases = array shape Size fill 10
@@ -50,9 +50,9 @@ for Key in Groups
       PJ = Pairs # 1
       Ca = A codepoint rank 0
       Cb = B codepoint rank 0
-      Same' = (Ca PI) equal (Ca PJ)
+      Same' = Ca PI equal (Ca PJ)
       Rows = Pairs len
-      Hold' = (Dm PI) equal (Dm PJ)
+      Hold' = Dm PI equal (Dm PJ)
       Want = Same reshape Rows 1
       Match' = Hold equal Want
       Fit' = Match all axis 0

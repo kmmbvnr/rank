@@ -35,12 +35,12 @@ end
 Ee = array shape (N + 1) fill 0.0
 Answer = 0.0
 for K in 2 to N
-  S = 0 to (K - 1) array
-  Cn = (K - 1) binomial S
+  S = 0 to K - 1 array
+  Cn = K - 1 binomial S
   Cn = Cn * (Ts (K - S))
   Pr = (Cn * 1.0) / (Fa K * 1.0)
   Ev = Ee (K - S)
-  Su = (Pr * Ev) sum
+  Su = Pr * Ev sum
   P0 = Pr 0
   Ee K = (1 + Su) / (1 - P0)
   En = Ee K

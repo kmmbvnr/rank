@@ -20,12 +20,12 @@ rem tau)(2^k - 1), each factored by
 rem trial division with small primes.
 Pr = primes to 100000 array
 Ks = 1 to K
-Dk = Ks ((K mod Ks equal 0) indices)
+Dk = Ks (K mod Ks equal 0 indices)
 Answer = 0
 for Kd in Dk
   Q = K // Kd
   Pq = primes to Q array
-  Dv = (Q mod Pq) equal 0
+  Dv = Q mod Pq equal 0
   Sq = (Q mod (Pq * Pq)) equal 0
   Mu = 0
   if Sq any equal false
@@ -35,14 +35,14 @@ for Kd in Dk
   Rv = Pr * 0 + Nk
   Ex = Pr * 0
   for J in 1 to Kd
-    Hit = (Rv mod Pr) equal 0
+    Hit = Rv mod Pr equal 0
     Rv = Hit choose (Rv // Pr) Rv
     Ex += Hit integer
   end
   Pw = Pr ** (Ex + 1)
   Sg = (Pw - 1) // (Pr - 1)
   Sm = Sg reduce * with 1
-  Tu = (Ex + 1) reduce * with 1
+  Tu = Ex + 1 reduce * with 1
   Answer += Mu * (Sm + Tu)
 end
 Answer print

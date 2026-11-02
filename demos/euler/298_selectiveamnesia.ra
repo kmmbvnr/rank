@@ -50,7 +50,7 @@ for
   Code = Sc I
   L = Code // Bs
   R = Code mod Bs // Pw mod 7
-  O = (R equal 1) count
+  O = R equal 1 count
   for Ev in 0 to (L + 5)
     Fresh = Ev equal L + 5
     Wt = 1
@@ -106,7 +106,7 @@ for
       if Ev at least L and not Fresh
         R2 (Ev - L) = L2 + 1
       end
-      Rs = (R2 * Pw) sum
+      Rs = R2 * Pw sum
       Code2 = L2 * Bs + Rs
       if Id Code2 less 0
         Id Code2 = Ns
@@ -134,7 +134,7 @@ for T in 0 till Turns
     Fs = Tf X * Wd
     Ts = Tt X * Wd + Td X
     Wt = Tw X
-    for D in (Off - T) to (Off + T)
+    for D in Off - T to (Off + T)
       Value = Dp (Fs + D)
       if Value not equal 0
         Mv = Value * Wt
@@ -145,8 +145,8 @@ for T in 0 till Turns
   Dp = New
 end
 Cols' = 0 till Size array mod Wd
-Ab' = (Cols - Off) abs
-Total = (Dp * Ab) sum
+Ab' = Cols - Off abs
+Total = Dp * Ab sum
 Scaled = (Total * 100000000 + Sl // 2) // Sl
 Answer = Scaled / 100000000
 Answer print

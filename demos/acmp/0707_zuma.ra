@@ -21,7 +21,7 @@ fun S C Pos simulate_shot
   R = Pos
 
   for Step in 0 till N
-    if (L equal 0) or ((Chars (L - 1)) not equal C)
+    if L equal 0 or ((Chars (L - 1)) not equal C)
       break
     end
     L = L - 1
@@ -34,18 +34,18 @@ fun S C Pos simulate_shot
     R = R + 1
   end
 
-  if (R - L + 1) less 3
+  if R - L + 1 less 3
     return TextChars
   end
 
   for Chain in 0 till 20
     OldN = N
     LeftSlice = Chars (0 till L)
-    RightSlice = Chars ((R + 1) till N)
+    RightSlice = Chars (R + 1 till N)
     Chars = concat LeftSlice RightSlice
     N = Chars len
 
-    if (L equal 0) or (R equal (OldN - 1)) or (N equal 0)
+    if L equal 0 or (R equal (OldN - 1)) or (N equal 0)
       break
     end
 
@@ -60,7 +60,7 @@ fun S C Pos simulate_shot
     NewR = L
 
     for Step in 0 till N
-      if (NewL equal 0) or ((Chars (NewL - 1)) not equal C2)
+      if NewL equal 0 or ((Chars (NewL - 1)) not equal C2)
         break
       end
       NewL = NewL - 1
@@ -73,7 +73,7 @@ fun S C Pos simulate_shot
       NewR = NewR + 1
     end
 
-    if (NewR - NewL + 1) less 3
+    if NewR - NewL + 1 less 3
       break
     end
 
@@ -109,7 +109,7 @@ fun Initial solve_zuma
   Found = 0
 
   for Step in 0 till MaxStates
-    if (Q len) equal 0
+    if Q len equal 0
       break
     end
 
@@ -133,7 +133,7 @@ fun Initial solve_zuma
       J = I
       CurChar = Chars I
       for ForwardStep in 0 till CurLen
-        if (J equal CurLen) or ((Chars J) not equal CurChar)
+        if J equal CurLen or (Chars J not equal CurChar)
           break
         end
         J = J + 1

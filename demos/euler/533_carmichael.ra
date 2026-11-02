@@ -59,7 +59,7 @@ if V2 greater 0
 end
 for Dd in Tb divisors
   Pp = Dd + 1
-  if (Pp greater 2) and (Pp in primes)
+  if Pp greater 2 and (Pp in primes)
     E = 1
     Y = Tb
     for Y mod Pp equal 0

@@ -13,8 +13,8 @@ arg Input text = "2 3"
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
-N = (Tokens 0) integer
-M = (Tokens 1) integer
+N = Tokens 0 integer
+M = Tokens 1 integer
 
 rem A grid with no 3 monochromatic connected cells must either have:
 rem 1. Alternating rows where the row sequence has no 3 consecutive identical rows: 2 * F_(N+1)
@@ -32,4 +32,4 @@ end
 
 Combinations = (2 * (F (N + 1))) + (2 * (F (M + 1))) - 2
 
-(Combinations text) print
+Combinations text print

@@ -8,7 +8,7 @@ use cli
 
 arg Limit integer = 10 ** 8
 
-Sieve = (Limit + 1) primesieve
+Sieve = Limit + 1 primesieve
 
 fun N good
   if N equal 1

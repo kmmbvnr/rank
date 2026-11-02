@@ -13,7 +13,7 @@ fun Limit solve
   Cnt = Limit partitioncounts
   Ps = primes till Limit
   Good' = Cnt Ps equal 1
-  return (Ps filter Good) sum
+  return Ps filter Good sum
 end
 
 rem Counts include the empty partition at zero and exclude Limit.

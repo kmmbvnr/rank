@@ -38,7 +38,7 @@ for Db in 0 to Nb
       end
       Down = Cnt shift Bx axis 0
       Moved = Down shift By axis 1
-      Cnt = (Cnt + Moved) copy
+      Cnt = Cnt + Moved copy
       Bx *= 2
       By *= 2
     end

@@ -35,7 +35,7 @@ if N not equal 1
   Inv = 1 / Deg
   Fl = 0 till Fn array
   Home' = (Fl // H) * N + Fl mod H
-  Hit' = (Cell reshape Z 1) equal Home
+  Hit' = Cell reshape Z 1 equal Home
   Ones' = Fl - Fl + 1
   Wt = ((Inv reshape Z 1) * Ones) reshape (Z * Fn) copy
   D = (Hit choose 1.0 0.0) reshape (Z * Fn)
@@ -44,15 +44,15 @@ if N not equal 1
   rem among neighbours. Shifts gather the
   rem four shares without an index table.
   for R in 1 to Rings
-    Q = (D * Wt) reshape N N Fn
+    Q = D * Wt reshape N N Fn
     Up' = Q shift 1 with 0.0 axis 0
     Dn' = Q shift -1 with 0.0 axis 0
     Lf' = Q shift 1 with 0.0 axis 1
     Rt' = Q shift -1 with 0.0 axis 1
-    D = (Up + Dn + Lf + Rt) reshape (Z * Fn) copy
+    D = Up + Dn + Lf + Rt reshape (Z * Fn) copy
   end
   Dm' = D reshape Z Fn
-  Pq' = (1 - Dm) reduce * axis 1
+  Pq' = 1 - Dm reduce * axis 1
   Empty' = Pq
   if Odd equal 0
     M = Pq reshape N N

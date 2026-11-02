@@ -21,7 +21,7 @@ rem ten rotations in four adds; the last
 rem 6 digits are enumerated outright
 rem and look up the opposite residue.
 Answer = 0
-Ds = (0 to 9) reshape 1 10
+Ds = 0 to 9 reshape 1 10
 Ks = concat (2 ** (0 to 2)) (8 to 9)
 for Ln in 1 to Ml
   Hf = (Ln + 1) // 2
@@ -32,7 +32,7 @@ for Ln in 1 to Ml
   Ix = 0 to (Hf - 1)
   P1 = 10 Ix Mo powmod
   P2 = 10 (Ln - 1 - Ix) Mo powmod
-  Nm = (2 * Ix + 1 less Ln) integer
+  Nm = 2 * Ix + 1 less Ln integer
   Wt = (P1 + P2 * Nm) mod Mo
   Cb = array shape Mo fill 0
   Cb ((1 to 9) * Wt 0 mod Mo) = 1

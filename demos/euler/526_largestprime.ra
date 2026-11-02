@@ -20,12 +20,12 @@ rem part should be prime. Scan n = N0 +
 rem r - M k by growing k in blocks: the
 rem first hits are the largest.
 M = 720720
-R = (0 till M) copy
+R = 0 till M copy
 Ok = (R mod 9 equal 5)
 Ok = Ok and (R mod 5 equal 1)
 Ok = Ok and (R mod 7 equal 3)
 R16 = R mod 16
-O16 = (R16 equal 1) or (R16 equal 7)
+O16 = R16 equal 1 or (R16 equal 7)
 Ok = Ok and O16
 R11 = R mod 11
 Ok = Ok and (R11 at least 1)
@@ -59,7 +59,7 @@ for K0 in 0 till Km by Bk
     end
     Kk = K0 + (Mk indices)
     N = N0 + Rr - M * Kk
-    N = N ((N at most L) indices)
+    N = N (N at most L indices)
     Sm = N * 0
     Gd = N greater 0
     for J in 0 till 9

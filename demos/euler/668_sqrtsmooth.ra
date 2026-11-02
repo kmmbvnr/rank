@@ -21,7 +21,7 @@ rem Lucy's sieve: Lo[v] for v up to R,
 rem Hi[k] for v = Nn // k.
 R = Nn isqrt
 V = 0 to R array
-Lo = ((V - 1) max 0) copy
+Lo = (V - 1 max 0) copy
 K = 1 to R array
 Top = concat (array 0) (Nn // K - 1)
 Hi = Top copy
@@ -32,7 +32,7 @@ for P in primes to R
     Ks = 1 to Kmax array
     Kp = Ks * P
     Pos' = Kp min R
-    Low' = (Nn // Kp) min R
+    Low' = Nn // Kp min R
     Near = Hi Pos
     Far = Lo Low
     Big' = Kp at most R

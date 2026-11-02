@@ -18,8 +18,8 @@ rem g = gcd(n, d) and n1 = -d1 mod m1,
 rem so only the small d1 = d / g needs
 rem an inverse, by Euclid mod d1.
 L = Hi - 1
-Ph = (0 to L) copy
-Rs = (0 to L) copy
+Ph = 0 to L copy
+Rs = 0 to L copy
 Ls = L isqrt
 for P in primes to Ls
   Sl = P to L by P
@@ -32,7 +32,7 @@ for P in primes to Ls
 end
 Rm = Rs max 1
 Pr = Ph // Rm * (Rm - 1)
-Ph = (Rs greater 1) choose Pr Ph
+Ph = Rs greater 1 choose Pr Ph
 rem All pairs i < j of the range.
 Cn = Hi - Lo
 Ct = Cn - 1 - (0 till Cn)
@@ -41,8 +41,8 @@ Tt = Cs last
 rem Pairs in chunks to bound memory.
 Answer = 0
 for K0 in 0 till Tt by 2000000
-  Ke = (K0 + 2000000) min Tt
-  K = (K0 till Ke) copy
+  Ke = K0 + 2000000 min Tt
+  K = K0 till Ke copy
   I = Cs upperindex K
   J = I + 1 + K - (Cs - Ct) I
   Nn = Lo + I
@@ -66,11 +66,11 @@ for K0 in 0 till Tt by 2000000
   T0 = R0 * 0
   T1 = T0 + 1
   Sv = T0
-  Ix = (0 till D1 len) copy
+  Ix = 0 till D1 len copy
   for It in 1 to 20
-    Dz = (R1 equal 0) indices
+    Dz = R1 equal 0 indices
     Sv (Ix Dz) = T0 Dz
-    Nz = (R1 greater 0) indices
+    Nz = R1 greater 0 indices
     Ix = Ix Nz
     R0 = R0 Nz
     R1 = R1 Nz
@@ -88,6 +88,6 @@ for K0 in 0 till Tt by 2000000
   Id = (1 + M1 * Kk) // D1
   In = (M1 - Id) mod M1
   U0 = ((B - A) // G) mod M1 * In mod M1
-  Answer += (A + Nn * U0) sum
+  Answer += A + Nn * U0 sum
 end
 Answer print

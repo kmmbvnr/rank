@@ -50,7 +50,7 @@ for K in 56 to Len
   Sum = S (K - 25) + S (K - 56)
   S (K - 1) = (Sum + M) mod M - H
 end
-G = (S take Cells) reshape N N
+G = S take Cells reshape N N
 Gap = 0 - 1000000000000
 Pad' = Gap + (G # 0) * 0
 End' = Pad reshape N 1

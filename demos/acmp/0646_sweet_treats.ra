@@ -13,9 +13,9 @@ arg Input text = "4 3\n1 2 3 2"
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
-N = (Tokens 0) integer
-K = (Tokens 1) integer
-A = (Tokens drop 2) integer
+N = Tokens 0 integer
+K = Tokens 1 integer
+A = Tokens drop 2 integer
 
 TotalSum = A sum
 Ways = 0
@@ -35,4 +35,4 @@ if not (TotalSum less (2 * K))
   Ways = Total - (2 * Under)
 end
 
-(Ways text) print
+Ways text print

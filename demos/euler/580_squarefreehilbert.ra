@@ -20,7 +20,7 @@ rem -mu(m) for v = q^2 m. The factors
 rem come from a sieve by blocks of v.
 Um = N isqrt
 Sq = Um isqrt
-Pl = primes from 3 till (Sq + 1) array
+Pl = primes from 3 till Sq + 1 array
 Bk = 2000000
 Answer = 0
 for V0 in 1 to Um by 2 * Bk
@@ -35,8 +35,8 @@ for V0 in 1 to Um by 2 * Bk
       Q = P ** E
       Rm = (Q - (V0 mod Q)) mod Q
       S0 = (Rm * ((Q + 1) // 2)) mod Q
-      Ix = (S0 to (Ln - 1) by Q) array
-      Q3 = (P mod 4 equal 3) integer
+      Ix = (S0 to Ln - 1 by Q) array
+      Q3 = P mod 4 equal 3 integer
       if E equal 1
         R Ix = (R Ix) // P
         Mu Ix = 0 - Mu Ix
@@ -51,14 +51,14 @@ for V0 in 1 to Um by 2 * Bk
       end
     end
   end
-  Big = (R greater 1) integer
+  Big = R greater 1 integer
   Mu = Mu * (1 - 2 * Big)
-  E3 = ((R mod 4) equal 3) integer
+  E3 = (R mod 4 equal 3) integer
   T += Big * E3
   C = Mu * (1 - T)
-  C = (Qs equal 1) choose (0 - Mu) C
-  C = (Qs greater 1) choose 0 C
+  C = Qs equal 1 choose (0 - Mu) C
+  C = Qs greater 1 choose 0 C
   Tq = (N // (V * V) + 3) // 4
-  Answer += (C * Tq) sum
+  Answer += C * Tq sum
 end
 Answer print

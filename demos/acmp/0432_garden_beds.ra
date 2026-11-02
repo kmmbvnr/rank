@@ -12,12 +12,12 @@ arg Input text = "5 10\n##......#.\n.#..#...#.\n.###....#.\n..##....#.\n........
 
 Lines = Input split "\n"
 Lines = Lines (Lines not equal "")
-Header = (Lines 0) split " "
+Header = Lines 0 split " "
 Header = Header (Header not equal "")
 N = Header 0 integer
 M = Header 1 integer
 
-AllRows = ((Lines drop 1) take N) join ""
+AllRows = (Lines drop 1 take N) join ""
 GridChars = AllRows split ""
 GridChars = GridChars (GridChars not equal "")
 
@@ -31,7 +31,7 @@ if BedCells len greater 0
   IsBedPadded = concat IsBed (array shape (M + 1) fill false)
 
   rem Horizontal edges: c < M - 1
-  CanRight = ((Indices mod M) less (M - 1)) and IsBed
+  CanRight = (Indices mod M less (M - 1)) and IsBed
   RightNeighbor = Indices + 1
   HasRightEdge = CanRight and (IsBedPadded RightNeighbor)
   EdgesH_U = Indices HasRightEdge

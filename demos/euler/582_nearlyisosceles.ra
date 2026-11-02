@@ -19,13 +19,13 @@ Nm = 10 ** E
 Answer = 0
 for D in 1 to G
   Lm = D // 2
-  for Y in (0 - Lm) to Lm
+  for Y in 0 - Lm to Lm
     Sq = D * D + 3 * Y * Y
     U = Sq isqrt
     Xb = 2 * Y - U
-    Sk = (0 - Lm) at most Xb
+    Sk = 0 - Lm at most Xb
     Sk = Sk and (Xb at most Lm)
-    if (U * U equal Sq) and (not Sk)
+    if U * U equal Sq and (not Sk)
       X = Y
       for U // 2 at most Nm
         Ev = U mod 2 equal 0

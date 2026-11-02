@@ -17,7 +17,7 @@ rem is the unit T mod M = 10^K / (2^a
 rem 5^b). Count the products of the
 rem other prime powers by residue.
 Md = 10000000000000061
-K = (D text) len
+K = D text len
 T = D
 Al = 0
 Be = 0
@@ -34,7 +34,7 @@ Pr = primes to N array
 rem Exponents of the primes in N!.
 E = Pr * 0
 Pk = Pr
-for (Pk at most N) any
+for Pk at most N any
   E += N // Pk
   Lo = Pk at most N
   Pk = Lo choose (Pk * Pr) Pk
@@ -45,16 +45,16 @@ if N at least 5
 end
 Answer = 0
 if Al at most E 0 and Be at most E5
-  Rs = (0 till M) copy
-  Cp = (Rs gcd 10) equal 1
+  Rs = 0 till M copy
+  Cp = Rs gcd 10 equal 1
   Us = Rs (Cp indices)
   Nu = Us len
   Ps = Rs * 0
-  Ps Us = (0 till Us len) copy
+  Ps Us = 0 till Us len copy
   rem Tx w i: position of u_i times
   rem the unit at position w.
   Ur = Us reshape Nu 1
-  Tf = (Ur * Us mod M) reshape (Nu * Nu)
+  Tf = Ur * Us mod M reshape (Nu * Nu)
   Tg = Ps Tf
   Tx = Tg reshape Nu Nu
   A = Us * 0
@@ -70,7 +70,7 @@ if Al at most E 0 and Be at most E5
   for I in Fr indices
     Pv = (Pr I) (Nu - 1) M powmod
     R1 = Tx (Ps Pv)
-    Bt = (E I + 1) binary
+    Bt = E I + 1 binary
     Sm = A
     Cu = 1
     for J in 1 till Bt len

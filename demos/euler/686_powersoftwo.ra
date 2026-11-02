@@ -41,11 +41,11 @@ for Hit less Nn
   Fa = Pt - F0 + Js * Tl
   F1 = Fa floor
   Fr = Fa - F1
-  Ok = (Fr at least Aa) integer
-  Ok = Ok * ((Fr less Bb) integer)
+  Ok = Fr at least Aa integer
+  Ok = Ok * (Fr less Bb integer)
   Cn = Ok sum
   if Hit + Cn at least Nn
-    Ix = (Ok equal 1) indices
+    Ix = Ok equal 1 indices
     Answer = Base + Ix (Nn - Hit - 1)
   end
   Hit += Cn

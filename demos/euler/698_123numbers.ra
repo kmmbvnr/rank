@@ -62,21 +62,21 @@ for N in 2 to 63
   end
   Ok N = Good
 end
-Gr = (0 to 40) reshape 41 1
-Gc = (0 to 40) reshape 1 41
+Gr = 0 to 40 reshape 41 1
+Gc = 0 to 40 reshape 1 41
 Cum = 0
 Ln = 1
 Go = 1
 for Go equal 1
   Cd = Ln - Gr - Gc
-  Ms = (Cd at least 0) integer
+  Ms = Cd at least 0 integer
   Cc = Cd max 0
   Wt = Ok Gr * Ok Gc * Ok Cc * Ms
   Bm = Gc min (Ln - Gr max 0)
   Ar = Gr min Ln
   Ma = Pm (Ln * 41 + Ar)
   Mt = Ma * Pm ((Ln - Ar) * 41 + Bm)
-  Cn = (Wt * Mt) sum
+  Cn = Wt * Mt sum
   if Cum + Cn at least Nn
     Go = 0
   end
@@ -95,20 +95,20 @@ for Ps in 1 to Ln
   Dn = 0
   for D in 1 to 3
     if Dn equal 0
-      E1 = (D equal 1) integer
-      E2 = (D equal 2) integer
-      E3 = (D equal 3) integer
+      E1 = D equal 1 integer
+      E2 = D equal 2 integer
+      E3 = D equal 3 integer
       Q1 = P1 + E1
       Q2 = P2 + E2
       Q3 = P3 + E3
       Ad = Gr - Q1
       Bd = Gc - Q2
       Cd = Ln - Gr - Gc - Q3
-      Ma = (Ad at least 0) integer
-      Mb = (Bd at least 0) integer
-      Mc = (Cd at least 0) integer
+      Ma = Ad at least 0 integer
+      Mb = Bd at least 0 integer
+      Mc = Cd at least 0 integer
       Ms = Ma * Mb * Mc
-      Cf = (Ln - Gr - Gc) max 0
+      Cf = Ln - Gr - Gc max 0
       Wt = Ok Gr * Ok Gc * Ok Cf * Ms
       Ac = Ad max 0
       Ac = Ac min Rm
@@ -116,7 +116,7 @@ for Ps in 1 to Ln
       Bc = Bc min (Rm - Ac)
       Ma = Pm (Rm * 41 + Ac)
       Mt = Ma * Pm ((Rm - Ac) * 41 + Bc)
-      Bk = (Wt * Mt) sum
+      Bk = Wt * Mt sum
       Hit = Rk at most Bk
       if Rk greater Bk
         Rk -= Bk

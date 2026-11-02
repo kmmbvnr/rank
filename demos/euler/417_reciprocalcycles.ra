@@ -18,12 +18,12 @@ rem power and the rest by lcm, an
 rem order of a prime p from the prime
 rem factors of p - 1 and an order of
 rem a prime power by lifting.
-Sp = (0 to N) copy
+Sp = 0 to N copy
 Rt = N isqrt
 Ps = primes to Rt array
-for I in (Ps len - 1) to 0 by -1
+for I in Ps len - 1 to 0 by -1
   P = Ps I
-  Sl = (P * P) to N by P
+  Sl = P * P to N by P
   Sp Sl = P
 end
 Sp = Sp copy

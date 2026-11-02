@@ -31,7 +31,7 @@ for Z in 0 to Top
     Hit = Hit bor (Dr Y shr (Top - Z))
     Hit = Hit bor Df Gap
     Hit = Hit bor (Eq Gap shr (Top - Y))
-    Free = (Hit bnot) band ((1 shl (Y + 1)) - 1)
+    Free = Hit bnot band ((1 shl (Y + 1)) - 1)
     if Free not equal 0
       Low = Free band (-Free)
       X = (Low binary len) - 1

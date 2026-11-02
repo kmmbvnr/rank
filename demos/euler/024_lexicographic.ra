@@ -16,7 +16,7 @@ rem factorial-sized permutation block.
 Available = Digits multiset
 Remaining = Position - 1
 Size = Available len
-Block = (1 till Size) reduce *
+Block = 1 till Size reduce *
 Result = ""
 
 for Size greater 0

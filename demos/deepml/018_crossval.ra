@@ -42,7 +42,7 @@ fun N K Shuffle cross_validation
     TrainMask = Positions less First
     After' = Positions at least Last
     TrainMask or= After
-    Train = (Order TrainMask) array
+    Train = Order TrainMask array
 
     Queue push tuple Train Test
   end

@@ -15,11 +15,11 @@ rem rectangles, T(n) = n (n + 1) / 2.
 rem Keep the short side below 100.
 Reach = Target * 2 isqrt
 A = 1 to 100 array
-B = 1 to (Reach + 1) array
+B = 1 to Reach + 1 array
 TA = A * (A + 1) // 2
 TB = B * (B + 1) // 2
 Count' = TA TB outer *
-Gap' = (Count - Target) abs
+Gap' = Count - Target abs
 Rows = A len
 Cols = B len
 Size = Rows * Cols

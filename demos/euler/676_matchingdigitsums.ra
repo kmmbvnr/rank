@@ -42,7 +42,7 @@ for K in K1 to K2
     Tv = 0
     for P in Lb - 1 to 0 by -1
       Dl = Dv P
-      Bt = (Nn shr P) band 1
+      Bt = Nn shr P band 1
       Pw = 2 ** P
       Ps = Pw // Q
       Pr = Pw mod Q

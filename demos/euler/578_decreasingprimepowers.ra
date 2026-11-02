@@ -29,7 +29,7 @@ for K in 1 to Rt
   Lg K = N // K - 1
 end
 for P in 2 to Rt
-  if (Sm P) greater (Sm (P - 1))
+  if Sm P greater (Sm (P - 1))
     Sp = Sm (P - 1)
     P2 = P * P
     Kt = Rt min (N // P2)
@@ -47,10 +47,10 @@ for P in 2 to Rt
   end
 end
 Dp = Sm * 0
-Ra = 1 till (Rt + 1) array
+Ra = 1 till Rt + 1 array
 Rb = 0 till Rt array
 Dp Ra = (Sm Ra) - (Sm Rb)
-Pl = (Dp equal 1) indices
+Pl = Dp equal 1 indices
 Np = Pl len
 Tot = 0
 Sl = array shape 200 fill 0
@@ -81,8 +81,8 @@ for Sp0 greater 0
       else
         Hi = Lg (N // L)
       end
-      Lo = (Sm Sq) max I
-      Gp = (Hi - Lo) max 0
+      Lo = Sm Sq max I
+      Gp = Hi - Lo max 0
       Tot += 1 + Gp
       Sj T = I
     end
@@ -93,7 +93,7 @@ for Sp0 greater 0
     Sq = L isqrt
     Ok = J less Np
     if Ok
-      Ok = (Pl J) at most Sq
+      Ok = Pl J at most Sq
     end
     if Ok
       Sj T = J + 1

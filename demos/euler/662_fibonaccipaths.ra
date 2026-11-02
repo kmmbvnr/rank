@@ -19,28 +19,28 @@ rem diagonal s - a - b. Diagonals sit
 rem in a ring of rows, and the sums
 rem are reduced once per diagonal.
 P = 1000000007
-Lm = (Wi * Wi + He * He) isqrt
+Lm = Wi * Wi + He * He isqrt
 Nf = 2 to 30
 Fr = 1.6180339887498949 ** Nf
 Fr = Fr / 2.23606797749979
-Fb = (Fr + 0.5) floor
-Fb = Fb ((Fb at most Lm) indices)
+Fb = Fr + 0.5 floor
+Fb = Fb (Fb at most Lm indices)
 Nb = Fb len
-Aa = (0 to Wi) reshape (Wi + 1) 1
+Aa = 0 to Wi reshape (Wi + 1) 1
 Ff = Fb reshape 1 Nb
 Rr = Ff * Ff - Aa * Aa
 Ng = Rr less 0
 Rr = Ng choose 0 Rr
 Bb = Rr isqrt
-Gd = (Bb * Bb equal Rr) integer
-Gd = Gd * ((Bb at most He) integer)
-Gd = Gd * ((Aa + Bb greater 0) integer)
+Gd = Bb * Bb equal Rr integer
+Gd = Gd * (Bb at most He integer)
+Gd = Gd * (Aa + Bb greater 0 integer)
 Nc = (Wi + 1) * Nb
-Gd = Gd * ((Ng equal false) integer)
+Gd = Gd * (Ng equal false integer)
 Gf = Gd reshape Nc
-Af = (Aa + Bb * 0) reshape Nc
+Af = Aa + Bb * 0 reshape Nc
 Bf = Bb reshape Nc
-Sl = (Gf equal 1) indices
+Sl = Gf equal 1 indices
 Sa = Af Sl
 Sb = Bf Sl
 Ss = Sa + Sb
@@ -51,7 +51,7 @@ Ed = array shape (Rg * Wd) fill 0
 Ed 0 = 1
 Answer = 1
 for S in 1 to Wi + He
-  Xl = (S - He) max 0
+  Xl = S - He max 0
   Xh = S min Wi
   Ac = array shape Wd fill 0
   for I in 0 to Ns - 1

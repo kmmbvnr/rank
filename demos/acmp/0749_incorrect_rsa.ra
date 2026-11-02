@@ -26,11 +26,11 @@ N = NStr real
 FoundK = 1
 K = 23
 
-for (K greater 1) and (FoundK equal 1)
+for K greater 1 and (FoundK equal 1)
   X = (N ** (1.0 / K)) round 0
   if not (X less 2.0)
     P = X ** K
-    Diff = (P - N) abs
+    Diff = P - N abs
     Tol = 0.1 max (N * 0.00000000001)
     if not (Diff greater Tol)
       FoundK = K

@@ -13,7 +13,7 @@ Answer print
 rem Small rows enumerate Q directly. Large rows group equal quotients and
 rem reuse the square-free signed divisors of P for inclusion-exclusion.
 fun Limit triangles
-  Top = (Limit // 3) isqrt
+  Top = Limit // 3 isqrt
   Spf = array shape (Top + 1) fill 0
   Spf 1 = 1
   for P in 2 to Top
@@ -34,8 +34,8 @@ fun Limit triangles
   Sum = 0
   Small = Cut min Top
   for P in 1 to Small
-    End = ((5 * P * P) isqrt + P) // 2
-    Nq = ((4 * Limit - 3 * P * P) isqrt - P) // 2
+    End = (5 * P * P isqrt + P) // 2
+    Nq = (4 * Limit - 3 * P * P isqrt - P) // 2
     if Nq less End
       End = Nq
     end
@@ -63,8 +63,8 @@ fun Limit triangles
     end
   end
   for P in Small + 1 to Top
-    End = ((5 * P * P) isqrt + P) // 2
-    Nq = ((4 * Limit - 3 * P * P) isqrt - P) // 2
+    End = (5 * P * P isqrt + P) // 2
+    Nq = (4 * Limit - 3 * P * P isqrt - P) // 2
     if Nq less End
       End = Nq
     end
@@ -90,7 +90,7 @@ fun Limit triangles
       Norm = Lo * Lo + P * Lo + P * P
       Quot = Limit // Norm
       Bound = Limit // Quot
-      Hi = ((4 * Bound - 3 * P * P) isqrt - P) // 2
+      Hi = (4 * Bound - 3 * P * P isqrt - P) // 2
       if Hi greater End
         Hi = End
       end

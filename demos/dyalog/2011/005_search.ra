@@ -28,8 +28,8 @@ end
 
 fun A cosine B rank 1 1
   Dot = A matmul B
-  MagA = (A matmul A) sqrt
-  MagB = (B matmul B) sqrt
+  MagA = A matmul A sqrt
+  MagB = B matmul B sqrt
   return Dot / (MagA * MagB)
 end
 
@@ -41,7 +41,7 @@ fun Titles seek Query
   end
   TitleVecs = Dict dictCount Titles rank 1 0
   rem Positive overlap also excludes tokenless titles before cosine.
-  Hits = (TitleVecs matmul QueryVec) greater 0
+  Hits = TitleVecs matmul QueryVec greater 0
   HitTitles = Titles Hits array
   HitVecs' = TitleVecs Hits #
   HitScores' = HitVecs cosine QueryVec rank 1 1

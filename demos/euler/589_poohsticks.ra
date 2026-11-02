@@ -68,7 +68,7 @@ for M in 2 to K
     end
     for C in 0 till Sz
       Pv = Aa C C
-      for R in (C + 1) till Sz
+      for R in C + 1 till Sz
         F = (Aa R C) / Pv
         if F not equal 0.0
           for J in C to Sz
@@ -78,9 +78,9 @@ for M in 2 to K
       end
     end
     Xs = array shape Sz fill 0.0
-    for C in (Sz - 1) to 0 by -1
+    for C in Sz - 1 to 0 by -1
       S = Aa C Sz
-      for J in (C + 1) till Sz
+      for J in C + 1 till Sz
         S = S - (Aa C J) * (Xs J)
       end
       Xs C = S / (Aa C C)
@@ -89,7 +89,7 @@ for M in 2 to K
     Ep = 0.0
     Tot = 0.0
     for A in Nn to M
-      for B in (A + 1) to M
+      for B in A + 1 to M
         Ep += A + Xs (V + B - A - 1)
       end
       Tot += A + Xb

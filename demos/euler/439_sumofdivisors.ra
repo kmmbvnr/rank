@@ -20,9 +20,9 @@ rem from W(x) = 1 - sum over k >= 2
 rem of k W(x // k).
 Mod = 1000000000
 Rn = N isqrt + 2
-Lm = (L max Rn) min N
+Lm = L max Rn min N
 Rt = Lm isqrt
-Ix = (0 to Lm) copy
+Ix = 0 to Lm copy
 Mu = array shape (Lm + 1) fill 1
 Sm = array shape (Lm + 1) fill 1
 for P in primes to Rt
@@ -35,7 +35,7 @@ for P in primes to Rt
     end
     Q *= P
   end
-  Sl = (P * P) to Lm by (P * P)
+  Sl = P * P to Lm by (P * P)
   Mu Sl = 0
 end
 Big = Ix // Sm greater 1
@@ -44,8 +44,8 @@ Mu 0 = 0
 Sg = array shape (Lm + 1) fill 0
 Xr = Lm isqrt
 for D in 1 to Xr
-  Sl = (D * D) to Lm by D
-  Vs = (D + Sl // D) copy
+  Sl = D * D to Lm by D
+  Vs = D + Sl // D copy
   Sg Sl += Vs
   Sg (D * D) -= D
 end
@@ -66,18 +66,18 @@ for I in Nq to 1 by -1
     rem W comes from the recursion Lw.
     Pa = 0
     if K0 at least 2
-      Ka = (2 to K0) copy
+      Ka = 2 to K0 copy
       Va = Lw (I * Ka)
-      Pa += (Ka * Va mod Mod) sum
+      Pa += Ka * Va mod Mod sum
     end
     rem k > K0: X // k is a table index.
     if R greater K0
-      Kb = (K0 + 1 to R) copy
+      Kb = K0 + 1 to R copy
       Vb = Wt (X // Kb)
-      Pa += (Kb * Vb mod Mod) sum
+      Pa += Kb * Vb mod Mod sum
     end
     Qz = X // (R + 1)
-    Qs = (1 to Qz) copy
+    Qs = 1 to Qz copy
     Hq = X // Qs
     Hx = concat Hq (array R)
     Od = Hx mod 2
@@ -88,10 +88,10 @@ for I in Nq to 1 by -1
     Tu = Tx (0 to Qz - 1)
     Tb = Tx (1 to Qz)
     Dk = (Tu - Tb) mod Mod
-    Pb = (Dk * Wt Qs mod Mod) sum
+    Pb = Dk * Wt Qs mod Mod sum
     Lw I = (1 - Pa - Pb) mod Mod
     rem A(X) by the hyperbola method.
-    Ka = (1 to R) copy
+    Ka = 1 to R copy
     Qa = X // Ka
     Od = Qa mod 2
     Ha = Qa // (2 - Od)
@@ -106,25 +106,25 @@ for I in Nq to 1 by -1
   end
 end
 R2 = N isqrt
-Dd = (1 to R2) copy
+Dd = 1 to R2 copy
 Nd = N // Dd
 Sa = At (Nd min Lm)
 Lq = La (Dd min Nq)
-Ad = (Nd at most Lm) choose Sa Lq
+Ad = Nd at most Lm choose Sa Lq
 Pd = (Mu Dd) * (Dd mod Mod) mod Mod
 Ad2 = Ad * Ad mod Mod
-P1 = (Pd * Ad2 mod Mod) sum
+P1 = Pd * Ad2 mod Mod sum
 Qq = (1 to N // (R2 + 1)) copy
 Xq = N // Qq
 Sx = Wt (Xq min Lm)
 Qm = Qq min Nq
-Fx = (Xq at most Lm) choose Sx (Lw Qm)
+Fx = Xq at most Lm choose Sx (Lw Qm)
 Lo2 = N // (Qq + 1) max R2
 Sw = Wt (Lo2 min Lm)
-Qn = (Qq + 1) min Nq
-Fl = (Lo2 at most Lm) choose Sw (Lw Qn)
+Qn = Qq + 1 min Nq
+Fl = Lo2 at most Lm choose Sw (Lw Qn)
 Dq = (Fx - Fl) mod Mod
 Aq = At Qq
-P2 = (Aq * Aq mod Mod * Dq mod Mod) sum
+P2 = Aq * Aq mod Mod * Dq mod Mod sum
 Answer = (P1 + P2) mod Mod
 Answer print

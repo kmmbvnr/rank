@@ -30,7 +30,7 @@ for V in 5 to 21 by 2
   Cnt (V + 2) = 1
   Last = V
   Tail = Cnt (Last + 1 to #)
-  Hits = (Tail equal 1) indices
+  Hits = Tail equal 1 indices
   for Hits len greater 0
     Next = Last + 1 + Hits first
     Ok = Terms + Next at most Lim
@@ -39,13 +39,13 @@ for V in 5 to 21 by 2
     Terms = concat Terms (array Next)
     Last = Next
     Tail = Cnt (Last + 1 to #)
-    Hits = (Tail equal 1) indices
+    Hits = Tail equal 1 indices
   end
   Mem = array shape (Lim + 1) fill 0
   Mem Terms = 1
-  Seed = Mem (1 to (2 * G - 1) by 2)
+  Seed = Mem (1 to 2 * G - 1 by 2)
   Shifts = 2 ** (0 till G array)
-  B = (Seed * Shifts) sum
+  B = Seed * Shifts sum
   T = G
   Lag = 1
   Per = 0
@@ -59,8 +59,8 @@ for V in 5 to 21 by 2
       Mask = 2 ** Size - 1
       Nr = (B shr (T - Lag)) band Mask
       Far = T - G * Lag
-      Fr = (B shr Far) band Mask
-      B = B bor ((Nr bxor Fr) shl T)
+      Fr = B shr Far band Mask
+      B = B bor (Nr bxor Fr shl T)
       T += Size
     end
     Match = 2 ** (T - G + 1) - 1
@@ -75,11 +75,11 @@ for V in 5 to 21 by 2
     Rest = Match shr 1
     if Rest greater 0
       Low = Rest band (0 - Rest)
-      Per = (Low binary) len
+      Per = Low binary len
     end
   end
   Whole = B band (2 ** Per - 1)
-  Txt = (Whole binary Per) reverse
+  Txt = Whole binary Per reverse
   Spots = Txt findall "1"
   Ones = Spots len
   Pos = Seed sum + 2

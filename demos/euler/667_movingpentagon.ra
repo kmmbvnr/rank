@@ -52,7 +52,7 @@ for It in 0 to 61
     Sl = 2
   end
   if It greater 1
-    Mv = (F1 less F2) integer
+    Mv = F1 less F2 integer
     if Mv equal 1
       Lo = X1
       X1 = X2
@@ -82,7 +82,7 @@ for It in 0 to 61
   Wb = concat (Z1 + Sa) (Z1 + Sa - Sd)
   Vy = concat (concat Wa Wb) (Z1 + Sa)
   Ar = Vx * (Vy Ix) - (Vx Ix) * Vy
-  Area = (Ar sum) abs / 2.0
+  Area = Ar sum abs / 2.0
   Vxc = Vx reshape 5 1
   Vyc = Vy reshape 5 1
   Xm = Vxc * Cr - Vyc * Sr
@@ -97,12 +97,12 @@ for It in 0 to 61
   Mnq = Mny reshape 1 Nt
   Xs = Xm - Mnr
   Ys = Ym - Mnq
-  Wv = (Xs min Ys) reduce max axis 0
+  Wv = Xs min Ys reduce max axis 0
   Xn = Xs Ix Cn
   Yn = Ys Ix Cn
   D1 = Xs - Ys
   D2 = Xn - Yn
-  Cx = (D1 * D2 less 0.0) integer
+  Cx = D1 * D2 less 0.0 integer
   Dn = (D1 - D2) * Cx + (1 - Cx)
   Tt = D1 / Dn
   Px = (Xs + Tt * (Xn - Xs)) * Cx
@@ -111,17 +111,17 @@ for It in 0 to 61
   Wh = 3.0
   for Bi in 1 to 60
     Wm = (Wl + Wh) / 2.0
-    Sg = (Wv at most Wm) integer
-    Fa = (Wx at most Wm) integer
-    Fb = (Wy at most Wm) integer
-    Bk = (Sg equal 0) indices
+    Sg = Wv at most Wm integer
+    Fa = Wx at most Wm integer
+    Fb = Wy at most Wm integer
+    Bk = Sg equal 0 indices
     Nb = Bk len
     Ok = 0
     if Nb equal 0
       Sa2 = Fa sum
       Sb2 = Fb sum
-      Qa = (Sa2 greater 0) integer
-      Qb = (Sb2 greater 0) integer
+      Qa = Sa2 greater 0 integer
+      Qb = Sb2 greater 0 integer
       Ok = Qa * Qb
     end
     if Nb greater 0
@@ -136,8 +136,8 @@ for It in 0 to 61
       Gj = Bn (1 to Nb)
       Ha = (Ea Gj) - (Ea Gi)
       Hb = (Eb Gj) - (Eb Gi)
-      Ia = (Ha greater 0) integer
-      Ib = (Hb greater 0) integer
+      Ia = Ha greater 0 integer
+      Ib = Hb greater 0 integer
       Oc = Ia * Ib
       Os = Oc sum
       Ok = Os min 1
@@ -165,5 +165,5 @@ for It in 0 to 61
     end
   end
 end
-Answer = (F1 max F2) text ".10f"
+Answer = F1 max F2 text ".10f"
 Answer print

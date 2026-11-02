@@ -28,19 +28,19 @@ Rt = Lm isqrt
 for I in 1 to Rt // 2
   if Cp I equal 0
     P = 2 * I + 1
-    for J in (P * P // 2) to Hf by P
+    for J in P * P // 2 to Hf by P
       Cp J = 1
     end
   end
 end
-Ix = (Cp equal 0) indices
-Ix = Ix ((Ix greater 0) indices)
+Ix = Cp equal 0 indices
+Ix = Ix (Ix greater 0 indices)
 Pr = concat (array 2) (2 * Ix + 1)
-Pr = Pr (0 till (2 * N) array)
-Id = 0 till (2 * N) array
+Pr = Pr (0 till 2 * N array)
+Id = 0 till 2 * N array
 Sg = 1 - 2 * (Id mod 2)
-Xs = (Pr scan +) array
-Ys = ((Pr * Sg) scan +) array
+Xs = Pr scan + array
+Ys = (Pr * Sg scan +) array
 Ke = (0 till N array) * 2
 Xk = concat (array 0) (Xs Ke)
 Yk = concat (array 0) (Ys Ke)
@@ -50,7 +50,7 @@ Sp = 0
 Bs = 33554432
 for I in 1 to N
   Go = 1
-  for (Sp greater 1) and (Go equal 1)
+  for Sp greater 1 and (Go equal 1)
     A = St (Sp - 2)
     B = St (Sp - 1)
     Abx = Xk B - Xk A
@@ -83,10 +83,10 @@ for K in 2 to N
   Yc = Yk K
   Xc = Xk K
   Go = 1
-  for (T greater 1) and (Go equal 1)
+  for T greater 1 and (Go equal 1)
     Ex = 0
     V = T - 1
-    for (V greater 0) and (Ex equal 0)
+    for V greater 0 and (Ex equal 0)
       A1 = Yc - Yk V
       B1 = Xc - Xk Bst
       A2 = Yc - Yk Bst
@@ -108,7 +108,7 @@ for K in 2 to N
     else
       J = T - 1
       Fd = 0
-      for (J greater 0) and (Fd equal 0)
+      for J greater 0 and (Fd equal 0)
         A1 = Yc - Yk J
         B1 = Xc - Xk Bst
         A2 = Yc - Yk Bst

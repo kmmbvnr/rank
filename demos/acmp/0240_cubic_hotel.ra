@@ -13,7 +13,7 @@ Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
 N = Tokens 0 integer
-Words = (Tokens drop 1) take (6 * N)
+Words = Tokens drop 1 take (6 * N)
 
 Pos = array shape (N * N * N) fill "#"
 

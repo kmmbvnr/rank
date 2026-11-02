@@ -41,14 +41,14 @@ MaxDepth = 0
 
 for D in 0 till N
   Layer = Depth equal D
-  if (Layer count) equal 0
+  if Layer count equal 0
     break
   end
   MaxDepth = D
   for U in 0 till N
     if Depth U equal D
       for V in 0 till N
-        if (Adj U V equal 1) and (Depth V equal -1)
+        if Adj U V equal 1 and (Depth V equal -1)
           Depth V = D + 1
           Parent V = U
         end
@@ -62,11 +62,11 @@ for U in 0 till N
   DP U 1 = 0
 end
 
-for D in (0 to MaxDepth) reverse
+for D in 0 to MaxDepth reverse
   for U in 0 till N
     if Depth U equal D
       for V in 0 till N
-        if (Parent V equal U) and (Depth V equal (D + 1))
+        if Parent V equal U and (Depth V equal (D + 1))
           NewDP = array shape (P + 1) fill INF
           NewDP 1 = (DP U 1) + 1
           if P greater 1

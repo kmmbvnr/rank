@@ -17,7 +17,7 @@ fun Lower digit_fraction_denominator Upper
   DenominatorProduct = 1
 
   for Numerator in Lower till Upper
-    for Denominator in (Numerator + 1) to Upper
+    for Denominator in Numerator + 1 to Upper
       if Numerator curious Denominator
         NumeratorProduct *= Numerator
         DenominatorProduct *= Denominator

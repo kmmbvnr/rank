@@ -11,11 +11,11 @@ arg Limit integer = 1000000
 
 Top = Limit - 1
 Cnt = array shape Limit fill 0
-Root = (Top ** 0.5) floor + 2
+Root = Top ** 0.5 floor + 2
 for M in 2 to Root
   for N in 1 till M
     rem Primitive triangles occur once.
-    if (M + N) even or M gcd N not equal 1
+    if M + N even or M gcd N not equal 1
       continue
     end
     A = M * M - N * N
@@ -34,7 +34,7 @@ Cnt = array shape Limit fill 0
 for M in 2 to Root
   for N in 1 till M
     rem Primitive triangles occur once.
-    if (M + N) even or M gcd N not equal 1
+    if M + N even or M gcd N not equal 1
       continue
     end
     A = M * M - N * N
@@ -65,7 +65,7 @@ for W in 1 to Top
     H = Data (Start + I)
     for J in 0 till I
       Lo = Data (Start + J)
-      if (H * Lo) mod (H + Lo) equal 0
+      if H * Lo mod (H + Lo) equal 0
         Answer += 1
       end
     end

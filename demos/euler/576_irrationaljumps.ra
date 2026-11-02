@@ -25,9 +25,9 @@ Sc = 10 ** 18
 Lim = Sc - Gi
 Ep = array shape 0 fill 0
 Ed = array shape 0 fill 0.0
-for P in primes till (N + 1) array
-  A = (Sc * Sc // P) isqrt
-  Rp = (P * 1.0) sqrt
+for P in primes till N + 1 array
+  A = Sc * Sc // P isqrt
+  Rp = P * 1.0 sqrt
   Al = 1.0 / Rp
   K = 4096
   Cv = 1
@@ -35,16 +35,16 @@ for P in primes till (N + 1) array
   Ik = array shape 1 fill 0
   for Cv equal 1
     Ks = 1 to K array
-    Xs = (Ks * A) mod Sc
+    Xs = Ks * A mod Sc
     Od = Xs argsort
     Ss = Xs Od
     Ik = Ks Od
     Lw = Ss 0
     Up = Sc - (Ss (K - 1))
     Hi = Ss (1 till K array)
-    Lo = Ss (0 till (K - 1) array)
+    Lo = Ss (0 till K - 1 array)
     Gp = Hi - Lo
-    Mg = (Gp reduce max) max (Lw max Up)
+    Mg = Gp reduce max max (Lw max Up)
     if Mg at most Gi
       Cv = 0
     else
@@ -62,7 +62,7 @@ for P in primes till (N + 1) array
   for Fr equal 1
     Fr = 0
     if R less K
-      if (Ss R) at most Gi
+      if Ss R at most Gi
         Fr = 1
         Bk = Ik R
         Cm = 1
@@ -102,7 +102,7 @@ for P in primes till (N + 1) array
     else
       if Lp at most En
         if Hd less Tl
-          if (Dq Hd) equal L
+          if Dq Hd equal L
             Hd += 1
           end
         end
@@ -140,6 +140,6 @@ for P in primes till (N + 1) array
 end
 Od = Ep argsort
 Ds = Ed Od
-Cs = (Ds scan +) array
-Answer = (Cs reduce max) round 4
+Cs = Ds scan + array
+Answer = Cs reduce max round 4
 Answer print

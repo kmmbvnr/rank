@@ -17,8 +17,8 @@ rem most 9 * Digits. Try each base up to
 rem that and each power under the bound.
 Top = Digits * 9
 Rows = Top - 1
-Base = (2 to Top array) reshape Rows 1
-Exps = 2 to (Digits * 4) array
+Base = 2 to Top array reshape Rows 1
+Exps = 2 to Digits * 4 array
 Pow = Base ** Exps
 Limit = 10 ** Digits
 Fit = Pow less Limit and Pow at least 10

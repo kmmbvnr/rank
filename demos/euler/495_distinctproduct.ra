@@ -22,14 +22,14 @@ Md = 1000000007
 Pr = primes to N array
 E = Pr * 0
 Pk = Pr
-for (Pk at most N) any
+for Pk at most N any
   E += N // Pk
   Lo = Pk at most N
   Pk = Lo choose (Pk * Pr) Pk
 end
 Es = E sort
 Nx = Es shift -1 with -1
-Ei = (Es not equal Nx) indices
+Ei = Es not equal Nx indices
 Ue = Es Ei
 Fe = Ei - (Ei shift 1 with -1)
 Em = Ue last
@@ -41,25 +41,25 @@ for V in K to 1 by -1
   Nr = array shape 0 fill 0
   Nm = array shape 0 K fill 0
   for C in 0 to K // V
-    Sl = (Rm at least C * V) indices
+    Sl = Rm at least C * V indices
     if Sl len greater 0
       Nr = concat Nr (Rm Sl - C * V)
       Mc = Mt Sl
       Ns = Sl len
-      Mc ((0 till Ns) copy) (V - 1) = C
+      Mc (0 till Ns copy) (V - 1) = C
       Nm = concat Nm Mc
     end
   end
   Rm = Nr
   Mt = Nm
 end
-Mt = Mt ((Rm equal 0) indices)
+Mt = Mt (Rm equal 0 indices)
 Np = Mt shape 0
 rem Per partition: a part v adds a
 rem running sum along each residue
 rem class mod v, done as a scan down
 rem the rows of a (Em/v) x v reshape.
-Fc = (1 to K) scan * with 1
+Fc = 1 to K scan * with 1
 Fc = Fc mod Md
 Answer = 0
 for J in 0 till Np

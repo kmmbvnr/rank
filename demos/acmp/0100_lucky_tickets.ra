@@ -16,8 +16,8 @@ for Step in 1 to K
   Indices = 0 till NextLen array
   HiLimit = array shape NextLen fill (DP len)
   LoLimit = array shape NextLen fill 0
-  Hi = (Indices + 1) min HiLimit
-  Lo = (Indices - 9) max LoLimit
+  Hi = Indices + 1 min HiLimit
+  Lo = Indices - 9 max LoLimit
   DP = C Hi - C Lo
 end
 

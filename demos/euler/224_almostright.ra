@@ -49,19 +49,19 @@ for
   Answer += A len
   rem Keep shared multiples in storage;
   rem the maps below become small kernels.
-  Ta = (2 * A) copy
-  Tb = (2 * B) copy
-  Tc = (2 * C) copy
-  Tc3 = (Tc + C) copy
-  A1 = (A - Tb + Tc) copy
-  A2 = (A + Tb + Tc) copy
-  A3 = (Tb + Tc - A) copy
-  B1 = (Ta + Tc - B) copy
-  B2 = (Ta + B + Tc) copy
-  B3 = (B + Tc - Ta) copy
-  C1 = (Ta - Tb + Tc3) copy
-  C2 = (Ta + Tb + Tc3) copy
-  C3 = (Tc3 - Ta + Tb) copy
+  Ta = 2 * A copy
+  Tb = 2 * B copy
+  Tc = 2 * C copy
+  Tc3 = Tc + C copy
+  A1 = A - Tb + Tc copy
+  A2 = A + Tb + Tc copy
+  A3 = Tb + Tc - A copy
+  B1 = Ta + Tc - B copy
+  B2 = Ta + B + Tc copy
+  B3 = B + Tc - Ta copy
+  C1 = Ta - Tb + Tc3 copy
+  C2 = Ta + Tb + Tc3 copy
+  C3 = Tc3 - Ta + Tb copy
   A = concat A1 A2 A3 copy
   B = concat B1 B2 B3 copy
   C = concat C1 C2 C3 copy

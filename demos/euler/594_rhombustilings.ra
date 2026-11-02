@@ -61,11 +61,11 @@ for Q in 0 till Nw
   Vc Q = Cd
   if Q less Nw - 1
     P = Ln - 2
-    for (Dg P) at least (Dg (P + 1))
+    for Dg P at least (Dg (P + 1))
       P -= 1
     end
     J = Ln - 1
-    for (Dg J) at most (Dg P)
+    for Dg J at most (Dg P)
       J -= 1
     end
     X = Dg P
@@ -111,7 +111,7 @@ for Q in 0 till Nw
         Dl = (Wr - Wl) * 3 * (P4 P)
         Old = Ns
         for K in 0 till Old
-          if (Sp K) less P - 1
+          if Sp K less P - 1
             Nc = (Sc K) - Dl
             Sg = 0 - (Ss K)
             Tt += Sg * (Tv Nc)

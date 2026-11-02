@@ -78,7 +78,7 @@ for K in 0 to Last + 1
   end
 end
 Ns = Df (0 to Mx + 1) scan + with 0
-Rs = (1 to Mx) copy
+Rs = 1 to Mx copy
 Nr = Ns (2 to Mx + 1)
 Answer = ((2 * Rs - 1) * Nr) sum
 Answer print

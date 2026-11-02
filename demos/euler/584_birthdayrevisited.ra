@@ -84,10 +84,10 @@ for S0 in 0 till Sn
 end
 Lf = array shape (Pm + 1) fill 0.0
 for P in 1 to Pm
-  Lg = (P * 1.0) log
+  Lg = P * 1.0 log
   Lf P = (Lf (P - 1)) + Lg
 end
-Ln = (N * 1.0) log
+Ln = N * 1.0 log
 Answer = 0.0
 for P in 0 to Pm
   Ex = (Lf P) - P * Ln

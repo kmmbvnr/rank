@@ -40,17 +40,17 @@ fun X hgt Y
   Q = 0.000001 * Sq
   Q = Q - 0.0015 * (X + Y) + 0.7
   Aq = Q abs
-  Ex = (0 - Aq) exp
+  Ex = 0 - Aq exp
   Hp = 5000 - 0.005 * (Sq + X * Y)
   Hp = Hp + 12.5 * (X + Y)
   return Hp * Ex
 end
 Gn = 1600 // Step + 1
 Xs = (0 till Gn array) * (Step * 1.0)
-Hh' = (Xs reshape Gn 1) hgt Xs
+Hh' = Xs reshape Gn 1 hgt Xs
 Hf = Hh reshape (Gn * Gn) copy
 Ord = Hf argsort
-Par = (0 till (Gn * Gn) array) copy
+Par = (0 till Gn * Gn array) copy
 Act = array shape (Gn * Gn) fill 0
 Ia = (200 // Step) * Gn + 200 // Step
 Ib = (1400 // Step) * Gn + 1400 // Step
@@ -116,7 +116,7 @@ for K in 0 till (Gn * Gn)
   end
 end
 F = Hf Cb
-In = (Hf greater F) choose 1 0
+In = Hf greater F choose 1 0
 Ln = (Gn - 1) * Gn - 1
 G1 = Gn + 1
 Gl = Gn + Ln
@@ -125,9 +125,9 @@ S4 = S4 + In (G1 till (G1 + Ln))
 S4 = S4 + In (1 till (1 + Ln))
 Cx = 0 till Ln array
 Wm = Gn - 1
-Vi' = ((Cx mod Gn) less Wm) choose 1 0
+Vi' = (Cx mod Gn less Wm) choose 1 0
 Xc' = S4 * (4 - S4) * Vi
-Cells = Cx filter (Xc greater 0) array
+Cells = Cx filter Xc greater 0 array
 Nc = Cells len
 Ep = new index
 Px = array shape (4 * Nc + 4) fill 0.0
@@ -272,7 +272,7 @@ Nx1' = concat Rx Hx
 Ny1' = concat Ry Hy
 Ex = Nx1 - Lx
 Ey = Ny1 - Ly
-Sg' = (Ex * Ex + Ey * Ey) sqrt
+Sg' = Ex * Ex + Ey * Ey sqrt
 Cs = Sg scan + with 0.0
 Sc = Cs (0 till Bl) copy
 Lt = Cs Bl
@@ -281,13 +281,13 @@ Bp = 1400.0
 fun Bx By Cx Cy Limit visible
   Xd = Cx - Bx
   Yd = Cy - By
-  Dd = (Xd * Xd + Yd * Yd) sqrt
-  Fl = (Dd / 0.5) floor
+  Dd = Xd * Xd + Yd * Yd sqrt
+  Fl = Dd / 0.5 floor
   Ms = Fl max 2
   rem Reject with a subset of the same
   rem samples; survivors keep the full
   rem check at the original resolution.
-  Gap = (Ms // 16) max 1
+  Gap = Ms // 16 max 1
   Probe = (0 till Ms by Gap array) / (Ms - 1.0)
   Xp = Bx + (Cx - Bx) * Probe
   Yp = By + (Cy - By) * Probe
@@ -300,7 +300,7 @@ fun Bx By Cx Cy Limit visible
   Xq = Bx + (Cx - Bx) * Tq
   Yq = By + (Cy - By) * Tq
   Hq' = Xq hgt Yq
-  return (Hq max) at most Limit
+  return Hq max at most Limit
 end
 Lim = F + 0.000000001
 Best = 1000000.0
@@ -320,23 +320,23 @@ for I in 0 till Bl
     Va I = 1
     Xd = Qx - Ap
     Yd = Qy - Ap
-    Da I = (Xd * Xd + Yd * Yd) sqrt
+    Da I = Xd * Xd + Yd * Yd sqrt
   end
   Hb = Bp Bp Qx Qy Lim visible
   if Hb
     Vb I = 1
     Xd = Qx - Bp
     Yd = Qy - Bp
-    Db I = (Xd * Xd + Yd * Yd) sqrt
+    Db I = Xd * Xd + Yd * Yd sqrt
   end
 end
 Ix = 0 till Bl array
-Ja = Ix filter (Va equal 1) array
-Jb = Ix filter (Vb equal 1) array
+Ja = Ix filter Va equal 1 array
+Jb = Ix filter Vb equal 1 array
 Sb = Sc Jb copy
 Dbb = Db Jb copy
 for I in Ja
-  Dd = (Sb - Sc I) abs
+  Dd = Sb - Sc I abs
   Rv' = Lt - Dd
   Arc' = Dd min Rv
   Tt2 = Da I + Arc + Dbb

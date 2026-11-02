@@ -38,8 +38,8 @@ for P in primes to R
   Ix = 1 to Ih
   Pi = P * Ix
   Va = Lg (Pi min R)
-  Vb = Sm ((X // Pi) min R)
-  Vl = (Pi at most R) choose Va Vb
+  Vb = Sm (X // Pi min R)
+  Vl = Pi at most R choose Va Vb
   Dl = (Pc * (Vl - Sp)) mod M
   Iw = P * P to R
   Dm = Pc * (Sm (Iw // P) - Sp)

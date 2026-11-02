@@ -37,7 +37,7 @@ for G in 0 to 1
     Rows = All len
     Col' = All reshape Rows 1
     Cells = Rows * (Pw len)
-    Prod = (Col * Pw) reshape Cells
+    Prod = Col * Pw reshape Cells
     Ok' = Prod at most Limit
     All = Prod filter Ok array
   end
@@ -51,7 +51,7 @@ Cap = Limit // Lo
 Keys' = concat (Hi * 2) (Cap * 2 + 1)
 Tag' = concat (Hi * 0) (Cap * 0 + 1)
 Sorted = Tag (Keys argsort)
-Below' = (1 - Sorted) scan +
+Below' = 1 - Sorted scan +
 Query' = Sorted equal 1
 Answer = Below filter Query sum
 Answer print

@@ -13,11 +13,11 @@ Lines = Input split "\n"
 Lines = Lines (Lines not equal "")
 
 N = Lines 0 integer
-A = (Lines 1) words integer
-B = (Lines 2) words integer
+A = Lines 1 words integer
+B = Lines 2 words integer
 
 Answer = -1
-if ((A sort) equal (B sort)) all
+if (A sort equal (B sort)) all
   OrderA = A argsort
   OrderB = B argsort
 
@@ -25,7 +25,7 @@ if ((A sort) equal (B sort)) all
   P OrderB = OrderA
 
   Indices = 0 till N
-  Answer = ((P P outer greater) and (Indices Indices outer less)) count
+  Answer = (P P outer greater and (Indices Indices outer less)) count
 end
 
 Answer print

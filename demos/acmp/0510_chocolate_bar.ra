@@ -8,7 +8,7 @@ use cli
 arg N integer = 4
 
 Answer = 0
-if (N mod 2) equal 0
+if N mod 2 equal 0
   K = N // 2
   DP = array shape (K + 1) fill 0
   DP 0 = 1

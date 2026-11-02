@@ -37,7 +37,7 @@ fun K tree D
     if Hb equal 0
       break
     end
-    Bt = (K // 2 ** I) mod 2
+    Bt = K // 2 ** I mod 2
     Nx = (3 - Bt) * X + (2 + Bt) * Pr
     Nx = Nx mod Q
     Pr = X
@@ -72,7 +72,7 @@ fun K tree D
         if Mx
           Sa T = Sa T max Rv
         else
-          Sb T = (Sb T) min Rv
+          Sb T = Sb T min Rv
         end
         if Sa T at least Sb T
           Rv = Mx choose (Sa T) (Sb T)
@@ -93,7 +93,7 @@ fun K tree D
         if Mx
           Rv = Sa T max Rv
         else
-          Rv = (Sb T) min Rv
+          Rv = Sb T min Rv
         end
         T -= 1
       end

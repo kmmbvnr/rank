@@ -54,7 +54,7 @@ fun F Pre Tail Full K I intpref
   if I less P
     return I tri
   end
-  Left = (P - 1) tri
+  Left = P - 1 tri
   Right = Pre K (I - P) tailpref
   return Left + Right
 end
@@ -88,7 +88,7 @@ fun N stones
     Tail I = Tail (I - 2) + Block
   end
   for I in 3 to Last
-    Base = (Pre I - 1) tri
+    Base = Pre I - 1 tri
     Full I = Base + Tail I
   end
   for I in 1 to Last
@@ -96,7 +96,7 @@ fun N stones
     All I = All (I - 1) + Value
   end
   K = 1
-  for (K + 1) less (F len)
+  for K + 1 less (F len)
     if F (K + 1) greater N
       break
     end

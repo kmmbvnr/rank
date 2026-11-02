@@ -21,7 +21,7 @@ fun X to_categorical Columns
     end
   end
 
-  RowIndices = (0 till Rows) array
+  RowIndices = 0 till Rows array
   Out RowIndices X rank 0 0 = 1
 
   return Out

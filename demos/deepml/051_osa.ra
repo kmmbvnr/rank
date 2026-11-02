@@ -27,7 +27,7 @@ fun Source osa Target
       Delete = D (I - 1) J + 1
       Insert = D I (J - 1) + 1
       Change = D (I - 1) (J - 1) + Cost
-      Best = (Delete min Insert) min Change
+      Best = Delete min Insert min Change
 
       if I greater 1 and J greater 1
         C = Target (J - 2)

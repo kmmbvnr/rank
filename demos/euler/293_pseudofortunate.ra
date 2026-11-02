@@ -29,7 +29,7 @@ for P in Pr
   Rows = All len
   Cells = Rows * (Pw len)
   Col' = All reshape Rows 1
-  Prod = (Col * Pw) reshape Cells
+  Prod = Col * Pw reshape Cells
   Ok' = Prod less Limit
   All = Prod filter Ok array
   Found = concat Found All copy

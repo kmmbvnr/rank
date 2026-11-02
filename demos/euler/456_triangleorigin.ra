@@ -15,11 +15,11 @@ rem triples of distinct classes, less
 rem those in one open half-plane (by
 rem the first class in angle order)
 rem and those with an opposite pair.
-Is = (1 to N) copy
+Is = 1 to N copy
 X = 1248 Is 32323 powmod - 16161
 Y = 8421 Is 30103 powmod - 15051
 G = X abs gcd (Y abs)
-Nz = (G greater 0) indices
+Nz = G greater 0 indices
 Dx = X Nz // G Nz
 Dy = Y Nz // G Nz
 Ky = (Dx + 20000) * 40000 + Dy + 20000
@@ -44,17 +44,17 @@ M = W len
 rem Opposite ray of each class, in
 rem the doubled circle after it.
 Tp = 8 * (1.0 atan)
-Qa = (0 - Cy) atan2 (0 - Cx)
-Qa = (Qa less An) choose (Qa + Tp) Qa
+Qa = 0 - Cy atan2 (0 - Cx)
+Qa = Qa less An choose (Qa + Tp) Qa
 K2 = concat An (An + Tp)
 Ws = concat W W
 rem Keys below each query: queries
 rem go first, so ties sort before.
 Mg = concat Qa K2
 Mo = Mg argsort
-Ik = (Mo at least M) choose 1 0
+Ik = Mo at least M choose 1 0
 Cb = Ik scan + with 0
-Ps = (Mo less M) indices
+Ps = Mo less M indices
 Qi = Mo Ps
 J = array shape M fill 0
 J Qi = Cb Ps
@@ -69,8 +69,8 @@ Hit = K2 Jc equal Qa
 Wo = Hit choose (Ws Jc) 0
 Tw = W sum
 B = (W * Wo * (Tw - W - Wo)) sum // 2
-S2 = (W * W) sum
-S3 = (W * W * W) sum
+S2 = W * W sum
+S3 = W * W * W sum
 T = Tw ** 3 - 3 * Tw * S2 + 2 * S3
 T //= 6
 Answer = T - O - B

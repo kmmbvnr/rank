@@ -116,7 +116,7 @@ fun N bozo
     C2 = array shape Cnt fill 0
     C3 = array shape Cnt fill 0
     for X in 0 till N
-      for Y in (X + 1) till N
+      for Y in X + 1 till N
         T = P copy
         V = T X
         T X = T Y
@@ -124,7 +124,7 @@ fun N bozo
         Key = T kind
         To = Cs lookup Key
         C2 To += 1
-        for Z in (Y + 1) till N
+        for Z in Y + 1 till N
           T = P copy
           U = T X
           V = T Y

@@ -14,7 +14,7 @@ rem Natural log probabilities; rounding is for display only.
 fun F makePWM
   Counts = F + 1
   Totals = Counts sum axis 0
-  return (Counts / Totals) log
+  return Counts / Totals log
 end
 
 fun Values pick Index

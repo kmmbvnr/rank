@@ -36,7 +36,7 @@ fun X fftReal
   end
   R = X real copy
   I = array shape N fill 0.0
-  K = 0 till (N // 2) array
+  K = 0 till N // 2 array
   A = -2 * (-1 acos) * K / N
   Cos = A cos copy
   Sin = A sin copy

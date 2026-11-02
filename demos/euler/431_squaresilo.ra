@@ -19,8 +19,8 @@ rem sums the integral, and bisection
 rem finds each x with V(x) = k^2 for
 rem the squares between V(0) and V(R).
 Pi = 4 * (1.0 atan)
-Ta = (Pi * Deg / 180) tan
-Ph = (0 to Steps) copy
+Ta = Pi * Deg / 180 tan
+Ph = 0 to Steps copy
 Ang = Ph * (2 * Pi / Steps)
 Cs = Ang cos
 Sn2 = (Ang sin) ** 2
@@ -40,9 +40,9 @@ for K in Lo to Hi
   B = R * 1.0
   for I in 1 to 120
     X = (A + B) / 2
-    Dc = (R2 - X * X * Sn2) sqrt
+    Dc = R2 - X * X * Sn2 sqrt
     Sv = Dc - X * Cs
-    Vol = Kv * ((Wt * Sv * Sv * Sv) sum)
+    Vol = Kv * (Wt * Sv * Sv * Sv sum)
     if Vol less K * K
       A = X
     else

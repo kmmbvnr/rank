@@ -29,11 +29,11 @@ Bd = 0.0
 Ba = 0
 Bb = 0
 Bq = 0
-A0 = (Q4 // 2) isqrt
+A0 = Q4 // 2 isqrt
 for A in A0 to 2 * R
-  Mx = (Q4 - A * A) isqrt
+  Mx = Q4 - A * A isqrt
   Mx = Mx min A
-  Mn = ((Q4 - Dm - A * A) max 0) isqrt
+  Mn = (Q4 - Dm - A * A max 0) isqrt
   for B in Mn to Mx
     L2 = A * A + B * B
     G = A
@@ -76,12 +76,12 @@ for A in A0 to 2 * R
       D = Q4 - L2
       Lf = L2 * 1.0
       Ln = Lf sqrt
-      Hw = (D * 1.0) sqrt
+      Hw = D * 1.0 sqrt
       Hx = Hw * 0.5 * B / Ln + 3
       Hx += D * A / (8.0 * R * Ln)
       Xc = 0.0 - A / 2.0
-      X0 = ((Xc - Hx) floor) integer
-      X1 = ((Xc + Hx) ceil) integer
+      X0 = (Xc - Hx floor) integer
+      X1 = (Xc + Hx ceil) integer
       Fe = 0
       for X in X0 to X1
         S1q = R2 - X * X
@@ -91,7 +91,7 @@ for A in A0 to 2 * R
         if Fit
           Y1 = S1q isqrt
           Y2 = S2q isqrt
-          Lo = (0 - Y1) max (0 - B - Y2)
+          Lo = 0 - Y1 max (0 - B - Y2)
           Hi = Y1 min (Y2 - B)
           for Y in Lo to Hi
             Cx = X + Wx
@@ -111,8 +111,8 @@ for A in A0 to 2 * R
       if Fe equal 1
         Qf = Qv * 1.0
         Mf = Mm * 1.0
-        Sa = (Qf * Qf + 1.0) sqrt
-        Sb = (Mf * Mf + 1.0) sqrt
+        Sa = Qf * Qf + 1.0 sqrt
+        Sb = Mf * Mf + 1.0 sqrt
         T1f = 1.0 / (Sa + Qf)
         T2f = 1.0 / (Sb + Mf)
         Dt = (T1f + T2f) / Ln
@@ -132,7 +132,7 @@ end
 Mq = Bl - Bq
 Nm = (Bq * Bq + 1) * (Mq * Mq + 1)
 Dn = 4 * Bl * R2
-T = (Nm // Dn) isqrt
+T = Nm // Dn isqrt
 Tw = (2 * T + 1) * (2 * T + 1)
 Up = Tw * Dn at most 4 * Nm
 T += Up integer

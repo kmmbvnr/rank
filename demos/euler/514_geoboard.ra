@@ -21,8 +21,8 @@ rem rotations give equal shares.
 Np = N + 1
 P = 1.0 / Np
 Q = 1.0 - P
-Qp = Q ** ((0 to Np * Np) copy)
-Ix = (0 till Np * Np) copy
+Qp = Q ** (0 to Np * Np copy)
+Ix = 0 till Np * Np copy
 X = Ix // Np
 Y = Ix mod Np
 Xc = X - N / 2.0
@@ -33,19 +33,19 @@ rem Sn: below every line value.
 Sn = -999999
 for Dx in 1 to N
   for Dy in 0 to N
-    if (Dx gcd Dy) equal 1
+    if Dx gcd Dy equal 1
       S = Dy * X - Dx * Y
       T = Dx * X + Dy * Y
-      Od = (S * 100000 + T) argsort
+      Od = S * 100000 + T argsort
       Ss = S Od
-      Ps = (0 till Tl) copy
+      Ps = 0 till Tl copy
       Pv = Ss shift 1 with Sn
       Nw = Ss not equal Pv
-      St = (Nw choose Ps 0) scan max
+      St = Nw choose Ps 0 scan max
       Nx = Ss shift -1 with Sn
       Ne = Ss not equal Nx
       Nr = Ne reverse
-      Sr = (Nr choose Ps 0) scan max
+      Sr = Nr choose Ps 0 scan max
       En = Tl - 1 - (Sr reverse)
       I = Ps - St
       K = En - St + 1
@@ -61,9 +61,9 @@ for Dx in 1 to N
       Cj = (Qp (K - 1 - I)) * Cr
       Rt = Qp (Tl - (St + K))
       Lf = Rt * (1.0 - Qp St)
-      Tot += (Cj * Lf) sum
+      Tot += Cj * Lf sum
     end
   end
 end
-Answer = (2.0 * P * P * Tot) round 5
+Answer = 2.0 * P * P * Tot round 5
 Answer print

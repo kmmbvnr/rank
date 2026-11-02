@@ -22,21 +22,21 @@ Rows = Combs len
 Cells = Combs reshape Rows Digits 1
 Hist' = Cells equal Pool
 Count' = Hist count axis 1
-Fact = (1 to Digits array) scan * with 1
+Fact = 1 to Digits array scan * with 1
 Flat = Count reshape (Rows * 10)
 Fats' = (Fact Flat) reshape Rows 10
 Den' = Fats reduce * axis 1
 Mult' = (Fact Digits) // Den
-Sums = (Combs * Combs) sum axis 1
+Sums = Combs * Combs sum axis 1
 
 rem Every chain ends at 1 or in the 89
 rem cycle, which never reaches 1.
 Ends = Sums
 for # in 1 to 20
   Ds = Ends digits (array 10 10 10 10)
-  Ends = (Ds * Ds) sum axis 0
+  Ends = Ds * Ds sum axis 0
 end
 Mask = Ends not equal 1
 Mask and= Sums greater 0
-Answer = (Mult Mask) sum
+Answer = Mult Mask sum
 Answer print

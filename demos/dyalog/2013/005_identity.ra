@@ -4,7 +4,7 @@ use io
 
 fun N identity
   Indices = 0 till N array
-  return (Indices Indices outer equal) integer
+  return Indices Indices outer equal integer
 end
 
 Example = 4 identity

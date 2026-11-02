@@ -33,7 +33,7 @@ V2 = 2 * Nn
 Up = V2 digits Bs
 Lo = Nn digits Bs
 Dn = Up - Lo
-Ok = (Dn at least 0) integer
+Ok = Dn at least 0 integer
 Dn = Dn max 0
 Ua = Up reshape Nt
 La = Lo reshape Nt
@@ -49,7 +49,7 @@ Pre = array shape (Nb + 1) fill 1
 for I in 0 till Nb
   Pv = Pre I
   Cv = Cu I
-  Pre (I + 1) = (Pv * Cv) mod Pm
+  Pre (I + 1) = Pv * Cv mod Pm
 end
 Kx = Xs // Bk
 Kb = Kx * Bk
@@ -57,25 +57,25 @@ Tl = Xs - Kb
 Pr = Kx * 0 + 1
 for J in 1 till Bk
   Pj = (Pr * (Kb + J)) mod Pm
-  Pr = (Tl at least J) choose Pj Pr
+  Pr = Tl at least J choose Pj Pr
 end
 Fx = ((Pre Kx) * Pr) mod Pm
 Fu = Fx (0 till Nt array)
-Fl = Fx (Nt till (2 * Nt) array)
-Fd = Fx ((2 * Nt) till (3 * Nt) array)
-Dm = (Fl * Fd) mod Pm
+Fl = Fx (Nt till 2 * Nt array)
+Fd = Fx (2 * Nt till 3 * Nt array)
+Dm = Fl * Fd mod Pm
 Iv = Dm Ex Pm powmod
-Tm = (Fu * Iv) mod Pm
+Tm = Fu * Iv mod Pm
 Of = Ok reshape Nt
 Tm = Tm * Of
 Tr = Tm reshape 3 Nq
 R0 = Tr 0
 R1 = Tr 1
 R2 = Tr 2
-Bn = (R0 * R1) mod Pm
-Bn = (Bn * R2) mod Pm
+Bn = R0 * R1 mod Pm
+Bn = Bn * R2 mod Pm
 Nm = Nn mod Pm
 Sb = (3 * Nm * Nm + 2 * Nm + 7) mod Pm
 Cn = (8 * Bn + Pm - Sb) mod Pm
-Answer = (Cn sum) mod Pm
+Answer = Cn sum mod Pm
 Answer print

@@ -20,12 +20,12 @@ rem Lucas doubling for all primes at
 rem once.
 P = primes from X to X + Y array
 Lg = 117 ((P - 1) // 2) P powmod
-Od = (Lg equal 1) choose (P - 1) (P + 1)
+Od = Lg equal 1 choose (P - 1) (P + 1)
 K = 2 (N - 1) Od powmod
 Va = P * 0 + 2
 Vb = P * 0 + 11
 for Bt in 30 to 0 by -1
-  Hb = (K // 2 ** Bt) mod 2 equal 1
+  Hb = K // 2 ** Bt mod 2 equal 1
   Vm = (Va * Vb - 11) mod P
   Aa = (Va * Va - 2) mod P
   Bb = (Vb * Vb - 2) mod P

@@ -65,7 +65,7 @@ for Lv greater 1
   Ps (Lv to Hv) = Pl max (Tl + Pr)
   Qs (Lv to Hv) = Qr max (Tr + Ql)
   Cx = Ql + Pr
-  Ms (Lv to Hv) = (Ml max Mr) max Cx
+  Ms (Lv to Hv) = Ml max Mr max Cx
 end
 Answer = 0
 for I in Lo + 1 to Up
@@ -85,7 +85,7 @@ for I in Lo + 1 to Up
     Ps X = Ps L max (Ts L + Ps R)
     Qs X = Qs R max (Ts R + Qs L)
     Cx = Qs L + Ps R
-    Ms X = (Ms L max Ms R) max Cx
+    Ms X = Ms L max Ms R max Cx
   end
   Answer += Ms 1
 end

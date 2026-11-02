@@ -37,7 +37,7 @@ Wp = N + 1
 Dp = array shape (Wx * Wy * Wp) fill 0
 Dp ((Half * Wy) * Wp) = 1
 Digons = 0
-for Pp in (0 - Half) to Half
+for Pp in 0 - Half to Half
   for Qq in 0 to Half
     Ap = Pp abs
     Ok = Qq greater 0 or Pp greater 0
@@ -59,12 +59,12 @@ for Pp in (0 - Half) to Half
           Len = M * Rr
           Delta = (Dx * Wy + Dy) * Wp
           Delta += Len
-          Xlo = (0 - Rad) max (Dx - Half)
+          Xlo = 0 - Rad max (Dx - Half)
           Xhi = Rad min (Dx + Half)
           for Sx in Xlo to Xhi
             Base = (Sx + Half) * Wy * Wp
             Base += T
-            Yhi = (Rad * Rad - Sx * Sx) isqrt
+            Yhi = Rad * Rad - Sx * Sx isqrt
             rem Integer edges preserve parity.
             Ylo = Dy + (T - Sx - Dy) mod 2
             Dst = Base + Ylo * Wp

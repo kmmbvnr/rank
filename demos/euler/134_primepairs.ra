@@ -31,5 +31,5 @@ for E max greater 0
   E = E // 2
 end
 K' = (P2 - P1 mod P2) * Res mod P2
-Answer = (P1 + Pw * K) sum
+Answer = P1 + Pw * K sum
 Answer print

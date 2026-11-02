@@ -70,7 +70,7 @@ fun Expression eval_expr Wires
   end
 
   if Terms 0 equal "NOT"
-    return (Terms 1 signal Wires) bnot
+    return Terms 1 signal Wires bnot
   end
 
   Left = Terms 0 signal Wires

@@ -13,9 +13,9 @@ for P in 1 till Top
   for Q in P + 1 to Top - P
     Beta = (Q sqrt) - (P sqrt)
     if Beta less 1.0
-      Rate = (Beta * Beta) log
+      Rate = Beta * Beta log
       Rate = -Rate / (10 log)
-      Answer += (Nines / Rate) ceil
+      Answer += Nines / Rate ceil
     else
       break
     end

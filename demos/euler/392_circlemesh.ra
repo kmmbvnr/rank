@@ -44,5 +44,5 @@ for K in 0 to M
   Y = (1.0 - X * X) ** 0.5
   Quarter += (Xs (K + 1) - X) * Y
 end
-Answer = (4.0 * Quarter) round 10
+Answer = 4.0 * Quarter round 10
 Answer print

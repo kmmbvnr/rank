@@ -22,8 +22,8 @@ Ps = primes till N array
 Answer = 0
 for P in Ps
   Qm = Qs * Qs
-  Q = Qs ((Qm greater P) indices 0)
-  Sm = Qs ((Qs less Q) indices)
+  Q = Qs (Qm greater P indices 0)
+  Sm = Qs (Qs less Q indices)
   Pr = 1
   for R in Sm
     Pr *= R
@@ -41,9 +41,9 @@ for P in Ps
   As = A0 + Ks * Pr
   Kd = ((P - A0) // Pr + 1) max 0
   Ad = A0 + Kd * Pr
-  Dv = ((Ad mod P) equal 0) integer
+  Dv = (Ad mod P equal 0) integer
   Ad += Dv * Pr
-  Cn = (As less P) choose As Ad
+  Cn = As less P choose As Ad
   Cn = Cn min Ad
   Answer += Cn min
 end

@@ -14,9 +14,9 @@ arg Input text = "3 4 3\nYYYY\nYYYY\nYYYY"
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
-N = (Tokens 0) integer
-M = (Tokens 1) integer
-K = (Tokens 2) integer
+N = Tokens 0 integer
+M = Tokens 1 integer
+K = Tokens 2 integer
 Rows = Tokens drop 3
 
 rem Build bitmask of compatible girls for each boy
@@ -48,8 +48,8 @@ for I in 0 till N
       NextDP Mask = (NextDP Mask) + WaysCur
       rem Option 2: boy I dances with compatible unassigned girl J
       for J in 0 till M
-        if not (((BMask shr J) band 1) equal 0)
-          if ((Mask shr J) band 1) equal 0
+        if not (BMask shr J band 1 equal 0)
+          if Mask shr J band 1 equal 0
             NewMask = Mask bor (1 shl J)
             NextDP NewMask = (NextDP NewMask) + WaysCur
           end
@@ -67,6 +67,6 @@ for Mask in 1 till NumMasks
 end
 
 MaskK = PopCounts equal K
-Ways = (DP MaskK) sum
+Ways = DP MaskK sum
 
-(Ways text) print
+Ways text print

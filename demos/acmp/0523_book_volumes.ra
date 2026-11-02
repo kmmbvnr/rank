@@ -13,7 +13,7 @@ Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
 N = Tokens 0 integer
-Pages = ((Tokens drop 1) take N) integer
+Pages = (Tokens drop 1 take N) integer
 K = Tokens (N + 1) integer
 
 Low = Pages max
@@ -24,7 +24,7 @@ for Low less High
   Vols = 1
   Cur = 0
   for P in Pages
-    if (Cur + P) greater Mid
+    if Cur + P greater Mid
       Vols += 1
       Cur = P
     else

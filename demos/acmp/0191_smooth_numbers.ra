@@ -16,10 +16,10 @@ arg N integer = 239
 
 rem Cumulative count of smooth numbers of each length up to 70
 Lengths = 1 to 70
-Counts = (Lengths + 8) binomial 8
+Counts = Lengths + 8 binomial 8
 PrefixCounts = Counts scan + with 0 array
 
-L = (PrefixCounts less N) count
+L = PrefixCounts less N count
 RemN = N - (PrefixCounts (L - 1))
 
 AnswerText = ""
@@ -28,9 +28,9 @@ D = 1
 for Pos in 1 to L
   RemLen = L - Pos
   Candidates = D to 9
-  Ways = (RemLen + 9 - Candidates) binomial RemLen
+  Ways = RemLen + 9 - Candidates binomial RemLen
   CumWays = Ways scan + with 0 array
-  Skip = (CumWays less RemN) count
+  Skip = CumWays less RemN count
   Chosen = Candidates (Skip - 1)
   AnswerText = AnswerText + (Chosen text)
   RemN = RemN - (CumWays (Skip - 1))

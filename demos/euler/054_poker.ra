@@ -48,7 +48,7 @@ fun Cards hand_score
   Straight = Distinct equal 5
   Straight and= Span equal 4
 
-  Wheel = Sorted (array 0 1 2 3 12) equal rank 1
+  Wheel = Sorted array 0 1 2 3 12 equal rank 1
   Straight or= Wheel
 
   Flush = Suits unique len equal 1
@@ -57,7 +57,7 @@ fun Cards hand_score
   Freq = Same count rank 1
 
   MaxFreq = Freq max
-  PairCards = (Freq equal 2) count
+  PairCards = Freq equal 2 count
   Pairs = PairCards // 2
 
   Trips = MaxFreq equal 3

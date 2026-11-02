@@ -468,7 +468,6 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         }
         const values: Expression[] = [];
         const operators: BinaryExpression[] = [];
-        let phase: 'formula' | 'calls' | 'adjustment' = 'formula';
         function reduce(): void {
             const operator = operators.pop()!;
             const right = values.pop()!;
@@ -480,7 +479,6 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         for (const token of input) {
             if (token.kind === 'value') values.push(token.value);
             else if (token.kind === 'operator') {
-                if (phase === 'calls') phase = 'adjustment';
                 while (operators.length && (precedence[operators.at(-1)!.operator] > precedence[token.value.operator]
                     || (precedence[operators.at(-1)!.operator] === precedence[token.value.operator] && token.value.operator !== '**'))) reduce();
                 operators.push(token.value);
@@ -493,8 +491,6 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                     values.push(application([values.pop()!, ...token.parts], token.original));
                     continue;
                 }
-                if (phase === 'adjustment') report(token.kind === 'call' ? token.parts[0] : token.original,
-                    'A new function call after arithmetic requires an intermediate variable. Name the result on the left, then apply the function.');
                 const extra: Expression[] = [];
                 if (token.kind === 'call' && !token.leftOperand && operators.length && isNameExpression(token.parts[0])) {
                     const name = token.parts[0].name;
@@ -537,7 +533,6 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                     if (token.leftOperand) markPlacedOperands(token.parts[0]);
                     values.push(token.leftOperand ? groupModifiers(call, standard) : call);
                 }
-                phase = 'calls';
             }
         }
         while (operators.length) reduce();

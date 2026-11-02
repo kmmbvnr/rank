@@ -209,3 +209,13 @@ test('verification builds a program, detects wrong output and rejects stub build
   assert.equal(bad.cases[0].expected.stdout, '11\n');
   assert.equal(bad.cases[0].actual.stdout, '12\n');
 });
+
+test('exports calls resumed after arithmetic', async t => {
+  const {file} = await fixture(t, 'use numbers\n9 sqrt + 2 * 3 sqrt\n');
+  const output = await task(file);
+  const analysis = JSON.parse(output.match(/```json\n([\s\S]*?)\n```/)[1]);
+  const value = analysis.syntax.statements.at(-1).value;
+  assert.equal(value.$type, 'ApplicationExpression');
+  assert.equal(value.arguments.at(-1).name, 'sqrt');
+  assert.equal(value.head.value.operator, '+');
+});

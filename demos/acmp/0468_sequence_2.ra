@@ -53,4 +53,4 @@ K = K - C2Val
 P1 = K
 
 Answer = (1 shl P3) + (1 shl P2) + (1 shl P1)
-(Answer text) print
+Answer text print

@@ -36,13 +36,13 @@ Tot = 0
 for M in 1 to N
   for Q in 1 to N
     V = Tw (M * Q)
-    Js = (0 to Q - 1) copy
+    Js = 0 to Q - 1 copy
     Cn = Bn Q Js
     Rm = Rg M Js
-    V -= (Cn * Rm mod Mod) sum
+    V -= Cn * Rm mod Mod sum
     if M greater 1
-      Is = (1 to M - 1) copy
-      Js = (0 to Q) copy
+      Is = 1 to M - 1 copy
+      Js = 0 to Q copy
       Cm = Bn (M - 1) (Is - 1)
       Cq = Bn Q Js
       Im = M - 1
@@ -51,8 +51,8 @@ for M in 1 to N
       Cr = Cq reshape 1 Jq
       Cw = Cc * Cr mod Mod
       Rs = Rg (1 to Im) (0 to Q)
-      Er = (M - Is) reshape Im 1
-      Ec = (Q - Js) reshape 1 Jq
+      Er = M - Is reshape Im 1
+      Ec = Q - Js reshape 1 Jq
       Ex = Er * Ec reshape (Im * Jq)
       Pw = (Tw Ex) reshape Im Jq
       Tm = Cw * Rs mod Mod * Pw mod Mod

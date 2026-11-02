@@ -14,8 +14,8 @@ arg Input text = "1 1"
 
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
-N = (Tokens 0) integer
-K = (Tokens 1) integer
+N = Tokens 0 integer
+K = Tokens 1 integer
 
 MaxB = 36
 MaxP = 42
@@ -27,7 +27,7 @@ CrossOver = array shape TotalSize fill 0
 
 for P in 0 till (MaxP + 1)
   for Rem in 0 till MaxRem
-    if not ((P equal 0) and (Rem equal 0))
+    if not (P equal 0 and (Rem equal 0))
       Cur = Rem
       S = 0
       for Step in 0 till 64
@@ -47,11 +47,11 @@ end
 for B in 7 till (MaxB + 1)
   for P in 0 till (MaxP + 1)
     for Rem in 0 till MaxRem
-      if not ((P equal 0) and (Rem equal 0))
+      if not (P equal 0 and (Rem equal 0))
         Id1 = (((B - 1) * (MaxP + 1)) + P) * MaxRem + Rem
         S1 = CrossSteps Id1
         R1 = CrossOver Id1
-        P2 = (P + 1) min MaxP
+        P2 = P + 1 min MaxP
         Id2 = (((B - 1) * (MaxP + 1)) + P2) * MaxRem + R1
         S2 = CrossSteps Id2
         R2 = CrossOver Id2
@@ -72,13 +72,13 @@ for Iter in 0 till 2000000000
   Jumped = 0
   for B in ((6 till (MaxB + 1)) reverse)
     Mask = (1 shl B) - 1
-    if (Base band Mask) equal 0
+    if Base band Mask equal 0
       U = N shr B
-      P = (U popcount) min MaxP
+      P = U popcount min MaxP
       Id = ((B * (MaxP + 1)) + P) * MaxRem + Rem
       S = CrossSteps Id
       if not (K less S)
-        N = ((U + 1) shl B) + (CrossOver Id)
+        N = (U + 1 shl B) + (CrossOver Id)
         K = K - S
         Jumped = 1
         break
@@ -92,4 +92,4 @@ for Iter in 0 till 2000000000
 end
 
 Ans = N
-(Ans text) print
+Ans text print

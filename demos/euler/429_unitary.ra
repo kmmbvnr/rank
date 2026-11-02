@@ -19,7 +19,7 @@ Ex = Pr * 0
 Pk = Pr
 for Pk min at most N
   Ex = Ex + N // Pk
-  Pk = (Pk * Pr) min (N + 1)
+  Pk = Pk * Pr min (N + 1)
 end
 Bs = Pr
 Ep = 2 * Ex
@@ -39,7 +39,7 @@ for V len greater 1
   H = V len // 2
   Lo = V (0 to H - 1)
   Hi = V (H to 2 * H - 1)
-  V = (Lo * Hi mod Mod) copy
+  V = Lo * Hi mod Mod copy
 end
 Answer = V 0
 Answer print

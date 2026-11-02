@@ -40,19 +40,19 @@ for M in 1 to Hi
       end
       Sq = N isqrt
       Dv = 1 to Sq
-      Ix = (N mod Dv equal 0) indices
+      Ix = N mod Dv equal 0 indices
       Dv = Dv Ix
       Dv = concat Dv (N // Dv)
       Dv = Dv unique
       Ne = Dv len
       Dr = Dv reshape Ne 1
       Dc = Dv reshape 1 Ne
-      Dm = (Dr mod Dc equal 0) integer
+      Dm = Dr mod Dc equal 0 integer
       Cn = Dm sum axis 1
-      Pm = Dv ((Cn equal 2) indices)
+      Pm = Dv (Cn equal 2 indices)
       Nq = Pm len
       Pc = Pm reshape 1 Nq
-      Mu = (Dr mod Pc) equal 0
+      Mu = Dr mod Pc equal 0
       Mp = Mu choose Pc 1
       Rd = Mp reduce * axis 1
       Pq = Pc - 1
@@ -80,8 +80,8 @@ for M in 1 to Hi
       Wa = concat Wa W
       Tg = concat Tg (L1 * 0 + X)
     end
-    Ia = (Tg equal 0) indices
-    Ib = (Tg equal 1) indices
+    Ia = Tg equal 0 indices
+    Ib = Tg equal 1 indices
     Na = Ia len
     Nb = Ib len
     A1 = (La Ia) reshape Na 1
@@ -98,9 +98,9 @@ for M in 1 to Hi
     Cy = Cy + Ak2 * Bk2 * (A2 gcd B2)
     Nn = Na * Nb
     Cf = Cy reshape Nn
-    Aw = ((Wa Ia) mod P) reshape Na 1
-    Bw = ((Wa Ib) mod P) reshape 1 Nb
-    Ww = (Aw * Bw mod P) reshape Nn
+    Aw = Wa Ia mod P reshape Na 1
+    Bw = Wa Ib mod P reshape 1 Nb
+    Ww = Aw * Bw mod P reshape Nn
     Sm = Cf * 0
     Bn = 1
     for Jj in 0 to M
@@ -112,7 +112,7 @@ for M in 1 to Hi
       Sm = (Sm + Tm) mod P
       Bn = Bn * (M - Jj) // (Jj + 1)
     end
-    Tot = (Ww * Sm mod P) sum mod P
+    Tot = Ww * Sm mod P sum mod P
     Dn = 4 * Fa mod P * (Fb mod P) mod P
     Iv = Dn (P - 2) P powmod
     Answer = (Answer + Tot * Iv) mod P

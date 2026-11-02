@@ -37,7 +37,7 @@ fun X sqs Md
   Xb = (X + 1) mod M6
   Xc = (2 * X + 1) mod M6
   Rs = Xa * Xb mod M6 * Xc mod M6
-  return (Rs // 6) mod Md
+  return Rs // 6 mod Md
 end
 
 fun E p2 Md
@@ -55,8 +55,8 @@ end
 
 Mod = 100000000
 Rn = N isqrt + 2
-Lm = (L max Rn) min N
-Ph = (0 to Lm) copy
+Lm = L max Rn min N
+Ph = 0 to Lm copy
 Sm = array shape (Lm + 1) fill 1
 Rt = Lm isqrt
 for P in primes to Rt
@@ -70,12 +70,12 @@ for P in primes to Rt
     Q *= P
   end
 end
-Ix = (0 to Lm) copy
+Ix = 0 to Lm copy
 Rs = Ix // Sm
 Big = Rs greater 1
 Pv = Ph
 Pc' = Pv - Pv // Rs
-Ph = (Big choose Pc Pv) copy
+Ph = Big choose Pc Pv copy
 Ph 0 = 0
 Im = Ix mod Mod
 F0 = Ph mod Mod
@@ -102,28 +102,28 @@ for I in Nq to 1 by -1
     Pa1 = 0
     Pa2 = 0
     if K0 at least 2
-      Ka = (2 to K0) copy
+      Ka = 2 to K0 copy
       Ia = I * Ka
       Va = L0 Ia
       Pa0 += Va sum
       Wa = L1 Ia
-      Pa1 += (Ka * Wa mod Mod) sum
+      Pa1 += Ka * Wa mod Mod sum
       Za = L2 Ia
       Ka2 = Ka * Ka mod Mod
-      Pa2 += (Ka2 * Za mod Mod) sum
+      Pa2 += Ka2 * Za mod Mod sum
     end
     rem k > K0: X // k fits the prefix
     rem tables C0, C1, C2.
     if R greater K0
-      Kb = (K0 + 1 to R) copy
+      Kb = K0 + 1 to R copy
       Yb = X // Kb
-      Pa0 += (C0 Yb) sum
-      Pa1 += (Kb * (C1 Yb) mod Mod) sum
+      Pa0 += C0 Yb sum
+      Pa1 += Kb * C1 Yb mod Mod sum
       Kb2 = Kb * Kb mod Mod
-      Pa2 += (Kb2 * (C2 Yb) mod Mod) sum
+      Pa2 += Kb2 * C2 Yb mod Mod sum
     end
     Qm = X // (R + 1)
-    Qs = (1 to Qm) copy
+    Qs = 1 to Qm copy
     Hq = X // Qs
     Hx = concat Hq (array R)
     Hi = Hx (0 to Qm - 1)
@@ -137,9 +137,9 @@ for I in Nq to 1 by -1
     Sa = Sx (0 to Qm - 1)
     Sb = Sx (1 to Qm)
     D2 = (Sa - Sb) mod Mod
-    Pb0 = (D0 * C0 Qs mod Mod) sum
-    Pb1 = (D1 * C1 Qs mod Mod) sum
-    Pb2 = (D2 * C2 Qs mod Mod) sum
+    Pb0 = D0 * C0 Qs mod Mod sum
+    Pb1 = D1 * C1 Qs mod Mod sum
+    Pb2 = D2 * C2 Qs mod Mod sum
     X6 = X * (X + 1) * (2 * X + 1) // 6
     X2 = X * (X + 1) // 2
     L0 I = (X2 - Pa0 - Pb0) mod Mod
@@ -151,7 +151,7 @@ Nn = N + 1
 Nm = Nn mod Mod
 rem Single l up to the root.
 R2 = N isqrt
-Ls = (1 to R2) copy
+Ls = 1 to R2 copy
 Ms = N // Ls
 Sk = Ms at most Lm
 Mc = Ms min Lm
@@ -166,7 +166,7 @@ Nb = 6 * Nm * Lq mod Mod
 Pl = Pl - Nb * G1 mod Mod
 Ls2 = Lq * Lq mod Mod
 Pl = Pl + 2 * Ls2 * G2 mod Mod
-Tw = (Ls - 1) p2 Mod
+Tw = Ls - 1 p2 Mod
 Tm1 = (Tw - 1) mod Mod
 Su1 = ((Pl mod Mod) * Tm1 mod Mod) sum
 rem Blocks of equal m above the root.
@@ -175,11 +175,11 @@ Mb = (1 to (Mc2 max 1)) copy
 Hb = N // Mb
 Lb = N // (Mb + 1) max R2
 Ab = Lb + 1
-Ca = Na * (C0 Mb) mod Mod
+Ca = Na * C0 Mb mod Mod
 Cb = (0 - 6 * Nm * (C1 Mb)) mod Mod
-Cc = 2 * (C2 Mb) mod Mod
+Cc = 2 * C2 Mb mod Mod
 Tb = Hb p2 Mod
-Ta = (Ab - 1) p2 Mod
+Ta = Ab - 1 p2 Mod
 Bm = Hb mod Mod
 Am = (Ab - 1) mod Mod
 E0 = (Tb - Ta) mod Mod
@@ -191,8 +191,8 @@ E2a = (Am * Am - 2 * Am + 3) mod Mod
 E2 = E2b * Tb mod Mod
 E2 = E2 - (E2a * Ta mod Mod)
 Z0 = Hb - Ab + 1
-Z1 = Hb tri Mod - ((Ab - 1) tri Mod)
-Z2 = Hb sqs Mod - ((Ab - 1) sqs Mod)
+Z1 = Hb tri Mod - (Ab - 1 tri Mod)
+Z2 = Hb sqs Mod - (Ab - 1 sqs Mod)
 Q0 = Ca * ((E0 - Z0) mod Mod) mod Mod
 Q1 = Cb * ((E1 - Z1) mod Mod) mod Mod
 Q2 = Cc * ((E2 - Z2) mod Mod) mod Mod

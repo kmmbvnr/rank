@@ -18,10 +18,10 @@ rem the reduced denominator of N / k has
 rem only the factors 2 and 5.
 Ns = 5 to Limit array
 E = 1 exp
-Lo = (Ns / E) floor
+Lo = Ns / E floor
 Hi = Lo + 1
-LogLo' = (Ns / Lo) log
-LogHi' = (Ns / Hi) log
+LogLo' = Ns / Lo log
+LogHi' = Ns / Hi log
 FLo' = Lo * LogLo
 FHi' = Hi * LogHi
 Up' = FHi greater FLo

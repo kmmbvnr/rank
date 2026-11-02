@@ -14,12 +14,12 @@ arg Input text = "3 1 5\n0 1\n3 7 1 5 2"
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
-N = (Tokens 0) integer
-W = (Tokens 1) integer
-L = (Tokens 2) integer
-Rmin = (Tokens 3) integer
-Rmax = (Tokens 4) integer
-A = (Tokens drop 5) integer
+N = Tokens 0 integer
+W = Tokens 1 integer
+L = Tokens 2 integer
+Rmin = Tokens 3 integer
+Rmax = Tokens 4 integer
+A = Tokens drop 5 integer
 
 G = L - (N * W)
 MinG = (N + 1) * Rmin
@@ -45,10 +45,10 @@ if (not (G less 0)) and (not (G less MinG)) and (not (G greater MaxG))
     for K in 2 till (N + 1)
       Tree = DP segment min
       NextDP = array shape M fill INF
-      StartP = (W + Rmin) min M
+      StartP = W + Rmin min M
       for P in StartP till M
-        QL = (P - W - Rmax) max 0
-        QR = (P - W - Rmin) min (M - 1)
+        QL = P - W - Rmax max 0
+        QR = P - W - Rmin min (M - 1)
         if not (QR less QL)
           MinVal = Tree QL QR query
           if MinVal less INF
@@ -60,8 +60,8 @@ if (not (G less 0)) and (not (G less MinG)) and (not (G greater MaxG))
     end
   end
 
-  FinL = (L - W - Rmax) max 0
-  FinR = (L - W - Rmin) min (M - 1)
+  FinL = L - W - Rmax max 0
+  FinR = L - W - Rmin min (M - 1)
   if not (FinR less FinL)
     TreeFin = DP segment min
     BestCost = TreeFin FinL FinR query

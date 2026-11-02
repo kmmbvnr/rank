@@ -12,6 +12,6 @@ fun Truth accuracy_score Predicted
     .EmptyInput raise
   end
 
-  Hits = (Truth equal Predicted) count
+  Hits = Truth equal Predicted count
   return Hits / Count
 end

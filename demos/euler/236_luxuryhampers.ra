@@ -100,19 +100,19 @@ for A in 1 to Top
     C0 = Cc 0
     C1 = Cc 1
     C2 = Cc 2
-    Gc = (C0 gcd C1) gcd C2
+    Gc = C0 gcd C1 gcd C2
     C0 = C0 // Gc
     C1 = C1 // Gc
     C2 = C2 // Gc
     rem C1 is negative for m > 1:
     rem Sb * 41 is less than Sa * 59.
     Found = 0
-    for S in (Lo 0) to (Hi 0)
-      for T in (Lo 2) to (Hi 2)
+    for S in Lo 0 to (Hi 0)
+      for T in Lo 2 to (Hi 2)
         Rhs = 0 - C0 * S - C2 * T
         if Rhs mod C1 equal 0
           Q = Rhs // C1
-          if Q at least (Lo 1) and Q at most (Hi 1)
+          if Q at least Lo 1 and Q at most (Hi 1)
             Found = 1
             break
           end

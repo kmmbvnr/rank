@@ -15,9 +15,9 @@ arg Input text = "2\nPP\n1 1"
 Tokens = Input split "\n" join " " split "\r" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
-N = (Tokens 0) integer
+N = Tokens 0 integer
 S = Tokens 1
-KCount = (Tokens 2) integer
+KCount = Tokens 2 integer
 
 Queries = (Tokens (3 till (3 + KCount))) integer
 
@@ -42,7 +42,7 @@ for QIdx in 0 till KCount
       if (SRev (CurN - 1)) equal "Z"
         Base = "K"
       end
-      if (Inv mod 2) equal 1
+      if Inv mod 2 equal 1
         if Base equal "K"
           Base = "O"
         else

@@ -11,7 +11,7 @@ end
 
 rem Nearest-even byte quantization before integer conversion.
 fun Gray' toRGB
-  Levels' = (Gray * 255.0) round 0
+  Levels' = Gray * 255.0 round 0
   return (Levels integer rank 0) * 65793
 end
 
@@ -45,7 +45,7 @@ fun Kernel convolveImage Image
   Pad = (Shape - 1) // 2
   Blocks' = Image window Shape padding Pad wrap
   Weighted' = Blocks * K
-  Result' = (Weighted sum rank 2) max 0.0
+  Result' = Weighted sum rank 2 max 0.0
   return Result min 1.0
 end
 
@@ -54,7 +54,7 @@ fun Kernel convolveRGB Image
   RGB' = Image digits Base
   Normalized' = RGB / 255.0
   Filtered' = Kernel convolveImage Normalized rank 2 2
-  Rounded' = (Filtered * 255.0) round 0
+  Rounded' = Filtered * 255.0 round 0
   Bytes' = Rounded integer rank 0
   return Bytes fromDigits Base
 end
@@ -64,8 +64,8 @@ fun Sigma gaussianMat
   if Sigma at most 0
     .DomainError raise
   end
-  Radius = (3.0 * Sigma) ceil
-  X = (-Radius to Radius) array
+  Radius = 3.0 * Sigma ceil
+  X = -Radius to Radius array
   Powers' = -(X ** 2) / (2.0 * Sigma ** 2)
   Line = Powers exp
   Kernel = Line Line outer *

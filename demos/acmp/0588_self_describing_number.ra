@@ -12,7 +12,7 @@ arg Input text = "5"
 
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
-B = (Tokens 0) integer
+B = Tokens 0 integer
 
 Answer = "-1"
 

@@ -110,7 +110,7 @@ else
           for Cell in 0 till NumColors
             NR = R0 + (CurR Cell)
             NC = C0 + (CurC Cell)
-            if (NR less 0) or (not (NR less N)) or (NC less 0) or (not (NC less M))
+            if NR less 0 or (not (NR less N)) or NC less 0 or (not (NC less M))
               CanPlace = false
             else
               NIdx = NR * M + NC
@@ -163,8 +163,8 @@ else
       for P in 0 till NumPlacements
         PM = PlacementsMask P
         rem Only consider placements that cover the lowest unset bit
-        if (PM band LowBitMask) not equal 0
-          if (Mask band PM) equal 0
+        if PM band LowBitMask not equal 0
+          if Mask band PM equal 0
             NMask = Mask bor PM
             NewCost = CurCost + (PlacementsCost P)
             OldCost = DP NMask

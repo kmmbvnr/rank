@@ -48,11 +48,11 @@ end
 Lines = Input readlines
 Tot = 0
 for Ln in 0 to Count - 1
-  Chs = (Lines Ln) split ""
+  Chs = Lines Ln split ""
   Nch = Chs len
   Cp = array shape (Nch + 2) fill 0
   for Ci in 0 to Nch - 1
-    Cp Ci = (Chs Ci) codepoint
+    Cp Ci = Chs Ci codepoint
   end
   Pos = 0
   N = 0
@@ -196,7 +196,7 @@ for Ln in 0 to Count - 1
       Fq (Lt Cell) += 1
     end
   end
-  Idl = (Fq greater 0) indices
+  Idl = Fq greater 0 indices
   Od = (0 - (Fq Idl)) argsort
   Ordr = Idl Od
   Nl = Ordr len
@@ -204,7 +204,7 @@ for Ln in 0 to Count - 1
   Us = array shape 10 fill 0
   Ptr = array shape 12 fill 0
   Fd = array shape 12 fill 0
-  Wh = (Kd equal 1) indices
+  Wh = Kd equal 1 indices
   rem Backtracking over the letters.
   K = 0
   Fin = 0
@@ -297,7 +297,7 @@ for Ln in 0 to Count - 1
           end
           Placed = 0
           if Pd less 9
-            for D in (Pd + 1) to 9
+            for D in Pd + 1 to 9
               Ok = 1
               Pw = P2 D
               for Tr in 0 to 1
@@ -458,7 +458,7 @@ for Ln in 0 to Count - 1
     end
   end
   Res = 0
-  Rem = (Us equal 0) indices
+  Rem = Us equal 0 indices
   for Lc in 0 to 9
     Dv = Mp Lc
     if Dv less 0

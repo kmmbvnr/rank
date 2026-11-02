@@ -22,14 +22,14 @@ rem Use CSV headers to retain pixel order in both files.
 fun Train solve_table Test
   Labels = Train labels
   Mask' = Labels not equal .label
-  Features = (Labels Mask) array
+  Features = Labels Mask array
   X = Train Features
   Xtest = Test Features
   Y = Train .label
   Classes = Y unique
   Pred = X Y Xtest Classes solve
   Count = Pred len
-  Test .ImageId = (1 to Count) array
+  Test .ImageId = 1 to Count array
   Test .Label = Pred
   return Test (array .ImageId .Label)
 end

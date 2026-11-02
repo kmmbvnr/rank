@@ -31,7 +31,7 @@ fun Options variablerisk Params
   unpack Start Count = Options
   Sims = Count integer
   Quarters = Params 2 integer // 3
-  Rolls = (1 to 6) choices (Quarters * Sims)
+  Rolls = 1 to 6 choices (Quarters * Sims)
   Changes = ((Rolls - 3.5) / 10) reshape Quarters Sims
   return Changes Start Params difference bins
 end
@@ -49,7 +49,7 @@ fun Changes Start Params difference
   unpack Price Costs Months BankAmt BankRate DadAmt DadRate Infl Tax PropRate SavRate Rent = Params
   Term = Months integer
   Sims = Changes shape 1
-  Fixed = BankAmt (BankRate / 1200) ((1 to Term) copy) loan
+  Fixed = BankAmt (BankRate / 1200) (1 to Term copy) loan
   Growth = 1 + SavRate / 1200 * (1 - Tax / 100)
 
   Official = array shape Sims fill Start * 1.0
@@ -88,10 +88,10 @@ end
 
 
 fun Difference bins
-  Far = (Difference greater 50000) count
-  Ahead = ((Difference greater 25000) and (Difference at most 50000)) count
+  Far = Difference greater 50000 count
+  Ahead = (Difference greater 25000 and (Difference at most 50000)) count
   Even = (Difference abs at most 25000) count
-  Behind = ((Difference less -25000) and (Difference at least -50000)) count
-  Lost = (Difference less -50000) count
+  Behind = (Difference less -25000 and (Difference at least -50000)) count
+  Lost = Difference less -50000 count
   return (array Far Ahead Even Behind Lost) / (Difference len)
 end

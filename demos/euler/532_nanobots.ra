@@ -26,11 +26,11 @@ rem Simpson weights 1 4 2 .. 4 1.
 Wt = ((0 to H) mod 2 * 2 + 2) * 1.0
 Wt 0 = 1.0
 Wt H = 1.0
-Ns = (3 to Mx) copy
+Ns = 3 to Mx copy
 K = Ns len
-Is = 1 / ((Pi / Ns) sin ** 2)
+Is = 1 / (Pi / Ns sin ** 2)
 F = ((Is reshape K 1) - T2) ** 0.5
 L = (F matmul Wt) * Hs / 3
-Ix = ((L greater Lt) indices) first
+Ix = (L greater Lt indices) first
 Answer = ((Ns Ix) * (L Ix)) round 2
 Answer print

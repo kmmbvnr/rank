@@ -22,7 +22,7 @@ rem sum that follows the Euclid steps.
 Lm = N // 5
 Mu = array shape (Lm + 2) fill 1
 Sm = array shape (Lm + 2) fill 1
-Ix = (0 to Lm + 1) copy
+Ix = 0 to Lm + 1 copy
 Rt = Lm isqrt + 1
 for P in primes to Rt
   Q = P
@@ -34,7 +34,7 @@ for P in primes to Rt
     end
     Q *= P
   end
-  Sl = (P * P) to Lm + 1 by (P * P)
+  Sl = P * P to Lm + 1 by (P * P)
   Mu Sl = 0
 end
 Bg = Ix // Sm greater 1

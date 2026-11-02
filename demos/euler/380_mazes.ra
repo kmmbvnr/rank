@@ -13,8 +13,8 @@ rem Matrix-tree eigenvalue product.
 Pi = 0.0 atan2 (0.0 - 1.0)
 R' = 0 till Rows array
 C' = 0 till Cols array
-Rx' = (Pi * R / Rows) cos
-Cx = (Pi * C / Cols) cos
+Rx' = Pi * R / Rows cos
+Cx = Pi * C / Cols cos
 Sum = 0.0
 Fix = 0.0
 for A in Rx
@@ -28,7 +28,7 @@ for A in Rx
     end
   end
 end
-Sum -= (Rows * Cols) log
+Sum -= Rows * Cols log
 Power = Sum / (10.0 log)
 Expo = Power floor
 Lead = 10.0 ** (Power - Expo)

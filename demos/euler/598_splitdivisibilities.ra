@@ -20,11 +20,11 @@ rem rest (e + 1 <= 10) only move the
 rem balances of 2 3 5 7, summed in a
 rem sparse table. Match both for total
 rem 0; unordered pairs halve it.
-Ps = primes till (N + 1) array
+Ps = primes till N + 1 array
 Np = Ps len
 Es = Ps * 0
 Q = Ps * 0 + N
-for (Q sum) greater 0
+for Q sum greater 0
   Q = Q // Ps
   Es += Q
 end
@@ -34,7 +34,7 @@ for I in 0 till Np
   Pw = Ps I
   Rw = Ms * 0
   for Pw at most 100
-    Rw += (Ms mod Pw equal 0) integer
+    Rw += Ms mod Pw equal 0 integer
     Pw *= Ps I
   end
   Nu I = Rw
@@ -71,9 +71,9 @@ for Iq in 4 till Np
   Bq = Bq + (G1 reshape 1 N1 1 1)
   Bq = Bq + (G2 reshape 1 1 N2 1)
   Bq = Bq + (G3 reshape 1 1 1 N3)
-  Ok = Ok * ((Bq equal 0) integer)
+  Ok = Ok * (Bq equal 0 integer)
 end
-Ix = ((Ok reshape Tt) equal 1) indices
+Ix = (Ok reshape Tt equal 1) indices
 Ky = Ix * 0
 for Iq in 0 till 4
   Rq = Nu Iq
@@ -91,8 +91,8 @@ end
 Ky = Ky sort
 Na = Ky len
 Hk = Ky (1 till Na array)
-Lk = Ky (0 till (Na - 1) array)
-Ch = (Hk not equal Lk) indices
+Lk = Ky (0 till Na - 1 array)
+Ch = Hk not equal Lk indices
 St = concat (array 0) (Ch + 1)
 En = concat (Ch + 1) (array Na)
 K1 = Ky St
@@ -121,14 +121,14 @@ for Ip in 4 till Np
   Cn = Cn Od
   Na = Kn len
   Hk = Kn (1 till Na array)
-  Lk = Kn (0 till (Na - 1) array)
-  Ch = (Hk not equal Lk) indices
+  Lk = Kn (0 till Na - 1 array)
+  Ch = Hk not equal Lk indices
   St = concat (array 0) (Ch + 1)
   En = concat (Ch + 1) (array Na)
-  Cc = (Cn scan +) array
+  Cc = Cn scan + array
   Ce = Cc (En - 1)
   Ne = En len
-  Lc = Ce (0 till (Ne - 1) array)
+  Lc = Ce (0 till Ne - 1 array)
   Cp = concat (array 0) Lc
   Ks = Kn St
   Cs = Ce - Cp
@@ -139,7 +139,7 @@ for J in 0 till (K1 len)
   Kq = 101010100 - (K1 J)
   Pos = Ks lowerindex Kq
   if Pos less Nk
-    if (Ks Pos) equal Kq
+    if Ks Pos equal Kq
       M += (C1 J) * (Cs Pos)
     end
   end

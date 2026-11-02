@@ -35,7 +35,7 @@ Sm = Xx
 Bl = 1000
 Last = 0.0
 for S in 1 to Mm by Bl
-  Hi = (S + Bl - 1) min Mm
+  Hi = S + Bl - 1 min Mm
   Is = S to Hi
   Ts = Is * Ds
   Th = Ts reshape (Ts len) 1

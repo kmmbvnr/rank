@@ -20,26 +20,26 @@ rem changes the blocks only when a value
 rem gets its 1st to 4th copy: step over
 rem those events, testing the blocks
 rem that hold the new copy.
-Ns = (1 to N) copy
-B3 = (3 * Ns) popcount
-B2 = (2 * Ns) popcount
-B1 = (Ns + 1) popcount
+Ns = 1 to N copy
+B3 = 3 * Ns popcount
+B2 = 2 * Ns popcount
+B1 = Ns + 1 popcount
 U = 2 ** B3 + 3 ** B2 + B1
-Uq = (U unique) sort
+Uq = U unique sort
 Rk = Uq lowerindex U
 Od = Rk argsort
 Rs = Rk Od
 Nd = Rs len
-Ix = (0 till Nd) copy
+Ix = 0 till Nd copy
 Sa = Rs (1 till Nd)
 Eq = Sa equal (Rs (0 till Nd - 1))
 Nq = Eq equal false
 Fl = concat (array true) Nq
-G = (Fl integer) scan +
+G = Fl integer scan +
 G = G - 1
 Oc = Ix - (Fl indices) G
 rem The first four copies of each value.
-Ev = (Oc less 4) indices
+Ev = Oc less 4 indices
 Et = (Od Ev) + 1
 Er = Rs Ev
 Eo = Et argsort
@@ -55,28 +55,28 @@ for E in 0 till Ne
   I = Er E
   V = Uq I
   Cc I += 1
-  Cv = (Cc I) min 4
+  Cv = Cc I min 4
   rem Three entries below and above.
   Lm = (Cc (0 till I)) greater 0
   Lp = Lm indices
   Ln = Lp len
-  Ls = (Ln - 3) max 0
+  Ls = Ln - 3 max 0
   Lp = Lp (Ls till Ln)
-  Cl = (Cc Lp) min 3
+  Cl = Cc Lp min 3
   Xl = Cl scan +
   Tl = Xl last default 0
-  Rl = (0 till Tl) copy
+  Rl = 0 till Tl copy
   Lw = Uq (Lp (Xl upperindex Rl))
-  Ts = (Tl - 3) max 0
+  Ts = Tl - 3 max 0
   Lw = Lw (Ts till Tl)
   Um = (Cc (I + 1 till Dn)) greater 0
   Up = Um indices
-  Un = (Up len) min 3
+  Un = Up len min 3
   Up = (Up (0 till Un)) + I + 1
-  Cu = (Cc Up) min 3
+  Cu = Cc Up min 3
   Xu = Cu scan +
   Tu = Xu last default 0
-  Ru = (0 till Tu) copy
+  Ru = 0 till Tu copy
   Uw = Uq (Up (Xu upperindex Ru))
   Te = Tu min 3
   Uw = Uw (0 till Te)
@@ -85,7 +85,7 @@ for E in 0 till Ne
   V0 = Lw len
   Wn = W len
   if Wn at least 4
-    S = (0 to Wn - 4) copy
+    S = 0 to Wn - 4 copy
     Ok = S at most V0 + Cv - 1
     Ok = Ok and (S + 3 at least V0)
     S = S (Ok indices)
@@ -101,10 +101,10 @@ for E in 0 till Ne
     Q = Q * (A + B - C + D)
     Q = Q * (A - B + C + D)
     Q = Q * (B + C + D - A)
-    Q = (D less A + B + C) choose Q 0.0
+    Q = D less A + B + C choose Q 0.0
     P = Wa + Wb + Wc + Wd
     Qm = Q max
-    Pm = (P ((Q equal Qm) indices)) max
+    Pm = (P (Q equal Qm indices)) max
     Bt = Qm equal Qb
     Bt = Bt and (Pm greater Pb)
     Bt = Bt or (Qm greater Qb)

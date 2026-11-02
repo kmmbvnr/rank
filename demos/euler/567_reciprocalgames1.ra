@@ -21,7 +21,7 @@ Ks = 1 to (M min 1000) array
 Hs = (1 / (Ks * 1.0)) scan + array
 Ns = 1 to (M min 60) array
 Hn = Hs (Ns - 1)
-Tl = (Hn / 2.0 ** Ns) sum
+Tl = Hn / 2.0 ** Ns sum
 Hm = 0.0
 if M at most 1000
   Hm = Hs (M - 1)
@@ -31,9 +31,9 @@ else
   Hm += 1 / (2 * X) - 1 / (12 * X * X)
   Hm += 1 / (120 * X ** 4)
 end
-Js = 0 to ((M - 1) min 200) array
+Js = 0 to (M - 1 min 200) array
 Dn = (M - Js) * 1.0 * 2.0 ** Js
-Bm = (1 / Dn) sum
+Bm = 1 / Dn sum
 Answer = 4 * Hm - 2 * Bm - Tl
 Answer = Answer round 8
 Answer print

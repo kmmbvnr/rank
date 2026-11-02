@@ -17,8 +17,8 @@ rem larger ones by Phi(x) = x(x+1)/2 -
 rem sum Phi(x // d), d >= 2.
 L = ((N * 1.0) ** (2.0 / 3.0)) floor
 L += 10
-Ph = (0 to L) copy
-Rs = (0 to L) copy
+Ph = 0 to L copy
+Rs = 0 to L copy
 Lr = L isqrt
 for P in primes to Lr
   Sl = P to L by P
@@ -31,7 +31,7 @@ for P in primes to Lr
 end
 Rm = Rs max 1
 Pr = Ph // Rm * (Rm - 1)
-Ph = (Rs greater 1) choose Pr Ph
+Ph = Rs greater 1 choose Pr Ph
 Fs = Ph scan +
 K = N // (L + 1)
 Bg = array shape (K + 2) fill 0
@@ -41,14 +41,14 @@ for Kk in K to 1 by -1
   D1 = X // (L + 1)
   V = X * (X + 1) // 2
   if D1 at least 2
-    Ds = (2 to D1) copy
+    Ds = 2 to D1 copy
     V -= (Bg (Kk * Ds)) sum
   end
-  Dd = (D1 + 1 to Sx) copy
+  Dd = D1 + 1 to Sx copy
   V -= (Fs (X // Dd)) sum
   Qs = (1 to X // (Sx + 1)) copy
   Ct = X // Qs - X // (Qs + 1)
-  V -= (Fs Qs * Ct) sum
+  V -= Fs Qs * Ct sum
   Bg Kk = V
 end
 rem G at N // 2^j, smallest first.
@@ -64,7 +64,7 @@ for Jj in J to 0 by -1
   if X greater L
     F = Bg Mj
   end
-  Ks = (1 to J - Jj + 1) copy
+  Ks = 1 to J - Jj + 1 copy
   Tw = 2 ** (Ks - 1) * Gs (Jj + Ks)
   Sb = Tw sum
   Gs Jj = F - Sb

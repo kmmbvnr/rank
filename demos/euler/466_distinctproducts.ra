@@ -20,20 +20,20 @@ rem lcms, adding one q at a time and
 rem merging equal lcms.
 Answer = 0
 for D in 1 to M
-  Es = (D + 1 to M) copy
+  Es = D + 1 to M copy
   Qv = Es // (Es gcd D)
   Qv = Qv unique sort
-  Qv = Qv ((Qv at most N) indices)
+  Qv = Qv (Qv at most N indices)
   rem Drop q with a smaller divisor.
   Ms = Qv (Qv * 0 + 1) outer *
   Pm = (Qv Qv outer //) * Qv
-  Dv = (Pm equal Ms) count rank 1
-  Qs = Qv ((Dv equal 1) indices)
+  Dv = Pm equal Ms count rank 1
+  Qs = Qv (Dv equal 1 indices)
   Ls = array 1
   Cs = array 1
   for Q in Qs
     Lc = Ls * Q // (Ls gcd Q)
-    Ok = (Lc at most N) indices
+    Ok = Lc at most N indices
     Ky = concat Ls (Lc Ok)
     Cf = concat Cs (0 - Cs Ok)
     Od = Ky argsort
@@ -41,10 +41,10 @@ for D in 1 to M
     Cf = Cf Od
     rem Sum the runs of equal lcm.
     Nx = Ky shift -1 with -1
-    Ei = (Ky not equal Nx) indices
+    Ei = Ky not equal Nx indices
     Gs = (Cf scan +) Ei
     Gs = Gs - (Gs shift 1)
-    Nz = (Gs not equal 0) indices
+    Nz = Gs not equal 0 indices
     Ls = (Ky Ei) Nz
     Cs = Gs Nz
   end

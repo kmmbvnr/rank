@@ -37,7 +37,7 @@ Lim = 16 * Top * Top
 Sp = array shape (Lim + 1) fill 0
 for P in 2 to (Lim isqrt)
   if Sp P equal 0
-    for J in (P * P) to Lim by P
+    for J in P * P to Lim by P
       if Sp J equal 0
         Sp J = P
       end
@@ -99,7 +99,7 @@ for Kk in 1 to Top
     G = BaseD
     for I in 0 till Np
       for
-        if G mod (Pl I) greater 0
+        if G mod Pl I greater 0
           break
         end
         G = G // (Pl I)

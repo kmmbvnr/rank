@@ -3,7 +3,7 @@ rem https://projecteuler.net/problem=327
 
 use io
 
-Answer = (3 to 40) cards 30
+Answer = 3 to 40 cards 30
 Answer print
 
 fun Cs' cards Rooms

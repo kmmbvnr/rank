@@ -24,7 +24,7 @@ fun U binp V
     return 0
   end
   W = V min (U - V)
-  Is = (1 to W) copy
+  Is = 1 to W copy
   Pr = concat ((U - W + Is) mod Pm) Is
   rem Halving products mod Pm.
   Nm = Pr (0 till W)
@@ -55,7 +55,7 @@ if D less M and M at most N
     A = Ns I
     B = Ks I
     for A greater 0 or B greater 0
-      Bd = (A mod Pm) binp (B mod Pm)
+      Bd = A mod Pm binp (B mod Pm)
       Answer = Answer * Bd mod Pm
       A //= Pm
       B //= Pm

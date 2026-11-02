@@ -19,16 +19,16 @@ rem k <= (1 + isqrt(8 N - 3)) // 2. Sum
 rem these terms over k in blocks,
 rem reducing each product mod 10^9 + 7.
 P = 1000000007
-Km = ((8 * Nn - 3) isqrt + 1) // 2
+Km = (8 * Nn - 3 isqrt + 1) // 2
 Bl = 20000000
 Answer = 0
 for B0 in 1 to Km by Bl
-  Ks = B0 to ((B0 + Bl - 1) min Km)
+  Ks = B0 to (B0 + Bl - 1 min Km)
   Dl = Ks * (Ks - 1) // 2
   Mm = Nn - Dl
   Uu = Mm // Ks
   Vv = Mm mod Ks
-  Ev = (Uu mod 2 equal 0) integer
+  Ev = Uu mod 2 equal 0 integer
   Xa = Ev * (Uu // 2) + (1 - Ev) * Uu
   Ud = Uu - 1
   Xb = Ev * Ud + (1 - Ev) * (Ud // 2)

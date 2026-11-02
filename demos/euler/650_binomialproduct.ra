@@ -30,8 +30,8 @@ for Nn in 1 to N
   Pk = Pr
   Pm = Pk at most Nn
   for Pm any
-    Vn += (Nn mod Pk equal 0) integer
-    Pk = (Pk * Pr) min (N + 1)
+    Vn += Nn mod Pk equal 0 integer
+    Pk = Pk * Pr min (N + 1)
     Pm = Pk at most Nn
   end
   Vf += Vn

@@ -47,8 +47,8 @@ rem left, taking one of its places as a
 rem match or not, on an explicit stack
 rem of tables.
 Gf = Guess reshape 352
-Rows = (0 to 16 array) reshape 17 1
-Cols = (0 to 3 array) reshape 1 4
+Rows = 0 to 16 array reshape 17 1
+Cols = 0 to 3 array reshape 1 4
 Used' = Cols min Rows
 Fits' = Cols at most Rows
 Pick' = Rows binomial Used

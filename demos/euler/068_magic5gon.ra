@@ -12,13 +12,13 @@ rem Ten stays outside, so the inner ring
 rem takes five of 1 to 9; it fixes the
 rem line sum.
 Answer = 0
-for Inner in (1 to 9) combinations 5
+for Inner in 1 to 9 combinations 5
   Total = Inner sum
   if Total mod 5 not equal 0
     continue
   end
   Side = (55 + Total) // 5
-  Out' = (1 to 10) filter not in Inner
+  Out' = 1 to 10 filter not in Inner
   Rest = Out array
   for Ring in Inner permutations
     Tail' = Ring drop 1

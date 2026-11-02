@@ -42,7 +42,7 @@ for N in 0 to 31
   for S in 0 to N
     Cl = Gm (0 to 31) S
     Cr = Gm (0 to 31) (N - S)
-    Fi N += (Cl * Cr) sum
+    Fi N += Cl * Cr sum
   end
 end
 Dc = array shape 33 fill 0

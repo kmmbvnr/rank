@@ -90,7 +90,7 @@ end
 
 
 fun Value' sigmoid
-  Exp' = (-Value) exp
+  Exp' = -Value exp
   return 1.0 / (1.0 + Exp)
 end
 

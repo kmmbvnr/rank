@@ -25,7 +25,7 @@ rem unless a = b or a = c. a is odd and
 rem has only primes with (D / p) not -1.
 Q = 8 * N + 3
 Pr = primes to (Q isqrt) array
-Dv = Pr ((Q mod Pr equal 0) indices)
+Dv = Pr (Q mod Pr equal 0 indices)
 Nd = Dv len
 Ex = Dv * 0
 Rm = Q
@@ -44,29 +44,29 @@ for J in 0 to Nd - 1
 end
 H = 0
 B = 1
-Bm = (M // 3) isqrt
+Bm = M // 3 isqrt
 Am = ((Bm * Bm + M) // 4) isqrt + 1
 Pa = primes from 3 to Am array
 Ng = (0 - M) mod Pa
 Eh = (Pa - 1) // 2
 Lg = Ng Eh Pa powmod
-Bd = Pa ((Lg equal Pa - 1) indices)
+Bd = Pa (Lg equal Pa - 1 indices)
 Bad = (0 to Am) * 0
 for P in Bd
   Bad (P to Am by P) = 1
 end
 Od = (1 to Am by 2) * 1
-Gd = Od ((Bad Od equal 0) indices)
+Gd = Od (Bad Od equal 0 indices)
 for 3 * B * B at most M
   T = (B * B + M) // 4
   Rt = T isqrt
-  Cs = Gd (((T mod Gd) equal 0) indices)
-  Cs = Cs ((Cs at least B) indices)
-  Cs = Cs ((Cs at most Rt) indices)
-  Gb = (Cs greater B) integer
-  Gq = ((Cs * Cs) less T) integer
+  Cs = Gd ((T mod Gd equal 0) indices)
+  Cs = Cs (Cs at least B indices)
+  Cs = Cs (Cs at most Rt indices)
+  Gb = Cs greater B integer
+  Gq = (Cs * Cs less T) integer
   Ge = Gb * Gq
-  H += (1 + Ge) sum
+  H += 1 + Ge sum
   B += 2
 end
 S = 1
@@ -76,14 +76,14 @@ for J in 0 to Nd - 1
   if Fe greater 0
     R = (0 - M) mod P
     R = R ((P - 1) // 2) P powmod
-    Pl = (R equal 1) integer
-    Mn = (R equal P - 1) integer
+    Pl = R equal 1 integer
+    Mn = R equal P - 1 integer
     Sy = Pl - Mn
     Sg = (P ** (Fe + 1) - 1) // (P - 1)
     Sh = (P ** Fe - 1) // (P - 1)
     S *= Sg - Sy * Sh
   end
 end
-W = 2 + 4 * ((M equal 3) integer)
+W = 2 + 4 * (M equal 3 integer)
 Answer = 6 * H * S // W
 Answer print

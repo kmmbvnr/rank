@@ -21,8 +21,8 @@ rem S drifts below zero between the
 rem reads, which reduce it mod M.
 M = 1000000000
 R = N isqrt
-X = (0 to R) copy
-Ii = (1 to R) copy
+X = 0 to R copy
+Ii = 1 to R copy
 Xh = concat (array 0) (N // Ii)
 rem x (x + 1) / 2 - 1 mod M; halve the
 rem even factor first.
@@ -33,8 +33,8 @@ fun X tri
   T = (A mod M) * (B mod M) - 1
   return T mod M
 end
-Lo = (X - 1) max 0
-Hi = (Xh - 1) max 0
+Lo = X - 1 max 0
+Hi = Xh - 1 max 0
 Sl = X tri
 Sh = Xh tri
 Sl 0 = 0
@@ -52,7 +52,7 @@ for P in primes to C
   Ps = Sl (P - 1)
   Answer += P * (Hi P - Pc) mod M
   Lm = R min (N // P2)
-  M1 = (R // P) min Lm
+  M1 = R // P min Lm
   if M1 greater 0
     Ix = P to M1 * P by P
     Hs = Hi Ix
@@ -61,7 +61,7 @@ for P in primes to C
     Sh (1 to M1) -= Ss mod M
   end
   if Lm greater M1
-    Ib = (M1 + 1 to Lm) copy
+    Ib = M1 + 1 to Lm copy
     Iv = N // (Ib * P)
     Hi (M1 + 1 to Lm) -= Lo Iv - Pc
     Ss = (Sl Iv - Ps) mod M * P
@@ -82,18 +82,18 @@ rem primes update Hi together, one
 rem pair (i, p) per i <= N // p^2.
 Pb = primes from C + 1 to R array
 Ac = Pb * ((Hi Pb - Lo (Pb - 1)) mod M)
-Answer += (Ac mod M) sum
+Answer += Ac mod M sum
 Ct = N // (Pb * Pb)
 Cs = Ct scan +
 Nt = Cs last
-Po = (0 till Nt) copy
+Po = 0 till Nt copy
 J = Cs upperindex Po
 I = Po - (Cs - Ct) J + 1
 Pp = Pb J
 Q = I * Pp
 Bg = Q at most R
 Qh = Q min R
-Ql = (N // Q) min R
+Ql = N // Q min R
 Vc = Bg choose (Hi Qh) (Lo Ql)
 Vs = Bg choose (Sh Qh) (Sl Ql)
 Dc = Vc - Lo (Pp - 1)

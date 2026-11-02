@@ -24,7 +24,7 @@ rem power.
 P = 1117117717
 Cc = (7 ** 10 - 1) // 11
 Dg = (Cc // (7 ** (9 - (0 to 9)))) mod 7
-Is = (0 to 3) reshape 4 1
+Is = 0 to 3 reshape 4 1
 Id = (Is equal (0 to 3)) integer
 Bm = Id
 Pm = Id
@@ -62,8 +62,8 @@ for D in Dg
     Gt = 1
   end
 end
-Uc = ((0 to 3) equal 3) integer
-Vv = (Pm * Uc) sum axis 1
+Uc = (0 to 3 equal 3) integer
+Vv = Pm * Uc sum axis 1
 Ee = Kk // 10 - 1
 for Ee greater 0
   if Ee mod 2 equal 1

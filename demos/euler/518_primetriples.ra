@@ -13,18 +13,18 @@ rem d u^2, b + 1 = d u v, c + 1 = d v^2
 rem with u < v coprime. For odd primes
 rem d is even; odd d only gives a = 2,
 rem d = 3, u = 1 and v even.
-Sv = (N - 1) primesieve
-Rs = (N // 3) isqrt
+Sv = N - 1 primesieve
+Rs = N // 3 isqrt
 Vs = (1 to Rs // 2) * 2
 B = 3 * Vs - 1
 C = 3 * Vs * Vs - 1
-Ok = (B in Sv) and (C in Sv)
+Ok = B in Sv and (C in Sv)
 T = 2 + B + C
 Answer = (T (Ok indices)) sum
-Rv = (N // 2) isqrt
+Rv = N // 2 isqrt
 for V in 2 to Rv
   Vv = V * V
-  D = (1 to N // Vv // 2) copy
+  D = 1 to N // Vv // 2 copy
   D = D * 2
   Cs = D * Vv - 1
   Dk = (Cs in Sv) indices
@@ -34,7 +34,7 @@ for V in 2 to Rv
     Cs = Cs Dk
     U = 1 till V
     G = U gcd V
-    U = U ((G equal 1) indices)
+    U = U (G equal 1 indices)
     I = (0 till (U len) * Nd) copy
     Ui = U (I // Nd)
     Di = I mod Nd

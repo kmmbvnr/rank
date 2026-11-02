@@ -22,8 +22,8 @@ rem come from the power sums.
 Ps = primes till Limit array
 M = Ps len
 S1 = Ps sum
-S2 = (Ps * Ps) sum
-S3 = (Ps * Ps * Ps) sum
+S2 = Ps * Ps sum
+S3 = Ps * Ps * Ps sum
 E2 = (S1 * S1 - S2) // 2
 Cube = S1 * S1 * S1 - 3 * S1 * S2
 E3 = (Cube + 2 * S3) // 6

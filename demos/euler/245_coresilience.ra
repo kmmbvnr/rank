@@ -30,7 +30,7 @@ rem A - (k - 1) m), and the product of
 rem the ratios of the primes that still
 rem fit must reach it.
 Rt = Limit isqrt + 1
-Pr = primes till (Rt + 1) array
+Pr = primes till Rt + 1 array
 Np = Pr len
 Pi = array shape (Rt + 2) fill 0
 for I in 0 till Np

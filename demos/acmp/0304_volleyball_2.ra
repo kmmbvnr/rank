@@ -27,7 +27,7 @@ use bits
 arg N integer = 3
 arg MatchesText text = "25:23 25:20 25:18"
 
-Tokens = (MatchesText words) integer
+Tokens = MatchesText words integer
 TotalWays = 1
 
 for SIdx in 0 till N
@@ -44,10 +44,10 @@ for SIdx in 0 till N
   MinScore = A min B
   SetWays = 0
 
-  if (MaxScore equal Target) and (not (MinScore greater (Target - 2)))
-    SetWays = (MaxScore + MinScore - 1) binomial MinScore
+  if MaxScore equal Target and (not (MinScore greater (Target - 2)))
+    SetWays = MaxScore + MinScore - 1 binomial MinScore
   else
-    BaseWays = (2 * T) binomial T
+    BaseWays = 2 * T binomial T
     Power = 1 shl (MinScore - T)
     SetWays = BaseWays * Power
   end

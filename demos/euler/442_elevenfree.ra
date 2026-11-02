@@ -29,9 +29,9 @@ for K in 1 to 200
   if Ln greater Width
     break
   end
-  Ds = (Pw digits Base) copy
+  Ds = Pw digits Base copy
   St = 0
-  for J in (Width - Ln) to (Width - 1)
+  for J in Width - Ln to (Width - 1)
     D = Ds J
     if Go St D less 0
       Go St D = Ns
@@ -69,7 +69,7 @@ end
 
 rem Rows r s counts safe strings of
 rem r more digits from state s.
-Ok = (Tm equal 0) choose 1 0
+Ok = Tm equal 0 choose 1 0
 Gc = (Go (0 to Ns - 1)) transpose
 Os = Ok (0 to Ns - 1)
 Rows = array shape 80 Ns fill 0

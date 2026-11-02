@@ -40,7 +40,7 @@ Rt = array shape Ne fill 0
 Pk = array shape 30000 fill 0
 Nn = 0
 for E in 0 to Ne - 1
-  Bt = (Ls E) bytes integer
+  Bt = Ls E bytes integer
   Ln = Bt len
   Sp = 0
   I = 0
@@ -51,15 +51,15 @@ for E in 0 to Ne - 1
       Nx = Bt (I + 1)
     end
     Sk0 = 0
-    if (C equal 73) and (Nx equal 40)
+    if C equal 73 and (Nx equal 40)
       I += 2
       Sk0 = 1
     end
-    if (C equal 44) or (C equal 40)
+    if C equal 44 or (C equal 40)
       I += 1
       Sk0 = 1
     end
-    if (C equal 41) and (Sk0 equal 0)
+    if C equal 41 and (Sk0 equal 0)
       Sp -= 1
       Lc Nn = Pk (Sp - 1)
       Rc Nn = Pk Sp
@@ -69,7 +69,7 @@ for E in 0 to Ne - 1
       Nn += 1
       I += 1
     end
-    if (C at least 65) and (Sk0 equal 0)
+    if C at least 65 and (Sk0 equal 0)
       Cd = 0
       Lt = 1
       for Lt equal 1
@@ -92,12 +92,12 @@ for E in 0 to Ne - 1
   Rt E = Pk 0
 end
 Vq = Vr (0 to Nn - 1)
-Lv = (Vq greater Mn) indices
-Uc = (Vq Lv) unique
+Lv = Vq greater Mn indices
+Uc = Vq Lv unique
 Uc = Uc sort
 Nv = Uc len
 Vi = (Uc lowerindex Vq)
-Vr = (Vq greater Mn) choose Vi Mn
+Vr = Vq greater Mn choose Vi Mn
 Pd = array shape (Mx - Nn) fill Mn
 Vr = concat Vr Pd
 Bd = array shape Nv fill Mn
@@ -112,7 +112,7 @@ Cu = 0
 Answer = 0
 for P in 0 to Ne - 2
   for Q in P + 1 to Ne - 1
-    if (Ls P) not equal (Ls Q)
+    if Ls P not equal (Ls Q)
       Bd = Bd * 0 - 1
       Cu += 1
       Sp = 2
@@ -154,14 +154,14 @@ for P in 0 to Ne - 2
           Bv = 0 - 1
           Bn = 0 - 1
           if Va greater Mn
-            Sv = (Vb equal Va) integer
+            Sv = Vb equal Va integer
             if Sv equal 0
               Bv = Va
               Bn = B
             end
           end
-          Fa = (Va less 0) integer
-          Fb = (Vb greater Mn) integer
+          Fa = Va less 0 integer
+          Fb = Vb greater Mn integer
           if Fa * Fb equal 1
             Bv = Vb
             Bn = A
@@ -193,7 +193,7 @@ for P in 0 to Ne - 2
                   Hit = 1
                 end
               end
-              Fa = (Vx less 0) integer
+              Fa = Vx less 0 integer
               if Fa * (1 - Hit) equal 1
                 if Oz X not equal Oc
                   Oz X = Oc
@@ -212,9 +212,9 @@ for P in 0 to Ne - 2
               Bd Bv = Bn
             end
           end
-          Fa = (Bv less 0) integer
-          Fb = (Va less 0) integer
-          Fc = (Vb less 0) integer
+          Fa = Bv less 0 integer
+          Fb = Va less 0 integer
+          Fc = Vb less 0 integer
           if Fa * Fb * Fc equal 1
             Sk Sp = Lc A
             Sk (Sp + 1) = Lc B
@@ -223,7 +223,7 @@ for P in 0 to Ne - 2
             Sp += 4
           end
         end
-        Run = (Sp greater 0) integer
+        Run = Sp greater 0 integer
         Run = Run * (1 - Fail)
       end
       if Fail equal 0
@@ -261,8 +261,8 @@ for P in 0 to Ne - 2
               R = Rc X
               Zl = Sm L
               Zr = Sm R
-              Fa = (Zl equal Cu) integer
-              Fb = (Zr equal Cu) integer
+              Fa = Zl equal Cu integer
+              Fb = Zr equal Cu integer
               if Fa * Fb equal 1
                 Wl = Vl L
                 Wr = Vl R

@@ -29,7 +29,7 @@ rem perimeter 2m(m+n). This is smaller
 rem than all three other perimeters,
 rem so one bound and gcd mask suffice.
 Total = Limit // 3
-Top = (Limit // 2) isqrt
+Top = Limit // 2 isqrt
 for M in 2 to Top
   Hi = (Limit // (2 * M) - M) min (M - 1)
   if Hi at least 1

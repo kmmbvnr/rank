@@ -16,7 +16,7 @@ N = Tokens 0 integer
 A = Tokens 1 integer
 B = Tokens 2 integer
 
-GivenParents = (Tokens drop 3) take (N - 1) integer
+GivenParents = Tokens drop 3 take (N - 1) integer
 Parents = concat (array 0 1) GivenParents
 
 Visited = array shape (N + 1) fill false

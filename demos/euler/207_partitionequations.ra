@@ -18,10 +18,10 @@ rem gives a partition and it is perfect
 rem when x is a power of two. To X the
 rem count is X - 1 and the perfect ones
 rem are the powers of two up to X.
-Xs = 2 to (Q * 50) array
+Xs = 2 to Q * 50 array
 Pow' = (Xs band (Xs - 1)) equal 0
-Perf = (Pow choose 1 0) scan +
-Low' = (Xs - 1) greater Q * Perf
+Perf = Pow choose 1 0 scan +
+Low' = Xs - 1 greater Q * Perf
 Hits' = Xs filter Low
 X = Hits min
 Answer = X * (X - 1)

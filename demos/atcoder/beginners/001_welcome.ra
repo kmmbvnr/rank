@@ -15,5 +15,5 @@ A B C S greeting print
 rem Join the sum of three integers with a
 rem trailing word.
 fun A B C S greeting
-  return (A + B + C) text + " " + S
+  return A + B + C text + " " + S
 end

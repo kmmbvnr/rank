@@ -20,19 +20,19 @@ Dg = 13
 Cm = 9 * Dg
 S = Cm + 37
 Pl = array shape 4 fill 10
-Dd' = (0 till P array) digits Pl
+Dd' = 0 till P array digits Pl
 Ds = Dd sum axis 0
-Cc = (0 to Cm array) reshape (Cm + 1) 1
+Cc = 0 to Cm array reshape (Cm + 1) 1
 Ix = Cc * 0 + (0 till S array)
 X = Ix
 X 0 0 = P
 K = X * 0
-Lv = (X less P) integer
-for (Lv sum) greater 0
+Lv = X less P integer
+for Lv sum greater 0
   Xc = X min (P - 1)
   X += Lv * (Ds Xc + Cc)
   K += Lv
-  Lv = (X less P) integer
+  Lv = X less P integer
 end
 Kt = array shape Dg (Cm + 1) S fill 0
 Rt = Kt
@@ -46,7 +46,7 @@ for D in 1 till Dg
   Rc = Ix
   Ka = K * 0
   for J in 0 to 9
-    Fi = ((Cc + J) min Cm) * S + Rc
+    Fi = (Cc + J min Cm) * S + Rc
     Ka += Kf Fi
     Rc = Rf Fi
   end

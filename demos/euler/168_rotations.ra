@@ -14,9 +14,9 @@ rem Write n = 10 a + d with L digits.
 rem Its rotation d 10^(L-1) + a is k n,
 rem so a (10 k - 1) = d (10^(L-1) - k).
 Rows = Digits - 1
-L = (2 to Digits array) reshape Rows 1 1
-D = (1 to 9 array) reshape 1 9 1
-K = (1 to 9 array) reshape 1 1 9
+L = 2 to Digits array reshape Rows 1 1
+D = 1 to 9 array reshape 1 9 1
+K = 1 to 9 array reshape 1 1 9
 Num = D * (10 ** (L - 1) - K)
 Den = 10 * K - 1
 A = Num // Den

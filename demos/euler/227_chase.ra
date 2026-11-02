@@ -38,8 +38,8 @@ Rows' = P drop 1
 Cols' = Rows transpose drop 1 transpose
 Q' = Cols / 36.0
 Ks = 1 to H array
-Eye' = (Ks reshape H 1) equal Ks
+Eye' = Ks reshape H 1 equal Ks
 I' = Eye choose 1.0 0.0
-E = (I - Q) solve (Ks - Ks + 1.0)
+E = I - Q solve (Ks - Ks + 1.0)
 Answer = E (H - 1) round 6
 Answer print

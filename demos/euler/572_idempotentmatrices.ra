@@ -26,8 +26,8 @@ for A in 1 to N
     for C in 0 to B
       C1 = 0
       C2 = 0
-      for W2 in (0 - Wr) to Wr
-        for W3 in (0 - Wr) to Wr
+      for W2 in 0 - Wr to Wr
+        for W3 in 0 - Wr to Wr
           Nu = 1 - B * W2 - C * W3
           if Nu mod A equal 0
             W1 = Nu // A
@@ -39,9 +39,9 @@ for A in 1 to N
             if A * Wm at most N
               C1 += 1
             end
-            Mx = (1 - A * W1) abs
-            Dg2 = (1 - B * W2) abs
-            Dg3 = (1 - C * W3) abs
+            Mx = 1 - A * W1 abs
+            Dg2 = 1 - B * W2 abs
+            Dg3 = 1 - C * W3 abs
             Mx = Mx max Dg2
             Mx = Mx max Dg3
             Mx = Mx max (A * Aw2)
@@ -57,9 +57,9 @@ for A in 1 to N
         end
       end
       Pm = 6
-      if (A equal B) and (B equal C)
+      if A equal B and (B equal C)
         Pm = 1
-      elif (A equal B) or (B equal C)
+      elif A equal B or (B equal C)
         Pm = 3
       end
       Nz = 1

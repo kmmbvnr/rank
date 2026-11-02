@@ -18,7 +18,7 @@ rem variable. Only k <= (N - n) / 5 can
 rem occur in a closed term of size N.
 Md = 1000000007
 Kc = N // 5 + 2
-Rw = (0 to N) reshape (N + 1) 1
+Rw = 0 to N reshape (N + 1) 1
 Tm = Rw * ((0 to Kc) * 0)
 Answer = 0
 for Sz in 1 to N

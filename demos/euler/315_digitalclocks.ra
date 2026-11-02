@@ -13,9 +13,9 @@ Masks = array 125 80 55 115 90
 Tail = array 107 111 89 127 123
 Masks = concat Masks Tail
 Rows = Masks reshape 10 1
-Common = (Rows band Masks) popcount
+Common = Rows band Masks popcount
 Top = 9 * (To text len)
-Small = (0 to Top) clock_tail rank 0 array
+Small = 0 to Top clock_tail rank 0 array
 Answer = 0
 for P in primes from From till To
   Answer += P clock_diff
@@ -35,7 +35,7 @@ fun N segments
   Count = 0
   for N greater 0
     D = N mod 10
-    Count += (Masks D) popcount
+    Count += Masks D popcount
     N //= 10
   end
   return Count

@@ -12,8 +12,8 @@ arg Input text = "3\n0 0\n2 2\n-2 2"
 
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
-N = (Tokens 0) integer
-Coords = (Tokens drop 1) integer
+N = Tokens 0 integer
+Coords = Tokens drop 1 integer
 
 Idx = (0 till N) * 2
 Xs = Coords Idx
@@ -26,7 +26,7 @@ for I in 0 till N
   XO = Xs I
   YO = Ys I
 
-  MaskOther = (0 till N) not equal I
+  MaskOther = 0 till N not equal I
   Dx = (Xs MaskOther) - XO
   Dy = (Ys MaskOther) - YO
 
@@ -37,7 +37,7 @@ for I in 0 till N
   OrderD = D argsort
   SortedD = D OrderD
 
-  DiffD = (SortedD drop 1) not equal (SortedD take (M - 1))
+  DiffD = SortedD drop 1 not equal (SortedD take (M - 1))
   IdxM = 0 till (M - 1)
   CutIdx = (IdxM DiffD) + 1
   Boundaries = concat (concat (array 0) CutIdx) (array M)
@@ -47,7 +47,7 @@ for I in 0 till N
 
   rem Count collinear opposite pairs where (XO, YO) is midpoint
   rem Map vector (Dx, Dy) to upper half-plane
-  IsNeg = (Dx less 0) or ((Dx equal 0) and (Dy less 0))
+  IsNeg = Dx less 0 or (Dx equal 0 and (Dy less 0))
   Cx = Dx
   Cx IsNeg = 0 - (Dx IsNeg)
   Cy = Dy
@@ -57,7 +57,7 @@ for I in 0 till N
   OrderKey = Key argsort
   SortedKey = Key OrderKey
 
-  DiffKey = (SortedKey drop 1) not equal (SortedKey take (M - 1))
+  DiffKey = SortedKey drop 1 not equal (SortedKey take (M - 1))
   CollinearPairs = (M - 1) - (DiffKey count)
 
   TotalTriangles = TotalTriangles + (PairsD - CollinearPairs)

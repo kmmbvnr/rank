@@ -20,8 +20,8 @@ rem x(x+1)/2 - sum over k >= 2 of
 rem F(x // k).
 Mod = 1000000000
 Rn = N isqrt + 2
-Lm = (L max Rn) min N
-Ph = (0 to Lm) copy
+Lm = L max Rn min N
+Ph = 0 to Lm copy
 Sm = array shape (Lm + 1) fill 1
 Rt = Lm isqrt
 for P in primes to Rt
@@ -35,12 +35,12 @@ for P in primes to Rt
     Q *= P
   end
 end
-Ix = (0 to Lm) copy
+Ix = 0 to Lm copy
 Rs = Ix // Sm
 Big = Rs greater 1
 Pv = Ph
 Pc' = Pv - Pv // Rs
-Ph = (Big choose Pc Pv) copy
+Ph = Big choose Pc Pv copy
 Ph 0 = 0
 Cs = Ph scan + with 0
 C0 = (Cs (1 to Lm + 1)) mod Mod
@@ -50,17 +50,17 @@ for I in Nq to 1 by -1
   X = N // I
   if X greater Lm
     R = X isqrt
-    Ks = (2 to R) copy
+    Ks = 2 to R copy
     Ys = X // Ks
     Sv = C0 (Ys min Lm)
     Lv = Lt (I * Ks min Nq)
-    Va = (Ys at most Lm) choose Sv Lv
+    Va = Ys at most Lm choose Sv Lv
     Pa = Va sum
     Qs = (1 to X // (R + 1)) copy
     Hi = X // Qs
     Lo = X // (Qs + 1) max R
     Dk = (Hi - Lo) mod Mod
-    Pb = (Dk * C0 Qs mod Mod) sum
+    Pb = Dk * C0 Qs mod Mod sum
     T2 = X * (X + 1) // 2
     Lt I = (T2 - Pa - Pb) mod Mod
   end
@@ -83,7 +83,7 @@ end
 Xd = N // Sd
 Sx = C0 (Xd min Lm)
 Qd = Sd min Nq
-Fv = (Xd at most Lm) choose Sx (Lt Qd)
-Tot = (Fv sum) mod Mod
+Fv = Xd at most Lm choose Sx (Lt Qd)
+Tot = Fv sum mod Mod
 Answer = 92160 * Tot mod Mod
 Answer print

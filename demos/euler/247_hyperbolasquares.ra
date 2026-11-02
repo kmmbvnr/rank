@@ -49,7 +49,7 @@ Eps = 1 - 0.000000000001
 Small = (Sides min) * Eps
 rem Pending siblings follow upward steps.
 rem Each adds at least Small to Y < 1.
-StackCap = Cap min ((1.0 / Small) ceil + 2)
+StackCap = Cap min (1.0 / Small ceil + 2)
 Xs = array shape StackCap fill 0.0
 Ys = array shape StackCap fill 0.0
 Xs 0 = 1.0

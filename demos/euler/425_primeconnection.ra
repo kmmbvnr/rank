@@ -30,7 +30,7 @@ for J in 0 to 6
     if D equal 0
       Ok *= Lead choose 0 1
     end
-    Qc = (Q max 0) min N
+    Qc = Q max 0 min N
     Ok = Ok * (Ip Qc)
     Ix = Ok greater 0 indices
     Hi = concat Hi (Pr Ix)
@@ -44,17 +44,17 @@ for J in 1 to 6
   Q = Pr - Top * Pw
   Ok = Top greater 0 choose 1 0
   Ok *= Top less 10 choose 1 0
-  Ok *= Q at least (Pw // 10) choose 1 0
-  Qc = (Q max 0) min N
+  Ok *= Q at least Pw // 10 choose 1 0
+  Qc = Q max 0 min N
   Ok = Ok * (Ip Qc)
   Ix = Ok greater 0 indices
   Hi = concat Hi (Pr Ix)
   Lo = concat Lo (Q Ix)
 end
 Od = Hi argsort
-Hs = (Hi Od) copy
-Ls = (Lo Od) copy
-Par = (0 to N) copy
+Hs = Hi Od copy
+Ls = Lo Od copy
+Par = 0 to N copy
 Done = array shape (N + 1) fill 0
 Done 2 = 1
 Ne = Hs len - 1

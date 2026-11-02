@@ -18,10 +18,10 @@ rem mask). Appending d from d - 1 or
 rem d + 1 sets bit d, so the new count
 rem at m is the sum of the old counts at
 rem m and at m without bit d.
-M = (0 till 1024 array) reshape 1 1024
-D = (0 till 10 array) reshape 10 1
+M = 0 till 1024 array reshape 1 1024
+D = 0 till 10 array reshape 10 1
 Bit = 1 shl D
-Has = (M band Bit) not equal 0
+Has = M band Bit not equal 0
 Off = D * 1024
 Gi = Off + (M bxor Bit)
 Gf = Gi reshape 10240

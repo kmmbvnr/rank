@@ -38,7 +38,7 @@ Ones = Ps filter Quad array
 Amax = (Limit // 125) ** (1.0 / 3) floor
 SmallA' = Ones at most Amax
 As = Ones filter SmallA array
-Bmax = (Limit // 625) isqrt
+Bmax = Limit // 625 isqrt
 SmallB' = Ones at most Bmax
 Bs = Ones filter SmallB array
 Flag = array shape (Cap + 1) fill 0
@@ -48,7 +48,7 @@ Total = 0
 for A in As
   rem Even the smallest C is at least 5.
   Bound = (Limit // (A ** 3 * 5)) isqrt
-  Rest' = (Bs not equal A) and (Bs at most Bound)
+  Rest' = Bs not equal A and (Bs at most Bound)
   Others' = Bs filter Rest
   for B in Others
     Base = A ** 3 * B ** 2
@@ -58,7 +58,7 @@ for A in As
     Fit' = NotA and (Pool not equal B)
     Cs = Base * (Pool filter Fit)
     Share' = Cum (Limit // Cs)
-    Total += (Cs * Share) sum
+    Total += Cs * Share sum
   end
 end
 Ea = array 7 10
@@ -71,13 +71,13 @@ for I in 0 to 1
     Base = A ** X
     rem Y is at least 2; this exact bound
     rem keeps a safe prefix for both cases.
-    Bound = (Limit // Base) isqrt
+    Bound = Limit // Base isqrt
     Pool = Ones take (Seen Bound)
     Cs = Base * Pool ** Y
-    Fit' = (Cs at most Limit) and (Pool not equal A)
+    Fit' = Cs at most Limit and (Pool not equal A)
     Cs = Cs filter Fit array
     Share' = Cum (Limit // Cs)
-    Total += (Cs * Share) sum
+    Total += Cs * Share sum
   end
 end
 Answer = Total

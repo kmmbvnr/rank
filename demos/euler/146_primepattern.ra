@@ -39,11 +39,11 @@ for P in primes from 17 till 100
 end
 for K in array 1 3 7 9 13 27
   Q' = C * C + K
-  C = C filter (Q in primes) array
+  C = C filter Q in primes array
 end
 for K in array 19 21
   Q' = C * C + K
-  C = C filter (not Q in primes) array
+  C = C filter not Q in primes array
 end
 Answer = C sum
 Answer print

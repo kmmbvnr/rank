@@ -7,7 +7,7 @@ use numbers
 use sequences
 use io
 
-Years = (1900 to 2000) array
+Years = 1900 to 2000 array
 Leap = Years mod 4 equal 0
 Leap and= (
   not Years mod 100 equal 0
@@ -17,7 +17,7 @@ Base = array shape 12
   31 28 31 30 31 30
   31 31 30 31 30 31
 end
-Feb = (0 till 12) equal 1
+Feb = 0 till 12 equal 1
 Extra' = Leap Feb outer and
 Lens' = Extra integer + Base
 Flat = Lens reshape #

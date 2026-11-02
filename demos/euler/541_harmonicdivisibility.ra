@@ -20,7 +20,7 @@ S = 20
 Pm = P ** S
 Ph = P ** (S - 1) * (P - 1)
 Ex = Ph - 1
-Ts = (1 till P) copy
+Ts = 1 till P copy
 It = Ts Ex Pm powmod
 rem Stirling numbers of the second kind.
 St = array shape S S fill 0
@@ -37,7 +37,7 @@ Fi = 1
 for I in 0 till S
   for J in I till S
     Ej = J + 1
-    Sj = ((It Ej Pm powmod) sum) mod Pm
+    Sj = It Ej Pm powmod sum mod Pm
     Sg = 1 - 2 * (J mod 2)
     Cf = Sg * P ** J * Sj * St J I * Fi
     Ck I = (Ck I + Cf) mod Pm
@@ -45,26 +45,26 @@ for I in 0 till S
   Fi *= I + 1
 end
 rem 1 / (i + 1)! mod p^S.
-Fa = (1 to S) scan *
+Fa = 1 to S scan *
 If = Fa Ex Pm powmod
 rem Seeds n < p, then lift layer by
 rem layer while children survive.
-Hs = (It scan +) mod Pm
-Sd = ((Hs mod P) equal 0) indices
+Hs = It scan + mod Pm
+Sd = (Hs mod P equal 0) indices
 Nd = Sd + 1
 Hv = Hs Sd
 Best = 0
-if (Nd len) greater 0
+if Nd len greater 0
   Best = Nd max
 end
-Ks = (1 till P) copy
-for (Nd len) greater 0
+Ks = 1 till P copy
+for Nd len greater 0
   Nn = Nd len
   Bn = Nd * 0
   Pr = Bn + 1
   for I in 0 till S
     Pr = Pr * (Nd - I) mod Pm
-    Ci = (If I) * (Ck I) mod Pm
+    Ci = (If I) * Ck I mod Pm
     Bn = (Bn + Pr * Ci) mod Pm
   end
   Hn = (Hv // P + Bn) mod Pm
@@ -72,12 +72,12 @@ for (Nd len) greater 0
   Iq = Q Ex Pm powmod
   Hc = Hn reshape Nn 1
   Hm = concat Hc Iq axis 1
-  Hm = (Hm scan + axis 1) mod Pm
+  Hm = Hm scan + axis 1 mod Pm
   Hf = Hm reshape (Nn * P)
-  Ix = ((Hf mod P) equal 0) indices
+  Ix = (Hf mod P equal 0) indices
   Nd = (Nd (Ix // P)) * P + Ix mod P
   Hv = Hf Ix
-  if (Nd len) greater 0
+  if Nd len greater 0
     Best = Best max (Nd max)
   end
 end

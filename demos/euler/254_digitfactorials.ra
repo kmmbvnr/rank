@@ -82,7 +82,7 @@ fun I digit_factorial_score Fa Dd Length
       if Pick
         Bk = K
         Bc = C copy
-        Sg = (C * Dd) sum
+        Sg = C * Dd sum
       end
     end
     Dg = F

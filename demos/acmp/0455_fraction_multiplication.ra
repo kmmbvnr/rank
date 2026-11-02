@@ -17,15 +17,15 @@ arg Input text = "0.1(6)\n3"
 Lines = Input split "\n"
 Lines = Lines (Lines not equal "")
 QText = Lines 0
-N = (Lines 1) integer
+N = Lines 1 integer
 
 Dot = QText find "."
 Open = QText find "("
 Close = QText find ")"
 
 IntPart = QText take Dot
-NonPer = QText ((Dot + 1) till Open)
-Per = QText ((Open + 1) till Close)
+NonPer = QText (Dot + 1 till Open)
+Per = QText (Open + 1 till Close)
 
 K = NonPer len
 P = Per len
@@ -55,10 +55,10 @@ NewFracPart = NewPrefixStr drop SplitIdx
 Answer = ""
 
 if Rem equal 0
-  for ((NewFracPart len) greater 0) and ((NewFracPart ((NewFracPart len) - 1)) equal "0")
+  for (NewFracPart len greater 0) and ((NewFracPart ((NewFracPart len) - 1)) equal "0")
     NewFracPart = NewFracPart take ((NewFracPart len) - 1)
   end
-  if (NewFracPart len) greater 0
+  if NewFracPart len greater 0
     Answer = NewIntPart + "." + NewFracPart
   else
     Answer = NewIntPart
@@ -84,13 +84,13 @@ else
   end
   PerStr = RemStr take MinP
 
-  for ((NewFracPart len) greater 0) and ((NewFracPart ((NewFracPart len) - 1)) equal (PerStr ((PerStr len) - 1)))
+  for (NewFracPart len greater 0) and ((NewFracPart ((NewFracPart len) - 1)) equal (PerStr ((PerStr len) - 1)))
     NewFracPart = NewFracPart take ((NewFracPart len) - 1)
     LastPer = PerStr ((PerStr len) - 1)
     PerStr = LastPer + (PerStr take ((PerStr len) - 1))
   end
 
-  if (NewFracPart len) greater 0
+  if NewFracPart len greater 0
     Answer = NewIntPart + "." + NewFracPart + "(" + PerStr + ")"
   else
     Answer = NewIntPart + ".(" + PerStr + ")"

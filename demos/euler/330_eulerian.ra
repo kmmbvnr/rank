@@ -43,7 +43,7 @@ fun N residue P
   Sum = 0
   for M in 0 to N0
     X = (N - M) mod (P - 1)
-    Sum += F * C * (E X) mod P
+    Sum += F * C * E X mod P
     if M less N0
       F = F * (M + 1) mod P
       D = (M + 1) (P - 2) P powmod

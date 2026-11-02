@@ -28,7 +28,7 @@ rem answer is all (N^2)^C less those.
 Gr = ((0 to (N - 1)) mod 9) // 2
 C1 = (0 to 7) * 0
 for V in 0 to 7
-  C1 V = ((Gr equal V) integer) sum
+  C1 V = (Gr equal V integer) sum
 end
 Cn = (0 to 7) * 0
 for A in 0 to 7
@@ -40,7 +40,7 @@ Zr = 0
 for Kk in 0 to 7
   Wk = 0
   for V in 0 to 7
-    Bits = (Kk band V) popcount
+    Bits = Kk band V popcount
     Wk += (1 - 2 * (Bits mod 2)) * Cn V
   end
   Zr += Wk ** C

@@ -28,12 +28,12 @@ fun Movies movie_queries Queries
   for Movie in Movies
     unpack Start Finish = Movie
     Place = Start - 1
-    Next Place = (Next Place) min Finish
+    Next Place = Next Place min Finish
   end
   for Time in LastTime to 1 by -1
     Place = Time - 1
     Later = Next Time
-    Next Place = (Next Place) min Later
+    Next Place = Next Place min Later
   end
   Path = Next functional
 

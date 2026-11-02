@@ -23,7 +23,7 @@ fun V modprod P
     H = V len // 2
     Lo = V (0 to H - 1)
     Hi = V (H to 2 * H - 1)
-    V = (Lo * Hi mod P) copy
+    V = Lo * Hi mod P copy
   end
   return V 0
 end
@@ -32,7 +32,7 @@ P = 1000000007
 T = 2 N P powmod
 Av = ((T - (1 to N)) mod P) copy
 All = Av modprod P
-Fact = (1 to N) copy modprod P
+Fact = 1 to N copy modprod P
 H = N // 2
 Half = 2 (N - 1) P powmod
 Top = 1
@@ -40,7 +40,7 @@ Fh = 1
 if H greater 0
   Tv = (Half - 1 - (0 to H - 1)) mod P
   Top = Tv copy modprod P
-  Fh = (1 to H) copy modprod P
+  Fh = 1 to H copy modprod P
 end
 Bin = Top * (Fh (P - 2) P powmod) mod P
 Sign = 1

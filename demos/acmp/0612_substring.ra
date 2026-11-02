@@ -34,7 +34,7 @@ for I in 0 till (X len)
     TopX = TopX + 1
   end
 end
-Xred = (StackX take TopX) join ""
+Xred = StackX take TopX join ""
 
 rem Reduce Y in free group via stack
 StackY = array shape (Y len) fill ""
@@ -55,7 +55,7 @@ for I in 0 till (Y len)
     TopY = TopY + 1
   end
 end
-Yred = (StackY take TopY) join ""
+Yred = StackY take TopY join ""
 
 Xlen = Xred len
 Ylen = Yred len

@@ -78,7 +78,7 @@ for
     if A * A at most S
       B = S // A
       G = (B + A // 2) // A
-      D = (A * G - B) abs
+      D = A * G - B abs
       if D greater G + 1
         Cnt += 1
       end

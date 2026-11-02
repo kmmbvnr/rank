@@ -40,7 +40,7 @@ for Si less Ns
   for C in 1 to 4
     Nw = 0
     for Cf in 0 to 49
-      Hb = (St shr Cf) band 1
+      Hb = St shr Cf band 1
       if Hb equal 1
         Aa = Cf // 10
         Bb = Cf // 2 mod 5
@@ -49,13 +49,13 @@ for Si less Ns
           Rm = C - Aa - Bb
           for E in 0 to 1
             Ok = 1
-            Ea = (E equal 1) integer
-            Fa = (Ff equal 1) integer
+            Ea = E equal 1 integer
+            Fa = Ff equal 1 integer
             if Ea * Fa equal 1
               Ok = 0
             end
             R2 = Rm - 2 * E
-            Fb = (R2 at least 0) integer
+            Fb = R2 at least 0 integer
             if Ok * Fb equal 1
               for Pg in 0 to R2 // 3
                 Qq = R2 - 3 * Pg
@@ -85,7 +85,7 @@ end
 rem Block counts by length and tiles.
 Sv = Sts (0 to Ns - 1)
 A0 = (Sv band 1) reshape Ns 1
-A1 = ((Sv shr 1) band 1) reshape Ns 1
+A1 = (Sv shr 1 band 1) reshape Ns 1
 Wf = 2 * Tt + 1
 Lf = Wd * Wf
 B0s = array shape Lf fill 0
@@ -107,8 +107,8 @@ for L in 1 to Mx
   end
   Cu = Nx
   Cm = Cu reshape Ns Wd
-  R0 = (Cm * A0) sum axis 0 mod P
-  R1 = (Cm * A1) sum axis 0 mod P
+  R0 = Cm * A0 sum axis 0 mod P
+  R1 = Cm * A1 sum axis 0 mod P
   O0 = L * Wf
   O1 = O0 + Tt
   B0s (O0 to O1) = R0 (0 to 3 * Tt by 3)
@@ -118,7 +118,7 @@ end
 rem Placements C(n - L + 1, k) per k.
 Lv = 0 to Mx
 Tp1 = Nn - Lv + 1
-Cb = (Tp1 at least 0) integer
+Cb = Tp1 at least 0 integer
 Gv = array shape Lf fill 0
 Gv 0 = 1
 Gq = array shape Lf fill 0
@@ -172,7 +172,7 @@ for Ee greater 0
   Ob = Ee mod 2
   for W in 0 to 1
     Go = 1
-    if (W equal 0) and (Ob equal 0)
+    if W equal 0 and (Ob equal 0)
       Go = 0
     end
     if Go equal 1
@@ -192,5 +192,5 @@ for Ee greater 0
   end
   Ee = Ee // 2
 end
-Answer = (Ss mod P) * (Rs Tt) mod P
+Answer = (Ss mod P) * Rs Tt mod P
 Answer print

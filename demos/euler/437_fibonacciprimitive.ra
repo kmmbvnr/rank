@@ -15,12 +15,12 @@ rem by Tonelli-Shanks, and test each
 rem root as a primitive root against
 rem the prime factors of p - 1 found
 rem from a smallest-factor table.
-Sp = (0 to N) copy
+Sp = 0 to N copy
 Rt = N isqrt
 Ps = primes to Rt array
-for I in (Ps len - 1) to 0 by -1
+for I in Ps len - 1 to 0 by -1
   P = Ps I
-  Sl = (P * P) to N by P
+  Sl = P * P to N by P
   Sp Sl = P
 end
 Sp = Sp copy

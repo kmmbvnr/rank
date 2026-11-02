@@ -5,7 +5,7 @@ use io
 
 Sum = 3
 for I in 4 to 30 by 2
-  Sum += (2 ** I - I) turns
+  Sum += 2 ** I - I turns
 end
 Sum print
 
@@ -18,7 +18,7 @@ fun N turns
   end
   F = N real
   rem Final product uses exact integers.
-  unpack Odd Fix = (F boundary) integer
+  unpack Odd Fix = F boundary integer
   return Fix + 2 * Odd * (N - Odd)
 end
 

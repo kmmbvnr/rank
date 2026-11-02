@@ -22,23 +22,23 @@ L = Chars len
 
 Answer = 0
 if L greater 0
-  Match = (Chars Alpha outer equal) integer
-  CharButtons = (Match * Buttons) sum axis -1
-  CharPresses = (Match * Presses) sum axis -1
+  Match = Chars Alpha outer equal integer
+  CharButtons = Match * Buttons sum axis -1
+  CharPresses = Match * Presses sum axis -1
 
   IsNewRun = concat (array true) ((CharButtons (1 till L)) not equal (CharButtons (0 till (L - 1))))
-  RunID = ((IsNewRun integer) scan +) - 1
+  RunID = (IsNewRun integer scan +) - 1
   NumRuns = (RunID max) + 1
 
   DP = array shape (N + 1) fill 0
   DP 0 = 1
 
   for R in 0 till NumRuns
-    RunMask = (RunID equal R) integer
-    K = (CharPresses * RunMask) sum
-    Btn = (CharButtons * RunMask) max
+    RunMask = RunID equal R integer
+    K = CharPresses * RunMask sum
+    Btn = CharButtons * RunMask max
     Cap = 3
-    if (Btn equal 7) or (Btn equal 9)
+    if Btn equal 7 or (Btn equal 9)
       Cap = 4
     end
 
@@ -64,7 +64,7 @@ if L greater 0
 
     NextDP = array shape (N + 1) fill 0
     for OldLen in 0 to N
-      if (DP OldLen) greater 0
+      if DP OldLen greater 0
         for k in 1 to K
           NewLen = OldLen + k
           if not (N less NewLen)

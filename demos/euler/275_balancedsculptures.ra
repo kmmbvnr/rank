@@ -74,7 +74,7 @@ for
     end
     D -= 1
     Occ (Pd D) = 0
-    for J in (Fe D) till (Fe (D + 1))
+    for J in Fe D till (Fe (D + 1))
       Seen (G J) = 0
     end
     continue
@@ -126,7 +126,7 @@ for
   for K in 0 to 3
     C2 = C + Dir K
     Y2 = C2 // 64
-    X2 = (C2 mod 64 - 32) abs
+    X2 = C2 mod 64 - 32 abs
     Ya = Y2 + X2
     if Y2 at least 1 and Ya at most N
       if Seen C2 equal 0

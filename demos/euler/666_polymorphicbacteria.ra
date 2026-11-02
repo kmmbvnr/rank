@@ -25,16 +25,16 @@ for I in 0 to Nn - 1
   Rs I = Rv
   Rv = Rv * Rv mod 10007
 end
-Qs = (Rs mod 5) reshape Kk Mm
+Qs = Rs mod 5 reshape Kk Mm
 Ci = 0 to (Kk - 1)
 Ia = 2 * Ci mod Kk
 Ib = (Ci * Ci + 1) mod Kk
 Ic = (Ci + 1) mod Kk
-C0 = ((Qs equal 0) integer) sum axis 1
-C1 = ((Qs equal 1) integer) sum axis 1
-C2 = ((Qs equal 2) integer) sum axis 1
-C3 = ((Qs equal 3) integer) sum axis 1
-C4 = ((Qs equal 4) integer) sum axis 1
+C0 = (Qs equal 0 integer) sum axis 1
+C1 = (Qs equal 1 integer) sum axis 1
+C2 = (Qs equal 2 integer) sum axis 1
+C3 = (Qs equal 3 integer) sum axis 1
+C4 = (Qs equal 4 integer) sum axis 1
 Pp = Ci * 0.0
 Df = 1.0
 for Df greater 0.0000000000001
@@ -44,7 +44,7 @@ for Df greater 0.0000000000001
   Nw = C0 + C1 * Pp * Pp + C2 * Pa
   Nw = Nw + C3 * Pb * Pb * Pb
   Nw = (Nw + C4 * Pp * Pc) / Mm
-  Df = (Nw - Pp) abs max
+  Df = Nw - Pp abs max
   Pp = Nw
 end
 Answer = Pp 0 text ".8f"

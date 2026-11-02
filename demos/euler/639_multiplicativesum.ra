@@ -31,11 +31,11 @@ end
 for Cf ** 3 greater N
   Cf -= 1
 end
-Rw = (0 to 7) reshape 8 1
-Sm = (1 to 1) array
+Rw = 0 to 7 reshape 8 1
+Sm = 1 to 1 array
 Pm = Rw * (0 to 0)
 Nc = (0 to 0) * 0
-Pd = (primes to Cf array) reverse
+Pd = primes to Cf array reverse
 Qs = Sm copy
 Qp = Pm copy
 Qc = Nc copy
@@ -43,7 +43,7 @@ for P in Pd
   Pe = P * P
   Nw = 0
   for Pe at most N
-    Ix = (Sm at most N // Pe) indices
+    Ix = Sm at most N // Pe indices
     if Ix len greater 0
       Ms = Sm Ix * Pe
       Ho = (Rw equal (Nc Ix)) integer
@@ -69,8 +69,8 @@ for P in Pd
   end
 end
 Xm = N // Sm
-Gs = (Xm at most Tl) indices
-Gl = (Xm greater Tl) indices
+Gs = Xm at most Tl indices
+Gl = Xm greater Tl indices
 Pg = Pm (0 to 7) Gs
 Xg = Xm Gs
 Nl = Gl len
@@ -98,7 +98,7 @@ for Kk in 1 to K
 end
 Pf = array shape K Nl fill 0
 if Nl greater 0
-  Xl = (Xm Gl) mod Md
+  Xl = Xm Gl mod Md
   Pw = Xl
   for Ee in 1 to K + 1
     Ck = Co (0 to (K - 1)) Ee
@@ -116,7 +116,7 @@ Lv = Mq * 1
 Lm = Pm (0 to 7) (0 to 0)
 Fq = 0
 Lm2 = N // (Lo * Lo)
-Ix1 = (Sm at most Lm2) indices
+Ix1 = Sm at most Lm2 indices
 for Ia in Ix1
   Mo = Sm Ia
   Cn = Lq upperindex (N // Mo isqrt)
@@ -148,7 +148,7 @@ for Kk in 1 to K
   Jk = Jk * Jt mod Md
   Vk = Vk * Vt mod Md
   Lk = Lk * Lv mod Md
-  Pt = (Jk scan +) mod Md
+  Pt = Jk scan + mod Md
   Av = (Vk - Vk * Vk mod Md) mod Md
   Av 0 = 1
   Hs = (Gs * 0) + 1
@@ -163,7 +163,7 @@ for Kk in 1 to K
       Hl = Hl * (Av (Pl Jr)) mod Md
     end
     Pk = Pf (Kk - 1)
-    Total += ((Hl * Pk) mod Md) sum
+    Total += Hl * Pk mod Md sum
   end
   if Fq equal 1
     Hq = (Mq * 0) + 1

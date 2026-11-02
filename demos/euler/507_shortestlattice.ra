@@ -24,8 +24,8 @@ fun A mm3 B
   rem each a row of 9.
   Ar = A reshape 3 3 1
   Br = B reshape 1 3 3
-  C = (Ar * Br) sum axis 1
-  return (C reshape 9) mod Md
+  C = Ar * Br sum axis 1
+  return C reshape 9 mod Md
 end
 rem Step matrix A; M = A^12 jumps one
 rem lattice ahead.
@@ -59,7 +59,7 @@ for C0 in 0 till N by Ch
   end
   rem Mp = M^(2^Lc) starts the next.
   M3 = Mp reshape 3 3
-  S0 = (M3 * S0) sum axis 1 mod Md
+  S0 = M3 * S0 sum axis 1 mod Md
   R1 = Sx (0 till Nc)
   R2 = Sy (0 till Nc)
   R3 = Sz (0 till Nc)
@@ -111,18 +111,18 @@ for C0 in 0 till N by Ch
     W1 = X1 abs
     W2 = Y1 abs
     W3 = Z1 abs
-    D1 = (X1 equal 0) choose 1 X1
-    D2 = (Y1 equal 0) choose 1 Y1
-    D3 = (Z1 equal 0) choose 1 Z1
+    D1 = X1 equal 0 choose 1 X1
+    D2 = Y1 equal 0 choose 1 Y1
+    D3 = Z1 equal 0 choose 1 Z1
     Q1 = X2 * 1.0 / D1
     Q2 = Y2 * 1.0 / D2
     Q3 = Z2 * 1.0 / D3
-    Bl1 = (Q2 less Q1) choose W2 0
-    Bl1 += (Q3 less Q1) choose W3 0
-    Bl2 = (Q1 at most Q2) choose W1 0
-    Bl2 += (Q3 less Q2) choose W3 0
-    Bl3 = (Q1 at most Q3) choose W1 0
-    Bl3 += (Q2 at most Q3) choose W2 0
+    Bl1 = Q2 less Q1 choose W2 0
+    Bl1 += Q3 less Q1 choose W3 0
+    Bl2 = Q1 at most Q2 choose W1 0
+    Bl2 += Q3 less Q2 choose W3 0
+    Bl3 = Q1 at most Q3 choose W1 0
+    Bl3 += Q2 at most Q3 choose W2 0
     Tt = W1 + W2 + W3
     M1 = 2 * Bl1 less Tt
     H1 = 2 * (Bl1 + W1) at least Tt
@@ -132,23 +132,23 @@ for C0 in 0 till N by Ch
     M2 = M2 and H2
     T3 = M2 choose (Y2 // D2) (Z2 // D3)
     Tm = M1 choose (X2 // D1) T3
-    Tm = (Tt equal 0) choose 0 Tm
+    Tm = Tt equal 0 choose 0 Tm
     rem Floor of the median or one more.
-    Le = (X2 - Tm * X1) abs
-    Le += (Y2 - Tm * Y1) abs
-    Le += (Z2 - Tm * Z1) abs
+    Le = X2 - Tm * X1 abs
+    Le += Y2 - Tm * Y1 abs
+    Le += Z2 - Tm * Z1 abs
     T2 = Tm + 1
-    Ld = (X2 - T2 * X1) abs
-    Ld += (Y2 - T2 * Y1) abs
-    Ld += (Z2 - T2 * Z1) abs
+    Ld = X2 - T2 * X1 abs
+    Ld += Y2 - T2 * Y1 abs
+    Ld += Z2 - T2 * Z1 abs
     Up = Ld less Le
     Tb = Up choose T2 Tm
     Lm = Up choose Ld Le
     Im = Lm less Lb
-    Fn = (Im equal false) indices
+    Fn = Im equal false indices
     Lf = La Fn
     Lg = Lb Fn
-    Sv = (Lf equal 0) choose Lg Lf
+    Sv = Lf equal 0 choose Lg Lf
     Answer += Sv sum
     Kp = Im indices
     Tk = Tb Kp

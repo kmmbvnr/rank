@@ -22,16 +22,16 @@ end
 fun R extend T
   Base = R
   if T band 1 not equal 0
-    R = R bor ((Base band 21845) shl 1)
+    R = R bor (Base band 21845 shl 1)
   end
   if T band 2 not equal 0
-    R = R bor ((Base band 13107) shl 2)
+    R = R bor (Base band 13107 shl 2)
   end
   if T band 4 not equal 0
-    R = R bor ((Base band 3855) shl 4)
+    R = R bor (Base band 3855 shl 4)
   end
   if T band 8 not equal 0
-    R = R bor ((Base band 255) shl 8)
+    R = R bor (Base band 255 shl 8)
   end
   return R
 end

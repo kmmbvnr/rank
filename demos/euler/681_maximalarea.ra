@@ -35,20 +35,20 @@ Bb = 2 ** 21
 Answer = 0
 for Bi in 0 to ((Nn - 1) // Bk)
   M0 = Bi * Bk + 1
-  Ms = M0 to ((M0 + Bk - 1) min Nn)
+  Ms = M0 to (M0 + Bk - 1 min Nn)
   N = Ms len
   Ow = 0 to (N - 1)
   Po = Ow
   D = array shape N fill 1
   X = Ms
-  for (X max) greater 1
-    Ia = (X greater 1) indices
+  for X max greater 1
+    Ia = X greater 1 indices
     Xa = X Ia
     P = Sp Xa
     Ea = array shape (Ia len) fill 0
     Dm = Xa * 0 + 1
-    for (Dm max) greater 0
-      Dm = (Xa mod P equal 0) integer
+    for Dm max greater 0
+      Dm = Xa mod P equal 0 integer
       Xa = Xa // (P ** Dm)
       Ea += Dm
     end
@@ -66,22 +66,22 @@ for Bi in 0 to ((Nn - 1) // Bk)
     Ko = (0 to (Tot - 1)) - Of Pd
     D = D Pd * (Pf (Po Pd)) ** Ko
     Po = Po Pd
-    Kp = (D at most Ms Po) indices
+    Kp = D at most Ms Po indices
     D = D Kp
     Po = Po Kp
   end
-  Dk = (Po * Bb + D) sort
+  Dk = Po * Bb + D sort
   Do = Dk // Bb
   Dd = Dk mod Bb
   Mo = Ms Do
   Rt = Ms isqrt
   We = Dk upperindex (Ow * Bb + Rt)
   Ix = 0 to (Dk len - 1)
-  Wi = (Ix less We Do) indices
+  Wi = Ix less We Do indices
   Wm = Mo Wi
   Wv = Dd Wi
   Zq = (Wm * Wm // Wv * 1.0) ** (1 / 3)
-  Zb = (Zq floor) integer + 2
+  Zb = Zq floor integer + 2
   Zc = Zb min Wm
   Ze = Dk upperindex (Do Wi * Bb + Zc)
   Cw = Ze - Wi
@@ -96,39 +96,39 @@ for Bi in 0 to ((Nn - 1) // Bk)
   Zp = Dd Zr
   M2 = (Mo * Mo) Wr
   Z3 = Zp * Zp * Zp * Wp
-  Ok = (Z3 at most M2) integer
+  Ok = Z3 at most M2 integer
   Wz = Wp * Zp
-  Dz = (M2 mod Wz equal 0) integer
+  Dz = M2 mod Wz equal 0 integer
   Ok = Ok * Dz
-  Fl = (Ok equal 1) indices
+  Fl = Ok equal 1 indices
   Wr = Wr Fl
   Wp = Wp Fl
   Zp = Zp Fl
   Rr = M2 Fl // (Wp * Zp)
   Sq = Rr isqrt
   Ss = Zp + Wp
-  Dc = (Ss * Ss + 4 * Rr) isqrt
+  Dc = Ss * Ss + 4 * Rr isqrt
   Yl = ((Dc - Ss) // 2) max Zp
   Ob = Do Wr * Bb
   Lo = Dk lowerindex (Ob + Yl)
   Hi = Dk upperindex (Ob + Sq)
-  Cf = (Hi - Lo) max 0
+  Cf = Hi - Lo max 0
   Tot = Cf sum
   Of = (Cf scan +) - Cf
   Mk = array shape Tot fill 0
-  Pk = (Cf greater 0) indices
+  Pk = Cf greater 0 indices
   Mk (Of Pk) = 1
   Pd = Pk ((Mk scan +) - 1)
   Ij = (0 to (Tot - 1)) + (Lo - Of) Pd
   Yv = Dd Ij
   Rv = Rr Pd
-  Dv = (Rv mod Yv equal 0) indices
+  Dv = Rv mod Yv equal 0 indices
   Yv = Yv Dv
   Xv = (Rv Dv) // Yv
   Sm = Yv + Zp (Pd Dv) + Wp (Pd Dv)
-  Gd = (Xv less Sm) integer
+  Gd = Xv less Sm integer
   Tt = Xv + Sm
-  Gd = Gd * ((Tt mod 2 equal 0) integer)
-  Answer += (Tt * Gd) sum
+  Gd = Gd * (Tt mod 2 equal 0 integer)
+  Answer += Tt * Gd sum
 end
 Answer print

@@ -23,8 +23,8 @@ Pk = Pr (K - 1)
 Pr = Pr (0 till K)
 Cs = Pr
 Q = Pr
-for (Q * Q at most Pk) any
-  Q = Q ((Q * Q at most Pk) indices)
+for Q * Q at most Pk any
+  Q = Q (Q * Q at most Pk indices)
   Q = Q * Q
   Cs = concat Cs Q
 end

@@ -23,7 +23,7 @@ rem Packed factors of each P - 1.
 Offsets = array shape (Pr len + 1) fill 0
 Factors = new queue
 for I in 0 till Pr len
-  for F in (Pr I - 1) factors
+  for F in Pr I - 1 factors
     Factors push F
   end
   Offsets (I + 1) = Factors len
@@ -44,7 +44,7 @@ fun N Fs Gn Gp Max g
     G = Gp
     Done = true
     for F in Ks
-      E = (Fs equal F) count
+      E = Fs equal F count
       if E less 2
         Done = false
         break
@@ -61,7 +61,7 @@ fun N Fs Gn Gp Max g
     if N * Pow at least Limit
       break
     end
-    Have = (Fs equal P) count
+    Have = Fs equal P count
     Exp = 2
     if Have equal 0
       Pow *= P
@@ -75,7 +75,7 @@ fun N Fs Gn Gp Max g
     Ok = true
     for F in Ks
       if F greater P
-        E = (Fs equal F) count
+        E = Fs equal F count
         if E less 2
           Ok = false
           break

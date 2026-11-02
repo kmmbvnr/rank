@@ -17,9 +17,9 @@ rem order, R the rotations (all equal,
 rem x y x y x y, x y z x y z) and F the
 rem reflections (a b c d c b with
 rem a + b = c + d, and a a c a a c).
-Dl = (0 - N) to N array
+Dl = 0 - N to N array
 Lp = 2 * Dl + 3
-Lb = (Dl at least 0) choose Lp (3 - Dl)
+Lb = Dl at least 0 choose Lp (3 - Dl)
 Rd = (N + Dl) // 2 - Lb
 Rm = Rd max (0 - 1)
 Cn = (Rm + 3) * (Rm + 2) * (Rm + 1) // 6
@@ -36,9 +36,9 @@ T1 = A1 * (A1 + 1) // 2 + A1 * (Bs - 1)
 T2 = (A2 - A1) * (N - 3 * Bs)
 S2 = A2 * (A2 + 1) - A1 * (A1 + 1)
 T2 = T2 - S2
-Fe = (T1 + T2) sum
+Fe = T1 + T2 sum
 As = 1 to ((M2 - 1) // 2) array
-Fo = (M2 - 2 * As) sum
+Fo = M2 - 2 * As sum
 Rt = 2 * R1 + 2 * R2 + R3
 Ft = 3 * Fe + 3 * Fo
 Answer = (Id + Rt + Ft) // 12

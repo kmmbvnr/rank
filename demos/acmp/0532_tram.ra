@@ -14,10 +14,10 @@ arg Input text = "4 2 4\n10 -10 2 3\n-1 -3 1 4\n6 -6 1 3\n7 4 2 4"
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
-N = (Tokens 0) integer
-M = (Tokens 1) integer
-P = (Tokens 2) integer
-Raw = (Tokens drop 3) integer
+N = Tokens 0 integer
+M = Tokens 1 integer
+P = Tokens 2 integer
+Raw = Tokens drop 3 integer
 
 A = Raw ((0 till N) * 4)
 B = Raw (((0 till N) * 4) + 1)
@@ -68,7 +68,7 @@ if NumPos greater 0
       if ExitPtr equal NumPos
         break
       end
-      if not ((SortedExitD ExitPtr) equal S)
+      if not (SortedExitD ExitPtr equal S)
         break
       end
       EIdx = SortedExitIdx ExitPtr
@@ -83,7 +83,7 @@ if NumPos greater 0
       if EnterPtr equal NumPos
         break
       end
-      if not ((SortedEnterC EnterPtr) equal S)
+      if not (SortedEnterC EnterPtr equal S)
         break
       end
       EIdx = SortedEnterIdx EnterPtr
@@ -120,4 +120,4 @@ end
 
 MaxSatisfaction = BaseHappiness + TotalGains
 
-(MaxSatisfaction text) print
+MaxSatisfaction text print

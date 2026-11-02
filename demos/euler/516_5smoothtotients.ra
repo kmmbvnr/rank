@@ -19,21 +19,21 @@ for P in array 2 3 5
   Lp = L // P
   N = H
   for N len greater 0
-    N = N ((N at most Lp) indices) * P
-    H = (concat H N) copy
+    N = N (N at most Lp indices) * P
+    H = concat H N copy
   end
 end
 H = H sort
 Pr = H + 1
-Ok = (Pr in primes) and (Pr greater 6)
+Ok = Pr in primes and (Pr greater 6)
 Pr = (Pr (Ok indices)) reverse
 rem Double the products by each prime,
 rem largest first to keep Q small.
 Q = array 1
 for P in Pr
   Lp = L // P
-  N = Q ((Q at most Lp) indices) * P
-  Q = (concat Q N) copy
+  N = Q (Q at most Lp indices) * P
+  Q = concat Q N copy
 end
 Cs = concat (array 0) (H scan +)
 Cs = Cs copy
@@ -44,6 +44,6 @@ rem products below 2^63.
 Q1 = Q mod 65536
 Q2 = Q // 65536
 T = Q1 * A + (Q2 * A mod 65536) * 65536
-Answer = (T mod 2 ** 32) sum
+Answer = T mod 2 ** 32 sum
 Answer = Answer mod 2 ** 32
 Answer print

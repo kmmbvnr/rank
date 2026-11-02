@@ -38,7 +38,7 @@ if TargetQ less 8
   ByteCount = TargetQ + 1
   Bytes = array shape ByteCount fill 0
   Cur = Total
-  for I in (ByteCount - 1) to 0 by -1
+  for I in ByteCount - 1 to 0 by -1
     Bytes I = Cur mod 256
     Cur //= 256
   end

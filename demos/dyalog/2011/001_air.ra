@@ -51,7 +51,7 @@ fun Pair flight Coordinates rank 1 2
   return record
     .source = From
     .target = To
-    .weight = (Coordinates From) distancekm (Coordinates To)
+    .weight = Coordinates From distancekm (Coordinates To)
   end
 end
 
@@ -62,7 +62,7 @@ fun A distancekm B
   LatB = B 0 * Radians
   Delta = (A 1 - B 1) * Radians
   Cosine = (LatA sin) * (LatB sin) + (LatA cos) * (LatB cos) * (Delta cos)
-  return 6371 * (((Cosine max -1) min 1) acos)
+  return 6371 * ((Cosine max -1 min 1) acos)
 end
 
 rem Reusable adjacent-pair reduction, with no traversal loop.
@@ -71,5 +71,5 @@ fun Pair segmentcost Graph rank 1 all
 end
 
 fun Route tripdistance Graph
-  return (Route window 2) segmentcost Graph reduce +
+  return Route window 2 segmentcost Graph reduce +
 end

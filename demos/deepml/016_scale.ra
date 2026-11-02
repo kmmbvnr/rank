@@ -7,7 +7,7 @@ use stats
 fun Data feature_scaling
   Mean = Data mean axis 0
   Delta = Data - Mean
-  Dev = (Delta * Delta mean axis 0) sqrt
+  Dev = Delta * Delta mean axis 0 sqrt
   Low = Data min axis 0
   High = Data max axis 0
 

@@ -19,9 +19,9 @@ rem of binomials.
 HB = Size // 2
 HC = Size // 3
 HD = Size // 4
-B = (0 to HB array) reshape (HB + 1) 1 1
-C = (0 to HC array) reshape 1 (HC + 1) 1
-D = (0 to HD array) reshape 1 1 (HD + 1)
+B = 0 to HB array reshape (HB + 1) 1 1
+C = 0 to HC array reshape 1 (HC + 1) 1
+D = 0 to HD array reshape 1 1 (HD + 1)
 Grey = Size - B * 2 - C * 3 - D * 4
 Fits = Grey at least 0
 A = Fits choose Grey 0
@@ -32,5 +32,5 @@ First' = Pieces binomial A
 Second' = Rest binomial B
 Third' = Mix binomial C
 Ways' = First * Second * Third
-Answer = (Fits choose Ways 0) sum
+Answer = Fits choose Ways 0 sum
 Answer print

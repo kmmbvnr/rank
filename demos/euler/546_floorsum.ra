@@ -24,8 +24,8 @@ Zn = Kb * (D + 1)
 rem W(i, z): weight of node i at z, the
 rem product of z - j over j /= i over
 rem that of i - j.
-Z = (0 till Zn) copy
-I = (0 to D) copy
+Z = 0 till Zn copy
+I = 0 to D copy
 Dz = (Z - (I reshape (D + 1) 1)) mod P
 Pre = array shape (D + 1) Zn fill 1
 Suf = Pre
@@ -33,15 +33,15 @@ Cp = Z * 0 + 1
 Cs = Cp
 for J in 0 to D
   Pre J = Cp
-  Cp = Cp * (Dz J) mod P
+  Cp = Cp * Dz J mod P
   Js = D - J
   Suf Js = Cs
-  Cs = Cs * (Dz Js) mod P
+  Cs = Cs * Dz Js mod P
 end
-Fa = concat (array 1) ((1 to D) scan *)
+Fa = concat (array 1) (1 to D scan *)
 Dn = (Fa I) * (Fa (D - I)) mod P
 Sg = 1 - 2 * ((D - I) mod 2)
-Dn = (Dn * Sg) mod P
+Dn = Dn * Sg mod P
 Iv = Dn (P - 2) P powmod
 W = Pre * Suf mod P
 W = W * (Iv reshape (D + 1) 1) mod P
@@ -59,19 +59,19 @@ for K in Ka to Kb
   Xk = K * I
   for J in 1 till Dg len
     Dj = Dg J
-    Sb = (B scan +) mod P
-    Se = (E scan +) mod P
+    Sb = B scan + mod P
+    Se = E scan + mod P
     Sc = Sb reshape (D + 1) 1
-    Wb = (W * Sc) mod P
-    Vb = (Wb reduce + axis 0) mod P
+    Wb = W * Sc mod P
+    Vb = Wb reduce + axis 0 mod P
     Ec = Se reshape (D + 1) 1
-    We = (W * Ec) mod P
-    Ve = (We reduce + axis 0) mod P
+    We = W * Ec mod P
+    Ve = We reduce + axis 0 mod P
     Vk = Vb (0 till Zk)
     Vm = Vk reshape (D + 1) K
-    B = (Vm reduce + axis 1) mod P
-    Lo = ((0 till K) less Dj) integer
-    El = (Vm * Lo) reduce + axis 1
+    B = Vm reduce + axis 1 mod P
+    Lo = (0 till K less Dj) integer
+    El = Vm * Lo reduce + axis 1
     E = (El + Ve (Xk + Dj)) mod P
   end
   Answer = (Answer + E 0) mod P

@@ -53,25 +53,25 @@ Lb = Ix copy
 Go = 1
 for Go equal 1
   Ln = (Lb min (Lb Bd)) min (Lb Dk)
-  Go = (Ln not equal Lb) any integer
+  Go = Ln not equal Lb any integer
   Lb = Ln
 end
 Lr = Lb reshape Nn 1
 Lc = Lb reshape 1 Nn
-Sm = (Lr equal Lc) integer
+Sm = Lr equal Lc integer
 Sz = Sm sum axis 1
-Lb1 = (Bd equal Ix) integer
+Lb1 = Bd equal Ix integer
 Nbv = Lb1 reshape 1 Nn
-Ld1 = (Dk equal Ix) integer
+Ld1 = Dk equal Ix integer
 Ndv = Ld1 reshape 1 Nn
-Cb = (Sm * Nbv) sum axis 1
-Cd = (Sm * Ndv) sum axis 1
-Rt = (Lb equal Ix) indices
+Cb = Sm * Nbv sum axis 1
+Cd = Sm * Ndv sum axis 1
+Rt = Lb equal Ix indices
 Ms = Sz Rt
 Nb = Cb Rt
 Nd = Cd Rt
-Cy = (Nb + Nd equal 0) integer
-Ev = (Ms mod 2 equal 0) integer
+Cy = Nb + Nd equal 0 integer
+Ev = Ms mod 2 equal 0 integer
 Sy = Cy * Ms + (1 - Cy) * (1 + Ev)
 Ky = Ms * 9 + Nb * 3 + Nd
 Us = Ky unique
@@ -81,11 +81,11 @@ for K in 1 to Nn
 end
 Answer = 1
 for U in Us
-  Sl = (Ky equal U) indices
+  Sl = Ky equal U indices
   Cn = Sl len
   Sg = Sy (Sl 0)
   Pw = Sg Cn P powmod
   Answer = Answer * Pw mod P
-  Answer = Answer * (Fc Cn) mod P
+  Answer = Answer * Fc Cn mod P
 end
 Answer print

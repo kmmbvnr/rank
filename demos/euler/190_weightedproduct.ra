@@ -15,10 +15,10 @@ rem 2 i / (m + 1), so the product is
 rem the product of (2 i)^i over
 rem (m + 1) to the power m (m + 1) / 2.
 Rows = Top - 1
-M = (2 to Top array) reshape Rows 1
-I = (1 to Top array) reshape 1 Top
+M = 2 to Top array reshape Rows 1
+I = 1 to Top array reshape 1 Top
 Pow' = (2 * I) ** I
-Terms' = (I at most M) choose Pow 1
+Terms' = I at most M choose Pow 1
 Num' = Terms reduce * axis 1
 Den' = (M + 1) ** (M * (M + 1) // 2)
 Best' = Num // (Den reshape Rows)

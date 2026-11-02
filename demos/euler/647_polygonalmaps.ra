@@ -24,25 +24,25 @@ Tc = Mt isqrt + 1
 Answer = 0
 Lm = N * 1.000001
 for T in 1 to Tc
-  Ms = 1 to (Mt // T) by 2
+  Ms = 1 to Mt // T by 2
   Cq = (Ms - 2) * (Ms - 2)
   Bf = (T * (Ms * T + 1) * Cq) / 2.0
-  Mk = Ms ((Bf at most Lm) indices)
+  Mk = Ms (Bf at most Lm indices)
   Cm = (Mk - 2) * (Mk - 2)
   Bb = T * (Mk * T + 1) * Cm // 2
-  Ok = (Bb at most N) integer
+  Ok = Bb at most N integer
   Cc = 1 + 2 * Mk * T
   Answer += ((Cc * Cc + Bb) * Ok) sum
 end
 for M in 1 to Tc by 2
   Tm = Mt // M
   if Tm greater Tc
-    Ts = (Tc + 1) to Tm
+    Ts = Tc + 1 to Tm
     Cq = (M - 2) * (M - 2)
     Bf = (Ts * (M * Ts + 1) * Cq) / 2.0
-    Tk = Ts ((Bf at most Lm) indices)
+    Tk = Ts (Bf at most Lm indices)
     Bb = Tk * (M * Tk + 1) * Cq // 2
-    Ok = (Bb at most N) integer
+    Ok = Bb at most N integer
     Cc = 1 + 2 * M * Tk
     Answer += ((Cc * Cc + Bb) * Ok) sum
   end

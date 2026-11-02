@@ -29,8 +29,8 @@ if N greater 9
     Lim = M isqrt
     for Lo in 3 to Lim by 2000000
       Hi = Lim min (Lo + 1999999)
-      Ds = (Lo to Hi by 2) copy
-      Z = (M mod Ds equal 0) indices
+      Ds = Lo to Hi by 2 copy
+      Z = M mod Ds equal 0 indices
       if Z len greater 0
         P = Ds (Z 0)
         break

@@ -59,11 +59,11 @@ for K in 2 to Nn
   Rs = Sa (M to 0 by -1)
   Rt = Sn (M to 0 by -1)
   R2 = A2 (M to 0 by -1)
-  Sa M = (Fa * Ra mod P) sum mod P
-  Sn M = (Fn * Rn mod P) sum mod P
-  Ca M = (Fa * Rs mod P) sum mod P
-  Cn M = (Fn * Rt mod P) sum mod P
-  Cx = (Fa * R2 mod P) sum mod P
+  Sa M = Fa * Ra mod P sum mod P
+  Sn M = Fn * Rn mod P sum mod P
+  Ca M = Fa * Rs mod P sum mod P
+  Cn M = Fn * Rt mod P sum mod P
+  Cx = Fa * R2 mod P sum mod P
   P2 = (Sa M + A2 M) * I2 mod P
   P3 = (Ca M + 3 * Cx + 2 * A3 M) mod P
   P3 = P3 * I6 mod P
@@ -117,7 +117,7 @@ Fx = Aa (0 to Nn)
 Fy = Ya (0 to Nn)
 Ed = (Fx * Aa (Nn to 0 by -1) mod P) sum
 Ry = Ya (Nn to 0 by -1)
-Ey = (Fy * Ry mod P) sum
+Ey = Fy * Ry mod P sum
 Ed = (Ed - Ey + P) mod P
 Dg = 0
 if Nn mod 2 equal 0

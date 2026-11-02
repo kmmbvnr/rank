@@ -19,14 +19,14 @@ rem roots. For p not dividing 6a both
 rem congruences force n = -(3b + a^3)
 rem / (2 a^2) mod p^k; other p lift
 rem roots digit by digit.
-Lm = (Ma ** 6 + 27 * Nb * Nb) isqrt
+Lm = Ma ** 6 + 27 * Nb * Nb isqrt
 Ps = primes to Lm + 1 array
 Answer = 0
 for A in 1 to Ma
-  Pa = Ps (((A mod Ps) equal 0) indices)
+  Pa = Ps ((A mod Ps equal 0) indices)
   for B in 1 to Nb
     Nv = A ** 6 + 27 * B * B
-    Dz = (Nv mod Ps) equal 0
+    Dz = Nv mod Ps equal 0
     Pd = Ps (Dz indices)
     Co = Nv
     for P in Pd
@@ -89,7 +89,7 @@ for A in 1 to Ma
           Ca = Ch + A
           F2 = Ca 3 Mn powmod + B
           Fz = F1 mod Mn + F2 mod Mn
-          Ok = (Fz equal 0) indices
+          Ok = Fz equal 0 indices
           if Ok len equal 0
             break
           end
@@ -104,7 +104,7 @@ for A in 1 to Ma
         Iv = Mr (Ph - 1) Md powmod
         Nr = Cur len
         Nt = Nr * (Rs len)
-        Ip = (0 till Nt) copy
+        Ip = 0 till Nt copy
         Cq = Cur (Ip mod Nr)
         Rq = Rs (Ip // Nr)
         K = (Rq - Cq) mod Md * Iv mod Md

@@ -26,7 +26,7 @@ fun V modprod P
     H = V len // 2
     Lo = V (0 to H - 1)
     Hi = V (H to 2 * H - 1)
-    V = (Lo * Hi mod P) copy
+    V = Lo * Hi mod P copy
   end
   return V 0
 end
@@ -44,9 +44,9 @@ for T in 1 to 2 * M - 1
   Fc T = Fc (T - 1) * T mod P
 end
 W = M - K
-Sl = Fc ((M + K) to (2 * M - 1))
+Sl = Fc (M + K to (2 * M - 1))
 An = Sl copy modprod P
-Sl = Fc ((2 * K) to (M + K - 1))
+Sl = Fc (2 * K to (M + K - 1))
 Ad = Sl copy modprod P
 Sl = Fc (K to (M - 1))
 Bn = Sl copy modprod P

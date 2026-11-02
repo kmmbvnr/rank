@@ -47,5 +47,5 @@ Lead' = Pow floor
 LDs' = Lead digits Bases
 LSort = LDs transpose sort
 Heads' = LSort Want equal rank 1
-Answer = (Cands Heads) first
+Answer = Cands Heads first
 Answer print

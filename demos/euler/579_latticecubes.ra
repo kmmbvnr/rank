@@ -26,14 +26,14 @@ Ps = N * 4
 Rm = Ps isqrt
 Tot = 0
 for A in 0 to Rm
-  for B in (0 - Rm) to Rm
+  for B in 0 - Rm to Rm
     S1 = A * A + B * B
     if S1 at most Ps
-      Rc = (Ps - S1) isqrt
-      for C in (0 - Rc) to Rc
+      Rc = Ps - S1 isqrt
+      for C in 0 - Rc to Rc
         S2 = S1 + C * C
-        Rd = (Ps - S2) isqrt
-        for D in (0 - Rd) to Rd
+        Rd = Ps - S2 isqrt
+        for D in 0 - Rd to Rd
           Q = S2 + D * D
           Od = A mod 2 + B mod 2
           Od += C mod 2 + D mod 2
@@ -165,7 +165,7 @@ for A in 0 to Rm
               Pm = Pt mod Mo
               Hi = Pm // 131072
               Lo = Pm mod 131072
-              Xm = (Tm * Hi) mod Mo
+              Xm = Tm * Hi mod Mo
               Xm = Xm * 131072 + Tm * Lo
               Tot = (Tot + Xm) mod Mo
             end

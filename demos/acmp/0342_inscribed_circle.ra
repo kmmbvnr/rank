@@ -13,9 +13,9 @@ arg Input text = "4\n0 0\n1 0\n1 1\n0 1"
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 N = Tokens 0 integer
-Coords = (Tokens drop 1) integer
+Coords = Tokens drop 1 integer
 
-Idx = (0 till N) array
+Idx = 0 till N array
 Xs = Coords (Idx * 2)
 Ys = Coords (Idx * 2 + 1)
 
@@ -23,9 +23,9 @@ NextIdx = concat (1 till N) (array 0)
 XNext = Xs NextIdx
 YNext = Ys NextIdx
 
-DX = (XNext - Xs) real
-DY = (YNext - Ys) real
-L = (DX * DX + DY * DY) sqrt
+DX = XNext - Xs real
+DY = YNext - Ys real
+L = DX * DX + DY * DY sqrt
 
 Nx = (0 - DY) / L
 Ny = DX / L
@@ -47,15 +47,15 @@ X = 0.0
 Y = 0.0
 R = 0.0
 
-if (Det abs) greater 0.000000001
+if Det abs greater 0.000000001
   X = (C1 * B2 - C2 * B1) / Det
   Y = (A1 * C2 - A2 * C1) / Det
   R = (Nx 0) * X + (Ny 0) * Y + (C 0)
 
   Dists = Nx * X + Ny * Y + C
-  Diffs = (Dists - R) abs
+  Diffs = Dists - R abs
 
-  if (R greater 0.000001) and ((Dists greater 0.000001) all) and ((Diffs less 0.0001) all)
+  if R greater 0.000001 and (Dists greater 0.000001 all) and (Diffs less 0.0001 all)
     HasCircle = true
   end
 end

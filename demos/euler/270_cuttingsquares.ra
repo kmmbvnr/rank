@@ -56,7 +56,7 @@ for Len in 2 to (Size - 1)
     Whole = I equal 0 and J equal Last
     if Same equal 0 or Whole
       Sum = 0
-      for K in (I + 1) to (J - 1)
+      for K in I + 1 to (J - 1)
         Left = T I K
         Right = T K J
         Sum += Left * Right mod Mod

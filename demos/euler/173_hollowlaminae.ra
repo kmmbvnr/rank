@@ -20,5 +20,5 @@ rem - k choices of j.
 Pairs = Tiles // 4
 Lim = Pairs isqrt
 K = 1 to Lim array
-Answer = (Pairs // K - K) sum
+Answer = Pairs // K - K sum
 Answer print

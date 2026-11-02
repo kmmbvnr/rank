@@ -23,7 +23,7 @@ Ps = (Rl scan +) - Rl
 Pq = Ps mod Md
 Xq = Rx mod Md
 Lq = Rl mod Md
-Ev = (Rl mod 2 equal 0) integer
+Ev = Rl mod 2 equal 0 integer
 H1 = Ev * (Rl // 2) + (1 - Ev) * Rl
 Rm1 = Rl - 1
 H2 = Ev * Rm1 + (1 - Ev) * (Rm1 // 2)
@@ -31,8 +31,8 @@ S1 = (H1 mod Md) * (H2 mod Md) mod Md
 Ca = Ev * (Rl // 2) + (1 - Ev) * Rl
 Cb = H2
 Cc = 2 * Rl - 1
-Da = (Ca mod 3 equal 0) integer
-Db = (Cb mod 3 equal 0) integer
+Da = Ca mod 3 equal 0 integer
+Db = Cb mod 3 equal 0 integer
 Db = Db * (1 - Da)
 Dc = 1 - Da - Db
 Ca = Da * (Ca // 3) + (1 - Da) * Ca
@@ -49,7 +49,7 @@ Answer = Tt sum mod Md
 Answer print
 
 fun Size reversal_runs Count
-  Order = (0 till Size) rope
+  Order = 0 till Size rope
   Fa = 1 mod Size
   Fb = 1 mod Size
   for J in 0 till Count

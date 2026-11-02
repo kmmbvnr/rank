@@ -14,6 +14,6 @@ arg X integer = 15
 arg K integer = 2
 
 Banknotes = X // 5
-Answer = (Banknotes + K) binomial K
+Answer = Banknotes + K binomial K
 
 Answer print

@@ -25,18 +25,18 @@ for I in 3 to N + 1
   Fb I = Fb (I - 1) + Fb (I - 2)
 end
 Pk = Fb (1 to N) / (Fb (N + 1) * 1.0)
-Ib = (0 till N) copy
+Ib = 0 till N copy
 W = array shape (Nm * N * N) fill 0.0
 D = array shape (Nm * N) fill 0.0
 W (((2 ** Ib) * N + Ib) * N + Ib) = 1.0
-Pc = (0 till Nm) copy popcount
+Pc = 0 till Nm copy popcount
 Ep = 0.000000000001
 for Q in 2 to N
-  Mk = (Pc equal Q) indices
+  Mk = Pc equal Q indices
   K = Mk len
   KN = K * N
   Bt = (Mk (2 ** Ib) outer //) mod 2
-  Co = ((Bt equal 1) indices) transpose
+  Co = (Bt equal 1 indices) transpose
   Mt = ((Co 1) reshape K Q) transpose
   Aq = array shape Q K N fill 0.0
   Cq = array shape Q K fill 0.0

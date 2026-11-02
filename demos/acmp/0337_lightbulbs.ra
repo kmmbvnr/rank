@@ -14,7 +14,7 @@ Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 N = Tokens 0 integer
 K = Tokens 1 integer
-P = (Tokens drop 2) take K integer
+P = Tokens drop 2 take K integer
 
 rem Count frequencies of periods 1..50
 Counts = array shape 51 fill 0
@@ -22,8 +22,8 @@ for Period in P
   Counts Period = Counts Period + 1
 end
 
-OddP = (1 to 50) array
-OddP = OddP (((Counts OddP) mod 2) equal 1)
+OddP = 1 to 50 array
+OddP = OddP (Counts OddP mod 2 equal 1)
 
 TermsV = array shape 0 fill 0
 TermsC = array shape 0 fill 0
@@ -58,7 +58,7 @@ for PVal in OddP
       if CurV equal LastV
         LastC += CurC
       else
-        if (LastV greater 0) and (LastC not equal 0)
+        if LastV greater 0 and (LastC not equal 0)
           OutV OutCount = LastV
           OutC OutCount = LastC
           OutCount += 1
@@ -68,7 +68,7 @@ for PVal in OddP
       end
     end
 
-    if (LastV greater 0) and (LastC not equal 0)
+    if LastV greater 0 and (LastC not equal 0)
       OutV OutCount = LastV
       OutC OutCount = LastC
       OutCount += 1

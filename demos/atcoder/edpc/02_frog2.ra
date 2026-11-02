@@ -22,7 +22,7 @@ fun H min_cost K
     Diff = H I - H Lo
     Best = Cost Lo + (Diff abs)
 
-    for J in (Lo + 1) till I
+    for J in Lo + 1 till I
       Diff = H I - H J
       Step = Cost J + (Diff abs)
       Best = Best min Step

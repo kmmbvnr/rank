@@ -26,25 +26,25 @@ for J in 0 to 1
   S = Mm isqrt
   Sm = 0
   for K0 in 1 to S by Bk
-    K1 = (K0 + Bk - 1) min S
+    K1 = K0 + Bk - 1 min S
     Qs = Mm // (K0 to K1 array)
-    Ev = (Qs mod 2 equal 0) integer
+    Ev = Qs mod 2 equal 0 integer
     A = Ev * (Qs // 2) + (1 - Ev) * Qs
     Q1 = Qs + 1
     B = Ev * Q1 + (1 - Ev) * (Q1 // 2)
     Am = A mod Md
     Bm = B mod Md
-    Sm += ((Am * Bm) mod Md) sum
+    Sm += Am * Bm mod Md sum
   end
   Vm = Mm // (S + 1)
   for V0 in 1 to Vm by Bk
-    V1 = (V0 + Bk - 1) min Vm
+    V1 = V0 + Bk - 1 min Vm
     Vs = V0 to V1 array
     Hi = Mm // Vs
     Lo = (Mm // (Vs + 1)) max S
     Cn = Hi - Lo
     Tv = (Vs * (Vs + 1) // 2) mod Md
-    Pd = (Tv * Cn) mod Md
+    Pd = Tv * Cn mod Md
     Sm += Pd sum
   end
   Tot += Wt * (Sm mod Md)

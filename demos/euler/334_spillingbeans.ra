@@ -13,7 +13,7 @@ fun N beans
     if T mod 2 equal 0
       T //= 2
     else
-      T = (T // 2) bxor 926252
+      T = T // 2 bxor 926252
     end
     Bs I = T mod 2048 + 1
   end
@@ -23,8 +23,8 @@ end
 fun Bs moves
   N = Bs sum
   Pos = 0 till (Bs len) array
-  S1 = (Pos * Bs) sum
-  S2 = (Pos * Pos * Bs) sum
+  S1 = Pos * Bs sum
+  S2 = Pos * Pos * Bs sum
   K1 = N * (N + 1) // 2
   K2 = N * (N + 1) * (2 * N + 1) // 6
   L = (S1 - K1) // N

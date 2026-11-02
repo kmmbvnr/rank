@@ -6,7 +6,7 @@ use io
 fun Text wordCount
   Words' = Text split " "
   Lengths' = Words len rank 0
-  return (Lengths greater 0) count
+  return Lengths greater 0 count
 end
 
 Example = "Testing one, two, three" wordCount

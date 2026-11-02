@@ -15,7 +15,7 @@ rem 24. Count the residues for N =
 rem 24q + r: cubic in q per r.
 Mod = 1000000000
 Big = 24 ** 3 * Mod
-R = (0 to 23) copy
+R = 0 to 23 copy
 A = R reshape 24 1 1
 B = R reshape 1 24 1
 C = R reshape 1 1 24
@@ -36,11 +36,11 @@ Ec = E reshape 24 1 1 24
 G4 = G reshape 1 24 24 24
 C3 = G sum
 W = G4 * (Ea + Eb + Ec)
-C2 = (W reshape 24 13824) sum axis 1
+C2 = W reshape 24 13824 sum axis 1
 W = G4 * (Ea * Eb + Ea * Ec + Eb * Ec)
-C1 = (W reshape 24 13824) sum axis 1
+C1 = W reshape 24 13824 sum axis 1
 W = G4 * Ea * Eb * Ec
-C0 = (W reshape 24 13824) sum axis 1
+C0 = W reshape 24 13824 sum axis 1
 
 rem Row state of F^a F'^b, a+b <= 3.
 rem U is one Fibonacci step.
@@ -82,18 +82,18 @@ Bn = Ap (0 to 9) (0 to 9)
 Gn = Ap (0 to 9) (10 to 19)
 
 rem Classes k = k0 + 24 m, k0 = 2..25.
-Fb = (fibonacci till 200000) copy
+Fb = fibonacci till 200000 copy
 Fv = Fb (0 to 23)
 Fw = Fb (1 to 24)
 Fc = Fv reshape 24 1
 Fd = Fw reshape 24 1
 Sm = Fc ** (Pa reshape 1 10)
 Sm = Sm * (Fd ** (Pb reshape 1 10))
-K0 = (2 to 25) copy
+K0 = 2 to 25 copy
 Ex = (K - K0) // 24 + 1 - Nb
 V = Sm matmul Gn
 V += (Ex reshape 24 1) * (Sm matmul Bn)
-Vt = (V mod Big) transpose
+Vt = V mod Big transpose
 Ro = Fv mod 24
 P0 = Vt 0
 P1 = Vt 2

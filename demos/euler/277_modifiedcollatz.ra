@@ -37,8 +37,8 @@ for K in 1 to Len
     Dn' = N // 3
     Up' = (N * 4 + 2) // 3
     Dw' = (N * 2 - 1) // 3
-    Mid' = (R equal 1) choose Up Dw
-    N = (R equal 0) choose Dn Mid
+    Mid' = R equal 1 choose Up Dw
+    N = R equal 0 choose Dn Mid
   end
   Cand = Cand filter Ok array
 end

@@ -13,7 +13,7 @@ Limit = 10 ** 16
 fun N solve
   Mod = 282475249
   Inv2 = 141237625
-  Cut = (N + 1) phi
+  Cut = N + 1 phi
   S = Cut beatty
   G = S 0
   Q = S 1
@@ -56,9 +56,9 @@ fun N beatty
   G = 0
   Q = 0
   P = 0
-  for I in (Len - 1) to 0 by -1
+  for I in Len - 1 to 0 by -1
     X = Ns I mod Mod
-    Y = (Ns I phi) mod Mod
+    Y = Ns I phi mod Mod
     TM = Ns I phi tri
     SM = Ns I phi squares
     G0 = G
@@ -82,7 +82,7 @@ fun N beatty
 end
 
 fun N phi
-  Root = (5 * N * N) isqrt
+  Root = 5 * N * N isqrt
   return (Root - N) // 2
 end
 

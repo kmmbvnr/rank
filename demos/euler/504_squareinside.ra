@@ -15,11 +15,11 @@ rem gcd(b,c) + gcd(c,d) + gcd(d,a)
 rem points, so by Pick I = (2A - B) /
 rem 2 + 1. For each a, all (b, c, d)
 rem at once.
-Vs = (1 to M) copy
+Vs = 1 to M copy
 G = Vs Vs outer gcd
 Ns = 4 * M * M + 1
 Sq = array shape Ns fill false
-Rt = (0 to 2 * M) copy
+Rt = 0 to 2 * M copy
 Sq (Rt * Rt) = true
 rem I = (X_a + X_c) / 2 + 1 with X_a
 rem (b, d) = a (b + d) - gcd(a, b) -

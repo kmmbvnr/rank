@@ -19,7 +19,7 @@ rem m + 1. Exact fills with an odd
 rem rest are not special-cased.
 L = (((10.0 * N) ** (1.0 / 3.0)) floor)
 L = L * 11 // 10 + 100
-Ph = (0 to L) copy
+Ph = 0 to L copy
 for P in primes to L
   Sl = P to L by P
   Ph Sl -= Ph Sl // P

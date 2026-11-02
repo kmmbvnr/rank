@@ -15,7 +15,7 @@ rem digits with odd sums: even k gives
 rem 20 30^(k/2 - 1). Odd k works only
 rem for k = 3 mod 4: 100 500^((k-3)/4).
 K = 1 to Digits array
-Half' = (K // 2 - 1) max 0
+Half' = K // 2 - 1 max 0
 Quad' = ((K - 3) // 4) max 0
 Even' = 20 * 30 ** Half
 Odd' = 100 * 500 ** Quad

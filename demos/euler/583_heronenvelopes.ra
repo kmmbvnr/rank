@@ -20,7 +20,7 @@ rem then for each a and h add the t
 rem with t and h + t both flaps.
 Lm = P // 2
 Bt = 8388608
-Mq = (2 * Lm) isqrt
+Mq = 2 * Lm isqrt
 Tk = array shape 1 fill 0
 Rk = array shape 1 fill 0
 Nt = 0
@@ -95,11 +95,11 @@ Pr = 0
 for A in 1 to Lm
   T0 = Pt
   Nx = (A + 1) * Bt
-  for (Pt less Nt) and ((Tk Pt) less Nx)
+  for Pt less Nt and (Tk Pt less Nx)
     Pt += 1
   end
   R0 = Pr
-  for (Pr less Nr) and ((Rk Pr) less Nx)
+  for Pr less Nr and (Rk Pr less Nx)
     Pr += 1
   end
   for I in R0 till Pr
@@ -109,7 +109,7 @@ for A in 1 to Lm
     for J in T0 till Pt
       T = (Tk J) - A * Bt
       if Go and (T less Hh)
-        S = (A * A + T * T) isqrt
+        S = A * A + T * T isqrt
         if S at most Rem
           U = Hh + T
           Lo = T0

@@ -20,7 +20,7 @@ Ps = primes to Limit array
 Ids = 1 to Limit array
 Row = Ids reshape Limit 1
 Dividing' = Row mod Ps equal 0
-Sums = (Dividing choose Ps 0) sum rank 1
+Sums = Dividing choose Ps 0 sum rank 1
 rem Reverse storage gives zero for
 rem terms beyond the current n.
 Ways = array shape (2 * Limit + 1) fill 0

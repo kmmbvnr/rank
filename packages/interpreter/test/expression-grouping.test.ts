@@ -130,6 +130,38 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run(source + 'X * 2 - 1')).toBe('9');
     });
 
+    it('resumes calls after arithmetic with ordinary precedence', () => {
+        expect(run('9 sqrt + 2 * 3 sqrt')).toBe('3');
+        expect(run('9 sqrt + 2 * 3 sqrt + 1 sqrt')).toBe('2');
+        expect(run('fun X twice = X * 2\n2 twice + 3 twice')).toBe('14');
+        expect(run('root = sqrt\n9 root + 2 * 3 root')).toBe('3');
+        expect(run('fun X add Y = X + Y\n2 add 3 + 4 add 5')).toBe('14');
+        expect(run('A = array 2 4\nA sum + A sum')).toBe('18');
+        expect(run('A = array 2 4\nA sum + (A sum)')).toBe('12');
+        expect(run('A = array 2 4\nA sum / (A len)')).toBe('3');
+        expect(run('A = array 2 4\nA max + A reduce +')).toBe('14');
+        expect(run('fun X relu = X max 0\nfun X W linear = X * W\n2 linear 3 + 4 relu')).toBe('10');
+        expect(run('A = array 1 4\nA sqrt rank 0 + 5 sqrt rank 0')).toBe(run('A = array 1 4\n(A sqrt rank 0) + 5 sqrt rank 0'));
+    });
+
+    it('keeps tensor and axis calls attached across arithmetic', () => {
+        const source = 'use linalg\nfun X relu = X max 0\n'
+            + 'X = array shape 2 2\n 1 2 3 4\nend\n'
+            + 'W = array 1 2\nBias = -6\n';
+        expect(run(source + 'X matmul W + Bias relu')).toBe('0 5');
+        expect(run(source + 'X sum axis 0 + 1 sum')).toBe('12');
+        expect(run(source + 'X sum axis 0 + 1 sum')).toBe(run(source + '(X sum axis 0) + 1 sum'));
+    });
+
+    it('resumes module-qualified calls', () => {
+        const runtime = new Interpreter(() => {}, { compilation: compiled, loadModule: () => ({
+            id: 'helpers.ra', source: 'fun X twice = X * 2',
+        }) });
+        try {
+            expect(runtime.execute('use "helpers" as Ops\n2 Ops.twice + 3 Ops.twice')).toBe(14n);
+        } finally { runtime.dispose(); }
+    });
+
     it('normalizes rounding parameters instead of interpreting subtraction as a call', () => {
         expect(run('12.34 round - 1')).toBe('10');
         expect(run('12.34 round - 1 sqrt')).toBe(String(Math.sqrt(10)));
@@ -152,14 +184,5 @@ describe('grouping diagnostics', () => {
                 expect(diagnostic.location?.column).toBe(source.startsWith('(') ? 2 : 11);
             }
         }
-    });
-
-    it('requests a named intermediate result when functions resume after arithmetic', () => {
-        for (const expression of ['2 sqrt + 1 sqrt', 'A max + 1 sum', 'A max + A reduce +']) {
-            expect(() => parse('use numbers\nA = array 1 2\n' + expression))
-                .toThrowError('Name the result on the left, then apply the function');
-        }
-        expect(() => parse('fun X sigmoid\n return X\nend\nuse linalg\nX matmul W + Bias sigmoid'))
-            .toThrowError('intermediate variable');
     });
 });

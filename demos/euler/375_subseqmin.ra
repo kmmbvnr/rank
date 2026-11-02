@@ -41,7 +41,7 @@ Full = Limit // Period
 Rest = Limit mod Period
 Answer = 0
 Top = 0
-for I in (2 * Period - 1) to 0 by -1
+for I in 2 * Period - 1 to 0 by -1
   X = A (I mod Period)
   for Top greater 0
     Y = A (St (Top - 1) mod Period)

@@ -34,20 +34,20 @@ for M in 2 to Nn
   Cs = Ph cos
   Tk = Th * Ks
   Lm = 1.0 / 3.0 + 4.0 / 9.0 * (Tk cos)
-  Lm = Lm + 2.0 / 9.0 * ((2.0 * Tk) cos)
+  Lm = Lm + 2.0 / 9.0 * (2.0 * Tk cos)
   Iv = 1.0 / (1.0 - Lm)
   Aa = ((1.0 - Cs) * Iv) sum axis 1
   Cc = 2.0 * Aa - 1.0
   Sc = Cc sum
   Cc 0 = 0.0 - Sc - 1.0
   Cm = Cc reshape M 1
-  Ch = (Cm * Cs) sum axis 0
+  Ch = Cm * Cs sum axis 0
   Iw = Iv reshape (M - 1)
-  Tw = (Ch * Iw) sum
+  Tw = Ch * Iw sum
   Total += 0.0 - Tw / M
 end
 Lg = Total log
-Ex = (Lg / 2.302585092994046) floor
+Ex = Lg / 2.302585092994046 floor
 Mt = Total / (10.0 ** Ex)
 Ms = Mt text ".8f"
 Es = Ex text ".0f"

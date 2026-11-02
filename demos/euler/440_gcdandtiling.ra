@@ -19,7 +19,7 @@ rem coprime pairs up to L // d, built
 rem from phi. T has period Mod - 1.
 Mod = 987898789
 Pi = Mod - 1
-Ph = (0 to L) copy
+Ph = 0 to L copy
 for P in primes to L
   Sl = P to L by P
   Ph Sl -= Ph Sl // P
@@ -32,12 +32,12 @@ for M in 2 to L
     Co M += Ph M
   end
 end
-Ds = (1 to L) copy
+Ds = 1 to L copy
 Cd = Co (L // Ds)
 Cdiff = L * L - (Cd sum)
-Cs = (1 to L) copy
+Cs = 1 to L copy
 Odd = Cs mod 2 equal 1
-Bs = (Odd choose 10 1) sum
+Bs = Odd choose 10 1 sum
 Cur = Cs mod Pi
 Ex = array shape (L * L) fill 0
 for D in 1 to L
@@ -51,7 +51,7 @@ for Bit in 29 to 0 by -1
   Dx = (Tx * Tx + Ty * Ty) mod Mod
   Mid = (Mod - 10) * Ty mod Mod
   Dy = Ty * (2 * Tx + Mid) mod Mod
-  Up = Ex // (2 ** Bit) mod 2 equal 1
+  Up = Ex // 2 ** Bit mod 2 equal 1
   Nx = (10 * Dx + Dy) mod Mod
   Tx = Up choose Nx Dx
   Ty = Up choose Dx Dy
@@ -60,6 +60,6 @@ Wt = Cd mod Mod
 Rw = Tx reshape L L
 Wc = Wt reshape L 1
 Pr = Rw * Wc mod Mod
-Sm = (Pr sum) mod Mod
+Sm = Pr sum mod Mod
 Answer = (Bs * Cdiff + Sm) mod Mod
 Answer print

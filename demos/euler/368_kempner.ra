@@ -92,7 +92,7 @@ fun Max kempner Digits
   for P in Low till (10 * Low)
     if P valid
       Last = P mod 10
-      Prev = (P // 10) mod 10
+      Prev = P // 10 mod 10
       S = Last * 2
       if Last equal Prev
         S += 1

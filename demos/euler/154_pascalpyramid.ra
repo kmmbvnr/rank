@@ -23,20 +23,20 @@ rem the largest exponent in row N-i
 rem of Pascal's triangle. That maximum
 rem is floor(log5(M+1)) - v5(M+1).
 Rows = N + 1
-Col = (0 to N array) reshape Rows 1
+Col = 0 to N array reshape Rows 1
 Up5 = 5 ** (1 to 12 array)
 Up2 = 2 ** (1 to 40 array)
-F5 = (Col // Up5) sum axis 1
-F2 = (Col // Up2) sum axis 1
+F5 = Col // Up5 sum axis 1
+F2 = Col // Up2 sum axis 1
 F5 = F5 copy
 F2 = F2 copy
 Lim5 = F5 N - Power
 Lim2 = F2 N - Power
 Mid = N // 3
 Ids = 0 to Mid array
-Next = (N - Ids + 1) reshape (Mid + 1) 1
-Log5 = (Next at least Up5) count axis 1
-Tail5 = (Next mod Up5 equal 0) count axis 1
+Next = N - Ids + 1 reshape (Mid + 1) 1
+Log5 = Next at least Up5 count axis 1
+Tail5 = Next mod Up5 equal 0 count axis 1
 Max5 = Log5 - Tail5
 Back' = F5 N - F5 Ids - (F5 reverse) Ids
 Keep' = Back + Max5 at least Power

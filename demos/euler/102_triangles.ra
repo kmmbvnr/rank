@@ -27,8 +27,8 @@ Next = array 1 2 0
 Nx' = Xs # Next
 Ny' = Ys # Next
 Cross = Xs * Ny - Ys * Nx
-Left' = (Cross greater 0) all axis 1
-Right' = (Cross less 0) all axis 1
+Left' = Cross greater 0 all axis 1
+Right' = Cross less 0 all axis 1
 Inside' = Left or Right
 Answer = Inside count
 Answer print

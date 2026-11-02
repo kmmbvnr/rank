@@ -35,7 +35,7 @@ fun A pmul B
   Fl = Pz reshape (La * (Lb + La))
   Fl = Fl (0 till La * (Lb + La - 1))
   Sk = Fl reshape La (Lb + La - 1)
-  return (Sk sum axis 0) mod Md
+  return Sk sum axis 0 mod Md
 end
 fun P Q N bm
   rem [x^N] P / Q by Bostan-Mori.
@@ -47,7 +47,7 @@ fun P Q N bm
     Qm = Qq * Sg mod Md
     U = Pp pmul Qm
     V = Qq pmul Qm
-    Pp = U ((Nn mod 2) till U len by 2)
+    Pp = U (Nn mod 2 till U len by 2)
     Qq = V (0 till V len by 2)
     Nn //= 2
   end
@@ -71,7 +71,7 @@ fun P Q N lin
     if J greater 0
       Qs = Q (1 to J)
       Cs = Cr (Nk - J to Nk - 1) reverse
-      Ac = (Qs * Cs mod Md) sum
+      Ac = Qs * Cs mod Md sum
     end
     Cr Nk = (Pk - Ac) mod Md * Iq mod Md
   end
@@ -103,7 +103,7 @@ for Ti in 0 to 2
   for Si in 0 to 1
     S = 1 - 2 * Si
     rem Degree cap: x^W at most.
-    L = (W + 1) min (H + 2)
+    L = W + 1 min (H + 2)
     P = array shape L fill 0
     Q = P
     Q 0 = 1

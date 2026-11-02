@@ -28,7 +28,7 @@ fun Options variablefast Params
   unpack Start Count = Options
   Sims = Count integer
   Quarters = Params 2 integer // 3
-  Rolls = (1 to 6) choices (Quarters * Sims)
+  Rolls = 1 to 6 choices (Quarters * Sims)
   Steps' = (Rolls - 3.5) / 10
   Changes = Steps reshape Quarters Sims
   return Changes Start Params fastdifference bins
@@ -69,11 +69,11 @@ fun Changes Start Params fastdifference
   Years = (Term + 11) // 12
   Year = 0 till Years
   Column = array Years 1
-  Elapsed' = (Year * 12) reshape unpack Column
+  Elapsed' = Year * 12 reshape unpack Column
   Left = Term - Elapsed
   Span = Left min 12
-  Alive' = (Year reshape unpack Column) min 1
-  Reached = (Year * 4 - 1) max 0
+  Alive' = Year reshape unpack Column min 1
+  Reached = Year * 4 - 1 max 0
 
   Walk = (Changes scan + axis 0) + Start
   Low = Walk scan min axis 0
@@ -85,7 +85,7 @@ fun Changes Start Params fastdifference
   Kept = Factor scan * axis 0
   Before' = Kept shift 1 with 1.0
 
-  Ahead = (0 till 12) reshape 1 12
+  Ahead = 0 till 12 reshape 1 12
   Powers' = (Ahead less Span) (Growth ** Ahead) 0.0 choose
   Within = Powers sum axis 1
   Weight' = (1 + Rate) Growth Span weight

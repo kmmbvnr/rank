@@ -16,7 +16,7 @@ memo N count
   end
   H = N // 2
   A = H count
-  B = (H + 1) count
+  B = H + 1 count
   if N mod 2 equal 0
     return A + B
   end
@@ -30,12 +30,12 @@ memo N prefix
   end
   H = N // 2
   A = H prefix
-  B = (H + 1) prefix
+  B = H + 1 prefix
   if N mod 2 equal 0
     return 3 * A + B - 4
   end
-  C = (H + 1) count
-  D = (2 * H) prefix
+  C = H + 1 count
+  D = 2 * H prefix
   return D + 2 * C
 end
 
@@ -344,7 +344,7 @@ Answer = 0
 for K in 1 to Power
   N = 10 ** K
   L = N length
-  Before = (L - 1) prefix
+  Before = L - 1 prefix
   Ns = new queue
   F = new index
   J = new index

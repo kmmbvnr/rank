@@ -10,7 +10,7 @@ arg Num integer = 10000000000000000
 
 Answer = 0
 for N in 2 to Top
-  Answer += (Num // N) waiting
+  Answer += Num // N waiting
 end
 Answer print
 
@@ -26,7 +26,7 @@ fun N waiting
   Prefix = Power // 10
   rem Each matching border adds 10 ** K.
   for Prefix greater 1
-    if (N // Prefix) equal (N mod Suffix)
+    if N // Prefix equal (N mod Suffix)
       Total += Suffix
     end
     Prefix = Prefix // 10

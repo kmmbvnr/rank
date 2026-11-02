@@ -27,24 +27,24 @@ rem solution of X^2 - a b Y^2 = 1 when
 rem (X + 1) / 2 = b w^2 and (X - 1) / 2
 rem = a x^2; when b = 1 every power
 rem counts. Step by (A, B) = (X, Y).
-Top = (Limit // 2) isqrt + 2
+Top = Limit // 2 isqrt + 2
 Out = array shape (Top * 4) fill 0
 At = 0
 rem Remove square factors once for all M.
 rem Composite P are harmless: their squares
 rem have already been removed by smaller P.
 Cs = (0 to (Top + 1)) array
-for P in 2 to ((Top + 1) isqrt)
+for P in 2 to (Top + 1 isqrt)
   Square = P * P
-  for J in Square to (Top + 1) by Square
-    for (Cs J) mod Square equal 0
+  for J in Square to Top + 1 by Square
+    for Cs J mod Square equal 0
       Cs J = (Cs J) // Square
     end
   end
 end
 for M in 1 to Top
   A0 = Cs M
-  Y = (M // A0) isqrt
+  Y = M // A0 isqrt
   B0 = Cs (M + 1)
   Z = ((M + 1) // B0) isqrt
   D = A0 * B0
@@ -129,5 +129,5 @@ for M in 1 to Top
     end
   end
 end
-Answer = (Out take At) unique sum
+Answer = Out take At unique sum
 Answer print

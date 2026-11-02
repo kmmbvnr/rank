@@ -22,11 +22,11 @@ G = (0 to K) * 0
 G 0 = 1
 for P in primes to K
   for B in P to K by P
-    Hi = (B + P) min (K + 1)
+    Hi = B + P min (K + 1)
     Ds = P * G (B - P till Hi - P)
     Iw = B till Hi
     G Iw = (G Iw + Ds) mod M
   end
 end
-Answer = (G Fb) sum mod M
+Answer = G Fb sum mod M
 Answer print

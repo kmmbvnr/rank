@@ -37,23 +37,23 @@ Ks = 1 to 30
 Rm = Ks copy
 Ea = Ks * 0
 for E in 1 to 5
-  Hit = ((Rm mod 2) equal 0) integer
+  Hit = (Rm mod 2 equal 0) integer
   Rm = Rm // (1 + Hit)
   Ea += Hit
 end
 Eb = Ks * 0
 for E in 1 to 3
-  Hit = ((Rm mod 3) equal 0) integer
+  Hit = (Rm mod 3 equal 0) integer
   Rm = Rm // (1 + 2 * Hit)
   Eb += Hit
 end
 Ec = Ks * 0
 for E in 1 to 2
-  Hit = ((Rm mod 5) equal 0) integer
+  Hit = (Rm mod 5 equal 0) integer
   Rm = Rm // (1 + 4 * Hit)
   Ec += Hit
 end
-Hd = ((Rm mod 7) equal 0) integer
+Hd = (Rm mod 7 equal 0) integer
 Rm = Rm // (1 + 6 * Hd)
 Sm = Rm equal 1
 Of = Ea * Sa + Eb * Sb
@@ -61,7 +61,7 @@ Of = Of + Ec * Sc + Hd * Sd
 Os = Of ((Sm indices))
 A = (0 to (Zn - 1)) * 0
 A 0 = 1
-Cr = (0 to Nm) reshape (Nm + 1) 1
+Cr = 0 to Nm reshape (Nm + 1) 1
 Ct = Cr * (0 to Nm)
 for R in 0 to Nm
   Cu = A

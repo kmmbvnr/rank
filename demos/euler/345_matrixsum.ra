@@ -59,7 +59,7 @@ for Mask in 0 till (2 ** 15)
   if Dp Mask at least 0
     for Col in 0 till 15
       Bit = 1 shl Col
-      if (Mask band Bit) equal 0
+      if Mask band Bit equal 0
         Next = Mask bor Bit
         Value = Dp Mask + A Row Col
         Dp Next = Dp Next max Value

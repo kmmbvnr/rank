@@ -20,7 +20,7 @@ use numbers
 arg N integer = 3
 arg TreesText text = "0 10 2 5 11 2 12.04 7 2"
 
-Pi = (-1) acos
+Pi = -1 acos
 Eps = 1e-7
 
 TP = (TreesText split "\n" join " ") split " "
@@ -45,7 +45,7 @@ if N greater 1
     XI = X I
     YI = Y I
     RI = R I
-    for J in (I + 1) till N
+    for J in I + 1 till N
       DX = (X J) - XI
       DY = (Y J) - YI
       Dist = ((DX * DX) + (DY * DY)) sqrt
@@ -116,7 +116,7 @@ if N greater 1
       M = SEnds scan max with (SEnds 0) array
       PrevMax = (M (1 till N)) + Eps
       Gaps = (SStarts (1 till N)) greater PrevMax
-      if (Gaps count) greater 0
+      if Gaps count greater 0
         FoundClearing = true
       end
     end

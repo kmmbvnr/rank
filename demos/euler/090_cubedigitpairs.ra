@@ -7,7 +7,7 @@ use algo
 use sequences
 use io
 
-Dice = (0 to 9) combinations 6 copy
+Dice = 0 to 9 combinations 6 copy
 Num = Dice len
 rem A 9 reads as 6, so fold it first.
 Nine' = Dice equal 9
@@ -23,7 +23,7 @@ A = Lo reshape Num 1 9
 B = Hi reshape Num 1 9
 C = Lo reshape 1 Num 9
 D = Hi reshape 1 Num 9
-Fits' = (A and D) or (B and C)
+Fits' = A and D or (B and C)
 Both' = Fits all axis 2
 Id = 0 till Num array
 Rows = Id reshape Num 1

@@ -25,7 +25,7 @@ rem with v_q(n) = e sum to q^e (tri(M)
 rem - q tri(M // q)), M = N // q^e.
 Pd = 2017
 Sq = N isqrt
-Sp = primes till (Sq + 1) array
+Sp = primes till Sq + 1 array
 Km = (N + 1) // Pd
 Cp = array shape (Km + 1) fill 0
 for R in Sp
@@ -34,36 +34,36 @@ for R in Sp
     Kn = (R * R + Pd) // Pd
     Kd = (Kn - Iv + R - 1) // R
     Kz = Iv + R * (Kd max 0)
-    Ix = (Kz to Km by R) array
+    Ix = Kz to Km by R array
     Cp Ix = 1
   end
 end
-Ks = (Cp equal 0) indices
-Ks = Ks ((Ks greater 0) indices)
+Ks = Cp equal 0 indices
+Ks = Ks (Ks greater 0 indices)
 Q2 = Pd * Ks - 1
 Ao = Sp mod Pd
-Ok = (Ao greater 1) and (Ao less 2016)
+Ok = Ao greater 1 and (Ao less 2016)
 Qo = Sp (Ok indices)
 Ao = Qo mod Pd
 Od = Ao * 0 + (Pd - 1)
 for F in array 2 2 2 2 2 3 3 7
   Ex = Od // F
-  Ts = (Ao Ex Pd powmod) equal 1
+  Ts = Ao Ex Pd powmod equal 1
   Od = Ts choose Ex Od
 end
 Pw = Qo
 Em = Qo * 0
-Lv = (Pw at most N) integer
-for (Lv sum) greater 0
+Lv = Pw at most N integer
+for Lv sum greater 0
   Em += Lv
   Pw = Pw * Qo
-  Lv = (Pw at most N) integer
+  Lv = Pw at most N integer
 end
 Tq = array shape 0 fill 0
 Te = Tq
 for Mu in 1 to 40
   Ee = Od * Mu - 1
-  Ix = (Ee at most Em) indices
+  Ix = Ee at most Em indices
   Tq = concat Tq (Qo Ix)
   Te = concat Te (Ee Ix)
 end
@@ -96,7 +96,7 @@ for Q in Q2
     Tc = Xc * (Xc + 1) // 2
     In = Tx - Q * Ta - Rr * Tb
     In = In + Q * Rr * Tc
-    Pairs += (Pr * In) sum
+    Pairs += Pr * In sum
   end
 end
 Nt = Tp len
@@ -104,7 +104,7 @@ for J in 0 till Nt
   Pe = Tp J
   Bq = Tq J
   Lm = N // Pe
-  Rr = Q2 ((Q2 at most Lm) indices)
+  Rr = Q2 (Q2 at most Lm indices)
   Pr = Rr * Pe
   X = N // Pr
   Xa = X // Rr
@@ -116,8 +116,8 @@ for J in 0 till Nt
   Tc = Xc * (Xc + 1) // 2
   In = Tx - Rr * Ta - Bq * Tb
   In = In + Rr * Bq * Tc
-  Pairs += (Pr * In) sum
-  for L in (J + 1) till Nt
+  Pairs += Pr * In sum
+  for L in J + 1 till Nt
     Pl = Tp L
     Ql = Tq L
     Pp = Pe * Pl

@@ -23,22 +23,22 @@ Mb = 1024
 Answer = 0
 for Answer equal 0
   Mb *= 2
-  Sv = (Bs * Mb + 1) primesieve
+  Sv = Bs * Mb + 1 primesieve
   Mk = array shape (Mb + 1) fill true
   Mk 0 = false
-  U = (1 to Mb) copy
+  U = 1 to Mb copy
   for G in Gs
     Pp = G * U + 1
     Na = (Pp in Al) equal false
-    Ok = (Pp in Sv) and Na
-    Gu = (G * U) gcd Bs
+    Ok = Pp in Sv and Na
+    Gu = G * U gcd Bs
     Ok = Ok and (Gu equal G)
     for R in U (Ok indices)
       Mk (R to Mb by R) = false
     end
   end
   Ix = Mk indices
-  if (Ix len) at least Q
+  if Ix len at least Q
     Answer = Bs * Ix (Q - 1)
   end
 end

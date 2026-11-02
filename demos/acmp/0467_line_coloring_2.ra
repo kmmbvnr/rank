@@ -17,8 +17,8 @@ N = Tokens 0 integer
 Answer = 1000000000
 
 if N greater 0
-  Raw = ((Tokens drop 1) take (2 * N)) integer
-  Idx = (0 till N) array
+  Raw = (Tokens drop 1 take (2 * N)) integer
+  Idx = 0 till N array
   A = Raw (Idx * 2)
   B = Raw (Idx * 2 + 1)
   L = A min B
@@ -40,7 +40,7 @@ if N greater 0
   Flips = array shape (SortedPts len) fill 0
   for I in 0 to (SortedPts len - 1)
     P = SortedPts I
-    Flips I = (AllEvents equal P) count
+    Flips I = AllEvents equal P count
   end
 
   CumFlips = Flips scan +

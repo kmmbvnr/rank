@@ -29,14 +29,14 @@ for N in 1 to Digits
     Lay = Keys mod 2
     Pr = Pk reshape 1 W
     Dg = Pr // (Pw reshape N 1)
-    Dg = (Dg mod 3) copy
+    Dg = Dg mod 3 copy
     Bm = array shape N W fill 0
     for R in 0 to N - 1
       T = R * 10 mod N
       Bm T += Dg R
     end
     Bm = Bm min 2
-    Bk = (Pw matmul Bm) copy
+    Bk = Pw matmul Bm copy
     Nk = array shape 0 fill 0
     Nc = array shape 0 fill 0
     D0 = 0
@@ -76,7 +76,7 @@ for N in 1 to Digits
     Cnt = Ce (1 to G) - Ce (0 to G - 1)
   end
   One = Keys mod 2 equal 1
-  Tot += (One choose Cnt 0) sum
+  Tot += One choose Cnt 0 sum
 end
 Answer = Tot
 Answer print

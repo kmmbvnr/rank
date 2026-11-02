@@ -16,8 +16,8 @@ rem j + 1 (7 - j ways, not at j = 6);
 rem the letter i back gives i. A is
 rem indexed new state, old state.
 Md = 1000000000
-J = (1 to 6) copy
-Up = (J J outer -) equal 1
+J = 1 to 6 copy
+Up = J J outer - equal 1
 Wu = (7 - J) * 1
 Dn = J J outer greater
 A = Up choose Wu (Dn choose 0 1)

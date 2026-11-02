@@ -18,18 +18,18 @@ rem once, which is dropped.
 rem S(2^j + r) = S(2^j) + r C_j + S(r)
 rem with S(n) = X(0) + .. + X(n - 1)
 rem and C_j = 2^j (3 2^j - 1) / 2.
-Js = (0 to 62) copy
+Js = 0 to 62 copy
 Tj = 2 ** Js
 Cj = Tj * (3 * Tj - 1) // 2
 Sj = Js * 0
 for J in 0 till 62
   Sj (J + 1) = 2 * Sj J + Tj J * Cj J
 end
-Ks = (1 to 62) copy
+Ks = 1 to 62 copy
 P = 2 ** Ks - 1
 Lm = N - 1 - P
 M = P min Lm
-Ok = (M at least 1) indices
+Ok = M at least 1 indices
 P = P Ok
 M = M Ok
 rem S(m + 1) for every block at once.

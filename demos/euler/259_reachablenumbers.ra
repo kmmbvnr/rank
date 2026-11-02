@@ -59,7 +59,7 @@ for L in 1 to Top
       Pn = Cn * Bn
       Qd = Cd * Bn
       Neg = 0 - 1
-      Sg = (Qd less 0) choose Neg 1
+      Sg = Qd less 0 choose Neg 1
       Qn = Cross1 * Sg
       Qd = Qd * Sg
       Full = Den greater 0
@@ -91,7 +91,7 @@ for L in 1 to Top
         More' = (Rn + Shift) * Wide + Rd
         rem No later interval needs the final fractions.
         if L equal Top
-          More = More filter (Rd equal 1) array
+          More = More filter Rd equal 1 array
         end
         Pool = concat Pool More
       end
@@ -111,5 +111,5 @@ Fin = Keys (From till (From + Total))
 Unit' = Fin mod Wide equal 1
 Vals = Fin // Wide - Shift
 Good' = Unit and (Vals greater 0)
-Answer = (Vals filter Good) sum
+Answer = Vals filter Good sum
 Answer print

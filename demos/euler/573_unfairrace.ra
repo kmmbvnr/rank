@@ -13,7 +13,7 @@ rem C(n, k) (k/n)^k ((n-k)/n)^(n-k),
 rem where k = n gives 1. The binomial
 rem comes from log-factorials by the
 rem Stirling series (exact below 10).
-Ks = 1 to (N - 1) array
+Ks = 1 to N - 1 array
 Kr = Ks * 1.0
 Lk = Kr log
 X2 = Kr * Kr

@@ -80,10 +80,10 @@ for BIdx in 0 to 1
         RemLen = NumDigits - 1 - I
         if StartD less Digit
           for D in StartD to (Digit - 1)
-            if (Counts D) less 2
+            if Counts D less 2
               Counts D = (Counts D) + 1
-              C0 = (Counts equal 0) count
-              C1 = (Counts equal 1) count
+              C0 = Counts equal 0 count
+              C1 = Counts equal 1 count
               WIdx = (RemLen * 11 + C0) * 11 + C1
               Total += Ways WIdx
               Counts D = (Counts D) - 1
@@ -91,7 +91,7 @@ for BIdx in 0 to 1
           end
         end
 
-        if (Counts Digit) greater 1
+        if Counts Digit greater 1
           CanMatch = false
         else
           Counts Digit = (Counts Digit) + 1

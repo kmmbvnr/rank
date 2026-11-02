@@ -17,13 +17,13 @@ rem reuse the chest row of 33.
 Ids = 0 till 41 array
 Ri = Ids reshape 41 1
 Ci = Ids reshape 1 41
-Land = (Ri equal Ci) choose 1.0 0.0 copy
+Land = Ri equal Ci choose 1.0 0.0 copy
 Land 30 = 0.0
 Land 30 40 = 1.0
 Chest = array 2 17 33
 At = Chest reshape 3 1
-Keep' = (At equal Ci) choose 0.875 0.0
-Pass' = (Ci equal 0) or (Ci equal 40)
+Keep' = At equal Ci choose 0.875 0.0
+Pass' = Ci equal 0 or (Ci equal 40)
 Gift' = Pass choose 0.0625 0.0
 Land Chest = Keep + Gift
 Chance = array 7 22 36
@@ -37,7 +37,7 @@ Fixed = array 0 40 11 24 39 5
 Hits' = Ci equal (Fixed reshape 6 1 1)
 Any' = Hits any axis 0
 Same' = Any choose 0.0625 0.0
-Ours' = (Cp equal Ci) choose 0.375 0.0
+Ours' = Cp equal Ci choose 0.375 0.0
 RailAt = Rail reshape 3 1
 UtilAt = Util reshape 3 1
 OnRail' = Ci equal RailAt
@@ -71,11 +71,11 @@ rem From square q (41 = in jail, played
 rem from 10) a roll total s lands on
 rem (q + s) mod 40.
 Qs = 0 till 41 array
-Base = (Qs equal 40) choose 10 Qs
+Base = Qs equal 40 choose 10 Qs
 Row40 = Sq40 reshape 1 40
 Col41 = Base reshape 41 1
 Gap = Row40 - Col41
-Where = (Gap mod 40) reshape 1640
+Where = Gap mod 40 reshape 1640
 Rolls = Sides * Sides
 NonAt = NonCount Where
 TwinAt = TwinCount Where
@@ -92,8 +92,8 @@ rem to jail, and 0 to 2 doubles so far.
 rem Jail is one state; a double either
 rem adds one to the count or, the third
 rem time, jails.
-Jail = (Qs equal 40) choose 1.0 0.0
-Gone = (Qs less 40) choose 1.0 0.0
+Jail = Qs equal 40 choose 1.0 0.0
+Gone = Qs less 40 choose 1.0 0.0
 Mine = Dbl # 40
 Rows = Dbl sum axis 1
 Away = Dbl * (Gone reshape 1 41)

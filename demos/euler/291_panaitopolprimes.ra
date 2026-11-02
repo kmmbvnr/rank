@@ -21,11 +21,11 @@ rem sieve over n marks those n. The few
 rem small values that are q itself are
 rem tested apart.
 rem Strictly below Limit, even at a prime.
-Last = (2 * Limit - 3) max 0
+Last = 2 * Limit - 3 max 0
 Top = ((Last isqrt - 1) // 2) max 0
 Sq = Limit isqrt + 1
 Ps = primes to Sq
-Q = Ps filter (Ps mod 4 equal 1) array
+Q = Ps filter Ps mod 4 equal 1 array
 Qn = Q len
 Ra = array shape Qn fill 0
 for I in 0 till Qn
@@ -39,7 +39,7 @@ for I in 0 till Qn
   end
 end
 rem Keep a prime from crossing itself out.
-Small = (Sq // 2) isqrt + 1
+Small = Sq // 2 isqrt + 1
 if Top less Small
   Small = Top
 end
@@ -52,7 +52,7 @@ end
 rem One block at the default limit,
 rem capped at 50M cells for larger inputs.
 Blk = 50000000
-for Lo in (Small + 1) to Top by Blk
+for Lo in Small + 1 to Top by Blk
   Hi = Lo + Blk - 1
   if Hi greater Top
     Hi = Top
@@ -68,7 +68,7 @@ for Lo in (Small + 1) to Top by Blk
     Fs = Lo + (Qi - 1 - Rh - Lo) mod Qi
     Sv (Fs - Lo to Hi - Lo by Qi) = 1
   end
-  Count += (Sv equal 0) count
+  Count += Sv equal 0 count
 end
 Answer = Count
 Answer print

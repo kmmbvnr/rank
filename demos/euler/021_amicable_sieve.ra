@@ -14,7 +14,7 @@ arg Limit integer = 10000
 rem Add both divisors of each product.
 rem A square contributes its root once.
 Sums = array shape Limit fill 1
-for D in 2 to ((Limit - 1) isqrt)
+for D in 2 to (Limit - 1 isqrt)
   K = D to (Limit - 1) // D array
   Sums (D * K) += D + K
   Sums (D * D) -= D
@@ -28,5 +28,5 @@ Mask = Partners greater Candidates
 Mask and= Partners less Limit
 A = Candidates Mask
 B = Partners Mask
-Answer = ((A + B) ((Sums B) equal A)) sum
+Answer = ((A + B) (Sums B equal A)) sum
 Answer print

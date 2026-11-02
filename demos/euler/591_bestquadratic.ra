@@ -24,7 +24,7 @@ Answer = 0
 for D in D0 to D1
   Rd = D isqrt
   if Rd * Rd not equal D
-    Aq = (D * Sc * Sc) isqrt
+    Aq = D * Sc * Sc isqrt
     Bd = (((M + 4) * Sc) // Aq) min M
     B4 = Bd ** 4
     S2 = Sc * Sc
@@ -78,14 +78,14 @@ for D in D0 to D1
     Ba = 0
     Bb = 0
     Fd = 0
-    for I in (0 - 4) to 4
-      for J in (0 - 4) to 4
+    for I in 0 - 4 to 4
+      for J in 0 - 4 to 4
         C1 = Cr1 + I
         C2 = Cr2 + J
         Bc = C1 * B1 + C2 * B2
         Ac = C1 * A1 + C2 * A2
-        Ok = (Bc abs) at most M
-        Ok = Ok and ((Ac abs) at most M)
+        Ok = Bc abs at most M
+        Ok = Ok and (Ac abs at most M)
         if Ok
           Er = Ac * Sc + Bc * Aq - Pi
           Er = Er abs

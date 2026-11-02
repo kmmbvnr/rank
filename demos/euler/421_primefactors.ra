@@ -43,7 +43,7 @@ for D in (array 3 5 15)
     if Pu len equal 0
       break
     end
-    Cd = (A Eu Pu vpow) copy
+    Cd = A Eu Pu vpow copy
     Dv = Pu * 0 + D
     Pw = Cd Dv Pu vpow
     Hit = Pw equal 1 choose 1 0
@@ -64,7 +64,7 @@ for D in (array 3 5 15)
   for J in 1 to D
     Hh = (Pd - Rj) mod Pd
     Ct = (N + Pd - Hh) // Pd
-    Tot += (Pd * Ct) sum
+    Tot += Pd * Ct sum
     Rj = Rj * Rd mod Pd
   end
 end

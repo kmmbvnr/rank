@@ -26,7 +26,7 @@ rem every k once, repeated until clean.
 rem The sum is kept in two limbs.
 Lm = 2 * Kk + 1
 Pa = primes to Lm array
-Ps = Pa ((Pa mod 4 equal 1) indices)
+Ps = Pa (Pa mod 4 equal 1 indices)
 Np = Ps len
 Xr = array shape Np fill 0
 Ix = 0 to (Np - 1)
@@ -34,7 +34,7 @@ G = 2
 for Ix len greater 0
   Pp = Ps Ix
   Xc = G ((Pp - 1) // 4) Pp powmod
-  Ok = (Xc * Xc mod Pp) equal (Pp - 1)
+  Ok = Xc * Xc mod Pp equal (Pp - 1)
   Xr Ix = Ok choose Xc 0
   Sq = Xc * Xc mod Pp
   Bd = Sq not equal (Pp - 1)
@@ -47,7 +47,7 @@ Ks = 0 to Kk
 Rm = 4 * Ks * Ks + 1
 Lp = Ks * 0
 Tm = Kk // 100
-Ns = (Ps at most Tm) count
+Ns = Ps at most Tm count
 for J in 0 to Ns - 1
   Pj = Ps J
   for Q in 0 to 1
@@ -80,26 +80,26 @@ Pr = Pr (Ok indices)
 Kr = Kr (Ok indices)
 Qq = array shape (Kk + 1) fill 1
 for Pr len greater 0
-  Lp Kr = (Lp Kr) max Pr
+  Lp Kr = Lp Kr max Pr
   Sk = Kr
   Sp = Pr
   for Sk len greater 0
     Qq Sk *= Sp .accumulate
     Rm Sk //= Qq Sk
     Qq Sk = 1
-    Ds = (Rm Sk mod Sp equal 0) indices
+    Ds = Rm Sk mod Sp equal 0 indices
     Sk = Sk Ds
     Sp = Sp Ds
   end
   Kr += Pr
-  Nx = (Kr at most Kk) indices
+  Nx = Kr at most Kk indices
   Pr = Pr Nx
   Kr = Kr Nx
 end
-Pk = (Rm greater 1) choose Rm Lp
+Pk = Rm greater 1 choose Rm Lp
 Pk = Pk (1 to Kk)
 B9 = 1000000000
-Hi = (Pk // B9) sum mod B9
-Lo = (Pk mod B9) sum
+Hi = Pk // B9 sum mod B9
+Lo = Pk mod B9 sum
 Answer = (Hi * B9 + Lo) mod (B9 * B9)
 Answer print

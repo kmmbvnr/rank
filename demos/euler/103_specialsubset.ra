@@ -45,7 +45,7 @@ for Depth greater -1
   end
   Set Depth = X
   Mine = Reach Depth
-  Both = (Mine shr X) band Mine
+  Both = Mine shr X band Mine
   if Both not equal 0
     continue
   end

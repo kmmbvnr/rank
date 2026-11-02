@@ -42,7 +42,7 @@ for D in 1 till N
     F = Fr len
     Fb = ((Fr reshape F 1) // Pw) mod 2
     Fv = Fb reshape (F * N)
-    Ix = (Fv equal 1) indices
+    Ix = Fv equal 1 indices
     Si = Ix // N
     C = Ix mod N
     Bc = Pw C
@@ -57,7 +57,7 @@ for D in 1 till N
     Lx = (Lm Si + Bc) * 2
     Rx = (Rr Si + Bc * 2 ** Of) // 2
     if Rw at least D
-      Od = (Sx // Sh) mod 16
+      Od = Sx // Sh mod 16
       Bo = Pw Od
       Vx = Vx - Bo
       Lx = Lx - Bo * 2 ** (D + 1)
@@ -72,7 +72,7 @@ for D in 1 till N
     Ne = Eq equal false
     Fl = concat (array true) Ne
     Fi = Fl indices
-    G = (Fl integer) scan +
+    G = Fl integer scan +
     G = G - 1
     St = Ss Fi
     Cn = array shape (Fi len) fill 0

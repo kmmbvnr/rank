@@ -52,7 +52,7 @@ fun X Y Classifiers adaboost_fit
         Polarity = 1
         Pred = X Feature Limit Polarity stump
         Wrong' = Y not equal Pred
-        Error = (Weight Wrong) sum
+        Error = Weight Wrong sum
 
         if Error greater 0.5
           Error = 1.0 - Error

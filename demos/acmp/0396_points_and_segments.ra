@@ -14,17 +14,17 @@ Tokens = Tokens (Tokens not equal "")
 N = Tokens 0 integer
 M = Tokens 1 integer
 
-SegCoords = ((Tokens drop 2) take (2 * N)) integer
+SegCoords = (Tokens drop 2 take (2 * N)) integer
 Pts = ((Tokens drop (2 + 2 * N)) take M) integer
 
-SegIdx = (0 till N) array
+SegIdx = 0 till N array
 SegA = SegCoords (SegIdx * 2)
 SegB = SegCoords (SegIdx * 2 + 1)
 
 L = SegA min SegB
 R = SegA max SegB
 
-P_orig_idx = (0 till M) array
+P_orig_idx = 0 till M array
 
 rem CountL: L_i <= P_j
 AllKeysL = concat (2 * L) (2 * Pts + 1)

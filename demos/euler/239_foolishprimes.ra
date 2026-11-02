@@ -20,15 +20,15 @@ rem others are free. By inclusion and
 rem exclusion on the primes that do
 rem stay, that is sum (-1)^j C(Keep, j)
 rem (M - j)! for M = N - P + Keep.
-Pr = primes till (N + 1) array
+Pr = primes till N + 1 array
 P = Pr len
 M = N - P + Keep
-Fact = (1 to N array) scan * with 1
+Fact = 1 to N array scan * with 1
 J = 0 to Keep array
 Sign' = 1 - 2 * (J mod 2)
 Binom' = Keep binomial J
 Free' = Fact (M - J)
-Moves = (Sign * Binom * Free) sum
+Moves = Sign * Binom * Free sum
 Pick = P binomial Keep
 Total = Fact N
 Answer = Pick * Moves / Total round 12

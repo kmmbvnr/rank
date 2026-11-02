@@ -10,7 +10,7 @@ arg Limit integer = 10000
 
 rem Test every value against the proper
 rem divisor sum of its partner.
-Candidates = (2 till Limit) array
+Candidates = 2 till Limit array
 Partners = Candidates proper_divisor_sum rank 0
 Reverse' = Partners proper_divisor_sum rank 0
 

@@ -21,7 +21,7 @@ rem rows by doubling: P = P (P shifted
 rem by d rows).
 P = primes from Lo to Lo + Wd array
 M = K + 2
-I = (0 to M) reshape (M + 1) 1
+I = 0 to M reshape (M + 1) 1
 X = N mod P
 Z = I * 0 + P * 0
 rem i^K mod p by squaring.
@@ -42,7 +42,7 @@ Pf = (X - I + 1) mod P
 Pf 0 = Z 0 + 1
 Sf = ((X - I - 1) mod P) reverse
 Sf 0 = Z 0 + 1
-Rv = (Z + I + 1) reverse
+Rv = Z + I + 1 reverse
 Rv 0 = Z 0 + 1
 D = 1
 for D at most M
@@ -60,11 +60,11 @@ Wt = Pf * Sf mod P * Fi mod P
 Wt = Wt * (Fi reverse) mod P
 Od = (M - I) mod 2 equal 1
 Wt = Od choose ((P - Wt) mod P) Wt
-Y = (Pw scan + axis 0) mod P
-F0 = (Y * Wt mod P) sum axis 0 mod P
+Y = Pw scan + axis 0 mod P
+F0 = Y * Wt mod P sum axis 0 mod P
 Pw = Pw * I mod P
-Y = (Pw scan + axis 0) mod P
-F1 = (Y * Wt mod P) sum axis 0 mod P
+Y = Pw scan + axis 0 mod P
+F1 = Y * Wt mod P sum axis 0 mod P
 Sk = ((N + 1) mod P * F0 - F1) mod P
 Answer = Sk sum
 Answer print

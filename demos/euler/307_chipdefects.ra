@@ -12,7 +12,7 @@ Answer = 0.0
 if Defects greater 2
   Js = 0 till Defects array
   Frac' = Js * 1.0 / Chips
-  LogP = (1.0 - Frac) log sum
+  LogP = 1.0 - Frac log sum
   P = LogP exp
   Answer = 1.0 - P
   for I in 1 to (Defects // 2)
@@ -24,7 +24,7 @@ if Defects greater 2
     J = Defects - I
     Part = J * 1.0 / Chips
     Rest = 1.0 - Part
-    Gain = (Top / Bot) log
+    Gain = Top / Bot log
     Loss = Rest log
     LogP += Gain - Loss
     P = LogP exp

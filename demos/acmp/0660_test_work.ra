@@ -14,9 +14,9 @@ arg Input text = "4 3 3\n1 2\n4 3\n3 1"
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
 
-N = (Tokens 0) integer
-M = (Tokens 1) integer
-K = (Tokens 2) integer
+N = Tokens 0 integer
+M = Tokens 1 integer
+K = Tokens 2 integer
 
 Idx = 3
 
@@ -57,7 +57,7 @@ for R in 0 till N
   H = H + 1
 
   for Step in 0 till (K + 1)
-    if (PIdx equal K) or ((SortedR PIdx) not equal R)
+    if PIdx equal K or (SortedR PIdx not equal R)
       break
     end
     H (SortedC PIdx) = 0
@@ -74,7 +74,7 @@ for R in 0 till N
     CurH = H C
 
     for Pop in 0 till (Top + 1)
-      if (Top equal 0) or ((StackH Top) less CurH)
+      if Top equal 0 or (StackH Top less CurH)
         break
       end
       Top = Top - 1
@@ -92,4 +92,4 @@ for R in 0 till N
   Total = Total + RowTotal
 end
 
-(Total text) print
+Total text print

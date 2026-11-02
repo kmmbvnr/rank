@@ -17,7 +17,7 @@ rem G(n) = 6 gcd(7n + 3, 2U - V).
 Answer = 0
 Bk = 1000000
 for B0 in 3 to N by Bk
-  B1 = (B0 + Bk - 1) min N
+  B1 = B0 + Bk - 1 min N
   Ns = B0 to B1 array
   Md = 7 * Ns + 3
   Ex = Ns - 2

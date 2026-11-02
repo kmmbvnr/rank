@@ -26,8 +26,8 @@ for P in primes to (Vm isqrt) array
 end
 Ok = Sf Vs
 Cu = Vs * Vs * Vs
-Rt = (N // Cu) isqrt
-Pa = ((Rt - 1) max 0) * Ok
+Rt = N // Cu isqrt
+Pa = (Rt - 1 max 0) * Ok
 Answer = Pa sum
 M = N isqrt
 Dr = (M * 1.0) ** (1.0 / 3.0)
@@ -45,7 +45,7 @@ end
 D3 = Ds * Ds * Ds
 Cf = (Mu * (M // D3)) sum
 Pq = primes to Dm array
-Pc = ((Pq * Pq * Pq) at most M) integer
+Pc = (Pq * Pq * Pq at most M) integer
 Pn = Pc sum
 Answer += M - Cf - Pn
 Answer print

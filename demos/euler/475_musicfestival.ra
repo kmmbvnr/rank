@@ -20,13 +20,13 @@ rem form in a! / (6^q q!), q = (a -
 rem b) / 3 trios of three singles.
 Md = 1000000007
 M = N // 4
-Fc = (1 to 4 * M) scan * with 1
+Fc = 1 to 4 * M scan * with 1
 Fc = Fc mod Md
 Fi = Fc (Md - 2) Md powmod
 rem All i + j + k + l = M quartets of
 rem the four kinds.
 M1 = M + 1
-Ix = (0 till M1 ** 3) copy
+Ix = 0 till M1 ** 3 copy
 I = Ix // (M1 * M1)
 J = Ix // M1 mod M1
 K = Ix mod M1
@@ -43,16 +43,16 @@ L = L Ks
 A = A Ks
 Q = (A - B Ks) // 3
 rem Multinomial, signs and weights.
-Tm = (Fc M) * (Fi I) mod Md
-Tm = Tm * (Fi J) mod Md
-Tm = Tm * (Fi K) mod Md
-Tm = Tm * (Fi L) mod Md
+Tm = (Fc M) * Fi I mod Md
+Tm = Tm * Fi J mod Md
+Tm = Tm * Fi K mod Md
+Tm = Tm * Fi L mod Md
 Tm = Tm * ((Md - 6) J Md powmod) mod Md
 Tm = Tm * (3 K Md powmod) mod Md
 Tm = Tm * (8 L Md powmod) mod Md
-Tm = Tm * (Fc A) mod Md
+Tm = Tm * Fc A mod Md
 I6 = 6 (Md - 2) Md powmod
 Tm = Tm * (I6 Q Md powmod) mod Md
-Tm = Tm * (Fi Q) mod Md
+Tm = Tm * Fi Q mod Md
 Answer = Tm sum mod Md
 Answer print

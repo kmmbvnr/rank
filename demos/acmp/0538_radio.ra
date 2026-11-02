@@ -18,8 +18,8 @@ Tokens = (Input split "\n" join " ") split " "
 Tokens = Tokens (Tokens not equal "")
 Nums = Tokens real
 
-N = (Nums 0) integer
-Idxs = (0 till N) array
+N = Nums 0 integer
+Idxs = 0 till N array
 X = Nums (Idxs * 2 + 1)
 Y = Nums (Idxs * 2 + 2)
 
@@ -41,21 +41,21 @@ for Iter in 0 till 45
   IsBipartite = true
 
   for I in 0 till N
-    if ((Colors I) equal 0) and IsBipartite
+    if (Colors I equal 0) and IsBipartite
       Colors I = 1
       Head = 0
       Tail = 0
       Q Tail = I
       Tail = Tail + 1
 
-      for (Head less Tail) and IsBipartite
+      for Head less Tail and IsBipartite
         U = Q Head
         Head = Head + 1
         ColU = Colors U
         NextCol = 3 - ColU
 
         Row = D2 U
-        Mask = (Row less Mid2) and (Row greater 0.0)
+        Mask = Row less Mid2 and (Row greater 0.0)
         Neighs = Idxs Mask
 
         for V in Neighs

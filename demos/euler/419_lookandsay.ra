@@ -96,7 +96,7 @@ end
 fun X mm Y
   Hi = X // 32768
   Lo = X mod 32768
-  R = (Hi matmul Y) mod 1073741824
+  R = Hi matmul Y mod 1073741824
   R = R * 32768 + (Lo matmul Y)
   return R mod 1073741824
 end

@@ -18,7 +18,7 @@ rem e = v / v mod u from a small
 rem inverse table of u.
 Big = 2 * N + 5
 Root = N isqrt
-Phi = (0 to Root) copy
+Phi = 0 to Root copy
 for P in primes to Root
   Sl = P to Root by P
   Phi Sl -= Phi Sl // P
@@ -27,7 +27,7 @@ Least = array shape (N + 1) fill Big
 for U in 2 to Root
   Hi = N // U
   if Hi greater U
-    Rs = (0 to U - 1) copy
+    Rs = 0 to U - 1 copy
     X = array shape U fill 1
     Pw = Rs
     E = Phi U - 1
@@ -39,21 +39,21 @@ for U in 2 to Root
       E //= 2
     end
     Pr = X * Rs mod U
-    Inv = (Pr equal 1) choose X 0
-    Vs = ((U + 1) to Hi) copy
+    Inv = Pr equal 1 choose X 0
+    Vs = (U + 1 to Hi) copy
     Iv = (Inv (Vs mod U)) copy
-    Ev = (Vs * Iv) copy
+    Ev = Vs * Iv copy
     Ns = U * Vs
     Cand = (Ev min (Ns + 1 - Ev)) copy
     Ok = Iv greater 0
-    Cand = (Ok choose Cand Big) copy
+    Cand = Ok choose Cand Big copy
     From = U * (U + 1)
     Sl = From to N by U
-    Cur = (Least Sl) copy
+    Cur = Least Sl copy
     Least Sl = Cur min Cand
   end
 end
-Ns = (2 to N) copy
+Ns = 2 to N copy
 Ms = Least (2 to N)
 Mk = Ms less Big
 Ms = Mk choose (Ns + 1 - Ms) 1

@@ -59,7 +59,7 @@ rem Return a board with one added piece.
 fun Board C Player place
   Next = Board copy
   Rows = Board shape 0
-  for R in (Rows - 1) to 0 by -1
+  for R in Rows - 1 to 0 by -1
     if Next R C equal 0
       Next R C = Player
       return Next

@@ -19,7 +19,7 @@ fun Limit quadratic_product
   BestLength = 0
   BestProduct = 0
 
-  for A in (-Limit + 1) till Limit by 2
+  for A in -Limit + 1 till Limit by 2
     for B in primes to Limit
       Length = A quadratic_run B
       if Length greater BestLength

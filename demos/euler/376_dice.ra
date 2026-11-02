@@ -19,11 +19,11 @@ for V in 1 to Limit
   for Key in Keys
     Ways = Cur Key
     Ua = Key band 7
-    Ub = (Key shr 3) band 7
-    Uc = (Key shr 6) band 7
-    Wba = (Key shr 9) band 31
-    Wcb = (Key shr 14) band 31
-    Wac = (Key shr 19) band 31
+    Ub = Key shr 3 band 7
+    Uc = Key shr 6 band 7
+    Wba = Key shr 9 band 31
+    Wcb = Key shr 14 band 31
+    Wac = Key shr 19 band 31
     for Aa in 0 to (6 - Ua)
       Na = Ua + Aa
       for Bb in 0 to (6 - Ub)

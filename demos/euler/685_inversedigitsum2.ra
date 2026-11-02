@@ -70,7 +70,7 @@ for N in Lo to Kk
       if Rm equal 2
         Q1 = 2 * Lr + 1
         Dc = Q1 * Q1 - 8 * Rk
-        Sd = (Dc * 1.0) sqrt
+        Sd = Dc * 1.0 sqrt
         Xr = (4.0 * Rk) / (Q1 + Sd)
         Xx = Xr ceil
         Xx = Xx max 1
@@ -96,7 +96,7 @@ for N in Lo to Kk
         Tt = Xx - 1
         Ps Np = Pos + Tt
         Bs Np = 2
-        Mo = (Rp greater 1) integer
+        Mo = Rp greater 1 integer
         Rm = Mo
         if Mo equal 1
           Bs Np = 1
@@ -120,18 +120,18 @@ for N in Lo to Kk
     if Doq equal 1
       Qa = Qt * 0
       if Qd equal 0
-        Qa = (Qt equal 0) integer
+        Qa = Qt equal 0 integer
       end
       if Qd greater 0
         Q9 = 9 * Qd
-        Lim = (Qt at most Q9) integer
-        Lg = (Qt at least 0) integer
+        Lim = Qt at most Q9 integer
+        Lg = Qt at least 0 integer
         Lim = Lim * Lg
         if Qd at least 1000000
-          Z0 = (Qt equal 0) integer
-          Z1 = (Qt equal 1) integer
-          Z2 = (Qt equal 2) integer
-          Z3 = (Qt at least 3) integer
+          Z0 = Qt equal 0 integer
+          Z1 = Qt equal 1 integer
+          Z2 = Qt equal 2 integer
+          Z3 = Qt at least 3 integer
           Qs = Qd * (Qd + 1) // 2
           Qs = Qs min Cap
           if Qd at least 300000000
@@ -148,13 +148,13 @@ for N in Lo to Kk
           Kmx = Qk max
           for J in 0 to 3
             T = Qk - 10 * J
-            Vj = (T at least 0) integer
+            Vj = T at least 0 integer
             T = T max 0
             Nn = Qd + T - 1
             Cf = Qt * 0.0 + 1.0
             Ci = Qt * 0 + 1
             for I in 1 to Kmx
-              M = (T at least I) integer
+              M = T at least I integer
               Nb = Nn - T + I
               Fa = Nb * 1.0 / I
               Wf = M * Fa + 1.0 - M
@@ -184,7 +184,7 @@ for N in Lo to Kk
             Ai = Ai + Sg * Cji * Ci * Vj
           end
           Cp = 30000000000000000.0
-          Big = (Af greater Cp) integer
+          Big = Af greater Cp integer
           Am = Ai max 0
           Qa = Big * Cap
           Qa = Qa + (1 - Big) * Am

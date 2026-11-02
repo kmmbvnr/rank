@@ -19,7 +19,7 @@ arg Input text = "512\n1"
 Tokens = (Input split "\n" join " ") split " "
 Tokens = Tokens (Tokens not equal "")
 CodeText = Tokens 0
-K = (Tokens 1) integer
+K = Tokens 1 integer
 
 Code = CodeText integer
 LenCode = CodeText len
@@ -32,11 +32,11 @@ Answer = ""
 Found = false
 
 MinL = K + 1
-if (LenCode - 1) greater MinL
+if LenCode - 1 greater MinL
   MinL = LenCode - 1
 end
 
-for L in (MinL to LenCode array) reverse
+for L in MinL to LenCode array reverse
   if not Found
     TenL = ("1" + ((array shape L fill "0") join "")) integer
     M = L - K
@@ -62,7 +62,7 @@ for L in (MinL to LenCode array) reverse
     G = G0
     X = X0
 
-    if (Target mod G) equal 0
+    if Target mod G equal 0
       Step = Mod // G
       BaseA = (X * (Target // G)) mod Step
       if BaseA less 0
@@ -74,7 +74,7 @@ for L in (MinL to LenCode array) reverse
           SumAB = Code // Mod
           MaxB = TenK - 1
           ChosenA = MinA
-          if (SumAB - ChosenA) greater MaxB
+          if SumAB - ChosenA greater MaxB
             ChosenA = SumAB - MaxB
           end
           BaseA = ChosenA
@@ -83,18 +83,18 @@ for L in (MinL to LenCode array) reverse
       end
 
       A = BaseA
-      for (A less TenK) and (not Found)
+      for A less TenK and (not Found)
         if A greater (MinA - 1)
           Num = Code + A * (TenL - 1)
-          if (Num mod Mod) equal 0
+          if Num mod Mod equal 0
             N = Num // Mod
             NText = N text
-            if (NText len) equal L
+            if NText len equal L
               AActual = N // TenM
               if AActual equal A
                 B = N mod TenM
                 Cyclic = B * TenK + A
-                if (N + Cyclic) equal Code
+                if N + Cyclic equal Code
                   Answer = NText
                   Found = true
                 end

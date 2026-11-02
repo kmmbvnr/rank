@@ -37,7 +37,7 @@ fun Data nested_ranges
 
   MinFinish = Base
 
-  for K in (N - 1) to 0 by -1
+  for K in N - 1 to 0 by -1
     I = Order K
     Y = Finish I
     if Y at least MinFinish

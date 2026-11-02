@@ -43,7 +43,7 @@ end
 Nm = A + 6 * B + P
 G = Nm / 36.0 - W * H / 6.0
 Lt = 10.0 log
-E = (G log / Lt) floor
+E = G log / Lt floor
 Mn = G / 10.0 ** E
 if Mn at least 9.9999999995
   Mn /= 10

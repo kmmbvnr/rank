@@ -21,23 +21,23 @@ rem e = 1 mod 4. Primes p above sqrt N
 rem take e = 1: count them by Lucy
 rem sieves of pi and the character.
 R = N isqrt
-Sp = (R + 1) factorsieve
+Sp = R + 1 factorsieve
 Vs = 0 to R
 Cu = Vs
 Om = Vs * 0
 for J in 1 to 20
   Pf = Sp Cu
-  Om += ((Pf mod 4) equal 1) integer
+  Om += (Pf mod 4 equal 1) integer
   Cu = Cu // (Pf max 1)
 end
-Ga = ((Vs mod 2) equal 1) integer
+Ga = (Vs mod 2 equal 1) integer
 Ga = Ga * (Om mod 2)
 Ca = Ga scan +
 As = 0 to 40
-Ra = (N shr As) isqrt
-Answer = (Ca Ra) sum
+Ra = N shr As isqrt
+Answer = Ca Ra sum
 Pr = primes to R array
-Q1 = Pr ((Pr mod 4 equal 1) indices)
+Q1 = Pr (Pr mod 4 equal 1 indices)
 P4 = Q1 * Q1 * Q1 * Q1
 Pe = Q1
 for J in 1 to 5
@@ -45,30 +45,30 @@ for J in 1 to 5
     W = (N // (Pe shl A)) isqrt
     Cw = (W + 1) // 2
     Cp = (W // Q1 + 1) // 2
-    Answer += (Cw - Cp) sum
+    Answer += Cw - Cp sum
   end
-  Pe = (Pe * P4) min (N + 1)
+  Pe = Pe * P4 min (N + 1)
 end
-Qs = (Vs - 1) max 0
+Qs = Vs - 1 max 0
 Hm = Vs mod 4
-Ha = (Hm equal 1) integer
-Hs = Ha + ((Hm equal 2) integer) - 1
-Hs = Hs * ((Vs greater 0) integer)
+Ha = Hm equal 1 integer
+Hs = Ha + (Hm equal 2 integer) - 1
+Hs = Hs * (Vs greater 0 integer)
 Ws = N // (Vs max 1)
 Ql = Ws - 1
 Hq = Ws mod 4
-Hb = (Hq equal 1) integer
-Hl = Hb + ((Hq equal 2) integer) - 1
+Hb = Hq equal 1 integer
+Hl = Hb + (Hq equal 2 integer) - 1
 for P in Pr
-  Pc = ((P mod 4) equal 1) integer
-  Pc -= ((P mod 4) equal 3) integer
+  Pc = (P mod 4 equal 1) integer
+  Pc -= (P mod 4 equal 3) integer
   Z0 = Qs (P - 1)
   Z1 = Hs (P - 1)
   Ih = R min (N // (P * P))
   Ix = 1 to Ih
   Pi = P * Ix
   Ii = Pi min R
-  Jx = (N // Pi) min R
+  Jx = N // Pi min R
   Mk = Pi at most R
   Dq = (Mk choose (Ql Ii) (Qs Jx)) - Z0
   Dh = (Mk choose (Hl Ii) (Hs Jx)) - Z1
@@ -83,12 +83,12 @@ end
 R1 = (Qs R - 1 + Hs R) // 2
 Wm = N // (R + 1)
 for A in 0 to 40
-  Wa = (Wm shr A) isqrt
+  Wa = Wm shr A isqrt
   if Wa at least 1
     Wo = 1 to Wa by 2
-    Mm = (Wo * Wo) shl A
+    Mm = Wo * Wo shl A
     Pv = (Ql Mm - 1 + Hl Mm) // 2
-    Answer += ((Pv - R1) max 0) sum
+    Answer += (Pv - R1 max 0) sum
   end
 end
 Answer print

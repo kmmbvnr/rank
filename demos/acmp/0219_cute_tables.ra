@@ -44,12 +44,12 @@ FixedSum = FixedValues sum
 FixedRow = FixedValues sum axis -1
 FixedCol = FixedValues sum axis 0
 
-RowViolated = (FixedRow greater R) count
-ColViolated = (FixedCol greater C) count
+RowViolated = FixedRow greater R count
+ColViolated = FixedCol greater C count
 
 Answer = -1
 
-if (RowViolated equal 0) and (ColViolated equal 0)
+if RowViolated equal 0 and (ColViolated equal 0)
   RemR = R - FixedRow
   RemC = C - FixedCol
 
@@ -91,13 +91,13 @@ if (RowViolated equal 0) and (ColViolated equal 0)
     Tail = 1
     Q 0 = S
 
-    for (Head less Tail) and ((Prev T) equal -1)
+    for Head less Tail and (Prev T equal -1)
       Curr = Q Head
       Head = Head + 1
       for Nxt in 0 till V
         CapVal = Cap Curr Nxt
         PrevVal = Prev Nxt
-        if (CapVal greater 0) and (PrevVal equal -1)
+        if CapVal greater 0 and (PrevVal equal -1)
           Prev Nxt = Curr
           Q Tail = Nxt
           Tail = Tail + 1

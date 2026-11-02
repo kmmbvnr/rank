@@ -9,13 +9,13 @@ arg Grid integer = 250
 arg Rounds integer = 12
 
 rem Start from the continuous optimum.
-Pi = (-1) acos
+Pi = -1 acos
 Answer = 2 * Grid / (2 + Pi ** 0.5)
 Eps = 0.000000000001
 for I in 1 to Rounds
   Best = Grid optimize Answer
   Next = Best .area / Best .length
-  if (Next - Answer) abs less Eps
+  if Next - Answer abs less Eps
     Answer = Next
     break
   end
@@ -36,7 +36,7 @@ fun A SA B SB Dx Ratio Grid cross
   Q = K * K - C * C
   Z = 1.0 + 4 * Dx * Dx / Q
   U = (-K + C * Z ** 0.5) / 2
-  J = (B + U) floor
+  J = B + U floor
   if J less B
     J = B
   end

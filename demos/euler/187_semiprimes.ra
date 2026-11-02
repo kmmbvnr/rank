@@ -21,7 +21,7 @@ rem R, and Hi[k] for v = M / k.
 M = Limit - 1
 R = M isqrt
 V = 0 to R array
-Lo = ((V - 1) max 0) copy
+Lo = (V - 1 max 0) copy
 K = 1 to R array
 Top = concat (array 0) (M // K - 1)
 Hi = Top copy
@@ -32,7 +32,7 @@ for P in primes to R
     Ks = 1 to Kmax array
     Kp = Ks * P
     Pos' = Kp min R
-    Low' = (M // Kp) min R
+    Low' = M // Kp min R
     Near = Hi Pos
     Far = Lo Low
     Big' = Kp at most R
@@ -48,5 +48,5 @@ for P in primes to R
   end
 end
 Ps = primes to R array
-Answer = (Hi Ps - Lo Ps + 1) sum
+Answer = Hi Ps - Lo Ps + 1 sum
 Answer print

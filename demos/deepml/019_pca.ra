@@ -25,7 +25,7 @@ fun Data pca K
 
   Mean = Data mean axis 0
   Dev = Data std axis 0
-  if (Dev equal 0) any
+  if Dev equal 0 any
     .DomainError raise
   end
   X' = (Data - Mean) / Dev

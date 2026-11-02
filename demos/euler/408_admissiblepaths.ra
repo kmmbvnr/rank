@@ -17,7 +17,7 @@ rem paths minus the paths that
 rem first hit point I and go on.
 P = 1000000007
 Rt = N isqrt
-Ar = (1 to Rt) copy
+Ar = 1 to Rt copy
 Sq = Ar * Ar
 S2 = Sq Sq outer +
 Hit = (S2 isqrt) ** 2 equal S2
@@ -48,11 +48,11 @@ for I in 0 to M - 1
   if I greater 0
     Dx = (Xi - X (0 to I - 1)) copy
     Dy = (Yi - Y (0 to I - 1)) copy
-    Ok = (Dy at least 0 choose 1 0) copy
-    Dy = (Dy * Ok) copy
+    Ok = Dy at least 0 choose 1 0 copy
+    Dy = Dy * Ok copy
     Fx = Fa (Dx + Dy) * If Dx mod P
-    Fy = (Fx * If Dy mod P) copy
-    Cj = (Fy * Ok mod P) copy
+    Fy = Fx * If Dy mod P copy
+    Cj = Fy * Ok mod P copy
     Cj = Cj * Bs (0 to I - 1) mod P
     Tot -= Cj sum
   end

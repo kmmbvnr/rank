@@ -19,11 +19,11 @@ rem 3 not dividing m - n. Pairs form a
 rem graph, and triangles p < q < r in it
 rem are the answers.
 Top = Limit isqrt + 1
-Ms = (1 to Top array) reshape Top 1
-Ns = (1 to Top array) reshape 1 Top
+Ms = 1 to Top array reshape Top 1
+Ns = 1 to Top array reshape 1 Top
 X0 = Ms * Ms - Ns * Ns
 Y0 = Ns * (2 * Ms + Ns)
-Ok = Ns less Ms and (Ms gcd Ns) equal 1
+Ok = Ns less Ms and Ms gcd Ns equal 1
 Ok and= (Ms - Ns) mod 3 not equal 0
 Ok and= X0 + Y0 at most Limit
 Xs = X0 filter Ok array

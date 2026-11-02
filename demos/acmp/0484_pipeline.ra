@@ -12,7 +12,7 @@ arg Input text = "8"
 
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")
-S = (Tokens 0) integer
+S = Tokens 0 integer
 
 F = array shape 45 fill 0
 F 1 = 1

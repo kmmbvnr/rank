@@ -28,13 +28,13 @@ R = N isqrt
 Vs = 0 to R
 Ev = Vs + (Vs mod 2)
 Od = Vs + 1 - (Vs mod 2)
-Hv = (Ev // 2) mod M * (Od mod M)
+Hv = Ev // 2 mod M * (Od mod M)
 Gs = Hv mod M - 1
 Gs 0 = 0
 Wl = N // (Vs max 1)
 El = Wl + (Wl mod 2)
 Ol = Wl + 1 - (Wl mod 2)
-Hw = (El // 2) mod M * (Ol mod M)
+Hw = El // 2 mod M * (Ol mod M)
 Gl = Hw mod M - 1
 Pr = primes to R array
 for P in Pr
@@ -44,7 +44,7 @@ for P in Pr
   Pi = P * Ix
   Mk = Pi at most R
   Va = Gl (Pi min R)
-  Vb = Gs ((N // Pi) min R)
+  Vb = Gs (N // Pi min R)
   Dv = (Mk choose Va Vb) - Gp
   Gl Ix = (Gl Ix - P * Dv) mod M
   Iw = P * P to R
@@ -69,7 +69,7 @@ for P in Pr reverse
     Pi = Pe * Ix
     Mk = Pi at most R
     Va = Cl (Pi min R)
-    Vb = Cs ((N // Pi) min R)
+    Vb = Cs (N // Pi min R)
     Dv = (Mk choose Va Vb) - Gv
     Al (Ix - 1) += Dv
     if Pe * P at most R

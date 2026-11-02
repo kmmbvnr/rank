@@ -19,7 +19,7 @@ rem n <= N. Count the c up to the
 rem largest root Cm by bisection, less
 rem the e-th powers among them.
 Lg = 0
-for (1 shl Lg) at most N
+for 1 shl Lg at most N
   Lg += 1
 end
 Answer = 0

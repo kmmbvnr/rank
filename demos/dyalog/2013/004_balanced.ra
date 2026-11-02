@@ -6,7 +6,7 @@ fun Text balanced
   Close' = Text ")" equal rank 0 integer
   Delta = Open - Close
   Depth' = Delta scan +
-  Good = (Depth at least 0) all
+  Good = Depth at least 0 all
   return Good and Delta sum equal 0
 end
 

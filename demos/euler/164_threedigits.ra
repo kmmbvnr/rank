@@ -20,9 +20,9 @@ rem when p + q + r <= Cap and moves to
 rem state (q, r). Step a count vector
 rem with the transition matrix.
 S = 0 till 100 array
-P = (S // 10) reshape 100 1
-Q = (S mod 10) reshape 100 1
-R = (0 till 10 array) reshape 1 10
+P = S // 10 reshape 100 1
+Q = S mod 10 reshape 100 1
+R = 0 till 10 array reshape 1 10
 Ok' = P + Q + R at most Cap
 To' = Q * 10 + R
 From' = S reshape 100 1

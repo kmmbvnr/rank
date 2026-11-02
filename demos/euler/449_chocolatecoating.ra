@@ -20,13 +20,13 @@ rem Its volume 2 pi times the
 rem integral of R^2 (-Z') by Simpson,
 rem less the core 4 pi a^2 b / 3.
 Pi = 4 * (1.0 atan)
-Ph = (0 to Steps) copy
+Ph = 0 to Steps copy
 Th = Ph * (Pi / 2 / Steps)
 Sn = Th sin
 Cs = Th cos
 Ia = 1.0 / (A * A)
 Ib = 1.0 / (B * B)
-Ee = (Sn * Sn * Ia + Cs * Cs * Ib) sqrt
+Ee = Sn * Sn * Ia + Cs * Cs * Ib sqrt
 Dn = Sn * Cs * (Ia - Ib) / Ee
 Rr = Sn * (A + 1 / (A * Ee))
 Zz = B + 1 / (B * Ee)

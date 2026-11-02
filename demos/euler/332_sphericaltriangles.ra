@@ -22,7 +22,7 @@ fun R sphere
   W = (Points # 2) / 1
   Best = RR * (-1 acos) / 2
   BestScore = RR / 1
-  Slots = (0 till Cnt) copy
+  Slots = 0 till Cnt copy
   JS = Slots reshape Cnt 1
   KS = Slots reshape 1 Cnt
   XJ = U reshape Cnt 1
@@ -37,17 +37,17 @@ fun R sphere
   Dot = XJ * XK + YJ * YK + ZJ * ZK
   rem Signed coordinate permutations preserve the sphere and triangle areas.
   rem Every triangle has an image with its first vertex in this chamber.
-  Anchors = ((U at least V) and (V at least W) and (W at least 0.0)) copy
+  Anchors = (U at least V and V at least W and (W at least 0.0)) copy
   for I in Slots Anchors
     X = U I
     Y = V I
     Z = W I
     D = X * CrossX + Y * CrossY + Z * CrossZ
     B = RR + X * XJ + Y * YJ + Z * ZJ + Dot + X * XK + Y * YK + Z * ZK
-    Mask = ((KS greater JS) and (D not equal 0.0) and (B greater 0.0)) copy
+    Mask = (KS greater JS and D not equal 0.0 and (B greater 0.0)) copy
     if Mask any
-      Ds = (D Mask) copy
-      Bs = (B Mask) copy
+      Ds = D Mask copy
+      Bs = B Mask copy
       Score = ((Ds * Ds) / (Bs * Bs)) min
       if Score less BestScore
         rem atan2 is increasing in |D| / (R * B) when B is positive.
@@ -91,5 +91,5 @@ fun R sphere_points
       end
     end
   end
-  return (Points take Cnt) copy
+  return Points take Cnt copy
 end

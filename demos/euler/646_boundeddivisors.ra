@@ -32,8 +32,8 @@ for Pm any
   Pk = Pk * Pr
   Pm = Pk at most F
 end
-Ln = (Pr * 1.0) log
-Od = (Ex + 1) argsort .descending
+Ln = Pr * 1.0 log
+Od = Ex + 1 argsort .descending
 Gr = Pr * 0
 Pa = 1
 Pb = 1
@@ -84,8 +84,8 @@ for G in 0 to 1
 end
 Ob = Lb argsort
 Sb = Lb Ob
-Wb = (Mb * Rb) mod M
-Pf = ((Wb Ob) scan + with 0)
+Wb = Mb * Rb mod M
+Pf = (Wb Ob scan + with 0)
 Nb = Sb len
 Na = La len
 Lq = LoE * (10.0 log) - 0.000000000001
@@ -96,12 +96,12 @@ Al = concat Sb Al
 Al = concat Al Ah
 Od2 = Al argsort
 Iv = Od2 argsort
-Cb = ((Od2 less Nb) integer) scan +
+Cb = (Od2 less Nb integer) scan +
 Ls = Nb to (Nb + Na - 1)
 Lo = Cb (Iv Ls)
-Hs = (Nb + Na) to (Nb + 2 * Na - 1)
+Hs = Nb + Na to (Nb + 2 * Na - 1)
 Hi = Cb (Iv Hs)
-Wa = (Ma * Ra) mod M
+Wa = Ma * Ra mod M
 Dd = (Pf Hi - Pf Lo) mod M
-Answer = ((Wa * Dd) mod M) sum mod M
+Answer = Wa * Dd mod M sum mod M
 Answer print

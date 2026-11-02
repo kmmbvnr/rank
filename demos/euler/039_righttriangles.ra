@@ -26,7 +26,7 @@ fun Limit right_triangle_perimeter
     end
 
     for N in 1 till M
-      if (M - N) even
+      if M - N even
         continue
       end
       if M gcd N not equal 1

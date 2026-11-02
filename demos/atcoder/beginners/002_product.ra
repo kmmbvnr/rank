@@ -11,7 +11,7 @@ A parity B print
 
 rem Classify a product as Even or Odd.
 fun A parity B
-  if (A * B) mod 2 equal 0
+  if A * B mod 2 equal 0
     return "Even"
   end
   return "Odd"

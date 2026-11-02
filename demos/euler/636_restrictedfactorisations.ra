@@ -24,9 +24,9 @@ rem along shared prefixes, and the
 rem total is divided by 2! 3! 4!.
 Md = 1000000007
 Cl = 0 to 9
-A1 = (Cl at least 1) integer
-A3 = (Cl at least 3) integer
-A6 = (Cl at least 6) integer
+A1 = Cl at least 1 integer
+A3 = Cl at least 3 integer
+A6 = Cl at least 6 integer
 Ex = 1 + A1 + A3 + A6
 Sm = (Cl reshape 1 10) * 0
 Zs = Sm * 1
@@ -34,17 +34,17 @@ Kb = (0 to 0) * 0
 Mu = Kb + 1
 for I in 0 to 9
   E = Ex I
-  Ob = (Cl equal I) integer
+  Ob = Cl equal I integer
   Oj = Ob reshape 1 10
-  Nw = (Kb equal I) indices
+  Nw = Kb equal I indices
   Ns = (Sm Nw Cl) + E * Oj
   Nz = (Zs Nw Cl) + Oj
   Nk = (Kb Nw) + 1
   Nm = Mu Nw
   for J in 0 to I - 1
-    Ob = (Cl equal J) integer
+    Ob = Cl equal J integer
     Oj = Ob reshape 1 10
-    Ja = (Kb greater J) indices
+    Ja = Kb greater J indices
     if Ja len greater 0
       Sa = (Sm Ja Cl) + E * Oj
       Za = (Zs Ja Cl) + Oj
@@ -54,7 +54,7 @@ for I in 0 to 9
       Nk = concat Nk (Kb Ja)
       Nm = concat Nm ((Mu Ja) * Zq)
     end
-    Nw = (Kb equal J) indices
+    Nw = Kb equal J indices
     if Nw len greater 0
       Sa = (Sm Nw Cl) + E * Oj
       Za = (Zs Nw Cl) + Oj
@@ -69,11 +69,11 @@ for I in 0 to 9
   Kb = Nk
   Mu = Nm
 end
-Zp = (Sm equal 0) integer
+Zp = Sm equal 0 integer
 Sp = Sm + Zp * 31
 So = Sp sort axis 1
 Pw = 32 ** (9 - Cl)
-Ky = (So * Pw) sum axis 1
+Ky = So * Pw sum axis 1
 Od = Ky argsort
 Sk = Ky Od
 Mo = Mu Od
@@ -93,7 +93,7 @@ Pk = Pr
 Pm = Pk at most N
 for Pm any
   Vp += N // Pk
-  Pk = (Pk * Pr) min (N + 1)
+  Pk = Pk * Pr min (N + 1)
   Pm = Pk at most N
 end
 Zw = (Vp max) + 31
@@ -103,9 +103,9 @@ Total = 0
 Prev = (Cl * 0) + 99
 for R in 0 to Ng - 1
   Col = Dg Cl R
-  Ln = ((Col less 31) integer) sum
-  Mi = (Col not equal Prev) indices
-  C0 = (Mi first) min Ln
+  Ln = (Col less 31 integer) sum
+  Mi = Col not equal Prev indices
+  C0 = Mi first min Ln
   for D in C0 to Ln - 1
     W = Col D
     Rw = Zw // W
@@ -114,7 +114,7 @@ for R in 0 to Ng - 1
     Hi = Lo + Ll
     Sl = Dp (Lo till Hi)
     Mx = Sl reshape Rw W
-    Cs = (Mx scan + axis 0) mod Md
+    Cs = Mx scan + axis 0 mod Md
     Fl = Cs reshape Ll
     Dn = (D + 1) * Zw
     Dp (Dn till Dn + Ll) = Fl
