@@ -1,0 +1,105 @@
+use testing
+use text
+
+test "sample 1: single road -> 1 color"
+  use "0741_wonderful_roads"
+  Input = "2 1
+1 2"
+  run
+
+  K equal 1
+end
+
+test "sample 2: path of two roads -> 1 color"
+  use "0741_wonderful_roads"
+  Input = "3 2
+1 2
+2 3"
+  run
+
+  K equal 1
+  Nc equal 2
+end
+
+test "sample 3: triangle -> 3 colors, all different"
+  use "0741_wonderful_roads"
+  run
+
+  K equal 3
+  Nc equal 1
+  (Color sort) equal (array 1 2 3)
+end
+
+test "two triangles sharing a vertex -> 3 colors, 2 blocks"
+  use "0741_wonderful_roads"
+  Input = "5 6
+1 2
+2 3
+3 1
+3 4
+4 5
+5 3"
+  run
+
+  K equal 3
+  Nc equal 2
+end
+
+test "K4 is one block of 6 edges"
+  use "0741_wonderful_roads"
+  Input = "4 6
+1 2
+1 3
+1 4
+2 3
+2 4
+3 4"
+  run
+
+  K equal 6
+  Nc equal 1
+end
+
+test "triangle with tail and a separate component"
+  use "0741_wonderful_roads"
+  Input = "7 6
+1 2
+2 3
+3 1
+3 4
+5 6
+6 7"
+  run
+
+  K equal 3
+  Nc equal 4
+end
+
+test "square with chord and bridge: block of 5 edges"
+  use "0741_wonderful_roads"
+  Input = "5 6
+1 2
+2 3
+3 4
+4 1
+1 3
+4 5"
+  run
+
+  K equal 5
+  Nc equal 2
+end
+
+test "cycle of 50000 vertices (deep DFS)"
+  use text
+  use "0741_wonderful_roads"
+  Idx = 0 till 50000
+  Flat = array shape 100000 fill 0
+  Flat (Idx * 2) = Idx + 1
+  Flat ((Idx * 2) + 1) = ((Idx + 1) mod 50000) + 1
+  Input = "50000 50000 " + (Flat join " ")
+  run
+
+  K equal 50000
+  Nc equal 1
+end

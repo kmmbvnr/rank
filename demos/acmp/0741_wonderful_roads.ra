@@ -1,0 +1,122 @@
+rem Wonderful Roads (Замечательные дороги)
+rem https://acmp.ru/index.asp?main=task&id_task=741
+rem Two roads lie on a common simple cycle exactly when they
+rem belong to the same biconnected block, so every block needs
+rem all-different colors: the answer is the largest block.
+rem Blocks come from an iterative Tarjan DFS with an edge stack
+rem over a CSR adjacency built by argsort + lowerindex.
+
+use io
+use text
+use cli
+use algo
+use sequences
+
+arg Input text = "3 3
+1 2
+2 3
+3 1"
+
+Tokens = Input split "\r" join " " split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+M = (Tokens 1) integer
+Ends = (Tokens (2 till (2 * M + 2))) integer - 1
+Us = Ends ((0 till M) * 2)
+Vs = Ends (((0 till M) * 2) + 1)
+
+rem CSR adjacency: half-edges grouped by source vertex.
+Src = concat Us Vs
+Dst = concat Vs Us
+Eid = concat (0 till M) (0 till M)
+Ord = Src argsort
+Dst = Dst Ord
+Eid = Eid Ord
+Start = (Src Ord) lowerindex (0 till (N + 1))
+
+Disc = array shape N fill -1
+Low = array shape N fill 0
+Ptr = Start (0 till N)
+Pe = array shape N fill -1
+Calls = array shape (N + 1) fill 0
+Estack = array shape (M + 1) fill 0
+Comp = array shape M fill 0
+
+Time = 0
+Sp = 0
+Ep = 0
+Nc = 0
+H = 0
+E = 0
+W = 0
+V = 0
+P = 0
+Cont = 0
+Top = 0
+
+for Root in 0 till N
+  if (Disc Root) less 0
+    Disc Root = Time
+    Low Root = Time
+    Time = Time + 1
+    Calls Sp = Root
+    Sp = Sp + 1
+    for Sp greater 0
+      V = Calls (Sp - 1)
+      if (Ptr V) less (Start (V + 1))
+        H = Ptr V
+        Ptr V = H + 1
+        E = Eid H
+        W = Dst H
+        if E not equal (Pe V)
+          if (Disc W) less 0
+            Estack Ep = E
+            Ep = Ep + 1
+            Pe W = E
+            Disc W = Time
+            Low W = Time
+            Time = Time + 1
+            Calls Sp = W
+            Sp = Sp + 1
+          elif (Disc W) less (Disc V)
+            Estack Ep = E
+            Ep = Ep + 1
+            Low V = (Low V) min (Disc W)
+          end
+        end
+      else
+        Sp = Sp - 1
+        if Sp greater 0
+          P = Calls (Sp - 1)
+          Low P = (Low P) min (Low V)
+          if (Low V) at least (Disc P)
+            Cont = 1
+            for Cont equal 1
+              Ep = Ep - 1
+              Top = Estack Ep
+              Comp Top = Nc
+              if Top equal (Pe V)
+                Cont = 0
+              end
+            end
+            Nc = Nc + 1
+          end
+        end
+      end
+    end
+  end
+end
+
+rem Rank each edge inside its block: colors 1..block size.
+EOrd = Comp argsort
+Sorted = Comp EOrd
+First = Sorted lowerindex Sorted
+Color = array shape M fill 0
+Color EOrd = ((0 till M) - First) + 1
+K = Color max
+
+K print
+for I in 0 till M
+  (((Us I) + 1) text + " " + (((Vs I) + 1) text) + " " + ((Color I) text)) print
+end
