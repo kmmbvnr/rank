@@ -326,6 +326,17 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             const raw = groupDeclaredCalls(ungrouped,
                 part => repeated.has(part) || binaryCall(part) ? undefined : declaredSignature(part),
                 callable, (part, message) => report(part, message));
+            // Named folds consume a completed pipeline. Start at the last
+            // fold so earlier calls and folds become its single source.
+            for (let index = raw.length - 2; index > 1; index--) {
+                const operation = raw[index];
+                const next = raw[index + 1];
+                if (!isNameExpression(operation) || !['scan', 'reduce', 'segment'].includes(operation.name)
+                    || !standard(operation) || !isNameExpression(next) || higherOrderParameters.has(next.name)) continue;
+                const source = application(raw.slice(0, index), expression);
+                raw.splice(0, index, grouped(source));
+                break;
+            }
             const joined = raw.findIndex((part, index) => isNameExpression(part)
                 && higherOrder.has(part.name) && isFunctionOperator(raw[index + 1]));
             if (joined === 0) {

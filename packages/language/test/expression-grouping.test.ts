@@ -9,6 +9,20 @@ import {
 const parse = parseHelper<Program>(createRankServices(EmptyFileSystem).Rank);
 
 describe('shared expression grouping', () => {
+    it.each(['M choose V 0', 'M V 0 choose', 'V abs', 'M choose V 0 scan +', 'M choose V 0 scan max'])(
+        'finishes %s before a named fold', async source => {
+            const document = await parse('use numbers\nuse sequences\n'
+                + 'M = array true false true\nV = array 2 4 6\n'
+                + `${source} scan max`, { validation: true });
+            expect(document.diagnostics).toEqual([]);
+            const statement = document.parseResult.value.statements.at(-1)!;
+            if (!isExpressionStatement(statement)) throw new Error('expected expression');
+            const form = applicationForm(statement.value);
+            expect(form.kind).toBe('named-scan');
+            if (form.kind !== 'named-scan') throw new Error('expected scan');
+            expect(form.operation).toMatchObject({ name: 'max' });
+            expect(isParenthesizedExpression(form.source)).toBe(true);
+        });
     it.each(['A max B', 'M # 0 max', 'A max B sum', '2 + 3 max 4'])('retains operand sides when regrouping %s', async source => {
         const document = await parse(source);
         const program = document.parseResult.value;

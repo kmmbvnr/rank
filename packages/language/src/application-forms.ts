@@ -260,8 +260,9 @@ export function explicitCollectionMutation(
     }
     if (!isApplicationExpression(expression)) return undefined;
     const parts = flattenApplication(expression);
-    if (explicitNamedScanApplication(parts) || explicitNamedReduceApplication(parts)
-        || explicitNamedSegmentApplication(parts)) return undefined;
+    // Binding discovery also sees the surface tree before call grouping.
+    // Fold modifiers belong to the fold classifier, not mutation detection.
+    if (['scan', 'reduce', 'segment'].some(name => isNamed(parts[2], name))) return undefined;
     const receiver = parts[0];
     const normalized = parts.length === 3 && isNameExpression(parts[2])
         && (parts[2].name === 'add' || parts[2].name === 'remove');

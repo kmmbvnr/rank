@@ -1,0 +1,75 @@
+{
+  "base": "13901d75a6239b7b146f7aab1bf4a303df5eef89",
+  "focusedInterpreter": {
+    "files": 11,
+    "passed": 359
+  },
+  "finalFocused": {
+    "files": 2,
+    "passed": 49
+  },
+  "language": {
+    "passed": 1518,
+    "failed": 2,
+    "baselineFailed": 2,
+    "failures": [
+      "infers circuit signals through a read-only helper and a caught retry loop",
+      "infers the unchanged CSES graph-path matrix result"
+    ]
+  },
+  "scoped514": {
+    "types": 1,
+    "differential": 1,
+    "nameFacts": 1
+  },
+  "otherScopedEuler": {
+    "ids": [
+      176,
+      202,
+      446,
+      461,
+      473
+    ],
+    "typeAndDifferentialPassed": 10,
+    "embeddedTestBlocks": 11
+  },
+  "independentGeometry": {
+    "subsetN": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "edgeN": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "engines": [
+      false,
+      true
+    ],
+    "productionAndOldExecutions": 52
+  },
+  "fullDefault": {
+    "N": 100,
+    "answer": "8986.86698",
+    "subprocessTimeoutMs": 15000
+  },
+  "build": "pass",
+  "semanticOwners": 65,
+  "applicationForms": "pass",
+  "exclusionMetadataPassed": 3,
+  "exhaustiveCorpusAuditsRun": false,
+  "fullInterpreterSuiteRun": false
+}
