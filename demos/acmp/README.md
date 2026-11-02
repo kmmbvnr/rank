@@ -8,8 +8,15 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 
 | Task | Title | Topic | Array / Vector Technique |
 | :--- | :--- | :--- | :--- |
+| **0727** | [Распределение участков](0727_plot_distribution.ra) | Game Theory / Greedy (62%) | Pure Nash equilibrium via greedy matching over all pairs sorted by `(0 - Key) argsort` |
+| **0740** | [Ключи](0740_keys.ra) | Data Structures / Sweep-line (61%) | Max overlapping holes under translation: pairwise open rectangles via `outer -`, Y compression with `lowerindex`, range-add segment tree |
+| **0741** | [Замечательные дороги](0741_wonderful_roads.ra) | Graph Theory (62%) | Colors = largest biconnected block; iterative Tarjan with edge stack over CSR from `argsort` + `lowerindex` |
+| **0752** | [2-3 Дерево](0752_two_three_tree.ra) | Combinatorics (61%) | Level-by-level counting `C(M, N - 2M)` with a rolling Pascal row and slice updates mod $R$ |
 | **0077** | [Нолики](0077_zeros.ra) | Combinatorics (63%) | Count binary zeros up to $N$ with broadcast `(Range binomial K) sum` |
+| **0776** | [Юпитер](0776_jupiter.ra) | Graph Theory / BFS (62%) | BFS over (flights used, cell); each flight is one slice with `scan max` for the climb cost |
+| **0813** | [Игра в 24](0813_game_24.ra) | Brute Force / Subset DP (62%) | Reachable values per card subset via `outer +`, `outer -`, `outer *` and `sort unique` |
 | **0083** | [Симпатичные узоры](0083_pretty_patterns.ra) | Bitmask DP (66%) | Profile DP with bitwise ops (`band`, `bor`, `bxor`) & `Compat matpow (Cols - 1) sum` over a column-compatibility matrix |
+| **0920** | [Игуана](0920_iguana.ra) | Bitmask / Inclusion-Exclusion (62%) | Chromatic number $N \le 18$: independent sets by doubling, zeta transform, $\sum (-1)^{N-|S|} I(S)^k$ over vectors |
 | **0100** | [Счастливые билеты](0100_lucky_tickets.ra) | Combinatorics (68%) | Polynomial convolution via `DP scan + with 0 array` & vectorized index slicing `DP = C Hi - C Lo` |
 | **0101** | [Магараджа](0101_maharaja.ra) | Backtracking / Bitmask (60%) | Non-attacking Maharajas (queen + knight) placement via row-by-row bitmask search |
 | **0104** | [Шаблон](0104_pattern.ra) | 2D DP (65%) | Wildcard pattern matching with `*` and `?` over 2D state matrix |
