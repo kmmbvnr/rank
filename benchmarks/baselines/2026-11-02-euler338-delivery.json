@@ -1,0 +1,488 @@
+{
+  "baseCommit": "6fc3115f",
+  "researchOnly": false,
+  "method": "Three alternating serial fresh-process samples per case and host. Timer includes parse/compile/execute, excludes imports. Median whole-process peak RSS. Background activity uncontrolled. Two Rank comments and a compiler comment were shortened after the series; executable statements are unchanged.",
+  "node": "v24.15.0",
+  "samples": {
+    "mac": [
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 2221.080583,
+        "rssMiB": 173.046875,
+        "answer": "999999999600010915614292",
+        "trial": 0,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "production",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 456.07841599999995,
+        "rssMiB": 177.625,
+        "answer": "999999999600010915614292",
+        "trial": 0,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 2017.681875,
+        "rssMiB": 175.375,
+        "answer": "999999999600010915614292",
+        "trial": 1,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "production",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 449.890208,
+        "rssMiB": 179.921875,
+        "answer": "999999999600010915614292",
+        "trial": 1,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 2036.6430420000002,
+        "rssMiB": 175.5,
+        "answer": "999999999600010915614292",
+        "trial": 2,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "production",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 436.08975,
+        "rssMiB": 177.296875,
+        "answer": "999999999600010915614292",
+        "trial": 2,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      }
+    ],
+    "intel": [
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 5836.168449999999,
+        "rssMiB": 166.67578125,
+        "answer": "999999999600010915614292",
+        "trial": 0,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "production",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 1709.897169,
+        "rssMiB": 167.296875,
+        "answer": "999999999600010915614292",
+        "trial": 0,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 5927.190388,
+        "rssMiB": 162.9140625,
+        "answer": "999999999600010915614292",
+        "trial": 1,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "production",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 1715.56449,
+        "rssMiB": 164.84765625,
+        "answer": "999999999600010915614292",
+        "trial": 1,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 5991.757384,
+        "rssMiB": 161.80859375,
+        "answer": "999999999600010915614292",
+        "trial": 2,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "production",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 1685.9407620000002,
+        "rssMiB": 164.203125,
+        "answer": "999999999600010915614292",
+        "trial": 2,
+        "arch": "x64",
+        "node": "v24.15.0"
+      }
+    ]
+  },
+  "medians": {
+    "mac": {
+      "original": {
+        "ms": 2036.6430420000002,
+        "peakRssMiB": 175.375
+      },
+      "production": {
+        "ms": 449.890208,
+        "peakRssMiB": 177.625
+      }
+    },
+    "intel": {
+      "original": {
+        "ms": 5927.190388,
+        "peakRssMiB": 162.9140625
+      },
+      "production": {
+        "ms": 1709.897169,
+        "peakRssMiB": 164.84765625
+      }
+    }
+  },
+  "diagnostics": {
+    "mac": {
+      "variant": "production",
+      "mode": "compiled",
+      "limit": "1000000000000",
+      "ms": 697.371375,
+      "rssMiB": 175.21875,
+      "answer": "999999999600010915614292",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unsupported-op:sum": 3,
+          "scalar-function:unsupported-op:divsums": 1,
+          "scalar-expression:too-small": 5,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op://": 1,
+          "tensor:output-shape": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:sum",
+            "node": "ApplicationExpression",
+            "function": "divsums",
+            "expression": "Q // (A + 1 to Last) sum",
+            "line": 49,
+            "column": 12
+          },
+          {
+            "reason": "scalar-function:unsupported-op:divsums",
+            "node": "ApplicationExpression",
+            "function": "grid",
+            "expression": "N divsums",
+            "line": 17,
+            "column": 10
+          },
+          {
+            "reason": "scalar-function:unsupported-op:sum",
+            "node": "ApplicationExpression",
+            "function": "pairs",
+            "expression": "N // (1 to Root) sum",
+            "line": 59,
+            "column": 9
+          }
+        ]
+      }
+    },
+    "intel": {
+      "variant": "production",
+      "mode": "compiled",
+      "limit": "1000000000000",
+      "ms": 1743.112375,
+      "rssMiB": 164.05078125,
+      "answer": "999999999600010915614292",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unsupported-op:sum": 3,
+          "scalar-function:unsupported-op:divsums": 1,
+          "scalar-expression:too-small": 5,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op://": 1,
+          "tensor:output-shape": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:sum",
+            "node": "ApplicationExpression",
+            "function": "divsums",
+            "expression": "Q // (A + 1 to Last) sum",
+            "line": 49,
+            "column": 12
+          },
+          {
+            "reason": "scalar-function:unsupported-op:divsums",
+            "node": "ApplicationExpression",
+            "function": "grid",
+            "expression": "N divsums",
+            "line": 17,
+            "column": 10
+          },
+          {
+            "reason": "scalar-function:unsupported-op:sum",
+            "node": "ApplicationExpression",
+            "function": "pairs",
+            "expression": "N // (1 to Root) sum",
+            "line": 59,
+            "column": 9
+          }
+        ]
+      }
+    }
+  },
+  "verification": {
+    "mac": [
+      {
+        "variant": "production",
+        "compilation": true,
+        "checks": 315,
+        "numberLoops": 311,
+        "overflows": 0
+      },
+      {
+        "variant": "production",
+        "compilation": false,
+        "checks": 315,
+        "numberLoops": 0,
+        "overflows": 0
+      },
+      {
+        "rangeFoldBoundaryChecks": 64
+      }
+    ],
+    "intel": [
+      {
+        "variant": "production",
+        "compilation": true,
+        "checks": 315,
+        "numberLoops": 311,
+        "overflows": 0
+      },
+      {
+        "variant": "production",
+        "compilation": false,
+        "checks": 315,
+        "numberLoops": 0,
+        "overflows": 0
+      },
+      {
+        "rangeFoldBoundaryChecks": 64
+      }
+    ],
+    "focusedTests": 542,
+    "files": 9,
+    "metadataTests": 3,
+    "cliAssertions": 9,
+    "build": "Langium generation and tsc -b tsconfig.build.json passed in isolated copy",
+    "fullAudits": "not run"
+  },
+  "sha256": {
+    "demos/euler/338_gridpaper.ra": "087ecc5799e6d97d10355d01387e166bcd4ef2a07ca49a3f3fdbb793b8cd6c6b",
+    "packages/interpreter/src/jit/integer-loop-expressions.ts": "d54ae59874a868085f483ff0dc5c8cd6cb79b24eb429267a2a2d496b2e460620",
+    "built/integer-loop-expressions.js": "e635c71f9b13afc9d5477a02d46555494ae5fa5a989b6658f38dce7709d968ed",
+    "built/number-loop-runtime.js": "66086f89234afe56538d43345d1dc53f978fbf01a7be95175e2b75fc24aa6300"
+  },
+  "referenceFull": {
+    "variant": "production",
+    "mode": "reference",
+    "limit": "1000000000000",
+    "ms": 19392.586209,
+    "rssMiB": 269.375,
+    "answer": "999999999600010915614292"
+  }
+}

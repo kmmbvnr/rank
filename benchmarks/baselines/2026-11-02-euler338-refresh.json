@@ -1,0 +1,793 @@
+{
+  "researchOnly": true,
+  "baseCommit": "6fc3115f",
+  "runtimeBase": "a52e99eb (Mac isolated 337 delivery), d10cdfbc (Intel isolated 336 delivery); relevant kernel hashes match",
+  "node": "v24.15.0",
+  "date": "2026-11-02",
+  "method": "Three serial alternating fresh processes per variant on each host. Parse/compile/execute; imports excluded. Whole-process peak RSS. Background activity uncontrolled. Prototype patches built JS only, not production TypeScript.",
+  "hosts": {
+    "mac": "Apple M5 arm64",
+    "intel": "Intel Core i7-10750H x86_64"
+  },
+  "samples": {
+    "mac": [
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 1987.714959,
+        "rssMiB": 175.5,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 0,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "partial",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 1866.4270410000001,
+        "rssMiB": 175.28125,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 0,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "array",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 4320.431458,
+        "rssMiB": 269,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 0,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "range",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 670.1062919999999,
+        "rssMiB": 182.515625,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 0,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "inline",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 464.26366600000006,
+        "rssMiB": 177.171875,
+        "answer": "999999999600010915614292",
+        "prototype": true,
+        "trial": 0,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 2004.141666,
+        "rssMiB": 176.171875,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 1,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "partial",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 1851.3834160000001,
+        "rssMiB": 174.828125,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 1,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "array",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 4294.032375000001,
+        "rssMiB": 268.421875,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 1,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "range",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 634.5074999999999,
+        "rssMiB": 183.40625,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 1,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "inline",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 447.92820900000004,
+        "rssMiB": 176.890625,
+        "answer": "999999999600010915614292",
+        "prototype": true,
+        "trial": 1,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 2015.150416,
+        "rssMiB": 175.109375,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 2,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "partial",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 1865.776833,
+        "rssMiB": 176.109375,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 2,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "array",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 4348.493042,
+        "rssMiB": 267.453125,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 2,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "range",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 656.368417,
+        "rssMiB": 182.96875,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 2,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "inline",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 439.319292,
+        "rssMiB": 177.5,
+        "answer": "999999999600010915614292",
+        "prototype": true,
+        "trial": 2,
+        "arch": "arm64",
+        "node": "v24.15.0"
+      }
+    ],
+    "intel": [
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 5731.616317999999,
+        "rssMiB": 162.70703125,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 0,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "partial",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 5580.566589,
+        "rssMiB": 162.93359375,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 0,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "array",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 12248.857174,
+        "rssMiB": 262.1640625,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 0,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "range",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 2110.2959929999997,
+        "rssMiB": 172.21484375,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 0,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "inline",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 1663.133441,
+        "rssMiB": 166.15234375,
+        "answer": "999999999600010915614292",
+        "prototype": true,
+        "trial": 0,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 5775.450731,
+        "rssMiB": 163.2890625,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 1,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "partial",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 5654.504591,
+        "rssMiB": 161.703125,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 1,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "array",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 11962.547336,
+        "rssMiB": 262.49609375,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 1,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "range",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 2083.42435,
+        "rssMiB": 171.65234375,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 1,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "inline",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 1726.1066150000001,
+        "rssMiB": 166.47265625,
+        "answer": "999999999600010915614292",
+        "prototype": true,
+        "trial": 1,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 6051.243082,
+        "rssMiB": 163.57421875,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 2,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "partial",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 5686.888755,
+        "rssMiB": 163.2421875,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 2,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "array",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 12382.492942,
+        "rssMiB": 260.58203125,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 2,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "range",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 2095.742017,
+        "rssMiB": 171.87109375,
+        "answer": "999999999600010915614292",
+        "prototype": false,
+        "trial": 2,
+        "arch": "x64",
+        "node": "v24.15.0"
+      },
+      {
+        "variant": "inline",
+        "mode": "compiled",
+        "limit": "1000000000000",
+        "ms": 1687.3773219999998,
+        "rssMiB": 165.328125,
+        "answer": "999999999600010915614292",
+        "prototype": true,
+        "trial": 2,
+        "arch": "x64",
+        "node": "v24.15.0"
+      }
+    ]
+  },
+  "medians": {
+    "mac": {
+      "original": {
+        "ms": 2004.141666,
+        "peakRssMiB": 175.5
+      },
+      "partial": {
+        "ms": 1865.776833,
+        "peakRssMiB": 175.28125
+      },
+      "array": {
+        "ms": 4320.431458,
+        "peakRssMiB": 268.421875
+      },
+      "range": {
+        "ms": 656.368417,
+        "peakRssMiB": 182.96875
+      },
+      "inline": {
+        "ms": 447.92820900000004,
+        "peakRssMiB": 177.171875
+      }
+    },
+    "intel": {
+      "original": {
+        "ms": 5775.450731,
+        "peakRssMiB": 163.2890625
+      },
+      "partial": {
+        "ms": 5654.504591,
+        "peakRssMiB": 162.93359375
+      },
+      "array": {
+        "ms": 12248.857174,
+        "peakRssMiB": 262.1640625
+      },
+      "range": {
+        "ms": 2095.742017,
+        "peakRssMiB": 171.87109375
+      },
+      "inline": {
+        "ms": 1687.3773219999998,
+        "peakRssMiB": 166.15234375
+      }
+    }
+  },
+  "referenceSamples": [
+    {
+      "variant": "original",
+      "mode": "reference",
+      "limit": "10000000000",
+      "ms": 1968.119583,
+      "rssMiB": 177.953125,
+      "answer": "99999997195292891339"
+    },
+    {
+      "variant": "inline",
+      "mode": "reference",
+      "limit": "10000000000",
+      "ms": 704.13725,
+      "rssMiB": 185.984375,
+      "answer": "99999997195292891339"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "limit": "1000000000000",
+      "timeoutMs": 20000,
+      "error": "ETIMEDOUT",
+      "signal": "SIGTERM"
+    },
+    {
+      "variant": "inline",
+      "mode": "reference",
+      "limit": "1000000000000",
+      "ms": 7949.951749999999,
+      "rssMiB": 267.125,
+      "answer": "999999999600010915614292"
+    }
+  ],
+  "verification": {
+    "verify-inline-final": [
+      {
+        "variant": "inline",
+        "compilation": true,
+        "checks": 315,
+        "numberLoops": 311,
+        "overflows": 0
+      },
+      {
+        "variant": "inline",
+        "compilation": false,
+        "checks": 315,
+        "numberLoops": 0,
+        "overflows": 0
+      },
+      {
+        "rangeFoldBoundaryChecks": 64
+      }
+    ],
+    "verify-range": [
+      {
+        "variant": "range",
+        "compilation": true,
+        "checks": 315,
+        "numberLoops": 311,
+        "overflows": 0
+      },
+      {
+        "variant": "range",
+        "compilation": false,
+        "checks": 315,
+        "numberLoops": 0,
+        "overflows": 0
+      },
+      {
+        "rangeFoldBoundaryChecks": 64
+      }
+    ],
+    "verify-inline-intel": [
+      {
+        "variant": "inline",
+        "compilation": true,
+        "checks": 315,
+        "numberLoops": 311,
+        "overflows": 0
+      },
+      {
+        "variant": "inline",
+        "compilation": false,
+        "checks": 315,
+        "numberLoops": 0,
+        "overflows": 0
+      },
+      {
+        "rangeFoldBoundaryChecks": 64
+      }
+    ],
+    "ordinaryEuler338Suite": {
+      "passed": 2,
+      "runtime": "unchanged isolated source and audit config; maxWorkers 4"
+    }
+  },
+  "diagnostics": {
+    "mac": {
+      "variant": "inline",
+      "mode": "compiled",
+      "limit": "1000000000000",
+      "ms": 498.250083,
+      "rssMiB": 178.375,
+      "answer": "999999999600010915614292",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unsupported-op:sum": 3,
+          "scalar-function:unsupported-op:divsums": 1,
+          "scalar-expression:too-small": 5,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op://": 1,
+          "tensor:output-shape": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:sum",
+            "node": "ApplicationExpression",
+            "function": "divsums",
+            "expression": "(Q // (A + 1 to Last)) sum",
+            "line": 49,
+            "column": 12
+          },
+          {
+            "reason": "scalar-function:unsupported-op:divsums",
+            "node": "ApplicationExpression",
+            "function": "grid",
+            "expression": "N divsums",
+            "line": 17,
+            "column": 10
+          },
+          {
+            "reason": "scalar-function:unsupported-op:sum",
+            "node": "ApplicationExpression",
+            "function": "pairs",
+            "expression": "(N // (1 to Root)) sum",
+            "line": 60,
+            "column": 9
+          }
+        ]
+      }
+    },
+    "intel": {
+      "variant": "inline",
+      "mode": "compiled",
+      "limit": "1000000000000",
+      "ms": 1670.3539849999997,
+      "rssMiB": 166.26171875,
+      "answer": "999999999600010915614292",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unsupported-op:sum": 3,
+          "scalar-function:unsupported-op:divsums": 1,
+          "scalar-expression:too-small": 5,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op://": 1,
+          "tensor:output-shape": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:sum",
+            "node": "ApplicationExpression",
+            "function": "divsums",
+            "expression": "(Q // (A + 1 to Last)) sum",
+            "line": 49,
+            "column": 12
+          },
+          {
+            "reason": "scalar-function:unsupported-op:divsums",
+            "node": "ApplicationExpression",
+            "function": "grid",
+            "expression": "N divsums",
+            "line": 17,
+            "column": 10
+          },
+          {
+            "reason": "scalar-function:unsupported-op:sum",
+            "node": "ApplicationExpression",
+            "function": "pairs",
+            "expression": "(N // (1 to Root)) sum",
+            "line": 60,
+            "column": 9
+          }
+        ]
+      }
+    }
+  },
+  "sha256": {
+    "benchmarks/experiments/euler338-refresh-array.ra": "8c07421e4741c7b5b983247fe94ad4d87ebcbfc902c07ee74bca55cb47851916",
+    "benchmarks/experiments/euler338-refresh-inline.ra": "4a5555e14241776bfdfd3dc6962e654903524bbdab982ce676e7ca19919e6f38",
+    "benchmarks/experiments/euler338-refresh-original.ra": "ae325af61a0794f73a9461f1bd49c4388b36269c37ebda5fa77f16460a95a3dd",
+    "benchmarks/experiments/euler338-refresh-partial.ra": "08feb6c141a12ce90785b084a9392759e9174e0264fdf58101d97f7f65d66604",
+    "benchmarks/experiments/euler338-refresh-range-fusion.patch": "f0948816d3e514b463bed7bf2cd096e40ea14a375f3150b321b3715bbb490cbc",
+    "benchmarks/experiments/euler338-refresh-range.ra": "f98fd45c393bf98f06621e261558479ac941a4fd7ace8c6dcb3f92b3a562db2b",
+    "base-runtime/integer-loop-expressions.js": "fa96674a8a262124f6d36df372aba8472f6d552758d5cfb09df0ceeffe2d2f65",
+    "base-runtime/number-loop-runtime.js": "66086f89234afe56538d43345d1dc53f978fbf01a7be95175e2b75fc24aa6300"
+  }
+}

@@ -7,3 +7,11 @@ test "given grid-paper sums"
   V = 100000 grid mod 100000000
   V equal 92617687
 end
+
+test "grid-paper boundaries"
+  use "338_gridpaper"
+  0 grid equal 0
+  1 grid equal 0
+  2 grid equal 1
+  3 grid equal 2
+end

@@ -863,7 +863,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     /** Pointwise cells share scalar lowering, but scalar subexpressions are
      * captured once, even on empty vectors. A zero divisor replays the original
      * region so nested array errors keep their ordinary evaluation order. */
-    function numberVector(source: Expression, lines: string[]): NumberVector | undefined {
+    function numberVector(source: Expression, lines: string[], inlineRanges = false): NumberVector | undefined {
         let e = source;
         while (isParenthesizedExpression(e)) e = e.value;
         const type = arrayType(e);
@@ -876,11 +876,34 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return { size: '1', shape: '[]', rank: 0, type: scalar.type, sources: [], compactGuards: [], cell: () => ({ code: captured, type: scalar.type, bounds: scalar.bounds }) };
         }
         if (type.element !== 'integer' && type.element !== 'boolean' && type.element !== 'real') return undefined;
+        if (inlineRanges && isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
+            const first = emit(e.left, lines, 'integer'), last = emit(e.right, lines, 'integer');
+            const stride = e.step ? emit(e.step, lines, 'integer') : { code: '1', type: 'integer' };
+            if (first?.type !== 'integer' || last?.type !== 'integer' || stride?.type !== 'integer') return undefined;
+            const id = state.serial++, start = `start${id}`, end = `end${id}`, step = `step${id}`;
+            const distance = `distance${id}`, size = `length${id}`;
+            // A consumed progression needs bounds, not a temporary vector.
+            // Unsafe distances/cells replay the ordinary exact consumer.
+            lines.push(`const ${start} = ${first.code}, ${end} = ${last.code}, ${step} = ${stride.code};
+                if (${step} === 0) throw overflow;
+                const ${distance} = safe(${step} > 0 ? ${end} - ${start} : ${start} - ${end});
+                const ${size} = ${distance} < 0 || (${e.operator === 'till'} && ${distance} === 0) ? 0
+                    : safe(divide(${e.operator === 'to' ? distance : `safe(${distance} - 1)`}, Math.abs(${step})) + 1);`);
+            return { size, shape: `[${size}]`, rank: 1, type: 'integer', sources: [], compactGuards: [], cell: (index, body, frame) => {
+                // Multidimensional trailing-axis addressing retains the
+                // existing backend until a progression has an axis layout.
+                if (frame && frame.rank > 1) return undefined;
+                const position = frame ? `(${size} === 1 ? 0 : ${index})` : index;
+                const value = `rangeCell${state.serial++}`;
+                body.push(`const ${value} = safe(${start} + safe(${position} * ${step}));`);
+                return { code: value, type: 'integer' };
+            } };
+        }
         const point = vectorOperation(e);
         if (point) {
             const inputs: NumberVector[] = [];
             for (const operand of point.operands) {
-                const input = numberVector(operand, lines);
+                const input = numberVector(operand, lines, inlineRanges);
                 if (!input) return undefined;
                 inputs.push(input);
                 // A later operand may allocate pooled gathers. Keep earlier
@@ -1050,11 +1073,34 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const type = arrayType(source);
             if (wide || !host.arrayReads || !type) return undefined;
             if (!state.numberVectors && type.rank > 1 && type.element === 'integer' && existingIntegerArrayArithmetic(source)) return undefined;
-            // Unbound range reductions retain their analytic/streaming native
-            // consumers instead of introducing eager storage or linear work.
-            if ([source, ...AstUtils.streamAllContents(source)].some(node => isBinaryExpression(node) && ['to', 'till'].includes(node.operator))) return undefined;
+            const hasRange = (value: Expression): boolean => [value, ...AstUtils.streamAllContents(value)]
+                .some(node => isBinaryExpression(node) && ['to', 'till'].includes(node.operator));
+            // Reciprocal maps already require a linear consumer. Other inline
+            // ranges keep native consumers and their analytic shortcuts.
+            // A division only in a scalar bound must not disable that shortcut.
+            const inlineRange = hasRange(source);
+            if (inlineRange) {
+                if (![source, ...AstUtils.streamAllContents(source)].some(node =>
+                    isBinaryExpression(node) && node.operator === '//' && hasRange(node.right))) return undefined;
+                // Sequence/sequence operations zip to the shorter input;
+                // sequence/array operations are not scalar broadcasting.
+                // Only a single progression with scalar maps enters here.
+                const singleRangeMap = (value: Expression): boolean => {
+                    while (isParenthesizedExpression(value)) value = value.value;
+                    if (isBinaryExpression(value) && ['to', 'till'].includes(value.operator)) {
+                        return [value.left, value.right, ...(value.step ? [value.step] : [])]
+                            .every(bound => !arrayType(bound));
+                    }
+                    const point = vectorOperation(value);
+                    if (!point) return false;
+                    const ranges = point.operands.filter(hasRange);
+                    return ranges.length === 1 && singleRangeMap(ranges[0])
+                        && point.operands.filter(operand => !hasRange(operand)).every(operand => !arrayType(operand));
+                };
+                if (!singleRangeMap(source)) return undefined;
+            }
             const setup: string[] = [];
-            const vector = numberVector(source, setup);
+            const vector = numberVector(source, setup, inlineRange);
             if (!vector || vector.type !== 'integer' && vector.type !== 'real') return undefined;
             const result = `sum${state.serial++}`, index = `cell${state.serial++}`, body: string[] = [];
             const value = vector.cell(index, body);

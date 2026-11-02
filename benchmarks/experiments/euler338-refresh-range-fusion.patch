@@ -1,0 +1,37 @@
+--- a/out/jit/integer-loop-expressions.js
++++ b/out/jit/integer-loop-expressions.js
+@@ -932,6 +932,21 @@
+         }
+         if (type.element !== 'integer' && type.element !== 'boolean' && type.element !== 'real')
+             return undefined;
++        if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
++            const first = emit(e.left, lines, 'integer');
++            const last = emit(e.right, lines, 'integer');
++            const stride = e.step ? emit(e.step, lines, 'integer') : {code:'1',type:'integer'};
++            if (!first || !last || !stride || first.type !== 'integer' || last.type !== 'integer' || stride.type !== 'integer') return undefined;
++            const id = state.serial++, lo=`lo${id}`, hi=`hi${id}`, by=`by${id}`, size=`length${id}`, distance=`distance${id}`;
++            lines.push(`const ${lo}=${first.code}, ${hi}=${last.code}, ${by}=${stride.code}; if (${by} === 0) throw overflow;`);
++            lines.push(`const ${distance}=safe(${by}>0 ? ${hi}-${lo} : ${lo}-${hi}); const ${size}= ${distance}<0 || (${e.operator === 'till'} && ${distance}===0) ? 0 : safe(divide(${e.operator === 'to' ? distance : `safe(${distance}-1)`}, Math.abs(${by}))+1);`);
++            return {size,shape:`[${size}]`,rank:1,type:'integer',sources:[],compactGuards:[],cell:(index, body, frame)=> {
++                const cell=`rangeCell${state.serial++}`;
++                const at=frame && frame.rank<=1 ? `(${size}===1 ? 0 : ${index})` : index;
++                body.push(`const ${cell}=safe(${lo}+safe(${at}*${by}));`);
++                return {code:cell,type:'integer'};
++            }};
++        }
+         const point = vectorOperation(e);
+         if (point) {
+             const inputs = [];
+@@ -1143,8 +1158,10 @@
+                 return undefined;
+             // Unbound range reductions retain their analytic/streaming native
+             // consumers instead of introducing eager storage or linear work.
+-            if ([source, ...AstUtils.streamAllContents(source)].some(node => isBinaryExpression(node) && ['to', 'till'].includes(node.operator)))
+-                return undefined;
++
++            const nodes = [source, ...AstUtils.streamAllContents(source)];
++            if (nodes.some(node => isBinaryExpression(node) && ['to', 'till'].includes(node.operator))
++                && !nodes.some(node => isBinaryExpression(node) && node.operator === '//')) return undefined;
+             const setup = [];
+             const vector = numberVector(source, setup);
+             if (!vector || vector.type !== 'integer' && vector.type !== 'real')
