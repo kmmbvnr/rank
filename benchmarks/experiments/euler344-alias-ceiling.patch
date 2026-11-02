@@ -1,0 +1,31 @@
+--- a/packages/interpreter/src/jit/integer-loop.ts
++++ b/packages/interpreter/src/jit/integer-loop.ts
+@@ -66,7 +66,7 @@
+  * Return dispatch remains in the ordinary function body. Failed guards/overflow
+  * leave the frame untouched, so the original statements can execute instead. */
+ export function compileIntegerFunctionPrefix(statement: FunctionStatement, host: LoopHost): CompiledLoop | undefined {
+-    const plan = lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true);
++    const plan = lowerTypedLoop(statement, host, undefined, new Set(), new Set(), reason => recordFallback('research-prefix:' + reason), true);
+     // Only fresh-array regions justify joining independent loops. External
+     // stores retain their ordinary per-loop transactions and copy-cost feedback.
+     if (!plan?.arrayDefinitions.size || plan.destinations.size === 0
+@@ -175,16 +175,15 @@
+     // Numeric aliases may share read-only buffers. Mutation or calls require
+     // a separate ownership proof. Exact bindings snapshot writable aliases;
+     // source stores can still invalidate existing compiled alias readers.
+-    if (numberMode && aliases.length && calls.length > 0) return reject(statement, 'array-alias-call');
++    // Research only: bypass alias-call admission to measure a ceiling.
+     // Entry arrays rebound later need complete lifetime tracking for aliases.
+     // Keep that case on the publishing backend until vector liveness covers it.
+     if (numberMode && aliases.length && [...arrayDefinitions].some(name => arrayInputs.has(name)))
+         return reject(statement, 'rebound-array-alias');
+-    if (aliases.some(([target, source]) => numberMode ? writable.has(target) || writable.has(source)
+-        : destinations.has(source))) return reject(statement, 'mutable-array-alias');
++    if (!numberMode && aliases.some(([, source]) => destinations.has(source))) return reject(statement, 'mutable-array-alias');
+     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
+         && (writable.has(target) || writable.has(source)))
+-        || state.localAliases.some(([target, source]) => writable.has(target) || writable.has(source))) return reject(statement, 'unstable-bindings');
++        || !numberMode && state.localAliases.some(([target, source]) => writable.has(target) || writable.has(source))) return reject(statement, 'unstable-bindings');
+     // A retained slice result can observe later source writes. Discard proofs
+     // stop at this region: callers may retain a loop result even when its source
+     // program has later statements. Keep live mutable results on the exact path.

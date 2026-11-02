@@ -1,0 +1,1625 @@
+{
+  "commit": "16c1287e",
+  "node": "24.15.0",
+  "n": 1000000,
+  "c": 100,
+  "golden": "65579304332",
+  "samples": {
+    "mac": [
+      {
+        "file": "original",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 203.42545800000002,
+        "cpuMs": 362.821,
+        "rssMiB": 187.328125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "original",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 2774.70225,
+        "cpuMs": 3159.581,
+        "rssMiB": 202.71875,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 186.06662500000002,
+        "cpuMs": 333.2,
+        "rssMiB": 188.4375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 763.103041,
+        "cpuMs": 1103.916,
+        "rssMiB": 198.59375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 174.826875,
+        "cpuMs": 313.208,
+        "rssMiB": 184.03125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 708.534083,
+        "cpuMs": 978.994,
+        "rssMiB": 193.90625,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 623.4512080000001,
+        "cpuMs": 1141.546,
+        "rssMiB": 444.84375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 639.796167,
+        "cpuMs": 1203.583,
+        "rssMiB": 388.296875,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 205.183209,
+        "cpuMs": 364.592,
+        "rssMiB": 188.15625,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "original",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 2875.5,
+        "cpuMs": 3244.111,
+        "rssMiB": 205.78125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 184.67654100000001,
+        "cpuMs": 329.919,
+        "rssMiB": 188.21875,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 773.8985,
+        "cpuMs": 1108.115,
+        "rssMiB": 199.109375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 171.727875,
+        "cpuMs": 313.842,
+        "rssMiB": 185.40625,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 704.063583,
+        "cpuMs": 982.486,
+        "rssMiB": 195.140625,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 628.128584,
+        "cpuMs": 1153.548,
+        "rssMiB": 445.171875,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 644.781333,
+        "cpuMs": 1208.891,
+        "rssMiB": 387.859375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 204.919667,
+        "cpuMs": 364.286,
+        "rssMiB": 186.78125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "original",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 2732.2975,
+        "cpuMs": 3101.205,
+        "rssMiB": 205.40625,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 183.97808400000002,
+        "cpuMs": 326.654,
+        "rssMiB": 188.8125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 763.094875,
+        "cpuMs": 1109.309,
+        "rssMiB": 197.9375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 170.037958,
+        "cpuMs": 308.868,
+        "rssMiB": 184.9375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 739.8457500000001,
+        "cpuMs": 1016.368,
+        "rssMiB": 195.453125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 672.237167,
+        "cpuMs": 1288.503,
+        "rssMiB": 449.328125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 705.411666,
+        "cpuMs": 1372.513,
+        "rssMiB": 403.21875,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      }
+    ],
+    "intel": [
+      {
+        "file": "original",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 494.63204700000006,
+        "cpuMs": 805.92,
+        "rssMiB": 173.6640625,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "original",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 8687.019352000001,
+        "cpuMs": 9449.134,
+        "rssMiB": 251.33984375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 448.20275200000003,
+        "cpuMs": 747.081,
+        "rssMiB": 174.53125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2519.734163,
+        "cpuMs": 3240.941,
+        "rssMiB": 184.15234375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 458.26673800000003,
+        "cpuMs": 780.625,
+        "rssMiB": 169.58984375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2065.797701,
+        "cpuMs": 2619.329,
+        "rssMiB": 183.15234375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2232.478587,
+        "cpuMs": 3536.299,
+        "rssMiB": 410.9296875,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2166.295956,
+        "cpuMs": 3392.857,
+        "rssMiB": 352.375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 0
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 500.27471,
+        "cpuMs": 815.297,
+        "rssMiB": 175.96484375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "original",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 8571.204621,
+        "cpuMs": 9288.773,
+        "rssMiB": 189.54296875,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 450.501848,
+        "cpuMs": 755.845,
+        "rssMiB": 175.03125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2321.2936149999996,
+        "cpuMs": 2989.622,
+        "rssMiB": 184.6484375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 421.65511699999996,
+        "cpuMs": 709.054,
+        "rssMiB": 172.05078125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2125.197849,
+        "cpuMs": 2702.507,
+        "rssMiB": 180.04296875,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2230.4151220000003,
+        "cpuMs": 3586.207,
+        "rssMiB": 412.39453125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2181.8018869999996,
+        "cpuMs": 3432.885,
+        "rssMiB": 355.2890625,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 1
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 494.43452700000006,
+        "cpuMs": 837.802,
+        "rssMiB": 175.84375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "original",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 8370.486187,
+        "cpuMs": 9104.217,
+        "rssMiB": 250.9140625,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 472.65836699999994,
+        "cpuMs": 791.501,
+        "rssMiB": 174.30078125,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-pruned.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2409.136598,
+        "cpuMs": 3108.848,
+        "rssMiB": 183.49609375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 420.94178899999997,
+        "cpuMs": 697.274,
+        "rssMiB": 170.47265625,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2177.405908,
+        "cpuMs": 2750.881,
+        "rssMiB": 179.91796875,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "compiled",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2193.8067600000004,
+        "cpuMs": 3421.114,
+        "rssMiB": 412.5859375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/344-array.ra",
+        "mode": "reference",
+        "n": "1000000",
+        "c": "100",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 2157.385089,
+        "cpuMs": 3386.469,
+        "rssMiB": 353.74609375,
+        "output": [
+          "65579304332"
+        ],
+        "trial": 2
+      }
+    ]
+  },
+  "gameOracle": {
+    "oracle": "direct minimax of regular moves and leftmost pocketing, silver coin identity retained",
+    "cases": [
+      {
+        "n": 1,
+        "c": 0,
+        "answer": "1"
+      },
+      {
+        "n": 2,
+        "c": 0,
+        "answer": "2"
+      },
+      {
+        "n": 2,
+        "c": 1,
+        "answer": "1"
+      },
+      {
+        "n": 3,
+        "c": 0,
+        "answer": "3"
+      },
+      {
+        "n": 3,
+        "c": 1,
+        "answer": "4"
+      },
+      {
+        "n": 3,
+        "c": 2,
+        "answer": "2"
+      },
+      {
+        "n": 4,
+        "c": 0,
+        "answer": "4"
+      },
+      {
+        "n": 4,
+        "c": 1,
+        "answer": "9"
+      },
+      {
+        "n": 4,
+        "c": 2,
+        "answer": "9"
+      },
+      {
+        "n": 4,
+        "c": 3,
+        "answer": "1"
+      },
+      {
+        "n": 5,
+        "c": 0,
+        "answer": "5"
+      },
+      {
+        "n": 5,
+        "c": 1,
+        "answer": "16"
+      },
+      {
+        "n": 5,
+        "c": 2,
+        "answer": "24"
+      },
+      {
+        "n": 5,
+        "c": 3,
+        "answer": "11"
+      },
+      {
+        "n": 5,
+        "c": 4,
+        "answer": "4"
+      },
+      {
+        "n": 6,
+        "c": 0,
+        "answer": "6"
+      },
+      {
+        "n": 6,
+        "c": 1,
+        "answer": "25"
+      },
+      {
+        "n": 6,
+        "c": 2,
+        "answer": "50"
+      },
+      {
+        "n": 6,
+        "c": 3,
+        "answer": "39"
+      },
+      {
+        "n": 6,
+        "c": 4,
+        "answer": "21"
+      },
+      {
+        "n": 6,
+        "c": 5,
+        "answer": "1"
+      },
+      {
+        "n": 7,
+        "c": 0,
+        "answer": "7"
+      },
+      {
+        "n": 7,
+        "c": 1,
+        "answer": "36"
+      },
+      {
+        "n": 7,
+        "c": 2,
+        "answer": "90"
+      },
+      {
+        "n": 7,
+        "c": 3,
+        "answer": "101"
+      },
+      {
+        "n": 7,
+        "c": 4,
+        "answer": "78"
+      },
+      {
+        "n": 7,
+        "c": 5,
+        "answer": "22"
+      },
+      {
+        "n": 8,
+        "c": 0,
+        "answer": "8"
+      },
+      {
+        "n": 8,
+        "c": 1,
+        "answer": "49"
+      },
+      {
+        "n": 8,
+        "c": 2,
+        "answer": "147"
+      },
+      {
+        "n": 8,
+        "c": 3,
+        "answer": "214"
+      },
+      {
+        "n": 8,
+        "c": 4,
+        "answer": "219"
+      },
+      {
+        "n": 8,
+        "c": 5,
+        "answer": "103"
+      },
+      {
+        "n": 9,
+        "c": 0,
+        "answer": "9"
+      },
+      {
+        "n": 9,
+        "c": 1,
+        "answer": "64"
+      },
+      {
+        "n": 9,
+        "c": 2,
+        "answer": "224"
+      },
+      {
+        "n": 9,
+        "c": 3,
+        "answer": "402"
+      },
+      {
+        "n": 9,
+        "c": 4,
+        "answer": "516"
+      },
+      {
+        "n": 9,
+        "c": 5,
+        "answer": "344"
+      },
+      {
+        "n": 10,
+        "c": 0,
+        "answer": "10"
+      },
+      {
+        "n": 10,
+        "c": 1,
+        "answer": "81"
+      },
+      {
+        "n": 10,
+        "c": 2,
+        "answer": "324"
+      },
+      {
+        "n": 10,
+        "c": 3,
+        "answer": "690"
+      },
+      {
+        "n": 10,
+        "c": 4,
+        "answer": "1050"
+      },
+      {
+        "n": 10,
+        "c": 5,
+        "answer": "920"
+      }
+    ],
+    "states": 3820
+  },
+  "gameVerification": {
+    "checks": 736,
+    "oracle": "direct minimax, N=1..10 and C=0..min(N-1,5); published W(100,10) both prime residues",
+    "variants": 4,
+    "modes": 2
+  },
+  "countVerification": {
+    "checks": 660,
+    "oracle": "independent coefficient convolution of product W(x^(2^b)), W(0)=1; zero target, sparse/modular-zero coefficients and binary boundaries"
+  },
+  "diagnostics": {
+    "original": {
+      "file": "original",
+      "mode": "compiled",
+      "n": "1000000",
+      "c": "100",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 195.462083,
+      "cpuMs": 342.472,
+      "rssMiB": 187.609375,
+      "output": [
+        "65579304332"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 252,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 252,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 4,
+        "numberLoopReadBufferCells": 410,
+        "numberLoopReadBufferHits": 242,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 258,
+        "typedArrayPublishedCells": 47090,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "scalar-function:unsupported-op:len": 1,
+          "scalar-function:unsupported-op:comb": 1,
+          "scalar-expression:too-small": 13,
+          "tensor:scalar-evaluation-timing": 4,
+          "tensor:output-shape": 4,
+          "tensor:binding:select": 4,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:-": 2,
+          "tensor:unsupported-type:array": 2,
+          "loop:mutable-array-alias:ForStatement": 1,
+          "scalar-expression:unsupported-op:to": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "ways",
+            "expression": "A K X",
+            "line": 45,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:unsupported-op:len",
+            "node": "ApplicationExpression",
+            "function": "count",
+            "expression": "W len",
+            "line": 53,
+            "column": 7
+          },
+          {
+            "reason": "scalar-function:unsupported-op:comb",
+            "node": "ApplicationExpression",
+            "function": "solvep",
+            "expression": "Coins comb P",
+            "line": 80,
+            "column": 7
+          }
+        ]
+      }
+    },
+    "selected": {
+      "file": "benchmarks/344-library-weights.ra",
+      "mode": "compiled",
+      "n": "1000000",
+      "c": "100",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 187.872541,
+      "cpuMs": 332.808,
+      "rssMiB": 183.25,
+      "output": [
+        "65579304332"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 618,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 120,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 120,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 130,
+        "typedArrayPublishedCells": 13346,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unsupported-op:to": 2,
+          "scalar-function:unsupported-op:len": 1,
+          "scalar-function:unsupported-op:ways": 1,
+          "scalar-expression:too-small": 21,
+          "tensor:scalar-evaluation-timing": 4,
+          "tensor:output-shape": 4,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 2,
+          "scalar-expression:operator-guard:mod": 4,
+          "scalar-expression:operator-guard:equal": 4,
+          "scalar-expression:unsupported-op:binomial": 6,
+          "scalar-expression:unsupported-op:mod": 8,
+          "scalar-expression:unsupported-op:convolve": 2,
+          "tensor:binding:select": 4,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:-": 2,
+          "tensor:unsupported-type:array": 2,
+          "loop:mutable-array-alias:ForStatement": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:to",
+            "node": "BinaryExpression",
+            "function": "ways",
+            "expression": "0 to K",
+            "line": 17,
+            "column": 8
+          },
+          {
+            "reason": "scalar-function:unsupported-op:len",
+            "node": "ApplicationExpression",
+            "function": "count",
+            "expression": "W len",
+            "line": 26,
+            "column": 7
+          },
+          {
+            "reason": "scalar-function:unsupported-op:ways",
+            "node": "ApplicationExpression",
+            "function": "solvep",
+            "expression": "K R P ways",
+            "line": 58,
+            "column": 8
+          }
+        ]
+      }
+    },
+    "unsafeAliasCeiling": {
+      "file": "original",
+      "mode": "compiled",
+      "n": "1000000",
+      "c": "100",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 214.128875,
+      "cpuMs": 389.076,
+      "rssMiB": 188.015625,
+      "output": [
+        "65579304332"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 12,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 12,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 4,
+        "numberLoopReadBufferCells": 410,
+        "numberLoopReadBufferHits": 2,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 12,
+        "typedArrayPublishedCells": 21834,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "scalar-function:unsupported-op:len": 1,
+          "scalar-function:unsupported-op:comb": 1,
+          "scalar-expression:too-small": 10,
+          "tensor:scalar-evaluation-timing": 4,
+          "tensor:output-shape": 4,
+          "tensor:binding:select": 4
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "ways",
+            "expression": "A K X",
+            "line": 45,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:unsupported-op:len",
+            "node": "ApplicationExpression",
+            "function": "count",
+            "expression": "W len",
+            "line": 53,
+            "column": 7
+          },
+          {
+            "reason": "scalar-function:unsupported-op:comb",
+            "node": "ApplicationExpression",
+            "function": "solvep",
+            "expression": "Coins comb P",
+            "line": 80,
+            "column": 7
+          }
+        ]
+      }
+    },
+    "unsafeAliasPrunedCeiling": {
+      "file": "benchmarks/344-pruned.ra",
+      "mode": "compiled",
+      "n": "1000000",
+      "c": "100",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 193.34770799999998,
+      "cpuMs": 355.443,
+      "rssMiB": 189.234375,
+      "output": [
+        "65579304332"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 12,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 12,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 4,
+        "numberLoopReadBufferCells": 410,
+        "numberLoopReadBufferHits": 2,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 12,
+        "typedArrayPublishedCells": 21834,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "scalar-function:unsupported-op:len": 1,
+          "scalar-function:unsupported-op:comb": 1,
+          "scalar-expression:too-small": 10,
+          "tensor:scalar-evaluation-timing": 4,
+          "tensor:output-shape": 4,
+          "tensor:binding:select": 4
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "ways",
+            "expression": "A K X",
+            "line": 45,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:unsupported-op:len",
+            "node": "ApplicationExpression",
+            "function": "count",
+            "expression": "W len",
+            "line": 53,
+            "column": 7
+          },
+          {
+            "reason": "scalar-function:unsupported-op:comb",
+            "node": "ApplicationExpression",
+            "function": "solvep",
+            "expression": "Coins comb P",
+            "line": 83,
+            "column": 7
+          }
+        ]
+      }
+    }
+  },
+  "intelHardware": "x86_64\nv24.15.0\nArchitecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           39 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  12\nOn-line CPU(s) list:                     0-11\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz\nCPU family:                              6\nModel:                                   165\nThread(s) per core:                      2\nCore(s) per socket:                      6\n",
+  "tests": {
+    "focused": 95,
+    "cliSmallTests": 2,
+    "cliFullTests": 1
+  },
+  "note": "Research only. Final program variants run with unchanged compiler. Alias ceiling bypasses ownership guards and is not a safe implementation. Fresh processes, three serial alternating rounds per host; uncontrolled background load. Whole-process peak RSS.",
+  "warm": {
+    "mac": {
+      "original": {
+        "file": "original",
+        "mode": "compiled",
+        "samples": [
+          47.82845800000001,
+          13.521957999999984,
+          11.830916000000002,
+          11.308084000000008,
+          12.096790999999996,
+          11.089625000000012,
+          10.843500000000006,
+          10.606791999999984,
+          11.15416700000003,
+          11.062249999999949,
+          12.137707999999975
+        ],
+        "rssMiB": 191.75
+      },
+      "library": {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "compiled",
+        "samples": [
+          35.68029199999995,
+          5.296832999999992,
+          4.70799999999997,
+          4.680458999999985,
+          4.363750000000039,
+          4.154875000000004,
+          4.655249999999967,
+          4.945499999999981,
+          4.080500000000029,
+          3.834333000000015,
+          3.7352919999999585
+        ],
+        "rssMiB": 185.609375
+      }
+    },
+    "intel": {
+      "original": {
+        "file": "original",
+        "mode": "compiled",
+        "samples": [
+          106.02614800000003,
+          37.88579800000002,
+          32.171249999999986,
+          29.99892299999999,
+          29.54554100000007,
+          29.191937000000053,
+          31.638409000000024,
+          27.92827699999998,
+          27.894522999999936,
+          28.40862100000004,
+          28.522431000000097
+        ],
+        "rssMiB": 175.66015625
+      },
+      "library": {
+        "file": "benchmarks/344-library-weights.ra",
+        "mode": "compiled",
+        "samples": [
+          85.3509580000001,
+          16.53386899999998,
+          13.70752200000004,
+          13.116815000000088,
+          13.776040999999964,
+          12.14318000000003,
+          13.938098999999966,
+          11.992844999999988,
+          11.073886000000016,
+          11.496436000000017,
+          10.669129999999996
+        ],
+        "rssMiB": 171.3125
+      }
+    }
+  }
+}

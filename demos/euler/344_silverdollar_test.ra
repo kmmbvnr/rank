@@ -8,6 +8,36 @@ test "small silver dollar game"
   N C 1000033 solvep equal 324
 end
 
+test "full board and both coin parities"
+  use "344_silverdollar"
+  P0 = 1000003
+  3 2 P0 solvep equal 2
+  4 3 P0 solvep equal 1
+  5 3 P0 solvep equal 11
+end
+
+test "published larger example"
+  use "344_silverdollar"
+  P0 = 1000003
+  P1 = 1000033
+  Expected = 1514704946113500
+  A = 100 10 P0 solvep
+  B = 100 10 P1 solvep
+  A equal Expected mod P0
+  B equal Expected mod P1
+end
+
+test "carry counts beyond bit 40"
+  use "344_silverdollar"
+  P0 = 1000003
+  W = array 1 2
+  0 W P0 count equal 1
+  S = 2 ** 41
+  S W P0 count equal 2
+  S = 2 ** 53
+  S W P0 count equal 2
+end
+
 test "one coin always wins"
   use "344_silverdollar"
   N = 8
