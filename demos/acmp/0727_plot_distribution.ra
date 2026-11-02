@@ -1,0 +1,49 @@
+rem Plot Distribution (Распределение участков)
+rem https://acmp.ru/index.asp?main=task&id_task=727
+rem Find a pure Nash equilibrium of the claim game.
+rem Greedy matching over all (company, plot) pairs sorted
+rem by income descending, then company number ascending:
+rem take a pair when both sides are still free.
+rem Any better plot of a company was taken earlier by a
+rem company that beats it there, so no one gains by deviating.
+
+use io
+use text
+use cli
+use sequences
+
+arg Input text = "3
+5 4 4
+5 2 3
+2 1 2"
+
+Tokens = Input split "\r" join " " split "\n" join " " split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+Vals = (Tokens (1 till (N * N + 1))) integer
+Pos = 0 till (N * N)
+
+rem Ties go to the smaller company number.
+Key = (Vals * 512) + (511 - (Pos // N))
+Order = (0 - Key) argsort
+
+Assign = array shape N fill -1
+Taken = array shape N fill 0
+Left = N
+
+for P in Order
+  I = P // N
+  J = P mod N
+  if (Assign I) less 0 and (Taken J) equal 0
+    Assign I = J
+    Taken J = 1
+    Left = Left - 1
+  end
+  if Left equal 0
+    break
+  end
+end
+
+Answer = (Assign + 1) join " "
+Answer print
