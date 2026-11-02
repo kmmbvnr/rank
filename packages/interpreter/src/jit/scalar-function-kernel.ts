@@ -1,3 +1,4 @@
+import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { checkValueMutable } from '../value-protection.js';
 import { materializeValue } from '../materialize.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
@@ -83,7 +84,7 @@ function compileScalarNumberKernel(
     locations: readonly (Statement | Expression)[],
 ): Kernel['numberDirect'] | undefined {
     if (!proof.localArrayWrites || proof.planCalls.length
-        || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max'].includes(name))
+        || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt'].includes(name))
         || proof.dependencies.length || proof.callCount > 0) return undefined;
     const isNumType = (t: CompiledCalleeType) => t === 'integer' || t === 'real' || t === 'boolean';
     const arrayParameter = (t: CompiledCalleeType) => typeof t !== 'string' && !isCompiledContainer(t)
@@ -232,15 +233,22 @@ function compileScalarNumberKernel(
         }
         if (compiled.kind === 'call') {
             const name = compiled.operation.name;
-            if (compiled.operation.module !== 'numbers' || name !== 'floor' && name !== 'ceil' && name !== 'abs'
+            if (compiled.operation.module !== 'numbers' || name !== 'floor' && name !== 'ceil' && name !== 'abs' && name !== 'isqrt'
                 || compiled.arguments.length !== 1) return undefined;
             const argument = compiled.arguments[0];
+            if (name === 'isqrt' && argument.type !== 'integer') return undefined;
             if (argument.type !== 'integer' && argument.type !== 'real') return undefined;
             const value = lowerNum(argument, lines);
             if (!value) return undefined;
             const result = `v${serial++}`;
             // Native binding guards are shared with the exact kernel. Nonfinite
             // or unsafe results replay there, retaining its domain errors.
+            if (name === 'isqrt') {
+                // Replay negative inputs in the exact kernel for its located
+                // domain error. Safe inputs use the corrected integer root.
+                lines.push(`if (${value} < 0) throw overflow; const ${result} = isqrt(${value});`);
+                return result;
+            }
             const absolute = `Math.abs(${value})`;
             const code = name === 'abs' ? compiled.type === 'integer' ? `safe(${absolute})` : absolute
                 : numericBoundSource(name, value, argument.type, true);
@@ -428,7 +436,7 @@ function compileScalarNumberKernel(
         };
     };`;
     try {
-        return new Function(source)() as Kernel['numberDirect'];
+        return new Function('isqrt', source)(safeIntegerSquareRoot) as Kernel['numberDirect'];
     } catch {
         return undefined;
     }

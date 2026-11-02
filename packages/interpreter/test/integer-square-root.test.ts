@@ -326,3 +326,85 @@ describe('isqrt as an operand of dense arithmetic', () => {
         expect(() => run('use numbers\nuse sequences\n((((0 to 4999) - 1) isqrt) + 1) sum')).toThrow('isqrt expects a nonnegative integer');
     });
 });
+
+describe('Number scalar helpers with isqrt', () => {
+    it('matches the integer-only oracle across safe squares and wide fallbacks', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use algo\nuse numbers\nfun X root\n return X isqrt\nend');
+            const fn = runtime.variables.get('root') as NativeFunction;
+            const values = Array.from({ length: 1001 }, (_, i) => BigInt(i));
+            for (const root of [12345n, 67108864n, 94906265n, 94906266n, 2n ** 64n]) {
+                for (let d = -3n; d <= 3n; d++) values.push(root * root + d);
+            }
+            values.push(9007199254740991n);
+            diagnostics.run(() => {
+                for (const n of values) expect(fn.call([n]), String(n)).toBe(newton(n));
+            });
+            expect(diagnostics.numberFunctions).toBeGreaterThan(1000);
+        } finally { runtime.dispose(); }
+    });
+
+    it('preserves located errors for negative, real, missing and text inputs', () => {
+        for (const input of ['(-1)', '2.5', '"wrong"', '.NA']) {
+            const errors: string[] = [];
+            for (const compilation of [false, true]) {
+                const runtime = new Interpreter(() => {}, { compilation });
+                try {
+                    runtime.execute('use algo\nuse numbers\nfun X root\n return X isqrt\nend');
+                    let failure: unknown;
+                    try { formatValue(runtime.execute(`${input} root`)!); }
+                    catch (error) { failure = error; }
+                    expect(failure, input).toBeDefined();
+                    errors.push(typeof (failure as { format?: unknown })?.format === 'function'
+                        ? (failure as { format(): string }).format() : String(failure));
+                    expect(runtime.execute('16 root')).toBe(4n);
+                } finally { runtime.dispose(); }
+            }
+            expect(errors[1]).toBe(errors[0]);
+        }
+    });
+
+    it('guards a cached helper against replacing the native binding', () => {
+        const runtime = new Interpreter(() => {});
+        try {
+            runtime.execute('use algo\nuse numbers\nfun X root\n return X isqrt\nend');
+            expect(runtime.execute('16 root')).toBe(4n);
+            runtime.variables.set('isqrt', native('replacement', 1, () => 99n));
+            expect(runtime.execute('16 root')).toBe(99n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('replays private writes when an intermediate becomes unsafe', () => {
+        for (const compilation of [false, true]) {
+            const runtime = new Interpreter(() => {}, { compilation });
+            try {
+                runtime.execute(`use numbers
+fun X work
+ A = array shape 2 fill 0
+ A 0 = X
+ A 1 = X * X
+ return A 1 isqrt
+end`);
+                expect(runtime.execute('100000000 work')).toBe(100000000n);
+                expect(runtime.execute('4 work')).toBe(4n);
+            } finally { runtime.dispose(); }
+        }
+    });
+
+    it('retains polling and recovers after cancelling a root loop', () => {
+        const runtime = new Interpreter(() => {});
+        try {
+            runtime.execute(`use numbers
+fun N roots
+ Total = 0
+ for I in 0 to N
+  Total += I isqrt
+ end
+ return Total
+end`);
+            expect(() => withInterrupt(new Int32Array([1]), () => runtime.execute('100000 roots'))).toThrow('Interrupted');
+            expect(runtime.execute('3 roots')).toBe(3n);
+        } finally { runtime.dispose(); }
+    });
+});

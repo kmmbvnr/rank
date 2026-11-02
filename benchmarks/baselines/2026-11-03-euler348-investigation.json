@@ -1,0 +1,221 @@
+{
+  "mac": [
+    {
+      "file": "demos/euler/348_squarecube.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 2432.513625,
+      "cpuMs": 2586.222,
+      "rssMiB": 178.71875,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "baseline"
+    },
+    {
+      "file": "demos/euler/348_squarecube.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 365.903333,
+      "cpuMs": 510.374,
+      "rssMiB": 177.84375,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "delivery"
+    },
+    {
+      "file": "demos/euler/348_squarecube.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 2505.309417,
+      "cpuMs": 2660.379,
+      "rssMiB": 177.265625,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "baseline"
+    },
+    {
+      "file": "demos/euler/348_squarecube.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 367.84591600000005,
+      "cpuMs": 515.448,
+      "rssMiB": 177.96875,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "delivery"
+    },
+    {
+      "file": "demos/euler/348_squarecube.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 2464.57,
+      "cpuMs": 2614.953,
+      "rssMiB": 177.828125,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "baseline"
+    },
+    {
+      "file": "demos/euler/348_squarecube.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 355.38187500000004,
+      "cpuMs": 505.947,
+      "rssMiB": 176.921875,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "delivery"
+    }
+  ],
+  "intel": [
+    {
+      "file": "/tmp/rank348-final/original.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 6265.947615,
+      "cpuMs": 6586.964,
+      "rssMiB": 162.921875,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "baseline"
+    },
+    {
+      "file": "/tmp/rank348-final/original.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1163.680684,
+      "cpuMs": 1467.011,
+      "rssMiB": 164.17578125,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "delivery"
+    },
+    {
+      "file": "/tmp/rank348-final/original.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 5766.276295,
+      "cpuMs": 6054.508,
+      "rssMiB": 166.1640625,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "baseline"
+    },
+    {
+      "file": "/tmp/rank348-final/original.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1167.7943099999998,
+      "cpuMs": 1514.266,
+      "rssMiB": 162.9609375,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "delivery"
+    },
+    {
+      "file": "/tmp/rank348-final/original.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 6065.610323,
+      "cpuMs": 6391.135,
+      "rssMiB": 165.72265625,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "baseline"
+    },
+    {
+      "file": "/tmp/rank348-final/original.ra",
+      "mode": "compiled",
+      "want": "5",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 1170.428386,
+      "cpuMs": 1460.602,
+      "rssMiB": 164.77734375,
+      "output": [
+        "1004195061"
+      ],
+      "variant": "delivery"
+    }
+  ],
+  "verification": {
+    "hosts": [
+      "Mac arm64",
+      "Intel x86_64"
+    ],
+    "pairs": 21971960,
+    "checksPerHost": 1550,
+    "hits": [
+      5229225,
+      37088073,
+      56200265,
+      108909801,
+      796767697
+    ],
+    "answer": 1004195061
+  },
+  "exploratory": [
+    {
+      "variant": "original",
+      "mode": "reference",
+      "host": "Mac",
+      "ms": 52016.100958,
+      "rssMiB": 419.703125,
+      "output": "1004195061",
+      "trials": 1
+    },
+    {
+      "variant": "array",
+      "mode": "compiled",
+      "host": "Mac",
+      "want": 1,
+      "ms": 721.937459,
+      "rssMiB": 456.96875,
+      "output": "5229225",
+      "trials": 1
+    },
+    {
+      "variant": "integer-flag",
+      "mode": "compiled",
+      "host": "Mac",
+      "ms": 2634.992917,
+      "rssMiB": 177.953125,
+      "output": "1004195061",
+      "trials": 1,
+      "diagnosticsEnabled": true
+    }
+  ]
+}
