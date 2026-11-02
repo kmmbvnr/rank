@@ -4,3 +4,23 @@ test "small two prime maxima"
   use "347_twoprimes"
   100 twoprimes equal 2262
 end
+
+test "inclusive pair and power bounds"
+  use "347_twoprimes"
+  0 twoprimes equal 0
+  1 twoprimes equal 0
+  2 twoprimes equal 0
+  5 twoprimes equal 0
+  6 twoprimes equal 6
+  7 twoprimes equal 6
+  11 twoprimes equal 16
+  12 twoprimes equal 22
+  13 twoprimes equal 22
+  17 twoprimes equal 51
+  18 twoprimes equal 57
+  19 twoprimes equal 57
+  35 twoprimes equal 258
+  36 twoprimes equal 270
+  37 twoprimes equal 270
+  1000 twoprimes equal 193408
+end

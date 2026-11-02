@@ -39,8 +39,6 @@
   "euler/338_gridpaper.ra": "Full reference reciprocal folds still visit roughly 150 million pairs. The full compiled answer and allocation-free folds are covered by euler338.test.ts; small reference fixtures remain in the audits.",
   "euler/338_gridpaper_default_test.ra": "Manual full-input reference assertion; the full compiled default is covered by euler338.test.ts, and small independent enumeration checks remain in the ordinary suites.",
   "euler/343_fractional.ra": "Full quadratic sieve allocates several 2000000-element arrays; reduced fixtures cover both execution modes.",
-  "euler/347_twoprimes.ra": "Enumerates prime-pair maxima below 10000000.",
-  "euler/347_twoprimes_default_test.ra": "Manual full-input assertion for the default-scale workload; small assertions remain in 347_twoprimes_test.ra.",
   "euler/348_squarecube.ra": "Searches for all five full-size palindrome square/cube solutions.",
   "euler/348_squarecube_default_test.ra": "Manual full-input assertion for the default-scale workload; small assertions remain in 348_squarecube_test.ra.",
   "euler/350_constraining.ra": "Sieves and combines divisors through 1000000 with modular powers.",

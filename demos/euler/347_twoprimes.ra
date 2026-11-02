@@ -1,6 +1,7 @@
 rem Largest Integer with Two Primes
 rem https://projecteuler.net/problem=347
 
+use algo
 use sequences
 use io
 use cli
@@ -8,18 +9,20 @@ use cli
 arg Limit integer = 10000000
 
 fun Limit twoprimes
-  Ps = primes till Limit array
+  Ps = primes to Limit // 2 array
   Sum = 0
   for I in 0 till (Ps len)
     P = Ps I
     if P * P greater Limit
       break
     end
-    for J in I + 1 till (Ps len)
+    Hi = Ps upperindex (Limit // P)
+    Lo = Ps upperindex (Limit // P // P)
+    Lo = Lo max (I + 1)
+    rem Higher powers stop before Lo.
+    Sum += P * (Ps (Lo till Hi) sum)
+    for J in I + 1 till Lo
       Q = Ps J
-      if P * Q greater Limit
-        break
-      end
       Best = 0
       Power = P
       for Power * Q at most Limit

@@ -1,0 +1,17 @@
+--- a/runtime/owned-array.js
++++ b/runtime/owned-array.js
+@@ -777,6 +777,14 @@
+ function packedIntegers(items) {
+     if (items.length < PACKED_CELLS)
+         return undefined;
++    const compact = new Int32Array(items.length);
++    let narrow = true;
++    for (let i = 0; i < items.length; i++) {
++        const item = items[i];
++        if (typeof item !== 'bigint' || item < -2147483648n || item > 2147483647n) { narrow = false; break; }
++        compact[i] = Number(item);
++    }
++    if (narrow) return compact;
+     const packed = new BigInt64Array(items.length);
+     for (let index = 0; index < items.length; index++) {
+         const item = items[index];

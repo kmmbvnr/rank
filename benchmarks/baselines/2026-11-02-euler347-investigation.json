@@ -1,0 +1,1580 @@
+{
+  "date": "2026-11-02",
+  "head": "90a3e4f9ab9fef908a300b523716c21b5e53f766",
+  "node": "24.15.0",
+  "method": "Three serial fresh-process trials per mode and variant; runtime import excluded; whole-process RSS; uncontrolled external load. Separate Int32 series; small differences provisional.",
+  "mac": [
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 263.817166,
+      "cpuMs": 440.131,
+      "rssMiB": 235.703125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 4633.489375,
+      "cpuMs": 4973.541,
+      "rssMiB": 269.640625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 214.50991700000003,
+      "cpuMs": 366.092,
+      "rssMiB": 194.609375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 4597.603083,
+      "cpuMs": 4927.292,
+      "rssMiB": 191.3125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 214.977791,
+      "cpuMs": 375.945,
+      "rssMiB": 197.078125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 1517.600959,
+      "cpuMs": 1847.16,
+      "rssMiB": 190.40625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 214.696875,
+      "cpuMs": 385.414,
+      "rssMiB": 196.65625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 1497.468375,
+      "cpuMs": 1826.193,
+      "rssMiB": 191.984375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 211.66716699999998,
+      "cpuMs": 364.369,
+      "rssMiB": 191.671875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 4695.662542,
+      "cpuMs": 5022.709,
+      "rssMiB": 191.796875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 255.651125,
+      "cpuMs": 415.023,
+      "rssMiB": 234.328125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 4604.190667,
+      "cpuMs": 4943.593,
+      "rssMiB": 257.84375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 271.62741700000004,
+      "cpuMs": 459.977,
+      "rssMiB": 230.484375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 4868.462167,
+      "cpuMs": 5218.355,
+      "rssMiB": 256.5625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 211.385208,
+      "cpuMs": 357.078,
+      "rssMiB": 192.140625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 4746.368833,
+      "cpuMs": 5064.157,
+      "rssMiB": 197.546875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 227.47962500000003,
+      "cpuMs": 418.205,
+      "rssMiB": 196.21875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 1499.8444160000001,
+      "cpuMs": 1833.17,
+      "rssMiB": 192.328125,
+      "output": [
+        "11109800204052"
+      ]
+    }
+  ],
+  "intel": [
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 592.4556,
+      "cpuMs": 945.132,
+      "rssMiB": 219.5703125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 13903.028855999999,
+      "cpuMs": 14632.816,
+      "rssMiB": 246.046875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 484.118051,
+      "cpuMs": 787.742,
+      "rssMiB": 184.203125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 12464.590223,
+      "cpuMs": 13102.138,
+      "rssMiB": 182.28125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 561.112545,
+      "cpuMs": 902.772,
+      "rssMiB": 184.9375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 4078.85294,
+      "cpuMs": 4724.367,
+      "rssMiB": 181.99609375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 610.673695,
+      "cpuMs": 973.452,
+      "rssMiB": 215.1484375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 13809.688428,
+      "cpuMs": 14449.485,
+      "rssMiB": 245.82421875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 507.491443,
+      "cpuMs": 799.501,
+      "rssMiB": 185.421875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 12947.144824,
+      "cpuMs": 13535.572,
+      "rssMiB": 180.72265625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 554.561187,
+      "cpuMs": 900.162,
+      "rssMiB": 184.28515625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 4168.163078,
+      "cpuMs": 4817.138,
+      "rssMiB": 187.234375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 599.48731,
+      "cpuMs": 956.672,
+      "rssMiB": 214.76171875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 13332.874266,
+      "cpuMs": 13973.239,
+      "rssMiB": 245.171875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 491.593344,
+      "cpuMs": 782.588,
+      "rssMiB": 184.86328125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 12578.071159,
+      "cpuMs": 13235.532,
+      "rssMiB": 182.35546875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 542.2024019999999,
+      "cpuMs": 898.001,
+      "rssMiB": 184.3515625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 4160.964174999999,
+      "cpuMs": 4796.834,
+      "rssMiB": 181.59765625,
+      "output": [
+        "11109800204052"
+      ]
+    }
+  ],
+  "int32Mac": [
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 192.82783299999997,
+      "cpuMs": 329.294,
+      "rssMiB": 185.9375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 4497.5019999999995,
+      "cpuMs": 4798.269,
+      "rssMiB": 190.703125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 208.04595799999998,
+      "cpuMs": 367.357,
+      "rssMiB": 191.484375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 1496.9185,
+      "cpuMs": 1825.765,
+      "rssMiB": 192.78125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 201.36279199999998,
+      "cpuMs": 346.597,
+      "rssMiB": 188.421875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 4500.209666000001,
+      "cpuMs": 4813.182,
+      "rssMiB": 192.984375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 206.492166,
+      "cpuMs": 369.55,
+      "rssMiB": 192.984375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 1496.483084,
+      "cpuMs": 1823.788,
+      "rssMiB": 196.984375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 204.810959,
+      "cpuMs": 350.581,
+      "rssMiB": 188.671875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 4660.901416000001,
+      "cpuMs": 4966.967,
+      "rssMiB": 189.640625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 206.288291,
+      "cpuMs": 376.83,
+      "rssMiB": 191.75,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 1522.036958,
+      "cpuMs": 1853.73,
+      "rssMiB": 195.21875,
+      "output": [
+        "11109800204052"
+      ]
+    }
+  ],
+  "int32Intel": [
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 503.93908400000004,
+      "cpuMs": 802.998,
+      "rssMiB": 177.328125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 12320.066281000001,
+      "cpuMs": 12923.651,
+      "rssMiB": 179.859375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 527.5775160000001,
+      "cpuMs": 866.744,
+      "rssMiB": 179.27734375,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 0,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 4434.205885,
+      "cpuMs": 5075.564,
+      "rssMiB": 180.9921875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 497.685334,
+      "cpuMs": 807.21,
+      "rssMiB": 177.6796875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 13242.348714,
+      "cpuMs": 13878.584,
+      "rssMiB": 184.828125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 523.181375,
+      "cpuMs": 865.149,
+      "rssMiB": 177.2265625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 1,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 4317.354721,
+      "cpuMs": 4996.746,
+      "rssMiB": 179.29296875,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 486.002286,
+      "cpuMs": 793.089,
+      "rssMiB": 177.515625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 12690.970044000002,
+      "cpuMs": 13332.039,
+      "rssMiB": 179.17578125,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 518.357133,
+      "cpuMs": 859.002,
+      "rssMiB": 177.390625,
+      "output": [
+        "11109800204052"
+      ]
+    },
+    {
+      "trial": 2,
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "reference",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 4176.258467,
+      "cpuMs": 4863.077,
+      "rssMiB": 180.1953125,
+      "output": [
+        "11109800204052"
+      ]
+    }
+  ],
+  "diagnostics": {
+    "original": {
+      "file": "benchmarks/experiments/euler347-original.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 249.86387499999998,
+      "cpuMs": 426.659,
+      "rssMiB": 228.921875,
+      "output": [
+        "11109800204052"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 664579,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unbound-name:NameExpression": 1,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:till": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unbound-name:NameExpression",
+            "node": "NameExpression",
+            "name": "primes",
+            "function": "twoprimes",
+            "expression": "primes",
+            "line": 11,
+            "column": 8
+          }
+        ]
+      }
+    },
+    "half": {
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 213.74504199999998,
+      "cpuMs": 358.124,
+      "rssMiB": 193.703125,
+      "output": [
+        "11109800204052"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 348513,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unbound-name:NameExpression": 1,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unbound-name:NameExpression",
+            "node": "NameExpression",
+            "name": "primes",
+            "function": "twoprimes",
+            "expression": "primes",
+            "line": 11,
+            "column": 8
+          }
+        ]
+      }
+    },
+    "slice": {
+      "file": "benchmarks/experiments/euler347-slice.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 216.439791,
+      "cpuMs": 374.038,
+      "rssMiB": 196.96875,
+      "output": [
+        "11109800204052"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 446,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 446,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 348513,
+        "numberLoopReadBufferHits": 445,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 446,
+        "typedArrayPublishedCells": 1549442,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unbound-name:NameExpression": 1,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 4,
+          "loop:unsupported-op:sum": 1,
+          "scalar-expression:unsupported-op:till": 3,
+          "tensor:scalar-evaluation-timing": 446,
+          "tensor:dyadic-terminal:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:sum": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-op:till": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unbound-name:NameExpression",
+            "node": "NameExpression",
+            "name": "primes",
+            "function": "twoprimes",
+            "expression": "primes",
+            "line": 12,
+            "column": 8
+          }
+        ]
+      }
+    },
+    "packed": {
+      "file": "benchmarks/experiments/euler347-half.ra",
+      "mode": "compiled",
+      "limit": "10000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 196.94508399999998,
+      "cpuMs": 343.969,
+      "rssMiB": 188.890625,
+      "output": [
+        "11109800204052"
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unbound-name:NameExpression": 1,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unbound-name:NameExpression",
+            "node": "NameExpression",
+            "name": "primes",
+            "function": "twoprimes",
+            "expression": "primes",
+            "line": 11,
+            "column": 8
+          }
+        ]
+      }
+    }
+  },
+  "verification": {
+    "mac": {
+      "comparisons": 5456,
+      "limits": 341,
+      "oracle": "integer factorization",
+      "max": 20000
+    },
+    "int32Mac": {
+      "comparisons": 5456,
+      "limits": 341,
+      "oracle": "integer factorization",
+      "max": 20000
+    },
+    "intelInitial": {
+      "comparisons": 2728,
+      "limits": 341,
+      "oracle": "integer factorization",
+      "max": 20000
+    },
+    "intel": {
+      "comparisons": 5456,
+      "limits": 341,
+      "oracle": "integer factorization",
+      "max": 20000
+    },
+    "int32Intel": {
+      "comparisons": 5456,
+      "limits": 341,
+      "oracle": "integer factorization",
+      "max": 20000
+    }
+  },
+  "counts": {
+    "originalPrimes": 664579,
+    "halfPrimes": 348513,
+    "pairs": 1903878,
+    "nontrivialPairs": 354436,
+    "simplePairs": 1549442
+  },
+  "delivery": {
+    "samples": {
+      "mac": [
+        {
+          "trial": 0,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "compiled",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "ms": 179.437583,
+          "cpuMs": 316.529,
+          "rssMiB": 197.609375,
+          "output": [
+            "11109800204052"
+          ]
+        },
+        {
+          "trial": 0,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "reference",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "ms": 1220.724125,
+          "cpuMs": 1481.213,
+          "rssMiB": 194.234375,
+          "output": [
+            "11109800204052"
+          ]
+        },
+        {
+          "trial": 1,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "compiled",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "ms": 181.90575,
+          "cpuMs": 313.235,
+          "rssMiB": 196.734375,
+          "output": [
+            "11109800204052"
+          ]
+        },
+        {
+          "trial": 1,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "reference",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "ms": 1231.0434579999999,
+          "cpuMs": 1500.43,
+          "rssMiB": 194.59375,
+          "output": [
+            "11109800204052"
+          ]
+        },
+        {
+          "trial": 2,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "compiled",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "ms": 180.90258300000002,
+          "cpuMs": 314.075,
+          "rssMiB": 197.171875,
+          "output": [
+            "11109800204052"
+          ]
+        },
+        {
+          "trial": 2,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "reference",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "ms": 1237.025042,
+          "cpuMs": 1501.413,
+          "rssMiB": 194.46875,
+          "output": [
+            "11109800204052"
+          ]
+        }
+      ],
+      "intel": [
+        {
+          "trial": 0,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "compiled",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "ms": 455.63237,
+          "cpuMs": 740.131,
+          "rssMiB": 183.8203125,
+          "output": [
+            "11109800204052"
+          ]
+        },
+        {
+          "trial": 0,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "reference",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "ms": 3311.064375,
+          "cpuMs": 3822.13,
+          "rssMiB": 181.9609375,
+          "output": [
+            "11109800204052"
+          ]
+        },
+        {
+          "trial": 1,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "compiled",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "ms": 458.034229,
+          "cpuMs": 738.627,
+          "rssMiB": 183.6484375,
+          "output": [
+            "11109800204052"
+          ]
+        },
+        {
+          "trial": 1,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "reference",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "ms": 3398.103845,
+          "cpuMs": 3934.098,
+          "rssMiB": 180.890625,
+          "output": [
+            "11109800204052"
+          ]
+        },
+        {
+          "trial": 2,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "compiled",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "ms": 460.581539,
+          "cpuMs": 735.649,
+          "rssMiB": 184.85546875,
+          "output": [
+            "11109800204052"
+          ]
+        },
+        {
+          "trial": 2,
+          "file": "demos/euler/347_twoprimes.ra",
+          "mode": "reference",
+          "limit": "10000000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "ms": 3399.140315,
+          "cpuMs": 3923.684,
+          "rssMiB": 183.0703125,
+          "output": [
+            "11109800204052"
+          ]
+        }
+      ]
+    },
+    "verification": {
+      "mac": {
+        "comparisons": 6138,
+        "limits": 341,
+        "oracle": "integer factorization",
+        "max": 20000
+      },
+      "intel": {
+        "comparisons": 6138,
+        "limits": 341,
+        "oracle": "integer factorization",
+        "max": 20000
+      }
+    },
+    "tests": {
+      "interpreter": 4,
+      "cliSmallGroups": 2,
+      "cliDefaultGroups": 1,
+      "auditInfrastructure": 7,
+      "build": "langium generate and tsc -b tsconfig.build.json passed",
+      "fullAuditsRun": false
+    }
+  }
+}
