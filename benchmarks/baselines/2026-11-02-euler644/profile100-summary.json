@@ -1,0 +1,182 @@
+[
+  {
+    "function": "scanAxis",
+    "file": "reduction.js",
+    "samples": 207,
+    "percent": 11.135018827326519
+  },
+  {
+    "function": "",
+    "file": "",
+    "samples": 127,
+    "percent": 6.831629908552985
+  },
+  {
+    "function": "storedScalarKinds",
+    "file": "runtime/owned-array.js",
+    "samples": 111,
+    "percent": 5.970952124798279
+  },
+  {
+    "function": "compactBinary",
+    "file": "jit/integer-array-kernel.js",
+    "samples": 67,
+    "percent": 3.604088219472835
+  },
+  {
+    "function": "",
+    "file": "selectors.js",
+    "samples": 54,
+    "percent": 2.9047875201721354
+  },
+  {
+    "function": "gather",
+    "file": "selectors.js",
+    "samples": 51,
+    "percent": 2.743410435718128
+  },
+  {
+    "function": "(garbage collector)",
+    "file": "",
+    "samples": 50,
+    "percent": 2.6896180742334588
+  },
+  {
+    "function": "integerArray",
+    "file": "runtime/numeric-conversions.js",
+    "samples": 49,
+    "percent": 2.63582571274879
+  },
+  {
+    "function": "ownedArray",
+    "file": "runtime/owned-array.js",
+    "samples": 47,
+    "percent": 2.528240989779451
+  },
+  {
+    "function": "(program)",
+    "file": "",
+    "samples": 42,
+    "percent": 2.2592791823561056
+  },
+  {
+    "function": "evaluateBinaryValue",
+    "file": "operators.js",
+    "samples": 36,
+    "percent": 1.9365250134480905
+  },
+  {
+    "function": "orderRow",
+    "file": "runtime/axis-order.js",
+    "samples": 32,
+    "percent": 1.7213555675094137
+  },
+  {
+    "function": "sumIntegerAxis",
+    "file": "reduction.js",
+    "samples": 32,
+    "percent": 1.7213555675094137
+  },
+  {
+    "function": "compareKernel",
+    "file": "runtime/tensor.js",
+    "samples": 27,
+    "percent": 1.4523937600860677
+  },
+  {
+    "function": "mapStoredInt32Binary",
+    "file": "jit/integer-array-kernel.js",
+    "samples": 23,
+    "percent": 1.237224314147391
+  },
+  {
+    "function": "mapDenseArrays",
+    "file": "runtime/tensor.js",
+    "samples": 23,
+    "percent": 1.237224314147391
+  },
+  {
+    "function": "closure",
+    "file": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+    "samples": 22,
+    "percent": 1.183431952662722
+  },
+  {
+    "function": "add",
+    "file": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/dfa.js",
+    "samples": 21,
+    "percent": 1.1296395911780528
+  },
+  {
+    "function": "getConflictingAltSets",
+    "file": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+    "samples": 20,
+    "percent": 1.0758472296933836
+  },
+  {
+    "function": "integerValue",
+    "file": "runtime/numeric-conversions.js",
+    "samples": 20,
+    "percent": 1.0758472296933836
+  },
+  {
+    "function": "invoke",
+    "file": "jit/tensor-kernel.js",
+    "samples": 19,
+    "percent": 1.0220548682087143
+  },
+  {
+    "function": "copyStoredArrayBlocks",
+    "file": "runtime/array-copy.js",
+    "samples": 19,
+    "percent": 1.0220548682087143
+  },
+  {
+    "function": "execute",
+    "file": "jit/tensor-kernel.js",
+    "samples": 18,
+    "percent": 0.9682625067240452
+  },
+  {
+    "function": "sumIndexed",
+    "file": "modules/numbers.js",
+    "samples": 17,
+    "percent": 0.914470145239376
+  },
+  {
+    "function": "tensorSelection",
+    "file": "selectors.js",
+    "samples": 16,
+    "percent": 0.8606777837547068
+  },
+  {
+    "function": "read",
+    "file": "runtime/integer-view.js",
+    "samples": 16,
+    "percent": 0.8606777837547068
+  },
+  {
+    "function": "get",
+    "file": "runtime/owned-array.js",
+    "samples": 15,
+    "percent": 0.8068854222700377
+  },
+  {
+    "function": "compareStoredInt32",
+    "file": "jit/integer-array-kernel.js",
+    "samples": 14,
+    "percent": 0.7530930607853685
+  },
+  {
+    "function": "prepareStoredScalarView",
+    "file": "runtime/integer-view.js",
+    "samples": 13,
+    "percent": 0.6993006993006993
+  },
+  {
+    "function": "bindRun",
+    "file": "jit/tensor-kernel.js",
+    "samples": 12,
+    "percent": 0.6455083378160301
+  }
+]

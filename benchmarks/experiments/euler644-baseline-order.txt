@@ -1,0 +1,33 @@
+function orderRow(keys, n, down, a, b) {
+    for (let i = 0; i < n; i++)
+        a[i] = i;
+    // Insertion sort short runs, then merge them bottom-up.
+    const run = 8;
+    for (let lo = 0; lo < n; lo += run) {
+        const hi = Math.min(lo + run, n);
+        for (let i = lo + 1; i < hi; i++) {
+            const p = a[i], x = keys[p];
+            let j = i - 1;
+            if (down)
+                while (j >= lo && keys[a[j]] < x) {
+                    a[j + 1] = a[j];
+                    j--;
+                }
+            else
+                while (j >= lo && keys[a[j]] > x) {
+                    a[j + 1] = a[j];
+                    j--;
+                }
+            a[j + 1] = p;
+        }
+    }
+    let from = a, to = b;
+    for (let width = run; width < n; width *= 2) {
+        for (let lo = 0; lo < n; lo += 2 * width) {
+            const mid = Math.min(lo + width, n), hi = Math.min(lo + 2 * width, n);
+            mergeRuns(keys, from, to, lo, mid, hi, down);
+        }
+        [from, to] = [to, from];
+    }
+    return from;
+}

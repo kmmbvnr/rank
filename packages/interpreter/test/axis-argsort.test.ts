@@ -91,3 +91,10 @@ describe('argsort axis on numeric matrices', () => {
         expect(run(new Float64Array(0), [3, 0], 1, false)).toEqual([]);
     });
 });
+
+it('keeps equal keys stable at natural-run boundaries, infinities and signed zero', () => {
+    const cells = Float64Array.from([Infinity, 5, 4, 4, 3, 2, 1, 0, -0, 0, 1, 2, -Infinity]);
+    for (const down of [false, true]) {
+        expect(run(cells, [1, cells.length], 1, down)).toEqual(reference(cells, [1, cells.length], 1, down));
+    }
+});

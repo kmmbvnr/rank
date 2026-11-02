@@ -20,25 +20,32 @@ function mergeRuns(keys: Keys, from: Uint32Array, to: Uint32Array, lo: number, m
 /** Stable order of `keys[0..n)`; `a` and `b` are scratch of length n. */
 function orderRow(keys: Keys, n: number, down: boolean, a: Uint32Array, b: Uint32Array): Uint32Array {
     for (let i = 0; i < n; i++) a[i] = i;
-    // Insertion sort short runs, then merge them bottom-up.
-    const run = 8;
-    for (let lo = 0; lo < n; lo += run) {
-        const hi = Math.min(lo + run, n);
-        for (let i = lo + 1; i < hi; i++) {
-            const p = a[i], x = keys[p];
-            let j = i - 1;
-            if (down) while (j >= lo && keys[a[j]] < x) { a[j + 1] = a[j]; j--; }
-            else while (j >= lo && keys[a[j]] > x) { a[j + 1] = a[j]; j--; }
-            a[j + 1] = p;
+    // Reverse only strictly descending runs so equal keys keep their order.
+    const before = (x: number, y: number) => down ? keys[x] > keys[y] : keys[x] < keys[y];
+    let runs = [0];
+    for (let lo = 0; lo < n;) {
+        let hi = lo + 1;
+        if (hi < n && before(a[hi], a[lo])) {
+            while (hi < n && before(a[hi], a[hi - 1])) hi++;
+            for (let l = lo, r = hi - 1; l < r; l++, r--) {
+                const saved = a[l]; a[l] = a[r]; a[r] = saved;
+            }
+        } else {
+            while (hi < n && !before(a[hi], a[hi - 1])) hi++;
         }
+        runs.push(hi);
+        lo = hi;
     }
     let from = a, to = b;
-    for (let width = run; width < n; width *= 2) {
-        for (let lo = 0; lo < n; lo += 2 * width) {
-            const mid = Math.min(lo + width, n), hi = Math.min(lo + 2 * width, n);
+    while (runs.length > 2) {
+        const next = [0];
+        for (let i = 0; i < runs.length - 1; i += 2) {
+            const lo = runs[i], mid = runs[i + 1], hi = runs[i + 2] ?? mid;
             mergeRuns(keys, from, to, lo, mid, hi, down);
+            next.push(hi);
         }
         [from, to] = [to, from];
+        runs = next;
     }
     return from;
 }
@@ -178,11 +185,11 @@ export function scanInt64(value: RankArray): RankArray | undefined {
     return typedArray(out, value.shape);
 }
 
-/** Prefix `+`, `max` or `min` along an axis of stored Int32 cells. Axes up to
+/** Prefix `+`, `*`, `max` or `min` along an axis of stored Int32 cells. Axes up to
  * 2^21 cells have safe Number sums even for worst-case Int32 inputs. Longer
- * axes check each prefix before publishing; an unsafe sum leaves exact
+ * axes and all products check each prefix; an unsafe result leaves exact
  * traversal to the caller. Wider safe results become Int64, never reals. */
-export function scanInt32Axis(op: '+' | 'max' | 'min', value: RankArray, shape: readonly number[], axis: number): RankArray | undefined {
+export function scanInt32Axis(op: '+' | '*' | 'max' | 'min', value: RankArray, shape: readonly number[], axis: number): RankArray | undefined {
     const cells = integer32Cells(value);
     const length = shape[axis];
     if (!cells || value.columnNames || !privateLoopPolling()) return undefined;
@@ -205,11 +212,16 @@ export function scanInt32Axis(op: '+' | 'max' | 'min', value: RankArray, shape: 
                 if (length > 2 ** 21 && !Number.isSafeInteger(next)) return undefined;
                 out[i] = next;
             }
+            else if (op === '*') for (let i = at; i < end; i++) {
+                const next = out[i - inner] * cells[i];
+                if (!Number.isSafeInteger(next)) return undefined;
+                out[i] = next;
+            }
             else if (op === 'max') for (let i = at; i < end; i++) { const a = out[i - inner], b = cells[i]; out[i] = a > b ? a : b; }
             else for (let i = at; i < end; i++) { const a = out[i - inner], b = cells[i]; out[i] = a < b ? a : b; }
         }
     }
-    if (op === '+') for (let i = 0; i < out.length; i++) {
+    if (op === '+' || op === '*') for (let i = 0; i < out.length; i++) {
         const x = out[i];
         if (x > INT32_MAX || x < -INT32_MAX - 1) { wide = true; break; }
     }

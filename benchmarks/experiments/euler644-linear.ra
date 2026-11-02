@@ -1,0 +1,224 @@
+rem Squares on the Line
+rem https://projecteuler.net/problem=644
+
+use numbers
+use sequences
+use algo
+use bits
+use io
+use cli
+
+arg Lo integer = 200
+arg Hi integer = 500
+
+rem Pass 1: Grundy values g(L) of a
+rem segment, constant between lattice
+rem points a + b sqrt 2. For L inside
+rem one lattice gap, the moves leave
+rem u = L - 1 or L - sqrt 2; cutting
+rem [0, u] at the starts of the runs of
+rem g and at u minus them gives pieces
+rem with one g(x) xor g(u - x) each.
+Rt = 2.0 sqrt
+Lim = Hi + 2
+Ij = 0 to Lim
+Jm = Lim / Rt floor
+Jj = 0 to Jm
+Ir = Ij reshape (Lim + 1) 1
+Jr = Jj * Rt reshape 1 (Jm + 1)
+Gr = Ir + Jr
+Fg = Gr reshape ((Lim + 1) * (Jm + 1))
+Kp = Fg at most Lim indices
+Bp = Fg Kp sort
+Nb = Bp len
+St = array shape Nb fill 0.0
+Vs = array shape Nb fill 0
+S = 1
+Seen = array shape (8 * Nb) fill 0
+Ka = (Bp less Lo integer) sum
+Kz = (Bp less Hi integer) sum
+Nr = Kz - Ka + 1
+Q1 = array shape Nr fill 0.0
+Q2 = array shape Nr fill 0.0
+Q3 = array shape Nr fill 0.0
+Q4 = array shape Nr fill 0.0
+Q5 = array shape Nr fill 0.0
+Q6 = array shape Nr fill 0.0
+Q7 = array shape Nr fill 0.0
+Ep = 1.0 / 1000000000000.0
+Q8 = array shape Nr fill 0.0
+for Pass in 1 to 2
+  Start = 1
+  Stop = Nb - 2
+  if Pass equal 2
+    Start = Ka
+    Stop = Kz
+  end
+  for K in Start to Stop
+    Mid = (Bp K + Bp (K + 1)) / 2.0
+    M1 = 0.0
+    D1 = 0.0
+    M2 = 0.0
+    D2 = 0.0
+    for Move in 1 to 2
+      U = Mid - 1.0
+      if Move equal 2
+        U = Mid - Rt
+      end
+      if U at least 0.0
+        A = 0
+        B = S
+        for A less B
+          C = (A + B) // 2
+          if St C less U
+            A = C + 1
+          else
+            B = C
+          end
+        end
+        Last = A - 1 max 0
+        I = 1
+        J = Last
+        Ix = 0
+        Iy = Last
+        Left = 0.0
+        Velocity = 0.0
+        Measure = 0.0
+        Slope = 0.0
+        for Left less U
+          Forward = U
+          if I at most Last
+            Forward = St I
+          end
+          Reverse = U
+          if J at least 1
+            Reverse = U - St J
+          end
+          Right = U
+          V = 1.0
+          if Forward at most Reverse
+            if Forward less U
+              Right = Forward
+              V = 0.0
+              I += 1
+            end
+          else
+            Right = Reverse
+            J -= 1
+          end
+          if Right - Left greater Ep
+            X = (Left + Right) / 2.0
+            for Ix + 1 less S
+              if St (Ix + 1) greater X
+                break
+              end
+              Ix += 1
+            end
+            for Iy greater 0
+              if St Iy at most (U - X)
+                break
+              end
+              Iy -= 1
+            end
+            G = Vs Ix bxor Vs Iy
+            if Pass equal 1
+              Seen G = K + 1
+            else
+              if G equal 0
+                Measure += Right - Left
+                Slope += V - Velocity
+              end
+            end
+          end
+          Left = Right
+          Velocity = V
+        end
+        if Move equal 1
+          M1 = Measure
+          D1 = Slope
+        else
+          M2 = Measure
+          D2 = Slope
+        end
+      end
+    end
+    if Pass equal 1
+      G = 0
+      for Seen G equal (K + 1)
+        G += 1
+      end
+      if G not equal (Vs (S - 1))
+        St S = Bp K
+        Vs S = G
+        S += 1
+      end
+    else
+      Q1 (K - Ka) = M1
+      Q2 (K - Ka) = D1
+      Q3 (K - Ka) = M2
+      Q4 (K - Ka) = D2
+      Q5 (K - Ka) = Mid
+      Q6 (K - Ka) = Bp K max (Lo * 1.0)
+      Q7 (K - Ka) = Bp (K + 1)
+      Q7 (K - Ka) = Q7 (K - Ka) min (Hi * 1.0)
+      Pivot = Q6 (K - Ka)
+      C1 = M1 - D1 * (Mid - 1.0)
+      C2 = M2 - D2 * (Mid - Rt)
+      if C1 * C2 less 0.0
+        T = (0.0 - Rt * C2 / C1)
+        T = T ** (1.0 / 3.0)
+        if T not equal 1.0
+          Pivot = (Rt - T) / (1.0 - T)
+          Pivot = Pivot max (Q6 (K - Ka))
+          Pivot = Pivot min (Q7 (K - Ka))
+        end
+      end
+      Q8 (K - Ka) = Pivot
+    end
+  end
+end
+rem In each gap, e has the form
+rem L/2 (D + A/(L-1) + B/(L-Rt)).
+rem Its second derivative vanishes at
+rem most once. Split there, then find
+rem every sign-changing derivative root.
+C1 = Q1 - Q2 * (Q5 - 1.0)
+C2 = Q3 - Q4 * (Q5 - Rt)
+D = Q2 + Q4
+Ea = D + C1 / (Q6 - 1.0)
+Ea = Q6 / 2.0 * (Ea + C2 / (Q6 - Rt))
+Eb = D + C1 / (Q7 - 1.0)
+Eb = Q7 / 2.0 * (Eb + C2 / (Q7 - Rt))
+Best = (Ea max) max (Eb max)
+L = concat Q6 Q8
+H = concat Q8 Q7
+A = concat C1 C1
+B = concat C2 C2
+V = concat D D
+Fl = V - A / ((L - 1.0) ** 2)
+Fl -= Rt * B / ((L - Rt) ** 2)
+Fh = V - A / ((H - 1.0) ** 2)
+Fh -= Rt * B / ((H - Rt) ** 2)
+Roots = Fl * Fh less 0.0 indices
+if Roots len greater 0
+  Low = L Roots copy
+  High = H Roots copy
+  Sign = Fl Roots copy
+  Ac = A Roots copy
+  Bc = B Roots copy
+  Dc = V Roots copy
+  for It in 1 to 60
+    X = (Low + High) / 2.0
+    F = Dc - Ac / ((X - 1.0) ** 2)
+    F -= Rt * Bc / ((X - Rt) ** 2)
+    Same = Sign * F greater 0.0
+    Low = Same choose X Low
+    High = Same choose High X
+  end
+  X = (Low + High) / 2.0
+  E = Dc + Ac / (X - 1.0)
+  E = X / 2.0 * (E + Bc / (X - Rt))
+  Best = Best max (E max)
+end
+Answer = Best text ".8f"
+Answer print

@@ -1,0 +1,5 @@
+{
+  "status": "externally-stopped",
+  "answer": null,
+  "reason": "Stopped full scan-min follow-up after original completion; switched to repeated small-window controls and full linear-merge oracle. No timing or answer claimed for the interrupted run."
+}

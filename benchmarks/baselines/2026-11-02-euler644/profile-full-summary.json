@@ -1,0 +1,182 @@
+[
+  {
+    "function": "storedScalarKinds",
+    "file": "runtime/owned-array.js",
+    "samples": 19137,
+    "percent": 9.176744765941939
+  },
+  {
+    "function": "compareKernel",
+    "file": "runtime/tensor.js",
+    "samples": 15833,
+    "percent": 7.592381244665241
+  },
+  {
+    "function": "",
+    "file": "",
+    "samples": 15700,
+    "percent": 7.528603899529102
+  },
+  {
+    "function": "orderRow",
+    "file": "runtime/axis-order.js",
+    "samples": 13776,
+    "percent": 6.605990275153689
+  },
+  {
+    "function": "gather",
+    "file": "selectors.js",
+    "samples": 12585,
+    "percent": 6.034871342393233
+  },
+  {
+    "function": "mapDenseArrays",
+    "file": "runtime/tensor.js",
+    "samples": 11126,
+    "percent": 5.335238661538904
+  },
+  {
+    "function": "",
+    "file": "selectors.js",
+    "samples": 11032,
+    "percent": 5.290162943923889
+  },
+  {
+    "function": "compactBinary",
+    "file": "jit/integer-array-kernel.js",
+    "samples": 9505,
+    "percent": 4.557922297135295
+  },
+  {
+    "function": "integerArray",
+    "file": "runtime/numeric-conversions.js",
+    "samples": 8620,
+    "percent": 4.133539211079036
+  },
+  {
+    "function": "(garbage collector)",
+    "file": "",
+    "samples": 6443,
+    "percent": 3.0896047722717204
+  },
+  {
+    "function": "evaluateBinaryValue",
+    "file": "operators.js",
+    "samples": 5679,
+    "percent": 2.7232446844220237
+  },
+  {
+    "function": "prepareStoredScalarView",
+    "file": "runtime/integer-view.js",
+    "samples": 5471,
+    "percent": 2.623502670976033
+  },
+  {
+    "function": "integerValue",
+    "file": "runtime/numeric-conversions.js",
+    "samples": 5200,
+    "percent": 2.4935503361497666
+  },
+  {
+    "function": "compareStoredInt32",
+    "file": "jit/integer-array-kernel.js",
+    "samples": 4872,
+    "percent": 2.336264853408012
+  },
+  {
+    "function": "arrayElementTypes",
+    "file": "runtime/array-element-types.js",
+    "samples": 4613,
+    "percent": 2.212066865511322
+  },
+  {
+    "function": "mapStoredInt32Binary",
+    "file": "jit/integer-array-kernel.js",
+    "samples": 3948,
+    "percent": 1.8931801398306305
+  },
+  {
+    "function": "read",
+    "file": "runtime/integer-view.js",
+    "samples": 3903,
+    "percent": 1.871601338844719
+  },
+  {
+    "function": "(program)",
+    "file": "",
+    "samples": 3839,
+    "percent": 1.8409114885536448
+  },
+  {
+    "function": "ownedArray",
+    "file": "runtime/owned-array.js",
+    "samples": 3729,
+    "percent": 1.7881633083658615
+  },
+  {
+    "function": "scanInt32Axis",
+    "file": "runtime/axis-order.js",
+    "samples": 3513,
+    "percent": 1.6845850636334865
+  },
+  {
+    "function": "",
+    "file": "modules/core.js",
+    "samples": 2336,
+    "percent": 1.1201795356242028
+  },
+  {
+    "function": "reduce",
+    "file": "runtime/element-source.js",
+    "samples": 2297,
+    "percent": 1.1014779081030794
+  },
+  {
+    "function": "tensorSelection",
+    "file": "selectors.js",
+    "samples": 1942,
+    "percent": 0.9312451447697782
+  },
+  {
+    "function": "copyStoredArrayBlocks",
+    "file": "runtime/array-copy.js",
+    "samples": 1781,
+    "percent": 0.854040990131295
+  },
+  {
+    "function": "from",
+    "file": "runtime/boolean-cells.js",
+    "samples": 1669,
+    "percent": 0.8003337521219154
+  },
+  {
+    "function": "packedTruePositions",
+    "file": "runtime/packed-booleans.js",
+    "samples": 1591,
+    "percent": 0.762930497079669
+  },
+  {
+    "function": "mapStoredBitwise",
+    "file": "jit/integer-array-kernel.js",
+    "samples": 1494,
+    "percent": 0.7164161927322599
+  },
+  {
+    "function": "expandOperand",
+    "file": "runtime/tensor.js",
+    "samples": 1437,
+    "percent": 0.689083044816772
+  },
+  {
+    "function": "sumIntegerAxis",
+    "file": "reduction.js",
+    "samples": 1397,
+    "percent": 0.6699018883848508
+  },
+  {
+    "function": "realKernel",
+    "file": "runtime/tensor.js",
+    "samples": 1347,
+    "percent": 0.6459254428449491
+  }
+]

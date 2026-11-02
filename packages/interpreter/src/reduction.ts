@@ -397,7 +397,7 @@ export class ReductionEvaluator {
             }
             return ownedArray(out, outShape);
         }
-        const compact = nativeOperator === '+' || nativeOperator === 'max' || nativeOperator === 'min'
+        const compact = nativeOperator === '+' || nativeOperator === '*' || nativeOperator === 'max' || nativeOperator === 'min'
             ? scanInt32Axis(nativeOperator, value, shape, axis) ?? (nativeOperator === '+' && axis === 0 ? scanInt64(value) : undefined) : undefined;
         if (compact) return compact;
         const cells = eagerOperandItems(value)

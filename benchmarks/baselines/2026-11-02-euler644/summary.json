@@ -1,0 +1,13 @@
+{
+  "revision": "90a3e4f9",
+  "node": "v24.15.0",
+  "fullDefault": {
+    "Lo": 200,
+    "Hi": 500,
+    "answer": "20.11208767"
+  },
+  "fullRankSamplesAreDiagnostic": true,
+  "windowsVerified": 7,
+  "rankChecks": 42,
+  "naturalSortChecks": 64
+}

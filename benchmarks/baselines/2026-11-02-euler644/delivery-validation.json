@@ -1,0 +1,60 @@
+{
+  "base": "85215006",
+  "focusedTests": 274,
+  "focusedFiles": 9,
+  "scopedFixtureAudits": 2,
+  "executionExclusionTests": 3,
+  "typescriptBuild": "passed",
+  "applicationForms": "passed",
+  "semanticBoundaries": "passed",
+  "fullSuitesRun": false,
+  "exhaustiveAuditsRun": false,
+  "oracleWindows": [
+    [
+      2,
+      2
+    ],
+    [
+      4,
+      4
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      10,
+      20
+    ],
+    [
+      5,
+      25
+    ],
+    [
+      20,
+      40
+    ],
+    [
+      40,
+      70
+    ],
+    [
+      20,
+      100
+    ]
+  ],
+  "oracleModes": [
+    "compiled",
+    "reference"
+  ],
+  "sameInstanceRepeat": true,
+  "sourceSHA256": "3809e506060220c5d883c530ddca525a6a82db92e935370d18192da4721b4fe1",
+  "deliveryParent": "2d406976",
+  "postRebaseTests": 274,
+  "postRebaseScopedAudits": 2,
+  "postRebaseBuild": "passed"
+}

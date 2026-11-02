@@ -33,7 +33,6 @@ Bp = Fg Kp sort
 Nb = Bp len
 St = (0 to 0) * 1.0
 Vs = (0 to 0) * 0
-Gw = 1024
 Ep = 1.0 / 1000000000000.0
 for W in 1 to Lim
   K0 = (Bp less W integer) sum
@@ -48,6 +47,8 @@ for W in 1 to Lim
     Ok = Us at least 0.0 integer
     Ur = (Us max 0.0) reshape (2 * R) 1
     S = St len
+    rem XORs fit below this mex bound.
+    Gw = 2 * (Vs max + 1)
     Sr = St reshape 1 S
     Ca1 = Sr min Ur
     Cb1 = Ur - Sr max 0.0
@@ -82,7 +83,7 @@ for W in 1 to Lim
     Ix = Vf greater 0 indices
     Fl ((Ps reshape (4 * R * S)) Ix) = 1
     Bm = Fl reshape R Gw
-    Gk = Bm scan * axis 1 sum axis 1
+    Gk = Bm scan min axis 1 sum axis 1
     Lv = Vs (S - 1 to S - 1)
     Pg = concat Lv (Gk (0 to (R - 2)))
     Ch = Gk not equal Pg indices
@@ -99,13 +100,13 @@ rem gives its value and slope (an end
 rem moves with u when it is u or a
 rem u - start). Then e(L) = L / 2 (m(L
 rem - 1) / (L - 1) + m(L - sqrt 2) / (L
-rem - sqrt 2)) is sampled in each gap
-rem and the best gaps are refined.
-S = St len
-Sr = St reshape 1 S
+rem - sqrt 2)) is maximised over every
+rem gap using its stationary points.
+St = St copy
+Vs = Vs copy
+Runs = St len
 Ka = (Bp less Lo integer) sum
 Kz = (Bp less Hi integer) sum
-Fr = ((0 to 40) / 40.0) reshape 1 41
 Q1 = (0 to 0) * 0.0
 Q2 = Q1 * 1
 Q3 = Q1 * 1
@@ -113,7 +114,6 @@ Q4 = Q1 * 1
 Q5 = Q1 * 1
 Q6 = Q1 * 1
 Q7 = Q1 * 1
-Q8 = Q1 * 1
 Fst = 1
 for Kb in Ka to Kz by 64
   Ks = Kb till (Kb + 64 min (Kz + 1))
@@ -122,6 +122,9 @@ for Kb in Ka to Kz by 64
   Lm = (T0 + T1) / 2.0
   R = Ks len
   Us = concat (Lm - 1.0) (Lm - Rt)
+  rem Skip later runs for this block.
+  S = (St less (Us max) integer) sum
+  Sr = (St (0 till S) copy) reshape 1 S
   Ur = Us reshape (2 * R) 1
   Ia = Sr less Ur integer
   Ca1 = Sr min Ur
@@ -161,23 +164,6 @@ for Kb in Ka to Kz by 64
   S2 = Sl (R to (2 * R - 1))
   Aa = T0 max (Lo * 1.0)
   Bb = T1 min (Hi * 1.0)
-  Ac = Aa reshape R 1
-  Wd = Bb - Aa reshape R 1
-  Lg = Ac + Wd * Fr
-  Dl = Lg - (Lm reshape R 1)
-  C1 = M1 reshape R 1
-  D1 = S1 reshape R 1
-  C2 = M2 reshape R 1
-  D2 = S2 reshape R 1
-  Ma = C1 + D1 * Dl
-  Mb = C2 + D2 * Dl
-  Qa = Ma / (Lg - 1.0)
-  Qb = Mb / (Lg - Rt)
-  Ev = Lg / 2.0 * (Qa + Qb)
-  Ok = Bb greater Aa integer
-  Wv = Ok reshape R 1
-  Ev = Ev * Wv
-  Mx = Ev max axis 1
   if Fst equal 1
     Q1 = M1
     Q2 = S1
@@ -186,7 +172,6 @@ for Kb in Ka to Kz by 64
     Q5 = Lm
     Q6 = Aa
     Q7 = Bb
-    Q8 = Mx
     Fst = 0
   else
     Q1 = concat Q1 M1
@@ -196,38 +181,62 @@ for Kb in Ka to Kz by 64
     Q5 = concat Q5 Lm
     Q6 = concat Q6 Aa
     Q7 = concat Q7 Bb
-    Q8 = concat Q8 Mx
   end
 end
-Top = Q8 max
-Cn = (Q8 at least (Top - 0.05)) indices
-Ra = Q6 Cn
-Rb = Q7 Cn
-Rc = Q5 Cn
-R1 = Q1 Cn
-R2 = Q2 Cn
-R3 = Q3 Cn
-R4 = Q4 Cn
-Lx = Ra
-Hx = Rb
-for It in 1 to 80
-  Ma = Lx + (Hx - Lx) / 3.0
-  Mb = Hx - (Hx - Lx) / 3.0
-  Wa = (R1 + R2 * (Ma - Rc))
-  Wa = Wa / (Ma - 1.0)
-  Xa = (R3 + R4 * (Ma - Rc)) / (Ma - Rt)
-  E1 = Ma / 2.0 * (Wa + Xa)
-  Wb = (R1 + R2 * (Mb - Rc))
-  Wb = Wb / (Mb - 1.0)
-  Xb = (R3 + R4 * (Mb - Rc)) / (Mb - Rt)
-  E2 = Mb / 2.0 * (Wb + Xb)
-  Lx = E1 less E2 choose Ma Lx
-  Hx = E1 less E2 choose Hx Mb
+rem Split at the possible inflection.
+C1 = Q1 - Q2 * (Q5 - 1.0)
+C2 = Q3 - Q4 * (Q5 - Rt)
+Safe = C1 equal 0.0 choose 1.0 C1
+T = (Rt * C2 / Safe abs)
+T = T ** (1.0 / 3.0)
+Den = 1.0 - T
+Safe = Den equal 0.0 choose 1.0 Den
+Cut = (Rt - T) / Safe
+Turn = C1 * C2 less 0.0
+Turn = Turn and (Den not equal 0.0)
+Cut = Turn choose Cut Q6
+Q8 = Cut max Q6 min Q7
+rem In each gap, e has the form
+rem L/2 (D + A/(L-1) + B/(L-Rt)).
+rem Its second derivative vanishes at
+rem most once. Split there, then find
+rem roots where the derivative changes
+rem sign.
+D = Q2 + Q4
+Ea = D + C1 / (Q6 - 1.0)
+Ea = Q6 / 2.0 * (Ea + C2 / (Q6 - Rt))
+Eb = D + C1 / (Q7 - 1.0)
+Eb = Q7 / 2.0 * (Eb + C2 / (Q7 - Rt))
+Best = (Ea max) max (Eb max)
+L = concat Q6 Q8
+H = concat Q8 Q7
+A = concat C1 C1
+B = concat C2 C2
+V = concat D D
+DLeft = V - A / ((L - 1.0) ** 2)
+DLeft -= Rt * B / ((L - Rt) ** 2)
+DRight = V - A / ((H - 1.0) ** 2)
+DRight -= Rt * B / ((H - Rt) ** 2)
+Roots = DLeft * DRight less 0.0 indices
+if Roots len greater 0
+  Low = L Roots copy
+  High = H Roots copy
+  Sign = DLeft Roots copy
+  Ac = A Roots copy
+  Bc = B Roots copy
+  Dc = V Roots copy
+  for It in 1 to 60
+    X = (Low + High) / 2.0
+    F = Dc - Ac / ((X - 1.0) ** 2)
+    F -= Rt * Bc / ((X - Rt) ** 2)
+    Same = Sign * F greater 0.0
+    Low = Same choose X Low
+    High = Same choose High X
+  end
+  X = (Low + High) / 2.0
+  E = Dc + Ac / (X - 1.0)
+  E = X / 2.0 * (E + Bc / (X - Rt))
+  Best = Best max (E max)
 end
-Lf = (Lx + Hx) / 2.0
-Wf = (R1 + R2 * (Lf - Rc)) / (Lf - 1.0)
-Xf = (R3 + R4 * (Lf - Rc)) / (Lf - Rt)
-Ef = Lf / 2.0 * (Wf + Xf)
-Best = Ef max max Top
 Answer = Best text ".8f"
 Answer print
