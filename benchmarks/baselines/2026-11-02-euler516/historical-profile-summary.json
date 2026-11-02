@@ -1,0 +1,185 @@
+{
+  "sampledUs": 3469000,
+  "self": [
+    {
+      "function": "sortedIndex",
+      "file": "sorted-search.js",
+      "us": 811171,
+      "percent": 23.383424618045545
+    },
+    {
+      "function": "set",
+      "file": "owned-array.js",
+      "us": 470456,
+      "percent": 13.561718074373019
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "us": 444457,
+      "percent": 12.812251369270683
+    },
+    {
+      "function": "readArrayItem",
+      "file": "array-read.js",
+      "us": 250335,
+      "percent": 7.216344767944653
+    },
+    {
+      "function": "ownedArray",
+      "file": "owned-array.js",
+      "us": 202667,
+      "percent": 5.842231190544825
+    },
+    {
+      "function": "",
+      "file": "",
+      "us": 118127,
+      "percent": 3.40521764197175
+    },
+    {
+      "function": "mapStoredIntegers",
+      "file": "integer-array-kernel.js",
+      "us": 107420,
+      "percent": 3.0965696166042087
+    },
+    {
+      "function": "mapDenseArrays",
+      "file": "tensor.js",
+      "us": 85123,
+      "percent": 2.4538195445373305
+    },
+    {
+      "function": "evaluateBinaryValue",
+      "file": "operators.js",
+      "us": 78667,
+      "percent": 2.2677140386278465
+    },
+    {
+      "function": "arrayValues",
+      "file": "array-read.js",
+      "us": 72752,
+      "percent": 2.0972038051311617
+    },
+    {
+      "function": "(program)",
+      "file": "",
+      "us": 61458,
+      "percent": 1.7716344767944654
+    },
+    {
+      "function": "selectorIndices",
+      "file": "selectors.js",
+      "us": 59168,
+      "percent": 1.7056212164889017
+    },
+    {
+      "function": "",
+      "file": "rank-application.js",
+      "us": 40207,
+      "percent": 1.1590371865090805
+    },
+    {
+      "function": "collectArrayValues",
+      "file": "array-read.js",
+      "us": 37540,
+      "percent": 1.0821562409916403
+    },
+    {
+      "function": "isRankArray",
+      "file": "value.js",
+      "us": 36374,
+      "percent": 1.0485442490631305
+    },
+    {
+      "function": "",
+      "file": "array-read.js",
+      "us": 33876,
+      "percent": 0.9765350245027384
+    },
+    {
+      "function": "applyCell",
+      "file": "rank-application.js",
+      "us": 32623,
+      "percent": 0.9404151052176419
+    },
+    {
+      "function": "",
+      "file": "algo.js",
+      "us": 30168,
+      "percent": 0.8696454309599307
+    },
+    {
+      "function": "",
+      "file": "integer-view.js",
+      "us": 29875,
+      "percent": 0.8611991928509657
+    },
+    {
+      "function": "gather",
+      "file": "selectors.js",
+      "us": 28292,
+      "percent": 0.815566445661574
+    },
+    {
+      "function": "trueIndices",
+      "file": "sequences.js",
+      "us": 26791,
+      "percent": 0.7722974920726434
+    },
+    {
+      "function": "bindRun",
+      "file": "tensor-kernel.js",
+      "us": 26041,
+      "percent": 0.7506774286537907
+    },
+    {
+      "function": "",
+      "file": "selectors.js",
+      "us": 25373,
+      "percent": 0.7314211588353993
+    },
+    {
+      "function": "floorRemainder",
+      "file": "numeric-division.js",
+      "us": 23708,
+      "percent": 0.6834246180455462
+    },
+    {
+      "function": "post",
+      "file": "node:inspector",
+      "us": 21500,
+      "percent": 0.6197751513404439
+    },
+    {
+      "function": "floorDivide",
+      "file": "numeric-division.js",
+      "us": 18459,
+      "percent": 0.5321130008648025
+    },
+    {
+      "function": "itemAt",
+      "file": "derived-array.js",
+      "us": 17916,
+      "percent": 0.5164600749495531
+    },
+    {
+      "function": "checkCell",
+      "file": "derived-array.js",
+      "us": 16207,
+      "percent": 0.4671951571057942
+    },
+    {
+      "function": "fitsInt32",
+      "file": "owned-array.js",
+      "us": 15041,
+      "percent": 0.4335831651772845
+    },
+    {
+      "function": "from",
+      "file": "boolean-cells.js",
+      "us": 12417,
+      "percent": 0.35794176996252525
+    }
+  ]
+}

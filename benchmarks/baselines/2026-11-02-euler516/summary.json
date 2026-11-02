@@ -1,0 +1,130 @@
+[
+  {
+    "host": "mac",
+    "mode": "compiled",
+    "variant": "original",
+    "samples": 3,
+    "medianMs": 758.539333,
+    "medianRssMiB": 519.515625
+  },
+  {
+    "host": "mac",
+    "mode": "compiled",
+    "variant": "blocked",
+    "samples": 3,
+    "medianMs": 818.806208,
+    "medianRssMiB": 438.453125
+  },
+  {
+    "host": "mac",
+    "mode": "compiled",
+    "variant": "direct",
+    "samples": 3,
+    "medianMs": 608.575083,
+    "medianRssMiB": 538.625
+  },
+  {
+    "host": "mac",
+    "mode": "compiled",
+    "variant": "blocked-direct",
+    "samples": 3,
+    "medianMs": 645.3775410000001,
+    "medianRssMiB": 438.25
+  },
+  {
+    "host": "mac",
+    "mode": "reference",
+    "variant": "original",
+    "samples": 3,
+    "medianMs": 736.263375,
+    "medianRssMiB": 576.671875
+  },
+  {
+    "host": "mac",
+    "mode": "reference",
+    "variant": "blocked",
+    "samples": 3,
+    "medianMs": 735.059542,
+    "medianRssMiB": 435.78125
+  },
+  {
+    "host": "mac",
+    "mode": "reference",
+    "variant": "direct",
+    "samples": 3,
+    "medianMs": 590.6214170000001,
+    "medianRssMiB": 538.3125
+  },
+  {
+    "host": "mac",
+    "mode": "reference",
+    "variant": "blocked-direct",
+    "samples": 3,
+    "medianMs": 596.332584,
+    "medianRssMiB": 434.9375
+  },
+  {
+    "host": "intel",
+    "mode": "compiled",
+    "variant": "original",
+    "samples": 3,
+    "medianMs": 1821.931688,
+    "medianRssMiB": 418.66796875
+  },
+  {
+    "host": "intel",
+    "mode": "compiled",
+    "variant": "blocked",
+    "samples": 3,
+    "medianMs": 1999.685976,
+    "medianRssMiB": 385.69921875
+  },
+  {
+    "host": "intel",
+    "mode": "compiled",
+    "variant": "direct",
+    "samples": 3,
+    "medianMs": 1479.9639539999998,
+    "medianRssMiB": 406.0234375
+  },
+  {
+    "host": "intel",
+    "mode": "compiled",
+    "variant": "blocked-direct",
+    "samples": 3,
+    "medianMs": 1524.282477,
+    "medianRssMiB": 384.17578125
+  },
+  {
+    "host": "intel",
+    "mode": "reference",
+    "variant": "original",
+    "samples": 3,
+    "medianMs": 1704.9000979999998,
+    "medianRssMiB": 499.6875
+  },
+  {
+    "host": "intel",
+    "mode": "reference",
+    "variant": "blocked",
+    "samples": 3,
+    "medianMs": 1781.8958069999999,
+    "medianRssMiB": 387.45703125
+  },
+  {
+    "host": "intel",
+    "mode": "reference",
+    "variant": "direct",
+    "samples": 3,
+    "medianMs": 1396.678383,
+    "medianRssMiB": 404.81640625
+  },
+  {
+    "host": "intel",
+    "mode": "reference",
+    "variant": "blocked-direct",
+    "samples": 3,
+    "medianMs": 1423.5382369999998,
+    "medianRssMiB": 388.3359375
+  }
+]

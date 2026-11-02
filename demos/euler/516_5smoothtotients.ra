@@ -37,13 +37,15 @@ for P in Pr
 end
 Cs = concat (array 0) (H scan +)
 Cs = Cs copy
-X = L // Q
-A = (Cs (H upperindex X)) mod 2 ** 32
-rem Split q at 2^16 to keep the
-rem products below 2^63.
-Q1 = Q mod 65536
-Q2 = Q // 65536
-T = Q1 * A + (Q2 * A mod 65536) * 65536
-Answer = T mod 2 ** 32 sum
+rem Bound temporary arrays by block.
+Answer = 0
+for I in 0 to (Q len - 1) by 65536
+  J = (I + 65535) min (Q len - 1)
+  B = Q (I to J) copy
+  X = L // B
+  A = Cs (H upperindex X) mod 2 ** 32
+  T = B * A
+  Answer += T mod 2 ** 32 sum
+end
 Answer = Answer mod 2 ** 32
 Answer print

@@ -1,0 +1,185 @@
+{
+  "sampledUs": 748166,
+  "self": [
+    {
+      "function": "mapStoredInt32Binary",
+      "file": "integer-array-kernel.js",
+      "us": 233334,
+      "percent": 31.187463744676986
+    },
+    {
+      "function": "mapDenseArrays",
+      "file": "tensor.js",
+      "us": 76791,
+      "percent": 10.263898653507377
+    },
+    {
+      "function": "evaluateBinaryValue",
+      "file": "operators.js",
+      "us": 62707,
+      "percent": 8.381428720364196
+    },
+    {
+      "function": "ownedArray",
+      "file": "owned-array.js",
+      "us": 34041,
+      "percent": 4.549926085922109
+    },
+    {
+      "function": "constructor",
+      "file": "operators.js",
+      "us": 27584,
+      "percent": 3.686882322906949
+    },
+    {
+      "function": "search",
+      "file": "sorted-search.js",
+      "us": 27458,
+      "percent": 3.670041140602487
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "us": 26500,
+      "percent": 3.541994691017769
+    },
+    {
+      "function": "post",
+      "file": "node:inspector",
+      "us": 19750,
+      "percent": 2.639788496135884
+    },
+    {
+      "function": "",
+      "file": "selectors.js",
+      "us": 18293,
+      "percent": 2.445045618218417
+    },
+    {
+      "function": "from",
+      "file": "boolean-cells.js",
+      "us": 12458,
+      "percent": 1.66513848530941
+    },
+    {
+      "function": "gather",
+      "file": "selectors.js",
+      "us": 9249,
+      "percent": 1.2362229772537112
+    },
+    {
+      "function": "possiblePathsFrom",
+      "file": "interpreter.js",
+      "us": 8625,
+      "percent": 1.152819026793519
+    },
+    {
+      "function": "compactBinary",
+      "file": "integer-array-kernel.js",
+      "us": 8042,
+      "percent": 1.0748951435911283
+    },
+    {
+      "function": "getAlternativesForProd",
+      "file": "interpreter.js",
+      "us": 7792,
+      "percent": 1.0414800993362436
+    },
+    {
+      "function": "copyStoredArrayBlocks",
+      "file": "array-copy.js",
+      "us": 6292,
+      "percent": 0.8409898338069359
+    },
+    {
+      "function": "packedTruePositions",
+      "file": "packed-booleans.js",
+      "us": 6250,
+      "percent": 0.8353761063721152
+    },
+    {
+      "function": "mapBinary",
+      "file": "operators.js",
+      "us": 5959,
+      "percent": 0.7964809948594297
+    },
+    {
+      "function": "remainingPathWith",
+      "file": "interpreter.js",
+      "us": 5958,
+      "percent": 0.7963473346824101
+    },
+    {
+      "function": "(program)",
+      "file": "",
+      "us": 5166,
+      "percent": 0.6904884744829356
+    },
+    {
+      "function": "evaluateBinary",
+      "file": "operators.js",
+      "us": 5000,
+      "percent": 0.6683008850976923
+    },
+    {
+      "function": "",
+      "file": "operators.js",
+      "us": 4917,
+      "percent": 0.6572070904050705
+    },
+    {
+      "function": "",
+      "file": "expressions.js",
+      "us": 4125,
+      "percent": 0.5513482302055961
+    },
+    {
+      "function": "readArrayItem",
+      "file": "array-read.js",
+      "us": 4084,
+      "percent": 0.5458681629477949
+    },
+    {
+      "function": "addDFAState",
+      "file": "all-star-lookahead.js",
+      "us": 3667,
+      "percent": 0.4901318691306475
+    },
+    {
+      "function": "copyArray",
+      "file": "sequences.js",
+      "us": 3374,
+      "percent": 0.45096943726392275
+    },
+    {
+      "function": "trueIndices",
+      "file": "sequences.js",
+      "us": 3041,
+      "percent": 0.40646059831641645
+    },
+    {
+      "function": "modularPower",
+      "file": "primality.js",
+      "us": 2667,
+      "percent": 0.3564716921111091
+    },
+    {
+      "function": "",
+      "file": "rest.js",
+      "us": 2542,
+      "percent": 0.3397641699836667
+    },
+    {
+      "function": "",
+      "file": "gast_recorder.js",
+      "us": 2500,
+      "percent": 0.3341504425488461
+    },
+    {
+      "function": "",
+      "file": "helpers.js",
+      "us": 2500,
+      "percent": 0.3341504425488461
+    }
+  ]
+}

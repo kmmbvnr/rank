@@ -1,0 +1,30 @@
+[
+  {
+    "host": "mac",
+    "mode": "compiled",
+    "medianMs": 608.263667,
+    "medianRssMiB": 437.640625,
+    "sourceHash": "9520fd29127642d033927265759a0d477b66e035d192fbdb4cf502ace0c1d6a9"
+  },
+  {
+    "host": "mac",
+    "mode": "reference",
+    "medianMs": 586.329791,
+    "medianRssMiB": 435.875,
+    "sourceHash": "9520fd29127642d033927265759a0d477b66e035d192fbdb4cf502ace0c1d6a9"
+  },
+  {
+    "host": "intel",
+    "mode": "compiled",
+    "medianMs": 1486.669486,
+    "medianRssMiB": 383.30078125,
+    "sourceHash": "9520fd29127642d033927265759a0d477b66e035d192fbdb4cf502ace0c1d6a9"
+  },
+  {
+    "host": "intel",
+    "mode": "reference",
+    "medianMs": 1435.956371,
+    "medianRssMiB": 387.4609375,
+    "sourceHash": "9520fd29127642d033927265759a0d477b66e035d192fbdb4cf502ace0c1d6a9"
+  }
+]
