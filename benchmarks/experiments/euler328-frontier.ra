@@ -1,0 +1,159 @@
+rem Lowest-cost Search
+rem https://projecteuler.net/problem=328
+
+use io
+
+Answer = 200000 costs
+Answer print
+
+fun N costs
+  Dp = array shape (N + 1) fill 0
+  rem Only these right subtree sizes can occur in the candidate window.
+  Limit = N - 1 - (((4 * N) // 5 - 20) max 0)
+  Limit = Limit max 100
+  Heights = array shape (Limit + 1) fill 0
+  LongOffsets = array shape (Limit + 1) fill 0
+  ShortOffsets = array shape (Limit + 1) fill -1000000000000
+  Height = 0
+  Power = 1
+  for Power * 2 at most Limit
+    Power *= 2
+    Height += 1
+  end
+  rem A path with D paid guesses costs D * Base + its stored offset.
+  rem Retain the greatest offset at each depth, including shorter paths.
+  Offsets = array shape (Limit + 1) (Height + 1) fill -1000000000000
+  Offsets 0 0 = 0
+  Offsets 1 0 = 0
+  H = 1
+  P = 2
+  for Size in 2 to Limit
+    if Size at least P * 2
+      P *= 2
+      H += 1
+    end
+    Heights Size = H
+    L = 0
+    R = 0
+    if Size at least (P + P // 2)
+      L = P - 1
+      R = Size - 1 - L
+    else
+      R = P // 2 - 1
+      L = Size - 1 - R
+    end
+    for D in 0 till H
+      Left = (Offsets L D) + L + 1
+      Right = (Offsets R D) + (D + 1) * (L + 1)
+      Offsets Size (D + 1) = Left max Right
+    end
+    LongOffsets Size = Offsets Size H
+    ShortOffsets Size = Offsets Size (H - 1)
+  end
+  Ordered = true
+  for Size in 15 to Limit by 8
+    H = Heights Size
+    if H equal (Heights (Size - 8))
+      Now = (ShortOffsets Size) - H * Size
+      Prev = ShortOffsets (Size - 8)
+      Prev -= H * (Size - 8)
+      if Now greater Prev
+        Ordered = false
+      end
+    end
+  end
+  Frontier = array shape (Limit + 1) fill 0
+  Starts = array shape (Height + 1) fill 0
+  Stops = array shape (Height + 1) fill 0
+  Used = 0
+  Next = 7
+  Top = 0
+  Sum = 0
+  for I in 2 to N
+    Best = 1000000000000
+    Start = ((4 * I) // 5 - 20) max 0
+    Last = I - 1 - Start
+    if I at most 100 or not Ordered
+      First = 7
+      Step = 8
+      if I at most 100
+        First = 0
+        Step = 1
+      end
+      for Size in First to Last by Step
+        K = I - 1 - Size
+        H = Heights Size
+        Right = (LongOffsets Size)
+        Right += H * (K + 1)
+        if H greater 0
+          Short = (ShortOffsets Size)
+          Short += (H - 1) * (K + 1)
+          Right = Right max Short
+        end
+        Cost = K + 1 + ((Dp K) max Right)
+        Best = Best min Cost
+      end
+    else
+      for Next at most Last
+        H = Heights Next
+        if H not equal Top
+          Starts H = Used
+          Top = H
+        end
+        A = (LongOffsets Next)
+        A -= (H + 1) * Next
+        Pop = true
+        for Used greater (Starts H) and Pop
+          Size = Frontier (Used - 1)
+          Old = (LongOffsets Size)
+          Old -= (H + 1) * Size
+          if Old at least A
+            Used -= 1
+          else
+            Pop = false
+          end
+        end
+        Frontier Used = Next
+        Used += 1
+        Stops H = Used
+        Next += 8
+      end
+      for Level in 2 to Top
+        Low = Starts Level
+        High = Stops Level
+        for Low less High
+          Mid = (Low + High) // 2
+          Size = Frontier Mid
+          K = I - Size
+          A = (LongOffsets Size)
+          A += (Level + 1) * K
+          B = (ShortOffsets Size) + Level * K
+          Left = K + Dp (K - 1)
+          if A at least (B max Left)
+            High = Mid
+          else
+            Low = Mid + 1
+          end
+        end
+        First = (Low - 1) max (Starts Level)
+        LastIx = Low min ((Stops Level) - 1)
+        for Ix in First to LastIx
+          Size = Frontier Ix
+          K = I - Size
+          A = (LongOffsets Size)
+          A += (Level + 1) * K
+          B = (ShortOffsets Size) + Level * K
+          Left = K + Dp (K - 1)
+          Cost = A max B max Left
+          Best = Best min Cost
+        end
+      end
+    end
+    if Best less (Dp (I - 1))
+      Ordered = false
+    end
+    Dp I = Best
+    Sum += Best
+  end
+  return Sum
+end

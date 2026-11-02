@@ -42,8 +42,7 @@ export class BlockExecution implements BlockSteps {
 
     /** Executes statements under an existing execution context. */
     executeIn(statements: Statement[], context: ExecutionContext): Evaluation<RankValue | undefined> {
-        return this.execute(statements, context.assertBooleanExpressions, context.insideLoop, context.insideFinally,
-            context.insideGenerator, context.tailCallsAllowed, context.loopControl, context.functionControl);
+        return this.executeContext(statements, context);
     }
 
     /** Runs statements to completion; only a top-level program uses this. */
@@ -81,6 +80,12 @@ export class BlockExecution implements BlockSteps {
         const context: ExecutionContext = tailCallsAllowed
             ? { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, loopControl, functionControl }
             : { assertBooleanExpressions, insideLoop, insideFinally, insideGenerator, loopControl, functionControl, tailCallsAllowed: false };
+        return this.executeContext(statements, context);
+    }
+
+    private executeContext(
+        statements: Statement[], context: ExecutionContext,
+    ): Evaluation<RankValue | undefined> {
         const block = this.host.fastPaths.block(statements, this);
         if (block) return block(context);
         let result: RankValue | undefined;
@@ -103,7 +108,7 @@ export class BlockExecution implements BlockSteps {
                     if ('done' in task) result = task.value;
                     else return this.continueStatementStream(statements, index, context, task);
                 }
-                if (loopControl?.signal || functionControl?.returned) return completed(result);
+                if (context.loopControl?.signal || context.functionControl?.returned) return completed(result);
             }
         } catch (error) {
             throw this.host.locate(error, statements[index]);
@@ -116,14 +121,12 @@ export class BlockExecution implements BlockSteps {
     ): () => Evaluation<RankValue | undefined> {
         const block = this.host.fastPaths.block(statements, this);
         const tailCallsAllowed = iterable ? false : context.tailCallsAllowed !== false;
-        if (block) {
-            const bodyContext: ExecutionContext = tailCallsAllowed
-                ? { ...context, insideLoop: true, loopControl }
-                : { ...context, insideLoop: true, loopControl, tailCallsAllowed: false };
-            return () => block(bodyContext);
-        }
-        return () => this.execute(statements, context.assertBooleanExpressions,
-            true, context.insideFinally, context.insideGenerator, tailCallsAllowed, loopControl, context.functionControl);
+        // Only the jump carriers change during a traversal. Keep its context
+        // once instead of allocating another object on every reference iteration.
+        const bodyContext: ExecutionContext = tailCallsAllowed
+            ? { ...context, insideLoop: true, loopControl }
+            : { ...context, insideLoop: true, loopControl, tailCallsAllowed: false };
+        return block ? () => block(bodyContext) : () => this.executeContext(statements, bodyContext);
     }
 
     /** Resumes a compiled block after the step at `index` suspended. */
