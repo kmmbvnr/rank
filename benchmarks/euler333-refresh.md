@@ -97,6 +97,9 @@ package link resolving inside that snapshot.
   no CoW/unpacking and fewer than two million published typed cells.
 - Rank fixture passes; TypeScript project build and whitespace checks pass.
   Full suites and exhaustive corpus audits were not run.
+  The default retains its reference-budget exclusion; its reason now describes
+  12.6 million updates rather than the removed thirteen-table allocation.
+  All three execution-exclusion metadata checks pass.
 
 ```sh
 node benchmarks/euler333-refresh.mjs verify
