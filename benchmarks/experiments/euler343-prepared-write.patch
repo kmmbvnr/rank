@@ -1,6 +1,6 @@
 --- a/packages/interpreter/src/eval/assignments.ts
 +++ b/packages/interpreter/src/eval/assignments.ts
-@@ -109,16 +109,21 @@
+@@ -109,15 +109,20 @@
  /** Region operands are already lowered; reuse the ordinary write contract
   * without evaluating their syntax again or adding update-chain fusion. */
  export function prepareRegionArrayWrite(statement: ArrayAssignmentStatement, host: AssignmentContext) {
@@ -30,4 +30,3 @@
 +        } finally { active = previous; }
      };
  }
- 
