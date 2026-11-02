@@ -1,0 +1,59 @@
+rem Morphism (Морфизм)
+rem https://acmp.ru/index.asp?main=task&id_task=963
+rem Only the first 20 letters matter and
+rem f(prefix) is a prefix of f(word).
+rem So keep a table of the first 20
+rem letters of f^(2^i)(c) for every c
+rem and square it per bit of K.
+
+use io
+use text
+use cli
+use bits
+use sequences
+
+arg Input text = "3 1 5
+ABC
+ABC
+A
+BC"
+
+Lines = Input split "\r" join "" split "\n"
+Lines = Lines (Lines not equal "")
+Head = (Lines 0) split " " integer
+N = Head 0
+K = Head 1
+P = Head 2
+Pad = array shape 20 fill -1
+
+rem Apply a table to a word, keep 20.
+fun Tab step Word
+  Flat = (Tab Word) reshape #
+  Keep = Flat (Flat at least 0)
+  return Keep take 20
+end
+
+Word = (((Lines 1) bytes integer) - 65) take 20
+Tab = array shape N 20 fill -1
+for C in 0 till N
+  Img = (((Lines (C + 2)) bytes integer) - 65) take 20
+  Tab C = (concat Img Pad) take 20
+end
+
+for Bit in 0 till 30
+  if (K band (1 shl Bit)) greater 0
+    Word = Tab step Word
+  end
+  Next = Tab
+  for C in 0 till N
+    Row = Tab C
+    Next C = (concat (Tab step (Row (Row at least 0))) Pad) take 20
+  end
+  Tab = Next
+end
+
+Ans = "-"
+if P at most (Word len)
+  Ans = ((Word (P - 1)) + 65) character
+end
+Ans print
