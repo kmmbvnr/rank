@@ -30,6 +30,7 @@
         mode: "0755"
       loop:
         - "{{ docroot }}"
+        - /srv/rank-bench/public
         - "{{ webroot }}/.well-known/acme-challenge"
 
     - name: Sync built site
