@@ -1,0 +1,46 @@
+use bits
+use io
+use cli
+arg Limit integer = 20000000
+Limit solve print
+
+fun Limit solve
+  Mod = 100000000
+  Phi = array shape (Limit + 1) fill 0
+  for N in 0 to Limit
+    Phi N = N
+  end
+  Size = Limit // 2 + 2
+  Bit = array shape Size fill 0
+  if Limit greater 0
+    Phi 1 = 0
+  end
+  for N in 2 to Limit
+    if Phi N equal N
+      for J in N to Limit by N
+        Phi J -= Phi J // N
+      end
+    end
+    T = Phi N
+    V = 0
+    if N equal 6
+      V = 1
+    else
+      Q = T // 2
+      for Q greater 0
+        V += Bit Q
+        Q -= Q band (0 - Q)
+      end
+      V -= Phi T
+      V = V mod Mod
+    end
+    I = T // 2 + 1
+    for I less Size
+      Bit I += V
+      Bit I = Bit I mod Mod
+      I += I band (0 - I)
+    end
+    Phi N = (Phi (N - 1) + V) mod Mod
+  end
+  return Phi Limit
+end

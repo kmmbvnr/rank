@@ -1,0 +1,47 @@
+rem Totient Stairstep Sequences
+rem https://projecteuler.net/problem=337
+
+use bits
+use io
+use cli
+
+arg Limit integer = 20000000
+
+Mod = 100000000
+Phi = 0 to Limit array
+for P in 2 to Limit
+  if Phi P equal P
+    for J in P to Limit by P
+      Phi J -= Phi J // P
+    end
+  end
+end
+Bit = array shape (Limit + 2) fill 0
+if Limit greater 0
+  Phi 1 = 0
+end
+for N in 2 to Limit
+  T = Phi N
+  V = 0
+  if N equal 6
+    V = 1
+  else
+    Q = T
+    for Q greater 0
+      V += Bit Q
+      Q -= Q band (0 - Q)
+    end
+    V -= Phi T
+    V = V mod Mod
+  end
+  I = T + 1
+  for I at most Limit + 1
+    Bit I += V
+    if Bit I at least Mod
+      Bit I -= Mod
+    end
+    I += I band (0 - I)
+  end
+  Phi N = (Phi (N - 1) + V) mod Mod
+end
+Phi Limit print
