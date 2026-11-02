@@ -1,0 +1,63 @@
+rem Iguana (Игуана)
+rem https://acmp.ru/index.asp?main=task&id_task=920
+rem Chromatic number, N <= 18, by
+rem inclusion-exclusion over subsets:
+rem the sum over S of (-1)^(N-|S|) I(S)^k
+rem is positive iff k cages suffice,
+rem where I(S) counts independent subsets.
+
+use io
+use text
+use cli
+use bits
+use numbers
+use sequences
+
+arg Input text = "5
+0 1 1 1 1
+1 0 1 1 1
+1 1 0 1 1
+1 1 1 0 1
+1 1 1 1 0"
+
+Txt = Input split "\r" join " "
+Txt = Txt split "\n" join " "
+Tok = Txt split " "
+Tok = Tok (Tok not equal "")
+Nums = Tok integer
+N = Nums 0
+Cells = Nums (1 till (N * N + 1))
+Mat = Cells reshape N N
+Full = 1 shl N
+Sets = 0 till Full
+
+rem Independent sets, one top bit at a time.
+Ind = array shape Full fill 0
+Ind 0 = 1
+for I in 0 till N
+  Lo = 0 till (1 shl I)
+  Bits = 2 ** (0 till I)
+  Nb = ((Mat I) (0 till I) * Bits) sum
+  Free = ((Lo band Nb) equal 0) integer
+  Ind (Lo + (1 shl I)) = (Ind Lo) * Free
+end
+
+rem Zeta transform: independent subsets.
+Cnt = Ind
+for I in 0 till N
+  Bit = 1 shl I
+  Has = (Sets shr I) band 1
+  Cnt = Cnt + ((Cnt (Sets bxor Bit)) * Has)
+end
+
+Sign = 1 - (2 * ((N - (Sets popcount)) band 1))
+Pw = array shape Full fill 1
+Ans = N
+for K in 1 to N
+  Pw = Pw * Cnt
+  if ((Pw * Sign) sum) greater 0
+    Ans = K
+    break
+  end
+end
+Ans print

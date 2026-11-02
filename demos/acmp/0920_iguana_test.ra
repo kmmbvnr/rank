@@ -1,0 +1,75 @@
+use testing
+use text
+
+test "sample 1: complete graph K5 -> 5"
+  use "0920_iguana"
+  run
+
+  Ans equal 5
+end
+
+test "sample 2: single animal -> 1"
+  use "0920_iguana"
+  Input = "1
+0"
+  run
+
+  Ans equal 1
+end
+
+test "no conflicts -> 1 cage"
+  use "0920_iguana"
+  Input = "3
+0 0 0
+0 0 0
+0 0 0"
+  run
+
+  Ans equal 1
+end
+
+test "odd cycle C5 -> 3"
+  use "0920_iguana"
+  Input = "5
+0 1 0 0 1
+1 0 1 0 0
+0 1 0 1 0
+0 0 1 0 1
+1 0 0 1 0"
+  run
+
+  Ans equal 3
+end
+
+test "even cycle C4 -> 2"
+  use "0920_iguana"
+  Input = "4
+0 1 0 1
+1 0 1 0
+0 1 0 1
+1 0 1 0"
+  run
+
+  Ans equal 2
+end
+
+test "N = 18 complete graph -> 18"
+  use text
+  use "0920_iguana"
+  Rows = (array shape (18 * 18) fill 1)
+  Rows ((0 till 18) * 19) = 0
+  Input = "18 " + (Rows join " ")
+  run
+
+  Ans equal 18
+end
+
+test "N = 18 no conflicts -> 1"
+  use text
+  use "0920_iguana"
+  Rows = array shape (18 * 18) fill 0
+  Input = "18 " + (Rows join " ")
+  run
+
+  Ans equal 1
+end
