@@ -3,4 +3,24 @@ use testing
 test "small strong repunits"
   use "346_strongrepunits"
   50 strong equal 171
+  1000 strong equal 15864
+end
+
+test "strict strong repunit bounds"
+  use "346_strongrepunits"
+  0 strong equal 0
+  1 strong equal 0
+  2 strong equal 1
+  7 strong equal 1
+  8 strong equal 8
+end
+
+test "long and short repunit overlaps"
+  use "346_strongrepunits"
+  15 strong equal 21
+  16 strong equal 36
+  31 strong equal 57
+  32 strong equal 88
+  8191 strong equal 323083
+  8192 strong equal 331274
 end

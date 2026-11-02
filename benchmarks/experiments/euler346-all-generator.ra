@@ -1,0 +1,28 @@
+rem Strong Repunits
+use numbers
+use algo
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 12
+
+fun Limit longer
+  yield 1
+  for Base in 2 to (Limit - 1 isqrt)
+    Value = Base * Base + Base + 1
+    if Value at least Limit
+      break
+    end
+    for Value less Limit
+      yield Value
+      Value = Value * Base + 1
+    end
+  end
+end
+
+fun Limit strong
+  return Limit longer unique sum
+end
+
+Limit strong print
