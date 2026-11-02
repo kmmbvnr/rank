@@ -7,3 +7,11 @@ test "small constrained lists"
   10 100 3 constrained equal 1135
   10 100 1000 constrained equal 3286053
 end
+
+test "constrained boundaries"
+  use "350_constraining"
+  1 1 1000 constrained equal 1
+  10 10 1000 constrained equal 1
+  10 5 3 constrained equal 0
+  1 2 2 constrained equal 4
+end

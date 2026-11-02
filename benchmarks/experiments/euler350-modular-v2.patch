@@ -1,0 +1,29 @@
+--- a/out/jit/integer-loop-expressions.js
++++ b/out/jit/integer-loop-expressions.js
+@@ -443,0 +444,26 @@
++        }
++        if (numberMode && node.kind === 'binary' && node.operation.name === 'mod' && node.type === 'integer') {
++            let product = node.left;
++            while (product.kind === 'group') product = product.operand;
++            if (product.kind === 'binary' && product.operation.name === '*' && product.type === 'integer') {
++                const left = lower(product.left, lines);
++                if (!left || left.type !== 'integer') return undefined;
++                const a = `mul${state.serial++}`; lines.push(`const ${a} = ${left.code};`);
++                const right = lower(product.right, lines);
++                if (!right || right.type !== 'integer') return undefined;
++                const b = `mul${state.serial++}`; lines.push(`const ${b} = ${right.code};`);
++                const modulus = lower(node.right, lines);
++                if (!modulus || modulus.type !== 'integer') return undefined;
++                const m = `mod${state.serial++}`, x = `a${state.serial++}`, y = `b${state.serial++}`;
++                const q = `q${state.serial++}`, r = `rmod${state.serial++}`, result = `v${state.serial++}`;
++                const full = `full${state.serial++}`, rem = `rem${state.serial++}`;
++                lines.push(`const ${m} = ${modulus.code}, ${full} = ${a} * ${b}; let ${result};`);
++                lines.push(`if (Number.isSafeInteger(${full})) { if (${m} === 0) throw zero();`);
++                lines.push(`const ${rem} = ${full} >= 0 && ${full} < 4503599627370496 && ${m} > 0 ? ${full} - Math.floor(${full} / ${m}) * ${m} : ${full} % ${m};`);
++                lines.push(`${result} = ${rem} + ((${full} < 0) !== (${m} < 0) && ${rem} !== 0 ? ${m} : 0); } else {`);
++                lines.push(`if (!(${m} > 0 && ${m} <= 1073741824)) throw overflow;`);
++                lines.push(`const ${x} = ${a} >= 0 && ${a} < ${m} ? ${a} : ((${a} % ${m}) + ${m}) % ${m}, ${y} = ${b} >= 0 && ${b} < ${m} ? ${b} : ((${b} % ${m}) + ${m}) % ${m};`);
++                lines.push(`const ${q} = (${x} * ${y} / ${m}) | 0, ${r} = (Math.imul(${x}, ${y}) - Math.imul(${q}, ${m})) | 0;`);
++                lines.push(`${result} = ${r} < 0 ? ${r} + ${m} : ${r} >= ${m} ? ${r} - ${m} : ${r}; }`);
++                return { code: result, type: 'integer' };
++            }

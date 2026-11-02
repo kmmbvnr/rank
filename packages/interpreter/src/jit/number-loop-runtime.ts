@@ -1,4 +1,5 @@
 import { broadcastShape, arrayStrides } from './tensor-layout.js';
+import { multiply } from '../runtime/modular-power.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { textLength } from '../text-storage.js';
 import { expressionFacts, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
@@ -21,6 +22,15 @@ import { sliceArray as selectArraySlice } from '../selectors.js';
 type NumberCells = ArrayLike<number | bigint>;
 export const numberOverflow = {};
 const overflow = numberOverflow;
+/** Inputs are safe integers. Unsupported moduli replay with exact arithmetic. */
+function modularMultiply(a: number, b: number, modulus: number): number {
+    // Reuse the same exact domain and primitive as modular powers.
+    if (!(modulus > 0 && modulus <= 2 ** 30)) throw overflow;
+    const x = a >= 0 && a < modulus ? a : ((a % modulus) + modulus) % modulus;
+    const y = b >= 0 && b < modulus ? b : ((b % modulus) + modulus) % modulus;
+    return multiply(x, y, modulus);
+}
+
 const SMALL_COPY_CELLS = 64;
 const COPY_PROBE_CAP = 262144;
 
@@ -246,8 +256,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
-    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', code)(
-            safe, int32, overflow, () => new RankError('division by zero'),
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', code)(
+            modularMultiply, safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
             (name: string) => new RankError(`${name} expects a nonnegative integer count`),

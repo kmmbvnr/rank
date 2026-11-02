@@ -40,8 +40,6 @@
   "euler/338_gridpaper_default_test.ra": "Manual full-input reference assertion; the full compiled default is covered by euler338.test.ts, and small independent enumeration checks remain in the ordinary suites.",
   "euler/348_squarecube.ra": "Searches for all five full-size palindrome square/cube solutions.",
   "euler/348_squarecube_default_test.ra": "Manual full-input assertion for the default-scale workload; small assertions remain in 348_squarecube_test.ra.",
-  "euler/350_constraining.ra": "Sieves and combines divisors through 1000000 with modular powers.",
-  "euler/350_constraining_default_test.ra": "Manual full-input assertion for the default-scale workload; small assertions remain in 350_constraining_test.ra.",
   "euler/351_orchards.ra": "Runs recursive summatory-totient calculations at the default limit 100000000.",
   "euler/352_bloodtests.ra": "Runs nested pooling dynamic programs at size 10000 for 50 probabilities.",
   "euler/353_riskymoon.ra": "The reduced default search is practical when compiled; exact point-generation loops through radius 32767 exceed the uncompiled differential execution budget.",

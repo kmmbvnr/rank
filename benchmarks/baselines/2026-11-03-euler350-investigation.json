@@ -1,0 +1,1877 @@
+{
+  "baselineCommit": "2d406976",
+  "default": {
+    "G": 1000000,
+    "L": "1000000000000",
+    "N": "1000000000000000000",
+    "Mod": 104060401,
+    "answer": 84664213
+  },
+  "notes": [
+    "Fresh serial processes. Time includes parse/prepare/execute, excludes imports/startup. Whole-process peak RSS. External load uncontrolled.",
+    "Initial Mac series overlapped small verification work; use the later five-round compiled series for V2 comparisons. Earlier exploratory timings are not mixed with final series.",
+    "Raw worker field want denotes G, not a number of requested results.",
+    "V1 always uses limb multiplication; V2 first retains the safe Number product path. Full prototype selection also reduces Term before accumulation and guards factorsieve domain."
+  ],
+  "initialMac": [
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 261.44949999999994,
+      "cpuMs": 376.208,
+      "rssMiB": 186.5,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 244.21099999999998,
+      "cpuMs": 350.107,
+      "rssMiB": 185.265625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 244.856209,
+      "cpuMs": 356.576,
+      "rssMiB": 183.671875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 170.69095800000002,
+      "cpuMs": 274.202,
+      "rssMiB": 154.6875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 7154.720665999999,
+      "cpuMs": 7494.242,
+      "rssMiB": 290.828125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 7136.267458,
+      "cpuMs": 7033.087,
+      "rssMiB": 185.34375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 5501.232791,
+      "cpuMs": 5615.499,
+      "rssMiB": 186.28125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 261.187416,
+      "cpuMs": 374.206,
+      "rssMiB": 187.265625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 245.00999999999996,
+      "cpuMs": 351.405,
+      "rssMiB": 185.359375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 242.49620900000002,
+      "cpuMs": 349.055,
+      "rssMiB": 185.78125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 173.758875,
+      "cpuMs": 282.701,
+      "rssMiB": 155.671875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 9169.589042,
+      "cpuMs": 9328.322,
+      "rssMiB": 290.53125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 5331.87625,
+      "cpuMs": 5516,
+      "rssMiB": 185.15625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 7114.8114590000005,
+      "cpuMs": 7197.558,
+      "rssMiB": 185.609375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 285.721458,
+      "cpuMs": 415.208,
+      "rssMiB": 187.640625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 261.747708,
+      "cpuMs": 381.781,
+      "rssMiB": 183.890625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 272.592084,
+      "cpuMs": 391.976,
+      "rssMiB": 184.890625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 175.38112499999997,
+      "cpuMs": 278.881,
+      "rssMiB": 175.203125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 7191.257541999999,
+      "cpuMs": 7559.286,
+      "rssMiB": 292.21875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 6837.036375,
+      "cpuMs": 6950.888,
+      "rssMiB": 185.46875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 6035.125292,
+      "cpuMs": 5891.393,
+      "rssMiB": 170.28125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    }
+  ],
+  "initialIntel": [
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 801.263089,
+      "cpuMs": 1066.469,
+      "rssMiB": 173.26953125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 753.943806,
+      "cpuMs": 992.079,
+      "rssMiB": 170.55859375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 772.3728249999999,
+      "cpuMs": 1018.394,
+      "rssMiB": 169.09375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 479.74748199999993,
+      "cpuMs": 718.614,
+      "rssMiB": 153.3515625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 23133.857048,
+      "cpuMs": 24015.185,
+      "rssMiB": 274,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 16902.260649,
+      "cpuMs": 17290.651,
+      "rssMiB": 172.86328125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 17225.125491,
+      "cpuMs": 17638.989,
+      "rssMiB": 173.078125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 798.6453700000001,
+      "cpuMs": 1062.344,
+      "rssMiB": 173.84765625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 754.155577,
+      "cpuMs": 1012.029,
+      "rssMiB": 170.1484375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 780.202935,
+      "cpuMs": 1031.946,
+      "rssMiB": 169.265625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 478.341104,
+      "cpuMs": 735.749,
+      "rssMiB": 154.015625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 23922.881301,
+      "cpuMs": 24831.941,
+      "rssMiB": 273.1953125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 16975.949129,
+      "cpuMs": 17390.655,
+      "rssMiB": 173.94140625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 17940.692931,
+      "cpuMs": 18337.892,
+      "rssMiB": 173.17578125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 823.629164,
+      "cpuMs": 1076.367,
+      "rssMiB": 171.84375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 780.515067,
+      "cpuMs": 1037.76,
+      "rssMiB": 170.18359375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 744.7424330000001,
+      "cpuMs": 991.181,
+      "rssMiB": 170.40234375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 488.47921199999996,
+      "cpuMs": 771.268,
+      "rssMiB": 155.01953125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 22915.483937,
+      "cpuMs": 23755.068,
+      "rssMiB": 273.109375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/library.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 16796.1853,
+      "cpuMs": 17192.351,
+      "rssMiB": 172.40625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "library"
+    },
+    {
+      "file": "/tmp/rank350-research/reduced.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 17853.750831,
+      "cpuMs": 18261.727,
+      "rssMiB": 172.78125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "reduced"
+    }
+  ],
+  "v2Mac": [
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 379.233833,
+      "cpuMs": 534.004,
+      "rssMiB": 187.78125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 341.946208,
+      "cpuMs": 504.313,
+      "rssMiB": 171.6875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 6848.126875,
+      "cpuMs": 6607.241,
+      "rssMiB": 188.515625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 94.93662499999999,
+      "result": "8338",
+      "rssMiB": 139.515625,
+      "variant": "base",
+      "control": "small modulus"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 92.900083,
+      "result": "8338",
+      "rssMiB": 136.265625,
+      "variant": "modular-v2",
+      "control": "small modulus"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 250.714833,
+      "cpuMs": 361.887,
+      "rssMiB": 188.109375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 195.27425,
+      "cpuMs": 306.769,
+      "rssMiB": 169.859375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 5166.153834,
+      "cpuMs": 5351.884,
+      "rssMiB": 187.359375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 92.17487500000001,
+      "result": "8338",
+      "rssMiB": 139.5625,
+      "variant": "base",
+      "control": "small modulus"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 157.01954199999997,
+      "result": "8338",
+      "rssMiB": 136.9375,
+      "variant": "modular-v2",
+      "control": "small modulus"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 478.3332919999999,
+      "cpuMs": 642.108,
+      "rssMiB": 188.953125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 361.489542,
+      "cpuMs": 531.272,
+      "rssMiB": 170.234375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 6631.900167,
+      "cpuMs": 6610.802,
+      "rssMiB": 188.8125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 94.486167,
+      "result": "8338",
+      "rssMiB": 139.640625,
+      "variant": "base",
+      "control": "small modulus"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 91.25637499999999,
+      "result": "8338",
+      "rssMiB": 135.9375,
+      "variant": "modular-v2",
+      "control": "small modulus"
+    }
+  ],
+  "v2Intel": [
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 764.421257,
+      "cpuMs": 1030.714,
+      "rssMiB": 170.7890625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 520.9560769999999,
+      "cpuMs": 770.046,
+      "rssMiB": 164.97265625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 17298.245844,
+      "cpuMs": 17694.05,
+      "rssMiB": 175.2890625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 235.942795,
+      "result": "8338",
+      "rssMiB": 128.37109375,
+      "variant": "base",
+      "control": "small modulus"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 250.47900599999997,
+      "result": "8338",
+      "rssMiB": 128.375,
+      "variant": "modular-v2",
+      "control": "small modulus"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 777.6013340000001,
+      "cpuMs": 1037.622,
+      "rssMiB": 172.44921875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 525.48819,
+      "cpuMs": 787.108,
+      "rssMiB": 164.80859375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 17312.842643,
+      "cpuMs": 17727.416,
+      "rssMiB": 174.85546875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 256.833749,
+      "result": "8338",
+      "rssMiB": 126.234375,
+      "variant": "base",
+      "control": "small modulus"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 275.65701800000005,
+      "result": "8338",
+      "rssMiB": 124.66796875,
+      "variant": "modular-v2",
+      "control": "small modulus"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 878.461073,
+      "cpuMs": 1156.547,
+      "rssMiB": 173.30078125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 608.802049,
+      "cpuMs": 975.881,
+      "rssMiB": 162.890625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "reference",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 17032.263541,
+      "cpuMs": 17563.658,
+      "rssMiB": 175.453125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 246.29722699999996,
+      "result": "8338",
+      "rssMiB": 125.52734375,
+      "variant": "base",
+      "control": "small modulus"
+    },
+    {
+      "m": "10007",
+      "n": "1000000",
+      "ms": 242.45257900000001,
+      "result": "8338",
+      "rssMiB": 123.82421875,
+      "variant": "modular-v2",
+      "control": "small modulus"
+    }
+  ],
+  "compiledMac": [
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 477.242917,
+      "cpuMs": 639.151,
+      "rssMiB": 185.890625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 467.512375,
+      "cpuMs": 623.827,
+      "rssMiB": 188.8125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 347.15650000000005,
+      "cpuMs": 522.759,
+      "rssMiB": 172.296875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 481.7428330000001,
+      "cpuMs": 646.675,
+      "rssMiB": 185.96875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 277.000584,
+      "cpuMs": 402.924,
+      "rssMiB": 186.34375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 207.96349999999998,
+      "cpuMs": 331.821,
+      "rssMiB": 169.71875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 285.700208,
+      "cpuMs": 415.378,
+      "rssMiB": 188.0625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 278.489334,
+      "cpuMs": 397.416,
+      "rssMiB": 187.84375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 205.795333,
+      "cpuMs": 331.07,
+      "rssMiB": 173.828125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 280.48233300000004,
+      "cpuMs": 406.782,
+      "rssMiB": 187.109375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 277.40604199999996,
+      "cpuMs": 404.998,
+      "rssMiB": 186.046875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 215.053042,
+      "cpuMs": 342.713,
+      "rssMiB": 170.34375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 267.57620899999995,
+      "cpuMs": 383.109,
+      "rssMiB": 186.828125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 261.65091700000005,
+      "cpuMs": 377.521,
+      "rssMiB": 188.015625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "ms": 206.18645899999999,
+      "cpuMs": 325.111,
+      "rssMiB": 172.515625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    }
+  ],
+  "compiledIntel": [
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 817.8050499999999,
+      "cpuMs": 1079.946,
+      "rssMiB": 174.0078125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 798.0360579999999,
+      "cpuMs": 1053.904,
+      "rssMiB": 171.50390625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 546.3676909999999,
+      "cpuMs": 816.423,
+      "rssMiB": 162.32421875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 795.4541730000001,
+      "cpuMs": 1050.19,
+      "rssMiB": 172.859375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 771.598587,
+      "cpuMs": 1039.568,
+      "rssMiB": 174.8046875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 519.618256,
+      "cpuMs": 796.158,
+      "rssMiB": 162.67578125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 806.7431080000001,
+      "cpuMs": 1055.665,
+      "rssMiB": 171.83203125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 792.5549339999999,
+      "cpuMs": 1068.797,
+      "rssMiB": 173.21875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 521.017681,
+      "cpuMs": 809.929,
+      "rssMiB": 162.82421875,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 861.9363749999999,
+      "cpuMs": 1147.778,
+      "rssMiB": 173.3203125,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 818.78897,
+      "cpuMs": 1087.345,
+      "rssMiB": 172.234375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 523.9316289999999,
+      "cpuMs": 778.924,
+      "rssMiB": 164.18359375,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    },
+    {
+      "file": "/tmp/rank350-research/original.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 830.356348,
+      "cpuMs": 1099.188,
+      "rssMiB": 177.7890625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "original"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 818.42185,
+      "cpuMs": 1062.594,
+      "rssMiB": 172.5390625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "guarded"
+    },
+    {
+      "file": "/tmp/rank350-research/guarded-reduced.ra",
+      "mode": "compiled",
+      "want": "1000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "ms": 507.06837599999994,
+      "cpuMs": 767.683,
+      "rssMiB": 163.78515625,
+      "output": [
+        "84664213"
+      ],
+      "variant": "modular-v2"
+    }
+  ],
+  "diagnostics": {
+    "file": "/tmp/rank350-research/guarded-reduced.ra",
+    "mode": "compiled",
+    "want": "1000000",
+    "node": "v24.15.0",
+    "arch": "arm64",
+    "ms": 193.815208,
+    "cpuMs": 305.716,
+    "rssMiB": 172.75,
+    "output": [
+      "84664213"
+    ],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 2,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "integerKeyedFolds": 0,
+      "realKeyedFolds": 0,
+      "keyedNativeReaders": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 1,
+      "numberFunctions": 0,
+      "numberFunctionFallbacks": 0,
+      "numberFunctionSkips": 0,
+      "numberFunctionArrayBorrows": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 1,
+      "numberLoopReadBufferCells": 32,
+      "numberLoopReadBufferHits": 0,
+      "numberLoopBorrowedRealBuffers": 0,
+      "numberLoopBorrowedRealCells": 0,
+      "modularMatrixPowers": 0,
+      "compiledTensors": 0,
+      "packedBooleanGathers": 0,
+      "packedBooleanGatherCells": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 1,
+      "typedArrayPublishedCells": 1000001,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-function:unsupported-op:factorsieve": 1,
+        "scalar-expression:unsupported-op:**": 4,
+        "scalar-expression:too-small": 2,
+        "tensor:unsupported-type:array": 2,
+        "number-loop:unsafe-input": 1
+      },
+      "compilerRejections": [
+        {
+          "reason": "scalar-function:unsupported-op:factorsieve",
+          "node": "ApplicationExpression",
+          "function": "constrained",
+          "expression": "Top factorsieve",
+          "line": 19,
+          "column": 11
+        }
+      ]
+    }
+  },
+  "verification": {
+    "oracleCases": 315,
+    "comparisonsPerRuntimePerHost": 3150,
+    "modularCasesPerHost": 729,
+    "fallbackBoundaryCasesPerHost": 9,
+    "hosts": [
+      "Mac arm64",
+      "Intel x86_64"
+    ]
+  },
+  "delivery": {
+    "mac": [
+      {
+        "file": "benchmarks/experiments/euler350-original.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 257.54575000000006,
+        "cpuMs": 372.769,
+        "rssMiB": 186.71875,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "demos/euler/350_constraining.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 199.59554200000002,
+        "cpuMs": 310.447,
+        "rssMiB": 174.859375,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "benchmarks/experiments/euler350-original.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 7778.500041,
+        "cpuMs": 8097.773,
+        "rssMiB": 288.5625,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "demos/euler/350_constraining.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 6605.21325,
+        "cpuMs": 6526.285,
+        "rssMiB": 189.765625,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "benchmarks/experiments/euler350-original.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 263.762541,
+        "cpuMs": 381.933,
+        "rssMiB": 186.8125,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "demos/euler/350_constraining.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 201.68624999999997,
+        "cpuMs": 312.363,
+        "rssMiB": 176.015625,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "benchmarks/experiments/euler350-original.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 7836.174791,
+        "cpuMs": 8121.731,
+        "rssMiB": 291.859375,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "demos/euler/350_constraining.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 6579.908333,
+        "cpuMs": 6624.221,
+        "rssMiB": 187.1875,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "benchmarks/experiments/euler350-original.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 259.308417,
+        "cpuMs": 374.588,
+        "rssMiB": 187.609375,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "demos/euler/350_constraining.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 206.68220899999997,
+        "cpuMs": 322.416,
+        "rssMiB": 175.765625,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "benchmarks/experiments/euler350-original.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 6818.723708,
+        "cpuMs": 7161.195,
+        "rssMiB": 290.65625,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "demos/euler/350_constraining.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 7483.773959,
+        "cpuMs": 7553.285,
+        "rssMiB": 187.578125,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      }
+    ],
+    "intel": [
+      {
+        "file": "/tmp/rank350-research/original.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 793.716441,
+        "cpuMs": 1044.069,
+        "rssMiB": 172.20703125,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "/tmp/rank350-shipped/350_constraining.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 524.2484509999999,
+        "cpuMs": 770.102,
+        "rssMiB": 171.125,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "/tmp/rank350-research/original.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 23208.713125,
+        "cpuMs": 24024.366,
+        "rssMiB": 274.43359375,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "/tmp/rank350-shipped/350_constraining.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 17560.521067,
+        "cpuMs": 18004.985,
+        "rssMiB": 178.81640625,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "/tmp/rank350-research/original.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 814.8437139999999,
+        "cpuMs": 1093.323,
+        "rssMiB": 171.5859375,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "/tmp/rank350-shipped/350_constraining.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 527.345597,
+        "cpuMs": 788.749,
+        "rssMiB": 171.34765625,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "/tmp/rank350-research/original.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 23125.234655,
+        "cpuMs": 24002.558,
+        "rssMiB": 272.609375,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "/tmp/rank350-shipped/350_constraining.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 17385.584843,
+        "cpuMs": 17801.888,
+        "rssMiB": 174.8125,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "/tmp/rank350-research/original.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 831.668755,
+        "cpuMs": 1095.272,
+        "rssMiB": 172.5078125,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "/tmp/rank350-shipped/350_constraining.ra",
+        "mode": "compiled",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 545.228772,
+        "cpuMs": 822.104,
+        "rssMiB": 175.1015625,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "/tmp/rank350-research/original.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 22818.254803,
+        "cpuMs": 23691.989,
+        "rssMiB": 272.51171875,
+        "output": [
+          "84664213"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "/tmp/rank350-shipped/350_constraining.ra",
+        "mode": "reference",
+        "g": "1000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 17541.533230999998,
+        "cpuMs": 18024.517,
+        "rssMiB": 175.6953125,
+        "output": [
+          "84664213"
+        ],
+        "variant": "delivery"
+      }
+    ],
+    "verification": {
+      "comparisonsPerHost": 3780,
+      "modularCasesPerHost": 729,
+      "boundsPerHost": 12,
+      "focusedTests": 626,
+      "scopedTypeDifferential": 6,
+      "integratedFocusedTests": 741
+    },
+    "integratedBase": "7c08c400"
+  }
+}

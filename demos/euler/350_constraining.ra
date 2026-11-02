@@ -14,12 +14,18 @@ Mod = 101 ** 4
 fun G L N constrained
   Mod = 101 ** 4
   Top = L // G
-  Spf = array shape (Top + 1) fill 0
-  for P in 2 to Top
-    if Spf P equal 0
-      for V in P to Top by P
-        if Spf V equal 0
-          Spf V = P
+  Spf = array shape 0 fill 0
+  rem Retained factor table is bounded.
+  if Top at most 1048575
+    Spf = Top factorsieve
+  else
+    Spf = array shape (Top + 1) fill 0
+    for P in 2 to Top
+      if Spf P equal 0
+        for V in P to Top by P
+          if Spf V equal 0
+            Spf V = P
+          end
         end
       end
     end
@@ -45,7 +51,8 @@ fun G L N constrained
       H = H * Loc E mod Mod
     end
     W = L // M - G + 1
-    Sum += H * W
+    Term = H * W mod Mod
+    Sum += Term
     Sum = Sum mod Mod
   end
   return Sum

@@ -441,6 +441,30 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (!value || token === undefined) return undefined;
             return { code: token === '' ? value.code : node.type === 'integer' ? safe(`${token}(${value.code})`) : `${token}(${value.code})`, type: node.type };
         }
+        if (numberMode && node.kind === 'binary' && node.operation.name === 'mod' && node.type === 'integer') {
+            let product = node.left;
+            while (product.kind === 'group') product = product.operand;
+            if (product.kind === 'binary' && product.operation.name === '*' && product.type === 'integer') {
+                const left = lower(product.left, lines);
+                if (!left || left.type !== 'integer') return undefined;
+                const a = `mul${state.serial++}`; lines.push(`const ${a} = ${left.code};`);
+                const right = lower(product.right, lines);
+                if (!right || right.type !== 'integer') return undefined;
+                const b = `mul${state.serial++}`; lines.push(`const ${b} = ${right.code};`);
+                const modulus = lower(node.right, lines);
+                if (!modulus || modulus.type !== 'integer') return undefined;
+                const m = `mod${state.serial++}`, result = `v${state.serial++}`;
+                const full = `full${state.serial++}`, rem = `rem${state.serial++}`;
+                // Keep the ordinary cheap remainder when the product is safe.
+                // Only a wide intermediate needs exact modular multiplication.
+                lines.push(`const ${m} = ${modulus.code}, ${full} = ${a} * ${b}; let ${result};`);
+                lines.push(`if (Number.isSafeInteger(${full})) { if (${m} === 0) throw ${vectorCellDepth ? 'overflow' : 'zero()'};`);
+                lines.push(`const ${rem} = ${full} >= 0 && ${full} < 4503599627370496 && ${m} > 0 ? ${full} - Math.floor(${full} / ${m}) * ${m} : ${full} % ${m};`);
+                lines.push(`${result} = ${rem} + ((${full} < 0) !== (${m} < 0) && ${rem} !== 0 ? ${m} : 0);`);
+                lines.push(`} else { ${result} = mulmod(${a}, ${b}, ${m}); }`);
+                return { code: result, type: 'integer' };
+            }
+        }
         const left = lower(node.left, lines);
         const token = node.operation.binary;
         const guard = token === '&&' || token === '||';
