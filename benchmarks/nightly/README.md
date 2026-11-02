@@ -87,8 +87,10 @@ The summary stays global when the individual-demo table is filtered.
 A lightweight renderer runs every minute on CPU 0, independently of the
 measurement loop on CPU 2. It generates `dashboard.html` from the latest JSON;
 nginx prefers that file for `/bench/`. This allows report UI updates during a
-long pass without restarting measurements. Publication still happens through
-the existing minute-by-minute rsync heartbeat.
+long pass without restarting measurements. The renderer also publishes the
+dashboard every minute through `publish-report.sh`, including after the
+measurement process exits. The wrapper renders once more before its final
+publication so the completed pass is visible immediately.
 
 Install the cron file as root on jack; cron rejects files with another owner:
 

@@ -22,6 +22,7 @@ PUBLISH_PID=
 finish() {
   local code=$?
   trap - EXIT
+  flock -w 50 "$BASE/render.lock" timeout 30 node "$BASE/controller/render-latest.mjs" "$BASE/public" || true
   if [ -n "$PUBLISH_PID" ]; then kill "$PUBLISH_PID" 2>/dev/null || true; wait "$PUBLISH_PID" 2>/dev/null || true; fi
   python3 - "$BASE/public/job.json" "$code" <<'PY'
 import json,sys,datetime,os
@@ -51,7 +52,7 @@ if [ -f deploy/nightly-bench.cron ]; then
 fi
 # Keep the deployed harness until its version is available in origin/main.
 if [ -f benchmarks/nightly/run.mjs ]; then
-  cp benchmarks/nightly/{run.mjs,report.mjs,worker.mjs,render-latest.mjs} "$BASE/controller/"
+  cp benchmarks/nightly/{run.mjs,report.mjs,worker.mjs,render-latest.mjs,publish-report.sh} "$BASE/controller/"
 fi
 phase dependencies
 timeout 1200 npm ci --no-audit --no-fund

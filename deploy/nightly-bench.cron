@@ -4,4 +4,4 @@ PATH=/opt/rank-bench-node/bin:/usr/local/bin:/usr/bin:/bin
 # jack uses Asia/Almaty (UTC+05).
 0 3 * * * root /srv/rank-bench/controller/nightly.sh
 # Render independently so UI updates do not interrupt measurements.
-* * * * * root flock -n /srv/rank-bench/render.lock taskset -c 0 /opt/rank-bench-node/bin/node /srv/rank-bench/controller/render-latest.mjs /srv/rank-bench/public >> /srv/rank-bench/logs/render.log 2>&1
+* * * * * root flock -n /srv/rank-bench/render.lock taskset -c 0 /srv/rank-bench/controller/publish-report.sh >> /srv/rank-bench/logs/render.log 2>&1
