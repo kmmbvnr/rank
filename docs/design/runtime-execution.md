@@ -924,8 +924,10 @@ access in a callee is limited to one integer key and integer values; deque cells
 are integers. Set arguments support integer `add`, and standalone proved calls
 can carry recursive index/set updates without a lexical frame per call. Index
 compound assignments retain exact BigInt arithmetic. Full scalar array reads and cell writes, including supported
-compound operators, retain the proved element type and rank. Array `take`/`drop`
-and the standard `copy` operation reuse ordinary slicing and copying semantics.
+compound operators, retain the proved element type and rank. Array and text
+`take`/`drop` reuse ordinary slicing semantics, including Unicode code-point
+addressing and count errors for text. The standard `copy` operation reuses
+ordinary copying semantics.
 Typed array results can feed subsequent linked calls. Caller regions containing
 both indexed writes and array-returning calls remain conservative fallbacks.
 A loop's potentially empty body does not establish

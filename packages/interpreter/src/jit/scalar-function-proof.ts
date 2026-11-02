@@ -257,7 +257,8 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 }
                 if (loops && isCountClauseExpression(source)) {
                     const array = type(source.source, env);
-                    if (!array || typeof array === 'string' || isCompiledContainer(array)
+                    // The shared take/drop runtime also slices Unicode text.
+                    if (!array || typeof array === 'string' && array !== 'text' || isCompiledContainer(array)
                         || type(source.count, env) !== 'integer') return undefined;
                     return { type: array, input: { name: '', operation: source.operator,
                         indices: [expressions.get(source.source)!, expressions.get(source.count)!] } };

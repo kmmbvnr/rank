@@ -1,0 +1,61 @@
+rem Maximix Words
+rem https://projecteuler.net/problem=336
+
+use sequences
+use algo
+use io
+
+11 maximix 2011 print
+
+fun N maximix Rank
+  Text = "ABCDEFGHIJK" (0 till N)
+  Text = Text revsuffix (N - 2)
+  All = array Text
+  First = ""
+  Count = 0
+  for I in N - 3 to 0 by -1
+    rem All final children keep this head.
+    if I equal 0
+      for Letter in "ABCDEFGHIJK"
+        Count = 0
+        for Word in All
+          if Word (N - 1) equal Letter
+            Count += N - 2
+          end
+        end
+        if Rank at most Count
+          First = Letter
+          break
+        end
+        Rank -= Count
+      end
+    end
+    Size = All len * (N - I - 2)
+    if I equal 0
+      Size = Count
+    end
+    Next = array shape Size fill ""
+    Pos = 0
+    for Word in All
+      if I equal 0
+        if Word (N - 1) not equal First
+          continue
+        end
+      end
+      After = Word revsuffix I
+      for P in I + 1 till (N - 1)
+        Next Pos = After revsuffix P
+        Pos += 1
+      end
+    end
+    All = Next
+  end
+  All = All sort
+  return All (Rank - 1)
+end
+
+fun Text revsuffix I
+  Front = Text take I
+  Back = (Text drop I) reverse
+  return Front + Back
+end

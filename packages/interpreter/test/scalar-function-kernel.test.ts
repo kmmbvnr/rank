@@ -26,6 +26,41 @@ function compare(source: string, module?: string) {
 }
 
 describe('compiled scalar function bodies', () => {
+    it('compiles text take/drop with code-point bounds and ordinary errors', () => {
+        for (const text of ['', 'ABCDE', 'A😀éZ', '\ud800X\udfff']) {
+            for (const count of [-1n, 0n, 1n, 2n, 5n, 99n, 9007199254740993n]) {
+                for (const operation of ['take', 'drop']) {
+                    const result = compare(`fun Text helper N
+  return Text ${operation} N
+end
+"${text}" helper ${count}`);
+                    expect(result.calls).toBe(1);
+                    if (count >= 0n) {
+                        const points = [...text], n = Math.min(Number(count), points.length);
+                        expect(result.value).toBe((operation === 'take' ? points.slice(0, n) : points.slice(n)).join(''));
+                    } else expect(result.error).toContain('expects a nonnegative integer count');
+                }
+            }
+        }
+    });
+
+    it('links Unicode text slicing and reverse in a loop caller', () => {
+        expect(compare(`use sequences
+fun Text revsuffix N
+  Front = Text take N
+  Back = (Text drop N) reverse
+  return Front + Back
+end
+fun Text helper
+  Result = ""
+  for N in 0 to Text len
+    Result += Text revsuffix N
+  end
+  return Result
+end
+"A😀é" helper`)).toMatchObject({ value: '́e😀AÁe😀A😀́eA😀éA😀é', calls: 6 });
+    });
+
     it('compiles integer-to-text pipelines and preserves Unicode text operations', () => {
         expect(compare(`use sequences
 fun X palindrome

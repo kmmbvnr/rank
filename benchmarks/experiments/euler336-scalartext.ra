@@ -1,0 +1,37 @@
+rem Maximix Arrangements
+rem https://projecteuler.net/problem=336
+
+use sequences
+use algo
+use io
+
+11 maximix 2011 print
+
+fun N maximix Rank
+  Text = "ABCDEFGHIJK" (0 till N)
+  Text = Text revsuffix (N - 2)
+  All = array Text
+  for I in N - 3 to 0 by -1
+    Next = new queue
+    for Arrangement in All
+      After = Arrangement revsuffix I
+      for P in I + 1 till (N - 1)
+        Next push (After revsuffix P)
+      end
+    end
+    All = Next array
+  end
+  All = All sort
+  return All (Rank - 1)
+end
+
+fun Text revsuffix I
+  Result = ""
+  for J in 0 till I
+    Result += Text J
+  end
+  for J in Text len - 1 to I by -1
+    Result += Text J
+  end
+  return Result
+end

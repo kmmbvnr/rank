@@ -1,0 +1,53 @@
+rem Maximix Arrangements
+rem https://projecteuler.net/problem=336
+
+use sequences
+use algo
+use io
+
+11 maximix 2011 print
+
+fun N maximix Rank
+  Text = "ABCDEFGHIJK" (0 till N)
+  Text = Text revsuffix (N - 2)
+  All = array Text
+  First = ""
+  for I in N - 3 to 0 by -1
+    if I equal 0
+      for Letter in "ABCDEFGHIJK"
+        Count = 0
+        for Arrangement in All
+          if Arrangement (N - 1) equal Letter
+            Count += N - 2
+          end
+        end
+        if Rank at most Count
+          First = Letter
+          break
+        end
+        Rank -= Count
+      end
+    end
+    Next = new queue
+    for Arrangement in All
+      if I equal 0
+        if Arrangement (N - 1) not equal First
+          continue
+        end
+      end
+      After = Arrangement revsuffix I
+      for P in I + 1 till (N - 1)
+        Next push (After revsuffix P)
+      end
+    end
+    All = Next array
+  end
+  All = All sort
+  return All (Rank - 1)
+end
+
+fun Text revsuffix I
+  Front = Text take I
+  Back = (Text drop I) reverse
+  return Front + Back
+end
