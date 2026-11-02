@@ -61,3 +61,11 @@ describe.each([false, true])('Euler 343 bulk factorization (compilation=%s)', co
         } finally { runtime.dispose(); }
     });
 });
+
+it('preserves the full Euler 343 checksum with compiled slice writes', () => {
+    const runtime = createRuntime(true);
+    try {
+        runtime.execute(source);
+        expect(runtime.variables.get('Answer')).toBe(269533451410884183n);
+    } finally { runtime.dispose(); }
+}, 15_000);

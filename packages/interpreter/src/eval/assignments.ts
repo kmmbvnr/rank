@@ -109,16 +109,23 @@ export function prepareUnpackStatement(statement: UnpackStatement, host: Assignm
 /** Region operands are already lowered; reuse the ordinary write contract
  * without evaluating their syntax again or adding update-chain fusion. */
 export function prepareRegionArrayWrite(statement: ArrayAssignmentStatement, host: AssignmentContext) {
+    // Nested host callbacks may enter this same write site again. Each
+    // invocation restores its operands, including on failure or cancellation.
+    let active: { selectors: RankValue[]; rhs: () => RankValue } | undefined;
+    const value = { $type: 'NameExpression', name: '__regionValue' } as Expression;
+    const prepared = prepareArrayAssignment({ ...statement, value }, {
+        ...host, compileDirect: () => undefined,
+        evaluate: () => completed(active!.rhs()),
+        evaluateAddressParts: address => completed([active!.selectors[statement.indices.indexOf(address)]]),
+    });
     return (selectors: RankValue[], rhs: () => RankValue) => {
-        const value = { $type: 'NameExpression', name: '__regionValue' } as Expression;
-        const prepared = prepareArrayAssignment({ ...statement, value }, {
-            ...host, compileDirect: () => undefined,
-            evaluate: () => completed(rhs()),
-            evaluateAddressParts: address => completed([selectors[statement.indices.indexOf(address)]]),
-        });
-        const context = { assertBooleanExpressions: false, insideLoop: true, insideFinally: false, insideGenerator: false };
-        const result = 'stream' in prepared ? runExecution(prepared.stream(context)) : prepared.run(context);
-        return { result, target: host.resolveVariable(statement.name) };
+        const previous = active;
+        active = { selectors, rhs };
+        try {
+            const context = { assertBooleanExpressions: false, insideLoop: true, insideFinally: false, insideGenerator: false };
+            const result = 'stream' in prepared ? runExecution(prepared.stream(context)) : prepared.run(context);
+            return { result, target: host.resolveVariable(statement.name) };
+        } finally { active = previous; }
     };
 }
 

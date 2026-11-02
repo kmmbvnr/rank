@@ -1,0 +1,510 @@
+{
+  "commit": "5e8babc3",
+  "node": "24.15.0",
+  "limit": 2000000,
+  "golden": "269533451410884183",
+  "samples": {
+    "mac": [
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 958.331542,
+        "cpuMs": 1541.332,
+        "rssMiB": 511.25,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 0
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 790.8641250000001,
+        "cpuMs": 1156.238,
+        "rssMiB": 414.375,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/343-combined.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 746.55525,
+        "cpuMs": 1103.379,
+        "rssMiB": 408.1875,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/343-scalar-linear.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 791.2930829999999,
+        "cpuMs": 1050.804,
+        "rssMiB": 269.5625,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 0
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 976.5528750000001,
+        "cpuMs": 1569.33,
+        "rssMiB": 511.71875,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 1
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 789.644583,
+        "cpuMs": 1162.571,
+        "rssMiB": 413.46875,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/343-combined.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 757.838083,
+        "cpuMs": 1121.944,
+        "rssMiB": 410.875,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/343-scalar-linear.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 803.689709,
+        "cpuMs": 1063.949,
+        "rssMiB": 269.3125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 1
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 992.854583,
+        "cpuMs": 1604.376,
+        "rssMiB": 532.734375,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 2
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 799.077583,
+        "cpuMs": 1193.76,
+        "rssMiB": 410.75,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/343-combined.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 779.467583,
+        "cpuMs": 1159.295,
+        "rssMiB": 410.515625,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/343-scalar-linear.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 812.524958,
+        "cpuMs": 1077.517,
+        "rssMiB": 271.203125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 2
+      }
+    ],
+    "intel": [
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2761.951569,
+        "rssMiB": 495.73828125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 0
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2249.8954839999997,
+        "rssMiB": 345.1640625,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/343-combined.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2054.441272,
+        "rssMiB": 391.3203125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/343-scalar-linear.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 1783.616022,
+        "rssMiB": 257.765625,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 0
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2958.9436060000003,
+        "rssMiB": 488.0625,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 1
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2116.131322,
+        "rssMiB": 346.11328125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/343-combined.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2079.5312299999996,
+        "rssMiB": 390.52734375,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/343-scalar-linear.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 1764.1242270000002,
+        "rssMiB": 256.79296875,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 1
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2853.801067,
+        "rssMiB": 491.234375,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 2
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2157.597491,
+        "rssMiB": 346.265625,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/343-combined.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2015.0923280000002,
+        "rssMiB": 390.80078125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "cached",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/343-scalar-linear.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 1850.891454,
+        "rssMiB": 258.6953125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "kernel": "baseline",
+        "trial": 2
+      }
+    ]
+  },
+  "reference": {
+    "mac": {
+      "file": "original",
+      "mode": "reference",
+      "limit": "2000000",
+      "ms": 28088.764750000002,
+      "cpuMs": 30669.229,
+      "rssMiB": 696.59375,
+      "outputs": [
+        "269533451410884183"
+      ]
+    },
+    "intel": {
+      "file": "original",
+      "mode": "reference",
+      "limit": "2000000",
+      "ms": 75601.91406099999,
+      "rssMiB": 504.80078125,
+      "outputs": [
+        "269533451410884183"
+      ]
+    }
+  },
+  "oracle": {
+    "checks": 600,
+    "oracle": "trial division of k^3+1, every prefix 1..100",
+    "variants": [
+      "demos/euler/343_fractional.ra",
+      "benchmarks/343-combined.ra",
+      "benchmarks/343-scalar-linear.ra"
+    ],
+    "compilation": [
+      false,
+      true
+    ]
+  },
+  "intelHardware": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           39 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  12\nOn-line CPU(s) list:                     0-11\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz\nCPU family:                              6\nModel:                                   165\nThread(s) per core:                      2\nCore(s) per socket:                      6\nSocket(s):                               1\nStepping:                                2\nCPU(s) scaling MHz:                      30%\n",
+  "tests": {
+    "focused": 103,
+    "writes": 115
+  },
+  "note": "Fresh processes, three alternating serial rounds per host; background load uncontrolled. RSS is whole-process peak. Research only, compiler patch in isolation.",
+  "independentFullOracle": {
+    "script": "benchmarks/quadratic-factors-oracle.py",
+    "limit": 2000000,
+    "answer": "269533451410884183",
+    "seconds": 2.243803209
+  },
+  "delivery": {
+    "mac": [
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 995.864791,
+        "cpuMs": 1588.86,
+        "rssMiB": 511.859375,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 884.1502079999999,
+        "cpuMs": 1359.106,
+        "rssMiB": 400.78125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 1010.1005419999999,
+        "cpuMs": 1636.486,
+        "rssMiB": 528.921875,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 824.903167,
+        "cpuMs": 1243.16,
+        "rssMiB": 404.265625,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 988.447417,
+        "cpuMs": 1591.93,
+        "rssMiB": 511.9375,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "original",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 793.168584,
+        "cpuMs": 1172.279,
+        "rssMiB": 412.28125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "delivery"
+      }
+    ],
+    "intel": [
+      {
+        "file": "/tmp/rank343-final/original.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 3073.731062,
+        "cpuMs": 4599.923,
+        "rssMiB": 503.55859375,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "/tmp/rank343-final/original.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2300.951304,
+        "cpuMs": 3337.573,
+        "rssMiB": 345.73828125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "/tmp/rank343-final/original.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 3178.184156,
+        "cpuMs": 4960.59,
+        "rssMiB": 493.3203125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "/tmp/rank343-final/original.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2324.228351,
+        "cpuMs": 3354.372,
+        "rssMiB": 346.8828125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "delivery"
+      },
+      {
+        "file": "/tmp/rank343-final/original.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 3179.365202,
+        "cpuMs": 5008.75,
+        "rssMiB": 507.86328125,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "baseline"
+      },
+      {
+        "file": "/tmp/rank343-final/original.ra",
+        "mode": "compiled",
+        "limit": "2000000",
+        "ms": 2251.251099,
+        "cpuMs": 3270.463,
+        "rssMiB": 345.84765625,
+        "outputs": [
+          "269533451410884183"
+        ],
+        "variant": "delivery"
+      }
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+import{readFileSync}from'node:fs';import assert from'node:assert/strict';const{Interpreter}=await import(process.env.RANK343_RUNTIME || new URL('../packages/interpreter/out/index.js',import.meta.url).href);
+const lpf=n=>{let largest=1;for(let p=2;p*p<=n;p++)while(n%p===0){largest=p;n/=p}return Math.max(largest,n)};
+let checks=0;const variants=['demos/euler/343_fractional.ra','benchmarks/experiments/euler343-combined.ra','benchmarks/experiments/euler343-scalar-linear.ra'];
+for(const compilation of [false,true])for(const file of variants){let sum=0n;const r=new Interpreter(()=>{},{compilation});try{const src=readFileSync(file,'utf8').replace('arg Limit integer = 2000000','');for(let n=1;n<=100;n++){sum+=BigInt(lpf(n*n*n+1)-1);r.execute(`Limit = ${n}\n${src}`);assert.equal(r.variables.get('Answer'),sum,`${file} ${compilation} ${n}`);checks++}}finally{r.dispose()}}
+console.log(JSON.stringify({checks,oracle:'trial division of k^3+1, every prefix 1..100',variants,compilation:[false,true]}));
