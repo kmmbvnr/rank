@@ -142,10 +142,12 @@ example, tower-loop counters, gather-fusion counters and four live-slice return
 cases. The tower, gather and slice behavior was reproduced in the saved
 pre-change runtime. Thus focused validation passes; the broad run is not green.
 
-Euler 379 exposes a separate copy-admission cliff above 262144 destination
+Euler 379 exposed a separate copy-admission cliff above 262144 destination
 cells: disabling the cap in an experimental loader produces the full exact
 answer 132314136838185 in 7.450 s, whereas the capped full run was stopped.
 Raising the cap indiscriminately can regress short loops. A proposed proof of
 nested work did not pass admission tests and is excluded from this delivery.
 `PROBE_CAP=unbounded` is only an experiment. Production copy policy is unchanged.
-Euler 370/379/386/388 are not marked complete by these measurements.
+Euler 370/379/386/388 were not marked complete by those measurements. The later
+guarded nested-pass implementation fixes Euler 379 without lifting the cap;
+see [its follow-up report](euler379-investigation.md) for tests and measurements.

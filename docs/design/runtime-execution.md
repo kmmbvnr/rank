@@ -789,6 +789,15 @@ It stops at a non-range statement or a bound changed by a preceding pass; branch
 early exits, calls, array-cell bounds and unknown lengths do not qualify.
 This proves enough work before copying without changing the probe cap.
 
+Packed integer-vector loops can also amortize large copies with complete nested
+range passes. The compiler inspects at most the first and last trusted vector
+cells, tracking pure scalar assignments and known branches. It uses the last
+iteration only when no break or return can skip it, and excludes bounds changed
+elsewhere in the region. Calls, opaque reads, shortened inner passes and iterator
+storage shared with a destination do not supply this proof. Unknown work retains
+the existing cap; the 64-cell sentinel allowance and exact replay still apply.
+Euler 379 exercises both forward and reverse prime-vector sieves with this path.
+
 Stored-vector traversal captures its invocation-owned buffer once and maintains
 an independent numeric cursor/ordinal; assignments to visible loop variables do
 not change traversal. The plan distinguishes this case from opaque iterators.

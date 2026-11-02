@@ -2,6 +2,12 @@ use testing
 
 test "least common multiple count"
   use "379_lcmcount"
+  Limit = 0
+  run
+  Answer equal 0
+  Limit = 1
+  run
+  Answer equal 1
   Limit = 10
   run
   Answer equal 29

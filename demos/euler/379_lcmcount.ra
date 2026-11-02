@@ -80,5 +80,8 @@ for P in Pr reverse
     end
   end
 end
-Answer = (Hi 1 + Limit + 1) // 2
+Answer = Limit
+if Limit greater 1
+  Answer = (Hi 1 + Limit + 1) // 2
+end
 Answer print

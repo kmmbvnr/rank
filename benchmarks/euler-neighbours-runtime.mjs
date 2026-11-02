@@ -7,6 +7,11 @@ registerHooks({load(url, context, next) {
     const result = next(url,context);
     if (!url.endsWith('.js') || !url.includes('/out/')) return result;
     let source = String(result.source);
+    if(disabled('vector-work')&&url.endsWith('/jit/number-loop-runtime.js')) {
+        const needle='const vectorEntryWork = prepareVectorEntryWork(plan, host);';
+        if(!source.includes(needle))throw Error('vector work control mismatch');
+        source=source.replace(needle,'const vectorEntryWork = undefined;');
+    }
     if(process.env.PROBE_CAP==='unbounded'&&url.endsWith('/jit/number-loop-runtime.js')) {
         const needle='conditionWriteCells > COPY_PROBE_CAP || !feedback';
         if(!source.includes(needle))throw Error('copy cap probe mismatch');

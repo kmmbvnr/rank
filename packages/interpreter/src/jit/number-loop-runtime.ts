@@ -3,6 +3,7 @@ import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { textLength } from '../text-storage.js';
 import { expressionFacts, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
 import { prepareLoopEntryWork } from './loop-entry-work.js';
+import { prepareVectorEntryWork } from './vector-entry-work.js';
 import { loopTraversal } from '../loop-traversal.js';
 import { argumentSelectionError, MissingValueError, RankError } from '../errors.js';
 import { completed } from '../execution.js';
@@ -306,6 +307,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     const readBuffers = new WeakMap<RankArray, { revision: number; type: LoopTerm['type']; cells: Float64Array }>();
     const traversal = plan.iteration && loopTraversal(plan.iteration);
     const entryWork = prepareLoopEntryWork(plan, host);
+    const vectorEntryWork = prepareVectorEntryWork(plan, host);
     // A nested region can do much more work than its root range length (for
     // example a three-row stencil or a long stack-processing pass). Retain
     // its existing admission until the estimate accounts for nested work.
@@ -394,6 +396,12 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             const count = entryWork(input);
             if (count >= conditionWriteCells || conditionWriteCells > COPY_PROBE_CAP
                 && count > 0 && conditionWriteCells - count <= SMALL_COPY_CELLS) conditionWriteCells = 0;
+        }
+        // A short prime/table vector may contain complete nested passes that
+        // pay for the destination snapshots. Unknown work retains the cap.
+        if (conditionWriteCells > COPY_PROBE_CAP && vectorEntryWork) {
+            const target = conditionWriteCells - SMALL_COPY_CELLS;
+            if (vectorEntryWork(input, target) >= target) conditionWriteCells = 0;
         }
         // Copy-cost heuristic, not a Number precision limit: <=64 cells keep
         // the small-store fast path; larger stores get a bounded first probe.
