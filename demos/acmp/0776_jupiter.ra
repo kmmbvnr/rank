@@ -1,0 +1,104 @@
+rem Jupiter (Юпитер)
+rem https://acmp.ru/index.asp?main=task&id_task=776
+rem BFS over (flights used, cell).
+rem A flight along one line is a slice:
+rem cost = distance + climb to the
+rem highest cell passed, then descent.
+
+use io
+use numbers
+use text
+use cli
+use algo
+use sequences
+
+arg Input text = "5 4
+5 3
+1 6
+2 1 4 2 1
+1 2 4 2 1
+4 4 6 2 1
+2 2 2 2 1"
+
+Txt = Input split "\r" join " "
+Txt = Txt split "\n" join " "
+Tok = Txt split " "
+Tok = Tok (Tok not equal "")
+
+N = (Tok 0) integer
+M = (Tok 1) integer
+X = (Tok 2) integer
+Y = (Tok 3) integer
+K = (Tok 4) integer
+D = (Tok 5) integer
+Size = N * M
+Hs = (Tok (6 till (6 + Size))) integer
+Goal = (Y - 1) * N + X - 1
+
+Dist = array shape ((K + 1) * Size) fill -1
+Dist 0 = 0
+rem Fewest flights used per cell: a
+rem later state with more flights
+rem is never better, so skip it.
+Best = array shape Size fill (K + 1)
+Best 0 = 0
+Q = new queue
+Q push 0
+Dirs = array 1 -1 N (0 - N)
+
+for Q len greater 0
+  if (Best Goal) at most K
+    break
+  end
+  S = Q pop
+  Used = S // Size
+  Base = Used * Size
+  P = S - Base
+  R = P // N
+  C = P mod N
+  Raw = array (N - 1 - C) C (M - 1 - R) R
+  Lim = Raw min D
+  for I in 0 till 4
+    V = Dirs I
+    if (Raw I) greater 0
+      W = P + V
+      Dh = ((Hs W) - (Hs P)) abs
+      Go = (Hs W) greater 0
+      Go = Go and (Dh at most 1)
+      if Go and (Best W) greater Used
+        Best W = Used
+        Dist (Base + W) = (Dist S) + 1
+        Q push (Base + W)
+      end
+    end
+    L = Lim I
+    if Used less K and L greater 0
+      Ds = 1 till (L + 1)
+      Cells = P + (V * Ds)
+      Hc = Hs Cells
+      Run = concat (array (Hs P)) Hc
+      Top = (Run scan max) (0 till L)
+      Mx = Top max Hc
+      Dz = (2 * Mx) - (Hs P) - Hc
+      Near = (Ds + Dz) at most D
+      Land = Hc greater 0
+      Free = (Best Cells) greater (Used + 1)
+      Ok = Near and Land and Free
+      for W2 in Cells Ok
+        Best W2 = Used + 1
+        Id = Base + Size + W2
+        Dist Id = (Dist S) + 1
+        Q push Id
+      end
+    end
+  end
+end
+
+
+Ends = Dist (((0 till (K + 1)) * Size) + Goal)
+Ends = Ends (Ends at least 0)
+Ans = "IMPOSSIBLE"
+if Ends len greater 0
+  Ans = Ends min text
+end
+Ans print

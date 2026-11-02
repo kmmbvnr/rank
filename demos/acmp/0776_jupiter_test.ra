@@ -1,0 +1,115 @@
+use testing
+
+test "sample 1 -> 5"
+  use "0776_jupiter"
+  run
+
+  Ans equal "5"
+end
+
+test "sample 2 -> 3"
+  use "0776_jupiter"
+  Input = "4 4
+4 2
+1 3
+2 0 0 3
+3 0 4 3
+4 0 5 2
+4 5 5 1"
+  run
+
+  Ans equal "3"
+end
+
+test "sample 3 -> IMPOSSIBLE"
+  use "0776_jupiter"
+  Input = "3 3
+3 3
+10 10
+1 0 0
+1 0 0
+0 1 1"
+  run
+
+  Ans equal "IMPOSSIBLE"
+end
+
+test "start is the goal -> 0"
+  use "0776_jupiter"
+  Input = "1 1
+1 1
+0 0
+5"
+  run
+
+  Ans equal "0"
+end
+
+test "no flights: walk around lava"
+  use "0776_jupiter"
+  Input = "3 3
+3 3
+0 0
+1 1 1
+0 0 1
+1 1 1"
+  run
+
+  Ans equal "4"
+end
+
+test "height jump of 2 needs a flight"
+  use "0776_jupiter"
+  Input = "2 1
+2 1
+1 3
+1 3"
+  run
+
+  Ans equal "1"
+end
+
+test "flight too short"
+  use "0776_jupiter"
+  Input = "2 1
+2 1
+1 2
+1 4"
+  run
+
+  Ans equal "IMPOSSIBLE"
+end
+
+test "fly over lava in a column"
+  use "0776_jupiter"
+  Input = "1 3
+1 3
+1 5
+1
+0
+1"
+  run
+
+  Ans equal "1"
+end
+
+test "max grid with flights is fast"
+  use text
+  use "0776_jupiter"
+  Cells = ((0 till 10000) mod 3) + 1
+  Input = "100 100 100 100 10 100 " + (Cells join " ")
+  run
+
+  Ans not equal "IMPOSSIBLE"
+end
+
+test "max grid, lava goal: full search"
+  use text
+  use "0776_jupiter"
+  Cells = ((0 till 10000) mod 3) + 1
+  Cells 9999 = 0
+  Input = "100 100 100 100 10 100 " + (Cells join " ")
+  run
+
+  Ans equal "IMPOSSIBLE"
+end
