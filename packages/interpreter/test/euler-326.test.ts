@@ -36,8 +36,20 @@ describe('Euler 326 dense residue counters', () => {
                             .toBe(brutePairs(n, m));
                     }
                 }
+                // Modulus one makes every nonempty interval a match.
+                for (const n of [9007199254740993n, 10n ** 30n]) {
+                    expect(runtime.execute(`${n} pairs 1`)).toBe(n * (n + 1n) / 2n);
+                }
             } finally { runtime.dispose(); }
         });
+
+    it('retains the full exact answer', () => {
+        const runtime = new Interpreter(() => {});
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(1966666166408794329n);
+        } finally { runtime.dispose(); }
+    });
 
     it('replays both counter arrays exactly when a scalar accumulator overflows', () => {
         const program = `Seen = array shape 4096 fill 0
