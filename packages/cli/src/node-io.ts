@@ -101,6 +101,7 @@ export class NodeInput implements RankInput {
     private readonly buffer = Buffer.allocUnsafe(64 * 1024);
     private offset = 0;
     private length = 0;
+    private readonly readWait = new Int32Array(new SharedArrayBuffer(4));
 
     readToken(): string | undefined {
         let byte = this.readByte();
@@ -117,7 +118,16 @@ export class NodeInput implements RankInput {
 
     private readByte(): number | undefined {
         if (this.offset === this.length) {
-            this.length = fs.readSync(0, this.buffer, 0, this.buffer.length, null);
+            for (;;) {
+                try {
+                    this.length = fs.readSync(0, this.buffer, 0, this.buffer.length, null);
+                    break;
+                } catch (error) {
+                    if ((error as NodeJS.ErrnoException).code !== 'EAGAIN') throw error;
+                    // A nonblocking inherited stdin may not have input yet.
+                    Atomics.wait(this.readWait, 0, 0, 10);
+                }
+            }
             this.offset = 0;
             if (this.length === 0) return undefined;
         }
