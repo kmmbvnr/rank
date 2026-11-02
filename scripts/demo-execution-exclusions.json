@@ -94,7 +94,6 @@
   "euler/110_reciprocals2_default_test.ra": "Default Target=4000000 expands prime-exponent candidate tensors and exceeds 30 seconds before output; smaller targets remain in 110_reciprocals2_test.ra.",
   "euler/362_squarefree.ra": "Full input visits 9.37 million memoized factor states and exceeds the 30 s audit budget even with compiled recursion (#380). Run benchmarks/recursive-search.mjs manually; the small _test.ra fixture stays in the audits.",
   "euler/370_triangles.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
-  "euler/372_pencils.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/373_circles.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/378_triangles.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/379_lcmcount.ra": "The default input takes about 15 s compiled after #386; the small _test.ra fixture stays in the audits.",

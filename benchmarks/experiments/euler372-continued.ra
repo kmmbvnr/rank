@@ -1,0 +1,76 @@
+rem Pencils of Rays
+rem https://projecteuler.net/problem=372
+
+use numbers
+use io
+use cli
+
+arg Low integer = 2000000
+arg High integer = 1000000000
+
+Answer = Low pencils High
+Answer print
+
+fun Low pencils High
+  L = Low + 1
+  K = (High * High) // (L * L)
+  if K mod 2 equal 0
+    K -= 1
+  end
+  Total = 0
+  for I in 1 to K by 2
+    Total += L High (I + 1) below
+    Total -= L High I below
+  end
+  return Total
+end
+
+fun L U K below
+  Side = U - L + 1
+  B = 0
+  Part = 0
+  if K equal 1
+    return Side * (Side - 1) // 2
+  end
+  R = K isqrt
+  if R * R equal K
+    B = U // R
+    if B less L
+      return Side * Side
+    end
+    B = B min U
+    Cnt = B - L + 1
+    Sum = (L + B) * Cnt // 2
+    Part = R * Sum - L * Cnt
+  else
+    B = ((U * U - 1) // K) isqrt
+    if B less L
+      return Side * Side
+    end
+    B = B min U
+    Cnt = B - L + 1
+    Sum = K R B surdsum
+    Sum -= K R (L - 1) surdsum
+    Part = Sum - (L - 1) * Cnt
+  end
+  return Part + (U - B) * Side
+end
+
+fun K Root N surdsum
+  A = 0
+  C = 1
+  Sign = 1
+  Total = 0
+  for N greater 0
+    Q = (A + Root) // C
+    Base = Q * N * (N + 1) // 2
+    A -= Q * C
+    M = (A * N + (N * N * K isqrt)) // C
+    Total += Sign * (Base + N * M)
+    C = (K - A * A) // C
+    A = -A
+    N = M
+    Sign = -Sign
+  end
+  return Total
+end

@@ -49,72 +49,31 @@ fun L U K below
     end
     B = B min U
     Cnt = B - L + 1
-    Sum = 0 1 1 K B surdsum
-    Sum -= 0 1 1 K (L - 1) surdsum
+    Sum = K R B surdsum
+    Sum -= K R (L - 1) surdsum
     Part = Sum - (L - 1) * Cnt
   end
   return Part + (U - B) * Side
 end
 
-fun A B C K N surdsum
-  if N equal 0
-    return 0
+fun K Root N surdsum
+  rem Reciprocal keeps the sqrt term's
+  rem coefficient one; C divides K-A^2.
+  A = 0
+  C = 1
+  Sign = 1
+  Total = 0
+  for N greater 0
+    Q = (A + Root) // C
+    Base = Q * N * (N + 1) // 2
+    A -= Q * C
+    S = N * N * K isqrt
+    M = (A * N + S) // C
+    Total += Sign * (Base + N * M)
+    C = (K - A * A) // C
+    A = -A
+    N = M
+    Sign = -Sign
   end
-  Q = A B C K surdfloor
-  Base = Q * N * (N + 1) // 2
-  A -= Q * C
-  if B equal 0
-    return Base
-  end
-  M = (A * N) (B * N) C K surdfloor
-  if M equal 0
-    return Base
-  end
-  unpack A B C = A B C K surdinv
-  Rest = A B C K M surdsum
-  return Base + N * M - Rest
-end
-
-fun A B C K surdfloor
-  if B equal 0
-    return A // C
-  end
-  BB = B abs
-  S = BB * BB * K isqrt
-  if B greater 0
-    T = (A + S) // C
-    U = (T + 1) * C - A
-    if U at most 0
-      return T + 1
-    end
-    if U * U at most BB * BB * K
-      return T + 1
-    end
-    return T
-  end
-  T = (A - S - 1) // C
-  D = A - (T + 1) * C
-  Good = D at least 0
-  Good and= D * D at least BB * BB * K
-  if Good
-    return T + 1
-  end
-  return T
-end
-
-fun A B C K surdinv
-  X = A * C
-  Y = -B * C
-  Z = A * A - B * B * K
-  if Z less 0
-    X = -X
-    Y = -Y
-    Z = -Z
-  end
-  G = X abs gcd (Y abs)
-  G = G gcd Z
-  X //= G
-  Y //= G
-  Z //= G
-  return array X Y Z
+  return Total
 end
