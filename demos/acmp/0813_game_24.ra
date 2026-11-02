@@ -1,0 +1,49 @@
+rem Game of 24 (Игра в 24)
+rem https://acmp.ru/index.asp?main=task&id_task=813
+rem Subset DP: every value reachable from
+rem a set of cards is built from two
+rem disjoint parts with + - *.
+
+use io
+use text
+use cli
+use algo
+use bits
+use sequences
+
+arg Input text = "1 2 3 4"
+
+Txt = Input split "\r" join " "
+Txt = Txt split "\n" join " "
+Tok = Txt split " "
+Cards = (Tok (Tok not equal "")) integer
+
+Vals = new index
+for Mask in 1 till 16
+  Vals Mask = array shape 0 fill 0
+  for I in 0 till 4
+    if (Mask band (1 shl I)) equal Mask
+      Vals Mask = array (Cards I)
+    end
+  end
+  for A in 1 till Mask
+    if (A band Mask) equal A
+      X = Vals A
+      Y = Vals (Mask bxor A)
+      Sums = (X Y outer +) reshape #
+      Diffs = (X Y outer -) reshape #
+      Prods = (X Y outer *) reshape #
+      New = concat Sums Diffs
+      New = concat New Prods
+      All = concat (Vals Mask) New
+      Vals Mask = All sort unique array
+    end
+  end
+end
+
+Ans = "NO"
+Hits = ((Vals 15) equal 24) count
+if Hits greater 0
+  Ans = "YES"
+end
+Ans print
