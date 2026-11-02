@@ -1,0 +1,62 @@
+rem King's Tour (Осмотр королевства)
+rem https://acmp.ru/index.asp?main=task&id_task=958
+rem Tournament: merge the k routes like
+rem merge sort, taking the head with an
+rem edge to the other head. Every step
+rem stays a road, so the answer exists.
+
+use io
+use text
+use cli
+use sequences
+
+arg Input text = "7 2
+.------
++.+----
++-.-+++
++++.---
+++-+.--
+++-++.-
+++-+++.
+1 3 4 7
+1 2 5 6 7"
+
+Lines = Input split "\r" join "" split "\n"
+Lines = Lines (Lines not equal "")
+Head = (Lines 0) split " " integer
+N = Head 0
+K = Head 1
+
+rem Road[U][V] is true when U goes to V.
+Codes = (Lines (1 till (N + 1))) join ""
+Flat = (Codes bytes integer) equal 45
+Road = Flat reshape N N
+
+Path = array shape 0 fill 0
+for R in 0 till K
+  Route = (Lines (N + 1 + R)) split " " integer
+  Mid = Route (1 till (Route len - 1))
+  La = Path len
+  Lb = Mid len
+  Out = array shape (La + Lb) fill 0
+  A = 0
+  B = 0
+  for S in 0 till (La + Lb)
+    TakeA = B at least Lb
+    if A less La and B less Lb
+      TakeA = (Road ((Path A) - 1)) ((Mid B) - 1)
+    end
+    if TakeA
+      Out S = Path A
+      A = A + 1
+    else
+      Out S = Mid B
+      B = B + 1
+    end
+  end
+  Path = Out
+end
+
+Tour = concat (array 1) (concat Path (array N))
+Ans = Tour join " "
+Ans print
