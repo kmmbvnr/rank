@@ -95,6 +95,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0747** | [Декомпозиция строки](0747_string_decomposition.ra) | Dynamic Programming / Strings (65%) | Min-weight string decomposition $S_1^{d_1} \dots S_k^{d_k}$ via DP with LCP period expansion |
 | **0749** | [Неправильный RSA](0749_incorrect_rsa.ra) | Number Theory / Combinatorics (64%) | Count non-trivial factorizations of $n = p^k \cdot q^k$ ($1 \le k \le 23$) via $O(1)$ relative tolerance float64 $k$-th power detection and precomputed 2D vector partitions of $(k, k)$ |
 | **0752** | [2-3 Дерево](0752_two_three_tree.ra) | Combinatorics (61%) | Level-by-level counting `C(M, N - 2M)` with a rolling Pascal row and slice updates mod $R$ |
+| **0761** | [Ковбои](0761_cowboys.ra) | Graph Theory (65%) | Minimum edge-disjoint path cover / Eulerian trail decomposition via DSU and odd-degree vertex counting |
 | **0776** | [Юпитер](0776_jupiter.ra) | Graph Theory / BFS (62%) | BFS over (flights used, cell); each flight is one slice with `scan max` for the climb cost |
 | **0813** | [Игра в 24](0813_game_24.ra) | Brute Force / Subset DP (62%) | Reachable values per card subset via `outer +`, `outer -`, `outer *` and `sort unique` |
 | **0829** | [Строки - 3](0829_strings_3.ra) | Strings / Rolling Hash (60%) | Count substrings of $A$ that are cyclic shifts of $B$ in $O(|A| + |B|)$ using double polynomial rolling hash ($10^9+7$ and $10^9+9$) with `use algo` set |
