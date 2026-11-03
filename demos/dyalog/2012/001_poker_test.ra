@@ -103,6 +103,20 @@ test "playing a royal-flush board ties every player"
   Result .used equal array 0 0 0
 end
 
+test "river odds split a winning tie"
+  use "001_poker"
+  Players = array "JH TH" "JD TD" "2S 2H"
+  Result = "AS KS QD 3H 4C" odds Players
+  Result equal array 0.0 0.5 0.5 0.0
+end
+
+test "a royal board ties all river odds"
+  use "001_poker"
+  Players = array "2H 3D" "4H 5D"
+  Result = "AS KS QS JS TS" odds Players
+  Result equal array 1.0 0.0 0.0
+end
+
 test "nuts on a flop allow any suits for a wheel"
   use "001_poker"
   use sequences

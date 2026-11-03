@@ -1,5 +1,18 @@
 use testing
 
+test "smallest truncations"
+  use "648_skippingsquares"
+  N = 1
+  run
+  Answer equal 1
+  N = 2
+  run
+  Answer equal 1
+  N = 3
+  run
+  Answer equal 0
+end
+
 test "statement values"
   use "648_skippingsquares"
   N = 10

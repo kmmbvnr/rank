@@ -31,8 +31,7 @@ Um = Ds * 0
 Up = Ds * 0
 Up 0 = 1
 for Mm in 1 to 2 * N - 1
-  Ut = Ds * 0
-  Ut (1 to N) = Up (0 to (N - 1))
+  Ut = Up shift 1
   Un = (Ut + Um - (Um shift 1)) mod M
   Um = Up
   Up = Un
@@ -43,17 +42,10 @@ for Mm in 1 to 2 * N - 1
       Vv = (Up - (Up shift 1)) mod M
       Sg = Vv (1 to (L + 1))
       Wp = W (0 to L)
-      Cw = Wp * 0
-      for I in 0 to L
-        Si = Sg I
-        for K in I to L
-          Wk = Wp (K - I)
-          Cw K = (Cw K + Si * Wk) mod M
-        end
-      end
-      Zp = (0 till (N - L)) * 0
-      W = concat Cw Zp
-      Answer += Cw sum
+      rem Keep only the needed degrees.
+      Product = Wp convolve Sg mod M
+      W = Product take (L + 1)
+      Answer += W sum
     end
   end
 end

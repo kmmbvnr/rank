@@ -339,7 +339,7 @@ fun Community nuts
       if Trial unique len not equal (Trial len)
         continue
       end
-      if (concat Board Trial bestValue) not equal Highest
+      if ((concat Board Trial) bestValue) not equal Highest
         Wild = false
         break
       end
@@ -366,7 +366,7 @@ fun Community odds Players
     Complete = concat Board Extra
     Values = array shape Count fill 0
     for Hole I in Holes
-      Values I = concat Complete Hole bestValue
+      Values I = (concat Complete Hole) bestValue
     end
     Winners = Values equal (Values max)
     Tied = Winners count
