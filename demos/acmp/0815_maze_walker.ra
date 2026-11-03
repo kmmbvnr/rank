@@ -1,0 +1,75 @@
+rem Maze Walker (Обходчик)
+rem https://acmp.ru/task.asp?id=815
+rem NFA simulation via reduce.
+
+use cli
+use io
+use sequences
+use text
+
+arg Input text = "4 6 2
+1 2 1
+1 2 2
+1 3 1
+1 3 2
+3 4 2
+3 3 2
+2
+1 2
+1"
+
+Raw = Input split "\r" join " "
+Raw = Raw split "\n" join " "
+Tok = Raw split " "
+Tok = Tok (Tok not equal "")
+
+N = Tok 0 integer
+M = Tok 1 integer
+K = Tok 2 integer
+
+U = array 0 till 0
+V = array 0 till 0
+C = array 0 till 0
+
+if M greater 0
+  Idx = 0 till M
+  U = Tok (3 + 3 * Idx) integer
+  V = Tok (4 + 3 * Idx) integer
+  C = Tok (5 + 3 * Idx) integer
+end
+
+Ptr = 3 + 3 * M
+L = Tok Ptr integer
+PIdx = Ptr + 1 + (0 till L)
+Prog = Tok PIdx integer
+S = Tok (Ptr + 1 + L) integer
+
+fun Act step Col
+  if not (Act any)
+    return Act
+  end
+  Dest = V ((C equal Col) and (Act U))
+  Next = array shape (N + 1) fill false
+  Next Dest = true
+  return Next
+end
+
+Init = array shape (N + 1) fill false
+Init S = true
+
+Final = Prog reduce step with Init
+All = Final indices
+Rooms = All (All greater 0)
+
+Status = "OK"
+Count = Rooms len
+Result = Rooms join " "
+
+if Count equal 0
+  Status = "Hangs"
+  "Hangs" print
+else
+  "OK" print
+  Count print
+  Result print
+end
