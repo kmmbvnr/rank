@@ -1,7 +1,14 @@
 # Euler 375: compact reads and mixed scalar registers
 
-The default program uses Period=6,308,948 and Limit=2,000,000,000. Its algorithm
-and source are unchanged. The exact answer is 7435327983715286168.
+These are historical results from 2026-10-23. The later recurrence and growing
+stack implementation is documented in [the current investigation](euler375-investigation.md),
+with `euler375-delivery.mjs` for current before/after comparisons. The older
+harness below still splits historical source into phases and runs the current
+source as one complete program.
+
+At this investigation the default used Period=6,308,948 and Limit=2,000,000,000.
+That work kept its algorithm and source unchanged. The exact answer remains
+7435327983715286168.
 
 The baseline is main at b697ae45. Three fresh Node v24.15.0 processes per stage
 ran sequentially on Apple M5. The harness executes generation, previous-smaller

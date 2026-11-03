@@ -137,7 +137,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const index = indices[0];
             const size = `cells${info.slot}.length`;
             const coordinate = `index${state.serial++}`;
-            const isLocalDef = state.arrayDefinitions.has(names[info.slot]);
+            const isLocalDef = state.reboundNames.has(names[info.slot]);
             const isInduction = !isLocalDef && scope.range.unitStride && scope.inductionSlot !== undefined
                 && (index === `r${scope.inductionSlot}` || index === 'cursor');
 
@@ -166,7 +166,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         // Multi-dimensional Array Access (rank >= 2)
         const lastAxis = info.rank - 1;
         const leadingIndices = indices.slice(0, lastAxis);
-        const isLocalDef = state.arrayDefinitions.has(names[info.slot]);
+        const isLocalDef = state.reboundNames.has(names[info.slot]);
         const leadingInvariant = !isLocalDef && scope.depth >= 1 && leadingIndices.every(coord => {
             if (coord === `r${scope.inductionSlot}` || coord === 'cursor') return false;
             const match = /^r(\d+)$/.exec(coord);
@@ -689,12 +689,29 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return rank >= 1 ? { form, axes, rank } : undefined;
         } catch { return undefined; }
     }
+    /** Completed concatenation owns fresh cells. Lazy concatenations retain
+     * their ordinary evaluator and snapshot/demand contracts. */
+    function numericConcatCopy(e: Expression) {
+        if (!numberMode || !host.arrayLocals || !host.arrayReads || !host.nativeCalls
+            || !host.module('sequences') || !isApplicationExpression(e)) return undefined;
+        const form = applicationForm(e);
+        if (form.kind !== 'array-combine-constructor' || form.operation !== 'concat'
+            || form.axis || form.rest.length !== 1 || !isNameExpression(form.rest[0])
+            || form.rest[0].name !== 'copy' || localTypes.has('copy') || arrays.has('copy') || containers.has('copy')
+            || !form.items.every(isNameExpression)) return undefined;
+        const types = form.items.map(arrayType), type = types[0];
+        if (!type || type.rank !== 1 || type.element !== 'integer' && !(type.element === 'real' && host.reals)
+            || types.some(other => other?.rank !== 1 || other.element !== type.element)) return undefined;
+        return { operands: form.items, type };
+    }
     // Array operands use the same concrete range/selection operations as the
     // evaluator, without re-entering expression evaluation on every iteration.
     function arrayType(e: Expression): CompiledArrayType | undefined {
         while (isParenthesizedExpression(e)) e = e.value;
         if (scalarInputs.has(e)) return undefined;
         if (numberMode && isMaterializeExpression(e)) return arrayType(e.source);
+        const concat = numericConcatCopy(e);
+        if (concat) return concat.type;
         if (numberMode && isTableFilterExpression(e) && e.condition && !e.conditions.length && !e.sourceFields.length) {
             const source = arrayType(e.source), mask = arrayType(e.condition);
             if (source?.rank === 1 && ['integer', 'real'].includes(source.element) && mask?.rank === 1 && mask.element === 'boolean') return source;
@@ -1214,6 +1231,20 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function emitValue(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
         let source = e;
         while (isParenthesizedExpression(source)) source = source.value;
+        const concat = numericConcatCopy(source);
+        if (concat) {
+            const operands: string[] = [];
+            for (const operand of concat.operands) {
+                const value = emitArrayValue(operand, lines);
+                if (!value) return undefined;
+                const info = arrays.get(operand.name)!;
+                operands.push(`cells${info.slot}`);
+            }
+            builtins.set('copy', 'sequences');
+            const result = `concatenated${state.serial++}`;
+            lines.push(`const ${result} = concatArrays([${operands.join(',')}], ${concat.type.element === 'real'});`);
+            return { code: result, type: concat.type };
+        }
         if (numberMode && host.arrayLocals && host.arrayReads && host.nativeCalls
             && isApplicationExpression(source) && source.arguments.length === 1
             && isNameExpression(source.head) && isNameExpression(source.arguments[0])

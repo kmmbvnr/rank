@@ -552,7 +552,7 @@ end
 tuple A B Total`);
     });
 
-    it('keeps rebound entry arrays with cell stores on the publishing backend', () => {
+    it('compiles rebound entry arrays alongside independent scalar cell stores', () => {
         const r = compare(`A = array 1 2
 B = array 3 4
 for I in 1 to 3
@@ -561,7 +561,7 @@ for I in 1 to 3
 end
 tuple A B`);
         expect(r.observation.error).toBeUndefined();
-        expect(r.diagnostics.numberLoops).toBe(0);
+        expect(r.diagnostics.numberLoops).toBe(1);
     });
 
     it.each([30, 70, 110])('retains ordinary entry-array publication under budget %s', budget => {

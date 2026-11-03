@@ -1,0 +1,78 @@
+use numbers
+use io
+use cli
+arg Limit integer = 2000000000
+arg Period integer = 6308948
+Mod = 50515093
+A = array shape Period fill 0
+S = 290797
+Low = Mod
+K = 0
+for I in 0 till Period
+  S = S * S mod Mod
+  A I = S
+  if S less Low
+    Low = S
+    K = I
+  end
+end
+St = array shape Period fill 0
+Top = 0
+Sum = 0
+Total = 0
+First = 0
+Prefix = 0
+Warm = 0
+WarmRest = 0
+NextRest = 0
+Full = Limit // Period
+Rest = Limit mod Period
+Cut = K min Rest
+for I in 0 till Period + K
+  X = A (I mod Period) - Low
+  for Top greater 0
+    J = St (Top - 1)
+    Y = A (J mod Period) - Low
+    if Y less X
+      break
+    end
+    Top -= 1
+    Left = -1
+    if Top greater 0
+      Left = St (Top - 1)
+    end
+    Sum -= Y * (J - Left)
+  end
+  Left = -1
+  if Top greater 0
+    Left = St (Top - 1)
+  end
+  Sum += X * (I - Left)
+  St Top = I
+  Top += 1
+  Total += Sum
+  if I + 1 equal Rest
+    Prefix = Total
+  end
+  if I + 1 equal K
+    Warm = Total
+  end
+  if I + 1 equal Cut
+    WarmRest = Total
+  end
+  if I + 1 equal Period
+    First = Total
+  end
+  if I + 1 equal Period + Cut
+    NextRest = Total - First
+  end
+end
+Answer = Low * Limit * (Limit + 1) // 2
+Answer += Prefix
+if Full greater 0
+  Correction = Total - First - Warm
+  Answer += Full * First
+  Answer += (Full - 1) * Correction
+  Answer += NextRest - WarmRest
+end
+Answer print

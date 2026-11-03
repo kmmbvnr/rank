@@ -1,0 +1,86 @@
+{
+  "reference": {
+    "file": "demos/euler/375_subseqmin.ra",
+    "mode": "reference",
+    "limit": "2000000000",
+    "period": "6308948",
+    "answer": "7435327983715286168",
+    "ms": 50919.829333,
+    "rss": 415.5,
+    "phases": [
+      [
+        "left",
+        3661.521542
+      ],
+      [
+        "7435327983715286168",
+        47258.175624999996
+      ]
+    ]
+  },
+  "oracle": {
+    "checks": 894,
+    "fixtureChecks": 8,
+    "oracle": "quadratic exact contiguous-subsequence minima",
+    "status": "pass"
+  },
+  "differentialProgress": [
+    {
+      "file": "euler/375_subseqmin.ra",
+      "compilation": false,
+      "stage": "start"
+    },
+    {
+      "file": "euler/375_subseqmin.ra",
+      "compilation": false,
+      "stage": "complete",
+      "elapsedMs": 101730.69070800001
+    },
+    {
+      "file": "euler/375_subseqmin.ra",
+      "compilation": true,
+      "stage": "start"
+    },
+    {
+      "file": "euler/375_subseqmin.ra",
+      "compilation": true,
+      "stage": "complete",
+      "elapsedMs": 605.018665999989
+    },
+    {
+      "file": "euler/375_subseqmin_test.ra",
+      "compilation": false,
+      "stage": "start"
+    },
+    {
+      "file": "euler/375_subseqmin_test.ra",
+      "compilation": false,
+      "stage": "complete",
+      "elapsedMs": 391.08295799999905
+    },
+    {
+      "file": "euler/375_subseqmin_test.ra",
+      "compilation": true,
+      "stage": "start"
+    },
+    {
+      "file": "euler/375_subseqmin_test.ra",
+      "compilation": true,
+      "stage": "complete",
+      "elapsedMs": 45.422583999999915
+    }
+  ],
+  "focusedMac": {
+    "files": 13,
+    "tests": 524
+  },
+  "focusedIntel": {
+    "files": 4,
+    "tests": 130
+  },
+  "scopedCorpus": {
+    "differential": 2,
+    "types": 2,
+    "names": 2
+  }
+}

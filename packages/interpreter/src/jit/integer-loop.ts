@@ -9,7 +9,7 @@ import { wideLoopScalars } from './integer-loop-wide.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    isIfStatement, isForStatement, isParenthesizedExpression, isNameExpression, type ForStatement,
+    isIfStatement, isForStatement, isParenthesizedExpression, isNameExpression, isAssignmentStatement, isArrayAssignmentStatement, statementResultDiscarded, type ForStatement,
     type Statement, type FunctionStatement, isFunctionStatement,
 } from '@arrrank/language';
 import { isRankArray } from '../value.js';
@@ -184,6 +184,19 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // Keep that case on the publishing backend until vector liveness covers it.
     if (numberMode && aliases.length && [...arrayDefinitions].some(name => arrayInputs.has(name)))
         return reject(statement, 'rebound-array-alias');
+    // A previous iteration may retain an array-valued result across a later
+    // store/break. Until those lifetimes have COW, only discarded rebindings
+    // of mutable entry arrays can use the private Number backend.
+    const boundary = region ? statement.statements.at(-2) : statement;
+    if (numberMode && locations.some(location => isAssignmentStatement(location)
+        && arrayDefinitions.has(location.name) && arrayInputs.has(location.name) && destinations.has(location.name)
+        && !(boundary && statementResultDiscarded(location, boundary)))) return reject(statement, 'escaping-rebound-array');
+    // This ownership path supports scalar cell stores. Slices/scatters need
+    // separate dirty/result tracking across replacement and stay on fallback.
+    if (numberMode && locations.some(location => isArrayAssignmentStatement(location)
+        && arrayDefinitions.has(location.name) && arrayInputs.has(location.name)
+        && (location.indices.length !== 1 || location.indices.some(index => index.all || index.sign
+            || !index.value || expressions.knownType(index.value) !== 'integer')))) return reject(statement, 'rebound-array-selection');
     if (aliases.some(([target, source]) => numberMode ? writable.has(target) || writable.has(source)
         : destinations.has(source))) return reject(statement, 'mutable-array-alias');
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'

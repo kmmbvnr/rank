@@ -18,8 +18,10 @@ if (options.worker) {
     const source = readFileSync(resolve(root, 'demos/euler/375_subseqmin.ra'), 'utf8');
     const previous = source.indexOf('Prev ='), answer = source.indexOf('Full =');
     const phases = {};
-    for (const [name, part] of [['generate', source.slice(0, previous)],
-        ['previous', source.slice(previous, answer)], ['answer', source.slice(answer)]]) {
+    const segments = previous < 0 ? [['program', source]] : [
+        ['generate', source.slice(0, previous)],
+        ['previous', source.slice(previous, answer)], ['answer', source.slice(answer)]];
+    for (const [name, part] of segments) {
         const diagnostics = new RuntimeDiagnostics();
         const start = performance.now();
         if (options.diagnostics === 'true') diagnostics.run(() => runtime.execute(part));
@@ -47,8 +49,8 @@ if (options.worker) {
     const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
     console.log(JSON.stringify({ revision: execFileSync('git', ['-C', root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
         node: process.version, cpu: cpus()[0].model,
-        timing: 'fresh processes, default parameters, source executed in three phases; parsing included; diagnostics opt-in',
-        results, medianMs: Object.fromEntries(['generate', 'previous', 'answer'].map(name =>
+        timing: 'fresh processes, default parameters; historical source split into three phases, current source run whole; parsing included; diagnostics opt-in',
+        results, medianMs: Object.fromEntries(Object.keys(results[0].phases).map(name =>
             [name, median(results.map(result => result.phases[name].ms))])),
         medianTotalMs: median(results.map(result => Object.values(result.phases).reduce((sum, phase) => sum + phase.ms, 0))),
     }, null, 2));

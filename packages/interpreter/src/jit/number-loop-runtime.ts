@@ -65,6 +65,25 @@ class PrivateNumericArray {
             })(), this.shape);
     }
 }
+/** Numeric concat followed by copy: copy in bounded chunks, preserving the
+ * source kind and allocating a fresh buffer even for repeated operands. */
+function concatArrays(sources: NumberCells[], real: boolean): PrivateNumericArray {
+    const size = sources.reduce((length, cells) => safe(length + cells.length), 0);
+    if (size > 0xffffffff) throw overflow;
+    const compact = !real && sources.every(cells => cells instanceof Int32Array);
+    const cells = compact ? new Int32Array(size) : new Float64Array(size);
+    let offset = 0;
+    for (const source of sources) {
+        if (!(source instanceof Int32Array || source instanceof Float64Array)) throw overflow;
+        for (let first = 0; first < source.length; first += 4096) {
+            const end = Math.min(first + 4096, source.length);
+            checkpoint('copying concatenation', end - first);
+            cells.set(source.subarray(first, end), offset + first);
+        }
+        offset += source.length;
+    }
+    return new PrivateNumericArray([size], 0, undefined, { cells }, real);
+}
 /** The RHS snapshot used by stores is separate from the selection returned by
  * an assignment. Build that live selection only when the loop result escapes. */
 class PrivateSliceResult {
@@ -186,9 +205,13 @@ const rankValue = (value: unknown, type: string | undefined): RankValue | undefi
 
 function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[], publish: string, workCounting = false): string {
     const { root, body } = plan;
+    // Store modes: 0 tracks entry-cell changes, 1 is an already-dirty local
+    // allocation, 2 must mark the first cell write to a rebound entry binding.
     return `"use strict"; return function(input, cells, changes, calls, publish) {
         let ${registers.length ? `${registers.join(',')}, ` : ''}result, resultType = 'integer', location = -1, order = 0${workCounting ? ', work = 0' : ''}${plan.polling === 'batched' ? ', pollWork = 0' : ''};
-        const entered = [];${plan.numberVectors ? '\n        const vectorPool = [], vectorLive = input.slice(), vectorStep = vectorBlockSize();' : ''}
+        const entered = [];
+        ${[...plan.destinations].map(([name, info]) => `const rebound${info.slot} = ${!plan.arrayDefinitions.has(name) ? 0 : plan.arrayInputs.has(name) ? 2 : 1};`).join('\n')}
+        ${plan.numberVectors ? '\n        const vectorPool = [], vectorLive = input.slice(), vectorStep = vectorBlockSize();' : ''}
         try {
             ${root.setup} ${root.header}
                 let iterationResult, iterationType = 'integer';
@@ -224,11 +247,12 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         // A traversal must keep its original cells even when the same binding is
         // written. Other names have separate private buffers, preserving COW.
         || plan.vectorIterations.some(({ slot }) => plan.destinations.has(names[slot]) || plan.arrayDefinitions.has(names[slot]))
-        // Whole-array rebinding reads the entry buffer but only writes fresh
-        // private vectors. Cell stores, callees and mixed BigInt registers
-        // retain the publishing backend. Lowering
-        // also excludes aliases in regions with entry-array rebinding.
-        || reboundInputs && (plan.destinations.size > 0 || plan.calls.length > 0 || plan.wideScalars.size > 0)) return undefined;
+        // Rebound numeric destinations start in private entry snapshots and
+        // publish the current buffer after either cell writes or rebinding.
+        // Lowering excludes aliases and escaping intermediate array results.
+        || reboundInputs && (plan.calls.length > 0 || plan.wideScalars.size > 0
+            || [...plan.destinations].some(([name, info]) => plan.arrayDefinitions.has(name)
+                && (info.type !== 'integer' && info.type !== 'real' || info.rank !== 1)))) return undefined;
     const cursor = plan.iteration?.names[0];
     const indexedPass = cursor !== undefined && !plan.writerNames.includes(cursor) && !locations.some(isForStatement) && !plan.vectorIterations.length;
     const storage = new Map<string, { slot: number; rank: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
@@ -244,7 +268,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             registers.push(`size${info.slot}_${axis} = ${plan.arrayDefinitions.has(names[info.slot]) && !plan.arrayInputs.has(names[info.slot]) ? 'undefined' : `input[${info.slot}].shape[${axis}]`}`);
         }
     }
-    for (const [name, info] of plan.destinations) if (!plan.arrayDefinitions.has(name)) registers.push(`changed${info.slot} = changes[${info.slot}]`);
+    for (const info of plan.destinations.values()) registers.push(`changed${info.slot} = changes[${info.slot}]`);
     const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
     // Array-writing regions cannot borrow the raw packed read-only path below:
     // entry validates/converts all integer buffers, and stores remain checked.
@@ -256,7 +280,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', code)(
             modularMultiply, safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -270,7 +294,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, integerSquareRoot, divide, checkedNumberPower, widePower,
             (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number, real = false) => new PrivateNumericArray(shape, fill, undefined, undefined, real),
             (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
-            (shape: number[], cells: NumberCells) => new PrivateNumericArray([...shape], 0, cells), textLength, indexKey,
+            (shape: number[], cells: NumberCells) => new PrivateNumericArray([...shape], 0, cells), concatArrays, textLength, indexKey,
             (cells: NumberCells, first: number, count: number, stride: number) => {
                 const diagnostics = currentDiagnostics();
                 if (diagnostics) { diagnostics.numberLoopSliceCopies++; diagnostics.numberLoopSliceCopyCells += count; }
@@ -366,7 +390,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         }
         let conditionWriteCells = 0;
         if (copyAdmission) for (const [name] of plan.destinations) {
-            if (plan.arrayDefinitions.has(name)) continue;
+            if (plan.arrayDefinitions.has(name) && !plan.arrayInputs.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array') return undefined;
             conditionWriteCells += value.shape.reduce((a, b) => a * b, 1);
@@ -515,7 +539,11 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 }
             }
             sources[info.slot] = value;
-            input[info.slot] = value;
+            const rebound = plan.destinations.has(name) && plan.arrayDefinitions.has(name);
+            // Writable buffers above are already invocation-private. Keep the
+            // wrapper in sync when stores widen it or concat replaces it.
+            input[info.slot] = rebound ? new PrivateNumericArray([...value.shape], 0, undefined,
+                { cells: buffers[info.slot] as Int32Array | Float64Array }, info.type === 'real') : value;
             if (plan.destinations.has(name)) changes[info.slot] = new Uint8Array(items.length);
         }
         const diagnostics = currentDiagnostics();

@@ -114,11 +114,13 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 // more than Int32. Publish through the updated buffer too.
                 lines.push(`if (cells${target.slot} instanceof Int32Array && ${result} !== (${result} | 0)) {
                     cells${target.slot} = cells[${target.slot}] = new Float64Array(cells${target.slot});
-                    ${state.arrayDefinitions.has(assignment.name) ? `r${target.slot}.cells = cells${target.slot};` : ''}
+                    if (rebound${target.slot}) r${target.slot}.cells = cells${target.slot};
                 }`);
             }
+            // Only an entry buffer needs a first-store dirty mark. Fresh local
+            // allocations are already dirty at their binding statement.
             body.push(`location = ${location};`, ...lines,
-                `cells${target.slot}[${key}] = ${result}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key}] = 1;`} iterationResult = ${rhs}; iterationType = ${JSON.stringify(type)};`);
+                `cells${target.slot}[${key}] = ${result}; if (rebound${target.slot} === 2) { ${state.dirty(target.slot)} } else if (!rebound${target.slot}) changed${target.slot}[${key}] = 1; iterationResult = ${rhs}; iterationType = ${JSON.stringify(type)};`);
             return true;
         }
         // Bulk selectors use the same checked assignment as interpretation.

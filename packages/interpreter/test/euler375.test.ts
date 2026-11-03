@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { Interpreter } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 
 const source = readFileSync(new URL('../../../demos/euler/375_subseqmin.ra', import.meta.url), 'utf8');
 function program(limit: number, period: number) {
@@ -43,3 +43,91 @@ it.each([{}, { numberLoopCompilation: false }])('keeps packed-array and wide-ans
         expect(runtime.variables.get('Answer')).toBe(629527n * 2000000000n * 2000000001n / 2n);
     } finally { runtime.dispose(); }
 });
+
+function generated(period: number): number[] {
+    let value = 290797n;
+    return Array.from({ length: period }, () => Number(value = value * value % 50515093n));
+}
+// Each ending position explicitly visits every subarray ending there.
+// This oracle uses neither a stack nor the periodic warm-up formula.
+function sums(values: number[], limit: number): bigint[] {
+    const result = [0n];
+    for (let end = 0; end < limit; end++) {
+        let low = Infinity, total = result[end];
+        for (let start = end; start >= 0; start--) {
+            low = Math.min(low, values[start % values.length]);
+            total += BigInt(low);
+        }
+        result.push(total);
+    }
+    return result;
+}
+function input(limit: number, period: number): string {
+    return source.replace('arg Limit integer = 2000000000', `Limit = ${limit}`)
+        .replace('arg Period integer = 6308948', `Period = ${period}`);
+}
+function synthetic(values: number[], limit: number): string {
+    const code = input(limit, values.length);
+    const begin = code.indexOf('Mod ='), end = code.indexOf('rem A zero excess');
+    const low = Math.min(...values);
+    return code.slice(0, begin) + `A = array shape ${values.length} fill 0\n`
+        + values.map((value, i) => `A ${i} = ${value}`).join('\n')
+        + `\nLow = ${low}\nK = ${values.indexOf(low)}\n` + code.slice(end);
+}
+
+it.each([false, true])('matches independent minima across period boundaries (compilation=%s)', compilation => {
+    const r = new Interpreter(() => {}, { compilation });
+    try {
+        for (let period = 1; period <= 20; period++) {
+            const expected = sums(generated(period), 4 * period);
+            const limits = new Set([-2, 0, 1, period - 1, period, period + 1,
+                2 * period - 1, 2 * period, 2 * period + 1, 3 * period + Math.floor(period / 2)]);
+            for (const limit of limits) {
+                r.execute(input(limit, period));
+                expect(r.variables.get('Answer'), `P=${period},N=${limit}`).toBe(expected[Math.max(0, limit)]);
+            }
+        }
+        // Existing fixture goldens remain explicit regression checks.
+        for (const [limit, expected] of [[10, 432256955n], [10000, 3264567774119n]] as const) {
+            r.execute(input(limit, limit));
+            expect(r.variables.get('Answer')).toBe(expected);
+        }
+    } finally { r.dispose(); }
+});
+
+it.each([false, true])('handles tied minima and forces actual stack growth (compilation=%s)', compilation => {
+    const r = new Interpreter(() => {}, { compilation });
+    try {
+        const patterns = [[5], [3, 3, 3], [1, 4, 2, 1, 5], [5, 4, 3, 2, 1],
+            [1, 2, 3, 4, 5], [2, 0, 4, 0, 1], [4, 2, 1, 3, 5], [-3, 2, -3, 4]];
+        for (const values of patterns) {
+            const expected = sums(values, 3 * values.length + 1);
+            for (let limit = 0; limit < expected.length; limit++) {
+                r.execute(synthetic(values, limit));
+                expect(r.variables.get('Answer')).toBe(expected[limit]);
+            }
+        }
+        // A strictly increasing period needs more than the initial 64 slots.
+        const values = Array.from({ length: 300 }, (_, i) => i + 1), limit = 601;
+        const d = new RuntimeDiagnostics();
+        d.run(() => r.execute(synthetic(values, limit)));
+        expect(r.variables.get('Answer')).toBe(sums(values, limit)[limit]);
+        expect(r.execute('St len')).toBe(512n);
+        if (compilation) {
+            expect(d.numberLoops).toBe(1);
+            expect(d.numberLoopOverflows).toBe(0);
+        }
+    } finally { r.dispose(); }
+});
+
+it('computes the full golden with two Number loops and a growing stack', () => {
+    const r = new Interpreter(() => {}), d = new RuntimeDiagnostics();
+    try {
+        d.run(() => r.execute(source));
+        expect(r.variables.get('Answer')).toBe(7435327983715286168n);
+        expect(r.execute('St len')).toBe(64n);
+        expect(d.numberLoops).toBe(2);
+        expect(d.numberLoopOverflows).toBe(0);
+        expect(d.mixedIntegerLoops).toBe(0);
+    } finally { r.dispose(); }
+}, 30000);
