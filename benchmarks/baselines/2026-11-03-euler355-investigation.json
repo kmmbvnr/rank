@@ -1,0 +1,993 @@
+{
+  "date": "2026-11-03",
+  "runtimeRevision": "86600c851b64a21a6b5c2ff3adcd532a9ec89930",
+  "node": "24.15.0",
+  "source": "demos/euler/355_coprime.ra",
+  "sourceSha256": "928306164862791e8506fd06577b0b1e648831867fb5e39ac8bb2def518436bc",
+  "boundedSourceSha256": "2bb606c50573c23bc704ec65235566ca2451cc5cac4bf2e66e191a939cdee619",
+  "notes": [
+    "Original fails in both engines on filter-not grouping; fixed controls change only that line.",
+    "Fresh processes; parsing and compilation included, module imports excluded; serial within each series; existing machine workload uncontrolled.",
+    "Compiled controls have three samples per variant. Reference controls have one sample.",
+    "Intel safe/half reference controls overlapped the first bounded research series; retain as exploratory only. Fixed reference control completed before that overlap.",
+    "Final bounded Intel reference samples run after all other owned benchmark jobs finished.",
+    "Mac bound final series and Mac controls did not overlap owned benchmark jobs.",
+    "Final bounded Intel compiled samples run after all other owned benchmark jobs finished."
+  ],
+  "samples": {
+    "macControls": [
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 612.0187920000001,
+        "rssMiB": 325.0625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 612.59325
+          }
+        ],
+        "variant": "fixed",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 269.054583,
+        "rssMiB": 209.53125,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 269.596
+          }
+        ],
+        "variant": "safe",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 226.586792,
+        "rssMiB": 203.25,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "9592",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 227.144542
+          }
+        ],
+        "variant": "half",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 269.307542,
+        "rssMiB": 210.046875,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 269.899833
+          }
+        ],
+        "variant": "safe",
+        "rep": 1
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 227.18224999999998,
+        "rssMiB": 202.734375,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "9592",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 227.75279200000003
+          }
+        ],
+        "variant": "half",
+        "rep": 1
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 592.936083,
+        "rssMiB": 321.8125,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 593.496666
+          }
+        ],
+        "variant": "fixed",
+        "rep": 1
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 225.57841700000003,
+        "rssMiB": 199.90625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "9592",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 226.127959
+          }
+        ],
+        "variant": "half",
+        "rep": 2
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 611.593875,
+        "rssMiB": 327.234375,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 612.13975
+          }
+        ],
+        "variant": "fixed",
+        "rep": 2
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 266.83624999999995,
+        "rssMiB": 209.890625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 267.39145800000006
+          }
+        ],
+        "variant": "safe",
+        "rep": 2
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 9997.748834,
+        "rssMiB": 470.953125,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 9998.347958
+          }
+        ],
+        "variant": "fixed",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 9589.509042,
+        "rssMiB": 467.71875,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 9590.080959
+          }
+        ],
+        "variant": "safe",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 5621.5485419999995,
+        "rssMiB": 623.9375,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "9592",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 5622.1035839999995
+          }
+        ],
+        "variant": "half",
+        "rep": 0
+      }
+    ],
+    "macBounded": [
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 210.13866699999997,
+        "rssMiB": 195.78125,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 210.684375
+          }
+        ],
+        "variant": "bound",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 3137.248125,
+        "rssMiB": 469.0625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 3137.809875
+          }
+        ],
+        "variant": "bound",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 213.217708,
+        "rssMiB": 196.25,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 213.77758400000002
+          }
+        ],
+        "variant": "bound",
+        "rep": 1
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 3202.541875,
+        "rssMiB": 466.84375,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 3203.119917
+          }
+        ],
+        "variant": "bound",
+        "rep": 1
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 212.70716700000003,
+        "rssMiB": 196.140625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 213.31379099999998
+          }
+        ],
+        "variant": "bound",
+        "rep": 2
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 3119.831209,
+        "rssMiB": 468.84375,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 3120.423625
+          }
+        ],
+        "variant": "bound",
+        "rep": 2
+      }
+    ],
+    "intelControls": [
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 1458.8088579999999,
+        "rssMiB": 297.15234375,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 1460.144903
+          }
+        ],
+        "variant": "fixed",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 645.8054770000001,
+        "rssMiB": 200.3515625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 647.068601
+          }
+        ],
+        "variant": "safe",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 537.154343,
+        "rssMiB": 188.1015625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "9592",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 538.5219569999999
+          }
+        ],
+        "variant": "half",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 611.424937,
+        "rssMiB": 200.02734375,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 612.6706899999999
+          }
+        ],
+        "variant": "safe",
+        "rep": 1
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 567.4948300000001,
+        "rssMiB": 191.8828125,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "9592",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 568.7642539999999
+          }
+        ],
+        "variant": "half",
+        "rep": 1
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 1482.342432,
+        "rssMiB": 299.390625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 1483.6340340000002
+          }
+        ],
+        "variant": "fixed",
+        "rep": 1
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 541.967475,
+        "rssMiB": 195.609375,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "9592",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 543.303115
+          }
+        ],
+        "variant": "half",
+        "rep": 2
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 1455.0011020000002,
+        "rssMiB": 297.05078125,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 1456.345585
+          }
+        ],
+        "variant": "fixed",
+        "rep": 2
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 627.434816,
+        "rssMiB": 201.875,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 628.761983
+          }
+        ],
+        "variant": "safe",
+        "rep": 2
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 33638.277985,
+        "rssMiB": 445.0390625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 33639.481489
+          }
+        ],
+        "variant": "fixed",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 30689.569366,
+        "rssMiB": 443.796875,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "17984",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 30690.835355
+          }
+        ],
+        "variant": "safe",
+        "rep": 0
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 17723.612347,
+        "rssMiB": 442.1171875,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "9592",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 17724.990365
+          }
+        ],
+        "variant": "half",
+        "rep": 0
+      }
+    ],
+    "intelBoundedReference": [
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 10258.258288,
+        "rssMiB": 443.765625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 10259.657190000002
+          }
+        ]
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 10079.029305,
+        "rssMiB": 443.40625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 10080.485497
+          }
+        ]
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 10305.118355,
+        "rssMiB": 443.45703125,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 10306.475572
+          }
+        ]
+      }
+    ],
+    "intelBoundedCompiled": [
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 536.544085,
+        "rssMiB": 189.03125,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 537.873415
+          }
+        ]
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 506.16082599999993,
+        "rssMiB": 186.57421875,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 507.439013
+          }
+        ]
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 500.045037,
+        "rssMiB": 187.421875,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 501.28891699999997
+          }
+        ]
+      }
+    ]
+  },
+  "smallVerification": {
+    "checks": 130,
+    "fixture": "original fixture with bounded solver passes in both engines",
+    "oracle": "independent prime-mask subset DP through 30; known 100=1356"
+  },
+  "baselineDiagnostics": {
+    "limit": "200000",
+    "mode": "compiled",
+    "ms": 623.492,
+    "rssMiB": 331.1875,
+    "answer": "1726545007",
+    "S": "86",
+    "R": "17984",
+    "phases": [
+      {
+        "text": "base",
+        "ms": 174.32079199999998
+      },
+      {
+        "text": "allocate",
+        "ms": 6.093707999999992
+      },
+      {
+        "text": "weights",
+        "ms": 13.070124999999962
+      },
+      {
+        "text": "1726545007",
+        "ms": 450.69233299999996
+      }
+    ],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 4,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "integerKeyedFolds": 0,
+      "realKeyedFolds": 0,
+      "keyedNativeReaders": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 5,
+      "numberFunctions": 59559,
+      "numberFunctionFallbacks": 0,
+      "numberFunctionSkips": 0,
+      "numberFunctionArrayBorrows": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 1,
+      "numberLoopOverflows": 2,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 3,
+      "numberLoopReadBufferCells": 35968,
+      "numberLoopReadBufferHits": 0,
+      "numberLoopBorrowedRealBuffers": 0,
+      "numberLoopBorrowedRealCells": 0,
+      "modularMatrixPowers": 0,
+      "compiledTensors": 0,
+      "packedBooleanGathers": 0,
+      "packedBooleanGatherCells": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 2,
+      "maskMaterializedCells": 17984,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 7,
+      "typedArrayPublishedCells": 1618650,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-function:callee-binding:ApplicationExpression": 1,
+        "tensor:unsupported-node:MaterializeExpression": 3,
+        "scalar-expression:unsupported-op:to": 1,
+        "scalar-expression:too-small": 9,
+        "scalar-expression:unsupported-op:len": 2,
+        "scalar-expression:unsupported-op:+": 2,
+        "tensor:unsupported-type:array": 5,
+        "scalar-expression:unsupported-op:**": 1,
+        "number-loop:unsafe-input": 1
+      },
+      "compilerRejections": [
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "hungarian",
+          "expression": "W Ix",
+          "line": 39,
+          "column": 19
+        }
+      ]
+    },
+    "kernels": 6
+  },
+  "boundedDiagnostics": {
+    "limit": "200000",
+    "mode": "compiled",
+    "ms": 210.007042,
+    "rssMiB": 196.453125,
+    "answer": "1726545007",
+    "S": "86",
+    "R": "5133",
+    "phases": [
+      {
+        "text": "base",
+        "ms": 152.586417
+      },
+      {
+        "text": "allocate",
+        "ms": 7.864541999999972
+      },
+      {
+        "text": "weights",
+        "ms": 8.712415999999962
+      },
+      {
+        "text": "1726545007",
+        "ms": 41.400000000000034
+      }
+    ],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 5,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "integerKeyedFolds": 0,
+      "realKeyedFolds": 0,
+      "keyedNativeReaders": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 5,
+      "numberFunctions": 53674,
+      "numberFunctionFallbacks": 0,
+      "numberFunctionSkips": 0,
+      "numberFunctionArrayBorrows": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 4,
+      "numberLoopReadBufferCells": 23203,
+      "numberLoopReadBufferHits": 0,
+      "numberLoopBorrowedRealBuffers": 0,
+      "numberLoopBorrowedRealCells": 0,
+      "modularMatrixPowers": 0,
+      "compiledTensors": 0,
+      "packedBooleanGathers": 0,
+      "packedBooleanGatherCells": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 3,
+      "maskMaterializedCells": 23031,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 10,
+      "typedArrayPublishedCells": 490226,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-function:callee-binding:ApplicationExpression": 1,
+        "tensor:unsupported-node:MaterializeExpression": 4,
+        "scalar-expression:unsupported-op:to": 1,
+        "scalar-expression:too-small": 13,
+        "scalar-expression:unsupported-op:len": 2,
+        "scalar-expression:unsupported-op:+": 6,
+        "tensor:unsupported-type:array": 5,
+        "scalar-expression:unsupported-op:max": 5,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+        "scalar-expression:unsupported-op:*": 2,
+        "tensor:binding:max": 1
+      },
+      "compilerRejections": [
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "hungarian",
+          "expression": "W Ix",
+          "line": 43,
+          "column": 19
+        }
+      ]
+    },
+    "kernels": 5
+  },
+  "delivery": {
+    "baseRevision": "fabd9054",
+    "productionSourceSha256": "89d304a941078aeb49ba16a501763dd9839a8733f1b7088bc073063e1428cb9c",
+    "macVerification": {
+      "checks": 162,
+      "fixture": "production fixture passes in both engines",
+      "oracle": "independent prime-mask subset DP through 30; known 100=1356"
+    },
+    "macRuns": [
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 209.774459,
+        "rssMiB": 197.546875,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 210.31729099999998
+          }
+        ]
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 3100.612459,
+        "rssMiB": 470.3125,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 3101.118375
+          }
+        ]
+      }
+    ],
+    "intelChecks": [
+      {
+        "checks": 162,
+        "fixture": "production fixture passes in both engines",
+        "oracle": "independent prime-mask subset DP through 30; known 100=1356"
+      },
+      {
+        "limit": "200000",
+        "mode": "compiled",
+        "ms": 517.625946,
+        "rssMiB": 187.31640625,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 518.7881560000001
+          }
+        ]
+      },
+      {
+        "limit": "200000",
+        "mode": "reference",
+        "ms": 9693.467342,
+        "rssMiB": 446.41796875,
+        "answer": "1726545007",
+        "S": "86",
+        "R": "5133",
+        "phases": [
+          {
+            "text": "1726545007",
+            "ms": 9694.74672
+          }
+        ]
+      }
+    ]
+  },
+  "originalSnapshot": "benchmarks/experiments/euler355-original.ra"
+}

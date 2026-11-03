@@ -2,6 +2,15 @@ use testing
 
 test "coprime maxima"
   use "355_coprime"
+  Limit = 1
+  run
+  Answer equal 1
+  Limit = 2
+  run
+  Answer equal 3
+  Limit = 4
+  run
+  Answer equal 8
   Limit = 10
   run
   Answer equal 30
