@@ -1,16 +1,21 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig, type ProxyOptions } from 'vite';
 import { execFileSync } from 'node:child_process';
 
 let revision = 'unknown';
 const version = JSON.parse(readFileSync(new URL('../mobile/package.json', import.meta.url), 'utf8')).version;
 try { revision = execFileSync('git', ['describe', '--always', '--dirty'], { cwd: fileURLToPath(new URL('../..', import.meta.url)), encoding: 'utf8' }).trim(); } catch { /* Source archives have no Git metadata. */ }
 
-const eulerProxy = {
+const eulerProxy: Record<string, ProxyOptions> = {
     '^/__rank_euler/[A-Za-z0-9_.-]+$': {
         target: 'https://projecteuler.net', changeOrigin: true,
         headers: { 'Accept-Encoding': 'identity' },
+        configure: proxy => proxy.on('proxyReq', request => {
+            // Browser credentials and fetch metadata belong to our origin.
+            for (const name of request.getHeaderNames())
+                if (name !== 'host' && name !== 'accept-encoding') request.removeHeader(name);
+        }),
         rewrite: (path: string) => path.replace('/__rank_euler/', '/resources/documents/'),
     },
 };

@@ -7,8 +7,10 @@ import { createServer, loadConfigFromFile } from 'vite';
 
 test('Project Euler input route rewrites public document paths and keeps HTTP failures', async t => {
     const requests = [];
+    const headers = [];
     const upstream = httpServer((request, response) => {
         requests.push(request.url);
+        headers.push(request.headers);
         if (request.url === '/resources/documents/0022_names.txt') response.end('"COLIN","ABC","A"');
         else { response.writeHead(404); response.end('missing'); }
     });
@@ -28,10 +30,16 @@ test('Project Euler input route rewrites public document paths and keeps HTTP fa
     t.after(() => vite.close());
     await vite.listen();
     const base = `http://127.0.0.1:${vite.httpServer.address().port}`;
-    const result = await fetch(base + '/__rank_euler/0022_names.txt');
+    const result = await fetch(base + '/__rank_euler/0022_names.txt', { headers: {
+        Cookie: 'private-session', Origin: base, Referer: base + '/console.html',
+        'Sec-Fetch-Site': 'same-origin', 'Sec-Fetch-Dest': 'empty',
+    } });
     assert.equal(result.status, 200);
     assert.equal(await result.text(), '"COLIN","ABC","A"');
     assert.equal((await fetch(base + '/__rank_euler/missing.txt')).status, 404);
     await fetch(base + '/__rank_euler/not/a/document');
     assert.deepEqual(requests, ['/resources/documents/0022_names.txt', '/resources/documents/missing.txt']);
+    assert.equal(headers[0]['accept-encoding'], 'identity');
+    for (const name of ['cookie', 'origin', 'referer', 'sec-fetch-site', 'sec-fetch-mode', 'sec-fetch-dest'])
+        assert.equal(headers[0][name], undefined, name);
 });
