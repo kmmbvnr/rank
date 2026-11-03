@@ -1,0 +1,69 @@
+rem Fruit Juice (Фруктовый сок)
+rem https://acmp.ru/task.asp?id=827
+rem Min DAG path cover via maxflow.
+
+use algo
+use cli
+use graph
+use io
+use text
+
+arg Input text = "12
+1 A
+2 A B
+3 A B C
+4 A B C D
+1 E
+2 E F
+3 E F G
+1 H
+2 H I
+1 J
+1 K
+1 L"
+
+Raw = (Input split "\r") join ""
+Lines = Raw split "\n"
+N = Lines 0 integer
+
+Sets = new index
+Ings = new index
+Lens = new index
+
+for I in 0 to (N - 1)
+  Line = Lines (I + 1)
+  Parts = Line split " "
+  K = Parts 0 integer
+  Ing = Parts (1 to K)
+  Sets I = new set Ing
+  Ings I = Ing
+  Lens I = K
+end
+
+G = new graph .directed
+Sink = 2 * N + 1
+for I in 1 to N
+  G add 0 I 1
+  G add (N + I) Sink 1
+end
+
+for I in 0 to (N - 1)
+  LI = Lens I
+  AI = Ings I
+  for J in 0 to (N - 1)
+    Cand = LI less (Lens J)
+    SJ = Sets J
+    InSet = (AI in SJ) reduce and
+    Sub = Cand choose InSet false
+    if Sub
+      G add (I + 1) (N + J + 1) 1
+    end
+  end
+end
+
+Res = G 0 Sink maxflow
+Flow = Res .value
+Empty = N equal 0
+Ans = Empty choose 0 (N - Flow)
+
+(Ans text) print

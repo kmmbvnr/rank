@@ -102,6 +102,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0809** | [Спички детям не игрушка!](0809_matches.ra) | Computational Geometry (65%) | Min match moves under translation via canonicalized segment delta matching with `outer equal` & run-length translation voting |
 | **0813** | [Игра в 24](0813_game_24.ra) | Brute Force / Subset DP (62%) | Reachable values per card subset via `outer +`, `outer -`, `outer *` and `sort unique` |
 | **0815** | [Обходчик лабиринтов](0815_maze_walker.ra) | Graph Theory / Automata (65%) | NFA step simulation over colored directed edges via `reduce` with vectorized boolean masking and index assignment |
+| **0827** | [Фруктовый сок](0827_fruit_juice.ra) | Graph Theory / Flow (66%) | Min DAG path cover via Dinic `maxflow` on subset inclusion bipartite split graph, length-pruned with `choose` |
 | **0829** | [Строки - 3](0829_strings_3.ra) | Strings / Rolling Hash (60%) | Count substrings of $A$ that are cyclic shifts of $B$ in $O(|A| + |B|)$ using double polynomial rolling hash ($10^9+7$ and $10^9+9$) with `use algo` set |
 | **0885** | [Звезды за кормой](0885_stars.ra) | Search / BFS (65%) | Deterministic naval combat simulation: broadside cannons, enemy movement and debris creation via BFS |
 | **0898** | [Ленточка](0898_ribbon.ra) | Mathematical Modeling / Divide & Conquer (60%) | Determine fold crease orientations ('K' or 'O') on a folded paper ribbon ($N \le 60$) in $O(K \cdot N)$ via iterative binary reflection |
