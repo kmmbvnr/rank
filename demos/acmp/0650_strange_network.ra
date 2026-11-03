@@ -1,0 +1,87 @@
+rem Strange Network (Сеть)
+rem https://acmp.ru/task.asp?id=650
+rem Path and cycle distances via DSU.
+
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "4 4
+1 2
+2 3
+4 3
+1 4"
+
+Tok = Input words
+N = Tok 0 integer
+M = Tok 1 integer
+
+Parent = 0 to N
+Size = array shape (N + 1) fill 1
+HasC = array shape (N + 1) fill false
+
+for E in 0 till M
+  U = Tok (2 + 2 * E) integer
+  V = Tok (3 + 2 * E) integer
+
+  RootU = U
+  for Step in 0 till 18
+    P = Parent RootU
+    if P equal RootU
+      break
+    end
+    RootU = P
+  end
+
+  RootV = V
+  for Step in 0 till 18
+    P = Parent RootV
+    if P equal RootV
+      break
+    end
+    RootV = P
+  end
+
+  if RootU not equal RootV
+    if (Size RootU) less (Size RootV)
+      Tmp = RootU
+      RootU = RootV
+      RootV = Tmp
+    end
+    Parent RootV = RootU
+    Size RootU = Size RootU + Size RootV
+    if HasC RootV
+      HasC RootU = true
+    end
+  else
+    HasC RootU = true
+  end
+end
+
+All = 1 to N
+Roots = All ((Parent All) equal All)
+
+S = Size Roots
+C = HasC Roots
+
+PathMask = not C
+PathS = S PathMask
+P1 = PathS - 1
+P2 = PathS - 2
+PathAns = (PathS * P1 * P2) // 3
+
+CycleMask = C
+CycleS = S CycleMask
+Mid = CycleS // 2
+IsEven = (CycleS mod 2) equal 0
+EvenAns = CycleS * (Mid - 1) * (Mid - 1)
+OddAns = CycleS * Mid * (Mid - 1)
+EvenPart = (IsEven integer) * EvenAns
+NotEven = (not IsEven) integer
+OddPart = NotEven * OddAns
+CycleAns = EvenPart + OddPart
+
+Ans = (PathAns sum) + (CycleAns sum)
+Ans print
