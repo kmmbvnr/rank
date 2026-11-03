@@ -1,0 +1,43 @@
+rem Races (Гонки)
+rem https://acmp.ru/index.asp?main=task&id_task=746
+rem Count 4-cycles. C = A*A holds the
+rem common-neighbour counts c(u,v); every
+rem cycle is two opposite pairs, so
+rem cycles = sum over u != v of
+rem C(c, 2), divided by 4.
+
+use io
+use text
+use cli
+use sequences
+use linalg
+
+arg Input text = "4 6
+1 2
+2 3
+3 4
+4 1
+1 3
+2 4"
+
+Txt = Input split "\r" join " "
+Txt = Txt split "\n" join " "
+Tok = Txt split " "
+Nums = (Tok (Tok not equal "")) integer
+N = Nums 0
+M = Nums 1
+Ends = (Nums (2 till (2 * M + 2))) - 1
+Us = Ends ((0 till M) * 2)
+Vs = Ends (((0 till M) * 2) + 1)
+
+Flat = array shape (N * N) fill 0
+Ones = array shape M fill 1
+Flat ((Us * N) + Vs) = Ones
+Flat ((Vs * N) + Us) = Ones
+Adj = Flat reshape N N
+
+Common = (Adj matpow 2) reshape #
+Pairs = (Common * (Common - 1)) // 2
+Diag = Pairs ((0 till N) * (N + 1))
+Ans = ((Pairs sum) - (Diag sum)) // 4
+Ans print
