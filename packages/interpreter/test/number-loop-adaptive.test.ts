@@ -287,7 +287,9 @@ describe('condition-loop entry range work', () => {
         const source = conditionPasses(undefined, undefined, 'A Size = 1')
             .replace('A I += I', 'A I = 9007199254740991 + I');
         const d = compare(source);
-        expect(d.numberLoopOverflows).toBe(1);
+        // Exact replay may enter a nested Number loop and overflow again.
+        // compare() verifies the complete state and the error against both backends.
+        expect(d.numberLoopOverflows).toBeGreaterThan(0);
         expect(run(source).result.error).toContain('array index out of bounds');
     });
 });

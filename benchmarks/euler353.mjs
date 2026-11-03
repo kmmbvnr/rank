@@ -20,7 +20,7 @@ if (options.worker && options.program === 'oracle') {
     const last = Number(options.last ?? 5);
     if (options.radii === 'true') {
         source = source.replace('Sum = 0.0', 'Risks = array shape Last fill 0.0\nSum = 0.0')
-            .replace('  Sum += (2 ** N - 1) moon', '  Risk = (2 ** N - 1) moon\n  Risks (N - 1) = Risk\n  Sum += Risk');
+            .replace(/^  Sum \+= (.+ moon)$/m, (_, call) => `  Risk = ${call}\n  Risks (N - 1) = Risk\n  Sum += Risk`);
     }
     const runtime = new Interpreter(() => {}, { args: ['--last', String(last)] });
     try {

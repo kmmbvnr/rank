@@ -40,7 +40,7 @@
   "euler/338_gridpaper_default_test.ra": "Manual full-input reference assertion; the full compiled default is covered by euler338.test.ts, and small independent enumeration checks remain in the ordinary suites.",
   "euler/348_squarecube.ra": "Searches for all five full-size palindrome square/cube solutions.",
   "euler/348_squarecube_default_test.ra": "Manual full-input assertion for the default-scale workload; small assertions remain in 348_squarecube_test.ra.",
-  "euler/353_riskymoon.ra": "The reduced default search is practical when compiled; exact point-generation loops through radius 32767 exceed the uncompiled differential execution budget.",
+  "euler/353_riskymoon.ra": "Full default remains manual: reference geometric shortest-path scans exceed the corpus budget; quaternion point generation and the full compiled answer are covered separately (#447).",
   "euler/354_honeycomb.ra": "Enumerates honeycomb distances below 5*10^11.",
   "euler/355_coprime.ra": "Builds the full prime-assignment optimization at limit 200000.",
   "euler/357_primegenerating.ra": "Enumerates prime candidates through 100000000.",

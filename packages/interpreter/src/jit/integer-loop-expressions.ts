@@ -13,7 +13,7 @@ import { hasNativeFenwick } from '../fenwick.js';
 import { hasNativeIntegerGroups } from '../runtime/integer-groups.js';
 import { compiledArgumentType, hasNativeDeque } from './compiled-argument-type.js';
 import {
-    compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
+    compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
     isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType, type CompiledCallSignature,
@@ -1425,7 +1425,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             }
             const builtin = inlineBuiltins.get(op);
             if (builtin && (host.module(builtin.module) || !host.scalarFunction(op, 1))
-                && (builtin.enabled?.(host) ?? true) && flattenApplication(e).length === 2) {
+                && (builtin.enabled?.(host) ?? true)
+                && (flattenApplication(e).length === 2 || unaryApplicationHead(e,
+                    name => findOperation(name)?.arities) === e.head)) {
                 // Numeric-runtime helpers expect Number operands. Keep these
                 // uncommon exact expressions on the existing exact backend.
                 if (wide) return undefined;
@@ -1620,7 +1622,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 state.indexedReads.set(head.name, info.rank === 1 && !state.indexedReads.has(head.name) && isNameExpression(argument) ? argument.name : undefined);
                 const offset = numberOffset(info, indices, lines);
                 const cell = `cells${info.slot}[${offset}]`;
-                const load = type === 'integer' ? wide ? `BigInt(${cell})` : `safe(Number(${cell}))`
+                const load = type === 'integer' ? wide ? `BigInt(${cell})` : `integerCell(${cell})`
                     : type === 'boolean' ? `Boolean(${cell})` : cell;
                 lines.push(`const ${name} = ${load};`);
             } else {

@@ -1,0 +1,209 @@
+rem Risky Moon
+rem https://projecteuler.net/problem=353
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Last integer = 15
+
+fun N fourcount
+  Count = 0
+  for A in 0 to (N // 4 isqrt)
+    Left = N - A * A
+    for B in A to (Left // 3 isqrt)
+      Rest = Left - B * B
+      for C in B to (Rest // 2 isqrt)
+        D2 = Rest - C * C
+        D = D2 isqrt
+        if D * D equal D2
+          Count += 1
+        end
+      end
+    end
+  end
+  return Count
+end
+
+rem Hopf images of four-square tuples.
+fun R moonpoints
+  if R equal 0
+    return array 0
+  end
+  Divs = R divisors array
+  Count = 0
+  for N in Divs
+    if N mod 2 equal 1
+      Count += N fourcount
+    end
+  end
+  Codes = array shape (36 * Count) fill 0
+  Base = R + 1
+  Plane = Base * Base
+  At = 0
+  for N in Divs
+    if N mod 2 equal 0
+      continue
+    end
+    Scale = R // N
+    for A in 0 to (N // 4 isqrt)
+      Left = N - A * A
+      for B in A to (Left // 3 isqrt)
+        Rest = Left - B * B
+        for C in B to (Rest // 2 isqrt)
+          D2 = Rest - C * C
+          D = D2 isqrt
+          if D * D not equal D2
+            continue
+          end
+          for P in 0 till 3
+            E = B
+            F = C
+            G = D
+            if P equal 1
+              E = C
+              F = B
+            elif P equal 2
+              E = D
+              F = B
+              G = C
+            end
+            for Sign in -1 to 1 by 2
+              U = A * A + E * E
+              U -= F * F + G * G
+              X = U abs * Scale
+              V = A * F + Sign * E * G
+              Y = 2 * V abs * Scale
+              W = A * G - Sign * E * F
+              Z = 2 * W abs * Scale
+              Lo = X min Y
+              Hi = X max Y
+              Code = Lo * Base + Hi
+              Codes At = (R + Z) * Plane + Code
+              Codes (At + 1) = (R - Z) * Plane + Code
+              Lo = X min Z
+              Hi = X max Z
+              Code = Lo * Base + Hi
+              Codes (At + 2) = (R + Y) * Plane + Code
+              Codes (At + 3) = (R - Y) * Plane + Code
+              Lo = Y min Z
+              Hi = Y max Z
+              Code = Lo * Base + Hi
+              Codes (At + 4) = (R + X) * Plane + Code
+              Codes (At + 5) = (R - X) * Plane + Code
+              At += 6
+            end
+          end
+        end
+      end
+    end
+  end
+  return Codes unique sort
+end
+
+fun R moon
+  Codes = R moonpoints
+  Count = Codes len
+  Xs = array shape Count fill 0
+  Ys = array shape Count fill 0
+  Zs = array shape Count fill 0
+  Base = R + 1
+  Plane = Base * Base
+  R2 = R * R
+  for I in 0 till Count
+    Code = Codes I
+    Zs I = Code // Plane - R
+    Xs I = (Code mod Plane) // Base
+    Ys I = Code mod Base
+  end
+  Dist = array shape Count fill 2.0
+  Open = array shape Count fill 2.0
+  Start = Count - 1
+  Dist Start = 0.0
+  Open Start = 0.0
+  rem The equatorial axis gives a feasible route with risk 0.5.
+  Upper = 0.5
+  Mirror = array shape Count fill 0
+  for I in 0 till Count
+    Code = Codes I
+    Other = (2 * R - Code // Plane) * Plane + Code mod Plane
+    Lo = 0
+    Hi = Count
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if Codes Mid less Other
+        Lo = Mid + 1
+      else
+        Hi = Mid
+      end
+    end
+    Mirror I = Lo
+  end
+  Xf = Xs * 1.0 array
+  Yf = Ys * 1.0 array
+  Zf = Zs * 1.0 array
+  Pi = -1 acos
+  for Step in 1 to Count
+    At = Open min .index
+    Best = Open At
+    rem Reflecting this search in Z is the simultaneous search from the south.
+    rem The two unsettled frontiers have the same minimum distance.
+    if 2.0 * Best at least Upper
+      break
+    end
+    Open At = 3.0
+    rem A useful edge has chord length < Pi * R * sqrt(Upper - Best).
+    rem Sorted Z coordinates exclude whole bands before scanning candidates.
+    rem The extra integer unit makes the rounded bound conservative.
+    Span = ((((Upper - Best) * Pi * Pi * R2) sqrt) ceil) + 1
+    Bottom = Zs At - Span
+    Top = Zs At + Span
+    Lo = 0
+    Hi = Count
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if Zs Mid less Bottom
+        Lo = Mid + 1
+      else
+        Hi = Mid
+      end
+    end
+    First = Lo
+    Hi = Count
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if Zs Mid at most Top
+        Lo = Mid + 1
+      else
+        Hi = Mid
+      end
+    end
+    Ix = First till Lo array
+    Dot = Xf At * Xf Ix + Yf At * Yf Ix
+    Dot += Zf At * Zf Ix
+    Lower = 2.0 * (R2 - Dot) / R2 / (Pi * Pi)
+    Ready = Open Ix less 3.0
+    Useful = Best + Lower less (Dist Ix min Upper)
+    Keep = (Ready and Useful) indices
+    if Keep len equal 0
+      continue
+    end
+    Next = Ix Keep array
+    Angle = Dot Keep / R2 acos / Pi
+    Values = Best + Angle * Angle
+    Dist Next = Values
+    Open Next = Values
+    Other = Mirror Next
+    Routes = Values + Dist Other
+    Upper = Upper min Routes min
+  end
+  return Upper
+end
+
+Sum = 0.0
+for N in 1 to Last
+  Sum += 2 ** N - 1 moon
+end
+Answer = Sum round 10
+Answer print

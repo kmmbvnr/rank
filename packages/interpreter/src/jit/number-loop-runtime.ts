@@ -252,11 +252,16 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     }
     for (const [name, info] of plan.destinations) if (!plan.arrayDefinitions.has(name)) registers.push(`changed${info.slot} = changes[${info.slot}]`);
     const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
+    // Array-writing regions cannot borrow the raw packed read-only path below:
+    // entry validates/converts all integer buffers, and stores remain checked.
+    // Read-only indexed passes may defer validation of untouched BigInt cells.
+    const integerCell = plan.destinations.size > 0 ? (value: number) => value
+        : (value: number | bigint) => safe(Number(value));
     const source = emitNumberLoopSource(plan, registers, publish, false);
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', code)(
             modularMultiply, safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -308,7 +313,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     for (let i = first; i < last; i++) result.store(i, safe(start + safe(i * step)));
                 }
                 return result;
-            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout, compactVector);
+            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout, compactVector, integerCell);
     try { run = compile(source); } catch { return undefined; }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These

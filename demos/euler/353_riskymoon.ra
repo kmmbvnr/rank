@@ -8,45 +8,101 @@ use cli
 
 arg Last integer = 15
 
-rem Count unordered nonnegative triples before allocating coordinate storage.
-fun R mooncount
-  R2 = R * R
+fun N fourcount
   Count = 0
-  for X in 0 to (R2 // 3 isqrt)
-    Left = R2 - X * X
-    for Y in X to (Left // 2 isqrt)
-      Z2 = Left - Y * Y
-      Z = Z2 isqrt
-      if Z * Z equal Z2
-        Count += 1
+  for A in 0 to (N // 4 isqrt)
+    Left = N - A * A
+    for B in A to (Left // 3 isqrt)
+      Rest = Left - B * B
+      for C in B to (Rest // 2 isqrt)
+        D2 = Rest - C * C
+        D = D2 isqrt
+        if D * D equal D2
+          Count += 1
+        end
       end
     end
   end
   return Count
 end
 
-rem Horizontal reflections and coordinate exchange fix both poles.
-rem Encode all representatives 0 <= X <= Y, retaining both signs of Z.
+rem Hopf images of four-square tuples.
 fun R moonpoints
-  Count = R mooncount
-  Codes = array shape (6 * Count) fill 0
+  if R equal 0
+    return array 0
+  end
+  Divs = R divisors array
+  Count = 0
+  for N in Divs
+    if N mod 2 equal 1
+      Count += N fourcount
+    end
+  end
+  Size = 36 * Count
+  Codes = array shape Size fill 0
   Base = R + 1
   Plane = Base * Base
-  R2 = R * R
   At = 0
-  for X in 0 to (R2 // 3 isqrt)
-    Left = R2 - X * X
-    for Y in X to (Left // 2 isqrt)
-      Z2 = Left - Y * Y
-      Z = Z2 isqrt
-      if Z * Z equal Z2
-        Codes At = (R + Z) * Plane + X * Base + Y
-        Codes (At + 1) = (R - Z) * Plane + X * Base + Y
-        Codes (At + 2) = (R + Y) * Plane + X * Base + Z
-        Codes (At + 3) = (R - Y) * Plane + X * Base + Z
-        Codes (At + 4) = (R + X) * Plane + Y * Base + Z
-        Codes (At + 5) = (R - X) * Plane + Y * Base + Z
-        At += 6
+  for N in Divs
+    if N mod 2 equal 0
+      continue
+    end
+    Scale = R // N
+    for A in 0 to (N // 4 isqrt)
+      Left = N - A * A
+      for B in A to (Left // 3 isqrt)
+        Rest = Left - B * B
+        for C in B to (Rest // 2 isqrt)
+          D2 = Rest - C * C
+          D = D2 isqrt
+          if D * D not equal D2
+            continue
+          end
+          for P in 0 till 3
+            E = B
+            F = C
+            G = D
+            if P equal 1
+              E = C
+              F = B
+            elif P equal 2
+              E = D
+              F = B
+              G = C
+            end
+            for Sign in -1 to 1 by 2
+              U = A * A + E * E
+              U -= F * F + G * G
+              X = U abs * Scale
+              S = Sign * E
+              V = A * F + S * G
+              Y = 2 * V abs * Scale
+              W = A * G - S * F
+              Z = 2 * W abs * Scale
+              for Axis in 0 till 3
+                V = Z
+                Lo = X min Y
+                Hi = X max Y
+                if Axis equal 1
+                  V = Y
+                  Lo = X min Z
+                  Hi = X max Z
+                elif Axis equal 2
+                  V = X
+                  Lo = Y min Z
+                  Hi = Y max Z
+                end
+                Code = Lo * Base + Hi
+                Up = (R + V) * Plane
+                Down = (R - V) * Plane
+                Codes At = Up + Code
+                Ix = At + 1
+                Codes Ix = Down + Code
+                At += 2
+              end
+            end
+          end
+        end
       end
     end
   end
@@ -72,24 +128,28 @@ fun R moon
   Done = array shape Count fill false
   Start = Count - 1
   Dist Start = 0.0
-  rem The equatorial axis gives a feasible route with risk 0.5.
+  rem The equatorial axis gives a
+  rem feasible route with risk 0.5.
   Upper = 0.5
   Mirror = array shape Count fill 0
-  for I in 0 till Count
-    Code = Codes I
-    Other = (2 * R - Code // Plane) * Plane + Code mod Plane
-    Lo = 0
-    Hi = Count
-    for Lo less Hi
-      Mid = (Lo + Hi) // 2
-      if Codes Mid less Other
-        Lo = Mid + 1
-      else
-        Hi = Mid
+  rem Mirror equal-Z rows in reverse
+  rem order.
+  First = 0
+  for First less Count
+    Stop = First + 1
+    for Stop less Count
+      if Zs Stop not equal Zs First
+        break
       end
+      Stop += 1
     end
-    Mirror I = Lo
+    Back = Count - Stop - First
+    for I in First till Stop
+      Mirror I = Back + I
+    end
+    First = Stop
   end
+  Codes = array shape 0 fill 0
   Pi = -1 acos
   for Step in 1 to Count
     At = -1
@@ -100,16 +160,25 @@ fun R moon
         Best = Dist I
       end
     end
-    rem Reflecting this search in Z is the simultaneous search from the south.
-    rem The two unsettled frontiers have the same minimum distance.
+    rem Reflecting this search in Z is
+    rem the simultaneous search from the
+    rem south.
+    rem The two unsettled frontiers have
+    rem the same minimum distance.
     if 2.0 * Best at least Upper
       break
     end
     Done At = true
-    rem A useful edge has chord length < Pi * R * sqrt(Upper - Best).
-    rem Sorted Z coordinates exclude whole bands before scanning candidates.
-    rem The extra integer unit makes the rounded bound conservative.
-    Span = ((((Upper - Best) * Pi * Pi * R2) sqrt) ceil) + 1
+    rem A useful edge has chord length <
+    rem Pi * R * sqrt(Upper - Best).
+    rem Sorted Z coordinates exclude
+    rem whole bands before scanning
+    rem candidates.
+    rem The extra integer unit makes the
+    rem rounded bound conservative.
+    Reach = (Upper - Best) * Pi * Pi
+    Reach *= R2
+    Span = Reach sqrt ceil + 1
     Bottom = Zs At - Span
     Top = Zs At + Span
     Lo = 0
@@ -138,9 +207,13 @@ fun R moon
       end
       Dot = Xs At * Xs I + Ys At * Ys I
       Dot += Zs At * Zs I
-      rem Arc length is at least chord length: reject only proven losers.
-      Lower = 2.0 * (R2 - Dot) / R2 / (Pi * Pi)
-      if Best + Lower at least (Dist I min Upper)
+      rem Arc length is at least chord
+      rem length: reject only proven
+      rem losers.
+      Lower = 2.0 * (R2 - Dot) / R2
+      Lower /= Pi * Pi
+      Bound = Dist I min Upper
+      if Best + Lower at least Bound
         continue
       end
       Angle = Dot / R2 acos / Pi

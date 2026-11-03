@@ -1,0 +1,216 @@
+rem Risky Moon
+rem https://projecteuler.net/problem=353
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Last integer = 15
+
+fun R moonjumps
+  Mask = array shape 64 fill 0
+  for K in 0 till 64
+    Mask (K * K mod 64) = 1
+  end
+  Jump = array shape 4096 fill 0
+  R2 = R * R
+  for A in 0 till 64
+    Row = A * 64
+    Gap = 128
+    Found = false
+    for B in 127 to 0 by -1
+      Rest = (R2 - A * A - B * B) mod 64
+      if Mask Rest equal 1
+        Gap = 0
+        Found = true
+      else
+        Gap += 1
+      end
+      if B less 64
+        Jump (Row + B) = Gap
+      end
+    end
+    if not Found
+      Jump Row = -1
+    end
+  end
+  return Jump
+end
+
+fun R mooncount
+  Jump = R moonjumps
+  return R countmoon Jump
+end
+
+rem Count unordered nonnegative triples before allocating coordinate storage.
+fun R countmoon Jump
+  R2 = R * R
+  Count = 0
+  for X in 0 to (R2 // 3 isqrt)
+    Left = R2 - X * X
+    Row = (X mod 64) * 64
+    if Jump Row less 0
+      continue
+    end
+    Y = X + Jump (Row + X mod 64)
+    LastY = Left // 2 isqrt
+    for Y at most LastY
+      Z2 = Left - Y * Y
+      Z = Z2 isqrt
+      if Z * Z equal Z2
+        Count += 1
+      end
+      Y += 1
+      Y += Jump (Row + Y mod 64)
+    end
+  end
+  return Count
+end
+
+rem Horizontal reflections and coordinate exchange fix both poles.
+rem Encode all representatives 0 <= X <= Y, retaining both signs of Z.
+fun R moonpoints
+  Jump = R moonjumps
+  Count = R countmoon Jump
+  Codes = array shape (6 * Count) fill 0
+  Base = R + 1
+  Plane = Base * Base
+  R2 = R * R
+  At = 0
+  for X in 0 to (R2 // 3 isqrt)
+    Left = R2 - X * X
+    Row = (X mod 64) * 64
+    if Jump Row less 0
+      continue
+    end
+    Y = X + Jump (Row + X mod 64)
+    LastY = Left // 2 isqrt
+    for Y at most LastY
+      Z2 = Left - Y * Y
+      Z = Z2 isqrt
+      if Z * Z equal Z2
+        Codes At = (R + Z) * Plane + X * Base + Y
+        Codes (At + 1) = (R - Z) * Plane + X * Base + Y
+        Codes (At + 2) = (R + Y) * Plane + X * Base + Z
+        Codes (At + 3) = (R - Y) * Plane + X * Base + Z
+        Codes (At + 4) = (R + X) * Plane + Y * Base + Z
+        Codes (At + 5) = (R - X) * Plane + Y * Base + Z
+        At += 6
+      end
+      Y += 1
+      Y += Jump (Row + Y mod 64)
+    end
+  end
+  return Codes unique sort
+end
+
+fun R moon
+  Codes = R moonpoints
+  Count = Codes len
+  Xs = array shape Count fill 0
+  Ys = array shape Count fill 0
+  Zs = array shape Count fill 0
+  Base = R + 1
+  Plane = Base * Base
+  R2 = R * R
+  for I in 0 till Count
+    Code = Codes I
+    Zs I = Code // Plane - R
+    Xs I = (Code mod Plane) // Base
+    Ys I = Code mod Base
+  end
+  Dist = array shape Count fill 2.0
+  Done = array shape Count fill false
+  Start = Count - 1
+  Dist Start = 0.0
+  rem The equatorial axis gives a feasible route with risk 0.5.
+  Upper = 0.5
+  Mirror = array shape Count fill 0
+  for I in 0 till Count
+    Code = Codes I
+    Other = (2 * R - Code // Plane) * Plane + Code mod Plane
+    Lo = 0
+    Hi = Count
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if Codes Mid less Other
+        Lo = Mid + 1
+      else
+        Hi = Mid
+      end
+    end
+    Mirror I = Lo
+  end
+  Pi = -1 acos
+  for Step in 1 to Count
+    At = -1
+    Best = 3.0
+    for I in 0 till Count
+      if not Done I and Dist I less Best
+        At = I
+        Best = Dist I
+      end
+    end
+    rem Reflecting this search in Z is the simultaneous search from the south.
+    rem The two unsettled frontiers have the same minimum distance.
+    if 2.0 * Best at least Upper
+      break
+    end
+    Done At = true
+    rem A useful edge has chord length < Pi * R * sqrt(Upper - Best).
+    rem Sorted Z coordinates exclude whole bands before scanning candidates.
+    rem The extra integer unit makes the rounded bound conservative.
+    Span = ((((Upper - Best) * Pi * Pi * R2) sqrt) ceil) + 1
+    Bottom = Zs At - Span
+    Top = Zs At + Span
+    Lo = 0
+    Hi = Count
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if Zs Mid less Bottom
+        Lo = Mid + 1
+      else
+        Hi = Mid
+      end
+    end
+    First = Lo
+    Hi = Count
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if Zs Mid at most Top
+        Lo = Mid + 1
+      else
+        Hi = Mid
+      end
+    end
+    for I in First till Lo
+      if Done I
+        continue
+      end
+      Dot = Xs At * Xs I + Ys At * Ys I
+      Dot += Zs At * Zs I
+      rem Arc length is at least chord length: reject only proven losers.
+      Lower = 2.0 * (R2 - Dot) / R2 / (Pi * Pi)
+      if Best + Lower at least (Dist I min Upper)
+        continue
+      end
+      Angle = Dot / R2 acos / Pi
+      Value = Best + Angle * Angle
+      if Value less Dist I
+        Dist I = Value
+        Other = Mirror I
+        Route = Value + Dist Other
+        Upper = Upper min Route
+      end
+    end
+  end
+  return Upper
+end
+
+Sum = 0.0
+for N in 1 to Last
+  Sum += 2 ** N - 1 moon
+end
+Answer = Sum round 10
+Answer print

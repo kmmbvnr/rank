@@ -2,6 +2,7 @@ use testing
 
 test "risky moon r7"
   use "353_riskymoon"
+  0 moonpoints equal array 0
   Risk = 7 moon
   Risk greater 0.1784943997
   Risk less 0.1784943999
