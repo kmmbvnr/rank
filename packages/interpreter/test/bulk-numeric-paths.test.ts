@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
 import { prepareStoredScalarView } from '../src/integer-view.js';
+import { typedArray } from '../src/array-storage.js';
 
 for (const compilation of [false, true]) describe(`bulk numeric paths (compilation=${compilation})`, () => {
     const run = (source: string): string => {
@@ -146,6 +147,33 @@ end`);
             expect(run('E = array shape 1 fill 2.5\n(E scan + array) 0')).toBe('2.5');
             expect(run('Z = (0 till 5 array) * 0.0\n(Z scan + array) reduce max')).toBe('0');
             expect(run('B = (1 to 4 array) * 1.0e307\n((B scan + array) 3) greater 9.0e307')).toBe('true');
+        });
+    });
+
+    describe('argsort of wide integers', () => {
+        // Deterministic 64-bit values with repeats, both signs and the extremes.
+        const values = (() => {
+            let seed = 7;
+            const next = () => (seed = (seed * 1103515245 + 12345) >>> 0);
+            const out: bigint[] = [];
+            for (let i = 0; i < 3000; i++) {
+                const wide = (BigInt(next()) << 32n) | BigInt(next());
+                out.push(BigInt.asIntN(64, i % 5 === 0 ? out[i >> 1] ?? wide : i % 7 === 0 ? -wide : wide));
+            }
+            out.push(-(1n << 63n), (1n << 63n) - 1n, 0n, -1n, 1n << 40n, 1n << 40n);
+            return out;
+        })();
+        const order = (descending: boolean) => values.map((value, index) => ({ value, index }))
+            .sort((a, b) => (a.value < b.value ? -1 : a.value > b.value ? 1 : 0) * (descending ? -1 : 1) || a.index - b.index)
+            .map(entry => entry.index);
+
+        it.each([false, true])('is stable and exact (descending=%s)', descending => {
+            const runtime = new Interpreter(() => {}, { compilation });
+            try {
+                runtime.variables.set('W', typedArray(BigInt64Array.from(values)));
+                const result = runtime.execute(`use sequences\nW argsort${descending ? ' .descending' : ''}`)!;
+                expect(formatValue(result)).toBe(order(descending).join(' '));
+            } finally { runtime.dispose(); }
         });
     });
 
