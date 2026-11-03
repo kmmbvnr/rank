@@ -1,0 +1,112 @@
+rem Rect Division (Деление)
+rem https://acmp.ru/task.asp?id=622
+rem Planar faces count via DSU.
+
+use cli
+use graph
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "8
+10 20 50 30
+40 10 50 25
+40 25 80 30
+5 5 25 35
+60 15 90 40
+15 45 70 60
+30 50 85 70
+20 22 45 28"
+
+Raw = Input split "\n" join " "
+Raw = Raw split "\r" join " "
+Tok = Raw split " "
+Tok = Tok (Tok not equal "")
+
+N = Tok 0 integer
+Idx = 0 till N
+RawX1 = Tok (1 + 4 * Idx) integer
+RawY1 = Tok (2 + 4 * Idx) integer
+RawX2 = Tok (3 + 4 * Idx) integer
+RawY2 = Tok (4 + 4 * Idx) integer
+
+RX1 = RawX1 min RawX2
+RX2 = RawX1 max RawX2
+RY1 = RawY1 min RawY2
+RY2 = RawY1 max RawY2
+
+Xs = (concat RX1 RX2) sort unique
+Ys = (concat RY1 RY2) sort unique
+LenX = Xs len
+LenY = Ys len
+W = LenX + 1
+H = LenY + 1
+Total = W * H
+
+D = new dsu (0 till Total)
+
+for I in 0 till LenX
+  Xval = Xs I
+  D I (I + 1) merge
+  Top1 = (H - 1) * W + I
+  Top2 = Top1 + 1
+  D Top1 Top2 merge
+
+  M1 = RX1 equal Xval
+  M2 = RX2 equal Xval
+  Match = M1 or M2
+  SubY1 = RY1 Match
+  SubY2 = RY2 Match
+  NumM = SubY1 len
+  HasM = NumM greater 0
+
+  for J in 1 till (H - 1)
+    Ylow = Ys (J - 1)
+    Yhigh = Ys J
+    My1 = SubY1 at most Ylow
+    My2 = SubY2 at least Yhigh
+    Hit = (My1 and My2) any
+    Blocked = HasM choose Hit false
+    if not Blocked
+      C1 = J * W + I
+      C2 = C1 + 1
+      D C1 C2 merge
+    end
+  end
+end
+
+for J in 0 till LenY
+  Yval = Ys J
+  CLeft1 = J * W
+  CLeft2 = (J + 1) * W
+  D CLeft1 CLeft2 merge
+  CRight1 = J * W + (W - 1)
+  CRight2 = (J + 1) * W + (W - 1)
+  D CRight1 CRight2 merge
+
+  M1 = RY1 equal Yval
+  M2 = RY2 equal Yval
+  Match = M1 or M2
+  SubX1 = RX1 Match
+  SubX2 = RX2 Match
+  NumM = SubX1 len
+  HasM = NumM greater 0
+
+  for I in 1 till (W - 1)
+    Xlow = Xs (I - 1)
+    Xhigh = Xs I
+    Mx1 = SubX1 at most Xlow
+    Mx2 = SubX2 at least Xhigh
+    Hit = (Mx1 and Mx2) any
+    Blocked = HasM choose Hit false
+    if not Blocked
+      C1 = J * W + I
+      C2 = (J + 1) * W + I
+      D C1 C2 merge
+    end
+  end
+end
+
+Ans = D components
+Ans print
