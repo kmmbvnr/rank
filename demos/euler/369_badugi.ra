@@ -2,6 +2,8 @@ rem Badugi
 rem https://projecteuler.net/problem=369
 
 use bits
+use algo
+use sequences
 use io
 use cli
 
@@ -37,24 +39,43 @@ fun R extend T
 end
 
 fun Ranks table Max
-  States = 2 ** 16
-  Cells = (Max + 1) * States
+  rem Close only reachable suit sets.
+  Codes = array 1
+  Last = 0
+  for Codes len not equal Last
+    Last = Codes len
+    Next = Codes
+    for T in 1 to 15
+      Next = concat Next (Codes extend T)
+    end
+    Codes = Next unique sort
+  end
+  Size = Codes len
+  Moves = array shape (Size * 16) fill 0
+  Counts = array shape 16 fill 0
+  for T in 0 to 15
+    Counts T = T cards
+  end
+  for R in 0 till Size
+    for T in 0 to 15
+      To = Codes R extend T
+      Moves (R * 16 + T) = Codes lowerindex To
+    end
+  end
+  Cells = (Max + 1) * Size
   Cur = array shape Cells fill 0
-  Cur 1 = 1
+  Cur 0 = 1
   for I in 1 to Ranks
     Next = array shape Cells fill 0
     for N in 0 to Max
-      At = N * States
-      for R in 0 till States
-        Ways = Cur (At + R)
+      for R in 0 till Size
+        Ways = Cur (N * Size + R)
         if Ways not equal 0
           for T in 0 to 15
-            Count = T cards
-            if N + Count at most Max
-              To = R extend T
-              New = N + Count
-              Pos = New * States + To
-              Next Pos += Ways
+            New = N + Counts T
+            if New at most Max
+              To = Moves (R * 16 + T)
+              Next (New * Size + To) += Ways
             end
           end
         end
@@ -62,33 +83,23 @@ fun Ranks table Max
     end
     Cur = Next
   end
-  return Cur
+  Totals = array shape (Max + 1) fill 0
+  for N in 0 to Max
+    for R in 0 till Size
+      if Codes R band 32768 not equal 0
+        Totals N += Cur (N * Size + R)
+      end
+    end
+  end
+  return Totals
 end
 
 fun Ranks Max N hands
-  States = 2 ** 16
   T = Ranks table Max
-  Sum = 0
-  At = N * States
-  for R in 0 till States
-    if R band 32768 not equal 0
-      Sum += T (At + R)
-    end
-  end
-  return Sum
+  return T N
 end
 
 fun Ranks badugi Max
   T = Ranks table Max
-  States = 2 ** 16
-  Sum = 0
-  for N in 4 to Max
-    At = N * States
-    for R in 0 till States
-      if R band 32768 not equal 0
-        Sum += T (At + R)
-      end
-    end
-  end
-  return Sum
+  return T sum
 end

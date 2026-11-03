@@ -12,3 +12,18 @@ test "small Badugi hands"
   13 5 4 hands equal 17160
   13 5 5 hands equal 514800
 end
+
+test "empty and short decks"
+  use "369_badugi"
+  0 badugi 4 equal 0
+  3 badugi 12 equal 0
+  4 badugi 3 equal 0
+  4 16 4 hands equal 24
+  4 16 16 hands equal 1
+end
+
+test "full Badugi count"
+  use "369_badugi"
+  run
+  Answer equal 862400558448
+end

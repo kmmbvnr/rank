@@ -1,0 +1,109 @@
+rem Badugi
+rem https://projecteuler.net/problem=369
+
+use bits
+use io
+use cli
+
+arg Ranks integer = 13
+arg Max integer = 13
+
+Answer = Ranks badugi Max
+Answer print
+
+fun T cards
+  A = T band 1
+  B = (T band 2) // 2
+  C = (T band 4) // 4
+  D = (T band 8) // 8
+  return A + B + C + D
+end
+
+fun R extend T
+  Base = R
+  if T band 1 not equal 0
+    R = R bor (Base band 21845 shl 1)
+  end
+  if T band 2 not equal 0
+    R = R bor (Base band 13107 shl 2)
+  end
+  if T band 4 not equal 0
+    R = R bor (Base band 3855 shl 4)
+  end
+  if T band 8 not equal 0
+    R = R bor (Base band 255 shl 8)
+  end
+  return R
+end
+
+fun Ranks table Max
+  Codes = array shape 65536 fill 0
+  Id = array shape 65536 fill -1
+  Codes 0 = 1
+  Id 1 = 0
+  Size = 1
+  At = 0
+  for At less Size
+    R = Codes At
+    for T in 0 to 15
+      To = R extend T
+      if Id To equal -1
+        Id To = Size
+        Codes Size = To
+        Size += 1
+      end
+    end
+    At += 1
+  end
+  Moves = array shape (Size * 16) fill 0
+  Counts = array shape 16 fill 0
+  for T in 0 to 15
+    Counts T = T cards
+  end
+  for R in 0 till Size
+    for T in 0 to 15
+      To = Codes R extend T
+      Moves (R * 16 + T) = Id To
+    end
+  end
+  Cells = (Max + 1) * Size
+  Cur = array shape Cells fill 0
+  Cur 0 = 1
+  for I in 1 to Ranks
+    Next = array shape Cells fill 0
+    for N in 0 to Max
+      for R in 0 till Size
+        Ways = Cur (N * Size + R)
+        if Ways not equal 0
+          for T in 0 to 15
+            New = N + Counts T
+            if New at most Max
+              To = Moves (R * 16 + T)
+              Next (New * Size + To) += Ways
+            end
+          end
+        end
+      end
+    end
+    Cur = Next
+  end
+  Totals = array shape (Max + 1) fill 0
+  for N in 0 to Max
+    for R in 0 till Size
+      if Codes R band 32768 not equal 0
+        Totals N += Cur (N * Size + R)
+      end
+    end
+  end
+  return Totals
+end
+
+fun Ranks Max N hands
+  T = Ranks table Max
+  return T N
+end
+
+fun Ranks badugi Max
+  T = Ranks table Max
+  return T sum
+end
