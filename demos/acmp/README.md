@@ -92,6 +92,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0740** | [Ключи](0740_keys.ra) | Data Structures / Sweep-line (61%) | Max overlapping holes under translation: pairwise open rectangles via `outer -`, Y compression with `lowerindex`, range-add segment tree |
 | **0741** | [Замечательные дороги](0741_wonderful_roads.ra) | Graph Theory (62%) | Colors = largest biconnected block; iterative Tarjan with edge stack over CSR from `argsort` + `lowerindex` |
 | **0746** | [Гонки](0746_races.ra) | Graph Theory (64%) | 4-cycles via `(Adj matpow 2)` common neighbors and `sum` |
+| **0747** | [Декомпозиция строки](0747_string_decomposition.ra) | Dynamic Programming / Strings (65%) | Min-weight string decomposition $S_1^{d_1} \dots S_k^{d_k}$ via DP with LCP period expansion |
 | **0749** | [Неправильный RSA](0749_incorrect_rsa.ra) | Number Theory / Combinatorics (64%) | Count non-trivial factorizations of $n = p^k \cdot q^k$ ($1 \le k \le 23$) via $O(1)$ relative tolerance float64 $k$-th power detection and precomputed 2D vector partitions of $(k, k)$ |
 | **0752** | [2-3 Дерево](0752_two_three_tree.ra) | Combinatorics (61%) | Level-by-level counting `C(M, N - 2M)` with a rolling Pascal row and slice updates mod $R$ |
 | **0776** | [Юпитер](0776_jupiter.ra) | Graph Theory / BFS (62%) | BFS over (flights used, cell); each flight is one slice with `scan max` for the climb cost |

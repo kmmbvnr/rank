@@ -1,0 +1,33 @@
+use testing
+use text
+
+test "sample 1: ABABAAABABA -> weight 5"
+  use "0747_string_decomposition"
+  run
+
+  Exp = "5
+AB 2
+A 3
+BA 2"
+  Ans equal Exp
+end
+
+test "all same chars: AAAAAA -> A 6"
+  use "0747_string_decomposition"
+  Input = "AAAAAA"
+  run
+
+  Exp = "1
+A 6"
+  Ans equal Exp
+end
+
+test "no repetitions: ABCDE -> weight 5"
+  use "0747_string_decomposition"
+  Input = "ABCDE"
+  run
+
+  Lines = Ans split "\n"
+  W = Lines 0 integer
+  W equal 5
+end

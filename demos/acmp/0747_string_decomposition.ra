@@ -1,0 +1,99 @@
+rem String Decomposition (Строка)
+rem https://acmp.ru/task.asp?id=747
+rem Min-weight decomposition via LCP DP.
+
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "ABABAAABABA"
+
+Clean = Input split "\r" join ""
+Raw = Clean split "\n"
+Lines = Raw (Raw not equal "")
+S = Lines 0
+L = S len
+
+INF = 10000000
+DP = array shape (L + 1) fill INF
+Prev = array shape (L + 1) fill -1
+Period = array shape (L + 1) fill 0
+DP 0 = 0
+
+for I in 0 till L
+  Cost1 = (DP I) + 1
+  if Cost1 less (DP (I + 1))
+    DP (I + 1) = Cost1
+    Prev (I + 1) = I
+    Period (I + 1) = 1
+  end
+
+  Rem = L - I
+  MaxP = Rem // 2
+  for P in 1 to MaxP
+    C0 = S I
+    CP = S (I + P)
+    if C0 equal CP
+      CompLen = L - P - I
+      Z = 0
+      for K in 0 till CompLen
+        Pos1 = I + K
+        Pos2 = I + P + K
+        if (S Pos1) equal (S Pos2)
+          Z = Z + 1
+        else
+          break
+        end
+      end
+
+      if Z greater (P - 1)
+        MaxD = 1 + (Z // P)
+        for D in 2 to MaxD
+          To = I + D * P
+          Cost = (DP I) + P
+          if Cost less (DP To)
+            DP To = Cost
+            Prev To = I
+            Period To = P
+          end
+        end
+      end
+    end
+  end
+end
+
+PiecesStr = array shape L fill ""
+PiecesD = array shape L fill 0
+Count = 0
+Cur = L
+
+for Step in 0 till L
+  if Cur equal 0
+    break
+  end
+  From = Prev Cur
+  PLen = Period Cur
+  D = (Cur - From) // PLen
+  ToP = From + PLen
+  PiecesStr Count = S (From till ToP)
+  PiecesD Count = D
+  Count = Count + 1
+  Cur = From
+end
+
+NumLines = Count + 1
+OutLines = array shape NumLines fill ""
+OutLines 0 = (DP L) text
+
+for K in 0 till Count
+  Idx = Count - 1 - K
+  PStr = PiecesStr Idx
+  PDStr = (PiecesD Idx) text
+  Row = array PStr PDStr
+  OutLines (K + 1) = Row join " "
+end
+
+Ans = OutLines join "\n"
+Ans print
