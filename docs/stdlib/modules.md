@@ -655,6 +655,9 @@ Shifts require a nonnegative bit count. `shr` is an arithmetic right shift.
 number of set bits as an integer, including zero for zero. Its work is linear
 in the input bit length, with temporary storage proportional to that length.
 `bit` and `popcount` require a nonnegative input value.
+`bit` also maps over integer arrays with ordinary scalar broadcasting. Batch
+reads of a scalar integer share its bit decoding and produce a packed boolean
+array, which can feed boolean operations, selection and reductions directly.
 The module does not introduce a separate bit-mask type: bit masks are ordinary
 integers and remain distinct from boolean array masks.
 

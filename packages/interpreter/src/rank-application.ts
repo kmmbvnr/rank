@@ -4,6 +4,7 @@ import { demand, demandValue, isRankPlan } from './plan.js';
 import { scalarBuiltinArray } from './scalar-builtin.js';
 import { prepareTensorAxisReduction, registerTensorMap } from './tensor-map.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
+import { mapIntegerBits } from './jit/bit-array-kernel.js';
 import { mapStoredRealExtreme } from './real-extreme-kernel.js';
 import { rankedCells } from './ranked-cells.js';
 import { framedArray } from './framed-array.js';
@@ -181,6 +182,11 @@ export class RankApplication {
                 : fn === this.standardFunctions.get(standardModules.core.max) ? 'max'
                 : bitwiseOperations.find(name => fn === this.standardFunctions.get(standardModules.bits[name]))
             : undefined;
+        if (leftRank === 0 && rightRank === 0 && hasNativeImplementation(fn)
+            && fn === this.standardFunctions.get(standardModules.bits.bit)) {
+            const bits = mapIntegerBits(left, right);
+            if (bits) return completed(bits);
+        }
         if (operation) {
             const integers = mapStoredIntegers(left, right, operation);
             if (integers) return completed(integers);
