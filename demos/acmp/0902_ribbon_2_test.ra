@@ -1,0 +1,64 @@
+rem Tests for ACMP 0902 Ribbon 2
+
+use testing
+
+test "default N = 6 ribbon"
+  use "0902_ribbon_2"
+  run
+
+  Ans equal "PZPZPZ"
+end
+
+test "sample 1: 2 OOK -> PZ"
+  use "0902_ribbon_2"
+  Input = "2
+OOK"
+  run
+
+  Ans equal "PZ"
+end
+
+test "sample 2: 2 OOO -> NO"
+  use "0902_ribbon_2"
+  Input = "2
+OOO"
+  run
+
+  Ans equal "NO"
+end
+
+test "N = 1: O -> P"
+  use "0902_ribbon_2"
+  Input = "1
+O"
+  run
+
+  Ans equal "P"
+end
+
+test "N = 1: K -> Z"
+  use "0902_ribbon_2"
+  Input = "1
+K"
+  run
+
+  Ans equal "Z"
+end
+
+test "N = 3: OKKOOOK -> PPZ"
+  use "0902_ribbon_2"
+  Input = "3
+OKKOOOK"
+  run
+
+  Ans equal "PPZ"
+end
+
+test "N = 3 invalid symmetry -> NO"
+  use "0902_ribbon_2"
+  Input = "3
+OKKOOOO"
+  run
+
+  Ans equal "NO"
+end

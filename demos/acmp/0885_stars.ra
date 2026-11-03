@@ -290,7 +290,7 @@ if Won
   end
 else
   "IMPOSSIBLE" print
-  AnsLines = array "IMPOSSIBLE"
 end
 
-Ans = AnsLines join "\n"
+WinText = AnsLines join "\n"
+Ans = Won choose WinText "IMPOSSIBLE"

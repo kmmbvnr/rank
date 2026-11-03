@@ -1,0 +1,52 @@
+rem Ribbon 2 (Ленточка - 2)
+rem https://acmp.ru/task.asp?id=902
+rem Invert fold sequence by reflection.
+
+use bits
+use cli
+use io
+use sequences
+use text
+
+arg Input text = "6
+OKKOOOKKOKKKOOKOOKKOOOKOOKKKOOK
+OOKKOOOKKOKKKOOKKOKKOOOKOOKKKOOK"
+
+Raw = Input split "\r" join ""
+Lines = Raw split "\n"
+Lines = Lines (Lines not equal "")
+
+N = Lines 0 integer
+Rest = Lines (1 till (Lines len))
+S = Rest join ""
+B = (S bytes) integer
+
+Offset = 0
+Ans = ""
+Valid = true
+
+for Step in 0 till N
+  CurLen = (1 shl (N - Step)) - 1
+  Half = CurLen // 2
+  Mid = Offset + Half
+
+  if Half greater 0
+    D = 1 to Half
+    Left = B (Mid - D)
+    Right = B (Mid + D)
+    Sum = Left + Right
+    Diff = Sum not equal 154
+    if Diff count greater 0
+      Valid = false
+      break
+    end
+  end
+
+  IsO = (B Mid) equal 79
+  Fold = IsO choose "P" "Z"
+  Ans = Ans + Fold
+  Offset = Mid + 1
+end
+
+Ans = Valid choose Ans "NO"
+Ans print

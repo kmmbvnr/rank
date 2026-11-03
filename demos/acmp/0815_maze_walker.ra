@@ -61,12 +61,12 @@ Final = Prog reduce step with Init
 All = Final indices
 Rooms = All (All greater 0)
 
-Status = "OK"
 Count = Rooms len
 Result = Rooms join " "
+IsZero = Count equal 0
+Status = IsZero choose "Hangs" "OK"
 
 if Count equal 0
-  Status = "Hangs"
   "Hangs" print
 else
   "OK" print
