@@ -1435,6 +1435,13 @@ Invalid UTF-8 raises `.InvalidEncoding`. `readlines` recognizes LF, CRLF and CR,
 removes the line separators and does not add an empty item for a final line
 ending. An empty file produces an empty rank-1 array.
 
+The CLI accepts HTTP/HTTPS URLs for `read`, `readlines`, `readbytes` and
+`open .read`. Downloads follow redirects, reject HTTP errors and are limited
+to 64 MiB and 30 seconds. Each `open` holds one downloaded snapshot; URL inputs
+are read-only. In web and Android consoles, URL-valued `path` arguments are
+downloaded before execution. Browser downloads require CORS permission; the web
+host provides a same-origin route for public Project Euler document files.
+
 `write` creates or replaces a file. `append` creates a missing file or adds text
 to the end of an existing file. Both encode text as UTF-8.
 

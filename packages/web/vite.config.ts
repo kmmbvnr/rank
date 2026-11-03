@@ -7,11 +7,19 @@ let revision = 'unknown';
 const version = JSON.parse(readFileSync(new URL('../mobile/package.json', import.meta.url), 'utf8')).version;
 try { revision = execFileSync('git', ['describe', '--always', '--dirty'], { cwd: fileURLToPath(new URL('../..', import.meta.url)), encoding: 'utf8' }).trim(); } catch { /* Source archives have no Git metadata. */ }
 
+const eulerProxy = {
+    '^/__rank_euler/[A-Za-z0-9_.-]+$': {
+        target: 'https://projecteuler.net', changeOrigin: true,
+        headers: { 'Accept-Encoding': 'identity' },
+        rewrite: (path: string) => path.replace('/__rank_euler/', '/resources/documents/'),
+    },
+};
+
 export default defineConfig(({ mode }) => ({
     define: { 'import.meta.env.VITE_RANK_REVISION': JSON.stringify(revision), 'import.meta.env.VITE_RANK_VERSION': JSON.stringify(version) },
     base: './',
-    server: { headers: { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' } },
-    preview: { headers: { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' } },
+    server: { proxy: eulerProxy, headers: { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' } },
+    preview: { proxy: eulerProxy, headers: { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'require-corp' } },
     build: {
         outDir: mode === 'mobile' ? 'dist-mobile' : 'dist',
         rollupOptions: {

@@ -189,11 +189,11 @@ Numbers sum
 6
 ```
 
-`path` marks text intended as a
-filename. Input binding preserves it
-unchanged; it does not resolve it
-against the program's directory or read
-the file.
+`path` marks a filename or an HTTP/HTTPS
+URL. CLI input binding preserves it
+unchanged. Reading a URL downloads its
+contents; local paths are not resolved
+against the program's directory.
 
 ### See also
 

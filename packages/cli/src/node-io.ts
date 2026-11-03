@@ -195,8 +195,9 @@ export const nodeIo: RankIo = {
         }
         return result.stdout;
     },
-    read: path => fs.readFileSync(path),
+    read: path => isHttpPath(path) ? download(path) : fs.readFileSync(path),
     readRange(path, offset, count) {
+        if (isHttpPath(path)) return download(path).slice(offset, offset + count);
         const descriptor = fs.openSync(path, 'r');
         try {
             const data = new Uint8Array(count);
@@ -207,11 +208,48 @@ export const nodeIo: RankIo = {
         }
     },
     write(path, data, append) {
+        if (isHttpPath(path)) throw new Error('URL inputs are read-only');
         if (append) fs.appendFileSync(path, data);
         else fs.writeFileSync(path, data);
     },
-    open: (path, mode) => new NodeFile(path, mode),
+    open: (path, mode) => {
+        if (!isHttpPath(path)) return new NodeFile(path, mode);
+        if (mode !== 'read') throw new Error('URL inputs are read-only');
+        return new DownloadedFile(path, download(path));
+    },
 };
+
+function isHttpPath(path: string): boolean { return /^https?:\/\//i.test(path); }
+
+function download(path: string): Uint8Array {
+    const worker = fileURLToPath(new URL('./url-worker.js', import.meta.url));
+    const result = spawnSync(process.execPath, [worker, path], {
+        maxBuffer: 64 * 1024 * 1024, timeout: 35_000,
+    });
+    if (result.error) throw result.error;
+    if (result.status !== 0) throw new Error(result.stderr.toString('utf8').trim() || 'URL download failed');
+    return result.stdout;
+}
+
+/** One open handle owns a stable snapshot of the downloaded bytes. */
+class DownloadedFile implements RankFileHandle {
+    private cursor = 0;
+    private closed = false;
+    constructor(readonly name: string, private readonly data: Uint8Array) {}
+    private ensureOpen(): void { if (this.closed) throw new Error('file is closed'); }
+    read(count: number): Uint8Array {
+        this.ensureOpen();
+        const bytes = this.data.slice(this.cursor, this.cursor + count);
+        this.cursor += bytes.length;
+        return bytes;
+    }
+    write(): void { this.ensureOpen(); throw new Error('URL inputs are read-only'); }
+    seek(offset: number): void { this.ensureOpen(); this.cursor = offset; }
+    position(): number { this.ensureOpen(); return this.cursor; }
+    size(): number { this.ensureOpen(); return this.data.length; }
+    flush(): void { this.ensureOpen(); }
+    close(): void { this.closed = true; }
+}
 
 class NodeFile implements RankFileHandle {
     private readonly descriptor: number;

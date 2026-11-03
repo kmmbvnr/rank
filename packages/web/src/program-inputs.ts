@@ -135,35 +135,49 @@ export class ProgramInputs {
                     files.push({ name: path, data: await file.arrayBuffer() });
                 }
                 if (names.length) this.resolvedNames.set(input.name, names.join(', '));
-                this.statuses.delete(input.name);
+                this.status(input.name);
             } catch (error) { this.status(input.name, String(error)); throw error; }
         }
         await this.configure(values, files);
         this.configured = signature;
         return true;
     }
-    private status(name: string, status: string): void {
-        this.statuses.set(name, status);
+    private status(name: string, status?: string): void {
+        if (status === undefined) this.statuses.delete(name);
+        else this.statuses.set(name, status);
+        const label = status ?? this.resolvedNames.get(name) ?? this.saved[name]?.fileNames?.join(', ') ?? '';
         for (const element of this.dialog.querySelectorAll<HTMLElement>('[data-input-status]'))
-            if (element.dataset.inputStatus === name) element.textContent = status;
+            if (element.dataset.inputStatus === name) element.textContent = label;
         this.changed();
     }
     private async download(source: string, progress: (status: string) => void): Promise<{ path: string; name: string }> {
         const url = new URL(source); url.hash = '';
         if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Expected an HTTP or HTTPS URL');
         const name = decodeURIComponent(url.pathname.split('/').at(-1) || 'download');
-        const report = (received: number, total: number) => progress(total > 0
-            ? `Downloading… ${Math.min(100, Math.floor(received / total * 100))}%`
-            : `Downloading… ${(received / 1024 / 1024).toFixed(1)} MiB`);
-        progress('Downloading… 0%');
+        const report = (received: number, total: number) => {
+            const unit = Math.min(3, Math.max(0, Math.floor(Math.log2(Math.max(1, total || received)) / 10)));
+            const size = (bytes: number) => (bytes / 1024 ** unit).toFixed(unit ? 1 : 0);
+            const amount = total > 0
+                ? `${Math.min(100, Math.floor(received / total * 100))}% · ${size(received)} / ${size(total)}`
+                : size(received);
+            progress(`Downloading… ${amount} ${['B', 'KiB', 'MiB', 'GiB'][unit]}`);
+        };
+        report(0, 0);
         if (Capacitor.getPlatform() === 'android') return downloadInputFile(url.href, report);
         const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(url.href))))
             .map(byte => byte.toString(16).padStart(2, '0')).join('');
         const path = 'inputs/url-' + hash;
         if (await storeFile(path)) return { path, name };
-        const response = await fetch(url.href);
+        // Project Euler does not expose CORS headers; its public documents
+        // have a fixed upstream route on the web host.
+        const target = url.origin === 'https://projecteuler.net'
+            && /^\/resources\/documents\/[A-Za-z0-9_.-]+$/.test(url.pathname)
+            ? '/__rank_euler/' + url.pathname.split('/').at(-1) : url.href;
+        const response = await fetch(target);
         if (!response.ok) throw new Error(`Cannot download ${name}: HTTP ${response.status}`);
-        const total = Number(response.headers.get('Content-Length')) || 0;
+        const encoding = response.headers.get('Content-Encoding');
+        const total = encoding && encoding !== 'identity' ? 0 : Number(response.headers.get('Content-Length')) || 0;
+        report(0, total);
         const reader = response.body?.getReader();
         const chunks: ArrayBuffer[] = []; let received = 0, last = 0;
         if (reader) {
