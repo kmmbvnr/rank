@@ -10,4 +10,19 @@ test "statement values"
   Gi = 10000000000000000
   run
   Answer equal 266.901
+  N = 2
+  Gi = 900000000000000000
+  run
+  Answer equal 0.7071
+  Gi = 333333333333333333
+  run
+  Answer equal 2.1213
+  N = 5
+  Gi = 50000000000000000
+  run
+  Answer equal 40.9094
+  N = 20
+  Gi = 1000000000000000
+  run
+  Answer equal 3910.6292
 end

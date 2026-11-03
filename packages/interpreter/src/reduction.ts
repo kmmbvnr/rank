@@ -4,7 +4,7 @@ import { keyedAggregate, keyedFold } from './keyed-fold.js';
 import { foldAxisPartition, foldAxisDiagnostic } from '@arrrank/language';
 import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
-import { extremeRealAxis, scanInt32Axis, scanInt64, sumRealAxis } from './axis-order.js';
+import { extremeIntegerVector, extremeRealAxis, scanInt32Axis, scanInt64, sumRealAxis } from './axis-order.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
 import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, registerArrayDependencies, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
@@ -21,7 +21,7 @@ import { numericKernel } from './numeric-kernels.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { dyadicCells, tensorCells } from './rank-application.js';
 import { reduceWindowCell, scanSequence } from './sequence.js';
-import { prepareTensorAxisReduction, prepareTensorBooleanRange, scanTensorMap } from './tensor-map.js';
+import { materializeTensorMap, prepareTensorAxisReduction, prepareTensorBooleanRange, scanTensorMap } from './tensor-map.js';
 import { isNativeFunction, isRankArray, isRankSequence, valueRank,
     type NativeFunction, type RankArray, type RankValue } from './value.js';
 
@@ -227,14 +227,19 @@ export class ReductionEvaluator {
     evaluateNamedReduction(operation: NativeFunction, value: RankValue, seed?: RankValue,
         rank?: number, axes?: readonly number[]): RankValue {
         axes = this.foldAxes(value, rank, axes, 'reduce');
-        if ((rank ?? 0) === 0 && axes?.length === 1 && seed === undefined && isRankArray(value)
+        // A vector without an axis modifier folds along its only axis.
+        const folded = axes ?? (isRankArray(value) && value.shape.length === 1 ? [0] : undefined);
+        if ((rank ?? 0) === 0 && folded?.length === 1 && seed === undefined && isRankArray(value)
             && this.isTensorFusion() && !inspectionEnabled() && hasNativeImplementation(operation)) {
             const extreme = operation === this.standardFunctions.get(standardModules.core.min) ? 'min'
                 : operation === this.standardFunctions.get(standardModules.core.max) ? 'max' : undefined;
             if (extreme) {
-                const axis = resolveAxes(axes, value.shape.length, 'reduce')[0];
-                const folded = extremeRealAxis(value, axis, extreme);
-                if (folded !== undefined) return folded;
+                const axis = resolveAxes(folded, value.shape.length, 'reduce')[0];
+                // A lazy numeric map becomes stored cells before the fold.
+                const cells = materializeTensorMap(value) ?? value;
+                const real = extremeRealAxis(cells, axis, extreme)
+                    ?? (cells.shape.length === 1 ? extremeIntegerVector(cells, extreme) : undefined);
+                if (real !== undefined) return real;
             }
         }
         if (rank !== undefined && rank > 0 || axes !== undefined) {
