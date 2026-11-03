@@ -41,7 +41,7 @@ export function compiledEntryArgumentType(value: RankValue): CompiledCalleeType 
     if (isRankIndex(value) && value.entries instanceof IndexEntries && value.entries.integers && !valueProtection(value)) return { kind: 'index' };
     if (isRankSet(value) && prepareSetAdd(value) && value.entries instanceof IntegerEntries && value.entries.integers) return { kind: 'set' };
     if (hasIntegerDequeIteration(value) && !valueProtection(value)) return { kind: 'deque', mode: value.mode };
-    return checkedArgumentType(value, true);
+    return compiledStoredArgumentType(value);
 }
 
 interface Entry {
@@ -65,6 +65,12 @@ export function compiledScalarType(value: RankValue | undefined): CompiledScalar
  * Never inspect lazy caches or host cells. Reuse cell checks at the same revision. */
 export function compiledArgumentType(value: RankValue): CompiledFunctionType | undefined {
     return checkedArgumentType(value, false);
+}
+
+/** A region entry may specialize trusted completed storage without declaring
+ * its semantic type. Runtime array guards still validate each invocation. */
+export function compiledStoredArgumentType(value: RankValue): CompiledFunctionType | undefined {
+    return checkedArgumentType(value, true);
 }
 
 function checkedArgumentType(value: RankValue, stored: boolean): CompiledFunctionType | undefined {

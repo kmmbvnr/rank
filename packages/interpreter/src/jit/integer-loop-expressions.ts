@@ -11,7 +11,7 @@ import { IntegerEntries } from '../integer-entries.js';
 import { IndexEntries } from '../index-storage.js';
 import { hasNativeFenwick } from '../fenwick.js';
 import { hasNativeIntegerGroups } from '../runtime/integer-groups.js';
-import { compiledArgumentType, hasNativeDeque } from './compiled-argument-type.js';
+import { compiledArgumentType, compiledStoredArgumentType, hasNativeDeque } from './compiled-argument-type.js';
 import {
     compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
@@ -1501,7 +1501,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                             continue;
                         }
                         const type = existing ? { kind: 'array' as const, element: existing.type, rank: existing.rank }
-                            : current === undefined ? undefined : compiledArgumentType(current);
+                            : current === undefined ? undefined : compiledStoredArgumentType(current);
                         if (type && typeof type !== 'string' && isNameExpression(part)) {
                             if (numberMode || !host.arrayReads || type.element === 'real' || type.element === 'bytes'
                                 || type.element === 'text' && !host.textArrayLoops
@@ -1604,6 +1604,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 lines.push(`const ${name} = arrayRead(${receiver.code}, [${index.code}]);`);
                 return { code: name, type: 'integer', selection: true };
             }
+            // A failed call is not an array selection on a known scalar.
+            if (localTypes.has(head.name)) return undefined;
             const previous = arrays.get(head.name);
             const kinds = current && isRankArray(current) && arrayRevision(current) !== undefined ? storedScalarKinds(current) : undefined;
             const kind = kinds?.length === 1 ? kinds[0] : undefined;

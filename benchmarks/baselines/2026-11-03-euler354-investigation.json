@@ -1,0 +1,276 @@
+{
+  "revision": "6763c76670fcba34089039c2862c1db7ff4733fd",
+  "note": "Research snapshot of the dirty shared runtime; existing Euler 23/native array changes retained. Prototype changes only the loop call argument proof; no demo/compiler source repair applied. Serial fresh processes within each host; uncontrolled background load. Mac prototype series followed the original/capture series. Intel original/prototype alternated. RSS is whole process peak.",
+  "sourceSha256": "7bad49157bdab64dc1bd402d55723e9d701e5dc071a908b593ea18daff728a59",
+  "macOriginalAndCapture": [
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 5342.701375000001,
+      "rssMiB": 583.421875,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler354-capture.ra",
+      "ms": 1115.4042920000002,
+      "rssMiB": 441.5,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "reference",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 6607.0995410000005,
+      "rssMiB": 581.171875,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler354-capture.ra",
+      "ms": 6212.489542,
+      "rssMiB": 668.625,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler354-capture.ra",
+      "ms": 6245.138125,
+      "rssMiB": 668.859375,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "reference",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 6804.989125,
+      "rssMiB": 581.1875,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler354-capture.ra",
+      "ms": 1109.436334,
+      "rssMiB": 443.25,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 5316.382084,
+      "rssMiB": 582.90625,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 5440.403415999999,
+      "rssMiB": 589.109375,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler354-capture.ra",
+      "ms": 1108.680542,
+      "rssMiB": 442.828125,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "reference",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 6679.7345829999995,
+      "rssMiB": 581.8125,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler354-capture.ra",
+      "ms": 6142.855875,
+      "rssMiB": 581.484375,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    }
+  ],
+  "macPrototype": [
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 1053.4681249999999,
+      "rssMiB": 433.5,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 1054.499333,
+      "rssMiB": 433.96875,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 1060.6809170000001,
+      "rssMiB": 433.359375,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "arm64"
+    }
+  ],
+  "intel": [
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 18207.080895,
+      "rssMiB": 568.65625,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "x64",
+      "variant": "before"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 2579.089863,
+      "rssMiB": 441.92578125,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "x64",
+      "variant": "prototype"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 2511.910683,
+      "rssMiB": 428.85546875,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "x64",
+      "variant": "prototype"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 18644.69281,
+      "rssMiB": 547.62109375,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "x64",
+      "variant": "before"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 18389.519837999997,
+      "rssMiB": 573.6953125,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "x64",
+      "variant": "before"
+    },
+    {
+      "limit": "500000000000",
+      "mode": "compiled",
+      "file": "demos/euler/354_honeycomb.ra",
+      "ms": 2548.181023,
+      "rssMiB": 427.8984375,
+      "answer": "58065134",
+      "phases": [],
+      "node": "v24.15.0",
+      "arch": "x64",
+      "variant": "prototype"
+    }
+  ],
+  "phases": {
+    "limit": "500000000000",
+    "mode": "compiled",
+    "file": "demos/euler/354_honeycomb.ra",
+    "ms": 5317.625209,
+    "rssMiB": 583.15625,
+    "answer": "58065134",
+    "phases": [
+      {
+        "label": "sieve",
+        "ms": 487.49687500000005
+      },
+      {
+        "label": "24,2",
+        "ms": 5.024000000000001
+      },
+      {
+        "label": "14,4",
+        "ms": 2.7733749999999873
+      },
+      {
+        "label": "58065134",
+        "ms": 4822.253375
+      }
+    ],
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+}
