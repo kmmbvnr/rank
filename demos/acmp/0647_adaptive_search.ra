@@ -1,0 +1,74 @@
+rem Adaptive search (Поиск)
+rem https://acmp.ru/task.asp?id=647
+rem Move-to-front table via Fenwick.
+
+use bits
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "6 2
+5 3"
+
+Tok = Input words
+N = Tok 0 integer
+M = Tok 1 integer
+Queries = Tok (2 till (2 + M)) integer
+
+Cap = N + M + 2
+BIT = array shape (Cap + 1) fill 0
+BIT ((M + 1) to (M + N)) = 1
+
+for I in 1 to Cap
+  J = I + (I band (0 - I))
+  if J less (Cap + 1)
+    BIT J = BIT J + BIT I
+  end
+end
+
+Pos = array shape (N + 1) fill 0
+Pos (1 to N) = (M + 1) to (M + N)
+Head = M
+
+Ans = array shape M fill 0
+
+for K in 0 till M
+  X = Queries K
+  P = Pos X
+
+  Sum = 0
+  Idx = P
+  for Step in 0 till 18
+    if Idx equal 0
+      break
+    end
+    Sum = Sum + BIT Idx
+    Idx = Idx - (Idx band (0 - Idx))
+  end
+  Ans K = Sum
+
+  Idx = P
+  for Step in 0 till 18
+    if Idx greater Cap
+      break
+    end
+    BIT Idx = BIT Idx - 1
+    Idx = Idx + (Idx band (0 - Idx))
+  end
+
+  Pos X = Head
+  Idx = Head
+  for Step in 0 till 18
+    if Idx greater Cap
+      break
+    end
+    BIT Idx = BIT Idx + 1
+    Idx = Idx + (Idx band (0 - Idx))
+  end
+  Head = Head - 1
+end
+
+Out = Ans join " "
+Out print
