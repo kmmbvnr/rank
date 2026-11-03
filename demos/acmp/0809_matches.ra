@@ -1,0 +1,102 @@
+rem Matches (Спички)
+rem https://acmp.ru/task.asp?id=809
+rem Min moves via parallel translation.
+
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "5
+0 0 1 2
+1 0 0 2
+2 0 2 2
+4 0 3 2
+4 0 5 2
+9 -1 10 1
+10 1 9 3
+8 1 10 1
+8 1 9 -1
+8 1 9 3"
+
+Txt = Input split "\r" join " "
+Txt = Txt split "\n" join " "
+Tok = Txt split " "
+Tok = Tok (Tok not equal "")
+
+N = Tok 0 integer
+
+BaseA = 1 + 4 * (0 till N)
+Ax1 = Tok BaseA integer
+Ay1 = Tok (BaseA + 1) integer
+Ax2 = Tok (BaseA + 2) integer
+Ay2 = Tok (BaseA + 3) integer
+
+EqXA = Ax1 equal Ax2
+YBigA = Ay1 greater Ay2
+XBigA = Ax1 greater Ax2
+SwapA = XBigA or (EqXA and YBigA)
+
+SwA = SwapA integer
+NSwA = (not SwapA) integer
+RAx1 = SwA * Ax2 + NSwA * Ax1
+RAy1 = SwA * Ay2 + NSwA * Ay1
+RAx2 = SwA * Ax1 + NSwA * Ax2
+RAy2 = SwA * Ay1 + NSwA * Ay2
+DxA = RAx2 - RAx1
+DyA = RAy2 - RAy1
+KeyA = DxA * 100000 + DyA
+
+BaseB = 1 + 4 * N + 4 * (0 till N)
+Bx1 = Tok BaseB integer
+By1 = Tok (BaseB + 1) integer
+Bx2 = Tok (BaseB + 2) integer
+By2 = Tok (BaseB + 3) integer
+
+EqXB = Bx1 equal Bx2
+YBigB = By1 greater By2
+XBigB = Bx1 greater Bx2
+SwapB = XBigB or (EqXB and YBigB)
+
+SwB = SwapB integer
+NSwB = (not SwapB) integer
+RBx1 = SwB * Bx2 + NSwB * Bx1
+RBy1 = SwB * By2 + NSwB * By1
+RBx2 = SwB * Bx1 + NSwB * Bx2
+RBy2 = SwB * By1 + NSwB * By2
+DxB = RBx2 - RBx1
+DyB = RBy2 - RBy1
+KeyB = DxB * 100000 + DyB
+
+Mask = KeyA KeyB outer equal
+NumHits = Mask count
+MaxMatch = 0
+
+if NumHits greater 0
+  Tx = (RAx1 RBx1 outer -) Mask
+  Ty = (RAy1 RBy1 outer -) Mask
+  ShiftTx = Tx + 200000
+  ShiftTy = Ty + 200000
+  TransKey = ShiftTx * 1000000 + ShiftTy
+  Sorted = TransKey sort
+  NumS = Sorted len
+  if NumS equal 1
+    MaxMatch = 1
+  else
+    S1 = Sorted (1 till NumS)
+    S0 = Sorted (0 till (NumS - 1))
+    Diff = S1 not equal S0
+    ChangeIdx = (1 till NumS) Diff
+    Front = concat (array 0) ChangeIdx
+    Borders = concat Front (array NumS)
+    LenB = Borders len
+    B1 = Borders (1 till LenB)
+    B0 = Borders (0 till (LenB - 1))
+    Runs = B1 - B0
+    MaxMatch = Runs max
+  end
+end
+
+Ans = N - MaxMatch
+Ans print
