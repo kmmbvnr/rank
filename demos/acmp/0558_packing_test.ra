@@ -1,0 +1,45 @@
+use testing
+
+test "sample 1: 5 radii -> 1"
+  use "0558_packing"
+  run
+
+  Ans equal 1
+end
+
+test "n less than 4 gives 0"
+  use "0558_packing"
+  Input = "3
+5 10 20"
+  run
+
+  Ans equal 0
+end
+
+test "four equal-step radii without fit"
+  use "0558_packing"
+  Input = "4
+10 11 12 13"
+  run
+
+  Ans equal 0
+end
+
+test "small circle easily fits"
+  use "0558_packing"
+  Input = "4
+1 50 100 200"
+  run
+
+  Ans equal 1
+end
+
+test "max n = 250 (1 to 250)"
+  use text
+  use "0558_packing"
+  AllR = 1 to 250
+  Input = "250 " + (AllR join " ")
+  run
+
+  Ans equal 36472103
+end

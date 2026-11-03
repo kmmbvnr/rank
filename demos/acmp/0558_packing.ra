@@ -1,0 +1,52 @@
+rem Packing (Упаковка)
+rem acmp.ru: 558
+rem Count 4-tuples r_i > r_j > r_k > r_l
+rem where r_l fits inside Soddy gap.
+rem Descartes circle theorem: max radius
+rem r_s = abc / (denom).
+rem Vectorized over a for each (b, c).
+
+use io
+use text
+use cli
+use numbers
+use sequences
+
+arg Input text = "5
+2 1 5 10 20"
+
+Txt = Input split "\r" join " "
+Txt = Txt split "\n" join " "
+Tok = Txt split " "
+Nums = (Tok (Tok not equal "")) integer
+
+N = Nums 0
+R = (Nums (1 till (N + 1))) sort
+
+CountLe = array shape 251 fill 0
+for M in 0 till 251
+  CountLe M = (R at most M) count
+end
+
+Ans = 0
+for I in 2 till N
+  C = R I
+  for J in 1 till I
+    B = R J
+    A = R (0 till J)
+    BC = B * C
+    BplusC = B + C
+    Prod = A * BC
+    Sum = A + BplusC
+    Pairs = (A * BplusC) + BC
+    Disc = Prod * Sum
+    Root = 2 * (Disc sqrt)
+    Denom = Pairs + Root
+    Rs = (Prod / Denom) + 0.000000001
+    FloorRs = Rs integer
+    Counts = CountLe FloorRs
+    Ans = Ans + (Counts sum)
+  end
+end
+
+(Ans text) print
