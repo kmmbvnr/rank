@@ -574,7 +574,9 @@ export class FastPaths {
             const isScalarType = (type: CompiledCalleeType): boolean =>
                 type === 'integer' || type === 'real' || type === 'boolean' || type === 'text';
             const stableReads = typeof proof.type === 'string' && !proof.containers && !proof.arrayWrites.size && !proof.observableCaptures;
-            const numberSafe = stableReads && isScalarType(proof.type) && types.every(isScalarType);
+            const numberArrays = types.some(type => typeof type !== 'string');
+            const numberSafe = stableReads && isScalarType(proof.type) && types.every(type => isScalarType(type)
+                || !isCompiledContainer(type) && typeof type !== 'string' && type.rank === 1 && type.element === 'integer');
             return {
                 parameters: types,
                 effects: {
@@ -613,6 +615,10 @@ export class FastPaths {
                     const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes);
                     if ((proof.nativeReads.length || proof.dependencies.length) && !compiled || compiled?.available && !compiled.available()) return undefined;
                     if (compiled?.numberDirect) return compiled.numberDirect as unknown as LoopCallable;
+                    // Raw buffers have no Rank value wrapper. Only a proved
+                    // read-only Number kernel may consume them; an exact callee
+                    // requires replay of the caller, never ad-hoc conversion.
+                    if (numberArrays) return undefined;
                     const direct = compiled?.direct ?? ((...args: RankValue[]) => compiled ? compiled(args) : current.call(args));
                     const widen = types.map(t => t === 'integer');
                     const narrow = proof.type === 'integer' ? (v: RankValue) => typeof v === 'bigint' ? Number(v) : v : (v: RankValue) => v;

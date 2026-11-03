@@ -2915,3 +2915,26 @@ compatible numeric blocks to the existing block-copy kernel at the existing
 checked against the live operands on every execution. Concat expressions that
 still compute arithmetic or read lazy producers retain tensor lowering. This
 avoids turning an existing bulk copy into BigInt scalar loads and stores.
+
+## Read-only integer-array calls inside Number regions (Euler 360, #447)
+
+Checked Number loops and function prefixes can pass a current one-dimensional
+integer buffer to a proven read-only scalar Rank function. The function remains
+a call; no source inlining or change to ordinary assignment boundaries is
+required. This includes fresh local buffers and their preceding stores or
+Int32-to-Float64 widening. Array publication and boxing at each call are avoided.
+
+The existing callee proof excludes array writes, escaping results and observable
+captures. Binding identities and dependencies are rechecked at region entry.
+Array arguments require a compiled Number callee: a failed preparation declines
+the caller region rather than passing raw storage to an exact or user callback.
+Overflow replays the original caller, and errors publish preceding writes and
+retain ordinary diagnostic call frames. Error summaries read at most eight
+integer cells without copying the argument buffer. Other element types and array ranks,
+aliases requiring separate ownership proofs, and observable execution retain
+existing paths. No precision or copy-admission thresholds changed.
+
+Euler 360's original complete Number region remains the production demo. A
+compressed-table experiment exposes the new call path and its limits; it saves
+memory but remains slower than the original. See the
+[measurements and verification](../../benchmarks/euler360-investigation.md).

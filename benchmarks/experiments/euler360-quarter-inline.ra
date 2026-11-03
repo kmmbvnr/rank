@@ -1,0 +1,88 @@
+rem Scary Sphere
+rem https://projecteuler.net/problem=360
+
+use numbers
+use io
+
+rem First-octant check for small radii.
+fun R brute
+  Total = 0
+  for X in 0 to R
+    for Y in 0 to R
+      Z2 = R * R - X * X - Y * Y
+      if Z2 less 0
+        break
+      end
+      Z = Z2 isqrt
+      if Z * Z equal Z2
+        M = 1
+        if X greater 0
+          M *= 2
+        end
+        if Y greater 0
+          M *= 2
+        end
+        if Z greater 0
+          M *= 2
+        end
+        Total += M * (X + Y + Z)
+      end
+    end
+  end
+  return Total
+end
+
+rem r = 5^k: chi(n) is r2(n)/4.
+fun R sphere
+  Max = 2 * R
+  Chi = array shape (Max // 4 + 1) fill 0
+  for X in 1 to (Max isqrt)
+    X2 = X * X
+    if X mod 2 equal 1
+      Chi (X2 // 4) += 1
+    end
+    for Y in (1 + X mod 2) to (X - 1) by 2
+      N = X2 + Y * Y
+      if N greater Max
+        break
+      end
+      Chi (N // 4) += 2
+    end
+  end
+  Total = 0
+  for X in 1 till R
+    if X mod 4 not equal 2
+      P = R - X
+      Q = R + X
+      for P mod 2 equal 0
+        P //= 2
+      end
+      for Q mod 2 equal 0
+        Q //= 2
+      end
+      if P mod 4 equal 3 or Q mod 4 equal 3
+        continue
+      end
+      A = Chi (P // 4)
+      B = Chi (Q // 4)
+      if A greater 0 and B greater 0
+        W = A * B
+        if X mod 5 equal 0
+          T = X
+          V = 0
+          for T mod 5 equal 0
+            T //= 5
+            V += 1
+          end
+          D = (V + 1) ** 2
+          W = W * (2 * V + 1) // D
+        end
+        Total += X * W
+      end
+    end
+  end
+  return 6 * R + 24 * Total
+end
+
+Answer = 2 ** 10 * (5 ** 10 sphere)
+Answer print

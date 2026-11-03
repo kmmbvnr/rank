@@ -1,11 +1,14 @@
 import type { CallRequirement } from '@arrrank/language';
 import type { RankValue } from './value.js';
 
+/** Internal checked Number ABI. Arrays are borrowed read-only by the callee. */
+export type NumberCallArgument = number | boolean | ArrayLike<number | bigint>;
+
 /** A prepared scalar body whose native bindings, if any, need entry validation. */
 export type PreparedScalarCall = ((arguments_: RankValue[], tail?: boolean) => RankValue) & {
     readonly available?: () => boolean;
     direct?: (...arguments_: RankValue[]) => RankValue;
-    numberDirect?: (...arguments_: number[]) => number;
+    numberDirect?: (...arguments_: NumberCallArgument[]) => number;
 };
 
 /**

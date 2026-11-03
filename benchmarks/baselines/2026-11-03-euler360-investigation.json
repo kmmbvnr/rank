@@ -1,0 +1,1116 @@
+{
+  "base": "8e2f9e71",
+  "date": "2026-11-03",
+  "node": "24.15.0",
+  "mac": {
+    "cold_compiled": [
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "benchmarks/experiments/euler360-original.ra",
+        "ms": 245.05208399999998,
+        "rssMiB": 253.234375,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 245.61474999999996
+          }
+        ]
+      },
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "benchmarks/experiments/euler360-original.ra",
+        "ms": 245.961334,
+        "rssMiB": 254.421875,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 246.49829200000002
+          }
+        ]
+      },
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "benchmarks/experiments/euler360-original.ra",
+        "ms": 249.036,
+        "rssMiB": 251.015625,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 249.58
+          }
+        ]
+      },
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "benchmarks/experiments/euler360-quarter-inline.ra",
+        "ms": 286.515875,
+        "rssMiB": 197.71875,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 287.071625
+          }
+        ]
+      },
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "benchmarks/experiments/euler360-quarter-inline.ra",
+        "ms": 290.845792,
+        "rssMiB": 199.046875,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 291.44449999999995
+          }
+        ]
+      },
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "benchmarks/experiments/euler360-quarter-inline.ra",
+        "ms": 294.92287500000003,
+        "rssMiB": 199.421875,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 295.511708
+          }
+        ]
+      }
+    ],
+    "reference_reduced_radius": {
+      "radius": "9765625",
+      "mode": "reference",
+      "file": "/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/360_sphere.ra",
+      "ms": 10121.302042000001,
+      "rssMiB": 255.234375,
+      "answer": "858228139057878",
+      "phases": [
+        {
+          "text": "858228139057878",
+          "ms": 10121.863375
+        }
+      ]
+    },
+    "reference_full": {
+      "radius": "default",
+      "mode": "reference",
+      "file": "/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/360_sphere.ra",
+      "hot": false,
+      "ms": 9714.889917,
+      "rssMiB": 256.265625,
+      "answer": "878825614395267072",
+      "phases": [
+        {
+          "text": "878825614395267072",
+          "ms": 9715.400708
+        }
+      ]
+    },
+    "quarter_reference": {
+      "radius": "default",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler360-quarter-inline.ra",
+      "hot": false,
+      "ms": 17208.52725,
+      "rssMiB": 202.828125,
+      "answer": "878825614395267072",
+      "phases": [
+        {
+          "text": "878825614395267072",
+          "ms": 17209.081833
+        }
+      ]
+    },
+    "hot_ms": [
+      95.684625,
+      113.099959,
+      104.543792
+    ],
+    "manual_ms": [
+      54.914833,
+      51.26725,
+      50.239375
+    ],
+    "int32_rewrite_ms": [
+      243.685541,
+      244.6185
+    ]
+  },
+  "intel": {
+    "full": [
+      {
+        "checks": 32,
+        "status": "passed",
+        "oracle": "independent first-octant coordinate enumeration"
+      },
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "/tmp/rank360-research/demos/euler/360_sphere.ra",
+        "ms": 610.106936,
+        "rssMiB": 240.74609375,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 611.439679
+          }
+        ]
+      },
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "/tmp/rank360-research/demos/euler/360_sphere.ra",
+        "ms": 621.863842,
+        "rssMiB": 239.73046875,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 623.1651220000001
+          }
+        ]
+      },
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "/tmp/rank360-research/demos/euler/360_sphere.ra",
+        "ms": 611.4547709999999,
+        "rssMiB": 239.47265625,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 612.730596
+          }
+        ]
+      },
+      {
+        "radius": "default",
+        "mode": "reference",
+        "file": "/tmp/rank360-research/demos/euler/360_sphere.ra",
+        "ms": 26702.606512,
+        "rssMiB": 244.12890625,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 26703.835735
+          }
+        ]
+      }
+    ],
+    "variants": [
+      {
+        "radius": "9765625",
+        "mode": "compiled",
+        "file": "/tmp/rank360-quarter-inline.ra",
+        "ms": 716.5337259999999,
+        "rssMiB": 187.39453125,
+        "answer": "858228139057878",
+        "phases": [
+          {
+            "text": "858228139057878",
+            "ms": 717.7745150000001
+          }
+        ]
+      },
+      {
+        "radius": "9765625",
+        "mode": "compiled",
+        "file": "/tmp/rank360-quarter-inline.ra",
+        "ms": 727.6217649999999,
+        "rssMiB": 187.69921875,
+        "answer": "858228139057878",
+        "phases": [
+          {
+            "text": "858228139057878",
+            "ms": 728.901144
+          }
+        ]
+      },
+      {
+        "radius": "9765625",
+        "mode": "compiled",
+        "file": "/tmp/rank360-quarter-inline.ra",
+        "ms": 707.596599,
+        "rssMiB": 187.73828125,
+        "answer": "858228139057878",
+        "phases": [
+          {
+            "text": "858228139057878",
+            "ms": 708.9920790000001
+          }
+        ]
+      },
+      {
+        "ms": 133.327068,
+        "build": 89.603797,
+        "rssMiB": 128.20703125,
+        "answer": "878825614395267072"
+      }
+    ],
+    "hot": [
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "/tmp/rank360-research/demos/euler/360_sphere.ra",
+        "hot": true,
+        "ms": 269.783864,
+        "rssMiB": 315.234375,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 269.940914
+          }
+        ]
+      },
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "/tmp/rank360-research/demos/euler/360_sphere.ra",
+        "hot": true,
+        "ms": 271.13002800000004,
+        "rssMiB": 315.7109375,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 271.320694
+          }
+        ]
+      },
+      {
+        "radius": "default",
+        "mode": "compiled",
+        "file": "/tmp/rank360-research/demos/euler/360_sphere.ra",
+        "hot": true,
+        "ms": 267.09476900000004,
+        "rssMiB": 315.5546875,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 267.25039100000004
+          }
+        ]
+      }
+    ]
+  },
+  "diagnostics": {
+    "radius": "9765625",
+    "mode": "compiled",
+    "file": "/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/360_sphere.ra",
+    "ms": 256.40187499999996,
+    "rssMiB": 253.921875,
+    "answer": "858228139057878",
+    "phases": [
+      {
+        "text": "858228139057878",
+        "ms": 257.02758400000005
+      }
+    ],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 1,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "integerKeyedFolds": 0,
+      "realKeyedFolds": 0,
+      "keyedNativeReaders": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 1,
+      "numberFunctions": 0,
+      "numberFunctionFallbacks": 0,
+      "numberFunctionSkips": 0,
+      "numberFunctionArrayBorrows": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "numberLoopBorrowedRealBuffers": 0,
+      "numberLoopBorrowedRealCells": 0,
+      "modularMatrixPowers": 0,
+      "compiledTensors": 0,
+      "packedBooleanGathers": 0,
+      "packedBooleanGatherCells": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 1,
+      "typedArrayPublishedCells": 19531251,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:output-shape": 1
+      },
+      "compilerRejections": []
+    },
+    "kernels": 2
+  },
+  "quarter_helper_diagnostics": {
+    "radius": "9765625",
+    "mode": "compiled",
+    "file": "/tmp/rank360-quarter.ra",
+    "ms": 1968.0760420000001,
+    "rssMiB": 224.140625,
+    "answer": "858228139057878",
+    "phases": [
+      {
+        "text": "858228139057878",
+        "ms": 1968.61775
+      }
+    ],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 2,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "integerKeyedFolds": 0,
+      "realKeyedFolds": 0,
+      "keyedNativeReaders": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 1,
+      "numberFunctions": 14648436,
+      "numberFunctionFallbacks": 0,
+      "numberFunctionSkips": 0,
+      "numberFunctionArrayBorrows": 14648436,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "numberLoopBorrowedRealBuffers": 0,
+      "numberLoopBorrowedRealCells": 0,
+      "modularMatrixPowers": 0,
+      "compiledTensors": 0,
+      "packedBooleanGathers": 0,
+      "packedBooleanGatherCells": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 1,
+      "typedArrayPublishedCells": 4882813,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-function:callee-binding:ApplicationExpression": 1,
+        "scalar-expression:too-small": 1,
+        "tensor:unsupported-type:array": 1,
+        "tensor:output-shape": 1
+      },
+      "compilerRejections": [
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "chi",
+          "expression": "Chi (N // 4)",
+          "line": 43,
+          "column": 10
+        }
+      ]
+    },
+    "kernels": 3
+  },
+  "verification": {
+    "mac": 32,
+    "intel": 32,
+    "oracle": "independent coordinate enumeration; actual fixture both engines"
+  },
+  "notes": [
+    "No production edits.",
+    "Hot RSS includes previous calls.",
+    "Reference single samples.",
+    "Int32 rewriting is diagnostic and not production safe.",
+    "Mac reference_full is unprofiled; reduced-radius reference omits final x1024 scaling only."
+  ],
+  "delivery": {
+    "base": "3aab8322",
+    "mac": {
+      "compiled": [
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "demos/euler/360_sphere.ra",
+          "hot": false,
+          "ms": 252.528125,
+          "rssMiB": 254.5,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 253.06008300000002
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "demos/euler/360_sphere.ra",
+          "hot": false,
+          "ms": 254.34733300000002,
+          "rssMiB": 255.046875,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 254.896167
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "demos/euler/360_sphere.ra",
+          "hot": false,
+          "ms": 249.43041700000003,
+          "rssMiB": 254.59375,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 249.96991699999998
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 416.003542,
+          "rssMiB": 200.765625,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 416.53558300000003
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 445.4965000000001,
+          "rssMiB": 199.828125,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 446.078125
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 445.62812500000007,
+          "rssMiB": 202.296875,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 446.20450000000005
+            }
+          ]
+        }
+      ],
+      "helper_before": [
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 1770.317042,
+          "rssMiB": 224.03125,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 1770.8321250000001
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 1776.214709,
+          "rssMiB": 224.046875,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 1776.724833
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 1758.8225,
+          "rssMiB": 223.578125,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 1759.353542
+            }
+          ]
+        }
+      ],
+      "reference": {
+        "radius": "default",
+        "mode": "reference",
+        "file": "/private/tmp/rank360-ship/demos/euler/360_sphere.ra",
+        "hot": false,
+        "ms": 10900.9615,
+        "rssMiB": 256.5625,
+        "answer": "878825614395267072",
+        "phases": [
+          {
+            "text": "878825614395267072",
+            "ms": 10901.540792
+          }
+        ]
+      }
+    },
+    "intel": {
+      "runs": [
+        {
+          "checks": 42,
+          "status": "passed",
+          "oracle": "independent first-octant coordinate enumeration"
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "/tmp/rank360-delivery/demos/euler/360_sphere.ra",
+          "hot": false,
+          "ms": 618.945801,
+          "rssMiB": 241.359375,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 620.218979
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "/tmp/rank360-delivery/demos/euler/360_sphere.ra",
+          "hot": false,
+          "ms": 648.432176,
+          "rssMiB": 241.83203125,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 649.730082
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "/tmp/rank360-delivery/demos/euler/360_sphere.ra",
+          "hot": false,
+          "ms": 614.5855570000001,
+          "rssMiB": 239.875,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 615.798262
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 981.7179960000001,
+          "rssMiB": 189.25390625,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 982.930717
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 966.9183869999999,
+          "rssMiB": 187.0625,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 968.1349
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 963.474559,
+          "rssMiB": 187.76953125,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 964.6680329999999
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "reference",
+          "file": "/tmp/rank360-delivery/demos/euler/360_sphere.ra",
+          "hot": false,
+          "ms": 26838.129771,
+          "rssMiB": 244.03515625,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 26839.376896
+            }
+          ]
+        }
+      ],
+      "helper_before": [
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 5106.995216,
+          "rssMiB": 214.01953125,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 5108.5679789999995
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 5071.515817,
+          "rssMiB": 213.75390625,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 5072.793722
+            }
+          ]
+        },
+        {
+          "radius": "default",
+          "mode": "compiled",
+          "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+          "hot": false,
+          "ms": 5101.803313,
+          "rssMiB": 213.1484375,
+          "answer": "878825614395267072",
+          "phases": [
+            {
+              "text": "878825614395267072",
+              "ms": 5103.064684
+            }
+          ]
+        }
+      ]
+    },
+    "original_diagnostics": {
+      "radius": "default",
+      "mode": "compiled",
+      "file": "/private/tmp/rank360-ship/demos/euler/360_sphere.ra",
+      "hot": false,
+      "ms": 248.344417,
+      "rssMiB": 251.765625,
+      "answer": "878825614395267072",
+      "phases": [
+        {
+          "text": "878825614395267072",
+          "ms": 248.8865
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 1,
+        "typedArrayPublishedCells": 19531251,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:too-small": 1,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:output-shape": 1
+        },
+        "compilerRejections": []
+      },
+      "kernels": 2
+    },
+    "helper_diagnostics": {
+      "radius": "default",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler360-quarter-helper.ra",
+      "hot": false,
+      "ms": 421.746,
+      "rssMiB": 201.328125,
+      "answer": "878825614395267072",
+      "phases": [
+        {
+          "text": "878825614395267072",
+          "ms": 422.2730839999999
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "numberFunctions": 14648436,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 1,
+        "typedArrayPublishedCells": 4882813,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:too-small": 1,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:output-shape": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "chi",
+            "expression": "Chi (N // 4)",
+            "line": 43,
+            "column": 10
+          }
+        ]
+      },
+      "kernels": 2
+    },
+    "focused_tests_per_host": 643,
+    "new_tests": 23,
+    "demo_checks_per_host": 42,
+    "production_demo": "original algorithm retained; fixture extended with radius 125",
+    "error_diagnostics": "bounded eight-cell summaries, no argument-buffer snapshots"
+  }
+}

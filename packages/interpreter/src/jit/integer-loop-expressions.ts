@@ -1503,14 +1503,18 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         const type = existing ? { kind: 'array' as const, element: existing.type, rank: existing.rank }
                             : current === undefined ? undefined : compiledStoredArgumentType(current);
                         if (type && typeof type !== 'string' && isNameExpression(part)) {
-                            if (numberMode || !host.arrayReads || type.element === 'real' || type.element === 'bytes'
+                            if (!host.arrayReads || numberMode && (type.rank !== 1 || type.element !== 'integer')
+                                || type.element === 'real' || type.element === 'bytes'
                                 || type.element === 'text' && !host.textArrayLoops
                                 || type.element === 'boolean' && !host.booleanArrays) return undefined;
                             const info = existing ?? { slot: slot(part.name), rank: type.rank, type: type.element };
                             arrays.set(part.name, info);
                             calleeArrays.add(part.name);
                             if (!assigned.has(part.name)) arrayInputs.add(part.name);
-                            arguments_.push(`r${info.slot}`);
+                            // Pass the current buffer, including any private stores
+                            // or widening before this call. The callee proof below
+                            // excludes writes, escaping arrays and opaque callbacks.
+                            arguments_.push(numberMode ? `cells${info.slot}` : `r${info.slot}`);
                             types.push({ kind: 'array', element: type.element, rank: type.rank });
                         } else {
                             const value = emit(part, lines, knownType(part));

@@ -20,3 +20,9 @@ export function summarizeValue(value: RankValue, depth = 0): string {
     if (value.kind === 'function') return `<function ${value.name}>`;
     return `<${value.kind}>`;
 }
+
+/** The raw Number call ABI admits only one-dimensional integer buffers. */
+export function summarizeIntegerBuffer(value: ArrayLike<number | bigint>): string {
+    const shown = Array.from({ length: Math.min(value.length, 8) }, (_, index) => String(BigInt(value[index])));
+    return `array[${value.length}]: ${shown.join(' ')}${value.length > 8 ? ' …' : ''}`;
+}

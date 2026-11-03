@@ -1,3 +1,4 @@
+import { summarizeIntegerBuffer } from './value-summary.js';
 import { materializeArguments } from './materialize.js';
 import {
     functionArgumentBinder, functionReturnSpecializations, memoizedFunctionBody, memoCallKey,
@@ -20,7 +21,7 @@ import { arrayRevision, hasNativeArrayHeader, integer32Cells, integer64Cells } f
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './jit/block-compiler.js';
-import { ReturnSignal, TailCallSignal, type PreparedScalarCall, type FunctionControl } from './control-signals.js';
+import { ReturnSignal, TailCallSignal, type PreparedScalarCall, type NumberCallArgument, type FunctionControl } from './control-signals.js';
 import type { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
 import { effectiveEnvironment, withEnvironment } from './environment.js';
@@ -961,7 +962,7 @@ export class FunctionInvocation {
         };
         if (directFn) run.direct = directFn;
         if (rawNumber) {
-            run.numberDirect = (...arguments_: number[]) => {
+            run.numberDirect = (...arguments_: NumberCallArgument[]) => {
                 if (this.depth >= this.maxDepth) {
                     throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
                 }
@@ -975,8 +976,14 @@ export class FunctionInvocation {
                     return rawNumber(...arguments_ as never[]) as unknown as number;
                 } catch (error) {
                     if (error === numberOverflow) throw error;
-                    if (error instanceof RankError) this.frames.addCall(error, statement, arguments_.map((value, index) =>
-                        (types?.[index] ?? 'integer') === 'integer' ? BigInt(value) : value));
+                    if (error instanceof RankError) {
+                        // Diagnostics need only eight cells, not a copy or an
+                        // integer conversion of the caller's complete buffer.
+                        const summaries = arguments_.map(value => typeof value === 'object' ? summarizeIntegerBuffer(value) : undefined);
+                        const values = arguments_.map((value, index) => typeof value === 'object' ? 0n
+                            : (types?.[index] ?? 'integer') === 'integer' ? BigInt(value) : value);
+                        error.addCall(statement.name, statement.parameters, values, summaries);
+                    }
                     throw error;
                 }
             };
