@@ -10,19 +10,19 @@ arg Size integer = 10000
 fun P blood Size
   Q = 1.0 - P
   Cap = (2.0 / P floor) + 50
+  Cap = Cap min Size
   T = array shape (Size + 1) fill 0.0
-  C = array shape (Size + 1) fill 0.0
-  Pow = array shape (Size + 1) fill 0.0
+  C = array shape (Cap + 1) fill 0.0
+  Pow = array shape (Cap + 1) fill 0.0
   Pow 0 = 1.0
   T 1 = 1.0
-  for I in 1 to Size
+  for I in 1 to Cap
     Pow I = Pow (I - 1) * Q
   end
-  for N in 2 to Size
+  for N in 2 to Cap
     Den = 1.0 - Pow N
     Best = Size * 1.0
-    Top = N - 1 min Cap
-    for M in 1 to Top
+    for M in 1 to N - 1
       Neg = (Pow M - Pow N) / Den
       Pos = (1.0 - Pow M) / Den
       V = 1.0 + Neg * C (N - M)
@@ -31,10 +31,32 @@ fun P blood Size
     end
     C N = Best
     Best = Size * 1.0
-    Top = N min Cap
-    for M in 1 to Top
+    for M in 1 to N
       V = 1.0 + T (N - M)
       V += (1.0 - Pow M) * C M
+      Best = Best min V
+    end
+    T N = Best
+  end
+  Cost = array shape (Cap + 1) fill 0.0
+  Pools = array shape Cap fill 0
+  Used = 0
+  for M in 1 to Cap
+    Cost M = (1.0 - Pow M) * C M
+    rem Keep pools no worse than splits.
+    if 1.0 + Cost M equal T M
+      Pools Used = M
+      Used += 1
+    end
+  end
+  for N in Cap + 1 to Size
+    Best = Size * 1.0
+    for M in Pools
+      if M equal 0
+        break
+      end
+      V = 1.0 + T (N - M)
+      V += Cost M
       Best = Best min V
     end
     T N = Best

@@ -2,6 +2,8 @@ use testing
 
 test "blood test examples"
   use "352_bloodtests"
+  0.02 blood 1 equal 1.0
+  0.50 blood 1 equal 1.0
   A = 0.02 blood 25
   A greater 4.155451
   A less 4.155453

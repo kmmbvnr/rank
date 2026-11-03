@@ -109,7 +109,7 @@ function compileScalarNumberKernel(
         if (!owner || !isAssignmentStatement(owner) || owner.value !== expression || owner.operator !== '=') return undefined;
         if (value.input.operation === 'array') {
             if (typeof value.type === 'string' || isCompiledContainer(value.type)
-                || value.type.rank !== 1 || value.type.element !== 'integer') return undefined;
+                || value.type.rank !== 1 || !['integer', 'real'].includes(value.type.element)) return undefined;
             arrays.add(owner.name);
         } else {
             if (value.input.name !== 'queue') return undefined;
@@ -161,7 +161,9 @@ function compileScalarNumberKernel(
                 lines.push(`const ${count} = safe(${size}); if (${count} < 0 || ${count} > 0xffffffff) throw overflow;`);
                 const fill = lowerNum(input.indices![0], lines);
                 if (!fill) return undefined;
-                lines.push(`const ${result} = Array(${count}).fill(safe(${fill}));`);
+                // Real cells keep fractional, nonfinite and signed-zero values.
+                const initial = input.indices![0].type === 'integer' ? `safe(${fill})` : fill;
+                lines.push(`const ${result} = Array(${count}).fill(${initial});`);
                 return result;
             }
             if (input.operation === 'new' && input.name === 'queue') {
@@ -215,7 +217,7 @@ function compileScalarNumberKernel(
             if (!val) return undefined;
             const res = `v${serial++}`;
             if (compiled.operation.name === '-') {
-                lines.push(`const ${res} = safe(-(${val}));`);
+                lines.push(`const ${res} = ${compiled.type === 'integer' ? `safe(-(${val}))` : `-(${val})`};`);
             } else if (compiled.operation.name === 'not') {
                 lines.push(`const ${res} = !(${val});`);
             } else return undefined;
@@ -312,8 +314,12 @@ function compileScalarNumberKernel(
                 const at = index(slot(cmd.name), coordinate, lines);
                 let value = emitNum(cmd.value, lines);
                 if (!value) return false;
-                if (cmd.operator !== '=') value = `safe(${slot(cmd.name)}[${at}] ${cmd.operator[0]} (${value}))`;
-                lines.push(`${slot(cmd.name)}[${at}] = safe(${value});`);
+                if (cmd.operator !== '=') value = `${slot(cmd.name)}[${at}] ${cmd.operator[0]} (${value})`;
+                // The proof requires matching RHS and destination element
+                // domains. Integer compound writes still replay on overflow;
+                // real writes retain their IEEE values.
+                if (proof.expressions.get(cmd.value)?.type === 'integer') value = `safe(${value})`;
+                lines.push(`${slot(cmd.name)}[${at}] = ${value};`);
             } else if (isPushStatement(cmd)) {
                 if (!isNameExpression(cmd.receiver) || !queues.has(cmd.receiver.name)) return false;
                 const value = emitNum(cmd.value, lines);

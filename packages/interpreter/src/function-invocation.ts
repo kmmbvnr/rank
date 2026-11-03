@@ -852,7 +852,10 @@ export class FunctionInvocation {
                         try {
                             const numArgs = arguments_.map(a => typeof a === 'bigint' ? Number(a)
                                 : isRankArray(a) ? hasNativeArrayHeader(a) ? integer32Cells(a) ?? integer64Cells(a) : undefined : a);
-                            if (numArgs.every(a => typeof a === 'number' ? Number.isSafeInteger(a)
+                            // Real specializations retain IEEE values; integer
+                            // arguments must still fit exactly in Number.
+                            if (numArgs.every((a, index) => typeof a === 'number' ? types?.[index] === 'real'
+                                ? typeof arguments_[index] === 'number' : Number.isSafeInteger(a)
                                 : typeof a === 'boolean' || a instanceof Int32Array || a instanceof BigInt64Array)) {
                                 const diagnostics = currentDiagnostics();
                                 if (diagnostics) diagnostics.numberFunctions++;
@@ -969,7 +972,8 @@ export class FunctionInvocation {
                     return rawNumber(...arguments_ as never[]) as unknown as number;
                 } catch (error) {
                     if (error === numberOverflow) throw error;
-                    if (error instanceof RankError) this.frames.addCall(error, statement, arguments_.map(BigInt));
+                    if (error instanceof RankError) this.frames.addCall(error, statement, arguments_.map((value, index) =>
+                        (types?.[index] ?? 'integer') === 'integer' ? BigInt(value) : value));
                     throw error;
                 }
             };

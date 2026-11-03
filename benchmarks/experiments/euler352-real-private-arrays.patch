@@ -1,0 +1,44 @@
+--- a/out/jit/scalar-function-kernel.js
++++ b/out/jit/scalar-function-kernel.js
+@@ -62,7 +62,7 @@
+             return undefined;
+         if (value.input.operation === 'array') {
+             if (typeof value.type === 'string' || isCompiledContainer(value.type)
+-                || value.type.rank !== 1 || value.type.element !== 'integer')
++                || value.type.rank !== 1 || !['integer', 'real'].includes(value.type.element))
+                 return undefined;
+             arrays.add(owner.name);
+         }
+@@ -124,7 +124,7 @@
+                 const fill = lowerNum(input.indices[0], lines);
+                 if (!fill)
+                     return undefined;
+-                lines.push(`const ${result} = Array(${count}).fill(safe(${fill}));`);
++                lines.push(`const ${result} = Array(${count}).fill(${compiled.type.element === 'integer' ? `safe(${fill})` : fill});`);
+                 return result;
+             }
+             if (input.operation === 'new' && input.name === 'queue') {
+@@ -312,9 +312,9 @@
+                 let value = emitNum(cmd.value, lines);
+                 if (!value)
+                     return false;
+-                if (cmd.operator !== '=')
+-                    value = `safe(${slot(cmd.name)}[${at}] ${cmd.operator[0]} (${value}))`;
+-                lines.push(`${slot(cmd.name)}[${at}] = safe(${value});`);
++                if (cmd.operator !== '=') value = `${slot(cmd.name)}[${at}] ${cmd.operator[0]} (${value})`;
++                const integer = proof.expressions.get(cmd.value)?.type === 'integer';
++                lines.push(`${slot(cmd.name)}[${at}] = ${integer ? `safe(${value})` : value};`);
+             }
+             else if (isPushStatement(cmd)) {
+                 if (!isNameExpression(cmd.receiver) || !queues.has(cmd.receiver.name))
+--- a/out/function-invocation.js
++++ b/out/function-invocation.js
+@@ -854,7 +854,7 @@
+                         try {
+                             const numArgs = arguments_.map(a => typeof a === 'bigint' ? Number(a)
+                                 : isRankArray(a) ? hasNativeArrayHeader(a) ? integer32Cells(a) ?? integer64Cells(a) : undefined : a);
+-                            if (numArgs.every(a => typeof a === 'number' ? Number.isSafeInteger(a)
++                            if (numArgs.every((a, i) => typeof a === 'number' ? typeof arguments_[i] === 'number' || Number.isSafeInteger(a)
+                                 : typeof a === 'boolean' || a instanceof Int32Array || a instanceof BigInt64Array)) {
+                                 const diagnostics = currentDiagnostics();
+                                 if (diagnostics)
