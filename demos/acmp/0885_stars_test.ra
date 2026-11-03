@@ -1,0 +1,58 @@
+rem Tests for ACMP 0885 Stars
+
+use testing
+
+test "sample 2 winning search"
+  use "0885_stars"
+  run
+
+  Won equal true
+  NumMoves equal 3
+  Ans equal "3\n4 6\n3 6\n3 6"
+end
+
+test "sample 1 impossible"
+  use "0885_stars"
+  Input = "5
+..........t
+.......t...
+O......t...
+t..........
+.........tO
+..t..+.....
+...........
+...O.....Ot
+...O.......
+....t......
+..t..O....."
+  run
+
+  Won equal false
+  Ans equal "IMPOSSIBLE"
+end
+
+test "zero enemies initially"
+  use "0885_stars"
+  Input = "1
+...
+.+.
+..."
+  run
+
+  Won equal true
+  NumMoves equal 0
+  Ans equal "0"
+end
+
+test "single enemy shot immediately"
+  use "0885_stars"
+  Input = "1
+.t.
+.+.
+..."
+  run
+
+  Won equal true
+  NumMoves equal 1
+  Ans equal "1\n1 1"
+end

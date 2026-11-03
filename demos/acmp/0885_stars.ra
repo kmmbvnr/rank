@@ -1,0 +1,296 @@
+rem Stars behind stern (Звезды)
+rem https://acmp.ru/task.asp?id=885
+rem BFS simulation of naval combat.
+
+use algo
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "5
+....t..O.O.
+....t......
+...........
+...........
+...........
+..O..+.....
+...........
+...........
+...........
+.t.........
+.....O....."
+
+Raw = Input split "\r" join ""
+Lines = Raw split "\n"
+Lines = Lines (Lines not equal "")
+
+N = Lines 0 integer
+Size = 2 * N + 1
+Total = Size * Size
+
+Island = array shape Total fill false
+Enemies = array 0 till 0
+
+Px = N
+Py = N
+
+for Y in 0 till Size
+  Row = Lines (Y + 1)
+  for X in 0 till Size
+    C = Row X
+    Pos = Y * Size + X
+    if C equal "O"
+      Island Pos = true
+    end
+    if C equal "t"
+      TP = array Pos
+      Enemies = concat Enemies TP
+    end
+    if C equal "+"
+      Px = X
+      Py = Y
+    end
+  end
+end
+
+Enemies = Enemies sort
+Debris = array 0 till 0
+
+Hdx = 1
+Hdy = 0
+
+ActDX = array 0 1 1 0 -1 -1 -1 0 1
+ActDY = array 0 0 1 1 1 0 -1 -1 -1
+
+Visited = new set
+
+PArr = array Px Py Hdx Hdy
+KeyP = PArr join ","
+KeyE = Enemies join ","
+KeyD = Debris join ","
+MidKey = KeyP + "|" + KeyE
+StartKey = MidKey + "|" + KeyD
+Visited add StartKey
+
+Q = new queue
+InitState = record
+  .px = Px
+  .py = Py
+  .hdx = Hdx
+  .hdy = Hdy
+  .enemies = Enemies
+  .deb = Debris
+  .path = array 0 till 0
+end
+
+Won = false
+WinPath = array 0 till 0
+
+if (Enemies len) equal 0
+  Won = true
+else
+  Q push InitState
+end
+
+for Step in 0 till 10000
+  if Won or ((Q len) equal 0)
+    break
+  end
+  Cur = Q pop
+  CPx = Cur .px
+  CPy = Cur .py
+  CHdx = Cur .hdx
+  CHdy = Cur .hdy
+  CEn = Cur .enemies
+  CDeb = Cur .deb
+  CPath = Cur .path
+
+  DebMask = array shape Total fill false
+  for D in CDeb
+    DebMask D = true
+  end
+
+  for Act in 0 till 9
+    Mdx = ActDX Act
+    Mdy = ActDY Act
+
+    NPx = CPx
+    NPy = CPy
+    NHdx = CHdx
+    NHdy = CHdy
+    AliveEn = CEn
+    NDeb = CDeb
+
+    Valid = true
+
+    if (Mdx equal 0) and (Mdy equal 0)
+      rem Shooting
+      Killed = new set
+      PDX = array (-CHdy) CHdy
+      PDY = array CHdx (-CHdx)
+
+      for Side in 0 till 2
+        Sdx = PDX Side
+        Sdy = PDY Side
+        for Dist in 1 to 3
+          Tx = CPx + Dist * Sdx
+          Ty = CPy + Dist * Sdy
+          BadX = Tx less 0
+          OverX = Tx at least Size
+          BadX = BadX or OverX
+          BadY = Ty less 0
+          OverY = Ty at least Size
+          BadY = BadY or OverY
+          if BadX or BadY
+            break
+          end
+          TPos = Ty * Size + Tx
+          if Island TPos
+            break
+          end
+          if (CEn equal TPos) any
+            Killed add TPos
+            if not DebMask TPos
+              DebMask TPos = true
+              TP = array TPos
+              NDeb = concat NDeb TP
+            end
+            break
+          end
+        end
+      end
+
+      if (Killed len) greater 0
+        AliveMask = not (CEn in Killed)
+        AliveEn = CEn AliveMask
+      end
+    else
+      rem Moving
+      NPx = CPx + Mdx
+      NPy = CPy + Mdy
+      NHdx = Mdx
+      NHdy = Mdy
+      BadX = NPx less 0
+      BadX = BadX or (NPx at least Size)
+      BadY = NPy less 0
+      BadY = BadY or (NPy at least Size)
+      if BadX or BadY
+        Valid = false
+      end
+      if Valid
+        NPos = NPy * Size + NPx
+        IsObst = Island NPos
+        IsObst = IsObst or DebMask NPos
+        IsEnemy = (CEn equal NPos) any
+        if IsObst or IsEnemy
+          Valid = false
+        end
+      end
+    end
+
+    if Valid
+      rem Enemies move
+      EX = AliveEn mod Size
+      EY = AliveEn // Size
+      GtrX = (NPx greater EX) integer
+      LesX = (NPx less EX) integer
+      EDX = GtrX - LesX
+      GtrY = (NPy greater EY) integer
+      LesY = (NPy less EY) integer
+      EDY = GtrY - LesY
+      NX = EX + EDX
+      NY = EY + EDY
+      Dest = NY * Size + NX
+
+      HitX = NX equal NPx
+      HitY = NY equal NPy
+      Loss = (HitX and HitY) any
+
+      if not Loss
+        Sorted = Dest sort
+        NumD = Sorted len
+        NxtEn = array 0 till 0
+
+        P = 0
+        for StepP in 0 till NumD
+          if P at least NumD
+            break
+          end
+          Pos = Sorted P
+          Eq = Sorted equal Pos
+          Count = Eq count
+          Free = not Island Pos
+          NotDeb = not DebMask Pos
+          Free = Free and NotDeb
+          if Free
+            if Count greater 1
+              DebMask Pos = true
+              PArr = array Pos
+              NDeb = concat NDeb PArr
+            else
+              PArr = array Pos
+              NxtEn = concat NxtEn PArr
+            end
+          end
+          P = P + Count
+        end
+
+        NDeb = NDeb sort unique
+        NPos = NPy * Size + NPx
+        NPArr = array NPos
+        NextPath = concat CPath NPArr
+
+        if (NxtEn len) equal 0
+          Won = true
+          WinPath = NextPath
+          break
+        end
+
+        PosArr = array NPx NPy NHdx NHdy
+        KP = PosArr join ","
+        KE = NxtEn join ","
+        KD = NDeb join ","
+        SubKey = KP + "|" + KE
+        StateKey = SubKey + "|" + KD
+        if not (StateKey in Visited)
+          Visited add StateKey
+          NextState = record
+            .px = NPx
+            .py = NPy
+            .hdx = NHdx
+            .hdy = NHdy
+            .enemies = NxtEn
+            .deb = NDeb
+            .path = NextPath
+          end
+          Q push NextState
+        end
+      end
+    end
+  end
+end
+
+AnsLines = array 0 till 0
+NumMoves = WinPath len
+
+if Won
+  NumMoves text print
+  StrNum = array (NumMoves text)
+  AnsLines = concat AnsLines StrNum
+  for PIdx in 0 till NumMoves
+    Pos = WinPath PIdx
+    StrX = (Pos mod Size) text
+    StrY = (Pos // Size) text
+    Line = StrX + " " + StrY
+    Line print
+    LArr = array Line
+    AnsLines = concat AnsLines LArr
+  end
+else
+  "IMPOSSIBLE" print
+  AnsLines = array "IMPOSSIBLE"
+end
+
+Ans = AnsLines join "\n"
