@@ -194,10 +194,10 @@ Cache 0 = 2`;
         }
     });
 
-    it('runs the unchanged Euler 362 recurrence against enumerated factorizations', () => {
+    it('runs Euler 362 against enumerated factorizations', () => {
         const source = readFileSync(new URL('../../../demos/euler/362_squarefree.ra', import.meta.url), 'utf8');
-        for (const limit of [4, 5, 10, 30, 100, 200]) {
-            const factors = Array.from({ length: limit - 1 }, (_, i) => i + 2).filter(value => {
+        for (const limit of [0, 1, 2, 3, 4, 5, 10, 30, 100, 200, 1000, 10000]) {
+            const factors = Array.from({ length: Math.max(0, limit - 1) }, (_, i) => i + 2).filter(value => {
                 for (let d = 2; d * d <= value; d++) if (value % (d * d) === 0) return false;
                 return true;
             });

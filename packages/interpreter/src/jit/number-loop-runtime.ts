@@ -1,5 +1,5 @@
 import { broadcastShape, arrayStrides } from './tensor-layout.js';
-import { multiply } from '../runtime/modular-power.js';
+import { numberOverflow, checkedNumberModularMultiply as modularMultiply } from './number-arithmetic.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { textLength } from '../text-storage.js';
 import { expressionFacts, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
@@ -18,18 +18,10 @@ import { indexKey } from '../index-storage.js';
 import { hasPrivateIndexStorage, PrivateIntegerIndex } from './number-loop-index.js';
 import { sliceArray as selectArraySlice } from '../selectors.js';
 
-// Internal control transfer, never exposed as a Rank error or converted to BigInt.
+export { numberOverflow } from './number-arithmetic.js';
+
 type NumberCells = ArrayLike<number | bigint>;
-export const numberOverflow = {};
 const overflow = numberOverflow;
-/** Inputs are safe integers. Unsupported moduli replay with exact arithmetic. */
-function modularMultiply(a: number, b: number, modulus: number): number {
-    // Reuse the same exact domain and primitive as modular powers.
-    if (!(modulus > 0 && modulus <= 2 ** 30)) throw overflow;
-    const x = a >= 0 && a < modulus ? a : ((a % modulus) + modulus) % modulus;
-    const y = b >= 0 && b < modulus ? b : ((b % modulus) + modulus) % modulus;
-    return multiply(x, y, modulus);
-}
 
 const SMALL_COPY_CELLS = 64;
 const COPY_PROBE_CAP = 262144;

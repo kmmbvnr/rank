@@ -31,45 +31,60 @@ end
 
 rem Nondecreasing squarefree products.
 fun Mu Cs Sq Q C N I fac
+  Size = Cs len
+  Root = N isqrt
+  End = Cs Root
+  if I at least End
+    if N less Size
+      return Cs N - I
+    end
+    return (Mu Cs Q N squarefree) - I
+  end
   Key = N * 1000000 + I
   if Key in C
     return C Key
   end
-  M = Sq I
-  Total = Mu Cs Q N squarefree
-  Total -= Mu Cs Q (M - 1) squarefree
-  Root = N isqrt
-  for J in I till Sq len
+  Total = 0
+  if N less Size
+    Total = Cs N - I
+  else
+    Total = (Mu Cs Q N squarefree) - I
+  end
+  for J in I till End
     D = Sq J
-    if D greater Root
-      break
-    end
     Part = N // D
-    Total += Mu Cs Sq Q C Part J fac
+    if Part less Size and D * D greater Part
+      Total += Cs Part - J
+    else
+      Total += Mu Cs Sq Q C Part J fac
+    end
   end
   C Key = Total
   return Total
 end
 
 Root = Limit isqrt
-Mu = array shape (Root + 1) fill 1
+Bound = Limit min (Root * 2)
+Mu = array shape (Bound + 1) fill 1
 Mu 0 = 0
-for P in primes to Root
-  for N in P to Root by P
+for P in primes to Bound
+  for N in P to Bound by P
     Mu N *= -1
   end
   P2 = P * P
-  for N in P2 to Root by P2
+  for N in P2 to Bound by P2
     Mu N = 0
   end
 end
-Cs = array shape (Root + 1) fill 0
+Cs = array shape (Bound + 1) fill 0
 Sq = new queue
-for N in 2 to Root
+for N in 2 to Bound
   Cs N = Cs (N - 1)
   if Mu N not equal 0
     Cs N += 1
-    Sq push N
+    if N at most Root
+      Sq push N
+    end
   end
 end
 Q = new index

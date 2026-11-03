@@ -1,0 +1,10 @@
+const N=Number(process.argv[2]||1e10),mode=process.argv[3]||'original',exact=process.argv[4]==='bigint';
+const t=performance.now(),R=Math.floor(Math.sqrt(N)),mu=new Int32Array(R+1).fill(1),cs=new Int32Array(R+1),sq=[];mu[0]=0;
+for(let p=2;p<=R;p++){let prime=true;for(let d=2;d*d<=p;d++)if(p%d===0){prime=false;break}if(prime){for(let n=p;n<=R;n+=p)mu[n]*=-1;for(let n=p*p;n<=R;n+=p*p)mu[n]=0}}
+for(let n=2;n<=R;n++){cs[n]=cs[n-1];if(mu[n]){cs[n]++;sq.push(n)}}
+const Q=new Map(),C=new Map();let calls=0,hits=0,terminal=0;
+function squarefree(n){if(n<=1)return 0;if(n<cs.length)return cs[n];if(Q.has(n))return Q.get(n);let total=-1;for(let d=1;d*d<=n;d++)total+=mu[d]*Math.floor(n/(d*d));Q.set(n,total);return total}
+function fac(n,i){calls++;const m=sq[i];if(mode!=='original'&&m*m>n){terminal++;return squarefree(n)-i}const key=BigInt(n)*1000000n+BigInt(i);if(mode!=='nocache'&&C.has(key)){hits++;return C.get(key)}let total=squarefree(n)-i;for(let j=i;j<sq.length&&sq[j]*sq[j]<=n;j++){const part=Math.floor(n/sq[j]);total+=mode==='child'&&part<cs.length&&sq[j]*sq[j]>part?cs[part]-j:fac(part,j)};if(mode!=='nocache')C.set(key,total);return total}
+function bigsf(n){if(n<=1n)return 0n;if(n<BigInt(cs.length))return BigInt(cs[Number(n)]);if(Q.has(n))return Q.get(n);let total=-1n;for(let d=1n;d*d<=n;d++)total+=BigInt(mu[Number(d)])*(n/(d*d));Q.set(n,total);return total}
+function bigfac(n,i){calls++;const m=BigInt(sq[Number(i)]);if(mode!=='original'&&m*m>n){terminal++;return bigsf(n)-i}const key=n*1000000n+i;if(mode!=='nocache'&&C.has(key)){hits++;return C.get(key)}let total=bigsf(n)-i;for(let j=i;j<BigInt(sq.length);j++){const d=BigInt(sq[Number(j)]);if(d*d>n)break;{const part=n/d;total+=mode==='child'&&part<BigInt(cs.length)&&d*d>part?BigInt(cs[Number(part)])-j:bigfac(part,j)}}if(mode!=='nocache')C.set(key,total);return total}
+const answer=exact?bigfac(BigInt(N),0n):fac(N,0);console.log(JSON.stringify({mode,exact,limit:N,answer:String(answer),calls,hits,terminal,states:C.size,q:Q.size,ms:performance.now()-t,rssMiB:process.resourceUsage().maxRSS/1024}));

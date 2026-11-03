@@ -1,0 +1,740 @@
+{
+  "date": "2026-11-03",
+  "baseCommit": "aa0ed9d0",
+  "node": "24.15.0",
+  "mac": [
+    {
+      "pass": 0,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 4566.519625,
+      "rssMiB": 298.984375,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 0,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 221.55899999999997,
+      "rssMiB": 213.921875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 221.49674999999996
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 266.323042,
+      "rssMiB": 245.765625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 266.261458
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 4621.972333,
+      "rssMiB": 298.734375,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 1,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 222.607833,
+      "rssMiB": 212.953125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 222.54691699999998
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 271.031458,
+      "rssMiB": 244.765625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 270.96725
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 4599.544042,
+      "rssMiB": 299.609375,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 2,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 221.10608399999998,
+      "rssMiB": 213.6875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 221.04554199999998
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 274.837584,
+      "rssMiB": 245.890625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 274.775042
+        }
+      ]
+    }
+  ],
+  "intel": [
+    {
+      "pass": 0,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 11803.622171,
+      "rssMiB": 282.4296875,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 0,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 509.560608,
+      "rssMiB": 194.74609375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 509.43432299999995
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 654.9489820000001,
+      "rssMiB": 228.59375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 654.820753
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 11037.870561000002,
+      "rssMiB": 284.62890625,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 1,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 517.966488,
+      "rssMiB": 195.63671875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 517.833402
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 654.393134,
+      "rssMiB": 225.87890625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 654.2616879999999
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 10880.345125,
+      "rssMiB": 285.0859375,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 2,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 532.970476,
+      "rssMiB": 196.05859375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 532.744476
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 652.71341,
+      "rssMiB": 224.328125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 652.5861209999999
+        }
+      ]
+    }
+  ],
+  "macOriginal362BusyControl": {
+    "variant": "original",
+    "limit": "10000000000",
+    "mode": "compiled",
+    "ms": 71579.95700000001,
+    "rssMiB": 1390.953125,
+    "answer": "457895958010",
+    "factorStates": 9373998,
+    "squarefreeStates": 99999,
+    "bodies": 0,
+    "scalars": 80143729,
+    "kernels": 2
+  },
+  "macNew362OldRuntimeBusyControl": {
+    "variant": "production",
+    "limit": "10000000000",
+    "mode": "compiled",
+    "ms": 8694.781125000001,
+    "rssMiB": 301.484375,
+    "answer": "457895958010",
+    "factorStates": 522598,
+    "squarefreeStates": 49999,
+    "bodies": 0,
+    "scalars": 1654702,
+    "kernels": 2
+  },
+  "reference362Full": {
+    "status": "exceeded 120 s reference budget"
+  },
+  "reference362Reduced": {
+    "variant": "bound2",
+    "limit": "100000000",
+    "mode": "reference",
+    "ms": 4241.005499999999,
+    "rssMiB": 463.078125,
+    "answer": "2388394374",
+    "factorStates": 32709,
+    "squarefreeStates": 4999,
+    "bodies": 0,
+    "scalars": 0,
+    "kernels": 0
+  },
+  "verificationMac": {
+    "verification362": {
+      "checks": 104,
+      "status": "passed",
+      "oracle": "independent enumeration of nondecreasing squarefree-factor products"
+    },
+    "verification364": {
+      "checks": 170,
+      "seatingThrough": 12,
+      "formulaCases": [
+        20,
+        30,
+        100,
+        200,
+        1000
+      ]
+    },
+    "properties": {
+      "checks": 987,
+      "numberFunctions": 484,
+      "numberFallbacks": 8
+    },
+    "fixtures-mac": {
+      "checks": 10,
+      "status": "passed"
+    }
+  },
+  "verificationIntel": {
+    "squarefreeOracleAndFixtureChecks": 104,
+    "seatingAndFactorialChecks": 170,
+    "modularArithmeticChecks": 987,
+    "actualFixtureBlocks": 10,
+    "focusedTests": 497
+  },
+  "focusedTestsMac": {
+    "passed": 497,
+    "files": 13,
+    "consolidated": true
+  },
+  "scriptTests": 11,
+  "semanticBoundaryOwners": 65,
+  "load": "Initial pre-integration Mac series ran with unrelated heavy Vitest/Euler505 load. Final integrated series ran after that load subsided; record both series and same-load old/new controls rather than interpreting earlier slowdown as a compiler regression.",
+  "scope": "No full package suite or exhaustive audits.",
+  "preIntegrationMac": [
+    {
+      "pass": 0,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 7832.683334,
+      "rssMiB": 300.015625,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 0,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 362.973,
+      "rssMiB": 212.09375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 362.887084
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 456.609084,
+      "rssMiB": 251.203125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 456.51679199999995
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 8005.8316669999995,
+      "rssMiB": 297.25,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 1,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 381.62166599999995,
+      "rssMiB": 214.984375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 381.50279099999995
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 452.509,
+      "rssMiB": 246.953125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 452.41487500000005
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 8137.039584,
+      "rssMiB": 300.859375,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 2,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 380.133917,
+      "rssMiB": 213.046875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 380.039625
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 466.127333,
+      "rssMiB": 245.921875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 466.03033300000004
+        }
+      ]
+    }
+  ],
+  "preIntegrationIntel": [
+    {
+      "pass": 0,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 11062.766143,
+      "rssMiB": 283.453125,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 0,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 507.33249299999994,
+      "rssMiB": 195.78125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 507.20683
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 701.7663830000001,
+      "rssMiB": 227.484375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 701.59321
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 11191.150738999999,
+      "rssMiB": 284.7734375,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 1,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 515.314271,
+      "rssMiB": 195.35546875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 515.1830580000001
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 656.361805,
+      "rssMiB": 225.984375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 656.226948
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "problem": 362,
+      "variant": "production",
+      "limit": "10000000000",
+      "mode": "compiled",
+      "ms": 11350.848241,
+      "rssMiB": 283.46875,
+      "answer": "457895958010",
+      "factorStates": 522598,
+      "squarefreeStates": 49999,
+      "bodies": 0,
+      "scalars": 1654702,
+      "kernels": 2
+    },
+    {
+      "pass": 2,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 514.0613040000001,
+      "rssMiB": 195.53515625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 513.931247
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "problem": 364,
+      "variant": "production",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 657.0503040000001,
+      "rssMiB": 226.1796875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 656.9208530000001
+        }
+      ]
+    }
+  ],
+  "integrationBase": "604547c2 (remote array-runtime changes) and 6355cc83 (local ACMP demo), merged before final validation",
+  "coexistenceMac": {
+    "passed": 203,
+    "files": 6,
+    "note": "Final sources combined with the eight pre-existing dirty tracked files, in an isolated copy."
+  }
+}

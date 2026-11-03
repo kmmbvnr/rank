@@ -19,16 +19,18 @@ export function stepOf(op: '+' | '*', m: number): Step {
 /** Cells reduced into [0, m), with their shape. */
 export interface Residues { readonly cells: Int32Array; readonly shape: readonly number[] }
 
-/** The integers `start` to `end` of an arithmetic range, reduced into [0, m). */
-export function rangeResidues(start: bigint, end: bigint, inclusive: boolean, modulus: bigint): Residues | undefined {
+/** Residues of a constructor-proved finite arithmetic progression. */
+export function rangeResidues(start: bigint, step: bigint, count: bigint, modulus: bigint): Residues | undefined {
     const m = modulusOf(modulus);
-    const count = end - start + (inclusive ? 1n : 0n);
-    if (m === undefined || count < 0n || count > 2n ** 31n || !Number.isSafeInteger(Number(start)) || !Number.isSafeInteger(Number(end))) return undefined;
-    const first = Number(start);
+    if (m === undefined || count < 0n || count > 2n ** 31n) return undefined;
     const out = new Int32Array(Number(count));
-    let r = first % m;
-    if (r < 0) r += m;
-    for (let i = 0; i < out.length; i++) { out[i] = r; r = r + 1 === m ? 0 : r + 1; }
+    let r = Number((start % modulus + modulus) % modulus);
+    const stride = Number((step % modulus + modulus) % modulus);
+    for (let i = 0; i < out.length; i++) {
+        out[i] = r;
+        const next = r + stride;
+        r = next >= m ? next - m : next;
+    }
     return { cells: out, shape: [out.length] };
 }
 

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray } from '../src/index.js';
 import { readArrayItem, typedArray } from '../src/array-storage.js';
+import { rangeResidues } from '../src/modular-fold.js';
+import { sequence } from '../src/sequence.js';
 
 const n = (s: readonly number[]) => s.reduce((a, b) => a * b, 1);
 const mod = (x: bigint, m: bigint) => ((x % m) + m) % m;
@@ -76,4 +78,41 @@ describe('modular scan and reduce', () => {
         expect(run(`1 to 30 reduce * mod ${big}`)).toBe(mod(Array.from({ length: 30 }, (_, i) => BigInt(i + 1)).reduce((a, b) => a * b), big));
         expect(() => run('1 to 6 reduce * mod 0')).toThrow('division by zero');
     });
+
+    it.each([
+        [10n, -1n, 10n], [10n, -3n, 7n], [-17n, 5n, 12n],
+        [9007199254740993n, -(2n ** 70n), 20n],
+    ])('reduces stepped range residues exactly: %s by %s', (start, step, count) => {
+        const m = 100000007n;
+        const residues = rangeResidues(start, step, count, m);
+        expect(residues).toBeDefined();
+        const want = Array.from({ length: Number(count) }, (_, i) => Number(mod(start + BigInt(i) * step, m)));
+        expect(Array.from(residues!.cells)).toEqual(want);
+    });
+
+    it.each(['10 to 1 by -1', '10 till (-5) by -3', '-7 to 15 by 4'])('folds %s with both operators and a seed', range => {
+        for (const op of ['+', '*']) {
+            const r = new Interpreter();
+            try {
+                r.execute(`use sequences\nX = ${range} array`);
+                const a = r.variables.get('X');
+                if (!a || !isRankArray(a)) throw new Error('expected range array');
+                const values = Array.from({ length: a.shape[0] }, (_, i) => readArrayItem(a, i) as bigint);
+                let acc = -5n;
+                const want = [mod(acc, 97n)];
+                for (const value of values) { acc = mod(op === '+' ? acc + value : acc * value, 97n); want.push(acc); }
+                expect(run(`${range} scan ${op} with (-5) mod 97`)).toEqual(want);
+                expect(run(`${range} reduce ${op} with (-5) mod 97`)).toBe(want.at(-1));
+            } finally { r.dispose(); }
+        }
+    });
+
+    it('does not infer a constructor proof from a host sequence name', () => {
+        const r = new Interpreter();
+        r.variables.set('S', sequence({ name: '10 to 1 by -1', size: { kind: 'exact', value: 10n },
+            scalarItems: true, *iterate() { throw new Error('host iterator'); } }));
+        try { expect(() => r.execute('(S scan * with 1 mod 97) array')).toThrow('host iterator'); }
+        finally { r.dispose(); }
+    });
+
 });

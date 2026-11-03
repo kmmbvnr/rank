@@ -10,7 +10,7 @@ import { elementSource } from './element-source.js';
 import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, registerArrayDependencies, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
-import { rangeBounds } from './operators.js';
+import { arithmeticRange } from './range-plan.js';
 import { arrayResidues, modularReduce, modularScan, rangeResidues } from './modular-fold.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
@@ -166,8 +166,8 @@ export class ReductionEvaluator {
         axis: number | undefined, modulus: RankValue): RankValue | undefined {
         if ((operator !== '+' && operator !== '*') || typeof modulus !== 'bigint'
             || seed !== undefined && typeof seed !== 'bigint') return undefined;
-        const bounds = isRankSequence(source) ? rangeBounds(source) : undefined;
-        const residues = bounds ? rangeResidues(bounds.start, bounds.end, bounds.inclusive, modulus)
+        const bounds = isRankSequence(source) ? arithmeticRange(source.plan) : undefined;
+        const residues = bounds ? rangeResidues(bounds.start, bounds.step, bounds.count, modulus)
             : isRankArray(source) ? arrayResidues(source, modulus) : undefined;
         if (!residues) return undefined;
         if (kind === 'reduce') return axis === undefined ? modularReduce(operator, residues, seed, modulus) : undefined;

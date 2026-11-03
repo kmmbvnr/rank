@@ -1,0 +1,95 @@
+rem Squarefree Factors
+rem https://projecteuler.net/problem=362
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Limit integer = 10 ** 10
+
+fun Mu countsf N
+  Total = -1
+  for D in 1 to (N isqrt)
+    Total += Mu D * (N // (D * D))
+  end
+  return Total
+end
+
+rem Count squarefree integers from two.
+fun Mu Cs Q N squarefree
+  if N at most 1
+    return 0
+  end
+  Size = Cs len
+  if N less Size
+    return Cs N
+  end
+  if N in Q
+    return Q N
+  end
+  Total = Mu countsf N
+  Q N = Total
+  return Total
+end
+
+rem Nondecreasing squarefree products.
+fun Mu Cs Sq Q C N I fac
+  Size = Cs len
+  Root = N isqrt
+  End = Cs Root
+  if I at least End
+    if N less Size
+      return Cs N - I
+    end
+    return (Mu Cs Q N squarefree) - I
+  end
+  Key = N * 1000000 + I
+  if Key in C
+    return C Key
+  end
+  Total = 0
+  if N less Size
+    Total = Cs N - I
+  else
+    Total = (Mu Cs Q N squarefree) - I
+  end
+  for J in I till End
+    D = Sq J
+    Part = N // D
+    if Part less Size and D * D greater Part
+      Total += Cs Part - J
+    else
+      Total += Mu Cs Sq Q C Part J fac
+    end
+  end
+  C Key = Total
+  return Total
+end
+
+Root = Limit isqrt
+Mu = array shape (Root + 1) fill 1
+Mu 0 = 0
+for P in primes to Root
+  for N in P to Root by P
+    Mu N *= -1
+  end
+  P2 = P * P
+  for N in P2 to Root by P2
+    Mu N = 0
+  end
+end
+Cs = array shape (Root + 1) fill 0
+Sq = new queue
+for N in 2 to Root
+  Cs N = Cs (N - 1)
+  if Mu N not equal 0
+    Cs N += 1
+    Sq push N
+  end
+end
+Q = new index
+C = new index
+Answer = Mu Cs Sq Q C Limit 0 fac
+Answer print

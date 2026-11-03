@@ -1,0 +1,1538 @@
+{
+  "date": "2026-11-03",
+  "runtimeCommit": "836d84ff",
+  "method": "Fresh processes; 3 serial samples per main row. Timer includes parsing/preparation/execution after interpreter construction; whole-process peak RSS includes imports. Existing unrelated shared interpreter edits excluded.",
+  "mac": [
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 451.07000000000005,
+      "rssMiB": 206.828125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666709,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 451.02033300000005
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank364-runtime/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 267.705959,
+      "rssMiB": 202.046875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666667,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 267.65712499999995
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 211.338875,
+      "rssMiB": 200.453125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 211.269667
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 1690.7805,
+      "rssMiB": 204.734375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 1690.722708
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 256.760541,
+      "rssMiB": 218.296875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 256.70625
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 316.96687499999996,
+      "rssMiB": 253.6875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 316.91600000000005
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 459.67029199999996,
+      "rssMiB": 204.234375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666709,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 459.618125
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank364-runtime/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 269.024583,
+      "rssMiB": 199.1875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666667,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 268.97070799999995
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 208.898333,
+      "rssMiB": 205.5,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 208.842458
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 1658.2155420000001,
+      "rssMiB": 205.9375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 1658.155958
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 259.47004200000003,
+      "rssMiB": 218.015625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 259.41612499999997
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 317.06575,
+      "rssMiB": 255.109375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 316.997208
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 456.12591699999996,
+      "rssMiB": 206.71875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666709,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 456.07620799999995
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank364-runtime/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 261.94975,
+      "rssMiB": 198.53125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666667,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 261.900625
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 205.47475000000003,
+      "rssMiB": 201.921875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 205.42812500000002
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 1651.234291,
+      "rssMiB": 205.5,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 1651.1791660000001
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 260.902542,
+      "rssMiB": 218.328125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 260.847583
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank360-ship/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 314.47408400000006,
+      "rssMiB": 253.375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 314.42937500000005
+        }
+      ]
+    }
+  ],
+  "intel": [
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 951.084798,
+      "rssMiB": 204.28515625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666709,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 950.9887400000001
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank364-runtime/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 516.015133,
+      "rssMiB": 199.12890625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666667,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 515.914403
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 464.112154,
+      "rssMiB": 192.3359375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 464.01287799999994
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 4454.01283,
+      "rssMiB": 186.21875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 4453.855609
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 557.032137,
+      "rssMiB": 198.61328125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 556.910711
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 661.474101,
+      "rssMiB": 237.03125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 661.3764569999998
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 963.478654,
+      "rssMiB": 202.8203125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666709,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 963.296169
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank364-runtime/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 536.278978,
+      "rssMiB": 194.671875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666667,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 536.184679
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 462.29182299999997,
+      "rssMiB": 191.6640625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 462.19420099999996
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 4249.401254,
+      "rssMiB": 187.0625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 4249.29796
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 524.1971639999999,
+      "rssMiB": 199.7109375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 524.0966149999999
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 692.558815,
+      "rssMiB": 238.58984375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 692.4622479999999
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 992.216249,
+      "rssMiB": 197.5625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666709,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 992.1183729999999
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank364-runtime/out/index.js",
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 531.331932,
+      "rssMiB": 194.91796875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666667,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 531.236902
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 471.68303499999996,
+      "rssMiB": 192.22265625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 471.55340599999994
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "scans-grouped",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 4278.26779,
+      "rssMiB": 188.29296875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 4278.167288
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 538.4862539999999,
+      "rssMiB": 199.453125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 538.381789
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "runtime": "file:///tmp/rank360-delivery/packages/interpreter/out/index.js",
+      "variant": "array",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 663.880685,
+      "rssMiB": 237.28125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 663.7872920000001
+        }
+      ]
+    }
+  ],
+  "referenceOriginalMac": [
+    {
+      "variant": "original",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 13228.486417,
+      "rssMiB": 455.65625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 13228.455042000001
+        }
+      ]
+    },
+    {
+      "variant": "original",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 13386.795208,
+      "rssMiB": 458.625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 13386.765707999999
+        }
+      ]
+    },
+    {
+      "variant": "original",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 13752.847667,
+      "rssMiB": 461.21875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 13752.810958999999
+        }
+      ]
+    }
+  ],
+  "referenceOriginalIntel": [
+    {
+      "variant": "original",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 39277.546714,
+      "rssMiB": 431.17578125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 39277.491093
+        }
+      ]
+    },
+    {
+      "variant": "original",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 39705.311702,
+      "rssMiB": 430.48828125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 39705.255313
+        }
+      ]
+    },
+    {
+      "variant": "original",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 40970.425528,
+      "rssMiB": 431.69140625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 40970.369044
+        }
+      ]
+    }
+  ],
+  "exploratoryMac": {
+    "cancel-full": {
+      "variant": "cancel",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 231.18641700000003,
+      "rssMiB": 200.421875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 231.14570899999998
+        }
+      ]
+    },
+    "scans-cancel-full": {
+      "variant": "scans-cancel",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 208.73395900000003,
+      "rssMiB": 204.4375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 208.695875
+        }
+      ]
+    },
+    "scans-full": {
+      "variant": "scans",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 378.36999999999995,
+      "rssMiB": 207.21875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666709,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 378.32304200000004
+        }
+      ]
+    },
+    "plans-diag": {
+      "variant": "plans",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 1530.8887499999998,
+      "rssMiB": 405.671875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 1530.839292
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 18999999,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 13,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 1,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 13,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 54,
+        "typedArrayPublishedCells": 12666670,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:*": 15,
+          "scalar-expression:unsupported-op:mod": 9,
+          "scalar-expression:unsupported-op:to": 6,
+          "tensor:application-form:BinaryExpression": 3,
+          "scalar-expression:too-small": 12,
+          "tensor:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 1,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "tensor:deferred-binding:AssignmentStatement": 10,
+          "scalar-expression:unsupported-op:K": 5,
+          "scalar-expression:unsupported-op:P": 5,
+          "scalar-expression:unsupported-op:I": 5,
+          "scalar-expression:operator-guard:-": 18,
+          "scalar-expression:operator-guard://": 12,
+          "scalar-expression:operator-guard:+": 15
+        },
+        "compilerRejections": []
+      }
+    },
+    "plans-reference": {
+      "variant": "plans",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 2067.859792,
+      "rssMiB": 387.0625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 2067.815
+        }
+      ]
+    },
+    "mixed-diag": {
+      "variant": "mixed",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 492.81437500000004,
+      "rssMiB": 327.65625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 492.761708
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 3999999,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 7,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 1,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 4,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 36,
+        "typedArrayPublishedCells": 9666671,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:*": 15,
+          "scalar-expression:unsupported-op:mod": 9,
+          "scalar-expression:unsupported-op:to": 6,
+          "tensor:application-form:BinaryExpression": 3,
+          "scalar-expression:too-small": 12,
+          "tensor:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 1,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "tensor:deferred-binding:AssignmentStatement": 7,
+          "scalar-expression:unsupported-op:K": 5,
+          "scalar-expression:unsupported-op:P": 5,
+          "scalar-expression:unsupported-op:I": 5,
+          "scalar-expression:operator-guard:-": 6,
+          "scalar-expression:operator-guard:+": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    "mixed-reference": {
+      "variant": "mixed",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 864.5735000000001,
+      "rssMiB": 330.984375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 864.521541
+        }
+      ]
+    },
+    "original-full-diag": {
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 488.931375,
+      "rssMiB": 209.359375,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666709,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 488.858916
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 4,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "numberFunctions": 659858,
+        "numberFunctionFallbacks": 6733,
+        "numberFunctionSkips": 6851,
+        "numberFunctionArrayBorrows": 1319632,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 1,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 3,
+        "typedArrayPublishedCells": 2333337,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 3,
+          "scalar-expression:too-small": 3,
+          "number-loop:condition-write-budget": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "bin",
+            "expression": "F A",
+            "line": 15,
+            "column": 7
+          }
+        ]
+      }
+    },
+    "mulmod-full-diag": {
+      "variant": "original",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 267.23062500000003,
+      "rssMiB": 199.125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 666667,
+      "kernels": 4,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 267.16829200000006
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 4,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "numberFunctions": 666667,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 3,
+        "typedArrayPublishedCells": 2333337,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "tensor:unsupported-type:array": 3,
+          "scalar-expression:too-small": 3,
+          "number-loop:condition-write-budget": 1
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "bin",
+            "expression": "F A",
+            "line": 15,
+            "column": 7
+          }
+        ]
+      }
+    }
+  },
+  "residueBorrowMac": [
+    {
+      "pass": 0,
+      "variant": "array",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 255.75066600000002,
+      "rssMiB": 217.203125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 255.694208
+        }
+      ]
+    },
+    {
+      "pass": 0,
+      "variant": "array",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 320.868667,
+      "rssMiB": 248.578125,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 320.818042
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "variant": "array",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 267.18620899999996,
+      "rssMiB": 218.515625,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 267.13541699999996
+        }
+      ]
+    },
+    {
+      "pass": 1,
+      "variant": "array",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 324.805459,
+      "rssMiB": 248.46875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 324.755292
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "variant": "array",
+      "n": "1000000",
+      "mode": "compiled",
+      "ms": 268.56112499999995,
+      "rssMiB": 217.875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 1,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 268.509958
+        }
+      ]
+    },
+    {
+      "pass": 2,
+      "variant": "array",
+      "n": "1000000",
+      "mode": "reference",
+      "ms": 322.908625,
+      "rssMiB": 249.796875,
+      "answer": "44855254",
+      "bodies": 0,
+      "scalars": 0,
+      "kernels": 0,
+      "phases": [
+        {
+          "text": "44855254",
+          "ms": 322.857167
+        }
+      ]
+    }
+  ],
+  "checksMac": {
+    "verification": {
+      "checks": 136,
+      "seatingThrough": 12,
+      "formulaCases": [
+        20,
+        30,
+        100,
+        200,
+        1000
+      ]
+    },
+    "mulmod-verification": {
+      "checks": 136,
+      "seatingThrough": 12,
+      "formulaCases": [
+        20,
+        30,
+        100,
+        200,
+        1000
+      ]
+    },
+    "mulmod-properties": {
+      "checks": 987,
+      "numberFunctions": 484,
+      "numberFallbacks": 8
+    },
+    "residues-verification": {
+      "checks": 136,
+      "seatingThrough": 12,
+      "formulaCases": [
+        20,
+        30,
+        100,
+        200,
+        1000
+      ]
+    }
+  },
+  "checksIntel": {
+    "originalRuntime": 136,
+    "mulmodRuntime": 136,
+    "mulmodArithmetic": 987
+  },
+  "scope": "Research only. No production edits, delivery or GitHub mutations."
+}

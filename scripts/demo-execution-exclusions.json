@@ -79,7 +79,7 @@
   "euler/399_squarefree.ra": "Full input builds 394525 prime ranks and scans 130775524 indices. Retained execution-budget exclusion (#396); benchmarks/euler399.mjs measures the compiled solver and separate phases. Small statement examples remain in 399_squarefree_test.ra.",
   "euler/110_reciprocals2.ra": "Default Target=4000000 expands prime-exponent candidate tensors and exceeds 30 seconds before output; smaller targets remain in 110_reciprocals2_test.ra.",
   "euler/110_reciprocals2_default_test.ra": "Default Target=4000000 expands prime-exponent candidate tensors and exceeds 30 seconds before output; smaller targets remain in 110_reciprocals2_test.ra.",
-  "euler/362_squarefree.ra": "Full input visits 9.37 million memoized factor states and exceeds the 30 s audit budget even with compiled recursion (#380). Run benchmarks/recursive-search.mjs manually; the small _test.ra fixture stays in the audits.",
+  "euler/362_squarefree.ra": "The terminal-pruned full solver stores about 523 thousand factor states and has a dedicated compiled golden test in euler362.test.ts. Full reference execution still exceeds 120 s; retain the small _test.ra fixture in both corpus audits.",
   "euler/370_triangles.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/378_triangles.ra": "The full 60-million-entry divisor sieve and exact Fenwick pass compile, but scalar reference execution remains outside the corpus budget; the small _test.ra fixture stays in the audits.",
   "euler/379_lcmcount.ra": "The full compiled answer is covered by euler379.test.ts after guarded nested-pass copy admission; full reference execution remains excluded, with the small _test.ra fixture in both audits.",

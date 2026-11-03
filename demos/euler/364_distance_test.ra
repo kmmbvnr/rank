@@ -13,3 +13,17 @@ test "distance modulo"
   run
   Answer equal 47255094
 end
+
+test "one seat"
+  use "364_distance"
+  N = 1
+  run
+  Answer equal 1
+end
+
+test "four seats"
+  use "364_distance"
+  N = 4
+  run
+  Answer equal 8
+end

@@ -1,3 +1,4 @@
+import { checkedNumberModularMultiply } from './number-arithmetic.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { checkValueMutable } from '../value-protection.js';
 import { materializeValue } from '../materialize.js';
@@ -280,6 +281,20 @@ function compileScalarNumberKernel(
             lines.push(`let ${res} = ${left}; if (${op === 'and' ? '' : '!'}${res}) { ${guarded.join('\n')} ${res} = ${right}; }`);
             return res;
         }
+        // A residue can stay exact even when the full product cannot. Only
+        // fuse the expression itself; stored ordinary bindings remain exact.
+        let product = compiled.left;
+        while (product.kind === 'group') product = product.operand;
+        if (op === 'mod' && compiled.signature.result === 'integer'
+            && product.kind === 'binary' && product.operation.name === '*'
+            && product.signature.result === 'integer') {
+            const a = lowerNum(product.left, lines), b = lowerNum(product.right, lines);
+            const modulus = lowerNum(compiled.right, lines);
+            if (!a || !b || !modulus) return undefined;
+            const result = `v${serial++}`;
+            lines.push(`const ${result} = mulmod(${a}, ${b}, ${modulus});`);
+            return result;
+        }
         const left = lowerNum(compiled.left, lines), right = lowerNum(compiled.right, lines);
         if (!left || !right) return undefined;
         const res = `v${serial++}`;
@@ -464,7 +479,7 @@ function compileScalarNumberKernel(
         };
     };`;
     try {
-        return new Function('isqrt', source)(safeIntegerSquareRoot) as Kernel['numberDirect'];
+        return new Function('isqrt', 'mulmod', source)(safeIntegerSquareRoot, checkedNumberModularMultiply) as Kernel['numberDirect'];
     } catch {
         return undefined;
     }
