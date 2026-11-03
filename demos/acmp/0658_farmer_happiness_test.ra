@@ -1,0 +1,43 @@
+use testing
+
+test "sample 1: 6 points -> 15"
+  use "0658_farmer_happiness"
+  run
+
+  Count equal 15
+end
+
+test "convex 4 points -> 4"
+  use "0658_farmer_happiness"
+  Input = "4
+0 0
+2 0
+2 2
+0 2"
+  run
+
+  Count equal 4
+end
+
+test "triangle with interior point -> 3"
+  use "0658_farmer_happiness"
+  Input = "4
+0 0
+6 0
+3 6
+3 2"
+  run
+
+  Count equal 3
+end
+
+test "3 points -> 1"
+  use "0658_farmer_happiness"
+  Input = "3
+0 0
+5 0
+0 5"
+  run
+
+  Count equal 1
+end

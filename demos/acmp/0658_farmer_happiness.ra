@@ -1,0 +1,76 @@
+rem Farmer Happiness (Счастье)
+rem https://acmp.ru/task.asp?id=658
+rem Empty triangles via angular sweep.
+
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "6
+1 4
+0 0
+4 5
+3 1
+-2 2
+1 2"
+
+Txt = Input split "\r" join " "
+Txt = Txt split "\n" join " "
+Tok = Txt split " "
+Tok = Tok (Tok not equal "")
+N = Tok 0 integer
+IdxX = 1 to (2 * N) by 2
+IdxY = 2 to (2 * N) by 2
+RawX = Tok IdxX integer
+RawY = Tok IdxY integer
+
+MinY = RawY min
+MinX = RawX min
+ShiftY = RawY - MinY
+ShiftX = RawX - MinX
+Key = ShiftY * 100000 + ShiftX
+Ord0 = Key argsort
+X = RawX Ord0
+Y = RawY Ord0
+
+Count = 0
+
+for I in 0 till (N - 2)
+  P0x = X I
+  P0y = Y I
+  Up = (I + 1) till N
+  DX = (X Up) - P0x
+  DY = (Y Up) - P0y
+  Ang = DY atan2 DX
+  Ord = Ang argsort
+  UX = DX Ord
+  UY = DY Ord
+  M = UX len
+
+  for A in 0 till (M - 1)
+    Ax = UX A
+    Ay = UY A
+    for B in (A + 1) till M
+      if B equal (A + 1)
+        Count = Count + 1
+      else
+        C = (A + 1) till B
+        Cx = UX C
+        Cy = UY C
+        DxB = (UX B) - Ax
+        DyB = (UY B) - Ay
+        Term1 = DxB * (Cy - Ay)
+        Term2 = DyB * (Cx - Ax)
+        Cross = Term1 - Term2
+        Hits = (Cross greater 0) count
+        if Hits equal 0
+          Count = Count + 1
+        end
+      end
+    end
+  end
+end
+
+Count print
