@@ -1246,7 +1246,7 @@ export const operations: readonly Operation[] = [
     { name: 'shift', grouping: { optionalRightOperand: true }, module: 'sequences', arities: [2], form: 'Values shift Count',
         signatures: [{ inputs: [genericArray, 'integer'], result: { collection: 'array', element: { union: [elementVariable, 'integer'] } } }],
         result: 'array', lazy: true,
-        summary: 'Moves items along an axis, keeping the shape; vacated positions read zero or a with value.' },
+        summary: 'Moves items along an axis, keeping the shape; vacated positions read zero or a with value of the array element type.' },
 
     { name: 'correlation', module: 'stats', arities: [1], monadicRank: 2,
         cellResultPlacement: 'append', shape: [{ args: [['f', 'n']], result: ['f', 'f'] }], form: 'Features correlation',

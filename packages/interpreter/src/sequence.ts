@@ -8,7 +8,7 @@ import { sliceSource } from './slice-source.js';
 import { safeDimension } from './tensor-index.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
-import { derivedArray, IntegerCells, MAX_HELD_CELLS, ownedArray, readArrayItem, typedArray, typedElementKind } from './array-storage.js';
+import { derivedArray, IntegerCells, knownStoredScalarKind, MAX_HELD_CELLS, ownedArray, readArrayItem, typedArray, typedElementKind } from './array-storage.js';
 import { copyStoredArrayBlocks, registerArrayCopy } from './array-copy.js';
 import { arithmeticRange, registerArrayRange } from './range-plan.js';
 import { booleanReductionHint } from '@arrrank/language';
@@ -663,6 +663,16 @@ export function shiftValue(
     axis = resolveAxis(axis, source.shape.length, axis => new RankError(`shift axis out of bounds: ${axis}`));
     const amount = Number(amountValue);
     if (!Number.isSafeInteger(amount)) throw new RankError('shift amount is too large');
+    // An array keeps one element type: a fill of another type is an error here,
+    // not a mixed array that fails when it is first stored or combined.
+    const held = knownStoredScalarKind(source) ?? typedElementKind(source);
+    const cellKind = held === 'numeric-limit' ? 'real' : held;
+    const fillKind = typeof fillValue === 'bigint' ? 'integer' : typeof fillValue === 'number' ? 'real'
+        : typeof fillValue === 'boolean' ? 'boolean' : typeof fillValue === 'string' ? 'text' : undefined;
+    if (cellKind && fillKind && cellKind !== fillKind) {
+        const zero = { integer: '0', real: '0.0', boolean: 'false', text: '""' }[cellKind as 'integer'] ?? '0';
+        throw new RankError(`shift fill is ${fillKind} but the array holds ${cellKind} cells; write \`with ${zero}\``, 'TypeError');
+    }
     const shape = source.shape;
     const stride = shape.slice(axis + 1).reduce((size, dimension) => size * dimension, 1);
     const result = derivedArray(shape, [source, fillValue], linear => {
@@ -672,9 +682,9 @@ export function shiftValue(
     });
     registerPackedBooleanShift(result, source, amount, fillValue, axis);
     registerTensorShift(result, source, amount, fillValue, axis);
-    // Zero-filled shifts copy shifted runs of the stored cells. The fill must
-    // be a zero of the source's own kind: a real source filled with an integer
-    // zero keeps the lazy reader, which mixes the two kinds.
+    // Zero-filled shifts copy shifted runs of the stored cells. The fill is a
+    // zero of the source's own kind (a mismatch was rejected above), so the
+    // copy has the same element type as the source.
     registerArrayCopy(result, () => {
         const kind = typedElementKind(source);
         if (!(kind === 'integer' && fillValue === 0n || kind === 'real' && typeof fillValue === 'number' && Object.is(fillValue, 0))) return undefined;

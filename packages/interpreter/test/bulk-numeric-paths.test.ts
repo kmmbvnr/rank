@@ -108,7 +108,14 @@ Q = M shift -1 axis 1
 array (P 0 0) (P 1 0) (P 2 3) (Q 0 0) (Q 0 3) (Q 2 2)`)).toBe('0 1 8 2 0 12');
         });
 
-        it('leaves reals and non-zero fills on the ordinary reader', () => {
+        it('rejects a fill of another element type at the shift', () => {
+            expect(() => run('R = (1 to 100 array) * 0.5\n(R shift 1) 0')).toThrow('shift fill is integer but the array holds real cells');
+            expect(() => run('V = 1 to 100 array\nV shift 1 with 0.5')).toThrow('with 0');
+            expect(() => run('B = (1 to 100 array) greater 50\nB shift 1')).toThrow('with false');
+            expect(run('R = (1 to 100 array) * 0.5\n(R shift 1 with 0.0) 0')).toBe('0');
+        });
+
+        it('leaves non-zero fills on the ordinary reader', () => {
             expect(run(`V = 1 to 100 array
 B = V shift 2 with -1
 array (B 0) (B 1) (B 2)`)).toBe('-1 -1 1');

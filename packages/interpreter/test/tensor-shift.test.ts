@@ -55,12 +55,33 @@ Again = Later sum`);
         expect(result.diagnostics.tensorMapPreparations).toBeGreaterThan(0);
     });
 
-    it('preserves the mixed real/integer error from the default fill', () => {
+    it('rejects a fill of another element type when the shift is demanded', () => {
         const result = compare(`use sequences
 A = array 1.0 2.0
 Later' = A shift -1
 Saved = Later`);
-        expect(result.error).toContain('arrays require one element type');
+        expect(result.error).toContain('shift fill is integer but the array holds real cells');
+        expect(result.error).toContain('with 0.0');
+    });
+
+    it.each([
+        ['array 1 2', 'with 0.5', 'shift fill is real but the array holds integer cells'],
+        ['array true false', '', 'shift fill is integer but the array holds boolean cells'],
+    ])('names the fill to write for %s %s', (cells, fill, message) => {
+        const result = compare(`use sequences
+A = ${cells}
+Later' = A shift 1 ${fill}
+Saved = Later`);
+        expect(result.error).toContain(message);
+    });
+
+    it('accepts a fill of the array element type', () => {
+        const result = compare(`use sequences
+A = array 1.0 2.0 4.0
+Later' = A shift 1 with 0.0
+Saved = Later sum`);
+        expect(result.error).toBeUndefined();
+        expect(result.values.Saved).toBe('3');
     });
 
     it('leaves unused invalid plans unevaluated', () => {

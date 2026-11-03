@@ -1253,8 +1253,10 @@ Down = M shift 1 axis 0
 ```
 
 A positive count moves items toward higher positions. Positions left empty read
-integer zero, or the single value after `with`. `axis` defaults to zero and
-follows `with`. Shift is array-only,
+integer zero, or the single value after `with`. The fill must have the element
+type of the array (`with 0.0` for reals, `with false` for booleans); another type
+is a `TypeError` raised by `shift`, since an array keeps one element type. `axis`
+defaults to zero and follows `with`. Shift is array-only,
 lazy and read-only.
 
 Materialized boolean arrays use packed bits. Same-shape logical operations,

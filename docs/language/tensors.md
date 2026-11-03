@@ -486,8 +486,10 @@ Up = M shift -1 axis 0
 ```
 
 A positive count moves items toward higher positions and vacated positions read
-integer zero or the `with` value. The axis defaults to zero and follows `with`.
-The result is a lazy, read-only view.
+integer zero or the `with` value. The fill must have the element type of the
+array, because an array keeps one element type: shifting reals needs
+`with 0.0`, and a fill of another type is a `TypeError` raised by `shift`. The
+axis defaults to zero and follows `with`. The result is a lazy, read-only view.
 
 ## Addressing with a coordinate vector
 
