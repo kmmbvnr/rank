@@ -1,0 +1,322 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "arch": "arm64",
+  "trials": 3,
+  "baseline": "/var/folders/3c/wvmv6wp919x6fds0cpt4_5lc0000gn/T/rank375-delivery-of8xongu/packages/interpreter/out/index.js",
+  "current": "/var/folders/3c/wvmv6wp919x6fds0cpt4_5lc0000gn/T/rank376-delivery-ynn0i1gk/packages/interpreter/out/index.js",
+  "samples": [
+    {
+      "trial": 0,
+      "label": "original-before",
+      "file": "benchmarks/experiments/euler376-original.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 1415.252833,
+      "rssMiB": 277.125,
+      "phases": []
+    },
+    {
+      "trial": 0,
+      "label": "original-after",
+      "file": "benchmarks/experiments/euler376-original.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 1395.023292,
+      "rssMiB": 276.515625,
+      "phases": []
+    },
+    {
+      "trial": 0,
+      "label": "production-before",
+      "file": "demos/euler/376_dice.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 483.92037500000004,
+      "rssMiB": 241.734375,
+      "phases": []
+    },
+    {
+      "trial": 0,
+      "label": "production-after",
+      "file": "demos/euler/376_dice.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 335.54408299999994,
+      "rssMiB": 204.90625,
+      "phases": []
+    },
+    {
+      "trial": 0,
+      "label": "shift-before",
+      "file": "benchmarks/experiments/euler376-shift-kernel.ra",
+      "mode": "compiled",
+      "answer": "2097151000000",
+      "ms": 189.97050000000002,
+      "rssMiB": 174.421875,
+      "phases": []
+    },
+    {
+      "trial": 0,
+      "label": "shift-after",
+      "file": "benchmarks/experiments/euler376-shift-kernel.ra",
+      "mode": "compiled",
+      "answer": "2097151000000",
+      "ms": 143.724042,
+      "rssMiB": 172.84375,
+      "phases": []
+    },
+    {
+      "trial": 0,
+      "label": "369-before",
+      "file": "demos/euler/369_badugi.ra",
+      "mode": "compiled",
+      "answer": "862400558448",
+      "ms": 295.551334,
+      "rssMiB": 185.484375,
+      "phases": []
+    },
+    {
+      "trial": 0,
+      "label": "369-after",
+      "file": "demos/euler/369_badugi.ra",
+      "mode": "compiled",
+      "answer": "862400558448",
+      "ms": 342.433,
+      "rssMiB": 191.234375,
+      "phases": []
+    },
+    {
+      "trial": 0,
+      "label": "375-before",
+      "file": "demos/euler/375_subseqmin.ra",
+      "mode": "compiled",
+      "answer": "7435327983715286168",
+      "ms": 714.511083,
+      "rssMiB": 232.4375,
+      "phases": []
+    },
+    {
+      "trial": 0,
+      "label": "375-after",
+      "file": "demos/euler/375_subseqmin.ra",
+      "mode": "compiled",
+      "answer": "7435327983715286168",
+      "ms": 483.37049999999994,
+      "rssMiB": 231.65625,
+      "phases": []
+    },
+    {
+      "trial": 1,
+      "label": "375-after",
+      "file": "demos/euler/375_subseqmin.ra",
+      "mode": "compiled",
+      "answer": "7435327983715286168",
+      "ms": 495.57612500000005,
+      "rssMiB": 233.203125,
+      "phases": []
+    },
+    {
+      "trial": 1,
+      "label": "375-before",
+      "file": "demos/euler/375_subseqmin.ra",
+      "mode": "compiled",
+      "answer": "7435327983715286168",
+      "ms": 488.70620800000006,
+      "rssMiB": 232.953125,
+      "phases": []
+    },
+    {
+      "trial": 1,
+      "label": "369-after",
+      "file": "demos/euler/369_badugi.ra",
+      "mode": "compiled",
+      "answer": "862400558448",
+      "ms": 182.78312499999998,
+      "rssMiB": 189.59375,
+      "phases": []
+    },
+    {
+      "trial": 1,
+      "label": "369-before",
+      "file": "demos/euler/369_badugi.ra",
+      "mode": "compiled",
+      "answer": "862400558448",
+      "ms": 184.54383299999998,
+      "rssMiB": 185.03125,
+      "phases": []
+    },
+    {
+      "trial": 1,
+      "label": "shift-after",
+      "file": "benchmarks/experiments/euler376-shift-kernel.ra",
+      "mode": "compiled",
+      "answer": "2097151000000",
+      "ms": 89.208291,
+      "rssMiB": 169.859375,
+      "phases": []
+    },
+    {
+      "trial": 1,
+      "label": "shift-before",
+      "file": "benchmarks/experiments/euler376-shift-kernel.ra",
+      "mode": "compiled",
+      "answer": "2097151000000",
+      "ms": 111.290291,
+      "rssMiB": 172.390625,
+      "phases": []
+    },
+    {
+      "trial": 1,
+      "label": "production-after",
+      "file": "demos/euler/376_dice.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 189.589042,
+      "rssMiB": 203.328125,
+      "phases": []
+    },
+    {
+      "trial": 1,
+      "label": "production-before",
+      "file": "demos/euler/376_dice.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 415.803667,
+      "rssMiB": 239.4375,
+      "phases": []
+    },
+    {
+      "trial": 1,
+      "label": "original-after",
+      "file": "benchmarks/experiments/euler376-original.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 1459.585041,
+      "rssMiB": 275.125,
+      "phases": []
+    },
+    {
+      "trial": 1,
+      "label": "original-before",
+      "file": "benchmarks/experiments/euler376-original.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 1452.43175,
+      "rssMiB": 276.40625,
+      "phases": []
+    },
+    {
+      "trial": 2,
+      "label": "original-before",
+      "file": "benchmarks/experiments/euler376-original.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 1404.265333,
+      "rssMiB": 274.34375,
+      "phases": []
+    },
+    {
+      "trial": 2,
+      "label": "original-after",
+      "file": "benchmarks/experiments/euler376-original.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 1408.8292079999999,
+      "rssMiB": 275.28125,
+      "phases": []
+    },
+    {
+      "trial": 2,
+      "label": "production-before",
+      "file": "demos/euler/376_dice.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 419.295709,
+      "rssMiB": 239.390625,
+      "phases": []
+    },
+    {
+      "trial": 2,
+      "label": "production-after",
+      "file": "demos/euler/376_dice.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 181.15675,
+      "rssMiB": 201.703125,
+      "phases": []
+    },
+    {
+      "trial": 2,
+      "label": "shift-before",
+      "file": "benchmarks/experiments/euler376-shift-kernel.ra",
+      "mode": "compiled",
+      "answer": "2097151000000",
+      "ms": 112.86704200000003,
+      "rssMiB": 172,
+      "phases": []
+    },
+    {
+      "trial": 2,
+      "label": "shift-after",
+      "file": "benchmarks/experiments/euler376-shift-kernel.ra",
+      "mode": "compiled",
+      "answer": "2097151000000",
+      "ms": 87.03370899999999,
+      "rssMiB": 170.96875,
+      "phases": []
+    },
+    {
+      "trial": 2,
+      "label": "369-before",
+      "file": "demos/euler/369_badugi.ra",
+      "mode": "compiled",
+      "answer": "862400558448",
+      "ms": 176.088041,
+      "rssMiB": 186.90625,
+      "phases": []
+    },
+    {
+      "trial": 2,
+      "label": "369-after",
+      "file": "demos/euler/369_badugi.ra",
+      "mode": "compiled",
+      "answer": "862400558448",
+      "ms": 170.319375,
+      "rssMiB": 187.21875,
+      "phases": []
+    },
+    {
+      "trial": 2,
+      "label": "375-before",
+      "file": "demos/euler/375_subseqmin.ra",
+      "mode": "compiled",
+      "answer": "7435327983715286168",
+      "ms": 460.991625,
+      "rssMiB": 232.171875,
+      "phases": []
+    },
+    {
+      "trial": 2,
+      "label": "375-after",
+      "file": "demos/euler/375_subseqmin.ra",
+      "mode": "compiled",
+      "answer": "7435327983715286168",
+      "ms": 452.15183400000006,
+      "rssMiB": 231.4375,
+      "phases": []
+    }
+  ]
+}

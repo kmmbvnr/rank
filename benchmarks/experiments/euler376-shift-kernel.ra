@@ -1,0 +1,7 @@
+use bits
+use io
+R = 0
+for I in 1 to 1000000
+  R += 9007199254740991 - I shr 32
+end
+R print

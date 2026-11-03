@@ -6,3 +6,20 @@ test "six-pip dice"
   run
   Answer equal 581
 end
+
+test "no nontransitive dice"
+  use "376_dice"
+  Limit = 0
+  run
+  Answer equal 0
+  Limit = 4
+  run
+  Answer equal 0
+end
+
+test "five-pip dice"
+  use "376_dice"
+  Limit = 5
+  run
+  Answer equal 15
+end

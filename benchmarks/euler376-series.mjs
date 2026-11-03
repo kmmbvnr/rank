@@ -1,0 +1,6 @@
+import assert from 'node:assert/strict';
+import{spawnSync}from'node:child_process';import{writeFileSync}from'node:fs';import os from'node:os';
+const jobs=[['original','benchmarks/experiments/euler376-original.ra'],['occupied','benchmarks/experiments/euler376-occupied.ra'],['both','benchmarks/experiments/euler376-both.ra'],['array','benchmarks/experiments/euler376-array-control.ra'],['array-prototype','benchmarks/experiments/euler376-array-control.ra'],['shr-prototype','benchmarks/experiments/euler376-array-control.ra']];
+const trials=Number(process.env.TRIALS||3),samples=[];
+for(let trial=0;trial<trials;trial++)for(const[label,file]of trial%2?[...jobs].reverse():jobs){const args=[...(label.endsWith('prototype')?['--import',label==='shr-prototype'?'./benchmarks/experiments/euler376-shr-hook.mjs':'./benchmarks/experiments/euler376-safe-call-hook.mjs']:[]),'benchmarks/euler376-investigation.mjs',file];const r=spawnSync(process.execPath,args,{encoding:'utf8',env:{...process.env,DIAG:'',PHASES:'',PROFILE:''}});assert.equal(r.status,0,r.stderr);const sample={trial,label,...JSON.parse(r.stdout)};assert.equal(sample.answer,'973059630185670');samples.push(sample);console.log(JSON.stringify(sample));}
+if(process.env.OUTPUT)writeFileSync(process.env.OUTPUT,JSON.stringify({node:process.version,cpu:os.cpus()[0].model,arch:process.arch,trials,samples},null,2)+'\n');

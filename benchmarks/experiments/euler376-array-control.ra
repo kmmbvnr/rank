@@ -1,0 +1,97 @@
+rem Nontransitive Sets of Dice
+rem https://projecteuler.net/problem=376
+
+use algo
+use sequences
+use numbers
+use bits
+use io
+use cli
+
+arg Limit integer = 30
+
+Cur = new index
+Keys = array 0
+Cur 0 = 1
+Term = 6 bor (6 shl 3)
+Term = Term bor (6 shl 6)
+Term = Term bor (19 shl 9)
+Term = Term bor (19 shl 14)
+Term = Term bor (19 shl 19)
+Answer = 0
+for V in 1 to (Limit min 18)
+  Next = new index
+  Cap = 64
+  New = array shape Cap fill 0
+  Count = 0
+  for Key in Keys
+    Ways = Cur Key
+    Ua = Key band 7
+    Ub = Key shr 3 band 7
+    Uc = Key shr 6 band 7
+    Wba = Key shr 9 band 31
+    Wcb = Key shr 14 band 31
+    Wac = Key shr 19 band 31
+    for Aa in 0 to (6 - Ua)
+      Na = Ua + Aa
+      for Bb in 0 to (6 - Ub)
+        Nb = Ub + Bb
+        for Cc in 0 to (6 - Uc)
+          Nc = Uc + Cc
+          if Aa + Bb + Cc equal 0
+            continue
+          end
+          Ba = Wba + Bb * Ua
+          Cb = Wcb + Cc * Ub
+          Ac = Wac + Aa * Uc
+          Ba = Ba min 19
+          Cb = Cb min 19
+          Ac = Ac min 19
+          if Ba + 6 * (6 - Nb) less 19
+            continue
+          end
+          if Cb + 6 * (6 - Nc) less 19
+            continue
+          end
+          if Ac + 6 * (6 - Na) less 19
+            continue
+          end
+          Nkey = Na bor (Nb shl 3)
+          Nkey = Nkey bor (Nc shl 6)
+          Nkey = Nkey bor (Ba shl 9)
+          Nkey = Nkey bor (Cb shl 14)
+          Nkey = Nkey bor (Ac shl 19)
+          R = Nb bor (Nc shl 3)
+          R = R bor (Na shl 6)
+          R = R bor (Cb shl 9)
+          R = R bor (Ac shl 14)
+          R = R bor (Ba shl 19)
+          Nkey = Nkey min R
+          R = Nc bor (Na shl 3)
+          R = R bor (Nb shl 6)
+          R = R bor (Ac shl 9)
+          R = R bor (Ba shl 14)
+          R = R bor (Cb shl 19)
+          Nkey = Nkey min R
+          if Nkey in Next
+            Next Nkey = Next Nkey + Ways
+          else
+            Next Nkey = Ways
+            if Count equal Cap
+              New = concat New New copy
+              Cap *= 2
+            end
+            New Count = Nkey
+            Count += 1
+          end
+        end
+      end
+    end
+  end
+  Cur = Next
+  Keys = New (0 till Count) copy
+  Ways = Cur Term default 0
+  Answer += Ways * (Limit binomial V)
+end
+Answer //= 3
+Answer print

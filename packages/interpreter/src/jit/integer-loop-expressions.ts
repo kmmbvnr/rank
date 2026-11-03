@@ -590,6 +590,24 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             lines.push(`const ${name} = calls[${index}](${arguments_.join(',')});`);
             return { code: name, type: signature.result };
         }
+        if (numberMode && !wideInput && operation.module === 'bits' && operation.name === 'shr') {
+            const arguments_: string[] = [];
+            for (const operand of operands) {
+                const value = emit(operand, lines, 'integer');
+                if (value?.type !== 'integer') return undefined;
+                const name = `v${state.serial++}`;
+                lines.push(`const ${name} = ${value.code};`);
+                arguments_.push(name);
+            }
+            builtins.set(operation.name, operation.module);
+            const [left, right] = arguments_, name = `v${state.serial++}`;
+            // Scaling a safe integer by 2^-K is exact through K=52. At K>=53
+            // its magnitude is below one: arithmetic shift gives 0 or -1.
+            // Negative counts retain the exact native's validation/replay.
+            lines.push(`if (${right} < 0) throw overflow;`,
+                `const ${name} = ${right} > 52 ? (${left} < 0 ? -1 : 0) : Math.floor(${left} / (2 ** ${right}));`);
+            return { code: name, type: 'integer' };
+        }
         if (numberMode && operation.module === 'bits' && ['band', 'bor', 'bxor', 'bit', 'shl'].includes(operation.name)) {
             const arguments_: string[] = [];
             for (const operand of operands) {

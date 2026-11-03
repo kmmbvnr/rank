@@ -1,0 +1,2053 @@
+{
+  "runtimeCommit": "11ca099497c8b31174e5a2758093bfe870143535",
+  "status": "investigation; no production runtime/demo changes",
+  "notes": [
+    "Isolated committed runtime; unrelated shared-worktree source changes excluded.",
+    "Three serial fresh processes per compiled variant and host; alternating variant order.",
+    "Imports excluded from time; parsing/preparation/execution included; RSS whole-process high-water.",
+    "Full reference and native controls are single samples. Initial reference controls overlapped brief prototype jobs; indicative only.",
+    "Mac timing series includes occasional stalls. Raw samples are retained.",
+    "Compiler variants are module-loader prototypes; not validated release changes."
+  ],
+  "results": {
+    "mac": {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "arch": "arm64",
+      "trials": 3,
+      "samples": [
+        {
+          "trial": 0,
+          "label": "original",
+          "file": "demos/euler/376_dice.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 1398.5312079999999,
+          "rssMiB": 275.4375,
+          "phases": []
+        },
+        {
+          "trial": 0,
+          "label": "occupied",
+          "file": "benchmarks/experiments/euler376-occupied.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 380.9957079999999,
+          "rssMiB": 189.375,
+          "phases": []
+        },
+        {
+          "trial": 0,
+          "label": "both",
+          "file": "benchmarks/experiments/euler376-both.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 243.502125,
+          "rssMiB": 183.515625,
+          "phases": []
+        },
+        {
+          "trial": 0,
+          "label": "array",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 414.763125,
+          "rssMiB": 239.421875,
+          "phases": []
+        },
+        {
+          "trial": 0,
+          "label": "array-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 188.837625,
+          "rssMiB": 202.59375,
+          "phases": []
+        },
+        {
+          "trial": 0,
+          "label": "shr-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 185.740417,
+          "rssMiB": 201.359375,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "shr-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 181.375084,
+          "rssMiB": 205.96875,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "array-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 193.039584,
+          "rssMiB": 202.578125,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "array",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 414.641125,
+          "rssMiB": 239.09375,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "both",
+          "file": "benchmarks/experiments/euler376-both.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 242.97679200000002,
+          "rssMiB": 185.6875,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "occupied",
+          "file": "benchmarks/experiments/euler376-occupied.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 382.7025,
+          "rssMiB": 189.5,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "original",
+          "file": "demos/euler/376_dice.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 1419.998459,
+          "rssMiB": 275,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "original",
+          "file": "demos/euler/376_dice.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 2780.890209,
+          "rssMiB": 272.3125,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "occupied",
+          "file": "benchmarks/experiments/euler376-occupied.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 764.923417,
+          "rssMiB": 193.703125,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "both",
+          "file": "benchmarks/experiments/euler376-both.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 282.92600000000004,
+          "rssMiB": 185.703125,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "array",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 438.18891700000006,
+          "rssMiB": 240.1875,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "array-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 204.93912500000002,
+          "rssMiB": 204.546875,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "shr-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 190.599708,
+          "rssMiB": 207,
+          "phases": []
+        }
+      ]
+    },
+    "intel": {
+      "node": "v24.15.0",
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+      "arch": "x64",
+      "trials": 3,
+      "samples": [
+        {
+          "trial": 0,
+          "label": "original",
+          "file": "demos/euler/376_dice.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 3558.547604,
+          "rssMiB": 266.546875,
+          "phases": []
+        },
+        {
+          "trial": 0,
+          "label": "occupied",
+          "file": "benchmarks/experiments/euler376-occupied.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 1017.6682369999999,
+          "rssMiB": 179.53125,
+          "phases": []
+        },
+        {
+          "trial": 0,
+          "label": "both",
+          "file": "benchmarks/experiments/euler376-both.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 631.2233970000001,
+          "rssMiB": 178.52734375,
+          "phases": []
+        },
+        {
+          "trial": 0,
+          "label": "array",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 1409.389881,
+          "rssMiB": 211.91796875,
+          "phases": []
+        },
+        {
+          "trial": 0,
+          "label": "array-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 512.463375,
+          "rssMiB": 207.21875,
+          "phases": []
+        },
+        {
+          "trial": 0,
+          "label": "shr-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 506.69322600000004,
+          "rssMiB": 201.2265625,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "shr-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 489.41291899999993,
+          "rssMiB": 209.5390625,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "array-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 519.971432,
+          "rssMiB": 196.0078125,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "array",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 1361.939623,
+          "rssMiB": 208.57421875,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "both",
+          "file": "benchmarks/experiments/euler376-both.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 674.5844239999999,
+          "rssMiB": 174.9375,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "occupied",
+          "file": "benchmarks/experiments/euler376-occupied.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 1128.688607,
+          "rssMiB": 179.6640625,
+          "phases": []
+        },
+        {
+          "trial": 1,
+          "label": "original",
+          "file": "demos/euler/376_dice.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 3695.983637,
+          "rssMiB": 264.20703125,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "original",
+          "file": "demos/euler/376_dice.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 3668.918359,
+          "rssMiB": 261.7734375,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "occupied",
+          "file": "benchmarks/experiments/euler376-occupied.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 1071.234892,
+          "rssMiB": 180.80859375,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "both",
+          "file": "benchmarks/experiments/euler376-both.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 663.6398879999999,
+          "rssMiB": 175.87890625,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "array",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 1330.56224,
+          "rssMiB": 207.17578125,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "array-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 518.5743580000001,
+          "rssMiB": 209.73046875,
+          "phases": []
+        },
+        {
+          "trial": 2,
+          "label": "shr-prototype",
+          "file": "benchmarks/experiments/euler376-array-control.ra",
+          "mode": "compiled",
+          "limit": "30",
+          "answer": "973059630185670",
+          "ms": 479.35349099999996,
+          "rssMiB": 202.6015625,
+          "phases": []
+        }
+      ]
+    },
+    "originalReference": {
+      "file": "demos/euler/376_dice.ra",
+      "mode": "reference",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 40637.432167,
+      "rssMiB": 442.875,
+      "phases": []
+    },
+    "queueReference": {
+      "file": "benchmarks/experiments/euler376-both.ra",
+      "mode": "reference",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 3328.8769589999997,
+      "rssMiB": 395,
+      "phases": []
+    },
+    "arrayReference": {
+      "file": "benchmarks/experiments/euler376-array-control.ra",
+      "mode": "reference",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 3413.995542,
+      "rssMiB": 400.359375,
+      "phases": []
+    },
+    "cycleReference": {
+      "file": "benchmarks/experiments/euler376-cycle.ra",
+      "mode": "reference",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 4752.834083,
+      "rssMiB": 448.59375,
+      "phases": []
+    },
+    "diagnosticsOriginal": {
+      "file": "demos/euler/376_dice.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 1435.513167,
+      "rssMiB": 287.625,
+      "phases": [
+        {
+          "v": 1,
+          "ms": 129.230208,
+          "states": 27,
+          "queue": 27
+        },
+        {
+          "v": 2,
+          "ms": 1.6621250000000032,
+          "states": 335,
+          "queue": 335
+        },
+        {
+          "v": 3,
+          "ms": 9.98108400000001,
+          "states": 1686,
+          "queue": 1686
+        },
+        {
+          "v": 4,
+          "ms": 23.09583299999997,
+          "states": 4662,
+          "queue": 4662
+        },
+        {
+          "v": 5,
+          "ms": 33.77608300000003,
+          "states": 7361,
+          "queue": 7361
+        },
+        {
+          "v": 6,
+          "ms": 44.00383400000004,
+          "states": 8582,
+          "queue": 8582
+        },
+        {
+          "v": 7,
+          "ms": 47.98866599999997,
+          "states": 8815,
+          "queue": 8815
+        },
+        {
+          "v": 8,
+          "ms": 48.876458999999954,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 9,
+          "ms": 48.825041000000056,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 10,
+          "ms": 48.956042000000025,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 11,
+          "ms": 48.97604200000001,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 12,
+          "ms": 49.09229099999993,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 13,
+          "ms": 49.39945899999998,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 14,
+          "ms": 50.17054100000007,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 15,
+          "ms": 56.16570899999999,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 16,
+          "ms": 50.56458299999997,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 17,
+          "ms": 49.233082999999965,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 18,
+          "ms": 48.921334000000115,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 19,
+          "ms": 50.59883300000001,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 20,
+          "ms": 49.57749999999987,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 21,
+          "ms": 48.71829200000002,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 22,
+          "ms": 48.82670800000005,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 23,
+          "ms": 48.825374999999894,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 24,
+          "ms": 48.97420800000009,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 25,
+          "ms": 48.96041700000001,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 26,
+          "ms": 48.59695799999986,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 27,
+          "ms": 48.931375000000116,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 28,
+          "ms": 49.075874999999996,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 29,
+          "ms": 48.919791999999916,
+          "states": 8827,
+          "queue": 8827
+        },
+        {
+          "v": 30,
+          "ms": 54.44450000000006,
+          "states": 1,
+          "queue": 1
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 1333500,
+        "indexReadHits": 1333500,
+        "indexReadMisses": 0,
+        "indexWrites": 1333500,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 30,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberLoopUnpolled": 0,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:NewStructureExpression": 4,
+          "loop:unsupported-node:NewStructureExpression": 1,
+          "loop:no-text-specialization": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 2,
+          "scalar-expression:unsupported-op:Term": 2,
+          "scalar-expression:unsupported-op://": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    "diagnosticsOccupied": {
+      "file": "benchmarks/experiments/euler376-occupied.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 393.929083,
+      "rssMiB": 189.53125,
+      "phases": [],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 257207,
+        "indexReadHits": 257203,
+        "indexReadMisses": 4,
+        "indexWrites": 257190,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 18,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberLoopUnpolled": 0,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:NewStructureExpression": 4,
+          "loop:unsupported-node:NewStructureExpression": 1,
+          "loop:no-text-specialization": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:default": 3,
+          "tensor:unsupported-op:default": 1,
+          "scalar-expression:unsupported-op:binomial": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:*": 2,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "diagnosticsArray": {
+      "file": "benchmarks/experiments/euler376-array-control.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 413.21445800000004,
+      "rssMiB": 240.0625,
+      "phases": [],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 85969,
+        "indexReadHits": 85965,
+        "indexReadMisses": 4,
+        "indexWrites": 85952,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 19251,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 19251,
+        "numberLoopUnpolled": 19251,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 7193,
+        "typedArrayPublishedCells": 10343091,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:NewStructureExpression": 2,
+          "tensor:unsupported-type:array": 2,
+          "loop:unsupported-node:NewStructureExpression": 1,
+          "loop:no-text-specialization": 19,
+          "scalar-expression:unsupported-op:to": 2,
+          "loop:unstable-bindings:ForStatement": 1,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:default": 3,
+          "tensor:unsupported-op:default": 1,
+          "scalar-expression:unsupported-op:binomial": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:*": 2,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "diagnosticsSafeCalls": {
+      "file": "benchmarks/experiments/euler376-array-control.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 191.79279100000002,
+      "rssMiB": 203.015625,
+      "phases": [],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 85969,
+        "indexReadHits": 85965,
+        "indexReadMisses": 4,
+        "indexWrites": 85952,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 18,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 18,
+        "numberLoopUnpolled": 18,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 1,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 54,
+        "typedArrayPublishedCells": 51251,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:NewStructureExpression": 2,
+          "tensor:unsupported-type:array": 2,
+          "loop:unsupported-node:NewStructureExpression": 1,
+          "loop:no-text-specialization": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:default": 3,
+          "tensor:unsupported-op:default": 1,
+          "scalar-expression:unsupported-op:binomial": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:*": 2,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "diagnosticsShift": {
+      "file": "benchmarks/experiments/euler376-array-control.ra",
+      "mode": "compiled",
+      "limit": "30",
+      "answer": "973059630185670",
+      "ms": 178.66204199999999,
+      "rssMiB": 205.765625,
+      "phases": [],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 85969,
+        "indexReadHits": 85965,
+        "indexReadMisses": 4,
+        "indexWrites": 85952,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 18,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 18,
+        "numberLoopUnpolled": 18,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 1,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 54,
+        "typedArrayPublishedCells": 51251,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:NewStructureExpression": 2,
+          "tensor:unsupported-type:array": 2,
+          "loop:unsupported-node:NewStructureExpression": 1,
+          "loop:no-text-specialization": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:default": 3,
+          "tensor:unsupported-op:default": 1,
+          "scalar-expression:unsupported-op:binomial": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:*": 2,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "nativeOriginal": {
+      "limit": 30,
+      "canonical": false,
+      "answer": 973059630185670,
+      "ms": 138.255958,
+      "rssMiB": 77.09375,
+      "attempts": 11994803,
+      "accepted": 1333499,
+      "maxStates": 8827,
+      "maxWays": 2919178890557010,
+      "phases": [
+        {
+          "v": 1,
+          "states": 27,
+          "ms": 0.33699999999999974
+        },
+        {
+          "v": 2,
+          "states": 335,
+          "ms": 0.6601250000000007
+        },
+        {
+          "v": 3,
+          "states": 1686,
+          "ms": 1.689458000000002
+        },
+        {
+          "v": 4,
+          "states": 4662,
+          "ms": 6.587041000000003
+        },
+        {
+          "v": 5,
+          "states": 7361,
+          "ms": 6.875250000000001
+        },
+        {
+          "v": 6,
+          "states": 8582,
+          "ms": 4.877958
+        },
+        {
+          "v": 7,
+          "states": 8815,
+          "ms": 4.464041999999999
+        },
+        {
+          "v": 8,
+          "states": 8827,
+          "ms": 4.700417000000002
+        },
+        {
+          "v": 9,
+          "states": 8827,
+          "ms": 3.173000000000002
+        },
+        {
+          "v": 10,
+          "states": 8827,
+          "ms": 4.399665999999996
+        },
+        {
+          "v": 11,
+          "states": 8827,
+          "ms": 3.4392919999999947
+        },
+        {
+          "v": 12,
+          "states": 8827,
+          "ms": 3.774957999999998
+        },
+        {
+          "v": 13,
+          "states": 8827,
+          "ms": 4.766458999999998
+        },
+        {
+          "v": 14,
+          "states": 8827,
+          "ms": 9.567667
+        },
+        {
+          "v": 15,
+          "states": 8827,
+          "ms": 12.135874999999999
+        },
+        {
+          "v": 16,
+          "states": 8827,
+          "ms": 4.203500000000005
+        },
+        {
+          "v": 17,
+          "states": 8827,
+          "ms": 3.9564589999999953
+        },
+        {
+          "v": 18,
+          "states": 8827,
+          "ms": 4.551209
+        },
+        {
+          "v": 19,
+          "states": 8827,
+          "ms": 4.602167000000009
+        },
+        {
+          "v": 20,
+          "states": 8827,
+          "ms": 4.318041999999991
+        },
+        {
+          "v": 21,
+          "states": 8827,
+          "ms": 4.928374999999988
+        },
+        {
+          "v": 22,
+          "states": 8827,
+          "ms": 4.247124999999997
+        },
+        {
+          "v": 23,
+          "states": 8827,
+          "ms": 5.322249999999997
+        },
+        {
+          "v": 24,
+          "states": 8827,
+          "ms": 6.723083000000003
+        },
+        {
+          "v": 25,
+          "states": 8827,
+          "ms": 5.4315409999999815
+        },
+        {
+          "v": 26,
+          "states": 8827,
+          "ms": 4.515250000000009
+        },
+        {
+          "v": 27,
+          "states": 8827,
+          "ms": 2.665541999999988
+        },
+        {
+          "v": 28,
+          "states": 8827,
+          "ms": 3.525749999999988
+        },
+        {
+          "v": 29,
+          "states": 8827,
+          "ms": 4.106459000000001
+        },
+        {
+          "v": 30,
+          "states": 1,
+          "ms": 3.417584000000005
+        }
+      ]
+    },
+    "nativeSymmetry": {
+      "limit": 30,
+      "canonical": true,
+      "answer": 973059630185670,
+      "ms": 54.98958300000001,
+      "rssMiB": 62.9375,
+      "attempts": 4022403,
+      "accepted": 446667,
+      "maxStates": 2953,
+      "maxWays": 2919178890557010,
+      "phases": [
+        {
+          "v": 1,
+          "states": 11,
+          "ms": 0.14754100000000037
+        },
+        {
+          "v": 2,
+          "states": 115,
+          "ms": 0.37650000000000006
+        },
+        {
+          "v": 3,
+          "states": 566,
+          "ms": 1.3900419999999976
+        },
+        {
+          "v": 4,
+          "states": 1560,
+          "ms": 2.3137500000000024
+        },
+        {
+          "v": 5,
+          "states": 2461,
+          "ms": 4.513666999999998
+        },
+        {
+          "v": 6,
+          "states": 2870,
+          "ms": 5.170041999999999
+        },
+        {
+          "v": 7,
+          "states": 2949,
+          "ms": 2.710125000000005
+        },
+        {
+          "v": 8,
+          "states": 2953,
+          "ms": 1.6650840000000002
+        },
+        {
+          "v": 9,
+          "states": 2953,
+          "ms": 1.6305419999999984
+        },
+        {
+          "v": 10,
+          "states": 2953,
+          "ms": 1.610999999999997
+        },
+        {
+          "v": 11,
+          "states": 2953,
+          "ms": 1.4063750000000041
+        },
+        {
+          "v": 12,
+          "states": 2953,
+          "ms": 1.6844159999999988
+        },
+        {
+          "v": 13,
+          "states": 2953,
+          "ms": 1.4953330000000022
+        },
+        {
+          "v": 14,
+          "states": 2953,
+          "ms": 2.9687079999999995
+        },
+        {
+          "v": 15,
+          "states": 2953,
+          "ms": 5.748208999999996
+        },
+        {
+          "v": 16,
+          "states": 2953,
+          "ms": 4.9985420000000005
+        },
+        {
+          "v": 17,
+          "states": 2953,
+          "ms": 1.7935420000000022
+        },
+        {
+          "v": 18,
+          "states": 2953,
+          "ms": 0.8441669999999988
+        },
+        {
+          "v": 19,
+          "states": 2953,
+          "ms": 0.8544589999999985
+        },
+        {
+          "v": 20,
+          "states": 2953,
+          "ms": 0.8381669999999986
+        },
+        {
+          "v": 21,
+          "states": 2953,
+          "ms": 0.7537910000000068
+        },
+        {
+          "v": 22,
+          "states": 2953,
+          "ms": 0.8822499999999991
+        },
+        {
+          "v": 23,
+          "states": 2953,
+          "ms": 0.9337500000000034
+        },
+        {
+          "v": 24,
+          "states": 2953,
+          "ms": 0.9547500000000042
+        },
+        {
+          "v": 25,
+          "states": 2953,
+          "ms": 0.9951670000000092
+        },
+        {
+          "v": 26,
+          "states": 2953,
+          "ms": 0.8620419999999882
+        },
+        {
+          "v": 27,
+          "states": 2953,
+          "ms": 1.2109579999999909
+        },
+        {
+          "v": 28,
+          "states": 2953,
+          "ms": 0.8942079999999919
+        },
+        {
+          "v": 29,
+          "states": 2953,
+          "ms": 1.5354169999999954
+        },
+        {
+          "v": 30,
+          "states": 1,
+          "ms": 1.5581669999999974
+        }
+      ]
+    },
+    "nativeOccupied": {
+      "limit": 30,
+      "canonical": false,
+      "occupied": true,
+      "answer": 973059630185670,
+      "ms": 25.91975,
+      "rssMiB": 60.21875,
+      "attempts": 2373518,
+      "accepted": 257189,
+      "maxStates": 7943,
+      "maxWays": 6247026,
+      "phases": [
+        {
+          "v": 1,
+          "states": 26,
+          "ms": 0.06337499999999885
+        },
+        {
+          "v": 2,
+          "states": 323,
+          "ms": 0.33941700000000097
+        },
+        {
+          "v": 3,
+          "states": 1603,
+          "ms": 1.3506660000000004
+        },
+        {
+          "v": 4,
+          "states": 4462,
+          "ms": 3.1683749999999993
+        },
+        {
+          "v": 5,
+          "states": 6984,
+          "ms": 4.158667000000001
+        },
+        {
+          "v": 6,
+          "states": 7943,
+          "ms": 1.6425000000000018
+        },
+        {
+          "v": 7,
+          "states": 7773,
+          "ms": 1.6744999999999983
+        },
+        {
+          "v": 8,
+          "states": 7161,
+          "ms": 6.881083999999998
+        },
+        {
+          "v": 9,
+          "states": 6291,
+          "ms": 2.940166000000005
+        },
+        {
+          "v": 10,
+          "states": 5206,
+          "ms": 1.1728749999999977
+        },
+        {
+          "v": 11,
+          "states": 3970,
+          "ms": 0.8982499999999973
+        },
+        {
+          "v": 12,
+          "states": 2737,
+          "ms": 0.5741660000000053
+        },
+        {
+          "v": 13,
+          "states": 1663,
+          "ms": 0.40474999999999994
+        },
+        {
+          "v": 14,
+          "states": 886,
+          "ms": 0.21170800000000156
+        },
+        {
+          "v": 15,
+          "states": 403,
+          "ms": 0.10862499999999642
+        },
+        {
+          "v": 16,
+          "states": 127,
+          "ms": 0.20941599999999738
+        },
+        {
+          "v": 17,
+          "states": 22,
+          "ms": 0.040917000000000314
+        },
+        {
+          "v": 18,
+          "states": 1,
+          "ms": 0.003875000000000739
+        }
+      ]
+    },
+    "nativeBoth": {
+      "limit": 30,
+      "canonical": true,
+      "occupied": true,
+      "answer": 973059630185670,
+      "ms": 18.192083,
+      "rssMiB": 59.109375,
+      "attempts": 793112,
+      "accepted": 85951,
+      "maxStates": 2653,
+      "maxWays": 6247026,
+      "phases": [
+        {
+          "v": 1,
+          "states": 10,
+          "ms": 0.06341699999999939
+        },
+        {
+          "v": 2,
+          "states": 109,
+          "ms": 0.15058299999999925
+        },
+        {
+          "v": 3,
+          "states": 535,
+          "ms": 0.7577920000000002
+        },
+        {
+          "v": 4,
+          "states": 1490,
+          "ms": 1.2117500000000003
+        },
+        {
+          "v": 5,
+          "states": 2332,
+          "ms": 2.203042
+        },
+        {
+          "v": 6,
+          "states": 2653,
+          "ms": 2.484167000000001
+        },
+        {
+          "v": 7,
+          "states": 2597,
+          "ms": 1.973708000000002
+        },
+        {
+          "v": 8,
+          "states": 2393,
+          "ms": 2.9782919999999997
+        },
+        {
+          "v": 9,
+          "states": 2103,
+          "ms": 2.0998339999999978
+        },
+        {
+          "v": 10,
+          "states": 1740,
+          "ms": 1.5101250000000022
+        },
+        {
+          "v": 11,
+          "states": 1328,
+          "ms": 1.1213750000000005
+        },
+        {
+          "v": 12,
+          "states": 917,
+          "ms": 0.6941670000000002
+        },
+        {
+          "v": 13,
+          "states": 557,
+          "ms": 0.397708999999999
+        },
+        {
+          "v": 14,
+          "states": 298,
+          "ms": 0.19191700000000012
+        },
+        {
+          "v": 15,
+          "states": 137,
+          "ms": 0.10975000000000179
+        },
+        {
+          "v": 16,
+          "states": 43,
+          "ms": 0.09125000000000227
+        },
+        {
+          "v": 17,
+          "states": 8,
+          "ms": 0.018834000000001794
+        },
+        {
+          "v": 18,
+          "states": 1,
+          "ms": 0.0019159999999978083
+        }
+      ]
+    },
+    "verification": {
+      "checks": 73,
+      "oracle": "enumerated six-face multisets and exact BigInt original DP",
+      "small": {
+        "0": "0",
+        "1": "0",
+        "2": "0",
+        "3": "0",
+        "4": "0",
+        "5": "15",
+        "6": "581",
+        "7": "9780",
+        "10": "4995047",
+        "18": "128452183427",
+        "19": "328811786405",
+        "30": "973059630185670",
+        "100": "1886791851742265960399180"
+      },
+      "missingOriginalCases": [
+        {
+          "n": 0,
+          "compilation": false,
+          "error": "missing keyed value"
+        },
+        {
+          "n": 1,
+          "compilation": false,
+          "error": "missing keyed value"
+        },
+        {
+          "n": 2,
+          "compilation": false,
+          "error": "missing keyed value"
+        },
+        {
+          "n": 3,
+          "compilation": false,
+          "error": "missing keyed value"
+        },
+        {
+          "n": 4,
+          "compilation": false,
+          "error": "missing keyed value"
+        },
+        {
+          "n": 0,
+          "compilation": true,
+          "error": "missing keyed value"
+        },
+        {
+          "n": 1,
+          "compilation": true,
+          "error": "missing keyed value"
+        },
+        {
+          "n": 2,
+          "compilation": true,
+          "error": "missing keyed value"
+        },
+        {
+          "n": 3,
+          "compilation": true,
+          "error": "missing keyed value"
+        },
+        {
+          "n": 4,
+          "compilation": true,
+          "error": "missing keyed value"
+        }
+      ],
+      "shifts": 99,
+      "numberEntries": 77
+    },
+    "intelShifts": {
+      "checks": 0,
+      "oracle": "enumerated six-face multisets and exact BigInt original DP",
+      "small": {
+        "0": "0",
+        "1": "0",
+        "2": "0",
+        "3": "0",
+        "4": "0",
+        "5": "15",
+        "6": "581",
+        "7": "9780",
+        "10": "4995047",
+        "18": "128452183427",
+        "19": "328811786405",
+        "30": "973059630185670",
+        "100": "1886791851742265960399180"
+      },
+      "missingOriginalCases": [],
+      "shifts": 99,
+      "numberEntries": 77
+    }
+  },
+  "compiledProfile": [
+    {
+      "function": "",
+      "file": "",
+      "selfMs": 618.372
+    },
+    {
+      "function": "",
+      "file": "fast-paths.js",
+      "selfMs": 384.461
+    },
+    {
+      "function": "checkBinding",
+      "file": "frame.js",
+      "selfMs": 75.334
+    },
+    {
+      "function": "(program)",
+      "file": "",
+      "selfMs": 55.625
+    },
+    {
+      "function": "run",
+      "file": "integer-loop-runtime.js",
+      "selfMs": 31.665
+    },
+    {
+      "function": "indexKey",
+      "file": "index-key.js",
+      "selfMs": 23.875
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "selfMs": 22.959
+    },
+    {
+      "function": "post",
+      "file": "node:inspector",
+      "selfMs": 22.25
+    },
+    {
+      "function": "checkpoint",
+      "file": "interrupt.js",
+      "selfMs": 21.167
+    },
+    {
+      "function": "set",
+      "file": "resource-summary.js",
+      "selfMs": 13.624
+    },
+    {
+      "function": "push",
+      "file": "containers.js",
+      "selfMs": 12.083
+    },
+    {
+      "function": "getAlternativesForProd",
+      "file": "interpreter.js",
+      "selfMs": 11.041
+    },
+    {
+      "function": "indexSet",
+      "file": "index-storage.js",
+      "selfMs": 10.542
+    },
+    {
+      "function": "get items",
+      "file": "containers.js",
+      "selfMs": 9.083
+    },
+    {
+      "function": "add",
+      "file": "dfa.js",
+      "selfMs": 7.584
+    },
+    {
+      "function": "valueProtection",
+      "file": "value-protection.js",
+      "selfMs": 7.5
+    },
+    {
+      "function": "indexRead",
+      "file": "index-storage.js",
+      "selfMs": 6.084
+    },
+    {
+      "function": "values",
+      "file": "containers.js",
+      "selfMs": 6.0
+    },
+    {
+      "function": "getConflictingAltSets",
+      "file": "all-star-lookahead.js",
+      "selfMs": 5.958
+    },
+    {
+      "function": "remainingPathWith",
+      "file": "interpreter.js",
+      "selfMs": 5.418
+    }
+  ],
+  "referenceProfile": [
+    {
+      "function": "",
+      "file": "expressions.js",
+      "selfMs": 1011.245
+    },
+    {
+      "function": "",
+      "file": "application.js",
+      "selfMs": 568.619
+    },
+    {
+      "function": "executeContext",
+      "file": "blocks.js",
+      "selfMs": 438.164
+    },
+    {
+      "function": "assign",
+      "file": "binding-environment.js",
+      "selfMs": 411.593
+    },
+    {
+      "function": "get",
+      "file": "frame.js",
+      "selfMs": 328.003
+    },
+    {
+      "function": "resolve",
+      "file": "interpreter.js",
+      "selfMs": 297.412
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "selfMs": 271.499
+    },
+    {
+      "function": "stream",
+      "file": "loops.js",
+      "selfMs": 258.043
+    },
+    {
+      "function": "",
+      "file": "operators.js",
+      "selfMs": 227.924
+    },
+    {
+      "function": "firstForSequence",
+      "file": "first.js",
+      "selfMs": 213.125
+    },
+    {
+      "function": "",
+      "file": "sequence.js",
+      "selfMs": 186.126
+    },
+    {
+      "function": "iterate",
+      "file": "operators.js",
+      "selfMs": 184.711
+    },
+    {
+      "function": "run",
+      "file": "assignments.js",
+      "selfMs": 171.295
+    },
+    {
+      "function": "makeRange",
+      "file": "operators.js",
+      "selfMs": 164.876
+    },
+    {
+      "function": "sequenceValues",
+      "file": "sequence.js",
+      "selfMs": 162.795
+    },
+    {
+      "function": "(program)",
+      "file": "",
+      "selfMs": 158.664
+    },
+    {
+      "function": "splitQualified",
+      "file": "interpreter.js",
+      "selfMs": 145.875
+    },
+    {
+      "function": "prepare",
+      "file": "expressions.js",
+      "selfMs": 141.744
+    },
+    {
+      "function": "applyIntrinsicRank",
+      "file": "rank-application.js",
+      "selfMs": 134.209
+    },
+    {
+      "function": "",
+      "file": "assignments.js",
+      "selfMs": 132.25
+    }
+  ]
+}
