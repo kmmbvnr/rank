@@ -1,0 +1,77 @@
+use testing
+
+test "sample 1: L-step shape is TRUE"
+  use "0583_drawing"
+  run
+
+  Ans equal "TRUE"
+end
+
+test "simple rectangle is TRUE"
+  use "0583_drawing"
+  Input = "7
+f 5
+r
+f 3
+r
+f 5
+r
+f 3"
+  run
+
+  Ans equal "TRUE"
+end
+
+test "dent shape is FALSE"
+  use "0583_drawing"
+  Input = "9
+f 3
+r
+f 3
+r
+f 1
+r
+f 2
+l
+f 1
+l
+f 2
+r
+f 1
+r
+f 3"
+  run
+
+  Ans equal "FALSE"
+end
+
+test "cross shape is TRUE"
+  use "0583_drawing"
+  Input = "23
+f 1
+r
+f 1
+l
+f 1
+r
+f 1
+r
+f 1
+l
+f 1
+r
+f 1
+r
+f 1
+l
+f 1
+r
+f 1
+r
+f 1
+l
+f 1"
+  run
+
+  Ans equal "TRUE"
+end

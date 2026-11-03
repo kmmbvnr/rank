@@ -1,0 +1,73 @@
+rem Drawing (Рисование)
+rem https://acmp.ru/task.asp?id=583
+rem Convex iff perimeter equals
+rem 2 * (dx + dy) of bounding box.
+
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "11
+f 1
+r
+f 2
+r
+f 2
+r
+f 1
+r
+f 1
+l
+f 1"
+
+Clean = Input split "\r" join ""
+Raw = Clean split "\n"
+Lines = Raw (Raw not equal "")
+N = Lines 0 words integer 0
+Cmds = Lines (1 to N)
+
+Dists = array shape N fill 0
+Deltas = array shape N fill 0
+
+for I in 0 till N
+  Cmd = Cmds I
+  Kind = Cmd 0
+  if Kind equal "l"
+    Deltas I = 1
+  end
+  if Kind equal "r"
+    Deltas I = 3
+  end
+  if Kind equal "f"
+    Parts = Cmd words
+    Dists I = Parts 1 integer
+  end
+end
+
+Angles = (Deltas scan +) mod 4
+DX = array 1 0 -1 0
+DY = array 0 1 0 -1
+StepX = (DX Angles) * Dists
+StepY = (DY Angles) * Dists
+
+X = StepX scan +
+Y = StepY scan +
+AllX = concat (array 0) X
+AllY = concat (array 0) Y
+XMin = AllX min
+XMax = AllX max
+YMin = AllY min
+YMax = AllY max
+
+Span = XMax - XMin + YMax - YMin
+Peri = Dists sum
+Need = 2 * Span
+
+Ans = "FALSE"
+if Peri equal Need
+  Ans = "TRUE"
+end
+
+Ans print
