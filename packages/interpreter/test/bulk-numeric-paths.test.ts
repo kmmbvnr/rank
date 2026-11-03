@@ -118,6 +118,37 @@ A 1`)).toBe('0.5');
         });
     });
 
+    describe('scan of stored reals', () => {
+        it('adds left to right exactly as a loop does and stays packed', () => {
+            const runtime = new Interpreter(() => {}, { compilation });
+            try {
+                runtime.execute(`use sequences
+A = (0 till 300 array) * 0.1 - 7.3
+C = A scan + array
+Ok = 1
+Sum = A 0
+for X in 1 till 300
+  Sum += A X
+  if Sum not equal (C X)
+    Ok = 0
+  end
+end
+if (A 0) not equal (C 0)
+  Ok = 0
+end`);
+                expect(runtime.variables.get('Ok')).toBe(1n);
+                const view = prepareStoredScalarView(runtime.variables.get('C')!, true)!;
+                expect((view.compact ?? view.items).constructor.name).toBe('Float64Array');
+            } finally { runtime.dispose(); }
+        });
+
+        it('handles one cell, zeros and large magnitudes', () => {
+            expect(run('E = array shape 1 fill 2.5\n(E scan + array) 0')).toBe('2.5');
+            expect(run('Z = (0 till 5 array) * 0.0\n(Z scan + array) reduce max')).toBe('0');
+            expect(run('B = (1 to 4 array) * 1.0e307\n((B scan + array) 3) greater 9.0e307')).toBe('true');
+        });
+    });
+
     describe('real fill', () => {
         it('stores a large finite fill as reals and still accepts writes', () => {
             expect(run(`E = array shape 1000 fill 0.5

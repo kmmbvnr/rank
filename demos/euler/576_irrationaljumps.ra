@@ -28,10 +28,14 @@ rem maximum.
 Sc = 10 ** 18
 Lim = Sc - Gi
 Zr = array shape 1 fill 0
-Ep = array shape 1048576 fill 0
-Ed = array shape 1048576 fill 0.0
+Pr = primes till N + 1 array
+rem Events per prime are about 3 g^-1
+rem sorted pairs; grow only if short.
+Cp = 8 * (Sc // Gi) * (Pr len) max 64
+Ep = array shape Cp fill 0
+Ed = array shape Cp fill 0.0
 Ne = 0
-for P in primes till N + 1 array
+for P in Pr
   A = Sc * Sc // P isqrt
   K = Sc // Gi max 4
   Cv = 1
@@ -53,34 +57,40 @@ for P in primes till N + 1 array
       K *= 2
     end
   end
-  rem Event i removes landing i; event
-  rem j adds landing j. Ls, Rs bound the
-  rem window after it, Rk is its rank.
+  rem Removing landing i leaves window
+  rem [i + 1, Rr); adding landing j
+  rem leaves [La, j + 1). A rank is the
+  rem event's place in sorted order.
   R0 = Ss upperindex Gi
   I = 0 till K array
   J = R0 till K array
   Rr = (Ss lowerindex (Ss + Gi)) max R0
   Aq = (Ss J) - Gi
   La = Ss upperindex Aq
-  Ls = concat (I + 1) La
-  Rs = concat Rr (J + 1)
+  Lr = I + 1
+  Jr = J + 1
+  Rm = Rr - 1
+  Mr = Ik (Lr min Rm)
+  Ma = Ik (La min J)
+  Wr = Rr - Lr
+  Wa = Jr - La
+  Wd = Wr reduce max max (Wa reduce max with 0)
+  for T in 1 till Wd array
+    Mr = Mr min (Ik (Lr + T min Rm))
+    Ma = Ma min (Ik (La + T min J))
+  end
   Ra = I + Rr - R0
   Rb = J - R0 + La
-  Rk = concat Ra Rb
-  Rm = Rs - 1
-  Mn = Ik (Ls min Rm)
-  Wd = Rs - Ls reduce max
-  for T in 1 till Wd array
-    Mn = Mn min (Ik (Ls + T min Rm))
-  end
-  rem Invert the ranks by one scatter.
-  Iv = array shape (Rk len) fill 0
-  Iv Rk = 0 till (Rk len) array
-  Pn = concat Ss Aq
-  Ps = Pn Iv
-  Vs = Mn Iv
-  Wn = (Rs Iv) greater (Ls Iv)
-  Ok = (Ps at most Lim) and Wn
+  Ps = array shape (2 * K - R0) fill 0
+  Vs = array shape (2 * K - R0) fill 0
+  Ne1 = array shape (2 * K - R0) fill 0
+  Ps Ra = Ss
+  Ps Rb = Aq
+  Vs Ra = Mr
+  Vs Rb = Ma
+  Ne1 Ra = Wr min 1
+  Ne1 Rb = Wa min 1
+  Ok = (Ps at most Lim) and (Ne1 equal 1)
   V0 = Ik (0 till R0 array) reduce min
   Vk = concat (Zr + V0) (Vs filter Ok array)
   Pk = concat Zr (Ps filter Ok array)

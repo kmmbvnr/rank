@@ -202,6 +202,23 @@ export function scanInt64(value: RankArray): RankArray | undefined {
     return typedArray(out, value.shape);
 }
 
+/** Running sum of a stored real vector, left to right as the ordinary scan
+ * adds. The first cell is kept as is (so -0 survives); non-finite sums
+ * propagate exactly as they do for boxed reals. */
+export function scanFloat64(value: RankArray): RankArray | undefined {
+    if (value.shape.length !== 1 || value.columnNames || !privateLoopPolling() || typedElementKind(value) !== 'real') return undefined;
+    const cells = float64Cells(value);
+    if (!cells?.length) return undefined;
+    const out = new Float64Array(cells.length);
+    let sum = out[0] = cells[0];
+    for (let start = 1; start < cells.length; start += 4096) {
+        const end = Math.min(start + 4096, cells.length);
+        checkpoint('scanning', end - start);
+        for (let i = start; i < end; i++) out[i] = sum += cells[i];
+    }
+    return typedArray(out, value.shape);
+}
+
 /** Prefix `+`, `*`, `max` or `min` along an axis of stored Int32 cells. Axes up to
  * 2^21 cells have safe Number sums even for worst-case Int32 inputs. Longer
  * axes and all products check each prefix; an unsafe result leaves exact
