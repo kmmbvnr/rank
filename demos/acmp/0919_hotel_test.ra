@@ -1,0 +1,66 @@
+rem Tests for ACMP 0919 Hotel
+
+use testing
+
+test "default near 10^9 max"
+  use "0919_hotel"
+  run
+
+  Ans equal "YES"
+end
+
+test "sample 1: 2 3 9 6"
+  use "0919_hotel"
+  Input = "2 3 9 6"
+  run
+
+  Ans equal "YES"
+end
+
+test "sample 2: 2 3 8 6"
+  use "0919_hotel"
+  Input = "2 3 8 6"
+  run
+
+  Ans equal "YES"
+end
+
+test "sample 3: 2 3 6 8"
+  use "0919_hotel"
+  Input = "2 3 6 8"
+  run
+
+  Ans equal "YES"
+end
+
+test "sample 4: 2 3 5 7"
+  use "0919_hotel"
+  Input = "2 3 5 7"
+  run
+
+  Ans equal "NO"
+end
+
+test "mixed orientation: 2 3 5 6"
+  use "0919_hotel"
+  Input = "2 3 5 6"
+  run
+
+  Ans equal "YES"
+end
+
+test "insufficient lcm: 3 20 6 30"
+  use "0919_hotel"
+  Input = "3 20 6 30"
+  run
+
+  Ans equal "NO"
+end
+
+test "too narrow: 2 3 1 12"
+  use "0919_hotel"
+  Input = "2 3 1 12"
+  run
+
+  Ans equal "NO"
+end

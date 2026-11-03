@@ -1,0 +1,76 @@
+rem Hotel (Отель)
+rem https://acmp.ru/task.asp?id=919
+rem Tiling rectangle by Klarner theorem.
+
+use cli
+use io
+use numbers
+use text
+
+arg Input text = "2 3
+999999999 1000000000"
+
+Raw = Input split "\n" join " "
+Raw = Raw split "\r" join " "
+Tok = Raw split " "
+Tok = Tok (Tok not equal "")
+
+Tw = Tok 0 integer
+Th = Tok 1 integer
+W = Tok 2 integer
+H = Tok 3 integer
+
+fun A modinv M
+  T0 = 0
+  T1 = 1
+  R0 = M
+  R1 = A
+  for Step in 0 till 50
+    if R1 equal 0
+      break
+    end
+    Q = R0 // R1
+    TmpR = R0 - Q * R1
+    R0 = R1
+    R1 = TmpR
+    TmpT = T0 - Q * T1
+    T0 = T1
+    T1 = TmpT
+  end
+  Res = T0 mod M
+  return (Res + M) mod M
+end
+
+fun A B M form
+  G = A gcd B
+  Div = (M mod G) equal 0
+  A1 = A // G
+  B1 = B // G
+  M1 = M // G
+  IsOne = B1 equal 1
+  Inv = IsOne choose 0 (A1 modinv B1)
+  X0 = (M1 * Inv) mod B1
+  Ok = (X0 * A1) at most M1
+  return Div choose Ok false
+end
+
+M1 = W mod Tw equal 0
+M2 = H mod Th equal 0
+C1 = M1 and M2
+
+M3 = W mod Th equal 0
+M4 = H mod Tw equal 0
+C2 = M3 and M4
+
+G = Tw gcd Th
+Lcm = (Tw // G) * Th
+
+F1 = Tw Th W form
+C3 = (H mod Lcm equal 0) and F1
+
+F2 = Tw Th H form
+C4 = (W mod Lcm equal 0) and F2
+
+Ok = C1 or C2 or C3 or C4
+Ans = Ok choose "YES" "NO"
+Ans print
