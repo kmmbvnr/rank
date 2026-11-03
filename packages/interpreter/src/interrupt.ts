@@ -119,6 +119,10 @@ export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () =
     finally { state = previous; }
 }
 
+/** Cancellation cadence in cooperative work units. Demand budgets are still
+ * charged exactly at every checkpoint, independently of signal polling. */
+export const INTERRUPT_POLL_INTERVAL = 1024;
+
 /** Cooperative checks are needed for host cancellation and bounded observation. */
 export function interruptsEnabled(): boolean { return state.flag !== undefined || state.budget !== undefined; }
 
@@ -166,7 +170,7 @@ export function checkpoint(activity?: string, work = 1, details?: () => Record<s
     chargeDemand(work);
     if (!state.flag) return;
     state.ticks += work;
-    if (state.ticks < 1024) return;
+    if (state.ticks < INTERRUPT_POLL_INTERVAL) return;
     state.ticks = 0;
     checkInterrupt(activity, details);
 }

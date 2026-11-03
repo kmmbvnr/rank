@@ -1,0 +1,348 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "arch": "arm64",
+  "samples": [
+    {
+      "id": "370",
+      "polling": false,
+      "control": "baseline",
+      "answer": "41791929448408",
+      "ms": 8628.464542,
+      "rssMiB": 209.859375,
+      "trial": 0
+    },
+    {
+      "id": "370",
+      "polling": false,
+      "control": "production",
+      "answer": "41791929448408",
+      "ms": 5690.564375,
+      "rssMiB": 208.890625,
+      "trial": 0
+    },
+    {
+      "id": "370",
+      "polling": true,
+      "control": "baseline",
+      "answer": "41791929448408",
+      "ms": 10265.667125,
+      "rssMiB": 211.390625,
+      "trial": 0
+    },
+    {
+      "id": "370",
+      "polling": true,
+      "control": "production",
+      "answer": "41791929448408",
+      "ms": 7314.831083,
+      "rssMiB": 212.3125,
+      "trial": 0
+    },
+    {
+      "id": "369",
+      "polling": false,
+      "control": "baseline",
+      "answer": "862400558448",
+      "ms": 170.616208,
+      "rssMiB": 186.234375,
+      "trial": 0
+    },
+    {
+      "id": "369",
+      "polling": false,
+      "control": "production",
+      "answer": "862400558448",
+      "ms": 172.065416,
+      "rssMiB": 186.203125,
+      "trial": 0
+    },
+    {
+      "id": "365",
+      "polling": false,
+      "control": "baseline",
+      "answer": "162619462356610313",
+      "ms": 471.259417,
+      "rssMiB": 197.296875,
+      "trial": 0
+    },
+    {
+      "id": "365",
+      "polling": false,
+      "control": "production",
+      "answer": "162619462356610313",
+      "ms": 421.899625,
+      "rssMiB": 197.265625,
+      "trial": 0
+    },
+    {
+      "id": "023",
+      "polling": false,
+      "control": "baseline",
+      "answer": "4179871",
+      "ms": 116.29545799999997,
+      "rssMiB": 176.265625,
+      "trial": 0
+    },
+    {
+      "id": "023",
+      "polling": false,
+      "control": "production",
+      "answer": "4179871",
+      "ms": 115.89999999999998,
+      "rssMiB": 176.34375,
+      "trial": 0
+    },
+    {
+      "id": "nested",
+      "polling": false,
+      "control": "baseline",
+      "answer": "1001000000",
+      "ms": 82.804,
+      "rssMiB": 155.59375,
+      "trial": 0
+    },
+    {
+      "id": "nested",
+      "polling": false,
+      "control": "production",
+      "answer": "1001000000",
+      "ms": 85.06050000000002,
+      "rssMiB": 154.953125,
+      "trial": 0
+    },
+    {
+      "id": "370",
+      "polling": false,
+      "control": "production",
+      "answer": "41791929448408",
+      "ms": 5689.32375,
+      "rssMiB": 210.328125,
+      "trial": 1
+    },
+    {
+      "id": "370",
+      "polling": false,
+      "control": "baseline",
+      "answer": "41791929448408",
+      "ms": 8648.8785,
+      "rssMiB": 210.28125,
+      "trial": 1
+    },
+    {
+      "id": "370",
+      "polling": true,
+      "control": "production",
+      "answer": "41791929448408",
+      "ms": 7370.580290999999,
+      "rssMiB": 212.125,
+      "trial": 1
+    },
+    {
+      "id": "370",
+      "polling": true,
+      "control": "baseline",
+      "answer": "41791929448408",
+      "ms": 10268.165583,
+      "rssMiB": 209.71875,
+      "trial": 1
+    },
+    {
+      "id": "369",
+      "polling": false,
+      "control": "production",
+      "answer": "862400558448",
+      "ms": 174.415042,
+      "rssMiB": 185.890625,
+      "trial": 1
+    },
+    {
+      "id": "369",
+      "polling": false,
+      "control": "baseline",
+      "answer": "862400558448",
+      "ms": 173.02837499999998,
+      "rssMiB": 185.9375,
+      "trial": 1
+    },
+    {
+      "id": "365",
+      "polling": false,
+      "control": "production",
+      "answer": "162619462356610313",
+      "ms": 424.17875,
+      "rssMiB": 198.484375,
+      "trial": 1
+    },
+    {
+      "id": "365",
+      "polling": false,
+      "control": "baseline",
+      "answer": "162619462356610313",
+      "ms": 474.553667,
+      "rssMiB": 198.09375,
+      "trial": 1
+    },
+    {
+      "id": "023",
+      "polling": false,
+      "control": "production",
+      "answer": "4179871",
+      "ms": 120.26608300000004,
+      "rssMiB": 175.34375,
+      "trial": 1
+    },
+    {
+      "id": "023",
+      "polling": false,
+      "control": "baseline",
+      "answer": "4179871",
+      "ms": 117.85970800000001,
+      "rssMiB": 176.109375,
+      "trial": 1
+    },
+    {
+      "id": "nested",
+      "polling": false,
+      "control": "production",
+      "answer": "1001000000",
+      "ms": 86.61045899999999,
+      "rssMiB": 154.328125,
+      "trial": 1
+    },
+    {
+      "id": "nested",
+      "polling": false,
+      "control": "baseline",
+      "answer": "1001000000",
+      "ms": 84.36812499999999,
+      "rssMiB": 155.1875,
+      "trial": 1
+    },
+    {
+      "id": "370",
+      "polling": false,
+      "control": "baseline",
+      "answer": "41791929448408",
+      "ms": 8629.182209,
+      "rssMiB": 211.0625,
+      "trial": 2
+    },
+    {
+      "id": "370",
+      "polling": false,
+      "control": "production",
+      "answer": "41791929448408",
+      "ms": 5764.024291000001,
+      "rssMiB": 209.640625,
+      "trial": 2
+    },
+    {
+      "id": "370",
+      "polling": true,
+      "control": "baseline",
+      "answer": "41791929448408",
+      "ms": 10316.100666,
+      "rssMiB": 210.125,
+      "trial": 2
+    },
+    {
+      "id": "370",
+      "polling": true,
+      "control": "production",
+      "answer": "41791929448408",
+      "ms": 7411.628167000001,
+      "rssMiB": 211.546875,
+      "trial": 2
+    },
+    {
+      "id": "369",
+      "polling": false,
+      "control": "baseline",
+      "answer": "862400558448",
+      "ms": 174.34583300000003,
+      "rssMiB": 186.3125,
+      "trial": 2
+    },
+    {
+      "id": "369",
+      "polling": false,
+      "control": "production",
+      "answer": "862400558448",
+      "ms": 175.76158399999997,
+      "rssMiB": 186.328125,
+      "trial": 2
+    },
+    {
+      "id": "365",
+      "polling": false,
+      "control": "baseline",
+      "answer": "162619462356610313",
+      "ms": 467.725917,
+      "rssMiB": 198.171875,
+      "trial": 2
+    },
+    {
+      "id": "365",
+      "polling": false,
+      "control": "production",
+      "answer": "162619462356610313",
+      "ms": 420.360583,
+      "rssMiB": 198.078125,
+      "trial": 2
+    },
+    {
+      "id": "023",
+      "polling": false,
+      "control": "baseline",
+      "answer": "4179871",
+      "ms": 118.96279099999998,
+      "rssMiB": 175.234375,
+      "trial": 2
+    },
+    {
+      "id": "023",
+      "polling": false,
+      "control": "production",
+      "answer": "4179871",
+      "ms": 117.83525,
+      "rssMiB": 176.421875,
+      "trial": 2
+    },
+    {
+      "id": "nested",
+      "polling": false,
+      "control": "baseline",
+      "answer": "1001000000",
+      "ms": 86.381583,
+      "rssMiB": 154.046875,
+      "trial": 2
+    },
+    {
+      "id": "nested",
+      "polling": false,
+      "control": "production",
+      "answer": "1001000000",
+      "ms": 86.43724999999998,
+      "rssMiB": 155.234375,
+      "trial": 2
+    }
+  ],
+  "verification": {
+    "workingCopyFocusedTests": 458,
+    "isolatedIntendedCommitFocusedTests": 458,
+    "IntelFinalFocusedTests": 16,
+    "scopedDifferentialCases": 1,
+    "fixtureAssertions": 5,
+    "independentVerifierAssertionsPerControl": 221,
+    "controls": [
+      "baseline",
+      "production"
+    ],
+    "fullAnswer": "41791929448408",
+    "fullReferenceRun": false,
+    "exhaustiveAuditsRun": false,
+    "semanticBoundaryOwners": 65
+  },
+  "measurementNote": "Same built runtime per host; baseline disables only the new policy selector. Shared workspace includes unrelated edits; intended patch independently built/tested in isolation."
+}

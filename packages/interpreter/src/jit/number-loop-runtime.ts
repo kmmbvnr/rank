@@ -9,10 +9,10 @@ import { loopTraversal } from '../loop-traversal.js';
 import { argumentSelectionError, MissingValueError, RankError } from '../errors.js';
 import { completed } from '../execution.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
-import { checkpoint, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
+import { checkpoint, privateLoopPolling, demandBudgetEnabled, interruptsEnabled } from '../interrupt.js';
 import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, typedArray, realCells, storedOperandItems } from '../array-storage.js';
 import { isRankArray, isRankIndex, type RankArray, type RankValue } from '../value.js';
-import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, LoopWorkFeedback } from './integer-loop-plan.js';
+import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, LoopWorkFeedback, LoopPolling } from './integer-loop-plan.js';
 
 import { indexKey } from '../index-storage.js';
 import { hasPrivateIndexStorage, PrivateIntegerIndex } from './number-loop-index.js';
@@ -187,7 +187,7 @@ const rankValue = (value: unknown, type: string | undefined): RankValue | undefi
 function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[], publish: string, workCounting = false): string {
     const { root, body } = plan;
     return `"use strict"; return function(input, cells, changes, calls, publish) {
-        let ${registers.length ? `${registers.join(',')}, ` : ''}result, resultType = 'integer', location = -1, order = 0${workCounting ? ', work = 0' : ''};
+        let ${registers.length ? `${registers.join(',')}, ` : ''}result, resultType = 'integer', location = -1, order = 0${workCounting ? ', work = 0' : ''}${plan.polling === 'batched' ? ', pollWork = 0' : ''};
         const entered = [];${plan.numberVectors ? '\n        const vectorPool = [], vectorLive = input.slice(), vectorStep = vectorBlockSize();' : ''}
         try {
             ${root.setup} ${root.header}
@@ -195,6 +195,7 @@ function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[
                 ${root.bindings} ${body.join('\n')}
                 result = iterationResult; resultType = iterationType; location = -1;
             }
+            ${plan.polling === 'batched' ? 'checkpoint(undefined, pollWork);' : ''}
         } catch (error) {
             if (error === overflow) return undefined;
             ${publish}
@@ -209,7 +210,8 @@ function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[
  * published until success, so overflow can discard this attempt and enter the
  * original BigInt loop with its original inputs. Errors publish partial state.
  * Inspection and custom host polling retain the existing publishing backend. */
-export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedback?: LoopWorkFeedback, compileCountedPlan?: () => IntegerLoopPlan | undefined): CompiledLoop | undefined {
+export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedback?: LoopWorkFeedback, compileCountedPlan?: () => IntegerLoopPlan | undefined,
+    compilePollingPlan?: (polling: LoopPolling) => IntegerLoopPlan | undefined): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, locations, statement } = plan;
     const reboundInputs = [...plan.arrayDefinitions].some(name => plan.arrayInputs.has(name));
     if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length
@@ -253,6 +255,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
+    const pollingRuns = new Map<LoopPolling, Run>();
     const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', code)(
             modularMultiply, safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
@@ -518,7 +521,31 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.numberLoops++;
         if (diagnostics && plan.wideScalars.size) diagnostics.mixedIntegerLoops++;
-        const result = (probe ? countedRun! : run)(input, buffers, changes, calls, (entered, values) => {
+        // Select per invocation: cached regions can re-enter under a demand
+        // budget or cancellation scope. Only opaque polling can batch work;
+        // observable/custom callbacks already fail privateLoopPolling above.
+        // Keep counted copy probes and calls on the original checkpoint path.
+        const polling: LoopPolling = !interruptsEnabled() ? 'none'
+            : !demandBudgetEnabled() && !plan.calls.length && !plan.callouts?.length ? 'batched' : 'checked';
+        let execute = probe ? countedRun! : run;
+        if (!probe && polling !== 'checked' && compilePollingPlan) {
+            let selected = pollingRuns.get(polling);
+            if (!selected) {
+                const selectedPlan = compilePollingPlan(polling);
+                if (selectedPlan) {
+                    selected = compile(emitNumberLoopSource(selectedPlan, registers, publish));
+                    pollingRuns.set(polling, selected);
+                }
+            }
+            if (selected) {
+                execute = selected;
+                if (diagnostics) {
+                    if (polling === 'none') diagnostics.numberLoopUnpolled++;
+                    else diagnostics.numberLoopBatched++;
+                }
+            }
+        }
+        const result = execute(input, buffers, changes, calls, (entered, values) => {
             // Overflow never enters publication. Ordinary errors and cancellation
             // commit exactly the preceding stores; no polling/callback may split
             // this publication from the scalar bindings below.

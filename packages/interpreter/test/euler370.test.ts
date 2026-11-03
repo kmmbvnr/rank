@@ -41,3 +41,11 @@ it('matches exhaustive counts on larger inputs with both counting branches', () 
         }
     } finally { runtime.dispose(); }
 });
+
+it('computes the full geometric-triangle golden with compiled numeric loops', () => {
+    const runtime = new Interpreter(() => {});
+    try {
+        runtime.execute(source);
+        expect(runtime.execute('25000000000000 triangles')).toBe(41791929448408n);
+    } finally { runtime.dispose(); }
+}, 60000);

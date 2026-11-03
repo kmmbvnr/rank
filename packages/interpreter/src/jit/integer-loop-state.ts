@@ -1,4 +1,5 @@
-import { type LoopHost, type IntegerLoopPlan, type LoopTerm } from './integer-loop-plan.js';
+import { INTERRUPT_POLL_INTERVAL } from '../interrupt.js';
+import { type LoopHost, type IntegerLoopPlan, type LoopTerm, type LoopPolling } from './integer-loop-plan.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
     isFunctionStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
@@ -26,11 +27,12 @@ export interface LoopScope {
 
 /** Mutable facts belong to one compilation attempt, never an invocation frame. */
 export function createLoopState(statement: ForStatement | FunctionStatement, host: LoopHost, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>,
-    failed: (reason: string) => void, numberMode: boolean, wideScalars: ReadonlySet<string> = new Set(), workCounting = false) {
+    failed: (reason: string) => void, numberMode: boolean, wideScalars: ReadonlySet<string> = new Set(), workCounting = false, polling: LoopPolling = 'checked') {
     const zero = numberMode ? '0' : '0n', one = numberMode ? '1' : '1n';
     const safe = (code: string) => numberMode ? `safe(${code})` : code;
     const dirty = (slot: number) => numberMode ? `if (!d${slot}) d${slot} = ++order;` : '';
-    const checkpoint = workCounting ? 'work++; checkpoint();' : 'checkpoint();';
+    const checkpoint = workCounting ? 'work++; checkpoint();' : polling === 'none' ? ''
+        : polling === 'batched' ? `if (++pollWork === ${INTERRUPT_POLL_INTERVAL}) { pollWork = 0; checkpoint(undefined, ${INTERRUPT_POLL_INTERVAL}); }` : 'checkpoint();';
     function reject(node: Expression | Statement, detail?: string): undefined {
         failed(compilerRejection('loop', node, detail));
         return undefined;

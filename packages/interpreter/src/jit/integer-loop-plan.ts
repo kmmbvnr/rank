@@ -106,6 +106,8 @@ export type CompiledLoop = {
 
 
 /** Analyzed loop requirements and lowered body; runtime binding never infers syntax. */
+export type LoopPolling = 'checked' | 'none' | 'batched';
+
 export interface IntegerLoopPlan {
     statement: ForStatement | FunctionStatement;
     names: string[];
@@ -142,6 +144,7 @@ export interface IntegerLoopPlan {
     writable: Set<string>;
     iteration: IterationBinding | undefined;
     workCounting?: boolean;
+    polling?: LoopPolling;
     callouts?: { expression: Expression; expectedType?: LoopTerm['type'] }[];
 }
 

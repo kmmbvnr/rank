@@ -3,7 +3,7 @@ import { createLoopExpressions } from './integer-loop-expressions.js';
 import { createLoopHeader } from './integer-loop-header.js';
 import { createLoopStatements } from './integer-loop-statements.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
-import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan, type LoopWorkFeedback } from './integer-loop-plan.js';
+import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan, type LoopWorkFeedback, type LoopPolling } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
 import { wideLoopScalars } from './integer-loop-wide.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
@@ -71,7 +71,8 @@ export function compileIntegerFunctionPrefix(statement: FunctionStatement, host:
     // stores retain their ordinary per-loop transactions and copy-cost feedback.
     if (!plan?.arrayDefinitions.size || plan.destinations.size === 0
         || [...plan.destinations.keys()].some(name => !plan.arrayDefinitions.has(name))) return undefined;
-    const fast = prepareNumberLoop(plan, host);
+    const fast = prepareNumberLoop(plan, host, undefined, undefined,
+        polling => lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, new Set(), false, polling));
     let mixed: CompiledLoop | undefined, preparedMixed = false;
     return fast && { run: (...context) => {
         const result = fast.run(...context);
@@ -80,7 +81,8 @@ export function compileIntegerFunctionPrefix(statement: FunctionStatement, host:
             preparedMixed = true;
             const wide = wideLoopScalars(plan);
             const mixedPlan = wide.size && lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, wide);
-            mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host) : undefined;
+            mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host, undefined, undefined,
+                polling => lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, wide, false, polling)) : undefined;
         }
         return mixed?.run(...context);
     } };
@@ -103,7 +105,8 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     // A replay-safe backend can support expressions the publishing backend
     // cannot type statically (integer powers may become real for negative exponents).
     const compileFastCounted = feedback ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), true) : undefined;
-    const fast = numberPlan && prepareNumberLoop(numberPlan, host, feedback, compileFastCounted);
+    const fast = numberPlan && prepareNumberLoop(numberPlan, host, feedback, compileFastCounted,
+        polling => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), false, polling));
     if (!fast) {
         if (!exact && currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));
         return exact;
@@ -117,7 +120,8 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
             const wide = wideLoopScalars(plan ?? numberPlan!);
             const mixedPlan = wide.size && lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide);
             const compileMixedCounted = feedback && wide.size ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide, true) : undefined;
-            mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host, feedback, compileMixedCounted) : undefined;
+            mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host, feedback, compileMixedCounted,
+                polling => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide, false, polling)) : undefined;
         }
         return mixed?.run(...context) ?? exact?.run(...context);
     } };
@@ -126,8 +130,8 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
 /** Shared region checks and lowering; runtime preparation consumes only the plan. */
 function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopHost, iteration: IterationBinding | undefined,
     textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void, numberMode = false,
-    wideScalars: ReadonlySet<string> = new Set(), workCounting = false): IntegerLoopPlan | undefined {
-    const state = createLoopState(statement, host, textSources, textArrays, failed, numberMode, wideScalars, workCounting);
+    wideScalars: ReadonlySet<string> = new Set(), workCounting = false, polling: LoopPolling = 'checked'): IntegerLoopPlan | undefined {
+    const state = createLoopState(statement, host, textSources, textArrays, failed, numberMode, wideScalars, workCounting, polling);
     const {
         localTypes, names, required, writers, binders, writerNames, binderNames, written, containers,
         builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
@@ -193,6 +197,6 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
         statement, names, wideScalars, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
-        arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, writable, iteration, workCounting, callouts: state.callouts,
+        arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, writable, iteration, workCounting, polling, callouts: state.callouts,
     };
 }

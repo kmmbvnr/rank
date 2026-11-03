@@ -34,6 +34,8 @@ export class RuntimeDiagnostics {
     numericSearches = 0;
     numericSearchIndexes = 0;
     numberLoops = 0;
+    numberLoopUnpolled = 0;
+    numberLoopBatched = 0;
     numberFunctions = 0;
     numberFunctionFallbacks = 0;
     numberFunctionSkips = 0;

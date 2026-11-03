@@ -1,0 +1,281 @@
+{
+  "environment": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "arch": "arm64",
+    "head": "fd9cdb06063e1f9132a05beff0e3e783d55afb43",
+    "dirty": true,
+    "sourceSha256": "65ab9fce681a76e12f28775e9ff79685201ba6670ac9aad095b7ba5292a1ac86",
+    "builtRuntimeHashes": {
+      "jit/number-loop-runtime.js": "87939db7238b5954169e8a3238ef4d29b64d698156157663f4d62bab708089f0",
+      "jit/integer-loop-state.js": "f6608598c4b58108bb31c47d42b3b9c5fa58097506125592d7794fb455a15172",
+      "jit/integer-loop-expressions.js": "57be0992a24160e9b6ecdc89e8c951dd92bc47d782b18abcdfcea76fea5d2166",
+      "interrupt.js": "43a08a351c069cc6214cffd9ef295b64e6faa4df6e0fd12df3daba284611cd78"
+    }
+  },
+  "samples": [
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "current",
+      "polling": false,
+      "answer": "41791929448408",
+      "ms": 8593.707665999998,
+      "rssMiB": 209.984375
+    },
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "guarded-polling",
+      "answer": "41791929448408",
+      "ms": 5633.322083,
+      "rssMiB": 208.65625
+    },
+    {
+      "mode": "compiled",
+      "limit": "100000000",
+      "pivot": "1",
+      "control": "current",
+      "answer": "108073540",
+      "ms": 165.898292,
+      "rssMiB": 182.859375
+    },
+    {
+      "mode": "reference",
+      "limit": "100000000",
+      "pivot": "1",
+      "control": "current",
+      "answer": "108073540",
+      "ms": 639.3434159999999,
+      "rssMiB": 332.375
+    },
+    {
+      "L": 25000000000000,
+      "ratio": 1,
+      "answer": 41791929448408,
+      "ms": 3787.698625,
+      "sieveMs": 13.940042,
+      "smallMs": 1006.012875,
+      "largeMs": 2767.751083,
+      "smallCandidates": 264226264,
+      "modTests": 496822548,
+      "blocks": 122836527,
+      "divTests": 1014000128,
+      "rssMiB": 64.375
+    },
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "guarded-polling",
+      "answer": "41791929448408",
+      "ms": 5682.631792,
+      "rssMiB": 210.875
+    },
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "current",
+      "answer": "41791929448408",
+      "ms": 8579.947458999999,
+      "rssMiB": 209.90625
+    },
+    {
+      "mode": "compiled",
+      "limit": "100000000",
+      "pivot": "1",
+      "control": "current",
+      "answer": "108073540",
+      "ms": 167.60133299999998,
+      "rssMiB": 182.9375
+    },
+    {
+      "mode": "reference",
+      "limit": "100000000",
+      "pivot": "1",
+      "control": "current",
+      "answer": "108073540",
+      "ms": 652.328125,
+      "rssMiB": 328.953125
+    },
+    {
+      "L": 25000000000000,
+      "ratio": 1,
+      "answer": 41791929448408,
+      "ms": 3808.258542,
+      "sieveMs": 14.055250000000001,
+      "smallMs": 1012.4670829999999,
+      "largeMs": 2781.741375,
+      "smallCandidates": 264226264,
+      "modTests": 496822548,
+      "blocks": 122836527,
+      "divTests": 1014000128,
+      "rssMiB": 64.390625
+    },
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "current",
+      "answer": "41791929448408",
+      "ms": 8607.136958000001,
+      "rssMiB": 209.625
+    },
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "guarded-polling",
+      "answer": "41791929448408",
+      "ms": 5776.754792000001,
+      "rssMiB": 208.96875
+    },
+    {
+      "mode": "compiled",
+      "limit": "100000000",
+      "pivot": "1",
+      "control": "current",
+      "answer": "108073540",
+      "ms": 165.65849999999998,
+      "rssMiB": 182.640625
+    },
+    {
+      "mode": "reference",
+      "limit": "100000000",
+      "pivot": "1",
+      "control": "current",
+      "answer": "108073540",
+      "ms": 644.638292,
+      "rssMiB": 332.453125
+    },
+    {
+      "L": 25000000000000,
+      "ratio": 1,
+      "answer": 41791929448408,
+      "ms": 3869.237792,
+      "sieveMs": 14.184957999999998,
+      "smallMs": 1065.540209,
+      "largeMs": 2789.5182080000004,
+      "smallCandidates": 264226264,
+      "modTests": 496822548,
+      "blocks": 122836527,
+      "divTests": 1014000128,
+      "rssMiB": 64.5625
+    }
+  ],
+  "discarded": [
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "current",
+      "answer": "41791929448408",
+      "ms": 8632.961958,
+      "rssMiB": 211.515625,
+      "reason": "overlapped a short verifier at sample start"
+    }
+  ],
+  "pollingSamples": [
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "current",
+      "polling": true,
+      "answer": "41791929448408",
+      "ms": 10302.5015,
+      "rssMiB": 210.21875
+    },
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "batched-polling",
+      "polling": true,
+      "answer": "41791929448408",
+      "ms": 7296.557666,
+      "rssMiB": 212.28125
+    },
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "batched-polling",
+      "polling": true,
+      "answer": "41791929448408",
+      "ms": 6945.0777499999995,
+      "rssMiB": 210.71875
+    },
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "current",
+      "polling": true,
+      "answer": "41791929448408",
+      "ms": 10300.65525,
+      "rssMiB": 209.890625
+    },
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "current",
+      "polling": true,
+      "answer": "41791929448408",
+      "ms": 10284.311208,
+      "rssMiB": 210.71875
+    },
+    {
+      "mode": "compiled",
+      "limit": "25000000000000",
+      "pivot": "1",
+      "control": "batched-polling",
+      "polling": true,
+      "answer": "41791929448408",
+      "ms": 6949.656333,
+      "rssMiB": 211.609375
+    }
+  ],
+  "verification": {
+    "oracleAndBoundaryAssertionsPerControl": 221,
+    "controls": [
+      "current",
+      "guarded-polling",
+      "batched-polling"
+    ],
+    "fullAnswer": "41791929448408",
+    "fullReferenceRun": false,
+    "IntelRun": false,
+    "focusedEuler370Tests": 3
+  },
+  "algorithmControls": [
+    {
+      "pivot": 0.5,
+      "ms": 12090.57875
+    },
+    {
+      "pivot": 1,
+      "ms": 8628.95825
+    },
+    {
+      "pivot": 2,
+      "ms": 12911.759709
+    },
+    {
+      "variant": "even-candidate-step",
+      "ms": 8642.015707999999
+    }
+  ],
+  "profile": {
+    "ms": 8638.993375,
+    "rssMiB": 219.921875,
+    "compiledLoops": 3,
+    "numberLoops": 3,
+    "overflows": 0,
+    "compilerRejections": []
+  }
+}
