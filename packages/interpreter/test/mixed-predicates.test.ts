@@ -71,8 +71,20 @@ end`);
         expect(result.diagnostics.mixedIntegerLoops).toBe(1);
     });
 
+    it('keeps an exact square root inside a wide predicate', () => {
+        const result = compare(`use numbers
+P = 9007199254740993
+for I in 0 to 1
+ if (P isqrt) greater 0
+  Last = I
+ end
+end`);
+        expect(result.observation.error).toBeUndefined();
+        expect(result.diagnostics.mixedIntegerLoops).toBe(1);
+        expect(result.diagnostics.compiledLoops).toBe(1);
+    });
+
     it.each([
-        'use numbers\nP = 9007199254740993\nfor I in 0 to 1\n if (P isqrt) greater 0\n  Last = I\n end\nend',
         'P = 9007199254740993\nfor I in 0 to 1\n B = P greater 0\n if B\n  Last = I\n end\nend',
         'P = 9007199254740993\nfor I in 1 to P by P\n Last = I\nend',
         'P = 9007199254740993\nA = array 0 0\nfor I in 0 to 1\n A (P - 9007199254740993 + I) = 7\nend',

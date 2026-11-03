@@ -345,10 +345,10 @@ end`);
         try {
             runtime.executeProgram({ ...program, statements: helpers }, []);
             runtime.execute('Prefix = array 0 1 2 4 6 10 12 18 22 28 32\nCache = new index');
-            expect(runtime.execute('100 100 10 Prefix Cache tots')).toBe(3044n);
-            expect(runtime.execute('Cache 1')).toBe(3044n);
-            expect(runtime.execute('Cache 2')).toBe(774n);
-            expect(runtime.execute('100 100 10 Prefix Cache tots')).toBe(3044n);
+            expect(runtime.execute('100 10 Prefix Cache tots')).toBe(3044n);
+            expect(runtime.execute('Cache 100')).toBe(3044n);
+            expect(runtime.execute('Cache 50')).toBe(774n);
+            expect(runtime.execute('100 10 Prefix Cache tots')).toBe(3044n);
         } finally { runtime.dispose(); }
     });
 

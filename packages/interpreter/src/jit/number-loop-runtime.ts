@@ -1,6 +1,6 @@
 import { broadcastShape, arrayStrides } from './tensor-layout.js';
 import { numberOverflow, checkedNumberModularMultiply as modularMultiply } from './number-arithmetic.js';
-import { safeIntegerSquareRoot } from '../integer-square-root.js';
+import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
 import { textLength } from '../text-storage.js';
 import { expressionFacts, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
 import { prepareLoopEntryWork } from './loop-entry-work.js';
@@ -253,7 +253,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', code)(
             modularMultiply, safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -264,7 +264,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
             (index: number | bigint, axis = 0) => index < 0 ? new RankError(`array index must be nonnegative on axis ${axis}`)
-                : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, checkedNumberPower, widePower,
+                : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, integerSquareRoot, divide, checkedNumberPower, widePower,
             (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number, real = false) => new PrivateNumericArray(shape, fill, undefined, undefined, real),
             (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
             (shape: number[], cells: NumberCells) => new PrivateNumericArray([...shape], 0, cells), textLength, indexKey,

@@ -4,19 +4,22 @@ import { Interpreter, RankError, RuntimeDiagnostics, formatValue } from '../src/
 function run(source: string, compilation: boolean) {
     const runtime = new Interpreter(undefined, { compilation, scalarEntryCompilation: false });
     const diagnostics = new RuntimeDiagnostics();
-    let error: string | undefined;
+    let error: string | undefined, value: string | undefined;
     try {
-        try { diagnostics.run(() => runtime.execute(source)); }
+        try {
+            const result = diagnostics.run(() => runtime.execute(source));
+            if (result !== undefined) value = formatValue(result);
+        }
         catch (failure) { error = failure instanceof RankError ? failure.format() : String(failure); }
-        return { compiledLoops: diagnostics.compiledLoops, observation: { error,
+        return { compiledLoops: diagnostics.compiledLoops, observation: { error, value,
             variables: [...runtime.variables].map(([name, value]) => [name, formatValue(value)]) } };
     } finally { runtime.dispose(); }
 }
-function compare(body: string, setup = 'A = array shape 20 fill 7\nResult = array shape 0 fill 0') {
+function compare(body: string, setup = 'A = array shape 20 fill 7\nResult = array shape 0 fill 0', loops = 1) {
     const source = `use sequences\n${setup}\nfor K in 1 to 5\n${body}\nend`;
     const compiled = run(source, true);
     expect(compiled.observation).toEqual(run(source, false).observation);
-    expect(compiled.compiledLoops).toBe(1);
+    expect(compiled.compiledLoops).toBe(loops);
     return compiled.observation;
 }
 
@@ -44,16 +47,27 @@ describe('range values in compiled loops (#432)', () => {
     });
 
     it.each([
-        'A (1 to 3) = A (1 to 2)',
-        'A (3 till 3) = A (1 to 2)',
         'A (1 to 3) = (A (1 to 3) // 0)',
         'A (1 to 3) = (A (1 to 3) mod -3)',
-        'A (3 to 1 by -1) += A (1 to 3)',
         'A (1 to 3) = (A (1 to 3) - A (3 to 1 by -1))',
-        'Result = A (1 to 6 by 2)\n Result (0 to 2) += Result (2 to 0 by -1)',
         'Result = A (K to 20 by K) copy',
     ])('matches vector writes and errors: %s', body => {
         compare(body);
+    });
+
+    // A loop can publish its last assignment's live self-selection. Keep
+    // that result on the ordinary backend; an extra statement discards it.
+    const liveSelfSlices = [
+        'A (1 to 3) = A (1 to 2)',
+        'A (3 till 3) = A (1 to 2)',
+        'A (3 to 1 by -1) += A (1 to 3)',
+        'Result = A (1 to 6 by 2)\n Result (0 to 2) += Result (2 to 0 by -1)',
+    ];
+    it.each(liveSelfSlices)('preserves escaping self-slice results: %s', body => {
+        compare(body, undefined, 0);
+    });
+    it.each(liveSelfSlices)('compiles discarded self-slice results: %s', body => {
+        compare(`${body}\n Done = K`);
     });
 
     it('keeps copy binding guards for stepped slices', () => {

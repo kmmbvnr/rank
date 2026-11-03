@@ -34,6 +34,7 @@ interface InlineBuiltin {
     readonly enabled?: (host: LoopHost) => boolean;
     /** The interpreter's DomainError for operands outside the domain. */
     readonly domain?: { test(value: string, type: LoopTerm['type']): string | undefined; message: string };
+    readonly exactCode?: (value: string) => string;
     code(value: string, type: LoopTerm['type'], numberMode: boolean): string;
 }
 const parity = (even: boolean): InlineBuiltin => ({ module: 'numbers', types: { integer: 'boolean' },
@@ -54,6 +55,7 @@ const inlineBuiltins = new Map<string, InlineBuiltin>([
         code: (value, type) => `Math.sqrt(${type === 'integer' ? `Number(${value})` : value})` }],
     ['isqrt', { module: 'numbers', types: { integer: 'integer' },
         domain: { test: value => `(${value}) < 0`, message: 'isqrt expects a nonnegative integer' },
+        exactCode: value => `wideIsqrt(${value})`,
         code: value => `isqrt(${value})` }],
     ['acos', { module: 'numbers', types: { integer: 'real', real: 'real' }, enabled: host => host.reals,
         domain: { test: value => `!((${value}) >= -1 && (${value}) <= 1)`, message: 'acos input is outside its domain' },
@@ -1438,9 +1440,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 && (builtin.enabled?.(host) ?? true)
                 && (flattenApplication(e).length === 2 || unaryApplicationHead(e,
                     name => findOperation(name)?.arities) === e.head)) {
-                // Numeric-runtime helpers expect Number operands. Keep these
-                // uncommon exact expressions on the existing exact backend.
-                if (wide) return undefined;
+                // Mixed regions need an exact helper for BigInt operands.
+                if (wide && !builtin.exactCode) return undefined;
                 const value = emit(e.head, lines);
                 const type = value && builtin.types[value.type];
                 if (!value || !type) return undefined;
@@ -1448,7 +1449,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const test = builtin.domain?.test(value.code, value.type);
                 if (test) lines.push(`if (${test}) throw domain(${JSON.stringify(builtin.domain!.message)});`);
                 const name = `v${state.serial++}`;
-                lines.push(`const ${name} = ${builtin.code(value.code, value.type, numberMode)};`);
+                lines.push(`const ${name} = ${wide ? builtin.exactCode!(value.code) : builtin.code(value.code, value.type, numberMode)};`);
                 return { code: name, type };
             }
             if (!numberMode && (op === 'len' || op === 'pop') && isNameExpression(e.head)) {

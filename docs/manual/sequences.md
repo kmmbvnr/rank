@@ -487,6 +487,99 @@ comparison: `A greater 3 indices`.
 
 findall, filter
 
+## rope
+
+An indexed, persistent sequence for
+splitting, joining and reversing data.
+Arithmetic ranges stay compressed.
+
+```rank
+use sequences
+A = (1 to 5) rope
+B = A 1 3 reverse
+B copy
+```
+
+```result
+1 4 3 2 5
+```
+
+### Usage
+
+```text
+Values rope
+```
+
+Accepts text, rank-one arrays and finite
+sequences. Text is split by code point.
+Changing a rope creates a new value;
+earlier values keep their contents.
+Use ordinary indexing, take, drop and
+concat without expanding range chunks.
+
+### See also
+
+chunks, runs, reverse, concat, copy
+
+## chunks
+
+Read a rope's storage chunks in order.
+
+```rank
+use sequences
+A = (1 to 5) rope
+A chunks first copy
+```
+
+```result
+1 2 3 4 5
+```
+
+### Usage
+
+```text
+Rope chunks
+```
+
+Returns a finite sequence. Each item is
+a chunk, which may be a compressed
+range. Chunk boundaries are storage
+details; use copy for a flat array.
+
+### See also
+
+rope, runs, copy
+
+## runs
+
+Describe integer rope chunks as rows
+of first value, step and item count.
+
+```rank
+use sequences
+A = (2 to 8 by 2) rope
+A runs
+```
+
+```result
+2 2 4
+```
+
+### Usage
+
+```text
+Rope runs
+```
+
+Returns an integer array with three
+columns, including for an empty rope.
+Non-integer elements raise an error.
+Rows follow the logical chunk order.
+
+### See also
+
+rope, chunks
+
 ## reverse
 
 Put the items in the opposite order.
@@ -504,15 +597,19 @@ cba
 
 ```text
 Values reverse
+Rope Left Right reverse
 ```
 
 Works on text, arrays and finite
 sequences. A matrix reverses the order
 of its rows.
+For a rope, returns another rope.
+Optional zero-based inclusive bounds
+reverse only that part of the rope.
 
 ### See also
 
-sort, transpose
+sort, transpose, rope
 
 ## rotate
 

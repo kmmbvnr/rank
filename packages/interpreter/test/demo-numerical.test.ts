@@ -15,7 +15,8 @@ describe('numerical demo host oracles', () => {
                 diagnostics.run(() => runtime.execute(source));
                 expect(output.join('').trim()).toBe(String(expected));
                 if (!('numberLoopCompilation' in options) && !('compilation' in options)) {
-                    expect(diagnostics.numberLoops).toBe(2);
+                    // Fresh Phi/Bit storage lets one region join the sieve and DP.
+                    expect(diagnostics.numberLoops).toBe(1);
                     expect(diagnostics.numberLoopOverflows).toBe(0);
                     expect(diagnostics.typedUnpacks).toBe(0);
                 }

@@ -346,6 +346,53 @@ end`);
         expect(diagnostics.mixedIntegerLoops).toBe(1);
     });
 
+    it.each(['-1', '0', '1'])('takes an exact square root near a wide square (%s)', delta => {
+        const source = `use numbers
+Base = 9007199254740993
+Square = Base * Base
+Total = 0
+for I in 1 to 3
+ Root = (Square + ${delta}) isqrt
+ Total += Root
+end`;
+        const diagnostics = compare(source);
+        expect(diagnostics.mixedIntegerLoops).toBe(1);
+        expect(diagnostics.compiledLoops).toBe(1);
+        const result = execute(source).observation.variables;
+        expect(result).toContainEqual(['Total', String(3n * (delta === '-1' ? 9007199254740992n : 9007199254740993n))]);
+    });
+
+    it('keeps a numeric loop mixed when an exact predicate depends on isqrt', () => {
+        const diagnostics = compare(`use numbers
+Total = 9007199254740991
+for I in 1 to 3
+ Root = (I * I) isqrt
+ if I at most Root
+  Total += I
+ end
+end`);
+        expect(diagnostics.mixedIntegerLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.compiledLoops).toBe(1);
+    });
+
+    it('publishes preceding stores and the original exact isqrt domain error', () => {
+        const source = `use numbers
+A = array 0 0 0
+Saved = A
+Wide = 9007199254740993
+for I in 0 to 2
+ A I += 1
+ Wide += I
+ Root = (1 - I) isqrt
+ After = I
+end`;
+        expect(execute(source).observation.error).toContain('isqrt expects a nonnegative integer');
+        const diagnostics = compare(source);
+        expect(diagnostics.mixedIntegerLoops).toBe(1);
+        expect(diagnostics.compiledLoops).toBe(1);
+    });
+
     it.each([
         'for I in 0 to 2\n A I += 1\n Wide += A I * Base\n Bad = 10 // (1 - I)\n After = I\nend',
         'for I in 0 to 2\n A I += 1\n Wide += Base\n Value = A (Base + I)\nend',

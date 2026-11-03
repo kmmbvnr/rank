@@ -3,15 +3,15 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, formatValue } from '../src/index.js';
 
 function run(source: string, compilation = true) {
-    let loops = 0;
+    let loops = 0, tensors = 0;
     const runtime = new Interpreter(() => {}, { compilation, scalarEntryCompilation: false,
-        onIntegerLoopExecuted: () => loops++,
+        onIntegerLoopExecuted: () => loops++, onTensorKernelExecuted: () => tensors++,
     });
     try {
         let value: string | undefined, error: string | undefined;
         try { const result = runtime.execute(source); if (result !== undefined) value = formatValue(result); }
         catch (failure) { error = failure instanceof RankError ? failure.format() : String(failure); }
-        return { loops, observation: { value, error,
+        return { loops, tensors, observation: { value, error,
             variables: [...runtime.variables].map(([name, value]) => [name, formatValue(value)]),
         } };
     } finally { runtime.dispose(); }
@@ -215,11 +215,13 @@ Current`);
         expect(result.loops).toBe(0);
     });
 
-    it('compiles the outer binary recurrence loop in Euler 324', () => {
+    it('compiles convolution and polynomial reduction in Euler 324', () => {
         const source = readFileSync(new URL('../../../demos/euler/324_tower.ra', import.meta.url), 'utf8')
             .replace('5 * 10 ** 9999', '500') + '\nAnswer';
         const result = compare(source);
         expect(result.observation.value).toBe('24806056');
-        expect(result.loops).toBe(1);
+        // Nine squarings and six set bits each convolve, then reduce.
+        expect(result.tensors).toBe(15);
+        expect(result.loops).toBe(15);
     });
 });
