@@ -11,3 +11,27 @@ test "CRT triple sum"
   Ps = array 7 11 13 17
   20 8 Ps triples equal 3803
 end
+
+test "Lucas zero and identity"
+  use "365_hugebinomial"
+  7 1 7 lucas equal 0
+  100 0 11 lucas equal 1
+  100 100 11 lucas equal 1
+end
+
+test "fewer than three primes"
+  use "365_hugebinomial"
+  20 8 (array 7 11) triples equal 0
+end
+
+test "one CRT triple"
+  use "365_hugebinomial"
+  Ps = array 7 11 13
+  20 8 Ps triples equal 845
+end
+
+test "full huge binomial"
+  use "365_hugebinomial"
+  run
+  Answer equal 162619462356610313
+end

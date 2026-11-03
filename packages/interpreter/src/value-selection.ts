@@ -46,6 +46,12 @@ export function selectValues(modules: ReadonlySet<string>, values: RankValue[], 
         && typeof values[0] === 'object' && values[0].kind === 'array' && values[0].shape.length === 1) {
         return vectorItem(values[0], values[1]);
     }
+    const source = values[0];
+    if (typeof source === 'object' && source.kind === 'array'
+        && source.shape.length > 1 && values.length === source.shape.length + 1) {
+        const cell = scalarArrayItem(source, values);
+        if (cell !== undefined) return cell;
+    }
     if (isRankTuple(values[0]) && values.length > 1) {
         if (typeof values[1] !== 'bigint') throw new RankError('tuple positions require an integer index', 'TypeError');
         const items = values[0].items;
@@ -339,6 +345,24 @@ export function applySelectors(values: RankValue[], missing?: () => RankValue): 
     }
 
     return maskSelection(values[0], values[1]);
+}
+
+/** Full scalar coordinates need no selector arrays or axis-selection plans. */
+function scalarArrayItem(source: RankArray, values: readonly RankValue[]): RankValue | undefined {
+    // Classify the whole address before checking bounds, like the general path.
+    for (let axis = 1; axis < values.length; axis++) {
+        if (typeof values[axis] !== 'bigint') return undefined;
+    }
+    let offset = 0;
+    for (let axis = 0; axis < source.shape.length; axis++) {
+        const index = values[axis + 1] as bigint;
+        const size = source.shape[axis];
+        if (index < 0n || Number(index) >= size) {
+            throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
+        }
+        offset = offset * size + Number(index);
+    }
+    return readArrayItem(source, offset);
 }
 
 /** The same bounds and live read for both public and internal selection. */
