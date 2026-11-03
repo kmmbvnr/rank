@@ -1,0 +1,76 @@
+rem TV Show (Телешоу)
+rem https://acmp.ru/task.asp?id=599
+rem Max circular score via prefix scans.
+
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "20
+a z a z a z a z a z
+a z a z a z a z a z"
+
+Raw = Input split "\n" join " "
+Raw = Raw split "\r" join " "
+Tok = Raw split " "
+Tok = Tok (Tok not equal "")
+
+N = Tok 0 integer
+Letters = Tok (1 till (N + 1))
+Chars = (Letters join "") bytes
+V = (Chars integer) - 96
+
+K = N // 2
+J = 0 till N
+Dj = J min (N - J)
+
+Score = array shape N fill 0
+
+Occ = array shape 26 fill false
+for C in V
+  Occ (C - 1) = true
+end
+
+Present = (0 till 26) Occ
+I = 0 till (N - 1)
+Zero = array 0
+
+for C in Present
+  Eq = V equal (C + 1)
+  Mask = Eq integer
+  Dbl = concat Zero Mask Mask
+  P = Dbl scan +
+
+  S0 = (Dj Eq) sum
+
+  P1 = P (I + N + 1)
+  P2 = P (I + N - K + 1)
+  Plus = P1 - P2
+
+  P3 = P (I + K + 1)
+  P4 = P (I + 1)
+  Minus = P3 - P4
+
+  Delta = Plus - Minus
+  Cum = Delta scan +
+  RestS = S0 + Cum
+  S0Arr = array S0
+  Sc = concat S0Arr RestS
+
+  Weight = (V - (C + 1)) abs
+  Score = Score + Weight * Sc
+end
+
+HasMore = N greater 1
+BestScore = HasMore choose (Score max) 0
+MaxIdx = (Score max .index) + 1
+BestPos = HasMore choose MaxIdx 1
+
+BestScore print
+BestPos print
+
+StrScore = BestScore text
+StrPos = BestPos text
+Ans = StrScore + "\n" + StrPos
