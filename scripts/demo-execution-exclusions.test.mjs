@@ -25,12 +25,13 @@ test('execution exclusions name existing workloads and explain the resource cost
 });
 
 test('recorded timeouts stay excluded while corrected compiler cases remain eligible', () => {
-    for (const file of [...timedOutFixtures, 'euler/576_irrationaljumps.ra']) {
+    for (const file of timedOutFixtures) {
         assert.ok(files.has(file), file);
         assert.match(exclusions[file], /Exceeded the 300-second differential execution budget/, file);
     }
     for (const file of ['atcoder/edpc/10_sushi.ra', 'atcoder/edpc/10_sushi_test.ra',
         'euler/276_primitivetriangles.ra', 'euler/276_primitivetriangles_test.ra',
+        'euler/576_irrationaljumps.ra',
         'euler/477_numbersequencegame.ra', 'euler/477_numbersequencegame_test.ra']) {
         assert.ok(!files.has(file), file);
     }

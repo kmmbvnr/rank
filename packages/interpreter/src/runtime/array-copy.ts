@@ -95,8 +95,12 @@ export function copyStoredArrayBlocks(shape: readonly number[], inputs: readonly
         if (!view?.linear || view.linear.stride !== 1 || !view.validateUniform) return undefined;
         const cells = view.compact ?? view.items;
         if (cells instanceof Int32Array || cells instanceof BigInt64Array || cells instanceof Float64Array) {
-            if (prototype && cells.constructor !== prototype.constructor) return undefined;
-            prototype = cells;
+            if (prototype && cells.constructor !== prototype.constructor) {
+                // Packed and wide integers mix by widening; reals never do.
+                const integers = [cells, prototype].every(held => held instanceof Int32Array || held instanceof BigInt64Array);
+                if (!integers) return undefined;
+                if (cells instanceof BigInt64Array) prototype = cells;
+            } else prototype = cells;
         } else if (!Array.isArray(cells)) return undefined;
         prepared.set(source, view);
     }
@@ -128,6 +132,18 @@ export function copyStoredArrayBlocks(shape: readonly number[], inputs: readonly
                 else converted[i] = Number(cells[offset + i]);
             }
             cells = converted;
+            offset = 0;
+        }
+        if (cells instanceof Int32Array && prototype instanceof BigInt64Array) {
+            if (view.kinds?.join() !== 'integer') return undefined;
+            const length = source.shape.reduce((n, dimension) => n * dimension, 1);
+            const wide = new BigInt64Array(length);
+            for (let start = 0; start < length; start += 65536) {
+                const end = Math.min(length, start + 65536);
+                checkpoint('widening array block', end - start);
+                for (let i = start; i < end; i++) wide[i] = BigInt(cells[offset + i]);
+            }
+            cells = wide;
             offset = 0;
         }
         sources.set(source, { cells: cells as NumericCells, offset, validate: view.validateUniform });

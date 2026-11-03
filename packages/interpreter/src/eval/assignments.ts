@@ -13,7 +13,7 @@ import { computedArrayUpdate } from '../computed-array-update.js';
 import { materializeTensorMap } from '../tensor-map.js';
 import { numericSortInPlace } from '../numeric-collections.js';
 import { materializeSequence } from '../sequence.js';
-import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection, accumulateIntegerSelection, reduceIntegerUpdates,
+import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection, writeRealSelection, accumulateIntegerSelection, reduceIntegerUpdates,
     hasWritableBooleanCells, fillBooleanSelection, writeArrayCell } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { expectPushCollection, pushCollection } from '../containers.js';
@@ -226,6 +226,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         let operands: RankValue[] | undefined;
         let compactOperands: Int32Array | undefined;
         let wideOperands: BigInt64Array | undefined;
+        let realOperands: Float64Array | undefined;
         if (isRankArray(result)) {
             if (!sameShape(selection.shape, result.shape)) {
                 throw new RankError(
@@ -261,12 +262,21 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 view.validateUniform?.(view.compact ? BigInt(view.compact[offset]) : view.items[offset]);
                 if (view.compact && !statement.accumulate) compactOperands = new Int32Array(count);
                 else if (view.items instanceof BigInt64Array && !statement.accumulate) wideOperands = new BigInt64Array(count);
+                else if (view.items instanceof Float64Array && view.kinds[0] === 'real' && !statement.accumulate) realOperands = new Float64Array(count);
                 else operands = new Array<RankValue>(count);
                 if (compactOperands && view.compact && stride === 1) {
                     for (let start = 0; start < count; start += 4096) {
                         const end = Math.min(count, start + 4096);
                         checkpoint('preparing accumulated array updates', end - start);
                         compactOperands.set(view.compact.subarray(offset + start, offset + end), start);
+                    }
+                } else if (realOperands) {
+                    const cells = view.items as Float64Array;
+                    for (let start = 0; start < count; start += 4096) {
+                        const end = Math.min(count, start + 4096);
+                        checkpoint('preparing array updates', end - start);
+                        if (stride === 1) realOperands.set(cells.subarray(offset + start, offset + end), start);
+                        else for (let index = start; index < end; index++) realOperands[index] = cells[offset + index * stride];
                     }
                 } else if (wideOperands) {
                     const cells = view.items as BigInt64Array;
@@ -327,6 +337,13 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 } else writeIntegerSelection(destination, count, selection.offsetAt, values, operation as '=' | '+=' | '-=' | '*=', selection.linear);
                 return result;
             }
+        }
+        if (realOperands) {
+            if (statement.operator === '=' && host.options().compilation !== false && !inspectionEnabled()) {
+                host.checkArrayWrite(statement.name, target, [realOperands[0]]);
+                if (writeRealSelection(ownedSelection() as typeof target, count, selection.offsetAt, realOperands, selection.linear)) return result;
+            }
+            operands = Array.from(realOperands);
         }
         if (compactOperands) operands = Array.from(compactOperands, BigInt);
         else if (wideOperands) operands = Array.from(wideOperands);

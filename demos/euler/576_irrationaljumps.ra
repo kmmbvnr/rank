@@ -2,6 +2,7 @@ rem Irrational Jumps
 rem https://projecteuler.net/problem=576
 
 use numbers
+use algo
 use sequences
 use io
 use cli
@@ -15,129 +16,99 @@ rem frac(k / sqrt p) and a gap start d
 rem is first hit at the least k with
 rem x(k) in (d, d + g), worth k / sqrt
 rem p. Sort the landings (10^18 fixed
-rem point, exact) and slide the window
-rem with a monotone deque to get the
-rem plateaus of k in d. The jumps of
-rem all the primes' plateaus are sorted
-rem events whose running sum has the
+rem point, exact). A window (d, d + g)
+rem holds only a few landings, so each
+rem add or remove event gets its window
+rem by binary search and its least k
+rem by a short fold. Ranks put the
+rem events in order without a sort.
+rem The jumps of all the primes' events
+rem are sorted; the running sum has the
 rem maximum.
 Sc = 10 ** 18
 Lim = Sc - Gi
-Ep = array shape 0 fill 0
-Ed = array shape 0 fill 0.0
-for P in primes till N + 1 array
+Zr = array shape 1 fill 0
+Pr = primes till N + 1 array
+rem Events per prime are about 3 g^-1
+rem sorted pairs; grow only if short.
+Cp = 8 * (Sc // Gi) * (Pr len) max 64
+Ep = array shape Cp fill 0
+Ed = array shape Cp fill 0.0
+Ne = 0
+for P in Pr
   A = Sc * Sc // P isqrt
-  Rp = P * 1.0 sqrt
-  Al = 1.0 / Rp
-  K = 4096
+  K = Sc // Gi max 4
   Cv = 1
-  Ss = array shape 1 fill 0
-  Ik = array shape 1 fill 0
+  Ss = Zr
+  Ik = Zr
   for Cv equal 1
     Ks = 1 to K array
     Xs = Ks * A mod Sc
     Od = Xs argsort
     Ss = Xs Od
     Ik = Ks Od
-    Lw = Ss 0
-    Up = Sc - (Ss (K - 1))
     Hi = Ss (1 till K array)
     Lo = Ss (0 till K - 1 array)
-    Gp = Hi - Lo
-    Mg = Gp reduce max max (Lw max Up)
+    En = Sc - (Ss (K - 1))
+    Mg = Hi - Lo reduce max max (Ss 0) max En
     if Mg at most Gi
       Cv = 0
     else
       K *= 2
     end
   end
-  Dq = array shape (K + 1) fill 0
-  Pp = array shape (2 * K + 4) fill 0
-  Vv = array shape (2 * K + 4) fill 0
-  Hd = 0
-  Tl = 0
-  R = 0
-  L = 0
-  Fr = 1
-  for Fr equal 1
-    Fr = 0
-    if R less K
-      if Ss R at most Gi
-        Fr = 1
-        Bk = Ik R
-        Cm = 1
-        for Cm equal 1
-          Cm = 0
-          if Tl greater Hd
-            Bq = Ik (Dq (Tl - 1))
-            if Bq at least Bk
-              Tl -= 1
-              Cm = 1
-            end
-          end
-        end
-        Dq Tl = R
-        Tl += 1
-        R += 1
-      end
-    end
+  rem Removing landing i leaves window
+  rem [i + 1, Rr); adding landing j
+  rem leaves [La, j + 1). A rank is the
+  rem event's place in sorted order.
+  R0 = Ss upperindex Gi
+  I = 0 till K array
+  J = R0 till K array
+  Rr = (Ss lowerindex (Ss + Gi)) max R0
+  Aq = (Ss J) - Gi
+  La = Ss upperindex Aq
+  Lr = I + 1
+  Jr = J + 1
+  Rm = Rr - 1
+  Mr = Ik (Lr min Rm)
+  Ma = Ik (La min J)
+  Wr = Rr - Lr
+  Wa = Jr - La
+  Wd = Wr reduce max max (Wa reduce max with 0)
+  for T in 1 till Wd array
+    Mr = Mr min (Ik (Lr + T min Rm))
+    Ma = Ma min (Ik (La + T min J))
   end
-  Pp 0 = 0
-  Vv 0 = Ik (Dq Hd)
-  Np = 1
-  Go = 1
-  Big = 4 * Sc
-  for Go equal 1
-    Lp = Big
-    if L less K
-      Lp = Ss L
-    end
-    En = Big
-    if R less K
-      En = (Ss R) - Gi
-    end
-    Pos = Lp min En
-    if Pos greater Lim
-      Go = 0
-    else
-      if Lp at most En
-        if Hd less Tl
-          if Dq Hd equal L
-            Hd += 1
-          end
-        end
-        L += 1
-      else
-        Bk = Ik R
-        Cm = 1
-        for Cm equal 1
-          Cm = 0
-          if Tl greater Hd
-            Bq = Ik (Dq (Tl - 1))
-            if Bq at least Bk
-              Tl -= 1
-              Cm = 1
-            end
-          end
-        end
-        Dq Tl = R
-        Tl += 1
-        R += 1
-      end
-      if Hd less Tl
-        Pp Np = Pos
-        Vv Np = Ik (Dq Hd)
-        Np += 1
-      end
-    end
+  Ra = I + Rr - R0
+  Rb = J - R0 + La
+  Ps = array shape (2 * K - R0) fill 0
+  Vs = array shape (2 * K - R0) fill 0
+  Ne1 = array shape (2 * K - R0) fill 0
+  Ps Ra = Ss
+  Ps Rb = Aq
+  Vs Ra = Mr
+  Vs Rb = Ma
+  Ne1 Ra = Wr min 1
+  Ne1 Rb = Wa min 1
+  Ok = (Ps at most Lim) and (Ne1 equal 1)
+  V0 = Ik (0 till R0 array) reduce min
+  Vk = concat (Zr + V0) (Vs filter Ok array)
+  Pk = concat Zr (Ps filter Ok array)
+  Vq = Vk shift 1
+  Dk = (Vk - Vq) / (P * 1.0 sqrt)
+  rem Grow the event arrays by doubling.
+  Nn = Ne + (Pk len)
+  if Nn greater (Ep len)
+    Gr = Nn * 2 - (Ep len)
+    Ep = concat Ep (array shape Gr fill 0)
+    Ed = concat Ed (array shape Gr fill 0.0)
   end
-  Vp = Vv (0 till Np array)
-  Nm = Np - 1
-  Vm = Vv (0 till Nm array)
-  Vq = concat (array 0) Vm
-  Ep = concat Ep (Pp (0 till Np array))
-  Ed = concat Ed (Al * (Vp - Vq))
+  Ep (Ne till Nn array) = Pk
+  Ed (Ne till Nn array) = Dk
+  Ne = Nn
 end
+Ep = Ep (0 till Ne array)
+Ed = Ed (0 till Ne array)
 Od = Ep argsort
 Ds = Ed Od
 Cs = Ds scan + array

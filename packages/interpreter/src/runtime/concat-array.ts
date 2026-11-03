@@ -133,23 +133,37 @@ export function concatArrays(arrays: readonly RankArray[], shape: readonly numbe
         if (missing) throw missing;
         return item;
     });
-    const inputShapes = arrays.map(source => [...source.shape]);
-    registerArrayCopy(value, () => {
-        if (arrays.some((source, i) => source.shape.length !== inputShapes[i].length
-            || source.shape.some((size, j) => size !== inputShapes[i][j]))) return undefined;
+    // A nested concat is an unstored rope; its leaves are the stored sources.
+    const leavesOf = (part: Part | undefined, out: Leaf[] = []): Leaf[] => {
+        if (!part) return out;
+        if ('left' in part) { leavesOf(part.left, out); leavesOf(part.right, out); }
+        else out.push(part);
+        return out;
+    };
+    // Sources must still have the shape they had when joined.
+    const widths = arrays.map(source => source.shape[axis]);
+    const copyFrom = (inputs: readonly RankArray[], widths: readonly number[]) => {
+        if (inputs.some((source, i) => source.shape.length !== shape.length
+            || source.shape.some((size, j) => size !== (j === axis ? widths[i] : shape[j])))) return undefined;
         const inner = shape.slice(axis + 1).reduce((n, size) => n * size, 1);
         const outer = shape.slice(0, axis).reduce((n, size) => n * size, 1);
         const width = shape[axis] * inner;
-        return copyStoredArrayBlocks(shape, arrays, function* () {
+        return copyStoredArrayBlocks(shape, inputs, function* () {
             for (let row = 0; row < outer; row++) {
                 let target = row * width;
-                for (const source of arrays) {
+                for (const source of inputs) {
                     const length = source.shape[axis] * inner;
                     if (length) yield { source, offset: row * length, length, target };
                     target += length;
                 }
             }
         });
+    };
+    registerArrayCopy(value, () => {
+        const leaves = leavesOf(root);
+        return copyFrom(arrays, widths)
+            ?? (arrays.some(source => concats.has(source))
+                ? copyFrom(leaves.map(leaf => leaf.source), leaves.map(leaf => leaf.length)) : undefined);
     });
     concats.set(value, { axis, dependency, shape: [...shape], root, read: value.itemAt });
     registerArrayReadPlan(value, { prepare: () => prepareIntegerConcat(root, shape, axis) });

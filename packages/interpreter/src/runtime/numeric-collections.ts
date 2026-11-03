@@ -1,6 +1,6 @@
 import { integerMaskSelection } from '../array-mask-selection.js';
 import { prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
-import { denseScalarItems, typedArray, ownedScalarArray, isSharedArray, sortStoredIntegerArray, integer32Cells, IntegerCells } from './array-storage.js';
+import { denseScalarItems, typedArray, ownedScalarArray, isSharedArray, sortStoredIntegerArray, integer32Cells, integer64Cells, IntegerCells } from './array-storage.js';
 import { constructingTensorPlan, visitIntegerTensorMap } from '../jit/tensor-map.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import { integerConcatCells } from './concat-array.js';
@@ -85,7 +85,9 @@ export function numericSort(value: RankValue, descending: boolean, mode: 'values
     if (interruptsEnabled()) return undefined;
     const items = numericCells(value);
     if (!items) return undefined;
-    const values = orderingCopy(items);
+    // Ordering by position only reads the cells; packed integers need no copy.
+    const stored = mode === 'values' || !isRankArray(value) ? undefined : integer64Cells(value) ?? integer32Cells(value);
+    const values = stored ?? orderingCopy(items);
     if (!values) return undefined;
     const diagnostics = currentDiagnostics();
     if (diagnostics) diagnostics.numericSorts++;
@@ -95,22 +97,23 @@ export function numericSort(value: RankValue, descending: boolean, mode: 'values
         return { values: resultValues(values) };
     }
     const order = numericOrder(values, descending);
-    const indexes = order.length <= 2147483647 ? new Int32Array(order.length) : new BigInt64Array(order.length);
-    for (let index = 0; index < order.length; index++) {
-        if (indexes instanceof Int32Array) indexes[index] = order[index];
-        else indexes[index] = BigInt(order[index]);
-    }
+    // Positions below 2^31 read the same as signed and unsigned words.
+    const indexes = order.length <= 2147483647 ? new Int32Array(order.buffer, order.byteOffset, order.length)
+        : BigInt64Array.from(order, BigInt);
     return { indexes: typedArray(indexes), values: mode === 'indexed' ? resultValues(values, order) : undefined };
 }
 
 /** Stable three-pass radix permutation for signed Int32 keys. Wider integers
  * continue through the Int64 path; keys never truncate to fit this one. */
 function radixOrder(values: NumericBuffer, descending: boolean): Uint32Array | undefined {
-    const keys = new Uint32Array(values.length);
-    for (let index = 0; index < keys.length; index++) {
+    // Decide before allocating keys: wide integers usually fail at the first cell.
+    for (let index = 0; index < values.length; index++) {
         const cell = Number(values[index]);
         if (!Number.isInteger(cell) || cell < -2147483648 || cell > 2147483647) return undefined;
-        const key = (cell ^ 0x80000000) >>> 0;
+    }
+    const keys = new Uint32Array(values.length);
+    for (let index = 0; index < keys.length; index++) {
+        const key = (Number(values[index]) ^ 0x80000000) >>> 0;
         keys[index] = descending ? ~key : key;
     }
     let order = new Uint32Array(values.length), scratch = new Uint32Array(values.length);
@@ -147,31 +150,45 @@ const lowWord = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 
 /** Stable signed Int64 permutation, including values beyond Number precision.
  * Read the two words directly; conversion through Number would merge nearby
- * large integers. Each word takes three stable 11-bit counting passes. */
+ * large integers. Four stable 16-bit counting passes move each key beside its
+ * index, so every pass reads memory in order; the high word is gathered once
+ * after the low word is sorted, which lets both passes share two key buffers. */
 function wideIntegerOrder(values: NumericBuffer, descending: boolean): Uint32Array | undefined {
     if (!(values instanceof BigInt64Array)) return undefined;
     const words = new Uint32Array(values.buffer, values.byteOffset, values.length * 2);
-    let order = new Uint32Array(values.length), scratch = new Uint32Array(values.length);
-    for (let index = 0; index < order.length; index++) order[index] = index;
-    const counts = new Uint32Array(2048);
-    for (const word of [lowWord, 1 - lowWord]) {
-        const sign = word === lowWord ? 0 : 0x80000000;
-        const flip = descending ? ~sign : sign;
-        for (let shift = 0; shift < 32; shift += 11) {
-            counts.fill(0);
-            for (let index = 0; index < order.length; index++) {
-                counts[((words[2 * order[index] + word] ^ flip) >>> shift) & 2047]++;
+    const size = values.length;
+    // Descending order complements every key bit, keeping ties in index order.
+    const lowFlip = descending ? 0xffffffff : 0;
+    const highFlip = descending ? 0x7fffffff : 0x80000000;
+    let order = new Uint32Array(size), other = new Uint32Array(size);
+    let keys = new Uint32Array(size), moved = new Uint32Array(size);
+    for (let index = 0; index < size; index++) {
+        order[index] = index;
+        keys[index] = (words[2 * index + lowWord] ^ lowFlip) >>> 0;
+    }
+    const counts = new Uint32Array(65536);
+    for (let pass = 0; pass < 4; pass++) {
+        if (pass === 2) {
+            for (let index = 0; index < size; index++) {
+                if ((index & 4095) === 0) checkpoint('gathering sort keys', 4096);
+                keys[index] = (words[2 * order[index] + 1 - lowWord] ^ highFlip) >>> 0;
             }
-            let offset = 0;
-            for (let bucket = 0; bucket < counts.length; bucket++) {
-                const count = counts[bucket]; counts[bucket] = offset; offset += count;
-            }
-            for (let index = 0; index < order.length; index++) {
-                const position = order[index];
-                scratch[counts[((words[2 * position + word] ^ flip) >>> shift) & 2047]++] = position;
-            }
-            [order, scratch] = [scratch, order];
         }
+        const shift = (pass & 1) * 16;
+        counts.fill(0);
+        for (let index = 0; index < size; index++) counts[(keys[index] >>> shift) & 65535]++;
+        let offset = 0;
+        for (let bucket = 0; bucket < counts.length; bucket++) {
+            const count = counts[bucket]; counts[bucket] = offset; offset += count;
+        }
+        for (let index = 0; index < size; index++) {
+            if ((index & 4095) === 0) checkpoint('sorting wide integers', 4096);
+            const target = counts[(keys[index] >>> shift) & 65535]++;
+            other[target] = order[index];
+            moved[target] = keys[index];
+        }
+        [order, other] = [other, order];
+        [keys, moved] = [moved, keys];
     }
     return order;
 }

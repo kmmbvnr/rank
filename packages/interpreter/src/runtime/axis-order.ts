@@ -165,6 +165,23 @@ export function extremeRealAxis(value: RankArray, axis: number, operation: 'min'
     return shape.length ? typedArray(out, shape) : out[0];
 }
 
+/** Min/max of a stored integer vector without boxing its cells. Equal values
+ * are indistinguishable, so no tie order is needed; empty vectors decline. */
+export function extremeIntegerVector(value: RankArray, operation: 'min' | 'max'): bigint | undefined {
+    if (!privateLoopPolling() || value.columnNames || value.shape.length !== 1) return undefined;
+    const cells = integer32Cells(value) ?? integer64Cells(value);
+    if (!cells?.length) return undefined;
+    let result = cells[0] as number | bigint;
+    for (let at = 1; at < cells.length; at += 4096) {
+        const end = Math.min(cells.length, at + 4096);
+        checkpoint('reducing integer vector', end - at);
+        const part = cells.subarray(at, end) as Int32Array | BigInt64Array;
+        if (operation === 'min') for (let i = 0; i < part.length; i++) { if (part[i] < result) result = part[i]; }
+        else for (let i = 0; i < part.length; i++) { if (part[i] > result) result = part[i]; }
+    }
+    return BigInt(result);
+}
+
 /** Stored Int64 prefixes stay packed until a prefix needs arbitrary precision.
  * Decline before publishing on overflow; the ordinary scan then remains exact. */
 export function scanInt64(value: RankArray): RankArray | undefined {
@@ -181,6 +198,23 @@ export function scanInt64(value: RankArray): RankArray | undefined {
             if (sum < -9223372036854775808n || sum > 9223372036854775807n) return undefined;
             out[i] = sum;
         }
+    }
+    return typedArray(out, value.shape);
+}
+
+/** Running sum of a stored real vector, left to right as the ordinary scan
+ * adds. The first cell is kept as is (so -0 survives); non-finite sums
+ * propagate exactly as they do for boxed reals. */
+export function scanFloat64(value: RankArray): RankArray | undefined {
+    if (value.shape.length !== 1 || value.columnNames || !privateLoopPolling() || typedElementKind(value) !== 'real') return undefined;
+    const cells = float64Cells(value);
+    if (!cells?.length) return undefined;
+    const out = new Float64Array(cells.length);
+    let sum = out[0] = cells[0];
+    for (let start = 1; start < cells.length; start += 4096) {
+        const end = Math.min(start + 4096, cells.length);
+        checkpoint('scanning', end - start);
+        for (let i = start; i < end; i++) out[i] = sum += cells[i];
     }
     return typedArray(out, value.shape);
 }

@@ -472,6 +472,33 @@ export function writeComputedSelection(value: RankArray, count: number, offset: 
     return true;
 }
 
+/** Commit a snapshot of real cells into a Float64 buffer. The caller has
+ * protected ownership and checked the binding contract. Repeated offsets keep
+ * the last cell, as sequential writes would. Cells may be non-finite, so the
+ * cached scalar-kind counts are dropped. Other storage declines. */
+export function writeRealSelection(
+    value: RankArray, count: number, offsetAt: (index: number) => number,
+    operand: Float64Array, linear?: { offset: number; stride: number },
+): boolean {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || state.validity) return false;
+    // Boxed storage qualifies only when every stored cell is already real.
+    const cells = state.typed instanceof Float64Array ? state.typed
+        : !state.typed ? writableRealCells(value) as number[] | undefined : undefined;
+    if (!cells) return false;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) { diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count; }
+    state.revision = noteMutation(state.birth);
+    state.elementKinds = undefined;
+    for (let start = 0; start < count; start += 4096) {
+        const end = Math.min(count, start + 4096);
+        checkpoint('writing array', end - start);
+        if (linear?.stride === 1 && cells instanceof Float64Array) cells.set(operand.subarray(start, end), linear.offset + start);
+        else for (let i = start; i < end; i++) cells[offsetAt(i)] = operand[i];
+    }
+    return true;
+}
+
 /** Reduce trusted integer updates without retaining a boxed RHS cell per input.
  * Safe integer partials use Number exactly; a bucket promotes to BigInt before
  * any addition/product can round. No destination is written while reading. */
@@ -696,6 +723,9 @@ export function filledArray(fill: RankValue, shape: readonly number[]): RankArra
     }
     if (typeof fill === 'bigint' && size >= PACKED_CELLS && fitsInt64(fill)) {
         return typedArray(fitsInt32(fill) ? new Int32Array(size).fill(Number(fill)) : new BigInt64Array(size).fill(fill), shape);
+    }
+    if (typeof fill === 'number' && size >= PACKED_CELLS && Number.isFinite(fill)) {
+        return typedArray(new Float64Array(size).fill(fill), shape);
     }
     const items = Array(size).fill(fill) as RankValue[];
     const kind = scalarKind(fill);

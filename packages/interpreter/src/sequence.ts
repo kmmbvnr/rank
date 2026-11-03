@@ -8,7 +8,8 @@ import { sliceSource } from './slice-source.js';
 import { safeDimension } from './tensor-index.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
-import { derivedArray, IntegerCells, MAX_HELD_CELLS, ownedArray, readArrayItem, typedArray } from './array-storage.js';
+import { derivedArray, IntegerCells, MAX_HELD_CELLS, ownedArray, readArrayItem, typedArray, typedElementKind } from './array-storage.js';
+import { copyStoredArrayBlocks, registerArrayCopy } from './array-copy.js';
 import { arithmeticRange, registerArrayRange } from './range-plan.js';
 import { booleanReductionHint } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
@@ -671,6 +672,21 @@ export function shiftValue(
     });
     registerPackedBooleanShift(result, source, amount, fillValue, axis);
     registerTensorShift(result, source, amount, fillValue, axis);
+    // Zero-filled integer shifts copy shifted runs of the stored cells. A real
+    // source keeps the lazy reader, which fills with an integer zero.
+    registerArrayCopy(result, () => {
+        if (fillValue !== 0n || typedElementKind(source) !== 'integer') return undefined;
+        const width = shape[axis], moved = Math.min(Math.abs(amount), width);
+        const length = (width - moved) * stride;
+        const outer = shape.slice(0, axis).reduce((size, dimension) => size * dimension, 1);
+        return copyStoredArrayBlocks(shape, [source], function* () {
+            for (let row = 0; length > 0 && row < outer; row++) {
+                const base = row * width * stride;
+                yield { source, length, offset: base + (amount < 0 ? moved * stride : 0),
+                    target: base + (amount > 0 ? moved * stride : 0) };
+            }
+        });
+    });
     return result;
 }
 
