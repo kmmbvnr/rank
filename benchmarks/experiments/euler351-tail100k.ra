@@ -1,0 +1,58 @@
+rem Hexagonal Orchards
+rem https://projecteuler.net/problem=351
+
+use sequences
+use numbers
+use algo
+use io
+use cli
+
+arg Limit integer = 10 ** 8
+
+fun X N Root Phi Cache tots
+  if X at most Root
+    return Phi X
+  end
+  Slot = N // X
+  if Slot in Cache
+    return Cache Slot
+  end
+  Sum = X * (X + 1) // 2
+  K = X isqrt
+  Qs = 1 to K
+  Counts = X // Qs - X // (Qs + 1)
+  Sum -= Counts * Phi Qs sum
+  for L in 2 to X // (K + 1)
+    Q = X // L
+    T = 0
+    if Q at most Root
+      T = Phi Q
+    else
+      T = Q N Root Phi Cache tots
+    end
+    Sum -= T
+  end
+  Cache Slot = Sum
+  return Sum
+end
+
+fun N hidden
+  Root = 100000 min N
+  Phi = 0 to Root array
+  for P in 2 to Root
+    if Phi P equal P
+      for V in P to Root by P
+        Phi V -= Phi V // P
+      end
+    end
+  end
+  for I in 1 to Root
+    Phi I += Phi (I - 1)
+  end
+  Cache = new index
+  S = N N Root Phi Cache tots
+  return 6 * (N * (N + 1) // 2 - S)
+end
+
+Answer = Limit hidden
+Answer print

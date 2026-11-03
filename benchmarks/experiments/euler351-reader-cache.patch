@@ -1,0 +1,20 @@
+--- a/out/jit/scalar-function-kernel.js
++++ b/out/jit/scalar-function-kernel.js
+@@ -18 +18 @@
+-import { arrayValues, arrayForWrite, ownedArray, noteArrayBinding, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from '../array-storage.js';
++import { arrayRevision, arrayValues, arrayForWrite, ownedArray, noteArrayBinding, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from '../array-storage.js';
+@@ -1012,0 +1013 @@
++    const scalarReaders = new WeakMap();
+@@ -1015 +1016,9 @@
+-        if (rank === 1)
++        if (rank === 1) {
++            const revision = storage === value && isRankArray(value) ? arrayRevision(value) : undefined;
++            if (revision !== undefined) {
++                const old = scalarReaders.get(value);
++                if (old?.revision === revision) return old.reader;
++                const reader = prepareScalarArrayReader(storage, scalarSelection);
++                scalarReaders.set(value, { revision, reader });
++                return reader;
++            }
+@@ -1016,0 +1026 @@
++        }
