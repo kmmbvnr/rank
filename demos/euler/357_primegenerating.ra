@@ -20,9 +20,13 @@ fun N good
   if 2 + N // 2 not in Sieve
     return false
   end
-  for D in 3 to (N isqrt)
+  rem Check odd divisors and doubles.
+  for D in 3 to (N isqrt) by 2
     if N mod D equal 0
       if D + N // D not in Sieve
+        return false
+      end
+      if 2 * D + N // (2 * D) not in Sieve
         return false
       end
     end

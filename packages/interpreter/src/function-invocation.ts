@@ -823,6 +823,7 @@ export class FunctionInvocation {
             () => new RankError('range step must be a nonzero integer'),
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
+            memberships,
         ) : undefined;
         const hasTailCalls = kernel.userCalls.some(call => call.tail);
         const hasUserCalls = kernel.userCalls.length > 0 || kernel.rankedCalls.length > 0;
@@ -845,7 +846,8 @@ export class FunctionInvocation {
                         const diagnostics = currentDiagnostics();
                         if (diagnostics) diagnostics.numberFunctionSkips++;
                     }
-                    if (rawNumber && probeNumber && (!kernel.numberStorage || this.compiler.loops.number && privateLoopPolling()
+                    if (rawNumber && probeNumber && (!kernel.memberships.length || privateLoopPolling() && !demandBudgetEnabled())
+                        && (!kernel.numberStorage || this.compiler.loops.number && privateLoopPolling()
                         && (kernel.numberStorage !== 'queues' || nativeDequeMethods()))
                         && arguments_.every((a,index) => typeof a === 'bigint' || typeof a === 'number' || typeof a === 'boolean'
                             || kernel.numberArrayArguments.includes(index) && isRankArray(a))) {
@@ -965,6 +967,7 @@ export class FunctionInvocation {
                 }
                 this.compiler.hooks.onScalarFunctionExecuted?.();
                 try {
+                    if (kernel.memberships.length && (!privateLoopPolling() || demandBudgetEnabled())) throw numberOverflow;
                     if (kernel.numberStorage && (!this.compiler.loops.number || !privateLoopPolling()
                         || kernel.numberStorage === 'queues' && !nativeDequeMethods())) throw numberOverflow;
                     const diagnostics = currentDiagnostics();

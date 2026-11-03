@@ -1,0 +1,345 @@
+{
+  "runtimeCommit": "6f35c88370738555c3943175e2eb69b17ec62b57",
+  "node": "v24.15.0",
+  "limit": 100000000,
+  "expected": "1739023853137",
+  "mac": [
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-original.ra",
+      "ms": 3821.619208,
+      "rssMiB": 180.703125,
+      "answer": "1739023853137",
+      "variant": "baseline",
+      "repeat": 0
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-oddpairs.ra",
+      "ms": 2320.042834,
+      "rssMiB": 184.734375,
+      "answer": "1739023853137",
+      "variant": "odd-pairs",
+      "repeat": 0
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-original.ra",
+      "ms": 1362.200625,
+      "rssMiB": 181.296875,
+      "answer": "1739023853137",
+      "variant": "number-int32",
+      "repeat": 0
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-oddpairs.ra",
+      "ms": 1272.020541,
+      "rssMiB": 183.296875,
+      "answer": "1739023853137",
+      "variant": "combined",
+      "repeat": 0
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-original.ra",
+      "ms": 3812.578667,
+      "rssMiB": 181.21875,
+      "answer": "1739023853137",
+      "variant": "baseline",
+      "repeat": 1
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-oddpairs.ra",
+      "ms": 2300.900041,
+      "rssMiB": 181.578125,
+      "answer": "1739023853137",
+      "variant": "odd-pairs",
+      "repeat": 1
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-original.ra",
+      "ms": 1367.638583,
+      "rssMiB": 182.484375,
+      "answer": "1739023853137",
+      "variant": "number-int32",
+      "repeat": 1
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-oddpairs.ra",
+      "ms": 1261.055083,
+      "rssMiB": 181.453125,
+      "answer": "1739023853137",
+      "variant": "combined",
+      "repeat": 1
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-original.ra",
+      "ms": 3814.677416,
+      "rssMiB": 181.125,
+      "answer": "1739023853137",
+      "variant": "baseline",
+      "repeat": 2
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-oddpairs.ra",
+      "ms": 2298.944958,
+      "rssMiB": 181.359375,
+      "answer": "1739023853137",
+      "variant": "odd-pairs",
+      "repeat": 2
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-original.ra",
+      "ms": 1354.469083,
+      "rssMiB": 180.84375,
+      "answer": "1739023853137",
+      "variant": "number-int32",
+      "repeat": 2
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-oddpairs.ra",
+      "ms": 1253.1144160000001,
+      "rssMiB": 181.78125,
+      "answer": "1739023853137",
+      "variant": "combined",
+      "repeat": 2
+    },
+    {
+      "limit": "100000000",
+      "mode": "reference",
+      "file": "/tmp/rank357-oddpairs.ra",
+      "ms": 46946.73775,
+      "rssMiB": 450.53125,
+      "answer": "1739023853137"
+    }
+  ],
+  "intelSingleProcessComparisons": [
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-original.ra",
+      "ms": 10430.573304,
+      "rssMiB": 165.0625,
+      "answer": "1739023853137"
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-oddpairs.ra",
+      "ms": 6179.142065,
+      "rssMiB": 166.91796875,
+      "answer": "1739023853137"
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-original.ra",
+      "ms": 3564.499426,
+      "rssMiB": 167.65234375,
+      "answer": "1739023853137"
+    },
+    {
+      "limit": "100000000",
+      "mode": "compiled",
+      "file": "/tmp/rank357-oddpairs.ra",
+      "ms": 3206.553846,
+      "rssMiB": 167.515625,
+      "answer": "1739023853137"
+    },
+    {
+      "limit": 100000000,
+      "mode": "number",
+      "ms": 1304.8413269999999,
+      "sieveMs": 239.78707699999998,
+      "answer": 1739023853137,
+      "trials": 278501506,
+      "candidates": 458462,
+      "rssMiB": 84.98046875
+    }
+  ],
+  "verification": {
+    "mac": [
+      {
+        "checks": 56,
+        "status": "passed",
+        "oracle": "independent divisor trial and primality"
+      },
+      {
+        "checks": 56,
+        "status": "passed",
+        "oracle": "independent divisor trial and primality"
+      }
+    ],
+    "intel": [
+      {
+        "checks": 56,
+        "status": "passed",
+        "oracle": "independent divisor trial and primality"
+      },
+      {
+        "checks": 56,
+        "status": "passed",
+        "oracle": "independent divisor trial and primality"
+      }
+    ]
+  },
+  "exploratorySingleRuns": {
+    "macOriginalReference": {
+      "ms": 70296.866875,
+      "rssMiB": 435.109375
+    },
+    "macDivisorsCompiled": {
+      "ms": 30886.238958,
+      "rssMiB": 465.4375
+    },
+    "macDivisorsReference": {
+      "ms": 39049.325458,
+      "rssMiB": 453.84375
+    },
+    "macReusedSieveCompiled": {
+      "ms": 15984.317,
+      "rssMiB": 607.90625
+    },
+    "macPlainNumberCompiled": {
+      "ms": 6497.414041,
+      "rssMiB": 181.34375
+    },
+    "macNumberWithoutSafeGuards": {
+      "ms": 6440.248792,
+      "rssMiB": 181.765625
+    },
+    "macManualJS": {
+      "ms": 408.181459,
+      "rssMiB": 84.8125,
+      "sieveMs": 92.966417,
+      "divisorTrials": 278501506,
+      "candidates": 458462
+    }
+  },
+  "delivery": {
+    "base": "85ec5fe38dd4ad8b9b59f4618de3cfa53ecf0239",
+    "mac": [
+      {
+        "limit": "100000000",
+        "mode": "compiled",
+        "file": "benchmarks/experiments/euler357-original.ra",
+        "ms": 1394.928792,
+        "rssMiB": 180.40625,
+        "answer": "1739023853137"
+      },
+      {
+        "limit": "100000000",
+        "mode": "compiled",
+        "file": "demos/euler/357_primegenerating.ra",
+        "ms": 1253.843334,
+        "rssMiB": 182.65625,
+        "answer": "1739023853137"
+      },
+      {
+        "limit": "100000000",
+        "mode": "compiled",
+        "file": "benchmarks/experiments/euler357-original.ra",
+        "ms": 1361.10925,
+        "rssMiB": 182.125,
+        "answer": "1739023853137"
+      },
+      {
+        "limit": "100000000",
+        "mode": "compiled",
+        "file": "demos/euler/357_primegenerating.ra",
+        "ms": 1224.3376250000001,
+        "rssMiB": 182.640625,
+        "answer": "1739023853137"
+      },
+      {
+        "limit": "100000000",
+        "mode": "compiled",
+        "file": "benchmarks/experiments/euler357-original.ra",
+        "ms": 1365.9900830000001,
+        "rssMiB": 182.453125,
+        "answer": "1739023853137"
+      },
+      {
+        "limit": "100000000",
+        "mode": "compiled",
+        "file": "demos/euler/357_primegenerating.ra",
+        "ms": 1233.268542,
+        "rssMiB": 183.140625,
+        "answer": "1739023853137"
+      },
+      {
+        "limit": "100000000",
+        "mode": "reference",
+        "file": "demos/euler/357_primegenerating.ra",
+        "ms": 46824.350915999996,
+        "rssMiB": 445.96875,
+        "answer": "1739023853137"
+      }
+    ],
+    "intel": [
+      {
+        "checks": 58,
+        "status": "passed",
+        "oracle": "independent divisor trial and primality"
+      },
+      {
+        "limit": "100000000",
+        "mode": "compiled",
+        "file": "demos/euler/357_primegenerating.ra",
+        "ms": 3294.588541,
+        "rssMiB": 166.5078125,
+        "answer": "1739023853137"
+      },
+      {
+        "limit": "100000000",
+        "mode": "compiled",
+        "file": "demos/euler/357_primegenerating.ra",
+        "ms": 3240.874923,
+        "rssMiB": 166.6484375,
+        "answer": "1739023853137"
+      },
+      {
+        "limit": "100000000",
+        "mode": "compiled",
+        "file": "demos/euler/357_primegenerating.ra",
+        "ms": 3219.2471020000003,
+        "rssMiB": 165.47265625,
+        "answer": "1739023853137"
+      },
+      {
+        "limit": "100000000",
+        "mode": "reference",
+        "file": "demos/euler/357_primegenerating.ra",
+        "ms": 153851.099957,
+        "rssMiB": 421.30859375,
+        "answer": "1739023853137"
+      }
+    ],
+    "focusedTestsMac": 318,
+    "oracleAndFixtureChecksPerHost": 58,
+    "newRegressionTests": 23,
+    "fullAnswerBothEnginesBothHosts": "1739023853137",
+    "exhaustiveAuditsRun": false,
+    "focusedTestsIntel": 318
+  }
+}

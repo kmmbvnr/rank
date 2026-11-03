@@ -2,6 +2,15 @@ use testing
 
 test "prime generators"
   use "357_primegenerating"
+  Limit = 0
+  run
+  Answer equal 0
+  Limit = 1
+  run
+  Answer equal 1
+  Limit = 2
+  run
+  Answer equal 3
   Limit = 10
   run
   Answer equal 19

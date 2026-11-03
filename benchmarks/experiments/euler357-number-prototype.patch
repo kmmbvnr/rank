@@ -1,0 +1,62 @@
+--- a/out/jit/scalar-function-kernel.js
++++ b/out/jit/scalar-function-kernel.js
+@@ -34,7 +34,7 @@
+ function compileScalarNumberKernel(statement, proof, parameterTypes, locations) {
+     if (!proof.localArrayWrites || proof.planCalls.length
+         || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt'].includes(name))
+-        || proof.dependencies.length || proof.callCount > 0)
++        || proof.callCount > 0)
+         return undefined;
+     const isNumType = (t) => t === 'integer' || t === 'real' || t === 'boolean';
+     const arrayParameter = (t) => typeof t !== 'string' && !isCompiledContainer(t)
+@@ -48,7 +48,7 @@
+         return `r${slots.get(name)}`;
+     };
+     statement.parameters.forEach(slot);
+-    let serial = 0;
++    let serial = 0; let membershipSerial = 0;
+     const parameterArrays = new Set(statement.parameters.filter((_, i) => arrayParameter(parameterTypes[i])));
+     const arrays = new Set(parameterArrays), queues = new Set();
+     // Every object slot must be constructor-owned on every assignment. No
+@@ -110,6 +110,12 @@
+         }
+         if (compiled.kind === 'input') {
+             const input = compiled.input;
++            if (input.operation === 'sequence-contains' || input.operation === 'sequence-not-contains') {
++                const value = lowerNum(input.indices[0], lines);
++                if(value === undefined) return undefined;
++                return `${input.operation === 'sequence-not-contains' ? '!' : ''}memberships[${membershipSerial++}](BigInt(${value}))`;
++            }
++
+             if (input.operation === 'array') {
+                 const dimension = input.dimensions[0];
+                 let size = lowerNum(dimension.value, lines);
+@@ -468,7 +474,7 @@
+         return undefined;
+     const paramNames = statement.parameters.map((_, i) => `r${i}`);
+     const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
+-    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint, power, badStep, powerZero, powerDomain) {
++    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint, power, badStep, powerZero, powerDomain, memberships) {
+         return function(${paramNames.join(',')}) {
+             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
+             let location = -1;
+@@ -476,7 +482,7 @@
+         };
+     };`;
+     try {
+-        return new Function('isqrt', source)(safeIntegerSquareRoot);
++        return new Function('isqrt', process.env.INT32_INPUT ? source.replace(/try \{ location = 0;/, 'try { if(r0 !== (r0|0)) throw overflow; r0 |= 0; location = 0;').replace(/let r(\d+) = cursor(\d+);/g, 'let r$1 = cursor$2 | 0;') : process.env.UNSAFE_CEILING ? source.replaceAll('safe(', '(') : source)(safeIntegerSquareRoot);
+     }
+     catch {
+         return undefined;
+--- a/out/function-invocation.js
++++ b/out/function-invocation.js
+@@ -824,7 +824,7 @@
+         };
+         const kernelDirect = kernel.direct?.(locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls);
+         const rawNumber = kernel.numberDirect ? kernel.numberDirect(locate, val => { if (!Number.isSafeInteger(val))
+-            throw numberOverflow; return val; }, () => new RankError('division by zero'), numberOverflow, checkpoint, checkedNumberPower, () => new RankError('range step must be a nonzero integer'), () => new RankError('zero cannot be raised to a negative power'), () => new RankError('power result is not real')) : undefined;
++            throw numberOverflow; return val; }, () => new RankError('division by zero'), numberOverflow, checkpoint, checkedNumberPower, () => new RankError('range step must be a nonzero integer'), () => new RankError('zero cannot be raised to a negative power'), () => new RankError('power result is not real'), memberships) : undefined;
+         const hasTailCalls = kernel.userCalls.some(call => call.tail);
+         const hasUserCalls = kernel.userCalls.length > 0 || kernel.rankedCalls.length > 0;
+         let directFn;

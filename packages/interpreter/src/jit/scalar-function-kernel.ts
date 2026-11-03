@@ -73,7 +73,8 @@ interface Kernel {
         power: (base: number, exponent: number) => number,
         badStep?: () => Error,
         powerZero?: () => Error,
-        powerDomain?: () => Error) => LoopCallable;
+        powerDomain?: () => Error,
+        memberships?: readonly ((value: bigint) => boolean)[]) => LoopCallable;
 }
 const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
 
@@ -82,10 +83,15 @@ function compileScalarNumberKernel(
     proof: ScalarFunctionProof,
     parameterTypes: readonly CompiledCalleeType[],
     locations: readonly (Statement | Expression)[],
+    memberships: readonly string[],
 ): Kernel['numberDirect'] | undefined {
     if (!proof.localArrayWrites || proof.planCalls.length
         || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt'].includes(name))
-        || proof.dependencies.length || proof.callCount > 0) return undefined;
+        || proof.dependencies.some(name => !memberships.includes(name)) || proof.callCount > 0) return undefined;
+    // Newly admitted captured memberships retain the exact kernel's reader
+    // guards. Keep small inputs/counters explicitly Int32 for hot remainders;
+    // wider inputs replay exactly rather than silently truncate.
+    const narrowMembership = memberships.length > 0;
     const isNumType = (t: CompiledCalleeType) => t === 'integer' || t === 'real' || t === 'boolean';
     const arrayParameter = (t: CompiledCalleeType) => typeof t !== 'string' && !isCompiledContainer(t)
         && t.rank === 1 && t.element === 'integer';
@@ -150,6 +156,13 @@ function compileScalarNumberKernel(
         }
         if (compiled.kind === 'input') {
             const input = compiled.input;
+            if (input.operation === 'sequence-contains' || input.operation === 'sequence-not-contains') {
+                const reader = memberships.indexOf(input.name);
+                const value = lowerNum(input.indices![0], lines);
+                if (reader < 0 || value === undefined) return undefined;
+                return `${input.operation === 'sequence-not-contains' ? '!' : ''}memberships[${reader}](BigInt(safe(${value})))`;
+            }
+
             if (input.operation === 'array') {
                 const dimension = input.dimensions![0];
                 let size = lowerNum(dimension.value, lines);
@@ -396,13 +409,20 @@ function compileScalarNumberKernel(
                         const step = rangeExpr.step ? emitNum(rangeExpr.step, lines) : '1';
                         if (!start || !end || !step) return false;
                         const induction = slot(binding.names[0]);
-                        const endVar = `end${serial++}`, stepVar = `step${serial++}`, cursor = `cursor${serial++}`;
+                        const startVar = `start${serial++}`, endVar = `end${serial++}`, stepVar = `step${serial++}`, cursor = `cursor${serial++}`;
                         const cmp = rangeExpr.operator === 'to' ? '<=' : '<';
-                        lines.push(`const ${endVar} = ${end}, ${stepVar} = ${step};`);
+                        lines.push(`const ${startVar} = ${start}, ${endVar} = ${end}, ${stepVar} = ${step};`);
+                        if (narrowMembership) {
+                            // Include the terminal increment, also for descending
+                            // and exclusive ranges. The iterator itself never wraps.
+                            for (const value of [startVar, endVar, stepVar, `${endVar} + ${stepVar}`]) {
+                                lines.push(`if ((${value}) !== ((${value}) | 0)) throw overflow;`);
+                            }
+                        }
                         lines.push(`if (${stepVar} === 0) throw badStep();`);
                         // The cursor belongs to the iterator, independently of
                         // assignments to its block-local iteration binding.
-                        lines.push(`for (let ${cursor} = ${start}; ${stepVar} > 0 ? ${cursor} ${cmp} ${endVar} : ${cursor} ${rangeExpr.operator === 'to' ? '>=' : '>'} ${endVar}; ${cursor} = safe(${cursor} + ${stepVar})) { location = ${loc}; checkpoint(); let ${induction} = ${cursor};`);
+                        lines.push(`for (let ${cursor} = ${startVar}; ${stepVar} > 0 ? ${cursor} ${cmp} ${endVar} : ${cursor} ${rangeExpr.operator === 'to' ? '>=' : '>'} ${endVar}; ${cursor} = safe(${cursor} + ${stepVar})) { location = ${loc}; checkpoint(); let ${induction} = ${narrowMembership ? `${cursor} | 0` : cursor};`);
                         if (!lowerCommands(cmd.statements, lines)) return false;
                         lines.push('}');
                         continue;
@@ -434,11 +454,13 @@ function compileScalarNumberKernel(
     if (!lowerCommands(statement.statements, lines)) return undefined;
     const paramNames = statement.parameters.map((_, i) => `r${i}`);
     const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
-    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint, power, badStep, powerZero, powerDomain) {
+    const narrowParameters = narrowMembership ? statement.parameters.flatMap((name, index) => parameterTypes[index] === 'integer'
+        ? [`if (${slot(name)} !== (${slot(name)} | 0)) throw overflow; ${slot(name)} |= 0;`] : []) : [];
+    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint, power, badStep, powerZero, powerDomain, memberships) {
         return function(${paramNames.join(',')}) {
             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
             let location = -1;
-            try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
+            try { ${narrowParameters.join('\n')} ${lines.join('\n')} } catch (error) { throw locate(error, location); }
         };
     };`;
     try {
@@ -972,7 +994,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         // Default proofs already use integer parameter domains. Build the same
         // Number variant whichever caller first populates the proof-keyed cache.
         const numberDirect = compileScalarNumberKernel(statement, proof,
-            parameterTypes ?? statement.parameters.map(() => 'integer' as const), locations);
+            parameterTypes ?? statement.parameters.map(() => 'integer' as const), locations, memberships);
         kernel = {
             source,
             plans: proof.planBindings.size > 0 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan'),
