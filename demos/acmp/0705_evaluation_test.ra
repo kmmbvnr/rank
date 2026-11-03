@@ -1,0 +1,32 @@
+use testing
+
+test "sample 1: N=1 M=1000 -> 0"
+  use "0705_evaluation"
+  Input = "1 1000"
+  run
+
+  Ans equal 0
+end
+
+test "sample 2: N=2 M=1000 -> 2"
+  use "0705_evaluation"
+  Input = "2 1000"
+  run
+
+  Ans equal 2
+end
+
+test "sample 3: N=8 M=427 -> 328"
+  use "0705_evaluation"
+  run
+
+  Ans equal 328
+end
+
+test "large N = 10^9 mod 10^9+7"
+  use "0705_evaluation"
+  Input = "1000000000 1000000007"
+  run
+
+  Ans equal 671875000
+end

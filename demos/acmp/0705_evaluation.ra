@@ -1,0 +1,30 @@
+rem Evaluation (Оценка)
+rem https://acmp.ru/task.asp?id=705
+rem Sum k^2 * 2^k via modular matpow.
+
+use cli
+use io
+use linalg
+use numbers
+use sequences
+use text
+
+arg Input text = "8 427"
+
+Tok = Input words
+N = Tok 0 integer
+M = Tok 1 integer
+
+R1 = array 1 1 0 0
+R2 = array 0 2 4 2
+R3 = array 0 0 2 2
+R4 = array 0 0 0 2
+Top = concat R1 R2
+Bot = concat R3 R4
+Flat = concat Top Bot
+
+T = Flat reshape 4 4
+TN = (T matpow N) mod M
+Ans = TN 0 3
+
+Ans print
