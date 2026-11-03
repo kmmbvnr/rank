@@ -1,0 +1,43 @@
+rem Maximum Integer Partition Product
+rem https://projecteuler.net/problem=374
+
+use numbers
+use io
+use cli
+
+arg Limit integer = 10 ** 14
+
+Mod = 982451653
+Last = (8 * Limit + 9 isqrt - 3) // 2
+Len = Limit - Last * (Last + 3) // 2 + 1
+First = Last + 3 - Len
+Fact = 2
+Weighted = 1
+Prefix = 1
+PrefixFact = 2
+Extra = 0
+Answer = Limit min 1
+for M in 1 to Last
+  Extra = M * (M + 3) // 2
+  Extra = Extra * Fact mod Mod
+  Weighted = (M + 2) * Weighted mod Mod
+  Weighted = (Weighted + Fact) mod Mod
+  Fact = Fact * (M + 2) mod Mod
+  if M equal First - 3
+    Prefix = Weighted
+    PrefixFact = Fact
+  end
+  Add = M * Weighted mod Mod
+  Answer = (Answer + Add + Extra) mod Mod
+end
+if Len at most Last
+  Inv = PrefixFact (Mod - 2) Mod powmod
+  Prefix = Prefix * Inv mod Mod
+  Prefix = Prefix * Fact mod Mod
+  Missing = Last * Prefix mod Mod
+  Answer = (Answer - Missing) mod Mod
+end
+if Len not equal Last + 2
+  Answer = (Answer - Extra) mod Mod
+end
+Answer print

@@ -77,6 +77,12 @@ const inlineBuiltins = new Map<string, InlineBuiltin>([
 // and per-expression inference budgets still apply.
 const MAX_LOOP_TEMPORARIES = 1024;
 
+// Largest modulus whose nonnegative residue products all fit safe Number
+// integers. Above it, direct imul reduction avoids repeated product dispatch.
+// Euler 374: 1.028 -> 0.653 s on Mac, 1.457 -> 1.368 s on Intel; applying
+// that policy to small moduli slowed Euler 365. See euler374-investigation.md.
+const MAX_SAFE_RESIDUE_MODULUS = Math.floor(Math.sqrt(Number.MAX_SAFE_INTEGER)) + 1;
+
 /** Expression lowering records its required bindings on the current plan. */
 export function createLoopExpressions(state: LoopCompilationState, wide = false) {
     const {
@@ -457,10 +463,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 if (!modulus || modulus.type !== 'integer') return undefined;
                 const m = `mod${state.serial++}`, result = `v${state.serial++}`;
                 const full = `full${state.serial++}`, rem = `rem${state.serial++}`;
-                // Keep the ordinary cheap remainder when the product is safe.
-                // Only a wide intermediate needs exact modular multiplication.
+                // Large residue domains use the bounded exact multiplier
+                // directly; small moduli keep their cheaper safe-product path.
                 lines.push(`const ${m} = ${modulus.code}, ${full} = ${a} * ${b}; let ${result};`);
-                lines.push(`if (Number.isSafeInteger(${full})) { if (${m} === 0) throw ${vectorCellDepth ? 'overflow' : 'zero()'};`);
+                lines.push(`if (${m} > ${MAX_SAFE_RESIDUE_MODULUS} && ${m} <= 1073741824) { ${result} = mulmod(${a}, ${b}, ${m}); } else if (Number.isSafeInteger(${full})) { if (${m} === 0) throw ${vectorCellDepth ? 'overflow' : 'zero()'};`);
                 lines.push(`const ${rem} = ${full} >= 0 && ${full} < 4503599627370496 && ${m} > 0 ? ${full} - Math.floor(${full} / ${m}) * ${m} : ${full} % ${m};`);
                 lines.push(`${result} = ${rem} + ((${full} < 0) !== (${m} < 0) && ${rem} !== 0 ? ${m} : 0);`);
                 lines.push(`} else { ${result} = mulmod(${a}, ${b}, ${m}); }`);

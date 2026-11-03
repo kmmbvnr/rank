@@ -12,3 +12,10 @@ test "partition product sum"
   run
   Answer equal 611162873
 end
+
+test "empty partition sum"
+  use "374_partproduct"
+  Limit = 0
+  run
+  Answer equal 0
+end

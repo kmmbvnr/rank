@@ -1,0 +1,406 @@
+{
+  "node": "v24.15.0",
+  "arch": "arm64",
+  "cpu": "Apple M5",
+  "trials": 3,
+  "samples": [
+    {
+      "trial": 0,
+      "case": "main",
+      "variant": "original",
+      "mode": "compiled",
+      "limit": "100000000000000",
+      "control": "baseline",
+      "answer": "334420941",
+      "ms": 2348.2972919999997,
+      "rssMiB": 288,
+      "phases": [
+        {
+          "label": "inverses",
+          "ms": 1229.32425
+        },
+        {
+          "label": "334420941",
+          "ms": 1118.913334
+        }
+      ]
+    },
+    {
+      "trial": 0,
+      "case": "main",
+      "variant": "production",
+      "mode": "compiled",
+      "limit": "100000000000000",
+      "control": "baseline",
+      "answer": "334420941",
+      "ms": 1020.872667,
+      "rssMiB": 176.03125,
+      "phases": [
+        {
+          "label": "setup",
+          "ms": 98.23866699999999
+        },
+        {
+          "label": "334420941",
+          "ms": 922.578375
+        }
+      ]
+    },
+    {
+      "trial": 0,
+      "case": "main",
+      "variant": "production",
+      "mode": "compiled",
+      "limit": "100000000000000",
+      "control": "production",
+      "answer": "334420941",
+      "ms": 659.057125,
+      "rssMiB": 176.34375,
+      "phases": [
+        {
+          "label": "setup",
+          "ms": 97.87700000000001
+        },
+        {
+          "label": "334420941",
+          "ms": 561.11475
+        }
+      ]
+    },
+    {
+      "trial": 0,
+      "case": "main",
+      "variant": "native",
+      "limit": 100000000000000,
+      "answer": 334420941,
+      "ms": 474.762709,
+      "rssMiB": 53.734375
+    },
+    {
+      "trial": 0,
+      "case": "350",
+      "id": "350",
+      "control": "baseline",
+      "answer": "84664213",
+      "ms": 198.71095899999997,
+      "rssMiB": 186.265625
+    },
+    {
+      "trial": 0,
+      "case": "350",
+      "id": "350",
+      "control": "production",
+      "answer": "84664213",
+      "ms": 179.33266700000001,
+      "rssMiB": 185.484375
+    },
+    {
+      "trial": 0,
+      "case": "364",
+      "id": "364",
+      "control": "baseline",
+      "answer": "44855254",
+      "ms": 223.093292,
+      "rssMiB": 213.265625
+    },
+    {
+      "trial": 0,
+      "case": "364",
+      "id": "364",
+      "control": "production",
+      "answer": "44855254",
+      "ms": 221.347042,
+      "rssMiB": 213.59375
+    },
+    {
+      "trial": 0,
+      "case": "365",
+      "id": "365",
+      "control": "baseline",
+      "answer": "162619462356610313",
+      "ms": 432.73466700000006,
+      "rssMiB": 198.734375
+    },
+    {
+      "trial": 0,
+      "case": "365",
+      "id": "365",
+      "control": "production",
+      "answer": "162619462356610313",
+      "ms": 428.333583,
+      "rssMiB": 197.125
+    },
+    {
+      "trial": 1,
+      "case": "main",
+      "variant": "native",
+      "limit": 100000000000000,
+      "answer": 334420941,
+      "ms": 477.917959,
+      "rssMiB": 53.78125
+    },
+    {
+      "trial": 1,
+      "case": "main",
+      "variant": "production",
+      "mode": "compiled",
+      "limit": "100000000000000",
+      "control": "production",
+      "answer": "334420941",
+      "ms": 664.22325,
+      "rssMiB": 176.484375,
+      "phases": [
+        {
+          "label": "setup",
+          "ms": 99.12308300000001
+        },
+        {
+          "label": "334420941",
+          "ms": 565.0342919999999
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "case": "main",
+      "variant": "production",
+      "mode": "compiled",
+      "limit": "100000000000000",
+      "control": "baseline",
+      "answer": "334420941",
+      "ms": 1023.978584,
+      "rssMiB": 176.21875,
+      "phases": [
+        {
+          "label": "setup",
+          "ms": 97.49062500000002
+        },
+        {
+          "label": "334420941",
+          "ms": 926.430292
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "case": "main",
+      "variant": "original",
+      "mode": "compiled",
+      "limit": "100000000000000",
+      "control": "baseline",
+      "answer": "334420941",
+      "ms": 2348.5710409999997,
+      "rssMiB": 289.015625,
+      "phases": [
+        {
+          "label": "inverses",
+          "ms": 1229.206083
+        },
+        {
+          "label": "334420941",
+          "ms": 1119.31375
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "case": "350",
+      "id": "350",
+      "control": "production",
+      "answer": "84664213",
+      "ms": 179.972041,
+      "rssMiB": 183.015625
+    },
+    {
+      "trial": 1,
+      "case": "350",
+      "id": "350",
+      "control": "baseline",
+      "answer": "84664213",
+      "ms": 198.678166,
+      "rssMiB": 183.453125
+    },
+    {
+      "trial": 1,
+      "case": "364",
+      "id": "364",
+      "control": "production",
+      "answer": "44855254",
+      "ms": 221.964833,
+      "rssMiB": 213.390625
+    },
+    {
+      "trial": 1,
+      "case": "364",
+      "id": "364",
+      "control": "baseline",
+      "answer": "44855254",
+      "ms": 221.763084,
+      "rssMiB": 215.078125
+    },
+    {
+      "trial": 1,
+      "case": "365",
+      "id": "365",
+      "control": "production",
+      "answer": "162619462356610313",
+      "ms": 425.922167,
+      "rssMiB": 198.578125
+    },
+    {
+      "trial": 1,
+      "case": "365",
+      "id": "365",
+      "control": "baseline",
+      "answer": "162619462356610313",
+      "ms": 425.5219159999999,
+      "rssMiB": 199.546875
+    },
+    {
+      "trial": 2,
+      "case": "main",
+      "variant": "original",
+      "mode": "compiled",
+      "limit": "100000000000000",
+      "control": "baseline",
+      "answer": "334420941",
+      "ms": 2344.416958,
+      "rssMiB": 286.5,
+      "phases": [
+        {
+          "label": "inverses",
+          "ms": 1225.0789160000002
+        },
+        {
+          "label": "334420941",
+          "ms": 1119.275834
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "case": "main",
+      "variant": "production",
+      "mode": "compiled",
+      "limit": "100000000000000",
+      "control": "baseline",
+      "answer": "334420941",
+      "ms": 1028.195792,
+      "rssMiB": 176.03125,
+      "phases": [
+        {
+          "label": "setup",
+          "ms": 98.89362499999999
+        },
+        {
+          "label": "334420941",
+          "ms": 929.256625
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "case": "main",
+      "variant": "production",
+      "mode": "compiled",
+      "limit": "100000000000000",
+      "control": "production",
+      "answer": "334420941",
+      "ms": 665.939083,
+      "rssMiB": 177,
+      "phases": [
+        {
+          "label": "setup",
+          "ms": 100.16158300000001
+        },
+        {
+          "label": "334420941",
+          "ms": 565.6978750000001
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "case": "main",
+      "variant": "native",
+      "limit": 100000000000000,
+      "answer": 334420941,
+      "ms": 480.38083400000005,
+      "rssMiB": 53.828125
+    },
+    {
+      "trial": 2,
+      "case": "350",
+      "id": "350",
+      "control": "baseline",
+      "answer": "84664213",
+      "ms": 200.97924999999998,
+      "rssMiB": 183.21875
+    },
+    {
+      "trial": 2,
+      "case": "350",
+      "id": "350",
+      "control": "production",
+      "answer": "84664213",
+      "ms": 180.00224999999998,
+      "rssMiB": 185.265625
+    },
+    {
+      "trial": 2,
+      "case": "364",
+      "id": "364",
+      "control": "baseline",
+      "answer": "44855254",
+      "ms": 223.05525,
+      "rssMiB": 211.609375
+    },
+    {
+      "trial": 2,
+      "case": "364",
+      "id": "364",
+      "control": "production",
+      "answer": "44855254",
+      "ms": 224.185292,
+      "rssMiB": 213.171875
+    },
+    {
+      "trial": 2,
+      "case": "365",
+      "id": "365",
+      "control": "baseline",
+      "answer": "162619462356610313",
+      "ms": 422.78083399999997,
+      "rssMiB": 197.484375
+    },
+    {
+      "trial": 2,
+      "case": "365",
+      "id": "365",
+      "control": "production",
+      "answer": "162619462356610313",
+      "ms": 433.1700840000001,
+      "rssMiB": 197.5
+    }
+  ],
+  "compilerControl": "baseline changes only MAX_SAFE_RESIDUE_MODULUS to Infinity in the built lowering; production is unmodified delivered source",
+  "referenceProduction": {
+    "variant": "production",
+    "mode": "reference",
+    "limit": "100000000000000",
+    "control": "production",
+    "answer": "334420941",
+    "ms": 16294.286,
+    "rssMiB": 174.34375,
+    "phases": [
+      {
+        "label": "setup",
+        "ms": 101.69645900000003
+      },
+      {
+        "label": "334420941",
+        "ms": 16192.496625000002
+      }
+    ]
+  }
+}

@@ -8,50 +8,39 @@ use cli
 arg Limit integer = 10 ** 14
 
 Mod = 982451653
-MaxM = (8 * Limit + 9 isqrt - 3) // 2
-Top = MaxM + 3
-Inv = array shape (Top + 1) fill 0
-Inv 1 = 1
-for I in 2 to Top
-  V = (Mod // I) * (Inv (Mod mod I))
-  Inv I = (Mod - V mod Mod) mod Mod
+Last = (8 * Limit + 9 isqrt - 3) // 2
+Len = Limit - Last * (Last + 3) // 2 + 1
+First = Last + 3 - Len
+Fact = 2
+rem n! times the harmonic sum from 2.
+Weighted = 1
+Prefix = 1
+PrefixFact = 2
+Extra = 0
+Answer = Limit min 1
+for M in 1 to Last
+  Extra = M * (M + 3) // 2
+  Extra = Extra * Fact mod Mod
+  Weighted = (M + 2) * Weighted mod Mod
+  Weighted = (Weighted + Fact) mod Mod
+  Fact = Fact * (M + 2) mod Mod
+  if M equal First - 3
+    Prefix = Weighted
+    PrefixFact = Fact
+  end
+  Add = M * Weighted mod Mod
+  Answer += Add + Extra
+  Answer mod= Mod
 end
-Answer = 1
-Fact = 1
-Harm = 0
-Upto = 1
-for M in 1 to MaxM
-  Target = M + 2
-  for Upto less Target
-    Upto += 1
-    Fact = Fact * Upto mod Mod
-    Harm += Inv Upto
-    Harm = Harm mod Mod
-  end
-  Start = M * (M + 3) // 2
-  End = (M + 1) * (M + 4) // 2 - 1
-  Len = (Limit min End) - Start + 1
-  Base = (M mod Mod) * Fact mod Mod
-  Add = 0
-  if Len at most M
-    Part = 0
-    for D in M + 3 - Len to (M + 2)
-      Part += Inv D
-      Part = Part mod Mod
-    end
-    Add = Base * Part mod Mod
-  else
-    Add = Base * Harm mod Mod
-    if Len equal M + 2
-      More = Fact * (M + 3) mod Mod
-      More = More * (M mod Mod) mod Mod
-      Half = (Mod + 1) // 2
-      More = More * Half mod Mod
-      Div = Inv (M + 2)
-      More = More * Div mod Mod
-      Add = (Add + More) mod Mod
-    end
-  end
-  Answer = (Answer + Add) mod Mod
+rem Trim the incomplete final block.
+if Len at most Last
+  Inv = PrefixFact (Mod - 2) Mod powmod
+  Prefix = Prefix * Inv mod Mod
+  Prefix = Prefix * Fact mod Mod
+  Missing = Last * Prefix mod Mod
+  Answer = (Answer - Missing) mod Mod
+end
+if Len not equal Last + 2
+  Answer = (Answer - Extra) mod Mod
 end
 Answer print
