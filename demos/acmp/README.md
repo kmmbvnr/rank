@@ -8,15 +8,8 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 
 | Task | Title | Topic | Array / Vector Technique |
 | :--- | :--- | :--- | :--- |
-| **0727** | [Распределение участков](0727_plot_distribution.ra) | Game Theory / Greedy (62%) | Pure Nash equilibrium via greedy matching over all pairs sorted by `(0 - Key) argsort` |
-| **0740** | [Ключи](0740_keys.ra) | Data Structures / Sweep-line (61%) | Max overlapping holes under translation: pairwise open rectangles via `outer -`, Y compression with `lowerindex`, range-add segment tree |
-| **0741** | [Замечательные дороги](0741_wonderful_roads.ra) | Graph Theory (62%) | Colors = largest biconnected block; iterative Tarjan with edge stack over CSR from `argsort` + `lowerindex` |
-| **0752** | [2-3 Дерево](0752_two_three_tree.ra) | Combinatorics (61%) | Level-by-level counting `C(M, N - 2M)` with a rolling Pascal row and slice updates mod $R$ |
 | **0077** | [Нолики](0077_zeros.ra) | Combinatorics (63%) | Count binary zeros up to $N$ with broadcast `(Range binomial K) sum` |
-| **0776** | [Юпитер](0776_jupiter.ra) | Graph Theory / BFS (62%) | BFS over (flights used, cell); each flight is one slice with `scan max` for the climb cost |
-| **0813** | [Игра в 24](0813_game_24.ra) | Brute Force / Subset DP (62%) | Reachable values per card subset via `outer +`, `outer -`, `outer *` and `sort unique` |
 | **0083** | [Симпатичные узоры](0083_pretty_patterns.ra) | Bitmask DP (66%) | Profile DP with bitwise ops (`band`, `bor`, `bxor`) & `Compat matpow (Cols - 1) sum` over a column-compatibility matrix |
-| **0920** | [Игуана](0920_iguana.ra) | Bitmask / Inclusion-Exclusion (62%) | Chromatic number $N \le 18$: independent sets by doubling, zeta transform, $\sum (-1)^{N-|S|} I(S)^k$ over vectors |
 | **0100** | [Счастливые билеты](0100_lucky_tickets.ra) | Combinatorics (68%) | Polynomial convolution via `DP scan + with 0 array` & vectorized index slicing `DP = C Hi - C Lo` |
 | **0101** | [Магараджа](0101_maharaja.ra) | Backtracking / Bitmask (60%) | Non-attacking Maharajas (queen + knight) placement via row-by-row bitmask search |
 | **0104** | [Шаблон](0104_pattern.ra) | 2D DP (65%) | Wildcard pattern matching with `*` and `?` over 2D state matrix |
@@ -88,11 +81,21 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0707** | [Зума](0707_zuma.ra) | Graph Theory / BFS (60%) | Zuma ball elimination with exact multi-level chain reactions via BFS and contiguous color block insertions |
 | **0714** | [Кольцевая автодорога](0714_circular_highway.ra) | Computational Geometry (65%) | Find count and minimum-radius circle equidistant to 4 points via vector circumcenter and perpendicular bisector intersection |
 | **0722** | [Шоколадки](0722_chocolates.ra) | Combinatorics / BigInt (60%) | 2-colored grids without size-3 monochromatic components via closed-form Fibonacci $2 F_{N+1} + 2 F_{M+1} - 2$ in 208-digit native BigInt arithmetic |
+| **0727** | [Распределение участков](0727_plot_distribution.ra) | Game Theory / Greedy (62%) | Pure Nash equilibrium via greedy matching over all pairs sorted by `(0 - Key) argsort` |
 | **0734** | [Строковый компьютер](0734_string_computer.ra) | Combinatorics / Free Monoids (61%) | Maximum non-redundant set size and number of such sets over alphabet $K$ and max length $N$ via geometric series and parity analysis |
+| **0740** | [Ключи](0740_keys.ra) | Data Structures / Sweep-line (61%) | Max overlapping holes under translation: pairwise open rectangles via `outer -`, Y compression with `lowerindex`, range-add segment tree |
+| **0741** | [Замечательные дороги](0741_wonderful_roads.ra) | Graph Theory (62%) | Colors = largest biconnected block; iterative Tarjan with edge stack over CSR from `argsort` + `lowerindex` |
+| **0746** | [Гонки](0746_races.ra) | Graph Theory (64%) | 4-cycles via `(Adj matpow 2)` common neighbors and `sum` |
 | **0749** | [Неправильный RSA](0749_incorrect_rsa.ra) | Number Theory / Combinatorics (64%) | Count non-trivial factorizations of $n = p^k \cdot q^k$ ($1 \le k \le 23$) via $O(1)$ relative tolerance float64 $k$-th power detection and precomputed 2D vector partitions of $(k, k)$ |
+| **0752** | [2-3 Дерево](0752_two_three_tree.ra) | Combinatorics (61%) | Level-by-level counting `C(M, N - 2M)` with a rolling Pascal row and slice updates mod $R$ |
+| **0776** | [Юпитер](0776_jupiter.ra) | Graph Theory / BFS (62%) | BFS over (flights used, cell); each flight is one slice with `scan max` for the climb cost |
+| **0813** | [Игра в 24](0813_game_24.ra) | Brute Force / Subset DP (62%) | Reachable values per card subset via `outer +`, `outer -`, `outer *` and `sort unique` |
 | **0829** | [Строки - 3](0829_strings_3.ra) | Strings / Rolling Hash (60%) | Count substrings of $A$ that are cyclic shifts of $B$ in $O(|A| + |B|)$ using double polynomial rolling hash ($10^9+7$ and $10^9+9$) with `use algo` set |
 | **0898** | [Ленточка](0898_ribbon.ra) | Mathematical Modeling / Divide & Conquer (60%) | Determine fold crease orientations ('K' or 'O') on a folded paper ribbon ($N \le 60$) in $O(K \cdot N)$ via iterative binary reflection |
+| **0920** | [Игуана](0920_iguana.ra) | Bitmask / Inclusion-Exclusion (62%) | Chromatic number $N \le 18$: independent sets by doubling, zeta transform, $\sum (-1)^{N-|S|} I(S)^k$ over vectors |
 | **0921** | [Турнир - 2](0921_tournament_2.ra) | Math / Vector Arithmetic (60%) | Optimal chess match count minimizing expected score differences via vectorized vector arithmetic `C = 1 till K`, `Diffs = ((C * (A - B)) + (K * B)) abs`, `MinDiff = Diffs min` |
+| **0958** | [Осмотр королевства](0958_kings_tour.ra) | Graph Theory (62%) | Tournament Hamiltonian path merging $K$ chain routes |
+| **0963** | [Морфизм](0963_morphism.ra) | Dynamic Programming (63%) | Binary lifting over 20-character substitution prefix table |
 | **0974** | [Странный Ним](0974_strange_nim.ra) | Game Theory (65%) | 3-coin Welter's Game via Conway's Frieze rule in $O(1)$ without loops |
 | **0978** | [Последовательность - 5](0978_sequence_5.ra) | Number Theory (79%) | Legendre's formula for maximal $k$ with $n^k \mid n!$ using `N factors unique` |
 | **0993** | [Симпатичные последовательности](0993_pretty_sequences.ra) | Data Structures / Segment Tree (61%) | Maximal $k$-pretty prefix via point increment updates and range prefix minimum segment tree queries `Tree 0 (V - 1) query` |

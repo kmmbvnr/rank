@@ -1,10 +1,9 @@
 rem Races (Гонки)
-rem https://acmp.ru/index.asp?main=task&id_task=746
-rem Count 4-cycles. C = A*A holds the
-rem common-neighbour counts c(u,v); every
-rem cycle is two opposite pairs, so
-rem cycles = sum over u != v of
-rem C(c, 2), divided by 4.
+rem acmp.ru: 746
+rem Count 4-cycles. C = A*A holds common
+rem neighbour counts c(u,v); every cycle
+rem is two opposite pairs, so cycles =
+rem sum over u != v of C(c, 2) / 4.
 
 use io
 use text
