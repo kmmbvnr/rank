@@ -1,0 +1,127 @@
+"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads, callouts) {
+        let r0 = input[0],r1 = input[1],r2 = input[2], storage2 = access(input[2]), reader2 = read(storage2, stableReads, 1), write2 = write(storage2, batchWrites),r3 = input[3], storage3 = access(input[3]), reader3 = read(storage3, stableReads, 1), write3 = write(storage3, batchWrites);
+        let result = initialResult, location = -1;
+        try { if (((2n) === 0n)) throw zero();
+const v0 = (r1) / (2n) - ((((r1) < 0n) !== ((2n) < 0n) && ((r1) % (2n)) !== 0n) ? 1n : 0n); const start = 2n, end = v0, stride = 1n;
+                        if (stride === 0n) throw badStep(); for (let cursor = start;
+                        stride > 0n ? cursor <= end : cursor >= end;
+                        cursor = cursor + stride) { location = -1; checkpoint();
+            let iterationResult;
+            const bound0 = cursor; binders[0](bound0); r0 = bound0;
+ location = 0;
+if (((r0) === 0n)) throw zero();
+const v1 = (r1) / (r0) - ((((r1) < 0n) !== ((r0) < 0n) && ((r1) % (r0)) !== 0n) ? 1n : 0n);
+const v2 = arrayValues.range(2n, v1, true, undefined);
+const completed3 = materializeValue(v2);
+writers[0](completed3); r2 = completed3; storage2 = access(completed3); reader2 = read(storage2, stableReads, 1); write2 = write(storage2, batchWrites); iterationResult = completed3;
+location = 1;
+const v4 = arrayValues.binary("*", r0, r2);
+const bulk5 = arrayValues.write(1, [v4], () => {  return r0; });
+r3 = bulk5.target; storage3 = access(r3); reader3 = read(storage3, stableReads, 1); write3 = write(storage3, batchWrites); iterationResult = bulk5.result;
+            result = iterationResult; location = -1;
+        } return result; } catch (error) { throw locate(error, location); }
+    };
+
+"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads, callouts) {
+        let r0 = input[0],r1 = input[1], storage1 = access(input[1]), reader1 = read(storage1, stableReads, 1), write1 = write(storage1, batchWrites),r2 = input[2], storage2 = access(input[2]), reader2 = read(storage2, stableReads, 1), write2 = write(storage2, batchWrites),r3 = input[3],r4 = input[4], storage4 = access(input[4]), reader4 = read(storage4, stableReads, 1), write4 = write(storage4, batchWrites);
+        let result = initialResult, location = -1;
+        try {  const iterable = iterators[0](r1);  for (const cursor of iterable) { location = -1; checkpoint();
+            let iterationResult;
+            const bound0 = cursor; binders[0](bound0); r0 = bound0;
+ location = 0;
+const v0 = (r3) - (r0);
+const v1 = arrayValues.binary("atmost", r1, v0);
+const v2 = arrayValues.select(r1, v1);
+const completed3 = materializeValue(v2);
+writers[0](completed3); r2 = completed3; storage2 = access(completed3); reader2 = read(storage2, stableReads, 1); write2 = write(storage2, batchWrites); iterationResult = completed3;
+location = 1;
+const v4 = arrayValues.binary("+", r0, r2);
+const bulk5 = arrayValues.write(1, [v4], () => {  return true; });
+r4 = bulk5.target; storage4 = access(r4); reader4 = read(storage4, stableReads, 1); write4 = write(storage4, batchWrites); iterationResult = bulk5.result;
+            result = iterationResult; location = -1;
+        } return result; } catch (error) { throw locate(error, location); }
+    };
+"use strict"; return function(input, cells, changes, calls, publish) {
+        let r0 = input[0],r1 = input[1],r2 = input[2],r3 = input[3],r4 = input[4],d2 = 0,d0 = 0,cells1 = cells[1],cells2 = cells[2],cells4 = cells[4],changed4 = changes[4], result, resultType = 'integer', location = -1, order = 0;
+        const entered = [];
+        const vectorPool = [], vectorLive = input.slice(), vectorStep = vectorBlockSize();
+        try {
+             const iterable = cells[1];
+
+                        const offset = 0;
+                        const limit = iterable.length;
+                        entered[0] = true;  for (let position = offset; position < limit; position++) {
+                        location = -1; checkpoint(); const cursor = iterable[position];
+                let iterationResult, iterationType = 'integer';
+                const bound0 = cursor; if (!d0) d0 = ++order; r0 = bound0;
+ location = 0;
+const length1 = cells1.length;
+vectorLive.push(cells1);
+const v2 = safe((r3) - (r0));
+const scalar3 = v2;
+vectorLive.length -= 1;
+let length4 = 1;
+if (length4 !== length1 && length4 !== 1 && length1 !== 1) throw overflow; length4 = length4 === 1 ? length1 : length4;
+if (length4 !== 1 && length4 !== 1 && 1 !== 1) throw overflow; length4 = length4 === 1 ? 1 : length4;
+if (cells1.length !== length4) throw overflow;
+                const vector0 = vectorArray([cells1.length], false, vectorPool, vectorLive, [result, iterationResult, cells1,cells1]); let count6 = 0;
+                for (let block9 = 0; block9 < cells1.length; block9 += vectorStep) {
+            const end10 = Math.min(cells1.length, block9 + vectorStep);
+
+            checkpoint(undefined, end10 - block9);
+            for (let cell5 = block9; cell5 < end10; cell5++) { const cellValue7 = safe(Number(cells1[(length1 === 1 ? 0 : cell5)]));
+const v8 = (cellValue7) <= (scalar3);
+if (v8) vector0.store(count6++, safe(Number(cells1[cell5]))); }
+        }
+                vector0.shape[0] = count6; vector0.cells = vector0.cells.subarray(0, count6);
+const completed11 = vector0;
+if (!d2) d2 = ++order;
+r2 = completed11; cells2 = cells[2] = completed11.cells;
+vectorLive[2] = completed11;
+iterationResult = completed11; iterationType = 'array';
+location = 1;
+const scalar13 = r0;
+const length14 = cells2.length;
+vectorLive.push(cells2);
+vectorLive.length -= 1;
+let length15 = 1;
+if (length15 !== 1 && length15 !== 1 && 1 !== 1) throw overflow; length15 = length15 === 1 ? 1 : length15;
+if (length15 !== length14 && length15 !== 1 && length14 !== 1) throw overflow; length15 = length15 === 1 ? length14 : length15;
+const vector12 = vectorArray([length15], false, vectorPool, vectorLive, [result, iterationResult, cells2]); for (let block19 = 0; block19 < length15; block19 += vectorStep) {
+            const end20 = Math.min(length15, block19 + vectorStep);
+
+            checkpoint(undefined, end20 - block19);
+            for (let cell16 = block19; cell16 < end20; cell16++) { const cellValue17 = safe(Number(cells2[(length14 === 1 ? 0 : cell16)]));
+const v18 = safe((scalar13) + (cellValue17));
+vector12.store(cell16, v18); }
+        }
+const keys23 = vector12.cells === cells4 || (vector12.cells.buffer && vector12.cells.buffer === cells4.buffer)
+        ? sliceArray(vector12.cells, 0, vector12.cells.length, 1).cells : vector12.cells;
+for (let block24 = 0; block24 < keys23.length; block24 += vectorStep) {
+            const end25 = Math.min(keys23.length, block24 + vectorStep);
+
+            checkpoint(undefined, end25 - block24);
+            for (let scatter23 = block24; scatter23 < end25; scatter23++) { const key23 = safe(Number(keys23[scatter23]));
+if (key23 < 0 || key23 >= cells4.length) throw overflow; }
+        }
+vectorLive.push(keys23);
+vectorLive.pop();
+const operand23 = true;
+for (let block26 = 0; block26 < keys23.length; block26 += vectorStep) {
+            const end27 = Math.min(keys23.length, block26 + vectorStep);
+
+            checkpoint(undefined, end27 - block26);
+            for (let scatter23 = block26; scatter23 < end27; scatter23++) { const key23 = Number(keys23[scatter23]), value23 = operand23;
+cells4[key23] = value23; changed4[key23] = 1; }
+        }
+iterationResult = operand23; iterationType = 'boolean';
+                result = iterationResult; resultType = iterationType; location = -1;
+            }
+        } catch (error) {
+            if (error === overflow) return undefined;
+            publish(entered, [[d2, 2, r2],[d0, 0, r0]]);
+            throw locate(error, location);
+        }
+        publish(entered, [[d2, 2, r2],[d0, 0, r0]]);
+        return { value: result, type: resultType };
+    };

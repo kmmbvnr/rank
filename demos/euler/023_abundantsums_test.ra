@@ -24,3 +24,12 @@ test "twenty-four is excluded"
 
   Answer equal 276
 end
+
+test "empty positive range"
+  use "023_abundantsums"
+
+  Limit = 0
+  run
+
+  Answer equal 0
+end

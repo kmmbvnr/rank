@@ -752,6 +752,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (parts.length === 2) {
                 const source = arrayType(parts[0]), selector = arrayType(last);
                 if (source && selector?.element === 'integer') return { ...source, rank: source.rank + selector.rank - 1 };
+                if (host.booleanArrays && source?.rank === 1 && selector?.rank === 1
+                    && selector.element === 'boolean') return source;
             }
         }
         return undefined;
@@ -826,7 +828,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 code = `arrayValues.copy(${inputCode})`;
             } else {
                 const index = emitValue(selector, lines);
-                if (!index || typeof index.type === 'string' || index.type.element !== 'integer') return undefined;
+                if (!index || typeof index.type === 'string'
+                    || index.type.element !== 'integer' && index.type.element !== 'boolean') return undefined;
                 code = `arrayValues.select(${input.code}, ${index.code})`;
             }
         } else return undefined;
@@ -1034,6 +1037,12 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return { code: `r${info.slot}`, cells: `cells${info.slot}`, type };
         }
         const result = `vector${state.serial++}`;
+        const selection = isApplicationExpression(e) ? flattenApplication(e) : [];
+        const filter = isTableFilterExpression(e) && e.condition && !e.conditions.length && !e.sourceFields.length
+            ? { source: e.source, mask: e.condition }
+            : selection.length === 2 && arrayType(selection[0])?.rank === 1
+                && arrayType(selection[1])?.element === 'boolean' && arrayType(selection[1])?.rank === 1
+                ? { source: selection[0], mask: selection[1] } : undefined;
         if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
             state.numberVectors = true;
             const start = emit(e.left, lines, 'integer'), end = emit(e.right, lines, 'integer');
@@ -1041,8 +1050,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (!start || !end || e.step && !step) return undefined;
             lines.push(`const ${result} = rangeArray(${start.code}, ${end.code}, ${e.operator === 'to'}, ${step?.code ?? '1'}, vectorPool, vectorLive, [result, iterationResult], vectorStep);`);
             if (state.workCounting) lines.push(`work += ${result}.cells.length;`);
-        } else if (isTableFilterExpression(e) && e.condition && !e.conditions.length && !e.sourceFields.length) {
-            const input = emitNumberArray(e.source, lines), mask = numberVector(e.condition, lines);
+        } else if (filter) {
+            state.numberVectors = true;
+            const input = emitNumberArray(filter.source, lines), mask = numberVector(filter.mask, lines);
             if (!input || typeof input.type === 'string' || !mask || mask.type !== 'boolean') return undefined;
             const cells = input.cells ?? `${input.code}.cells`, index = `cell${state.serial++}`, count = `count${state.serial++}`, body: string[] = [];
             const selected = mask.cell(index, body);

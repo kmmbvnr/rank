@@ -127,8 +127,10 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             && (assignment.operator === '=' || host.compoundWrites && ['+=', '-=', '*='].includes(assignment.operator))
             && assignment.indices.length === 1
             && assignment.indices[0].value && !assignment.indices[0].all && !assignment.indices[0].sign
-            && expressions.arrayType(assignment.indices[0].value)?.element === 'integer'
-            && expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as import('@arrrank/language').Expression)?.element === 'integer') {
+            && expressions.arrayType(assignment.indices[0].value)?.element === 'integer') {
+            const bulkType = expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as import('@arrrank/language').Expression);
+            if (!bulkType || bulkType.rank !== 1 || bulkType.element !== 'integer'
+                && !(host.booleanArrays && bulkType.element === 'boolean')) return undefined;
             // An escaping self-selection follows the current binding after a
             // COW rebind. Lowered register operands would retain the old buffer.
             const boundary = isFunctionStatement(state.statement) ? state.statement.statements.at(-2) : state.statement;
@@ -139,15 +141,14 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 && !(boundary && statementResultDiscarded(assignment, boundary))) {
                 return reject(assignment, 'escaping-self-slice-result');
             }
-            const type = expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as import('@arrrank/language').Expression);
-            if (!type || type.rank !== 1 || type.element !== 'integer') return undefined;
+            const type = bulkType.element;
             const lines: string[] = [], rhsLines: string[] = [];
             const selector = expressions.emitValue(assignment.indices[0].value, lines);
             const rhs = expressions.emitValue(assignment.value, rhsLines);
             if (!selector || !rhs) return undefined;
             const slot = expressions.slot(assignment.name), result = `bulk${state.serial++}`;
-            arrays.set(assignment.name, { slot, rank: 1, type: 'integer' });
-            destinations.set(assignment.name, { slot, rank: 1, type: 'integer', compound: assignment.operator !== '=', slice: true });
+            arrays.set(assignment.name, { slot, rank: 1, type });
+            destinations.set(assignment.name, { slot, rank: 1, type, compound: assignment.operator !== '=', slice: true });
             if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
             body.push(`location = ${location};`, ...lines,
                 `const ${result} = arrayValues.write(${location}, [${selector.code}], () => { ${rhsLines.join('\n')} return ${rhs.code}; });`,

@@ -1,30 +1,26 @@
 rem Non-Abundant Sums
 rem https://projecteuler.net/problem=23
-rem Sum positive integers that are not a sum
-rem of two abundant numbers
+rem Sum integers that cannot be formed
+rem from two abundant numbers
 
-use sequences
+use bits
 use io
 use cli
 
 arg Limit integer = 28123
 
 rem Sieve proper divisor sums.
-Sums = array shape (Limit + 1) fill 1
-Sums (0 to 1) = 0
-for D in 2 to Limit // 2
-  K = 2 to Limit // D
-  Sums (D * K) += D
+Sums = array shape (Limit + 1) fill 0
+for D in 1 to Limit // 2
+  Sums (D * 2 to Limit by D) += D
 end
 
 N = 12 till Limit + 1
-Abundant = N (Sums N greater N)
+Ab = N (Sums N greater N)
 
-rem Mark every sum of an abundant pair.
-Pairs = array shape (Limit + 1) fill false
-for A in Abundant
-  B = Abundant (Abundant at most Limit - A)
-  Pairs (A + B) = true
-end
-Answer = (not Pairs) indices sum
+rem A shift marks every pair with A.
+Bits = 1 shl Ab reduce bor with 0
+Pairs = Bits shl Ab reduce bor with 0
+N = 1 to Limit
+Answer = N (not (Pairs bit N)) sum
 Answer print

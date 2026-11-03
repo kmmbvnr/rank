@@ -1,0 +1,30 @@
+rem Non-Abundant Sums
+rem https://projecteuler.net/problem=23
+rem Sum positive integers that are not a sum
+rem of two abundant numbers
+
+use sequences
+use io
+use cli
+
+arg Limit integer = 28123
+
+rem Sieve proper divisor sums.
+Sums = array shape (Limit + 1) fill 1
+Sums (0 to 1) = 0
+for D in 2 to Limit // 2
+  K = 2 to Limit // D
+  Sums (D * K) += D
+end
+
+N = 12 till Limit + 1
+Abundant = N (Sums N greater N)
+
+rem Mark every sum of an abundant pair.
+Pairs = array shape (Limit + 1) fill false
+for A in Abundant
+  B = Abundant (Abundant at most Limit - A)
+  Pairs (A + B) = true
+end
+Answer = (not Pairs) indices sum
+Answer print

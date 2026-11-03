@@ -1,0 +1,104 @@
+"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads, callouts) {
+        let r0 = input[0],r1 = input[1],r2 = input[2], storage2 = access(input[2]), reader2 = read(storage2, stableReads, 1), write2 = write(storage2, batchWrites),r3 = input[3], storage3 = access(input[3]), reader3 = read(storage3, stableReads, 1), write3 = write(storage3, batchWrites);
+        let result = initialResult, location = -1;
+        try { if (((2n) === 0n)) throw zero();
+const v0 = (r1) / (2n) - ((((r1) < 0n) !== ((2n) < 0n) && ((r1) % (2n)) !== 0n) ? 1n : 0n); const start = 2n, end = v0, stride = 1n;
+                        if (stride === 0n) throw badStep(); for (let cursor = start;
+                        stride > 0n ? cursor <= end : cursor >= end;
+                        cursor = cursor + stride) { location = -1; checkpoint();
+            let iterationResult;
+            const bound0 = cursor; binders[0](bound0); r0 = bound0;
+ location = 0;
+if (((r0) === 0n)) throw zero();
+const v1 = (r1) / (r0) - ((((r1) < 0n) !== ((r0) < 0n) && ((r1) % (r0)) !== 0n) ? 1n : 0n);
+const v2 = arrayValues.range(2n, v1, true, undefined);
+const completed3 = materializeValue(v2);
+writers[0](completed3); r2 = completed3; storage2 = access(completed3); reader2 = read(storage2, stableReads, 1); write2 = write(storage2, batchWrites); iterationResult = completed3;
+location = 1;
+const v4 = arrayValues.binary("*", r0, r2);
+const bulk5 = arrayValues.write(1, [v4], () => {  return r0; });
+r3 = bulk5.target; storage3 = access(r3); reader3 = read(storage3, stableReads, 1); write3 = write(storage3, batchWrites); iterationResult = bulk5.result;
+            result = iterationResult; location = -1;
+        } return result; } catch (error) { throw locate(error, location); }
+    };
+
+"use strict"; return function(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads, callouts) {
+        let r0 = input[0],r1 = input[1], storage1 = access(input[1]), reader1 = read(storage1, stableReads, 1), write1 = write(storage1, batchWrites),r2 = input[2],r3 = input[3],r4 = input[4], storage4 = access(input[4]), reader4 = read(storage4, stableReads, 1), write4 = write(storage4, batchWrites);
+        let result = initialResult, location = -1;
+        try {  const iterable = iterators[0](r1);  for (const cursor of iterable) { location = -1; checkpoint();
+            let iterationResult;
+            const bound0 = cursor; binders[0](bound0); r0 = bound0;
+ { let result; location = 0;  const iterable = iterators[1](r1);  for (const cursor of iterable) { location = 0; checkpoint();
+let iterationResult;
+const bound1 = cursor; binders[1](bound1); r2 = bound1;
+
+location = 1; iterationResult = undefined;
+location = 1;
+const v0 = (r0) + (r2);
+const v1 = (v0) > (r3);
+if (v1) {
+location = 2; break;
+} else {
+}
+location = 3;
+const v2 = (r0) + (r2);
+let key3; if (storage4.kind === 'array') { key3 = 0;
+const coordinate4 = Number(v2);
+                    if (v2 < 0n || coordinate4 >= storage4.shape[0]) throw badIndex(v2, 0);
+                    key3 = key3 * storage4.shape[0] + coordinate4;
+} else { key3 = key([v2]); }
+if (storage4.kind === 'index') checkValueMutable(storage4);
+if (storage4.kind === 'array') {
+                write4(key3, true); iterationResult = true;
+            } else { indexSet(storage4, key3, true); iterationResult = undefined; }
+result = iterationResult;  location = 0; } iterationResult = result;  }
+            result = iterationResult; location = -1;
+        } return result; } catch (error) { throw locate(error, location); }
+    };
+"use strict"; return function(input, cells, changes, calls, publish) {
+        let r0 = input[0],r1 = input[1],r2 = input[2],r3 = input[3],r4 = input[4],d0 = 0,d2 = 0,cells1 = cells[1],cells4 = cells[4],changed4 = changes[4], result, resultType = 'integer', location = -1, order = 0;
+        const entered = [];
+        try {
+             const iterable = cells[1];
+
+                        const offset = 0;
+                        const limit = iterable.length;
+                        entered[0] = true;  for (let position = offset; position < limit; position++) {
+                        location = -1; checkpoint(); const cursor = iterable[position];
+                let iterationResult, iterationType = 'integer';
+                const bound0 = cursor; if (!d0) d0 = ++order; r0 = bound0;
+ { let result, resultType = "integer"; location = 0;  const iterable = cells[1];
+
+                        const offset = 0;
+                        const limit = iterable.length;
+                        entered[1] = true;  for (let position = offset; position < limit; position++) {
+                        location = 0; checkpoint(); const cursor = iterable[position];
+let iterationResult, iterationType = "integer";
+const bound1 = cursor; if (!d2) d2 = ++order; r2 = bound1;
+
+location = 1; iterationResult = undefined;
+location = 1;
+const v0 = safe((r0) + (r2));
+const v1 = (v0) > (r3);
+if (v1) {
+location = 2; break;
+} else {
+}
+location = 3;
+const v2 = safe((r0) + (r2));
+const index3 = v2;
+                    if (index3 < 0 || index3 >= cells4.length) throw badWriteIndex(index3, 0);
+const key4 = index3;
+const operand5 = true;
+cells4[key4] = operand5; changed4[key4] = 1; iterationResult = operand5; iterationType = "boolean";
+result = iterationResult; resultType = iterationType; location = 0; } iterationResult = result; iterationType = resultType; }
+                result = iterationResult; resultType = iterationType; location = -1;
+            }
+        } catch (error) {
+            if (error === overflow) return undefined;
+            publish(entered, [[d0, 0, r0],[d2, 2, r2]]);
+            throw locate(error, location);
+        }
+        publish(entered, [[d0, 0, r0],[d2, 2, r2]]);
+        return { value: result, type: resultType };
+    };

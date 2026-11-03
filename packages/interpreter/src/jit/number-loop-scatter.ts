@@ -3,7 +3,7 @@ import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
 
 /** Vector selection prepares every index before the RHS and snapshots aliased
- * operands before stores. Escaping selection results retain the ordinary path. */
+ * operands before stores. Escaping array RHS results retain the ordinary path. */
 export function emitNumberScatter(state: LoopCompilationState, expressions: LoopExpressions,
     assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined {
     if (!state.numberMode || state.wideScalars.size || assignment.operator !== '=' || assignment.indices.length !== 1) return undefined;
@@ -14,11 +14,11 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     if (!selector || assignment.indices[0].all || assignment.indices[0].sign
         || expressions.arrayType(selector)?.element !== 'integer') return undefined;
     const boundary = isFunctionStatement(state.statement) ? state.statement.statements.at(-2) : state.statement;
-    if (!boundary || !statementResultDiscarded(assignment, boundary)) return undefined;
+    const discarded = !!boundary && statementResultDiscarded(assignment, boundary);
     const { arrays, destinations, assigned, arrayInputs } = state;
     const old = destinations.get(assignment.name), known = arrays.get(assignment.name);
     const type = old?.type ?? known?.type ?? expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as Expression)?.element;
-    if (old && old.rank !== 1 || known && known.rank !== 1 || type !== 'integer' && type !== 'real') return undefined;
+    if (old && old.rank !== 1 || known && known.rank !== 1 || type !== 'integer' && type !== 'real' && type !== 'boolean') return undefined;
     const target = old ?? { slot: expressions.slot(assignment.name), rank: 1, compound: false, type };
     destinations.set(assignment.name, target);
     state.currentScope()?.assigned.add(assignment.name);
@@ -38,6 +38,9 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     lines.push(`vectorLive.push(${keys});`);
     const rhs = expressions.emitValue(assignment.value, lines, type);
     if (!rhs || (typeof rhs.type === 'string' ? rhs.type : rhs.type.element) !== type || state.calls.length !== calls) return undefined;
+    // Assignments return their original RHS. A scalar has no live selection
+    // to retain; array RHS results still need the publishing backend.
+    if (typeof rhs.type !== 'string' && !discarded) return undefined;
     lines.push('vectorLive.pop();');
     const operand = `operand${n}`;
     let value: string;
@@ -49,7 +52,8 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
         lines.push(`if (${rhs.code}.shape.length !== ${selected.code}.shape.length || ${rhs.code}.shape.some((size, axis) => size !== ${selected.code}.shape[axis])) throw overflow;
             const ${operand} = ${source} === ${cells} || (${source}.buffer && ${source}.buffer === ${cells}.buffer)
                 ? sliceArray(${source}, 0, ${source}.length, 1).cells : ${source};`);
-        value = type === 'real' ? `Number(${operand}[${index}])` : `safe(Number(${operand}[${index}]))`;
+        value = type === 'boolean' ? `Boolean(${operand}[${index}])`
+            : type === 'real' ? `Number(${operand}[${index}])` : `safe(Number(${operand}[${index}]))`;
     }
     body.push(`location = ${location};`, ...lines, expressions.numberVectorLoop(`${keys}.length`, index, [
         `const ${key} = Number(${keys}[${index}]), value${n} = ${value};`,
@@ -58,6 +62,6 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
             ${state.arrayDefinitions.has(assignment.name) ? `r${target.slot}.cells = ${cells};` : ''}
         }`] : []),
         `${cells}[${key}] = value${n}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key}] = 1;`}`,
-    ]), `iterationResult = undefined; iterationType = 'integer';`);
+    ]), `iterationResult = ${typeof rhs.type === 'string' ? operand : 'undefined'}; iterationType = '${typeof rhs.type === 'string' ? rhs.type : 'integer'}';`);
     return true;
 }
