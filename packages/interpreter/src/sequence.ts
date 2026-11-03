@@ -672,10 +672,12 @@ export function shiftValue(
     });
     registerPackedBooleanShift(result, source, amount, fillValue, axis);
     registerTensorShift(result, source, amount, fillValue, axis);
-    // Zero-filled integer shifts copy shifted runs of the stored cells. A real
-    // source keeps the lazy reader, which fills with an integer zero.
+    // Zero-filled shifts copy shifted runs of the stored cells. The fill must
+    // be a zero of the source's own kind: a real source filled with an integer
+    // zero keeps the lazy reader, which mixes the two kinds.
     registerArrayCopy(result, () => {
-        if (fillValue !== 0n || typedElementKind(source) !== 'integer') return undefined;
+        const kind = typedElementKind(source);
+        if (!(kind === 'integer' && fillValue === 0n || kind === 'real' && typeof fillValue === 'number' && Object.is(fillValue, 0))) return undefined;
         const width = shape[axis], moved = Math.min(Math.abs(amount), width);
         const length = (width - moved) * stride;
         const outer = shape.slice(0, axis).reduce((size, dimension) => size * dimension, 1);

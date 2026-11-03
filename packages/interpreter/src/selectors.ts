@@ -1,6 +1,6 @@
 import { arrayRevision } from './array-revision.js';
 import { resolveAxis } from './tensor-index.js';
-import { registerArrayCopy, copyStoredArrayBlocks } from './array-copy.js';
+import { registerArrayCopy, copyStoredArrayBlocks, storedOperand } from './array-copy.js';
 import { gatherPackedBooleans, registerPackedBooleanSelection } from './packed-booleans.js';
 import type { ArrayCellRead } from './array-cell-read.js';
 import { framedArray } from './framed-array.js';
@@ -435,6 +435,16 @@ export function sliceArray(
     // on write. Irregular gathers retain the eager threshold and fallback.
     const kind = typedElementKind(source);
     const regular = selection.linear || selection.axes?.every(axis => axis.linear);
+    // A gather reads cells at scattered places; a lazy source that can copy
+    // itself as typed blocks (a concatenation, a shift) is stored once first.
+    if (!regular && !stored && !source.columnNames && total >= DENSE_SLICE_CELLS
+        && total * 4 >= arraySize(source.shape)) {
+        const copy = storedOperand(source);
+        if (copy !== source) {
+            const gathered = sliceArray(copy as RankArray, selection, observation);
+            return isRankArray(gathered) ? inheritSemanticArrayType(source, gathered) : gathered;
+        }
+    }
     const material = stored && (kind !== undefined || total >= DENSE_SLICE_CELLS);
     if (!regular && material) {
         const indices = source.shape.length === 1 && selection.axes?.length === 1

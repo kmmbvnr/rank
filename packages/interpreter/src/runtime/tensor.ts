@@ -7,6 +7,7 @@ import { mapScalarArrays } from '../jit/scalar-array-map.js';
 import { prepareDenseOperands, isArrayValue, numericKinds, DENSE_MIN_CELLS } from '../jit/tensor-operands.js';
 import { arrayStrides, broadcastOffset, broadcastShape, trailingCells } from '../jit/tensor-layout.js';
 import { completeScalarBuiltin } from '../jit/scalar-builtin.js';
+import { storedOperand } from './array-copy.js';
 export { broadcastShape } from '../jit/tensor-layout.js';
 import { prepareStoredScalarView, type LinearView } from './integer-view.js';
 import { mapPair, runExecution } from '../execution.js';
@@ -79,7 +80,7 @@ export function mapDenseArrays(
     allowSmall = false,
     integerOperation = ['+', '-', '*'][realCode],
 ): RankArray | undefined {
-    const left = completeScalarBuiltin(leftOperand), right = completeScalarBuiltin(rightOperand);
+    const left = storedOperand(completeScalarBuiltin(leftOperand)), right = storedOperand(completeScalarBuiltin(rightOperand));
     const comparison = compareStoredInt32(left, right, integerOperation);
     if (comparison) return comparison;
     const integers = mapStoredIntegers(left, right, integerOperation);

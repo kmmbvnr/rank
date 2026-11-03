@@ -7,6 +7,7 @@ import { framedArray } from './framed-array.js';
 import { extremeIntegerVector, extremeRealAxis, scanFloat64, scanInt32Axis, scanInt64, sumRealAxis } from './axis-order.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
+import { storedOperand } from './array-copy.js';
 import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, registerArrayDependencies, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
@@ -236,7 +237,7 @@ export class ReductionEvaluator {
             if (extreme) {
                 const axis = resolveAxes(folded, value.shape.length, 'reduce')[0];
                 // A lazy numeric map becomes stored cells before the fold.
-                const cells = materializeTensorMap(value) ?? value;
+                const cells = materializeTensorMap(value) ?? storedOperand(value) as RankArray;
                 const real = extremeRealAxis(cells, axis, extreme)
                     ?? (cells.shape.length === 1 ? extremeIntegerVector(cells, extreme) : undefined);
                 if (real !== undefined) return real;

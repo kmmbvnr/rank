@@ -3,7 +3,7 @@ import { float64Cells, integer32Cells, integer64Cells, MAX_HELD_CELLS, sliceStor
 import { prepareStoredScalarView } from './integer-view.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
-import type { RankArray, RankValue } from './value.js';
+import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 type NumericCells = Int32Array | BigInt64Array | Float64Array;
 interface Block { source: RankArray; offset: number; length: number; target: number }
@@ -32,6 +32,14 @@ export function copyArrayStorage(value: RankArray, shareStorage = true): RankArr
     const declaration = arrayDeclaration(value);
     if (declaration) declareArray(result, declaration);
     return inheritSemanticArrayType(value, result);
+}
+
+/** The stored cells of a lazy array that can copy itself as typed blocks (a
+ * zero-filled shift, a concatenation, a selection); any other value comes back
+ * unchanged. Kernels that need stored operands call this once per operand. */
+export function storedOperand<T extends RankValue>(value: T): T | RankArray {
+    if (!isRankArray(value) || !copies.has(value)) return value;
+    return copyArrayStorage(value) ?? value;
 }
 
 /** Binding completes native numeric selections without copying their cells.

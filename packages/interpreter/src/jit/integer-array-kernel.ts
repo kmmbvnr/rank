@@ -6,6 +6,7 @@ import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
 import { RankError } from '../errors.js';
 import { modularPowerQuad, safeIntegerModularPower } from '../modular-power.js';
 import { prepareIntegerView, prepareStoredScalarView } from '../integer-view.js';
+import { storedOperand } from '../array-copy.js';
 import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
 import { floorDivide, floorRemainder } from '../numeric-division.js';
 import { arrayStrides, broadcastOffset, broadcastShape, trailingCells } from './tensor-layout.js';
@@ -18,6 +19,8 @@ const lowWord = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 /** Exact arithmetic over stored integers, including trusted segmented views.
  * Borrowed readers live only during this callback-free synchronous pass. */
 export function mapStoredIntegers(left: RankValue, right: RankValue, name?: string): RankArray | undefined {
+    left = storedOperand(left);
+    right = storedOperand(right);
     const operation = name === '+' ? (a: bigint, b: bigint) => a + b
         : name === '-' ? (a: bigint, b: bigint) => a - b
         : name === '*' ? (a: bigint, b: bigint) => a * b

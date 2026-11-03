@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, formatValue } from '../src/index.js';
 import { prepareStoredScalarView } from '../src/integer-view.js';
 import { typedArray } from '../src/array-storage.js';
 
@@ -174,6 +174,61 @@ end`);
                 const result = runtime.execute(`use sequences\nW argsort${descending ? ' .descending' : ''}`)!;
                 expect(formatValue(result)).toBe(order(descending).join(' '));
             } finally { runtime.dispose(); }
+        });
+    });
+
+    describe('lazy shifts and concatenations used inline', () => {
+        // Large enough to take the stored-operand paths (not the tiny-array ones).
+        const base = 'V = (0 till 3000 array) * 7919 mod 100003\n';
+
+        it('subtracts an inline shift exactly as a bound one', () => {
+            const inline = run(`${base}D = V - (V shift 1)\nE = V - (V shift -2)\narray (D 0) (D 1) (D 2999) (E 0) (E 2997) (E 2999) (D sum) (E sum)`);
+            const bound = run(`${base}W = V shift 1\nU = V shift -2\nD = V - W\nE = V - U\narray (D 0) (D 1) (D 2999) (E 0) (E 2997) (E 2999) (D sum) (E sum)`);
+            expect(inline).toBe(bound);
+        });
+
+        it('computes no cell one by one', () => {
+            const runtime = new Interpreter(() => {}, { compilation });
+            const diagnostics = new RuntimeDiagnostics();
+            try {
+                diagnostics.run(() => runtime.execute(`use sequences
+${base}D = V - (V shift 1)
+Total = D sum`));
+                expect(diagnostics.cellsComputed).toBe(0);
+            } finally { runtime.dispose(); }
+        });
+
+        it('shifts a matrix along an axis inside an expression', () => {
+            const inline = run('M = (1 to 6000 array) reshape 60 100\nD = M - (M shift 1 axis 0)\nE = M - (M shift -3 axis 1)\narray (D 0 0) (D 59 99) (E 0 0) (E 59 99) (D sum) (E sum)');
+            const bound = run('M = (1 to 6000 array) reshape 60 100\nW = M shift 1 axis 0\nU = M shift -3 axis 1\nD = M - W\nE = M - U\narray (D 0 0) (D 59 99) (E 0 0) (E 59 99) (D sum) (E sum)');
+            expect(inline).toBe(bound);
+        });
+
+        it('keeps real shifts real when filled with a real zero', () => {
+            const inline = run('F = (0 till 3000 array) * 0.25\nD = F - (F shift 1 with 0.0)\narray (D 0) (D 1) (D 2999) (D sum)');
+            expect(inline).toBe('0 0.25 0.25 749.75');
+        });
+
+        it('leaves a non-zero fill and a source change alone', () => {
+            expect(run(`${base}D = V - (V shift 1 with 7)\narray (D 0) (D 1)`)).toBe(
+                run(`${base}W = V shift 1 with 7\nD = V - W\narray (D 0) (D 1)`));
+            // A bound shift keeps the cells it had when it was bound.
+            expect(run(`${base}S = V shift 1\nV 5 = 0\nS 6`)).toBe('39595');
+        });
+
+        it('gathers from an unbound concatenation like from a bound one', () => {
+            const wide = 'W = (0 till 3000 array) * 1000000007 * 1000000007 mod 4000000000000000000\nIx = (0 till 6000 array) * 7919 mod 6000\n';
+            const inline = run(`${wide}P = (concat W (W - 5)) Ix\narray (P 0) (P 1) (P 5999) (P reduce max) (P reduce min)`);
+            const bound = run(`${wide}C = concat W (W - 5)\nP = C Ix\narray (P 0) (P 1) (P 5999) (P reduce max) (P reduce min)`);
+            expect(inline).toBe(bound);
+        });
+
+        it('gathers a small selection from a nested rope', () => {
+            expect(run('Z = array shape 1 fill 5\nV = 0 till 4000 array\nP = (concat Z V) (array 0 1 4000)\nP')).toBe('5 0 3999');
+        });
+
+        it('reduces a shifted integer vector', () => {
+            expect(run(`${base}(V shift 1) reduce max`)).toBe(run(`${base}W = V shift 1\nW reduce max`));
         });
     });
 

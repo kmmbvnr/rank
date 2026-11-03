@@ -94,8 +94,7 @@ for P in Pr
   V0 = Ik (0 till R0 array) reduce min
   Vk = concat (Zr + V0) (Vs filter Ok array)
   Pk = concat Zr (Ps filter Ok array)
-  Vq = Vk shift 1
-  Dk = (Vk - Vq) / (P * 1.0 sqrt)
+  Dk = (Vk - (Vk shift 1)) / (P * 1.0 sqrt)
   rem Grow the event arrays by doubling.
   Nn = Ne + (Pk len)
   if Nn greater (Ep len)
