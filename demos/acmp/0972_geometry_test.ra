@@ -1,0 +1,78 @@
+rem Tests for ACMP 0972 Geometry
+
+use numbers
+use testing
+use text
+
+test "default 3 segment pairs"
+  use "0972_geometry"
+  run
+
+  ((Arr shape) 0) equal 3
+end
+
+test "sample 1: parallel vertical"
+  use "0972_geometry"
+  Input = "0 0 0 4
+1 0 1 4
+0 0 0 0
+0 0 0 0"
+  run
+
+  Line = Arr 0
+  P = Line split " "
+  Ox = P 0 real
+  Oy = P 1 real
+  R = P 2 real
+  Da = (((Ox) ** 2) + ((Oy) ** 2)) sqrt
+  Dy = Oy - 4.0
+  Db = (((Ox) ** 2) + (Dy ** 2)) sqrt
+  Ok1 = (Da less R) and (R less Db)
+  Ok1 equal true
+end
+
+test "perpendicular crossing segments"
+  use "0972_geometry"
+  Input = "-5 0 5 0
+0 -5 0 5
+0 0 0 0
+0 0 0 0"
+  run
+
+  Line = Arr 0
+  P = Line split " "
+  Ox = P 0 real
+  Oy = P 1 real
+  R = P 2 real
+  DxA = Ox - (-5.0)
+  DyA = Oy - 0.0
+  Da = ((DxA ** 2) + (DyA ** 2)) sqrt
+  DxB = Ox - 5.0
+  DyB = Oy - 0.0
+  Db = ((DxB ** 2) + (DyB ** 2)) sqrt
+  Ok1 = (Da less R) and (R less Db)
+  Ok2 = (Db less R) and (R less Da)
+  (Ok1 or Ok2) equal true
+end
+
+test "collinear disjoint segments"
+  use "0972_geometry"
+  Input = "0 0 2 0
+4 0 6 0
+0 0 0 0
+0 0 0 0"
+  run
+
+  Line = Arr 0
+  P = Line split " "
+  Ox = P 0 real
+  Oy = P 1 real
+  R = P 2 real
+  DxA = Ox - 0.0
+  Da = (DxA ** 2) sqrt
+  DxB = Ox - 2.0
+  Db = (DxB ** 2) sqrt
+  Ok1 = (Da less R) and (R less Db)
+  Ok2 = (Db less R) and (R less Da)
+  (Ok1 or Ok2) equal true
+end

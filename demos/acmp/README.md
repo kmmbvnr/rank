@@ -112,6 +112,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0921** | [Турнир - 2](0921_tournament_2.ra) | Math / Vector Arithmetic (60%) | Optimal chess match count minimizing expected score differences via vectorized vector arithmetic `C = 1 till K`, `Diffs = ((C * (A - B)) + (K * B)) abs`, `MinDiff = Diffs min` |
 | **0958** | [Осмотр королевства](0958_kings_tour.ra) | Graph Theory (62%) | Tournament Hamiltonian path merging $K$ chain routes |
 | **0963** | [Морфизм](0963_morphism.ra) | Dynamic Programming (63%) | Binary lifting over 20-character substitution prefix table |
+| **0972** | [Задачка по геометрии](0972_geometry.ra) | Computational Geometry (66%) | Circle intersecting two segments once via 4-pair vectorized endpoint midpoint margin optimization |
 | **0974** | [Странный Ним](0974_strange_nim.ra) | Game Theory (65%) | 3-coin Welter's Game via Conway's Frieze rule in $O(1)$ without loops |
 | **0978** | [Последовательность - 5](0978_sequence_5.ra) | Number Theory (79%) | Legendre's formula for maximal $k$ with $n^k \mid n!$ using `N factors unique` |
 | **0989** | [Окопы](0989_trenches.ra) | Geometry / SAT (64%) | Strict separating line via Separating Axis Theorem (SAT) over difference vectors |

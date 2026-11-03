@@ -1,0 +1,103 @@
+rem Geometry (Задачка по геометрии)
+rem https://acmp.ru/task.asp?id=972
+rem Circle intersecting two segments.
+
+use algo
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "0 0 0 4
+1 0 1 4
+-100 -100 100 100
+-100 100 100 -100
+10 20 80 90
+-50 40 70 -60
+0 0 0 0
+0 0 0 0"
+
+fun S solve_pair
+  Ax = S 0
+  Ay = S 1
+  Bx = S 2
+  By = S 3
+  Cx = S 4
+  Cy = S 5
+  Dx = S 6
+  Dy = S 7
+
+  V1x = array Ax Ax Bx Bx
+  V1y = array Ay Ay By By
+  U1x = array Bx Bx Ax Ax
+  U1y = array By By Ay Ay
+
+  V2x = array Cx Dx Cx Dx
+  V2y = array Cy Dy Cy Dy
+  U2x = array Dx Cx Dx Cx
+  U2y = array Dy Cy Dy Cy
+
+  Ox = (V1x + V2x) / 2.0
+  Oy = (V1y + V2y) / 2.0
+
+  Dx1 = Ox - V1x
+  Dy1 = Oy - V1y
+  Rin = ((Dx1 ** 2) + (Dy1 ** 2)) sqrt
+
+  Du1 = Ox - U1x
+  Dv1 = Oy - U1y
+  D1 = ((Du1 ** 2) + (Dv1 ** 2)) sqrt
+
+  Du2 = Ox - U2x
+  Dv2 = Oy - U2y
+  D2 = ((Du2 ** 2) + (Dv2 ** 2)) sqrt
+
+  Rout = D1 min D2
+  Margin = Rout - Rin
+
+  MaxM = Margin reduce max
+  Best = Margin equal MaxM
+  Idx = (0 to 3) Best
+
+  ResOx = (Ox Idx) 0
+  ResOy = (Oy Idx) 0
+  R0 = (Rin Idx) 0
+  R1 = (Rout Idx) 0
+  ResR = (R0 + R1) / 2.0
+
+  return tuple ResOx ResOy ResR
+end
+
+Raw = (Input split "\r") join " "
+Clean = (Raw split "\n") join " "
+Parts = Clean split " "
+Tokens = Parts (Parts not equal "")
+Nums = Tokens real
+
+Total = ((Nums shape) 0) integer
+Count = (Total / 8) integer
+
+Q = new queue
+for T in 0 to (Count - 1)
+  Start = T * 8
+  Case = Nums (Start to (Start + 7))
+  SumAbs = (Case abs) reduce +
+  Active = SumAbs greater 0
+  if Active
+    Ans = Case solve_pair
+    Ox = Ans 0
+    Oy = Ans 1
+    R = Ans 2
+    Tail = (Oy text) + (" " + (R text))
+    Line = (Ox text) + (" " + Tail)
+    Q push Line
+  end
+end
+
+Arr = (Q reverse) reverse
+HasRes = ((Arr shape) 0) greater 0
+Joined = Arr join "\n"
+Output = HasRes choose Joined ""
+
+Output print
