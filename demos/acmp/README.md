@@ -98,5 +98,6 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0963** | [Морфизм](0963_morphism.ra) | Dynamic Programming (63%) | Binary lifting over 20-character substitution prefix table |
 | **0974** | [Странный Ним](0974_strange_nim.ra) | Game Theory (65%) | 3-coin Welter's Game via Conway's Frieze rule in $O(1)$ without loops |
 | **0978** | [Последовательность - 5](0978_sequence_5.ra) | Number Theory (79%) | Legendre's formula for maximal $k$ with $n^k \mid n!$ using `N factors unique` |
+| **0989** | [Окопы](0989_trenches.ra) | Geometry / SAT (64%) | Strict separating line via Separating Axis Theorem (SAT) over difference vectors |
 | **0993** | [Симпатичные последовательности](0993_pretty_sequences.ra) | Data Structures / Segment Tree (61%) | Maximal $k$-pretty prefix via point increment updates and range prefix minimum segment tree queries `Tree 0 (V - 1) query` |
 | **1000** | [Упаковка чисел](1000_number_packing.ra) | Bitwise / Encodings (65%) | Variable-length prefix-free integer encoding (1–9 bytes) into hex |

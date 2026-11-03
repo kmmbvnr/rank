@@ -1,0 +1,85 @@
+use testing
+
+test "sample 1: vertical separation"
+  use "0989_trenches"
+  Input = "0 1 1 2
+0 -1 1 0
+
+0 0 0 0
+0 0 0 0"
+  run
+
+  ValP1 = (AnsA * X1) + (AnsB * Y1) + AnsC
+  ValP2 = (AnsA * X2) + (AnsB * Y2) + AnsC
+  ValQ1 = (AnsA * U1) + (AnsB * V1) + AnsC
+  ValQ2 = (AnsA * U2) + (AnsB * V2) + AnsC
+  Ppos = (ValP1 greater 0) and (ValP2 greater 0)
+  Pneg = (ValP1 less 0) and (ValP2 less 0)
+  Qpos = (ValQ1 greater 0) and (ValQ2 greater 0)
+  Qneg = (ValQ1 less 0) and (ValQ2 less 0)
+  Sep = (Ppos and Qneg) or (Pneg and Qpos)
+  Sep equal true
+end
+
+test "sample 2: separating crossed segments"
+  use "0989_trenches"
+  Input = "0 1 -1 2
+0 -1 -1 0
+
+0 0 0 0
+0 0 0 0"
+  run
+
+  ValP1 = (AnsA * X1) + (AnsB * Y1) + AnsC
+  ValP2 = (AnsA * X2) + (AnsB * Y2) + AnsC
+  ValQ1 = (AnsA * U1) + (AnsB * V1) + AnsC
+  ValQ2 = (AnsA * U2) + (AnsB * V2) + AnsC
+  Ppos = (ValP1 greater 0) and (ValP2 greater 0)
+  Pneg = (ValP1 less 0) and (ValP2 less 0)
+  Qpos = (ValQ1 greater 0) and (ValQ2 greater 0)
+  Qneg = (ValQ1 less 0) and (ValQ2 less 0)
+  Sep = (Ppos and Qneg) or (Pneg and Qpos)
+  Sep equal true
+end
+
+test "parallel segments along x axis"
+  use "0989_trenches"
+  Input = "0 5 10 5
+0 -5 10 -5
+
+0 0 0 0
+0 0 0 0"
+  run
+
+  ValP1 = (AnsA * X1) + (AnsB * Y1) + AnsC
+  ValP2 = (AnsA * X2) + (AnsB * Y2) + AnsC
+  ValQ1 = (AnsA * U1) + (AnsB * V1) + AnsC
+  ValQ2 = (AnsA * U2) + (AnsB * V2) + AnsC
+  Ppos = (ValP1 greater 0) and (ValP2 greater 0)
+  Pneg = (ValP1 less 0) and (ValP2 less 0)
+  Qpos = (ValQ1 greater 0) and (ValQ2 greater 0)
+  Qneg = (ValQ1 less 0) and (ValQ2 less 0)
+  Sep = (Ppos and Qneg) or (Pneg and Qpos)
+  Sep equal true
+end
+
+test "collinear separated segments"
+  use "0989_trenches"
+  Input = "0 1 0 3
+0 5 0 8
+
+0 0 0 0
+0 0 0 0"
+  run
+
+  ValP1 = (AnsA * X1) + (AnsB * Y1) + AnsC
+  ValP2 = (AnsA * X2) + (AnsB * Y2) + AnsC
+  ValQ1 = (AnsA * U1) + (AnsB * V1) + AnsC
+  ValQ2 = (AnsA * U2) + (AnsB * V2) + AnsC
+  Ppos = (ValP1 greater 0) and (ValP2 greater 0)
+  Pneg = (ValP1 less 0) and (ValP2 less 0)
+  Qpos = (ValQ1 greater 0) and (ValQ2 greater 0)
+  Qneg = (ValQ1 less 0) and (ValQ2 less 0)
+  Sep = (Ppos and Qneg) or (Pneg and Qpos)
+  Sep equal true
+end

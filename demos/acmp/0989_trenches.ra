@@ -1,0 +1,105 @@
+rem Trenches (Окопы)
+rem acmp.ru: 989
+rem Find line strictly separating two
+rem non-intersecting line segments.
+rem Uses Separating Axis Theorem (SAT):
+rem project onto segment difference
+rem and normal vectors, pick separator.
+
+use io
+use text
+use cli
+use algo
+use sequences
+
+arg Input text = "0 1 1 2
+0 -1 1 0
+
+0 1 -1 2
+0 -1 -1 0
+
+0 0 0 0
+0 0 0 0"
+
+Txt = Input split "\r" join " "
+Txt = Txt split "\n" join " "
+Tok = Txt split " "
+Nums = (Tok (Tok not equal "")) integer
+
+AnsA = 0
+AnsB = 0
+AnsC = 0
+X1 = 0
+Y1 = 0
+X2 = 0
+Y2 = 0
+U1 = 0
+V1 = 0
+U2 = 0
+V2 = 0
+
+Total = (Nums len) // 8
+for T in 0 till Total
+  Sub = Nums (T * 8 till (T * 8 + 8))
+  if (Sub equal 0) all
+    break
+  end
+  X1 = Sub 0
+  Y1 = Sub 1
+  X2 = Sub 2
+  Y2 = Sub 3
+  U1 = Sub 4
+  V1 = Sub 5
+  U2 = Sub 6
+  V2 = Sub 7
+
+  Dx = array (X2 - X1) (U2 - U1)
+  D1 = array (U1 - X1) (U2 - X1)
+  D2 = array (U1 - X2) (U2 - X2)
+  Dx = concat (concat Dx D1) D2
+
+  Dy = array (Y2 - Y1) (V2 - V1)
+  D3 = array (V1 - Y1) (V2 - Y1)
+  D4 = array (V1 - Y2) (V2 - Y2)
+  Dy = concat (concat Dy D3) D4
+
+  A = concat Dx (0 - Dy)
+  B = concat Dy Dx
+  Ok = A not equal 0
+  Ok = Ok or (B not equal 0)
+  A = A Ok
+  B = B Ok
+
+  P1 = (A * X1) + (B * Y1)
+  P2 = (A * X2) + (B * Y2)
+  Q1 = (A * U1) + (B * V1)
+  Q2 = (A * U2) + (B * V2)
+
+  Plo = P1 min P2
+  Phi = P1 max P2
+  Qlo = Q1 min Q2
+  Qhi = Q1 max Q2
+
+  Sep1 = Phi less Qlo
+  Sep2 = Qhi less Plo
+  Idx = 0
+  AnsA = 0
+  AnsB = 0
+  AnsC = 0
+  AllIdx = 0 till (A len)
+  if Sep1 any
+    Idxs = AllIdx Sep1
+    Idx = Idxs 0
+    AnsA = 2 * (A Idx)
+    AnsB = 2 * (B Idx)
+    AnsC = 0 - ((Phi Idx) + (Qlo Idx))
+  else
+    Idxs = AllIdx Sep2
+    Idx = Idxs 0
+    AnsA = 2 * (A Idx)
+    AnsB = 2 * (B Idx)
+    AnsC = 0 - ((Qhi Idx) + (Plo Idx))
+  end
+  Line = array AnsA AnsB AnsC
+  (Line join " ") print
+end
