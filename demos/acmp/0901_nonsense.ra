@@ -1,0 +1,52 @@
+rem Nonsense (Бессмыслица)
+rem https://acmp.ru/task.asp?id=901
+rem Landau's function g(N) via prime DP.
+
+use algo
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "59"
+
+Raw = (Input split "\r") join ""
+Clean = (Raw split "\n") join ""
+N = Clean integer
+
+DP = array shape (N + 1) fill 1
+Primes = N primesieve
+
+for P in Primes
+  PwList = new queue
+  Cur = P
+  for Step in 1 to 10
+    NotOver = not (Cur greater N)
+    if NotOver
+      PwList push Cur
+      Cur = Cur * P
+    end
+  end
+  RevPws = PwList reverse
+  Pws = RevPws reverse
+  KP = ((Pws shape) 0) integer
+
+  for InvS in 0 to (N - 1)
+    S = N - InvS
+    for PIdx in 0 to (KP - 1)
+      Pw = (Pws PIdx) integer
+      Fit = not (Pw greater S)
+      if Fit
+        Prev = (DP (S - Pw)) integer
+        Cand = Prev * Pw
+        CurVal = (DP S) integer
+        Btr = Cand greater CurVal
+        DP S = Btr choose Cand CurVal
+      end
+    end
+  end
+end
+
+Ans = DP reduce max
+(Ans text) print

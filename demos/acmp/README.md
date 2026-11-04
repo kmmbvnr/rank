@@ -109,6 +109,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0885** | [Звезды за кормой](0885_stars.ra) | Search / BFS (65%) | Deterministic naval combat simulation: broadside cannons, enemy movement and debris creation via BFS |
 | **0891** | [Кубик Рубика](0891_rubiks_cube.ra) | Graph Theory / Bidirectional BFS (67%) | Optimal 2x2x2 3-color Rubik's cube solver (God's algorithm) via meet-in-the-middle bidirectional BFS over vectorized permutations |
 | **0898** | [Ленточка](0898_ribbon.ra) | Mathematical Modeling / Divide & Conquer (60%) | Determine fold crease orientations ('K' or 'O') on a folded paper ribbon ($N \le 60$) in $O(K \cdot N)$ via iterative binary reflection |
+| **0901** | [Бессмыслица](0901_nonsense.ra) | Dynamic Programming / Number Theory (67%) | Landau's function $g(N)$ (max permutation order in $S_N$) via prime-power knapsack DP using `N primesieve` and `choose` |
 | **0902** | [Ленточка - 2](0902_ribbon_2.ra) | Mathematical Modeling / Divide & Conquer (65%) | Invert folded ribbon crease pattern via binary reflection and `choose` in $O(2^N)$ |
 | **0919** | [Отель](0919_hotel.ra) | Math / Diophantine (65%) | Rectangle brick tiling test via Klarner's theorem and Frobenius Diophantine representation using `choose` |
 | **0920** | [Игуана](0920_iguana.ra) | Bitmask / Inclusion-Exclusion (62%) | Chromatic number $N \le 18$: independent sets by doubling, zeta transform, $\sum (-1)^{N-|S|} I(S)^k$ over vectors |
