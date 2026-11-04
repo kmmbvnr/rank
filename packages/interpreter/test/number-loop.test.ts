@@ -340,10 +340,11 @@ for I in 1 to 3
  Bound = Product min 20
  Total += Quotient + Remainder + Bound
 end`);
-        expect(diagnostics.numberLoops).toBe(2);
-        expect(diagnostics.numberLoopOverflows).toBe(1);
+        // The output-only tier also replays when Product becomes wide.
+        expect(diagnostics.numberLoops).toBe(3);
+        expect(diagnostics.numberLoopOverflows).toBe(2);
         expect(diagnostics.compiledLoops).toBe(1);
-        expect(diagnostics.mixedIntegerLoops).toBe(1);
+        expect(diagnostics.mixedIntegerLoops).toBe(2);
     });
 
     it.each(['-1', '0', '1'])('takes an exact square root near a wide square (%s)', delta => {

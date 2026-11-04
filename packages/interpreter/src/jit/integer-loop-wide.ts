@@ -41,3 +41,12 @@ export function wideLoopScalars(plan: IntegerLoopPlan): Set<string> {
     const candidates = new Set([...plan.writerNames, ...[...plan.required].map(slot => plan.names[slot])]);
     return new Set([...candidates].filter(name => plan.localTypes.get(name) === 'integer' && !numeric.has(name)));
 }
+
+/** Prefer exact outputs before widening intermediate arithmetic. An implicit
+ * self-read in a compound update is safe: no other expression consumes it.
+ * Every other register retains checked Number operations and exact replay. */
+export function wideLoopOutputs(plan: IntegerLoopPlan, candidates: ReadonlySet<string>): Set<string> {
+    const reads = new Set([plan.statement, ...AstUtils.streamAllContents(plan.statement)]
+        .filter(isNameExpression).map(node => node.name));
+    return new Set([...candidates].filter(name => !reads.has(name)));
+}

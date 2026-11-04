@@ -1,0 +1,877 @@
+{
+  "parent": "9b78d09b",
+  "runtimeBaselineEquivalent": "08df1964",
+  "node": "v24.15.0",
+  "macCpu": "Apple M5",
+  "intelCpu": "Intel Core i7-10750H",
+  "policy": "fresh sequential processes; parse and execute timed; module imports excluded; controls disable only narrow output tier in memory",
+  "mac": [
+    {
+      "trial": 0,
+      "broadControl": false,
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 3655.13075,
+      "rssMiB": 204.890625,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 22137.512749999998,
+      "rssMiB": 214.109375,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "sink": false,
+      "k": "10000",
+      "mode": "reference",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 4817.122333,
+      "rssMiB": 321.328125,
+      "answer": "1008745304821002"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 4241.883959,
+      "rssMiB": 206.90625,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 22602.157833999998,
+      "rssMiB": 212.859375,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "sink": false,
+      "k": "10000",
+      "mode": "reference",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 3515.949709,
+      "rssMiB": 321.953125,
+      "answer": "1008745304821002"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 3567.717416,
+      "rssMiB": 202.40625,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 22351.181333,
+      "rssMiB": 224.640625,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "sink": false,
+      "k": "10000",
+      "mode": "reference",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 3316.326458,
+      "rssMiB": 322.796875,
+      "answer": "1008745304821002"
+    }
+  ],
+  "intel": [
+    {
+      "trial": 0,
+      "broadControl": false,
+      "sink": false,
+      "k": "100000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 1639.6532750000001,
+      "rssMiB": 208.96875,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "sink": false,
+      "k": "100000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 5929.885923,
+      "rssMiB": 226.0546875,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "sink": false,
+      "k": "1000",
+      "mode": "reference",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 1100.412517,
+      "rssMiB": 177.9375,
+      "answer": "63237130793050"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 8789.636258,
+      "rssMiB": 224,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "sink": false,
+      "k": "100000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 1600.6293070000002,
+      "rssMiB": 198.2578125,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "sink": false,
+      "k": "100000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 5914.539427000001,
+      "rssMiB": 205.6640625,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "sink": false,
+      "k": "1000",
+      "mode": "reference",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 1060.6243840000002,
+      "rssMiB": 179.265625,
+      "answer": "63237130793050"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 8846.200700000001,
+      "rssMiB": 217.9453125,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "sink": false,
+      "k": "100000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 1644.3788679999998,
+      "rssMiB": 212.01953125,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "sink": false,
+      "k": "100000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 6034.167487,
+      "rssMiB": 221.61328125,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "sink": false,
+      "k": "1000",
+      "mode": "reference",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 1051.900108,
+      "rssMiB": 180,
+      "answer": "63237130793050"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "demos/euler/397_parabola.ra",
+      "x": "1000000000",
+      "ms": 8824.774916,
+      "rssMiB": 209.578125,
+      "answer": "141630459461893728"
+    }
+  ],
+  "macOtherDemos": [
+    {
+      "trial": 0,
+      "broadControl": false,
+      "file": "demos/euler/393_ants.ra",
+      "args": [],
+      "ms": 374.027792,
+      "rssMiB": 233.421875,
+      "answer": "112398351350823112"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "file": "demos/euler/393_ants.ra",
+      "args": [],
+      "ms": 377.68437500000005,
+      "rssMiB": 264.90625,
+      "answer": "112398351350823112"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "file": "demos/euler/185_numbermind.ra",
+      "args": [],
+      "ms": 529.698292,
+      "rssMiB": 207.5,
+      "answer": "4640261571849533"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "file": "demos/euler/185_numbermind.ra",
+      "args": [],
+      "ms": 533.002417,
+      "rssMiB": 207.328125,
+      "answer": "4640261571849533"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "file": "demos/euler/275_balancedsculptures.ra",
+      "args": [
+        "--n=12"
+      ],
+      "ms": 178.231667,
+      "rssMiB": 184.203125,
+      "answer": "9657"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "file": "demos/euler/275_balancedsculptures.ra",
+      "args": [
+        "--n=12"
+      ],
+      "ms": 173.23733399999998,
+      "rssMiB": 184.5625,
+      "answer": "9657"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "file": "demos/euler/283_integertriangles.ra",
+      "args": [
+        "--top=30"
+      ],
+      "ms": 157.585916,
+      "rssMiB": 181.671875,
+      "answer": "766998786"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "file": "demos/euler/283_integertriangles.ra",
+      "args": [
+        "--top=30"
+      ],
+      "ms": 159.604,
+      "rssMiB": 182.5,
+      "answer": "766998786"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "file": "demos/euler/324_tower.ra",
+      "args": [
+        "--exp=500000"
+      ],
+      "ms": 130.911542,
+      "rssMiB": 163.875,
+      "answer": "30808124"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "file": "demos/euler/324_tower.ra",
+      "args": [
+        "--exp=500000"
+      ],
+      "ms": 136.24358300000003,
+      "rssMiB": 163.546875,
+      "answer": "30808124"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "file": "demos/euler/337_totientstairs.ra",
+      "args": [
+        "--limit=10000"
+      ],
+      "ms": 138.888458,
+      "rssMiB": 162.046875,
+      "answer": "73808307"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "file": "demos/euler/337_totientstairs.ra",
+      "args": [
+        "--limit=10000"
+      ],
+      "ms": 132.43766699999998,
+      "rssMiB": 176.09375,
+      "answer": "73808307"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "file": "demos/euler/391_hopping.ra",
+      "args": [
+        "--limit=100"
+      ],
+      "ms": 126.513,
+      "rssMiB": 160.765625,
+      "answer": "5642811"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "file": "demos/euler/391_hopping.ra",
+      "args": [
+        "--limit=100"
+      ],
+      "ms": 123.778042,
+      "rssMiB": 177.6875,
+      "answer": "5642811"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "file": "demos/euler/362_squarefree.ra",
+      "args": [
+        "--limit=100000"
+      ],
+      "ms": 144.16316700000002,
+      "rssMiB": 178.328125,
+      "answer": "783685"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "file": "demos/euler/362_squarefree.ra",
+      "args": [
+        "--limit=100000"
+      ],
+      "ms": 141.978333,
+      "rssMiB": 182.15625,
+      "answer": "783685"
+    },
+    {
+      "trial": 0,
+      "broadControl": false,
+      "file": "demos/euler/364_distance.ra",
+      "args": [
+        "--n=10000"
+      ],
+      "ms": 126.88562499999998,
+      "rssMiB": 176.09375,
+      "answer": "32524330"
+    },
+    {
+      "trial": 0,
+      "broadControl": true,
+      "file": "demos/euler/364_distance.ra",
+      "args": [
+        "--n=10000"
+      ],
+      "ms": 128.564041,
+      "rssMiB": 161.96875,
+      "answer": "32524330"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "file": "demos/euler/393_ants.ra",
+      "args": [],
+      "ms": 375.62304200000005,
+      "rssMiB": 234.6875,
+      "answer": "112398351350823112"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "file": "demos/euler/393_ants.ra",
+      "args": [],
+      "ms": 389.12199999999996,
+      "rssMiB": 268.71875,
+      "answer": "112398351350823112"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "file": "demos/euler/185_numbermind.ra",
+      "args": [],
+      "ms": 530.00775,
+      "rssMiB": 207.1875,
+      "answer": "4640261571849533"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "file": "demos/euler/185_numbermind.ra",
+      "args": [],
+      "ms": 530.264,
+      "rssMiB": 207.203125,
+      "answer": "4640261571849533"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "file": "demos/euler/275_balancedsculptures.ra",
+      "args": [
+        "--n=12"
+      ],
+      "ms": 177.77649999999997,
+      "rssMiB": 182.78125,
+      "answer": "9657"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "file": "demos/euler/275_balancedsculptures.ra",
+      "args": [
+        "--n=12"
+      ],
+      "ms": 179.7735,
+      "rssMiB": 185.09375,
+      "answer": "9657"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "file": "demos/euler/283_integertriangles.ra",
+      "args": [
+        "--top=30"
+      ],
+      "ms": 158.808916,
+      "rssMiB": 181.40625,
+      "answer": "766998786"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "file": "demos/euler/283_integertriangles.ra",
+      "args": [
+        "--top=30"
+      ],
+      "ms": 162.986666,
+      "rssMiB": 182.9375,
+      "answer": "766998786"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "file": "demos/euler/324_tower.ra",
+      "args": [
+        "--exp=500000"
+      ],
+      "ms": 136.656625,
+      "rssMiB": 164.296875,
+      "answer": "30808124"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "file": "demos/euler/324_tower.ra",
+      "args": [
+        "--exp=500000"
+      ],
+      "ms": 132.501875,
+      "rssMiB": 179.09375,
+      "answer": "30808124"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "file": "demos/euler/337_totientstairs.ra",
+      "args": [
+        "--limit=10000"
+      ],
+      "ms": 130.55299999999997,
+      "rssMiB": 163.109375,
+      "answer": "73808307"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "file": "demos/euler/337_totientstairs.ra",
+      "args": [
+        "--limit=10000"
+      ],
+      "ms": 131.67687499999997,
+      "rssMiB": 175.9375,
+      "answer": "73808307"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "file": "demos/euler/391_hopping.ra",
+      "args": [
+        "--limit=100"
+      ],
+      "ms": 124.22929200000002,
+      "rssMiB": 160.953125,
+      "answer": "5642811"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "file": "demos/euler/391_hopping.ra",
+      "args": [
+        "--limit=100"
+      ],
+      "ms": 131.79608300000004,
+      "rssMiB": 176.734375,
+      "answer": "5642811"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "file": "demos/euler/362_squarefree.ra",
+      "args": [
+        "--limit=100000"
+      ],
+      "ms": 143.43400000000003,
+      "rssMiB": 180.296875,
+      "answer": "783685"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "file": "demos/euler/362_squarefree.ra",
+      "args": [
+        "--limit=100000"
+      ],
+      "ms": 141.491583,
+      "rssMiB": 181.1875,
+      "answer": "783685"
+    },
+    {
+      "trial": 1,
+      "broadControl": false,
+      "file": "demos/euler/364_distance.ra",
+      "args": [
+        "--n=10000"
+      ],
+      "ms": 127.58295899999999,
+      "rssMiB": 162.265625,
+      "answer": "32524330"
+    },
+    {
+      "trial": 1,
+      "broadControl": true,
+      "file": "demos/euler/364_distance.ra",
+      "args": [
+        "--n=10000"
+      ],
+      "ms": 128.068458,
+      "rssMiB": 176.15625,
+      "answer": "32524330"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "file": "demos/euler/393_ants.ra",
+      "args": [],
+      "ms": 376.01283400000005,
+      "rssMiB": 236.296875,
+      "answer": "112398351350823112"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "file": "demos/euler/393_ants.ra",
+      "args": [],
+      "ms": 374.105542,
+      "rssMiB": 267.828125,
+      "answer": "112398351350823112"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "file": "demos/euler/185_numbermind.ra",
+      "args": [],
+      "ms": 541.6354590000001,
+      "rssMiB": 205.625,
+      "answer": "4640261571849533"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "file": "demos/euler/185_numbermind.ra",
+      "args": [],
+      "ms": 541.5887499999999,
+      "rssMiB": 205.78125,
+      "answer": "4640261571849533"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "file": "demos/euler/275_balancedsculptures.ra",
+      "args": [
+        "--n=12"
+      ],
+      "ms": 179.670792,
+      "rssMiB": 183.03125,
+      "answer": "9657"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "file": "demos/euler/275_balancedsculptures.ra",
+      "args": [
+        "--n=12"
+      ],
+      "ms": 180.88920799999997,
+      "rssMiB": 184.78125,
+      "answer": "9657"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "file": "demos/euler/283_integertriangles.ra",
+      "args": [
+        "--top=30"
+      ],
+      "ms": 160.15950000000004,
+      "rssMiB": 180.859375,
+      "answer": "766998786"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "file": "demos/euler/283_integertriangles.ra",
+      "args": [
+        "--top=30"
+      ],
+      "ms": 159.995084,
+      "rssMiB": 181.140625,
+      "answer": "766998786"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "file": "demos/euler/324_tower.ra",
+      "args": [
+        "--exp=500000"
+      ],
+      "ms": 132.273459,
+      "rssMiB": 164.1875,
+      "answer": "30808124"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "file": "demos/euler/324_tower.ra",
+      "args": [
+        "--exp=500000"
+      ],
+      "ms": 134.29074999999997,
+      "rssMiB": 180.359375,
+      "answer": "30808124"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "file": "demos/euler/337_totientstairs.ra",
+      "args": [
+        "--limit=10000"
+      ],
+      "ms": 131.78529099999997,
+      "rssMiB": 162.640625,
+      "answer": "73808307"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "file": "demos/euler/337_totientstairs.ra",
+      "args": [
+        "--limit=10000"
+      ],
+      "ms": 136.862083,
+      "rssMiB": 175.953125,
+      "answer": "73808307"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "file": "demos/euler/391_hopping.ra",
+      "args": [
+        "--limit=100"
+      ],
+      "ms": 127.46033299999996,
+      "rssMiB": 160.84375,
+      "answer": "5642811"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "file": "demos/euler/391_hopping.ra",
+      "args": [
+        "--limit=100"
+      ],
+      "ms": 125.476583,
+      "rssMiB": 175.859375,
+      "answer": "5642811"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "file": "demos/euler/362_squarefree.ra",
+      "args": [
+        "--limit=100000"
+      ],
+      "ms": 145.85679100000002,
+      "rssMiB": 180.015625,
+      "answer": "783685"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "file": "demos/euler/362_squarefree.ra",
+      "args": [
+        "--limit=100000"
+      ],
+      "ms": 145.598959,
+      "rssMiB": 180.1875,
+      "answer": "783685"
+    },
+    {
+      "trial": 2,
+      "broadControl": false,
+      "file": "demos/euler/364_distance.ra",
+      "args": [
+        "--n=10000"
+      ],
+      "ms": 128.379792,
+      "rssMiB": 161.46875,
+      "answer": "32524330"
+    },
+    {
+      "trial": 2,
+      "broadControl": true,
+      "file": "demos/euler/364_distance.ra",
+      "args": [
+        "--n=10000"
+      ],
+      "ms": 128.448375,
+      "rssMiB": 175.109375,
+      "answer": "32524330"
+    }
+  ],
+  "verification": {
+    "mac": {
+      "cases": 96,
+      "bufferBoundInputs": 1000000,
+      "maxDivisors": 4050,
+      "at": 720720
+    },
+    "intel": {
+      "cases": 96,
+      "bufferBoundInputs": 1000000,
+      "maxDivisors": 4050,
+      "at": 720720
+    }
+  },
+  "hashes": {
+    "benchmarks/experiments/euler397-broad-control.mjs": "d006ecaee42f9d0482636081f9053a1ffba588c41d0ca48b74fc7fa99031ddfc",
+    "benchmarks/experiments/euler397-original.ra": "46033a7150a85cc3c5948e0cd33abea4099cd1eb1c1e488cef85bb120dea669a",
+    "benchmarks/experiments/euler397-wide-sink.mjs": "f916bb63250d7a4eb12097a0e1260bfd2fdb276f72f49fa0ac11a95436d9dd6f",
+    "benchmarks/experiments/euler397-verify.mjs": "6f1e1aa4af3758daea9f63e1a6d158c6f34b8ab857e7b52737470d9b1d0f6712",
+    "benchmarks/experiments/euler397-direct.mjs": "5067711a0f61ca5a7d25367ad7a3e4ee6ee8566fce285de5d173b6512db3d274",
+    "benchmarks/experiments/euler397-compact.ra": "f488ba948d9efeeb918a1791515212fc8f90c3275cb27e78540b6bcc85776e98",
+    "benchmarks/experiments/euler397-safe-products.ra": "d32d31b12d8a65ae80bbe67e4d2a120634b8a1d2223855ec745f6d16b8f08f5c",
+    "benchmarks/experiments/euler397-pruned.ra": "ec62adf6fbc4ff9331194ad9d56d2aa3af65d04f4272a88a60706992ffe85559",
+    "benchmarks/experiments/euler397-series.py": "6f0a664865d4ccda43262943a97140e8d72b38f3d2af5be3ffcc93a6f19774d4",
+    "benchmarks/experiments/euler397-delivery-series.py": "81f1635c74b3286928b5a6868d0c83cdbb24dd38416cf6e86d58578d19369717",
+    "benchmarks/experiments/euler397-intel-delivery.py": "d6d1e82255e65eb7d0fb7889034ca17a9f5d25823c1c24199ac37a7e7b7f24b1",
+    "benchmarks/experiments/euler397-controls.py": "24b6db76455626a1f5884e46bec3a79000a5e44ed302fde44f727d30bc478dbf",
+    "benchmarks/experiments/euler397-unrolled.ra": "1ccfc40da25bcbc10f4c6662a273aad5bf4c4ab8e7ceb222a90b71f6bd488be7",
+    "benchmarks/mixed-loop-outputs.mjs": "3eebda8bdbb14a85eb86cfd7248b9f259647f22bd5fb4c5f893ff5eda3f32072",
+    "benchmarks/euler397-followup.mjs": "e20fe141883e76ec288eae6555fe34617300df9d3bb1a9ba77b7e3eab06e5ba9",
+    "packages/interpreter/src/jit/integer-loop-header.ts": "a2db6438739228aeff7df2323cc86a79965d5c9584c51012efec8c588a5e0462",
+    "packages/interpreter/src/jit/integer-loop-expressions.ts": "c6d33ebfc0c3260e2e7616fc8bbf883f01a9de253c6e47549710aecdf086f7f3",
+    "packages/interpreter/src/jit/integer-loop-plan.ts": "4ef35a46b3ad754e773f3d238fdb9df00cf8c6a64b53b599c3de95fbfef451e2",
+    "packages/interpreter/src/jit/integer-loop.ts": "41c0fa84c80fc3dd44a9617a0d9d4ff1320be0eca7241e4949f501a1285d55e0",
+    "packages/interpreter/src/jit/integer-loop-state.ts": "b6df50d1eb2962af7407cfdfb6ab7d9d1e7f1a3a7cddc3895f34421fa1da2cde",
+    "packages/interpreter/src/jit/integer-loop-writes.ts": "24751652d989312777e8c4ce723b40cfc3c3f7627aa26e1f92841e4ff2ed9dc9",
+    "packages/interpreter/src/jit/integer-loop-statements.ts": "72fc7af1248fa4d79e80497522f212277ff2a00539fef9fb70960c1d3c3c74c4",
+    "packages/interpreter/src/jit/integer-loop-runtime.ts": "9ef44d0bd0f3647df15e2d801adf69fc687d347bb731003aa64ddf9e269ba06c",
+    "packages/interpreter/src/jit/integer-loop-wide.ts": "7c6ecf3be8b1a6547441277e556b1c82be66238f85d82ae50bf5341b6b1ad42f",
+    "demos/euler/397_parabola.ra": "ae881061f8ebd0b9f473ce77555409b576ef00762c5152a6b86e2a8388724e92"
+  }
+}

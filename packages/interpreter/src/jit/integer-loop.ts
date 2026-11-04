@@ -5,7 +5,7 @@ import { createLoopStatements } from './integer-loop-statements.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
 import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan, type LoopWorkFeedback, type LoopPolling } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
-import { wideLoopScalars } from './integer-loop-wide.js';
+import { wideLoopScalars, wideLoopOutputs } from './integer-loop-wide.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
@@ -86,10 +86,8 @@ export function compileIntegerFunctionPrefix(statement: FunctionStatement, host:
         if (result) return result;
         if (!preparedMixed) {
             preparedMixed = true;
-            const wide = wideLoopScalars(plan);
-            const mixedPlan = wide.size && lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, wide);
-            mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host, undefined, undefined,
-                polling => lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, wide, false, polling)) : undefined;
+            mixed = prepareMixedLoops(plan, host, undefined, (wide, counting, polling) =>
+                lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, wide, counting, polling));
         }
         return mixed?.run(...context);
     } };
@@ -126,13 +124,34 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
         if (result) return result;
         if (!preparedMixed) {
             preparedMixed = true;
-            const wide = wideLoopScalars(plan ?? numberPlan!);
-            const mixedPlan = wide.size && lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide);
-            const compileMixedCounted = feedback && wide.size ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide, true) : undefined;
-            mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host, feedback, compileMixedCounted,
-                polling => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide, false, polling)) : undefined;
+            mixed = prepareMixedLoops(plan ?? numberPlan!, host, feedback, (wide, counting, polling) =>
+                lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide, counting, polling));
         }
         return mixed?.run(...context) ?? exact?.run(...context);
+    } };
+}
+
+/** Each tier is transactional. Compile the broader tier only if checked
+ * intermediate arithmetic declines the output-only tier; retain exact fallback. */
+function prepareMixedLoops(plan: IntegerLoopPlan, host: LoopHost, feedback: LoopWorkFeedback | undefined,
+    lower: (wide: ReadonlySet<string>, counting: boolean, polling: LoopPolling) => IntegerLoopPlan | undefined): CompiledLoop | undefined {
+    const wide = wideLoopScalars(plan);
+    if (!wide.size) return undefined;
+    const outputs = wideLoopOutputs(plan, wide);
+    const widths = outputs.size && outputs.size < wide.size ? [outputs, wide] : [wide];
+    const variants = widths.map(width => ({ width, compiled: undefined as CompiledLoop | null | undefined }));
+    return { run: (...context) => {
+        for (const variant of variants) {
+            if (variant.compiled === undefined) {
+                const candidate = lower(variant.width, false, 'checked');
+                variant.compiled = candidate ? prepareNumberLoop(candidate, host, feedback,
+                    feedback ? () => lower(variant.width, true, 'checked') : undefined,
+                    polling => lower(variant.width, false, polling)) ?? null : null;
+            }
+            const result = variant.compiled?.run(...context);
+            if (result) return result;
+        }
+        return undefined;
     } };
 }
 

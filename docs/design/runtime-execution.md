@@ -877,8 +877,14 @@ whose existing graph validation throws.
 
 Each integer intermediate and range increment is checked for safe-integer
 exactness. Division retains floor rounding and remainder retains the divisor's
-sign. Overflow discards the entire unpublished attempt and executes the original
-BigInt region from its original inputs. Indexed rank-one integer, real and boolean stores use a
+sign. Overflow discards the entire unpublished attempt and restarts from the
+original inputs. Before widening intermediate arithmetic,
+loops try a private mixed tier with exact integer outputs that have no explicit
+reads inside the region (compound updates have only an implicit self-read).
+Other registers keep checked Number arithmetic. If an intermediate overflows,
+the attempt is discarded and the existing broader mixed tier is tried lazily,
+followed by the publishing exact backend. Function prefixes use the same policy.
+No unpublished scalar or array changes escape a rejected tier. Indexed rank-one integer, real and boolean stores use a
 private numeric buffer and changed-cell mask, so no array writes or callbacks
 escape that attempt. Normal/error publication writes changed cells with tracked
 revisions and copies shared sources without polling during the commit. Packed
