@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "712_exponentdifference"
+  Nn = 10
+  run
+  Answer equal 210
+  Nn = 100
+  run
+  Answer equal 37018
+  Nn = 100000000
+  run
+  Answer equal 478653324
+end
+
+test "default input"
+  use "712_exponentdifference"
+  run
+  Answer equal 413876461
+end

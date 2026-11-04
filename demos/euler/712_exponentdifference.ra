@@ -1,0 +1,60 @@
+rem Exponent Difference
+rem https://projecteuler.net/problem=712
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 10 ** 12
+arg Pm integer = 1000000007
+
+rem Per prime p and level k, a pair has
+rem one number divisible by p^k and the
+rem other not: 2 q (n - q) pairs with
+rem q = n // p^k. S = sum over p, k.
+rem Primes up to sqrt(n) take all their
+rem powers. Larger ones have k = 1 and
+rem are grouped by q = n // p, using
+rem prime counts pi(n // q) from a
+rem Lucy sieve.
+Rt = Nn isqrt
+Vs = 0 to Rt
+Gs = Vs - 1
+Gs 0 = 0
+Gl = Nn // (Vs max 1) - 1
+Pr = primes to Rt array
+for P in Pr
+  Gp = Gs (P - 1)
+  Ih = Rt min (Nn // (P * P))
+  Ix = 1 to Ih
+  Pi = P * Ix
+  Mk = Pi at most Rt
+  Va = Gl (Pi min Rt)
+  Vb = Gs (Nn // Pi min Rt)
+  Dv = (Mk choose Va Vb) - Gp
+  Gl Ix = Gl Ix - Dv
+  Iw = P * P to Rt
+  Gs Iw = Gs Iw - (Gs (Iw // P) - Gp)
+end
+Qk = array shape (Pr len) fill Nn
+Answer = 0
+for Qk max greater 0
+  Qk = Qk // Pr
+  Lv = Qk filter (Qk greater 0)
+  Rv = (Nn - Lv) mod Pm
+  Ga = (Lv mod Pm) * Rv mod Pm
+  Answer += Ga sum
+end
+Qs = 1 to Nn // (Rt + 1)
+Hi = Gl Qs
+Nx = Nn // (Qs + 1)
+Gn = Gl ((Qs + 1) min Rt)
+Lo = (Nx greater Rt) choose Gn (Gs Rt)
+Ct = (Hi - Lo) mod Pm
+Rq = (Nn - Qs) mod Pm
+Gq = (Qs mod Pm) * Rq mod Pm
+Cg = Ct * Gq mod Pm
+Answer += Cg sum
+Answer = 2 * Answer mod Pm
+Answer print
