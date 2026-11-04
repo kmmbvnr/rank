@@ -1,0 +1,14 @@
+use testing
+
+test "statement value"
+  use "713_turanwaterheating"
+  Nn = 1000
+  run
+  Answer equal 3281346
+end
+
+test "default input"
+  use "713_turanwaterheating"
+  run
+  Answer equal 788626351539895
+end
