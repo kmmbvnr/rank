@@ -1,0 +1,196 @@
+rem Rubik's Cube (Кубик Рубика)
+rem https://acmp.ru/task.asp?id=891
+rem 2x2x2 3-color cube via meet-in-mid.
+
+use algo
+use cli
+use io
+use sequences
+use text
+
+arg Input text = "BR GR GR GR BB RR
+BG RG RG BB GB BG"
+
+PU = (array 12 13 2 3 0 1 6 7 4 5
+  10 11 8 9 14 15 18 16 19 17
+  20 21 22 23)
+PUi = (array 4 5 2 3 8 9 6 7 12 13
+  10 11 0 1 14 15 17 19 16 18
+  20 21 22 23)
+PD = (array 0 1 6 7 4 5 10 11 8 9
+  14 15 12 13 2 3 16 17 18 19
+  22 20 23 21)
+PDi = (array 0 1 14 15 4 5 2 3 8 9
+  6 7 12 13 10 11 16 17 18 19
+  21 23 20 22)
+PF = (array 2 0 3 1 4 20 6 21 8 9
+  10 11 18 13 19 15 16 17 7 5
+  14 12 22 23)
+PFi = (array 1 3 0 2 4 19 6 18 8 9
+  10 11 21 13 20 15 16 17 12 14
+  5 7 22 23)
+PB = (array 0 1 2 3 17 5 16 7 10 8
+  11 9 12 23 14 22 13 15 18 19
+  20 21 4 6)
+PBi = (array 0 1 2 3 22 5 23 7 9 11
+  8 10 12 16 14 17 6 4 18 19
+  20 21 15 13)
+PL = (array 16 1 18 3 6 4 7 5 8 22
+  10 20 12 13 14 15 11 17 9 19
+  0 21 2 23)
+PLi = (array 20 1 22 3 5 7 4 6 8 18
+  10 16 12 13 14 15 0 17 2 19
+  11 21 9 23)
+PR = (array 0 21 2 23 4 5 6 7 19 9
+  17 11 14 12 15 13 16 1 18 3
+  20 10 22 8)
+PRi = (array 0 17 2 19 4 5 6 7 23 9
+  21 11 13 15 12 14 16 10 18 8
+  20 1 22 3)
+
+AllP = (array PU PUi PD PDi PF PFi
+  PB PBi PL PLi PR PRi)
+Names = (array "U" "U'" "D" "D'"
+  "F" "F'" "B" "B'" "L" "L'"
+  "R" "R'")
+Invs = (array 1 0 3 2 5 4
+  7 6 9 8 11 10)
+
+S1 = "RRRR" + "GGGG" + "RRRR"
+S1 = S1 + "GGGG" + "BBBB" + "BBBB"
+S2 = "RRRR" + "BBBB" + "RRRR"
+S2 = S2 + "BBBB" + "GGGG" + "GGGG"
+S3 = "GGGG" + "RRRR" + "GGGG"
+S3 = S3 + "RRRR" + "BBBB" + "BBBB"
+S4 = "GGGG" + "BBBB" + "GGGG"
+S4 = S4 + "BBBB" + "RRRR" + "RRRR"
+S5 = "BBBB" + "RRRR" + "BBBB"
+S5 = S5 + "RRRR" + "GGGG" + "GGGG"
+S6 = "BBBB" + "GGGG" + "BBBB"
+S6 = S6 + "GGGG" + "RRRR" + "RRRR"
+Goals = array S1 S2 S3 S4 S5 S6
+
+fun Start solve_cube
+  IsSolved = Start in Goals
+  if IsSolved
+    return "Solved"
+  end
+
+  FwdParent = new index
+  FwdMove = new index
+  FwdParent Start = "ROOT"
+
+  BwdParent = new index
+  BwdMove = new index
+  for G in Goals
+    BwdParent G = "ROOT"
+  end
+
+  FwdFrontier = array Start
+  BwdFrontier = Goals
+
+  Meet = ""
+  Found = false
+
+  for Iter in 1 to 10
+    if not Found
+      ShpF = FwdFrontier shape
+      NFwd = (ShpF 0) integer
+      ShpB = BwdFrontier shape
+      NBwd = (ShpB 0) integer
+      GrowFwd = not (NFwd greater NBwd)
+
+      if GrowFwd
+        NextQ = new queue
+        for Idx in 0 to (NFwd - 1)
+          S = FwdFrontier Idx
+          for M in 0 to 11
+            if not Found
+              P = AllP M
+              Nxt = S P
+              if Nxt not in FwdParent
+                FwdParent Nxt = S
+                FwdMove Nxt = M
+                NextQ push Nxt
+                if Nxt in BwdParent
+                  Meet = Nxt
+                  Found = true
+                end
+              end
+            end
+          end
+        end
+        RevQ = NextQ reverse
+        FwdFrontier = RevQ reverse
+      else
+        NextQ = new queue
+        for Idx in 0 to (NBwd - 1)
+          S = BwdFrontier Idx
+          for M in 0 to 11
+            if not Found
+              P = AllP M
+              Nxt = S P
+              if Nxt not in BwdParent
+                BwdParent Nxt = S
+                BwdMove Nxt = M
+                NextQ push Nxt
+                if Nxt in FwdParent
+                  Meet = Nxt
+                  Found = true
+                end
+              end
+            end
+          end
+        end
+        RevQ2 = NextQ reverse
+        BwdFrontier = RevQ2 reverse
+      end
+    end
+  end
+
+  PathFwd = new queue
+  CurrF = Meet
+  for Step in 1 to 10
+    PFNode = FwdParent CurrF
+    if PFNode not equal "ROOT"
+      MF = (FwdMove CurrF) integer
+      PathFwd push (Names MF)
+      CurrF = PFNode
+    end
+  end
+  FwdMoves = PathFwd reverse
+
+  PathBwd = new queue
+  CurrB = Meet
+  for Step in 1 to 10
+    PBNode = BwdParent CurrB
+    if PBNode not equal "ROOT"
+      MB = (BwdMove CurrB) integer
+      InvM = Invs MB
+      PathBwd push (Names InvM)
+      CurrB = PBNode
+    end
+  end
+  BwdMoves = (PathBwd reverse) reverse
+
+  FwdStr = (FwdMoves copy) join ""
+  BwdStr = (BwdMoves copy) join ""
+  AnsPath = FwdStr + BwdStr
+  return AnsPath
+end
+
+Raw = (Input split "\r") join ""
+Lines = Raw split "\n"
+T1 = (Lines 0) split " "
+T2 = (Lines 1) split " "
+
+F = (T1 0) + (T2 0)
+L = (T1 1) + (T2 1)
+B = (T1 2) + (T2 2)
+R = (T1 3) + (T2 3)
+U = (T1 4) + (T2 4)
+D = (T1 5) + (T2 5)
+StartCube = F + L + B + R + U + D
+
+Ans = StartCube solve_cube
+Ans print

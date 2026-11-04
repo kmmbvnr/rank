@@ -107,6 +107,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0827** | [Фруктовый сок](0827_fruit_juice.ra) | Graph Theory / Flow (66%) | Min DAG path cover via Dinic `maxflow` on subset inclusion bipartite split graph, length-pruned with `choose` |
 | **0829** | [Строки - 3](0829_strings_3.ra) | Strings / Rolling Hash (60%) | Count substrings of $A$ that are cyclic shifts of $B$ in $O(|A| + |B|)$ using double polynomial rolling hash ($10^9+7$ and $10^9+9$) with `use algo` set |
 | **0885** | [Звезды за кормой](0885_stars.ra) | Search / BFS (65%) | Deterministic naval combat simulation: broadside cannons, enemy movement and debris creation via BFS |
+| **0891** | [Кубик Рубика](0891_rubiks_cube.ra) | Graph Theory / Bidirectional BFS (67%) | Optimal 2x2x2 3-color Rubik's cube solver (God's algorithm) via meet-in-the-middle bidirectional BFS over vectorized permutations |
 | **0898** | [Ленточка](0898_ribbon.ra) | Mathematical Modeling / Divide & Conquer (60%) | Determine fold crease orientations ('K' or 'O') on a folded paper ribbon ($N \le 60$) in $O(K \cdot N)$ via iterative binary reflection |
 | **0902** | [Ленточка - 2](0902_ribbon_2.ra) | Mathematical Modeling / Divide & Conquer (65%) | Invert folded ribbon crease pattern via binary reflection and `choose` in $O(2^N)$ |
 | **0919** | [Отель](0919_hotel.ra) | Math / Diophantine (65%) | Rectangle brick tiling test via Klarner's theorem and Frobenius Diophantine representation using `choose` |
