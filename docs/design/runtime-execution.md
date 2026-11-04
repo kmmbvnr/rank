@@ -752,6 +752,37 @@ and invocation binding. `number-loop-runtime.ts` binds the private Number
 specialization. Both use the existing shared typed-expression frontend and
 operator catalogue.
 
+`integer-representation.ts` separates the semantic integer type from proven
+value bounds and physical Int32, safe-integer Number or BigInt representation.
+The same range predicate guards scalar entry conversion and justifies omitted
+Int32 store guards and shift lowering. Unknown bounds do not justify narrowing;
+existing mixed regions retain their BigInt scalar registers.
+
+`number-container-contract.ts` collects native-storage proofs for index and
+Fenwick inputs. It groups alias slots by storage identity, describes preparation
+checkpoints and counts copied cells independently of profitability thresholds.
+Only after copy/work admission does it prepare one transaction per identity.
+Index values stay exact in the backing map and numeric loads check safe range;
+Fenwick snapshot creation checks cell and node range before Number execution.
+Prefix sums and stores still guard intermediate overflow. Concrete generated
+accesses keep the existing specialized index and Fenwick methods.
+
+The transaction boundary publishes completed mutations on success, ordinary
+errors and cancellation. Overflow discards private snapshots or clears an
+initially empty index before exact replay; a failed preparation changes no source.
+Mutability checks remain at the original store boundary, preserving readonly
+errors and operand order. Native identities are checked on every invocation.
+Fenwick preparation still declines observable demand budgets because copying
+would add checkpoints before the original first iteration.
+
+Calls need separate proofs for Number-compatible results and for inability to
+observe private state. The latter currently requires audited scalar native
+arguments, no callbacks, no host override and no declared effects. Rank helpers
+beside private containers report `number-loop:call-private-state-proof`: their
+absence of observation through captured state is not proved by scalar arguments
+alone. `number-loop:call-number-result-proof` identifies the independent numeric
+result requirement. Neither rejection is a copy-cost policy decision.
+
 The Number specialization accepts safe integer/boolean scalars, supported nested
 numeric/conditional loops, and rank-one eager stored integer arrays, including
 direct traversal of a named vector. It proves

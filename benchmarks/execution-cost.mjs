@@ -13,6 +13,56 @@ const cases = {
  container: ['use algo\nF = 128 fenwick\nfor I in 0 till 12000\n F (I mod 128) += 1\nend\nF sum 127', 12000n],
  replay: ['A = array shape 3 fill 0\nTotal = 0\nfor I in 0 till 3\n A I = I\n Total += 4503599627370495\nend\nTotal', 13510798882111485n],
 };
+// Container-contract controls use identical algorithms in both checkouts.
+const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+const compositionTotal = Array.from({ length: 12000 }, (_, i) =>
+ BigInt(Math.floor(i / 128) + 1 + gcd(i, 6))).reduce((a, b) => a + b, 0n);
+for (const wide of [false, true]) {
+ cases[wide ? 'mixed-container' : 'composed-container'] = [`use algo
+use numbers
+F = 128 fenwick
+Tree = F
+Cache = new index
+Cache 0 = 0
+Lookup = Cache
+A = array shape 128 fill 0
+Total = ${wide ? '10 ** 30' : '0'}
+for I in 0 till 12000
+ K = I mod 128
+ A K += 1
+ Tree K = A K
+ Lookup K = F K
+ Total += (Cache K) + (I gcd 6)
+end
+Total`, compositionTotal + (wide ? 10n ** 30n : 0n)];
+}
+const counts = new Array(128).fill(0);
+let mixedTotal = 10n ** 30n;
+for (let i = 0; i < 12000; i++) {
+ counts[i % 128] += gcd(i, 6);
+ mixedTotal += BigInt(counts[i % 128]);
+}
+cases['mixed-composed'] = [cases['mixed-container'][0]
+ .replace('A K += 1', 'A K += I gcd 6')
+ .replace('Total += (Cache K) + (I gcd 6)', 'Total += Cache K'), mixedTotal];
+cases.index = ['use algo\nCache = new index\nTotal = 0\nfor I in 0 till 12000\n Cache I = I\n Total += Cache I\nend\nTotal', 71994000n];
+for (const seeded of [false, true]) {
+ cases[seeded ? 'overlay-replay' : 'empty-replay'] = [`use algo
+F = 128 fenwick
+Alias = F
+Cache = new index
+${seeded ? 'Cache -1 = 7' : ''}
+A = array shape 128 fill 0
+Wide = 0
+for I in 0 till 12000
+ K = I mod 128
+ A K += 1
+ Alias K += 1
+ Cache K = A K
+ Wide = 9007199254740990 + I
+end
+(F sum 127) + (A sum) + (Cache 0) + Wide`, 9007199254777083n];
+}
 const root = fileURLToPath(new URL('..', import.meta.url));
 if (process.argv[2] === '--worker') {
  const [, , , checkout, name, engine, enabled] = process.argv;
@@ -46,7 +96,7 @@ if (process.argv[2] === '--worker') {
  }));
  const samples = Number(options.samples ?? 5);
  assert(Number.isSafeInteger(samples) && samples >= 3);
- const selected = options.cases ? options.cases.split(',') : Object.keys(cases);
+ const selected = options.cases ? options.cases.split(',') : ['scalar', 'dense', 'sparse', 'grouped', 'container', 'replay'];
  for (const name of selected) assert(name in cases, name);
  const versions = [
   ...(options.baseline ? [{ name: 'baseline-off', root: resolve(options.baseline), enabled: 'off' }] : []),

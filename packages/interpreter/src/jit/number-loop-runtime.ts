@@ -1,3 +1,4 @@
+import { integerInput } from './integer-representation.js';
 import { broadcastShape, arrayStrides } from './tensor-layout.js';
 import { numberOverflow, checkedNumberModularMultiply as modularMultiply } from './number-arithmetic.js';
 import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
@@ -11,13 +12,11 @@ import { completed } from '../execution.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { checkpoint, privateLoopPolling, demandBudgetEnabled, interruptsEnabled } from '../interrupt.js';
 import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, typedArray, realCells, storedOperandItems } from '../array-storage.js';
-import { isRankArray, isRankIndex, type RankArray, type RankValue } from '../value.js';
+import { isRankArray, type RankArray, type RankValue } from '../value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, LoopWorkFeedback, LoopPolling } from './integer-loop-plan.js';
 
 import { indexKey } from '../index-storage.js';
-import { hasPrivateIndexStorage, PrivateIntegerIndex } from './number-loop-index.js';
-import { hasNativeFenwick, type RankFenwick } from '../fenwick.js';
-import { PrivateNumberFenwick } from './number-loop-fenwick.js';
+import { supportsNumberContainer, inspectNumberContainers, prepareNumberContainers } from './number-container-contract.js';
 import { sliceArray as selectArraySlice } from '../selectors.js';
 
 export { numberOverflow } from './number-arithmetic.js';
@@ -244,14 +243,18 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     compilePollingPlan?: (polling: LoopPolling) => IntegerLoopPlan | undefined): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, locations, statement } = plan;
     const reboundInputs = [...plan.arrayDefinitions].some(name => plan.arrayInputs.has(name));
-    // Before adding an admission exception, identify the missing general
-    // proof: effects, ranges, ownership, escape or work. Semantic eligibility
-    // and profitability are separate decisions.
-    if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe)
-        || plan.iterators.length || plan.hasReturn || plan.hasYield
-        || plan.containers.size > 0 && plan.calls.some(call => !call.privateIndexSafe))
+    // Before adding another admission exception, identify the missing general
+    // proof. Prefer reusable facts about effects, ranges, ownership, escape
+    // and work over workload-specific conditions; keep semantic eligibility
+    // separate from profitability.
+    if (host.observableEntry || !host.canDeferWrites
+        || plan.iterators.length || plan.hasReturn || plan.hasYield)
         return recordFallback('number-loop:unsupported-effects', 'effects');
-    if ([...plan.containers.values()].some(info => info.kind !== 'index' && info.kind !== 'fenwick')
+    if (plan.containers.size > 0 && plan.calls.some(call => !call.privateStateSafe))
+        return recordFallback('number-loop:call-private-state-proof', 'proof');
+    if (plan.calls.some(call => !call.numberSafe))
+        return recordFallback('number-loop:call-number-result-proof', 'proof');
+    if ([...plan.containers.values()].some(info => !supportsNumberContainer(info.kind))
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
         || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank < 1)
         || [...plan.destinations.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank < 1 || info.slice))
@@ -360,9 +363,6 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         || !locations.some(isForStatement);
     const attempt: CompiledLoop['run'] = (insideFinally = false) => {
         if (plan.hasControl && insideFinally || !privateLoopPolling()) return recordFallback('number-loop:observable-control', 'effects');
-        // Copying a tree adds checkpoints before the first iteration. Keep
-        // observable demand budgets on the existing publishing backend.
-        if (demandBudgetEnabled() && [...plan.containers.values()].some(info => info.kind === 'fenwick')) return recordFallback('number-loop:observable-container-budget', 'effects');
         // Existing array contracts can poll again while publishing a rebound
         // binding. Retain ordinary statement boundaries for observable budgets.
         if (reboundInputs && demandBudgetEnabled()) return recordFallback('number-loop:observable-rebinding-budget', 'effects');
@@ -385,25 +385,18 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 if (typeof value !== 'number') return recordFallback('number-loop:input-type', 'representation');
                 input[slot] = value;
             } else {
-                if (typeof value !== 'bigint') return recordFallback('number-loop:unsafe-input', 'representation');
-                if (plan.wideScalars.has(names[slot])) input[slot] = value;
-                else {
-                    if (!Number.isSafeInteger(Number(value))) return recordFallback('number-loop:unsafe-input', 'representation');
-                    input[slot] = Number(value);
-                }
+                const integer = integerInput(value, plan.wideScalars.has(names[slot]) ? 'bigint' : 'safe-number');
+                if (integer === undefined) return recordFallback('number-loop:unsafe-input', 'representation');
+                input[slot] = integer;
             }
         }
-        const trees = new Map<RankFenwick, number[]>();
-        for (const [name, info] of plan.containers) if (info.kind === 'fenwick') {
-            const value = host.read(name);
-            if (!hasNativeFenwick(value)) return recordFallback('number-loop:container-storage', 'representation');
-            const slots = trees.get(value) ?? [];
-            if (!trees.has(value)) trees.set(value, slots);
-            slots.push(info.slot);
-        }
-        // All tree snapshots, including aliased/read-only inputs, share the
-        // same copy/work admission as array destinations. Count both buffers.
-        let conditionWriteCells = [...trees.keys()].reduce((size, tree) => size + tree.size * 2 + 1, 0);
+        const containers = inspectNumberContainers(plan, host);
+        if (!containers) return undefined;
+        // Preparation checkpoints must not move observable budget boundaries.
+        if (demandBudgetEnabled() && containers.some(proof => proof.preparationPolls))
+            return recordFallback('number-loop:observable-container-budget', 'effects');
+        // Container copies and array destinations share the same cost policy.
+        let conditionWriteCells = containers.reduce((size, proof) => size + proof.copyCells, 0);
         if (copyAdmission) for (const [name] of plan.destinations) {
             if (plan.arrayDefinitions.has(name) && !plan.arrayInputs.has(name)) continue;
             const value = host.read(name);
@@ -484,28 +477,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             const diagnostics = currentDiagnostics();
             if (diagnostics) diagnostics.numberLoopCopyProbes++;
         }
-        const indices = new Map<object, PrivateIntegerIndex | PrivateNumberFenwick>();
-        for (const [value, slots] of trees) {
-            const snapshot = value.numberSnapshot();
-            if (!snapshot) return recordFallback('number-loop:container-range', 'representation');
-            const diagnostics = currentDiagnostics();
-            if (diagnostics) {
-                const cost = diagnostics.cost('number-loop.snapshot');
-                const bytes = snapshot.values.byteLength + snapshot.tree.byteLength;
-                cost.allocatedBytes += bytes;
-                cost.copiedBytes += bytes;
-            }
-            const tree = new PrivateNumberFenwick(value, snapshot, overflow);
-            indices.set(value, tree);
-            for (const slot of slots) input[slot] = tree;
-        }
-        for (const [name, info] of plan.containers) if (info.kind === 'index') {
-            const value = host.read(name);
-            if (!value || !isRankIndex(value) || !hasPrivateIndexStorage(value)) return recordFallback('number-loop:container-storage', 'representation');
-            let index = indices.get(value.entries);
-            if (!index) indices.set(value.entries, index = new PrivateIntegerIndex(value, overflow));
-            input[info.slot] = index;
-        }
+        const transactions = prepareNumberContainers(containers, input, overflow);
+        if (!transactions) return undefined;
         for (const [name, info] of storage) {
             if (plan.arrayDefinitions.has(name) && !plan.arrayInputs.has(name)) continue;
             const value = host.read(name);
@@ -629,7 +602,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             // Overflow never enters publication. Ordinary errors and cancellation
             // commit exactly the preceding stores; no polling/callback may split
             // this publication from the scalar bindings below.
-            for (const index of indices.values()) index.publish();
+            for (const transaction of transactions) transaction.publish();
             for (const [name, info] of plan.destinations) {
                 if (plan.arrayDefinitions.has(name)) continue;
                 const dirty = changes[info.slot];
@@ -667,7 +640,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             }
         }
         if (!result) {
-            for (const index of indices.values()) index.rollback();
+            for (const transaction of transactions) transaction.rollback();
             if (diagnostics) {
                 diagnostics.numberLoopOverflows++;
                 const cost = diagnostics.cost('number-loop.replay');

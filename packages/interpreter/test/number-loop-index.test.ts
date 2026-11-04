@@ -102,6 +102,7 @@ for I in 1 to 3
 end`);
         expect(result.observation.error).toBeUndefined();
         expect(result.diagnostics.numberLoops).toBe(0);
+        expect(result.diagnostics.fallbacks['number-loop:call-private-state-proof']).toBeGreaterThan(0);
     });
 
     it('rechecks a replaced gcd native on cached loop entry', () => {

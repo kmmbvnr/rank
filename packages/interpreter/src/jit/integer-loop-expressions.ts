@@ -1,3 +1,4 @@
+import { fitsIntegerRepresentation } from './integer-representation.js';
 import { floorDivide } from '../numeric-division.js';
 import { positionalDeclaredCall } from './declared-scalar-call.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
@@ -543,7 +544,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         const divisor = right.bounds?.[0];
         if (numberMode && type === 'integer' && (op === '//' || op === 'mod')
-            && left.bounds && left.bounds[0] >= -2147483648 && left.bounds[1] <= 2147483647
+            && fitsIntegerRepresentation(left.bounds, 'int32')
             && divisor !== undefined && right.bounds![1] === divisor && divisor >= 1 && divisor <= 2147483648
             && (BigInt(divisor) & (BigInt(divisor) - 1n)) === 0n) {
             // Signed shifts implement floor division; the mask gives the
@@ -579,9 +580,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     /** Lower an audited catalogue call. Argument reads remain in source order;
      * runtime binding still checks the module and current builtin on every entry. */
     function emitBuiltinCall(operation: Operation, signature: CompiledCallSignature, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
-        // Only audited scalar natives can run while an index transaction is
+        // Only audited scalar natives can run while container state is
         // private. Rank helpers and host/operand callbacks may observe it.
-        const privateIndexSafe = signature.callbacks === 'none' && !signature.hostFunction
+        const privateStateSafe = signature.callbacks === 'none' && !signature.hostFunction
             && !operation.effects?.length;
         // Pure integer-to-text/predicate calls cannot round a numeric result.
         // Keep their operands exact while the surrounding arithmetic stays in
@@ -601,7 +602,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 arguments_.push(value.code);
             }
             const name = `v${state.serial++}`, index = calls.length;
-            calls.push({ name: operation.name, locals: [], stableArrayReads: true, numberSafe: true, privateIndexSafe,
+            calls.push({ name: operation.name, locals: [], stableArrayReads: true, numberSafe: true, privateStateSafe,
                 bind: host.prepareBuiltinCall(operation.module, operation.name, signature.inputs, false) });
             lines.push(`const ${name} = calls[${index}](${arguments_.join(',')});`);
             return { code: name, type: signature.result };
@@ -686,7 +687,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         // Catalogue compiled calls are synchronous operations with
         // no Rank callbacks; bind() checks the current builtin.
         calls.push({ name: operation.name, locals: [], stableArrayReads: true, numberSafe: numberMode,
-            privateIndexSafe: privateIndexSafe && types.every(type => ['integer', 'real', 'boolean', 'text'].includes(type)),
+            privateStateSafe: privateStateSafe && types.every(type => ['integer', 'real', 'boolean', 'text'].includes(type)),
             bind: host.prepareBuiltinCall(operation.module, operation.name, types, numberMode) });
         let code = `calls[${index}](${arguments_.join(',')})`;
         // Exact bitsets need no native dispatch per cell. Retain the bound call
@@ -1139,7 +1140,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const proven = input.cell(index, fast, { shape: input.shape, rank: input.rank,
                     compact: true, offsets: new Map(), values: new Map() });
                 if (proven?.bounds) {
-                    const direct = proven.bounds[0] >= -2147483648 && proven.bounds[1] <= 2147483647;
+                    const direct = fitsIntegerRepresentation(proven.bounds, 'int32');
                     const store = direct ? `${result}.cells[${index}] = ${proven.code};` : `${result}.store(${index}, ${proven.code});`;
                     loop = `if (${input.compactGuards.join(' && ')}) {
                         ${numberVectorLoop(input.size, index, [...fast, store])}
@@ -1418,7 +1419,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 values.push({ ...value, code: name });
             }
             // A callback could replace choose while its operands evaluate.
-            if (state.callouts.length !== calloutStart || calls.slice(callStart).some(call => !call.privateIndexSafe)) return undefined;
+            if (state.callouts.length !== calloutStart || calls.slice(callStart).some(call => !call.privateStateSafe)) return undefined;
             builtins.set('choose', 'core');
             const result = `v${state.serial++}`;
             lines.push(`const ${result} = ${values[0].code} ? ${values[1].code} : ${values[2].code};`);

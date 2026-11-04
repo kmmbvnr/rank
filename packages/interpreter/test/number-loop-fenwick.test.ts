@@ -50,6 +50,61 @@ end`);
         expect(result.diagnostics.numberLoopOverflows).toBe(0);
     });
 
+    it.each([2147483646, 9007199254740980])('composes representations, aliases and native calls at %s', initial => {
+        const result = compare(`use algo
+use numbers
+F = 1 fenwick
+Tree = F
+Cache = new index
+Cache 0 = ${initial}
+Lookup = Cache
+A = array ${initial}
+Total = 10 ** 30
+for I in 1 to 3
+ A 0 += I gcd 6
+ Tree 0 = A 0
+ Lookup 0 = F sum 0
+ Total += Cache 0
+end`);
+        expect(result.observation.error).toBeUndefined();
+        expect(result.diagnostics.mixedIntegerLoops).toBe(1);
+        expect(result.diagnostics.numberLoopOverflows).toBe(0);
+    });
+
+    it.each([false, true])('replays composed storage and calls once (seeded index=%s)', seeded => {
+        const result = compare(`use algo
+use numbers
+F = 1 fenwick
+Tree = F
+Cache = new index
+${seeded ? 'Cache 0 = 7' : ''}
+Lookup = Cache
+A = array 2147483647
+Total = 0
+for I in 1 to 3
+ A 0 += I gcd 6
+ Lookup I = A 0
+ Tree 0 += I
+ Total += F sum 0
+ Wide = 9007199254740990 + I
+end`);
+        expect(result.observation.error).toBeUndefined();
+        expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+    });
+
+    it.each(['Tree', 'Lookup'])('preserves protected %s errors before RHS calls and publishes prior stores', protectedName => {
+        const result = compare(`for I in 1 to 3
+ A 0 += I gcd 6
+ ${protectedName === 'Tree' ? 'Lookup' : 'Tree'} 0 = I
+ ${protectedName} 0 = (I gcd 6) // (I - 1)
+end`, runtime => {
+            runtime.execute('use algo\nuse numbers\nF = 1 fenwick\nTree = F\nCache = new index\nLookup = Cache\nCache 0 = 0\nA = array 0');
+            protectValue(runtime.variables.get(protectedName)!, 'protected container');
+        });
+        expect(result.observation.error).toContain('protected container');
+        expect(result.observation.error).not.toContain('division by zero');
+    });
+
     it('returns the final compound write as an exact integer', () => {
         const result = compare('use algo\nF = 4 fenwick\nfor I in 0 to 3\n F 0 += I\nend');
         expect(result.observation.result).toBe('6');

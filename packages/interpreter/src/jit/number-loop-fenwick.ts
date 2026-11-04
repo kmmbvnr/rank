@@ -1,3 +1,4 @@
+import type { NumberContainerTransaction } from './number-container-contract.js';
 import { MissingValueError } from '../errors.js';
 import { checkValueMutable } from '../value-protection.js';
 import type { RankFenwick, FenwickNumberSnapshot } from '../fenwick.js';
@@ -5,7 +6,7 @@ import type { RankFenwick, FenwickNumberSnapshot } from '../fenwick.js';
 /** An invocation-private tree; aliases share this transaction. Only successful
  * stores publish on errors/cancellation. Overflow discards both buffers before
  * exact replay, including any partially updated nodes of the failing store. */
-export class PrivateNumberFenwick {
+export class PrivateNumberFenwick implements NumberContainerTransaction {
     private dirty = false;
     constructor(private readonly source: RankFenwick, private readonly snapshot: FenwickNumberSnapshot,
         private readonly overflow: object) {}

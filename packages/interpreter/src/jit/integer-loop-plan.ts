@@ -1,3 +1,4 @@
+import type { IntegerBounds } from './integer-representation.js';
 import type { ArrayRegion } from './array-region.js';
 import type { RankDeque } from '../containers.js';
 import type { Expression, ForStatement, FunctionStatement, Statement, ArrayAssignmentStatement, CompiledLoopType } from '@arrrank/language';
@@ -81,7 +82,7 @@ export interface LoopHost {
  * the call site: positional registers for builtins and memberships, an
  * argument array (plus tail flag) for user scalar functions. */
 export type LoopCallable = (...arguments_: never[]) => RankValue;
-export interface LoopTerm { code: string; type: CompiledLoopType; ascii?: boolean; selection?: boolean; bounds?: readonly [number, number] }
+export interface LoopTerm { code: string; type: CompiledLoopType; ascii?: boolean; selection?: boolean; bounds?: IntegerBounds }
 
 /** The loop register type of a runtime value: one mapping for entry
  * guards, cell scans and type selection. */
@@ -123,7 +124,7 @@ export interface IntegerLoopPlan {
     localTypes: Map<string, LoopTerm['type']>;
     containers: Map<string, { slot: number; kind: 'index' | 'deque' | 'set' | 'fenwick' | 'groups'; integers: boolean; mode?: RankDeque['mode']; array?: { rank: number; type: LoopTerm['type'] } }>;
     builtins: Map<string, string>;
-    calls: { privateIndexSafe?: boolean; numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): LoopCallable | undefined }[];
+    calls: { privateStateSafe?: boolean; numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): LoopCallable | undefined }[];
     vectorIterations: { slot: number; binding: IterationBinding }[];
     iterators: ((source: RankArray | RankDeque | RankSet | string) => Iterable<RankValue>)[];
     writerNames: string[];

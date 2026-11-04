@@ -1,3 +1,4 @@
+import type { NumberContainerTransaction } from './number-container-contract.js';
 import { MissingValueError } from '../errors.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import { IndexEntries, hasNativeIndexEntries, type IndexKey } from '../index-storage.js';
@@ -27,7 +28,7 @@ export function hasPrivateIndexStorage(value: RankIndex): boolean {
  * guarded in-place stores can be cleared on overflow before exact replay. Aliases
  * share a transaction. Real errors retain preceding writes. Only audited scalar
  * natives can run here; callbacks and observable polling retain the exact path. */
-export class PrivateIntegerIndex {
+export class PrivateIntegerIndex implements NumberContainerTransaction {
     private readonly changes?: Map<IndexKey, number>;
     private writes = 0;
 
