@@ -1,0 +1,35 @@
+rem Slowly Converging Series
+rem https://projecteuler.net/problem=722
+
+use numbers
+use io
+use cli
+
+arg Kk integer = 15
+arg Pp integer = 25
+
+rem For k = 2m - 1 the series is an
+rem Eisenstein series of weight 2m at
+rem tau = i y, y = -ln(q) / 2 pi.
+rem Its modular transform gives, up to
+rem terms of size exp(-2 pi / y),
+rem sum = |B_2m| / 4m (y^(-2m) - 1).
+Mh = (Kk + 1) // 2
+Bn = 1 / 30.0
+if Kk equal 15
+  Bn = 3617 / 510.0
+end
+Xx = 0.5 ** Pp
+Ns = 1 to 12
+Ts = Xx ** Ns / Ns
+Tt = Ts sum
+Pi = 3.141592653589793
+Yy = Tt / (2 * Pi)
+Hg = Yy ** (-2 * Mh) - 1
+Sm = Bn / (4 * Mh) * Hg
+Lt = 10.0 log
+Ee = Sm log / Lt floor
+Mn = Sm / 10.0 ** Ee
+Answer = (Mn text ".12f") + "e"
+Answer += Ee text
+Answer print

@@ -1,0 +1,23 @@
+use testing
+
+test "statement values"
+  use "716_gridgraphs"
+  Hh = 3
+  Ww = 3
+  run
+  Answer equal 408
+  Hh = 3
+  Ww = 6
+  run
+  Answer equal 4696
+  Hh = 10
+  Ww = 20
+  run
+  Answer equal 988971143
+end
+
+test "default input"
+  use "716_gridgraphs"
+  run
+  Answer equal 238948623
+end

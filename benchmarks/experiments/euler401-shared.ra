@@ -1,0 +1,33 @@
+rem Sum of Squares of Divisors
+use numbers
+use sequences
+use io
+use cli
+arg Limit integer = 1000000000000000
+Mod = 1000000000
+M6 = 6 * Mod
+Root = Limit isqrt
+Tot = 0
+fun Input Limit Mod chunk
+  D' = Input
+  M6 = 6 * Mod
+  Q' = Limit // D
+  X' = Q mod M6
+  P' = X * (X + 1) mod M6
+  S' = P * (2 * X + 1) mod M6 // 6
+  return (D * D mod Mod *
+    (Q mod Mod) mod Mod + S) sum
+end
+fun D Limit Mod consume
+  Result = D Limit Mod chunk
+  return Result
+end
+for L in 1 to Root by 1000000
+  Hi = Root min (L + 999999)
+  D = L to Hi copy
+  Tot += D Limit Mod consume
+end
+R2 = Root * (Root + 1) * (2 * Root + 1)
+Tot -= Root * (R2 // 6)
+Answer = Tot mod Mod
+Answer print

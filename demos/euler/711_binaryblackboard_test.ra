@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "711_binaryblackboard"
+  Nn = 4
+  run
+  Answer equal 46
+  Nn = 12
+  run
+  Answer equal 54532
+  Nn = 1234
+  run
+  Answer equal 690421393
+end
+
+test "default input"
+  use "711_binaryblackboard"
+  run
+  Answer equal 541510990
+end

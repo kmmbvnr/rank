@@ -1,0 +1,37 @@
+rem Sum of Squares II
+rem https://projecteuler.net/problem=745
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 14
+arg Prime integer = 1000000007
+
+rem Writing n = s d^2 with s squarefree,
+rem g(n) = d^2. Expanding the count of
+rem squarefree s by Moebius inversion
+rem and merging m = d k gives
+rem S = sum over m <= sqrt N of J2(m)
+rem (N // m^2), with the Jordan totient
+rem J2(m) = m^2 prod over p | m of
+rem (1 - 1/p^2), sieved by primes.
+Root = Limit isqrt
+Values = 0 to Root
+Jordan = Values * Values
+for P in primes to Root
+  Square = P * P
+  Hits = P to Root by P
+  Old = Jordan Hits
+  Lower = Square - 1
+  Jordan Hits = Old // Square * Lower
+end
+Parts = Jordan mod Prime
+Squares = (Values * Values) max 1
+Floors = Limit // Squares
+Floors = Floors mod Prime
+Terms = Parts * Floors mod Prime
+Total = Terms sum
+Answer = Total mod Prime
+Answer print

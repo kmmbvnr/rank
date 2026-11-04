@@ -1,0 +1,1779 @@
+{
+  "base": "2b2c6eb77da8e7ece23ce3c624bd158d5bb33e02",
+  "methods": {
+    "runsPerVariantPerHost": 3,
+    "order": "alternating forward/reverse",
+    "runtime": "Node 24.15.0",
+    "mac": "Apple M5 arm64; shared load varies",
+    "intel": "Intel i7-10750H x64; SSH root@viewflow.io:22022, /tmp/rank401-final-20261104",
+    "measurement": "Fresh sequential processes; parse and diagnostics included, imports excluded; whole-process peak RSS. Selected tests completed before series.",
+    "compilerControl": "In-memory loader restores old input canonicalization guard only; same consumer source and all other integrated changes.",
+    "diagnostics": "Nonzero counters only; duplicate fallback categories omitted."
+  },
+  "summary": {
+    "mac": {
+      "original": {
+        "ms": 4534.535708,
+        "rssMiB": 392.78125,
+        "rangeMs": [
+          4332.1615,
+          4611.689208
+        ]
+      },
+      "final": {
+        "ms": 3185.8152499999997,
+        "rssMiB": 262.65625,
+        "rangeMs": [
+          2982.150958,
+          3399.143375
+        ]
+      },
+      "original-reference": {
+        "ms": 6526.693125,
+        "rssMiB": 420.671875,
+        "rangeMs": [
+          6108.066083,
+          6769.452459
+        ]
+      },
+      "final-reference": {
+        "ms": 5817.853166,
+        "rssMiB": 330.40625,
+        "rangeMs": [
+          5588.347250000001,
+          6072.9295
+        ]
+      },
+      "consumer-control": {
+        "ms": 2737.30325,
+        "rssMiB": 262.984375,
+        "rangeMs": [
+          2708.269541,
+          3313.356208
+        ]
+      },
+      "consumer-shared": {
+        "ms": 2617.555958,
+        "rssMiB": 265.796875,
+        "rangeMs": [
+          2318.3803749999997,
+          2840.334125
+        ]
+      }
+    },
+    "intel": {
+      "original": {
+        "ms": 10943.269369,
+        "rssMiB": 344.26953125,
+        "rangeMs": [
+          10288.379264,
+          11090.07943
+        ]
+      },
+      "final": {
+        "ms": 7853.265823999999,
+        "rssMiB": 259.4453125,
+        "rangeMs": [
+          7617.2894670000005,
+          8036.696766999999
+        ]
+      },
+      "original-reference": {
+        "ms": 14144.081863000001,
+        "rssMiB": 339.3125,
+        "rangeMs": [
+          13649.121439999999,
+          14455.529241
+        ]
+      },
+      "final-reference": {
+        "ms": 14662.786691,
+        "rssMiB": 320.84375,
+        "rangeMs": [
+          14656.309743,
+          14935.581673
+        ]
+      },
+      "consumer-control": {
+        "ms": 10261.633839,
+        "rssMiB": 249.203125,
+        "rangeMs": [
+          10146.206766000001,
+          10318.630187
+        ]
+      },
+      "consumer-shared": {
+        "ms": 9396.637767999999,
+        "rssMiB": 248.453125,
+        "rangeMs": [
+          9355.763299999999,
+          9601.166205
+        ]
+      }
+    }
+  },
+  "series": {
+    "mac": [
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 4332.1615,
+        "rssMiB": 394.328125,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 96,
+          "typedArrayPublications": 448,
+          "typedArrayPublishedCells": 442718864,
+          "fallbacks": {
+            "scalar-expression:too-small": 8,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 32,
+            "scalar-expression:operator-guard:equal": 32,
+            "tensor:binding:select": 32,
+            "scalar-expression:operator-guard:+": 32,
+            "scalar-expression:operator-guard://": 32,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 93.12841600000002
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 4238.879416
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.10183299999999917
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 4.425917000000027
+            }
+          }
+        },
+        "variant": "original",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 3185.8152499999997,
+        "rssMiB": 270.171875,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 966,
+          "typedArrayPublications": 4347,
+          "typedArrayPublishedCells": 284604984,
+          "fallbacks": {
+            "scalar-expression:too-small": 5,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 483,
+            "scalar-expression:operator-guard:+": 483,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 97.06466699999999
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 3088.577875
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.10175000000000978
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 4.8899169999999685
+            }
+          }
+        },
+        "variant": "final",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 6526.693125,
+        "rssMiB": 415.296875,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 768,
+          "typedArrayPublishedCells": 758946624,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 99.39787499999997
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 6427.109
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.12212499999998272
+            }
+          }
+        },
+        "variant": "original-reference",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 6072.9295,
+        "rssMiB": 378.140625,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 8185,
+          "typedArrayPublishedCells": 535883256,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 101.13716600000001
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 5971.583250000001
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.09666600000002745
+            }
+          }
+        },
+        "variant": "final-reference",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 3313.356208,
+        "rssMiB": 262.984375,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 129.70308399999996
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 3183.425083
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.11279199999995626
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 5.990708999999981
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-control",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 2840.334125,
+        "rssMiB": 266.25,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 126.42441699999998
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 2713.685167
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.12375000000002956
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 6.280290999999977
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-shared",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 2617.555958,
+        "rssMiB": 224.25,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 112.84800000000001
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 2504.51525
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.1220000000000141
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 6.0411660000000325
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-shared",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 2708.269541,
+        "rssMiB": 265.640625,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 111.57583299999999
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 2596.5095
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.11445800000001327
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 8.795166999999992
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-control",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 5588.347250000001,
+        "rssMiB": 330.40625,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 8185,
+          "typedArrayPublishedCells": 535883256,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 90.70525
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 5495.429292000001
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.09108299999999758
+            }
+          }
+        },
+        "variant": "final-reference",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 6769.452459,
+        "rssMiB": 422.046875,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 768,
+          "typedArrayPublishedCells": 758946624,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 94.048
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 6672.995916
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.10112499999999613
+            }
+          }
+        },
+        "variant": "original-reference",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 3399.143375,
+        "rssMiB": 262.65625,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 966,
+          "typedArrayPublications": 4347,
+          "typedArrayPublishedCells": 284604984,
+          "fallbacks": {
+            "scalar-expression:too-small": 5,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 483,
+            "scalar-expression:operator-guard:+": 483,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 102.90525
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 3296.061291
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.09716600000001563
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 5.308709000000022
+            }
+          }
+        },
+        "variant": "final",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 4611.689208,
+        "rssMiB": 387.0625,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 96,
+          "typedArrayPublications": 448,
+          "typedArrayPublishedCells": 442718864,
+          "fallbacks": {
+            "scalar-expression:too-small": 8,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 32,
+            "scalar-expression:operator-guard:equal": 32,
+            "tensor:binding:select": 32,
+            "scalar-expression:operator-guard:+": 32,
+            "scalar-expression:operator-guard://": 32,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 95.46683300000001
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 4516.055417
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.1079159999999888
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 4.789124999999984
+            }
+          }
+        },
+        "variant": "original",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 4534.535708,
+        "rssMiB": 392.78125,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 96,
+          "typedArrayPublications": 448,
+          "typedArrayPublishedCells": 442718864,
+          "fallbacks": {
+            "scalar-expression:too-small": 8,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 32,
+            "scalar-expression:operator-guard:equal": 32,
+            "tensor:binding:select": 32,
+            "scalar-expression:operator-guard:+": 32,
+            "scalar-expression:operator-guard://": 32,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 94.81125
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 4439.551874999999
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.10650000000001114
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 4.675708000000014
+            }
+          }
+        },
+        "variant": "original",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 2982.150958,
+        "rssMiB": 260.1875,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 966,
+          "typedArrayPublications": 4347,
+          "typedArrayPublishedCells": 284604984,
+          "fallbacks": {
+            "scalar-expression:too-small": 5,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 483,
+            "scalar-expression:operator-guard:+": 483,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 90.50608399999999
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 2891.4779169999997
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.09158299999998576
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 4.633582999999987
+            }
+          }
+        },
+        "variant": "final",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 6108.066083,
+        "rssMiB": 420.671875,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 768,
+          "typedArrayPublishedCells": 758946624,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 95.98220899999998
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 6011.919042
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.10754200000002356
+            }
+          }
+        },
+        "variant": "original-reference",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 5817.853166,
+        "rssMiB": 330.40625,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 8185,
+          "typedArrayPublishedCells": 535883256,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 92.773584
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 5724.912542
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.10245800000001282
+            }
+          }
+        },
+        "variant": "final-reference",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 2737.30325,
+        "rssMiB": 237.390625,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 91.78362499999997
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 2645.336792
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.09624999999999773
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 5.402166999999963
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-control",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 2318.3803749999997,
+        "rssMiB": 265.796875,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 90.49675000000002
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 2227.71675
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.11487499999998363
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 5.107249999999965
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-shared",
+        "trial": 2
+      }
+    ],
+    "intel": [
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 10288.379264,
+        "rssMiB": 337.30859375,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 96,
+          "typedArrayPublications": 448,
+          "typedArrayPublishedCells": 442718864,
+          "fallbacks": {
+            "scalar-expression:too-small": 8,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 32,
+            "scalar-expression:operator-guard:equal": 32,
+            "tensor:binding:select": 32,
+            "scalar-expression:operator-guard:+": 32,
+            "scalar-expression:operator-guard://": 32,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 227.65360299999998
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 10060.351846
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.28304500000001553
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 10.438359999999989
+            }
+          }
+        },
+        "variant": "original",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 7617.2894670000005,
+        "rssMiB": 261.109375,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 966,
+          "typedArrayPublications": 4347,
+          "typedArrayPublishedCells": 284604984,
+          "fallbacks": {
+            "scalar-expression:too-small": 5,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 483,
+            "scalar-expression:operator-guard:+": 483,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 238.41657700000002
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 7378.463148
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.46170600000004924
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 11.845392999999945
+            }
+          }
+        },
+        "variant": "final",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 13649.121439999999,
+        "rssMiB": 341.16015625,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 768,
+          "typedArrayPublishedCells": 758946624,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 231.348323
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 13417.408515
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.31426699999997254
+            }
+          }
+        },
+        "variant": "original-reference",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 14662.786691,
+        "rssMiB": 320.6875,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 8185,
+          "typedArrayPublishedCells": 535883256,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 221.029179
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 14441.384624
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.24755400000003647
+            }
+          }
+        },
+        "variant": "final-reference",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 10146.206766000001,
+        "rssMiB": 249.28515625,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 245.28612499999997
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 9900.576781
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.2872530000000779
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 11.427691999999979
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-control",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 9355.763299999999,
+        "rssMiB": 248.453125,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 227.51757700000007
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 9127.860208
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.27508000000000266
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 11.219055000000026
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-shared",
+        "trial": 0
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 9396.637767999999,
+        "rssMiB": 248.3984375,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 224.668429
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 9171.522462
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.28433700000005047
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 11.581941000000029
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-shared",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 10261.633839,
+        "rssMiB": 249.203125,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 228.99485600000003
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 10032.296873
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.2720209999999952
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 11.198298000000023
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-control",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 14656.309743,
+        "rssMiB": 329.32421875,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 8185,
+          "typedArrayPublishedCells": 535883256,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 231.82550500000002
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 14424.107729
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.2655490000000782
+            }
+          }
+        },
+        "variant": "final-reference",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 14144.081863000001,
+        "rssMiB": 336.6015625,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 768,
+          "typedArrayPublishedCells": 758946624,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 247.34842000000003
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 13896.352631
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.28390200000001187
+            }
+          }
+        },
+        "variant": "original-reference",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 8036.696766999999,
+        "rssMiB": 259.4453125,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 966,
+          "typedArrayPublications": 4347,
+          "typedArrayPublishedCells": 284604984,
+          "fallbacks": {
+            "scalar-expression:too-small": 5,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 483,
+            "scalar-expression:operator-guard:+": 483,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 246.82234900000003
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 7789.391296
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.25622900000007576
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 12.490916999999968
+            }
+          }
+        },
+        "variant": "final",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 10943.269369,
+        "rssMiB": 344.49609375,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 96,
+          "typedArrayPublications": 448,
+          "typedArrayPublishedCells": 442718864,
+          "fallbacks": {
+            "scalar-expression:too-small": 8,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 32,
+            "scalar-expression:operator-guard:equal": 32,
+            "tensor:binding:select": 32,
+            "scalar-expression:operator-guard:+": 32,
+            "scalar-expression:operator-guard://": 32,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 223.92781500000007
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 10718.98251
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.2868419999999787
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 10.575310999999942
+            }
+          }
+        },
+        "variant": "original",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 11090.07943,
+        "rssMiB": 344.26953125,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 96,
+          "typedArrayPublications": 448,
+          "typedArrayPublishedCells": 442718864,
+          "fallbacks": {
+            "scalar-expression:too-small": 8,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 32,
+            "scalar-expression:operator-guard:equal": 32,
+            "tensor:binding:select": 32,
+            "scalar-expression:operator-guard:+": 32,
+            "scalar-expression:operator-guard://": 32,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 257.1978
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 10832.525237
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.3446370000000343
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 11.049297000000024
+            }
+          }
+        },
+        "variant": "original",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 7853.265823999999,
+        "rssMiB": 241.72265625,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledTensors": 966,
+          "typedArrayPublications": 4347,
+          "typedArrayPublishedCells": 284604984,
+          "fallbacks": {
+            "scalar-expression:too-small": 5,
+            "loop:unsupported-op:sum": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:operator-guard:mod": 483,
+            "scalar-expression:operator-guard:+": 483,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 226.51666
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 7626.303424
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.2509509999999864
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 11.252240999999913
+            }
+          }
+        },
+        "variant": "final",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/experiments/euler401-original.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 14455.529241,
+        "rssMiB": 339.3125,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 768,
+          "typedArrayPublishedCells": 758946624,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 242.116447
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 14212.99539
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.2905049999999392
+            }
+          }
+        },
+        "variant": "original-reference",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/401_sumsquares.ra",
+        "limit": "1000000000000000",
+        "mode": "reference",
+        "ms": 14935.581673,
+        "rssMiB": 320.84375,
+        "answer": "281632621",
+        "diagnostics": {
+          "typedArrayPublications": 8185,
+          "typedArrayPublishedCells": 535883256,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 225.67647699999998
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 14709.506524999999
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.24722600000006878
+            }
+          }
+        },
+        "variant": "final-reference",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 10318.630187,
+        "rssMiB": 206.84765625,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 231.90099899999996
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 10086.353952
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.24972999999999956
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 11.210190000000011
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-control",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/experiments/euler401-consumer.ra",
+        "limit": "1000000000000000",
+        "mode": "compiled",
+        "ms": 9601.166205,
+        "rssMiB": 249.6875,
+        "answer": "281632621",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "compiledTensors": 32,
+          "typedArrayPublications": 32,
+          "typedArrayPublishedCells": 31622776,
+          "fallbacks": {
+            "scalar-function:unsupported-op:sum": 2,
+            "scalar-function:unsupported-op:chunk": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:output-shape": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 234.19381000000004
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 9366.605604
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.29063699999994697
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 12.007679999999937
+            }
+          },
+          "compilerRejections": [
+            {
+              "reason": "scalar-function:unsupported-op:sum",
+              "node": "ApplicationExpression",
+              "function": "chunk",
+              "expression": "(D * D mod Mod *\n    (Q mod Mod) mod Mod + S) sum",
+              "line": 17,
+              "column": 10
+            },
+            {
+              "reason": "scalar-function:unsupported-op:chunk",
+              "node": "ApplicationExpression",
+              "function": "consume",
+              "expression": "D Limit Mod chunk",
+              "line": 21,
+              "column": 12
+            }
+          ]
+        },
+        "variant": "consumer-shared",
+        "trial": 2
+      }
+    ]
+  },
+  "verification": {
+    "selectedTestsPerHost": 581,
+    "selectedFilesPerHost": 22,
+    "finalInputSharingFileTests": 14,
+    "distinctTestsPerHost": 582,
+    "crossModeComparisons": {
+      "limits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6,
+        8,
+        9,
+        10,
+        15,
+        16,
+        17,
+        24,
+        25,
+        26,
+        63,
+        64,
+        65,
+        99,
+        100,
+        101,
+        1000,
+        9876
+      ],
+      "variants": [
+        "demos/euler/401_sumsquares.ra",
+        "benchmarks/experiments/euler401-array.ra",
+        "benchmarks/experiments/euler401-consumer.ra",
+        "benchmarks/experiments/euler401-shared.ra",
+        "benchmarks/experiments/euler401-scalar.ra"
+      ],
+      "comparisons": 230,
+      "oracle": "independent divisor enumeration and BigInt sum"
+    },
+    "fullGolden": "281632621",
+    "largeCheckpoint": "679233331",
+    "generatedInputLoads": {
+      "before": 3,
+      "after": 1
+    }
+  },
+  "sources": {
+    "demos/euler/401_sumsquares.ra": "42b0d9a2949535ab61957b426368f069ac339d80f5525f91170da6442b079ef1",
+    "demos/euler/401_sumsquares_test.ra": "107e6ddf83f0206c681fa5cc5d53783162c3ae4a2e89b739b962ad4524f67259",
+    "packages/interpreter/src/function-plan.ts": "396ed1dcd170fbca993d08565ba1a72b90463be5aef51e5562d842e8b68fdbef",
+    "benchmarks/experiments/euler401-original.ra": "5478c8b1a3c17ec6ed36c617c34c52459b937442684bff291966224da3beaa45",
+    "benchmarks/experiments/euler401-consumer.ra": "c90f983cdaa76ab13a3d00159fb01792088cb5ba2374ef212f7ebb25c2b9175f",
+    "benchmarks/experiments/euler401-no-shared-inputs.mjs": "16607b37433fdcf9f4d7440510981ff9fbea51c66474bb65460626f6de5006d4"
+  }
+}

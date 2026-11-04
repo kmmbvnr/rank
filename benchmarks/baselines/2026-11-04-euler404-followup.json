@@ -1,0 +1,1182 @@
+{
+  "base": "3c8ea47eb5ba7d391693575238b9fb026bf57020",
+  "runtimeBase": "be4dce185f0582463cfb7b8f53a62c9b22b2f094",
+  "date": "2026-11-04",
+  "node": "24.15.0",
+  "method": "fresh sequential processes per host, three alternating compiled/control samples per variant; one reference sample per source; parse + execute after runtime construction; whole-process peak RSS",
+  "limitations": [
+    "Other sessions run on the Mac; absolute timings vary.",
+    "Reference measurements are individual samples, not medians from repeated runs.",
+    "Control disables only exact wide vector sum admission, keeping the same source and remaining compiler changes.",
+    "Intel reference peak RSS increases 8.7% in the one-sample comparison; compiled median RSS decreases on both hosts."
+  ],
+  "answer": "1199215615081353",
+  "validation": {
+    "focusedTestsPerHost": 929,
+    "focusedFilesPerHost": 31,
+    "independentComparisons": 126,
+    "scopedAuditTestsOnMac": 6,
+    "finalEdgeRerunPerHost": 37
+  },
+  "sources": {
+    "demos/euler/404_crazyellipses.ra": "61cab76835ed9e003c232e915a4f9c6e0f0bb8bb3b3c4b727d63fb9b45ecc0fa",
+    "packages/interpreter/src/jit/integer-loop-expressions.ts": "9b31e25e2aa100a30cfd967a0766fe5c4bd884c375c88c86539e99ba5e71ec85",
+    "packages/interpreter/src/jit/integer-loop-wide.ts": "4b9aebdabeccc69750938f6742a1610c2e06644289a1b7a70551d728eb4305e2",
+    "benchmarks/experiments/euler404-original.ra": "58dba1aede3e11f1a3727cdda54a5d52e35ccf95aedf44b9bbf1c8d937ded430",
+    "benchmarks/experiments/euler404-no-wide-vector.mjs": "4c140399c2dc0e225dd28a30a8c09869f38186099702dd07f493527fb22626e2"
+  },
+  "summary": {
+    "mac": {
+      "original-compiled": {
+        "samples": 3,
+        "ms": 22336.54925,
+        "rssMiB": 1353.578125
+      },
+      "final-compiled": {
+        "samples": 3,
+        "ms": 8756.096292,
+        "rssMiB": 300.59375
+      },
+      "same-demo-without-wide-vector": {
+        "samples": 3,
+        "ms": 14210.634625,
+        "rssMiB": 790.125
+      },
+      "original-reference": {
+        "samples": 1,
+        "ms": 20814.747291000003,
+        "rssMiB": 1241.015625
+      },
+      "final-reference": {
+        "samples": 1,
+        "ms": 13536.767000000002,
+        "rssMiB": 746.609375
+      }
+    },
+    "intel": {
+      "original-compiled": {
+        "samples": 3,
+        "ms": 51385.522388000005,
+        "rssMiB": 434.953125
+      },
+      "final-compiled": {
+        "samples": 3,
+        "ms": 17182.493375000002,
+        "rssMiB": 202.45703125
+      },
+      "same-demo-without-wide-vector": {
+        "samples": 3,
+        "ms": 35149.351194999996,
+        "rssMiB": 432.12109375
+      },
+      "original-reference": {
+        "samples": 1,
+        "ms": 49465.176545999995,
+        "rssMiB": 363.46875
+      },
+      "final-reference": {
+        "samples": 1,
+        "ms": 35212.220565999996,
+        "rssMiB": 395.23046875
+      }
+    }
+  },
+  "samples": {
+    "mac": [
+      {
+        "file": "benchmarks/experiments/euler404-original.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 21290.431709,
+        "rssMiB": 1353.578125,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 2095104,
+          "compiledTensors": 46806,
+          "typedArrayPublications": 418986,
+          "typedArrayPublishedCells": 2464789896,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:isqrt": 2,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:binding:isqrt": 1,
+            "scalar-expression:too-small": 7,
+            "loop:unbound-name:NameExpression": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:gcd": 2,
+            "scalar-expression:unsupported-op:equal": 2,
+            "scalar-expression:operator-guard:*": 93612,
+            "scalar-expression:operator-guard:-": 23403,
+            "scalar-expression:operator-guard:mod": 46806,
+            "scalar-expression:operator-guard:notequal": 23403,
+            "tensor:scalar-evaluation-timing": 23403,
+            "scalar-expression:operator-guard:+": 23403,
+            "scalar-expression:operator-guard://": 23403
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 93.644666
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 21196.6155
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.0976660000000038
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 4.411208999999985
+            }
+          }
+        },
+        "variant": "original-compiled",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 8719.761333,
+        "rssMiB": 299.21875,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "mixedIntegerLoops": 1,
+          "typedArrayPublications": 6,
+          "typedArrayPublishedCells": 53136,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 1,
+            "number-loop:unsafe-input": 2
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 97.11587500000002
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 8622.481291999999
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.0967499999999859
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 6.5330000000000155
+            },
+            "number-loop.attempt": {
+              "calls": 3,
+              "milliseconds": 8608.192125
+            },
+            "number-loop.publish": {
+              "boxedCells": 2
+            },
+            "number-loop.execute": {
+              "calls": 1,
+              "milliseconds": 8606.946125
+            }
+          }
+        },
+        "variant": "final-compiled",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 14148.029083000001,
+        "rssMiB": 790.125,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 9426944,
+          "compiledTensors": 44982,
+          "maskMaterializations": 44982,
+          "maskMaterializedCells": 165264359,
+          "typedArrayPublications": 357200,
+          "typedArrayPublishedCells": 1349002378,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 22492,
+            "number-loop:unsafe-input": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:too-small": 5,
+            "scalar-expression:operator-guard:*": 67473,
+            "scalar-expression:operator-guard:-": 22491,
+            "scalar-expression:operator-guard:mod": 44982,
+            "scalar-expression:operator-guard:notequal": 22491,
+            "scalar-expression:unsupported-op:gcd": 3,
+            "scalar-expression:unsupported-op:equal": 3,
+            "scalar-expression:operator-guard:+": 22491,
+            "scalar-expression:operator-guard://": 22491
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 98.06229200000001
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 14049.817208
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.09199999999998454
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 6.380082999999985
+            },
+            "number-loop.attempt": {
+              "calls": 1,
+              "milliseconds": 0.3863749999999868
+            }
+          }
+        },
+        "variant": "same-demo-without-wide-vector",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 14210.634625,
+        "rssMiB": 784.703125,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 9426944,
+          "compiledTensors": 44982,
+          "maskMaterializations": 44982,
+          "maskMaterializedCells": 165264359,
+          "typedArrayPublications": 357200,
+          "typedArrayPublishedCells": 1349002378,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 22492,
+            "number-loop:unsafe-input": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:too-small": 5,
+            "scalar-expression:operator-guard:*": 67473,
+            "scalar-expression:operator-guard:-": 22491,
+            "scalar-expression:operator-guard:mod": 44982,
+            "scalar-expression:operator-guard:notequal": 22491,
+            "scalar-expression:unsupported-op:gcd": 3,
+            "scalar-expression:unsupported-op:equal": 3,
+            "scalar-expression:operator-guard:+": 22491,
+            "scalar-expression:operator-guard://": 22491
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 101.566958
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 14108.915875
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.09266600000000835
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 6.954250000000002
+            },
+            "number-loop.attempt": {
+              "calls": 1,
+              "milliseconds": 0.4092090000000326
+            }
+          }
+        },
+        "variant": "same-demo-without-wide-vector",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 8756.096292,
+        "rssMiB": 300.59375,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "mixedIntegerLoops": 1,
+          "typedArrayPublications": 6,
+          "typedArrayPublishedCells": 53136,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 1,
+            "number-loop:unsafe-input": 2
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 98.955333
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 8656.970792
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.09904199999999719
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 6.781957999999975
+            },
+            "number-loop.attempt": {
+              "calls": 3,
+              "milliseconds": 8642.854125
+            },
+            "number-loop.publish": {
+              "boxedCells": 2
+            },
+            "number-loop.execute": {
+              "calls": 1,
+              "milliseconds": 8641.562875
+            }
+          }
+        },
+        "variant": "final-compiled",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler404-original.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 22336.54925,
+        "rssMiB": 1355.921875,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 2095104,
+          "compiledTensors": 46806,
+          "typedArrayPublications": 418986,
+          "typedArrayPublishedCells": 2464789896,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:isqrt": 2,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:binding:isqrt": 1,
+            "scalar-expression:too-small": 7,
+            "loop:unbound-name:NameExpression": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:gcd": 2,
+            "scalar-expression:unsupported-op:equal": 2,
+            "scalar-expression:operator-guard:*": 93612,
+            "scalar-expression:operator-guard:-": 23403,
+            "scalar-expression:operator-guard:mod": 46806,
+            "scalar-expression:operator-guard:notequal": 23403,
+            "tensor:scalar-evaluation-timing": 23403,
+            "scalar-expression:operator-guard:+": 23403,
+            "scalar-expression:operator-guard://": 23403
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 100.33908399999999
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 22236.020207999998
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.10258300000003828
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 4.848457999999994
+            }
+          }
+        },
+        "variant": "original-compiled",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler404-original.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 26391.279875,
+        "rssMiB": 1350.421875,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 2095104,
+          "compiledTensors": 46806,
+          "typedArrayPublications": 418986,
+          "typedArrayPublishedCells": 2464789896,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:isqrt": 2,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:binding:isqrt": 1,
+            "scalar-expression:too-small": 7,
+            "loop:unbound-name:NameExpression": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:gcd": 2,
+            "scalar-expression:unsupported-op:equal": 2,
+            "scalar-expression:operator-guard:*": 93612,
+            "scalar-expression:operator-guard:-": 23403,
+            "scalar-expression:operator-guard:mod": 46806,
+            "scalar-expression:operator-guard:notequal": 23403,
+            "tensor:scalar-evaluation-timing": 23403,
+            "scalar-expression:operator-guard:+": 23403,
+            "scalar-expression:operator-guard://": 23403
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 110.32762499999998
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 26280.736957999998
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.14387499999998
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 5.499584000000027
+            }
+          }
+        },
+        "variant": "original-compiled",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 9405.146709,
+        "rssMiB": 300.734375,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "mixedIntegerLoops": 1,
+          "typedArrayPublications": 6,
+          "typedArrayPublishedCells": 53136,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 1,
+            "number-loop:unsafe-input": 2
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 123.05675000000002
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 9281.896833
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.13154199999996763
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 8.93829199999999
+            },
+            "number-loop.attempt": {
+              "calls": 3,
+              "milliseconds": 9262.377959
+            },
+            "number-loop.publish": {
+              "boxedCells": 2
+            },
+            "number-loop.execute": {
+              "calls": 1,
+              "milliseconds": 9260.646875
+            }
+          }
+        },
+        "variant": "final-compiled",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 15272.024166,
+        "rssMiB": 793.390625,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 9426944,
+          "compiledTensors": 44982,
+          "maskMaterializations": 44982,
+          "maskMaterializedCells": 165264359,
+          "typedArrayPublications": 357200,
+          "typedArrayPublishedCells": 1349002378,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 22492,
+            "number-loop:unsafe-input": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:too-small": 5,
+            "scalar-expression:operator-guard:*": 67473,
+            "scalar-expression:operator-guard:-": 22491,
+            "scalar-expression:operator-guard:mod": 44982,
+            "scalar-expression:operator-guard:notequal": 22491,
+            "scalar-expression:unsupported-op:gcd": 3,
+            "scalar-expression:unsupported-op:equal": 3,
+            "scalar-expression:operator-guard:+": 22491,
+            "scalar-expression:operator-guard://": 22491
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 102.22
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 15169.658959
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.10112499999999613
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 6.812667000000033
+            },
+            "number-loop.attempt": {
+              "calls": 1,
+              "milliseconds": 0.4213750000000118
+            }
+          }
+        },
+        "variant": "same-demo-without-wide-vector",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/experiments/euler404-original.ra",
+        "limit": "100000000000000000",
+        "mode": "reference",
+        "ms": 20814.747291000003,
+        "rssMiB": 1241.015625,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 2095104,
+          "typedArrayPublications": 558648,
+          "typedArrayPublishedCells": 3286386528,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 95.796458
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 20718.775375
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.10254100000000221
+            }
+          }
+        },
+        "variant": "original-reference",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "reference",
+        "ms": 13536.767000000002,
+        "rssMiB": 746.609375,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 9426944,
+          "maskMaterializations": 44982,
+          "maskMaterializedCells": 165264359,
+          "typedArrayPublications": 491870,
+          "typedArrayPublishedCells": 1733501629,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 99.74154200000001
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 13436.854167
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.10616600000003018
+            }
+          }
+        },
+        "variant": "final-reference",
+        "trial": 0
+      }
+    ],
+    "intel": [
+      {
+        "file": "benchmarks/experiments/euler404-original.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 50024.106821,
+        "rssMiB": 434.953125,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 2095104,
+          "compiledTensors": 46806,
+          "typedArrayPublications": 418986,
+          "typedArrayPublishedCells": 2464789896,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:isqrt": 2,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:binding:isqrt": 1,
+            "scalar-expression:too-small": 7,
+            "loop:unbound-name:NameExpression": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:gcd": 2,
+            "scalar-expression:unsupported-op:equal": 2,
+            "scalar-expression:operator-guard:*": 93612,
+            "scalar-expression:operator-guard:-": 23403,
+            "scalar-expression:operator-guard:mod": 46806,
+            "scalar-expression:operator-guard:notequal": 23403,
+            "tensor:scalar-evaluation-timing": 23403,
+            "scalar-expression:operator-guard:+": 23403,
+            "scalar-expression:operator-guard://": 23403
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 233.83146699999998
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 49789.894171
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.2683399999999665
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 10.120324000000096
+            }
+          }
+        },
+        "variant": "original-compiled",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 16862.712306999998,
+        "rssMiB": 191.79296875,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "mixedIntegerLoops": 1,
+          "typedArrayPublications": 6,
+          "typedArrayPublishedCells": 53136,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 1,
+            "number-loop:unsafe-input": 2
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 239.44624700000003
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 16622.898464
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.36303399999997055
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 15.975036000000046
+            },
+            "number-loop.attempt": {
+              "calls": 3,
+              "milliseconds": 16586.619601
+            },
+            "number-loop.publish": {
+              "boxedCells": 2
+            },
+            "number-loop.execute": {
+              "calls": 1,
+              "milliseconds": 16583.226426
+            }
+          }
+        },
+        "variant": "final-compiled",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 34619.691754,
+        "rssMiB": 428.11328125,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 9426944,
+          "compiledTensors": 44982,
+          "maskMaterializations": 44982,
+          "maskMaterializedCells": 165264359,
+          "typedArrayPublications": 357200,
+          "typedArrayPublishedCells": 1349002378,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 22492,
+            "number-loop:unsafe-input": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:too-small": 5,
+            "scalar-expression:operator-guard:*": 67473,
+            "scalar-expression:operator-guard:-": 22491,
+            "scalar-expression:operator-guard:mod": 44982,
+            "scalar-expression:operator-guard:notequal": 22491,
+            "scalar-expression:unsupported-op:gcd": 3,
+            "scalar-expression:unsupported-op:equal": 3,
+            "scalar-expression:operator-guard:+": 22491,
+            "scalar-expression:operator-guard://": 22491
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 260.3236360000001
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 34359.01193
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.3271590000000515
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 16.455478000000085
+            },
+            "number-loop.attempt": {
+              "calls": 1,
+              "milliseconds": 0.945479999999975
+            }
+          }
+        },
+        "variant": "same-demo-without-wide-vector",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 35149.351194999996,
+        "rssMiB": 434.74609375,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 9426944,
+          "compiledTensors": 44982,
+          "maskMaterializations": 44982,
+          "maskMaterializedCells": 165264359,
+          "typedArrayPublications": 357200,
+          "typedArrayPublishedCells": 1349002378,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 22492,
+            "number-loop:unsafe-input": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:too-small": 5,
+            "scalar-expression:operator-guard:*": 67473,
+            "scalar-expression:operator-guard:-": 22491,
+            "scalar-expression:operator-guard:mod": 44982,
+            "scalar-expression:operator-guard:notequal": 22491,
+            "scalar-expression:unsupported-op:gcd": 3,
+            "scalar-expression:unsupported-op:equal": 3,
+            "scalar-expression:operator-guard:+": 22491,
+            "scalar-expression:operator-guard://": 22491
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 263.225478
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 34885.750857
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.33518599999990784
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 16.704725000000053
+            },
+            "number-loop.attempt": {
+              "calls": 1,
+              "milliseconds": 0.9462590000000546
+            }
+          }
+        },
+        "variant": "same-demo-without-wide-vector",
+        "trial": 1
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 17182.493375000002,
+        "rssMiB": 202.45703125,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "mixedIntegerLoops": 1,
+          "typedArrayPublications": 6,
+          "typedArrayPublishedCells": 53136,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 1,
+            "number-loop:unsafe-input": 2
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 266.25682699999993
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 16915.862523
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.2798960000000079
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 17.18888299999992
+            },
+            "number-loop.attempt": {
+              "calls": 3,
+              "milliseconds": 16878.153033
+            },
+            "number-loop.publish": {
+              "boxedCells": 2
+            },
+            "number-loop.execute": {
+              "calls": 1,
+              "milliseconds": 16874.603911
+            }
+          }
+        },
+        "variant": "final-compiled",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler404-original.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 51584.792143,
+        "rssMiB": 436.98046875,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 2095104,
+          "compiledTensors": 46806,
+          "typedArrayPublications": 418986,
+          "typedArrayPublishedCells": 2464789896,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:isqrt": 2,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:binding:isqrt": 1,
+            "scalar-expression:too-small": 7,
+            "loop:unbound-name:NameExpression": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:gcd": 2,
+            "scalar-expression:unsupported-op:equal": 2,
+            "scalar-expression:operator-guard:*": 93612,
+            "scalar-expression:operator-guard:-": 23403,
+            "scalar-expression:operator-guard:mod": 46806,
+            "scalar-expression:operator-guard:notequal": 23403,
+            "tensor:scalar-evaluation-timing": 23403,
+            "scalar-expression:operator-guard:+": 23403,
+            "scalar-expression:operator-guard://": 23403
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 236.78772199999997
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 51347.634446000004
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.27353900000002795
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 10.522973999999977
+            }
+          }
+        },
+        "variant": "original-compiled",
+        "trial": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler404-original.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 51385.522388000005,
+        "rssMiB": 433.203125,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 2095104,
+          "compiledTensors": 46806,
+          "typedArrayPublications": 418986,
+          "typedArrayPublishedCells": 2464789896,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:isqrt": 2,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:binding:isqrt": 1,
+            "scalar-expression:too-small": 7,
+            "loop:unbound-name:NameExpression": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:gcd": 2,
+            "scalar-expression:unsupported-op:equal": 2,
+            "scalar-expression:operator-guard:*": 93612,
+            "scalar-expression:operator-guard:-": 23403,
+            "scalar-expression:operator-guard:mod": 46806,
+            "scalar-expression:operator-guard:notequal": 23403,
+            "tensor:scalar-evaluation-timing": 23403,
+            "scalar-expression:operator-guard:+": 23403,
+            "scalar-expression:operator-guard://": 23403
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 249.056353
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 51136.039982
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.28537200000005214
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 10.737976000000003
+            }
+          }
+        },
+        "variant": "original-compiled",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 17289.232147000002,
+        "rssMiB": 202.8671875,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "mixedIntegerLoops": 1,
+          "typedArrayPublications": 6,
+          "typedArrayPublishedCells": 53136,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 1,
+            "number-loop:unsafe-input": 2
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 244.02430199999998
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 17044.840251999998
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.30535299999996823
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 17.030213000000003
+            },
+            "number-loop.attempt": {
+              "calls": 3,
+              "milliseconds": 17006.957187
+            },
+            "number-loop.publish": {
+              "boxedCells": 2
+            },
+            "number-loop.execute": {
+              "calls": 1,
+              "milliseconds": 17003.494037999997
+            }
+          }
+        },
+        "variant": "final-compiled",
+        "trial": 2
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "compiled",
+        "ms": 35716.164784,
+        "rssMiB": 432.12109375,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 9426944,
+          "compiledTensors": 44982,
+          "maskMaterializations": 44982,
+          "maskMaterializedCells": 165264359,
+          "typedArrayPublications": 357200,
+          "typedArrayPublishedCells": 1349002378,
+          "fallbacks": {
+            "tensor:scalar-evaluation-timing": 22492,
+            "number-loop:unsafe-input": 1,
+            "scalar-expression:unsupported-op:to": 2,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:too-small": 5,
+            "scalar-expression:operator-guard:*": 67473,
+            "scalar-expression:operator-guard:-": 22491,
+            "scalar-expression:operator-guard:mod": 44982,
+            "scalar-expression:operator-guard:notequal": 22491,
+            "scalar-expression:unsupported-op:gcd": 3,
+            "scalar-expression:unsupported-op:equal": 3,
+            "scalar-expression:operator-guard:+": 22491,
+            "scalar-expression:operator-guard://": 22491
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 242.31824899999992
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 35473.495519000004
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.2752900000000409
+            },
+            "loop.prepare": {
+              "calls": 1,
+              "milliseconds": 16.713985999999977
+            },
+            "number-loop.attempt": {
+              "calls": 1,
+              "milliseconds": 1.0283060000000432
+            }
+          }
+        },
+        "variant": "same-demo-without-wide-vector",
+        "trial": 2
+      },
+      {
+        "file": "benchmarks/experiments/euler404-original.ra",
+        "limit": "100000000000000000",
+        "mode": "reference",
+        "ms": 49465.176545999995,
+        "rssMiB": 363.46875,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 2095104,
+          "typedArrayPublications": 558648,
+          "typedArrayPublishedCells": 3286386528,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 236.14112
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 49228.657938000004
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.2667260000000624
+            }
+          }
+        },
+        "variant": "original-reference",
+        "trial": 0
+      },
+      {
+        "file": "demos/euler/404_crazyellipses.ra",
+        "limit": "100000000000000000",
+        "mode": "reference",
+        "ms": 35212.220565999996,
+        "rssMiB": 395.23046875,
+        "answer": "1199215615081353",
+        "diagnostics": {
+          "cellsComputed": 9426944,
+          "maskMaterializations": 44982,
+          "maskMaterializedCells": 165264359,
+          "typedArrayPublications": 491870,
+          "typedArrayPublishedCells": 1733501629,
+          "fallbacks": {
+            "loop:disabled": 1
+          },
+          "costs": {
+            "program.parse": {
+              "calls": 1,
+              "milliseconds": 244.91450699999996
+            },
+            "program.execute": {
+              "calls": 1,
+              "milliseconds": 34966.881213
+            },
+            "input.prepare": {
+              "calls": 1,
+              "milliseconds": 0.31529299999999694
+            }
+          }
+        },
+        "variant": "final-reference",
+        "trial": 0
+      }
+    ]
+  },
+  "hosts": {
+    "mac": {
+      "arch": "arm64",
+      "node": "v24.15.0",
+      "cpu": "Apple M5"
+    },
+    "intel": {
+      "arch": "x64",
+      "node": "v24.15.0",
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz"
+    }
+  }
+}

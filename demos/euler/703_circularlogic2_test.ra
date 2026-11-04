@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "703_circularlogic2"
+  Nn = 3
+  run
+  Answer equal 35
+  Nn = 4
+  run
+  Answer equal 2118
+end
+
+test "default input"
+  use "703_circularlogic2"
+  run
+  Answer equal 843437991
+end

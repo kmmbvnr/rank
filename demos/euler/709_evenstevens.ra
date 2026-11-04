@@ -1,0 +1,49 @@
+rem Even Stevens
+rem https://projecteuler.net/problem=709
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Nn integer = 24680
+arg Pm integer = 1020202009
+
+rem f(n) is the Euler zigzag number,
+rem n! [x^n] (1 + sin x) / cos x.
+rem Factorials come from a prefix
+rem product by doubling; 1 / cos x
+rem from a Newton iteration.
+Mx = 2 ** (Nn binary len)
+Ix = 0 to Mx - 1
+Fc = Ix max 1
+Dd = 1
+for Dd less Mx
+  Lw = (Ix less Dd) integer
+  Sh = (Fc shift Dd) + Lw
+  Fc = Fc * Sh mod Pm
+  Dd = Dd * 2
+end
+Iv = Fc (Pm - 2) Pm powmod
+Sg = 1 - (Ix // 2 mod 2) * 2
+Ev = ((Ix mod 2) equal 0) integer
+Cs = Ev * Sg * Iv mod Pm
+Sn = (1 - Ev) * Sg * Iv mod Pm
+Z0 = (Ix equal 0) integer
+Sn = (Sn + Z0) mod Pm
+Bi = array 1
+Ln = 1
+for Ln less Mx
+  Ln = Ln * 2
+  Cp = Cs take Ln
+  Tm = (Cp convolve Bi mod Pm) take Ln
+  Ng = (0 - Tm) mod Pm
+  Ng 0 = (2 - Tm 0) mod Pm
+  Bi = (Bi convolve Ng mod Pm) take Ln
+end
+Rb = Bi (Nn to 0 by -1)
+Sp = Sn take (Nn + 1)
+Tot = (Sp * Rb mod Pm) sum mod Pm
+Answer = Tot * Fc Nn mod Pm
+Answer print

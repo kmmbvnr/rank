@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "706_threelike"
+  Dd = 2
+  run
+  Answer equal 30
+  Dd = 6
+  run
+  Answer equal 290898
+end
+
+test "default input"
+  use "706_threelike"
+  run
+  Answer equal 884837055
+end

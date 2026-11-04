@@ -1,0 +1,22 @@
+rem Sum of Squares of Divisors
+use numbers
+use sequences
+use io
+use cli
+arg Limit integer = 1000000000000000
+Mod = 1000000000
+M6 = 6 * Mod
+Root = Limit isqrt
+Tot = 0
+for D in 1 to Root
+  Q = Limit // D
+  X = Q mod M6
+  P = X * (X + 1) mod M6
+  S = P * (2 * X + 1) mod M6 // 6
+  A = D * D mod Mod * (Q mod Mod)
+  Tot += A mod Mod + S
+end
+R2 = Root * (Root + 1) * (2 * Root + 1)
+Tot -= Root * (R2 // 6)
+Answer = Tot mod Mod
+Answer print

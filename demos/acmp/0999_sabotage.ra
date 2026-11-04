@@ -1,0 +1,85 @@
+use io
+use numbers
+use sequences
+use text
+use graph
+use cli
+
+rem ACMP 999: Sabotage
+rem Count (stone, dirt) edge cuts.
+
+arg Input text = "6 7
+1 2 1
+2 3 1
+1 4 0
+3 4 1
+4 5 1
+3 6 0
+5 6 1"
+
+fun solve_sabotage Input
+  Tokens = Input words integer
+  N = Tokens 0
+  M = Tokens 1
+  Last = (Tokens len) - 1
+  Sub = Tokens (2 to Last)
+  Edges = Sub reshape M 3
+
+  AllU = Edges (0 to (M - 1)) 0
+  AllV = Edges (0 to (M - 1)) 1
+  Types = Edges (0 to (M - 1)) 2
+
+  StoneMask = Types equal 1
+  DirtMask = Types equal 0
+
+  StoneU = AllU StoneMask
+  StoneV = AllV StoneMask
+  DirtU = AllU DirtMask
+  DirtV = AllV DirtMask
+
+  StoneCount = StoneU len
+  StoneEdges = (
+    array shape StoneCount 2 fill 0
+  )
+  LastS = StoneCount - 1
+  StoneEdges (0 to LastS) 0 = StoneU
+  StoneEdges (0 to LastS) 1 = StoneV
+
+  G = new graph (1 to N) .undirected
+  G add StoneEdges
+
+  B = G 1 bfs
+  Dist = B .distance
+  Parent = B .parent
+  Order = B .order
+
+  Diff = array shape (N + 1) fill 0
+  DirtCount = DirtU len
+  for I in 0 to (DirtCount - 1)
+    U = DirtU I
+    V = DirtV I
+    DU = Dist U
+    DV = Dist V
+    Anc = U
+    Desc = V
+    if DU greater DV
+      Anc = V
+      Desc = U
+    end
+    Diff Desc += 1
+    Diff Anc -= 1
+  end
+
+  Start = (Order len) - 1
+  for Step in Start to 1 by -1
+    V = Order Step
+    P = Parent V
+    Diff P += Diff V
+  end
+
+  SubDiff = Diff (2 to N)
+  return ((SubDiff equal 1) count)
+end
+
+Result = solve_sabotage Input
+Result print

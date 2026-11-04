@@ -1,0 +1,76 @@
+rem Triangle of Circular Arcs
+rem https://projecteuler.net/problem=727
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 100
+
+rem Centres: O_a at the origin, O_b on
+rem the axis, O_c from the law of
+rem cosines. Tangency points split the
+rem centre segments in the ratio of the
+rem radii; D is their circumcentre. The
+rem inner Soddy circle has radius r from
+rem Descartes' theorem and its centre E
+rem follows from two linear equations.
+Rs = 1 to Nn
+A0 = Rs reshape Nn 1 1
+B0 = Rs reshape 1 Nn 1
+C0 = Rs reshape 1 1 Nn
+Gc = (A0 gcd B0) gcd C0
+Ok = (A0 less B0) and (B0 less C0)
+Ok = Ok and (Gc equal 1)
+rem Invalid cells get the triple 1 2 3.
+Za = (A0 + B0 * 0 + C0 * 0) * 1.0
+Zb = (B0 + A0 * 0 + C0 * 0) * 1.0
+Zc = (C0 + A0 * 0 + B0 * 0) * 1.0
+A = Ok choose Za 1.0
+B = Ok choose Zb 2.0
+C = Ok choose Zc 3.0
+Ab = A + B
+Ac = A + C
+Bc = B + C
+Xn = Ac ** 2 + Ab ** 2 - Bc ** 2
+Xc = Xn / (2 * Ab)
+Yc = (Ac ** 2 - Xc ** 2) sqrt
+Fa = A / Ac
+Fb = B / Bc
+Qx = Fa * Xc
+Qy = Fa * Yc
+Sx = Ab + Fb * (Xc - Ab)
+Sy = Fb * Yc
+Dl = A * (Qy - Sy) + Qx * Sy - Sx * Qy
+Dl = 2 * Dl
+P2 = A ** 2
+Q2 = Qx ** 2 + Qy ** 2
+S2 = Sx ** 2 + Sy ** 2
+Nx = P2 * (Qy - Sy) + Q2 * Sy - S2 * Qy
+Ny = P2 * (Sx - Qx) + Q2 * (A - Sx)
+Ny = Ny + S2 * (Qx - A)
+Dx = Nx / Dl
+Dy = Ny / Dl
+K1 = 1.0 / A
+K2 = 1.0 / B
+K3 = 1.0 / C
+Kp = K1 * K2 + K2 * K3 + K3 * K1
+Kq = Kp sqrt
+Rr = 1.0 / (K1 + K2 + K3 + 2 * Kq)
+Ra = A + Rr
+Rb = B + Rr
+Ex = (Ab ** 2 + Ra ** 2 - Rb ** 2)
+Ex = Ex / (2 * Ab)
+Ey = Xc ** 2 + Yc ** 2 + Ra ** 2
+Ey = Ey - (C + Rr) ** 2 - 2 * Xc * Ex
+Ey = Ey / (2 * Yc)
+Dd = (Dx - Ex) ** 2 + (Dy - Ey) ** 2
+Dd = Dd sqrt
+Wt = Ok integer
+Dw = Dd * Wt
+Tot = Dw sum
+Cnt = Wt sum
+Ev = Tot / Cnt
+Answer = Ev text ".8f"
+Answer print

@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "733_ascendingsubsequences"
+  Nn = 6
+  run
+  Answer equal 94513710
+  Nn = 100
+  run
+  Answer equal 488692962
+end
+
+test "default input"
+  use "733_ascendingsubsequences"
+  run
+  Answer equal 574368578
+end

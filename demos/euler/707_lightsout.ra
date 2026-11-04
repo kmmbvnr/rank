@@ -1,0 +1,83 @@
+rem Lights Out
+rem https://projecteuler.net/problem=707
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+arg Ww integer = 199
+arg Nn integer = 199
+arg Pm integer = 1000000007
+
+rem F(w, h) = 2^(w h - nullity), with
+rem nullity = w - rank over GF(2) of
+rem A(h+1). A(0) = 0, A(1) = I and
+rem A(n+2) = T A(n+1) + A(n), T the
+rem path matrix with unit diagonal.
+rem Doubling steps to Fibonacci heights:
+rem A(m+n+1) = A(m+1)A(n+1) + A(m)A(n)
+rem A(m+n) = A(m+1)A(n) + A(m)A(n+1)
+rem            + T A(m)A(n)
+rem The ranks of all B = A(f+1) come
+rem from one batched elimination.
+Ix = 0 to Ww - 1
+Dl = (Ix reshape Ww 1) - Ix
+Id = (Dl equal 0) integer
+Tm = (Dl abs less 2) integer
+Z3 = array shape (Nn * Ww * Ww) fill 0
+Bs = Z3 reshape Nn Ww Ww
+Bs 0 = Tm
+Bs 1 = Tm
+Am = Id
+Bm = Tm
+An = Id
+Bn = Tm
+Ga = 1
+Gb = 1
+Fs = array shape Nn fill 1
+for K in 2 to Nn - 1
+  Pp = Am matmul An mod 2
+  Qq = Am matmul Bn mod 2
+  Rr = Bm matmul An mod 2
+  Ss = Bm matmul Bn mod 2
+  Tp = Pp + (Pp shift 1) + (Pp shift -1)
+  Tp = Tp mod 2
+  An = Am
+  Bn = Bm
+  Am = (Qq + Rr + Tp) mod 2
+  Bm = (Ss + Pp) mod 2
+  Bs K = Bm
+  Gc = (Ga + Gb) mod (Pm - 1)
+  Ga = Gb
+  Gb = Gc
+  Fs K = Gc
+end
+Z2 = array shape (Nn * Ww) fill 0
+Us = Z2 reshape Nn Ww
+Rk = array shape Nn fill 0
+Ob = (Ww - Ix) reshape 1 Ww
+for C in 0 to Ww - 1
+  Cl = Bs # # C
+  Wt = Cl * (1 - Us) * Ob
+  Mx = Wt max axis 1
+  Hs = (Mx greater 0) integer
+  Pv = Ww - Mx
+  Hr = Hs reshape Nn 1
+  Pc = Pv reshape Nn 1
+  Hot = (Ix equal Pc) integer
+  Hot = Hot * Hr
+  Hb = Hot reshape Nn Ww 1
+  Pr = Hb * Bs sum axis 1
+  Fc = Cl * (1 - Hot) * Hr
+  Fb = Fc reshape Nn Ww 1
+  Pb = Pr reshape Nn 1 Ww
+  Bs = (Bs + Fb * Pb) mod 2
+  Us = Us + Hot
+  Rk = Rk + Hs
+end
+Ex = (Ww * Fs - (Ww - Rk)) mod (Pm - 1)
+Pw = 2 Ex Pm powmod
+Answer = Pw sum mod Pm
+Answer print

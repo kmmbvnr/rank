@@ -1,0 +1,28 @@
+rem Grid Graphs
+rem https://projecteuler.net/problem=716
+
+use numbers
+use io
+use cli
+
+arg Hh integer = 10000
+arg Ww integer = 20000
+arg Pm integer = 1000000007
+
+rem Closed form for the sum of the
+rem component counts, checked against
+rem all three given values:
+rem C = 2hw (2^h + 2^w + 1) + 9 2^(h+w)
+rem - (8w + 10) 2^h - (8h + 10) 2^w
+rem + 10 (h + w + 1)
+Ph = 2 Hh Pm powmod
+Pw = 2 Ww Pm powmod
+Hw = Hh * Ww mod Pm
+Sm = (Ph + Pw + 1) mod Pm
+Ta = 2 * Hw * Sm mod Pm
+Tb = 9 * Ph mod Pm * Pw mod Pm
+Tc = (8 * Ww + 10) * Ph mod Pm
+Td = (8 * Hh + 10) * Pw mod Pm
+Te = 10 * (Hh + Ww + 1)
+Answer = (Ta + Tb - Tc - Td + Te) mod Pm
+Answer print

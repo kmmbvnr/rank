@@ -1,0 +1,229 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 959: Tree Protection
+rem Max trees enclosed by triangle.
+
+arg Input text = "70
+1486 8074 8360
+-286 390
+409 -318
+544 107
+570 -43
+89 573
+-63 568
+335 -402
+200 -470
+-251 -417
+423 463
+557 47
+-455 139
+192 490
+534 -125
+-468 -95
+-217 -307
+-347 -194
+-264 443
+255 -413
+-440 -18
+446 -239
+29 -499
+564 -119
+-5 -487
+499 -60
+107 531
+212 -444
+240 489
+586 118
+-337 -279
+74 555
+-89 -484
+-144 -393
+-388 259
+413 478
+592 -15
+-338 351
+-11 -441
+156 540
+-443 117
+-393 229
+-478 -82
+390 -278
+291 493
+-440 -109
+-334 -249
+-78 493
+276 -438
+424 427
+479 248
+-33 523
+-157 534
+-328 -261
+513 207
+-160 523
+156 -497
+467 312
+-218 465
+383 -329
+455 290
+323 514
+-290 409
+-184 -372
+-131 -412
+504 -176
+498 270
+-443 249
+-336 348
+-450 -184
+-454 26"
+
+fun relax X Y X0 Y0 Dx Dy A B C
+  P = (A + B + C) / 2
+  Area2 = P * (P - A) * (P - B)
+  Area2 = Area2 * (P - C)
+  if not (Area2 greater 0)
+    return 0
+  end
+  H = 2 * (Area2 sqrt) / A
+  AA = A * A
+  BB = B * B
+  CC = C * C
+  AlphaAcute = (AA + BB) greater CC
+  BetaObtuse = (AA + CC) less BB
+  DX = X - X0
+  DY = Y - Y0
+  D = Dy * DX - Dx * DY
+  Proj = Dx * DX + Dy * DY
+  LowOk = not (D less (0 - 1e-6))
+  HighOk = not (D greater (H + 1e-6))
+  Valid = LowOk and HighOk
+  VCount = Valid count
+  if VCount equal 0
+    return 0
+  end
+  VProj = Proj Valid
+  VD = D Valid
+  VRat = (VD / H) min 1.0
+  RIn = B * VRat
+  ROut = C * VRat
+  Bq = (0 - 2) * VProj
+  BaseDist = (VProj * VProj) + (VD * VD)
+  CIn = BaseDist - (RIn * RIn)
+  COut = BaseDist - (ROut * ROut)
+  DIn = 0.0 max (Bq * Bq - 4.0 * CIn)
+  DOut = 0.0 max (Bq * Bq - 4.0 * COut)
+  SqIn = DIn sqrt
+  SqOut = DOut sqrt
+  SignIn = -1
+  if AlphaAcute
+    SignIn = 1
+  end
+  Tin = (0 - Bq + (SignIn * SqIn)) / 2
+  SignOut = -1
+  if BetaObtuse
+    SignOut = 1
+  end
+  TermOut = 0 - Bq + (SignOut * SqOut)
+  Tout = (TermOut / 2) + A
+  Diff = Tin - Tout
+  RealValid = not (Diff greater 1e-6)
+  RCount = RealValid count
+  if RCount equal 0
+    return 0
+  end
+  T1 = Tin RealValid
+  T2 = Tout RealValid
+  M = T1 len
+  TCand = T1 reshape M 1
+  T1Row = T1 reshape 1 M
+  T2Row = T2 reshape 1 M
+  T1Shift = T1Row - 1e-6
+  LeftOk = not (T1Shift greater TCand)
+  T2Shift = T2Row + 1e-6
+  RightOk = not (TCand greater T2Shift)
+  Cover = LeftOk and RightOk
+  IntCover = Cover choose 1 0
+  RowSums = IntCover reduce + axis 1
+  return (RowSums max)
+end
+
+fun solve_protect Input
+  Tokens = Input words real
+  N = (Tokens 0) integer
+  LA = Tokens 1
+  LB = Tokens 2
+  LC = Tokens 3
+  if N less 2
+    return N
+  end
+
+  Last = (Tokens len) - 1
+  Pts = Tokens (4 to Last)
+  Coords = Pts reshape N 2
+  X = Coords (0 to (N - 1)) 0
+  Y = Coords (0 to (N - 1)) 1
+
+  MaxSide = LA max (LB max LC)
+  DX = (X reshape N 1) - (X reshape 1 N)
+  DY = (Y reshape N 1) - (Y reshape 1 N)
+  Dist = ((DX * DX) + (DY * DY)) sqrt
+
+  if N equal 2
+    if not ((Dist 0 1) greater MaxSide)
+      return 2
+    else
+      return 1
+    end
+  end
+
+  RowIdx = (0 to (N - 1)) reshape N 1
+  ColIdx = (0 to (N - 1)) reshape 1 N
+  RowMat = RowIdx + (ColIdx * 0)
+  ColMat = (RowIdx * 0) + ColIdx
+
+  RowFlat = RowMat reshape (N * N)
+  ColFlat = ColMat reshape (N * N)
+  DistFlat = Dist reshape (N * N)
+
+  NonZero = DistFlat greater 1e-6
+  TooFar = DistFlat greater MaxSide
+  Within = not TooFar
+  Mask = NonZero and Within
+  IArr = RowFlat Mask
+  JArr = ColFlat Mask
+  NumPairs = IArr len
+
+  PermA = array LA LA LB LB LC LC
+  PermB = array LB LC LA LC LA LB
+  PermC = array LC LB LC LA LB LA
+
+  Best = 1
+  Total = NumPairs * 6
+  for Step in 0 to (Total - 1)
+    PIdx = Step // 6
+    K = Step mod 6
+    I = IArr PIdx
+    J = JArr PIdx
+    X0 = X I
+    Y0 = Y I
+    Dx = (X J - X0) / (Dist I J)
+    Dy = (Y J - Y0) / (Dist I J)
+    PA = PermA K
+    PB = PermB K
+    PC = PermC K
+    Cur = relax X Y X0 Y0 Dx Dy PA PB PC
+    if Cur greater Best
+      Best = Cur
+    end
+    if Best equal N
+      break
+    end
+  end
+  return Best
+end
+
+Result = solve_protect Input
+Result print

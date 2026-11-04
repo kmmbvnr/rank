@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "720_unpredictablepermutations"
+  Mm = 2
+  run
+  Answer equal 3
+  Mm = 3
+  run
+  Answer equal 2295
+  Mm = 5
+  run
+  Answer equal 641839205
+end

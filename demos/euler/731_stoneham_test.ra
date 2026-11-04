@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "731_stoneham"
+  Nn = 100
+  run
+  Answer equal "4938271604"
+  Nn = 100000000
+  run
+  Answer equal "2584642393"
+end
+
+test "default input"
+  use "731_stoneham"
+  run
+  Answer equal "6086371427"
+end

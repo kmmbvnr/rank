@@ -1,0 +1,48 @@
+rem High Powers of Irrational Numbers
+rem https://projecteuler.net/problem=721
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Nn integer = 5000000
+arg Pm integer = 999999937
+
+rem With m = ceil(sqrt a), (m + s)^n and
+rem (m - s)^n, s = sqrt a, sum to the
+rem integer U = 2X, where (m + s)^n =
+rem X + Y s. The conjugate lies in
+rem (0, 1) unless a is a square, so the
+rem floor is U - 1 (U for squares).
+rem Every a is powered to n = a^2 at
+rem once by binary exponentiation in
+rem pairs (x, y) mod p.
+As = 1 to Nn
+Ms = (As - 1) isqrt + 1
+Sq = (As isqrt) ** 2 equal As
+Ex = As * As
+Rx = As * 0 + 1
+Ry = As * 0
+Bx = Ms
+By = As * 0 + 1
+for K in 0 to 45
+  Pk = (Ex shr K) band 1 equal 1
+  Ty2 = Ry * By mod Pm
+  Ta = Rx * Bx mod Pm
+  Tx = (Ta + As * Ty2) mod Pm
+  Ty = (Rx * By + Ry * Bx) mod Pm
+  Rx = Pk choose Tx Rx
+  Ry = Pk choose Ty Ry
+  By2 = By * By mod Pm
+  Na = Bx * Bx mod Pm
+  Nx = (Na + As * By2) mod Pm
+  By = (2 * Bx * By) mod Pm
+  Bx = Nx
+end
+Un = 2 * Rx mod Pm
+Ns = (Sq equal false) integer
+Fl = Un - Ns
+Answer = Fl sum mod Pm
+Answer print

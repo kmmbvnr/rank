@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "704_factorsoftwo"
+  Nn = 100
+  run
+  Answer equal 389
+  Nn = 10000000
+  run
+  Answer equal 203222840
+end
+
+test "default input"
+  use "704_factorsoftwo"
+  run
+  Answer equal 501985601490518144
+end

@@ -1,0 +1,27 @@
+rem Summation of a Modular Formula
+rem https://projecteuler.net/problem=717
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 10 ** 7
+
+rem By Fermat, b = 2^(2^p) mod p is
+rem 2^(2^p mod (p-1)) mod p. Halving
+rem mod p gives h with 2h = b; then
+rem w = h 2^p mod p^2 equals b + p g
+rem with g the wanted residue.
+Pr = (Nn - 1) primesieve
+Ps = (Pr array) drop 1
+Ae = 2 Ps (Ps - 1) powmod
+Bb = 2 Ae Ps powmod
+Hh = Bb * ((Ps + 1) // 2) mod Ps
+Qq = Ps * Ps
+Tw = 2 Ps Qq powmod
+Ww = Hh * Tw mod Qq
+Dl = (Ww - Bb) mod Qq
+Gg = Dl // Ps
+Answer = Gg sum
+Answer print

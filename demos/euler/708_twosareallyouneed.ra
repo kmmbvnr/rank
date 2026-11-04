@@ -1,0 +1,85 @@
+rem Twos Are All You Need
+rem https://projecteuler.net/problem=708
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Nn integer = 10 ** 14
+
+rem 2^Omega(n) = (tau * c)(n) with c
+rem multiplicative, c(p) = 0 and c(p^e)
+rem = 2^(e-2). So S(N) is the sum over
+rem powerful q of c(q) D(N / q), where
+rem D is the divisor summatory function.
+rem Powerful q are grown in waves: a new
+rem prime squared, or one more power of
+rem the last prime. D comes from a tau
+rem prefix table when N / q is below
+rem sqrt(N), else from the hyperbola.
+Rt = Nn isqrt
+Pz = Rt primesieve
+Prm = Pz array
+Tau = array shape (Rt + 1) fill 0
+Sq = (1 to Rt isqrt) ** 2
+Tau Sq = 1
+Am = ((4 * Rt + 1) isqrt - 1) // 2
+for A in 1 to Am
+  Tau (A * A + A to Rt by A) += 2
+end
+Dt = Tau scan +
+Q = array 1
+L = array -1
+W = array 1
+Qs = array shape 0 fill 0
+Ws = array shape 0 fill 0
+Answer = 0
+Iota = 0 to Rt * 4
+for Q len greater 0
+  Sm = Q at most Rt
+  Qs = concat Qs (Q filter Sm)
+  Ws = concat Ws (W filter Sm)
+  Bg = Q greater Rt
+  Xv = Nn // (Q filter Bg)
+  Bw = W filter Bg
+  Dv = Dt Xv
+  Cb = Bw * Dv
+  Answer += Cb sum
+  Pl = Prm (L max 0)
+  Fit = Q at most Nn // Pl
+  Lm = (L at least 0) and Fit
+  Qb = (Q * Pl) filter Lm
+  Lb = L filter Lm
+  Wb = (W * 2) filter Lm
+  Rs = (Nn // Q) isqrt
+  Jc = Prm upperindex Rs
+  Cn = (Jc - L - 1) max 0
+  Sl = Cn greater 0
+  Qa = Q filter Sl
+  La = L filter Sl
+  Wa = W filter Sl
+  Ca = Cn filter Sl
+  Tt = Ca sum
+  En = Ca scan +
+  St = En - Ca
+  Mk = array shape Tt fill 0
+  Mk St = 1
+  Pr = (Mk scan +) - 1
+  Of = (Iota take Tt) - (St Pr)
+  Jj = (La Pr) + 1 + Of
+  Pj = Prm Jj
+  Q = concat Qb ((Qa Pr) * Pj * Pj)
+  L = concat Lb Jj
+  W = concat Wb (Wa Pr)
+end
+for I in 0 to Qs len - 1
+  Xq = Nn // (Qs I)
+  Sr = Xq isqrt
+  Us = 1 to Sr
+  Hs = Xq // Us
+  Hy = Hs sum
+  Answer += (Ws I) * (2 * Hy - Sr * Sr)
+end
+Answer print

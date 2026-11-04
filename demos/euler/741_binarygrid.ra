@@ -1,0 +1,136 @@
+rem Binary Grid Colouring
+rem https://projecteuler.net/problem=741
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Small integer = 7 ** 7
+arg Large integer = 8 ** 8
+arg Prime integer = 1000000007
+
+rem Burnside over the 8 symmetries of
+rem the square: g = (identity + half
+rem turn + 2 quarter + 2 axis + 2
+rem diagonal) / 8. The counts are
+rem factorial-scaled coefficients of
+rem exponential series, so they follow
+rem integer recurrences: identity
+rem n! u(n), diagonal s(n); half turn
+rem m! e(m) (n = 2m) or m! o(m) (n =
+rem 2m + 1); quarter turn q(m); axis
+rem n! / 2^m (even n only).
+Half = (Prime + 1) // 2
+Initial = array 0 1 4
+Fact = 1
+UnitOld = 0
+UnitNow = 1
+DiagA = 0
+DiagB = 0
+DiagC = 0
+DiagNow = 1
+Facts = array 0 0
+Units = array 0 0
+Diags = array 0 0
+for Step in 0 to Large - 1
+  if Step equal Small
+    Facts 0 = Fact
+    Units 0 = UnitNow
+    Diags 0 = DiagNow
+  end
+  Back = Step * Half mod Prime
+  Back = Back * UnitOld mod Prime
+  Now = Step * UnitNow
+  UnitNext = (Now + Back) mod Prime
+  DiagNext = 0
+  if Step less 3
+    DiagNext = Initial Step
+  else
+    First = 2 * Step * DiagNow mod Prime
+    Second = Step * (Step - 2) mod Prime
+    Second = Second * DiagC mod Prime
+    Third = Step * (Step - 1) mod Prime
+    Third = Third * (Step - 2) mod Prime
+    Third = Third * Half mod Prime
+    Third = Third * DiagA mod Prime
+    Sum = First - Second - Third
+    DiagNext = Sum mod Prime
+  end
+  UnitOld = UnitNow
+  UnitNow = UnitNext
+  DiagA = DiagB
+  DiagB = DiagC
+  DiagC = DiagNow
+  DiagNow = DiagNext
+  Fact = Fact * (Step + 1) mod Prime
+end
+Facts 1 = Fact
+Units 1 = UnitNow
+Diags 1 = DiagNow
+rem Half-size recurrences (m <= n / 2).
+Mid = Large // 2
+MidFact = 1
+EvenOld = 0
+EvenNow = 1
+OddNow = 0
+QuartA = 0
+QuartB = 0
+QuartNow = 1
+Halves = array 0 0
+Evens = array 0 0
+Odds = array 0 0
+Quarters = array 0 0
+for Index in 0 to Mid - 1
+  if Index equal Small // 2
+    Halves 0 = MidFact
+    Evens 0 = EvenNow
+    Odds 0 = OddNow
+    Quarters 0 = QuartNow
+  end
+  Plus = Index + 1
+  EvenNext = (4 * Index + 1) * EvenNow
+  EvenNext = EvenNext mod Prime
+  Carry = 4 * Index * EvenOld mod Prime
+  Joined = EvenNext + Carry
+  EvenNext = Joined mod Prime
+  OddNext = 4 * Plus * OddNow mod Prime
+  Extra = 2 * Plus * EvenNow mod Prime
+  OddNext = (OddNext + Extra) mod Prime
+  Mixed = (2 * Index + 1) * QuartNow
+  Mixed = Mixed mod Prime
+  Third = Index * QuartB mod Prime
+  Mixed = Mixed - Third
+  Pair = 2 * Index * (Index - 1)
+  Pair = Pair mod Prime
+  Pair = Pair * QuartA mod Prime
+  Mixed = (Mixed + Pair) mod Prime
+  EvenOld = EvenNow
+  EvenNow = EvenNext
+  OddNow = OddNext
+  QuartA = QuartB
+  QuartB = QuartNow
+  QuartNow = Mixed
+  MidFact = MidFact * Plus mod Prime
+end
+Halves 1 = MidFact
+Evens 1 = EvenNow
+Odds 1 = OddNow
+Quarters 1 = QuartNow
+Sizes = array Small Large
+Even = ((Sizes mod 2) equal 0) integer
+Turn = Even * Evens + (1 - Even) * Odds
+Turn = Halves * Turn mod Prime
+Power = Half (Sizes // 2) Prime powmod
+Axis = Even * Facts * Power mod Prime
+Quarter = Even * Quarters
+Identity = Facts * Units mod Prime
+Total = Identity + Turn + 2 * Quarter
+Total = Total + 2 * Axis + 2 * Diags
+Eighth = Half * Half mod Prime
+Eighth = Eighth * Half mod Prime
+Rest = Total mod Prime
+Count = Rest * Eighth mod Prime
+Result = Count sum mod Prime
+Answer = Result
+Answer print

@@ -1,0 +1,40 @@
+rem Circle of Coins
+rem https://projecteuler.net/problem=728
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 10 ** 7
+arg Pm integer = 1000000007
+
+rem With g = gcd(n, k): F = 2^(n-g+1) if
+rem v2(k) <= v2(n), else 2^(n-g). Write
+rem n = t h, k = t r with r, h coprime.
+rem For h > 1 the residues r give
+rem 2 phi(h) 2^(t(h-1)) when h is even
+rem and 3 phi(h) / 2 2^(t(h-1)) when
+rem odd. The geometric sum over t up to
+rem N // h is taken in closed form; the
+rem case k = n adds 2 N.
+Ph = (0 to Nn) copy
+for P in primes to Nn
+  Sl = P to Nn by P
+  Ph Sl = Ph Sl - (Ph Sl // P)
+end
+Hs = 2 to Nn
+Cf = Ph (2 to Nn)
+Ev = ((Hs mod 2) equal 0) integer
+Ca = Ev * 2 * Cf
+Cb = (1 - Ev) * 3 * Cf // 2
+Cf = Ca + Cb
+Xx = 2 (Hs - 1) Pm powmod
+Mm = Nn // Hs
+Xm = Xx Mm Pm powmod
+Iv = (Xx - 1) (Pm - 2) Pm powmod
+Gs = Xx * (Xm - 1) mod Pm * Iv mod Pm
+Tt = (Cf mod Pm) * Gs mod Pm
+Sm = Tt sum
+Answer = (2 * Nn + Sm) mod Pm
+Answer print

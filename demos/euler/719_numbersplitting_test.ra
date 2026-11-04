@@ -1,0 +1,11 @@
+use testing
+
+test "statement value"
+  use "719_numbersplitting"
+  Nn = 10000
+  run
+  Answer equal 41333
+  Nn = 100000000
+  run
+  Answer equal 2818842841
+end

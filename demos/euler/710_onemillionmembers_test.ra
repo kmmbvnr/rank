@@ -1,0 +1,7 @@
+use testing
+
+test "default input"
+  use "710_onemillionmembers"
+  run
+  Answer equal 1275000
+end

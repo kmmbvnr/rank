@@ -1,0 +1,28 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 977: Trains
+rem Networks without isolated vertices.
+
+arg Input text = "100"
+
+fun solve_trains Input
+  N = (Input words integer) 0
+  if N less 2
+    return 0
+  end
+  K = 0 to N
+  Rem = N - K
+  Edges = (Rem * (Rem - 1)) // 2
+  P = 2 ** Edges
+  C = N binomial K
+  Signs = 1 - (2 * (K mod 2))
+  Terms = Signs * C * P
+  return (Terms sum)
+end
+
+Result = solve_trains Input
+Result print

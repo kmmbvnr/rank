@@ -1,0 +1,17 @@
+use testing
+
+test "shortest path of the example"
+  use "736_pathstoequality"
+  Lo = 1
+  Sp = 1
+  run
+  Answer equal 1476
+end
+
+test "default input"
+  use "736_pathstoequality"
+  Lo = 2
+  Sp = 2
+  run
+  Answer equal 25332747903959376
+end

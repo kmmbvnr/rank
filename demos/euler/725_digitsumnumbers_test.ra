@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "725_digitsumnumbers"
+  Nn = 3
+  run
+  Answer equal 63270
+  Nn = 7
+  run
+  Answer equal 85499991450
+end
+
+test "default input"
+  use "725_digitsumnumbers"
+  run
+  Answer equal 4598797036650685
+end

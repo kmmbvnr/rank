@@ -49,6 +49,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0435** | [Несчастливые номера](0435_unlucky_numbers.ra) | Combinatorics / DP (88%) | Count unpartitionable $N$-digit numbers via polynomial parity convolution & bitset subset sum |
 | **0436** | [Счастливые цифры](0436_lucky_digits.ra) | Number Theory (60%) | Base $D$ maximizing trailing digits $K$ up to $N = 10^{11}$ via divisor analysis & base testing |
 | **0441** | [Карточки - 2](0441_cards_2.ra) | Data Structures / Sorting (73%) | Minimal adjacent swaps via `A argsort`, vector scatter assignment `P OrderB = OrderA` & `((P P outer greater) and (Indices Indices outer less)) count` |
+| **0451** | [Арифметическое выражение](0451_expression.ra) | Parsing / Recursion (71%) | Evaluate Delphi arithmetic expressions with `sin`/`cos`, scientific notation, and operator precedence |
 | **0455** | [Умножение дроби](0455_fraction_multiplication.ra) | Math / Strings (64%) | Periodic fraction multiplication by $N$ via BigInt arithmetic, period divisor reduction & cyclic shift |
 | **0467** | [Закраска прямой - 2](0467_line_coloring_2.ra) | Sweep-line / Intervals (61%) | Longest white interval under parity flips via coordinate compression & prefix sum scan |
 | **0468** | [Числовая последовательность - 2](0468_sequence_2.ra) | Combinatorics / Binary Search (62%) | Find $N$-th integer with exactly 3 set bits via combinatorial number system & binary search |
@@ -131,10 +132,13 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0921** | [Турнир - 2](0921_tournament_2.ra) | Math / Vector Arithmetic (60%) | Optimal chess match count minimizing expected score differences via vectorized vector arithmetic `C = 1 till K`, `Diffs = ((C * (A - B)) + (K * B)) abs`, `MinDiff = Diffs min` |
 | **0928** | [Березовая аллея](0928_birch_alley.ra) | Computational Geometry / Binary Search (70%) | Max enclosed trees under ribbon length $L$ via 2D tensor difference matrix of decoupled top/bottom perimeter boundaries and binary search |
 | **0958** | [Осмотр королевства](0958_kings_tour.ra) | Graph Theory (62%) | Tournament Hamiltonian path merging $K$ chain routes |
+| **0959** | [Защита деревьев](0959_tree_protection.ra) | Computational Geometry (70%) | Max trees enclosed by rigid triangle of sides $a, b, c$ via 1D line projection intervals and 2D matrix overlap reduction in a single loop |
 | **0963** | [Морфизм](0963_morphism.ra) | Dynamic Programming (63%) | Binary lifting over 20-character substitution prefix table |
 | **0972** | [Задачка по геометрии](0972_geometry.ra) | Computational Geometry (66%) | Circle intersecting two segments once via 4-pair vectorized endpoint midpoint margin optimization |
 | **0974** | [Странный Ним](0974_strange_nim.ra) | Game Theory (65%) | 3-coin Welter's Game via Conway's Frieze rule in $O(1)$ without loops |
+| **0977** | [Поезда](0977_trains.ra) | Combinatorics (70%) | Graphs without isolated vertices via inclusion-exclusion $\sum (-1)^k \binom{N}{k} 2^{\binom{N-k}{2}}$ in zero loops |
 | **0978** | [Последовательность - 5](0978_sequence_5.ra) | Number Theory (79%) | Legendre's formula for maximal $k$ with $n^k \mid n!$ using `N factors unique` |
 | **0989** | [Окопы](0989_trenches.ra) | Geometry / SAT (64%) | Strict separating line via Separating Axis Theorem (SAT) over difference vectors |
 | **0993** | [Симпатичные последовательности](0993_pretty_sequences.ra) | Data Structures / Segment Tree (61%) | Maximal $k$-pretty prefix via point increment updates and range prefix minimum segment tree queries `Tree 0 (V - 1) query` |
+| **0999** | [Диверсия](0999_sabotage.ra) | Graph Theory (70%) | Count 2-edge (stone, dirt) cuts via spanning tree BFS, back-edge difference accumulation, and reverse topological sum |
 | **1000** | [Упаковка чисел](1000_number_packing.ra) | Bitwise / Encodings (65%) | Variable-length prefix-free integer encoding (1–9 bytes) into hex |

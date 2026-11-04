@@ -1,0 +1,149 @@
+rem Sextuplet Norms
+rem https://projecteuler.net/problem=715
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 10 ** 12
+arg Mm integer = 1000000007
+
+rem The summand a is multiplicative
+rem with a(p^e) = p^(3e) - x(p) p^(3e-3)
+rem for the mod 4 character x. Lucy
+rem tables give the prime sums of p^3
+rem and x(p) at every Nn // k. Then,
+rem from the largest prime down, each
+rem prime (and exponent) adds its
+rem composite terms to the tables.
+Rt = Nn isqrt
+Vs = 0 to Rt
+Xs = concat Vs (Nn // (Vs max 1))
+Ev = Xs + (Xs mod 2)
+Od = Xs + 1 - (Xs mod 2)
+Hv = Ev // 2 mod Mm * (Od mod Mm) mod Mm
+Cb = (Hv * Hv - 1) mod Mm
+Q4 = Xs mod 4
+Cm = (Q4 equal 1) or (Q4 equal 2)
+Ch = Cm integer
+Cx = Ch - 1
+Rn = Rt + 1
+Gs = Cb take Rn
+Gl = Cb drop Rn
+Hs = Cx take Rn
+Hl = Cx drop Rn
+Gs 0 = 0
+Hs 0 = 0
+Pr = primes to Rt array
+Cnt = 0
+for P in Pr
+  P3 = P ** 3 mod Mm
+  C1 = (P mod 4 equal 1) integer
+  C3 = (P mod 4 equal 3) integer
+  Cp = C1 - C3
+  Gp = Gs (P - 1)
+  Hp = Hs (P - 1)
+  Ih = Rt min (Nn // (P * P))
+  Ix = 1 to Ih
+  Pi = P * Ix
+  Mk = Pi at most Rt
+  Sx = Nn // Pi min Rt
+  Px = Pi min Rt
+  Dg = (Mk choose (Gl Px) (Gs Sx)) - Gp
+  Dh = (Mk choose (Hl Px) (Hs Sx)) - Hp
+  Dg = P3 * (Dg mod Mm)
+  Gl Ix = (Gl Ix - Dg) mod Mm
+  Hl Ix = Hl Ix - Cp * Dh
+  Iw = P * P to Rt
+  Wi = Iw // P
+  Dg = (Gs Wi - Gp) mod Mm
+  Gs Iw = (Gs Iw - P3 * Dg) mod Mm
+  Dh = Hs Wi - Hp
+  Hs Iw = Hs Iw - Cp * Dh
+end
+Ts = (Gs - Hs) mod Mm
+Fl = (Gl - Hl) mod Mm
+Fs = Ts copy
+rem Primes with p^3 > N: e = 1 only.
+Big = Pr filter ((Pr ** 3) greater Nn)
+for P in Big reverse
+  P3 = P ** 3 mod Mm
+  C1 = (P mod 4 equal 1) integer
+  C3 = (P mod 4 equal 3) integer
+  Ap = (P3 - C1 + C3) mod Mm
+  A2 = Ap * P3 mod Mm
+  Tp = Ts P
+  Ih = Rt min (Nn // (P * P))
+  Ix = 1 to Ih
+  Pi = P * Ix
+  Mk = Pi at most Rt
+  Px = Pi min Rt
+  Sx = Nn // Pi min Rt
+  Wv = (Mk choose (Fl Px) (Fs Sx)) - Tp
+  Wv = Ap * (Wv mod Mm)
+  Fl Ix = (Fl Ix + Wv + A2) mod Mm
+  if P * P at most Rt
+    Iw = P * P to Rt
+    Wq = (Fs (Iw // P) - Tp) mod Mm
+    Wq = Ap * Wq + A2
+    Fs Iw = (Fs Iw + Wq) mod Mm
+  end
+end
+rem Smaller primes: every e with
+rem p^(e+1) <= N, from a snapshot.
+Sm = Pr filter ((Pr ** 3) at most Nn)
+Lr = (Nn real log) / (Sm real log)
+Ec = Lr floor - 1
+Ub = (Sm ** (Ec + 2)) at most Nn
+Up = Ub integer
+Ec = Ec + Up
+Db = (Sm ** (Ec + 1)) greater Nn
+Dn = Db integer
+Ec = Ec - Dn
+Tt = Ec sum
+En = Ec scan +
+St = En - Ec
+Mr = array shape Tt fill 0
+Mr St = 1
+Ri = (Mr scan +) - 1
+Ee = (0 to Tt - 1) - (St Ri) + 1
+Ee = Ee reverse
+Pp = (Sm Ri) reverse
+Fe = (Ee equal (Ec Ri reverse)) integer
+Sl = Fl copy
+Ss = Fs copy
+for J in 0 to Tt - 1
+  P = Pp J
+  E = Ee J
+  if Fe J equal 1
+    Sl = Fl copy
+    Ss = Fs copy
+  end
+  P3 = P ** 3 mod Mm
+  C1 = (P mod 4 equal 1) integer
+  C3 = (P mod 4 equal 3) integer
+  Ap = (P3 - C1 + C3) mod Mm
+  Pw = P3 (E - 1) Mm powmod
+  Ae = Ap * Pw mod Mm
+  A1 = Ae * P3 mod Mm
+  Tp = Ts P
+  Pe = P ** E
+  Ih = Rt min (Nn // (Pe * P))
+  Ix = 1 to Ih
+  Pi = Pe * Ix
+  Mk = Pi at most Rt
+  Px = Pi min Rt
+  Sx = Nn // Pi min Rt
+  Wv = (Mk choose (Sl Px) (Ss Sx)) - Tp
+  Wv = Ae * (Wv mod Mm)
+  Fl Ix = (Fl Ix + Wv + A1) mod Mm
+  if Pe * P at most Rt
+    Iw = Pe * P to Rt
+    Wq = (Ss (Iw // Pe) - Tp) mod Mm
+    Wq = Ae * Wq + A1
+    Fs Iw = (Fs Iw + Wq) mod Mm
+  end
+end
+Answer = (1 + Fl 1) mod Mm
+Answer print

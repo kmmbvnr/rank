@@ -1,0 +1,17 @@
+use testing
+
+test "statement values rounded"
+  use "724_dronedelivery"
+  Nn = 5
+  run
+  Answer equal 17
+  Nn = 100
+  run
+  Answer equal 1427
+end
+
+test "default input"
+  use "724_dronedelivery"
+  run
+  Answer equal 18128250110
+end

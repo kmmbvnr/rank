@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "708_twosareallyouneed"
+  Nn = 10
+  run
+  Answer equal 33
+  Nn = 1000
+  run
+  Answer equal 15301
+  Nn = 100000000
+  run
+  Answer equal 9613563919
+end
+
+test "default input"
+  use "708_twosareallyouneed"
+  run
+  Answer equal 28874142998632109
+end

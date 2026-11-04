@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "709_evenstevens"
+  Nn = 4
+  run
+  Answer equal 5
+  Nn = 8
+  run
+  Answer equal 1385
+end
+
+test "default input"
+  use "709_evenstevens"
+  run
+  Answer equal 773479144
+end

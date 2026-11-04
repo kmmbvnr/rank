@@ -1,0 +1,112 @@
+rem A Messy Dinner
+rem https://projecteuler.net/problem=746
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+arg Families integer = 2021
+arg Prime integer = 1000000007
+
+rem Inclusion-exclusion over marked
+rem families: M(n) = 2 sum over k of
+rem (-1)^k C(2n, k) n!/(n-k)! 4^k
+rem ((2n - 2k)!)^2, where C(L, k) counts
+rem cyclic words over 0, 1, 2 of length
+rem L with k nonzero symbols, none
+rem adjacent and no 2 followed two
+rem places later by a 1. The words
+rem come from a transfer step on the
+rem last two symbols for each of 5
+rem starting pairs, closed around the
+rem cycle.
+fun Left mulp Right
+  return Left * Right mod Prime
+end
+Top = 2 * Families
+Cols = Families + 1
+Sym = 0 to 8
+Source = Sym reshape 1 9
+Target = Sym reshape 9 1
+First = Source // 3
+Mid = Source mod 3
+Next = Target // 3
+Last = Target mod 3
+Quiet = (Mid equal 0) or (Last equal 0)
+Legal = (Next equal Mid) and Quiet
+Back2 = First not equal 2
+NoOne = Back2 or (Last not equal 1)
+Legal = Legal and NoOne
+Stays = Legal and (Last equal 0)
+Grows = Legal and (Last not equal 0)
+Zero = Stays integer
+Move = Grows integer
+rem Starting pairs (a, b), one is zero.
+Left = array 0 0 0 1 2
+Right = array 0 1 2 0 0
+Start = Left * 3 + Right
+Wanted = Start reshape 1 5
+Pairs = (Target equal Wanted) integer
+Heavy = (Left greater 0) integer
+Other = (Right greater 0) integer
+Weight = Heavy + Other
+Spots = (0 to Families) reshape 1 1 Cols
+Tall = Weight reshape 1 5 1
+Level = Tall equal Spots
+Init = Pairs reshape 9 5 1
+Count = Init * (Level integer)
+rem Closure: pair (a, b), last (x, y).
+Ax = Left reshape 1 5
+Bx = Right reshape 1 5
+Xs = (Sym // 3) reshape 9 1
+Ys = (Sym mod 3) reshape 9 1
+Close = (Ys equal 0) or (Ax equal 0)
+Rule1 = Xs not equal 2
+Rule1 = Rule1 or (Ax not equal 1)
+Rule2 = Ys not equal 2
+Rule2 = Rule2 or (Bx not equal 1)
+Close = Close and Rule1
+Close = Close and Rule2
+Whole = Close integer
+Mask = Whole reshape 9 5 1
+Run = (1 to Top) scan mulp
+Facts = concat (array 1) Run
+Counts = (0 to Families) array
+Powers = 4 Counts Prime powmod
+Exponent = Prime - 2
+Inverse = Facts Exponent Prime powmod
+Squares = Facts * Facts mod Prime
+Answer = 0
+Flat = Count reshape 9 (5 * Cols)
+for Length in 3 to Top
+  Plain = Zero matmul Flat
+  Grown = Move matmul Flat
+  Shifted = Grown reshape 9 5 Cols
+  Moved = Shifted shift 1 axis 2
+  Back = Moved reshape 9 (5 * Cols)
+  Flat = (Plain + Back) mod Prime
+  if Length mod 2 equal 0
+    Cube = Flat reshape 9 5 Cols
+    Choice = Cube * Mask
+    Rows = Choice sum axis 0
+    Words = Rows sum axis 0
+    Size = Length // 2
+    Range = 0 to Size
+    Upper = Facts Size
+    Under = Inverse (Size - Range)
+    Falling = Upper * Under mod Prime
+    Rest = Squares (Length - 2 * Range)
+    Sign = 1 - 2 * (Range mod 2)
+    Body = Words take (Size + 1)
+    Fours = Powers Range
+    Item = Body * Falling mod Prime
+    Item = Item * Fours mod Prime
+    Item = Item * Rest mod Prime * Sign
+    Total = Item sum
+    Piece = 2 * Total mod Prime
+    Answer = (Answer + Piece) mod Prime
+  end
+end
+Answer print

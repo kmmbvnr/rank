@@ -1,0 +1,19 @@
+use testing
+
+test "statement values"
+  use "722_slowlyconverging"
+  Kk = 3
+  Pp = 8
+  run
+  Answer equal "2.767385314772e10"
+  Kk = 7
+  Pp = 15
+  run
+  Answer equal "6.725803486744e39"
+end
+
+test "default input"
+  use "722_slowlyconverging"
+  run
+  Answer equal "3.376792776502e132"
+end

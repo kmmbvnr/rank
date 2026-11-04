@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "728_circleofcoins"
+  Nn = 3
+  run
+  Answer equal 22
+  Nn = 10
+  run
+  Answer equal 10444
+  Nn = 1000
+  run
+  Answer equal 853837042
+end
+
+test "default input"
+  use "728_circleofcoins"
+  run
+  Answer equal 709874991
+end

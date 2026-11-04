@@ -1,0 +1,2343 @@
+{
+  "base": "be4dce185f0582463cfb7b8f53a62c9b22b2f094",
+  "date": "2026-11-04",
+  "phase": "investigation; no production changes",
+  "node": "24.15.0",
+  "timing": "fresh process; parse + execute; module imports excluded; whole-process peak RSS",
+  "limitations": [
+    "Exploratory Mac samples overlap other probes and external machine load varies. Use rank404-mac-controlled.jsonl for local sequential bracket and compiler-medium paired series for isolated compiler comparison.",
+    "Intel full variants are one sample each, sequential. No full-scale reference timing was run.",
+    "Hand JS uses exact BigInt products/division/total and checked Number geometry but omits Rank runtime contracts.",
+    "Compiler prototype is an in-memory loader experiment, not a production patch. It does not admit full-scale wide input."
+  ],
+  "validation": {
+    "comparisons": 126,
+    "limits": {
+      "0": "0",
+      "1": "0",
+      "208": "0",
+      "209": "1",
+      "210": "1",
+      "500": "3",
+      "1000": "7",
+      "10000": "106",
+      "1000000": "11845"
+    },
+    "oracle": "direct enumeration of a,b,c; rational c squared and exact integer square check"
+  },
+  "prototypeValidation": {
+    "comparisons": 126,
+    "limits": {
+      "0": "0",
+      "1": "0",
+      "208": "0",
+      "209": "1",
+      "210": "1",
+      "500": "3",
+      "1000": "7",
+      "10000": "106",
+      "1000000": "11845"
+    },
+    "oracle": "direct enumeration of a,b,c; rational c squared and exact integer square check"
+  },
+  "samples": [
+    {
+      "evidence": "rank404-bounded-sequential.json",
+      "file": "benchmarks/experiments/euler404-bounded.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 30893.040334,
+      "rssMiB": 1236.046875,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 2095104,
+        "compiledTensors": 44982,
+        "typedArrayPublications": 402570,
+        "typedArrayPublishedCells": 2276432712,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 22492,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:too-small": 5,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 89964,
+          "scalar-expression:operator-guard:-": 22491,
+          "scalar-expression:operator-guard:mod": 44982,
+          "scalar-expression:operator-guard:notequal": 22491,
+          "scalar-expression:operator-guard:+": 22491,
+          "scalar-expression:operator-guard://": 22491
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 156.06254099999998
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 30736.6695
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.12433300000003555
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 5.708291000000031
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-bounded.json",
+      "file": "benchmarks/experiments/euler404-bounded.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 23480.674584,
+      "rssMiB": 1113.625,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 2095104,
+        "compiledTensors": 44982,
+        "typedArrayPublications": 402570,
+        "typedArrayPublishedCells": 2276432712,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 22492,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:too-small": 5,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 89964,
+          "scalar-expression:operator-guard:-": 22491,
+          "scalar-expression:operator-guard:mod": 44982,
+          "scalar-expression:operator-guard:notequal": 22491,
+          "scalar-expression:operator-guard:+": 22491,
+          "scalar-expression:operator-guard://": 22491
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 140.16341700000004
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 23340.276125
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.20025000000003956
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 5.277207999999973
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-compiled-medium.json",
+      "file": "benchmarks/experiments/euler404-original.ra",
+      "limit": "1000000000000",
+      "mode": "compiled",
+      "ms": 447.30825,
+      "rssMiB": 327.84375,
+      "answer": "11992009413",
+      "diagnostics": {
+        "cellsComputed": 867244,
+        "compiledTensors": 2632,
+        "typedArrayPublications": 21420,
+        "typedArrayPublishedCells": 7732620,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 5264,
+          "scalar-expression:operator-guard:-": 1316,
+          "scalar-expression:operator-guard:mod": 2632,
+          "scalar-expression:operator-guard:notequal": 1316,
+          "tensor:scalar-evaluation-timing": 1316,
+          "scalar-expression:operator-guard:+": 1316,
+          "scalar-expression:operator-guard://": 1316
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 101.23862499999998
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 345.885417
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.10599999999999454
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 4.41945800000002
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-consumer-small.json",
+      "file": "benchmarks/experiments/euler404-consumer.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "ms": 288.300667,
+      "rssMiB": 161.734375,
+      "answer": "11845",
+      "diagnostics": {
+        "cellsComputed": 882,
+        "compiledTensors": 41,
+        "fallbacks": {
+          "scalar-function:unsupported-op:sum": 2,
+          "scalar-function:unsupported-op:family": 1,
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 4,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 41,
+          "scalar-expression:operator-guard:-": 41,
+          "scalar-expression:operator-guard:mod": 41,
+          "scalar-expression:operator-guard:notequal": 41
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 229.323875
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 58.66066599999999
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.17250000000001364
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 7.089207999999985
+          }
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:sum",
+            "node": "ApplicationExpression",
+            "function": "family",
+            "expression": "Ok * (2 * N // (U * V)) sum",
+            "line": 29,
+            "column": 10
+          },
+          {
+            "reason": "scalar-function:unsupported-op:family",
+            "node": "ApplicationExpression",
+            "function": "consume",
+            "expression": "M Ns Ok N family",
+            "line": 32,
+            "column": 12
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "rank404-consumer.json",
+      "file": "benchmarks/experiments/euler404-consumer.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 34741.502666,
+      "rssMiB": 1034.96875,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 2095104,
+        "compiledTensors": 23403,
+        "typedArrayPublications": 186216,
+        "typedArrayPublishedCells": 1095462176,
+        "fallbacks": {
+          "scalar-function:unsupported-op:sum": 2,
+          "scalar-function:unsupported-op:family": 1,
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 4,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 23403,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 23403,
+          "scalar-expression:operator-guard:notequal": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 224.99124999999998
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 34516.179834
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.19454100000007202
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 7.988207999999986
+          }
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:sum",
+            "node": "ApplicationExpression",
+            "function": "family",
+            "expression": "Ok * (2 * N // (U * V)) sum",
+            "line": 29,
+            "column": 10
+          },
+          {
+            "reason": "scalar-function:unsupported-op:family",
+            "node": "ApplicationExpression",
+            "function": "consume",
+            "expression": "M Ns Ok N family",
+            "line": 32,
+            "column": 12
+          }
+        ]
+      }
+    },
+    {
+      "evidence": "rank404-debug.json",
+      "file": "benchmarks/experiments/euler404-original.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "ms": 200.21937499999996,
+      "rssMiB": 165.03125,
+      "answer": "11845",
+      "diagnostics": {
+        "cellsComputed": 882,
+        "compiledTensors": 82,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 164,
+          "scalar-expression:operator-guard:-": 41,
+          "scalar-expression:operator-guard:mod": 82,
+          "scalar-expression:operator-guard:notequal": 41,
+          "tensor:scalar-evaluation-timing": 41,
+          "scalar-expression:operator-guard:+": 41,
+          "scalar-expression:operator-guard://": 41
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 157.98483299999998
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 41.77920899999998
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.1505830000000401
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 8.079958999999974
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-filter-small.json",
+      "file": "benchmarks/experiments/euler404-filter.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "ms": 128.483375,
+      "rssMiB": 160.71875,
+      "answer": "11845",
+      "diagnostics": {
+        "cellsComputed": 2125,
+        "compiledTensors": 82,
+        "maskMaterializations": 41,
+        "maskMaterializedCells": 361,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:operator-guard:*": 164,
+          "scalar-expression:operator-guard:-": 41,
+          "scalar-expression:operator-guard:mod": 82,
+          "scalar-expression:operator-guard:notequal": 41,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "tensor:scalar-evaluation-timing": 41,
+          "scalar-expression:operator-guard:+": 41,
+          "scalar-expression:operator-guard://": 41
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 99.78804099999999
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 28.509582999999964
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.10575000000000045
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 4.478374999999971
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-filter.json",
+      "file": "benchmarks/experiments/euler404-filter.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 21490.593291,
+      "rssMiB": 1070.1875,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 5499392,
+        "compiledTensors": 46806,
+        "maskMaterializations": 23403,
+        "maskMaterializedCells": 109554124,
+        "typedArrayPublications": 395523,
+        "typedArrayPublishedCells": 1971881799,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:operator-guard:*": 93612,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 96.91495799999998
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 21393.50025
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.10650000000001114
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 4.6015419999999665
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-hand-control.json",
+      "ms": 9529.7965,
+      "rssMiB": 51.484375,
+      "answer": "1199215615081353",
+      "candidates": 126472516
+    },
+    {
+      "evidence": "rank404-hoist.json",
+      "file": "benchmarks/experiments/euler404-hoist.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 34212.757917,
+      "rssMiB": 1060.1875,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 2095104,
+        "compiledTensors": 70209,
+        "typedArrayPublications": 372432,
+        "typedArrayPublishedCells": 2190924352,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 8,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 70209,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 23403,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 166.70841600000003
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 34045.802667
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.14850000000001273
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 6.466957999999977
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-intel-count-first.json",
+      "file": "benchmarks/experiments/euler404-count-first.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 35187.202150000005,
+      "rssMiB": 163.02734375,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "mixedIntegerLoops": 1,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "number-loop:unsafe-input": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 227.56886499999996
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 34959.242971
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.37974899999994705
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 13.597250999999915
+          },
+          "number-loop.attempt": {
+            "calls": 3,
+            "milliseconds": 34930.054367
+          },
+          "number-loop.publish": {
+            "boxedCells": 3
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 34927.795524999994
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-intel-hand.json",
+      "ms": 10317.679391,
+      "rssMiB": 52.90234375,
+      "answer": "1199215615081353",
+      "candidates": 126472516
+    },
+    {
+      "evidence": "rank404-intel-original.json",
+      "file": "benchmarks/experiments/euler404-original.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 48819.955192,
+      "rssMiB": 434.9921875,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 2095104,
+        "compiledTensors": 46806,
+        "typedArrayPublications": 418986,
+        "typedArrayPublishedCells": 2464789896,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 93612,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 229.12782100000004
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 48590.477234
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.2576930000000175
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 9.672574999999938
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-intel-scalar-bounded.json",
+      "file": "benchmarks/experiments/euler404-scalar-bounded.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 28749.762469,
+      "rssMiB": 165.54296875,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "mixedIntegerLoops": 1,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "number-loop:unsafe-input": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 226.92593800000003
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 28522.442657
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.33358800000007705
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 13.634107000000085
+          },
+          "number-loop.attempt": {
+            "calls": 3,
+            "milliseconds": 28493.092354
+          },
+          "number-loop.publish": {
+            "boxedCells": 3
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 28490.880774999998
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-intel-selected.json",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 41431.654604999996,
+      "rssMiB": 431.09375,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 12334268,
+        "compiledTensors": 46806,
+        "maskMaterializations": 46806,
+        "maskMaterializedCells": 152643229,
+        "typedArrayPublications": 371792,
+        "typedArrayPublishedCells": 1300681900,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 70209,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 260.723603
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 41170.524037
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.27723199999991266
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 11.824525999999992
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-original-divide.json",
+      "file": "benchmarks/experiments/euler404-original-divide.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 33809.833459,
+      "rssMiB": 1160.21875,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 2095104,
+        "compiledTensors": 46806,
+        "typedArrayPublications": 418986,
+        "typedArrayPublishedCells": 2464789896,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 70209,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 46806
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 165.848833
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 33643.682333000004
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.17095900000003894
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 7.184082999999987
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-original.json",
+      "file": "benchmarks/experiments/euler404-original.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 21155.569875,
+      "rssMiB": 1351.015625,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 2095104,
+        "compiledTensors": 46806,
+        "typedArrayPublications": 418986,
+        "typedArrayPublishedCells": 2464789896,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 93612,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 93.857875
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 21061.488458
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.09845799999999372
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 4.287583000000041
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-paired-count-first.json",
+      "file": "benchmarks/experiments/euler404-count-first.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 29120.077,
+      "rssMiB": 175.3125,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "mixedIntegerLoops": 1,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "number-loop:unsafe-input": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 183.55154199999998
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 28936.189415999997
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.19037500000001728
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 11.726125000000025
+          },
+          "number-loop.attempt": {
+            "calls": 3,
+            "milliseconds": 28911.596875
+          },
+          "number-loop.publish": {
+            "boxedCells": 3
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 28909.471666999998
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-paired-original.json",
+      "file": "benchmarks/experiments/euler404-original.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 39391.249125,
+      "rssMiB": 1361.265625,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 2095104,
+        "compiledTensors": 46806,
+        "typedArrayPublications": 418986,
+        "typedArrayPublishedCells": 2464789896,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 93612,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 173.25549999999998
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 39217.662667
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.1965420000000222
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 7.489666999999997
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-paired-scalar-bounded.json",
+      "file": "benchmarks/experiments/euler404-scalar-bounded.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 28011.918542,
+      "rssMiB": 176.5,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "mixedIntegerLoops": 1,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "number-loop:unsafe-input": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 167.59641699999997
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 27844.02475
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.17116699999996854
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 9.847541000000035
+          },
+          "number-loop.attempt": {
+            "calls": 3,
+            "milliseconds": 27822.692916999997
+          },
+          "number-loop.publish": {
+            "boxedCells": 3
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 27821.362458
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-prototype-debug.json",
+      "file": "benchmarks/experiments/euler404-original.ra",
+      "limit": "1000",
+      "mode": "compiled",
+      "ms": 252.333083,
+      "rssMiB": 172.96875,
+      "answer": "7",
+      "diagnostics": {
+        "cellsComputed": 32,
+        "compiledTensors": 14,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 28,
+          "scalar-expression:operator-guard:-": 7,
+          "scalar-expression:operator-guard:mod": 14,
+          "scalar-expression:operator-guard:notequal": 7,
+          "tensor:scalar-evaluation-timing": 7,
+          "scalar-expression:operator-guard:+": 7,
+          "scalar-expression:operator-guard://": 7
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 209.74783399999995
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 42.305124999999975
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.21124999999994998
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 11.662750000000074
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-range-prototype-small.json",
+      "file": "benchmarks/experiments/euler404-original.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "ms": 346.168541,
+      "rssMiB": 163.328125,
+      "answer": "11845",
+      "diagnostics": {
+        "cellsComputed": 882,
+        "compiledTensors": 82,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 164,
+          "scalar-expression:operator-guard:-": 41,
+          "scalar-expression:operator-guard:mod": 82,
+          "scalar-expression:operator-guard:notequal": 41,
+          "tensor:scalar-evaluation-timing": 41,
+          "scalar-expression:operator-guard:+": 41,
+          "scalar-expression:operator-guard://": 41
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 261.25279200000006
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 84.28837500000009
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.24604099999999107
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 17.91112499999997
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-reference-medium.json",
+      "file": "benchmarks/experiments/euler404-original.ra",
+      "limit": "1000000000000",
+      "mode": "reference",
+      "ms": 421.21400000000006,
+      "rssMiB": 326.8125,
+      "answer": "11992009413",
+      "diagnostics": {
+        "cellsComputed": 867244,
+        "typedArrayPublications": 28560,
+        "typedArrayPublishedCells": 10310160,
+        "fallbacks": {
+          "loop:disabled": 1
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 104.87095799999997
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 315.927
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.11512499999997772
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-scalar-bounded.json",
+      "file": "benchmarks/experiments/euler404-scalar-bounded.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 15223.540500000001,
+      "rssMiB": 176.6875,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "mixedIntegerLoops": 1,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "number-loop:unsafe-input": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 92.923958
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 15130.263125
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.09129200000000992
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 5.760541999999987
+          },
+          "number-loop.attempt": {
+            "calls": 3,
+            "milliseconds": 15118.194083
+          },
+          "number-loop.publish": {
+            "boxedCells": 3
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 15117.385167
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-scalar-small.json",
+      "file": "benchmarks/experiments/euler404-scalar.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "ms": 111.88383400000001,
+      "rssMiB": 173.625,
+      "answer": "11845",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 99.180125
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 12.537915999999996
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.09208300000000236
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 5.91737500000005
+          },
+          "number-loop.attempt": {
+            "calls": 1,
+            "milliseconds": 1.3993749999999636
+          },
+          "number-loop.publish": {
+            "boxedCells": 10
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 0.4532080000000178
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-scalar.json",
+      "file": "benchmarks/experiments/euler404-scalar.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 15491.490125,
+      "rssMiB": 177.09375,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "mixedIntegerLoops": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 2,
+          "number-loop:unsafe-input": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 98.56908399999998
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 15392.740125
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.09708299999999781
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 6.064834000000019
+          },
+          "number-loop.attempt": {
+            "calls": 3,
+            "milliseconds": 15379.885167
+          },
+          "number-loop.publish": {
+            "boxedCells": 3
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 15379.0375
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-selected-control.json",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 25467.060917,
+      "rssMiB": 714.03125,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 12334268,
+        "compiledTensors": 46806,
+        "maskMaterializations": 46806,
+        "maskMaterializedCells": 152643229,
+        "typedArrayPublications": 371792,
+        "typedArrayPublishedCells": 1300681900,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 70209,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 165.03237500000006
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 25301.601125
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.1666250000000673
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 8.615084000000024
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-selected-divide.json",
+      "file": "benchmarks/experiments/euler404-selected-divide.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 25820.827459,
+      "rssMiB": 712.453125,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 12334268,
+        "compiledTensors": 46806,
+        "maskMaterializations": 46806,
+        "maskMaterializedCells": 152643229,
+        "typedArrayPublications": 371792,
+        "typedArrayPublishedCells": 1300681900,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 46806,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 46806
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 178.85570800000005
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 25641.694875
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.1738749999999527
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 7.554417000000058
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-selected-prototype-1000000000000.json",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "1000000000000",
+      "mode": "compiled",
+      "ms": 313.59225000000004,
+      "rssMiB": 181.71875,
+      "answer": "11992009413",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "typedArrayPublications": 6,
+        "typedArrayPublishedCells": 1584,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 194.40041599999995
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 118.88712499999997
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.18912500000004684
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 12.705916000000002
+          },
+          "number-loop.attempt": {
+            "calls": 1,
+            "milliseconds": 95.25412499999993
+          },
+          "number-loop.publish": {
+            "boxedCells": 4
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 92.00874999999996
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-selected-prototype-100000000000000000.json",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 31587.347625000002,
+      "rssMiB": 686.328125,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 12334268,
+        "compiledTensors": 46806,
+        "maskMaterializations": 46806,
+        "maskMaterializedCells": 152643229,
+        "typedArrayPublications": 371792,
+        "typedArrayPublishedCells": 1300681900,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "number-loop:unsafe-input": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 70209,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 206.57616700000005
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 31380.460834
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.18862500000000182
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 15.182457999999997
+          },
+          "number-loop.attempt": {
+            "calls": 1,
+            "milliseconds": 0.8794169999999895
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-selected-prototype-small.json",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "ms": 243.00704099999996,
+      "rssMiB": 173.90625,
+      "answer": "11845",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "typedArrayPublications": 6,
+        "typedArrayPublishedCells": 102,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 208.68941700000005
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 33.89091700000006
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.22566700000004403
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 16.066667000000052
+          },
+          "number-loop.attempt": {
+            "calls": 1,
+            "milliseconds": 6.938290999999936
+          },
+          "number-loop.publish": {
+            "boxedCells": 4
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 3.8066669999999476
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 1778.5557919999999,
+      "rssMiB": 467.09375,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "cellsComputed": 10371184,
+        "compiledTensors": 8322,
+        "maskMaterializations": 8322,
+        "maskMaterializedCells": 4830998,
+        "typedArrayPublications": 63920,
+        "typedArrayPublishedCells": 41093606,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 12483,
+          "scalar-expression:operator-guard:-": 4161,
+          "scalar-expression:operator-guard:mod": 8322,
+          "scalar-expression:operator-guard:notequal": 4161,
+          "tensor:scalar-evaluation-timing": 4161,
+          "scalar-expression:operator-guard:+": 4161,
+          "scalar-expression:operator-guard://": 4161
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 111.03837500000003
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 1667.329458
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.11062499999997044
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 5.537374999999997
+          }
+        }
+      },
+      "prototype": false
+    },
+    {
+      "evidence": "rank404-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 408.55933300000004,
+      "rssMiB": 204.171875,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "typedArrayPublications": 6,
+        "typedArrayPublishedCells": 9504,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 104.45687500000003
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 303.950125
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.10545799999999872
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 7.023249999999962
+          },
+          "number-loop.attempt": {
+            "calls": 1,
+            "milliseconds": 291.55129200000005
+          },
+          "number-loop.publish": {
+            "boxedCells": 4
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 290.018083
+          }
+        }
+      },
+      "prototype": true
+    },
+    {
+      "evidence": "rank404-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 397.085459,
+      "rssMiB": 204.03125,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "typedArrayPublications": 6,
+        "typedArrayPublishedCells": 9504,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 101.24437500000002
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 295.68337499999996
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.10004100000003291
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 6.768124999999998
+          },
+          "number-loop.attempt": {
+            "calls": 1,
+            "milliseconds": 283.67900000000003
+          },
+          "number-loop.publish": {
+            "boxedCells": 4
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 282.21229099999994
+          }
+        }
+      },
+      "prototype": true
+    },
+    {
+      "evidence": "rank404-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 1703.19775,
+      "rssMiB": 469.546875,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "cellsComputed": 10371184,
+        "compiledTensors": 8322,
+        "maskMaterializations": 8322,
+        "maskMaterializedCells": 4830998,
+        "typedArrayPublications": 63920,
+        "typedArrayPublishedCells": 41093606,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 12483,
+          "scalar-expression:operator-guard:-": 4161,
+          "scalar-expression:operator-guard:mod": 8322,
+          "scalar-expression:operator-guard:notequal": 4161,
+          "tensor:scalar-evaluation-timing": 4161,
+          "scalar-expression:operator-guard:+": 4161,
+          "scalar-expression:operator-guard://": 4161
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 100.66133399999998
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 1602.3620409999999
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.10429200000001515
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 5.355833999999959
+          }
+        }
+      },
+      "prototype": false
+    },
+    {
+      "evidence": "rank404-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 1702.84475,
+      "rssMiB": 467.921875,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "cellsComputed": 10371184,
+        "compiledTensors": 8322,
+        "maskMaterializations": 8322,
+        "maskMaterializedCells": 4830998,
+        "typedArrayPublications": 63920,
+        "typedArrayPublishedCells": 41093606,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 12483,
+          "scalar-expression:operator-guard:-": 4161,
+          "scalar-expression:operator-guard:mod": 8322,
+          "scalar-expression:operator-guard:notequal": 4161,
+          "tensor:scalar-evaluation-timing": 4161,
+          "scalar-expression:operator-guard:+": 4161,
+          "scalar-expression:operator-guard://": 4161
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 99.15166699999997
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 1603.5240410000001
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.10650000000001114
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 4.420832999999959
+          }
+        }
+      },
+      "prototype": false
+    },
+    {
+      "evidence": "rank404-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 404.01625,
+      "rssMiB": 204.90625,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "typedArrayPublications": 6,
+        "typedArrayPublishedCells": 9504,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 100.71466700000002
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 303.14333400000004
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.10058300000002873
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 6.7760000000000105
+          },
+          "number-loop.attempt": {
+            "calls": 1,
+            "milliseconds": 291.089583
+          },
+          "number-loop.publish": {
+            "boxedCells": 4
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 289.599667
+          }
+        }
+      },
+      "prototype": true
+    },
+    {
+      "evidence": "rank404-mac-controlled.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 20535.235,
+      "rssMiB": 702.359375,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 12334268,
+        "compiledTensors": 46806,
+        "maskMaterializations": 46806,
+        "maskMaterializedCells": 152643229,
+        "typedArrayPublications": 371792,
+        "typedArrayPublishedCells": 1300681900,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 70209,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 97.85874999999999
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 20437.202374999997
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.09799999999995634
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 4.993749999999977
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-mac-controlled.jsonl",
+      "file": "benchmarks/experiments/euler404-original.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 23810.853,
+      "rssMiB": 1352.6875,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 2095104,
+        "compiledTensors": 46806,
+        "typedArrayPublications": 418986,
+        "typedArrayPublishedCells": 2464789896,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:operator-guard:*": 93612,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 96.77825000000001
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 23713.726
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.10341599999998152
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 4.592832999999985
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-mac-controlled.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000000",
+      "mode": "compiled",
+      "ms": 17466.820083,
+      "rssMiB": 713.421875,
+      "answer": "1199215615081353",
+      "diagnostics": {
+        "cellsComputed": 12334268,
+        "compiledTensors": 46806,
+        "maskMaterializations": 46806,
+        "maskMaterializedCells": 152643229,
+        "typedArrayPublications": 371792,
+        "typedArrayPublishedCells": 1300681900,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 70209,
+          "scalar-expression:operator-guard:-": 23403,
+          "scalar-expression:operator-guard:mod": 46806,
+          "scalar-expression:operator-guard:notequal": 23403,
+          "tensor:scalar-evaluation-timing": 23403,
+          "scalar-expression:operator-guard:+": 23403,
+          "scalar-expression:operator-guard://": 23403
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 100.25374999999997
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 17364.083167
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.11183299999999008
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 5.439542000000017
+          }
+        }
+      }
+    },
+    {
+      "evidence": "rank404-intel-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 4614.36834,
+      "rssMiB": 402.99609375,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "cellsComputed": 10371184,
+        "compiledTensors": 8322,
+        "maskMaterializations": 8322,
+        "maskMaterializedCells": 4830998,
+        "typedArrayPublications": 63920,
+        "typedArrayPublishedCells": 41093606,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 12483,
+          "scalar-expression:operator-guard:-": 4161,
+          "scalar-expression:operator-guard:mod": 8322,
+          "scalar-expression:operator-guard:notequal": 4161,
+          "tensor:scalar-evaluation-timing": 4161,
+          "scalar-expression:operator-guard:+": 4161,
+          "scalar-expression:operator-guard://": 4161
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 244.76534800000002
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 4369.14307
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.2581709999999475
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 9.420704999999998
+          }
+        }
+      },
+      "prototype": false
+    },
+    {
+      "evidence": "rank404-intel-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 813.8665440000001,
+      "rssMiB": 176.53125,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "typedArrayPublications": 6,
+        "typedArrayPublishedCells": 9504,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 241.00543300000004
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 572.509327
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.2906789999999546
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 17.583591999999953
+          },
+          "number-loop.attempt": {
+            "calls": 1,
+            "milliseconds": 542.699339
+          },
+          "number-loop.publish": {
+            "boxedCells": 4
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 538.760638
+          }
+        }
+      },
+      "prototype": true
+    },
+    {
+      "evidence": "rank404-intel-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 825.657839,
+      "rssMiB": 186.5546875,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "typedArrayPublications": 6,
+        "typedArrayPublishedCells": 9504,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 240.44033800000005
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 584.8037149999999
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.33134899999993195
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 15.851621000000023
+          },
+          "number-loop.attempt": {
+            "calls": 1,
+            "milliseconds": 548.091479
+          },
+          "number-loop.publish": {
+            "boxedCells": 4
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 543.6642870000001
+          }
+        }
+      },
+      "prototype": true
+    },
+    {
+      "evidence": "rank404-intel-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 4749.125642,
+      "rssMiB": 406.61328125,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "cellsComputed": 10371184,
+        "compiledTensors": 8322,
+        "maskMaterializations": 8322,
+        "maskMaterializedCells": 4830998,
+        "typedArrayPublications": 63920,
+        "typedArrayPublishedCells": 41093606,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 12483,
+          "scalar-expression:operator-guard:-": 4161,
+          "scalar-expression:operator-guard:mod": 8322,
+          "scalar-expression:operator-guard:notequal": 4161,
+          "tensor:scalar-evaluation-timing": 4161,
+          "scalar-expression:operator-guard:+": 4161,
+          "scalar-expression:operator-guard://": 4161
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 261.81669600000004
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 4486.852867
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.29391499999996995
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 9.999083000000041
+          }
+        }
+      },
+      "prototype": false
+    },
+    {
+      "evidence": "rank404-intel-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 4733.9263519999995,
+      "rssMiB": 406.296875,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "cellsComputed": 10371184,
+        "compiledTensors": 8322,
+        "maskMaterializations": 8322,
+        "maskMaterializedCells": 4830998,
+        "typedArrayPublications": 63920,
+        "typedArrayPublishedCells": 41093606,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 7,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:*": 12483,
+          "scalar-expression:operator-guard:-": 4161,
+          "scalar-expression:operator-guard:mod": 8322,
+          "scalar-expression:operator-guard:notequal": 4161,
+          "tensor:scalar-evaluation-timing": 4161,
+          "scalar-expression:operator-guard:+": 4161,
+          "scalar-expression:operator-guard://": 4161
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 274.71086700000006
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 4458.852873
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.3181769999999915
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 10.155889000000002
+          }
+        }
+      },
+      "prototype": false
+    },
+    {
+      "evidence": "rank404-intel-compiler-medium.jsonl",
+      "file": "benchmarks/experiments/euler404-selected.ra",
+      "limit": "100000000000000",
+      "mode": "compiled",
+      "ms": 853.8173809999998,
+      "rssMiB": 181.4296875,
+      "answer": "1199214189437",
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "typedArrayPublications": 6,
+        "typedArrayPublishedCells": 9504,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:too-small": 2
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 263.709686
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 589.7066399999999
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.32630700000004254
+          },
+          "loop.prepare": {
+            "calls": 1,
+            "milliseconds": 15.73155399999996
+          },
+          "number-loop.attempt": {
+            "calls": 1,
+            "milliseconds": 561.3781230000001
+          },
+          "number-loop.publish": {
+            "boxedCells": 4
+          },
+          "number-loop.execute": {
+            "calls": 1,
+            "milliseconds": 557.3279660000001
+          }
+        }
+      },
+      "prototype": true
+    }
+  ],
+  "historicalSourceHashes": {
+    "benchmarks/experiments/euler404-original-divide.ra": "5454dbbe89208c96a825c8a3d63e7fc05e062f90b1c6b570cd87c97d586a7453",
+    "benchmarks/experiments/euler404-range-copy-prototype.mjs": "d7b1c0959294a099b396f374e682e5d4906ac2582a3a296b757eab6185ee6214",
+    "benchmarks/experiments/euler404-count-first.ra": "c0b79148434668ea6872cb4473b83f12d6ca84956f5000fc6d95e69d3b105d2e",
+    "benchmarks/experiments/euler404-scalar.ra": "1bc0aed45ff17b54c1bb77dfe5c61cffcf9ca7c17f6c046db2802e749f006dd1",
+    "benchmarks/experiments/euler404-hoist.ra": "44023f478f3a243422bd581c8a120deba645ffa97efbfbdc2283190aed477321",
+    "benchmarks/experiments/euler404-filter.ra": "9181108235d3a4bfd483d69d7c5e58fc07f906884f9c20c883a0c3211be488a2",
+    "benchmarks/experiments/euler404-selected.ra": "1c38f255c2ad3c235368f4a6178b83169e9648363d6972a2e5cff2f6b305d5cb",
+    "benchmarks/experiments/euler404-lazy.ra": "341c89c0c368a6cb60ec3271b40737c74597684c2b159d50e38ebd6bed7bbca3",
+    "benchmarks/experiments/euler404-hand.mjs": "285608f3baf4b202188e9acde7c92f4c4c454260e946eee4098b1d59462e7b11",
+    "benchmarks/experiments/euler404-selected-divide.ra": "93286a9e69a0208531047eb07f882a2ff38e1f71d88d3af194916ad093e657a4",
+    "benchmarks/experiments/euler404-bounded.ra": "8443dba961527dc3b907a4493c60f1220dfa95bbdcbff06a8ce79389ac1263a3",
+    "benchmarks/experiments/euler404-verify.mjs": "5d78c5c443409d33577a293c0b5c505cdc2d2ba05e0b4285caf7d067e321a215",
+    "benchmarks/experiments/euler404-consumer.ra": "6fd203351b19a9b6d3da7d80e5a4c512eff95f7eedfd359d442cac1751f59498",
+    "benchmarks/experiments/euler404-scalar-bounded.ra": "ff844a79549fb8421a196424598774a042d69e7143dc2492c6f1026cb39a9838",
+    "benchmarks/experiments/euler404-original.ra": "58dba1aede3e11f1a3727cdda54a5d52e35ccf95aedf44b9bbf1c8d937ded430"
+  }
+}

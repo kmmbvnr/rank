@@ -1,0 +1,15 @@
+use testing
+
+test "statement values"
+  use "741_binarygrid"
+  Small = 7
+  Large = 8
+  run
+  Answer equal 23853163
+end
+
+test "default input"
+  use "741_binarygrid"
+  run
+  Answer equal 512895223
+end

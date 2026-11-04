@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "737_coinloops"
+  Loops = 1
+  run
+  Answer equal 31
+  Loops = 2
+  run
+  Answer equal 154
+  Loops = 10
+  run
+  Answer equal 6947
+  Loops = 200
+  run
+  Answer equal 5440625
+end
