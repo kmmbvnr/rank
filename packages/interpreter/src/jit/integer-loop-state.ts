@@ -3,7 +3,7 @@ import { INTERRUPT_POLL_INTERVAL } from '../interrupt.js';
 import { type LoopHost, type IntegerLoopPlan, type LoopTerm, type LoopPolling } from './integer-loop-plan.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    isFunctionStatement, isAssignmentStatement, isUnpackStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
+    isFunctionStatement, isAssignmentStatement, isParenthesizedExpression, isUnpackStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
     type Expression, type Statement, type ForStatement, type FunctionStatement,
 } from '@arrrank/language';
 
@@ -47,8 +47,14 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
     }
     // Address guards must see later rebindings too, before any stores emit.
     const reboundNames = new Set<string>();
+    let ownershipChecks = false;
     for (const node of AstUtils.streamAllContents(statement)) {
-        if (isAssignmentStatement(node)) reboundNames.add(node.name);
+        if (isAssignmentStatement(node)) {
+            reboundNames.add(node.name);
+            let value = node.value;
+            while (isParenthesizedExpression(value)) value = value.value;
+            if (node.operator === '=' && isNameExpression(value)) ownershipChecks = true;
+        }
         if (isUnpackStatement(node)) node.names.forEach(name => reboundNames.add(name));
     }
     const required = new Set<number>(), assigned = new Set<string>();
@@ -115,7 +121,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         return loopScopes.length > 0 ? loopScopes[loopScopes.length - 1] : undefined;
     }
     return {
-        statement,
+        statement, ownershipChecks,
         host, numberMode, wideScalars, workCounting, checkpoint, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, reboundNames, writers, binders, writerNames, binderNames,
         containers, builtins, calls, arrays, calleeArrays, sliceReadSources, sliceResultSources, indexedReads, arrayInputs, arrayDefinitions, aliases, localAliases, arrayTransfers, dequeArrays,

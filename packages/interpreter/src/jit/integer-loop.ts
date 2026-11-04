@@ -193,6 +193,41 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
             if (!destinations.has(name)) destinations.set(name, { ...info, compound: false });
         }
     }
+    // Alias components need binding-level ownership rather than entry-only COW.
+    const ownedAliases = new Set<string>();
+    if (numberMode && aliases.length) {
+        const mutable = new Set(destinations.keys());
+        const edges = [...aliases, ...state.arrayTransfers];
+        for (let size = -1; size !== mutable.size;) {
+            size = mutable.size;
+            for (const [target, source] of edges) {
+                if (mutable.has(target) || mutable.has(source)) { mutable.add(target); mutable.add(source); }
+            }
+        }
+        for (const [target, source] of aliases) {
+            if (mutable.has(target)) { ownedAliases.add(target); ownedAliases.add(source); }
+        }
+        for (let size = -1; size !== ownedAliases.size;) {
+            size = ownedAliases.size;
+            for (const [target, source] of edges) {
+                if (ownedAliases.has(target) || ownedAliases.has(source)) { ownedAliases.add(target); ownedAliases.add(source); }
+            }
+        }
+        if (ownedAliases.size) {
+            // A prior result/callback or pooled vector can outlive a binding.
+            // Those owners are not represented by these scalar-store regions.
+            if (state.hasControl || calls.length || state.callouts.length || state.numberVectors)
+                return reject(statement, 'array-ownership-effects');
+            for (const name of ownedAliases) {
+                const info = arrays.get(name) ?? destinations.get(name);
+                if (!info || info.type !== 'integer' && info.type !== 'real') return reject(statement, 'array-ownership-type');
+                arrays.set(name, { ...info, type: info.type });
+                destinations.set(name, { ...info, compound: false });
+                arrayDefinitions.add(name);
+                if (!writerNames.includes(name)) { writerNames.push(name); writers.push(host.writer(name)); }
+            }
+        }
+    }
     const writable = new Set(destinations.keys());
     for (let changed = true; changed;) {
         changed = false;
@@ -209,28 +244,28 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // a separate ownership proof. Exact bindings snapshot writable aliases;
     // source stores can still invalidate existing compiled alias readers.
     if (numberMode && aliases.length && calls.length > 0) return reject(statement, 'array-alias-call');
-    // Entry arrays rebound later need complete lifetime tracking for aliases.
-    // Keep that case on the publishing backend until vector liveness covers it.
-    if (numberMode && aliases.length && [...arrayDefinitions].some(name => arrayInputs.has(name)))
+    // Aliases outside the managed components still lack lifetime tracking.
+    // Keep their rebound entry arrays on the publishing backend.
+    if (numberMode && !ownedAliases.size && aliases.length && [...arrayDefinitions].some(name => arrayInputs.has(name)))
         return reject(statement, 'rebound-array-alias');
     // A previous iteration may retain an array-valued result across a later
-    // store/break. Until those lifetimes have COW, only discarded rebindings
-    // of mutable entry arrays can use the private Number backend.
+    // store/break. Managed ownership excludes early exits; other mutable entry
+    // rebindings still need a discarded-result proof.
     const boundary = region ? statement.statements.at(-2) : statement;
     if (numberMode && locations.some(location => isAssignmentStatement(location)
         && arrayDefinitions.has(location.name) && arrayInputs.has(location.name) && destinations.has(location.name)
-        && !(boundary && statementResultDiscarded(location, boundary)))) return reject(statement, 'escaping-rebound-array');
+        && !ownedAliases.has(location.name) && !(boundary && statementResultDiscarded(location, boundary)))) return reject(statement, 'escaping-rebound-array');
     // This ownership path supports scalar cell stores. Slices/scatters need
     // separate dirty/result tracking across replacement and stay on fallback.
     if (numberMode && locations.some(location => isArrayAssignmentStatement(location)
-        && arrayDefinitions.has(location.name) && arrayInputs.has(location.name)
-        && (location.indices.length !== (arrayTransfers.has(location.name) ? arrays.get(location.name)?.rank : 1) || location.indices.some(index => index.all || index.sign
+        && arrayDefinitions.has(location.name) && (arrayInputs.has(location.name) || ownedAliases.has(location.name))
+        && (location.indices.length !== (arrayTransfers.has(location.name) || ownedAliases.has(location.name) ? arrays.get(location.name)?.rank : 1) || location.indices.some(index => index.all || index.sign
             || !index.value || expressions.knownType(index.value) !== 'integer')))) return reject(statement, 'rebound-array-selection');
-    if (aliases.some(([target, source]) => numberMode ? writable.has(target) || writable.has(source)
+    if (aliases.some(([target, source]) => numberMode ? !ownedAliases.has(target) && (writable.has(target) || writable.has(source))
         : destinations.has(source))) return reject(statement, 'mutable-array-alias');
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))
-        || state.localAliases.some(([target, source]) => writable.has(target) || writable.has(source))) return reject(statement, 'unstable-bindings');
+        || state.localAliases.some(([target, source]) => !ownedAliases.has(target) && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
     // A retained slice result can observe later source writes. Discard proofs
     // stop at this region: callers may retain a loop result even when its source
     // program has later statements. Keep live mutable results on the exact path.
@@ -239,6 +274,6 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
         statement, names, wideScalars, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
-        arrayTransfers, arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, writable, iteration, workCounting, polling, callouts: state.callouts,
+        ownershipChecks: state.ownershipChecks, ownedAliases, arrayTransfers, arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, writable, iteration, workCounting, polling, callouts: state.callouts,
     };
 }

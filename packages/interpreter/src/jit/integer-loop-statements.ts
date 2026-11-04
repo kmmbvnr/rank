@@ -28,7 +28,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
     };
 
     function bindArray(assignment: Statement, name: string, value: string, rank: number, type: LoopTerm['type'],
-        lines: string[], body: string[], location: number, aliasSlot?: number): true | undefined {
+        lines: string[], body: string[], location: number, aliasSlot?: number, move = false): true | undefined {
         if (localTypes.has(name)) return reject(assignment);
         const old = arrays.get(name), target = destinations.get(name);
         if (old && (old.rank !== rank || old.type !== type)
@@ -42,7 +42,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
         if (numberMode) {
             if (type !== 'integer' && (type !== 'real' || !host.reals)) return reject(assignment);
             body.push(`location = ${location};`, ...lines,
-                `const ${completed} = ${value};`, dirty(destination),
+                `const ${completed} = ${move || !state.ownershipChecks ? value : `owned${destination} ? bindOwned(r${destination}, ${value}, ${aliasSlot !== undefined}) : ${value}`};`, dirty(destination),
                 `r${destination} = ${completed}; cells${destination} = cells[${destination}] = ${aliasSlot === undefined ? `${completed}.cells` : `cells${aliasSlot}`};`,
                 ...(state.numberVectors ? [`vectorLive[${destination}] = ${completed};`] : []),
                 ...Array.from({ length: rank > 1 ? rank : 0 }, (_, axis) => `size${destination}_${axis} = ${completed}.shape[${axis}];`),
@@ -113,7 +113,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                     });
                     for (const [index, [target, source]] of transfer.entries()) {
                         const info = sources[index]!;
-                        if (!bindArray(assignment, target, values[index], info.rank, info.type, [], body, location)) return undefined;
+                        if (!bindArray(assignment, target, values[index], info.rank, info.type, [], body, location, undefined, true)) return undefined;
                         state.arrayTransfers.push([target, source.name]);
                     }
                     body.push(`iterationResult = tupleResult([${values.join(',')}]); iterationType = 'tuple';`);

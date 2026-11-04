@@ -23,7 +23,7 @@ function run(source: string, compilation = true, setup = initial, names = ['A', 
             : withDemandBudget(budget, () => runtime.execute(source))); }
         catch (failure) { error = String(failure); }
         return { diagnostics, state: { error, result: value === undefined ? undefined : formatValue(value),
-            arrays: names.map(name => formatValue(runtime.variables.get(name)!)) } };
+            arrays: names.map(name => runtime.variables.has(name) ? formatValue(runtime.variables.get(name)!) : undefined) } };
     } finally { runtime.dispose(); }
 }
 
@@ -122,8 +122,7 @@ it('handles conditional transfers and empty loops', () => {
     expect(compare(rotation.replace('1 to 3', '1 till 1')).state.error).toBeUndefined();
 });
 
-it.each([' unpack A B = tuple A A', ' C = A\n A 0 = 7\n unpack A B = tuple B A',
-    ' unpack A B = tuple B A\n break'])('retains fallback for unsafe transfers: %s', replacement => {
+it.each([' unpack A B = tuple A A', ' unpack A B = tuple B A\n break'])('retains fallback for unsafe transfers: %s', replacement => {
     const source = rotation.replace(' for I in 0 till 4\n  B I = A I + 1\n end', ' B 0 = A 0 + 1');
     const result = compare(source.replace(' unpack A B = tuple B A', replacement));
     expect(result.state.error).toBeUndefined();
@@ -184,6 +183,150 @@ end`)))).toThrow('Interrupted');
         expect(a).toBeGreaterThan(1n);
         expect(a).toBeLessThan(10001n);
         expect(a - b).toBe(1n);
+        expect(runtime.execute('Saved 0')).toBe(1n);
+        expect(stats.numberLoopBatched).toBe(1);
+    } finally { runtime.dispose(); }
+});
+
+it('keeps sequential swap temporaries as observable snapshots', () => {
+    const source = rotation.replace(' unpack A B = tuple B A', ' Temp = A\n A = B\n B = Temp');
+    const result = compare(source, initial + '\nTemp = B', ['A', 'B', 'Saved', 'Temp']);
+    expect(result.state.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(1);
+});
+
+it('preserves aliases while writing either end of a chain', () => {
+    const result = compare(`for R in 0 till 3
+ C = A
+ D = C
+ A 0 += 1
+ C 1 += 2
+ D 2 += 3
+end`, initial + '\nC = B\nD = B', ['A', 'B', 'Saved', 'C', 'D']);
+    expect(result.state.error).toBeUndefined();
+    expect(result.state.arrays).toEqual(['4 1 1 1', '2 2 2 2', '1 1 1 1', '3 3 1 1', '3 1 4 1']);
+    expect(result.diagnostics.numberLoops).toBe(1);
+});
+
+it('releases overwritten aliases before the next write', () => {
+    const result = compare(`for R in 0 till 3
+ C = A
+ C = B
+ A 0 += 1
+end`, initial + '\nC = B', ['A', 'B', 'Saved', 'C']);
+    expect(result.state.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(1);
+    expect(result.diagnostics.costs['number-loop.alias-copy']).toBeUndefined();
+});
+
+it('publishes both old aliases and current cells on an error', () => {
+    const result = compare(`for R in 0 till 3
+ C = A
+ A 0 += 1
+ A 9 = 0
+end`, initial + '\nC = B', ['A', 'B', 'Saved', 'C']);
+    expect(result.state.error).toContain('array index out of bounds');
+    expect(result.state.arrays).toEqual(['2 1 1 1', '2 2 2 2', '1 1 1 1', '1 1 1 1']);
+    expect(result.diagnostics.numberLoops).toBe(1);
+});
+
+it.each(['1', '1.5'])('detaches shared buffers of numeric kind %s', fill => {
+    const result = compare(`for R in 0 till 3
+ C = A
+ A 0 = A 0 + 2147483647
+ C 1 = C 1 + 2
+end`, initial.replace('fill 1', `fill ${fill}`) + '\nC = A', ['A', 'B', 'Saved', 'C']);
+    expect(result.state.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(1);
+});
+
+it('keeps ownership through conditional aliases and parallel moves', () => {
+    const result = compare(`for R in 0 till 4
+ C = A
+ if R mod 2 equal 0
+  C = B
+ end
+ unpack A B = tuple B A
+ A 0 += 1
+ C 1 += 2
+end`, initial + '\nC = B', ['A', 'B', 'Saved', 'C']);
+    expect(result.state.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(1);
+});
+
+it('discards alias copies on exact overflow replay', () => {
+    const result = compare(`for R in 0 till 3
+ C = A
+ A 0 += 1
+ C 1 += 9007199254740991
+end`, initial + '\nC = B', ['A', 'B', 'Saved', 'C']);
+    expect(result.state.error).toBeUndefined();
+    expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+});
+
+it('tracks owners through matrix aliases and changing dimensions', () => {
+    const result = compare(`for R in 0 till 3
+ C = A
+ A 1 0 += 1
+ A = B
+ B = C
+ B 1 1 += 2
+end`, `A = array shape 2 3 fill 1
+B = array shape 3 2 fill 2
+C = A
+Saved = A`, ['A', 'B', 'Saved', 'C']);
+    expect(result.state.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(1);
+});
+
+it('retains fallback for shared local slice stores', () => {
+    const result = compare(`for R in 0 till 3
+ A = array shape 4 fill R
+ C = A
+ A (0 to 2) = 9
+end`, initial + '\nC = B', ['A', 'B', 'Saved', 'C']);
+    expect(result.state.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(0);
+});
+
+it('retains a final alias result across a later external store', () => {
+    const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
+    try {
+        runtime.execute(initial + '\nC = B');
+        const result = runtime.execute(`for R in 0 till 3
+ C = A
+ A 0 += 1
+ C = A
+end`);
+        if (!result || !isRankArray(result)) throw new Error('expected array');
+        expect(readArrayItem(result, 0)).toBe(4n);
+        runtime.execute('A 0 = 99');
+        expect(readArrayItem(result, 0)).toBe(4n);
+        expect(runtime.execute('C 0')).toBe(4n);
+    } finally { runtime.dispose(); }
+});
+
+it('retains observable demand boundaries for alias regions', () => {
+    const source = rotation.replace(' for I in 0 till 4\n  B I = A I + 1\n end', ' B 0 = A 0 + 1')
+        .replace(' unpack A B = tuple B A', ' Temp = A\n A = B\n B = Temp');
+    const setup = initial + '\nTemp = B';
+    const names = ['A', 'B', 'Saved', 'Temp'];
+    const result = run(source, true, setup, names, 12);
+    expect(result.state).toEqual(run(source, true, setup, names, 12, { numberLoopCompilation: false }).state);
+    expect(result.state.error).toContain('demand budget exhausted');
+});
+
+it('preserves aliases when cancellation occurs after ownership detachment', () => {
+    const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
+    const stats = new RuntimeDiagnostics(), flag = new Int32Array(1);
+    try {
+        runtime.execute(initial + '\nC = B');
+        flag[0] = 1;
+        expect(() => withInterrupt(flag, () => stats.run(() => runtime.execute(`for R in 0 till 10000
+ C = A
+ A 0 += 1
+end`)))).toThrow('Interrupted');
+        expect(runtime.execute('A 0 - C 0')).toBe(1n);
         expect(runtime.execute('Saved 0')).toBe(1n);
         expect(stats.numberLoopBatched).toBe(1);
     } finally { runtime.dispose(); }

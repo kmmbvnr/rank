@@ -32,7 +32,9 @@ const COPY_PROBE_CAP = 262144;
 interface VectorBuffer { cells: Int32Array | Float64Array }
 class PrivateNumericArray {
     private pool?: VectorBuffer;
-    private published?: RankArray;
+    // Count register owners; accepted regions cannot expose an earlier result.
+    // Shared publication preserves ordinary COW after the private region ends.
+    private owners: { count: number; published?: RankArray } = { count: 1 };
     cells: Int32Array | Float64Array;
     constructor(readonly shape: number[], fill: number, source?: NumberCells, owned?: VectorBuffer, private readonly real = false) {
         const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
@@ -42,6 +44,24 @@ class PrivateNumericArray {
         this.cells = owned ? owned.cells.subarray(0, size) : (source ? !real && source instanceof Int32Array ? source.slice() : Float64Array.from(source, Number)
             : !real && fill === (fill | 0) ? new Int32Array(size).fill(fill) : new Float64Array(size).fill(fill));
         if (owned) this.pool = owned;
+    }
+    fork(): PrivateNumericArray {
+        const copy = new PrivateNumericArray(this.shape, 0, undefined, { cells: this.cells }, this.real);
+        copy.owners = this.owners;
+        this.owners.count++;
+        return copy;
+    }
+    release(): void { this.owners.count--; }
+    writable(): Int32Array | Float64Array {
+        if (this.owners.count > 1) {
+            this.owners.count--;
+            this.owners = { count: 1 };
+            this.cells = this.cells.slice();
+            this.pool = undefined;
+            const cost = currentDiagnostics()?.cost('number-loop.alias-copy');
+            if (cost) { cost.allocatedBytes += this.cells.byteLength; cost.copiedBytes += this.cells.byteLength; }
+        }
+        return this.cells;
     }
     store(index: number, value: number): void {
         if (this.cells instanceof Int32Array && value !== (value | 0)) {
@@ -56,7 +76,7 @@ class PrivateNumericArray {
         // TypedArray.from takes the iterable path for typed-array inputs and
         // collects their values first. Index the numeric buffer directly so a
         // large publication needs only its destination, not that temporary list.
-        return this.published ??= typedArray(this.real ? this.cells.slice() : this.cells instanceof Int32Array
+        return this.owners.published ??= typedArray(this.real ? this.cells.slice() : this.cells instanceof Int32Array
             ? this.cells : (() => {
                 const result = new BigInt64Array(this.cells.length);
                 for (let index = 0; index < result.length; index++) {
@@ -223,6 +243,7 @@ function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[
     return `"use strict"; return function(input, cells, changes, calls, publish) {
         let ${registers.length ? `${registers.join(',')}, ` : ''}result, resultType = 'integer', location = -1, order = 0${workCounting ? ', work = 0' : ''}${plan.polling === 'batched' ? ', pollWork = 0' : ''};
         const entered = [];
+        ${(plan.ownershipChecks ? [...new Map<string, { slot: number }>([...plan.arrays, ...plan.destinations])] : []).map(([name, info]) => `const owned${info.slot} = ${plan.ownedAliases?.has(name) ?? false};`).join('\n')}
         ${[...plan.destinations].map(([name, info]) => `const rebound${info.slot} = ${!plan.arrayDefinitions.has(name) ? 0 : plan.arrayInputs.has(name) ? 2 : 1};`).join('\n')}
         ${plan.numberVectors ? '\n        const vectorPool = [], vectorLive = input.slice(), vectorStep = vectorBlockSize();' : ''}
         try {
@@ -271,7 +292,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         return recordFallback('number-loop:mutable-traversal', 'aliasing');
     if (reboundInputs && (plan.calls.length > 0 || plan.wideScalars.size > 0
         || [...plan.destinations].some(([name, info]) => plan.arrayDefinitions.has(name)
-            && (info.type !== 'integer' && info.type !== 'real' || info.rank !== 1 && !plan.arrayTransfers?.has(name)))))
+            && (info.type !== 'integer' && info.type !== 'real' || info.rank !== 1 && !plan.arrayTransfers?.has(name) && !plan.ownedAliases?.has(name)))))
         return recordFallback('number-loop:rebound-input-proof', 'proof');
     const cursor = plan.iteration?.names[0];
     const indexedPass = cursor !== undefined && !plan.writerNames.includes(cursor) && !locations.some(isForStatement) && !plan.vectorIterations.length;
@@ -300,7 +321,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', code)(
             modularMultiply, safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -352,7 +373,13 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     for (let i = first; i < last; i++) result.store(i, safe(start + safe(i * step)));
                 }
                 return result;
-            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout, compactVector, integerCell, () => !interruptsEnabled(), (items: PrivateNumericArray[]) => new PrivateArrayTuple(items));
+            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout, compactVector, integerCell, () => !interruptsEnabled(), (items: PrivateNumericArray[]) => new PrivateArrayTuple(items),
+            (previous: PrivateNumericArray | undefined, value: PrivateNumericArray, alias: boolean) => {
+                if (previous === value) return value;
+                const next = alias ? value.fork() : value;
+                previous?.release();
+                return next;
+            });
     try { run = compile(source); } catch { return recordFallback('number-loop:code-generation', 'proof'); }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These
@@ -570,7 +597,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             // wrapper in sync when stores widen it or concat replaces it.
             input[info.slot] = rebound ? new PrivateNumericArray([...value.shape], 0, undefined,
                 { cells: buffers[info.slot] as Int32Array | Float64Array }, info.type === 'real') : value;
-            if (plan.destinations.has(name)) {
+            // Rebound handles publish their final buffer through the binding;
+            // only stable entry stores use a per-cell dirty mask.
+            if (plan.destinations.has(name) && !rebound) {
                 changes[info.slot] = new Uint8Array(items.length);
                 const diagnostics = currentDiagnostics();
                 if (diagnostics) diagnostics.cost('number-loop.dirty').allocatedBytes += items.length;

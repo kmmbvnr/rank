@@ -96,11 +96,27 @@ for R in 0 till ${moveRounds}
 end
 A sum`, values[0] * BigInt(moveSize)];
 }
+for (const name of ['move-2', 'move-large']) {
+    const [program, expected] = cases[name];
+    cases[name.replace('move-', 'alias-')] = [program.replace('unpack A B = tuple B A', 'Temp = A\n A = B\n B = Temp'), expected];
+}
+// A discarded binding should release its buffer before the following stores.
+cases['alias-release'] = [`use sequences
+A = array shape 524288 fill 1
+B = array shape 524288 fill 2
+for R in 0 till 32
+ C = A
+ C = B
+ for I in 0 till 524288
+  A I += 1
+ end
+end
+A sum`, 524288n * 33n];
 if (process.argv[2] === '--worker') {
     const [, , , checkout, name, engine, diagnostics] = process.argv;
     const { Interpreter, RuntimeDiagnostics, parse } = await import(pathToFileURL(resolve(checkout, 'packages/interpreter/out/index.js')));
     const runtime = new Interpreter(() => {}, { compilation: engine === 'compiled',
-        ...(/^(work|move)-/.test(name) ? { scalarEntryCompilation: false } : { integerLoopCompilation: false }) });
+        ...(/^(work|move|alias)-/.test(name) ? { scalarEntryCompilation: false } : { integerLoopCompilation: false }) });
     const program = parse(cases[name][0]);
     const stats = diagnostics === 'on' ? new RuntimeDiagnostics() : undefined;
     global.gc();

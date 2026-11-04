@@ -141,6 +141,8 @@ export interface IntegerLoopPlan {
     needsAlgo: boolean;
     arrayDefinitions: Set<string>;
     arrayTransfers?: ReadonlySet<string>;
+    ownershipChecks?: boolean;
+    ownedAliases?: ReadonlySet<string>;
     arrayRegions?: { region: ArrayRegion; location: number }[];
     numberVectors?: boolean;
     writable: Set<string>;

@@ -110,6 +110,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 if (out === undefined) return undefined;
                 result = out;
             }
+            if (state.ownershipChecks) lines.push(`if (owned${target.slot}) cells${target.slot} = cells[${target.slot}] = r${target.slot}.writable();`);
             if (type === 'integer') {
                 // Preserve compact private storage until a safe Number needs
                 // more than Int32. Publish through the updated buffer too.
