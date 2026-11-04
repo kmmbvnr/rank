@@ -1,11 +1,13 @@
+import { AstUtils } from 'langium';
 import {
-    isFunctionStatement, functionYields, flatArrayBorrowCandidates, functionCallSignature,
+    isFunctionStatement, isFunctionBindingStatement, isYieldStatement, functionYields, flatArrayBorrowCandidates, functionCallSignature,
     type FunctionStatement, type FunctionCallSignature,
 } from '@arrrank/language';
 
 export interface PreparedFunction {
     readonly signature: FunctionCallSignature;
     readonly generator: boolean;
+    readonly scopedArrays: boolean;
     readonly locals: readonly FunctionStatement[];
     readonly layout: Map<string, number>;
     readonly borrowedParameters: ReadonlySet<string>;
@@ -22,6 +24,9 @@ export function prepareFunction(statement: FunctionStatement): PreparedFunction 
         result = {
             signature,
             generator,
+            scopedArrays: ![...AstUtils.streamAllContents(statement)].some(node =>
+                isFunctionStatement(node) || isFunctionBindingStatement(node) || isYieldStatement(node)
+                || ('deferred' in node && node.deferred)),
             locals: statement.statements.filter(isFunctionStatement),
             layout: new Map([...new Set(signature.parameters.map(parameter => parameter.name))].map((name, index) => [name, index])),
             borrowedParameters: inferBorrowedParameters(statement, generator),

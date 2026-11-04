@@ -66,9 +66,9 @@ describe.each([false, true])('last array use with integer compilation %s', compi
             .toEqual({ value: 10n, copies: 1 });
     });
 
-    it('does not infer the old selector from a later integer binding', () => {
+    it('releases a tail frame even when a reassigned selector prevents last-use transfer', () => {
         expect(execute(`${change}\nfun solve\n A = array 1 2 3\n I = 0\n First = A I\n I += 1\n return A change\nend\nsolve`, compiled))
-            .toEqual({ value: [9n, 2n, 3n], copies: 1 });
+            .toEqual({ value: [9n, 2n, 3n], copies: 0 });
     });
 
     it('does not borrow through a callable index bound once', () => {

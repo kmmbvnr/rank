@@ -19,7 +19,7 @@ import {
     type KnownShape, type Expression, type FunctionBindingStatement, type FunctionStatement,
     type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { arrayRevision, hasNativeArrayHeader, integer32Cells, integer64Cells } from './array-storage.js';
+import { noteArrayBorrow, noteArrayBinding, arrayRevision, hasNativeArrayHeader, integer32Cells, integer64Cells } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './jit/block-compiler.js';
@@ -145,6 +145,7 @@ export class FunctionInvocation {
     /** Calls a function, through its Rank body when it has one so the call can suspend. */
     invoke(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue> {
         const execution = functionExecutions.get(fn);
+        if (!execution && !BuiltinRegistry.operationOf(fn)) arguments_.forEach(noteArrayBinding);
         return execution ? execution(arguments_, this.host.inputs?.pending) : completed(fn.call(arguments_));
     }
 
@@ -424,7 +425,11 @@ export class FunctionInvocation {
         };
         const checkedBody = (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> => {
             const contract = specialization(arguments_);
-            const run = () => mapResult(body(arguments_), value => checkReturn(contract, arguments_, value));
+            const run = () => mapResult(body(arguments_), value => {
+                const checked = checkReturn(contract, arguments_, value);
+                if (!this.bindings.current) noteArrayBinding(checked);
+                return checked;
+            });
             return this.host.inputs ? this.host.inputs.call(statement, inputRequirement, run) : run();
         };
         const { executeBound, memoMiss, cachedMemoValue } = memoizedFunctionBody(statement.memo, signature.arity, checkedBody);
@@ -458,13 +463,16 @@ export class FunctionInvocation {
             snapshot: () => this.snapshot(fn),
             lazySafe: () => this.lazySafe(fn),
             call: arguments_ => {
+                arguments_.forEach(noteArrayBorrow);
                 if (generator && !frozenFunctions.has(fn)) {
                     const frozen = this.snapshot(fn);
                     if (frozen !== fn) return frozen.call(arguments_);
                 }
-                return generator
+                const value = generator
                     ? this.callGeneratorFunction(statement, bindParameters(arguments_), context)
                     : runExecution(execute(arguments_));
+                noteArrayBinding(value);
+                return value;
             },
         };
         this.sources.set(fn, statement);
@@ -1125,6 +1133,7 @@ export class FunctionInvocation {
                 if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
                 throw error;
             } finally {
+                frame.releaseArrays();
                 this.depth -= 1;
             }
         });
@@ -1194,6 +1203,7 @@ export class FunctionInvocation {
                     }
                     const reusable = statement === transfer.definition.statement
                         && frame.parent === transfer.definition.context ? frame : undefined;
+                    if (!reusable) frame.releaseArrays();
                     statement = transfer.definition.statement;
                     arguments_ = transfer.arguments_;
                     frame = this.frames.create(statement, transfer.arguments_, transfer.definition.context, reusable);
@@ -1219,6 +1229,7 @@ export class FunctionInvocation {
                 try { for (const contract of tailContracts) result = contract.check(result); }
                 catch (error) { pending = error; }
             }
+            frame.releaseArrays();
             this.resources.finishResourceScope(scope, result, pending);
         }
         return result!;

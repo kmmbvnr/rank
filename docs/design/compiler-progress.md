@@ -2953,3 +2953,24 @@ Euler 360's original complete Number region remains the production demo. A
 compressed-table experiment exposes the new call path and its limits; it saves
 memory but remains slower than the original. See the
 [measurements and verification](../../benchmarks/euler360-investigation.md).
+
+
+## Scoped array binding lifetimes (#447)
+
+Completed native one-dimensional scalar arrays now have explicit scoped
+binding counts in ordinary function frames and exact compiled kernels.
+Overwriting a local, a proven last-use transfer, or completing a nonescaping
+function releases its binding without clearing conservative ownership held
+by globals, lazy readers, containers or observers. Returned local buffers
+can therefore be reused by their caller; rebinding an alias no longer leaves
+an array permanently shared.
+
+Escaping frames, closures, generators and inspection retain conservative
+ownership. Host/callback inputs and externally returned arrays remain
+observable, and retired original arguments retain their diagnostic values.
+Number speculation still uses its existing replay and publication rules.
+This does not infer every dead local or expand admission of mutating linked
+callees; higher-rank and non-native storage retain existing paths.
+
+See [cross-architecture measurements](../../benchmarks/array-lifetimes-results.md)
+for copy traffic, timings, RSS and the remaining limits.

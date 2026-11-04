@@ -4,24 +4,26 @@ import { checkpoint } from '../interrupt.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import type { RankArray, RankValue } from './value.js';
 import { ownedStorage, derivedRevisions, SHARED } from './array-storage-state.js';
-import { createOwned, ownedArray, denseScalarItems } from './owned-array.js';
-// An array is a value: a name holds its own, and a write through one name is
-// never visible through another. Tracking every reference would need real
-// counting, so a binding records only the two states a write has to tell
-// apart. A fresh expression result is unbound and is written in place; storing
-// it in a second binding marks it shared, and the next write through either
-// name takes a private copy first. The copy starts unbound again, so a name
-// pays for sharing once rather than on every write.
+import { createOwned, ownedArray, denseScalarItems, isFlatScalarArray } from './owned-array.js';
+// Scoped local bindings are counted exactly and released on overwrite or
+// completion. Opaque owners (globals, containers, lazy readers and observers)
+// retain conservative marks. A write copies whenever their combined count
+// exceeds one; releasing a local can never remove an opaque owner.
 
 // Storage the runtime owns and readers it built already carry a record, and a
 // binding is frequent enough that a table of its own would be felt: an inner
 // loop binds a row and an intermediate on every pass. Only arrays reaching us
 // from a host buffer or a plain literal need one.
-interface Ownership { owners?: number }
+interface Ownership { owners?: number; bindings?: number }
 const foreignOwners = new WeakMap<RankArray, Ownership>();
 
 function ownership(value: RankArray): Ownership | undefined {
     return ownedStorage.get(value) ?? derivedRevisions.get(value) ?? foreignOwners.get(value);
+}
+
+function bindingCount(value: RankArray): number {
+    const state = ownership(value);
+    return (state?.owners ?? 0) + (state?.bindings ?? 0);
 }
 
 function ownershipFor(value: RankArray): Ownership {
@@ -90,7 +92,7 @@ export function retainSelectionSnapshot(value: RankArray, source: RankArray,
  * value shares the source, so a later write to it copies instead. */
 export function holdArraySource(value: RankArray, source: RankArray): void {
     heldSources.set(value, [...(heldSources.get(value) ?? []), source]);
-    if ((ownership(value)?.owners ?? 0) > 0) shareSources(value);
+    if (bindingCount(value) > 0) shareSources(value);
 }
 
 function shareSources(value: RankArray): void {
@@ -130,12 +132,61 @@ export function noteArrayBinding(value: RankValue): void {
     record.owners = owners + 1;
 }
 
+/** Explicit local bindings can end without releasing opaque retained owners.
+ * Only completed native scalar storage enters this scope. Readers, containers
+ * and captures continue to use the conservative ownership marks above. */
+export class ArrayBindingScope {
+    private readonly values = new Map<string | number, RankArray>();
+
+    constructor(private readonly beforeRelease?: (value: RankArray) => void) {}
+
+    bind(key: string | number, value: RankValue, borrowed = false): void {
+        const previous = this.values.get(key);
+        if (previous === value && !borrowed) return;
+        // Retain first: rebinding an alias must never create a false unique gap.
+        const tracked = !borrowed && typeof value === 'object'
+            && value.kind === 'array' && isFlatScalarArray(value);
+        if (tracked) {
+            shareSources(value);
+            const state = ownershipFor(value);
+            state.bindings = (state.bindings ?? 0) + 1;
+        } else if (!borrowed) noteArrayBinding(value);
+        this.release(key);
+        if (borrowed) noteArrayBorrow(value);
+        if (tracked) this.values.set(key, value);
+    }
+
+    release(key: string | number): void {
+        const value = this.values.get(key);
+        if (!value) return;
+        this.beforeRelease?.(value);
+        this.values.delete(key);
+        const state = ownershipFor(value);
+        state.bindings = state.bindings! - 1;
+    }
+
+    /** Completion has no continuation that can observe retired arguments. */
+    clear(): void {
+        for (const value of this.values.values()) {
+            const state = ownershipFor(value);
+            state.bindings = state.bindings! - 1;
+        }
+        this.values.clear();
+    }
+
+    /** An observer can retain these values after the lexical scope ends. */
+    escape(): void {
+        for (const value of this.values.values()) noteArrayBinding(value);
+        this.clear();
+    }
+}
+
 /** Ensures that a borrowed array has at least one binding recorded (owners = 1),
  * but does not mark it shared (owners = 2). */
 export function noteArrayBorrow(value: RankValue): void {
     if (typeof value !== 'object' || value.kind !== 'array') return;
     const record = ownershipFor(value);
-    if ((record.owners ?? 0) === 0) {
+    if (bindingCount(value) === 0) {
         shareSources(value);
         record.owners = 1;
     }
@@ -150,7 +201,7 @@ export function hasPendingSelections(value: RankArray): boolean {
 /** True when a write must first protect aliases or retained selections. */
 export function isSharedArray(value: RankValue): boolean {
     return typeof value === 'object' && value.kind === 'array'
-        && ((ownership(value)?.owners ?? 0) >= SHARED || (pendingSelections.get(value)?.size ?? 0) > 0
+        && (bindingCount(value) >= SHARED || (pendingSelections.get(value)?.size ?? 0) > 0
             || sharesNumericSlices(value));
 }
 
@@ -217,7 +268,7 @@ export function arrayForWrite(value: RankValue, offset?: number, end = offset ==
     const source = value as RankArray;
     // Ordinary aliases still require a whole-value copy; their lazy readers
     // can keep reading the old source without detaching anything.
-    if ((ownership(source)?.owners ?? 0) >= SHARED) return privateArrayCopy(source);
+    if (bindingCount(source) >= SHARED) return privateArrayCopy(source);
     const pending = pendingSelections.get(source);
     if (!pending) return undefined;
     for (const reference of pending) {

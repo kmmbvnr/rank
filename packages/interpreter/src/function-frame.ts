@@ -1,3 +1,4 @@
+import { inspectionEnabled } from './interrupt.js';
 import { isRankPlan } from './plan.js';
 import { prepareCaptureProtection } from './capture-protection.js';
 import { flatArrayBorrowProofs, deferredBindingMessage, type LastArrayUseProof, type FunctionStatement } from '@arrrank/language';
@@ -84,31 +85,47 @@ export class FunctionFrames {
         }
         const frame = reusable?.reset() ? reusable
             : new LocalFrame(parent, prepared.layout);
+        if (prepared.scopedArrays && !inspectionEnabled()) frame.enableArrayBindings();
+        frame.onArrayRelease = arguments_.some(isFlatScalarArray) ? value => {
+            const inputs = this.inputs.get(frame);
+            if (!inputs?.includes(value)) return;
+            const saved = [...this.summaries.get(inputs) ?? []];
+            inputs.forEach((input, index) => {
+                if (input === value) saved[index] ??= summarizeValue(value);
+            });
+            this.summaries.set(inputs, saved);
+        } : undefined;
         const candidates = arguments_.some((argument, index) => isFlatScalarArray(argument) && !isSharedArray(argument)
             && !prepared.borrowedParameters.has(signature.parameters[index].name))
             ? this.borrowCandidates(statement, parent) : undefined;
         const protections: (() => void)[] = [];
-        signature.parameters.forEach(({ name: parameter, index, acceptsFunction, deferred }) => {
-            const argument = arguments_[index];
-            const guards = candidates?.get(index);
-            const borrowed = isFlatScalarArray(argument)
-                && (this.transfers.get(arguments_)?.has(index) || prepared.borrowedParameters.has(parameter)
-                    || !!guards && [...guards].every(([selector, type]) => type === 'flat-array'
-                        ? isFlatScalarArray(arguments_[selector]) : typeof arguments_[selector] === type));
-            if (isNativeFunction(argument) && !acceptsFunction) {
-                throw new RankError(`Function parameters use lowercase names: ${parameter}`, 'TypeError');
-            }
-            if (isRankPlan(argument)) frame.set(parameter, argument);
-            else frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
-            if (deferred) {
-                const message = deferredBindingMessage(parameter);
-                const publish = prepareCaptureProtection(argument, message);
-                protections.push(() => { publish(); frame.protectName(parameter, message); });
-            }
-        });
-        for (const protect of protections) protect();
-        if (arguments_.some(isFlatScalarArray)) this.inputs.set(frame, arguments_);
-        else this.inputs.delete(frame);
+        try {
+            signature.parameters.forEach(({ name: parameter, index, acceptsFunction, deferred }) => {
+                const argument = arguments_[index];
+                const guards = candidates?.get(index);
+                const borrowed = isFlatScalarArray(argument)
+                    && !this.transfers.get(arguments_)?.has(index)
+                    && (prepared.borrowedParameters.has(parameter)
+                        || !!guards && [...guards].every(([selector, type]) => type === 'flat-array'
+                            ? isFlatScalarArray(arguments_[selector]) : typeof arguments_[selector] === type));
+                if (isNativeFunction(argument) && !acceptsFunction) {
+                    throw new RankError(`Function parameters use lowercase names: ${parameter}`, 'TypeError');
+                }
+                if (isRankPlan(argument)) frame.set(parameter, argument);
+                else frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
+                if (deferred) {
+                    const message = deferredBindingMessage(parameter);
+                    const publish = prepareCaptureProtection(argument, message);
+                    protections.push(() => { publish(); frame.protectName(parameter, message); });
+                }
+            });
+            for (const protect of protections) protect();
+            if (arguments_.some(isFlatScalarArray)) this.inputs.set(frame, arguments_);
+            else this.inputs.delete(frame);
+        } catch (error) {
+            frame.releaseArrays();
+            throw error;
+        }
         return frame;
     }
 

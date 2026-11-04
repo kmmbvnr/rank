@@ -27,6 +27,7 @@ export interface OwnedStorage {
     resources?: ResourceSummary;
     stored?: StoredValueSummary;
     owners?: number;
+    bindings?: number;
     /** Conservative union of numeric views into this exact typed buffer. */
     slices?: { cells: Float64Array | BigInt64Array | Int32Array; start: number; end: number };
     nestedEpoch?: number;
@@ -66,6 +67,7 @@ export const derivedRevisions = new WeakMap<object, {
     // has none, so only the readers that can be frozen carry the list.
     sources?: readonly RankArray[];
     owners?: number;
+    bindings?: number;
 }>();
 
 export type DerivedRecord = NonNullable<ReturnType<typeof derivedRevisions.get>>;

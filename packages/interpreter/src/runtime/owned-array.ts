@@ -129,7 +129,7 @@ export function copyStoredNumericArray(value: RankArray): RankArray | undefined 
  * sort cannot poll, and integer buffers need no value-dependent validation. */
 export function sortStoredIntegerArray(value: RankArray, descending: boolean): RankArray | undefined {
     const state = ownedStorage.get(value);
-    if (interruptsEnabled() || !privateLoopPolling() || !state?.stable || !state.scalarOnly || state.owners !== 1
+    if (interruptsEnabled() || !privateLoopPolling() || !state?.stable || !state.scalarOnly || (state.owners ?? 0) + (state.bindings ?? 0) !== 1
         || state.readOnlyCells || state.validity || value.itemAt !== undefined || value.shape.length !== 1
         || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
     const cells = state.typed;

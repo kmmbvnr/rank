@@ -21,7 +21,7 @@ import { isRankArray, type RankArray, type RankSequence, type RankValue } from '
 import type { LoopCallable } from './integer-loop-plan.js';
 import { scalarArrayWriteOffset } from '../selectors.js';
 import { checkedArrayDimension } from '../tensor-index.js';
-import { arrayValues, arrayForWrite, ownedArray, noteArrayBinding, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from '../array-storage.js';
+import { ArrayBindingScope, arrayValues, arrayForWrite, ownedArray, noteArrayBinding, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from '../array-storage.js';
 import { scalarSelection } from './scalar-selection.js';
 import { takeDropValue } from '../sequence.js';
 import { concatValues, copyArray, materializeCollection } from '../modules/sequences.js';
@@ -786,7 +786,6 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             if (isReturnStatement(command) && command.value) {
                 const body = proof!.planReturns.has(command) ? [] : lines;
                 const value = emit(command.value, body, true);
-                if (typeof expressions.get(command.value)!.type !== 'string') body.push(`noteArrayBinding(${value});`);
                 body.push(`return ${value};`);
                 if (body !== lines) {
                     const origin = locations.push(command.value) - 1;
@@ -818,13 +817,16 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 lines.push(`${slot(command.name)} = ${value};`);
                 lines.push(`reader${slots.get(command.name)} = undefined;`);
                 if (writtenSlots.has(command.name)) lines.push(`write${slots.get(command.name)} = undefined;`);
-                if (proof!.arrayWrites.size && typeof expressions.get(command.value)!.type !== 'string') lines.push(`noteArrayBinding(${slot(command.name)});`);
+                if (proof!.arrayWrites.size && typeof expressions.get(command.value)!.type !== 'string') lines.push(`bindings.bind(${slots.get(command.name)}, ${slot(command.name)});`);
             } else if (isUnpackStatement(command)) {
                 const value = emit(command.value, lines), unpacked = `v${serial++}`;
                 lines.push(`const ${unpacked} = unpackApplicationItems(${value});`);
                 lines.push(`if (${unpacked}.length !== ${command.names.length}) throw new RankError('unpack expects ${command.names.length} values, got ' + ${unpacked}.length);`);
                 command.names.forEach((name, index) => {
-                    if (name !== '#') lines.push(`${slot(name)} = ${unpacked}[${index}]; reader${slots.get(name)} = undefined;`);
+                    if (name !== '#') {
+                        lines.push(`${slot(name)} = ${unpacked}[${index}]; reader${slots.get(name)} = undefined;`);
+                        if (proof!.arrayWrites.size) lines.push(`bindings.bind(${slots.get(name)}, ${slot(name)});`);
+                    }
                 });
             } else if (isBreakStatement(command)) lines.push('break;');
             else if (isContinueStatement(command)) lines.push('continue;');
@@ -855,7 +857,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     }
                     const copy = `v${serial++}`;
                     lines.push(`const ${copy} = arrayForWrite(${receiver}, ${offset});
-                        if (${copy}) { ${receiver} = ${copy}; noteArrayBinding(${receiver}); ${writer} = undefined; reader${slots.get(command.name)} = undefined; }
+                        if (${copy}) { ${receiver} = ${copy}; bindings.bind(${slots.get(command.name)}, ${receiver}); ${writer} = undefined; reader${slots.get(command.name)} = undefined; }
                         (${writer} ??= prepareWriter(${receiver}))(${offset}, ${value});`);
                 } else {
                     if (command.operator !== '=') {
@@ -968,9 +970,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
         ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
         ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
-        ${proof.arrayWrites.size || proof.planBindings.size || proof.iterableBindings.size ? 'args.forEach(noteArrayBinding);' : ''}
+        ${!proof.arrayWrites.size && (proof.planBindings.size || proof.iterableBindings.size) ? 'args.forEach(noteArrayBinding);' : ''}
+        ${proof.arrayWrites.size ? `const bindings = arrayBindings(args); ${[...slots].filter(([name]) => statement.parameters.includes(name)).map(([, index]) => `bindings.bind(${index}, r${index});`).join('')}` : ''}
         let location = -1;
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
+        ${proof.arrayWrites.size ? 'finally { bindings.clear(); }' : ''}
     };`;
     const paramNames = statement.parameters.map((_, i) => `r${i}`);
     const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
@@ -981,9 +985,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
             ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
             ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
-            ${(proof.arrayWrites.size || proof.planBindings.size || proof.iterableBindings.size) && paramNames.length ? `${paramNames.map(p => `noteArrayBinding(${p});`).join('')}` : ''}
+            ${!proof.arrayWrites.size && (proof.planBindings.size || proof.iterableBindings.size) && paramNames.length ? `${paramNames.map(p => `noteArrayBinding(${p});`).join('')}` : ''}
+            ${proof.arrayWrites.size ? `const bindings = arrayBindings([${paramNames.join(',')}]); ${[...slots].filter(([name]) => statement.parameters.includes(name)).map(([, index]) => `bindings.bind(${index}, r${index});`).join('')}` : ''}
             let location = -1;
             try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
+            ${proof.arrayWrites.size ? 'finally { bindings.clear(); }' : ''}
         };
     };`;
     let kernel: Kernel | undefined;
@@ -1013,8 +1019,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         for (const array of arrays) for (const item of arrayValues(array)) items.push(item);
         return ownedArray(items, [items.length], true);
     };
+    // Original arguments remain observable in error frames after a register
+    // is rebound. Retain those values; ordinary locals can retire immediately.
+    const arrayBindings = (inputs: readonly RankValue[]) => new ArrayBindingScope(value => {
+        if (inputs.includes(value)) noteArrayBinding(value);
+    });
     const kernelArguments = [
-        loopValues, RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection,
+        arrayBindings, loopValues, RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection,
         indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension,
         membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem,
         prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection,
@@ -1022,7 +1033,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems, concatValues, concatCopy,
     ];
     const kernelParameterNames = [
-        'loopValues', 'RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection',
+        'arrayBindings', 'loopValues', 'RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection',
         'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension',
         'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem',
         'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection',

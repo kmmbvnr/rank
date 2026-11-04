@@ -167,7 +167,7 @@ First = A inspect`);
             runtime.execute('A 0 = 99');
             expect(array.items).toBe(items);
             expect(() => runtime.execute('A inspect "bad"')).toThrow();
-            expect(isSharedArray(array)).toBe(true);
+            expect(isSharedArray(array)).toBe(false);
         } finally { runtime.dispose(); }
     });
 
@@ -193,7 +193,7 @@ First = A inspect`);
             expect(runtime.execute('A false 0 1 inspect')).toBe(20n);
             expect(isSharedArray(array)).toBe(false);
             expect(() => runtime.execute('A true "bad" 1 inspect')).toThrow();
-            expect(isSharedArray(array)).toBe(true);
+            expect(isSharedArray(array)).toBe(false);
         } finally { runtime.dispose(); }
     });
 
@@ -205,7 +205,7 @@ First = A inspect`);
             const inspect = runtime.variables.get('inspect');
             if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
             expect(() => inspect.call([array, array])).toThrow();
-            expect(isSharedArray(array)).toBe(true);
+            expect(isSharedArray(array)).toBe(false);
         } finally { runtime.dispose(); }
     });
 
@@ -219,7 +219,7 @@ First = A inspect`);
             const array = runtime.variables.get('A') as RankArray;
             expect(inspect.call([array, runtime.variables.get('Q')!, runtime.variables.get('change')!])).toBe(10n);
             expect(runtime.execute('Q len')).toBe(1n);
-            expect(isSharedArray(array)).toBe(true);
+            expect(isSharedArray(array)).toBe(false);
         } finally { runtime.dispose(); }
     });
 
@@ -300,7 +300,7 @@ First = A inspect`);
                 const inspect = runtime.variables.get('inspect');
                 if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
                 expect(() => inspect.call([array, 'wrong'])).toThrow();
-                expect(isSharedArray(array)).toBe(true);
+                expect(isSharedArray(array)).toBe(false);
             } finally { runtime.dispose(); }
         }
     });
@@ -326,7 +326,7 @@ First = A inspect`);
             const readat = runtime.variables.get('readat');
             if (!readat || !isNativeFunction(readat)) throw new Error('readat');
             expect(() => readat.call([array, 'wrong'])).toThrow();
-            expect(isSharedArray(array)).toBe(true);
+            expect(isSharedArray(array)).toBe(false);
         } finally { runtime.dispose(); }
     });
 
@@ -431,7 +431,7 @@ Value = array 10 20`);
         } finally { runtime.dispose(); }
     });
 
-    it('keeps closure and container escapes on the ordinary CoW path', () => {
+    it('releases completed copies but retains escaping closures', () => {
         for (const body of [
             'Saved = array V\n return V 0',
             'fun escaped\n return V\nend\n return V 0',
@@ -440,7 +440,7 @@ Value = array 10 20`);
             try {
                 runtime.execute(`fun V inspect\n ${body}\nend\nA = array 10 20\nFirst = A inspect`);
                 const array = runtime.variables.get('A') as RankArray;
-                expect(isSharedArray(array), body).toBe(true);
+                expect(isSharedArray(array), body).toBe(body.startsWith('fun'));
             } finally { runtime.dispose(); }
         }
     });

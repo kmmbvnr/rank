@@ -61,10 +61,10 @@ it('rechecks builtin identity before borrowing after a host replacement', () => 
             expect(max.call([next])).toBe(1n);
             const writable = arrayForWrite(next) ?? next;
             writable.items[0] = 9n;
-            expect(writable).not.toBe(next);
-            expect(next.items[0]).toBe(1n);
+            expect(writable).toBe(next);
+            expect(next.items[0]).toBe(9n);
         });
-        expect(stats.cowCopies).toBe(1);
+        expect(stats.cowCopies).toBe(0);
     } finally { runtime.dispose(); }
 });
 
@@ -79,9 +79,9 @@ it('falls back when the host replaces len after a previously borrowed call', () 
         const stats = new RuntimeDiagnostics();
         stats.run(() => {
             expect(max.call([values])).toBe(64n);
-            expect(arrayForWrite(values)).not.toBe(values);
+            expect(arrayForWrite(values)).toBeUndefined();
         });
-        expect(stats.cowCopies).toBe(1);
+        expect(stats.cowCopies).toBe(0);
     } finally { runtime.dispose(); }
 });
 
@@ -104,9 +104,9 @@ it('invalidates a cached reader-helper proof when that helper starts returning t
         const next = input(2n);
         stats.run(() => {
             expect(() => outer.call([next])).toThrow('outer returns rank 0 and cannot return rank 1');
-            expect(arrayForWrite(next)).not.toBe(next);
+            expect(arrayForWrite(next)).toBeUndefined();
         });
-        expect(stats.cowCopies).toBe(1);
+        expect(stats.cowCopies).toBe(0);
     } finally { runtime.dispose(); }
 });
 
@@ -160,7 +160,7 @@ it('does not borrow a returned array alias', () => {
     } finally { runtime.dispose(); }
 });
 
-it('keeps the ordinary copy path for closure capture, yielded input and container retention', () => {
+it('retains captured and yielded inputs but releases completed container copies', () => {
     const runtime = new Interpreter();
     try {
         runtime.execute('fun X closure\n fun nested\n  return X\n end\n return X 0\nend\n'
@@ -173,10 +173,11 @@ it('keeps the ordinary copy path for closure capture, yielded input and containe
                 if (!function_ || !isNativeFunction(function_)) throw new Error(`missing ${name}`);
                 const values = input(1n);
                 function_.call([values]);
-                expect(arrayForWrite(values), name).not.toBe(values);
+                const copy = arrayForWrite(values);
+                expect(copy === undefined, name).toBe(name === 'container');
             }
         });
-        expect(stats.cowCopies).toBe(3);
+        expect(stats.cowCopies).toBe(2);
     } finally { runtime.dispose(); }
 });
 
@@ -205,9 +206,9 @@ it.each([false, true])('borrows the unchanged queens safety reader (compilation=
         noteArrayBinding(next);
         stats.run(() => {
             expect(safe.call([next, 2n])).toBe(true);
-            expect(arrayForWrite(next)).not.toBe(next);
+            expect(arrayForWrite(next)).toBeUndefined();
         });
-        expect(stats.cowCopies).toBe(1);
+        expect(stats.cowCopies).toBe(0);
     } finally { runtime.dispose(); }
 });
 

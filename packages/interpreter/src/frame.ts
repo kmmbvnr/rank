@@ -1,6 +1,6 @@
 import { ArrayBindingContract } from './array-binding-contract.js';
-import { noteArrayBinding, noteArrayBorrow } from './array-storage.js';
-import { checkBindingRank, isRankArray, isRankRecord, isRankTuple, mergeCollectionElementType, type CollectionElementType, type RankValue } from './value.js';
+import { ArrayBindingScope, isFlatScalarArray, noteArrayBinding, noteArrayBorrow } from './array-storage.js';
+import { checkBindingRank, isRankArray, isRankRecord, isRankTuple, mergeCollectionElementType, type CollectionElementType, type RankArray, type RankValue } from './value.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
 
 // Every write to a name passes here, and most of them carry a number or a
@@ -28,6 +28,34 @@ export class LocalFrame {
     private protectedNames: Map<string, string> | undefined;
     // Set for the globals; see publish().
     private shared = false;
+    private escaped = false;
+    private scopedArrays = false;
+    private arrayBindings?: ArrayBindingScope;
+    onArrayRelease?: (value: RankArray) => void;
+
+    enableArrayBindings(): void { this.scopedArrays = true; }
+
+    private bindArray(name: string, value: RankValue, borrowed = false): void {
+        if (!this.scopedArrays || this.shared || this.escaped || this.mappedValues) {
+            noteBinding(value, borrowed);
+            return;
+        }
+        if (!this.arrayBindings && isFlatScalarArray(value)) {
+            this.arrayBindings = new ArrayBindingScope(array => this.onArrayRelease?.(array));
+        }
+        if (this.arrayBindings) this.arrayBindings.bind(name, value, borrowed);
+        else noteBinding(value, borrowed);
+    }
+
+    /** Observer retention outlives the source-level binding's lifetime. */
+    escapeArrays(): void {
+        this.escaped = true;
+        this.arrayBindings?.escape();
+    }
+
+    /** Only a proven nonescaping, completed frame may release all bindings. */
+    releaseArrays(): void { this.arrayBindings?.clear(); }
+
 
     constructor(
         readonly parent: LocalFrame | undefined,
@@ -49,6 +77,7 @@ export class LocalFrame {
     // Once exposed they remain the source of truth for that frame.
     get values(): Map<string, RankValue> {
         if (!this.mappedValues) {
+            this.escapeArrays();
             const values = new Map<string, RankValue>();
             const types = new Map<string, ReadonlySet<string>>();
             for (const [name, slot] of this.layout) {
@@ -81,7 +110,7 @@ export class LocalFrame {
             return;
         }
         value = this.checkBinding(name, value);
-        noteBinding(value);
+        this.bindArray(name, value);
         if (this.mappedValues) {
             this.mappedValues.set(name, value);
             return;
@@ -97,7 +126,7 @@ export class LocalFrame {
             return;
         }
         value = this.checkBinding(name, value);
-        noteBinding(value, borrowed);
+        this.bindArray(name, value, borrowed);
         if (this.mappedValues) {
             this.mappedValues.set(name, value);
             this.mappedTypes!.set(name, types);
@@ -121,7 +150,7 @@ export class LocalFrame {
             if (!isRankArray(previous) || previous.shape.length !== value.shape.length) return false;
         }
         value = this.checkBinding(name, value);
-        noteBinding(value);
+        this.bindArray(name, value);
         this.slots[slot] = value;
         return true;
     }
@@ -132,7 +161,7 @@ export class LocalFrame {
         const slot = this.layout.get(name)!;
         return value => {
             value = this.checkBinding(name, value);
-            noteBinding(value);
+            this.bindArray(name, value);
             if (this.mappedValues) this.mappedValues.set(name, value);
             else this.slots[slot] = value;
         };
@@ -140,6 +169,7 @@ export class LocalFrame {
 
     /** A last-use transfer drops only the value, preserving assignment contracts. */
     release(name: string): void {
+        this.arrayBindings?.release(name);
         if (this.mappedValues) this.mappedValues.delete(name);
         else {
             const slot = this.layout.get(name);
@@ -156,6 +186,7 @@ export class LocalFrame {
 
     /** Forgets a name that ended with its block: its value and the types it accepted. */
     unset(name: string): void {
+        this.arrayBindings?.release(name);
         this.protectedNames?.delete(name);
         this.records?.delete(name);
         this.arrayRanks?.delete(name);
@@ -220,7 +251,8 @@ export class LocalFrame {
     }
 
     reset(): boolean {
-        if (this.mappedValues) return false;
+        if (this.mappedValues || this.escaped) return false;
+        this.releaseArrays();
         this.slots.length = 0;
         this.slotTypes.length = 0;
         this.protectedNames?.clear();
