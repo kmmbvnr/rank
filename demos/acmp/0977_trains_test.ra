@@ -1,0 +1,35 @@
+rem Tests for ACMP 0977: Trains
+
+use testing
+
+test "ACMP 977: Sample 1 (N = 4)"
+  use "0977_trains"
+  Input = "4"
+  run
+
+  Result equal 41
+end
+
+test "ACMP 977: N = 2"
+  use "0977_trains"
+  Input = "2"
+  run
+
+  Result equal 1
+end
+
+test "ACMP 977: N = 3"
+  use "0977_trains"
+  Input = "3"
+  run
+
+  Result equal 4
+end
+
+test "ACMP 977: N = 5"
+  use "0977_trains"
+  Input = "5"
+  run
+
+  Result equal 768
+end
