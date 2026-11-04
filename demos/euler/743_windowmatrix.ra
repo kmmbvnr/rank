@@ -1,0 +1,70 @@
+rem Window into a Matrix
+rem https://projecteuler.net/problem=743
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Width integer = 10 ** 8
+arg Length integer = 10 ** 16
+arg Prime integer = 1000000007
+arg Chunk integer = 4194304
+
+rem With q = n / k and b = 2^q, the
+rem count is the constant term of
+rem (b + z + 1/z)^k, that is the sum
+rem over x of k! / (x!^2 (k - 2x)!)
+rem b^(k - 2x). Each term gains the
+rem ratio (k-2x+2)(k-2x+1) / (x^2 b^2)
+rem over the last. Chunks of ratios give
+rem the terms by prefix products; the
+rem denominators are inverted with one
+rem inverse and suffix products.
+fun Left mulp Right
+  return Left * Right mod Prime
+end
+Base = 2 (Length // Width) Prime powmod
+Power = Prime - 3
+Inverse = Base Power Prime powmod
+First = Base Width Prime powmod
+Total = First
+Half = Width // 2
+Chunks = (Half + Chunk - 1) // Chunk
+NumCarry = 1
+DenCarry = 1
+TermCarry = First
+for Piece in 0 to Chunks - 1
+  Begin = Piece * Chunk + 1
+  Last = (Begin + Chunk - 1) min Half
+  Index = Begin to Last
+  High = Width - 2 * Index
+  Top = (High + 2) mod Prime
+  Next = (High + 1) mod Prime
+  Num = Top * Next mod Prime
+  Num = Num * Inverse mod Prime
+  Den = Index * Index mod Prime
+  Forward = Num scan mulp
+  Back = Den reverse scan mulp
+  Suffix = Back reverse
+  Head = Suffix 0
+  Whole = DenCarry * Head mod Prime
+  Power = Prime - 2
+  Invert = Whole Power Prime powmod
+  Count = Last - Begin + 1
+  Keep = Count - 1
+  Zero = array 1
+  Tail = Suffix drop 1
+  Rest = concat Tail Zero
+  Scaled = Rest * Invert mod Prime
+  Term = Forward * Scaled mod Prime
+  Term = Term * NumCarry mod Prime
+  Term = Term * First mod Prime
+  Added = Term sum
+  Total = (Total + Added) mod Prime
+  Final = Forward Keep
+  NumCarry = NumCarry * Final mod Prime
+  DenCarry = Whole
+end
+Answer = Total
+Answer print

@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "743_windowmatrix"
+  Width = 3
+  Length = 9
+  run
+  Answer equal 560
+  Width = 4
+  Length = 20
+  Chunk = 1
+  run
+  Answer equal 1060870
+end
