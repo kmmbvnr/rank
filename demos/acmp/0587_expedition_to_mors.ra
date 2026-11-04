@@ -1,0 +1,102 @@
+rem ACMP 0587 Expedition to Mors
+rem Max thrust via 2-pointer half-plane
+
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "10
+10000.00 0.00
+8500.50 35.20
+9200.00 70.15
+7400.00 110.00
+9900.00 160.40
+8800.00 200.50
+9100.00 250.00
+6500.00 290.30
+8700.00 320.00
+9500.00 350.10"
+
+Seps = array " " "\n" "\r"
+Raw = Input split Seps
+Tokens = (Raw (Raw not equal "")) real
+N = (Tokens 0) integer
+Rest = Tokens drop 1
+I0 = 0 till N
+R = Rest (I0 * 2)
+Deg = Rest ((I0 * 2) + 1)
+
+PI = 1.0 atan * 4.0
+Rad = Deg * PI / 180.0
+X = (Rad cos) * R
+Y = (Rad sin) * R
+Ids = 1 to N
+
+O = Deg argsort
+DegS = Deg O
+XS = X O
+YS = Y O
+IdS = Ids O
+
+Deg2 = concat DegS (DegS + 360.0)
+X2 = concat XS XS
+Y2 = concat YS YS
+Id2 = concat IdS IdS
+
+PrefX = X2 scan + with 0.0 array
+PrefY = Y2 scan + with 0.0 array
+
+BestMag = -1.0
+BestI = 0
+BestJ = 0
+
+I = 0
+J = 0
+for Step in 0 till (3 * N)
+  EndI = I equal N
+  EndJ = J equal (2 * N)
+  Stop = EndI or EndJ
+  if Stop
+    break
+  end
+
+  DegDiff = (Deg2 J) - (Deg2 I)
+  AdvCond = DegDiff less 179.999999999
+  InSpan = J less (I + N)
+  CanAdv = InSpan and AdvCond
+
+  J_adv = J + 1
+  I_step = I + 1
+  J_gt = J greater I_step
+  J_sync = J_gt choose J I_step
+
+  I = CanAdv choose I I_step
+  J = CanAdv choose J_adv J_sync
+
+  DX = (PrefX J) - (PrefX I)
+  DY = (PrefY J) - (PrefY I)
+  MagSq = (DX * DX) + (DY * DY)
+
+  Better = MagSq greater BestMag
+  BestMag = Better choose MagSq BestMag
+  BestI = Better choose I BestI
+  BestJ = Better choose J BestJ
+end
+
+Chosen = Id2 (BestI till BestJ)
+ChosenSort = Chosen sort
+AnsK = ChosenSort shape 0
+
+AnsStr = ""
+for C in ChosenSort
+  CTxt = C text
+  Sep = AnsStr + " " + CTxt
+  Emp = AnsStr equal ""
+  AnsStr = Emp choose CTxt Sep
+end
+
+Ans = array (AnsK text) AnsStr
+AnsK print
+AnsStr print

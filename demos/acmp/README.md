@@ -68,6 +68,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0572** | [Технология программирования](0572_programming_technology.ra) | Greedy / Sorting (60%) | Maximize persuaded friends via dual-group sorting: $b_i \ge 0$ by threshold $a_i$ ascending, $b_i < 0$ by potential $(a_i + b_i)$ descending |
 | **0583** | [Рисование](0583_drawing.ra) | Computational Geometry (65%) | Orthogonally convex polygon test via turtle direction scan and perimeter equality to $2(\Delta X + \Delta Y)$ |
 | **0586** | [Законопроект](0586_bill.ra) | Game Theory (62%) | Sequential parliamentary voting simulation via backward induction & vectorized column comparison |
+| **0587** | [Экспедиция на Морс](0587_expedition_to_mors.ra) | Two Pointers / Geometry (70%) | Maximize vector sum magnitude via angular sorting `argsort`, prefix vector sums, and single 1D loop two-pointer half-plane rotation |
 | **0588** | [Число](0588_self_describing_number.ra) | Number Theory / Construction (60%) | Autobiographical / self-describing numbers in base $b$ via closed-form digit construction `Digits (B - 5) = 1; Digits (B - 1) = B - 4` |
 | **0599** | [Телешоу](0599_tv_show.ra) | Dynamic Programming / Strings (66%) | Optimal circular sector selection maximizing alphabet distance sum via $O(26 N)$ prefix sum deltas & `scan +` |
 | **0609** | [Разбиения множества](0609_set_partitions.ra) | Combinatorics (69%) | Next canonical set partition in lexicographical order via prefix preservation, candidate generation, and vectorized singleton completions |
