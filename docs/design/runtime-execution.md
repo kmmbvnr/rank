@@ -1696,3 +1696,18 @@ Frame allocation, dispatch and contract costs remain separate profiling targets;
 this change does not assume that all are bottlenecks. See the controlled
 [execution-boundary measurements](../../benchmarks/execution-boundaries-results.md)
 for independent timing, allocation and RSS measurements and remaining limits.
+
+### Speculative storage selection
+
+Destination ownership is not a no-replay proof. Direct numeric writes additionally
+require that every exit avoids exact replay, or that a correct continuation/undo
+mechanism preserves the exact uncommitted state. Existing empty-index rollback
+and exact integer writes do not establish this for mutable arrays.
+
+The contiguous private-buffer path and its work-feedback admission remain the
+production strategy. Sparse pages/journals and outer-iteration checkpoints have
+specialized benefits and substantial counterexamples; large destinations alone
+must not select a sparse backend. Checkpoint counts bound outer iterations, not
+arbitrary nested work. Active budgets/cancellation also constrain preparation and
+publication boundaries. See the [current storage experiments](../../benchmarks/speculative-storage-results.md)
+for selection rules, negative results, measurements and unsupported cases.

@@ -1,0 +1,2046 @@
+{
+  "node": "v24.15.0",
+  "platform": "linux",
+  "arch": "x64",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "versions": [
+    "current",
+    "pages",
+    "tierup",
+    "checkpoint",
+    "combined"
+  ],
+  "samples": 3,
+  "results": [
+    {
+      "sample": 0,
+      "case": "185",
+      "version": "current",
+      "ms": 1312.810882,
+      "rssMiB": 224.47265625,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 0,
+      "case": "185",
+      "version": "pages",
+      "ms": 2645.535616,
+      "rssMiB": 226.0859375,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 0,
+      "case": "185",
+      "version": "tierup",
+      "ms": 1310.51674,
+      "rssMiB": 225.75,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 0,
+      "case": "185",
+      "version": "checkpoint",
+      "ms": 1504.567787,
+      "rssMiB": 242.3125,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 0,
+      "case": "185",
+      "version": "combined",
+      "ms": 1478.353179,
+      "rssMiB": 243.1015625,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 0,
+      "case": "170",
+      "version": "current",
+      "ms": 1408.85527,
+      "rssMiB": 194.58203125,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 0,
+      "case": "170",
+      "version": "pages",
+      "ms": 1563.957854,
+      "rssMiB": 203.453125,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 0,
+      "case": "170",
+      "version": "tierup",
+      "ms": 1407.7695529999999,
+      "rssMiB": 199.1328125,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 0,
+      "case": "170",
+      "version": "checkpoint",
+      "ms": 1400.1151599999998,
+      "rssMiB": 196.99609375,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 0,
+      "case": "170",
+      "version": "combined",
+      "ms": 1457.262124,
+      "rssMiB": 192.90625,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 0,
+      "case": "186",
+      "version": "current",
+      "ms": 614.227339,
+      "rssMiB": 214.31640625,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 0,
+      "case": "186",
+      "version": "pages",
+      "ms": 2165.1024979999997,
+      "rssMiB": 277.59765625,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 0,
+      "case": "186",
+      "version": "tierup",
+      "ms": 622.266162,
+      "rssMiB": 217.578125,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 0,
+      "case": "186",
+      "version": "checkpoint",
+      "ms": 639.664624,
+      "rssMiB": 214.296875,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 0,
+      "case": "186",
+      "version": "combined",
+      "ms": 634.574891,
+      "rssMiB": 216.53125,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 0,
+      "case": "166",
+      "version": "current",
+      "ms": 2584.376214,
+      "rssMiB": 434.0234375,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 0,
+      "case": "166",
+      "version": "pages",
+      "ms": 2729.0117450000002,
+      "rssMiB": 433.69921875,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 0,
+      "case": "166",
+      "version": "tierup",
+      "ms": 2612.560993,
+      "rssMiB": 433.6328125,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 0,
+      "case": "166",
+      "version": "checkpoint",
+      "ms": 2609.306057,
+      "rssMiB": 437.37890625,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 0,
+      "case": "166",
+      "version": "combined",
+      "ms": 2621.509587,
+      "rssMiB": 438.52734375,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 0,
+      "case": "short",
+      "version": "current",
+      "ms": 384.87088700000004,
+      "rssMiB": 168.9375,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 0,
+      "case": "short",
+      "version": "pages",
+      "ms": 406.241163,
+      "rssMiB": 175.80078125,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 0,
+      "case": "short",
+      "version": "tierup",
+      "ms": 373.214136,
+      "rssMiB": 166.6171875,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 0,
+      "case": "short",
+      "version": "checkpoint",
+      "ms": 1253.8282880000002,
+      "rssMiB": 215.703125,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 0,
+      "case": "short",
+      "version": "combined",
+      "ms": 357.747262,
+      "rssMiB": 168.859375,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 0,
+      "case": "long",
+      "version": "current",
+      "ms": 260.960517,
+      "rssMiB": 129.79296875,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 0,
+      "case": "long",
+      "version": "pages",
+      "ms": 274.59313999999995,
+      "rssMiB": 130.09375,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 0,
+      "case": "long",
+      "version": "tierup",
+      "ms": 260.72574899999995,
+      "rssMiB": 130.8515625,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 0,
+      "case": "long",
+      "version": "checkpoint",
+      "ms": 258.123165,
+      "rssMiB": 133.93359375,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 0,
+      "case": "long",
+      "version": "combined",
+      "ms": 266.024019,
+      "rssMiB": 133.1875,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 0,
+      "case": "phase",
+      "version": "current",
+      "ms": 356.54006999999996,
+      "rssMiB": 160.09765625,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 0,
+      "case": "phase",
+      "version": "pages",
+      "ms": 703.123779,
+      "rssMiB": 166.4453125,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 0,
+      "case": "phase",
+      "version": "tierup",
+      "ms": 343.17201100000005,
+      "rssMiB": 155.8828125,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 0,
+      "case": "phase",
+      "version": "checkpoint",
+      "ms": 482.323266,
+      "rssMiB": 206.80078125,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 0,
+      "case": "phase",
+      "version": "combined",
+      "ms": 500.02959799999996,
+      "rssMiB": 200.43359375,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-local",
+      "version": "current",
+      "ms": 318.75530699999996,
+      "rssMiB": 144.62109375,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-local",
+      "version": "pages",
+      "ms": 288.35363499999994,
+      "rssMiB": 128.2109375,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-local",
+      "version": "tierup",
+      "ms": 310.10382200000004,
+      "rssMiB": 144.66015625,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-local",
+      "version": "checkpoint",
+      "ms": 307.55818200000004,
+      "rssMiB": 143.01953125,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-local",
+      "version": "combined",
+      "ms": 310.982926,
+      "rssMiB": 144.04296875,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-scatter",
+      "version": "current",
+      "ms": 328.949705,
+      "rssMiB": 149.37890625,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-scatter",
+      "version": "pages",
+      "ms": 319.06602399999997,
+      "rssMiB": 172.42578125,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-scatter",
+      "version": "tierup",
+      "ms": 330.73142099999995,
+      "rssMiB": 148.71875,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-scatter",
+      "version": "checkpoint",
+      "ms": 334.66869599999995,
+      "rssMiB": 147.60546875,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-scatter",
+      "version": "combined",
+      "ms": 322.84713000000005,
+      "rssMiB": 148.1328125,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-many",
+      "version": "current",
+      "ms": 312.328305,
+      "rssMiB": 148.83203125,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-many",
+      "version": "pages",
+      "ms": 323.61363099999994,
+      "rssMiB": 153.875,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-many",
+      "version": "tierup",
+      "ms": 316.72935799999993,
+      "rssMiB": 148.28125,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-many",
+      "version": "checkpoint",
+      "ms": 319.42821299999997,
+      "rssMiB": 149.85546875,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 0,
+      "case": "sparse-many",
+      "version": "combined",
+      "ms": 319.37203200000005,
+      "rssMiB": 151.33984375,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 0,
+      "case": "dense",
+      "version": "current",
+      "ms": 259.697065,
+      "rssMiB": 129.66015625,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 0,
+      "case": "dense",
+      "version": "pages",
+      "ms": 313.11449799999997,
+      "rssMiB": 129.95703125,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 0,
+      "case": "dense",
+      "version": "tierup",
+      "ms": 279.655335,
+      "rssMiB": 129.37890625,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 0,
+      "case": "dense",
+      "version": "checkpoint",
+      "ms": 267.43073699999997,
+      "rssMiB": 127.04296875,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 0,
+      "case": "dense",
+      "version": "combined",
+      "ms": 281.43077000000005,
+      "rssMiB": 129.83203125,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 0,
+      "case": "cold",
+      "version": "current",
+      "ms": 383.536278,
+      "rssMiB": 178.52734375,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 0,
+      "case": "cold",
+      "version": "pages",
+      "ms": 367.901051,
+      "rssMiB": 153.6875,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 0,
+      "case": "cold",
+      "version": "tierup",
+      "ms": 361.658625,
+      "rssMiB": 153.79296875,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 0,
+      "case": "cold",
+      "version": "checkpoint",
+      "ms": 371.51139600000005,
+      "rssMiB": 179.109375,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 0,
+      "case": "cold",
+      "version": "combined",
+      "ms": 363.72967300000005,
+      "rssMiB": 154.30859375,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 0,
+      "case": "register",
+      "version": "current",
+      "ms": 255.64096099999995,
+      "rssMiB": 134.234375,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 0,
+      "case": "register",
+      "version": "pages",
+      "ms": 244.54427900000002,
+      "rssMiB": 135.4296875,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 0,
+      "case": "register",
+      "version": "tierup",
+      "ms": 246.56554700000004,
+      "rssMiB": 134.80859375,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 0,
+      "case": "register",
+      "version": "checkpoint",
+      "ms": 243.70049100000006,
+      "rssMiB": 131.26953125,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 0,
+      "case": "register",
+      "version": "combined",
+      "ms": 248.50878899999998,
+      "rssMiB": 129.63671875,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 0,
+      "case": "early",
+      "version": "current",
+      "ms": 255.70177299999995,
+      "rssMiB": 155.01953125,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 0,
+      "case": "early",
+      "version": "pages",
+      "ms": 247.57247700000005,
+      "rssMiB": 154.57421875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 0,
+      "case": "early",
+      "version": "tierup",
+      "ms": 255.94272099999995,
+      "rssMiB": 154.5546875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 0,
+      "case": "early",
+      "version": "checkpoint",
+      "ms": 252.22916200000003,
+      "rssMiB": 154.671875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 0,
+      "case": "early",
+      "version": "combined",
+      "ms": 262.456364,
+      "rssMiB": 154.12109375,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 0,
+      "case": "late",
+      "version": "current",
+      "ms": 265.480946,
+      "rssMiB": 155.68359375,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late",
+      "version": "pages",
+      "ms": 265.26313500000003,
+      "rssMiB": 155.64453125,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late",
+      "version": "tierup",
+      "ms": 267.41663099999994,
+      "rssMiB": 154.83984375,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late",
+      "version": "checkpoint",
+      "ms": 246.67702900000006,
+      "rssMiB": 129.9921875,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late",
+      "version": "combined",
+      "ms": 244.254686,
+      "rssMiB": 129.20703125,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late",
+      "version": "combined",
+      "ms": 261.719327,
+      "rssMiB": 130.06640625,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late",
+      "version": "checkpoint",
+      "ms": 251.799375,
+      "rssMiB": 130.97265625,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late",
+      "version": "tierup",
+      "ms": 284.78561700000006,
+      "rssMiB": 153.7734375,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late",
+      "version": "pages",
+      "ms": 278.4846749999999,
+      "rssMiB": 154.5703125,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late",
+      "version": "current",
+      "ms": 265.763205,
+      "rssMiB": 154.984375,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "early",
+      "version": "combined",
+      "ms": 261.84982499999995,
+      "rssMiB": 156.296875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 1,
+      "case": "early",
+      "version": "checkpoint",
+      "ms": 264.612236,
+      "rssMiB": 155.58203125,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 1,
+      "case": "early",
+      "version": "tierup",
+      "ms": 252.94603199999995,
+      "rssMiB": 154.30859375,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 1,
+      "case": "early",
+      "version": "pages",
+      "ms": 253.41268700000006,
+      "rssMiB": 154.6953125,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 1,
+      "case": "early",
+      "version": "current",
+      "ms": 248.39357900000005,
+      "rssMiB": 153.8046875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 1,
+      "case": "register",
+      "version": "combined",
+      "ms": 241.42533200000003,
+      "rssMiB": 126.64453125,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 1,
+      "case": "register",
+      "version": "checkpoint",
+      "ms": 244.62905,
+      "rssMiB": 129.9453125,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 1,
+      "case": "register",
+      "version": "tierup",
+      "ms": 248.60592000000003,
+      "rssMiB": 136.46484375,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 1,
+      "case": "register",
+      "version": "pages",
+      "ms": 239.85652500000003,
+      "rssMiB": 135.95703125,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 1,
+      "case": "register",
+      "version": "current",
+      "ms": 243.816376,
+      "rssMiB": 134.265625,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 1,
+      "case": "cold",
+      "version": "combined",
+      "ms": 368.730246,
+      "rssMiB": 154.1875,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 1,
+      "case": "cold",
+      "version": "checkpoint",
+      "ms": 388.73784,
+      "rssMiB": 178.4453125,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 1,
+      "case": "cold",
+      "version": "tierup",
+      "ms": 359.74077000000005,
+      "rssMiB": 154.98046875,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 1,
+      "case": "cold",
+      "version": "pages",
+      "ms": 375.7179469999999,
+      "rssMiB": 153.77734375,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 1,
+      "case": "cold",
+      "version": "current",
+      "ms": 380.094862,
+      "rssMiB": 179.21484375,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 1,
+      "case": "dense",
+      "version": "combined",
+      "ms": 281.847254,
+      "rssMiB": 129.375,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 1,
+      "case": "dense",
+      "version": "checkpoint",
+      "ms": 257.320058,
+      "rssMiB": 130.12109375,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 1,
+      "case": "dense",
+      "version": "tierup",
+      "ms": 307.55660700000004,
+      "rssMiB": 127.609375,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 1,
+      "case": "dense",
+      "version": "pages",
+      "ms": 334.32859499999995,
+      "rssMiB": 129.73046875,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 1,
+      "case": "dense",
+      "version": "current",
+      "ms": 257.50202199999995,
+      "rssMiB": 130.5390625,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-many",
+      "version": "combined",
+      "ms": 317.71776300000005,
+      "rssMiB": 147.97265625,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-many",
+      "version": "checkpoint",
+      "ms": 326.6346520000001,
+      "rssMiB": 148.6875,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-many",
+      "version": "tierup",
+      "ms": 318.828313,
+      "rssMiB": 148.74609375,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-many",
+      "version": "pages",
+      "ms": 348.864484,
+      "rssMiB": 154.4921875,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-many",
+      "version": "current",
+      "ms": 314.8037719999999,
+      "rssMiB": 148.22265625,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-scatter",
+      "version": "combined",
+      "ms": 325.49602400000003,
+      "rssMiB": 147.203125,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-scatter",
+      "version": "checkpoint",
+      "ms": 324.53159600000004,
+      "rssMiB": 148.6484375,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-scatter",
+      "version": "tierup",
+      "ms": 332.33428899999996,
+      "rssMiB": 148.09375,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-scatter",
+      "version": "pages",
+      "ms": 322.23694800000004,
+      "rssMiB": 171.734375,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-scatter",
+      "version": "current",
+      "ms": 317.893637,
+      "rssMiB": 147.4453125,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-local",
+      "version": "combined",
+      "ms": 314.5572849999999,
+      "rssMiB": 142.74609375,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-local",
+      "version": "checkpoint",
+      "ms": 337.552459,
+      "rssMiB": 142.9921875,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-local",
+      "version": "tierup",
+      "ms": 311.84013,
+      "rssMiB": 143.0546875,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-local",
+      "version": "pages",
+      "ms": 295.62069299999996,
+      "rssMiB": 129.26171875,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 1,
+      "case": "sparse-local",
+      "version": "current",
+      "ms": 339.89180600000003,
+      "rssMiB": 143.14453125,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 1,
+      "case": "phase",
+      "version": "combined",
+      "ms": 494.760845,
+      "rssMiB": 204.94921875,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 1,
+      "case": "phase",
+      "version": "checkpoint",
+      "ms": 481.38806900000003,
+      "rssMiB": 210.875,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 1,
+      "case": "phase",
+      "version": "tierup",
+      "ms": 352.91728,
+      "rssMiB": 154.5,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 1,
+      "case": "phase",
+      "version": "pages",
+      "ms": 707.9569809999999,
+      "rssMiB": 164.6328125,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 1,
+      "case": "phase",
+      "version": "current",
+      "ms": 378.548372,
+      "rssMiB": 159.125,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 1,
+      "case": "long",
+      "version": "combined",
+      "ms": 274.64223300000003,
+      "rssMiB": 133.83203125,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 1,
+      "case": "long",
+      "version": "checkpoint",
+      "ms": 266.89624899999995,
+      "rssMiB": 133.0546875,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 1,
+      "case": "long",
+      "version": "tierup",
+      "ms": 284.775192,
+      "rssMiB": 129.92578125,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 1,
+      "case": "long",
+      "version": "pages",
+      "ms": 277.54750800000005,
+      "rssMiB": 129.65625,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 1,
+      "case": "long",
+      "version": "current",
+      "ms": 253.89099700000003,
+      "rssMiB": 129.77734375,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 1,
+      "case": "short",
+      "version": "combined",
+      "ms": 370.67539300000004,
+      "rssMiB": 168.72265625,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 1,
+      "case": "short",
+      "version": "checkpoint",
+      "ms": 1180.9912709999999,
+      "rssMiB": 209.05078125,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 1,
+      "case": "short",
+      "version": "tierup",
+      "ms": 397.99528499999997,
+      "rssMiB": 167.42578125,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 1,
+      "case": "short",
+      "version": "pages",
+      "ms": 424.053009,
+      "rssMiB": 177.17578125,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 1,
+      "case": "short",
+      "version": "current",
+      "ms": 412.331875,
+      "rssMiB": 167.640625,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 1,
+      "case": "166",
+      "version": "combined",
+      "ms": 2683.7075189999996,
+      "rssMiB": 435.44921875,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 1,
+      "case": "166",
+      "version": "checkpoint",
+      "ms": 2649.694117,
+      "rssMiB": 438.0703125,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 1,
+      "case": "166",
+      "version": "tierup",
+      "ms": 2659.836031,
+      "rssMiB": 435.84765625,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 1,
+      "case": "166",
+      "version": "pages",
+      "ms": 2656.962327,
+      "rssMiB": 439.05859375,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 1,
+      "case": "166",
+      "version": "current",
+      "ms": 2683.224854,
+      "rssMiB": 431.671875,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 1,
+      "case": "186",
+      "version": "combined",
+      "ms": 633.786245,
+      "rssMiB": 216.4921875,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 1,
+      "case": "186",
+      "version": "checkpoint",
+      "ms": 643.659615,
+      "rssMiB": 215.28515625,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 1,
+      "case": "186",
+      "version": "tierup",
+      "ms": 638.553766,
+      "rssMiB": 219.9609375,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 1,
+      "case": "186",
+      "version": "pages",
+      "ms": 2233.4563970000004,
+      "rssMiB": 277.234375,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 1,
+      "case": "186",
+      "version": "current",
+      "ms": 654.969792,
+      "rssMiB": 217.609375,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 1,
+      "case": "170",
+      "version": "combined",
+      "ms": 1482.6790620000002,
+      "rssMiB": 194.9609375,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 1,
+      "case": "170",
+      "version": "checkpoint",
+      "ms": 1478.557036,
+      "rssMiB": 200.75390625,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 1,
+      "case": "170",
+      "version": "tierup",
+      "ms": 1458.7621159999999,
+      "rssMiB": 192.5390625,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 1,
+      "case": "170",
+      "version": "pages",
+      "ms": 1614.1780979999999,
+      "rssMiB": 199.6796875,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 1,
+      "case": "170",
+      "version": "current",
+      "ms": 1461.944741,
+      "rssMiB": 193.13671875,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 1,
+      "case": "185",
+      "version": "combined",
+      "ms": 1489.257087,
+      "rssMiB": 232.76171875,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 1,
+      "case": "185",
+      "version": "checkpoint",
+      "ms": 1548.940613,
+      "rssMiB": 243.70703125,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 1,
+      "case": "185",
+      "version": "tierup",
+      "ms": 1371.5878480000001,
+      "rssMiB": 224.05859375,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 1,
+      "case": "185",
+      "version": "pages",
+      "ms": 2807.582196,
+      "rssMiB": 226.46875,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 1,
+      "case": "185",
+      "version": "current",
+      "ms": 1402.8344319999999,
+      "rssMiB": 224.90234375,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "185",
+      "version": "current",
+      "ms": 1397.877854,
+      "rssMiB": 225.578125,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "185",
+      "version": "pages",
+      "ms": 2838.464395,
+      "rssMiB": 226.5078125,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "185",
+      "version": "tierup",
+      "ms": 1367.6964639999999,
+      "rssMiB": 239.72265625,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "185",
+      "version": "checkpoint",
+      "ms": 1550.764717,
+      "rssMiB": 233.86328125,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "185",
+      "version": "combined",
+      "ms": 1505.523423,
+      "rssMiB": 228.31640625,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "170",
+      "version": "current",
+      "ms": 1484.383712,
+      "rssMiB": 189.44921875,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 2,
+      "case": "170",
+      "version": "pages",
+      "ms": 1618.903136,
+      "rssMiB": 196.66796875,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 2,
+      "case": "170",
+      "version": "tierup",
+      "ms": 1489.6930790000001,
+      "rssMiB": 193.3671875,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 2,
+      "case": "170",
+      "version": "checkpoint",
+      "ms": 1450.424594,
+      "rssMiB": 192.96875,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 2,
+      "case": "170",
+      "version": "combined",
+      "ms": 1469.632424,
+      "rssMiB": 204.453125,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 2,
+      "case": "186",
+      "version": "current",
+      "ms": 651.8397170000001,
+      "rssMiB": 219.36328125,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 2,
+      "case": "186",
+      "version": "pages",
+      "ms": 2284.228364,
+      "rssMiB": 275.703125,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 2,
+      "case": "186",
+      "version": "tierup",
+      "ms": 653.057526,
+      "rssMiB": 214.9375,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 2,
+      "case": "186",
+      "version": "checkpoint",
+      "ms": 665.70544,
+      "rssMiB": 215.66796875,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 2,
+      "case": "186",
+      "version": "combined",
+      "ms": 639.298724,
+      "rssMiB": 217.0703125,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 2,
+      "case": "166",
+      "version": "current",
+      "ms": 2666.55399,
+      "rssMiB": 437.00390625,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 2,
+      "case": "166",
+      "version": "pages",
+      "ms": 2754.519349,
+      "rssMiB": 430.078125,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 2,
+      "case": "166",
+      "version": "tierup",
+      "ms": 2781.2961480000004,
+      "rssMiB": 437.75390625,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 2,
+      "case": "166",
+      "version": "checkpoint",
+      "ms": 2676.909923,
+      "rssMiB": 437.04296875,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 2,
+      "case": "166",
+      "version": "combined",
+      "ms": 2717.626046,
+      "rssMiB": 436.5625,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034"
+    },
+    {
+      "sample": 2,
+      "case": "short",
+      "version": "current",
+      "ms": 369.28601699999996,
+      "rssMiB": 167.6484375,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 2,
+      "case": "short",
+      "version": "pages",
+      "ms": 384.1589440000001,
+      "rssMiB": 175.91796875,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 2,
+      "case": "short",
+      "version": "tierup",
+      "ms": 360.60771199999994,
+      "rssMiB": 167.98828125,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 2,
+      "case": "short",
+      "version": "checkpoint",
+      "ms": 1176.9075329999998,
+      "rssMiB": 212.50390625,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 2,
+      "case": "short",
+      "version": "combined",
+      "ms": 362.58371900000003,
+      "rssMiB": 168.23828125,
+      "sourceHash": "295590756ba817b9ecde51444e3d0cb2af6a2d36fdaa4cdb40c839925c4ec0ac",
+      "answer": "5000"
+    },
+    {
+      "sample": 2,
+      "case": "long",
+      "version": "current",
+      "ms": 259.108485,
+      "rssMiB": 129.5390625,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 2,
+      "case": "long",
+      "version": "pages",
+      "ms": 277.70561499999997,
+      "rssMiB": 130.09765625,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 2,
+      "case": "long",
+      "version": "tierup",
+      "ms": 262.05348,
+      "rssMiB": 129.96875,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 2,
+      "case": "long",
+      "version": "checkpoint",
+      "ms": 273.808088,
+      "rssMiB": 133.90234375,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 2,
+      "case": "long",
+      "version": "combined",
+      "ms": 268.09616300000005,
+      "rssMiB": 133.06640625,
+      "sourceHash": "7e3edab7cb3dff0e036fd7b8f9d0f916ae3881c9559ee3baddaee360cd6b6faa",
+      "answer": "216000"
+    },
+    {
+      "sample": 2,
+      "case": "phase",
+      "version": "current",
+      "ms": 367.112112,
+      "rssMiB": 158.05078125,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 2,
+      "case": "phase",
+      "version": "pages",
+      "ms": 709.206248,
+      "rssMiB": 164.00390625,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 2,
+      "case": "phase",
+      "version": "tierup",
+      "ms": 356.18892500000004,
+      "rssMiB": 155.8828125,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 2,
+      "case": "phase",
+      "version": "checkpoint",
+      "ms": 489.733586,
+      "rssMiB": 206.484375,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 2,
+      "case": "phase",
+      "version": "combined",
+      "ms": 480.52656499999995,
+      "rssMiB": 208.03515625,
+      "sourceHash": "8b808dd4540da404b631167d14705af81bfed865dd8b0d3d687804229766ca16",
+      "answer": "5760100"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-local",
+      "version": "current",
+      "ms": 315.645148,
+      "rssMiB": 142.69140625,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-local",
+      "version": "pages",
+      "ms": 301.61251599999997,
+      "rssMiB": 130.3359375,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-local",
+      "version": "tierup",
+      "ms": 315.21384900000004,
+      "rssMiB": 144.2421875,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-local",
+      "version": "checkpoint",
+      "ms": 320.31693099999995,
+      "rssMiB": 143.34375,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-local",
+      "version": "combined",
+      "ms": 321.05969899999997,
+      "rssMiB": 142.6875,
+      "sourceHash": "f7f534cba201b56420d0f20bb968de157b958e945cc2abc288b3dae53d07e888",
+      "answer": "131072"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-scatter",
+      "version": "current",
+      "ms": 323.92247299999997,
+      "rssMiB": 148.59375,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-scatter",
+      "version": "pages",
+      "ms": 329.18473000000006,
+      "rssMiB": 169.421875,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-scatter",
+      "version": "tierup",
+      "ms": 328.608605,
+      "rssMiB": 146.828125,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-scatter",
+      "version": "checkpoint",
+      "ms": 342.058111,
+      "rssMiB": 147.1171875,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-scatter",
+      "version": "combined",
+      "ms": 348.88860600000004,
+      "rssMiB": 149.37109375,
+      "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+      "answer": "131072"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-many",
+      "version": "current",
+      "ms": 342.56063800000004,
+      "rssMiB": 148.98828125,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-many",
+      "version": "pages",
+      "ms": 321.717217,
+      "rssMiB": 154.05078125,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-many",
+      "version": "tierup",
+      "ms": 324.37332799999996,
+      "rssMiB": 149.09765625,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-many",
+      "version": "checkpoint",
+      "ms": 344.38560699999994,
+      "rssMiB": 148.05078125,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 2,
+      "case": "sparse-many",
+      "version": "combined",
+      "ms": 327.000226,
+      "rssMiB": 149.0546875,
+      "sourceHash": "03e172e5b6fbeddf96aeab01bbbe35bc0c6c787e5c9648f57b472fe2aa00fde6",
+      "answer": "2000"
+    },
+    {
+      "sample": 2,
+      "case": "dense",
+      "version": "current",
+      "ms": 287.184768,
+      "rssMiB": 127.1875,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 2,
+      "case": "dense",
+      "version": "pages",
+      "ms": 332.680909,
+      "rssMiB": 128.90625,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 2,
+      "case": "dense",
+      "version": "tierup",
+      "ms": 288.915352,
+      "rssMiB": 129.96875,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 2,
+      "case": "dense",
+      "version": "checkpoint",
+      "ms": 264.71340599999996,
+      "rssMiB": 129.82421875,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 2,
+      "case": "dense",
+      "version": "combined",
+      "ms": 289.555115,
+      "rssMiB": 126.9453125,
+      "sourceHash": "f3c2e71a5751f62bd490211845cb1ccfafa4f68441ed81875ba465fcdc007668",
+      "answer": "68718428160"
+    },
+    {
+      "sample": 2,
+      "case": "cold",
+      "version": "current",
+      "ms": 383.951376,
+      "rssMiB": 179.92578125,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 2,
+      "case": "cold",
+      "version": "pages",
+      "ms": 360.532418,
+      "rssMiB": 153.8828125,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 2,
+      "case": "cold",
+      "version": "tierup",
+      "ms": 366.71281200000004,
+      "rssMiB": 154.57421875,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 2,
+      "case": "cold",
+      "version": "checkpoint",
+      "ms": 385.23895100000004,
+      "rssMiB": 178.74609375,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 2,
+      "case": "cold",
+      "version": "combined",
+      "ms": 368.41839999999996,
+      "rssMiB": 155.23828125,
+      "sourceHash": "767ccdbf11f8c3be46e5fc06dea0780ef6fcdd986a54e883578ebc7c0cf4522c",
+      "answer": "80"
+    },
+    {
+      "sample": 2,
+      "case": "register",
+      "version": "current",
+      "ms": 244.83226699999994,
+      "rssMiB": 135.64453125,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 2,
+      "case": "register",
+      "version": "pages",
+      "ms": 254.17938599999997,
+      "rssMiB": 134.28515625,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 2,
+      "case": "register",
+      "version": "tierup",
+      "ms": 261.560143,
+      "rssMiB": 133.7265625,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 2,
+      "case": "register",
+      "version": "checkpoint",
+      "ms": 273.183584,
+      "rssMiB": 127.1171875,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 2,
+      "case": "register",
+      "version": "combined",
+      "ms": 259.81538700000004,
+      "rssMiB": 128.7734375,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 2,
+      "case": "early",
+      "version": "current",
+      "ms": 295.28318999999993,
+      "rssMiB": 153.40625,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 2,
+      "case": "early",
+      "version": "pages",
+      "ms": 309.60005899999993,
+      "rssMiB": 154.53125,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 2,
+      "case": "early",
+      "version": "tierup",
+      "ms": 294.76330600000006,
+      "rssMiB": 153.36328125,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 2,
+      "case": "early",
+      "version": "checkpoint",
+      "ms": 331.488608,
+      "rssMiB": 155.65234375,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 2,
+      "case": "early",
+      "version": "combined",
+      "ms": 287.03118,
+      "rssMiB": 153.98828125,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 2,
+      "case": "late",
+      "version": "current",
+      "ms": 279.78967800000004,
+      "rssMiB": 155.73828125,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late",
+      "version": "pages",
+      "ms": 276.40102699999994,
+      "rssMiB": 154.75,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late",
+      "version": "tierup",
+      "ms": 288.81025800000003,
+      "rssMiB": 154.64453125,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late",
+      "version": "checkpoint",
+      "ms": 258.70105599999994,
+      "rssMiB": 137.16015625,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late",
+      "version": "combined",
+      "ms": 257.03063399999996,
+      "rssMiB": 132.359375,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    }
+  ],
+  "baselineCommit": "1d4edd41124b7582fb8e6d23cf95c921eaa34ca6",
+  "deadlineMs": 120000,
+  "checkpointRootIterations": 8192,
+  "tierupWorkThreshold": 512,
+  "pageCells": 512
+}

@@ -513,6 +513,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     diagnostics.numberLoopBorrowedRealCells += real.length;
                 }
             } else if (compact) {
+                // Ownership alone cannot remove replay.
+                // Direct stores need a no-replay proof
+                // for every exit, or a correct
+                // continuation/undo plan.
                 // Private writes retain exact replay on overflow. Read-only
                 // regions can borrow Int32 values directly: every cell is safe.
                 // Stores widen the private copy before a value can truncate.
