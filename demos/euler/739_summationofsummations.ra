@@ -1,0 +1,100 @@
+rem Summation of Summations
+rem https://projecteuler.net/problem=739
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Length integer = 10 ** 8
+arg Chunk integer = 4194304
+arg Prime integer = 1000000007
+
+rem With r = n - 1, the final term of
+rem the Lucas start 1, 3, 4, 7, ... is
+rem the sum over t = 1..r of Weight(t)
+rem times Lucas(t + 1), where Weight(t)
+rem = C(2r-t-1, r-1) - C(2r-t-1, r).
+rem Going down from Weight(r) = 1 it
+rem gains the ratio (t-1)(2r-t) over
+rem t (r-t+1). Chunks of ratios give the
+rem weights by prefix products; the
+rem inverses come from one inverse and
+rem suffix products. Lucas numbers use
+rem Fibonacci addition from a table.
+fun Left mulp Right
+  return Left * Right mod Prime
+end
+Count = Length - 1
+Chunks = (Count + Chunk - 1) // Chunk
+Zero = 0 to Chunks - 1
+Start = Zero * Chunk
+Size = (Count - Start) min Chunk
+Base = Count - Start - Size + 2
+rem Fibonacci pairs (F(n), F(n + 1)) by
+rem doubling, for a vector of n.
+Small = 0 to Chunk + 1
+Needs = concat Small (Base - 1)
+Big = Needs
+Fa = Needs * 0
+Fb = Needs * 0 + 1
+for Bit in 27 to 0 by -1
+  Twice = (2 * Fb - Fa) mod Prime
+  Cross = Fa * Twice mod Prime
+  Sums = (Fa * Fa + Fb * Fb) mod Prime
+  Digit = (Needs shr Bit) band 1
+  Take = Digit equal 1
+  Fa = Take choose Sums Cross
+  Joint = (Cross + Sums) mod Prime
+  Fb = Take choose Joint Sums
+end
+Table = Fa take (Chunk + 2)
+Anchor = Fa drop (Chunk + 2)
+Next = Fb drop (Chunk + 2)
+Carry = 1
+Down = 1
+Total = 0
+for Piece in 0 to Chunks - 1
+  First = Piece * Chunk
+  Width = Size Piece
+  Index = First + (0 to Width - 1)
+  Rest = Count - Index
+  Above = (Rest - 1) * (Count + Index)
+  Below = Rest * (Index + 1)
+  Upper = Above mod Prime
+  Lower = Below mod Prime
+  Forward = Upper scan mulp
+  Keep = Width - 1
+  Kept = Forward take Keep
+  Before = concat (array 1) Kept
+  Weight = Before * Carry mod Prime
+  Back = Lower reverse scan mulp
+  Suffix = Back reverse
+  Head = Suffix 0
+  Whole = Down * Head mod Prime
+  Power = Prime - 2
+  Invert = Whole Power Prime powmod
+  Scaled = Suffix * Invert mod Prime
+  Ballot = Weight * Scaled mod Prime
+  Low = Base Piece
+  Place = (Count - Index + 1) - Low
+  Early = Anchor Piece
+  Later = Next Piece
+  Zeroth = Table Place
+  First1 = Table (Place + 1)
+  Second = Table (Place + 2)
+  Fib = Later * First1 + Early * Zeroth
+  Fib = Fib mod Prime
+  Fib1 = Later * Second + Early * First1
+  Fib1 = Fib1 mod Prime
+  Lucas = (2 * Fib1 - Fib) mod Prime
+  Part = Ballot * Lucas mod Prime
+  Added = Part sum
+  Total = (Total + Added) mod Prime
+  Final = Forward (Width - 1)
+  Carry = Carry * Final mod Prime
+  Down = Whole
+end
+Answer = Total
+Answer print
