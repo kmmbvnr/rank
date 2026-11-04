@@ -216,5 +216,6 @@
   "euler/701_randomconnectedarea.ra": "Default 7 x 7 DP over about 4 million states per cell: hours (#520); 4 x 4 stays in the test.",
   "euler/705_inversioncount.ra": "About 2.5 min: sieve to 10^8 and 4.6 x 10^7 digit pair counts; run manually.",
   "euler/707_lightsout.ra": "About 2 min: batched GF(2) elimination of 199 matrices of size 199; run manually.",
+  "euler/715_sextupletnorms.ra": "About 3 min: two Lucy sieves and prime-power sums at 10^12; run manually.",
   "euler/644_squaresontheline.ra": "Full default remains a manual row-sweep workload (#447, #480); the small fixture stays in audits."
 }

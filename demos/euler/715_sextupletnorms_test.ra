@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "715_sextupletnorms"
+  Nn = 10
+  run
+  Answer equal 3053
+  Nn = 100000
+  run
+  Answer equal 157612967
+end
