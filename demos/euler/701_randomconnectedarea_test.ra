@@ -1,0 +1,15 @@
+use testing
+use numbers
+
+test "statement values"
+  use "701_randomconnectedarea"
+  Ww = 2
+  Hh = 2
+  run
+  Answer equal 1.875
+  Ww = 4
+  Hh = 4
+  run
+  Rd = Answer round 8
+  Rd equal 5.76487732
+end

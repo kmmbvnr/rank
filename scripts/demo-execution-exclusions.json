@@ -213,5 +213,6 @@
   "euler/643_twofriendly.ra": "About 60 s: totient sums to 10^11 over N // 2^t; run manually.",
   "euler/646_boundeddivisors.ra": "About 15 s: 3.6 x 10^12 divisors by meet in the middle; run manually.",
   "euler/650_binomialproduct.ra": "About 4.5 min: 20000 steps of vector powmod over 2262 primes (#479); run manually.",
+  "euler/701_randomconnectedarea.ra": "Default 7 x 7 DP over about 4 million states per cell: hours (#520); 4 x 4 stays in the test.",
   "euler/644_squaresontheline.ra": "Full default remains a manual row-sweep workload (#447, #480); the small fixture stays in audits."
 }
