@@ -12,8 +12,8 @@ import { floorDivide, floorRemainder } from '../numeric-division.js';
 import type { IntegerLoopPlan, LoopHost } from './integer-loop-plan.js';
 
 /** Lower bound on complete nested passes in a packed vector loop. Inspect at
- * most its first and last cells, never a callback or a body array read. The last
- * iteration is usable only without an escaping jump or mutable entry bounds.
+ * most its first two and last cells, never a callback or a body array read. Later
+ * iterations are usable only without an escaping jump or mutable entry bounds.
  * This decides copy cost only; Number guards and exact replay remain mandatory. */
 export function prepareVectorEntryWork(plan: IntegerLoopPlan, host: LoopHost):
     ((input: unknown[], target: number) => number) | undefined {
@@ -56,7 +56,10 @@ export function prepareVectorEntryWork(plan: IntegerLoopPlan, host: LoopHost):
             if (plan.localTypes.get(name) === 'boolean' && typeof value === 'boolean') base.set(name, value);
         }
         let work = 0;
-        const ordinals = escapes || cells.length === 1 ? [0] : [0, cells.length - 1];
+        // Two leading sieve passes can pay for the copy even when the last
+        // pass is tiny. Deduplicate short vectors; keep the same bounded proof
+        // and do not inspect later entries after a possible escaping jump.
+        const ordinals = escapes ? [0] : [...new Set([0, Math.min(1, cells.length - 1), cells.length - 1])];
         for (const ordinal of ordinals) {
             const values = new Map(base), at = traversal.reverse ? cells.length - 1 - ordinal : ordinal;
             if (binding.names[0] !== '#') values.set(binding.names[0], BigInt(cells[at]));
@@ -143,6 +146,15 @@ export function prepareVectorEntryWork(plan: IntegerLoopPlan, host: LoopHost):
                             if (isAssignmentStatement(node)) values.delete(node.name);
                             if (isForStatement(node)) host.iteration(node.condition)?.names.forEach(name => values.delete(name));
                         }
+                    } else if (isArrayAssignmentStatement(statement)) {
+                        let range = statement.indices.at(-1)?.value;
+                        while (range && isParenthesizedExpression(range)) range = range.value;
+                        // A lowered slice stores at least one cell per selected
+                        // position. Count only native ranges with known bounds;
+                        // unknown selectors retain the existing copy/work cap.
+                        const count = range && isBinaryExpression(range) && ['to', 'till'].includes(range.operator)
+                            ? expressionFacts(range, lookup).shape?.[0] : undefined;
+                        if (count !== undefined && count !== null && Number.isSafeInteger(count)) work += Math.min(count, target - work);
                     } else if (isBreakStatement(statement)) return 'break';
                     else if (isContinueStatement(statement)) return 'continue';
                     else if (isReturnStatement(statement)) return 'unknown';

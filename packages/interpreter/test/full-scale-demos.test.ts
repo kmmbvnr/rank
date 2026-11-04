@@ -321,3 +321,18 @@ it('checks the full Euler 386 antichain sum with linked vector recursion', () =>
         expect(runtime.variables.get('Answer')).toBe(528755790n);
     } finally {runtime.dispose();}
 }, 30_000);
+
+it.each([4641589, 1])('checks the full Euler 388 wide sum with bounded tables (Cut=%s)', cut => {
+    const runtime = new Interpreter(() => {}, { args: [`--cut=${cut}`] });
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(new URL('../../../demos/euler/388_lines.ra', import.meta.url), 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(831907372771451255456805129931n);
+        expect(runtime.variables.get('Token')).toBe('831907372805129931');
+        expect(runtime.variables.get('Top') as bigint).toBeLessThanOrEqual(100000n);
+        expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(3);
+        // Below the cap, the small-cutoff sieve retains its bounded probe.
+        expect(diagnostics.numberLoopCopyProbes).toBe(cut === 1 ? 1 : 0);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+    } finally { runtime.dispose(); }
+}, 30_000);

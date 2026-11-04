@@ -3,38 +3,66 @@ rem https://projecteuler.net/problem=388
 
 use numbers
 use sequences
-use algo
 use io
 use cli
 
 arg N integer = 10 ** 10
 arg Cut integer = 4641589
 
-rem Mertens values up to N^(2/3).
-Mu = array shape (Cut + 1) fill 1
+rem Balance dense tables for small Cut.
+Root = N isqrt
+Bound = Cut max Root min N max 1
+
+rem Small Mertens values.
+Mu = array shape (Bound + 1) fill 1
 Mu 0 = 0
 Mu 1 = 1
-for P in primes to Cut
-  Mu (P to Cut by P) *= -1
+Ps = primes to Bound array
+for P in Ps
+  Mu (P to Bound by P) *= -1
   P2 = P * P
-  if P2 at most Cut
-    Mu (P2 to Cut by P2) = 0
+  if P2 at most Bound
+    Mu (P2 to Bound by P2) = 0
   end
 end
-for I in 1 to Cut
-  Mu I += Mu (I - 1)
-end
+Mu = Mu scan +
 
-Cache = new index
+rem Larger slots hold dependencies.
+Top = N // (Bound + 1)
+Cache = array shape (Top + 1) fill 0
+for Slot in Top to 1 by -1
+  X = N // Slot
+  Total = 1
+  Left = 2
+  for Left at most X
+    Q = X // Left
+    Right = X // Q
+    Part = 0
+    if Q at most Bound
+      Part = Mu Q
+    else
+      Part = Cache (N // Q)
+    end
+    Total -= (Right - Left + 1) * Part
+    Left = Right + 1
+  end
+  Cache Slot = Total
+end
 Answer = 0
 L = 1
+Before = 0
 for L at most N
   Q = N // L
   R = N // Q
-  M = R mertens Cache
-  Before = L - 1 mertens Cache
+  M = 0
+  if R at most Bound
+    M = Mu R
+  else
+    M = Cache (N // R)
+  end
   F = (Q + 1) ** 3 - 1
   Answer += (M - Before) * F
+  Before = M
   L = R + 1
 end
 Text = Answer text
@@ -46,25 +74,3 @@ if Len greater 18
   Token = Head + Tail
 end
 Token print
-
-fun X mertens Cache
-  if X at most Cut
-    return Mu X
-  end
-  Slot = N // X
-  if Slot in Cache
-    return Cache Slot
-  end
-  Total = 1
-  L = 2
-  for L at most X
-    Q = X // L
-    R = X // Q
-    Count = R - L + 1
-    Part = Q mertens Cache
-    Total -= Count * Part
-    L = R + 1
-  end
-  Cache Slot = Total
-  return Total
-end

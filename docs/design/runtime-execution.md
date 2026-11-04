@@ -827,13 +827,16 @@ early exits, calls, array-cell bounds and unknown lengths do not qualify.
 This proves enough work before copying without changing the probe cap.
 
 Packed integer-vector loops can also amortize large copies with complete nested
-range passes. The compiler inspects at most the first and last trusted vector
-cells, tracking pure scalar assignments and known branches. It uses the last
-iteration only when no break or return can skip it, and excludes bounds changed
+range passes and strided slice stores. The compiler inspects at most the first
+two and last trusted vector cells, deduplicating short vectors and tracking pure
+scalar assignments and known branches. It uses later iterations only when no
+break or return can skip them, and excludes bounds changed
 elsewhere in the region. Calls, opaque reads, shortened inner passes and iterator
 storage shared with a destination do not supply this proof. Unknown work retains
 the existing cap; the 64-cell sentinel allowance and exact replay still apply.
-Euler 379 exercises both forward and reverse prime-vector sieves with this path.
+Euler 379 exercises forward and reverse nested prime-vector passes. Euler 388
+uses two leading prime slices to prove enough work even when its final slice
+is tiny. Counting those slices leaves both copy thresholds unchanged.
 
 Stored-vector traversal captures its invocation-owned buffer once and maintains
 an independent numeric cursor/ordinal; assignments to visible loop variables do

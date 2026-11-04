@@ -1,0 +1,80 @@
+rem Distinct Lines
+rem https://projecteuler.net/problem=388
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg N integer = 10 ** 10
+arg Cut integer = 4641589
+
+rem Mertens values up to N^(2/3).
+Mu = array shape (Cut + 1) fill 1
+Mu 0 = 0
+Mu 1 = 1
+Ps = primes to Cut array
+for P in Ps
+  Mu (P to Cut by P) *= -1
+  P2 = P * P
+  if P2 at most Cut
+    Mu (P2 to Cut by P2) = 0
+  end
+end
+Mu = Mu scan +
+
+rem Dependencies have larger cache slots.
+Top = N // (Cut + 1)
+Cache = array shape (Top + 1) fill 0
+for Slot in Top to 1 by -1
+  X = N // Slot
+  Total = 1
+  Left = 2
+  for Left at most X
+    Q = X // Left
+    Right = X // Q
+    Part = 0
+    if Q at most Cut
+      Part = Mu Q
+    else
+      Part = Cache (N // Q)
+    end
+    Total -= (Right - Left + 1) * Part
+    Left = Right + 1
+  end
+  Cache Slot = Total
+end
+Answer = 0
+L = 1
+Before = 0
+for L at most N
+  Q = N // L
+  R = N // Q
+  M = 0
+  if R at most Cut
+    M = Mu R
+  else
+    M = Cache (N // R)
+  end
+  F = (Q + 1) ** 3 - 1
+  Answer += (M - Before) * F
+  Before = M
+  L = R + 1
+end
+Text = Answer text
+Len = Text len
+Token = Text
+if Len greater 18
+  Head = Text take 9
+  Tail = Text drop (Len - 9)
+  Token = Head + Tail
+end
+Token print
+
+fun X mertens Cache
+  if X at most Cut
+    return Mu X
+  end
+  return Cache (N // X)
+end

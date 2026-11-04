@@ -83,7 +83,6 @@
   "euler/370_triangles.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/378_triangles.ra": "The full 60-million-entry divisor sieve and exact Fenwick pass compile, but scalar reference execution remains outside the corpus budget; the small _test.ra fixture stays in the audits.",
   "euler/379_lcmcount.ra": "The full compiled answer is covered by euler379.test.ts after guarded nested-pass copy admission; full reference execution remains excluded, with the small _test.ra fixture in both audits.",
-  "euler/388_lines.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/397_parabola.ra": "The full input completes in about 16 s compiled after #395, but the reference traversal of 101 million divisors remains too slow for the shared differential audit. Its compiled default is checked in test/euler397.test.ts and benchmarks/euler397.mjs; small interpreted cases remain in 397_parabola_test.ra.",
   "euler/391_hopping.ra": "To fix later: the default input takes over 120 s in the reference interpreter; the small _test.ra fixture stays in the audits.",
   "euler/404_crazyellipses.ra": "To fix later: the default input takes about 46 s compiled; the small _test.ra fixture stays in the audits.",
