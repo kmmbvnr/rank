@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "718_unreachable"
+  Pp = 1
+  run
+  Answer equal 8253
+  Pp = 2
+  run
+  Answer equal 60258000
+end
+
+test "default input"
+  use "718_unreachable"
+  run
+  Answer equal 228579116
+end
