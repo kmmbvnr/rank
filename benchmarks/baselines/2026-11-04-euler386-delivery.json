@@ -91,8 +91,8 @@
         "limit": "100000000",
         "mode": "compiled",
         "answer": "528755790",
-        "ms": 1148.6209589999999,
-        "rssMiB": 460.4375,
+        "ms": 1224.920833,
+        "rssMiB": 460.234375,
         "calls": 758006
       },
       {
@@ -100,8 +100,8 @@
         "limit": "100000000",
         "mode": "compiled",
         "answer": "528755790",
-        "ms": 1151.1139170000001,
-        "rssMiB": 459.5,
+        "ms": 1160.849708,
+        "rssMiB": 457.96875,
         "calls": 758006
       },
       {
@@ -109,8 +109,8 @@
         "limit": "100000000",
         "mode": "compiled",
         "answer": "528755790",
-        "ms": 1137.509667,
-        "rssMiB": 459.671875,
+        "ms": 1224.397291,
+        "rssMiB": 470.078125,
         "calls": 758006
       }
     ],
@@ -120,8 +120,8 @@
         "limit": "100000000",
         "mode": "reference",
         "answer": "528755790",
-        "ms": 17400.806792,
-        "rssMiB": 506.078125,
+        "ms": 17396.173875,
+        "rssMiB": 510.640625,
         "calls": 0
       },
       {
@@ -129,8 +129,8 @@
         "limit": "100000000",
         "mode": "reference",
         "answer": "528755790",
-        "ms": 17421.414542000002,
-        "rssMiB": 506.953125,
+        "ms": 17596.568125,
+        "rssMiB": 510.53125,
         "calls": 0
       },
       {
@@ -138,8 +138,8 @@
         "limit": "100000000",
         "mode": "reference",
         "answer": "528755790",
-        "ms": 17320.813667000002,
-        "rssMiB": 507.3125,
+        "ms": 17524.883792,
+        "rssMiB": 509.53125,
         "calls": 0
       }
     ]
@@ -193,8 +193,8 @@
         "limit": "100000000",
         "mode": "compiled",
         "answer": "528755790",
-        "ms": 3563.48272,
-        "rssMiB": 442.80078125,
+        "ms": 3542.556562,
+        "rssMiB": 444.15625,
         "calls": 758006
       },
       {
@@ -202,8 +202,8 @@
         "limit": "100000000",
         "mode": "compiled",
         "answer": "528755790",
-        "ms": 3586.615482,
-        "rssMiB": 444.89453125,
+        "ms": 3464.5412349999997,
+        "rssMiB": 442.09765625,
         "calls": 758006
       },
       {
@@ -211,12 +211,12 @@
         "limit": "100000000",
         "mode": "compiled",
         "answer": "528755790",
-        "ms": 3528.381637,
-        "rssMiB": 445.41796875,
+        "ms": 3458.566581,
+        "rssMiB": 442.18359375,
         "calls": 758006
       }
     ],
-    "referenceSingleControl": [
+    "referencePreIntegrationSingleControl": [
       {
         "file": "demos/euler/386_antichain.ra",
         "limit": "100000000",
@@ -619,8 +619,8 @@
     "limit": "100000000",
     "mode": "compiled",
     "answer": "528755790",
-    "ms": 1319.2305000000001,
-    "rssMiB": 466.328125,
+    "ms": 1217.5918749999998,
+    "rssMiB": 461.640625,
     "calls": 758006,
     "diagnostics": {
       "memoHits": 0,
@@ -731,6 +731,75 @@
         "loop:unbound-name:NameExpression": 1,
         "loop:no-text-specialization": 802
       },
+      "fallbackCategories": {
+        "effects": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-function:unsupported-op:len": 1,
+          "scalar-function:unsupported-op:convolve": 2,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:atleast": 2
+        },
+        "representation": {
+          "tensor:unsupported-type:array": 5,
+          "loop:unsupported-type:array": 1
+        },
+        "aliasing": {},
+        "proof": {},
+        "cost": {},
+        "unclassified": {
+          "scalar-function:loop-range:ForStatement": 1,
+          "scalar-expression:too-small": 9,
+          "scalar-function:unbound-name:NameExpression": 1,
+          "tensor:output-shape": 2028,
+          "scalar-function:callee-binding:ApplicationExpression": 1,
+          "loop:unbound-name:NameExpression": 1,
+          "loop:no-text-specialization": 802
+        }
+      },
+      "costs": {
+        "program.parse": {
+          "calls": 1,
+          "milliseconds": 121.44012499999997,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 1096.0105830000002,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.1716250000000059,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "loop.prepare": {
+          "calls": 2,
+          "milliseconds": 0.8308749999999918,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
       "compilerRejections": [
         {
           "reason": "scalar-function:loop-range:ForStatement",
@@ -777,8 +846,8 @@
     }
   },
   "tests": {
-    "macFocused": 331,
-    "intelFocused": 138,
+    "macFocused": 359,
+    "intelFocused": 166,
     "fullGolden": 1,
     "scopedTypeAndDifferential": 4,
     "semanticBoundaries": 65,
@@ -818,6 +887,101 @@
     "packages/interpreter/src/jit/scalar-function-kernel.ts": "5a45664c2868cfac734fbb3b45ea0f5ccfba356944d27394c9220e396b18fe4b",
     "packages/interpreter/src/function-invocation.ts": "bb9de73ea7b8269ebcbc43af73ead8c10bd69b64d6c25ac6b952c27427c91be0",
     "packages/interpreter/src/runtime/dense-prime-sieve.ts": "0f3ce2d1ef3529fcbfbc3a98c9f2461c64b87e95246a60285b42b7d396c2998d",
-    "packages/interpreter/src/sequence-bounds.ts": "1616bb2e329d24ea8defc8455f94e8d9658764dfa5a0f7b6791d74bc1d8ae78e"
+    "packages/interpreter/src/sequence-bounds.ts": "1616bb2e329d24ea8defc8455f94e8d9658764dfa5a0f7b6791d74bc1d8ae78e",
+    "packages/interpreter/src/interpreter.ts": "8340fd34bc9b1d9c2df561ccc6c69bf7406a33d2c0fdcfb0f85cbeca3f47cecf"
+  },
+  "integration": {
+    "baseRevision": "3ab3938f955dc3a6db64f377e20dc029e85c3366",
+    "implementationRevision": "a532c321",
+    "notes": "Rebased without conflicts over the independent execution-cost diagnostics change; the following final samples and tests use that integrated main."
+  },
+  "preIntegration": {
+    "macCompiled": [
+      {
+        "file": "demos/euler/386_antichain.ra",
+        "limit": "100000000",
+        "mode": "compiled",
+        "answer": "528755790",
+        "ms": 1148.6209589999999,
+        "rssMiB": 460.4375,
+        "calls": 758006
+      },
+      {
+        "file": "demos/euler/386_antichain.ra",
+        "limit": "100000000",
+        "mode": "compiled",
+        "answer": "528755790",
+        "ms": 1151.1139170000001,
+        "rssMiB": 459.5,
+        "calls": 758006
+      },
+      {
+        "file": "demos/euler/386_antichain.ra",
+        "limit": "100000000",
+        "mode": "compiled",
+        "answer": "528755790",
+        "ms": 1137.509667,
+        "rssMiB": 459.671875,
+        "calls": 758006
+      }
+    ],
+    "macReference": [
+      {
+        "file": "demos/euler/386_antichain.ra",
+        "limit": "100000000",
+        "mode": "reference",
+        "answer": "528755790",
+        "ms": 17400.806792,
+        "rssMiB": 506.078125,
+        "calls": 0
+      },
+      {
+        "file": "demos/euler/386_antichain.ra",
+        "limit": "100000000",
+        "mode": "reference",
+        "answer": "528755790",
+        "ms": 17421.414542000002,
+        "rssMiB": 506.953125,
+        "calls": 0
+      },
+      {
+        "file": "demos/euler/386_antichain.ra",
+        "limit": "100000000",
+        "mode": "reference",
+        "answer": "528755790",
+        "ms": 17320.813667000002,
+        "rssMiB": 507.3125,
+        "calls": 0
+      }
+    ],
+    "intelCompiled": [
+      {
+        "file": "demos/euler/386_antichain.ra",
+        "limit": "100000000",
+        "mode": "compiled",
+        "answer": "528755790",
+        "ms": 3563.48272,
+        "rssMiB": 442.80078125,
+        "calls": 758006
+      },
+      {
+        "file": "demos/euler/386_antichain.ra",
+        "limit": "100000000",
+        "mode": "compiled",
+        "answer": "528755790",
+        "ms": 3586.615482,
+        "rssMiB": 444.89453125,
+        "calls": 758006
+      },
+      {
+        "file": "demos/euler/386_antichain.ra",
+        "limit": "100000000",
+        "mode": "compiled",
+        "answer": "528755790",
+        "ms": 3528.381637,
+        "rssMiB": 445.41796875,
+        "calls": 758006
+      }
+    ]
   }
 }

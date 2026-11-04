@@ -1,6 +1,7 @@
 # Euler 386: linked recursive vector counting
 
-Delivered on 2026-11-04, based on `0e6cb9a9`, Node v24.15.0.
+Delivered on 2026-11-04, investigated on `0e6cb9a9` and integrated with
+`3ab3938f` in `a532c321`, Node v24.15.0.
 The full answer remains **528755790**. The slow main-program execution exclusion
 has been removed; the full compiled golden test, small fixture and scoped
 corpus type/differential checks pass.
@@ -9,17 +10,19 @@ corpus type/differential checks pass.
 
 | Host / full compiled program | Before | After | Peak RSS before / after |
 | --- | ---: | ---: | ---: |
-| Apple M5 | 15.483 s | 1.149 s | 547.5 / 459.7 MiB |
-| Intel i7-10750H | 65.618 s | 3.563 s | 531.3 / 444.9 MiB |
+| Apple M5 | 15.483 s | 1.224 s | 547.5 / 460.2 MiB |
+| Intel i7-10750H | 65.618 s | 3.465 s | 531.3 / 442.2 MiB |
 
-Each value is the median of three sequential fresh processes. Measurements
+The after measurements use the integrated `main`, including its independent
+execution-cost diagnostics change. Each value is the median of three sequential
+fresh processes. Measurements
 include parsing/compilation and the complete 100-million default input. Peak
 RSS falls about 16% on both hosts. The baseline is the same unchanged program
 measured during the preceding investigation; no historical 32-second baseline
 is used to inflate the improvement.
 
-Reference execution is a tradeoff: Mac median 16.227 -> 17.401 s, with peak RSS
-505.9 -> 507.0 MiB. The final Intel reference control is one sample, 73.642 s /
+Reference execution is a tradeoff: Mac median 16.227 -> 17.525 s, with peak RSS
+505.9 -> 510.5 MiB. The pre-integration Intel reference control is one sample, 73.642 s /
 481.9 MiB; no Intel reference speedup ratio is claimed. Interpreter overhead
 still dominates that lane. The direct JS search remains a lower-overhead
 comparison, not the delivered implementation.
@@ -62,7 +65,7 @@ These are single prototype controls, not final medians.
 
 ## Verification
 
-- 331 focused interpreter tests across 15 files on Mac; 138 across six files
+- 359 focused interpreter tests across 16 files on Mac; 166 across seven files
   on Intel. New tests cover recursion, wide integers, real/boolean/text arrays,
   empty vectors, value snapshots, alias/write fallback, errors, native method
   replacement, opaque getters, pre-existing bounds, cancellation and budgets.
