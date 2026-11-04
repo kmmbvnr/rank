@@ -69,7 +69,7 @@ counter that the stored keys alone could satisfy.
   failing cells remain unread. Existing host/effect/budget tests retain fallback.
 - Full suites and exhaustive audits were not run.
 
-These steps do not implement scatter fusion, general region work/effect proofs,
+These first two steps do not implement scatter fusion, general region work/effect proofs,
 array-rotation ownership analysis, or per-definition integer range propagation.
 
 ## Reproduction
@@ -83,3 +83,47 @@ node benchmarks/general-runtime.mjs --baseline=/path/to/built/baseline --cases=r
 
 Raw observations: [Mac](baselines/2026-11-04-general-runtime-mac.json) and
 [Intel](baselines/2026-11-04-general-runtime-intel.json).
+
+
+## Final integration verification
+
+The combined implementation includes the subsequent [entry-work proof](entry-work-results.md),
+[array transfers](array-transfer-results.md), [binding ownership](array-ownership-results.md)
+and [integer ranges](integer-range-results.md). It is integrated with main through
+`1199b736`, preserving its independent mixed-output, finite-iterable and bitwise
+compiler changes and the ACMP updates.
+
+Final interpreter source SHA-256 (sorted repository-relative `.ts` paths under
+`packages/interpreter/src`, each followed by NUL and its contents):
+`e1cf750b79d41442f2d41ea34cddbb66ecaec4bae5f4ea278dedb78cda0c65af`.
+
+The ordinary interpreter run excluded `types.test.ts`, `differential.test.ts`
+and `nurikabe.test.ts`, using the audit-aware runner with four workers. It
+finished with 11913 passed tests, 13 failed tests and one file-load error across
+558 files. This was not a clean full run. Each failing file was investigated:
+
+- The shared entry-work proof incorrectly treated outer `continue` like an
+  escaping jump. Fixing that restored the original Euler 379 numeric-region
+  assertions. A new regression compares the state with exact execution.
+- Alias compilation, boolean storage fills, Euler 388's replaced Mertens helper,
+  and main's additional mixed tier required updated test expectations. Exact
+  answers, alias snapshots and observable polling checks remain in place.
+- Euler 644, 362, 671 and 505 timeouts and the Euler 696 loader error did not
+  reproduce in isolated runs. No timeout limits were increased. Euler 505 took
+  64.5 seconds with its existing 180-second process deadline.
+
+Mac reruns passed: 287 tests in five affected files; all 70 tests in five
+work-proof/mixed-tier/full-demo files (69 first, then the corrected Euler 288
+counter check); five tests in Euler 362/671; and the full Euler 505 check.
+Intel passed 543 focused tests in 12 files on the final runtime. The TypeScript
+project build, 11 semantic-boundary tests, 65 semantic owners, application-form
+checks, and all six ACMP 928 examples also pass. The entire ordinary suite was
+not repeated after the narrow work-proof repair. Exhaustive audits were not run.
+
+Final smoke checks on Apple M5 and Intel i7-10750H independently assert the
+expected result for all 16 compiled benchmark cases and the three reference
+producer/entry controls, with diagnostics both off and on. These are one-sample
+integration checks, not new comparative performance measurements. The earlier
+five-sample reports remain the evidence for speed and memory changes. Raw final
+candidate observations: [Mac](baselines/2026-11-04-general-integration-mac.json)
+and [Intel](baselines/2026-11-04-general-integration-intel.json).
