@@ -1,0 +1,37 @@
+rem ACMP 0825 Jianshidzy (Wythoff)
+rem P-positions via Beatty sequences
+
+use algo
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "5
+0
+1
+2
+701408733
+1000000000"
+
+Tokens = Input words integer
+N = Tokens 0
+K = Tokens drop 1
+
+S = (5 * K * K) isqrt
+A = (K + S) // 2
+B = A + K
+
+AnsQ = new queue
+for I in 0 till N
+  AI = A I
+  BI = B I
+  Line = (AI text) + " " + (BI text)
+  AnsQ push Line
+end
+
+Ans = (AnsQ reverse) reverse
+for L in Ans
+  L print
+end

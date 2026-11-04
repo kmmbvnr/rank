@@ -108,6 +108,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0812** | [Сжатие последовательности](0812_sequence_compression.ra) | Dynamic Programming (69%) | Compositions of $N$ into parts $\le A$ via arbitrary-precision DP $DP[i] = 2 DP[i-1] - DP[i-1-A]$ with safe bounded index `choose` |
 | **0813** | [Игра в 24](0813_game_24.ra) | Brute Force / Subset DP (62%) | Reachable values per card subset via `outer +`, `outer -`, `outer *` and `sort unique` |
 | **0815** | [Обходчик лабиринтов](0815_maze_walker.ra) | Graph Theory / Automata (65%) | NFA step simulation over colored directed edges via `reduce` with vectorized boolean masking and index assignment |
+| **0825** | [Китайская игра «Цзяньшидзы»](0825_jianshidzy.ra) | Combinatorics / Game Theory (69%) | $k$-th losing position in Wythoff's game via vectorized exact integer Beatty sequence $(k + \lfloor\sqrt{5 k^2}\rfloor) // 2$ with `isqrt` |
 | **0827** | [Фруктовый сок](0827_fruit_juice.ra) | Graph Theory / Flow (66%) | Min DAG path cover via Dinic `maxflow` on subset inclusion bipartite split graph, length-pruned with `choose` |
 | **0829** | [Строки - 3](0829_strings_3.ra) | Strings / Rolling Hash (60%) | Count substrings of $A$ that are cyclic shifts of $B$ in $O(|A| + |B|)$ using double polynomial rolling hash ($10^9+7$ and $10^9+9$) with `use algo` set |
 | **0860** | [Паркет](0860_parquet.ra) | Dynamic Programming (68%) | Tiling with squares of any size via broken profile DP over column heights, grid transposition, and matrix subregion slicing |
