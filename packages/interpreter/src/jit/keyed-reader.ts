@@ -61,6 +61,11 @@ export function keyedIntegerReader(root: TensorNode,
                     return a === 1 ? b : a;
                 });
                 const route = (input: Reader) => {
+                    if (input.shape.length === 0) return () => 0;
+                    if (input.shape.length === shape.length
+                        && input.shape.every((length, axis) => length === shape[axis])) {
+                        return (index: number) => index;
+                    }
                     const strides = Array(rank).fill(0) as number[];
                     let stride = 1;
                     for (let axis = rank - 1; axis >= rank - input.shape.length; axis--) {

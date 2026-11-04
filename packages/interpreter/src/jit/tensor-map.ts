@@ -210,7 +210,16 @@ function prepareTensorGraph(value: RankArray) {
     if (!consumerCompilation) return undefined;
     const scope = active ?? mapScope(value);
     if (!scope?.enabled()) return undefined;
-    const textDigits = scope.host.textDigits;
+    const graph = prepareNativeTensorGraph(value, scope.host.textDigits, () => scope.host.builtin('integer'));
+    if (!graph) return undefined;
+    const host = { ...scope.host, valid: () => consumerCompilation && scope.enabled()
+        && scope.host.valid?.() !== false && graph.valid() };
+    return { ...graph, host, scope };
+}
+
+/** Native recipes are semantic data, independent of code generation.
+ * Stored inputs remain boundaries in either execution engine. */
+function prepareNativeTensorGraph(value: RankArray, textDigits = false, integerBuiltin?: () => boolean) {
     const domains = new Map<TensorNode, readonly CompiledAtomType[]>();
     const visiting = new Set<RankArray>();
     const guards: (() => boolean)[] = [];
@@ -332,7 +341,10 @@ function prepareTensorGraph(value: RankArray) {
                 if (!node) return undefined;
                 operands.push(node);
             }
-            if (map.operator === 'integer0') guards.push(() => scope!.host.builtin('integer'));
+            if (map.operator === 'integer0') {
+                if (!integerBuiltin) return undefined;
+                guards.push(integerBuiltin);
+            }
             const extreme = map.operator === 'min' || map.operator === 'max';
             if (extreme && map.layout !== 'broadcast') return undefined;
             const matched = extreme
@@ -354,16 +366,14 @@ function prepareTensorGraph(value: RankArray) {
     }
     const root = lower(value);
     if (!root) return undefined;
-    const host = { ...scope.host, valid: () => consumerCompilation && scope.enabled()
-        && scope.host.valid?.() !== false && guards.every(guard => guard()) };
-    return { root, domains, host, scope, transformed, nonReplayableChecks };
+    return { root, domains, valid: () => guards.every(guard => guard()), transformed, nonReplayableChecks };
 }
 
 /** Pure native sources can stream into a keyed fold without materialization.
  * The consumer must neither invoke callbacks nor mutate the captured operands. */
 export function prepareKeyedTensorReader(value: RankArray): ((index: number) => bigint) | undefined {
-    const graph = prepareTensorGraph(value);
-    if (!graph || graph.nonReplayableChecks || graph.host.valid?.() === false) return undefined;
+    const graph = prepareNativeTensorGraph(value);
+    if (!graph || graph.nonReplayableChecks || !graph.valid()) return undefined;
     const reader = keyedIntegerReader(graph.root, graph.domains);
     if (!reader || reader.shape.length !== value.shape.length
         || reader.shape.some((length, axis) => length !== value.shape[axis])) return undefined;

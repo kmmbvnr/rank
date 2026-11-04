@@ -17,7 +17,7 @@ import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { sumIndexed } from './modules/numbers.js';
 import { statisticsCell } from './modules/stats.js';
-import { checkpoint, inspectionEnabled, privateLoopPolling } from './interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { numericKernel } from './numeric-kernels.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { dyadicCells, tensorCells } from './rank-application.js';
@@ -60,12 +60,15 @@ export class ReductionEvaluator {
         const scalar = !symbolic && this.scalarCallback(operation);
         const combine = symbolic ? numericKernel(operation, fallback)
             : scalar ? (left: RankValue, right: RankValue) => scalar([left, right]) : fallback;
-        const native = this.isTensorFusion() && !inspectionEnabled() && (symbolic || extreme !== undefined);
+        // Observable polling and bounded demands retain ordinary reads.
+        const native = privateLoopPolling() && !demandBudgetEnabled()
+            && (symbolic || extreme !== undefined);
         const valueAt = native && isRankArray(source) ? prepareKeyedTensorReader(source) : undefined;
         const keyAt = native && isRankArray(keys) ? prepareKeyedTensorReader(keys) : undefined;
         return keyedFold(source, keys, combine, {
                 valueAt: keyAt ? valueAt : undefined, keyAt: valueAt ? keyAt : undefined,
-                operator: this.isTensorFusion() && !inspectionEnabled() ? symbolic ? operation : extreme : undefined,
+                operator: (this.isTensorFusion() || valueAt && keyAt) && !inspectionEnabled()
+                    ? symbolic ? operation : extreme : undefined,
                 skipMissing: aggregate !== undefined,
                 validate: aggregate === 'sum' ? value => expectNumeric(value, 'sum') : undefined,
                 initial: aggregate && aggregate !== 'sum' && !symbolic ? value => this.invoke(operation, [value]) : undefined,

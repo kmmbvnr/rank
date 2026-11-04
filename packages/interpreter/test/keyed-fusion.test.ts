@@ -18,7 +18,7 @@ for (const compilation of [true, false]) {
             }
             expect(result.shape).toEqual([expected.length]);
             expect(expected.map((_, i) => readArrayItem(result, i))).toEqual(expected);
-            expect(diagnostics.keyedNativeReaders).toBe(compilation ? 2 : 0);
+            expect(diagnostics.keyedNativeReaders).toBe(2);
             expect(diagnostics.typedArrayPublishedCells).toBeLessThanOrEqual(expected.length);
         } finally { runtime.dispose(); }
     });

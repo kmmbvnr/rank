@@ -27,7 +27,7 @@ for (const operation of ['+', '*', 'min', 'max']) {
                     if (result === undefined || !isRankArray(result)) throw new Error('expected array');
                     const expected = kind === 'scan' ? prefixes : states;
                     expect(Array.from({ length: expected.length }, (_, i) => readArrayItem(result, i))).toEqual(expected);
-                    expect(diagnostics.integerKeyedFolds).toBe(compilation ? 1 : 0);
+                    expect(diagnostics.integerKeyedFolds).toBe(1);
                 } finally { runtime.dispose(); }
             }
         });

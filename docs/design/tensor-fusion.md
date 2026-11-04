@@ -216,3 +216,56 @@ can feed kernels without forcing a deferred input merely to establish eligibilit
 
 See [explicit copy fusion](array-output-fusion.md) for the first array-output
 implementation and its measurements.
+
+### Integer producers into grouped consumers
+
+Native recipe construction is shared by tensor compilation and the interpreted
+integer reader. The reader does not generate JavaScript or compile Rank control
+flow. Both execution engines can feed integer producers directly into `reduce`,
+`sum`, `min`, `max` and `scan` with `by`. The existing tensor IR represents stored
+inputs, native views, unary signs, broadcasting and outer arithmetic (`+`, `-`,
+`*`, `//`, `mod`, `min`, `max`). No array is allocated for each arithmetic stage.
+The reader keeps exact BigInt intermediates even when the final key fits Int32.
+The grouped consumer accepts these readers alongside its existing Int32 storage
+path; it does not use a producer's output width to limit intermediate arithmetic.
+
+An ordinary assignment still completes its result. A deferred binding can expose
+its native recipe after normal plan demand and capture checks. Each consumer
+prepares its own readers; no computed-cell cache is shared between demands.
+Stored arrays terminate graph traversal even if they once had a recipe. This
+preserves completed values and alias snapshots when inputs later change. The
+consumer reads and validates a key before reading its value, visits duplicates
+in source order, and publishes only the completed result. Integer group state
+retains exact arithmetic; the Int32 path widens individual groups when necessary.
+
+The existing capabilities were audited before extending this path:
+
+| Consumer | Existing execution and current limit |
+| --- | --- |
+| Materialization and ordinary fold | Native tensor graph and generated kernels; stored assignments remain boundaries. |
+| Integer prefix scan | Existing native tensor scan; grouped scan now also consumes interpreted integer recipes. |
+| Grouped fold/scan | Shared native graph and ordered integer reader in both engines; effectful reducers retain ordinary reads. |
+| Scatter/`.accumulate` | Existing selection validation, RHS snapshot and private integer update reduction. This change does not move key or RHS computation across those mutation boundaries. |
+
+Unsupported combinations keep ordinary execution for specific reasons:
+
+- Opaque host arrays, user callbacks and effectful reducers lack a native,
+  immutable-input proof. A scalar type annotation alone cannot grant it.
+- Real/mixed producers lack the exact-integer domain required by this reader.
+  Existing materialized real folds retain their own ordered implementation.
+- Integer powers, shifts, concat and arbitrary scalar-call nodes do not yet have
+  an indexed lowering in the integer reader, even when another tensor consumer
+  supports them. Unsupported nodes decline the whole reader.
+- Scatter still needs a proof that consuming computed indices and values preserves
+  selection validation, RHS completion, error order and alias snapshots. Grouped
+  consumers have private results and do not require that mutation proof.
+- Debug inspection, observable host polling and demand budgets retain ordinary
+  producer reads. Their observable work and state must not be replaced by graph
+  preparation or fewer internal checkpoints.
+
+A native reader is a shared runtime kernel, so `compilation: false` still uses it;
+statement and control-flow compilation remain independently disabled. The
+`keyedNativeReaders` and `integerKeyedFolds` diagnostic counters therefore apply
+to both engines. Reference execution continues to supply ordinary control and
+fallback semantics rather than acting as an oracle for the shared arithmetic;
+producer tests also compare results with independent BigInt calculations.
