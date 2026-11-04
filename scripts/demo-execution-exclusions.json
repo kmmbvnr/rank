@@ -218,5 +218,6 @@
   "euler/707_lightsout.ra": "About 2 min: batched GF(2) elimination of 199 matrices of size 199; run manually.",
   "euler/715_sextupletnorms.ra": "About 3 min: two Lucy sieves and prime-power sums at 10^12; run manually.",
   "euler/719_numbersplitting.ra": "About 1 min: pruned split search over 2 x 10^5 roots; run manually.",
+  "euler/720_unpredictablepermutations.ra": "About 20 s and 4 GB: 2^25 element permutation, Lehmer code and factorials; run manually.",
   "euler/644_squaresontheline.ra": "Full default remains a manual row-sweep workload (#447, #480); the small fixture stays in audits."
 }
