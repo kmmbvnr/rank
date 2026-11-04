@@ -1,0 +1,76 @@
+use io
+use numbers
+use text
+use sequences
+use cli
+
+rem ACMP 928: Birch Alley
+rem Max enclosed birches with ribbon L.
+
+arg Input text = "18 4
+3
+0 3 6
+4
+0 3 6 10"
+
+fun can_cover TopMat BotMat L K
+  N = TopMat shape 0
+  M = TopMat shape 1
+  D = K - 2
+  CMin = 0 max (D - (M - 1))
+  CMax = (N - 1) min D
+  Found = false
+  for C in CMin to CMax
+    Dval = D - C
+    TRows = C to (N - 1)
+    TCols = Dval to (M - 1)
+    BRows = 0 to (N - 1 - C)
+    BCols = 0 to (M - 1 - Dval)
+    TSub = TopMat TRows TCols
+    BSub = BotMat BRows BCols
+    P = TSub - BSub
+    MinP = P min
+    Ok = not (MinP greater L)
+    if Ok
+      Found = true
+      break
+    end
+  end
+  return Found
+end
+
+fun solve_birch Input
+  Tokens = Input words real
+  L = Tokens 0
+  W = Tokens 1
+  N = Tokens 2 integer
+  Left = Tokens (3 to (N + 2))
+  M = Tokens (N + 3) integer
+  Off = N + 4
+  Right = Tokens (Off to (N + M + 3))
+
+  A = Left reshape N 1
+  B = Right reshape 1 M
+  Diff = A - B
+  Dist = (Diff * Diff + W * W) sqrt
+  TopMat = A + B + Dist
+  BotMat = A + B - Dist
+
+  Low = 2
+  High = N + M
+  Ans = 0
+  for Step in 1 to 20
+    Mid = (Low + High) // 2
+    Ok = can_cover TopMat BotMat L Mid
+    Low = Ok choose (Mid + 1) Low
+    High = Ok choose High (Mid - 1)
+    Ans = Ok choose Mid Ans
+    if Low greater High
+      break
+    end
+  end
+  return Ans
+end
+
+Result = solve_birch Input
+Result print
