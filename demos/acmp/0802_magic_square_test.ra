@@ -1,0 +1,63 @@
+rem Tests for ACMP 0802: Magic Square
+
+use testing
+
+test "ACMP 802: N=1"
+  use "0802_magic_square"
+  Input = "1"
+  run
+
+  (Sq 0 0) equal 1
+end
+
+test "ACMP 802: N=2 is Impossible"
+  use "0802_magic_square"
+  Input = "2"
+  run
+
+  N equal 2
+end
+
+test "ACMP 802: N=3 magic sums"
+  use "0802_magic_square"
+  Input = "3"
+  run
+
+  Tgt = 3 * (9 + 1) // 2
+  RowSums = (Sq reduce + axis 1) unique
+  ColSums = (Sq reduce + axis 0) unique
+  (RowSums 0) equal Tgt
+  (ColSums 0) equal Tgt
+end
+
+test "ACMP 802: N=4 doubly-even"
+  use "0802_magic_square"
+  Input = "4"
+  run
+
+  Tgt = 4 * (16 + 1) // 2
+  RowSums = (Sq reduce + axis 1) unique
+  ColSums = (Sq reduce + axis 0) unique
+  (RowSums 0) equal Tgt
+  (ColSums 0) equal Tgt
+end
+
+test "ACMP 802: N=6 singly-even"
+  use "0802_magic_square"
+  Input = "6"
+  run
+
+  Tgt = 6 * (36 + 1) // 2
+  RowSums = (Sq reduce + axis 1) unique
+  ColSums = (Sq reduce + axis 0) unique
+  (RowSums 0) equal Tgt
+  (ColSums 0) equal Tgt
+end
+
+test "ACMP 802: default N=100"
+  use "0802_magic_square"
+  run
+
+  (Sq 0 0) equal 1
+  (Sq 99 99) equal 10000
+end

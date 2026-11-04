@@ -1,0 +1,81 @@
+use io
+use sequences
+use cli
+
+rem ACMP 802: Magic Square
+rem Construct N x N magic square
+rem with elements 1..N^2.
+
+arg Input text = "100"
+
+N = (Input integer)
+
+fun odd_square N
+  R = (0 to (N - 1)) reshape N 1
+  C = (0 to (N - 1)) reshape 1 N
+  Q = (R + C + ((N + 1) // 2)) mod N
+  Rem = (R + 2 * C + 1) mod N
+  return N * Q + Rem + 1
+end
+
+fun doubly_even N
+  R = (0 to (N - 1)) reshape N 1
+  C = (0 to (N - 1)) reshape 1 N
+  Val = R * N + C + 1
+  R4 = R mod 4
+  C4 = C mod 4
+  Diag = (R4 equal C4)
+  Anti = (R4 + C4) equal 3
+  D = Diag or Anti
+  return D choose Val (N * N + 1 - Val)
+end
+
+fun singly_even N
+  M = N // 2
+  M2 = M * M
+  A = odd_square M
+  B = A + M2
+  C = A + 2 * M2
+  D = A + 3 * M2
+  K = (M - 1) // 2
+  R = (0 to (M - 1)) reshape M 1
+  Col = (0 to (M - 1)) reshape 1 M
+  IsRowK = R equal K
+  CondK = (
+    (Col greater 0) and
+    (Col less (K + 1)))
+  ElseL = Col less K
+  SwapL = IsRowK choose CondK ElseL
+  SwapR = (
+    (Col greater (M - K)) and
+    (K greater 1))
+  TL = SwapL choose D A
+  BL = SwapL choose A D
+  TR = SwapR choose B C
+  BR = SwapR choose C B
+  Top = concat TL TR axis 1
+  Bot = concat BL BR axis 1
+  return concat Top Bot axis 0
+end
+
+fun make_square N
+  if (N mod 2) equal 1
+    return odd_square N
+  elif (N mod 4) equal 0
+    return doubly_even N
+  else
+    return singly_even N
+  end
+end
+
+Sq = (
+  (array shape 0 fill 0)
+  reshape 0 0)
+if N equal 2
+  "Impossible" print
+else
+  Sq = make_square N
+  for I in 0 to (N - 1)
+    (Sq I) print
+  end
+end
