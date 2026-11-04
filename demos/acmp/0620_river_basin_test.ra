@@ -1,0 +1,73 @@
+rem Tests for ACMP 0620 River Basin
+
+use testing
+
+test "sample 1: 3 rivers -> 16.00"
+  use "0620_river_basin"
+  run
+
+  Ans equal "16.00"
+end
+
+test "sample 2: 2 rivers -> 12.50"
+  use "0620_river_basin"
+  Input = "2
+5
+6 9
+5 11
+3 12
+2 10
+1 7
+6
+3 10
+5 8
+4 6
+5 5.5
+6 5
+3 5"
+  run
+
+  Ans equal "12.50"
+end
+
+test "single river triangle -> 6.00"
+  use "0620_river_basin"
+  Input = "1
+3
+0 0
+4 0
+0 3"
+  run
+
+  Ans equal "6.00"
+end
+
+test "collinear points -> 0.00"
+  use "0620_river_basin"
+  Input = "1
+3
+0 0
+2 2
+5 5"
+  run
+
+  Ans equal "0.00"
+end
+
+test "transitive chain: 1 to 2 to 3"
+  use "0620_river_basin"
+  Input = "3
+2
+0 4
+2 2
+2
+0 0
+2 2
+3
+2 2
+4 0
+4 4"
+  run
+
+  Ans equal "16.00"
+end

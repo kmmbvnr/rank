@@ -1,0 +1,220 @@
+rem River Basin (Бассейн реки)
+rem https://acmp.ru/task.asp?id=620
+rem Transitive basin convex hull area.
+
+use algo
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "3
+5
+6 9
+5 11
+3 12
+2 10
+1 7
+3
+7 9
+5 7
+5 5.5
+6
+3 10
+5 8
+4 6
+5 5.5
+6 5
+3 5"
+
+fun X solve_hull Y
+  M = ((X shape) 0) integer
+  if M less 3
+    return 0.0
+  end
+
+  Key = ((X + 2000.0) * 10000.0)
+  FullKey = Key + (Y + 2000.0)
+  Order = FullKey argsort
+  SX = X Order
+  SY = Y Order
+
+  H = new index
+  Top = 0
+
+  for I in 0 to (M - 1)
+    XI = SX I
+    YI = SY I
+    Stop = false
+    for Step in 1 to Top
+      if (Top greater 1) and (not Stop)
+        P1 = (H (Top - 2)) integer
+        P2 = (H (Top - 1)) integer
+        X1 = SX P1
+        Y1 = SY P1
+        X2 = SX P2
+        Y2 = SY P2
+        DXA = X2 - X1
+        DYA = YI - Y1
+        DXB = Y2 - Y1
+        DYB = XI - X1
+        CP = (DXA * DYA) - (DXB * DYB)
+        Bad = not (CP greater 0.0)
+        if Bad
+          Top -= 1
+        else
+          Stop = true
+        end
+      end
+    end
+    H Top = I
+    Top += 1
+  end
+
+  LowerLimit = Top + 1
+  for I in 0 to (M - 1)
+    RevI = (M - 1) - I
+    XI = SX RevI
+    YI = SY RevI
+    Stop2 = false
+    for Step in 1 to Top
+      Lim = LowerLimit - 1
+      Cond = Top greater Lim
+      if Cond and (not Stop2)
+        P1 = (H (Top - 2)) integer
+        P2 = (H (Top - 1)) integer
+        X1 = SX P1
+        Y1 = SY P1
+        X2 = SX P2
+        Y2 = SY P2
+        DXA = X2 - X1
+        DYA = YI - Y1
+        DXB = Y2 - Y1
+        DYB = XI - X1
+        CP = (DXA * DYA) - (DXB * DYB)
+        Bad = not (CP greater 0.0)
+        if Bad
+          Top -= 1
+        else
+          Stop2 = true
+        end
+      end
+    end
+    H Top = RevI
+    Top += 1
+  end
+
+  HullLen = Top - 1
+  RawIdxs = H (0 to (HullLen - 1))
+  Idxs = RawIdxs integer
+  HX = SX Idxs
+  HY = SY Idxs
+
+  NX = HX rotate (-1)
+  NY = HY rotate (-1)
+  D = (HX * NY) - (HY * NX)
+  Area = ((D reduce +) abs) / 2.0
+  return Area
+end
+
+fun V format_2
+  C = ((V * 100.0) + 0.5) integer
+  W = (C / 100) integer
+  Frac = C mod 100
+  Pad = Frac less 10
+  FracTxt = Frac text
+  Zero = "0" + FracTxt
+  FracStr = Pad choose Zero FracTxt
+  return (W text) + "." + FracStr
+end
+
+Raw = (Input split "\r") join " "
+Clean = (Raw split "\n") join " "
+Parts = Clean split " "
+Tokens = Parts (Parts not equal "")
+
+N = (Tokens 0) integer
+Pos = 1
+RivX = new index
+RivY = new index
+RivK = new index
+
+for I in 0 to (N - 1)
+  K = (Tokens Pos) integer
+  RivK I = K
+  Pos += 1
+  Span = 2 * K - 1
+  Slice = Pos to (Pos + Span)
+  Coords = (Tokens Slice) real
+  Idxs = (0 to (K - 1)) * 2
+  RivX I = Coords Idxs
+  RivY I = Coords (Idxs + 1)
+  Pos += 2 * K
+end
+
+Parent = new index
+for I in 0 to (N - 1)
+  Parent I = (-1)
+  K = (RivK I) integer
+  LastX = (RivX I) (K - 1)
+  LastY = (RivY I) (K - 1)
+  for J in 0 to (N - 1)
+    Cand = I not equal J
+    JX = RivX J
+    JY = RivY J
+    DistX = (JX - LastX) abs
+    DistY = (JY - LastY) abs
+    CloseX = DistX less 0.0001
+    CloseY = DistY less 0.0001
+    Close = CloseX and CloseY
+    OrMatch = Close reduce or
+    Matches = Cand choose OrMatch false
+    if Matches
+      Parent I = J
+    end
+  end
+end
+
+MaxArea = 0.0
+for R in 0 to (N - 1)
+  InBasin = new index
+  for I in 0 to (N - 1)
+    InBasin I = (I equal R)
+  end
+  for Step in 1 to N
+    for I in 0 to (N - 1)
+      P = (Parent I) integer
+      ValidP = P greater (-1)
+      if ValidP
+        IsTrib = InBasin P
+        if IsTrib
+          InBasin I = true
+        end
+      end
+    end
+  end
+
+  AllX = new queue
+  AllY = new queue
+  for I in 0 to (N - 1)
+    InB = InBasin I
+    if InB
+      XI = RivX I
+      YI = RivY I
+      Ki = (RivK I) integer
+      for Pt in 0 to (Ki - 1)
+        AllX push (XI Pt)
+        AllY push (YI Pt)
+      end
+    end
+  end
+  PtsX = (AllX reverse) reverse
+  PtsY = (AllY reverse) reverse
+  AreaR = PtsX solve_hull PtsY
+  NewMax = AreaR greater MaxArea
+  MaxArea = NewMax choose AreaR MaxArea
+end
+
+Ans = MaxArea format_2
+Ans print
