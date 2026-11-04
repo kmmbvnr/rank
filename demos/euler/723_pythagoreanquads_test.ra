@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "723_pythagoreanquads"
+  Nn = 325
+  run
+  Answer equal 2370
+  Nn = 1105
+  run
+  Answer equal 5535
+end
+
+test "default input"
+  use "723_pythagoreanquads"
+  run
+  Answer equal 1395793419248
+end
