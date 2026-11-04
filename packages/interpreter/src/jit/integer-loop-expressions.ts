@@ -16,7 +16,7 @@ import { compiledArgumentType, compiledStoredArgumentType, hasNativeDeque } from
 import {
     groupedUnaryDyadicChain, compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
-    isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
+    isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isBooleanLiteral, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType, type CompiledCallSignature,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex, isRankSet } from '../value.js';
@@ -773,7 +773,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const operands = point.operands.map(arrayType);
                 if (operands.some(Boolean)) {
                     const types = operands.map((type, i) => type?.element ?? knownType(point.operands[i]) ?? 'integer');
-                    const type = point.name === 'min' || point.name === 'max'
+                    const type = point.name === 'choose'
+                        ? types[0] === 'boolean' && types[1] === types[2] ? types[1] : undefined
+                        : point.name === 'min' || point.name === 'max'
                         ? types.every(type => type === types[0]) && (types[0] === 'integer' || types[0] === 'real') ? types[0] : undefined
                         : point.module ? types.every(type => type === 'integer') ? point.name === 'bit' ? 'boolean' : 'integer' : undefined
                         : loopOperatorSignature(point.name, types, host.nativeCalls === true)?.result;
@@ -937,6 +939,12 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             e = groupedUnaryDyadicChain(e, name => !localTypes.has(name)
                 && !arrays.has(name) && !containers.has(name)) ?? e;
             const parts = flattenApplication(e), last = parts.at(-1);
+            if (parts.length === 4 && isNameExpression(last)
+                && (last.name === 'powmod' || host.booleanArrays && last.name === 'choose')
+                && !localTypes.has(last.name) && !arrays.has(last.name) && !containers.has(last.name)) {
+                return { name: last.name, module: last.name === 'choose' ? 'core' : 'numbers',
+                    operands: parts.slice(0, -1).map(unwrap) };
+            }
             if (parts.length === 3 && isNameExpression(last)
                 && !localTypes.has(last.name) && !arrays.has(last.name) && !containers.has(last.name)) {
                 // Share the scalar native guards and replay rules with vector
@@ -958,7 +966,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         while (isParenthesizedExpression(e)) e = e.value;
         const type = arrayType(e);
         if (!type) {
-            if (!(isNameExpression(e) || isNumberLiteral(e) || isUnaryExpression(e) || isBinaryExpression(e))) return undefined;
+            if (!(isNameExpression(e) || isNumberLiteral(e) || isBooleanLiteral(e) || isUnaryExpression(e) || isBinaryExpression(e))) return undefined;
             const scalar = emit(e, lines);
             if (!scalar || scalar.type !== 'integer' && scalar.type !== 'boolean' && scalar.type !== 'real') return undefined;
             const captured = `scalar${state.serial++}`;
@@ -1010,9 +1018,14 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 for (const input of inputs) lines.push(`if (${size} !== ${input.size} && ${size} !== 1 && ${input.size} !== 1) throw overflow; ${size} = ${size} === 1 ? ${input.size} : ${size};`);
                 shape = `[${size}]`;
             } else {
-                const layout = `layout${state.serial++}`;
-                lines.push(`const ${layout} = vectorLayout(${inputs[0].shape}, ${inputs[1].shape}); const ${size} = ${layout}.size;`);
-                shape = `${layout}.shape`;
+                shape = inputs[0].shape;
+                let layout = '';
+                for (const input of inputs.slice(1)) {
+                    layout = `layout${state.serial++}`;
+                    lines.push(`const ${layout} = vectorLayout(${shape}, ${input.shape});`);
+                    shape = `${layout}.shape`;
+                }
+                lines.push(`const ${size} = ${layout}.size;`);
             }
             return { size, shape, rank: type.rank, type: type.element, sources: [...new Set(inputs.flatMap(input => input.sources))],
                 compactGuards: [...new Set(inputs.flatMap(input => input.compactGuards))], cell: (index, body, frame) => {
@@ -1028,6 +1041,16 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 try {
                     // Grouped dyadic calls can contain new AST nodes. Lower
                     // the exact operands whose scalar cell slots we supplied.
+                    if (point.name === 'choose') {
+                        // All three cells were evaluated above; choose is eager.
+                        return { type: values[1]!.type,
+                            code: `(${values[0]!.code} ? ${values[1]!.code} : ${values[2]!.code})` };
+                    }
+                    if (point.name === 'powmod') {
+                        // Domain failures must replay the ordinary array call,
+                        // including its operand/error attribution.
+                        body.push(`if (${values[1]!.code} < 0 || ${values[2]!.code} <= 0) throw overflow;`);
+                    }
                     if (point.module === 'core' && (point.name === 'min' || point.name === 'max')) {
                         return { type: values[0]!.type,
                             code: scalarExtremeSource(point.name, values[0]!.code, values[1]!.code) };
@@ -1100,9 +1123,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             && !localTypes.has('copy') && !arrays.has('copy') && !containers.has('copy')) {
             let range = copied.head;
             while (isParenthesizedExpression(range)) range = range.value;
-            if (isBinaryExpression(range) && ['to', 'till'].includes(range.operator)) {
-                // rangeArray already allocates fresh private storage. The
-                // ordinary copy binding still has to pass the entry guard.
+            if (isBinaryExpression(range) || vectorOperation(range)
+                || isApplicationExpression(range) && flattenApplication(range).length === 2
+                || isTableFilterExpression(range)) {
+                // These array expressions already allocate fresh private
+                // storage. Names retain their ordinary snapshot-copy path.
                 builtins.set('copy', 'sequences');
                 const setup: string[] = [];
                 const result = emitNumberArray(range, setup);

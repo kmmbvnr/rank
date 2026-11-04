@@ -1,0 +1,59 @@
+rem Idempotents
+rem https://projecteuler.net/problem=407
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 10000000
+
+rem a^2 = a mod n has an idempotent
+rem e = 0 mod v, 1 mod u for every
+rem coprime split n = u v, and 1 - e.
+rem The largest is n + 1 minus the
+rem least one above 1. Split with
+rem u < v, so u <= sqrt n, and take
+rem e = v / v mod u from a small
+rem inverse table of u.
+rem phi(n) = n / rad(n) * prod(p - 1).
+Root = N isqrt
+Primes = primes to Root copy
+Count = Primes len
+Integers = 1 to Root copy
+Rows = Integers reshape Root 1
+Factors = Primes reshape 1 Count
+Divides = Rows mod Factors equal 0
+Parts = Divides choose Primes 1
+Radical = Parts reduce * axis 1 with 1
+Parts = Divides choose (Primes - 1) 1
+Cofactor = Parts reduce * axis 1 with 1
+Phi = Integers // Radical * Cofactor
+rem M(n) starts at 1; each smaller
+rem idempotent raises it by Old - New.
+Least = 0 to N copy
+Answer = 0 max (N - 1)
+for U in 2 to Root
+  Last = N // U
+  if Last greater U
+    Residues = 0 to U - 1 copy
+    Exponent = Phi (U - 1) - 1
+    Power = Residues Exponent U powmod
+    Check = Power * Residues mod U
+    Table = Check equal 1 choose Power 0
+    Values = (U + 1 to Last) copy
+    Scale = Table (Values mod U) copy
+    Product = Values * Scale
+    Size = U * Values
+    Other = Size + 1 - Product
+    Low = Product min Other
+    Low = Low greater 1 choose Low Size
+    Start = U * (U + 1)
+    Slots = (Start to N by U) copy
+    Current = Least Slots copy
+    Next = Current min Low
+    Least Slots = Next
+    Answer += (Current - Next) sum
+  end
+end
+Answer print

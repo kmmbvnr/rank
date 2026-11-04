@@ -2953,3 +2953,32 @@ Euler 360's original complete Number region remains the production demo. A
 compressed-table experiment exposes the new call path and its limits; it saves
 memory but remains slower than the original. See the
 [measurements and verification](../../benchmarks/euler360-investigation.md).
+
+## Private ternary vectors and range work proofs (Euler 407, #447)
+
+Number regions lower integer `powmod` and homogeneous numeric `choose`
+pointwise, with trailing-axis broadcasting across all three operands.
+`choose` remains eager: both branches complete, including errors in an
+unselected branch. Invalid modular-power domains and unsafe integers replay
+the ordinary execution. Boolean masks can be consumed directly; boolean
+array results retain their existing fallback. Builtin identities are guarded.
+
+A copy of a freshly computed private array expression needs no second
+buffer. Named-array copies retain their snapshot semantics and alias checks.
+Ordinary assignment completion and unused-plan evaluation are unchanged.
+
+Copy admission can count work at a bounded set of positions in finite range
+loops, including completed named range selectors and pure guarded native
+numeric calls. Unknown bounds, escaping control and ordinary helper calls
+retain conservative admission. Selector lengths are captured when bound and
+invalidated when rebound. The 64-cell allowance and 262144-cell probe cap
+are unchanged; the proof only establishes that a large snapshot is amortized.
+
+Before private publication, established array-element contracts are checked
+without reading cells or refining those contracts. An incompatible array
+rebind retains ordinary execution and its assignment error location.
+
+Euler 407 uses library `powmod`, an exact array formula for its small totient
+table, and one factor-split loop. Updating the total by each decrease in the
+least idempotent removes the large final mask and reduction arrays.
+See [measurements and verification](../../benchmarks/euler407-followup.md).

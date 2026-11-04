@@ -335,7 +335,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     const storage = new Map<string, { slot: number; rank: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
     if (plan.vectorIterations.length && !host.declareIteration) return recordFallback('number-loop:iteration-binding', 'proof');
     const written = new Set([...plan.writerNames, ...plan.binderNames]);
-    const bindings = [...written].map(name => [name, plan.arrayDefinitions.has(name) ? 'array' : localTypes.get(name)!, plan.arrayDefinitions.has(name) ? arrays.get(name)?.rank : undefined] as [string, 'integer' | 'real' | 'boolean' | 'array', number?]);
+    const bindings = [...written].map(name => [name, plan.arrayDefinitions.has(name) ? 'array' : localTypes.get(name)!,
+        plan.arrayDefinitions.has(name) ? arrays.get(name)?.rank : undefined,
+        plan.arrayDefinitions.has(name) ? arrays.get(name)?.type : undefined] as
+        [string, 'integer' | 'real' | 'boolean' | 'array', number?, ('integer' | 'real' | 'boolean')?]);
     const slots = [...written].map(name => names.indexOf(name));
     const registers = names.map((_, index) => `r${index} = input[${index}]`);
     for (const slot of slots) registers.push(`d${slot} = 0`);

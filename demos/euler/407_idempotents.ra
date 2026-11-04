@@ -16,46 +16,48 @@ rem least one above 1. Split with
 rem u < v, so u <= sqrt n, and take
 rem e = v / v mod u from a small
 rem inverse table of u.
-Big = 2 * N + 5
 Root = N isqrt
-Phi = 0 to Root copy
-for P in primes to Root
-  Sl = P to Root by P
-  Phi Sl -= Phi Sl // P
-end
-Least = array shape (N + 1) fill Big
+Phi = Root totients
+rem M(n) starts at 1; each smaller
+rem idempotent raises it by Old - New.
+Least = 0 to N copy
+Answer = 0 max (N - 1)
 for U in 2 to Root
-  Hi = N // U
-  if Hi greater U
-    Rs = 0 to U - 1 copy
-    X = array shape U fill 1
-    Pw = Rs
-    E = Phi U - 1
-    for E greater 0
-      if E mod 2 equal 1
-        X = X * Pw mod U
-      end
-      Pw = Pw * Pw mod U
-      E //= 2
-    end
-    Pr = X * Rs mod U
-    Inv = Pr equal 1 choose X 0
-    Vs = (U + 1 to Hi) copy
-    Iv = (Inv (Vs mod U)) copy
-    Ev = Vs * Iv copy
-    Ns = U * Vs
-    Cand = (Ev min (Ns + 1 - Ev)) copy
-    Ok = Iv greater 0
-    Cand = Ok choose Cand Big copy
-    From = U * (U + 1)
-    Sl = From to N by U
-    Cur = Least Sl copy
-    Least Sl = Cur min Cand
+  Last = N // U
+  if Last greater U
+    Residues = 0 to U - 1 copy
+    Exponent = Phi (U - 1) - 1
+    Power = Residues Exponent U powmod
+    Check = Power * Residues mod U
+    Table = Check equal 1 choose Power 0
+    Values = U + 1 to Last copy
+    Scale = Table (Values mod U) copy
+    Product = Values * Scale
+    Size = U * Values
+    Other = Size + 1 - Product
+    Low = Product min Other
+    Low = Low greater 1 choose Low Size
+    Start = U * (U + 1)
+    Slots = Start to N by U copy
+    Current = Least Slots copy
+    Next = Current min Low
+    Least Slots = Next
+    Answer += Current - Next sum
   end
 end
-Ns = 2 to N copy
-Ms = Least (2 to N)
-Mk = Ms less Big
-Ms = Mk choose (Ns + 1 - Ms) 1
-Answer = Ms sum
 Answer print
+
+rem phi(n) = n / rad(n) * prod(p - 1).
+fun Bound totients
+  Primes = primes to Bound copy
+  Count = Primes len
+  Integers = 1 to Bound copy
+  Rows = Integers reshape Bound 1
+  Factors = Primes reshape 1 Count
+  Divides = Rows mod Factors equal 0
+  Parts = Divides choose Primes 1
+  Radical = Parts reduce * axis 1 with 1
+  Parts = Divides choose (Primes - 1) 1
+  Reduced = Parts reduce * axis 1 with 1
+  return Integers // Radical * Reduced
+end

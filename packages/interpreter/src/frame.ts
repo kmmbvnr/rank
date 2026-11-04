@@ -199,6 +199,11 @@ export class LocalFrame {
         return this.arrayRanks?.get(name);
     }
 
+    /** Private publication must not discover an array-element conflict late. */
+    canDeferArray(name: string, rank: number, element: 'integer' | 'real' | 'boolean'): boolean {
+        return this.arrayElements?.get(name)?.acceptsScalarArray(rank, element) === true;
+    }
+
     /** Copies another frame's contracts, so a fork rejects what the original would. */
     adoptContracts(source: LocalFrame): void {
         for (const name of source.names()) {
