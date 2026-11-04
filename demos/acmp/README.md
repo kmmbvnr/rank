@@ -105,6 +105,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0767** | [Дороги - 3](0767_roads_3.ra) | Graph Theory (67%) | Max one-way roads via Robbins' theorem: total edges minus bridges found with Tarjan's DFS and `choose` |
 | **0776** | [Юпитер](0776_jupiter.ra) | Graph Theory / BFS (62%) | BFS over (flights used, cell); each flight is one slice with `scan max` for the climb cost |
 | **0809** | [Спички детям не игрушка!](0809_matches.ra) | Computational Geometry (65%) | Min match moves under translation via canonicalized segment delta matching with `outer equal` & run-length translation voting |
+| **0812** | [Сжатие последовательности](0812_sequence_compression.ra) | Dynamic Programming (69%) | Compositions of $N$ into parts $\le A$ via arbitrary-precision DP $DP[i] = 2 DP[i-1] - DP[i-1-A]$ with safe bounded index `choose` |
 | **0813** | [Игра в 24](0813_game_24.ra) | Brute Force / Subset DP (62%) | Reachable values per card subset via `outer +`, `outer -`, `outer *` and `sort unique` |
 | **0815** | [Обходчик лабиринтов](0815_maze_walker.ra) | Graph Theory / Automata (65%) | NFA step simulation over colored directed edges via `reduce` with vectorized boolean masking and index assignment |
 | **0827** | [Фруктовый сок](0827_fruit_juice.ra) | Graph Theory / Flow (66%) | Min DAG path cover via Dinic `maxflow` on subset inclusion bipartite split graph, length-pruned with `choose` |

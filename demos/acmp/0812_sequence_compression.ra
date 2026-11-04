@@ -1,0 +1,25 @@
+rem ACMP 0812 Sequence Compression
+rem Compositions of N with parts <= A
+
+use cli
+use io
+use text
+
+arg Input text = "1000 500"
+
+Tokens = Input words integer
+N = Tokens 0
+A = Tokens 1
+
+DP = array shape (N + 1) fill 0
+DP 0 = 1
+DP 1 = 1
+
+for I in 2 to N
+  Idx = (I - 1 - A) max 0
+  Sub = (I greater A) choose (DP Idx) 0
+  DP I = (2 * (DP (I - 1))) - Sub
+end
+
+Ans = DP N
+Ans print
