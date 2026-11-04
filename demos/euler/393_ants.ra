@@ -10,6 +10,16 @@ use cli
 arg N integer = 10
 
 Mask = 1 shl N - 1
+rem Identify reflected boundary masks.
+Flip = array shape (Mask + 1) fill 0
+for K in 0 to Mask
+  R = 0
+  for B in 0 till N
+    R = R shl 1
+    R += K shr B band 1
+  end
+  Flip K = R
+end
 Dp = new index
 Dp 0 = 1
 Now = new set
@@ -55,7 +65,15 @@ Answer print
 rem Fill one row in two matching layers.
 fun C D E F G H I J rows
   if C equal N
-    Key = F + (G shl N)
+    rem Merge layer and mirror symmetry.
+    Low = F min G
+    High = F max G
+    Key = Low + (High shl N)
+    A = Flip F
+    B = Flip G
+    Low = A min B
+    High = A max B
+    Key = Key min (Low + (High shl N))
     if Key not in I
       I Key = 0
     end

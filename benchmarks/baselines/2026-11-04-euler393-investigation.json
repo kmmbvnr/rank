@@ -1,0 +1,562 @@
+{
+  "revision": "9c86a26230476c91774cb19fbdcea4f90ec6f293",
+  "node": "v24.15.0",
+  "macCPU": "Apple M5",
+  "intelCPU": "Intel Core i7-10750H",
+  "timing": "fresh processes, parse + execute, imports excluded; no diagnostics or profiler in confirmation series",
+  "mac": [
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 803.793041,
+      "rssMiB": 307.546875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 1
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 798.688625,
+      "rssMiB": 305.625,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 2
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 804.047958,
+      "rssMiB": 306.046875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 3
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 17968.725667,
+      "rssMiB": 578.484375,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 1
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 17770.422959,
+      "rssMiB": 580.359375,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 2
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 20622.961208,
+      "rssMiB": 589.21875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 3
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": true,
+      "ms": 18226.213167,
+      "rssMiB": 589.546875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "guard",
+      "trial": 1
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": true,
+      "ms": 18220.097833,
+      "rssMiB": 579.1875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "guard",
+      "trial": 2
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": true,
+      "ms": 18058.037,
+      "rssMiB": 583.96875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "guard",
+      "trial": 3
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-layers.ra",
+      "earlyGuard": true,
+      "ms": 533.034917,
+      "rssMiB": 278.203125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 4654,
+      "cachedTransitions": 88191,
+      "label": "layers",
+      "trial": 1
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-layers.ra",
+      "earlyGuard": true,
+      "ms": 538.1859999999999,
+      "rssMiB": 276.078125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 4654,
+      "cachedTransitions": 88191,
+      "label": "layers",
+      "trial": 2
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-layers.ra",
+      "earlyGuard": true,
+      "ms": 528.409833,
+      "rssMiB": 275,
+      "answer": "112398351350823112",
+      "cachedProfiles": 4654,
+      "cachedTransitions": 88191,
+      "label": "layers",
+      "trial": 3
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": true,
+      "ms": 395.77916700000003,
+      "rssMiB": 267.40625,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784,
+      "label": "symmetry",
+      "trial": 1
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": true,
+      "ms": 386.21691599999997,
+      "rssMiB": 269.5,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784,
+      "label": "symmetry",
+      "trial": 2
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": true,
+      "ms": 399.75125,
+      "rssMiB": 269.390625,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784,
+      "label": "symmetry",
+      "trial": 3
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": true,
+      "ms": 5036.7231249999995,
+      "rssMiB": 484.96875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784,
+      "label": "symmetry",
+      "trial": 1
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": true,
+      "ms": 5059.242833,
+      "rssMiB": 486.5,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784,
+      "label": "symmetry",
+      "trial": 2
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": true,
+      "ms": 4946.384749999999,
+      "rssMiB": 487.65625,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784,
+      "label": "symmetry",
+      "trial": 3
+    }
+  ],
+  "intelBaselineCompleted": [
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 2415.654383,
+      "rssMiB": 286.77734375,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 1
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 2344.902634,
+      "rssMiB": 289.36328125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 2
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 2429.4352870000002,
+      "rssMiB": 287.0234375,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 3
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 64455.685781,
+      "rssMiB": 558.67578125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 1
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 70316.89824200001,
+      "rssMiB": 552.01953125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830,
+      "label": "baseline",
+      "trial": 2
+    }
+  ],
+  "intelCandidate": [
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": "static",
+      "ms": 1058.290646,
+      "rssMiB": 221.7890625,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": "static",
+      "ms": 1081.374858,
+      "rssMiB": 228.78125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": "static",
+      "ms": 1091.127189,
+      "rssMiB": 223.2734375,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": "static",
+      "ms": 16600.436385,
+      "rssMiB": 537.20703125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    }
+  ],
+  "macStaticEntryPairs": [
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": "static",
+      "ms": 18123.752583999998,
+      "rssMiB": 572.421875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 21698.997958,
+      "rssMiB": 586.75,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": false,
+      "ms": 22548.124083,
+      "rssMiB": 599.921875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "demos/euler/393_ants.ra",
+      "earlyGuard": "static",
+      "ms": 16449.487209,
+      "rssMiB": 601.203125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 9306,
+      "cachedTransitions": 177830
+    }
+  ],
+  "notes": [
+    "The first static-entry pair overlapped briefly with a verification probe; use the second pair only as a single control, not a median claim.",
+    "Intel baseline reference series stopped by the investigator after two completed samples to prioritize candidate validation. The following incomplete sample was not recorded.",
+    "Three candidate compiled Intel samples; one reference sample.",
+    "The dynamic per-invocation entry guard had no repeatable Mac benefit.",
+    "Source interpreter files and the production demo are unchanged. Research loaders transform emitted JS in memory."
+  ],
+  "sourceHashes": {
+    "demos/euler/393_ants.ra": "9aa376caefc9c68245a203b45c371e35d50e6a76b1440a97a0a3f4299434ab2e",
+    "packages/interpreter/out/function-invocation.js": "b728919888a735455dc282552a7bf83fcb527db49ab8be15bbf53c181698ffb1",
+    "benchmarks/experiments/euler393-symmetry.ra": "72c736a73b61970f2f0bcf892faf3111962894d5a7ddb27387fb5faa6a872775"
+  },
+  "verification": {
+    "macComparisons": 144,
+    "macConfigurations": [
+      "stock",
+      "dynamic entry guard",
+      "static disabled selector"
+    ],
+    "directOracle": {
+      "0": "1",
+      "1": "0",
+      "2": "2",
+      "3": "0",
+      "4": "88"
+    },
+    "largerCheckpoints": {
+      "5": "0",
+      "6": "207408",
+      "8": "22902801416"
+    },
+    "inspectionCapabilityAndResultChecks": 6,
+    "intelComparisons": 96,
+    "intelConfigurations": [
+      "dynamic entry guard",
+      "static disabled selector"
+    ],
+    "focusedTests": {
+      "files": [
+        "sparse-profile.test.ts",
+        "compiler-capabilities.test.ts"
+      ],
+      "passed": 36
+    },
+    "fullAuditRun": false
+  },
+  "macSymmetryStockInterpreter": [
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": false,
+      "ms": 372.22245799999996,
+      "rssMiB": 268.96875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": false,
+      "ms": 5386.121208,
+      "rssMiB": 485.1875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": false,
+      "ms": 376.05666699999995,
+      "rssMiB": 268.578125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": false,
+      "ms": 5379.577916,
+      "rssMiB": 481.921875,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": false,
+      "ms": 376.714875,
+      "rssMiB": 269.125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    },
+    {
+      "n": 10,
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": false,
+      "ms": 5331.2302500000005,
+      "rssMiB": 485.265625,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    }
+  ],
+  "intelSymmetryStockInterpreter": {
+    "n": 10,
+    "mode": "reference",
+    "file": "benchmarks/experiments/euler393-symmetry.ra",
+    "earlyGuard": false,
+    "ms": 22508.133395,
+    "rssMiB": 456.76953125,
+    "answer": "112398351350823112",
+    "cachedProfiles": 2474,
+    "cachedTransitions": 42784
+  },
+  "intelSymmetryStockCompiled": [
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": false,
+      "ms": 1212.0121980000001,
+      "rssMiB": 256.16015625,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": false,
+      "ms": 1119.2931689999998,
+      "rssMiB": 257.48828125,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    },
+    {
+      "n": 10,
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler393-symmetry.ra",
+      "earlyGuard": false,
+      "ms": 1148.9991449999998,
+      "rssMiB": 258.2109375,
+      "answer": "112398351350823112",
+      "cachedProfiles": 2474,
+      "cachedTransitions": 42784
+    }
+  ]
+}

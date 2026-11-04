@@ -587,6 +587,10 @@ export class FunctionInvocation {
 
     /** Selects per-argument scalar entries without retaining invocation frames. */
     private scalarEntrySelector(statement: FunctionStatement, context: LocalFrame | undefined, generator: boolean, arity: number) {
+        // Capabilities are immutable outside inspection. Reference calls need
+        // neither entry selectors nor the object-storage proofs they perform.
+        // Inspection is temporary: definitions made there must keep a selector.
+        if (!inspectionEnabled() && !this.compiler.scalars.entries) return () => undefined;
         if (!functionScope(statement)?.captures.size) return this.scalarEntryForCaptures(statement, context, generator, arity, new Map());
         const variants = new Map<string, (arguments_: RankValue[]) => PreparedScalarCall | undefined>();
         return (arguments_: RankValue[]) => {
