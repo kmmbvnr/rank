@@ -71,6 +71,23 @@ end`);
         expect(result.diagnostics.numberLoopOverflows).toBe(0);
     });
 
+    it('reports the missing call-result representation proof in a wide expression', () => {
+        const result = compare(`use algo
+use numbers
+F = 1 fenwick
+Cache = new index
+A = array 1
+Total = 10 ** 30
+for I in 1 to 3
+ F 0 = A 0
+ Cache 0 = F 0
+ Total += (Cache 0) + (I gcd 6)
+end`);
+        expect(result.observation.error).toBeUndefined();
+        expect(result.diagnostics.numberLoops).toBe(0);
+        expect(result.diagnostics.fallbacks['number-loop:call-number-result-proof']).toBeGreaterThan(0);
+    });
+
     it.each([false, true])('replays composed storage and calls once (seeded index=%s)', seeded => {
         const result = compare(`use algo
 use numbers

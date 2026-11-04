@@ -781,7 +781,13 @@ arguments, no callbacks, no host override and no declared effects. Rank helpers
 beside private containers report `number-loop:call-private-state-proof`: their
 absence of observation through captured state is not proved by scalar arguments
 alone. `number-loop:call-number-result-proof` identifies the independent numeric
-result requirement. Neither rejection is a copy-cost policy decision.
+result requirement. In particular, a native integer call lowered inside a wide
+accumulator expression produces an exact result, but the call slot currently
+carries only a Number-compatibility flag. Admitting it requires a per-call proof
+that its result representation matches the consuming register; scalar argument
+or effect proofs alone do not supply that fact. Moving the call to a checked
+numeric assignment can already compose with a separate wide accumulator.
+Neither rejection is a copy-cost policy decision.
 
 The Number specialization accepts safe integer/boolean scalars, supported nested
 numeric/conditional loops, and rank-one eager stored integer arrays, including
