@@ -112,11 +112,48 @@ for R in 0 till 32
  end
 end
 A sum`, 524288n * 33n];
+const rangeCount = 100000, rangeStart = 9007199254740993n;
+const checksum = `Checksum = 0
+for I in 0 till 97
+ Checksum += A I * (I + 1)
+end
+Total + Checksum`;
+for (const kind of ['residue', 'definitions']) {
+    let total = rangeStart, weight = 0n;
+    for (let i = 0; i < rangeCount; i++) {
+        const cell = kind === 'residue' ? total % 97n : BigInt((i % 8) ** 2);
+        weight += cell + 1n;
+        total += BigInt(i);
+    }
+    cases[`range-${kind}`] = [`use sequences
+A = array shape 97 fill 0
+Total = ${rangeStart}
+for I in 0 till ${rangeCount}
+${kind === 'residue' ? ` Index = Total mod 97
+ A Index += 1
+ Total += I` : ` X = I mod 8
+ Y = X * X
+ A Y += 1
+ X = Total
+ Total = X + I`}
+end
+${checksum}`, total + weight];
+}
+const boundCount = 262144;
+cases['range-bounded'] = [`use sequences
+A = array shape ${boundCount} fill 0
+for I in 0 till ${boundCount}
+ X = I mod 1024
+ Y = X * X
+ Z = Y + X
+ A I = Z
+end
+A sum`, 256n * (1023n * 1024n * 2047n / 6n + 1023n * 1024n / 2n)];
 if (process.argv[2] === '--worker') {
     const [, , , checkout, name, engine, diagnostics] = process.argv;
     const { Interpreter, RuntimeDiagnostics, parse } = await import(pathToFileURL(resolve(checkout, 'packages/interpreter/out/index.js')));
     const runtime = new Interpreter(() => {}, { compilation: engine === 'compiled',
-        ...(/^(work|move|alias)-/.test(name) ? { scalarEntryCompilation: false } : { integerLoopCompilation: false }) });
+        ...(/^(work|move|alias|range)-/.test(name) ? { scalarEntryCompilation: false } : { integerLoopCompilation: false }) });
     const program = parse(cases[name][0]);
     const stats = diagnostics === 'on' ? new RuntimeDiagnostics() : undefined;
     global.gc();

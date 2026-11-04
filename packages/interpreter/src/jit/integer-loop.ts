@@ -1,3 +1,4 @@
+import { demandBudgetEnabled } from '../interrupt.js';
 import { createLoopState } from './integer-loop-state.js';
 import { createLoopExpressions } from './integer-loop-expressions.js';
 import { createLoopHeader } from './integer-loop-header.js';
@@ -116,14 +117,15 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     const compileFastCounted = feedback ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), true) : undefined;
     const fast = numberPlan && prepareNumberLoop(numberPlan, host, feedback, compileFastCounted,
         polling => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), false, polling));
-    if (!fast) {
+    if (!fast && (!numberVariant || !region)) {
         if (!exact && currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));
         return exact;
     }
     let mixed: CompiledLoop | undefined, preparedMixed = false;
     return { run: (...context) => {
-        const result = fast.run(...context);
+        const result = fast?.run(...context);
         if (result) return result;
+        if (!fast && demandBudgetEnabled()) return exact?.run(...context);
         if (!preparedMixed) {
             preparedMixed = true;
             const wide = wideLoopScalars(plan ?? numberPlan!);
@@ -271,7 +273,7 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // program has later statements. Keep live mutable results on the exact path.
     if (numberMode && [...state.sliceResultSources].some(name => writable.has(name))) return reject(statement, 'mutable-slice-result');
     return {
-        statement, names, wideScalars, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
+        statement, names, wideScalars, integerRanges: state.integerRanges, rangeNarrowing: state.rangeNarrowing, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         ownershipChecks: state.ownershipChecks, ownedAliases, arrayTransfers, arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, writable, iteration, workCounting, polling, callouts: state.callouts,

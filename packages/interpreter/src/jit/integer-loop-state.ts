@@ -1,3 +1,4 @@
+import { integerRangeFacts } from './integer-range-facts.js';
 import { AstUtils } from 'langium';
 import { INTERRUPT_POLL_INTERVAL } from '../interrupt.js';
 import { type LoopHost, type IntegerLoopPlan, type LoopTerm, type LoopPolling } from './integer-loop-plan.js';
@@ -121,7 +122,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         return loopScopes.length > 0 ? loopScopes[loopScopes.length - 1] : undefined;
     }
     return {
-        statement, ownershipChecks,
+        statement, ownershipChecks, integerRanges: integerRangeFacts(statement),
         host, numberMode, wideScalars, workCounting, checkpoint, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, reboundNames, writers, binders, writerNames, binderNames,
         containers, builtins, calls, arrays, calleeArrays, sliceReadSources, sliceResultSources, indexedReads, arrayInputs, arrayDefinitions, aliases, localAliases, arrayTransfers, dequeArrays,
@@ -129,7 +130,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         get branchDepth() { return branchDepth; },
         set branchDepth(v: number) { branchDepth = v; },
         arrayRegions: [] as NonNullable<IntegerLoopPlan['arrayRegions']>,
-        exactInputs, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
+        exactInputs, rangeNarrowing: false, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
         loopScopes, rootSetupLines, pushScope, popScope, currentScope,
     };
 }

@@ -1,3 +1,4 @@
+import { safeIntegerRange } from './integer-range-facts.js';
 import { AstUtils, type AstNode } from 'langium';
 import { forIteration, flattenApplication, isApplicationExpression, isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isNameExpression, type Expression } from '@arrrank/language';
 import type { IntegerLoopPlan } from './integer-loop-plan.js';
@@ -10,9 +11,18 @@ export function wideLoopScalars(plan: IntegerLoopPlan): Set<string> {
     const numeric = new Set(plan.binderNames);
     const nodes = [plan.statement, ...AstUtils.streamAllContents(plan.statement)];
     const assignments = nodes.filter(isAssignmentStatement);
+    // Stable bounded definitions need no BigInt registers even when they feed
+    // an exact island. Other names may have bounded and unbounded occurrences.
+    const defined = new Set(assignments.map(node => node.name));
+    for (const node of assignments) if (!safeIntegerRange(plan.integerRanges.definitions.get(node))) defined.delete(node.name);
+    for (const slot of plan.required) defined.delete(plan.names[slot]);
+    defined.forEach(name => numeric.add(name));
     const read = (node: AstNode | undefined): void => {
-        if (!node || plan.exactInputs.has(node as Expression)) return;
-        if (isNameExpression(node)) numeric.add(node.name);
+        if (!node || plan.exactInputs.has(node as Expression) || plan.integerRanges.narrowing.has(node as Expression)) return;
+        if (isNameExpression(node)) {
+            if (!numeric.has(node.name) && safeIntegerRange(plan.integerRanges.values.get(node))) return;
+            numeric.add(node.name);
+        }
         for (const child of AstUtils.streamContents(node)) read(child);
     };
     for (const node of nodes) {

@@ -1,3 +1,4 @@
+import type { IntegerRangeFacts } from './integer-range-facts.js';
 import type { IntegerBounds } from './integer-representation.js';
 import type { ArrayRegion } from './array-region.js';
 import type { RankDeque } from '../containers.js';
@@ -113,6 +114,8 @@ export interface IntegerLoopPlan {
     statement: ForStatement | FunctionStatement;
     names: string[];
     wideScalars: ReadonlySet<string>;
+    integerRanges: IntegerRangeFacts;
+    rangeNarrowing?: boolean;
     /** Audited integer operands consumed exactly, without a numeric result. */
     exactInputs: ReadonlySet<Expression>;
     arrays: Map<string, { slot: number; rank: number; type: LoopTerm['type'] }>;

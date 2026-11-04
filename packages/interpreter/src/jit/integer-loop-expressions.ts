@@ -1,5 +1,5 @@
 import { fitsIntegerRepresentation } from './integer-representation.js';
-import { floorDivide } from '../numeric-division.js';
+import { integerRange, safeIntegerRange, type IntegerRange } from './integer-range-facts.js';
 import { positionalDeclaredCall } from './declared-scalar-call.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { numericBoundSource } from './numeric-bound-codegen.js';
@@ -340,7 +340,23 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             atom: type => types.find(candidate => candidate === type),
             substitute: source => {
                 const supplied = scalarInputs.get(source);
-                return supplied && { type: supplied.type, input: { term: supplied, lines: [] } };
+                if (supplied) return { type: supplied.type, input: { term: supplied, lines: [] } };
+                // A proved small result can delimit an exact arithmetic island.
+                // Ordinary Number inputs keep the existing cheaper lowering.
+                if (numberMode && state.integerRanges.narrowing.has(source)
+                    && [source, ...AstUtils.streamAllContents(source)].some(node =>
+                        isNameExpression(node) && state.wideScalars.has(node.name)
+                        || isNumberLiteral(node) && typeof node.value === 'bigint' && !Number.isSafeInteger(Number(node.value)))) {
+                    const inputLines: string[] = [];
+                    const value = createLoopExpressions(state, true).emit(source, inputLines, 'integer');
+                    const bounds = safeIntegerRange(state.integerRanges.values.get(source));
+                    if (value?.type === 'integer' && bounds) {
+                        state.rangeNarrowing = true;
+                        const term: LoopTerm = { code: `Number(${value.code})`, type: 'integer', bounds };
+                        return { type: 'integer', input: { term, lines: inputLines } };
+                    }
+                }
+                return undefined;
             },
             read: (source, expected) => {
                 // Scalar operators use the shared inference. Loop-specific cell
@@ -507,20 +523,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     /** Exact interval arithmetic is a proof about all cells, not a scan.
      * Unknown or unsafe bounds retain the existing checked Number path. */
     function integerBounds(op: string, left: LoopTerm, right: LoopTerm): readonly [number, number] | undefined {
+        // Keep the native arithmetic path stable when an operand has no range.
         if (!numberMode || !left.bounds || !right.bounds) return undefined;
-        const [a, b] = left.bounds.map(BigInt), [c, d] = right.bounds.map(BigInt);
-        let ends: bigint[];
-        if (op === '+') ends = [a + c, b + d];
-        else if (op === '-') ends = [a - d, b - c];
-        else if (op === '*') ends = [a * c, a * d, b * c, b * d];
-        else if ((op === '//' || op === 'mod') && (c > 0n || d < 0n)) {
-            if (op === 'mod') ends = c > 0n ? [0n, d - 1n] : [c + 1n, 0n];
-            else {
-                ends = [floorDivide(a, c), floorDivide(a, d), floorDivide(b, c), floorDivide(b, d)];
-            }
-        } else return undefined;
-        if (ends.some(n => n < -9007199254740991n || n > 9007199254740991n)) return undefined;
-        return [Math.min(...ends.map(Number)), Math.max(...ends.map(Number))];
+        const exact = (bounds: LoopTerm['bounds']): IntegerRange | undefined => bounds && [BigInt(bounds[0]), BigInt(bounds[1])];
+        return safeIntegerRange(integerRange(op, exact(left.bounds), exact(right.bounds)));
     }
     /** One checked binary operator. Compound assignments lower through it
      * too, so division by zero and floor rounding are written once. */
@@ -1432,7 +1438,14 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             localTypes.set(e.name, type);
             const index = slot(e.name);
             if (!assigned.has(e.name)) required.add(index);
-            return { code: wide && type === 'integer' && !state.wideScalars.has(e.name) ? `BigInt(r${index})` : `r${index}`, type };
+            const bounds = numberMode && type === 'integer' ? safeIntegerRange(state.integerRanges.values.get(e)) : undefined;
+            if (numberMode && state.wideScalars.has(e.name)) {
+                if (!bounds) return undefined;
+                state.rangeNarrowing = true;
+            }
+            const code = wide && type === 'integer' && !state.wideScalars.has(e.name) ? `BigInt(r${index})`
+                : numberMode && state.wideScalars.has(e.name) ? `Number(r${index})` : `r${index}`;
+            return { code, type, bounds };
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;
