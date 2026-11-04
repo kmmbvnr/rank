@@ -1,0 +1,167 @@
+use algo
+use cli
+use graph
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "10000 10000
+10
+1000 0 1000 10000
+3000 0 3000 10000
+5000 0 5000 10000
+7000 0 7000 10000
+9000 0 9000 10000
+0 2000 10000 2000
+0 4000 10000 4000
+0 6000 10000 6000
+0 8000 10000 8000
+2000 2000 8000 2000"
+
+Lines = (Input split "\r") join ""
+Toks = (Lines split "\n") join " "
+Words = Toks split " "
+Nums = Words (Words not equal "")
+
+W = (Nums 0) integer
+H = (Nums 1) integer
+N = (Nums 2) integer
+
+Xs = new queue
+Ys = new queue
+Xs push 0
+Xs push W
+Ys push 0
+Ys push H
+
+VX_q = new queue
+VY1_q = new queue
+VY2_q = new queue
+
+HY_q = new queue
+HX1_q = new queue
+HX2_q = new queue
+
+for I in 0 to (N - 1)
+  P = 3 + (I * 4)
+  X1 = (Nums P) integer
+  Y1 = (Nums (P + 1)) integer
+  X2 = (Nums (P + 2)) integer
+  Y2 = (Nums (P + 3)) integer
+
+  IsV = X1 equal X2
+  IsH = Y1 equal Y2
+
+  if IsV
+    InX1 = not (X1 less 0)
+    InX2 = not (X1 greater W)
+    if InX1 and InX2
+      Xs push X1
+      Ylo = ((Y1 min Y2) max 0) min H
+      Yhi = ((Y1 max Y2) max 0) min H
+      Ys push Ylo
+      Ys push Yhi
+      if Ylo less Yhi
+        VX_q push X1
+        VY1_q push Ylo
+        VY2_q push Yhi
+      end
+    end
+  end
+
+  if IsH and (not IsV)
+    InY1 = not (Y1 less 0)
+    InY2 = not (Y1 greater H)
+    if InY1 and InY2
+      Ys push Y1
+      Xlo = ((X1 min X2) max 0) min W
+      Xhi = ((X1 max X2) max 0) min W
+      Xs push Xlo
+      Xs push Xhi
+      if Xlo less Xhi
+        HY_q push Y1
+        HX1_q push Xlo
+        HX2_q push Xhi
+      end
+    end
+  end
+end
+
+UX_all = (Xs reverse) reverse
+UX = UX_all sort unique
+UY_all = (Ys reverse) reverse
+UY = UY_all sort unique
+
+NX = (((UX shape) 0) integer) - 1
+NY = (((UY shape) 0) integer) - 1
+Total = NX * NY
+
+VX = (VX_q reverse) reverse
+VY1 = (VY1_q reverse) reverse
+VY2 = (VY2_q reverse) reverse
+
+HY = (HY_q reverse) reverse
+HX1 = (HX1_q reverse) reverse
+HX2 = (HX2_q reverse) reverse
+
+D = new dsu (0 till Total)
+
+for J in 0 to (NY - 1)
+  Ylo = (UY J) integer
+  Yhi = (UY (J + 1)) integer
+
+  for I in 0 to (NX - 1)
+    Xlo = (UX I) integer
+    Xhi = (UX (I + 1)) integer
+    Cid = (J * NX) + I
+
+    if (I + 1) less NX
+      Xw = Xhi
+      C2 = Cid + 1
+      HasV = ((VX shape) 0) greater 0
+      M = VX equal Xw
+      C1 = not (VY1 greater Ylo)
+      C2y = not (VY2 less Yhi)
+      Hit = (M and C1 and C2y) reduce or
+      HitV = HasV choose Hit false
+      if not HitV
+        D Cid C2 merge
+      end
+    end
+
+    if (J + 1) less NY
+      Yw = Yhi
+      Ctop = Cid + NX
+      HasH = ((HY shape) 0) greater 0
+      M = HY equal Yw
+      C1 = not (HX1 greater Xlo)
+      C2x = not (HX2 less Xhi)
+      Hit = (M and C1 and C2x) reduce or
+      HitH = HasH choose Hit false
+      if not HitH
+        D Cid Ctop merge
+      end
+    end
+  end
+end
+
+Wcells = (UX drop 1) - (UX take NX)
+Hcells = (UY drop 1) - (UY take NY)
+Prod = Hcells Wcells outer *
+CellAreas = Prod reshape #
+
+Comp = (0 till Total) * 0
+for Cid in 0 till Total
+  Root = (D Cid findroot) integer
+  A = (CellAreas Cid) integer
+  Comp Root = (Comp Root) + A
+end
+
+NonZero = Comp (Comp greater 0)
+Sorted = (NonZero sort) reverse
+Ans = Sorted
+
+for Area in Sorted
+  Area print
+end

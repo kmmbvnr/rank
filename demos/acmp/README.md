@@ -77,6 +77,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0622** | [Прямоугольное деление](0622_rectangular_division.ra) | Computational Geometry / Graph (66%) | Planar face count formed by $N \le 100$ rectangles via dual compressed grid and `new dsu` |
 | **0624** | [Электронная почта](0624_email.ra) | Graph Theory (62%) | Distributed email log consistency check via chronological dependency DAG and `Graph cycle` |
 | **0631** | [Отгадай число](0631_guess_number.ra) | Game Theory / Minimax (60%) | Asymmetric candy guessing game reduced to Fibonacci thresholding via vector comparison `(F less N) count` |
+| **0632** | [Отрезки](0632_segments.ra) | Computational Geometry (68%) | Area of planar regions cut by $N \le 50$ segments via coordinate compression, boundary wall DSU, and outer area weighting |
 | **0644** | [Машина времени - 2](0644_time_key_2.ra) | Math / Binary Lifting (60%) | Fast key simulation $N \leftarrow N + \text{popcount}(N)$ over $K \le 2 \times 10^9$ steps via bit-block binary lifting and precomputed power-of-two cross tables |
 | **0646** | [Сладкие забавы](0646_sweet_treats.ra) | Combinatorics / Knapsack (60%) | Fair candy partitioning into $\ge K$ subsets via vectorized 0-1 knapsack DP `DP (V till K) = (DP (V till K)) + (DP (0 till (K - V)))` |
 | **0647** | [Адаптивный поиск](0647_adaptive_search.ra) | Data Structures / BIT (65%) | Move-to-front table query sequence simulation via linear-built Fenwick tree prefix sums |
