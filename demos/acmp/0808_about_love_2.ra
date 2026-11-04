@@ -1,0 +1,90 @@
+use io
+use text
+use cli
+use numbers
+
+rem ACMP 808: About love...
+rem Min contact time of moving sticks
+rem via Minkowski difference ray cast.
+
+arg Input text = "0 0 -1 3
+4 4 7 7
+3 0
+0 -1"
+
+Txt1 = Input split "\r" join " "
+Txt2 = Txt1 split "\n" join " "
+Tok1 = Txt2 split " "
+Tok2 = Tok1 (not (Tok1 equal ""))
+P = Tok2 real
+
+X1 = P 0
+Y1 = P 1
+X2 = P 2
+Y2 = P 3
+X3 = P 4
+Y3 = P 5
+X4 = P 6
+Y4 = P 7
+V1x = P 8
+V1y = P 9
+V2x = P 10
+V2y = P 11
+
+Vx = V1x - V2x
+Vy = V1y - V2y
+
+Cx = array (X3 - X1) (X3 - X2) (
+  X4 - X2) (X4 - X1)
+Cy = array (Y3 - Y1) (Y3 - Y2) (
+  Y4 - Y2) (Y4 - Y1)
+
+NextI = array 1 2 3 0
+Ax = Cx
+Ay = Cy
+Bx = Cx NextI
+By = Cy NextI
+
+Dx = Bx - Ax
+Dy = By - Ay
+
+Det = Vy * Dx - Vx * Dy
+Tnum = Ay * Dx - Ax * Dy
+Unum = Vx * Ay - Vy * Ax
+
+NonZero = Det not equal 0.0
+SafeDet = NonZero choose Det 1.0
+T = Tnum / SafeDet
+U = Unum / SafeDet
+
+Eps = 0.000000001
+Valid = (
+  NonZero and
+  (T greater (0.0 - Eps)) and
+  (U greater (0.0 - Eps)) and
+  (U less (1.0 + Eps)))
+
+Cross = Ax * Vy - Ay * Vx
+V2 = Vx * Vx + Vy * Vy
+SafeV2 = (V2 equal 0.0) choose 1.0 V2
+Ta = (Ax * Vx + Ay * Vy) / SafeV2
+Tb = (Bx * Vx + By * Vy) / SafeV2
+MaxTab = Ta max Tb
+MinTab = Ta min Tb
+ParValid = (
+  (Det equal 0.0) and
+  (Cross equal 0.0) and
+  (MaxTab greater (0.0 - Eps)))
+Tpar = MinTab max 0.0
+
+INF = 1000000000.0
+Tedge = Valid choose (T max 0.0) INF
+Tcand = ParValid choose Tpar Tedge
+AllValid = Valid or ParValid
+HasHit = (
+  (AllValid reduce or) and
+  (V2 greater 0.0))
+
+Ans = HasHit choose (
+  Tcand reduce min) (-1.0)
+Ans print

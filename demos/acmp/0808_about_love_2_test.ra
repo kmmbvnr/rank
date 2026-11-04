@@ -1,0 +1,62 @@
+rem Tests for ACMP 0808: About love...
+
+use testing
+use numbers
+
+test "ACMP 808: sample 1"
+  use "0808_about_love_2"
+  run
+
+  Diff = (Ans - 1.6) abs
+  Diff less 0.0001
+end
+
+test "ACMP 808: sample 2"
+  use "0808_about_love_2"
+  Input = (
+    "0 0 -1 3\n" +
+    "4 4 7 7\n" +
+    "1 0\n" +
+    "0 -3")
+  run
+
+  Ans equal (-1.0)
+end
+
+test "ACMP 808: zero relative velocity"
+  use "0808_about_love_2"
+  Input = (
+    "0 0 0 2\n" +
+    "5 0 5 2\n" +
+    "1 1\n" +
+    "1 1")
+  run
+
+  Ans equal (-1.0)
+end
+
+test "ACMP 808: head-on collision"
+  use "0808_about_love_2"
+  Input = (
+    "0 0 0 2\n" +
+    "10 0 10 2\n" +
+    "2 0\n" +
+    "-3 0")
+  run
+
+  Diff = (Ans - 2.0) abs
+  Diff less 0.0001
+end
+
+test "ACMP 808: max constraints 10^4"
+  use "0808_about_love_2"
+  Input = (
+    "-10000 0 -10000 100\n" +
+    "10000 0 10000 100\n" +
+    "100 0\n" +
+    "-100 0")
+  run
+
+  Diff = (Ans - 100.0) abs
+  Diff less 0.0001
+end
