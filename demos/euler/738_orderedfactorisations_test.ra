@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "738_orderedfactorisations"
+  Limit = 10
+  Kmax = 10
+  run
+  Answer equal 153
+  Limit = 100
+  Kmax = 100
+  run
+  Answer equal 35384
+  Limit = 100000000
+  Kmax = 30
+  run
+  Answer equal 770907234
+end

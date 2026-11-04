@@ -222,5 +222,6 @@
   "euler/726_fallingbottles.ra": "About 20 s and 2.7 GB: factorial prefix product to 5 x 10^7; run manually.",
   "euler/729_periodicrange.ra": "About 2.7 min: Newton on 2.8 million Lyndon words; run manually.",
   "euler/737_coinloops.ra": "About 2.3 min: 7.6 x 10^8 turn angles in chunks; run manually.",
+  "euler/738_orderedfactorisations.ra": "About 2 min: factor-descending knapsack on 2 x 10^5 quotient values; run manually.",
   "euler/644_squaresontheline.ra": "Full default remains a manual row-sweep workload (#447, #480); the small fixture stays in audits."
 }

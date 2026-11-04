@@ -1,0 +1,102 @@
+rem Counting Ordered Factorisations
+rem https://projecteuler.net/problem=738
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Limit integer = 10 ** 10
+arg Kmax integer = 10 ** 10
+arg Prime integer = 1000000007
+
+rem A(p) counts multisets of p factors
+rem at least 2 with product at most N.
+rem Then D = K + sum A(p) (K - p + 1),
+rem the ones being padded in. Factors
+rem x are added from sqrt(N) downward
+rem to tables Small[p][v] (v <= sqrt N)
+rem and Large[p][k] (v = N // k) of the
+rem multisets of
+rem p factors from [x, N] with product
+rem at most v: adding x lets
+rem count(p, v) += count(p - 1, v // x),
+rem needed only for v >= x^p. A single
+rem factor is counted as v - x + 1.
+Root = Limit isqrt
+Width = Root + 1
+Depth = Limit binary len
+Cells = Depth * Width
+Small = array shape Cells fill 0
+Large = array shape Cells fill 0
+Factors = 2 to Root
+Logs = Factors real log
+Guess = (Limit real log) / Logs
+Top = Guess floor integer
+Above = Factors ** (Top + 1)
+Big = Above at most Limit
+Top = Top + (Big integer)
+Pairs = Top - 1
+Total = Pairs sum
+Ends = Pairs scan +
+Starts = Ends - Pairs
+Marks = array shape Total fill 0
+Marks Starts = 1
+Owner = (Marks scan +) - 1
+Index = 0 to Total - 1
+Power = Index - (Starts Owner) + 2
+Factor = Factors Owner
+Rank = (Root - Factor) * 64 + Power
+Order = Rank argsort
+Factor = Factor Order
+Power = Power Order
+for Step in 0 to Total - 1
+  X = Factor Step
+  P = Power Step
+  Least = X ** P
+  Row = P * Width
+  Back = (P - 1) * Width
+  rem Small values v from x^p to Root.
+  if Least at most Root
+    Values = Least to Root
+    Under = Values // X
+    Before = Small (Back + Under)
+    if P equal 2
+      Before = (Under - X + 1) max 0
+    end
+    Target = Row + Values
+    Small Target = Small Target + Before
+  end
+  rem Large values N // k.
+  Count = Root min (Limit // Least)
+  Keys = 1 to Count
+  Wide = Keys * X
+  Inside = Wide at most Root
+  Value = Limit // Wide
+  Slot = Inside choose Wide 0
+  First = Large (Back + Slot)
+  Clip = Value min Root
+  Other = Small (Back + Clip)
+  Before = Inside choose First Other
+  if P equal 2
+    Floor = Limit // Keys // X
+    Before = (Floor - X + 1) max 0
+  end
+  Target = Row + Keys
+  Large Target = Large Target + Before
+end
+Singles = (Limit - 1) mod Prime
+Kmod = Kmax mod Prime
+Answer = Kmax + Singles * Kmod
+Sizes = 2 to Depth - 1
+Counts = Large (Sizes * Width + 1)
+Weight = Kmax - Sizes + 1
+Used = Sizes at most Kmax
+Left = Counts mod Prime
+Right = Weight mod Prime
+Part = Left * Right mod Prime
+Part = Part * (Used integer)
+Extra = Part sum
+Answer = (Answer + Extra) mod Prime
+Answer print
