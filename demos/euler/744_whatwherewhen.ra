@@ -1,0 +1,54 @@
+rem What? Where? When?
+rem https://projecteuler.net/problem=744
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Pairs integer = 10 ** 11
+arg Chance real = 0.4999
+
+rem The game fails to end normally when
+rem the red envelope comes first, so
+rem f = (2n + 1 - E[T]) / (2n + 1) for
+rem the race length T to n points.
+rem The race ends on trial n + m with
+rem probability C(n+m-1, m) (p^m q^n +
+rem q^m p^n); the sum is formed with
+rem logarithms. When the bias is large
+rem the loser is negligible and T is
+rem negative binomial with mean
+rem n / max(p, q).
+Other = 1.0 - Chance
+Major = Chance max Other
+Total = 2.0 * Pairs + 1.0
+Drift = (1.0 - 2.0 * Chance) abs
+Scale = (Pairs / (Chance * Other)) sqrt
+Skew = Drift * Scale
+Value = (Total - Pairs / Major) / Total
+if Pairs at most 2000 or Skew less 15.0
+  Steps = (0 to Pairs - 1) * 1.0
+  Whole = Pairs * 1.0
+  Up = (Whole + Steps) log
+  Down = (Steps + 1.0) log
+  Cumul = (Up - Down) scan +
+  Keep = Pairs - 1
+  Early = Cumul take Keep
+  Binom = concat (array 0.0) Early
+  LogP = Chance log
+  LogQ = Other log
+  Base = Whole * LogQ
+  Fail = Base + Steps * LogP + Binom
+  Rise = Whole * LogP
+  Pass = Rise + Steps * LogQ + Binom
+  Weight = Whole + 1.0 - Steps
+  Lose = Fail exp
+  Win = Pass exp
+  Both = Lose + Win
+  Terms = Weight * Both
+  Sum = Terms sum
+  Value = Sum / Total
+end
+Answer = Value text ".10f"
+Answer print

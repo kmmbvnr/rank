@@ -1,0 +1,23 @@
+use testing
+
+test "statement values"
+  use "744_whatwherewhen"
+  Pairs = 6
+  Chance = 0.5
+  run
+  Answer equal "0.2851562500"
+  Pairs = 10
+  Chance = 0.42857142857142855
+  run
+  Answer equal "0.2330040743"
+  Pairs = 10000
+  Chance = 0.3
+  run
+  Answer equal "0.2857499982"
+end
+
+test "default input"
+  use "744_whatwherewhen"
+  run
+  Answer equal "0.0001999600"
+end
