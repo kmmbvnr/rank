@@ -209,6 +209,21 @@ existing exact backend. Mixed regions use the same private writes, error and
 cancellation publication, ownership checks and entry guards. Diagnostics count
 these attempts as `mixedIntegerLoops` as well as `numberLoops`.
 
+Rank-one integer `sum` consumers can also read completed private numeric
+vectors as exact BigInt cells. Addition, subtraction, multiplication, floor
+division and remainder stay exact inside this consumer, without publishing
+intermediate result arrays. Private vector stages and their scalar dependencies
+still use checked Numbers; a wide input used only by the exact consumer need
+not fit that range. Shape or cell errors replay the original region to retain
+ordinary demand and error order, including empty broadcasts. This does not
+admit opaque readers or change completion at `=` or unused deferred bindings.
+
+Copied finite progressions reuse their fresh private range storage while
+retaining the `copy` binding guard. Native vector calls use the shared dyadic
+call grouping and the same audited scalar operands; extrema retain their
+existing signed-zero, tie and NaN behavior. Euler 404 exercises these paths
+with inline boolean selectors and a wide exact quotient sum.
+
 Exact compiled scalar reads of borrowed Int32 storage bypass its items proxy and
 follow the storage object across widening or unpacking. Together these changes
 reduce the unchanged default Euler 375 program from 15.93 s to 3.95 s on Apple M5;

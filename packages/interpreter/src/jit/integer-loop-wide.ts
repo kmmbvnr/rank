@@ -8,7 +8,10 @@ import type { IntegerLoopPlan } from './integer-loop-plan.js';
  * Propagate numeric requirements backwards through every assignment, including
  * branches and loop-carried dependencies; never rely on one observed value. */
 export function wideLoopScalars(plan: IntegerLoopPlan): Set<string> {
-    const numeric = new Set(plan.binderNames);
+    // Private numeric vector stages cannot hold BigInt registers. Their
+    // scalar dependencies must stay checked Numbers; exact consumers may
+    // still read those completed cells as BigInts.
+    const numeric = new Set([...plan.binderNames, ...plan.arrayDefinitions]);
     const nodes = [plan.statement, ...AstUtils.streamAllContents(plan.statement)];
     const assignments = nodes.filter(isAssignmentStatement);
     // Stable bounded definitions need no BigInt registers even when they feed

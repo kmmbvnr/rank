@@ -14,7 +14,7 @@ import { hasNativeFenwick } from '../fenwick.js';
 import { hasNativeIntegerGroups } from '../runtime/integer-groups.js';
 import { compiledArgumentType, compiledStoredArgumentType, hasNativeDeque } from './compiled-argument-type.js';
 import {
-    compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
+    groupedUnaryDyadicChain, compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
     isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType, type CompiledCallSignature,
@@ -931,6 +931,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return { name: e.operator, operands: [e.left, e.right].map(unwrap) };
         }
         if (host.nativeCalls && isApplicationExpression(e)) {
+            e = groupedUnaryDyadicChain(e, name => !localTypes.has(name)
+                && !arrays.has(name) && !containers.has(name)) ?? e;
             const parts = flattenApplication(e), last = parts.at(-1);
             if (parts.length === 3 && isNameExpression(last)
                 && !localTypes.has(last.name) && !arrays.has(last.name) && !containers.has(last.name)) {
@@ -1020,7 +1022,20 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const previous = point.operands.map(operand => scalarInputs.get(operand));
                 point.operands.forEach((operand, i) => scalarInputs.set(operand, values[i]!));
                 vectorCellDepth++;
-                try { return emit(e, body); }
+                try {
+                    // Grouped dyadic calls can contain new AST nodes. Lower
+                    // the exact operands whose scalar cell slots we supplied.
+                    if (point.module === 'core' && (point.name === 'min' || point.name === 'max')) {
+                        return { type: values[0]!.type,
+                            code: scalarExtremeSource(point.name, values[0]!.code, values[1]!.code) };
+                    }
+                    if (point.module) {
+                        const operation = findOperation(point.name)!;
+                        const signature = matchCompiledCallSignature(operation, values.map(value => value!.type));
+                        return signature ? emitBuiltinCall(operation, signature, point.operands, body) : undefined;
+                    }
+                    return emit(e, body);
+                }
                 finally {
                     vectorCellDepth--;
                     point.operands.forEach((operand, i) => previous[i] ? scalarInputs.set(operand, previous[i]!) : scalarInputs.delete(operand));
@@ -1075,6 +1090,24 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         } };
     }
     function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {
+        let copied = source;
+        while (isParenthesizedExpression(copied)) copied = copied.value;
+        if (host.nativeCalls && isApplicationExpression(copied) && copied.arguments.length === 1
+            && isNameExpression(copied.arguments[0]) && copied.arguments[0].name === 'copy'
+            && !localTypes.has('copy') && !arrays.has('copy') && !containers.has('copy')) {
+            let range = copied.head;
+            while (isParenthesizedExpression(range)) range = range.value;
+            if (isBinaryExpression(range) && ['to', 'till'].includes(range.operator)) {
+                // rangeArray already allocates fresh private storage. The
+                // ordinary copy binding still has to pass the entry guard.
+                builtins.set('copy', 'sequences');
+                const setup: string[] = [];
+                const result = emitNumberArray(range, setup);
+                if (!result) return undefined;
+                lines.push(...setup);
+                return result;
+            }
+        }
         let e = source;
         while (isParenthesizedExpression(e) || isMaterializeExpression(e)) e = isParenthesizedExpression(e) ? e.value : e.source;
         const type = arrayType(e);
@@ -1204,7 +1237,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             lines.push(...setup, `let ${result} = 0;`, numberVectorLoop(vector.size, index, [...body, `${result} = ${vector.type === 'integer' ? safe(`${result} + ${value.code}`) : `${result} + ${value.code}`};`]));
             return { type: vector.type, code: result };
         }
-        type Vector = { size: string; cell(index: string, body: string[]): LoopTerm };
+        type Vector = { size: string; scalar?: true; cell(index: string, body: string[]): LoopTerm };
         function scalarSyntax(e: Expression): boolean {
             if (isParenthesizedExpression(e)) return scalarSyntax(e.value);
             return isNameExpression(e) || isNumberLiteral(e)
@@ -1217,7 +1250,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (!type) {
                 if (!scalarSyntax(e)) return undefined;
                 const scalar = emit(e, lines, 'integer');
-                return scalar?.type === 'integer' ? { size: '1', cell: () => scalar } : undefined;
+                return scalar?.type === 'integer' ? { size: '1', scalar: true, cell: () => scalar } : undefined;
             }
             if (type.rank !== 1 || type.element !== 'integer') return undefined;
             if (isNameExpression(e)) {
@@ -1225,15 +1258,20 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 arrays.set(e.name, info);
                 if (!assigned.has(e.name)) arrayInputs.add(e.name);
                 const size = `length${state.serial++}`;
-                lines.push(`const ${size} = ${numberMode ? `cells${info.slot}.length` : `r${info.slot}.shape[0]`};`);
-                return { size, cell: index => ({ type: 'integer', code: numberMode
-                    ? `safe(Number(cells${info.slot}[${index}]))` : `reader${info.slot}(BigInt(${index}))` }) };
+                lines.push(`const ${size} = ${state.numberMode ? `cells${info.slot}.length` : `r${info.slot}.shape[0]`};`);
+                return { size, cell: index => ({ type: 'integer', code: state.numberMode
+                    ? wide ? `BigInt(cells${info.slot}[${index}])` : `safe(Number(cells${info.slot}[${index}]))`
+                    : `reader${info.slot}(BigInt(${index}))` }) };
             }
-            if (!isBinaryExpression(e) || e.step || !['+', '-', '*'].includes(e.operator)) return undefined;
+            if (!isBinaryExpression(e) || e.step || !(wide && state.numberMode ? ['+', '-', '*', '//', 'mod'] : ['+', '-', '*']).includes(e.operator)) return undefined;
             const left = vector(e.left), right = vector(e.right);
             if (!left || !right) return undefined;
             const size = `length${state.serial++}`;
-            lines.push(`if (${left.size} !== ${right.size} && ${left.size} !== 1 && ${right.size} !== 1) throw shapeMismatch(${left.size}, ${right.size});`,
+            // A singleton array operand may fail before an empty broadcast
+            // consumes it. Scalar inputs were already captured above.
+            if (wide && !left.scalar && !right.scalar) lines.push(
+                `if (${left.size} !== ${right.size} && (${left.size} === 0 || ${right.size} === 0)) throw overflow;`);
+            lines.push(`if (${left.size} !== ${right.size} && ${left.size} !== 1 && ${right.size} !== 1) throw ${wide && state.numberMode ? 'overflow' : `shapeMismatch(${left.size}, ${right.size})`};`,
                 `const ${size} = ${left.size} === 1 ? ${right.size} : ${left.size};`);
             return { size, cell: (index, body) => {
                 const a = left.cell(`(${left.size} === 1 ? 0 : ${index})`, body);
@@ -1241,12 +1279,26 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 return { type: 'integer', code: arithmetic(e.operator, a, b, 'integer', body)! };
             } };
         }
-        if (wide || !host.arrayReads || !arrayType(source)) return undefined;
-        const input = vector(source);
+        if (wide && !state.numberMode || !host.arrayReads || !arrayType(source)) return undefined;
+        // Exact vector errors replay the region: a fused cell must not change
+        // which completed operand fails first, even on an empty domain.
+        if (wide) vectorCellDepth++;
+        let input: ReturnType<typeof vector>;
+        try { input = vector(source); }
+        finally { if (wide) vectorCellDepth--; }
         if (!input) return undefined;
         const result = `sum${state.serial++}`, index = `cell${state.serial++}`, body: string[] = [];
-        const value = input.cell(index, body);
+        if (wide) vectorCellDepth++;
+        let value: LoopTerm;
+        try { value = input.cell(index, body); }
+        finally { if (wide) vectorCellDepth--; }
         builtins.set('sum', 'core');
+        if (wide) {
+            lines.push(`let ${result} = 0n;`, numberVectorLoop(input.size, index,
+                [...body, `${result} += ${value.code};`]));
+            if (!temporaryBudget(source)) return undefined;
+            return { code: result, type: 'integer' };
+        }
         lines.push(`let ${result} = ${numberMode ? '0' : '0n'}; for (let ${index} = 0; ${index} < ${input.size}; ${index}++) {
             checkpoint(); ${body.join('\n')} ${result} = ${safe(`${result} + ${value.code}`)};
         }`);
