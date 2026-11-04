@@ -2963,6 +2963,8 @@ function releases its binding without clearing conservative ownership held
 by globals, lazy readers, containers or observers. Returned local buffers
 can therefore be reused by their caller; rebinding an alias no longer leaves
 an array permanently shared.
+Exact kernels retain cheaper conservative bookkeeping when their arrays are
+only fresh constructor-owned scratch buffers with no aliases or array inputs.
 
 Escaping frames, closures, generators and inspection retain conservative
 ownership. Host/callback inputs and externally returned arrays remain
@@ -2985,6 +2987,8 @@ array results retain their existing fallback. Builtin identities are guarded.
 
 A copy of a freshly computed private array expression needs no second
 buffer. Named-array copies retain their snapshot semantics and alias checks.
+Explicit real selection copies keep the native gather/copy path, which
+preserves uniform element-kind evidence without rescanning published cells.
 Ordinary assignment completion and unused-plan evaluation are unchanged.
 
 Copy admission can count work at a bounded set of positions in finite range

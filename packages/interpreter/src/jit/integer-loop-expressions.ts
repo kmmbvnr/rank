@@ -1123,6 +1123,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             && !localTypes.has('copy') && !arrays.has('copy') && !containers.has('copy')) {
             let range = copied.head;
             while (isParenthesizedExpression(range)) range = range.value;
+            const selected = isApplicationExpression(range) ? flattenApplication(range) : [];
+            // Native real gathers preserve uniform kind evidence through copy.
+            // Private real publication would rescan every cell for infinities.
+            if (selected.length === 2 && arrayType(selected[1]) && arrayType(range)?.element === 'real') return undefined;
             if (isBinaryExpression(range) || vectorOperation(range)
                 || isApplicationExpression(range) && flattenApplication(range).length === 2
                 || isTableFilterExpression(range)) {

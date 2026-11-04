@@ -182,6 +182,7 @@ Total`))).toBe(200n);
                 const alter = runtime.variables.get('alter');
                 if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
                 stats.run(() => alter.call([createArraySnapshot([1n]), createArraySnapshot([2n])]));
+                stats.cowCopies = 0; // Only measure the no-write call below.
                 const array = createArraySnapshot([1n]);
                 noteArrayBinding(array);
                 expect(stats.run(() => alter.call([array, createArraySnapshot([])]))).toBe(array);
@@ -213,6 +214,7 @@ Total`))).toBe(200n);
             const alter = runtime.variables.get('alter');
             if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
             expect(stats.run(() => alter.call([createArraySnapshot([1n, 2n]), true]))).toBeDefined();
+            stats.cowCopies = 0; // Host inputs remain owned during warmup.
             if (integerLoopCompilation) expect(stats.compiledLoops).toBeGreaterThan(0);
             const array = createArraySnapshot(['not', 'integers']);
             noteArrayBinding(array);
@@ -230,6 +232,7 @@ Total`))).toBe(200n);
             const alter = runtime.variables.get('alter');
             if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
             stats.run(() => alter.call([createArraySnapshot([1n, 2n]), createArraySnapshot([3n, 4n]), true]));
+            stats.cowCopies = 0; // Only measure the no-write call below.
             if (integerLoopCompilation) expect(stats.compiledLoops).toBeGreaterThan(0);
             const first = createArraySnapshot([1n, 2n]);
             noteArrayBinding(first);

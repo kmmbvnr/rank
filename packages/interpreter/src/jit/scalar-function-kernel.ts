@@ -1,3 +1,4 @@
+import { AstUtils } from 'langium';
 import { checkedNumberModularMultiply } from './number-arithmetic.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { checkValueMutable } from '../value-protection.js';
@@ -10,7 +11,7 @@ import { newStructure, addToCollection, expectAddCollection, setHas } from '../c
 import { indexGet, indexHas, indexRead, indexSet, indexKey } from '../index-storage.js';
 import {
     findCompiledOperator, applicationForm, findOperation, rangeSliceOperands,
-    isReturnStatement, isExpressionStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement, isUnpackStatement,
+    isArrayExpression, isReturnStatement, isExpressionStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement, isUnpackStatement,
     type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { sequenceValues } from '../sequence.js';
@@ -492,6 +493,17 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     if (!proof) return undefined;
     if (kernels.has(proof)) return kernels.get(proof) ?? recordFallback('scalar-function:code-generation');
     const expressions = proof.expressions;
+    // Constructor-only scratch arrays cannot leave stale aliases. Preserve
+    // their cheaper binding bookkeeping; count scopes only when a
+    // parameter, alias, unpack or returned array can benefit from retirement.
+    const arrayType = (type: CompiledCalleeType | undefined) => type !== undefined
+        && typeof type !== 'string' && !isCompiledContainer(type);
+    const scopedArrays = !!proof.arrayWrites.size && (!proof.localArrayWrites
+        || parameterTypes?.some(arrayType) || arrayType(proof.type)
+        || AstUtils.streamAllContents(statement).some(node => isUnpackStatement(node)
+            || isAssignmentStatement(node) && arrayType(expressions.get(node.value)?.type)
+                && !isArrayExpression(node.value)));
+
     // Guarded captures cannot change when assignments are local, polling is
     // private, and the invocation makes no native or nested user calls.
     const stableCaptures = !proof.callCount && !proof.observableCaptures
@@ -501,6 +513,8 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         if (!slots.has(name)) slots.set(name, slots.size);
         return `r${slots.get(name)}`;
     };
+    const arrayBinding = (name: string) => scopedArrays
+        ? `bindings.bind(${slots.get(name)}, ${slot(name)})` : `noteArrayBinding(${slot(name)})`;
     statement.parameters.forEach(slot);
     const locations: (Statement | Expression)[] = [];
     const calls: { operation: Operation; inputs: readonly string[]; iterator?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[] = [];
@@ -817,7 +831,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 lines.push(`${slot(command.name)} = ${value};`);
                 lines.push(`reader${slots.get(command.name)} = undefined;`);
                 if (writtenSlots.has(command.name)) lines.push(`write${slots.get(command.name)} = undefined;`);
-                if (proof!.arrayWrites.size && typeof expressions.get(command.value)!.type !== 'string') lines.push(`bindings.bind(${slots.get(command.name)}, ${slot(command.name)});`);
+                if (proof!.arrayWrites.size && typeof expressions.get(command.value)!.type !== 'string') lines.push(`${arrayBinding(command.name)};`);
             } else if (isUnpackStatement(command)) {
                 const value = emit(command.value, lines), unpacked = `v${serial++}`;
                 lines.push(`const ${unpacked} = unpackApplicationItems(${value});`);
@@ -825,7 +839,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 command.names.forEach((name, index) => {
                     if (name !== '#') {
                         lines.push(`${slot(name)} = ${unpacked}[${index}]; reader${slots.get(name)} = undefined;`);
-                        if (proof!.arrayWrites.size) lines.push(`bindings.bind(${slots.get(name)}, ${slot(name)});`);
+                        if (proof!.arrayWrites.size) lines.push(`${arrayBinding(name)};`);
                     }
                 });
             } else if (isBreakStatement(command)) lines.push('break;');
@@ -857,7 +871,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     }
                     const copy = `v${serial++}`;
                     lines.push(`const ${copy} = arrayForWrite(${receiver}, ${offset});
-                        if (${copy}) { ${receiver} = ${copy}; bindings.bind(${slots.get(command.name)}, ${receiver}); ${writer} = undefined; reader${slots.get(command.name)} = undefined; }
+                        if (${copy}) { ${receiver} = ${copy}; ${arrayBinding(command.name)}; ${writer} = undefined; reader${slots.get(command.name)} = undefined; }
                         (${writer} ??= prepareWriter(${receiver}))(${offset}, ${value});`);
                 } else {
                     if (command.operator !== '=') {
@@ -970,11 +984,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
         ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
         ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
-        ${!proof.arrayWrites.size && (proof.planBindings.size || proof.iterableBindings.size) ? 'args.forEach(noteArrayBinding);' : ''}
-        ${proof.arrayWrites.size ? `const bindings = arrayBindings(args); ${[...slots].filter(([name]) => statement.parameters.includes(name)).map(([, index]) => `bindings.bind(${index}, r${index});`).join('')}` : ''}
+        ${!scopedArrays && (proof.arrayWrites.size || proof.planBindings.size || proof.iterableBindings.size) ? 'args.forEach(noteArrayBinding);' : ''}
+        ${scopedArrays ? `const bindings = arrayBindings(args); ${[...slots].filter(([name]) => statement.parameters.includes(name)).map(([, index]) => `bindings.bind(${index}, r${index});`).join('')}` : ''}
         let location = -1;
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
-        ${proof.arrayWrites.size ? 'finally { bindings.clear(); }' : ''}
+        ${scopedArrays ? 'finally { bindings.clear(); }' : ''}
     };`;
     const paramNames = statement.parameters.map((_, i) => `r${i}`);
     const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
@@ -985,11 +999,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
             ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
             ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
-            ${!proof.arrayWrites.size && (proof.planBindings.size || proof.iterableBindings.size) && paramNames.length ? `${paramNames.map(p => `noteArrayBinding(${p});`).join('')}` : ''}
-            ${proof.arrayWrites.size ? `const bindings = arrayBindings([${paramNames.join(',')}]); ${[...slots].filter(([name]) => statement.parameters.includes(name)).map(([, index]) => `bindings.bind(${index}, r${index});`).join('')}` : ''}
+            ${!scopedArrays && (proof.arrayWrites.size || proof.planBindings.size || proof.iterableBindings.size) && paramNames.length ? `${paramNames.map(p => `noteArrayBinding(${p});`).join('')}` : ''}
+            ${scopedArrays ? `const bindings = arrayBindings([${paramNames.join(',')}]); ${[...slots].filter(([name]) => statement.parameters.includes(name)).map(([, index]) => `bindings.bind(${index}, r${index});`).join('')}` : ''}
             let location = -1;
             try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
-            ${proof.arrayWrites.size ? 'finally { bindings.clear(); }' : ''}
+            ${scopedArrays ? 'finally { bindings.clear(); }' : ''}
         };
     };`;
     let kernel: Kernel | undefined;
