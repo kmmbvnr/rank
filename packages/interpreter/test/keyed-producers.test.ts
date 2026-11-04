@@ -135,3 +135,82 @@ Saved = 123`);
         } finally { runtime.dispose(); }
     });
 }
+
+for (const compilation of [false, true]) {
+    for (const axis of [0, 1, 2]) {
+        it.each([-9007199254740991, -1, 0, 1, 9007199254740991])(
+            `streams shifted concat along axis ${axis} (${compilation}), amount=%s`, amount => {
+                const runtime = new Interpreter(() => {}, { compilation });
+                const diagnostics = new RuntimeDiagnostics();
+                const shape = [2, 3, 4], output = [...shape];
+                output[axis] *= 2;
+                const wide = 9007199254740993n;
+                const expected: bigint[] = [];
+                let total = 0n;
+                for (let i = 0; i < output[0]; i++) for (let j = 0; j < output[1]; j++) for (let k = 0; k < output[2]; k++) {
+                    const coordinates = [i, j, k];
+                    const shifted = coordinates[axis] < shape[axis];
+                    coordinates[axis] -= shifted ? amount : shape[axis];
+                    const value = coordinates[axis] < 0 || coordinates[axis] >= shape[axis] ? -1n
+                        : BigInt((coordinates[0] * 3 + coordinates[1]) * 4 + coordinates[2] + 1) * wide;
+                    total += value;
+                    expected.push(total);
+                }
+                try {
+                    runtime.execute(`use sequences
+A = (1 to 24 array) reshape 2 3 4
+V' = concat ((A * ${wide}) shift ${amount} with -1 axis ${axis}) (A * ${wide}) axis ${axis}
+K = array shape ${output.join(' ')} fill 0`);
+                    for (let demand = 0; demand < 2; demand++) {
+                        const result = diagnostics.run(() => runtime.execute('V scan + by K with 0'));
+                        if (!result || !isRankArray(result)) throw new Error('expected array');
+                        expect(expected.map((_, index) => readArrayItem(result, index))).toEqual(expected);
+                    }
+                    expect(diagnostics.keyedNativeReaders).toBe(4);
+                } finally { runtime.dispose(); }
+            },
+        );
+    }
+
+    it(`does not read a shifted-away failure (${compilation})`, () => {
+        const runtime = new Interpreter(() => {}, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute(`use sequences
+A = array 0 0 0
+V' = (1 // A) shift 9007199254740991 with 7
+K = array 0 0 0`);
+            expect(diagnostics.run(() => runtime.execute('(V sum by K) sum'))).toBe(21n);
+            expect(diagnostics.keyedNativeReaders).toBe(2);
+        } finally { runtime.dispose(); }
+    });
+
+    it(`keeps concat segment failures after earlier keys (${compilation})`, () => {
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.execute(`use sequences
+A = array 0
+V' = concat (array 2) (1 // A)
+K = array -1 0`);
+            expect(() => runtime.execute('V sum by K')).toThrow(/nonnegative integer/);
+            runtime.execute('K = array 0 0');
+            expect(() => runtime.execute('V sum by K')).toThrow(/division by zero/);
+        } finally { runtime.dispose(); }
+    });
+}
+
+it.each([false, true])('streams empty concat segments and retains snapshots (%s)', compilation => {
+    const runtime = new Interpreter(() => {}, { compilation });
+    try {
+        runtime.execute(`use sequences
+Empty = array shape 0 fill 0
+A = array 1 2 3
+V' = concat Empty (A * 9007199254740993) Empty
+K = array 0 0 0
+Saved = V
+Saved 0 = 99`);
+        expect(runtime.execute('(V sum by K) sum')).toBe(54043195528445958n);
+        runtime.execute("V' = concat Empty Empty\nK = Empty");
+        expect(runtime.execute('(V sum by K with 0 size 2) sum')).toBe(0n);
+    } finally { runtime.dispose(); }
+});

@@ -224,7 +224,11 @@ integer reader. The reader does not generate JavaScript or compile Rank control
 flow. Both execution engines can feed integer producers directly into `reduce`,
 `sum`, `min`, `max` and `scan` with `by`. The existing tensor IR represents stored
 inputs, native views, unary signs, broadcasting and outer arithmetic (`+`, `-`,
-`*`, `//`, `mod`, `min`, `max`). No array is allocated for each arithmetic stage.
+`*`, `//`, `mod`, `min`, `max`). No array is allocated for each arithmetic stage. Native integer shifts and
+concatenations also stream on any axis, using the same metadata-only layout
+proofs as generated tensor kernels. A shift reads only its selected source or
+fill; concatenation reads only the selected segment. Empty segments are skipped
+and many-segment reader lookup uses binary search.
 The reader keeps exact BigInt intermediates even when the final key fits Int32.
 The grouped consumer accepts these readers alongside its existing Int32 storage
 path; it does not use a producer's output width to limit intermediate arithmetic.
@@ -253,7 +257,7 @@ Unsupported combinations keep ordinary execution for specific reasons:
   immutable-input proof. A scalar type annotation alone cannot grant it.
 - Real/mixed producers lack the exact-integer domain required by this reader.
   Existing materialized real folds retain their own ordered implementation.
-- Integer powers, shifts, concat and arbitrary scalar-call nodes do not yet have
+- Integer powers and arbitrary scalar-call nodes do not yet have
   an indexed lowering in the integer reader, even when another tensor consumer
   supports them. Unsupported nodes decline the whole reader.
 - Scatter still needs a proof that consuming computed indices and values preserves

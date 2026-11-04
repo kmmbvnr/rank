@@ -109,18 +109,16 @@ export function registerTensorMap<T extends RankValue>(value: T, operator: strin
  * recipe; lowering must still prove every leaf at the consumer's demand. */
 export function registerTensorConcat(value: RankArray, operands: readonly RankArray[], axis: number): void {
     const scope = active ?? operands.map(mapScope).find(scope => scope?.enabled());
-    if (!scope?.enabled()) return;
     concats.set(value, { reader: value.itemAt, shape: [...value.shape], operands, axis });
-    owners.set(value, scope);
+    if (scope?.enabled()) owners.set(value, scope);
 }
 
 /** Shift has already checked its scalar amount, fill and axis. Keep addressing
  * lazy; the consumer lowers only proven native sources and scalar fills. */
 export function registerTensorShift(value: RankArray, source: RankArray, amount: number, fill: RankValue, axis: number): void {
     const scope = active ?? mapScope(source);
-    if (!scope?.enabled()) return;
     shifts.set(value, { reader: value.itemAt, shape: [...value.shape], source, amount, fill, axis });
-    owners.set(value, scope);
+    if (scope?.enabled()) owners.set(value, scope);
 }
 
 /** Lower actual, checked native arrays after normal plan demand. Never inspect

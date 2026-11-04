@@ -22,7 +22,7 @@ import {
 } from '@arrrank/language';
 import { type RankArray, type RankValue, isRankArray, isRankSequence } from '../value.js';
 import { broadcastShape } from '../tensor.js';
-import { arraySliceLayout, reshapeDimensions, rankedBroadcastShapes } from './tensor-layout.js';
+import { arraySliceLayout, reshapeDimensions, rankedBroadcastShapes, tensorShiftLayout, tensorConcatLayout } from './tensor-layout.js';
 import { arrayRevision, ownedArray, ownedScalarArray, typedArray, IntegerCells, isSharedArray, hasPendingSelections } from '../array-storage.js';
 import { arithmeticRange, modularRange } from '../range-plan.js';
 
@@ -627,8 +627,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             } else if (node.kind === 'shift') {
                 const source = bind(node.source), fill = bind(node.fill);
                 if (!source?.shape?.length || source.filter || source.progression || source.digits
-                    || fill?.scalar === undefined || !Number.isSafeInteger(node.amount)
-                    || node.axis < 0 || node.axis >= source.shape.length) return undefined;
+                    || fill?.scalar === undefined || !tensorShiftLayout(source.shape, node.axis, node.amount)) return undefined;
                 result = { shape: source.shape, boolean: source.boolean && fill.boolean };
             } else if (node.kind === 'slice') {
                 const a = bind(node.source), b = bind(node.count);
@@ -640,14 +639,11 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 const segments = node.sources.map(source => bind(source));
                 const first = segments[0];
                 if (nativeGraph) {
-                    const axis = node.axis ?? 0;
-                    if (!first?.shape?.length || axis < 0 || axis >= first.shape.length
-                        || segments.some(segment => !segment?.shape || segment.filter || segment.progression || segment.digits
-                            || segment.shape.length !== first.shape!.length
-                            || segment.shape.some((n, i) => i !== axis && n !== first.shape![i]))) return undefined;
-                    const shape = [...first.shape];
-                    shape[axis] = segments.reduce((n, segment) => n + segment!.shape![axis], 0);
-                    if (!Number.isSafeInteger(shape.reduce((n, size) => n * size, 1))) return undefined;
+                    if (!first?.shape?.length || segments.some(segment => !segment?.shape
+                        || segment.filter || segment.progression || segment.digits)) return undefined;
+                    const layout = tensorConcatLayout(segments.map(segment => segment!.shape!), node.axis);
+                    if (!layout) return undefined;
+                    const { shape } = layout;
                     result = { shape, boolean: first.boolean };
                 } else {
                     const kind = segments.find(segment => segment?.shape?.every(n => n > 0))?.view?.kind;
@@ -998,11 +994,9 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 }
                 else if (node.kind === 'shift') {
                     const shape = info.shape!;
-                    const width = shape[node.axis];
-                    const stride = shape.slice(node.axis + 1).reduce((n, size) => n * size, 1);
-                    // Clamp before multiplying: oversized safe-integer shifts
-                    // only select fill, without overflowing the address math.
-                    const amount = Math.max(-width, Math.min(width, node.amount));
+                    // Shared metadata proof clamps oversized shifts before
+                    // multiplication, keeping every source address exact.
+                    const { width, stride, amount } = tensorShiftLayout(shape, node.axis, node.amount)!;
                     const position = `p${serial++}`;
                     lines.push(`const ${position} = Math.floor((${at}) / ${stride}) % ${width} - (${amount});`, `let ${name};`);
                     lines.push(`if (${position} < 0 || ${position} >= ${width}) {`);

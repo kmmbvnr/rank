@@ -1,3 +1,4 @@
+import { tensorShiftLayout, tensorConcatLayout } from './tensor-layout.js';
 import { RankError } from '../errors.js';
 import { prepareIntegerView } from '../integer-view.js';
 import { floorDivide, floorRemainder } from '../numeric-division.js';
@@ -28,6 +29,36 @@ export function keyedIntegerReader(root: TensorNode,
         } else if (node.kind === 'view') {
             const source = lower(node.source);
             if (source) result = { shape: node.shape, read: index => source.read(node.offset(index)) };
+        } else if (node.kind === 'shift') {
+            const source = lower(node.source), fill = lower(node.fill);
+            const layout = source && tensorShiftLayout(source.shape, node.axis, node.amount);
+            if (!source || !fill || fill.shape.length || !layout) return undefined;
+            const { width, stride, amount } = layout;
+            result = { shape: source.shape, read: index => {
+                const position = Math.floor(index / stride) % width - amount;
+                return position < 0 || position >= width ? fill.read(0) : source.read(index - amount * stride);
+            } };
+        } else if (node.kind === 'concat') {
+            const sources = node.sources.map(lower);
+            if (!sources.every((source): source is Reader => !!source)) return undefined;
+            const layout = tensorConcatLayout(sources.map(source => source.shape), node.axis);
+            if (!layout) return undefined;
+            const { shape, widths, inner, width } = layout;
+            let end = 0;
+            const ends = widths.map(length => end += length);
+            result = { shape, read: index => {
+                const position = Math.floor(index / inner) % width;
+                // Binary search keeps many-piece concatenations logarithmic.
+                let low = 0, high = ends.length;
+                while (low < high) {
+                    const middle = Math.floor((low + high) / 2);
+                    if (position < ends[middle]) high = middle;
+                    else low = middle + 1;
+                }
+                const start = low ? ends[low - 1] : 0;
+                const at = (Math.floor(index / (width * inner)) * widths[low] + position - start) * inner + index % inner;
+                return sources[low].read(at);
+            } };
         } else if (node.kind === 'unary' && (node.op === '+' || node.op === '-')) {
             const source = lower(node.operand);
             if (source) result = { shape: source.shape, read: index => node.op === '-' ? -source.read(index) : source.read(index) };

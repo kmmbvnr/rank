@@ -110,3 +110,25 @@ export function arrayStrides(shape: readonly number[]): number[] {
     }
     return strides;
 }
+
+/** Native routing proofs inspect metadata only, never producer cells. */
+export function tensorShiftLayout(shape: readonly number[], axis: number, amount: number) {
+    if (!Number.isSafeInteger(axis) || axis < 0 || axis >= shape.length
+        || !Number.isSafeInteger(amount)) return undefined;
+    const width = shape[axis];
+    const stride = shape.slice(axis + 1).reduce((a, b) => a * b, 1);
+    return { shape, width, stride, amount: Math.max(-width, Math.min(width, amount)) };
+}
+
+export function tensorConcatLayout(shapes: readonly (readonly number[])[], axis = 0) {
+    const first = shapes[0];
+    if (!first?.length || !Number.isSafeInteger(axis) || axis < 0 || axis >= first.length
+        || shapes.some(shape => shape.length !== first.length
+            || shape.some((n, i) => !Number.isSafeInteger(n) || n < 0 || i !== axis && n !== first[i]))) return undefined;
+    const widths = shapes.map(shape => shape[axis]);
+    const shape = [...first];
+    shape[axis] = widths.reduce((a, b) => a + b, 0);
+    if (!Number.isSafeInteger(shape[axis]) || !Number.isSafeInteger(shape.reduce((a, b) => a * b, 1))) return undefined;
+    const inner = shape.slice(axis + 1).reduce((a, b) => a * b, 1);
+    return { shape, widths, inner, width: shape[axis] };
+}
