@@ -60,6 +60,74 @@ characters), and available 1-based line/column. These are syntax snapshots:
 they do not retain ASTs, frames, or runtime values. Existing `fallbacks` counters
 still count repeated attempts independently of this bounded detail list.
 
+## Fallback categories and execution costs
+
+`fallbackCategories` provides a second view of the same attempts as `fallbacks`.
+The latter keeps its existing keys for callers. Categories are `effects`,
+`representation`, `aliasing`, `proof`, `cost`, and `unclassified`. `cost` means
+policy rejected a specialization, not that its semantics were unsafe. Number
+loop admission and entry guards give explicit categories. Known legacy compiler
+reason details map to categories; unknown details remain `unclassified` rather
+than being guessed. Shared keyed folds report a generic-path decision as an
+effect/operator or representation limitation. A fallback can be followed by
+another successful backend; counts are not numbers of failed programs.
+
+Before adding an admission exception, identify the missing general proof about
+effects, ranges, ownership, escape, or work. The reminder also lives beside
+`prepareNumberLoop`. Eligibility checks and policy thresholds remain unchanged.
+
+`costs` is a sparse map of stage names to `ExecutionCost`. Absent entries mean
+that stage was not observed, not that the runtime performed no work. Timings
+are inclusive milliseconds and count invocations, including ones that throw.
+Nested stages must not be summed as disjoint costs.
+
+| Stage | Scope |
+| --- | --- |
+| `program.parse` | Parsing through `Interpreter.execute`; excludes the standalone `parse` API |
+| `program.execute` | `executeProgram`, including contracts, declarations and execution, in both engines |
+| `input.prepare` | Checked-input contract preparation, including the no-contract scan, in both engines |
+| `loop.prepare` | Integer loop compilation entry, including lowering and initial backend preparation; excludes later specialization |
+| `number-loop.attempt` | Number backend invocation, including guards, snapshots, late compilation, execution and publication |
+| `number-loop.execute` | Generated numeric body and publication, including failed attempts |
+| `number-loop.replay` | `discardedAttempts` and `discardedMilliseconds` for numeric overflow: generated execution through rollback, excluding entry preparation |
+| `number-loop.snapshot` | Allocated Int32/Float64 entry buffers and successful Fenwick snapshots; copied bytes for typed copies; cells converted into Float64 entry buffers |
+| `number-loop.dirty` | Allocated byte masks for entry destinations |
+| `number-loop.publish` | Scalar Number-to-BigInt conversions during binding/result publication |
+| `array.cow` | Typed array copy-on-write payload and validity-buffer bytes, shared by both engines |
+| `array.unpack` | Cells expanded into the boxed array representation, shared by both engines |
+| `keyed-fold.execute` | Shared keyed-fold dispatch and execution, including errors and generic fallback |
+
+`allocatedBytes` counts known typed-buffer payloads allocated at these sites;
+`copiedBytes` is the subset copied byte-for-byte. Conversions use `unboxedCells`
+or `boxedCells`, not an estimated JS object size. Allocation and copy totals are
+cumulative traffic: a freed or replaced buffer still counts. Borrowed buffers
+and cache hits add no allocation. Partial entry conversions count only completed
+cells; an allocated destination still counts when conversion later fails.
+
+This is not a heap profiler. It does not estimate JS arrays, Maps, BigInt sizes,
+ASTs, object headers, all vector temporaries, or allocations inside V8. The
+`typedArrayPublications` counter describes ownership transfer, not allocation.
+Replay counters measure discarded work in elapsed time, not executed instruction
+or iteration counts. They do not force counted code generation, change admission,
+add checkpoints or include the subsequent exact re-execution time. Existing
+`numberLoopOverflows` remains available. These limits apply equally when comparing
+reference and compiled runs; zero counters do not imply allocation-free code.
+
+Without a collector there are no diagnostic timers, stage records, reason
+classification or per-iteration instructions added to generated loops. Ambient
+collector checks and a few call boundaries remain. Enabled measurements include
+collector and clock overhead; use separate runs for timing comparisons.
+
+Run `node benchmarks/execution-cost.mjs --baseline=/path/to/built/baseline` to
+compare five fresh-process observations per case in both engines, alternating
+baseline-off, candidate-off and candidate-on. The harness checks answers and
+reports execution time with parsing excluded. `peakRssBytes` is the process high
+water mark. `retainedHeapBytes` and `retainedArrayBufferBytes` are process totals
+after explicit GC while the runtime and its bindings remain reachable; their
+deltas subtract the post-parse baseline. They are not the program's isolated
+live-object graph and must not be added to RSS or cumulative allocation bytes.
+See [the #509 measurements](../../benchmarks/execution-cost-results.md).
+
 ## Hoisting cache validation
 
 The first implementation covers compiled integer loops reading already-computed

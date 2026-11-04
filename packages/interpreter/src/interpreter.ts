@@ -1,3 +1,4 @@
+import { currentDiagnostics } from './diagnostics.js';
 import { InterruptedError, inspectionEnabled } from './interrupt.js';
 import { type AstNode } from 'langium';
 import {
@@ -310,7 +311,10 @@ export class Interpreter {
         assertBooleanExpressions = false,
     ): RankValue | undefined {
         const run = () => this.executeProgramBody(program, args, assertBooleanExpressions);
-        return this.inEnvironment(run);
+        const diagnostics = currentDiagnostics();
+        return diagnostics
+            ? diagnostics.measure('program.execute', () => this.inEnvironment(run))
+            : this.inEnvironment(run);
     }
 
     private executeProgramBody(program: Program, args: readonly string[], assertBooleanExpressions: boolean): RankValue | undefined {
@@ -424,7 +428,10 @@ export class Interpreter {
     }
 
     private executeSource(source: string): RankValue | undefined {
-        const program = this.parse(source, this.syntheticNames);
+        const diagnostics = currentDiagnostics();
+        const program = diagnostics
+            ? diagnostics.measure('program.parse', () => this.parse(source, this.syntheticNames))
+            : this.parse(source, this.syntheticNames);
         this.loadedProgram = {
             id: this.options.sourceId ?? '<input>',
             program,

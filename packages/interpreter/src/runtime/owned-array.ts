@@ -1102,6 +1102,7 @@ export function createOwned(
             if (diagnostics) {
                 diagnostics.typedUnpacks++;
                 diagnostics.typedUnpackedCells += state.items.length;
+                diagnostics.cost('array.unpack').boxedCells += state.items.length;
             }
             const plain = Array.from(state.items);
             if (state.validity) {

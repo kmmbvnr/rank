@@ -1,3 +1,4 @@
+import { currentDiagnostics } from './diagnostics.js';
 import { inferRequirements, applicationForm, isApplicationExpression, isNameExpression, isUseStatement, type CallRequirement, type Expression, type FunctionStatement, type Program, type ValueFacts, type ValueRequirement } from '@arrrank/language';
 import { AstUtils } from 'langium';
 import type { AstNode } from 'langium';
@@ -91,6 +92,14 @@ export class CheckedInputContracts {
 
     prepare(program: Program, initial: ReadonlyMap<string, ValueFacts>,
         declarations: ReadonlyMap<string, FunctionStatement> = new Map(),
+        loadModule?: (path: string, importSite?: AstNode) => Program | undefined): void {
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.measure('input.prepare', () => this.prepareContracts(program, initial, declarations, loadModule));
+        else this.prepareContracts(program, initial, declarations, loadModule);
+    }
+
+    private prepareContracts(program: Program, initial: ReadonlyMap<string, ValueFacts>,
+        declarations: ReadonlyMap<string, FunctionStatement>,
         loadModule?: (path: string, importSite?: AstNode) => Program | undefined): void {
         const containsCheck = (source: Program | FunctionStatement): boolean => {
             const nodes = [...AstUtils.streamAllContents(source)];

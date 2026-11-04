@@ -1,5 +1,19 @@
 import type { CompilerRejection } from './compiler-rejection.js';
 
+/** Reasons describe the missing proof, not the source program. */
+export type FallbackCategory = 'effects' | 'representation' | 'aliasing'
+    | 'proof' | 'cost' | 'unclassified';
+export interface ExecutionCost {
+    calls: number;
+    milliseconds: number;
+    allocatedBytes: number;
+    copiedBytes: number;
+    boxedCells: number;
+    unboxedCells: number;
+    discardedAttempts: number;
+    discardedMilliseconds: number;
+}
+
 /** Optional counters and bounded compilation-failure syntax snapshots. */
 export class RuntimeDiagnostics {
     memoHits = 0;
@@ -99,6 +113,23 @@ export class RuntimeDiagnostics {
     typedUnpacks = 0;
     typedUnpackedCells = 0;
     readonly fallbacks: Record<string, number> = Object.create(null);
+    readonly fallbackCategories: Record<FallbackCategory, Record<string, number>> = {
+        effects: Object.create(null), representation: Object.create(null),
+        aliasing: Object.create(null), proof: Object.create(null),
+        cost: Object.create(null), unclassified: Object.create(null),
+    };
+    /** Inclusive timings and known buffer payloads; not retained heap size. */
+    readonly costs: Record<string, ExecutionCost> = Object.create(null);
+    cost(stage: string): ExecutionCost {
+        return this.costs[stage] ??= { calls: 0, milliseconds: 0,
+            allocatedBytes: 0, copiedBytes: 0, boxedCells: 0, unboxedCells: 0, discardedAttempts: 0, discardedMilliseconds: 0 };
+    }
+    measure<T>(stage: string, operation: () => T): T {
+        const cost = this.cost(stage), start = performance.now();
+        cost.calls++;
+        try { return operation(); }
+        finally { cost.milliseconds += performance.now() - start; }
+    }
     readonly compilerRejections: CompilerRejection[] = [];
 
     /** Scopes nest safely, including exceptions. Lazy readers retain their owner. */
@@ -111,7 +142,25 @@ export class RuntimeDiagnostics {
 }
 let active: RuntimeDiagnostics | undefined;
 export function currentDiagnostics(): RuntimeDiagnostics | undefined { return active; }
-export function recordFallback(reason: string): undefined {
-    if (active) active.fallbacks[reason] = (active.fallbacks[reason] ?? 0) + 1;
+export function recordFallback(reason: string, category?: FallbackCategory): undefined {
+    if (active) {
+        active.fallbacks[reason] = (active.fallbacks[reason] ?? 0) + 1;
+        const reasons = active.fallbackCategories[category ?? fallbackCategory(reason)];
+        reasons[reason] = (reasons[reason] ?? 0) + 1;
+    }
     return undefined;
+}
+
+/** Legacy reasons stay readable; unknown details remain explicitly unclassified. */
+export function fallbackCategory(reason: string): FallbackCategory {
+    const detail = reason.split(':')[1];
+    if (['statement-budget', 'temporary-budget', 'specialization-budget'].includes(detail)) return 'cost';
+    if (['unsupported-type', 'storage-or-cell-type', 'unsafe-input', 'unsafe-cell'].includes(detail)) return 'representation';
+    if (['mutable-array-alias', 'array-alias-call', 'rebound-array-alias', 'mutable-slice-result',
+        'deque-array-write'].includes(detail)) return 'aliasing';
+    if (['unsupported-op', 'unsupported-node', 'unsupported-effect', 'unstable-effect-receiver',
+        'array-call-write-region'].includes(detail)) return 'effects';
+    if (['unstable-bindings', 'escaping-rebound-array', 'rebound-array-selection',
+        'code-generation', 'binding-contract'].includes(detail)) return 'proof';
+    return 'unclassified';
 }

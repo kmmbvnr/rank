@@ -1,4 +1,4 @@
-import { currentDiagnostics } from './diagnostics.js';
+import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { integer32Cells, ownedArray, readArrayItem, realCells, typedElementKind } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
@@ -22,6 +22,15 @@ export interface KeyedFoldOptions {
 export function keyedFold(values: RankValue, keys: RankValue,
     combine: (left: RankValue, right: RankValue) => RankValue,
     options: KeyedFoldOptions = {},
+): RankArray {
+    const diagnostics = currentDiagnostics();
+    return diagnostics
+        ? diagnostics.measure('keyed-fold.execute', () => executeKeyedFold(values, keys, combine, options))
+        : executeKeyedFold(values, keys, combine, options);
+}
+function executeKeyedFold(values: RankValue, keys: RankValue,
+    combine: (left: RankValue, right: RankValue) => RankValue,
+    options: KeyedFoldOptions,
 ): RankArray {
     if (!isRankArray(values) || !isRankArray(keys)) {
         throw new RankError('by expects values and keys arrays', 'TypeError');
@@ -48,6 +57,8 @@ export function keyedFold(values: RankValue, keys: RankValue,
         if (diagnostics) diagnostics.realKeyedFolds++;
         return realKeyedFold(reals, indices, values.shape, options);
     }
+    recordFallback('keyed-fold:generic',
+        !indices || !integers && !reals ? 'representation' : 'effects');
     const count = values.shape.reduce((a, b) => a * b, 1);
     const states: RankValue[] = [];
     const output: RankValue[] = [];

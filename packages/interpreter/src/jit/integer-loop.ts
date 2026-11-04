@@ -16,6 +16,13 @@ import { isRankArray } from '../value.js';
 import { denseScalarItems, materializedArrayItems, arrayRevision } from '../array-storage.js';
 
 export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iteration?: IterationBinding): CompiledLoop | undefined {
+    const diagnostics = currentDiagnostics();
+    return diagnostics
+        ? diagnostics.measure('loop.prepare', () => prepareIntegerRegion(statement, host, iteration))
+        : prepareIntegerRegion(statement, host, iteration);
+}
+
+function prepareIntegerRegion(statement: ForStatement, host: LoopHost, iteration?: IterationBinding): CompiledLoop | undefined {
     const sources: string[] = [];
     const numericHost = host.compiled ? { ...host, compiled: (source: string) => sources.push(source) } : host;
     const numeric = compileTypedLoop(statement, numericHost, iteration, new Set(), new Set(), true);
@@ -55,7 +62,7 @@ export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iter
         if (!text.length && !textArrays.length) return recordFallback('loop:no-text-specialization');
         const key = JSON.stringify([text, textArrays]);
         if (!variants.has(key)) {
-            if (variants.size >= 8) return recordFallback('loop:specialization-budget');
+            if (variants.size >= 8) return recordFallback('loop:specialization-budget', 'cost');
             variants.set(key, compileTypedLoop(statement, host, iteration, new Set(text), new Set(textArrays)));
         }
         return variants.get(key)?.run(insideFinally, insideGenerator, tailCallsAllowed);

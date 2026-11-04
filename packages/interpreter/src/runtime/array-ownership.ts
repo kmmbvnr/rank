@@ -174,6 +174,10 @@ export function privateArrayCopy(value: RankArray): RankArray {
         if (diagnostics) {
             diagnostics.cowCopies++;
             diagnostics.cowCopiedCells += stored.typed.length;
+            const cost = diagnostics.cost('array.cow');
+            const bytes = stored.typed.byteLength + (stored.validity?.byteLength ?? 0);
+            cost.allocatedBytes += bytes;
+            cost.copiedBytes += bytes;
         }
         return createOwned(stored.typed.slice(), value.shape, true,
             (value as { columnNames?: readonly string[] }).columnNames, stored.validity?.slice());
