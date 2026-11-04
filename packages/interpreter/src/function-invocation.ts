@@ -587,6 +587,10 @@ export class FunctionInvocation {
 
     /** Selects per-argument scalar entries without retaining invocation frames. */
     private scalarEntrySelector(statement: FunctionStatement, context: LocalFrame | undefined, generator: boolean, arity: number) {
+        // Capabilities are immutable outside inspection. Reference calls need
+        // neither entry selectors nor the object-storage proofs they perform.
+        // Inspection is temporary: definitions made there must keep a selector.
+        if (!inspectionEnabled() && !this.compiler.scalars.entries) return () => undefined;
         if (!functionScope(statement)?.captures.size) return this.scalarEntryForCaptures(statement, context, generator, arity, new Map());
         const variants = new Map<string, (arguments_: RankValue[]) => PreparedScalarCall | undefined>();
         return (arguments_: RankValue[]) => {
@@ -615,17 +619,14 @@ export class FunctionInvocation {
             let call = scalar, locals = proof?.locals, nonnegative = proof?.nonnegative;
             if (!arguments_.every(value => typeof value === 'bigint')) {
                 let types: CompiledCalleeType[] | undefined;
-                if (arguments_.some(value => typeof value === 'object')) {
-                    // Keep ordinary container calls allocation-free when the
-                    // first object is not eligible array storage.
-                    if (arguments_.some(value => typeof value === 'object' && !compiledEntryArgumentType(value))) return undefined;
-                    const guarded = arguments_.map(compiledEntryArgumentType);
-                    if (!guarded.every((type): type is CompiledCalleeType => type !== undefined)) return undefined;
-                    types = guarded;
-                } else if (arguments_.some(value => typeof value !== 'bigint' && typeof value !== 'number'
-                    && typeof value !== 'boolean' && typeof value !== 'string')) return undefined;
-                types ??= arguments_.map(value => compiledEntryArgumentType(value)!);
-                const key = types.map(compiledCalleeTypeKey).join(',');
+                for (const value of arguments_) {
+                    // Prove each storage argument once per invocation.
+                    // An ineligible first argument needs no signature array.
+                    const type = compiledScalarType(value) ?? compiledEntryArgumentType(value);
+                    if (!type) return undefined;
+                    (types ??= []).push(type);
+                }
+                const key = types!.map(compiledCalleeTypeKey).join(',');
                 let entry = typedEntries.get(key);
                 if (entry === undefined) {
                     const typedProof = this.host.scalarEntry(statement, generator, types, captures);

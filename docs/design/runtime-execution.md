@@ -32,6 +32,13 @@ capability snapshots: ordinary and reference. Inspection selects the reference
 snapshot dynamically and restores the ordinary one when inspection ends. The
 FastPaths context shares this getter instead of resolving all flags per step.
 
+Functions defined outside inspection with scalar entries disabled do not create
+entry selectors or run compiled argument-storage proofs on ordinary calls.
+Definitions made during inspection retain selectors: inspection is temporary,
+and later calls may use the ordinary compiled capabilities again. Entry selection
+checks each storage argument once per invocation, including cached specializations;
+mutations and native method replacements still invalidate entry eligibility.
+
 The differential test runs every demo and embedded Rank test in both modes. It
 compares eager return values, output, errors and host effects using fixed random
 input, an isolated environment and in-memory files. Lazy streams are observed
