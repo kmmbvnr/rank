@@ -1,0 +1,50 @@
+rem Standing on the Shoulders of Trolls
+rem https://projecteuler.net/problem=732
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 1000
+
+rem With shoulder heights a, arm lengths
+rem b and IQs w, a troll can finish a
+rem stack at time s + a only up to the
+rem deadline d = A + b + a - T, where
+rem A = sum a and T = ceil(A / sqrt 2).
+rem A set is feasible when it passes in
+rem deadline order, so a knapsack over
+rem the total height t keeps the best
+rem total IQ for each t.
+Ts = 0 to 3 * Nn - 1
+Pw = 5 Ts 1000000007 powmod
+Rr = Pw mod 101 + 50
+Mt = Rr reshape Nn 3
+Aa = Mt # 0
+Bb = Mt # 1
+Ww = Mt # 2
+Sa = Aa sum
+Th = (Sa * Sa // 2) isqrt
+if 2 * Th * Th less Sa * Sa
+  Th += 1
+end
+Dl = Sa + Bb - Th + Aa
+Od = (Dl * 1000 + Aa) argsort
+Dn = Dl Od
+Pn = Aa Od
+Wn = Ww Od
+Mx = Dn max
+Dp = array shape (Mx + 1) fill -1000000
+Dp 0 = 0
+for J in 0 to Nn - 1
+  Pj = Pn J
+  Dj = Dn J
+  if Dj at least Pj
+    Lo = Dp (0 to Dj - Pj) + Wn J
+    Hi = Dp (Pj to Dj)
+    Dp (Pj to Dj) = Hi max Lo
+  end
+end
+Answer = Dp max
+Answer print
