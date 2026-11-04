@@ -1,0 +1,96 @@
+rem Paths to Equality
+rem https://projecteuler.net/problem=736
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Mx integer = 98
+arg Lo integer = 2
+arg Sp integer = 2
+
+rem A word of m steps with R letters r
+rem and S letters s ends at x = y
+rem exactly when D = x 2^(S-b) -
+rem y 2^(R-a) hits 0
+rem after a r's and b s's. Starting at
+rem (45, 90), r adds 2^(S-b) to D and s
+rem subtracts 2^(R-a). The number of
+rem completions from (rr, ss, D) is
+rem memoised (saturating at 2); states
+rem outside the reachable interval count
+rem 0. Lengths run in order (Lo, Sp: the
+rem odd path lengths are even step
+rem counts); the first unique word is
+rem replayed to get the final value.
+memo Fx cnt Dd
+  Rr = Fx // 128
+  Ss = Fx mod 128
+  if Rr equal 0 and Ss equal 0
+    return (Dd equal 0) integer
+  end
+  Lo = Dd + Rr - Ss * 2 ** Rr
+  Hi = Dd + Rr * 2 ** Ss - Ss
+  if Lo greater 0 or Hi less 0
+    return 0
+  end
+  Cn = 0
+  if Rr greater 0
+    Pk = (Rr - 1) * 128 + Ss
+    Cn = Pk cnt (Dd + 2 ** Ss)
+  end
+  if Ss greater 0 and Cn less 2
+    Pk = Rr * 128 + Ss - 1
+    Cn += Pk cnt (Dd - 2 ** Rr)
+  end
+  return Cn min 2
+end
+Ms = Lo to Mx by Sp
+Rs = 0 to Mx
+Mc = Ms reshape (Ms len) 1
+Qm = Mc + Rs * 0
+Qr = Mc * 0 + Rs
+Ok = Qr at most Qm
+Fm = (Qm filter Ok) array
+Fr = (Qr filter Ok) array
+Hit = 0
+Wr = 0
+Ws = 0
+for J in 0 to Fm len - 1
+  Rr = Fr J
+  Ss = Fm J - Rr
+  Dd = 45 * 2 ** Ss - 90 * 2 ** Rr
+  Cn = Rr * 128 + Ss cnt Dd
+  if Cn equal 1
+    Hit = 1
+    Wr = Rr
+    Ws = Ss
+    break
+  end
+end
+Xx = 45
+Yy = 90
+Rr = Wr
+Ss = Ws
+Dd = 45 * 2 ** Ss - 90 * 2 ** Rr
+for K in 1 to Wr + Ws
+  Pk = Rr * 128 + Ss - 128
+  Gr = 0
+  if Rr greater 0
+    Gr = Pk cnt (Dd + 2 ** Ss)
+  end
+  if Gr greater 0
+    Xx += 1
+    Yy *= 2
+    Dd += 2 ** Ss
+    Rr -= 1
+  else
+    Xx *= 2
+    Yy += 1
+    Dd -= 2 ** Rr
+    Ss -= 1
+  end
+end
+Answer = Xx
+Answer print
