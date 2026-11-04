@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "726_fallingbottles"
+  Nn = 1
+  run
+  Answer equal 1
+  Nn = 2
+  run
+  Answer equal 7
+  Nn = 3
+  run
+  Answer equal 1015
+end
