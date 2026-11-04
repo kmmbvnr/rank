@@ -1,0 +1,51 @@
+rem Ascending Subsequences
+rem https://projecteuler.net/problem=733
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Nn integer = 1000000
+arg Pm integer = 1000000007
+
+rem N(t, i) counts the increasing runs
+rem of t terms ending at term i and W(t,
+rem i) sums their elements. A run of
+rem t - 1 terms ending earlier at a
+rem smaller value extends: N(t, i) is a
+rem prefix sum of N(t - 1) over smaller
+rem ranks, W(t, i) = prefix of W(t - 1)
+rem + a_i N(t, i). Fenwick trees over
+rem value ranks keep the prefix sums.
+Is = 1 to Nn
+Aa = 153 Is 10000019 powmod
+Uv = Aa sort unique
+Rk = Uv lowerindex Aa
+Mu = Uv len
+F1 = Mu fenwick
+F2 = Mu fenwick
+F3 = Mu fenwick
+G1 = Mu fenwick
+G2 = Mu fenwick
+G3 = Mu fenwick
+Answer = 0
+for I in 0 to Nn - 1
+  R = Rk I
+  A = Aa I
+  N2 = F1 sum (R - 1) mod Pm
+  W2 = (G1 sum (R - 1) + A * N2) mod Pm
+  N3 = F2 sum (R - 1) mod Pm
+  W3 = (G2 sum (R - 1) + A * N3) mod Pm
+  N4 = F3 sum (R - 1) mod Pm
+  W4 = (G3 sum (R - 1) + A * N4) mod Pm
+  Answer = (Answer + W4) mod Pm
+  F1 R += 1
+  G1 R += A
+  F2 R += N2
+  G2 R += W2
+  F3 R += N3
+  G3 R += W3
+end
+Answer print
