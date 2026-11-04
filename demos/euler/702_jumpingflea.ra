@@ -1,0 +1,50 @@
+rem Jumping Flea
+rem https://projecteuler.net/problem=702
+
+use numbers
+use algo
+use io
+use bits
+use cli
+
+arg Nn integer = 123456789
+
+rem S(N) = bulk term, minus the dyadic
+rem corrections C(N, 2^d), plus a gap
+rem correction. C(u, v) = (v-1)(v-2)
+rem minus Ph(u, v); Ph recurses like
+rem Euclid and is memoised by pair.
+Memo = new index
+
+fun Memo U V phi
+  A = U mod V
+  if V less 2 or A less 2
+    return 0
+  end
+  Hit = Memo A V default -1
+  if Hit at least 0
+    return Hit
+  end
+  Q = V // A
+  R = V mod A
+  Pa = Memo A R phi
+  Pb = Memo A (A - R) phi
+  Sq = Q * (Q + 1) * A * (A - 1) // 4
+  Pv = Sq + (Q + 1) * Pa - Q * Pb
+  Memo A V = Pv
+  return Pv
+end
+
+Lg = Nn binary len
+Bk = Nn * (3 * Nn + 1) // 2
+Answer = Bk * (Lg + 1)
+for D in 2 to Lg
+  V = 2 ** D
+  Ph = Memo Nn V phi
+  Answer -= (V - 1) * (V - 2) - Ph
+end
+V = 2 ** Lg - Nn
+Ph = Memo Nn V phi
+Cv = (V - 1) * (V - 2) - Ph
+Answer += 2 * Cv
+Answer print
