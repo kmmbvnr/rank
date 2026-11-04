@@ -1,0 +1,3332 @@
+{
+  "baseline": "8fecf9229efb27da03ca75e4a8fbc037cfda0369",
+  "baselineInterpreterSnapshot": "80507fc9 (identical interpreter source)",
+  "deliveryCore": "86ecc924",
+  "measurementRuntime": "isolated baseline plus Euler 378 changes only",
+  "node": "24.15.0",
+  "samples": {
+    "mac": [
+      {
+        "round": 0,
+        "variant": "baseline",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6147.81625,
+        "rssMiB": 260.34375,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 0,
+        "variant": "compiler-only",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 3077.277667,
+        "rssMiB": 263.03125,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 0,
+        "variant": "combined",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 2649.831667,
+        "rssMiB": 218.96875,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 7682,
+            "type": "BigInt64Array",
+            "bytes": 61456
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "baseline",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6572.326291,
+        "rssMiB": 260.234375,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "compiler-only",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 2058.5465409999997,
+        "rssMiB": 262.0625,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "combined",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 2107.257417,
+        "rssMiB": 217.125,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 7682,
+            "type": "BigInt64Array",
+            "bytes": 61456
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "baseline",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 8210.985375,
+        "rssMiB": 263.203125,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "compiler-only",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 2094.3999160000003,
+        "rssMiB": 260.765625,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "combined",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 2139.458167,
+        "rssMiB": 218.015625,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 7682,
+            "type": "BigInt64Array",
+            "bytes": 61456
+          }
+        }
+      },
+      {
+        "round": 0,
+        "variant": "combined-full",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "60000000",
+        "mode": "compiled",
+        "answer": "147534623725724718",
+        "ms": 17147.487667,
+        "rssMiB": 405.265625,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 60000002,
+            "type": "Int32Array",
+            "bytes": 240000008
+          },
+          "Freq": {
+            "length": 451585,
+            "type": "Int32Array",
+            "bytes": 1806340
+          },
+          "Less": {
+            "length": 23042,
+            "type": "BigInt64Array",
+            "bytes": 184336
+          }
+        },
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "primeRunSieves": 0,
+          "cellsComputed": 23041,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 3,
+          "fusedArrayRegions": 0,
+          "fusedArrayRegionCells": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "integerKeyedFolds": 0,
+          "realKeyedFolds": 0,
+          "keyedNativeReaders": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 2,
+          "numberLoopUnpolled": 2,
+          "numberLoopBatched": 0,
+          "numberFunctions": 0,
+          "numberFunctionFallbacks": 0,
+          "numberFunctionSkips": 0,
+          "numberFunctionArrayBorrows": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 1,
+          "numberLoopOverflows": 0,
+          "numberLoopSliceCopies": 0,
+          "numberLoopSliceCopyCells": 0,
+          "numberLoopSliceDirectCells": 0,
+          "numberLoopReadBuffers": 1,
+          "numberLoopReadBufferCells": 23042,
+          "numberLoopReadBufferHits": 0,
+          "numberLoopBorrowedRealBuffers": 0,
+          "numberLoopBorrowedRealCells": 0,
+          "modularMatrixPowers": 0,
+          "compiledTensors": 0,
+          "packedBooleanGathers": 0,
+          "packedBooleanGatherCells": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "numericFunctionPreparations": 0,
+          "numericFunctionPlanHits": 0,
+          "compiledNumericCallLoops": 0,
+          "numericLoopCalls": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 7745,
+          "bulkArrayWriteCells": 541924745,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedArrayPublications": 2,
+          "typedArrayPublishedCells": 60451587,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 2,
+            "number-loop:condition-write-budget": 1,
+            "scalar-expression:unsupported-op:**": 4,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:application-form:BinaryExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "number-loop:unsafe-input": 1
+          },
+          "compilerRejections": []
+        }
+      },
+      {
+        "round": 1,
+        "variant": "combined-full",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "60000000",
+        "mode": "compiled",
+        "answer": "147534623725724718",
+        "ms": 16641.315334000003,
+        "rssMiB": 409.390625,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 60000002,
+            "type": "Int32Array",
+            "bytes": 240000008
+          },
+          "Freq": {
+            "length": 451585,
+            "type": "Int32Array",
+            "bytes": 1806340
+          },
+          "Less": {
+            "length": 23042,
+            "type": "BigInt64Array",
+            "bytes": 184336
+          }
+        },
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "primeRunSieves": 0,
+          "cellsComputed": 23041,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 3,
+          "fusedArrayRegions": 0,
+          "fusedArrayRegionCells": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "integerKeyedFolds": 0,
+          "realKeyedFolds": 0,
+          "keyedNativeReaders": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 2,
+          "numberLoopUnpolled": 2,
+          "numberLoopBatched": 0,
+          "numberFunctions": 0,
+          "numberFunctionFallbacks": 0,
+          "numberFunctionSkips": 0,
+          "numberFunctionArrayBorrows": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 1,
+          "numberLoopOverflows": 0,
+          "numberLoopSliceCopies": 0,
+          "numberLoopSliceCopyCells": 0,
+          "numberLoopSliceDirectCells": 0,
+          "numberLoopReadBuffers": 1,
+          "numberLoopReadBufferCells": 23042,
+          "numberLoopReadBufferHits": 0,
+          "numberLoopBorrowedRealBuffers": 0,
+          "numberLoopBorrowedRealCells": 0,
+          "modularMatrixPowers": 0,
+          "compiledTensors": 0,
+          "packedBooleanGathers": 0,
+          "packedBooleanGatherCells": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "numericFunctionPreparations": 0,
+          "numericFunctionPlanHits": 0,
+          "compiledNumericCallLoops": 0,
+          "numericLoopCalls": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 7745,
+          "bulkArrayWriteCells": 541924745,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedArrayPublications": 2,
+          "typedArrayPublishedCells": 60451587,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 2,
+            "number-loop:condition-write-budget": 1,
+            "scalar-expression:unsupported-op:**": 4,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:application-form:BinaryExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "number-loop:unsafe-input": 1
+          },
+          "compilerRejections": []
+        }
+      },
+      {
+        "round": 2,
+        "variant": "combined-full",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "60000000",
+        "mode": "compiled",
+        "answer": "147534623725724718",
+        "ms": 16413.278,
+        "rssMiB": 409.34375,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 60000002,
+            "type": "Int32Array",
+            "bytes": 240000008
+          },
+          "Freq": {
+            "length": 451585,
+            "type": "Int32Array",
+            "bytes": 1806340
+          },
+          "Less": {
+            "length": 23042,
+            "type": "BigInt64Array",
+            "bytes": 184336
+          }
+        },
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "primeRunSieves": 0,
+          "cellsComputed": 23041,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 3,
+          "fusedArrayRegions": 0,
+          "fusedArrayRegionCells": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "integerKeyedFolds": 0,
+          "realKeyedFolds": 0,
+          "keyedNativeReaders": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 2,
+          "numberLoopUnpolled": 2,
+          "numberLoopBatched": 0,
+          "numberFunctions": 0,
+          "numberFunctionFallbacks": 0,
+          "numberFunctionSkips": 0,
+          "numberFunctionArrayBorrows": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 1,
+          "numberLoopOverflows": 0,
+          "numberLoopSliceCopies": 0,
+          "numberLoopSliceCopyCells": 0,
+          "numberLoopSliceDirectCells": 0,
+          "numberLoopReadBuffers": 1,
+          "numberLoopReadBufferCells": 23042,
+          "numberLoopReadBufferHits": 0,
+          "numberLoopBorrowedRealBuffers": 0,
+          "numberLoopBorrowedRealCells": 0,
+          "modularMatrixPowers": 0,
+          "compiledTensors": 0,
+          "packedBooleanGathers": 0,
+          "packedBooleanGatherCells": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "numericFunctionPreparations": 0,
+          "numericFunctionPlanHits": 0,
+          "compiledNumericCallLoops": 0,
+          "numericLoopCalls": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 7745,
+          "bulkArrayWriteCells": 541924745,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedArrayPublications": 2,
+          "typedArrayPublishedCells": 60451587,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 2,
+            "number-loop:condition-write-budget": 1,
+            "scalar-expression:unsupported-op:**": 4,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:application-form:BinaryExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "number-loop:unsafe-input": 1
+          },
+          "compilerRejections": []
+        }
+      }
+    ],
+    "intel": [
+      {
+        "round": 0,
+        "variant": "baseline",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 18603.292109,
+        "rssMiB": 242.828125,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 0,
+        "variant": "compiler-only",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 7515.421948,
+        "rssMiB": 247.7890625,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 0,
+        "variant": "combined",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6279.263398,
+        "rssMiB": 203.17578125,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 7682,
+            "type": "BigInt64Array",
+            "bytes": 61456
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "baseline",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 18750.124681,
+        "rssMiB": 246.23828125,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "compiler-only",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 7595.872257,
+        "rssMiB": 240.5546875,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "combined",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6439.812935999999,
+        "rssMiB": 204.96484375,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 7682,
+            "type": "BigInt64Array",
+            "bytes": 61456
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "baseline",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 19759.703059,
+        "rssMiB": 245.4296875,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "compiler-only",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 7829.224295999999,
+        "rssMiB": 231.14453125,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "combined",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6426.568036,
+        "rssMiB": 205.046875,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 7682,
+            "type": "BigInt64Array",
+            "bytes": 61456
+          }
+        }
+      },
+      {
+        "round": 0,
+        "variant": "combined-full",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "60000000",
+        "mode": "compiled",
+        "answer": "147534623725724718",
+        "ms": 42055.499244,
+        "rssMiB": 400.234375,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 60000002,
+            "type": "Int32Array",
+            "bytes": 240000008
+          },
+          "Freq": {
+            "length": 451585,
+            "type": "Int32Array",
+            "bytes": 1806340
+          },
+          "Less": {
+            "length": 23042,
+            "type": "BigInt64Array",
+            "bytes": 184336
+          }
+        },
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "primeRunSieves": 0,
+          "cellsComputed": 23041,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 3,
+          "fusedArrayRegions": 0,
+          "fusedArrayRegionCells": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "integerKeyedFolds": 0,
+          "realKeyedFolds": 0,
+          "keyedNativeReaders": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 2,
+          "numberLoopUnpolled": 2,
+          "numberLoopBatched": 0,
+          "numberFunctions": 0,
+          "numberFunctionFallbacks": 0,
+          "numberFunctionSkips": 0,
+          "numberFunctionArrayBorrows": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 1,
+          "numberLoopOverflows": 0,
+          "numberLoopSliceCopies": 0,
+          "numberLoopSliceCopyCells": 0,
+          "numberLoopSliceDirectCells": 0,
+          "numberLoopReadBuffers": 1,
+          "numberLoopReadBufferCells": 23042,
+          "numberLoopReadBufferHits": 0,
+          "numberLoopBorrowedRealBuffers": 0,
+          "numberLoopBorrowedRealCells": 0,
+          "modularMatrixPowers": 0,
+          "compiledTensors": 0,
+          "packedBooleanGathers": 0,
+          "packedBooleanGatherCells": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "numericFunctionPreparations": 0,
+          "numericFunctionPlanHits": 0,
+          "compiledNumericCallLoops": 0,
+          "numericLoopCalls": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 7745,
+          "bulkArrayWriteCells": 541924745,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedArrayPublications": 2,
+          "typedArrayPublishedCells": 60451587,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 2,
+            "number-loop:condition-write-budget": 1,
+            "scalar-expression:unsupported-op:**": 4,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:application-form:BinaryExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "number-loop:unsafe-input": 1
+          },
+          "compilerRejections": []
+        }
+      },
+      {
+        "round": 1,
+        "variant": "combined-full",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "60000000",
+        "mode": "compiled",
+        "answer": "147534623725724718",
+        "ms": 41211.365348,
+        "rssMiB": 397.21875,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 60000002,
+            "type": "Int32Array",
+            "bytes": 240000008
+          },
+          "Freq": {
+            "length": 451585,
+            "type": "Int32Array",
+            "bytes": 1806340
+          },
+          "Less": {
+            "length": 23042,
+            "type": "BigInt64Array",
+            "bytes": 184336
+          }
+        },
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "primeRunSieves": 0,
+          "cellsComputed": 23041,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 3,
+          "fusedArrayRegions": 0,
+          "fusedArrayRegionCells": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "integerKeyedFolds": 0,
+          "realKeyedFolds": 0,
+          "keyedNativeReaders": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 2,
+          "numberLoopUnpolled": 2,
+          "numberLoopBatched": 0,
+          "numberFunctions": 0,
+          "numberFunctionFallbacks": 0,
+          "numberFunctionSkips": 0,
+          "numberFunctionArrayBorrows": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 1,
+          "numberLoopOverflows": 0,
+          "numberLoopSliceCopies": 0,
+          "numberLoopSliceCopyCells": 0,
+          "numberLoopSliceDirectCells": 0,
+          "numberLoopReadBuffers": 1,
+          "numberLoopReadBufferCells": 23042,
+          "numberLoopReadBufferHits": 0,
+          "numberLoopBorrowedRealBuffers": 0,
+          "numberLoopBorrowedRealCells": 0,
+          "modularMatrixPowers": 0,
+          "compiledTensors": 0,
+          "packedBooleanGathers": 0,
+          "packedBooleanGatherCells": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "numericFunctionPreparations": 0,
+          "numericFunctionPlanHits": 0,
+          "compiledNumericCallLoops": 0,
+          "numericLoopCalls": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 7745,
+          "bulkArrayWriteCells": 541924745,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedArrayPublications": 2,
+          "typedArrayPublishedCells": 60451587,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 2,
+            "number-loop:condition-write-budget": 1,
+            "scalar-expression:unsupported-op:**": 4,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:application-form:BinaryExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "number-loop:unsafe-input": 1
+          },
+          "compilerRejections": []
+        }
+      },
+      {
+        "round": 2,
+        "variant": "combined-full",
+        "file": "demos/euler/378_triangles.ra",
+        "limit": "60000000",
+        "mode": "compiled",
+        "answer": "147534623725724718",
+        "ms": 41208.894606,
+        "rssMiB": 399.3671875,
+        "stages": [],
+        "storage": {
+          "Div": {
+            "length": 60000002,
+            "type": "Int32Array",
+            "bytes": 240000008
+          },
+          "Freq": {
+            "length": 451585,
+            "type": "Int32Array",
+            "bytes": 1806340
+          },
+          "Less": {
+            "length": 23042,
+            "type": "BigInt64Array",
+            "bytes": 184336
+          }
+        },
+        "diagnostics": {
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequencePredicateCalls": 0,
+          "primeRunSieves": 0,
+          "cellsComputed": 23041,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "nativeSequenceCopies": 0,
+          "compiledLoops": 3,
+          "fusedArrayRegions": 0,
+          "fusedArrayRegionCells": 0,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "integerKeyedFolds": 0,
+          "realKeyedFolds": 0,
+          "keyedNativeReaders": 0,
+          "compiledGraphAdds": 0,
+          "compiledEffectCalls": 0,
+          "numericSorts": 0,
+          "numericInPlaceSorts": 0,
+          "numericDistincts": 0,
+          "compiledDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSmallestSelections": 0,
+          "numericUniqueSums": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 2,
+          "numberLoopUnpolled": 2,
+          "numberLoopBatched": 0,
+          "numberFunctions": 0,
+          "numberFunctionFallbacks": 0,
+          "numberFunctionSkips": 0,
+          "numberFunctionArrayBorrows": 0,
+          "exactLoopWorkSamples": 0,
+          "exactLoopWorkPromotions": 0,
+          "numberLoopCopyProbes": 0,
+          "numberLoopCopyAmortized": 0,
+          "mixedIntegerLoops": 1,
+          "numberLoopOverflows": 0,
+          "numberLoopSliceCopies": 0,
+          "numberLoopSliceCopyCells": 0,
+          "numberLoopSliceDirectCells": 0,
+          "numberLoopReadBuffers": 1,
+          "numberLoopReadBufferCells": 23042,
+          "numberLoopReadBufferHits": 0,
+          "numberLoopBorrowedRealBuffers": 0,
+          "numberLoopBorrowedRealCells": 0,
+          "modularMatrixPowers": 0,
+          "compiledTensors": 0,
+          "packedBooleanGathers": 0,
+          "packedBooleanGatherCells": 0,
+          "tensorRangeScans": 0,
+          "tensorRangeScannedCells": 0,
+          "numberTensors": 0,
+          "compiledCounterBuilds": 0,
+          "compiledCounterSums": 0,
+          "compiledCounterKeys": 0,
+          "tensorMapPreparations": 0,
+          "compiledArrayFunctions": 0,
+          "numericFunctionPreparations": 0,
+          "numericFunctionPlanHits": 0,
+          "compiledNumericCallLoops": 0,
+          "numericLoopCalls": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 7745,
+          "bulkArrayWriteCells": 541924745,
+          "fusedArrayUpdates": 0,
+          "fusedArrayUpdateCells": 0,
+          "fusedArrayUpdateWidenings": 0,
+          "reusedTensorBuffers": 0,
+          "reusedTensorBufferCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "rangeSelectorViews": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedArrayPublications": 2,
+          "typedArrayPublishedCells": 60451587,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "scalar-expression:too-small": 4,
+            "tensor:unsupported-type:array": 2,
+            "number-loop:condition-write-budget": 1,
+            "scalar-expression:unsupported-op:**": 4,
+            "scalar-expression:unsupported-op:+": 2,
+            "tensor:application-form:BinaryExpression": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "number-loop:unsafe-input": 1
+          },
+          "compilerRejections": []
+        }
+      }
+    ]
+  },
+  "verification": {
+    "mac": [
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      }
+    ],
+    "intel": [
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "delivery",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "delivery",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      }
+    ]
+  },
+  "fixtures": {
+    "mac": [
+      {
+        "file": "demos/euler/378_triangles_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "triangle triples",
+            "passed": true,
+            "output": [
+              "14",
+              "5772",
+              "11174776"
+            ],
+            "durationMs": 31.926958999999954
+          },
+          {
+            "name": "no triples in short inputs",
+            "passed": true,
+            "output": [
+              "0",
+              "0",
+              "0"
+            ],
+            "durationMs": 8.01320800000002
+          }
+        ]
+      },
+      {
+        "file": "demos/euler/378_triangles_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "triangle triples",
+            "passed": true,
+            "output": [
+              "14",
+              "5772",
+              "11174776"
+            ],
+            "durationMs": 20.567916000000025
+          },
+          {
+            "name": "no triples in short inputs",
+            "passed": true,
+            "output": [
+              "0",
+              "0",
+              "0"
+            ],
+            "durationMs": 10.12745799999999
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/006_rangeupdate_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 7.180666000000031
+          },
+          {
+            "name": "update may reach the end",
+            "passed": true,
+            "output": [],
+            "durationMs": 4.478416999999979
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/006_rangeupdate_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 4.268375000000049
+          },
+          {
+            "name": "update may reach the end",
+            "passed": true,
+            "output": [],
+            "durationMs": 3.8988330000000246
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/023_polynomial_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 10.528707999999995
+          },
+          {
+            "name": "overlapping progressions",
+            "passed": true,
+            "output": [],
+            "durationMs": 5.9357499999999845
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/023_polynomial_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 9.610250000000008
+          },
+          {
+            "name": "overlapping progressions",
+            "passed": true,
+            "output": [],
+            "durationMs": 9.221625000000017
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/021_forest2_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 15.21083299999998
+          },
+          {
+            "name": "toggles corners twice",
+            "passed": true,
+            "output": [],
+            "durationMs": 12.209749999999985
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/021_forest2_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 14.332915999999955
+          },
+          {
+            "name": "toggles corners twice",
+            "passed": true,
+            "output": [],
+            "durationMs": 11.111666999999898
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/017_distinct_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "overlapping queries",
+            "passed": true,
+            "output": [],
+            "durationMs": 5.884874999999965
+          },
+          {
+            "name": "all equal and all unique",
+            "passed": true,
+            "output": [],
+            "durationMs": 4.442417000000091
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/017_distinct_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "overlapping queries",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.089207999999985
+          },
+          {
+            "name": "all equal and all unique",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.7430420000000595
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/010_salary_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 5.408333000000084
+          },
+          {
+            "name": "duplicates and new values",
+            "passed": true,
+            "output": [],
+            "durationMs": 4.8572920000000295
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/010_salary_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.11566700000003
+          },
+          {
+            "name": "duplicates and new values",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.05316700000003
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/sortnsrch/021_ranges_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 9.583292000000029
+          },
+          {
+            "name": "disjoint ranges",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.186709000000064
+          },
+          {
+            "name": "nested chain",
+            "passed": true,
+            "output": [],
+            "durationMs": 5.948875000000044
+          },
+          {
+            "name": "equal right endpoints",
+            "passed": true,
+            "output": [],
+            "durationMs": 5.76845800000001
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/sortnsrch/021_ranges_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 8.449457999999936
+          },
+          {
+            "name": "disjoint ranges",
+            "passed": true,
+            "output": [],
+            "durationMs": 7.3156249999999545
+          },
+          {
+            "name": "nested chain",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.445666999999958
+          },
+          {
+            "name": "equal right endpoints",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.4419169999999895
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/dynamic/023_incsubseq2_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 2.426417000000015
+          },
+          {
+            "name": "strictly increasing",
+            "passed": true,
+            "output": [],
+            "durationMs": 29.523707999999942
+          },
+          {
+            "name": "strictly decreasing",
+            "passed": true,
+            "output": [],
+            "durationMs": 3.341666000000032
+          },
+          {
+            "name": "equal values stay separate",
+            "passed": true,
+            "output": [],
+            "durationMs": 2.2609580000000733
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/dynamic/023_incsubseq2_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 3.1057500000000573
+          },
+          {
+            "name": "strictly increasing",
+            "passed": true,
+            "output": [],
+            "durationMs": 2.851583000000005
+          },
+          {
+            "name": "strictly decreasing",
+            "passed": true,
+            "output": [],
+            "durationMs": 2.590958999999998
+          },
+          {
+            "name": "equal values stay separate",
+            "passed": true,
+            "output": [],
+            "durationMs": 2.5758749999999964
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/math/015_permutationorder_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 5.519833999999946
+          },
+          {
+            "name": "one element",
+            "passed": true,
+            "output": [],
+            "durationMs": 4.028582999999912
+          },
+          {
+            "name": "first and last orders",
+            "passed": true,
+            "output": [],
+            "durationMs": 3.7907500000000027
+          },
+          {
+            "name": "round trips a large rank",
+            "passed": true,
+            "output": [],
+            "durationMs": 5.529457999999977
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/math/015_permutationorder_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 7.963582999999971
+          },
+          {
+            "name": "one element",
+            "passed": true,
+            "output": [],
+            "durationMs": 5.497375000000034
+          },
+          {
+            "name": "first and last orders",
+            "passed": true,
+            "output": [],
+            "durationMs": 4.310249999999996
+          },
+          {
+            "name": "round trips a large rank",
+            "passed": true,
+            "output": [],
+            "durationMs": 7.033708000000047
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/tree/011_pathqueries_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 10.135083000000009
+          },
+          {
+            "name": "keeps caller values unchanged across updates and repeated runs",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.621457999999961
+          },
+          {
+            "name": "root path contains only root",
+            "passed": true,
+            "output": [],
+            "durationMs": 4.581749999999943
+          },
+          {
+            "name": "update changes every lower path",
+            "passed": true,
+            "output": [],
+            "durationMs": 5.0278749999999945
+          },
+          {
+            "name": "sibling update stays off path",
+            "passed": true,
+            "output": [],
+            "durationMs": 4.530375000000049
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/tree/011_pathqueries_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.332042000000001
+          },
+          {
+            "name": "keeps caller values unchanged across updates and repeated runs",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.281624999999963
+          },
+          {
+            "name": "root path contains only root",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.406207999999992
+          },
+          {
+            "name": "update changes every lower path",
+            "passed": true,
+            "output": [],
+            "durationMs": 7.466499999999996
+          },
+          {
+            "name": "sibling update stays off path",
+            "passed": true,
+            "output": [],
+            "durationMs": 5.724374999999895
+          }
+        ]
+      }
+    ],
+    "intel": [
+      {
+        "file": "demos/euler/378_triangles_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "triangle triples",
+            "passed": true,
+            "output": [
+              "14",
+              "5772",
+              "11174776"
+            ],
+            "durationMs": 102.11606099999995
+          },
+          {
+            "name": "no triples in short inputs",
+            "passed": true,
+            "output": [
+              "0",
+              "0",
+              "0"
+            ],
+            "durationMs": 21.806090999999924
+          }
+        ]
+      },
+      {
+        "file": "demos/euler/378_triangles_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "triangle triples",
+            "passed": true,
+            "output": [
+              "14",
+              "5772",
+              "11174776"
+            ],
+            "durationMs": 53.31723899999997
+          },
+          {
+            "name": "no triples in short inputs",
+            "passed": true,
+            "output": [
+              "0",
+              "0",
+              "0"
+            ],
+            "durationMs": 27.837933999999905
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/006_rangeupdate_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 18.56488200000001
+          },
+          {
+            "name": "update may reach the end",
+            "passed": true,
+            "output": [],
+            "durationMs": 12.49367899999993
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/006_rangeupdate_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 12.022046000000046
+          },
+          {
+            "name": "update may reach the end",
+            "passed": true,
+            "output": [],
+            "durationMs": 12.89194699999996
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/023_polynomial_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 23.06719700000008
+          },
+          {
+            "name": "overlapping progressions",
+            "passed": true,
+            "output": [],
+            "durationMs": 16.720397000000048
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/023_polynomial_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 26.187477999999828
+          },
+          {
+            "name": "overlapping progressions",
+            "passed": true,
+            "output": [],
+            "durationMs": 22.25361500000008
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/021_forest2_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 43.33643099999995
+          },
+          {
+            "name": "toggles corners twice",
+            "passed": true,
+            "output": [],
+            "durationMs": 41.65074000000004
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/021_forest2_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 45.50062600000001
+          },
+          {
+            "name": "toggles corners twice",
+            "passed": true,
+            "output": [],
+            "durationMs": 38.042916000000105
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/017_distinct_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "overlapping queries",
+            "passed": true,
+            "output": [],
+            "durationMs": 15.863337000000001
+          },
+          {
+            "name": "all equal and all unique",
+            "passed": true,
+            "output": [],
+            "durationMs": 13.192610999999943
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/017_distinct_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "overlapping queries",
+            "passed": true,
+            "output": [],
+            "durationMs": 17.013259000000062
+          },
+          {
+            "name": "all equal and all unique",
+            "passed": true,
+            "output": [],
+            "durationMs": 15.701098999999886
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/010_salary_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 18.405505000000176
+          },
+          {
+            "name": "duplicates and new values",
+            "passed": true,
+            "output": [],
+            "durationMs": 13.714341999999988
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/range/010_salary_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 18.03399000000013
+          },
+          {
+            "name": "duplicates and new values",
+            "passed": true,
+            "output": [],
+            "durationMs": 17.897600999999895
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/sortnsrch/021_ranges_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 22.45308
+          },
+          {
+            "name": "disjoint ranges",
+            "passed": true,
+            "output": [],
+            "durationMs": 17.66933199999994
+          },
+          {
+            "name": "nested chain",
+            "passed": true,
+            "output": [],
+            "durationMs": 20.20389
+          },
+          {
+            "name": "equal right endpoints",
+            "passed": true,
+            "output": [],
+            "durationMs": 16.42899199999988
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/sortnsrch/021_ranges_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 20.478814000000057
+          },
+          {
+            "name": "disjoint ranges",
+            "passed": true,
+            "output": [],
+            "durationMs": 20.21516399999996
+          },
+          {
+            "name": "nested chain",
+            "passed": true,
+            "output": [],
+            "durationMs": 21.486218000000008
+          },
+          {
+            "name": "equal right endpoints",
+            "passed": true,
+            "output": [],
+            "durationMs": 18.593184000000065
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/dynamic/023_incsubseq2_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.914569000000029
+          },
+          {
+            "name": "strictly increasing",
+            "passed": true,
+            "output": [],
+            "durationMs": 81.12560899999994
+          },
+          {
+            "name": "strictly decreasing",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.535425999999916
+          },
+          {
+            "name": "equal values stay separate",
+            "passed": true,
+            "output": [],
+            "durationMs": 6.408638999999994
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/dynamic/023_incsubseq2_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 9.051369000000022
+          },
+          {
+            "name": "strictly increasing",
+            "passed": true,
+            "output": [],
+            "durationMs": 11.978128999999853
+          },
+          {
+            "name": "strictly decreasing",
+            "passed": true,
+            "output": [],
+            "durationMs": 8.182089000000133
+          },
+          {
+            "name": "equal values stay separate",
+            "passed": true,
+            "output": [],
+            "durationMs": 7.858259999999973
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/math/015_permutationorder_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 21.13764399999991
+          },
+          {
+            "name": "one element",
+            "passed": true,
+            "output": [],
+            "durationMs": 11.203555999999935
+          },
+          {
+            "name": "first and last orders",
+            "passed": true,
+            "output": [],
+            "durationMs": 10.904489000000012
+          },
+          {
+            "name": "round trips a large rank",
+            "passed": true,
+            "output": [],
+            "durationMs": 12.539075000000139
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/math/015_permutationorder_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 21.40035799999987
+          },
+          {
+            "name": "one element",
+            "passed": true,
+            "output": [],
+            "durationMs": 18.76957500000026
+          },
+          {
+            "name": "first and last orders",
+            "passed": true,
+            "output": [],
+            "durationMs": 12.820440999999846
+          },
+          {
+            "name": "round trips a large rank",
+            "passed": true,
+            "output": [],
+            "durationMs": 14.8438799999999
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/tree/011_pathqueries_test.ra",
+        "compilation": false,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 27.229260000000068
+          },
+          {
+            "name": "keeps caller values unchanged across updates and repeated runs",
+            "passed": true,
+            "output": [],
+            "durationMs": 15.687530000000152
+          },
+          {
+            "name": "root path contains only root",
+            "passed": true,
+            "output": [],
+            "durationMs": 13.765223000000333
+          },
+          {
+            "name": "update changes every lower path",
+            "passed": true,
+            "output": [],
+            "durationMs": 18.461851000000024
+          },
+          {
+            "name": "sibling update stays off path",
+            "passed": true,
+            "output": [],
+            "durationMs": 13.852085999999872
+          }
+        ]
+      },
+      {
+        "file": "demos/cses/tree/011_pathqueries_test.ra",
+        "compilation": true,
+        "tests": [
+          {
+            "name": "official example",
+            "passed": true,
+            "output": [],
+            "durationMs": 17.87917000000016
+          },
+          {
+            "name": "keeps caller values unchanged across updates and repeated runs",
+            "passed": true,
+            "output": [],
+            "durationMs": 21.748453000000154
+          },
+          {
+            "name": "root path contains only root",
+            "passed": true,
+            "output": [],
+            "durationMs": 15.871004999999968
+          },
+          {
+            "name": "update changes every lower path",
+            "passed": true,
+            "output": [],
+            "durationMs": 16.70339100000001
+          },
+          {
+            "name": "sibling update stays off path",
+            "passed": true,
+            "output": [],
+            "durationMs": 16.811997000000247
+          }
+        ]
+      }
+    ]
+  },
+  "focusedTests": {
+    "mac": {
+      "files": 18,
+      "passed": 1016
+    },
+    "intel": {
+      "files": 6,
+      "passed": 144
+    }
+  },
+  "typecheckPassed": true,
+  "integrationMain": {
+    "revision": "86ecc924",
+    "focusedTests": 62,
+    "fullGoldenTests": 1,
+    "passed": true
+  }
+}

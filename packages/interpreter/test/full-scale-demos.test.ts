@@ -301,3 +301,15 @@ it('checks Euler 305 with the full reflexive-position sum', () => {
         expect(runtime.variables.get('Answer')).toBe(18174995535140n);
     } finally { runtime.dispose(); }
 }, 60_000);
+
+it('checks the full Euler 378 total with a private numeric Fenwick tree', () => {
+    const url = new URL('../../../demos/euler/378_triangles.ra', import.meta.url);
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(147534623725724718n);
+        expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    } finally { runtime.dispose(); }
+}, 120_000);

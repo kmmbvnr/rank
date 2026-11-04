@@ -1,0 +1,55 @@
+rem Triangle Triples
+rem https://projecteuler.net/problem=378
+
+use numbers
+use algo
+use io
+use sequences
+use cli
+
+arg Limit integer = 60000000
+
+rem D(n) is the divisor count of T(n).
+Max = Limit + 1
+Div = array shape (Max + 1) fill 0
+Root = Max isqrt
+for D in 1 to Root
+  Div (D * D) += 1
+  Div (D * (D + 1) to Max by D) += 2
+end
+rem @stage sieve
+Bound = Div max ** 2
+Freq = array shape (Bound + 1) fill 0
+Top = 0
+for N in 1 to Limit
+  V = 0
+  if N mod 2 equal 0
+    V = Div (N // 2) * Div (N + 1)
+  else
+    V = Div N * Div ((N + 1) // 2)
+  end
+  Freq V += 1
+  Top = Top max V
+end
+Less = Freq (0 to Top) scan + with 0
+rem @stage histogram
+Cnt = Top + 1 fenwick
+Seen = 0
+Mod = 10 ** 18
+Answer = 0
+for N in 1 to Limit
+  V = 0
+  if N mod 2 equal 0
+    V = Div (N // 2) * Div (N + 1)
+  else
+    V = Div N * Div ((N + 1) // 2)
+  end
+  Before = Cnt sum V
+  More = Seen - Before
+  After = Less V - Before + Cnt V
+  Answer += More * After
+  Answer mod= Mod
+  Cnt V += 1
+  Seen += 1
+end
+Answer print

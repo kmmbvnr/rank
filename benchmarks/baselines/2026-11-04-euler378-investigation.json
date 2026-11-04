@@ -1,0 +1,3021 @@
+{
+  "baseline": "8fecf9229efb27da03ca75e4a8fbc037cfda0369",
+  "runtimeSnapshot": "80507fc9 (identical interpreter source)",
+  "node": "24.15.0",
+  "productionChanged": false,
+  "mac": {
+    "original-full": {
+      "file": "benchmarks/experiments/euler378-original.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 45345.230875,
+      "rssMiB": 687.46875,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 8569.381500000001
+        },
+        {
+          "stage": "bounds",
+          "ms": 8880.545459
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        }
+      }
+    },
+    "original-full-profile": {
+      "file": "benchmarks/experiments/euler378-original.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 46325.873499999994,
+      "rssMiB": 699.71875,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 8665.19825
+        },
+        {
+          "stage": "bounds",
+          "ms": 8988.723417
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        }
+      }
+    },
+    "one-tree-full": {
+      "file": "benchmarks/experiments/euler378-one-tree.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 35958.129,
+      "rssMiB": 464.453125,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 7623.934917
+        },
+        {
+          "stage": "histogram",
+          "ms": 9510.169958
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        },
+        "Freq": {
+          "length": 451585,
+          "type": "Int32Array",
+          "bytes": 1806340
+        },
+        "Less": {
+          "length": 451586,
+          "type": "BigInt64Array",
+          "bytes": 3612688
+        }
+      }
+    },
+    "number-full": {
+      "file": "benchmarks/experiments/euler378-one-tree.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 16609.598833,
+      "rssMiB": 484.265625,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 7229.846708
+        },
+        {
+          "stage": "histogram",
+          "ms": 9297.250042
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        },
+        "Freq": {
+          "length": 451585,
+          "type": "Int32Array",
+          "bytes": 1806340
+        },
+        "Less": {
+          "length": 451586,
+          "type": "BigInt64Array",
+          "bytes": 3612688
+        }
+      },
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 3,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "numberLoopUnpolled": 2,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 451586,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 7745,
+        "bulkArrayWriteCells": 541924745,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 2,
+        "typedArrayPublishedCells": 60451587,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 2,
+          "number-loop:condition-write-budget": 1,
+          "scalar-expression:unsupported-op:**": 4,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:application-form:BinaryExpression": 1,
+          "number-loop:unsafe-input": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "number-original-full": {
+      "file": "benchmarks/experiments/euler378-original.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 16594.659375,
+      "rssMiB": 691.8125,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 7596.111708
+        },
+        {
+          "stage": "bounds",
+          "ms": 7910.776124999999
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        }
+      },
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 3,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "numberLoopUnpolled": 3,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 1,
+        "typedArrayPublishedCells": 60000002,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:**": 1,
+          "number-loop:unsafe-input": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "bounded-full": {
+      "file": "benchmarks/experiments/euler378-bounded-tree.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 16156.272624999998,
+      "rssMiB": 411.40625,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 5941.044375
+        },
+        {
+          "stage": "histogram",
+          "ms": 9257.351542
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        },
+        "Freq": {
+          "length": 451585,
+          "type": "Int32Array",
+          "bytes": 1806340
+        },
+        "Less": {
+          "length": 23042,
+          "type": "BigInt64Array",
+          "bytes": 184336
+        }
+      },
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 23041,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 3,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "numberLoopUnpolled": 2,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 23042,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 7745,
+        "bulkArrayWriteCells": 541924745,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 2,
+        "typedArrayPublishedCells": 60451587,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 2,
+          "number-loop:condition-write-budget": 1,
+          "scalar-expression:unsupported-op:**": 4,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:application-form:BinaryExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "number-loop:unsafe-input": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "final-mod-full": {
+      "file": "benchmarks/experiments/euler378-final-mod.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 16964.235167000003,
+      "rssMiB": 514.296875,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 5899.382708
+        },
+        {
+          "stage": "histogram",
+          "ms": 8977.594874999999
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        },
+        "Freq": {
+          "length": 451585,
+          "type": "Int32Array",
+          "bytes": 1806340
+        },
+        "Less": {
+          "length": 451586,
+          "type": "BigInt64Array",
+          "bytes": 3612688
+        }
+      },
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 3,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "numberLoopUnpolled": 3,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 903172,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 7745,
+        "bulkArrayWriteCells": 541924745,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 2,
+        "typedArrayPublishedCells": 60451587,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 2,
+          "number-loop:condition-write-budget": 1,
+          "scalar-expression:unsupported-op:**": 4,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:application-form:BinaryExpression": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "original-small": {
+      "file": "benchmarks/experiments/euler378-original.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "answer": "17911338911265382",
+      "ms": 670.097792,
+      "rssMiB": 187.125,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 137.539584
+        },
+        {
+          "stage": "bounds",
+          "ms": 147.42708399999998
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 1000002,
+          "type": "Int32Array",
+          "bytes": 4000008
+        }
+      }
+    },
+    "paired-small": {
+      "file": "benchmarks/experiments/euler378-paired.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "answer": "17911338911265382",
+      "ms": 703.7525420000001,
+      "rssMiB": 188,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 155.59145900000001
+        },
+        {
+          "stage": "bounds",
+          "ms": 164.997042
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 1000002,
+          "type": "Int32Array",
+          "bytes": 4000008
+        }
+      }
+    },
+    "one-tree-small": {
+      "file": "benchmarks/experiments/euler378-one-tree.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "answer": "17911338911265382",
+      "ms": 570.19075,
+      "rssMiB": 185.71875,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 151.77395899999996
+        },
+        {
+          "stage": "histogram",
+          "ms": 193.04637499999998
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 1000002,
+          "type": "Int32Array",
+          "bytes": 4000008
+        },
+        "Freq": {
+          "length": 57601,
+          "type": "Int32Array",
+          "bytes": 230404
+        },
+        "Less": {
+          "length": 57602,
+          "type": "BigInt64Array",
+          "bytes": 460816
+        }
+      }
+    },
+    "number-small": {
+      "file": "benchmarks/experiments/euler378-one-tree.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "answer": "17911338911265382",
+      "ms": 310.230667,
+      "rssMiB": 186.1875,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 149.28875000000005
+        },
+        {
+          "stage": "histogram",
+          "ms": 189.866084
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 3,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "numberLoopUnpolled": 2,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 57602,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 999,
+        "bulkArrayWriteCells": 6984519,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 2,
+        "typedArrayPublishedCells": 1057603,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 2,
+          "number-loop:condition-write-budget": 1,
+          "scalar-expression:unsupported-op:**": 4,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:application-form:BinaryExpression": 1,
+          "number-loop:unsafe-input": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "final-mod-small": {
+      "file": "benchmarks/experiments/euler378-final-mod.ra",
+      "limit": "1000000",
+      "mode": "compiled",
+      "answer": "17911338911265382",
+      "ms": 373.22916599999996,
+      "rssMiB": 185.90625,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 160.61950000000002
+        },
+        {
+          "stage": "histogram",
+          "ms": 204.433875
+        }
+      ],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 3,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "numberLoopUnpolled": 3,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 115204,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 999,
+        "bulkArrayWriteCells": 6984519,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 2,
+        "typedArrayPublishedCells": 1057603,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 2,
+          "number-loop:condition-write-budget": 1,
+          "scalar-expression:unsupported-op:**": 4,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:application-form:BinaryExpression": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "reference-original": {
+      "file": "benchmarks/experiments/euler378-original.ra",
+      "limit": "10000",
+      "mode": "reference",
+      "answer": "14544175026",
+      "ms": 494.23870800000003,
+      "rssMiB": 285.734375,
+      "stages": []
+    },
+    "reference-bounded": {
+      "file": "benchmarks/experiments/euler378-bounded-tree.ra",
+      "limit": "10000",
+      "mode": "reference",
+      "answer": "14544175026",
+      "ms": 319.9311670000001,
+      "rssMiB": 191.09375,
+      "stages": []
+    }
+  },
+  "intel": {
+    "original-full": {
+      "file": "euler378-original.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 122154.09869999999,
+      "rssMiB": 667.08203125,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 27659.594655999997
+        },
+        {
+          "stage": "bounds",
+          "ms": 28531.772907
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        }
+      }
+    },
+    "one-tree-full": {
+      "file": "euler378-one-tree.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 86165.405295,
+      "rssMiB": 478.0390625,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 16141.494172
+        },
+        {
+          "stage": "histogram",
+          "ms": 21139.736266
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        },
+        "Freq": {
+          "length": 451585,
+          "type": "Int32Array",
+          "bytes": 1806340
+        },
+        "Less": {
+          "length": 451586,
+          "type": "BigInt64Array",
+          "bytes": 3612688
+        }
+      }
+    },
+    "number-full": {
+      "file": "benchmarks/experiments/euler378-one-tree.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 41171.911861,
+      "rssMiB": 485.65625,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 15878.082828999999
+        },
+        {
+          "stage": "histogram",
+          "ms": 20980.174379
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        },
+        "Freq": {
+          "length": 451585,
+          "type": "Int32Array",
+          "bytes": 1806340
+        },
+        "Less": {
+          "length": 451586,
+          "type": "BigInt64Array",
+          "bytes": 3612688
+        }
+      },
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 3,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "numberLoopUnpolled": 2,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 451586,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 7745,
+        "bulkArrayWriteCells": 541924745,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 2,
+        "typedArrayPublishedCells": 60451587,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 2,
+          "number-loop:condition-write-budget": 1,
+          "scalar-expression:unsupported-op:**": 4,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:application-form:BinaryExpression": 1,
+          "number-loop:unsafe-input": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "bounded-full": {
+      "file": "benchmarks/experiments/euler378-bounded-tree.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 38660.718676000004,
+      "rssMiB": 400.75390625,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 14422.990048000001
+        },
+        {
+          "stage": "histogram",
+          "ms": 19505.991518000003
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        },
+        "Freq": {
+          "length": 451585,
+          "type": "Int32Array",
+          "bytes": 1806340
+        },
+        "Less": {
+          "length": 23042,
+          "type": "BigInt64Array",
+          "bytes": 184336
+        }
+      },
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 23041,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 3,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "numberLoopUnpolled": 2,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 23042,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 7745,
+        "bulkArrayWriteCells": 541924745,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 2,
+        "typedArrayPublishedCells": 60451587,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 2,
+          "number-loop:condition-write-budget": 1,
+          "scalar-expression:unsupported-op:**": 4,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:application-form:BinaryExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "number-loop:unsafe-input": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "final-mod-full": {
+      "file": "benchmarks/experiments/euler378-final-mod.ra",
+      "limit": "60000000",
+      "mode": "compiled",
+      "answer": "147534623725724718",
+      "ms": 41604.046007000004,
+      "rssMiB": 497.625,
+      "stages": [
+        {
+          "stage": "sieve",
+          "ms": 14875.806962
+        },
+        {
+          "stage": "histogram",
+          "ms": 19878.752637999998
+        }
+      ],
+      "storage": {
+        "Div": {
+          "length": 60000002,
+          "type": "Int32Array",
+          "bytes": 240000008
+        },
+        "Freq": {
+          "length": 451585,
+          "type": "Int32Array",
+          "bytes": 1806340
+        },
+        "Less": {
+          "length": 451586,
+          "type": "BigInt64Array",
+          "bytes": 3612688
+        }
+      },
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 3,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 3,
+        "numberLoopUnpolled": 3,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 1,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 2,
+        "numberLoopReadBufferCells": 903172,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 7745,
+        "bulkArrayWriteCells": 541924745,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 2,
+        "typedArrayPublishedCells": 60451587,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-type:array": 2,
+          "number-loop:condition-write-budget": 1,
+          "scalar-expression:unsupported-op:**": 4,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:application-form:BinaryExpression": 1
+        },
+        "compilerRejections": []
+      }
+    }
+  },
+  "series": {
+    "mac": [
+      {
+        "round": 0,
+        "variant": "original",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 8292.436958,
+        "rssMiB": 263.34375,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 1506.837292
+          },
+          {
+            "stage": "bounds",
+            "ms": 1597.9016669999999
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 0,
+        "variant": "one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 4840.804208,
+        "rssMiB": 222.265625,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 697.265292
+          },
+          {
+            "stage": "histogram",
+            "ms": 1024.395667
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      },
+      {
+        "round": 0,
+        "variant": "number-one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 2134.276792,
+        "rssMiB": 227.296875,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 704.277792
+          },
+          {
+            "stage": "histogram",
+            "ms": 1038.764458
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "original",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6074.738667,
+        "rssMiB": 263.15625,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 830.991584
+          },
+          {
+            "stage": "bounds",
+            "ms": 889.2422919999999
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6346.7085,
+        "rssMiB": 225.078125,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 705.654917
+          },
+          {
+            "stage": "histogram",
+            "ms": 1037.02675
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "number-one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 2578.625417,
+        "rssMiB": 224.875,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 765.906542
+          },
+          {
+            "stage": "histogram",
+            "ms": 1150.69425
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "original",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6462.192916999999,
+        "rssMiB": 259.828125,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 861.157042
+          },
+          {
+            "stage": "bounds",
+            "ms": 921.452667
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 7154.386791,
+        "rssMiB": 225.46875,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 1241.234708
+          },
+          {
+            "stage": "histogram",
+            "ms": 1864.40725
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "number-one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 2338.49825,
+        "rssMiB": 221.015625,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 816.5988749999999
+          },
+          {
+            "stage": "histogram",
+            "ms": 1167.470959
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      }
+    ],
+    "intel": [
+      {
+        "round": 0,
+        "variant": "original",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 19197.167049,
+        "rssMiB": 241.83984375,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 3618.1063489999997
+          },
+          {
+            "stage": "bounds",
+            "ms": 3775.5890379999996
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 0,
+        "variant": "one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 14092.834068,
+        "rssMiB": 211.5546875,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 2390.560504
+          },
+          {
+            "stage": "histogram",
+            "ms": 3233.147787
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      },
+      {
+        "round": 0,
+        "variant": "number-one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6830.802637,
+        "rssMiB": 214.7734375,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 2348.483927
+          },
+          {
+            "stage": "histogram",
+            "ms": 3226.609024
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "original",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 19209.312215,
+        "rssMiB": 242.66015625,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 3670.8328789999996
+          },
+          {
+            "stage": "bounds",
+            "ms": 3827.4674990000003
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 14236.658382,
+        "rssMiB": 212.6484375,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 2360.002317
+          },
+          {
+            "stage": "histogram",
+            "ms": 3251.200049
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      },
+      {
+        "round": 1,
+        "variant": "number-one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6782.059819,
+        "rssMiB": 210.9921875,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 2281.6127739999997
+          },
+          {
+            "stage": "histogram",
+            "ms": 3207.6486959999997
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "original",
+        "file": "benchmarks/experiments/euler378-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 19233.555614,
+        "rssMiB": 242.015625,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 3567.306196
+          },
+          {
+            "stage": "bounds",
+            "ms": 3728.4350440000003
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 14739.367447999999,
+        "rssMiB": 211.89453125,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 2522.684352
+          },
+          {
+            "stage": "histogram",
+            "ms": 3392.752684
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      },
+      {
+        "round": 2,
+        "variant": "number-one-tree",
+        "file": "benchmarks/experiments/euler378-one-tree.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "answer": "830128211315630867",
+        "ms": 6792.911129,
+        "rssMiB": 213.59375,
+        "stages": [
+          {
+            "stage": "sieve",
+            "ms": 2231.53069
+          },
+          {
+            "stage": "histogram",
+            "ms": 3125.5061450000003
+          }
+        ],
+        "storage": {
+          "Div": {
+            "length": 10000002,
+            "type": "Int32Array",
+            "bytes": 40000008
+          },
+          "Freq": {
+            "length": 200705,
+            "type": "Int32Array",
+            "bytes": 802820
+          },
+          "Less": {
+            "length": 200706,
+            "type": "BigInt64Array",
+            "bytes": 1605648
+          }
+        }
+      }
+    ]
+  },
+  "verification": {
+    "mac": [
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      }
+    ],
+    "intel": [
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 0,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 1,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 2,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 3,
+        "answer": "0"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 10,
+        "answer": "1"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 20,
+        "answer": "14"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 30,
+        "answer": "60"
+      },
+      {
+        "variant": "original",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "original",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "paired",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "paired",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "one-tree",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "bounded-tree",
+        "mode": "reference",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "number-one-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      },
+      {
+        "variant": "number-bounded-tree",
+        "mode": "compiled",
+        "limit": 100,
+        "answer": "5772"
+      }
+    ]
+  }
+}
