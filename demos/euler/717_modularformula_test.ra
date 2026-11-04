@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "717_modularformula"
+  Nn = 100
+  run
+  Answer equal 474
+  Nn = 10000
+  run
+  Answer equal 2819236
+end
+
+test "default input"
+  use "717_modularformula"
+  run
+  Answer equal 1603036763131
+end
