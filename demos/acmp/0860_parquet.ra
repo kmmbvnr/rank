@@ -1,0 +1,140 @@
+use algo
+use cli
+use io
+use sequences
+use text
+
+arg Input text = "8 8
+........
+........
+........
+........
+........
+........
+........
+........"
+
+Lines = (Input split "\r") join ""
+Clean = Lines split "\n"
+Parts = (Clean 0) split " "
+N = (Parts 0) integer
+M = (Parts 1) integer
+
+NeedTrans = N less M
+Map = "0123456789"
+
+GridStr = (Clean (1 to N)) join ""
+AllChars = GridStr split ""
+Grid = AllChars reshape N M
+
+if NeedTrans
+  Grid = Grid transpose
+  OldN = N
+  N = M
+  M = OldN
+end
+
+K = N * M
+InitState = "0000000000" take M
+
+DP = new index
+DP InitState = 1
+States = new set
+States add InitState
+
+for I in 0 till K
+  R = I // M
+  C = I mod M
+  IsWall = (Grid R C) equal "#"
+
+  NextDP = new index
+  NextStates = new set
+
+  for S in States
+    Ways = DP S
+    Digits = (S split "") integer
+    Hc = Digits C
+
+    if Hc greater 0
+      if not IsWall
+        Prev = 0
+        if S in NextDP
+          Prev = NextDP S
+        end
+        NextDP S = Prev + Ways
+        NextStates add S
+      end
+    else
+      if IsWall
+        Prev = 0
+        if S in NextDP
+          Prev = NextDP S
+        end
+        NextDP S = Prev + Ways
+        NextStates add S
+      else
+        MaxS = (N - R) min (M - C)
+        Stop = false
+        for S_sz in 1 to MaxS
+          if not Stop
+            Span = C to (C + S_sz - 1)
+            Eq0 = Digits Span equal 0
+            ColFree = Eq0 reduce and
+            if not ColFree
+              Stop = true
+            else
+              R2 = R + S_sz - 1
+              R_span = R to R2
+              Sub = Grid R_span Span
+              WallM = Sub equal "#"
+              HasWall = WallM reduce or
+              if HasWall
+                Stop = true
+              else
+                NewD = Digits
+                NewD Span = S_sz
+                NewS = Map NewD
+                Prev = 0
+                if NewS in NextDP
+                  Prev = NextDP NewS
+                end
+                SumW = Prev + Ways
+                NextDP NewS = SumW
+                NextStates add NewS
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  if C equal (M - 1)
+    RowDP = new index
+    RowStates = new set
+    for S in NextStates
+      Ways = NextDP S
+      D = (S split "") integer
+      D_new = (D - 1) max 0
+      NewS = Map D_new
+      Prev = 0
+      if NewS in RowDP
+        Prev = RowDP NewS
+      end
+      RowDP NewS = Prev + Ways
+      RowStates add NewS
+    end
+    DP = RowDP
+    States = RowStates
+  else
+    DP = NextDP
+    States = NextStates
+  end
+end
+
+Ans = 0
+if InitState in DP
+  Ans = DP InitState
+end
+
+Ans print

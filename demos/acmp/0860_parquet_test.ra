@@ -1,0 +1,51 @@
+rem Tests for ACMP 0860 Parquet
+
+use testing
+
+test "default 8x8 empty grid"
+  use "0860_parquet"
+  run
+
+  Ans equal 35863972
+end
+
+test "sample 1: 3x3 empty -> 6"
+  use "0860_parquet"
+  Input = "3 3
+...
+...
+..."
+  run
+
+  Ans equal 6
+end
+
+test "sample 2: 3x3 with walls -> 1"
+  use "0860_parquet"
+  Input = "3 3
+.#.
+...
+.#."
+  run
+
+  Ans equal 1
+end
+
+test "sample 3: 1x1 wall -> 1"
+  use "0860_parquet"
+  Input = "1 1
+#"
+  run
+
+  Ans equal 1
+end
+
+test "2x4 empty with transposition -> 5"
+  use "0860_parquet"
+  Input = "2 4
+....
+...."
+  run
+
+  Ans equal 5
+end
