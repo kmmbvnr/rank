@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "729_periodicrange"
+  Pp = 3
+  run
+  Answer equal "14.6461"
+  Pp = 5
+  run
+  Answer equal "124.1056"
+end
