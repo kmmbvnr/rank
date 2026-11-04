@@ -1,0 +1,321 @@
+rem ACMP 0608 About Love
+rem Visibility polygon intersection
+
+use algo
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "2 0
+-2 0
+1
+-1 -2 1 2"
+
+Seps = array " " "\n" "\r"
+Raw = Input split Seps
+NonEmp = Raw (Raw not equal "")
+Tokens = NonEmp real
+
+G1x = Tokens 0
+G1y = Tokens 1
+G2x = Tokens 2
+G2y = Tokens 3
+N = (Tokens 4) integer
+
+HasObs = N greater 0
+Rx1 = array 0.0
+Ry1 = array 0.0
+Rx2 = array 0.0
+Ry2 = array 0.0
+if HasObs
+  Rest = Tokens drop 5
+  I0 = 0 till N
+  Rx1 = Rest (I0 * 4)
+  Ry1 = Rest ((I0 * 4) + 1)
+  Rx2 = Rest ((I0 * 4) + 2)
+  Ry2 = Rest ((I0 * 4) + 3)
+end
+
+ContactsX_q = new queue
+ContactsY_q = new queue
+if HasObs
+  for I in 0 till N
+    for J in (I + 1) till N
+      Xi1 = Rx1 I
+      Yi1 = Ry1 I
+      Xi2 = Rx2 I
+      Yi2 = Ry2 I
+      Xj1 = Rx1 J
+      Yj1 = Ry1 J
+      Xj2 = Rx2 J
+      Yj2 = Ry2 J
+
+      M_x1 = Xi2 equal Xj1
+      M_y1 = Yi2 equal Yj1
+      if M_x1 and M_y1
+        ContactsX_q push Xi2
+        ContactsY_q push Yi2
+      end
+      M_y2 = Yi1 equal Yj2
+      if M_x1 and M_y2
+        ContactsX_q push Xi2
+        ContactsY_q push Yi1
+      end
+      M_x2 = Xi1 equal Xj2
+      if M_x2 and M_y1
+        ContactsX_q push Xi1
+        ContactsY_q push Yi2
+      end
+      if M_x2 and M_y2
+        ContactsX_q push Xi1
+        ContactsY_q push Yi1
+      end
+    end
+  end
+end
+
+AllCx = (ContactsX_q reverse) reverse
+AllCy = (ContactsY_q reverse) reverse
+NumContacts = AllCx shape 0
+
+CandsX_q = new queue
+CandsY_q = new queue
+
+rem Midpoint of G1 G2
+CandsX_q push ((G1x + G2x) / 2.0)
+CandsY_q push ((G1y + G2y) / 2.0)
+
+if HasObs
+  C1 = concat Rx1 Rx1
+  C2 = concat Rx2 Rx2
+  CornX = concat C1 C2
+  C3 = concat Ry1 Ry2
+  CornY = concat C3 C3
+
+  D1x = CornX - G1x
+  D1y = CornY - G1y
+  D2x = CornX - G2x
+  D2y = CornY - G2y
+
+  M1 = D1x D2y outer *
+  M2 = D1y D2x outer *
+  Det = M1 - M2
+  Dx = G2x - G1x
+  Dy = G2y - G1y
+  Num = (Dx * D2y) - (Dy * D2x)
+  ZeroDet = Det equal 0.0
+  SafeDet = ZeroDet choose 1.0 Det
+  T = Num / SafeDet
+  Px_mat = G1x + (D1x * T)
+  Py_mat = G1y + (D1y * T)
+
+  S0 = Px_mat shape 0
+  S1 = Px_mat shape 1
+  TotalP = S0 * S1
+  FlatPx = Px_mat reshape TotalP
+  FlatPy = Py_mat reshape TotalP
+  FlatDet = Det reshape TotalP
+
+  NumP = FlatPx shape 0
+  for P_i in 0 till NumP
+    Dval = (FlatDet P_i) abs
+    if Dval greater 0.000001
+      Xp = FlatPx P_i
+      Yp = FlatPy P_i
+      X_ge = Xp at least -200.0
+      X_le = Xp at most 200.0
+      Y_ge = Yp at least -200.0
+      Y_le = Yp at most 200.0
+      InX_bnd = X_ge and X_le
+      InY_bnd = Y_ge and Y_le
+      InBnd = InX_bnd and InY_bnd
+      if InBnd
+        CandsX_q push Xp
+        CandsY_q push Yp
+      end
+    end
+  end
+end
+
+rem Far circle points
+PI = 1.0 atan * 4.0
+for K in 0 till 72
+  Rad = (K * 5.0) * PI / 180.0
+  CandsX_q push ((Rad cos) * 500.0)
+  CandsY_q push ((Rad sin) * 500.0)
+end
+
+AllPx = (CandsX_q reverse) reverse
+AllPy = (CandsY_q reverse) reverse
+
+NumCands = AllPx shape 0
+Found = false
+AnsX = 0.0
+AnsY = 0.0
+
+if not HasObs
+  Found = true
+  AnsX = (G1x + G2x) / 2.0
+  AnsY = (G1y + G2y) / 2.0
+else
+  for I in 0 till NumCands
+    PX = AllPx I
+    PY = AllPy I
+
+    rem Check inside obstacle
+    InX1 = PX greater Rx1
+    InX2 = PX less Rx2
+    InX = InX1 and InX2
+    InY1 = PY greater Ry1
+    InY2 = PY less Ry2
+    InY = InY1 and InY2
+    InBox = InX and InY
+    if (InBox count) greater 0
+      continue
+    end
+
+    rem Check corner contacts
+    if NumContacts greater 0
+      DiffX = (PX - AllCx) abs
+      EqX = DiffX less 0.0000001
+      DiffY = (PY - AllCy) abs
+      EqY = DiffY less 0.0000001
+      OnC = EqX and EqY
+      if (OnC count) greater 0
+        continue
+      end
+    end
+
+    rem Check P to G1
+    Dx1 = G1x - PX
+    Dy1 = G1y - PY
+    Z_dx1 = Dx1 equal 0.0
+    SDx1 = Z_dx1 choose 1.0 Dx1
+    T1x1 = (Rx1 - PX) / SDx1
+    T2x1 = (Rx2 - PX) / SDx1
+    LeX1 = PX at most Rx1
+    GeX1 = PX at least Rx2
+    OutX1 = LeX1 or GeX1
+    ZeroTx1 = OutX1 choose 2.0 0.0
+    Tx11_m = T1x1 min T2x1
+    Tx21_m = T1x1 max T2x1
+    Tx11 = Z_dx1 choose ZeroTx1 Tx11_m
+    Tx21 = Z_dx1 choose 1.0 Tx21_m
+
+    Z_dy1 = Dy1 equal 0.0
+    SDy1 = Z_dy1 choose 1.0 Dy1
+    T1y1 = (Ry1 - PY) / SDy1
+    T2y1 = (Ry2 - PY) / SDy1
+    LeY1 = PY at most Ry1
+    GeY1 = PY at least Ry2
+    OutY1 = LeY1 or GeY1
+    ZeroTy1 = OutY1 choose 2.0 0.0
+    Ty11_m = T1y1 min T2y1
+    Ty21_m = T1y1 max T2y1
+    Ty11 = Z_dy1 choose ZeroTy1 Ty11_m
+    Ty21 = Z_dy1 choose 1.0 Ty21_m
+
+    Tent1 = (Tx11 max Ty11) max 0.0
+    Texit1 = (Tx21 min Ty21) min 1.0
+    Tent1_eps = Tent1 + 0.0000001
+    Blk1 = Tent1_eps less Texit1
+    if (Blk1 count) greater 0
+      continue
+    end
+
+    rem Check contacts on P to G1
+    if NumContacts greater 0
+      CPx1 = AllCx - PX
+      CPy1 = AllCy - PY
+      ProdX1 = CPx1 * Dy1
+      ProdY1 = CPy1 * Dx1
+      Cross1 = ProdX1 - ProdY1
+      Dot1 = (CPx1 * Dx1) + (CPy1 * Dy1)
+      LenSq1 = (Dx1 * Dx1) + (Dy1 * Dy1)
+      AbsC1 = Cross1 abs
+      C_zero1 = AbsC1 less 0.0000001
+      D_ge1 = Dot1 at least -0.0000001
+      Lim1 = LenSq1 + 0.0000001
+      D_le1 = Dot1 at most Lim1
+      On1 = C_zero1 and D_ge1
+      OnSeg1 = On1 and D_le1
+      if (OnSeg1 count) greater 0
+        continue
+      end
+    end
+
+    rem Check P to G2
+    Dx2 = G2x - PX
+    Dy2 = G2y - PY
+    Z_dx2 = Dx2 equal 0.0
+    SDx2 = Z_dx2 choose 1.0 Dx2
+    T1x2 = (Rx1 - PX) / SDx2
+    T2x2 = (Rx2 - PX) / SDx2
+    LeX2 = PX at most Rx1
+    GeX2 = PX at least Rx2
+    OutX2 = LeX2 or GeX2
+    ZeroTx2 = OutX2 choose 2.0 0.0
+    Tx12_m = T1x2 min T2x2
+    Tx22_m = T1x2 max T2x2
+    Tx12 = Z_dx2 choose ZeroTx2 Tx12_m
+    Tx22 = Z_dx2 choose 1.0 Tx22_m
+
+    Z_dy2 = Dy2 equal 0.0
+    SDy2 = Z_dy2 choose 1.0 Dy2
+    T1y2 = (Ry1 - PY) / SDy2
+    T2y2 = (Ry2 - PY) / SDy2
+    LeY2 = PY at most Ry1
+    GeY2 = PY at least Ry2
+    OutY2 = LeY2 or GeY2
+    ZeroTy2 = OutY2 choose 2.0 0.0
+    Ty12_m = T1y2 min T2y2
+    Ty22_m = T1y2 max T2y2
+    Ty12 = Z_dy2 choose ZeroTy2 Ty12_m
+    Ty22 = Z_dy2 choose 1.0 Ty22_m
+
+    Tent2 = (Tx12 max Ty12) max 0.0
+    Texit2 = (Tx22 min Ty22) min 1.0
+    Tent2_eps = Tent2 + 0.0000001
+    Blk2 = Tent2_eps less Texit2
+    if (Blk2 count) greater 0
+      continue
+    end
+
+    rem Check contacts on P to G2
+    if NumContacts greater 0
+      CPx2 = AllCx - PX
+      CPy2 = AllCy - PY
+      ProdX2 = CPx2 * Dy2
+      ProdY2 = CPy2 * Dx2
+      Cross2 = ProdX2 - ProdY2
+      Dot2 = (CPx2 * Dx2) + (CPy2 * Dy2)
+      LenSq2 = (Dx2 * Dx2) + (Dy2 * Dy2)
+      AbsC2 = Cross2 abs
+      C_zero2 = AbsC2 less 0.0000001
+      D_ge2 = Dot2 at least -0.0000001
+      Lim2 = LenSq2 + 0.0000001
+      D_le2 = Dot2 at most Lim2
+      On2 = C_zero2 and D_ge2
+      OnSeg2 = On2 and D_le2
+      if (OnSeg2 count) greater 0
+        continue
+      end
+    end
+
+    Found = true
+    AnsX = PX
+    AnsY = PY
+    break
+  end
+end
+
+Ans = Found choose "YES" "NO"
+Ans print
+if Found
+  TxtX = AnsX text
+  TxtY = AnsY text
+  PosStr = TxtX + " " + TxtY
+  PosStr print
+end
