@@ -876,7 +876,10 @@ sign. Overflow discards the entire unpublished attempt and executes the original
 BigInt region from its original inputs. Indexed rank-one integer, real and boolean stores use a
 private numeric buffer and changed-cell mask, so no array writes or callbacks
 escape that attempt. Normal/error publication writes changed cells with tracked
-revisions and copies shared sources without polling during the commit. Writes
+revisions and copies shared sources without polling during the commit. Packed
+32-bit publication validates every dirty cell before the first store. Its two
+JavaScript passes cover only the span between the first and last dirty cells;
+native bitmap searches find those bounds without allocating another buffer. Writes
 with retained selections, and array writes combined with vector iteration, retain
 the exact backend. A non-nested
 range loop with one indexed read per source at its cursor can read packed integer

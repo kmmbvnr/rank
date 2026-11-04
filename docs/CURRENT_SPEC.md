@@ -550,6 +550,16 @@ may change length but keep their element types. Records keep their shared identi
 unpack Length Width Height = array 2 3 4
 ```
 
+The right-hand values are completed before writing any target, so a tuple
+can exchange bindings without a temporary name:
+
+```rank
+unpack A B = tuple B A
+```
+
+Array values keep the ordinary snapshot rules. This syntax does not imply
+an in-place exchange of their underlying storage.
+
 `#` discards an item while preserving its position, as it does in a `for`
 binding:
 

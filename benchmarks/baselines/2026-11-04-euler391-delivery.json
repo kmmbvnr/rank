@@ -1,0 +1,313 @@
+{
+  "base": "a1d6410f57991938a09f07beb19cd2d9d2053061",
+  "date": "2026-11-04",
+  "method": "Three sequential fresh processes per host, parse+execute timed excluding imports; process maxRSS. Full reference/control single samples. Hosts run independently, no benchmark/test overlap per host; other system load uncontrolled.",
+  "hardware": {
+    "mac": "Apple M5 / Darwin arm64 / Node v24.15.0",
+    "intel": "Intel i7-10750H / Linux x86_64 / Node v24.15.0"
+  },
+  "mac": [
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 458.897792,
+      "rssMiB": 190.390625,
+      "answer": "61029882288",
+      "sample": 1
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 460.013583,
+      "rssMiB": 190.90625,
+      "answer": "61029882288",
+      "sample": 2
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 460.44204199999996,
+      "rssMiB": 190.9375,
+      "answer": "61029882288",
+      "sample": 3
+    },
+    {
+      "limit": "1000",
+      "mode": "reference",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 86048.974459,
+      "rssMiB": 389.8125,
+      "answer": "61029882288"
+    }
+  ],
+  "intel": [
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 929.498273,
+      "rssMiB": 165.05078125,
+      "answer": "61029882288"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 916.9021640000001,
+      "rssMiB": 185.1875,
+      "answer": "61029882288"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 909.5860379999999,
+      "rssMiB": 185.296875,
+      "answer": "61029882288"
+    }
+  ],
+  "originalMac": [
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 25179.353,
+      "rssMiB": 339.25,
+      "answer": "61029882288",
+      "sample": 1,
+      "variant": "original"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler391-banks.ra",
+      "ms": 569.285042,
+      "rssMiB": 191.96875,
+      "answer": "61029882288",
+      "sample": 1,
+      "variant": "banks"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler391-compact.ra",
+      "ms": 1263.305833,
+      "rssMiB": 328.0625,
+      "answer": "61029882288",
+      "sample": 1,
+      "variant": "compact"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 25524.221083,
+      "rssMiB": 333.359375,
+      "answer": "61029882288",
+      "sample": 2,
+      "variant": "original"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler391-banks.ra",
+      "ms": 603.208167,
+      "rssMiB": 191.640625,
+      "answer": "61029882288",
+      "sample": 2,
+      "variant": "banks"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler391-compact.ra",
+      "ms": 1288.205667,
+      "rssMiB": 329.765625,
+      "answer": "61029882288",
+      "sample": 2,
+      "variant": "compact"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 25603.843708,
+      "rssMiB": 338.484375,
+      "answer": "61029882288",
+      "sample": 3,
+      "variant": "original"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler391-banks.ra",
+      "ms": 595.895709,
+      "rssMiB": 192.65625,
+      "answer": "61029882288",
+      "sample": 3,
+      "variant": "banks"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler391-compact.ra",
+      "ms": 1343.918458,
+      "rssMiB": 354.09375,
+      "answer": "61029882288",
+      "sample": 3,
+      "variant": "compact"
+    }
+  ],
+  "originalIntel": [
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 64841.792030000004,
+      "rssMiB": 321.2734375,
+      "answer": "61029882288"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler391-banks.ra",
+      "ms": 1339.557229,
+      "rssMiB": 186.5625,
+      "answer": "61029882288"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler391-compact.ra",
+      "ms": 2834.694896,
+      "rssMiB": 251.82421875,
+      "answer": "61029882288"
+    }
+  ],
+  "runtimeOnlyControl": {
+    "mac": {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler391-original.ra",
+      "ms": 9926.5875,
+      "rssMiB": 429.375,
+      "answer": "61029882288"
+    },
+    "intel": {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler391-original.ra",
+      "ms": 41087.402235,
+      "rssMiB": 362.80859375,
+      "answer": "61029882288"
+    }
+  },
+  "verification": {
+    "cases": 252,
+    "moves": [
+      0,
+      2,
+      1,
+      4,
+      2,
+      2,
+      1,
+      7,
+      5,
+      5,
+      7,
+      4,
+      13,
+      7
+    ],
+    "files": [
+      "demos/euler/391_hopping.ra",
+      "benchmarks/experiments/euler391-original.ra",
+      "benchmarks/experiments/euler391-banks.ra",
+      "benchmarks/experiments/euler391-grow.ra",
+      "benchmarks/experiments/euler391-compact.ra",
+      "benchmarks/experiments/euler391-vector.ra",
+      "benchmarks/experiments/euler391-bank-vector.ra"
+    ],
+    "engines": [
+      "reference",
+      "compiled"
+    ]
+  },
+  "checks": {
+    "macFocusedTests": 223,
+    "macTupleManualTests": 338,
+    "intelFocusedTests": 82,
+    "scopedFixtureTypeAndDifferential": 2,
+    "build": true,
+    "testTypecheck": true,
+    "semanticBoundaryOwners": 65,
+    "applicationForms": true,
+    "fullSuiteRun": false,
+    "integratedMacFocusedTests": 587,
+    "integratedIntelFocusedTests": 142
+  },
+  "sourceSha256": {
+    "demos/euler/391_hopping.ra": "93fe97bfa72757dd48c61e0056501a2f4e39bf3878ceb6797064f2a57c718f4e",
+    "packages/interpreter/src/runtime/owned-array.ts": "6f87f41b2270a0677dfb6313308438bd5fc9ea6448e1cab48cfbee1c10cb9085"
+  },
+  "integratedBase": "ef8607d82462b8d770bac553c4971d6f03feadc2",
+  "integratedMac": [
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 460.411792,
+      "rssMiB": 190.671875,
+      "answer": "61029882288",
+      "sample": 1
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 459.972625,
+      "rssMiB": 190.984375,
+      "answer": "61029882288",
+      "sample": 2
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 458.809209,
+      "rssMiB": 190.765625,
+      "answer": "61029882288",
+      "sample": 3
+    }
+  ],
+  "integratedIntel": [
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 986.539431,
+      "rssMiB": 187.87890625,
+      "answer": "61029882288"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 1027.56513,
+      "rssMiB": 191.58984375,
+      "answer": "61029882288"
+    },
+    {
+      "limit": "1000",
+      "mode": "compiled",
+      "file": "demos/euler/391_hopping.ra",
+      "ms": 965.8617820000001,
+      "rssMiB": 187.98046875,
+      "answer": "61029882288"
+    }
+  ]
+}

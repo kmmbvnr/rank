@@ -2,6 +2,12 @@ use testing
 
 test "hopping game"
   use "391_hopping"
+  Limit = 0
+  run
+  Answer equal 0
+  Limit = 1
+  run
+  Answer equal 0
   Limit = 2
   run
   Answer equal 8

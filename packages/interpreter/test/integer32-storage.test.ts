@@ -129,6 +129,36 @@ end`));
         expect(readArrayItem(array, 1)).toBe(7n);
     });
 
+    it('commits sparse edge stores while ignoring invalid clean cells', () => {
+        const array = filledArray(7n, [N]);
+        const cells = new Float64Array(N).fill(NaN);
+        const dirty = new Uint8Array(N);
+        for (const index of [0, 41, N - 1]) {
+            dirty[index] = 1;
+            cells[index] = index - 50;
+        }
+        expect(writeInteger32Cells(array, cells, dirty)).toBe(true);
+        expect(readArrayItem(array, 0)).toBe(-50n);
+        expect(readArrayItem(array, 41)).toBe(-9n);
+        expect(readArrayItem(array, N - 1)).toBe(BigInt(N - 51));
+        expect(readArrayItem(array, 42)).toBe(7n);
+        dirty.fill(0);
+        expect(writeInteger32Cells(array, cells, dirty)).toBe(true);
+        expect(readArrayItem(array, 41)).toBe(-9n);
+    });
+
+    it.each([2147483648, NaN, 0.5])('rejects a sparse trailing invalid cell atomically (%s)', invalid => {
+        const array = filledArray(7n, [N]);
+        const cells = new Float64Array(N);
+        const dirty = new Uint8Array(N);
+        dirty[100] = dirty[N - 100] = 1;
+        cells[100] = 3;
+        cells[N - 100] = invalid;
+        expect(writeInteger32Cells(array, cells, dirty)).toBe(false);
+        expect(readArrayItem(array, 100)).toBe(7n);
+        expect(readArrayItem(array, N - 100)).toBe(7n);
+    });
+
     it('keeps a prepared compact reader current through exposure and kind changes', () => {
         const array = filledArray(-1n, [N]);
         const borrowed = borrowArrayStorage(array);

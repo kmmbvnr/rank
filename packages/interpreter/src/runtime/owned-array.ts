@@ -1057,14 +1057,19 @@ export function writeInteger32Cells(value: RankArray, cells: ArrayLike<number | 
     const state = ownedStorage.get(value);
     const target = state?.stable && !state.readOnlyCells && !state.validity ? state.typed : undefined;
     if (!(target instanceof Int32Array)) return false;
-    for (let index = 0; index < dirty.length; index++) {
+    // Most compiled stores touch a short slice of a much larger table.
+    // Native bitmap searches avoid two full JavaScript validation/store passes.
+    const first = dirty.indexOf(1);
+    if (first < 0) return true;
+    const last = dirty.lastIndexOf(1);
+    for (let index = first; index <= last; index++) {
         if (dirty[index]) {
             const cell = cells[index];
             if (typeof cell !== 'number' || cell !== (cell | 0)) return false;
         }
     }
     state!.revision = noteMutation(state!.birth);
-    for (let index = 0; index < dirty.length; index++) {
+    for (let index = first; index <= last; index++) {
         if (dirty[index]) target[index] = cells[index] as number;
     }
     return true;

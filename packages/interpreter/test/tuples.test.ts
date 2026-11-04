@@ -5,6 +5,21 @@ import { tuple, type RankArray } from '../src/value.js';
 for (const compiled of [true, false]) describe(`tuples and homogeneous arrays (compiled ${compiled})`, () => {
     const runtime = () => new Interpreter(() => {}, { compilation: compiled, scalarCompilation: compiled, integerLoopCompilation: compiled,
         tensorCellCompilation: compiled });
+    it('exchanges array bindings while preserving outside snapshots', () => {
+        const r = runtime();
+        try {
+            r.execute(`A = array 1 2
+B = array 3 4
+Saved = A
+unpack A B = tuple B A
+A 0 = 9
+B 1 = 8`);
+            expect(formatValue(r.execute('A')!)).toBe('9 4');
+            expect(formatValue(r.execute('B')!)).toBe('1 8');
+            expect(formatValue(r.execute('Saved')!)).toBe('1 2');
+        } finally { r.dispose(); }
+    });
+
     it('unpacks fixed positions across repeated calls', () => {
         const r = runtime();
         r.execute('fun Flag items\n if Flag\n return tuple 1 "yes"\n end\n return tuple 2 "no"\nend\nunpack X Y = true items\nunpack X Y = false items');
