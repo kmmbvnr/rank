@@ -70,6 +70,17 @@ export class ArrayBindingContract {
         }
     }
 
+    /** Inspect the established contract without reading cells or refining it. */
+    acceptsScalarArray(rank: number, type: 'integer' | 'real' | 'boolean'): boolean {
+        try {
+            this.merge(this.contract, { type: 'array', rank, elements: [{ type }] });
+            return true;
+        } catch (error) {
+            if (!(error instanceof RankError)) throw error;
+            return false;
+        }
+    }
+
     private at(path: Path | undefined): Contract | undefined {
         let result = this.contract;
         for (const key of this.keys(path)) result = key.position === undefined

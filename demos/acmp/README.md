@@ -97,6 +97,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0705** | [Оценка](0705_evaluation.ra) | Integer Arithmetic / Matrix Exponentiation (65%) | Martian population growth $\sum_{k=0}^{N-1} k^2 2^k \pmod M$ via $4 \times 4$ modular matrix exponentiation |
 | **0707** | [Зума](0707_zuma.ra) | Graph Theory / BFS (60%) | Zuma ball elimination with exact multi-level chain reactions via BFS and contiguous color block insertions |
 | **0714** | [Кольцевая автодорога](0714_circular_highway.ra) | Computational Geometry (65%) | Find count and minimum-radius circle equidistant to 4 points via vector circumcenter and perpendicular bisector intersection |
+| **0718** | [Новое слово в рекламе](0718_new_ad_word.ra) | String Parsing / Search (71%) | Minimal stacked advertising blocks containing target $S$ via column-major indexing, 2D character submatrix equality & vectorized row matching with `choose` |
 | **0721** | [Стрелки - 2](0721_arrows_2.ra) | Graph Theory (68%) | Extrema of directed cycles on board: min via component BFS trees and 2-cycle seeds, max via bipartite matching `maxflow` |
 | **0722** | [Шоколадки](0722_chocolates.ra) | Combinatorics / BigInt (60%) | 2-colored grids without size-3 monochromatic components via closed-form Fibonacci $2 F_{N+1} + 2 F_{M+1} - 2$ in 208-digit native BigInt arithmetic |
 | **0723** | [Доставка грибов](0723_mushroom_delivery.ra) | Graph Theory (70%) | Max delivery time without target revisiting via forward/backward vector BFS reachability, in-degree subgraph cycle detection & tropical DAG DP |

@@ -1,0 +1,86 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 718: New Word in Advertising
+rem Minimum stacked blocks for target S.
+
+arg Input text = "3 13
+hellodomorank
+advertisecity
+newbillboards
+domorank"
+
+fun solve_ad Input
+  Raw = (Input split "\r") join ""
+  Lines = Raw split "\n"
+  Head = (Lines 0) words integer
+  N = Head 0
+  L = Head 1
+
+  BlockLines = Lines (1 to N)
+  RawChars = BlockLines join "" split ""
+  Mat = RawChars reshape N L
+
+  S = Lines (N + 1)
+  M = S len
+  SChars = S split ""
+  AllBlocks = 0 to (N - 1)
+
+  MinK = (M + L - 1) // L
+  MaxK = M
+
+  for K in MinK to MaxK
+    MaxPos = (K * L) - M
+    for Pos in 0 to MaxPos
+      Idxs = Pos to (Pos + M - 1)
+      Cols = Idxs // K
+      Rows = Idxs mod K
+      Sub = Mat AllBlocks Cols
+      MatRows = Sub reshape N M
+      Matches = MatRows equal SChars
+
+      Matched = array shape K fill 0
+      Empty = array shape K fill false
+      Possible = true
+
+      for R in 0 to (K - 1)
+        Mask = Rows equal R
+        if (Mask count) equal 0
+          Empty R = true
+        else
+          RowMatches = (
+            array shape N fill false)
+          for B in 0 to (N - 1)
+            RowMatches B = (
+              (Matches B) Mask) all
+          end
+          if true in RowMatches
+            Matched R = (
+              RowMatches find true) + 1
+          else
+            Possible = false
+            break
+          end
+        end
+      end
+
+      if Possible
+        Ones = array shape K fill 1
+        Chosen = Empty choose (
+          Ones) Matched
+        Res = array shape 2 fill ""
+        Res 0 = K text
+        Res 1 = Chosen join " "
+        return (Res join "\n")
+      end
+    end
+  end
+
+  return "-1"
+end
+
+Result = solve_ad Input
+Result print

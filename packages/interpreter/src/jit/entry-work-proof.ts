@@ -100,10 +100,22 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
             }
         };
     }
+    const rangeKey = (name: string) => `#range:${name}`;
     function range(expression: Expression | undefined) {
         while (expression && isParenthesizedExpression(expression)) expression = expression.value;
+        if (expression && isApplicationExpression(expression) && plan.builtins.get('copy') === 'sequences') {
+            const parts = flattenApplication(expression), last = parts.at(-1);
+            if (parts.length === 2 && isNameExpression(last) && last.name === 'copy') {
+                expression = parts[0];
+                while (isParenthesizedExpression(expression)) expression = expression.value;
+            }
+        }
         const source = expression;
         return (values: Values): number => {
+            if (source && isNameExpression(source)) {
+                const count = values.get(rangeKey(source.name));
+                return typeof count === 'bigint' ? Number(count) : 0;
+            }
             if (!source || !isBinaryExpression(source) || !['to', 'till'].includes(source.operator)) return 0;
             const count = expressionFacts(source, facts(values)).shape?.[0];
             return count !== undefined && count !== null && Number.isSafeInteger(count) && count >= 0 ? count : 0;
@@ -117,14 +129,18 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
             if (isUnpackStatement(statement) && arrayPermutation(statement)) {
                 statement.names.forEach(name => writes.add(name));
                 return (values: Values): Work => {
-                    statement.names.forEach(name => values.delete(name));
+                    statement.names.forEach(name => { values.delete(name); values.delete(rangeKey(name)); });
                     return next();
                 };
             }
             if (isAssignmentStatement(statement)) {
                 writes.add(statement.name);
-                const value = integer(statement.value), boolean = truth(statement.value);
+                const value = integer(statement.value), boolean = truth(statement.value), count = range(statement.value);
                 return (values: Values): Work => {
+                    const cells = statement.operator === '=' ? count(values) : 0;
+                    values.delete(rangeKey(statement.name));
+                    // Keep completed selector lengths, not live bound expressions.
+                    if (cells) values.set(rangeKey(statement.name), BigInt(cells));
                     const result = statement.operator === '=' ? value(values) ?? boolean(values) : undefined;
                     if (result === undefined) values.delete(statement.name);
                     else values.set(statement.name, result);
@@ -166,7 +182,7 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
                     // A value modified on a back edge is not invariant, even if
                     // this entry happens to have a useful value for its bound.
                     const invariant = new Map(values);
-                    changed.forEach(name => { invariant.delete(name); values.delete(name); });
+                    changed.forEach(name => { invariant.delete(name); invariant.delete(rangeKey(name)); values.delete(name); values.delete(rangeKey(name)); });
                     const nested = iterations > 0 && iterations < target ? body.run(invariant, target).work : 0;
                     // Saturate before multiplication to keep the cost exact.
                     return next(iterations >= target / (1 + nested) ? target : iterations * (1 + nested));
@@ -175,7 +191,7 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
             if (isArrayAssignmentStatement(statement)) {
                 let source = statement.indices.at(-1)?.value;
                 while (source && isParenthesizedExpression(source)) source = source.value;
-                hasWork ||= !!source && isBinaryExpression(source) && ['to', 'till'].includes(source.operator);
+                hasWork ||= !!source && (isNameExpression(source) || isBinaryExpression(source) && ['to', 'till'].includes(source.operator));
                 const count = range(source);
                 return (values: Values, target: number): Work => next(Math.min(count(values), target));
             }
@@ -202,5 +218,5 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
             return { work, flow: 'next' };
         } };
     }
-    return { block, truth };
+    return { block, truth, integer, range };
 }

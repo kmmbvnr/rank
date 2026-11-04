@@ -1,0 +1,1474 @@
+{
+  "date": "2026-11-04",
+  "measurementBase": "a953e8350f9139fdfaffa224fc30cb9cdd493ac8",
+  "node": "24.15.0",
+  "limit": "10000000",
+  "golden": "39782849136421",
+  "method": "Fresh sequential processes per host. Three alternating compiled samples per variant and one reference sample per source. Parse+execute after module imports and interpreter construction, whole-process peak RSS. Shared Mac has unrelated load. Final code has scoped totients preparation.",
+  "hosts": {
+    "mac": {
+      "cpu": "Apple M5 arm64",
+      "summary": {
+        "original": {
+          "samples": 3,
+          "ms": 14847.000833,
+          "rssMiB": 1255.265625
+        },
+        "final": {
+          "samples": 3,
+          "ms": 4971.6125,
+          "rssMiB": 513.640625
+        },
+        "no-ternary": {
+          "samples": 3,
+          "ms": 15139.544042000001,
+          "rssMiB": 1223.59375
+        },
+        "original-reference": {
+          "samples": 1,
+          "ms": 18293.751375,
+          "rssMiB": 1441.796875
+        },
+        "final-reference": {
+          "samples": 1,
+          "ms": 18765.727082999998,
+          "rssMiB": 1257.828125
+        }
+      },
+      "samples": [
+        {
+          "file": "benchmarks/experiments/euler407-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 14847.000833,
+          "rssMiB": 1255.265625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 5277.732459,
+          "rssMiB": 516.046875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "final",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 15682.338291999999,
+          "rssMiB": 1223.59375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1521446,
+            "compiledLoops": 1,
+            "compiledTensors": 1,
+            "bulkArrayWrites": 3160,
+            "bulkArrayWriteCells": 71361102,
+            "typedArrayPublications": 57289,
+            "typedArrayPublishedCells": 999269206,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "no-ternary",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 14359.513333,
+          "rssMiB": 1243.203125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1521446,
+            "compiledLoops": 1,
+            "compiledTensors": 1,
+            "bulkArrayWrites": 3160,
+            "bulkArrayWriteCells": 71361102,
+            "typedArrayPublications": 57289,
+            "typedArrayPublishedCells": 999269206,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "no-ternary",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4971.6125,
+          "rssMiB": 510.359375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "final",
+          "round": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler407-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 16352.579791000002,
+          "rssMiB": 1248.546875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler407-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 13299.278333,
+          "rssMiB": 1343.921875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 3539.485542,
+          "rssMiB": 513.640625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "final",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 15139.544042000001,
+          "rssMiB": 1219.03125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1521446,
+            "compiledLoops": 1,
+            "compiledTensors": 1,
+            "bulkArrayWrites": 3160,
+            "bulkArrayWriteCells": 71361102,
+            "typedArrayPublications": 57289,
+            "typedArrayPublishedCells": 999269206,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "no-ternary",
+          "round": 2
+        },
+        {
+          "file": "benchmarks/experiments/euler407-original.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 18293.751375,
+          "rssMiB": 1441.796875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "typedArrayPublications": 163612,
+            "typedArrayPublishedCells": 1291291615,
+            "fallbacks": {
+              "loop:disabled": 3
+            }
+          },
+          "label": "original-reference"
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 18765.727082999998,
+          "rssMiB": 1257.828125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1521446,
+            "typedArrayPublications": 54130,
+            "typedArrayPublishedCells": 927911266,
+            "fallbacks": {
+              "loop:disabled": 1
+            }
+          },
+          "label": "final-reference"
+        }
+      ]
+    },
+    "intel": {
+      "cpu": "Intel Core i7-10750H x64",
+      "summary": {
+        "original": {
+          "samples": 3,
+          "ms": 29633.643365,
+          "rssMiB": 917.62890625
+        },
+        "final": {
+          "samples": 3,
+          "ms": 8624.454574000001,
+          "rssMiB": 495.83203125
+        },
+        "no-ternary": {
+          "samples": 3,
+          "ms": 28705.945318000002,
+          "rssMiB": 885.90234375
+        },
+        "original-reference": {
+          "samples": 1,
+          "ms": 42895.102363,
+          "rssMiB": 1185.9765625
+        },
+        "final-reference": {
+          "samples": 1,
+          "ms": 38985.780134,
+          "rssMiB": 1201.125
+        }
+      },
+      "samples": [
+        {
+          "file": "benchmarks/experiments/euler407-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 29391.787133,
+          "rssMiB": 917.640625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 8541.229738,
+          "rssMiB": 494.1953125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "final",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 28705.069474,
+          "rssMiB": 869.0625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1521446,
+            "compiledLoops": 1,
+            "compiledTensors": 1,
+            "bulkArrayWrites": 3160,
+            "bulkArrayWriteCells": 71361102,
+            "typedArrayPublications": 57289,
+            "typedArrayPublishedCells": 999269206,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "no-ternary",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 28705.945318000002,
+          "rssMiB": 906.91015625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1521446,
+            "compiledLoops": 1,
+            "compiledTensors": 1,
+            "bulkArrayWrites": 3160,
+            "bulkArrayWriteCells": 71361102,
+            "typedArrayPublications": 57289,
+            "typedArrayPublishedCells": 999269206,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "no-ternary",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 8624.454574000001,
+          "rssMiB": 495.83203125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "final",
+          "round": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler407-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 29890.953684,
+          "rssMiB": 917.29296875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler407-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 29633.643365,
+          "rssMiB": 917.62890625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 8662.383277,
+          "rssMiB": 497.20703125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "final",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 28983.970433000002,
+          "rssMiB": 885.90234375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1521446,
+            "compiledLoops": 1,
+            "compiledTensors": 1,
+            "bulkArrayWrites": 3160,
+            "bulkArrayWriteCells": 71361102,
+            "typedArrayPublications": 57289,
+            "typedArrayPublishedCells": 999269206,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ]
+          },
+          "label": "no-ternary",
+          "round": 2
+        },
+        {
+          "file": "benchmarks/experiments/euler407-original.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 42895.102363,
+          "rssMiB": 1185.9765625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "typedArrayPublications": 163612,
+            "typedArrayPublishedCells": 1291291615,
+            "fallbacks": {
+              "loop:disabled": 3
+            }
+          },
+          "label": "original-reference"
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 38985.780134,
+          "rssMiB": 1201.125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1521446,
+            "typedArrayPublications": 54130,
+            "typedArrayPublishedCells": 927911266,
+            "fallbacks": {
+              "loop:disabled": 1
+            }
+          },
+          "label": "final-reference"
+        }
+      ]
+    }
+  },
+  "verification": {
+    "focused": {
+      "mac": {
+        "files": 39,
+        "tests": 1239
+      },
+      "intel": {
+        "files": 39,
+        "tests": 1239
+      }
+    },
+    "finalEdgeReruns": {
+      "mac": 40,
+      "intel": 40
+    },
+    "finalGoldenReruns": {
+      "mac": true,
+      "intel": true
+    },
+    "smallIndependentLimits": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      8,
+      9,
+      12,
+      25,
+      36,
+      49,
+      64,
+      100,
+      209,
+      1000
+    ],
+    "smallIndependentModes": [
+      false,
+      true
+    ],
+    "scopedMacAudits": {
+      "differential": 2,
+      "types": 2,
+      "nameFacts": 2
+    },
+    "exhaustiveAuditsRun": false
+  },
+  "notes": [
+    "No copy thresholds or precision checks removed.",
+    "Reference timing and RSS have one sample per source/host: Mac time +2.6%, Intel RSS +1.3% must not be claimed improved.",
+    "no-ternary uses identical final Rank source and disables only private ternary vector admission."
+  ],
+  "preScopePreparationSamples": {
+    "mac": [
+      {
+        "file": "benchmarks/experiments/euler407-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 14127.701708999999,
+        "rssMiB": 1342.78125,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1281336,
+          "compiledLoops": 2,
+          "bulkArrayWrites": 3606,
+          "bulkArrayWriteCells": 71368343,
+          "typedArrayPublications": 166569,
+          "typedArrayPublishedCells": 1429015508,
+          "fallbacks": {
+            "tensor:output-shape": 1,
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:binding:select": 1,
+            "scalar-expression:operator-guard:+": 1,
+            "scalar-expression:operator-guard:-": 1
+          }
+        },
+        "label": "original",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 4204.1625,
+        "rssMiB": 521.40625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 6324,
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "compiledTensors": 1,
+          "typedArrayPublications": 20,
+          "typedArrayPublishedCells": 14250189,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "number-loop:range-input-proof": 2
+          }
+        },
+        "label": "final",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 12550.712416,
+        "rssMiB": 1309.765625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1521446,
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "bulkArrayWrites": 3160,
+          "bulkArrayWriteCells": 71361102,
+          "typedArrayPublications": 57289,
+          "typedArrayPublishedCells": 999269206,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1
+          }
+        },
+        "label": "no-ternary",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 12584.142542000001,
+        "rssMiB": 1327.203125,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1521446,
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "bulkArrayWrites": 3160,
+          "bulkArrayWriteCells": 71361102,
+          "typedArrayPublications": 57289,
+          "typedArrayPublishedCells": 999269206,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1
+          }
+        },
+        "label": "no-ternary",
+        "round": 1
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 3449.39375,
+        "rssMiB": 520.15625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 6324,
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "compiledTensors": 1,
+          "typedArrayPublications": 20,
+          "typedArrayPublishedCells": 14250189,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "number-loop:range-input-proof": 2
+          }
+        },
+        "label": "final",
+        "round": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler407-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 14957.986583,
+        "rssMiB": 1303.546875,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1281336,
+          "compiledLoops": 2,
+          "bulkArrayWrites": 3606,
+          "bulkArrayWriteCells": 71368343,
+          "typedArrayPublications": 166569,
+          "typedArrayPublishedCells": 1429015508,
+          "fallbacks": {
+            "tensor:output-shape": 1,
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:binding:select": 1,
+            "scalar-expression:operator-guard:+": 1,
+            "scalar-expression:operator-guard:-": 1
+          }
+        },
+        "label": "original",
+        "round": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler407-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 13151.802083999999,
+        "rssMiB": 1342.140625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1281336,
+          "compiledLoops": 2,
+          "bulkArrayWrites": 3606,
+          "bulkArrayWriteCells": 71368343,
+          "typedArrayPublications": 166569,
+          "typedArrayPublishedCells": 1429015508,
+          "fallbacks": {
+            "tensor:output-shape": 1,
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:binding:select": 1,
+            "scalar-expression:operator-guard:+": 1,
+            "scalar-expression:operator-guard:-": 1
+          }
+        },
+        "label": "original",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 5597.320208,
+        "rssMiB": 518.421875,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 6324,
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "compiledTensors": 1,
+          "typedArrayPublications": 20,
+          "typedArrayPublishedCells": 14250189,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "number-loop:range-input-proof": 2
+          }
+        },
+        "label": "final",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 14743.056917,
+        "rssMiB": 1232.625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1521446,
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "bulkArrayWrites": 3160,
+          "bulkArrayWriteCells": 71361102,
+          "typedArrayPublications": 57289,
+          "typedArrayPublishedCells": 999269206,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1
+          }
+        },
+        "label": "no-ternary",
+        "round": 2
+      },
+      {
+        "file": "benchmarks/experiments/euler407-original.ra",
+        "limit": "10000000",
+        "mode": "reference",
+        "ms": 22517.234958,
+        "rssMiB": 1286.90625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1281336,
+          "typedArrayPublications": 163612,
+          "typedArrayPublishedCells": 1291291615,
+          "fallbacks": {
+            "loop:disabled": 3
+          }
+        },
+        "label": "original-reference"
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "reference",
+        "ms": 19414.149333,
+        "rssMiB": 1353.625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1521446,
+          "typedArrayPublications": 54130,
+          "typedArrayPublishedCells": 927911266,
+          "fallbacks": {
+            "loop:disabled": 1
+          }
+        },
+        "label": "final-reference"
+      }
+    ],
+    "intel": [
+      {
+        "file": "benchmarks/experiments/euler407-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 28501.399752,
+        "rssMiB": 917.52734375,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1281336,
+          "compiledLoops": 2,
+          "bulkArrayWrites": 3606,
+          "bulkArrayWriteCells": 71368343,
+          "typedArrayPublications": 166569,
+          "typedArrayPublishedCells": 1429015508,
+          "fallbacks": {
+            "tensor:output-shape": 1,
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:binding:select": 1,
+            "scalar-expression:operator-guard:+": 1,
+            "scalar-expression:operator-guard:-": 1
+          }
+        },
+        "label": "original",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 8408.840519,
+        "rssMiB": 507.11328125,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 6324,
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "compiledTensors": 1,
+          "typedArrayPublications": 20,
+          "typedArrayPublishedCells": 14250189,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "number-loop:range-input-proof": 2
+          }
+        },
+        "label": "final",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 28288.706856999997,
+        "rssMiB": 879.75390625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1521446,
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "bulkArrayWrites": 3160,
+          "bulkArrayWriteCells": 71361102,
+          "typedArrayPublications": 57289,
+          "typedArrayPublishedCells": 999269206,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1
+          }
+        },
+        "label": "no-ternary",
+        "round": 0
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 29241.293158,
+        "rssMiB": 881.17578125,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1521446,
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "bulkArrayWrites": 3160,
+          "bulkArrayWriteCells": 71361102,
+          "typedArrayPublications": 57289,
+          "typedArrayPublishedCells": 999269206,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1
+          }
+        },
+        "label": "no-ternary",
+        "round": 1
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 8517.701265,
+        "rssMiB": 504.390625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 6324,
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "compiledTensors": 1,
+          "typedArrayPublications": 20,
+          "typedArrayPublishedCells": 14250189,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "number-loop:range-input-proof": 2
+          }
+        },
+        "label": "final",
+        "round": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler407-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 29667.938773,
+        "rssMiB": 920.01171875,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1281336,
+          "compiledLoops": 2,
+          "bulkArrayWrites": 3606,
+          "bulkArrayWriteCells": 71368343,
+          "typedArrayPublications": 166569,
+          "typedArrayPublishedCells": 1429015508,
+          "fallbacks": {
+            "tensor:output-shape": 1,
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:binding:select": 1,
+            "scalar-expression:operator-guard:+": 1,
+            "scalar-expression:operator-guard:-": 1
+          }
+        },
+        "label": "original",
+        "round": 1
+      },
+      {
+        "file": "benchmarks/experiments/euler407-original.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 29250.370193,
+        "rssMiB": 917.46484375,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1281336,
+          "compiledLoops": 2,
+          "bulkArrayWrites": 3606,
+          "bulkArrayWriteCells": 71368343,
+          "typedArrayPublications": 166569,
+          "typedArrayPublishedCells": 1429015508,
+          "fallbacks": {
+            "tensor:output-shape": 1,
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "tensor:unsupported-type:array": 1,
+            "scalar-expression:too-small": 2,
+            "tensor:binding:select": 1,
+            "scalar-expression:operator-guard:+": 1,
+            "scalar-expression:operator-guard:-": 1
+          }
+        },
+        "label": "original",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 8479.33549,
+        "rssMiB": 506.59765625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 6324,
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopUnpolled": 1,
+          "compiledTensors": 1,
+          "typedArrayPublications": 20,
+          "typedArrayPublishedCells": 14250189,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1,
+            "number-loop:range-input-proof": 2
+          }
+        },
+        "label": "final",
+        "round": 2
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "compiled",
+        "ms": 28940.865893000002,
+        "rssMiB": 878.8125,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1521446,
+          "compiledLoops": 1,
+          "compiledTensors": 1,
+          "bulkArrayWrites": 3160,
+          "bulkArrayWriteCells": 71361102,
+          "typedArrayPublications": 57289,
+          "typedArrayPublishedCells": 999269206,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 3,
+            "scalar-expression:unsupported-op:to": 3,
+            "scalar-expression:operator-guard:mod": 1,
+            "scalar-expression:operator-guard:equal": 1,
+            "scalar-expression:unsupported-op:*": 4,
+            "tensor:application-form:BinaryExpression": 2,
+            "scalar-expression:too-small": 2,
+            "tensor:dyadic-terminal:AssignmentStatement": 1
+          }
+        },
+        "label": "no-ternary",
+        "round": 2
+      },
+      {
+        "file": "benchmarks/experiments/euler407-original.ra",
+        "limit": "10000000",
+        "mode": "reference",
+        "ms": 42103.498064,
+        "rssMiB": 1185.140625,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1281336,
+          "typedArrayPublications": 163612,
+          "typedArrayPublishedCells": 1291291615,
+          "fallbacks": {
+            "loop:disabled": 3
+          }
+        },
+        "label": "original-reference"
+      },
+      {
+        "file": "demos/euler/407_idempotents.ra",
+        "limit": "10000000",
+        "mode": "reference",
+        "ms": 38241.902235,
+        "rssMiB": 1194.484375,
+        "answer": "39782849136421",
+        "diagnostics": {
+          "cellsComputed": 1521446,
+          "typedArrayPublications": 54130,
+          "typedArrayPublishedCells": 927911266,
+          "fallbacks": {
+            "loop:disabled": 1
+          }
+        },
+        "label": "final-reference"
+      }
+    ]
+  },
+  "preScopeSource": "benchmarks/experiments/euler407-global-phi.ra",
+  "sourceHashes": {
+    "demos/euler/407_idempotents.ra": "3a398c83ba2de978a4225f93fcc19b5e734c6a7787d9b6346f71738830d7d593",
+    "demos/euler/407_idempotents_test.ra": "7450b2215c90cf3529c678c04d84a77c9f5738bf58436d0c73b6f9933845079b",
+    "scripts/demo-execution-exclusions.json": "af2647fc6fede07e6068da6e1a7bb3ecd950f8dc398c88dba5bff3a0891e879f",
+    "packages/interpreter/src/binding-environment.ts": "512f7df774a4f996e121baac107aca128d1640e156b5497a8bbca4734a382a20",
+    "packages/interpreter/src/frame.ts": "99deedc2633d786fa66dac2ef99cde2e1e64c3f84b4804332cb681fca63d9d21",
+    "packages/interpreter/src/jit/entry-work-proof.ts": "73ba51f8dd662c73de53c678a2b2befe1d27676da6e3f7c63d524fe0fe9c9f1b",
+    "packages/interpreter/src/jit/integer-loop-expressions.ts": "75705d6506d4923c750af03031fc0405d2510cb7ba5ff22f46b25903c047149a",
+    "packages/interpreter/src/jit/integer-loop-plan.ts": "1759f237398c4a12778d3b8af18ab5fec58a1f6705a065d5df352acd552bd9a0",
+    "packages/interpreter/src/jit/number-loop-runtime.ts": "0dc0fe999dea1bb5fbc055edc23443d768a04694953b685ee11f227cc3ce85c7",
+    "packages/interpreter/src/jit/vector-entry-work.ts": "7ea0db3cbbbc0b61295c1be69d894cae9fb478ce1b28e86cce3e97a5cb1570e1",
+    "packages/interpreter/src/runtime/array-binding-contract.ts": "48b0bc42474df2dbdce240487e48dc402a4d2d20e1b1bb751c1db007d31a98f7",
+    "benchmarks/experiments/euler407-original.ra": "28539a19603d2764d0360138e01912362c30cf3f932ab08853a91e24b63ae4de",
+    "benchmarks/experiments/euler407-no-ternary.mjs": "ca514f306bd109606b8d2dfa76ce8d25d7fbb58301ef49391d3e880edda3515c",
+    "benchmarks/experiments/euler407-final-series.py": "7fcd8d4220ebaae20483a40ec6525b25124a7dede5f9c9c3187dcc467cd7edf4"
+  }
+}

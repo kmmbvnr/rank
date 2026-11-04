@@ -1,0 +1,991 @@
+{
+  "date": "2026-11-04",
+  "base": "86719518",
+  "node": "24.15.0",
+  "status": "historical research on 86719518; see Euler 407 follow-up for delivery",
+  "golden": "39782849136421",
+  "method": "Fresh processes; parse+execute timed after imports and Interpreter construction; whole-process peak RSS; busy shared Mac. Original/private alternating 3 samples. Incremental measured in a later phase; ratios across phases are provisional. Reference one sample.",
+  "hosts": {
+    "mac": {
+      "cpu": "Apple M5 arm64",
+      "summary": {
+        "original": {
+          "samples": 3,
+          "ms": 27563.561584,
+          "rssMiB": 1351.515625
+        },
+        "prototype": {
+          "samples": 3,
+          "ms": 10295.468707999999,
+          "rssMiB": 710.046875
+        },
+        "original-reference": {
+          "samples": 1,
+          "ms": 38740.029,
+          "rssMiB": 1480.46875
+        },
+        "powmod-reference": {
+          "samples": 1,
+          "ms": 22455.223667000002,
+          "rssMiB": 1401.09375
+        },
+        "incremental-prototype": {
+          "samples": 3,
+          "ms": 4839.758708,
+          "rssMiB": 653.28125
+        }
+      },
+      "samples": [
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 28197.312458,
+          "rssMiB": 1344.15625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 0
+        },
+        {
+          "file": "benchmarks/experiments/euler407-private.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10682.410833,
+          "rssMiB": 707.375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 442,
+            "typedArrayPublishedCells": 60026711,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "number-loop:range-input-proof": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "prototype",
+          "round": 0
+        },
+        {
+          "file": "benchmarks/experiments/euler407-private.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10295.468707999999,
+          "rssMiB": 710.046875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 442,
+            "typedArrayPublishedCells": 60026711,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "number-loop:range-input-proof": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "prototype",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 27563.561584,
+          "rssMiB": 1351.515625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 26639.127083,
+          "rssMiB": 1360.921875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 2
+        },
+        {
+          "file": "benchmarks/experiments/euler407-private.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10052.931125000001,
+          "rssMiB": 713.109375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 442,
+            "typedArrayPublishedCells": 60026711,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "number-loop:range-input-proof": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "prototype",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 38740.029,
+          "rssMiB": 1480.46875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "typedArrayPublications": 163612,
+            "typedArrayPublishedCells": 1291291615,
+            "fallbacks": {
+              "loop:disabled": 3
+            }
+          },
+          "label": "original-reference"
+        },
+        {
+          "file": "benchmarks/experiments/euler407-powmod.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 22455.223667000002,
+          "rssMiB": 1401.09375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "typedArrayPublications": 61546,
+            "typedArrayPublishedCells": 1116641422,
+            "fallbacks": {
+              "loop:disabled": 2
+            }
+          },
+          "label": "powmod-reference"
+        },
+        {
+          "file": "benchmarks/experiments/euler407-incremental.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4836.108,
+          "rssMiB": 653.28125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 438,
+            "typedArrayPublishedCells": 10026718,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 2,
+              "scalar-expression:unsupported-op:to": 2,
+              "scalar-expression:too-small": 1,
+              "number-loop:range-input-proof": 2
+            }
+          },
+          "label": "incremental-prototype"
+        },
+        {
+          "file": "benchmarks/experiments/euler407-incremental.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4839.758708,
+          "rssMiB": 663.859375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 438,
+            "typedArrayPublishedCells": 10026718,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 2,
+              "scalar-expression:unsupported-op:to": 2,
+              "scalar-expression:too-small": 1,
+              "number-loop:range-input-proof": 2
+            }
+          },
+          "label": "incremental-prototype"
+        },
+        {
+          "file": "benchmarks/experiments/euler407-incremental.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4927.769832999999,
+          "rssMiB": 648.359375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 438,
+            "typedArrayPublishedCells": 10026718,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 2,
+              "scalar-expression:unsupported-op:to": 2,
+              "scalar-expression:too-small": 1,
+              "number-loop:range-input-proof": 2
+            }
+          },
+          "label": "incremental-prototype"
+        }
+      ],
+      "manualJS": {
+        "N": 10000000,
+        "ms": 836.401791,
+        "rssMiB": 112.015625,
+        "answer": 39782849136421,
+        "cpu": "Apple M5"
+      }
+    },
+    "intel": {
+      "cpu": "Core i7-10750H x64",
+      "summary": {
+        "original": {
+          "samples": 3,
+          "ms": 32903.254800999995,
+          "rssMiB": 917.54296875
+        },
+        "prototype": {
+          "samples": 3,
+          "ms": 11396.142138,
+          "rssMiB": 554.609375
+        },
+        "original-reference": {
+          "samples": 1,
+          "ms": 48862.158334,
+          "rssMiB": 1182.30859375
+        },
+        "powmod-reference": {
+          "samples": 1,
+          "ms": 45043.254001,
+          "rssMiB": 1200.41796875
+        },
+        "incremental-prototype": {
+          "samples": 3,
+          "ms": 10574.530284999999,
+          "rssMiB": 534.2421875
+        }
+      },
+      "samples": [
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 30950.568595999997,
+          "rssMiB": 917.54296875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 0
+        },
+        {
+          "file": "benchmarks/experiments/euler407-private.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 11396.142138,
+          "rssMiB": 569.4453125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 442,
+            "typedArrayPublishedCells": 60026711,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "number-loop:range-input-proof": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "prototype",
+          "round": 0
+        },
+        {
+          "file": "benchmarks/experiments/euler407-private.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 11231.998444,
+          "rssMiB": 538.6640625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 442,
+            "typedArrayPublishedCells": 60026711,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "number-loop:range-input-proof": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "prototype",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 32903.254800999995,
+          "rssMiB": 917.12890625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 33051.288859,
+          "rssMiB": 917.6640625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "compiledLoops": 2,
+            "bulkArrayWrites": 3606,
+            "bulkArrayWriteCells": 71368343,
+            "typedArrayPublications": 166569,
+            "typedArrayPublishedCells": 1429015508,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "original",
+          "round": 2
+        },
+        {
+          "file": "benchmarks/experiments/euler407-private.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 11567.17275,
+          "rssMiB": 554.609375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 442,
+            "typedArrayPublishedCells": 60026711,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 2,
+              "number-loop:range-input-proof": 2,
+              "tensor:binding:select": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1
+            }
+          },
+          "label": "prototype",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 48862.158334,
+          "rssMiB": 1182.30859375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "typedArrayPublications": 163612,
+            "typedArrayPublishedCells": 1291291615,
+            "fallbacks": {
+              "loop:disabled": 3
+            }
+          },
+          "label": "original-reference"
+        },
+        {
+          "file": "benchmarks/experiments/euler407-powmod.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 45043.254001,
+          "rssMiB": 1200.41796875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 1281336,
+            "typedArrayPublications": 61546,
+            "typedArrayPublishedCells": 1116641422,
+            "fallbacks": {
+              "loop:disabled": 2
+            }
+          },
+          "label": "powmod-reference"
+        },
+        {
+          "file": "benchmarks/experiments/euler407-incremental.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10594.444603000002,
+          "rssMiB": 534.2421875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 438,
+            "typedArrayPublishedCells": 10026718,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 2,
+              "scalar-expression:unsupported-op:to": 2,
+              "scalar-expression:too-small": 1,
+              "number-loop:range-input-proof": 2
+            }
+          },
+          "label": "incremental-prototype"
+        },
+        {
+          "file": "benchmarks/experiments/euler407-incremental.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10574.530284999999,
+          "rssMiB": 536.1953125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 438,
+            "typedArrayPublishedCells": 10026718,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 2,
+              "scalar-expression:unsupported-op:to": 2,
+              "scalar-expression:too-small": 1,
+              "number-loop:range-input-proof": 2
+            }
+          },
+          "label": "incremental-prototype"
+        },
+        {
+          "file": "benchmarks/experiments/euler407-incremental.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10551.248133,
+          "rssMiB": 519.734375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "compiledLoops": 2,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "numberLoopCopyAmortized": 1,
+            "bulkArrayWrites": 446,
+            "bulkArrayWriteCells": 7241,
+            "typedArrayPublications": 438,
+            "typedArrayPublishedCells": 10026718,
+            "fallbacks": {
+              "tensor:output-shape": 1,
+              "tensor:unsupported-op:to": 2,
+              "scalar-expression:unsupported-op:to": 2,
+              "scalar-expression:too-small": 1,
+              "number-loop:range-input-proof": 2
+            }
+          },
+          "label": "incremental-prototype"
+        }
+      ],
+      "manualJS": {
+        "N": 10000000,
+        "ms": 1672.948294,
+        "rssMiB": 108.21484375,
+        "answer": 39782849136421,
+        "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz"
+      }
+    }
+  },
+  "verification": {
+    "checks": 168,
+    "limits": [
+      2,
+      3,
+      4,
+      6,
+      8,
+      9,
+      12,
+      25,
+      36,
+      49,
+      64,
+      100,
+      209,
+      1000
+    ],
+    "files": [
+      "demos/euler/407_idempotents.ra",
+      "benchmarks/experiments/euler407-powmod.ra",
+      "benchmarks/experiments/euler407-no-copy.ra",
+      "benchmarks/experiments/euler407-lazy.ra",
+      "benchmarks/experiments/euler407-private.ra",
+      "benchmarks/experiments/euler407-incremental.ra"
+    ]
+  },
+  "notes": [
+    "The private prototype opts into bypass of COPY_PROBE_CAP cost admission only. No arithmetic precision guards removed.",
+    "The first incremental Mac series overlapped the end of a control run, so a sequential replacement series is used for summary. Both retained.",
+    "Reference powmod raises Intel single-sample RSS slightly. No general memory reduction claim for every engine.",
+    "Manual JS omits Rank contracts; one sample per host."
+  ],
+  "exploratory": {
+    "baseline-compiled": {
+      "file": "demos/euler/407_idempotents.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 12693.84925,
+      "rssMiB": 1371.796875,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "cellsComputed": 1281336,
+        "compiledLoops": 2,
+        "bulkArrayWrites": 3606,
+        "bulkArrayWriteCells": 71368343,
+        "typedArrayPublications": 166569,
+        "typedArrayPublishedCells": 1429015508,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-op:to": 3,
+          "scalar-expression:unsupported-op:to": 3,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:binding:select": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1
+        }
+      }
+    },
+    "baseline-reference": {
+      "file": "demos/euler/407_idempotents.ra",
+      "limit": "10000000",
+      "mode": "reference",
+      "ms": 18256.012875,
+      "rssMiB": 1433.953125,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "cellsComputed": 1281336,
+        "typedArrayPublications": 163612,
+        "typedArrayPublishedCells": 1291291615,
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      }
+    },
+    "powmod-compiled": {
+      "file": "/tmp/rank407-powmod.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 11680.23825,
+      "rssMiB": 1342.90625,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "cellsComputed": 1281336,
+        "compiledLoops": 2,
+        "bulkArrayWrites": 3606,
+        "bulkArrayWriteCells": 71368343,
+        "typedArrayPublications": 67601,
+        "typedArrayPublishedCells": 1259360840,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-op:to": 3,
+          "scalar-expression:unsupported-op:to": 3,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:binding:select": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1
+        }
+      }
+    },
+    "no-copy-full": {
+      "file": "/tmp/rank407-no-copy.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 14470.088042,
+      "rssMiB": 965.796875,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "cellsComputed": 1281336,
+        "compiledLoops": 2,
+        "fusedArrayRegions": 3160,
+        "fusedArrayRegionCells": 71361102,
+        "bulkArrayWrites": 3606,
+        "bulkArrayWriteCells": 71368343,
+        "typedArrayPublications": 48765,
+        "typedArrayPublishedCells": 831198196,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "scalar-expression:unsupported-op:to": 3,
+          "tensor:unsupported-op:to": 3,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:binding:select": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1
+        }
+      }
+    },
+    "trimmed-full": {
+      "file": "/tmp/rank407-trimmed.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 15258.524707999999,
+      "rssMiB": 987.125,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "cellsComputed": 1281336,
+        "compiledLoops": 2,
+        "fusedArrayRegions": 3160,
+        "fusedArrayRegionCells": 71361102,
+        "bulkArrayWrites": 3606,
+        "bulkArrayWriteCells": 71368343,
+        "typedArrayPublications": 48765,
+        "typedArrayPublishedCells": 831198196,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "scalar-expression:unsupported-op:to": 3,
+          "tensor:unsupported-op:to": 3,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:too-small": 2,
+          "tensor:binding:select": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1
+        }
+      }
+    },
+    "prototype-cap-full": {
+      "file": "/tmp/rank407-discard.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 9650.713291,
+      "rssMiB": 743.4375,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "bulkArrayWrites": 446,
+        "bulkArrayWriteCells": 7241,
+        "typedArrayPublications": 442,
+        "typedArrayPublishedCells": 60026711,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-op:to": 3,
+          "scalar-expression:unsupported-op:to": 3,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:too-small": 2,
+          "number-loop:range-input-proof": 2,
+          "tensor:binding:select": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1
+        }
+      }
+    },
+    "incremental-full": {
+      "file": "benchmarks/experiments/euler407-incremental.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 4804.222208,
+      "rssMiB": 633.03125,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "bulkArrayWrites": 446,
+        "bulkArrayWriteCells": 7241,
+        "typedArrayPublications": 438,
+        "typedArrayPublishedCells": 10026718,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "number-loop:range-input-proof": 2
+        }
+      }
+    },
+    "incremental-control": {
+      "file": "benchmarks/experiments/euler407-incremental.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 20222.179375,
+      "rssMiB": 1312.375,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "cellsComputed": 1515122,
+        "compiledLoops": 2,
+        "bulkArrayWrites": 3606,
+        "bulkArrayWriteCells": 71368343,
+        "typedArrayPublications": 67157,
+        "typedArrayPublishedCells": 1209128051,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1
+        }
+      }
+    }
+  },
+  "overlappedIncrementalMac": [
+    {
+      "file": "benchmarks/experiments/euler407-incremental.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 7414.1720000000005,
+      "rssMiB": 622.328125,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "bulkArrayWrites": 446,
+        "bulkArrayWriteCells": 7241,
+        "typedArrayPublications": 438,
+        "typedArrayPublishedCells": 10026718,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "number-loop:range-input-proof": 2
+        }
+      }
+    },
+    {
+      "file": "benchmarks/experiments/euler407-incremental.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 6430.158208,
+      "rssMiB": 650.421875,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "bulkArrayWrites": 446,
+        "bulkArrayWriteCells": 7241,
+        "typedArrayPublications": 438,
+        "typedArrayPublishedCells": 10026718,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "number-loop:range-input-proof": 2
+        }
+      }
+    },
+    {
+      "file": "benchmarks/experiments/euler407-incremental.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 6271.07525,
+      "rssMiB": 649.03125,
+      "answer": "39782849136421",
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "bulkArrayWrites": 446,
+        "bulkArrayWriteCells": 7241,
+        "typedArrayPublications": 438,
+        "typedArrayPublishedCells": 10026718,
+        "fallbacks": {
+          "tensor:output-shape": 1,
+          "tensor:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "number-loop:range-input-proof": 2
+        }
+      }
+    }
+  ],
+  "historicalSourceHashes": {
+    "demos/euler/407_idempotents.ra": "28539a19603d2764d0360138e01912362c30cf3f932ab08853a91e24b63ae4de",
+    "benchmarks/experiments/euler407-hand.mjs": "63671e613dcf82af4c69d780a64b75333edf69361a8196c821cf9365571c7e84",
+    "benchmarks/experiments/euler407-incremental-series.py": "2bca929474cbdbdb71c0a332dfaf4b726575383446f22b8aad4e1dc7436b8282",
+    "benchmarks/experiments/euler407-incremental.ra": "6fc4fedbdcad51d902fbf313d270292b04469dec5afcc289b601fcc04abcb3e7",
+    "benchmarks/experiments/euler407-lazy.ra": "bfc3b4fb134a4d7dd94ace55513a4143cf278b8f657a0310bfcf629014575ba6",
+    "benchmarks/experiments/euler407-no-copy.ra": "b02fda6c536a171259a3e6b4e8c483ab8575706bf82da986de3286b0fb7ac899",
+    "benchmarks/experiments/euler407-powmod.ra": "160f77e7f4b7a96c3704754ee90795a8e843fc6f0fb19b6e718a7150b71ba695",
+    "benchmarks/experiments/euler407-private.ra": "1facfb4c39c24ddd5da99f65d2dc3788ba04a2f80efbf05e3470dcc82d38a2a9",
+    "benchmarks/experiments/euler407-prototype.mjs": "e52f8e331a20f453936899de37da2e649703ae001d3889e6ee296488334e7cdc",
+    "benchmarks/experiments/euler407-series.py": "8bcca3304bb89779923b43fb50e41fc779f0fc53c08bbc3d7823a8a457e58037",
+    "benchmarks/experiments/euler407-verify.mjs": "9acdea2a1b1fd211384cb68b3851a78cb0b3d4f36a9922f240dd048783a14091"
+  }
+}
