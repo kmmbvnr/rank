@@ -1129,6 +1129,15 @@ are not considered definite after it. Unsupported inner constructs retain the
 reference outer loop, with eligible inner loops compiled independently.
 `nestedLoopCompilation: false` disables only region nesting for comparisons.
 
+Finite native iterator recipes inside compiled functions may be named with
+ordinary deferred bindings, for example `Fs' = N factors unique` followed by
+`for P in Fs`. Fresh bindings can appear inside branches and loops. The compiler
+keeps the recipe in its lexical block and invokes the guarded native iterator at
+each traversal, without materializing its values at binding time. Scalar operands
+use the existing function-plan lowering, including demand-time error locations.
+Unused recipes do no work. Rebinding a recipe or its captured inputs, escaping the
+block, unsupported consumers and array/container writes retain ordinary execution.
+
 ## Array reads inside compiled numeric loops
 
 The integer compiler can read a stable named integer array with a complete scalar

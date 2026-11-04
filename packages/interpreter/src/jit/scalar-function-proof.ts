@@ -33,7 +33,8 @@ export interface ScalarFunctionInput {
 /** A finite native stage is consumed only by its loop, never as an array value. */
 export type ScalarLoopIterable = { readonly kind: 'literal'; readonly expression: Expression; readonly element: CompiledScalarType }
     | {readonly kind:'group'; readonly receiver:string; readonly key:CompiledExpression<CompiledCalleeType,ScalarFunctionInput>; readonly element:'integer'}
-    | { readonly kind: 'native'; readonly element: CompiledScalarType; readonly operation: Operation; readonly source: ScalarLoopIterable | Expression };
+    | { readonly kind: 'native'; readonly element: CompiledScalarType; readonly operation: Operation; readonly source: ScalarLoopIterable | Expression;
+        readonly origin: Expression; readonly argument?: FunctionPlan; readonly deferred?: boolean };
 export interface ScalarFunctionProof {
     readonly type: CompiledCalleeType;
     readonly dependencies: readonly string[];
@@ -54,6 +55,7 @@ export interface ScalarFunctionProof {
     readonly planReturn: boolean;
     readonly planReturns: ReadonlySet<Statement>;
     readonly loopIterables: ReadonlyMap<Statement, ScalarLoopIterable>;
+    readonly iterableBindings: ReadonlySet<Statement>;
     readonly nonnegative: readonly number[];
 }
 const simpleProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | CompilerRejection>>();
@@ -122,6 +124,9 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     let planReturn = false;
     const planReturns = new Set<Statement>();
     const loopIterables = new Map<Statement, ScalarLoopIterable>();
+    const iterableBindings = new Set<Statement>();
+    const iterableStages = new Map<string, ScalarLoopIterable>();
+    const iterableNames = new Set<string>();
     let consumerRoot: Expression | undefined;
     const unwrap = (source: Expression): Expression => isParenthesizedExpression(source) ? unwrap(source.value) : source;
     const readsStage = (source: Expression) => AstUtils.streamAst(source).some(node => isNameExpression(node) && stages.has(node.name));
@@ -513,6 +518,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     function loopIterable(source: Expression, env: ReadonlyMap<string, CompiledCalleeType>): ScalarLoopIterable | undefined {
         if (--budget.remaining < 0) return undefined;
         source = unwrap(source);
+        if (isNameExpression(source) && iterableStages.has(source.name)) return iterableStages.get(source.name);
         if (isApplicationExpression(source)) {
             const parts = flattenApplication(source), [receiver,key] = parts;
             const domain = isNameExpression(receiver) ? env.get(receiver.name) : undefined;
@@ -545,10 +551,31 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         if (!input) return undefined;
         nativeReads.add(operation.name);
         modules.add(operation.module);
-        return { kind: 'native', operation, source: input, element: 'kind' in input ? input.element : 'integer' };
+        return { kind: 'native', operation, source: input, element: 'kind' in input ? input.element : 'integer', origin: source };
+    }
+    function nativeFactorStage(stage: ScalarLoopIterable): boolean {
+        return stage.kind === 'native' && (['factors', 'divisors'].includes(stage.operation.name)
+            || 'kind' in stage.source && nativeFactorStage(stage.source));
+    }
+    function deferredIterable(stage: ScalarLoopIterable, env: ReadonlyMap<string, CompiledCalleeType>): ScalarLoopIterable | undefined {
+        if (stage.kind !== 'native') return undefined;
+        if ('kind' in stage.source) {
+            const source = deferredIterable(stage.source, env);
+            return source ? {...stage, source, deferred: true} : undefined;
+        }
+        const argument = plan(stage.source, env);
+        return argument ? {...stage, argument, deferred: true} : undefined;
     }
     // null: every path returned; undefined: unproved; map: continuing paths.
     function flow(commands: readonly Statement[], env: Map<string, CompiledCalleeType>, inLoop = false): Map<string, CompiledCalleeType> | null | undefined {
+        const inherited = new Map(iterableStages);
+        try { return flowCommands(commands, env, inLoop); }
+        finally {
+            iterableStages.clear();
+            for (const [name, stage] of inherited) iterableStages.set(name, stage);
+        }
+    }
+    function flowCommands(commands: readonly Statement[], env: Map<string, CompiledCalleeType>, inLoop: boolean): Map<string, CompiledCalleeType> | null | undefined {
         for (let index = 0; index < commands.length; index++) {
             const command = commands[index];
             if (--budget.remaining < 0) return reject(command, 'budget');
@@ -575,10 +602,23 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
             if (isAssignmentStatement(command) && !command.name.includes('.')) {
                 if (protectedNames.has(command.name)) return reject(command, 'plan-capture-write');
                 if (command.deferred) {
+                    if (!loops || command.operator !== '=' || settled.has(command.name)
+                        || stages.has(command.name) || iterableNames.has(command.name)) return reject(command, 'deferred-binding');
+                    // Bind a finite recipe without evaluating it. Its lexical
+                    // consumers read the protected inputs when traversal starts.
+                    const iterable = loopIterable(command.value, env);
+                    if (iterable && nativeFactorStage(iterable)) {
+                        const deferred = deferredIterable(iterable, env);
+                        if (!deferred) return reject(command, 'plan-expression');
+                        iterableStages.set(command.name, deferred);
+                        iterableNames.add(command.name);
+                        iterableBindings.add(command);
+                        locals.add(command.name);
+                        continue;
+                    }
                     // Fresh local stages may be erased only inside a proved
                     // consumer. Rebindings retain ordinary demand-time contracts.
-                    if (!loops || commands !== statement.statements || command.operator !== '='
-                        || settled.has(command.name) || stages.has(command.name)) return reject(command, 'deferred-binding');
+                    if (commands !== statement.statements) return reject(command, 'deferred-binding');
                     const stage = plan(command.value, env);
                     if (!stage) return reject(command, 'plan-expression');
                     stages.set(command.name, stage);
@@ -586,7 +626,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     locals.add(command.name);
                     continue;
                 }
-                if (stages.has(command.name)) return reject(command, 'plan-rebinding');
+                if (stages.has(command.name) || iterableNames.has(command.name)) return reject(command, 'plan-rebinding');
                 consumerRoot = command.value;
                 const value = type(command.value, env);
                 consumerRoot = undefined;
@@ -607,7 +647,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (!array || typeof array === 'string' || isCompiledContainer(array) || array.rank !== 1) return reject(command, 'unpack-domain');
                 for (const name of command.names) {
                     if (name === '#') continue;
-                    if (name.includes('.') || protectedNames.has(name) || stages.has(name)
+                    if (name.includes('.') || protectedNames.has(name) || stages.has(name) || iterableNames.has(name)
                         || settled.has(name) && settled.get(name) !== array.element) return reject(command, 'unpack-binding');
                     settled.set(name, array.element); env.set(name, array.element);
                     if (!parameters.has(name)) locals.add(name);
@@ -667,7 +707,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                         || binding.names.length > 2 || new Set(binding.names).size !== binding.names.length) return reject(command, 'loop-range');
                     for (const [index, name] of binding.names.entries()) {
                         if (name === '#') continue;
-                        if (protectedNames.has(name) || stages.has(name)) return reject(command, 'plan-capture-write');
+                        if (protectedNames.has(name) || stages.has(name) || iterableNames.has(name)) return reject(command, 'plan-capture-write');
                         const domain = index === 0 && finite ? finite.element : text && index === 0 ? 'text' : 'integer';
                         if (name.includes('.') || settled.has(name) && settled.get(name) !== domain) return reject(command, 'loop-binding');
                         settled.set(name, domain);
@@ -738,9 +778,9 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     // Each invocation owns these constructor slots. Recursive calls only read
     // their arguments; writes through parameters or aliases still fail ownership.
     const result = outcome === null && resultType && !(recursive && (!localArrayWrites || nonnegativeParameters.size))
-        && !(planBindings.size && (containers || arrayWrites.size))
+        && !((planBindings.size || iterableBindings.size) && (containers || arrayWrites.size))
         ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, recursive, arrayWrites, localArrayWrites, observableCaptures, expressions,
-            planCalls, planBindings, planReturn, planReturns, loopIterables, nonnegative: [...nonnegativeParameters] } : undefined;
+            planCalls, planBindings, planReturn, planReturns, loopIterables, iterableBindings, nonnegative: [...nonnegativeParameters] } : undefined;
     const failure = rejection ?? { ...describeCompilerRejection('scalar-function', statement), reason: 'scalar-function:missing-return' };
     // A path-depth limit must not poison a helper that is shallow on its own.
     if (result || !path.length) proofs.set(key, result ?? failure);

@@ -1,0 +1,135 @@
+rem Squarefree Fibonacci Numbers
+rem https://projecteuler.net/problem=399
+
+use numbers
+use bits
+use sequences
+use text
+use io
+use cli
+
+arg Count integer = 100000000
+arg Limit integer = 200000000
+arg PrimeLimit integer = 5714285
+
+rem Wall gives p z(p) as forbidden
+rem indices for each prime p.
+Pr' = primes to PrimeLimit
+Mods = array shape 0 fill 0
+for P in Pr
+  D = P rankmod
+  M = P * D
+  if M greater Limit
+    continue
+  end
+  Keep = true
+  for Old in Mods
+    if M mod Old equal 0
+      Keep = false
+      break
+    end
+  end
+  if Keep
+    Mods = concat Mods (array M)
+  end
+end
+
+rem Find the Count-th allowed index in bounded segments.
+rem Copy the sorted moduli once so marking loops read stored integers.
+SortedMods = Mods sort copy
+Segment = 1000000
+Have = 0
+Index = Limit
+for Lo in 1 to Limit by Segment
+  Len = Segment
+  if Lo + Len greater Limit + 1
+    Len = Limit + 1 - Lo
+  end
+  Marks = array shape Len fill 0
+  for M in SortedMods
+    if M at least Lo + Len
+      break
+    end
+    First = ((Lo + M - 1) // M) * M - Lo
+    for J in First till Len by M
+      Marks J = 1
+    end
+  end
+  Allowed = Len - (Marks sum)
+  if Have + Allowed at least Count
+    for J in 0 till Len
+      if Marks J equal 0
+        Have += 1
+        if Have equal Count
+          Index = Lo + J
+          break
+        end
+      end
+    end
+    break
+  end
+  Have += Allowed
+end
+
+Mod = 10000000000000000
+Last = Index fibmod Mod
+Root = 5 sqrt
+Phi = (1 + Root) / 2
+Ten = 10 log
+Log = Phi log / Ten
+Half = (5 log) / (2 * Ten)
+Exp = Index * Log - Half floor
+Lead = 10 ** (Index * Log - Half - Exp)
+Answer = Last text + ","
+Answer += Lead text ".1f"
+Answer += "e" + (Exp text)
+Answer print
+
+rem Fast doubling F(n) modulo Mod.
+fun N fibmod Mod
+  A = 0
+  B = 1
+  for Bit in N binary
+    C = A * (2 * B - A) mod Mod
+    C = (C + Mod) mod Mod
+    D = (A * A + B * B) mod Mod
+    if Bit equal "0"
+      A = C
+      B = D
+    else
+      A = D
+      B = (C + D) mod Mod
+    end
+  end
+  return A
+end
+
+fun P rankmod
+  D = 0
+  if P equal 2
+    D = 3
+  else
+    if P equal 5
+      D = 5
+    else
+      R = P mod 5
+      C = P + 1
+      if R equal 1 or R equal 4
+        C = P - 1
+      end
+      D = C
+      Fs' = C factors unique
+      for Q in Fs
+        for D mod Q equal 0
+          Part = D // Q
+          Zero = Part fibmod P equal 0
+          if not Zero
+            break
+          end
+          D = Part
+        end
+      end
+    end
+  end
+  return D
+end
