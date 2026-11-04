@@ -21,7 +21,7 @@ const noCaptures: ScalarCaptureTypes = new Map();
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort' | 'choose';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort' | 'choose' | 'concat' | 'concat-copy' | 'captured-bound-len';
     readonly plan?: FunctionPlanConsumer;
     readonly negative?: boolean;
     readonly keyed?: boolean;
@@ -258,6 +258,40 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                         if (stage?.type.rank === 1 && ['integer', 'real'].includes(stage.type.element)) {
                             nativeReads.add('sum');
                             return { type: stage.type.element, input: { name: '', operation: 'plan', plan: { stage, terminal: 'sum' } } };
+                        }
+                    }
+                }
+                if (loops && isApplicationExpression(source)) {
+                    const form = applicationForm(source);
+                    if (form.kind === 'array-combine-constructor' && form.operation === 'concat'
+                        && !form.axis && (!form.rest.length || form.rest.length === 1 && isNameExpression(form.rest[0])
+                            && form.rest[0].name === 'copy' && !env.has('copy') && !lexicalBinding(scope, 'copy'))
+                        && !env.has('concat') && !lexicalBinding(scope, 'concat')) {
+                        const domains = form.items.map(item => type(item, env));
+                        const first = domains[0];
+                        if (first && typeof first !== 'string' && !isCompiledContainer(first) && first.rank === 1
+                            && domains.every(domain => domain && sameCompiledCalleeType(first, domain))) {
+                            modules.add('sequences');
+                            if (form.rest.length) nativeReads.add('copy');
+                            return { type: first, input: { name: '', operation: form.rest.length ? 'concat-copy' : 'concat',
+                                indices: form.items.map(item => expressions.get(item)!) } };
+                        }
+                    }
+                    const parts = flattenApplication(source);
+                    if (parts.length === 2 && isNameExpression(parts[1]) && parts[1].name === 'len'
+                        && !env.has('len') && !lexicalBinding(scope, 'len')) {
+                        const bound = unwrap(parts[0]);
+                        if (isBinaryExpression(bound) && ['to', 'till'].includes(bound.operator) && !bound.step
+                            && isNameExpression(bound.left) && !bound.left.name.includes('.') && !env.has(bound.left.name)) {
+                            const binding = lexical?.reads.get(bound.left) ?? lexicalBinding(scope, bound.left.name);
+                            if (binding && binding.scope.owner !== statement && !binding.function
+                                && type(bound.right, env) === 'integer') {
+                                nativeReads.add('len');
+                                dependencies.add(bound.left.name);
+                                observableCaptures = true;
+                                return { type: 'integer', input: { name: bound.left.name, operation: 'captured-bound-len',
+                                    negative: bound.operator === 'till', indices: [expressions.get(bound.right)!] } };
+                            }
                         }
                     }
                 }

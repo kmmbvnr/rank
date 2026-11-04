@@ -132,6 +132,7 @@ export class Interpreter {
                 evaluateReturn: expression => this.expressions.returnValue(expression),
                 inputs: this.checkedInputs,
                 apply: (fn, args) => this.rankApplication.applyIntrinsicRank(fn, args),
+                binary: (operator, left, right) => this.operators.evaluateBinary(operator, left, right),
                 compileDirect: expression => this.expressions.compileDirect(expression),
                 compiled: (statement, arguments_) => this.fastPaths.functionBody(statement, arguments_, this.blocks),
                 execute: (statements, generator, control) => this.blocks.execute(statements, false, false, false, generator, true, undefined, control),

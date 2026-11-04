@@ -313,3 +313,11 @@ it('checks the full Euler 378 total with a private numeric Fenwick tree', () => 
         expect(diagnostics.numberLoopOverflows).toBe(0);
     } finally { runtime.dispose(); }
 }, 120_000);
+
+it('checks the full Euler 386 antichain sum with linked vector recursion', () => {
+    const runtime = new Interpreter(() => {});
+    try {
+        runtime.execute(readFileSync(new URL('../../../demos/euler/386_antichain.ra', import.meta.url), 'utf8'));
+        expect(runtime.variables.get('Answer')).toBe(528755790n);
+    } finally {runtime.dispose();}
+}, 30_000);

@@ -27,3 +27,20 @@ test "maximum antichain"
   run
   Answer equal 4153927
 end
+
+
+test "empty and short factor patterns"
+  use "386_antichain"
+  Limit = 0
+  run
+  Answer equal 0
+  Limit = 6
+  run
+  Answer equal 7
+  Limit = 7
+  run
+  Answer equal 8
+  Limit = 8
+  run
+  Answer equal 9
+end

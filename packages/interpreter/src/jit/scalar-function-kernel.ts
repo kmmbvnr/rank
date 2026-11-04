@@ -24,7 +24,7 @@ import { checkedArrayDimension } from '../tensor-index.js';
 import { arrayValues, arrayForWrite, ownedArray, noteArrayBinding, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from '../array-storage.js';
 import { scalarSelection } from './scalar-selection.js';
 import { takeDropValue } from '../sequence.js';
-import { copyArray, materializeCollection } from '../modules/sequences.js';
+import { concatValues, copyArray, materializeCollection } from '../modules/sequences.js';
 import { hasDeferredSelectionCopy } from '../integer-view.js';
 import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes, type ScalarLoopIterable } from './scalar-function-proof.js';
 import { emitFunctionPlan, functionPlanArrays, functionPlanCallbacks, FunctionPlanDemandError } from '../function-plan.js';
@@ -48,7 +48,7 @@ interface Kernel {
     readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
     readonly captures: readonly { name: string; rank: number }[];
-    readonly calls: readonly { operation: Operation; inputs: readonly string[]; iterator?: boolean; capturedArgument?: string }[];
+    readonly calls: readonly { operation: Operation; inputs: readonly string[]; iterator?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[];
     readonly guards: readonly string[];
     readonly modules: readonly string[];
     readonly locations: readonly (Statement | Expression)[];
@@ -503,7 +503,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     };
     statement.parameters.forEach(slot);
     const locations: (Statement | Expression)[] = [];
-    const calls: { operation: Operation; inputs: readonly string[]; iterator?: boolean; capturedArgument?: string }[] = [];
+    const calls: { operation: Operation; inputs: readonly string[]; iterator?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[] = [];
     const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[] = [];
     const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
     const memberships: string[] = [];
@@ -652,6 +652,19 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 lines.push(selection ? `let ${result}; try { ${result} = captures[${index}]([${indices.join(',')}]); }
                     catch (error) { throw argumentSelectionError(error, ${JSON.stringify(selection.name)}, ${selection.count}); }`
                     : `const ${result} = captures[${index}]([${indices.join(',')}]);`);
+                return result;
+            }
+            if (operation === 'concat' || operation === 'concat-copy') {
+                const values = expression.input.indices!.map(input => lower(input, lines)), result = `v${serial++}`;
+                lines.push(`const ${result} = ${operation === 'concat-copy' ? 'concatCopy' : 'concatValues'}([${values.join(',')}]);`);
+                return result;
+            }
+            if (operation === 'captured-bound-len') {
+                const limit = lower(expression.input.indices![0], lines);
+                const index = calls.push({ operation: findOperation('len')!, inputs: ['sized'],
+                    capturedArgument: expression.input.name, bound: expression.input.negative ? 'till' : 'to' }) - 1;
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = calls[${index}](${limit});`);
                 return result;
             }
             if (operation === 'captured-len') {
@@ -987,13 +1000,20 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
     };
     const loopValues = (value: RankArray | RankSequence) => isRankArray(value) ? arrayValues(value) : sequenceValues(value, 'for');
+    // Explicit completion can copy proven scalar operands directly, without
+    // building a persistent concat tree just to traverse it once.
+    const concatCopy = (arrays: readonly RankArray[]) => {
+        const items: RankValue[] = [];
+        for (const array of arrays) for (const item of arrayValues(array)) items.push(item);
+        return ownedArray(items, [items.length], true);
+    };
     const kernelArguments = [
         loopValues, RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection,
         indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension,
         membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem,
         prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection,
         textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError, setHas, textAt,
-        sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems,
+        sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems, concatValues, concatCopy,
     ];
     const kernelParameterNames = [
         'loopValues', 'RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection',
@@ -1001,7 +1021,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem',
         'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection',
         'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', 'setHas', 'textAt',
-        'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems',
+        'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems', 'concatValues', 'concatCopy',
     ];
     try {
         const run = new Function(...kernelParameterNames, source)(...kernelArguments) as Kernel['run'];

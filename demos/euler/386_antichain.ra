@@ -12,15 +12,19 @@ arg Limit integer = 10 ** 8
 rem Exponents fix the divisor width.
 rem Equal powers use rising primes.
 Sieve = Limit primesieve
-rem Only non-final factors and the smallest pattern primes need enumeration.
+rem Keep primes for non-final factors
+rem and the smallest exponent patterns.
 Small = Limit isqrt
-if Small less 2
-  Small = 2
+if Small less 3
+  Small = 3
 end
 Ps = primes to Small array
 Es = array shape 0 fill 0
 More = 0 26 1 Es Ps pats
 Answer = 1 + More
+if Limit equal 0
+  Answer = 0
+end
 Answer print
 
 fun N root E
@@ -31,10 +35,17 @@ fun N root E
     return N isqrt
   end
   Lo = 1
-  Hi = N
+  Hi = N isqrt
   for Lo less Hi
     Mid = (Lo + Hi + 1) // 2
-    if Mid ** E at most N
+    Power = 1
+    for J in 1 to E
+      Power *= Mid
+      if Power greater N
+        break
+      end
+    end
+    if Power at most N
       Lo = Mid
     else
       Hi = Mid - 1
@@ -46,14 +57,8 @@ end
 fun Es width
   D = array 1
   for E in Es
-    Len = D len + E
-    Next = array shape Len fill 0
-    for I in 0 to D len - 1
-      for J in 0 to E
-        Next (I + J) += D I
-      end
-    end
-    D = Next
+    Ones = array shape (E + 1) fill 1
+    D = D convolve Ones
   end
   return D max
 end
@@ -93,8 +98,11 @@ fun Es Pos Lim Low Used Ps cnt
     if P in Used
       continue
     end
-    Pow = P ** E
-    Next = concat Used (array P)
+    Pow = P
+    for J in 2 to E
+      Pow *= P
+    end
+    Next = concat Used (array P) copy
     New = 2
     Pos2 = Pos + 1
     if Pos2 less Len
@@ -122,7 +130,7 @@ fun I Last V Es Ps pats
     if Next greater Limit
       break
     end
-    More = concat Es (array E)
+    More = concat Es (array E) copy
     Empty = array shape 0 fill 0
     Ways = More 0 Limit 2 Empty Ps cnt
     Total += More width * Ways

@@ -1,0 +1,925 @@
+{
+  "revision": "0e6cb9a944dbc2809772b5f577c7134df21dcfb5",
+  "node": "v24.15.0",
+  "mac": {
+    "cpu": "Apple M5",
+    "compiled": [
+      {
+        "id": "386",
+        "scale": "full",
+        "mode": "compiled",
+        "controls": [
+          ""
+        ],
+        "args": [],
+        "ms": 15516.679792,
+        "answer": "528755790",
+        "scalarCalls": 379003,
+        "rssMiB": 547.234375
+      },
+      {
+        "id": "386",
+        "scale": "full",
+        "mode": "compiled",
+        "controls": [
+          ""
+        ],
+        "args": [],
+        "ms": 15482.5095,
+        "answer": "528755790",
+        "scalarCalls": 379003,
+        "rssMiB": 549.8125
+      },
+      {
+        "id": "386",
+        "scale": "full",
+        "mode": "compiled",
+        "controls": [
+          ""
+        ],
+        "args": [],
+        "ms": 15455.805042,
+        "answer": "528755790",
+        "scalarCalls": 379003,
+        "rssMiB": 547.453125
+      }
+    ],
+    "reference": [
+      {
+        "id": "386",
+        "scale": "full",
+        "mode": "reference",
+        "controls": [
+          ""
+        ],
+        "args": [],
+        "ms": 16227.26975,
+        "answer": "528755790",
+        "scalarCalls": 0,
+        "rssMiB": 505.109375
+      },
+      {
+        "id": "386",
+        "scale": "full",
+        "mode": "reference",
+        "controls": [
+          ""
+        ],
+        "args": [],
+        "ms": 16438.695959,
+        "answer": "528755790",
+        "scalarCalls": 0,
+        "rssMiB": 505.890625
+      },
+      {
+        "id": "386",
+        "scale": "full",
+        "mode": "reference",
+        "controls": [
+          ""
+        ],
+        "args": [],
+        "ms": 16220.830958,
+        "answer": "528755790",
+        "scalarCalls": 0,
+        "rssMiB": 509.140625
+      }
+    ],
+    "javascript": [
+      {
+        "kind": "js-same-algorithm",
+        "limit": 100000000,
+        "answer": 528755790,
+        "ms": 133.388833,
+        "rssMiB": 92.375,
+        "countCalls": 379003,
+        "rootCalls": 379003,
+        "patterns": 802
+      },
+      {
+        "kind": "js-same-algorithm",
+        "limit": 100000000,
+        "answer": 528755790,
+        "ms": 133.56816600000002,
+        "rssMiB": 92.734375,
+        "countCalls": 379003,
+        "rootCalls": 379003,
+        "patterns": 802
+      },
+      {
+        "kind": "js-same-algorithm",
+        "limit": 100000000,
+        "answer": 528755790,
+        "ms": 133.45975,
+        "rssMiB": 92.40625,
+        "countCalls": 379003,
+        "rootCalls": 379003,
+        "patterns": 802
+      }
+    ]
+  },
+  "intel": [
+    {
+      "id": "386",
+      "scale": "full",
+      "mode": "compiled",
+      "controls": [
+        ""
+      ],
+      "args": [],
+      "ms": 64567.999381,
+      "answer": "528755790",
+      "scalarCalls": 379003,
+      "rssMiB": 531.6640625
+    },
+    {
+      "id": "386",
+      "scale": "full",
+      "mode": "compiled",
+      "controls": [
+        ""
+      ],
+      "args": [],
+      "ms": 65618.04406900001,
+      "answer": "528755790",
+      "scalarCalls": 379003,
+      "rssMiB": 529.6171875
+    },
+    {
+      "id": "386",
+      "scale": "full",
+      "mode": "compiled",
+      "controls": [
+        ""
+      ],
+      "args": [],
+      "ms": 65735.108444,
+      "answer": "528755790",
+      "scalarCalls": 379003,
+      "rssMiB": 531.2578125
+    },
+    {
+      "kind": "js-same-algorithm",
+      "limit": 100000000,
+      "answer": 528755790,
+      "ms": 323.432863,
+      "rssMiB": 92.60546875,
+      "countCalls": 379003,
+      "rootCalls": 379003,
+      "patterns": 802
+    },
+    {
+      "kind": "js-same-algorithm",
+      "limit": 100000000,
+      "answer": 528755790,
+      "ms": 336.53414999999995,
+      "rssMiB": 92.40625,
+      "countCalls": 379003,
+      "rootCalls": 379003,
+      "patterns": 802
+    },
+    {
+      "kind": "js-same-algorithm",
+      "limit": 100000000,
+      "answer": 528755790,
+      "ms": 352.1726120000001,
+      "rssMiB": 92.14453125,
+      "countCalls": 379003,
+      "rootCalls": 379003,
+      "patterns": 802
+    }
+  ],
+  "diagnostics": {
+    "id": "386",
+    "scale": "full",
+    "mode": "compiled",
+    "controls": [
+      ""
+    ],
+    "args": [],
+    "ms": 15930.475542,
+    "answer": "528755790",
+    "scalarCalls": 379003,
+    "rssMiB": 565.40625,
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 381976,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "integerKeyedFolds": 0,
+      "realKeyedFolds": 0,
+      "keyedNativeReaders": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 381976,
+      "numberLoopUnpolled": 381976,
+      "numberLoopBatched": 0,
+      "numberFunctions": 374302,
+      "numberFunctionFallbacks": 2695,
+      "numberFunctionSkips": 4701,
+      "numberFunctionArrayBorrows": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 272961,
+      "numberLoopReadBufferCells": 1003750,
+      "numberLoopReadBufferHits": 109015,
+      "numberLoopBorrowedRealBuffers": 0,
+      "numberLoopBorrowedRealCells": 0,
+      "modularMatrixPowers": 0,
+      "compiledTensors": 0,
+      "packedBooleanGathers": 0,
+      "packedBooleanGatherCells": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 0,
+      "typedArrayPublishedCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-function:loop-range:ForStatement": 1,
+        "scalar-expression:unsupported-op:**": 2,
+        "scalar-expression:too-small": 18,
+        "tensor:unsupported-node:MaterializeExpression": 1,
+        "scalar-expression:unsupported-op:to": 3,
+        "tensor:unsupported-type:array": 6,
+        "scalar-function:unsupported-op:len": 1,
+        "scalar-function:application-form:ApplicationExpression": 1,
+        "scalar-expression:unsupported-op:len": 379011,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+        "scalar-expression:unsupported-op:atleast": 2,
+        "loop:unsupported-type:array": 1,
+        "tensor:output-shape": 380229,
+        "scalar-function:callee-binding:ApplicationExpression": 1,
+        "scalar-function:unsupported-op:root": 1,
+        "scalar-expression:unsupported-op:-": 4,
+        "scalar-expression:unsupported-op:equal": 4,
+        "tensor:unsupported-op:to": 1,
+        "tensor:unsupported-op:till": 1,
+        "scalar-expression:unsupported-op:till": 2,
+        "loop:mutable-array-alias:ForStatement": 1,
+        "loop:no-text-specialization": 802,
+        "scalar-expression:unsupported-op:+": 2,
+        "loop:unsupported-op:**": 1,
+        "scalar-expression:unsupported-op:in": 1,
+        "scalar-expression:unsupported-op:Pos2": 2
+      },
+      "compilerRejections": [
+        {
+          "reason": "scalar-function:loop-range:ForStatement",
+          "node": "ForStatement",
+          "function": "width",
+          "expression": "for E in Es\n    Len = D len + E\n    Next = array shape Len fill 0\n    for I in 0 to D len - 1\n      for J in 0 to E\n        Next (I + J) += D I\n      end\n    en",
+          "line": 48,
+          "column": 3
+        },
+        {
+          "reason": "scalar-function:unsupported-op:len",
+          "node": "ApplicationExpression",
+          "function": "pats",
+          "expression": "Ps len",
+          "line": 113,
+          "column": 18
+        },
+        {
+          "reason": "scalar-function:application-form:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "pats",
+          "expression": "concat Es (array E)",
+          "line": 125,
+          "column": 12
+        },
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "cnt",
+          "expression": "Es Pos",
+          "line": 62,
+          "column": 7
+        },
+        {
+          "reason": "scalar-function:unsupported-op:root",
+          "node": "ApplicationExpression",
+          "function": "cnt",
+          "expression": "Lim root E",
+          "line": 64,
+          "column": 11
+        }
+      ]
+    }
+  },
+  "compilerProbes": [
+    {
+      "name": "array-index",
+      "compilation": false,
+      "answer": "11",
+      "calls": 0,
+      "rejections": [],
+      "fallbacks": {}
+    },
+    {
+      "name": "array-index",
+      "compilation": true,
+      "answer": "11",
+      "calls": 1,
+      "rejections": [
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "pick",
+          "expression": "Es Pos",
+          "line": 4,
+          "column": 9
+        }
+      ],
+      "fallbacks": {
+        "scalar-function:callee-binding:ApplicationExpression": 1,
+        "tensor:unsupported-type:array": 1
+      }
+    },
+    {
+      "name": "array-iteration",
+      "compilation": false,
+      "answer": "18",
+      "calls": 0,
+      "rejections": [],
+      "fallbacks": {
+        "loop:disabled": 1
+      }
+    },
+    {
+      "name": "array-iteration",
+      "compilation": true,
+      "answer": "18",
+      "calls": 0,
+      "rejections": [
+        {
+          "reason": "scalar-function:loop-range:ForStatement",
+          "node": "ForStatement",
+          "function": "total",
+          "expression": "for E in Es\n  Total += E\n end",
+          "line": 5,
+          "column": 2
+        }
+      ],
+      "fallbacks": {
+        "scalar-function:loop-range:ForStatement": 1,
+        "tensor:unsupported-type:array": 1
+      }
+    },
+    {
+      "name": "local-concat",
+      "compilation": false,
+      "answer": "3",
+      "calls": 0,
+      "rejections": [],
+      "fallbacks": {}
+    },
+    {
+      "name": "local-concat",
+      "compilation": true,
+      "answer": "3",
+      "calls": 0,
+      "rejections": [
+        {
+          "reason": "scalar-function:application-form:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "size",
+          "expression": "concat Es (array E)",
+          "line": 4,
+          "column": 9
+        }
+      ],
+      "fallbacks": {
+        "scalar-function:application-form:ApplicationExpression": 2,
+        "tensor:unsupported-type:array": 2
+      }
+    },
+    {
+      "name": "bounded-sequence-length",
+      "compilation": false,
+      "answer": "15",
+      "calls": 0,
+      "rejections": [],
+      "fallbacks": {}
+    },
+    {
+      "name": "bounded-sequence-length",
+      "compilation": true,
+      "answer": "15",
+      "calls": 0,
+      "rejections": [
+        {
+          "reason": "scalar-function:unbound-name:NameExpression",
+          "node": "NameExpression",
+          "name": "Sieve",
+          "function": "tally",
+          "expression": "Sieve",
+          "line": 5,
+          "column": 10
+        }
+      ],
+      "fallbacks": {
+        "scalar-function:unbound-name:NameExpression": 1,
+        "tensor:unsupported-op:to": 1,
+        "scalar-expression:unsupported-op:to": 1
+      }
+    },
+    {
+      "name": "recursive-array-extension",
+      "compilation": false,
+      "answer": "5",
+      "calls": 0,
+      "rejections": [],
+      "fallbacks": {}
+    },
+    {
+      "name": "recursive-array-extension",
+      "compilation": true,
+      "answer": "5",
+      "calls": 0,
+      "rejections": [
+        {
+          "reason": "scalar-function:unsupported-op:len",
+          "node": "ApplicationExpression",
+          "function": "tally",
+          "expression": "Es len",
+          "line": 5,
+          "column": 10
+        },
+        {
+          "reason": "scalar-function:application-form:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "tally",
+          "expression": "concat Es (array N)",
+          "line": 7,
+          "column": 9
+        }
+      ],
+      "fallbacks": {
+        "scalar-function:unsupported-op:len": 1,
+        "tensor:unsupported-type:array": 2,
+        "scalar-function:application-form:ApplicationExpression": 1,
+        "scalar-expression:too-small": 2
+      }
+    }
+  ],
+  "oracleFull": {
+    "limit": 100000000,
+    "answer": "528755790",
+    "ms": 1866.89
+  },
+  "verification": {
+    "limits": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      7,
+      8,
+      10,
+      25,
+      49,
+      100,
+      127,
+      256,
+      999,
+      2000
+    ],
+    "rankChecks": 140,
+    "jsChecks": 15,
+    "knownFailures": [
+      {
+        "variant": "original",
+        "compilation": false,
+        "limit": 0,
+        "actual": "1",
+        "expected": "0"
+      },
+      {
+        "variant": "original",
+        "compilation": true,
+        "limit": 0,
+        "actual": "1",
+        "expected": "0"
+      },
+      {
+        "variant": "root-bound",
+        "compilation": false,
+        "limit": 0,
+        "actual": "1",
+        "expected": "0"
+      },
+      {
+        "variant": "root-bound",
+        "compilation": true,
+        "limit": 0,
+        "actual": "1",
+        "expected": "0"
+      },
+      {
+        "variant": "convolve",
+        "compilation": false,
+        "limit": 0,
+        "actual": "1",
+        "expected": "0"
+      },
+      {
+        "variant": "convolve",
+        "compilation": true,
+        "limit": 0,
+        "actual": "1",
+        "expected": "0"
+      },
+      {
+        "variant": "empty-bound",
+        "compilation": false,
+        "limit": 0,
+        "actual": "1",
+        "expected": "0"
+      },
+      {
+        "variant": "empty-bound",
+        "compilation": true,
+        "limit": 0,
+        "actual": "1",
+        "expected": "0"
+      },
+      {
+        "variant": "eager-arguments",
+        "compilation": false,
+        "limit": 0,
+        "actual": "1",
+        "expected": "0"
+      },
+      {
+        "variant": "eager-arguments",
+        "compilation": true,
+        "limit": 0,
+        "actual": "1",
+        "expected": "0"
+      },
+      {
+        "variant": "original",
+        "compilation": false,
+        "limit": 6,
+        "actual": "5",
+        "expected": "7"
+      },
+      {
+        "variant": "original",
+        "compilation": true,
+        "limit": 6,
+        "actual": "5",
+        "expected": "7"
+      },
+      {
+        "variant": "root-bound",
+        "compilation": false,
+        "limit": 6,
+        "actual": "5",
+        "expected": "7"
+      },
+      {
+        "variant": "root-bound",
+        "compilation": true,
+        "limit": 6,
+        "actual": "5",
+        "expected": "7"
+      },
+      {
+        "variant": "convolve",
+        "compilation": false,
+        "limit": 6,
+        "actual": "5",
+        "expected": "7"
+      },
+      {
+        "variant": "convolve",
+        "compilation": true,
+        "limit": 6,
+        "actual": "5",
+        "expected": "7"
+      },
+      {
+        "variant": "empty-bound",
+        "compilation": false,
+        "limit": 6,
+        "actual": "5",
+        "expected": "7"
+      },
+      {
+        "variant": "empty-bound",
+        "compilation": true,
+        "limit": 6,
+        "actual": "5",
+        "expected": "7"
+      },
+      {
+        "variant": "eager-arguments",
+        "compilation": false,
+        "limit": 6,
+        "actual": "5",
+        "expected": "7"
+      },
+      {
+        "variant": "eager-arguments",
+        "compilation": true,
+        "limit": 6,
+        "actual": "5",
+        "expected": "7"
+      },
+      {
+        "variant": "original",
+        "compilation": false,
+        "limit": 7,
+        "actual": "6",
+        "expected": "8"
+      },
+      {
+        "variant": "original",
+        "compilation": true,
+        "limit": 7,
+        "actual": "6",
+        "expected": "8"
+      },
+      {
+        "variant": "root-bound",
+        "compilation": false,
+        "limit": 7,
+        "actual": "6",
+        "expected": "8"
+      },
+      {
+        "variant": "root-bound",
+        "compilation": true,
+        "limit": 7,
+        "actual": "6",
+        "expected": "8"
+      },
+      {
+        "variant": "convolve",
+        "compilation": false,
+        "limit": 7,
+        "actual": "6",
+        "expected": "8"
+      },
+      {
+        "variant": "convolve",
+        "compilation": true,
+        "limit": 7,
+        "actual": "6",
+        "expected": "8"
+      },
+      {
+        "variant": "empty-bound",
+        "compilation": false,
+        "limit": 7,
+        "actual": "6",
+        "expected": "8"
+      },
+      {
+        "variant": "empty-bound",
+        "compilation": true,
+        "limit": 7,
+        "actual": "6",
+        "expected": "8"
+      },
+      {
+        "variant": "eager-arguments",
+        "compilation": false,
+        "limit": 7,
+        "actual": "6",
+        "expected": "8"
+      },
+      {
+        "variant": "eager-arguments",
+        "compilation": true,
+        "limit": 7,
+        "actual": "6",
+        "expected": "8"
+      },
+      {
+        "variant": "original",
+        "compilation": false,
+        "limit": 8,
+        "actual": "7",
+        "expected": "9"
+      },
+      {
+        "variant": "original",
+        "compilation": true,
+        "limit": 8,
+        "actual": "7",
+        "expected": "9"
+      },
+      {
+        "variant": "root-bound",
+        "compilation": false,
+        "limit": 8,
+        "actual": "7",
+        "expected": "9"
+      },
+      {
+        "variant": "root-bound",
+        "compilation": true,
+        "limit": 8,
+        "actual": "7",
+        "expected": "9"
+      },
+      {
+        "variant": "convolve",
+        "compilation": false,
+        "limit": 8,
+        "actual": "7",
+        "expected": "9"
+      },
+      {
+        "variant": "convolve",
+        "compilation": true,
+        "limit": 8,
+        "actual": "7",
+        "expected": "9"
+      },
+      {
+        "variant": "empty-bound",
+        "compilation": false,
+        "limit": 8,
+        "actual": "7",
+        "expected": "9"
+      },
+      {
+        "variant": "empty-bound",
+        "compilation": true,
+        "limit": 8,
+        "actual": "7",
+        "expected": "9"
+      },
+      {
+        "variant": "eager-arguments",
+        "compilation": false,
+        "limit": 8,
+        "actual": "7",
+        "expected": "9"
+      },
+      {
+        "variant": "eager-arguments",
+        "compilation": true,
+        "limit": 8,
+        "actual": "7",
+        "expected": "9"
+      }
+    ]
+  },
+  "fixture": [
+    {
+      "file": "demos/euler/386_antichain_test.ra",
+      "compilation": false,
+      "tests": [
+        {
+          "name": "maximum antichain",
+          "passed": true,
+          "output": [
+            "1",
+            "2",
+            "12",
+            "178",
+            "2385",
+            "29860",
+            "357503",
+            "4153927"
+          ],
+          "durationMs": 1416.456791
+        }
+      ]
+    },
+    {
+      "file": "demos/euler/386_antichain_test.ra",
+      "compilation": true,
+      "tests": [
+        {
+          "name": "maximum antichain",
+          "passed": true,
+          "output": [
+            "1",
+            "2",
+            "12",
+            "178",
+            "2385",
+            "29860",
+            "357503",
+            "4153927"
+          ],
+          "durationMs": 1387.3962910000002
+        }
+      ]
+    }
+  ],
+  "singleSamplePrototypes": {
+    "root-bound": {
+      "id": "386",
+      "scale": "full",
+      "mode": "compiled",
+      "controls": [
+        ""
+      ],
+      "args": [],
+      "ms": 15708.703792,
+      "answer": "528755790",
+      "scalarCalls": 379003,
+      "rssMiB": 546.09375
+    },
+    "convolve": {
+      "id": "386",
+      "scale": "full",
+      "mode": "compiled",
+      "controls": [
+        ""
+      ],
+      "args": [],
+      "ms": 15570.833917,
+      "answer": "528755790",
+      "scalarCalls": 379003,
+      "rssMiB": 546.328125
+    },
+    "empty-bound": {
+      "id": "386",
+      "scale": "full",
+      "mode": "compiled",
+      "controls": [
+        ""
+      ],
+      "args": [],
+      "ms": 16361.230624999998,
+      "answer": "528755790",
+      "scalarCalls": 379003,
+      "rssMiB": 1002.84375
+    }
+  },
+  "excludedSamples": {
+    "referenceR2": "An independent oracle compilation/run overlapped part of this sample.",
+    "profiledRun": "Diagnostic/profile run is not a timing sample."
+  },
+  "intelHost": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           39 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  12\nOn-line CPU(s) list:                     0-11\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz\nCPU family:                              6\nModel:                                   165\nThread(s) per core:                      2\nCore(s) per socket:                      6\nSocket(s):                               1\nStepping:                                2\nCPU(s) scaling MHz:                      29%\nCPU max MHz:                             5000.0000\nCPU min MHz:                             800.0000\nBogoMIPS:                                5199.98\n 12:13:22 up 194 days, 17:39,  1 user,  load average: 0.55, 0.71, 0.39\n",
+  "sourceSha256": {
+    "demos/euler/386_antichain.ra": "634f1bfc69b787399968f989dfac3b8016820a6a9e12fcaa26a5f19a69bc7ac9",
+    "benchmarks/experiments/euler386-same-algorithm.mjs": "63cae9fc64c4915db64582df1f4ef20f834b78843dc9f79f00692fe434eecb7f"
+  }
+}

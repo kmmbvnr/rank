@@ -83,20 +83,24 @@ export class DensePrimeSieve {
     }
 }
 
+// Clamp before conversion so arbitrary BigInt bounds stay exact.
+function countThrough(sieve: DensePrimeSieve, limit: bigint): number {
+    return limit < 2n ? 0 : sieve.count(Number(limit > BigInt(sieve.limit) ? BigInt(sieve.limit) : limit));
+}
+
+function countBetween(sieve: DensePrimeSieve, last: bigint, before: bigint): bigint {
+    return last <= before ? 0n : BigInt(countThrough(sieve, last) - countThrough(sieve, before));
+}
+
 /** Bounds share the completed bitmap; membership never enumerates prime values. */
 function sievePlan(sieve: DensePrimeSieve, upper: Boundary, lower?: Boundary): SequencePlan {
+    const before = lower ? lower.limit - (lower.inclusive ? 1n : 0n) : 1n;
+    const last = upper.limit - (upper.inclusive ? 0n : 1n);
     const plan: SequencePlan = {
         name: 'primesieve',
         replay: 'pure',
         size: { kind: 'unknown' },
-        length() {
-            const last = upper.limit - (upper.inclusive ? 0n : 1n);
-            const before = lower ? lower.limit - (lower.inclusive ? 1n : 0n) : 1n;
-            if (last <= before) return 0n;
-            // Clamp BigInt bounds before converting; arbitrarily large bounds stay exact.
-            const count = (n: bigint) => n < 2n ? 0 : sieve.count(Number(n > BigInt(sieve.limit) ? BigInt(sieve.limit) : n));
-            return BigInt(count(last) - count(before));
-        },
+        length: () => countBetween(sieve, last, before),
         *iterate() {
             let first = lower ? lower.limit + (lower.inclusive ? 0n : 1n) : 2n;
             const last = upper.limit - (upper.inclusive ? 0n : 1n);
@@ -122,7 +126,10 @@ function sievePlan(sieve: DensePrimeSieve, upper: Boundary, lower?: Boundary): S
         },
     };
     registerSequenceMembership(plan);
-    registerMetadataBounds(plan);
+    registerMetadataBounds(plan, (limit, inclusive) => {
+        const end = limit - (inclusive ? 0n : 1n);
+        return countBetween(sieve, end < last ? end : last, before);
+    });
     registerStoredSequence(plan);
     return plan;
 }

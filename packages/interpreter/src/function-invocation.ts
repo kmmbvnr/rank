@@ -1,4 +1,6 @@
 import { summarizeIntegerBuffer } from './value-summary.js';
+import { isStoredValue } from './runtime/stored-value.js';
+import { hasMetadataBounds, metadataBoundLength } from './sequence-bounds.js';
 import { materializeArguments } from './materialize.js';
 import {
     functionArgumentBinder, functionReturnSpecializations, memoizedFunctionBody, memoCallKey,
@@ -73,6 +75,7 @@ export interface FunctionHost {
     resolve(name: string): RankValue;
     evaluateReturn(expression: Expression): Evaluation<RankValue>;
     apply(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue>;
+    binary(operator: string, left: RankValue, right: RankValue): RankValue;
     readonly inputs?: Pick<CheckedInputContracts, 'pending' | 'call' | 'tail'>;
     /** A synchronous closure for an expression that cannot call Rank code, when one exists. */
     compileDirect(expression: Expression): (() => RankValue) | undefined;
@@ -778,7 +781,8 @@ export class FunctionInvocation {
         const scalars = kernel.scalarCaptures.map(({ name }) => () => resolve(name)!);
         const captureReaders: ReturnType<typeof capturedIntegerReader>[] = [];
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
-        const binders = kernel.calls.map(({ operation, inputs, iterator, capturedArgument }) => capturedArgument ? () => {
+        const boundedCalls: LoopCallable[] = [];
+        const binders = kernel.calls.map(({ operation, inputs, iterator, capturedArgument, bound }, callIndex) => capturedArgument ? () => {
             const value = resolve(operation.name);
             if (!privateLoopPolling() || demandBudgetEnabled() || !this.modules.has(operation.module)
                 || !value || !isNativeFunction(value) || !this.builtins.is(operation.module, operation.name, value)
@@ -786,6 +790,24 @@ export class FunctionInvocation {
             const current = resolve(capturedArgument);
             // Opaque headers can observe interpreter dispatch/type checks.
             // Probe only storage metadata, never shape, items or element types.
+            if (bound) {
+                // Only immutable native plans enter; opaque/custom sequences keep
+                // ordinary dispatch. Resolve again at demand after linked calls.
+                if (!current || typeof current !== 'object' || Object.getOwnPropertyDescriptor(current, 'kind')?.value !== 'sequence'
+                    || !Object.getOwnPropertyDescriptor(current, 'plan')?.value
+                    || !hasMetadataBounds(Object.getOwnPropertyDescriptor(current, 'plan')!.value) || !isStoredValue(current)) return undefined;
+                return boundedCalls[callIndex] ??= ((limit: bigint) => {
+                    const argument = resolve(capturedArgument);
+                    if (argument === undefined) throw this.builtins.unknown(capturedArgument);
+                    if (typeof argument === 'object' && Object.getOwnPropertyDescriptor(argument, 'kind')?.value === 'sequence') {
+                        const plan = Object.getOwnPropertyDescriptor(argument, 'plan')?.value as RankSequence['plan'] | undefined;
+                        const read = plan && metadataBoundLength(plan);
+                        if (read) return read(limit, bound === 'to');
+                    }
+                    const selected = this.host.binary(bound, argument, limit);
+                    return runExecution(this.host.apply(value, [selected]));
+                }) as LoopCallable;
+            }
             if (current === undefined || typeof current === 'object' && !hasNativeArrayHeader(current)) return undefined;
             return (() => {
                 const argument = resolve(capturedArgument);
@@ -1030,7 +1052,7 @@ export class FunctionInvocation {
                 const operation = findOperation(name);
                 const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
                 if (!operation || !this.modules.has(operation.module) || !value || !this.builtins.is(operation.module, name, value)
-                    || (kernel.plans || kernel.numberDirect || name === 'choose') && (!isNativeFunction(value) || !hasNativeImplementation(value))) return false;
+                    || (kernel.plans || kernel.numberDirect || name === 'choose' || name === 'copy') && (!isNativeFunction(value) || !hasNativeImplementation(value))) return false;
             }
             for (let index = 0; index < binders.length; index++) {
                 const call = binders[index]();

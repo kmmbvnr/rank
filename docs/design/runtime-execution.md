@@ -1426,6 +1426,21 @@ entry, using the defining scope and owning interpreter. Unknown host replacement
 use ordinary execution. The code cache retains AST metadata only; each definition
 scope has its own prepared binding guards. CSP failure retains ordinary execution.
 
+Rank-one scalar-array concatenation can remain inside a linked function,
+including a recursive call. Plain `concat` keeps the ordinary persistent snapshot;
+explicit `concat A B copy` copies the proven scalar operands directly into fresh
+storage without first constructing that snapshot tree. Mixed element types and
+axis forms retain ordinary dispatch. Argument writes still require the existing
+ownership proof; admitting concat does not make borrowed inputs writable.
+
+A captured immutable native sequence can supply `(Source to Limit) len` or
+`(Source till Limit) len` to a linked function. The receiver is read at demand,
+with original native `len` and metadata-bound method guards. Constructors may
+register an exact bounded-length reader; dense prime sieves use their shared
+rank index without allocating a bounded plan. Existing upper/lower bounds are
+preserved. Opaque/custom plans, inspection and demand budgets retain ordinary
+execution, as do host replacements of the native methods.
+
 Native signatures are prepared once. Every region entry still checks bindings,
 host effects, options and interrupt mode. Interactive calls keep native boundary
 checks. A native callee whose kernel is unavailable cannot enter a compiled loop
