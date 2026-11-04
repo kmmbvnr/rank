@@ -140,6 +140,7 @@ export interface IntegerLoopPlan {
     hasYield: boolean;
     needsAlgo: boolean;
     arrayDefinitions: Set<string>;
+    arrayTransfers?: ReadonlySet<string>;
     arrayRegions?: { region: ArrayRegion; location: number }[];
     numberVectors?: boolean;
     writable: Set<string>;

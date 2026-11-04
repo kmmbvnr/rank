@@ -76,11 +76,31 @@ for R in 0 till 5000
  Scratch = tuple J
 end
 A sum`, 5000n];
+const moveRounds = 32;
+for (const [name, width, moveSize] of [['move-2', 2, 32768], ['move-3', 3, 32768], ['move-large', 2, 524288]]) {
+    // Independent scalar oracle for the two/three-stage recurrence.
+    const values = Array.from({ length: width }, (_, i) => BigInt(i + 1));
+    for (let round = 0; round < moveRounds; round++) {
+        values[width - 1] = (values[0] * 2n + 1n) % 1000003n;
+        values.unshift(values.pop());
+    }
+    cases[name] = [`use sequences
+A = array shape ${moveSize} fill 1
+B = array shape ${moveSize} fill 2
+${width === 3 ? `C = array shape ${moveSize} fill 3` : ''}
+for R in 0 till ${moveRounds}
+ for I in 0 till ${moveSize}
+  ${width === 3 ? 'C' : 'B'} I = (A I * 2 + 1) mod 1000003
+ end
+ unpack ${width === 3 ? 'A B C = tuple C A B' : 'A B = tuple B A'}
+end
+A sum`, values[0] * BigInt(moveSize)];
+}
 if (process.argv[2] === '--worker') {
     const [, , , checkout, name, engine, diagnostics] = process.argv;
     const { Interpreter, RuntimeDiagnostics, parse } = await import(pathToFileURL(resolve(checkout, 'packages/interpreter/out/index.js')));
     const runtime = new Interpreter(() => {}, { compilation: engine === 'compiled',
-        ...(name.startsWith('work-') ? { scalarEntryCompilation: false } : { integerLoopCompilation: false }) });
+        ...(/^(work|move)-/.test(name) ? { scalarEntryCompilation: false } : { integerLoopCompilation: false }) });
     const program = parse(cases[name][0]);
     const stats = diagnostics === 'on' ? new RuntimeDiagnostics() : undefined;
     global.gc();
@@ -93,7 +113,7 @@ if (process.argv[2] === '--worker') {
     console.log(JSON.stringify({ milliseconds, peakRssKiB: process.resourceUsage().maxRSS,
         retainedHeap: memory.heapUsed, retainedBuffers: memory.arrayBuffers,
         keyedReaders: stats?.keyedNativeReaders, publishedCells: stats?.typedArrayPublishedCells,
-        numberLoops: stats?.numberLoops, copyProbes: stats?.numberLoopCopyProbes, fallbacks: stats?.fallbacks }));
+        numberLoops: stats?.numberLoops, copyProbes: stats?.numberLoopCopyProbes, costs: stats?.costs, fallbacks: stats?.fallbacks }));
     runtime.dispose();
 } else {
     const root = fileURLToPath(new URL('..', import.meta.url));

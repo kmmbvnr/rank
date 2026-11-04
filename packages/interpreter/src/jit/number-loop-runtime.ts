@@ -12,7 +12,7 @@ import { completed } from '../execution.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { checkpoint, privateLoopPolling, demandBudgetEnabled, interruptsEnabled } from '../interrupt.js';
 import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, typedArray, realCells, storedOperandItems } from '../array-storage.js';
-import { isRankArray, type RankArray, type RankValue } from '../value.js';
+import { tuple, isRankArray, type RankArray, type RankValue } from '../value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, LoopWorkFeedback, LoopPolling } from './integer-loop-plan.js';
 
 import { indexKey } from '../index-storage.js';
@@ -200,12 +200,19 @@ function divide(a: number, b: number): number {
     const quotient = safe(safe(a - remainder) / b);
     return safe(quotient - ((a < 0) !== (b < 0) && remainder !== 0 ? 1 : 0));
 }
+/** Components are moves, not extra live bindings. Transfer regions cannot
+ * exit an iteration early or expose a previous iteration's tuple to a callback. */
+class PrivateArrayTuple {
+    constructor(private readonly items: PrivateNumericArray[]) {}
+    value(): RankValue { return tuple(this.items.map(item => item.value())); }
+}
+
 function rankValue(value: unknown, type: string | undefined): RankValue | undefined {
     if (typeof value === 'number' && type === 'integer') {
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.cost('number-loop.publish').boxedCells++;
     }
-    return value instanceof PrivateNumericArray || value instanceof PrivateSliceResult ? value.value()
+    return value instanceof PrivateNumericArray || value instanceof PrivateSliceResult || value instanceof PrivateArrayTuple ? value.value()
         : typeof value === 'number' && type === 'integer' ? BigInt(value) : value as RankValue | undefined;
 }
 
@@ -264,7 +271,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         return recordFallback('number-loop:mutable-traversal', 'aliasing');
     if (reboundInputs && (plan.calls.length > 0 || plan.wideScalars.size > 0
         || [...plan.destinations].some(([name, info]) => plan.arrayDefinitions.has(name)
-            && (info.type !== 'integer' && info.type !== 'real' || info.rank !== 1))))
+            && (info.type !== 'integer' && info.type !== 'real' || info.rank !== 1 && !plan.arrayTransfers?.has(name)))))
         return recordFallback('number-loop:rebound-input-proof', 'proof');
     const cursor = plan.iteration?.names[0];
     const indexedPass = cursor !== undefined && !plan.writerNames.includes(cursor) && !locations.some(isForStatement) && !plan.vectorIterations.length;
@@ -293,7 +300,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', code)(
             modularMultiply, safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -345,7 +352,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     for (let i = first; i < last; i++) result.store(i, safe(start + safe(i * step)));
                 }
                 return result;
-            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout, compactVector, integerCell, () => !interruptsEnabled());
+            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout, compactVector, integerCell, () => !interruptsEnabled(), (items: PrivateNumericArray[]) => new PrivateArrayTuple(items));
     try { run = compile(source); } catch { return recordFallback('number-loop:code-generation', 'proof'); }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These

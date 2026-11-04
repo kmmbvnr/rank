@@ -173,6 +173,26 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // An array-returning callee can share a caller operand after entry COW.
     // Per-store ownership preparation is required before these regions may write.
     if (state.hasArrayCall && destinations.size) return reject(statement, 'array-call-write-region');
+    const arrayTransfers = new Set(state.arrayTransfers.flat());
+    if (arrayTransfers.size) {
+        // A completed iteration replaces its prior result. Escaping control or
+        // calls could retain/observe a tuple while its arrays are written later.
+        if (state.hasControl || calls.length || state.callouts.length) return reject(statement, 'array-transfer-effects');
+        const mutable = new Set(destinations.keys());
+        for (let size = -1; size !== mutable.size;) {
+            size = mutable.size;
+            for (const [target, source] of state.arrayTransfers) {
+                if (mutable.has(target) || mutable.has(source)) { mutable.add(target); mutable.add(source); }
+            }
+        }
+        for (const name of arrayTransfers) {
+            // Read-only permutations need no private numeric buffers. Leave
+            // them to ordinary binding rather than copying them speculatively.
+            if (!mutable.has(name)) return reject(statement, 'array-transfer-readonly');
+            const info = arrays.get(name)!;
+            if (!destinations.has(name)) destinations.set(name, { ...info, compound: false });
+        }
+    }
     const writable = new Set(destinations.keys());
     for (let changed = true; changed;) {
         changed = false;
@@ -204,7 +224,7 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // separate dirty/result tracking across replacement and stay on fallback.
     if (numberMode && locations.some(location => isArrayAssignmentStatement(location)
         && arrayDefinitions.has(location.name) && arrayInputs.has(location.name)
-        && (location.indices.length !== 1 || location.indices.some(index => index.all || index.sign
+        && (location.indices.length !== (arrayTransfers.has(location.name) ? arrays.get(location.name)?.rank : 1) || location.indices.some(index => index.all || index.sign
             || !index.value || expressions.knownType(index.value) !== 'integer')))) return reject(statement, 'rebound-array-selection');
     if (aliases.some(([target, source]) => numberMode ? writable.has(target) || writable.has(source)
         : destinations.has(source))) return reject(statement, 'mutable-array-alias');
@@ -219,6 +239,6 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
         statement, names, wideScalars, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
-        arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, writable, iteration, workCounting, polling, callouts: state.callouts,
+        arrayTransfers, arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, writable, iteration, workCounting, polling, callouts: state.callouts,
     };
 }

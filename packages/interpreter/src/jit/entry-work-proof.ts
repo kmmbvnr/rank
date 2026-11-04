@@ -1,7 +1,8 @@
+import { arrayPermutation } from './array-transfer.js';
 import {
     expressionFacts, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement,
     isBinaryExpression, isBooleanLiteral, isBreakStatement, isContinueStatement, isForStatement, isIfStatement,
-    isNameExpression, isParenthesizedExpression, isReturnStatement, isUnaryExpression, isYieldStatement,
+    isNameExpression, isParenthesizedExpression, isReturnStatement, isUnaryExpression, isYieldStatement, isUnpackStatement,
     type Expression, type Statement,
 } from '@arrrank/language';
 import { loopTraversal } from '../loop-traversal.js';
@@ -112,6 +113,13 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
         let exits = false, hasWork = false;
         const steps = statements.map(statement => {
             const next = (work = 0): Work => ({ work, flow: 'next' });
+            if (isUnpackStatement(statement) && arrayPermutation(statement)) {
+                statement.names.forEach(name => writes.add(name));
+                return (values: Values): Work => {
+                    statement.names.forEach(name => values.delete(name));
+                    return next();
+                };
+            }
             if (isAssignmentStatement(statement)) {
                 writes.add(statement.name);
                 const value = integer(statement.value), boolean = truth(statement.value);

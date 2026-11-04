@@ -1,10 +1,11 @@
+import { arrayPermutation } from './array-transfer.js';
 import { compileArrayRegion } from './array-region.js';
 import { type LoopTerm } from './integer-loop-plan.js';
 import {
     applicationForm, isExpressionStatement, findOperation, matchCompiledEffectSignature, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement,
     isPushStatement, isArrayAssignmentStatement, isReturnStatement, isYieldStatement, isArrayExpression,
-    isParenthesizedExpression, isNameExpression, isUnpackStatement, isFunctionStatement, type Statement, type AssignmentStatement,
+    isParenthesizedExpression, isNameExpression, isUnpackStatement, isFunctionStatement, type Statement,
 } from '@arrrank/language';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
@@ -26,17 +27,17 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
         state.currentScope()?.assigned.add(name);
     };
 
-    function bindArray(assignment: AssignmentStatement, value: string, rank: number, type: LoopTerm['type'],
+    function bindArray(assignment: Statement, name: string, value: string, rank: number, type: LoopTerm['type'],
         lines: string[], body: string[], location: number, aliasSlot?: number): true | undefined {
-        if (localTypes.has(assignment.name)) return reject(assignment);
-        const old = arrays.get(assignment.name), target = destinations.get(assignment.name);
+        if (localTypes.has(name)) return reject(assignment);
+        const old = arrays.get(name), target = destinations.get(name);
         if (old && (old.rank !== rank || old.type !== type)
             || target && (target.rank !== rank || target.type !== type)) return reject(assignment);
-        const destination = slot(assignment.name), index = writers.length;
-        arrays.set(assignment.name, { slot: destination, rank, type });
-        arrayDefinitions.add(assignment.name);
-        written.add(assignment.name);
-        writers.push(host.writer(assignment.name)); writerNames.push(assignment.name);
+        const destination = slot(name), index = writers.length;
+        arrays.set(name, { slot: destination, rank, type });
+        arrayDefinitions.add(name);
+        written.add(name);
+        writers.push(host.writer(name)); writerNames.push(name);
         const completed = `completed${state.serial++}`;
         if (numberMode) {
             if (type !== 'integer' && (type !== 'real' || !host.reals)) return reject(assignment);
@@ -46,17 +47,17 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 ...(state.numberVectors ? [`vectorLive[${destination}] = ${completed};`] : []),
                 ...Array.from({ length: rank > 1 ? rank : 0 }, (_, axis) => `size${destination}_${axis} = ${completed}.shape[${axis}];`),
                 `iterationResult = ${completed}; iterationType = 'array';`);
-            recordAssigned(assignment.name);
+            recordAssigned(name);
             return true;
         }
         // Region-entry COW cannot protect an alias created later in its body.
         // Snapshot writable aliases before binding a direct compiled writer.
         const bound = aliasSlot === undefined ? `materializeValue(${value})`
-            : `aliasValue(materializeValue(${value}), ${JSON.stringify(assignment.name)})`;
+            : `aliasValue(materializeValue(${value}), ${JSON.stringify(name)})`;
         body.push(`location = ${location};`, ...lines,
             `const ${completed} = ${bound};`,
             `writers[${index}](${completed}); r${destination} = ${completed}; storage${destination} = access(${completed}); reader${destination} = read(storage${destination}, stableReads, ${rank}); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${completed};`);
-        recordAssigned(assignment.name);
+        recordAssigned(name);
         return true;
     }
 
@@ -89,6 +90,35 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             if (location >= 128) return reject(assignment, 'statement-budget');
             locations.push(assignment);
             if (isUnpackStatement(assignment)) {
+                const transfer = numberMode && host.arrayLocals ? arrayPermutation(assignment) : undefined;
+                if (transfer) {
+                    // Resolve every source before changing any destination.
+                    const sources = transfer.map(([, expression]) => {
+                        const name = expression.name;
+                        let info = arrays.get(name);
+                        if (!info) {
+                            const type = expressions.arrayType(expression);
+                            if (!type) return undefined;
+                            info = { slot: slot(name), rank: type.rank, type: type.element };
+                            arrays.set(name, info);
+                        }
+                        if (!assigned.has(name)) arrayInputs.add(name);
+                        return info;
+                    });
+                    if (!sources.every(source => source && (source.type === 'integer' || source.type === 'real'))) return reject(assignment);
+                    const values = sources.map(source => {
+                        const name = `moved${state.serial++}`;
+                        body.push(`const ${name} = r${source!.slot};`);
+                        return name;
+                    });
+                    for (const [index, [target, source]] of transfer.entries()) {
+                        const info = sources[index]!;
+                        if (!bindArray(assignment, target, values[index], info.rank, info.type, [], body, location)) return undefined;
+                        state.arrayTransfers.push([target, source.name]);
+                    }
+                    body.push(`iterationResult = tupleResult([${values.join(',')}]); iterationType = 'tuple';`);
+                    continue;
+                }
                 if (numberMode || !host.arrayLocals || assignment.names.some(name => name.includes('.'))) return reject(assignment);
                 const lines: string[] = [];
                 const value = emitValue(assignment.value, lines);
@@ -318,7 +348,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                         if (arrayDefinitions.has(name)) state.localAliases.push([assignment.name, name]);
                         rank = source.rank; type = source.type; value = `r${source.slot}`;
                     }
-                    if (!bindArray(assignment, value, rank, type, lines, body, location, source?.slot)) return undefined;
+                    if (!bindArray(assignment, assignment.name, value, rank, type, lines, body, location, source?.slot)) return undefined;
                     continue;
                 }
             }
@@ -336,7 +366,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             const value = scalarExpressions.emitValue(assignment.value, lines, booleanUpdate ? 'boolean' : textUpdate ? 'text' : undefined);
             if (value && typeof value.type !== 'string') {
                 if ('deque' in value && value.deque) state.dequeArrays.add(assignment.name);
-                if (assignment.operator !== '=' || !bindArray(assignment, value.code, value.type.rank, value.type.element, lines, body, location)) return reject(assignment);
+                if (assignment.operator !== '=' || !bindArray(assignment, assignment.name, value.code, value.type.rank, value.type.element, lines, body, location)) return reject(assignment);
                 continue;
             }
             if (arrays.has(assignment.name)) return reject(assignment);

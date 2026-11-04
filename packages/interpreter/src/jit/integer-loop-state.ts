@@ -3,7 +3,7 @@ import { INTERRUPT_POLL_INTERVAL } from '../interrupt.js';
 import { type LoopHost, type IntegerLoopPlan, type LoopTerm, type LoopPolling } from './integer-loop-plan.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    isFunctionStatement, isAssignmentStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
+    isFunctionStatement, isAssignmentStatement, isUnpackStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
     type Expression, type Statement, type ForStatement, type FunctionStatement,
 } from '@arrrank/language';
 
@@ -49,6 +49,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
     const reboundNames = new Set<string>();
     for (const node of AstUtils.streamAllContents(statement)) {
         if (isAssignmentStatement(node)) reboundNames.add(node.name);
+        if (isUnpackStatement(node)) node.names.forEach(name => reboundNames.add(name));
     }
     const required = new Set<number>(), assigned = new Set<string>();
     const writers: IntegerLoopPlan['writers'] = [];
@@ -68,6 +69,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
     const exactInputs = new Set<Expression>();
     const aliases: [string, string][] = [];
     const localAliases: [string, string][] = [];
+    const arrayTransfers: [string, string][] = [];
     const dequeArrays = new Set<string>();
     const vectorIterations: IntegerLoopPlan['vectorIterations'] = [];
     const iterators: IntegerLoopPlan['iterators'] = [];
@@ -116,7 +118,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         statement,
         host, numberMode, wideScalars, workCounting, checkpoint, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, reboundNames, writers, binders, writerNames, binderNames,
-        containers, builtins, calls, arrays, calleeArrays, sliceReadSources, sliceResultSources, indexedReads, arrayInputs, arrayDefinitions, aliases, localAliases, dequeArrays,
+        containers, builtins, calls, arrays, calleeArrays, sliceReadSources, sliceResultSources, indexedReads, arrayInputs, arrayDefinitions, aliases, localAliases, arrayTransfers, dequeArrays,
         vectorIterations, iterators, destinations, locations, callouts, canCallout,
         get branchDepth() { return branchDepth; },
         set branchDepth(v: number) { branchDepth = v; },

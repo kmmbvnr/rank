@@ -1,0 +1,172 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "observations": [
+    {
+      "name": "move-2",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 690.161458,
+      "peakRssKiB": 176656,
+      "retainedHeap": 31330400,
+      "retainedBuffers": 293699
+    },
+    {
+      "name": "move-2",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 681.810375,
+      "peakRssKiB": 177104,
+      "retainedHeap": 31296720,
+      "retainedBuffers": 293699
+    },
+    {
+      "name": "move-2",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 693.378209,
+      "peakRssKiB": 177072,
+      "retainedHeap": 31296648,
+      "retainedBuffers": 293699
+    },
+    {
+      "name": "move-2",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 680.4617079999999,
+      "peakRssKiB": 178160,
+      "retainedHeap": 31348040,
+      "retainedBuffers": 293699
+    },
+    {
+      "name": "move-2",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 697.991167,
+      "peakRssKiB": 177072,
+      "retainedHeap": 31330592,
+      "retainedBuffers": 293699
+    },
+    {
+      "name": "move-2",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 702.281791,
+      "peakRssKiB": 176944,
+      "retainedHeap": 31296664,
+      "retainedBuffers": 293699
+    },
+    {
+      "name": "move-2",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 3,
+      "milliseconds": 705.80675,
+      "peakRssKiB": 177424,
+      "retainedHeap": 31320728,
+      "retainedBuffers": 293699,
+      "keyedReaders": 0,
+      "publishedCells": 65536,
+      "numberLoops": 0,
+      "copyProbes": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 705.768958,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.09979200000000787,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 4063232,
+          "copiedBytes": 4063232,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "loop:disabled": 2
+      }
+    },
+    {
+      "name": "move-2",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 3,
+      "milliseconds": 697.7592920000001,
+      "peakRssKiB": 178672,
+      "retainedHeap": 31372016,
+      "retainedBuffers": 293699,
+      "keyedReaders": 0,
+      "publishedCells": 65536,
+      "numberLoops": 0,
+      "copyProbes": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 697.713917,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.09858299999999076,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 4063232,
+          "copiedBytes": 4063232,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "loop:disabled": 2
+      }
+    }
+  ]
+}
