@@ -1,0 +1,62 @@
+rem Tests for ACMP 0591 Transport Reform
+
+use testing
+
+test "default: 10 vertices -> 9 edges"
+  use "0591_transport_reform"
+  run
+
+  AnsArr shape 0 equal 9
+  AnsArr 0 equal 10
+end
+
+test "even red edges: 4 vertices"
+  use "0591_transport_reform"
+  Input = "4 4
+1 2 2
+2 3 2
+3 4 1
+1 4 1"
+  run
+
+  AnsArr shape 0 equal 3
+end
+
+test "impossible: 2 vertices 1 red edge"
+  use "0591_transport_reform"
+  Input = "2 1
+1 2 2"
+  run
+
+  AnsArr 0 equal -1
+end
+
+test "disconnected graph"
+  use "0591_transport_reform"
+  Input = "3 1
+1 2 1"
+  run
+
+  AnsArr 0 equal -1
+end
+
+test "trial 58: 6 vertices 12 edges"
+  use "0591_transport_reform"
+  Input = "6 12
+1 2 2
+1 3 2
+1 6 2
+2 4 2
+3 5 2
+3 6 1
+4 6 2
+1 2 2
+2 3 2
+3 4 2
+4 5 1
+5 6 2"
+  run
+
+  AnsArr shape 0 equal 5
+  AnsArr 0 equal 6
+end
