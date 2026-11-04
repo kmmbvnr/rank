@@ -7,12 +7,24 @@
 - Chain operations when they read clearly.
 - Keep only useful intermediate variables.
 - Avoid unnecessary conversions and brackets.
-- Use short, meaningful names.
+- Use short, meaningful names: whole words such as
+  `Count`, `Start`, `Carry`, `Primes`, not one- or
+  two-letter codes such as `Xx` or `Hh`. Use a plain
+  `I`, `N` or `X` only for a loop index or a formula
+  symbol.
 - Keep function parameters few and meaningful.
 - Prefer at most 40 characters per line,
   including comments.
 - Prefer assigning each variable once.
   In CPU code, reassign when simpler.
+- Use at most one loop and never nest loops; flatten
+  with array operations (ragged expansion, `scan`,
+  batched tensors). Prefer no loop at all.
+- Use `memo` functions for memoisation, not a
+  hand-made `index` cache.
+- A postfix word (`sum`, `sqrt`, `integer`, `len`)
+  takes the whole expression on its left: put the
+  operand in its own variable first.
 - Comment on intent, not obvious steps.
 - Verify behavior with examples and edge cases.
 
