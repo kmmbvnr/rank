@@ -1,0 +1,56 @@
+rem Fibonacci Tree Game
+rem https://projecteuler.net/problem=400
+
+use bits
+use algo
+use sequences
+use io
+use cli
+
+arg K integer = 10000
+
+Mod = 1000000000000000000
+Gs = array shape (K + 1) fill 0
+if K at least 2
+  Gs 2 = 1
+end
+for N in 3 to K
+  A = 1 + Gs (N - 1)
+  B = 1 + Gs (N - 2)
+  Gs N = A bxor B
+end
+
+rem XOR operands stay below Stride.
+rem Key = N * Stride + T + 1.
+Stride = 1
+for Stride at most (1 + Gs max)
+  Stride *= 2
+end
+Answer = K Gs Stride Mod cuts
+Answer print
+
+fun K Gs Stride Mod cuts
+  Dp = array shape 3 (Stride + 1) fill 0
+  for R in 0 to 2
+    Dp R 0 = 1
+  end
+  if K at least 2
+    Dp 2 1 = 1
+  end
+  for N in 3 to K
+    R = N mod 3
+    P = (N - 1) mod 3
+    O = (N - 2) mod 3
+    A = 1 + Gs (N - 1)
+    B = 1 + Gs (N - 2)
+    for T in 0 till Stride
+      V = Dp P (T bxor B)
+      V += Dp O (T bxor A)
+      if V at least Mod
+        V -= Mod
+      end
+      Dp R (T + 1) = V
+    end
+  end
+  return Dp (K mod 3) 1
+end

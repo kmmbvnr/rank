@@ -1,0 +1,1100 @@
+{
+  "base": "0e64c25b",
+  "method": "Three fresh processes per variant per host, sequential; alternate forward/reverse order. No overlapping test/build/benchmark from this task on that host. Parse and diagnostics included; imports excluded. Machines can have unrelated load. RSS is whole-process max.",
+  "sourceSHA256": {
+    "demos/euler/400_fibtree.ra": "94d7e96c6bcfbf2600d6c8730421fe18353bcb63da477cfca974d31d77547db8",
+    "packages/interpreter/src/jit/tensor-kernel.ts": "d427f2d174b161118435e0ac5634161dc187dd69e16b1538eb106146da612878",
+    "benchmarks/experiments/euler400-original.ra": "4547328080ce750fa05f4da73484b1aec373d921f400a01697809f4b72f97705",
+    "benchmarks/experiments/euler400-no-implicit-bitwise.mjs": "7cf98397cb85986bd90adefce75df435def03562432af8e5411fa04ddaba5858"
+  },
+  "platforms": {
+    "mac": {
+      "cpu": "Apple M5",
+      "arch": "arm64",
+      "node": "v24.15.0",
+      "summary": {
+        "original": {
+          "medianMs": 9014.861792000002,
+          "medianRssMiB": 1183.8125,
+          "minMs": 8992.979167,
+          "maxMs": 9058.664125000001
+        },
+        "compiler-control": {
+          "medianMs": 4071.904209,
+          "medianRssMiB": 414.1875,
+          "minMs": 4044.431708,
+          "maxMs": 4200.092875
+        },
+        "final": {
+          "medianMs": 2481.104375,
+          "medianRssMiB": 328.6875,
+          "minMs": 2420.950875,
+          "maxMs": 2601.3692920000003
+        },
+        "reference": {
+          "medianMs": 4047.456708,
+          "medianRssMiB": 408.65625,
+          "minMs": 4018.586792,
+          "maxMs": 4049.6415830000005
+        }
+      },
+      "samples": [
+        {
+          "file": "benchmarks/experiments/euler400-original.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 9058.664125000001,
+          "rssMiB": 1183.65625,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "indexReads": 33469547,
+            "indexReadHits": 16726584,
+            "indexReadMisses": 16742963,
+            "indexWrites": 16734773,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "typedArrayPublications": 15,
+            "typedArrayPublishedCells": 150015,
+            "fallbacks": {
+              "scalar-function:callee-binding:ApplicationExpression": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 4,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 13
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:callee-binding:ApplicationExpression",
+                "node": "ApplicationExpression",
+                "function": "cuts",
+                "expression": "Gs (N - 1)",
+                "line": 67,
+                "column": 19
+              }
+            ]
+          },
+          "variant": "original",
+          "trial": 0
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 4071.904209,
+          "rssMiB": 414.1875,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 8,
+              "scalar-expression:unsupported-op:Prev": 10002,
+              "scalar-expression:unsupported-op:Older": 10002,
+              "scalar-expression:unsupported-op:mod": 2,
+              "scalar-expression:operator-guard:+": 9998,
+              "scalar-expression:operator-guard:mod": 9998
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "compiler-control",
+          "trial": 0
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 2420.950875,
+          "rssMiB": 362.8125,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "compiledTensors": 9998,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 20013,
+            "typedArrayPublishedCells": 163983630,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 6,
+              "scalar-expression:unsupported-op:Prev": 2,
+              "scalar-expression:unsupported-op:Older": 2,
+              "scalar-expression:unsupported-op:mod": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "final",
+          "trial": 0
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "reference",
+          "ms": 4047.456708,
+          "rssMiB": 413.890625,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "loop:disabled": 3
+            },
+            "compilerRejections": []
+          },
+          "variant": "reference",
+          "trial": 0
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "reference",
+          "ms": 4018.586792,
+          "rssMiB": 407.390625,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "loop:disabled": 3
+            },
+            "compilerRejections": []
+          },
+          "variant": "reference",
+          "trial": 1
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 2481.104375,
+          "rssMiB": 328.6875,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "compiledTensors": 9998,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 20013,
+            "typedArrayPublishedCells": 163983630,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 6,
+              "scalar-expression:unsupported-op:Prev": 2,
+              "scalar-expression:unsupported-op:Older": 2,
+              "scalar-expression:unsupported-op:mod": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "final",
+          "trial": 1
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 4200.092875,
+          "rssMiB": 411.15625,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 8,
+              "scalar-expression:unsupported-op:Prev": 10002,
+              "scalar-expression:unsupported-op:Older": 10002,
+              "scalar-expression:unsupported-op:mod": 2,
+              "scalar-expression:operator-guard:+": 9998,
+              "scalar-expression:operator-guard:mod": 9998
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "compiler-control",
+          "trial": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler400-original.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 8992.979167,
+          "rssMiB": 1184.59375,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "indexReads": 33469547,
+            "indexReadHits": 16726584,
+            "indexReadMisses": 16742963,
+            "indexWrites": 16734773,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "typedArrayPublications": 15,
+            "typedArrayPublishedCells": 150015,
+            "fallbacks": {
+              "scalar-function:callee-binding:ApplicationExpression": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 4,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 13
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:callee-binding:ApplicationExpression",
+                "node": "ApplicationExpression",
+                "function": "cuts",
+                "expression": "Gs (N - 1)",
+                "line": 67,
+                "column": 19
+              }
+            ]
+          },
+          "variant": "original",
+          "trial": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler400-original.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 9014.861792000002,
+          "rssMiB": 1183.8125,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "indexReads": 33469547,
+            "indexReadHits": 16726584,
+            "indexReadMisses": 16742963,
+            "indexWrites": 16734773,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "typedArrayPublications": 15,
+            "typedArrayPublishedCells": 150015,
+            "fallbacks": {
+              "scalar-function:callee-binding:ApplicationExpression": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 4,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 13
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:callee-binding:ApplicationExpression",
+                "node": "ApplicationExpression",
+                "function": "cuts",
+                "expression": "Gs (N - 1)",
+                "line": 67,
+                "column": 19
+              }
+            ]
+          },
+          "variant": "original",
+          "trial": 2
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 4044.431708,
+          "rssMiB": 414.671875,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 8,
+              "scalar-expression:unsupported-op:Prev": 10002,
+              "scalar-expression:unsupported-op:Older": 10002,
+              "scalar-expression:unsupported-op:mod": 2,
+              "scalar-expression:operator-guard:+": 9998,
+              "scalar-expression:operator-guard:mod": 9998
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "compiler-control",
+          "trial": 2
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 2601.3692920000003,
+          "rssMiB": 326.34375,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "compiledTensors": 9998,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 20013,
+            "typedArrayPublishedCells": 163983630,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 6,
+              "scalar-expression:unsupported-op:Prev": 2,
+              "scalar-expression:unsupported-op:Older": 2,
+              "scalar-expression:unsupported-op:mod": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "final",
+          "trial": 2
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "reference",
+          "ms": 4049.6415830000005,
+          "rssMiB": 408.65625,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "loop:disabled": 3
+            },
+            "compilerRejections": []
+          },
+          "variant": "reference",
+          "trial": 2
+        }
+      ]
+    },
+    "intel": {
+      "cpu": "Intel i7-10750H",
+      "arch": "x64",
+      "node": "v24.15.0",
+      "summary": {
+        "original": {
+          "medianMs": 19184.784785,
+          "medianRssMiB": 1164.125,
+          "minMs": 19165.481197,
+          "maxMs": 19244.73339
+        },
+        "compiler-control": {
+          "medianMs": 10623.687095,
+          "medianRssMiB": 318.6796875,
+          "minMs": 10560.194206,
+          "maxMs": 10686.27921
+        },
+        "final": {
+          "medianMs": 7036.681526,
+          "medianRssMiB": 335.52734375,
+          "minMs": 6770.949725,
+          "maxMs": 7102.29165
+        },
+        "reference": {
+          "medianMs": 10230.156002,
+          "medianRssMiB": 310.4609375,
+          "minMs": 10019.080006,
+          "maxMs": 10528.520692
+        }
+      },
+      "samples": [
+        {
+          "file": "benchmarks/experiments/euler400-original.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 19165.481197,
+          "rssMiB": 1164.125,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "indexReads": 33469547,
+            "indexReadHits": 16726584,
+            "indexReadMisses": 16742963,
+            "indexWrites": 16734773,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "typedArrayPublications": 15,
+            "typedArrayPublishedCells": 150015,
+            "fallbacks": {
+              "scalar-function:callee-binding:ApplicationExpression": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 4,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 13
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:callee-binding:ApplicationExpression",
+                "node": "ApplicationExpression",
+                "function": "cuts",
+                "expression": "Gs (N - 1)",
+                "line": 67,
+                "column": 19
+              }
+            ]
+          },
+          "variant": "original",
+          "trial": 0
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 10560.194206,
+          "rssMiB": 312.6484375,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 8,
+              "scalar-expression:unsupported-op:Prev": 10002,
+              "scalar-expression:unsupported-op:Older": 10002,
+              "scalar-expression:unsupported-op:mod": 2,
+              "scalar-expression:operator-guard:+": 9998,
+              "scalar-expression:operator-guard:mod": 9998
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "compiler-control",
+          "trial": 0
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 6770.949725,
+          "rssMiB": 335.52734375,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "compiledTensors": 9998,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 20013,
+            "typedArrayPublishedCells": 163983630,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 6,
+              "scalar-expression:unsupported-op:Prev": 2,
+              "scalar-expression:unsupported-op:Older": 2,
+              "scalar-expression:unsupported-op:mod": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "final",
+          "trial": 0
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "reference",
+          "ms": 10230.156002,
+          "rssMiB": 317.66796875,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "loop:disabled": 3
+            },
+            "compilerRejections": []
+          },
+          "variant": "reference",
+          "trial": 0
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "reference",
+          "ms": 10019.080006,
+          "rssMiB": 309.44140625,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "loop:disabled": 3
+            },
+            "compilerRejections": []
+          },
+          "variant": "reference",
+          "trial": 1
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 7102.29165,
+          "rssMiB": 303.48046875,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "compiledTensors": 9998,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 20013,
+            "typedArrayPublishedCells": 163983630,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 6,
+              "scalar-expression:unsupported-op:Prev": 2,
+              "scalar-expression:unsupported-op:Older": 2,
+              "scalar-expression:unsupported-op:mod": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "final",
+          "trial": 1
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 10623.687095,
+          "rssMiB": 319.0859375,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 8,
+              "scalar-expression:unsupported-op:Prev": 10002,
+              "scalar-expression:unsupported-op:Older": 10002,
+              "scalar-expression:unsupported-op:mod": 2,
+              "scalar-expression:operator-guard:+": 9998,
+              "scalar-expression:operator-guard:mod": 9998
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "compiler-control",
+          "trial": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler400-original.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 19184.784785,
+          "rssMiB": 1163.1171875,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "indexReads": 33469547,
+            "indexReadHits": 16726584,
+            "indexReadMisses": 16742963,
+            "indexWrites": 16734773,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "typedArrayPublications": 15,
+            "typedArrayPublishedCells": 150015,
+            "fallbacks": {
+              "scalar-function:callee-binding:ApplicationExpression": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 4,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 13
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:callee-binding:ApplicationExpression",
+                "node": "ApplicationExpression",
+                "function": "cuts",
+                "expression": "Gs (N - 1)",
+                "line": 67,
+                "column": 19
+              }
+            ]
+          },
+          "variant": "original",
+          "trial": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler400-original.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 19244.73339,
+          "rssMiB": 1165.6640625,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "indexReads": 33469547,
+            "indexReadHits": 16726584,
+            "indexReadMisses": 16742963,
+            "indexWrites": 16734773,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "typedArrayPublications": 15,
+            "typedArrayPublishedCells": 150015,
+            "fallbacks": {
+              "scalar-function:callee-binding:ApplicationExpression": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:too-small": 4,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 13
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:callee-binding:ApplicationExpression",
+                "node": "ApplicationExpression",
+                "function": "cuts",
+                "expression": "Gs (N - 1)",
+                "line": 67,
+                "column": 19
+              }
+            ]
+          },
+          "variant": "original",
+          "trial": 2
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 10686.27921,
+          "rssMiB": 318.6796875,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 4,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 8,
+              "scalar-expression:unsupported-op:Prev": 10002,
+              "scalar-expression:unsupported-op:Older": 10002,
+              "scalar-expression:unsupported-op:mod": 2,
+              "scalar-expression:operator-guard:+": 9998,
+              "scalar-expression:operator-guard:mod": 9998
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "compiler-control",
+          "trial": 2
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "compiled",
+          "ms": 7036.681526,
+          "rssMiB": 336.328125,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopCopyProbes": 1,
+            "compiledTensors": 9998,
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 20013,
+            "typedArrayPublishedCells": 163983630,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 2,
+              "tensor:unsupported-type:array": 3,
+              "scalar-expression:too-small": 10,
+              "number-loop:range-input-proof": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+              "scalar-expression:unsupported-op:atmost": 2,
+              "number-loop:unsafe-input": 2,
+              "loop:input-type:Gs:expected-integer": 1,
+              "loop:input-type": 1,
+              "tensor:output-shape": 20009,
+              "tensor:unsupported-node:MaterializeExpression": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "loop:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:Gs": 4,
+              "scalar-expression:unsupported-op:+": 6,
+              "scalar-expression:unsupported-op:Prev": 2,
+              "scalar-expression:unsupported-op:Older": 2,
+              "scalar-expression:unsupported-op:mod": 1
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "cuts",
+                "expression": "0 till Stride array",
+                "line": 33,
+                "column": 8
+              }
+            ]
+          },
+          "variant": "final",
+          "trial": 2
+        },
+        {
+          "file": "demos/euler/400_fibtree.ra",
+          "k": "10000",
+          "mode": "reference",
+          "ms": 10528.520692,
+          "rssMiB": 310.4609375,
+          "answer": "438505383468410633",
+          "diagnostics": {
+            "cowCopies": 1,
+            "cowCopiedCells": 8193,
+            "typedArrayPublications": 70001,
+            "typedArrayPublishedCells": 573485326,
+            "fallbacks": {
+              "loop:disabled": 3
+            },
+            "compilerRejections": []
+          },
+          "variant": "reference",
+          "trial": 2
+        }
+      ]
+    }
+  },
+  "validation": {
+    "macTests": 508,
+    "intelTests": 508,
+    "testFiles": 29,
+    "crossModeComparisons": 175,
+    "fullDefaultAnswer": "438505383468410633",
+    "fullAuditRun": false
+  }
+}

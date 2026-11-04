@@ -269,3 +269,16 @@ statement and control-flow compilation remain independently disabled. The
 to both engines. Reference execution continues to supply ordinary control and
 fallback semantics rather than acting as an oracle for the shared arithmetic;
 producer tests also compare results with independent BigInt calculations.
+
+### Implicit integer bitwise arithmetic
+
+Ordinary assignment completion can fuse native `band`, `bor` and `bxor`
+with arithmetic and integer gathers. For example,
+`Counts = (Prev (Ix bxor B) + Older (Ix bxor A)) mod Mod`
+executes as one tensor pass when the existing shape, storage and builtin
+guards hold. No explicit `copy` is required. The implicit path still requires
+at least two operations and does not combine separate ordinary bindings.
+Integer cells retain exact arithmetic, including values outside signed 64-bit
+storage. Unsupported values, changed builtins and failed selector/domain
+guards retain ordinary execution and error locations. This does not introduce
+row-buffer reuse or fuse a subsequent `concat` assignment.
