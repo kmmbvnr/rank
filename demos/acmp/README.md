@@ -70,6 +70,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0586** | [Законопроект](0586_bill.ra) | Game Theory (62%) | Sequential parliamentary voting simulation via backward induction & vectorized column comparison |
 | **0588** | [Число](0588_self_describing_number.ra) | Number Theory / Construction (60%) | Autobiographical / self-describing numbers in base $b$ via closed-form digit construction `Digits (B - 5) = 1; Digits (B - 1) = B - 4` |
 | **0599** | [Телешоу](0599_tv_show.ra) | Dynamic Programming / Strings (66%) | Optimal circular sector selection maximizing alphabet distance sum via $O(26 N)$ prefix sum deltas & `scan +` |
+| **0609** | [Разбиения множества](0609_set_partitions.ra) | Combinatorics (69%) | Next canonical set partition in lexicographical order via prefix preservation, candidate generation, and vectorized singleton completions |
 | **0612** | [Подстрока](0612_substring.ra) | Free Groups / Strings (68%) | Shortest word in free group equivalent to $X$ containing $Y$ via longest common subword of reduced forms, binary search & vectorized set window matching |
 | **0614** | [Скобки - 3](0614_brackets_3.ra) | Dynamic Programming / Strings (61%) | Count distinct regular bracket subsequences via DFA state transitions on greedy next-occurrence jumps |
 | **0615** | [Новый год](0615_new_year.ra) | Graph Theory / Matching (62%) | Minimum weight edge cover in bipartite graph via reduction to maximum savings matching and Hungarian/MCMF augmentation |

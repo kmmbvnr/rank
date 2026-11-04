@@ -1,0 +1,190 @@
+use algo
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "20 2
+1 2 3 4 5 6 7 8 9 10
+11 12 13 14 15 16 17 18 19 20
+
+0 0"
+
+fun A lex_less B
+  LA = A shape 0
+  LB = B shape 0
+  ML = LA min LB
+  Eq = (A take ML) equal (B take ML)
+  Diff = (not Eq) count
+  if Diff greater 0
+    DiffIdxs = (0 till ML) (not Eq)
+    Idx = DiffIdxs 0
+    return (A Idx) less (B Idx)
+  end
+  return LA less LB
+end
+
+Lines = (Input split "\r") join ""
+Raw = Lines split "\n"
+Parts = Raw (Raw not equal "")
+
+Pos = 0
+TotalLines = Parts shape 0
+OutQ = new queue
+
+Stop = false
+for Step in 0 till TotalLines
+  HasMore = Pos less TotalLines
+  CanRun = HasMore and (not Stop)
+  if CanRun
+    Line0 = Parts Pos
+    Nums0 = (Line0 split " ") integer
+    N = Nums0 0
+    K = Nums0 1
+    IsEnd = (N equal 0) and (K equal 0)
+    if IsEnd
+      Stop = true
+    else
+      Pos += 1
+      Subsets = new queue
+      for SubIdx in 0 till K
+        LineS = Parts Pos
+        Pos += 1
+        Toks = LineS split " "
+        Ne = Toks not equal ""
+        Items = (Toks Ne) integer
+        Subsets push Items
+      end
+      P = (Subsets reverse) reverse
+
+      U_q = new queue
+      Found = false
+      BestP = new queue
+
+      for RevIdx in 0 till K
+        I = K - 1 - RevIdx
+        if not Found
+          Orig = P I
+          for Item in Orig
+            U_q push Item
+          end
+          OrigSet = new set Orig
+
+          U_all = (U_q reverse) reverse
+          U_sort = U_all sort
+
+          CandQ = new queue
+
+          rem Option 1: append
+          LastIdx = (Orig shape 0) - 1
+          LastElem = Orig LastIdx
+          for V in U_sort
+            App1 = V not in OrigSet
+            App2 = V greater LastElem
+            CanApp = App1 and App2
+            if CanApp
+              ItemV = array V
+              C1 = concat Orig ItemV
+              CandQ push C1
+            end
+          end
+
+          rem Option 2: replace
+          OrigLen = Orig shape 0
+          for J in 1 till OrigLen
+            Pre = Orig take J
+            PreSet = new set Pre
+            OldV = Orig J
+            FoundV = false
+            for V in U_sort
+              R1 = not FoundV
+              V_not_in = V not in PreSet
+              V_gt = V greater OldV
+              R2 = V_not_in and V_gt
+              CanRepl = R1 and R2
+              if CanRepl
+                ItemV = array V
+                C2 = concat Pre ItemV
+                CandQ push C2
+                FoundV = true
+              end
+            end
+          end
+
+          NumCand = CandQ shape 0
+          if NumCand greater 0
+            AllCand = (CandQ reverse)
+            AllCand = AllCand reverse
+            ValidQ = new queue
+            for Cand in AllCand
+              if Orig lex_less Cand
+                ValidQ push Cand
+              end
+            end
+
+            NumValid = ValidQ shape 0
+            if NumValid greater 0
+              RevV = ValidQ reverse
+              ValidArr = RevV reverse
+              BestC = ValidArr 0
+              for Vi in 1 till NumValid
+                CandV = ValidArr Vi
+                if CandV lex_less BestC
+                  BestC = CandV
+                end
+              end
+
+              Found = true
+              for J in 0 till I
+                BestP push (P J)
+              end
+              BestP push BestC
+
+              BestCSet = new set BestC
+              for R in U_sort
+                if R not in BestCSet
+                  BestP push (array R)
+                end
+              end
+            end
+          end
+        end
+      end
+
+      FinalP = (BestP reverse) reverse
+      if not Found
+        WrapQ = new queue
+        for X in 1 to N
+          WrapQ push (array X)
+        end
+        FinalP = (WrapQ reverse) reverse
+      end
+
+      NewK = FinalP shape 0
+      TxtN = N text
+      TxtK = NewK text
+      Header = TxtN + " " + TxtK
+      OutQ push Header
+      for Sub in FinalP
+        S = ""
+        for X in Sub
+          X_txt = X text
+          Sep = S + " " + X_txt
+          Emp = S equal ""
+          S = Emp choose X_txt Sep
+        end
+        OutQ push S
+      end
+      OutQ push ""
+    end
+  end
+end
+
+AllOut = (OutQ reverse) reverse
+OutLen = AllOut shape 0
+OutFinal = AllOut take (OutLen - 1)
+Ans = OutFinal
+for Line in OutFinal
+  Line print
+end
