@@ -90,6 +90,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0705** | [Оценка](0705_evaluation.ra) | Integer Arithmetic / Matrix Exponentiation (65%) | Martian population growth $\sum_{k=0}^{N-1} k^2 2^k \pmod M$ via $4 \times 4$ modular matrix exponentiation |
 | **0707** | [Зума](0707_zuma.ra) | Graph Theory / BFS (60%) | Zuma ball elimination with exact multi-level chain reactions via BFS and contiguous color block insertions |
 | **0714** | [Кольцевая автодорога](0714_circular_highway.ra) | Computational Geometry (65%) | Find count and minimum-radius circle equidistant to 4 points via vector circumcenter and perpendicular bisector intersection |
+| **0721** | [Стрелки - 2](0721_arrows_2.ra) | Graph Theory (68%) | Extrema of directed cycles on board: min via component BFS trees and 2-cycle seeds, max via bipartite matching `maxflow` |
 | **0722** | [Шоколадки](0722_chocolates.ra) | Combinatorics / BigInt (60%) | 2-colored grids without size-3 monochromatic components via closed-form Fibonacci $2 F_{N+1} + 2 F_{M+1} - 2$ in 208-digit native BigInt arithmetic |
 | **0727** | [Распределение участков](0727_plot_distribution.ra) | Game Theory / Greedy (62%) | Pure Nash equilibrium via greedy matching over all pairs sorted by `(0 - Key) argsort` |
 | **0734** | [Строковый компьютер](0734_string_computer.ra) | Combinatorics / Free Monoids (61%) | Maximum non-redundant set size and number of such sets over alphabet $K$ and max length $N$ via geometric series and parity analysis |

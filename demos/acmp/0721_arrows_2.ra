@@ -1,0 +1,198 @@
+use algo
+use cli
+use graph
+use io
+use sequences
+use text
+
+arg Input text = "8 8
+????????
+????????
+..????..
+..????..
+..????..
+..????..
+????????
+????????"
+
+Lines = (Input split "\r") join ""
+Clean = Lines split "\n"
+Parts = (Clean 0) split " "
+N = (Parts 0) integer
+M = (Parts 1) integer
+K = N * M
+
+GridStr = (Clean (1 to N)) join ""
+Chars = GridStr split ""
+IsArr = Chars equal "?"
+
+Cells = 0 till K
+Cols = Cells mod M
+Rows = Cells // M
+
+RCells = Cells + 1
+RSafe = RCells min (K - 1)
+InCol = Cols less (M - 1)
+BothR = (IsArr Cells) and (IsArr RSafe)
+CanR = InCol and BothR
+H1 = Cells CanR
+H2 = RCells CanR
+
+DCells = Cells + M
+DSafe = DCells min (K - 1)
+InRow = Cells less (K - M)
+BothD = (IsArr Cells) and (IsArr DSafe)
+CanD = InRow and BothD
+V1 = Cells CanD
+V2 = DCells CanD
+
+E1 = concat H1 V1
+E2 = concat H2 V2
+NumEdges = (E1 shape) 0
+
+G = new graph (Cells IsArr) .undirected
+for I in 0 till NumEdges
+  G add (E1 I) (E2 I) 1
+end
+
+Comp = G components
+MinCycles = Comp .count
+CompId = Comp .component
+
+rem Find one edge for each component
+U_q = new queue
+V_q = new queue
+Seen = (0 till (MinCycles + 1)) * 0
+
+for I in 0 till NumEdges
+  U = E1 I
+  V = E2 I
+  C = CompId U
+  if (Seen C) equal 0
+    Seen C = 1
+    U_q push U
+    V_q push V
+  end
+end
+
+SeedU = (U_q reverse) reverse
+SeedV = (V_q reverse) reverse
+NumComp = (SeedU shape) 0
+
+SuperV = concat (Cells IsArr) (array K)
+SuperG = new graph SuperV .undirected
+for I in 0 till NumEdges
+  SuperG add (E1 I) (E2 I) 1
+end
+for I in 0 till NumComp
+  SuperG add K (SeedU I) 1
+  SuperG add K (SeedV I) 1
+end
+
+Tree = SuperG K bfs
+Parent = Tree .parent
+Order = Tree .order
+
+MinTgt = (0 till K) * 0 - 1
+OrdLen = (Order shape) 0
+for Idx in 1 till OrdLen
+  Node = Order Idx
+  P = Parent Node
+  if not (P equal K)
+    MinTgt Node = P
+  end
+end
+
+for I in 0 till NumComp
+  MinTgt (SeedU I) = SeedV I
+  MinTgt (SeedV I) = SeedU I
+end
+
+rem --- MAXIMAL CYCLES ---
+Source = K
+Sink = K + 1
+FlowG = new graph .directed
+
+IsLeft = (((Rows + Cols) mod 2) equal 0)
+IsLeftArr = IsLeft and IsArr
+LeftNodes = Cells IsLeftArr
+IsRightArr = (not IsLeft) and IsArr
+RightNodes = Cells IsRightArr
+
+for L in LeftNodes
+  FlowG add Source L 1
+end
+for R in RightNodes
+  FlowG add R Sink 1
+end
+
+for I in 0 till NumEdges
+  U = E1 I
+  V = E2 I
+  ULeft = (IsLeftArr U) equal true
+  From = ULeft choose U V
+  To = ULeft choose V U
+  FlowG add From To 1
+end
+
+Res = FlowG Source Sink maxflow
+MaxCycles = Res .value
+Flow = Res .flow
+MaxTgt = (0 till K) * 0 - 1
+
+for I in 0 till NumEdges
+  U = E1 I
+  V = E2 I
+  ULeft = (IsLeftArr U) equal true
+  From = ULeft choose U V
+  To = ULeft choose V U
+  Val = Flow From To
+  if Val equal 1
+    MaxTgt From = To
+    MaxTgt To = From
+  end
+end
+
+for I in 0 till NumEdges
+  U = E1 I
+  V = E2 I
+  if (MaxTgt U) equal (-1)
+    MaxTgt U = V
+  end
+  if (MaxTgt V) equal (-1)
+    MaxTgt V = U
+  end
+end
+
+fun Tgts format_grid
+  Q = new queue
+  for C in 0 till K
+    D = (Tgts C) - C
+    Opt1 = (D equal M) choose "D" "U"
+    Opt2 = (D equal (-1)) choose "L" Opt1
+    Ch = (D equal 1) choose "R" Opt2
+    Arrow = (IsArr C) choose Ch "."
+    Q push Arrow
+  end
+  All = (Q reverse) reverse
+  ResQ = new queue
+  for R in 0 till N
+    RowLo = R * M
+    RowHi = RowLo + M - 1
+    Span = RowLo to RowHi
+    Row = (All Span) join ""
+    ResQ push Row
+  end
+  return (ResQ reverse) reverse
+end
+
+MinGrid = MinTgt format_grid
+MaxGrid = MaxTgt format_grid
+
+for Line in MinGrid
+  Line print
+end
+"" print
+for Line in MaxGrid
+  Line print
+end
