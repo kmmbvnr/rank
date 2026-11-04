@@ -1,0 +1,271 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 451: Arithmetic Expression
+rem Parse & evaluate Delphi expression.
+
+arg Input text = (
+  "sin(3.14/2)+cos(2-6/3)"
+)
+
+fun is_valid_number S
+  L = S len
+  if L equal 0
+    return false
+  end
+  First = S 0
+  TooLow = First less "0"
+  TooHigh = First greater "9"
+  if TooLow or TooHigh
+    return false
+  end
+  State = 0
+  Valid = true
+  for I in 0 to (L - 1)
+    C = S I
+    DigitLo = not (C less "0")
+    DigitHi = not (C greater "9")
+    IsD = DigitLo and DigitHi
+    if State equal 0
+      if not IsD
+        if C equal "."
+          State = 1
+        else
+          if C equal "e"
+            State = 2
+          else
+            Valid = false
+            break
+          end
+        end
+      end
+    else
+      if State equal 1
+        if not IsD
+          if C equal "e"
+            State = 2
+          else
+            Valid = false
+            break
+          end
+        end
+      else
+        if State equal 2
+          IsPlus = C equal "+"
+          IsMinus = C equal "-"
+          if IsPlus or IsMinus
+            State = 3
+          else
+            if IsD
+              State = 4
+            else
+              Valid = false
+              break
+            end
+          end
+        else
+          if State equal 3
+            if IsD
+              State = 4
+            else
+              Valid = false
+              break
+            end
+          else
+            if not IsD
+              Valid = false
+              break
+            end
+          end
+        end
+      end
+    end
+  end
+  if (State equal 2) or (State equal 3)
+    Valid = false
+  end
+  return Valid
+end
+
+fun eval_node S
+  L = S len
+  if L equal 0
+    return tuple false 0.0
+  end
+
+  for Loop in 0 to (L - 1)
+    if (S 0) equal "("
+      Depth = 0
+      MatchIdx = -1
+      for I in 0 to (L - 1)
+        C = S I
+        if C equal "("
+          Depth = Depth + 1
+        else
+          if C equal ")"
+            Depth = Depth - 1
+            if Depth equal 0
+              MatchIdx = I
+              break
+            end
+          end
+        end
+      end
+      if MatchIdx equal (L - 1)
+        S = S (1 to (L - 2))
+        L = S len
+        if L equal 0
+          return tuple false 0.0
+        end
+      else
+        break
+      end
+    else
+      break
+    end
+  end
+
+  Ops = array "+" "-" "*" "/"
+  for OpIdx in 0 to 3
+    TargetOp = Ops OpIdx
+    Depth = 0
+    FoundK = -1
+    for Rev in 0 to (L - 1)
+      I = L - 1 - Rev
+      C = S I
+      if C equal ")"
+        Depth = Depth + 1
+      else
+        if C equal "("
+          Depth = Depth - 1
+        else
+          if Depth equal 0
+            if C equal TargetOp
+              IsExp = false
+              IsP = TargetOp equal "+"
+              IsM = TargetOp equal "-"
+              IsPM = IsP or IsM
+              if IsPM and (I greater 0)
+                Prev = S (I - 1)
+                if Prev equal "e"
+                  IsExp = true
+                end
+              end
+              if not IsExp
+                FoundK = I
+                break
+              end
+            end
+          end
+        end
+      end
+    end
+    if FoundK greater -1
+      if FoundK equal 0
+        return tuple false 0.0
+      end
+      if FoundK equal (L - 1)
+        return tuple false 0.0
+      end
+      LeftStr = S (0 to (FoundK - 1))
+      RStart = FoundK + 1
+      RightStr = S (RStart to (L - 1))
+      unpack LeftOk LV = (
+        eval_node LeftStr
+      )
+      if not LeftOk
+        return tuple false 0.0
+      end
+      unpack RightOk RV = (
+        eval_node RightStr
+      )
+      if not RightOk
+        return tuple false 0.0
+      end
+      if TargetOp equal "+"
+        return tuple true (LV + RV)
+      else
+        if TargetOp equal "-"
+          return tuple true (LV - RV)
+        else
+          if TargetOp equal "*"
+            return tuple true (LV * RV)
+          else
+            if RV equal 0
+              return tuple false 0.0
+            end
+            return tuple true (LV / RV)
+          end
+        end
+      end
+    end
+  end
+
+  if L greater 4
+    Prefix = S (0 to 3)
+    Suffix = S (L - 1)
+    IsSin = Prefix equal "sin("
+    IsCos = Prefix equal "cos("
+    HasFunc = IsSin or IsCos
+    HasEnd = Suffix equal ")"
+    if HasFunc and HasEnd
+      Depth = 0
+      InnerClosed = false
+      for I in 3 to (L - 1)
+        C = S I
+        if C equal "("
+          Depth = Depth + 1
+        else
+          if C equal ")"
+            Depth = Depth - 1
+            if Depth equal 0
+              if I equal (L - 1)
+                InnerClosed = true
+              end
+              break
+            end
+          end
+        end
+      end
+      if InnerClosed
+        InnerStr = S (4 to (L - 2))
+        unpack InOk InVal = (
+          eval_node InnerStr
+        )
+        if not InOk
+          return tuple false 0.0
+        end
+        if IsSin
+          return tuple true (InVal sin)
+        else
+          return tuple true (InVal cos)
+        end
+      end
+    end
+  end
+
+  if is_valid_number S
+    return tuple true (S real)
+  end
+  return tuple false 0.0
+end
+
+fun solve_expr Input
+  Parts = Input split " "
+  Clean = (Parts join "") lower
+  if (Clean len) equal 0
+    return "Error"
+  end
+  unpack Ok Val = eval_node Clean
+  if Ok
+    return (Val text)
+  else
+    return "Error"
+  end
+end
+
+Result = solve_expr Input
+Result print
