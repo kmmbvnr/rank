@@ -1,0 +1,112 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 690: Knight's Tour
+rem Warnsdorff with corner tie-break.
+
+arg Input text = "10 10
+K.........
+..........
+..........
+..........
+..........
+..........
+..........
+..........
+..........
+.........."
+
+fun solve_knights_tour Input
+  Raw = (Input split "\r") join ""
+  Lines = Raw split "\n"
+  Head = (Lines 0) words integer
+  N = Head 0
+  M = Head 1
+  Total = N * M
+  CenterR = N - 1
+  CenterC = M - 1
+
+  DR = array (-2) (-2) (-1) (-1) 1 1 2 2
+  DC = array (-1) 1 (-2) 2 (-2) 2 (-1) 1
+
+  AllIdx = 0 to (Total - 1)
+  AllR = AllIdx // M
+  AllC = AllIdx mod M
+  Deg = array shape Total fill 0
+
+  for K in 0 to 7
+    NRk = AllR + (DR K)
+    NCk = AllC + (DC K)
+    InR = not (NRk less 0) and (
+      NRk less N)
+    InC = not (NCk less 0) and (
+      NCk less M)
+    Deg += (InR and InC) integer
+  end
+
+  GridLines = Lines (1 to N)
+  CurIdx = (GridLines join "") find "K"
+
+  Board = array shape Total fill 0
+  Board CurIdx = 1
+
+  NRs0 = (CurIdx // M) + DR
+  NCs0 = (CurIdx mod M) + DC
+  InR0 = not (NRs0 less 0) and (
+    NRs0 less N)
+  InC0 = not (NCs0 less 0) and (
+    NCs0 less M)
+  NIdx0 = (NRs0 * M) + NCs0
+  Deg (NIdx0 (InR0 and InC0)) -= 1
+
+  for Step in 2 to Total
+    R = CurIdx // M
+    C = CurIdx mod M
+    NRs = R + DR
+    NCs = C + DC
+    InR = not (NRs less 0) and (
+      NRs less N)
+    InC = not (NCs less 0) and (
+      NCs less M)
+    InB = InR and InC
+    ValidIdx = ((NRs * M) + NCs) InB
+    Unvis = (Board ValidIdx) equal 0
+    CandIdx = ValidIdx Unvis
+
+    CandR = CandIdx // M
+    CandC = CandIdx mod M
+    D = Deg CandIdx
+    DR2 = (2 * CandR) - CenterR
+    DC2 = (2 * CandC) - CenterC
+    Dist2 = (DR2 * DR2) + (DC2 * DC2)
+    Scores = (D * 1000000) - Dist2
+
+    MinS = Scores min
+    BestPos = Scores find MinS
+    BestIdx = CandIdx BestPos
+    CurIdx = BestIdx
+    Board CurIdx = Step
+
+    NRs2 = (CurIdx // M) + DR
+    NCs2 = (CurIdx mod M) + DC
+    InR2 = not (NRs2 less 0) and (
+      NRs2 less N)
+    InC2 = not (NCs2 less 0) and (
+      NCs2 less M)
+    NIdx2 = (NRs2 * M) + NCs2
+    Deg (NIdx2 (InR2 and InC2)) -= 1
+  end
+
+  Rows = array shape N fill ""
+  B2 = Board reshape N M
+  for R in 0 to (N - 1)
+    Rows R = (B2 R) join " "
+  end
+  return (Rows join "\n")
+end
+
+Result = solve_knights_tour Input
+Result print
