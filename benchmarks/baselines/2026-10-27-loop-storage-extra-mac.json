@@ -1,0 +1,884 @@
+{
+  "node": "v24.15.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M5",
+  "versions": [
+    "current",
+    "promote",
+    "checkpoint",
+    "combined"
+  ],
+  "samples": 3,
+  "results": [
+    {
+      "sample": 0,
+      "case": "185",
+      "version": "current",
+      "ms": 565.724083,
+      "rssMiB": 219.5625,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 0,
+      "case": "185",
+      "version": "promote",
+      "ms": 571.038,
+      "rssMiB": 242.359375,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 0,
+      "case": "185",
+      "version": "checkpoint",
+      "ms": 657.494625,
+      "rssMiB": 251.3125,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 0,
+      "case": "185",
+      "version": "combined",
+      "ms": 628.718042,
+      "rssMiB": 239.890625,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 0,
+      "case": "170",
+      "version": "current",
+      "ms": 533.071834,
+      "rssMiB": 235.90625,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 0,
+      "case": "170",
+      "version": "promote",
+      "ms": 539.7067499999999,
+      "rssMiB": 236.140625,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 0,
+      "case": "170",
+      "version": "checkpoint",
+      "ms": 535.357833,
+      "rssMiB": 235.890625,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 0,
+      "case": "170",
+      "version": "combined",
+      "ms": 533.052792,
+      "rssMiB": 235.703125,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 0,
+      "case": "186",
+      "version": "current",
+      "ms": 250.819542,
+      "rssMiB": 242.15625,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 0,
+      "case": "186",
+      "version": "promote",
+      "ms": 254.876959,
+      "rssMiB": 244.421875,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 0,
+      "case": "186",
+      "version": "checkpoint",
+      "ms": 256.463917,
+      "rssMiB": 245.53125,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 0,
+      "case": "186",
+      "version": "combined",
+      "ms": 252.908792,
+      "rssMiB": 237.75,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 0,
+      "case": "register",
+      "version": "current",
+      "ms": 98.226875,
+      "rssMiB": 150.578125,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 0,
+      "case": "register",
+      "version": "promote",
+      "ms": 101.034167,
+      "rssMiB": 150.625,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 0,
+      "case": "register",
+      "version": "checkpoint",
+      "ms": 98.43275,
+      "rssMiB": 141.640625,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 0,
+      "case": "register",
+      "version": "combined",
+      "ms": 100.348083,
+      "rssMiB": 146.109375,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 0,
+      "case": "early",
+      "version": "current",
+      "ms": 101.350833,
+      "rssMiB": 170.453125,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 0,
+      "case": "early",
+      "version": "promote",
+      "ms": 123.72812499999998,
+      "rssMiB": 166.28125,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 0,
+      "case": "early",
+      "version": "checkpoint",
+      "ms": 101.09466699999999,
+      "rssMiB": 166.6875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 0,
+      "case": "early",
+      "version": "combined",
+      "ms": 103.122208,
+      "rssMiB": 171.671875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 0,
+      "case": "late",
+      "version": "current",
+      "ms": 108.747084,
+      "rssMiB": 166.296875,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late",
+      "version": "promote",
+      "ms": 100.057583,
+      "rssMiB": 150.34375,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late",
+      "version": "checkpoint",
+      "ms": 106.82104100000001,
+      "rssMiB": 152.375,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late",
+      "version": "combined",
+      "ms": 101.370542,
+      "rssMiB": 152.125,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late-long",
+      "version": "current",
+      "ms": 244.178333,
+      "rssMiB": 166.546875,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late-long",
+      "version": "promote",
+      "ms": 195.453292,
+      "rssMiB": 170.265625,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late-long",
+      "version": "checkpoint",
+      "ms": 150.222875,
+      "rssMiB": 155.046875,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late-long",
+      "version": "combined",
+      "ms": 156.48212500000002,
+      "rssMiB": 171.5,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 0,
+      "case": "late-square",
+      "version": "current",
+      "ms": 110.030708,
+      "rssMiB": 167.484375,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 0,
+      "case": "late-square",
+      "version": "promote",
+      "ms": 102.662666,
+      "rssMiB": 147.21875,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 0,
+      "case": "late-square",
+      "version": "checkpoint",
+      "ms": 103.519792,
+      "rssMiB": 145.8125,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 0,
+      "case": "late-square",
+      "version": "combined",
+      "ms": 100.892541,
+      "rssMiB": 141.890625,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 1,
+      "case": "late-square",
+      "version": "combined",
+      "ms": 100.023458,
+      "rssMiB": 142.296875,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 1,
+      "case": "late-square",
+      "version": "checkpoint",
+      "ms": 105.862166,
+      "rssMiB": 146.140625,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 1,
+      "case": "late-square",
+      "version": "promote",
+      "ms": 102.851,
+      "rssMiB": 140.09375,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 1,
+      "case": "late-square",
+      "version": "current",
+      "ms": 105.722375,
+      "rssMiB": 167.515625,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 1,
+      "case": "late-long",
+      "version": "combined",
+      "ms": 156.99725,
+      "rssMiB": 166.359375,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late-long",
+      "version": "checkpoint",
+      "ms": 152.61674999999997,
+      "rssMiB": 151.75,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late-long",
+      "version": "promote",
+      "ms": 199.50808299999997,
+      "rssMiB": 171.109375,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late-long",
+      "version": "current",
+      "ms": 238.14550000000003,
+      "rssMiB": 166.703125,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late",
+      "version": "combined",
+      "ms": 103.52254199999999,
+      "rssMiB": 152.1875,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late",
+      "version": "checkpoint",
+      "ms": 99.681666,
+      "rssMiB": 150.84375,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late",
+      "version": "promote",
+      "ms": 106.780291,
+      "rssMiB": 154.96875,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "late",
+      "version": "current",
+      "ms": 113.37479199999999,
+      "rssMiB": 170.4375,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 1,
+      "case": "early",
+      "version": "combined",
+      "ms": 101.07300000000001,
+      "rssMiB": 167.03125,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 1,
+      "case": "early",
+      "version": "checkpoint",
+      "ms": 106.01512500000001,
+      "rssMiB": 170.6875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 1,
+      "case": "early",
+      "version": "promote",
+      "ms": 123.30212499999999,
+      "rssMiB": 166.09375,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 1,
+      "case": "early",
+      "version": "current",
+      "ms": 97.80404200000001,
+      "rssMiB": 166.1875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 1,
+      "case": "register",
+      "version": "combined",
+      "ms": 101.556208,
+      "rssMiB": 141.078125,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 1,
+      "case": "register",
+      "version": "checkpoint",
+      "ms": 97.336667,
+      "rssMiB": 141.171875,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 1,
+      "case": "register",
+      "version": "promote",
+      "ms": 100.43391700000001,
+      "rssMiB": 151.03125,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 1,
+      "case": "register",
+      "version": "current",
+      "ms": 94.88329200000001,
+      "rssMiB": 150.75,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 1,
+      "case": "186",
+      "version": "combined",
+      "ms": 259.236917,
+      "rssMiB": 242.390625,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 1,
+      "case": "186",
+      "version": "checkpoint",
+      "ms": 252.538333,
+      "rssMiB": 237.578125,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 1,
+      "case": "186",
+      "version": "promote",
+      "ms": 253.24175000000002,
+      "rssMiB": 238.15625,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 1,
+      "case": "186",
+      "version": "current",
+      "ms": 259.64083300000004,
+      "rssMiB": 242.015625,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 1,
+      "case": "170",
+      "version": "combined",
+      "ms": 537.919,
+      "rssMiB": 236.3125,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 1,
+      "case": "170",
+      "version": "checkpoint",
+      "ms": 533.4912079999999,
+      "rssMiB": 235.9375,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 1,
+      "case": "170",
+      "version": "promote",
+      "ms": 534.818667,
+      "rssMiB": 235.421875,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 1,
+      "case": "170",
+      "version": "current",
+      "ms": 534.126083,
+      "rssMiB": 235.5,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 1,
+      "case": "185",
+      "version": "combined",
+      "ms": 634.60925,
+      "rssMiB": 249.140625,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 1,
+      "case": "185",
+      "version": "checkpoint",
+      "ms": 670.346375,
+      "rssMiB": 252.078125,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 1,
+      "case": "185",
+      "version": "promote",
+      "ms": 569.885292,
+      "rssMiB": 243.90625,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 1,
+      "case": "185",
+      "version": "current",
+      "ms": 578.3545409999999,
+      "rssMiB": 242.671875,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "185",
+      "version": "current",
+      "ms": 572.4105000000001,
+      "rssMiB": 244.1875,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "185",
+      "version": "promote",
+      "ms": 575.151167,
+      "rssMiB": 242.640625,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "185",
+      "version": "checkpoint",
+      "ms": 671.221041,
+      "rssMiB": 250.921875,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "185",
+      "version": "combined",
+      "ms": 628.2087919999999,
+      "rssMiB": 250.4375,
+      "sourceHash": "1f1e05f2a5873d36541216c43e6c47ffa24462b435b85df3221b7797705d1e06",
+      "answer": "4640261571849533"
+    },
+    {
+      "sample": 2,
+      "case": "170",
+      "version": "current",
+      "ms": 539.2355,
+      "rssMiB": 235.71875,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 2,
+      "case": "170",
+      "version": "promote",
+      "ms": 533.46125,
+      "rssMiB": 235.125,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 2,
+      "case": "170",
+      "version": "checkpoint",
+      "ms": 532.248666,
+      "rssMiB": 235.484375,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 2,
+      "case": "170",
+      "version": "combined",
+      "ms": 537.935958,
+      "rssMiB": 235.625,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "answer": "9857164023"
+    },
+    {
+      "sample": 2,
+      "case": "186",
+      "version": "current",
+      "ms": 266.504708,
+      "rssMiB": 245.03125,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 2,
+      "case": "186",
+      "version": "promote",
+      "ms": 257.61029199999996,
+      "rssMiB": 242.09375,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 2,
+      "case": "186",
+      "version": "checkpoint",
+      "ms": 255.98125000000002,
+      "rssMiB": 237.625,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 2,
+      "case": "186",
+      "version": "combined",
+      "ms": 257.37533299999996,
+      "rssMiB": 237.421875,
+      "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+      "answer": "2325629"
+    },
+    {
+      "sample": 2,
+      "case": "register",
+      "version": "current",
+      "ms": 95.31116699999998,
+      "rssMiB": 150.84375,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 2,
+      "case": "register",
+      "version": "promote",
+      "ms": 101.988167,
+      "rssMiB": 150.59375,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 2,
+      "case": "register",
+      "version": "checkpoint",
+      "ms": 100.57475,
+      "rssMiB": 140.359375,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 2,
+      "case": "register",
+      "version": "combined",
+      "ms": 99.30879199999998,
+      "rssMiB": 141.46875,
+      "sourceHash": "736604b9c4b1f13c31053995bc2e7f7426957bf858e86d99938605766959a17e",
+      "answer": "1999999000000"
+    },
+    {
+      "sample": 2,
+      "case": "early",
+      "version": "current",
+      "ms": 99.22616599999998,
+      "rssMiB": 166.625,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 2,
+      "case": "early",
+      "version": "promote",
+      "ms": 121.36333299999998,
+      "rssMiB": 166.5625,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 2,
+      "case": "early",
+      "version": "checkpoint",
+      "ms": 99.761166,
+      "rssMiB": 166.546875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 2,
+      "case": "early",
+      "version": "combined",
+      "ms": 103.42166700000001,
+      "rssMiB": 166.796875,
+      "sourceHash": "0c35d11d6804a3824473296eb075ddf0ca731bfee4bab351fda0e0a5501d276f",
+      "answer": "9007199256740989"
+    },
+    {
+      "sample": 2,
+      "case": "late",
+      "version": "current",
+      "ms": 109.874042,
+      "rssMiB": 166.0625,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late",
+      "version": "promote",
+      "ms": 99.85150000000002,
+      "rssMiB": 150.375,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late",
+      "version": "checkpoint",
+      "ms": 103.06366700000001,
+      "rssMiB": 152.3125,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late",
+      "version": "combined",
+      "ms": 103.78025000000002,
+      "rssMiB": 151.765625,
+      "sourceHash": "b41e117d8f434c9a9b45c485f4fbd68b86f583db3391b0099d22dd069dbf6dd3",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late-long",
+      "version": "current",
+      "ms": 233.93658299999998,
+      "rssMiB": 166.078125,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late-long",
+      "version": "promote",
+      "ms": 187.640917,
+      "rssMiB": 166.515625,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late-long",
+      "version": "checkpoint",
+      "ms": 162.33649999999997,
+      "rssMiB": 171.328125,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late-long",
+      "version": "combined",
+      "ms": 152.43962500000004,
+      "rssMiB": 151.359375,
+      "sourceHash": "11d05b17a6e7acddaaeb3ca475e18487032063de41a68c21526b9dd5af9dc9c0",
+      "answer": "9007199254740994"
+    },
+    {
+      "sample": 2,
+      "case": "late-square",
+      "version": "current",
+      "ms": 109.25441599999999,
+      "rssMiB": 166.953125,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 2,
+      "case": "late-square",
+      "version": "promote",
+      "ms": 105.25520800000001,
+      "rssMiB": 140.453125,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 2,
+      "case": "late-square",
+      "version": "checkpoint",
+      "ms": 101.78966699999998,
+      "rssMiB": 141.59375,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    },
+    {
+      "sample": 2,
+      "case": "late-square",
+      "version": "combined",
+      "ms": 101.029833,
+      "rssMiB": 142.734375,
+      "sourceHash": "6809f6785cdd374522e12fa51621488be39cf27eb821e9d0eedcef0bd000bed0",
+      "answer": "4294898577055837281833929391969591619674746678193763762682513275697250479810872153587139776031036545901445635038024716393647208397931020519399017092684369170489996281555968575359960320001983999936000003"
+    }
+  ],
+  "baselineCommit": "1d4edd41124b7582fb8e6d23cf95c921eaa34ca6",
+  "deadlineMs": 120000,
+  "checkpointRootIterations": 8192,
+  "tierupWorkThreshold": 512,
+  "pageCells": 512
+}

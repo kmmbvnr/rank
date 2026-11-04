@@ -493,6 +493,65 @@ tuple Order Index Saved`);
         expect(r.diagnostics.numberLoopOverflows).toBe(0);
     });
 
+    it.each(['I + 1', 'bump I', 'I abs'])(
+        'keeps array rebinding admission across scalar calls: %s', expression => {
+            const r = compare(`use numbers
+fun bump N
+ Value = N + 1
+ return Value
+end
+A = array shape 64 fill 0
+Saved = A
+Total = 0
+for I in 1 to 6
+ Delta = ${expression}
+ A = A + Delta
+ Total += A 0
+end
+tuple A Saved Total`);
+            expect(r.observation.error).toBeUndefined();
+            expect(r.diagnostics.numberLoops).toBe(1);
+            expect(r.diagnostics.fallbacks['number-loop:rebound-call-state-proof']).toBeUndefined();
+        });
+
+    it('reports the missing captured-call proof beside array replacement', () => {
+        const r = compare(`Shift = 2
+fun bump N = N + Shift
+A = array shape 64 fill 0
+Saved = A
+for I in 1 to 3
+ Delta = bump I
+ A = A + Delta
+end
+tuple A Saved`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.fallbacks['number-loop:rebound-call-state-proof']).toBeGreaterThan(0);
+    });
+
+    it('reports the remaining wide-value proof for array replacement', () => {
+        const r = compare(`A = array shape 64 fill 0
+Total = 9007199254740993
+for I in 1 to 3
+ A = A + I
+ Total += I
+end
+tuple A Total`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.fallbacks['number-loop:rebound-wide-value-proof']).toBeGreaterThan(0);
+    });
+
+    it('preserves earlier replacements and aliases when a helper fails', () => {
+        const r = compare(`fun divide N = 10 // N
+A = array shape 64 fill 0
+Saved = A
+for I in 0 to 3
+ A = A + 1
+ Delta = divide (2 - I)
+ A = A + Delta
+end`);
+        expect(r.observation.error).toContain('division by zero');
+    });
+
     it('initializes multidimensional entry metadata before a conditional rebinding', () => {
         const r = compare(`A = array shape 2 3 fill 1.5
 B = A

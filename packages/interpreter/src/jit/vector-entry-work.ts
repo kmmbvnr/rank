@@ -41,7 +41,7 @@ export function prepareVectorEntryWork(plan: IntegerLoopPlan, host: LoopHost):
         // Two leading sieve passes can pay for the copy even when the last
         // pass is tiny. Deduplicate short vectors; keep the same bounded proof
         // and do not inspect later entries after a possible escaping jump.
-        const ordinals = body.exits ? [0] : [...new Set([0, Math.min(1, cells.length - 1), cells.length - 1])];
+        const ordinals = body.escapes ? [0] : [...new Set([0, Math.min(1, cells.length - 1), cells.length - 1])];
         for (const ordinal of ordinals) {
             const values = new Map(base), at = traversal.reverse ? cells.length - 1 - ordinal : ordinal;
             if (binding.names[0] !== '#') values.set(binding.names[0], BigInt(cells[at]));

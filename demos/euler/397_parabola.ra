@@ -11,10 +11,10 @@ arg X integer = 1000000000
 
 Answer = 0
 Spf = K factorsieve
-rem For N = 2^A * product(P^E),
-rem tau(2*N*N) = (2*A+2)*product(2*E+1)
-rem is at most 2*N. Reuse one buffer.
-Ds = array shape (2 * K + 2) fill 1
+rem tau(2*N*N) < 8*sqrt(N).
+rem Reuse a buffer for every row.
+Size = 8 * (K isqrt + 1)
+Ds = array shape Size fill 1
 for N in 1 to K
   D0 = 2 * N * N
   Count = 1
@@ -60,30 +60,32 @@ for N in 1 to K
       if Hi at least Lo
         Total += 2 * (Hi - Lo + 1)
       end
-      for Side in 0 to 1
-        Den = 0
-        Q = 0
-        Weight = 0
-        if Side equal 0
-          Den = S + N
-          Q = N * (S - N)
-          Weight = 2
-        else
-          Den = N - T
-          Q = N * (N + T)
-          Weight = 1
+      rem Ordering restricts overlaps.
+      if U greater 2 * N
+        Den = S + N
+        if D0 mod Den equal 0
+          V = N - D0 // Den
+          if (S + T - V) mod 2 equal 0
+            A = (S + T - V) // 2
+            C = (T + V - S) // 2
+            if A at least -X
+              if C at most X
+                Total -= 2
+              end
+            end
+          end
         end
-        if Den not equal 0
-          if Q mod Den equal 0
-            V = Q // Den
-            if (S + T - V) mod 2 equal 0
-              A = (S + T - V) // 2
-              B = (S + V - T) // 2
-              C = (T + V - S) // 2
-              if A at least -X and A less B
-                if B less C and C at most X
-                  Total -= Weight
-                end
+      end
+      if D less 2 * N
+        Den = N - T
+        if D0 mod Den equal 0
+          V = D0 // Den - N
+          if (S + T - V) mod 2 equal 0
+            A = (S + T - V) // 2
+            C = (T + V - S) // 2
+            if A at least -X
+              if C at most X
+                Total -= 1
               end
             end
           end
@@ -92,7 +94,8 @@ for N in 1 to K
     end
     P = -(N + U)
     Q = N + D
-    if P at least -Range and Q at most Range
+    Good = P at least -Range
+    if Good and Q at most Range
       Lo = P - X max (-X)
       Lo = Lo max (Q - X)
       Lo = Lo max (P // 2 + 1)

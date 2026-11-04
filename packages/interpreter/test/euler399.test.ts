@@ -38,7 +38,7 @@ describe('Euler 399 compiled modular doubling', () => {
         } finally { runtime.dispose(); }
     });
 
-    it('selects a squarefree index against independent prime-square recurrence', () => {
+    it.each([false, true])('selects against independent prime-square recurrence (compilation=%s)', compilation => {
         const limit = 2000, count = 1000;
         const forbidden = new Uint8Array(limit + 1), composite = new Uint8Array(1001);
         for (let p = 2; p <= 1000; p++) {
@@ -51,7 +51,7 @@ describe('Euler 399 compiled modular doubling', () => {
             }
         }
         const allowed = Array.from({ length: limit }, (_, i) => i + 1).filter(n => !forbidden[n]);
-        const runtime = new Interpreter(() => {});
+        const runtime = new Interpreter(() => {}, { compilation });
         try {
             runtime.execute(source.replace('arg Count integer = 100000000', `arg Count integer = ${count}`)
                 .replace('arg Limit integer = 200000000', `arg Limit integer = ${limit}`)

@@ -33,7 +33,7 @@ end`, numbers);
         expect(result.state.variables).toContainEqual(['A', '1 2 3']);
         expect(result.state.variables).toContainEqual(['Total', '6']);
         expect(result.diagnostics.compiledLoops).toBe(1);
-        expect(result.diagnostics.numberLoops).toBe(0);
+        expect(result.diagnostics.numberLoops).toBe(numbers ? 1 : 0);
     });
 
     it('retains the old source after rebinding its name', () => {

@@ -783,11 +783,11 @@ Fenwick preparation still declines observable demand budgets because copying
 would add checkpoints before the original first iteration.
 
 Calls need separate proofs for Number-compatible results and for inability to
-observe private state. The latter currently requires audited scalar native
-arguments, no callbacks, no host override and no declared effects. Rank helpers
-beside private containers report `number-loop:call-private-state-proof`: their
-absence of observation through captured state is not proved by scalar arguments
-alone. `number-loop:call-number-result-proof` identifies the independent numeric
+observe private state. Audited scalar natives require no callbacks, no host
+override and no declared effects. Supported Rank helpers carry the same fact
+from their scalar proof when they have no captures or unresolved dependencies.
+Other helpers beside private containers report `number-loop:call-private-state-proof`:
+scalar arguments alone do not rule out observing captured state. `number-loop:call-number-result-proof` identifies the independent numeric
 result requirement. In particular, a native integer call lowered inside a wide
 accumulator expression produces an exact result, but the call slot currently
 carries only a Number-compatibility flag. Admitting it requires a per-call proof
@@ -891,8 +891,14 @@ whose existing graph validation throws.
 
 Each integer intermediate and range increment is checked for safe-integer
 exactness. Division retains floor rounding and remainder retains the divisor's
-sign. Overflow discards the entire unpublished attempt and executes the original
-BigInt region from its original inputs. Indexed rank-one integer, real and boolean stores use a
+sign. Overflow discards the entire unpublished attempt and restarts from the
+original inputs. Before widening intermediate arithmetic,
+loops try a private mixed tier with exact integer outputs that have no explicit
+reads inside the region (compound updates have only an implicit self-read).
+Other registers keep checked Number arithmetic. If an intermediate overflows,
+the attempt is discarded and the existing broader mixed tier is tried lazily,
+followed by the publishing exact backend. Function prefixes use the same policy.
+No unpublished scalar or array changes escape a rejected tier. Indexed rank-one integer, real and boolean stores use a
 private numeric buffer and changed-cell mask, so no array writes or callbacks
 escape that attempt. Normal/error publication writes changed cells with tracked
 revisions and copies shared sources without polling during the commit. Packed
@@ -1136,6 +1142,15 @@ last completed result. Assignments made only inside a possibly empty inner loop
 are not considered definite after it. Unsupported inner constructs retain the
 reference outer loop, with eligible inner loops compiled independently.
 `nestedLoopCompilation: false` disables only region nesting for comparisons.
+
+Finite native iterator recipes inside compiled functions may be named with
+ordinary deferred bindings, for example `Fs' = N factors unique` followed by
+`for P in Fs`. Fresh bindings can appear inside branches and loops. The compiler
+keeps the recipe in its lexical block and invokes the guarded native iterator at
+each traversal, without materializing its values at binding time. Scalar operands
+use the existing function-plan lowering, including demand-time error locations.
+Unused recipes do no work. Rebinding a recipe or its captured inputs, escaping the
+block, unsupported consumers and array/container writes retain ordinary execution.
 
 ## Array reads inside compiled numeric loops
 
@@ -1664,3 +1679,69 @@ remain BigInt in mixed regions. Delivery measurements and controls are in
 `benchmarks/euler378-investigation.md`. Small integer sort/argsort buffers use
 Int32 cells, widening as required. Measurements and controls are recorded in
 `benchmarks/euler-neighbours-runtime.md`.
+
+### Prepared return demand and scalar call facts
+
+Return demand prepares the expression's name list once per syntax node. Every
+execution still resolves those names against the current bindings before deciding
+whether native I/O must happen during the call. The cache contains syntax names,
+not resolved functions, values, effects or frames. Native rebinding can therefore
+change a later return from propagation to immediate demand, or back again. This
+preparation is shared by reference and compiled callers without changing reference
+statement execution, operand order, return contracts or plan capture semantics.
+
+The existing analysis and preparation boundaries remain the source of facts:
+
+- `prepareFunction` caches signatures, slot layouts and static borrow candidates.
+- `FunctionFrames` guards helper-dependent borrow proofs with current binding
+  identities; arguments still acquire their ordinary contracts on every call.
+- `FunctionEffects` describes parameter/capture reads and writes, rebinding,
+  return origins and supported result facts. Unknown effects remain unknown.
+- `ScalarFunctionProof` is specialized by input/capture domains. It already
+  records array writes, container access, observable captures, dependencies and
+  native guards. It does not cache captured values.
+- `LocalFrame` provides slot reads/writes and existing tail-call reset rules.
+  Escaping maps/closures and suspended frames retain their ordinary lifetimes;
+  no general frame pool or new register interpreter is introduced.
+
+`CompiledCallee.effects.privateStateSafe` carries an existing scalar proof across
+the call boundary. Its initial scope requires scalar parameters/results, stable
+reads, no captured context or captured scalar domains, and no helper/data
+dependencies requiring a further private-state proof. Native dependencies keep
+their live implementation guards.
+A temporary scalar binding inside such a helper does not invalidate the proof.
+The loop consumer can reuse the same fact beside private containers and beside
+replacement of a local numeric array: the helper cannot observe an unpublished
+container or a retained array version. Call identity and native guards are still
+checked at region entry; replaced host functions use the publishing path.
+
+Range handling keeps the existing checked Number call boundary and exact replay.
+This change does not claim a new interprocedural interval analysis. Helpers with
+captures, reference arguments, returned arrays or unresolved call dependencies
+still need a broader private-state/escape proof. Exact calls in mixed BigInt
+registers retain the separate call-result representation requirement. For rebound
+entry arrays, diagnostics distinguish `rebound-call-state-proof`,
+`rebound-wide-value-proof` and `rebound-layout-proof` rather than reporting one
+undifferentiated rejection. Ordinary assignment and alias boundaries remain in
+place, including when a helper raises or execution is cancelled.
+
+The demonstrated reference overhead was repeated AST traversal at return demand.
+Frame allocation, dispatch and contract costs remain separate profiling targets;
+this change does not assume that all are bottlenecks. See the controlled
+[execution-boundary measurements](../../benchmarks/execution-boundaries-results.md)
+for independent timing, allocation and RSS measurements and remaining limits.
+
+### Speculative storage selection
+
+Destination ownership is not a no-replay proof. Direct numeric writes additionally
+require that every exit avoids exact replay, or that a correct continuation/undo
+mechanism preserves the exact uncommitted state. Existing empty-index rollback
+and exact integer writes do not establish this for mutable arrays.
+
+The contiguous private-buffer path and its work-feedback admission remain the
+production strategy. Sparse pages/journals and outer-iteration checkpoints have
+specialized benefits and substantial counterexamples; large destinations alone
+must not select a sparse backend. Checkpoint counts bound outer iterations, not
+arbitrary nested work. Active budgets/cancellation also constrain preparation and
+publication boundaries. See the [current storage experiments](../../benchmarks/speculative-storage-results.md)
+for selection rules, negative results, measurements and unsupported cases.

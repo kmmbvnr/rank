@@ -27,7 +27,7 @@ import { takeDropValue } from '../sequence.js';
 import { concatValues, copyArray, materializeCollection } from '../modules/sequences.js';
 import { hasDeferredSelectionCopy } from '../integer-view.js';
 import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes, type ScalarLoopIterable } from './scalar-function-proof.js';
-import { emitFunctionPlan, functionPlanArrays, functionPlanCallbacks, FunctionPlanDemandError } from '../function-plan.js';
+import { emitFunctionPlan, functionPlanArrays, functionPlanCallbacks, FunctionPlanDemandError, type FunctionPlanConsumer } from '../function-plan.js';
 import { textAt, textPoints } from '../text-storage.js';
 import { sortValue, argsortValue } from '../modules/sequence-order.js';
 import { uniqueValue } from '../modules/sequence-distinct.js';
@@ -87,7 +87,7 @@ function compileScalarNumberKernel(
     memberships: readonly string[],
 ): Kernel['numberDirect'] | undefined {
     if (!proof.localArrayWrites || proof.planCalls.length
-        || proof.planBindings.size || proof.planReturn || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt'].includes(name))
+        || proof.planBindings.size || proof.iterableBindings.size || proof.planReturn || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt'].includes(name))
         || proof.dependencies.some(name => !memberships.includes(name)) || proof.callCount > 0) return undefined;
     // Newly admitted captured memberships retain the exact kernel's reader
     // guards. Keep small inputs/counters explicitly Int32 for hot remainders;
@@ -530,6 +530,22 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         } else lines.push(`const ${result} = ${binaryOperatorSource(operation, left, right)};`);
         return result;
     }
+    function emitPlan(consumer: FunctionPlanConsumer, lines: string[], origin?: Expression): string {
+        return emitFunctionPlan(consumer, lines, {
+            variable: () => `v${serial++}`, slot, binary,
+            locate: (source, body, demandLocation) => {
+                let owner = source.$container;
+                while (owner && !isAssignmentStatement(owner)) owner = owner.$container;
+                body.push(`location = ${owner && isAssignmentStatement(owner) && owner.deferred ? locations.push(origin ?? source) - 1 : demandLocation};`);
+            },
+            capture: (key, body) => body.push(`mappedCalls[${key}] = rankedCalls[${key}]();`),
+            callback: (key, value, body) => {
+                const result = `v${serial++}`;
+                body.push(`const ${result} = mappedCalls[${key}]([${value}]);`);
+                return result;
+            },
+        });
+    }
     function iterable(source: ScalarLoopIterable, lines: string[]): string {
         if (source.kind === 'group') {
             const key = lower(source.key,lines), result = `v${serial++}`;
@@ -537,9 +553,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             return result;
         }
         if (source.kind === 'literal') return emit(source.expression, lines);
-        const argument = 'kind' in source.source ? iterable(source.source, lines) : emit(source.source, lines);
+        const argument = source.argument ? emitPlan({stage: source.argument, terminal: 'copy'}, lines, 'kind' in source.source ? undefined : source.source)
+            : 'kind' in source.source ? iterable(source.source, lines) : emit(source.source, lines);
         const index = calls.push({ operation: source.operation, inputs: [], iterator: true }) - 1;
         const result = `v${serial++}`;
+        if (source.deferred) lines.push(`location = ${locations.push(source.origin) - 1};`);
         lines.push(`const ${result} = calls[${index}](${argument});`);
         return result;
     }
@@ -580,20 +598,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 lines.push(`const ${result} = ${expression.input.negative ? '-' : ''}((${left}) ** (${right}));`);
                 return result;
             }
-            if (operation === 'plan') return emitFunctionPlan(expression.input.plan!, lines, {
-                variable: () => `v${serial++}`, slot, binary,
-                locate: (source, body, demandLocation) => {
-                    let owner = source.$container;
-                    while (owner && !isAssignmentStatement(owner)) owner = owner.$container;
-                    body.push(`location = ${owner && isAssignmentStatement(owner) && owner.deferred ? locations.push(source) - 1 : demandLocation};`);
-                },
-                capture: (key, body) => body.push(`mappedCalls[${key}] = rankedCalls[${key}]();`),
-                callback: (key, value, body) => {
-                    const result = `v${serial++}`;
-                    body.push(`const ${result} = mappedCalls[${key}]([${value}]);`);
-                    return result;
-                },
-            });
+            if (operation === 'plan') return emitPlan(expression.input.plan!, lines);
             if (operation === 'materialize-deque') {
                 const value = lower(expression.input.indices![0], lines), result = `v${serial++}`;
                 lines.push(`const ${result} = materializeCollection(${value});`);
@@ -796,6 +801,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     lines.push(`checkpoint('adding set element'); addToCollection(${receiver}, ${value});`);
                 } else emit(command.value, lines);
             } else if (isAssignmentStatement(command)) {
+                if (proof!.iterableBindings.has(command)) continue;
                 // These immutable recipes have no work until their consumer.
                 // Their captured slots cannot be rebound in an accepted proof.
                 const stage = proof!.planBindings.get(command);
@@ -962,7 +968,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
         ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
         ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
-        ${proof.arrayWrites.size || proof.planBindings.size ? 'args.forEach(noteArrayBinding);' : ''}
+        ${proof.arrayWrites.size || proof.planBindings.size || proof.iterableBindings.size ? 'args.forEach(noteArrayBinding);' : ''}
         let location = -1;
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
@@ -975,7 +981,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
             ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
             ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
-            ${(proof.arrayWrites.size || proof.planBindings.size) && paramNames.length ? `${paramNames.map(p => `noteArrayBinding(${p});`).join('')}` : ''}
+            ${(proof.arrayWrites.size || proof.planBindings.size || proof.iterableBindings.size) && paramNames.length ? `${paramNames.map(p => `noteArrayBinding(${p});`).join('')}` : ''}
             let location = -1;
             try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
         };
@@ -1032,7 +1038,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             parameterTypes ?? statement.parameters.map(() => 'integer' as const), locations, memberships);
         kernel = {
             source,
-            plans: proof.planBindings.size > 0 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan'),
+            plans: proof.planBindings.size > 0 || proof.iterableBindings.size > 0 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan'),
             dequeIteration,
             setMembership,
             locations,

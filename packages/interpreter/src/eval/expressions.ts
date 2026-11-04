@@ -85,6 +85,7 @@ export interface ExpressionContext {
  */
 export class ExpressionEvaluator {
     private readonly prepared = new WeakMap<Expression, () => Evaluation<RankValue>>();
+    private readonly returnNames = new WeakMap<Expression, readonly string[]>();
 
     private readonly plans: PlanConstruction;
 
@@ -134,9 +135,15 @@ export class ExpressionEvaluator {
             const value = this.context.findVariable(source.name);
             if (value !== undefined && (!isNativeFunction(value) || this.plans.isReference(source))) return completed(value);
         }
-        const demandsEffects = AstUtils.streamAst(expression).some(node => {
-            if (!isNameExpression(node)) return false;
-            const operation = this.operationOf(node.name);
+        // Syntax is stable across calls; native bindings and effects are not.
+        // Retain names only, so rebinding still changes demand at this return.
+        let names = this.returnNames.get(expression);
+        if (!names) {
+            names = AstUtils.streamAst(expression).filter(isNameExpression).map(node => node.name).toArray();
+            this.returnNames.set(expression, names);
+        }
+        const demandsEffects = names.some(name => {
+            const operation = this.operationOf(name);
             return operation && operation.effects?.includes('io');
         });
         if (demandsEffects) return this.plans.build(expression, 'demand', tail);

@@ -290,10 +290,14 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     // Traversal must retain the original cells across writes and rebinding.
     if (plan.vectorIterations.some(({ slot }) => plan.destinations.has(names[slot]) || plan.arrayDefinitions.has(names[slot])))
         return recordFallback('number-loop:mutable-traversal', 'aliasing');
-    if (reboundInputs && (plan.calls.length > 0 || plan.wideScalars.size > 0
-        || [...plan.destinations].some(([name, info]) => plan.arrayDefinitions.has(name)
-            && (info.type !== 'integer' && info.type !== 'real' || info.rank !== 1 && !plan.arrayTransfers?.has(name) && !plan.ownedAliases?.has(name)))))
-        return recordFallback('number-loop:rebound-input-proof', 'proof');
+    if (reboundInputs && plan.calls.some(call => !call.privateStateSafe))
+        return recordFallback('number-loop:rebound-call-state-proof', 'proof');
+    if (reboundInputs && plan.wideScalars.size > 0)
+        return recordFallback('number-loop:rebound-wide-value-proof', 'proof');
+    if (reboundInputs && [...plan.destinations].some(([name, info]) => plan.arrayDefinitions.has(name)
+        && (info.type !== 'integer' && info.type !== 'real'
+            || info.rank !== 1 && !plan.arrayTransfers?.has(name) && !plan.ownedAliases?.has(name))))
+        return recordFallback('number-loop:rebound-layout-proof', 'proof');
     const cursor = plan.iteration?.names[0];
     const indexedPass = cursor !== undefined && !plan.writerNames.includes(cursor) && !locations.some(isForStatement) && !plan.vectorIterations.length;
     const storage = new Map<string, { slot: number; rank: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
@@ -545,6 +549,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     diagnostics.numberLoopBorrowedRealCells += real.length;
                 }
             } else if (compact) {
+                // Ownership alone cannot remove replay.
+                // Direct stores need a no-replay proof
+                // for every exit, or a correct
+                // continuation/undo plan.
                 // Private writes retain exact replay on overflow. Read-only
                 // regions can borrow Int32 values directly: every cell is safe.
                 // Stores widen the private copy before a value can truncate.

@@ -39,6 +39,17 @@ describe('complete nested passes in packed vector loops',()=>{
         expect(result.diagnostics.fallbacks['number-loop:condition-write-budget']).toBeUndefined();
     });
 
+    it('counts a later pass after an outer continue',()=>{
+        const text=source.replace('  End =',
+            '  if P greater 10\n    continue\n  end\n  End =');
+        const result=execute(text);
+        expect(result.values).toEqual(execute(text,false).values);
+        expect(result.values).toEqual([1n,1n,1n,1n]);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopCopyProbes).toBe(0);
+        expect(result.diagnostics.fallbacks['number-loop:condition-write-budget']).toBeUndefined();
+    });
+
     it('does not count a later pass after a possible outer break',()=>{
         const text=source.replace('  End =','  if P greater 10\n    break\n  end\n  End =');
         const result=execute(text);

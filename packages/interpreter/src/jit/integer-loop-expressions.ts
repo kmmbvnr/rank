@@ -1611,6 +1611,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                                 name: last.name,
                                 locals: callable.locals,
                                 stableArrayReads: callable.effects.stableArrayReads,
+                                privateStateSafe: callable.effects.privateStateSafe,
                                 numberSafe: true,
                                 bind: () => callable.bindNumber!(),
                             });

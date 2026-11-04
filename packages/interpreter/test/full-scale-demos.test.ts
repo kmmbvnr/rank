@@ -83,11 +83,11 @@ it('checks the full compiled Euler 288 tail without Number overflow', () => {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
         expect(runtime.variables.get('Answer')).toBe(605857431263981935n);
         expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(2);
-        // The short prefix needs exact arithmetic; its speculative Number
-        // attempt overflows once. The ten-million-step tail stays in Number.
-        expect(diagnostics.numberLoopOverflows).toBe(1);
+        // The prefix rejects Number and output-only widening before the
+        // broad mixed tier. The ten-million-step tail stays in Number.
+        expect(diagnostics.numberLoopOverflows).toBe(2);
         expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(3);
-        expect(diagnostics.mixedIntegerLoops).toBe(1);
+        expect(diagnostics.mixedIntegerLoops).toBe(2);
     } finally { runtime.dispose(); }
 }, 60_000);
 
@@ -333,6 +333,7 @@ it.each([4641589, 1])('checks the full Euler 388 wide sum with bounded tables (C
         expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(3);
         // Below the cap, the small-cutoff sieve retains its bounded probe.
         expect(diagnostics.numberLoopCopyProbes).toBe(cut === 1 ? 1 : 0);
-        expect(diagnostics.numberLoopOverflows).toBe(1);
+        // Wide intermediates reject both narrower speculative tiers.
+        expect(diagnostics.numberLoopOverflows).toBe(2);
     } finally { runtime.dispose(); }
 }, 30_000);

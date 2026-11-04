@@ -36,16 +36,16 @@ function winningCuts(order: number): bigint {
     return count;
 }
 
-function solve(order: number, compilation: boolean): { answer: unknown; calls: number } {
-    let calls = 0;
-    const runtime = new Interpreter(() => {}, { compilation, onScalarFunctionExecuted: () => calls++ });
+function solve(order: number, compilation: boolean): { answer: unknown; kernels: number } {
+    let kernels = 0;
+    const runtime = new Interpreter(() => {}, { compilation, onTensorKernelExecuted: () => kernels++ });
     try {
         runtime.execute(source.replace('arg K integer = 10000', `arg K integer = ${order}`));
-        return { answer: runtime.variables.get('Answer'), calls };
+        return { answer: runtime.variables.get('Answer'), kernels };
     } finally { runtime.dispose(); }
 }
 
-describe('Fibonacci tree sparse DP', () => {
+describe('Fibonacci tree rolling DP', () => {
     it('matches actual game play for every small Fibonacci tree in both execution modes', () => {
         for (let order = 1; order <= 6; order++) {
             const expected = winningCuts(order);
@@ -53,12 +53,20 @@ describe('Fibonacci tree sparse DP', () => {
         }
     });
 
-    it('preserves checkpoints, key boundaries and exact counts beyond safe Number integers', () => {
-        for (const [order, answer] of [[0, 0n], [5, 1n], [10, 17n], [100, 580893155023212545n]] as const) {
+    it('preserves checkpoints, row boundaries and exact counts beyond safe Number integers', () => {
+        for (const [order, answer] of [[0, 0n], [1, 0n], [2, 1n], [5, 1n], [10, 17n], [100, 580893155023212545n], [1000, 867114317183878825n]] as const) {
             const result = solve(order, true);
             expect(result.answer).toBe(answer);
-            expect(result.calls).toBeGreaterThan(0);
-            if (order <= 10) expect(solve(order, false).answer).toBe(answer);
+            expect(result.kernels).toBe(Math.max(0, order - 2));
+            expect(solve(order, false).answer).toBe(answer);
         }
     });
+    it('preserves the full default answer in both execution modes', () => {
+        for (const compilation of [false, true]) {
+            const result = solve(10000, compilation);
+            expect(result.answer).toBe(438505383468410633n);
+            expect(result.kernels).toBe(compilation ? 9998 : 0);
+        }
+    }, 60000);
+
 });

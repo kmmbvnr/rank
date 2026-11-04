@@ -1,0 +1,163 @@
+{
+  "macSparseTimeoutFollowup": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5",
+    "versions": [
+      "current"
+    ],
+    "samples": 5,
+    "results": [
+      {
+        "sample": 0,
+        "case": "sparse-scatter",
+        "version": "current",
+        "ms": 124.23108300000001,
+        "rssMiB": 168,
+        "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+        "answer": "131072"
+      },
+      {
+        "sample": 1,
+        "case": "sparse-scatter",
+        "version": "current",
+        "ms": 126.08625,
+        "rssMiB": 167.9375,
+        "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+        "answer": "131072"
+      },
+      {
+        "sample": 2,
+        "case": "sparse-scatter",
+        "version": "current",
+        "ms": 127.05445799999998,
+        "rssMiB": 166.859375,
+        "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+        "answer": "131072"
+      },
+      {
+        "sample": 3,
+        "case": "sparse-scatter",
+        "version": "current",
+        "ms": 125.632125,
+        "rssMiB": 168.390625,
+        "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+        "answer": "131072"
+      },
+      {
+        "sample": 4,
+        "case": "sparse-scatter",
+        "version": "current",
+        "ms": 124.82662499999998,
+        "rssMiB": 168.09375,
+        "sourceHash": "e77f15e0228d937b74d626d0b8f2e01c40c6ea8d45c5c6ab75deb069fab87f82",
+        "answer": "131072"
+      }
+    ]
+  },
+  "macModuleHashes": {
+    "current": {
+      "integer-loop.js": "047db703860bd1ee429f45e6066e399061faae093729397f30982241e06ce872",
+      "integer-loop-runtime.js": "f85940c6db08a5a69e32f63a5640240267a66d74ff51d6ffe93b4748fae6715d",
+      "integer-loop-state.js": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390",
+      "integer-loop-expressions.js": "3fd965ce0ed8091fbc9922c559f898f3753adb6236675d29c4470150f2c0c555",
+      "integer-loop-writes.js": "7c87dfc2a3b03367d7e730c429a131072341b991755edd19ccfa225ec536f29f",
+      "number-loop-runtime.js": "24d803978376709e5b834cdf3037297106ca7c6f5836fc25b3ad0c4519b4fae0"
+    },
+    "pages": {
+      "integer-loop.js": "047db703860bd1ee429f45e6066e399061faae093729397f30982241e06ce872",
+      "integer-loop-runtime.js": "f85940c6db08a5a69e32f63a5640240267a66d74ff51d6ffe93b4748fae6715d",
+      "integer-loop-state.js": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390",
+      "integer-loop-expressions.js": "cc499cb5461af46035c81418badfbb2c5f4a1629b4d7ad9ed2622c1958924a9f",
+      "integer-loop-writes.js": "e685c5f0403f43cd485ab053c899712967869ddd5b1e677bd5c483a238d167eb",
+      "number-loop-runtime.js": "edcb66d53e5b7ec4ad5e5ed2fae68ef9a4e66709624c69f276b4d4baf1008314",
+      "experimental-pages.js": "ba7b82f656e691eba2d4a9b1bbb13e9fc948f443f20ecb61f6df7f11c4a703a8"
+    },
+    "tierup": {
+      "integer-loop.js": "7b4cbb24d4f045e8a44fe68f99af3c556d8f4fa4d90cfb6b9e33d72a3ba5c2a7",
+      "integer-loop-runtime.js": "992b28e83c8efcd14bbda0b82b2457e6f4ae55e8f74eec71deb8698c7ad8e183",
+      "integer-loop-state.js": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390",
+      "integer-loop-expressions.js": "3fd965ce0ed8091fbc9922c559f898f3753adb6236675d29c4470150f2c0c555",
+      "integer-loop-writes.js": "7c87dfc2a3b03367d7e730c429a131072341b991755edd19ccfa225ec536f29f",
+      "number-loop-runtime.js": "1be8f27bcf9414486d3fb9e89bf9bc486872582c69c6af1d695db3a80ca0bbd3"
+    },
+    "checkpoint": {
+      "integer-loop.js": "80c143e612d301d7d559512cfa920606e1c3887adc2fd211b65470b8a3a85a1e",
+      "integer-loop-runtime.js": "992b28e83c8efcd14bbda0b82b2457e6f4ae55e8f74eec71deb8698c7ad8e183",
+      "integer-loop-state.js": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390",
+      "integer-loop-expressions.js": "3fd965ce0ed8091fbc9922c559f898f3753adb6236675d29c4470150f2c0c555",
+      "integer-loop-writes.js": "7c87dfc2a3b03367d7e730c429a131072341b991755edd19ccfa225ec536f29f",
+      "number-loop-runtime.js": "1be8f27bcf9414486d3fb9e89bf9bc486872582c69c6af1d695db3a80ca0bbd3"
+    },
+    "combined": {
+      "integer-loop.js": "407f812d1361d8456e3c7cc242463e3f1a4909d05c49174d6b038f85427499a1",
+      "integer-loop-runtime.js": "992b28e83c8efcd14bbda0b82b2457e6f4ae55e8f74eec71deb8698c7ad8e183",
+      "integer-loop-state.js": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390",
+      "integer-loop-expressions.js": "3fd965ce0ed8091fbc9922c559f898f3753adb6236675d29c4470150f2c0c555",
+      "integer-loop-writes.js": "7c87dfc2a3b03367d7e730c429a131072341b991755edd19ccfa225ec536f29f",
+      "number-loop-runtime.js": "1be8f27bcf9414486d3fb9e89bf9bc486872582c69c6af1d695db3a80ca0bbd3"
+    },
+    "promote": {
+      "integer-loop.js": "e2c4c76bbb1c34ffe7f6fd4b36ae1d9d06accad4891ec32df206abdc72ac37dd",
+      "integer-loop-runtime.js": "f85940c6db08a5a69e32f63a5640240267a66d74ff51d6ffe93b4748fae6715d",
+      "integer-loop-state.js": "ee564620f9b400e97f049f4298fce9c01c91d2fe8e75b5a953ec7d1a405524c8",
+      "integer-loop-expressions.js": "0800298e800cf86c91eda18ed2c5b5323824c009fd430d33ff1464adc418084f",
+      "integer-loop-writes.js": "7c87dfc2a3b03367d7e730c429a131072341b991755edd19ccfa225ec536f29f",
+      "number-loop-runtime.js": "83560ceccbd5900a18e5e5829e26bb3233bb4848fe6969b0be6a38f69c06035d",
+      "experimental-promotion.js": "65aff9e6dceaa8998c78e44342bf794614e0a91b57399df3c11fbe290c887943"
+    }
+  },
+  "intelModuleHashes": {
+    "current": {
+      "integer-loop.js": "047db703860bd1ee429f45e6066e399061faae093729397f30982241e06ce872",
+      "integer-loop-runtime.js": "f85940c6db08a5a69e32f63a5640240267a66d74ff51d6ffe93b4748fae6715d",
+      "integer-loop-state.js": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390",
+      "integer-loop-expressions.js": "3fd965ce0ed8091fbc9922c559f898f3753adb6236675d29c4470150f2c0c555",
+      "integer-loop-writes.js": "7c87dfc2a3b03367d7e730c429a131072341b991755edd19ccfa225ec536f29f",
+      "number-loop-runtime.js": "24d803978376709e5b834cdf3037297106ca7c6f5836fc25b3ad0c4519b4fae0"
+    },
+    "pages": {
+      "integer-loop.js": "047db703860bd1ee429f45e6066e399061faae093729397f30982241e06ce872",
+      "integer-loop-runtime.js": "f85940c6db08a5a69e32f63a5640240267a66d74ff51d6ffe93b4748fae6715d",
+      "integer-loop-state.js": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390",
+      "integer-loop-expressions.js": "cc499cb5461af46035c81418badfbb2c5f4a1629b4d7ad9ed2622c1958924a9f",
+      "integer-loop-writes.js": "e685c5f0403f43cd485ab053c899712967869ddd5b1e677bd5c483a238d167eb",
+      "number-loop-runtime.js": "edcb66d53e5b7ec4ad5e5ed2fae68ef9a4e66709624c69f276b4d4baf1008314",
+      "experimental-pages.js": "ba7b82f656e691eba2d4a9b1bbb13e9fc948f443f20ecb61f6df7f11c4a703a8"
+    },
+    "tierup": {
+      "integer-loop.js": "7b4cbb24d4f045e8a44fe68f99af3c556d8f4fa4d90cfb6b9e33d72a3ba5c2a7",
+      "integer-loop-runtime.js": "992b28e83c8efcd14bbda0b82b2457e6f4ae55e8f74eec71deb8698c7ad8e183",
+      "integer-loop-state.js": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390",
+      "integer-loop-expressions.js": "3fd965ce0ed8091fbc9922c559f898f3753adb6236675d29c4470150f2c0c555",
+      "integer-loop-writes.js": "7c87dfc2a3b03367d7e730c429a131072341b991755edd19ccfa225ec536f29f",
+      "number-loop-runtime.js": "1be8f27bcf9414486d3fb9e89bf9bc486872582c69c6af1d695db3a80ca0bbd3"
+    },
+    "checkpoint": {
+      "integer-loop.js": "80c143e612d301d7d559512cfa920606e1c3887adc2fd211b65470b8a3a85a1e",
+      "integer-loop-runtime.js": "992b28e83c8efcd14bbda0b82b2457e6f4ae55e8f74eec71deb8698c7ad8e183",
+      "integer-loop-state.js": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390",
+      "integer-loop-expressions.js": "3fd965ce0ed8091fbc9922c559f898f3753adb6236675d29c4470150f2c0c555",
+      "integer-loop-writes.js": "7c87dfc2a3b03367d7e730c429a131072341b991755edd19ccfa225ec536f29f",
+      "number-loop-runtime.js": "1be8f27bcf9414486d3fb9e89bf9bc486872582c69c6af1d695db3a80ca0bbd3"
+    },
+    "combined": {
+      "integer-loop.js": "407f812d1361d8456e3c7cc242463e3f1a4909d05c49174d6b038f85427499a1",
+      "integer-loop-runtime.js": "992b28e83c8efcd14bbda0b82b2457e6f4ae55e8f74eec71deb8698c7ad8e183",
+      "integer-loop-state.js": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390",
+      "integer-loop-expressions.js": "3fd965ce0ed8091fbc9922c559f898f3753adb6236675d29c4470150f2c0c555",
+      "integer-loop-writes.js": "7c87dfc2a3b03367d7e730c429a131072341b991755edd19ccfa225ec536f29f",
+      "number-loop-runtime.js": "1be8f27bcf9414486d3fb9e89bf9bc486872582c69c6af1d695db3a80ca0bbd3"
+    },
+    "promote": {
+      "integer-loop.js": "e2c4c76bbb1c34ffe7f6fd4b36ae1d9d06accad4891ec32df206abdc72ac37dd",
+      "integer-loop-runtime.js": "f85940c6db08a5a69e32f63a5640240267a66d74ff51d6ffe93b4748fae6715d",
+      "integer-loop-state.js": "ee564620f9b400e97f049f4298fce9c01c91d2fe8e75b5a953ec7d1a405524c8",
+      "integer-loop-expressions.js": "0800298e800cf86c91eda18ed2c5b5323824c009fd430d33ff1464adc418084f",
+      "integer-loop-writes.js": "7c87dfc2a3b03367d7e730c429a131072341b991755edd19ccfa225ec536f29f",
+      "number-loop-runtime.js": "83560ceccbd5900a18e5e5829e26bb3233bb4848fe6969b0be6a38f69c06035d",
+      "experimental-promotion.js": "65aff9e6dceaa8998c78e44342bf794614e0a91b57399df3c11fbe290c887943"
+    }
+  }
+}

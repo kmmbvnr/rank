@@ -123,8 +123,9 @@ describe.each([false, true])('boolean fills (compilation=%s)', compilation => {
             expect(formatValue(r.execute('A')!)).toBe('false false true false false false true false true false');
             expect(formatValue(r.execute('Alias')!)).toBe(Array(10).fill('false').join(' '));
             expect(formatValue(r.execute('Cut')!)).toBe('false false false');
-            expect(d.bulkArrayWrites).toBe(compilation ? 2 : 0);
-            expect(d.bulkArrayWriteCells).toBe(compilation ? 6 : 0);
+            // Boolean fills are polled storage primitives in both modes.
+            expect(d.bulkArrayWrites).toBe(2);
+            expect(d.bulkArrayWriteCells).toBe(6);
             r.execute('A (A equal true) = false');
             expect(formatValue(r.execute('A')!)).toBe(Array(10).fill('false').join(' '));
         } finally { r.dispose(); }
@@ -152,7 +153,8 @@ it('keeps boolean fills observable to arbitrary host polling callbacks', () => {
         r.execute('A = array shape 10000 fill false');
         const signal = { length: 1, load: () => 0, store() {}, wait() {}, exchange: () => { polls++; return 0; } };
         withInterrupt(signal, () => d.run(() => r.execute('A (0 to 9999) = true')));
-        expect(d.bulkArrayWrites).toBe(0);
+        expect(d.bulkArrayWrites).toBe(1);
+        expect(d.bulkArrayWriteCells).toBe(10000);
         expect(polls).toBeGreaterThan(1);
         expect(r.execute('use sequences\nA all')).toBe(true);
     } finally { r.dispose(); }

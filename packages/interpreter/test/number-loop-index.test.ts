@@ -90,7 +90,7 @@ end`, runtime => {
         expect(result.diagnostics.numberLoops).toBe(1);
     });
 
-    it('keeps Rank callees on the publishing backend beside an index', () => {
+    it('admits a proven scalar helper beside an index', () => {
         const result = compare(`use algo
 Cache = new index
 Cache 0 = 0
@@ -101,8 +101,81 @@ for I in 1 to 3
  Cache I = bump I
 end`);
         expect(result.observation.error).toBeUndefined();
-        expect(result.diagnostics.numberLoops).toBe(0);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.fallbacks['number-loop:call-private-state-proof']).toBeUndefined();
+    });
+
+    it.each(['return N + 1', 'Value = N + 1\n return Value'])(
+        'retains helper admission across a safe local binding: %s', body => {
+            const result = compare(`use algo
+Cache = new index
+fun bump N
+ ${body}
+end
+for I in 1 to 5
+ Cache I = bump I
+end`);
+            expect(result.observation.error).toBeUndefined();
+            expect(result.diagnostics.numberLoops).toBe(1);
+        });
+
+    it('retains the captured-state proof boundary for a local helper', () => {
+        const result = compare(`use algo
+Cache = new index
+fun Cache work N
+ fun bump I = I + N
+ for I in 1 to 3
+  Cache I = bump I
+ end
+ return Cache 3
+end
+Answer = Cache work 5`);
+        expect(result.observation.error).toBeUndefined();
         expect(result.diagnostics.fallbacks['number-loop:call-private-state-proof']).toBeGreaterThan(0);
+    });
+
+    it('replays an overflowing helper with preceding private stores', () => {
+        const result = compare(`use algo
+Cache = new index
+Alias = Cache
+fun bump I = I + 9007199254740990
+Total = 0
+for I in 1 to 5
+ Cache I = I
+ Total += bump I
+end`);
+        expect(result.observation.error).toBeUndefined();
+        expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+    });
+
+    it.each(['abs', 'bump'])('rechecks %s after admitting a scalar helper', name => {
+        for (const compilation of [false, true]) {
+            const runtime = new Interpreter(() => {}, { compilation, scalarEntryCompilation: false });
+            const diagnostics = new RuntimeDiagnostics();
+            try {
+                runtime.execute(`use algo
+use numbers
+Cache = new index
+fun bump N = N abs
+fun Cache score N
+ Total = 0
+ for I in 1 to N
+  Cache I = I
+  Total += bump I
+ end
+ return Total
+end`);
+                expect(diagnostics.run(() => runtime.execute('Cache score 3'))).toBe(6n);
+                if (compilation) expect(diagnostics.numberLoops).toBeGreaterThan(0);
+                runtime.variables.set(name, { kind: 'function', name, arities: [1],
+                    monadicRank: 0, call: () => {
+                        const cache = runtime.variables.get('Cache')!;
+                        if (!isRankIndex(cache)) throw Error('expected index');
+                        return BigInt(cache.entries.size);
+                    } });
+                expect(runtime.execute('Cache score 5')).toBe(18n);
+            } finally { runtime.dispose(); }
+        }
     });
 
     it('rechecks a replaced gcd native on cached loop entry', () => {
@@ -325,17 +398,17 @@ end`, runtime => {
         expect(writes).toBe(9);
     });
 
-    it('publishes cancellation progress together with arrays and finally', () => {
+    it.each([false, true])('publishes cancellation with arrays and finally (helper=%s)', helper => {
         const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
         const diagnostics = new RuntimeDiagnostics();
         const flag = new Int32Array(1); flag[0] = 1;
         try {
-            runtime.execute('use algo\nCache = new index\nCache 0 = 0\nA = array 0\nLast = -1\nDone = 0');
+            runtime.execute('use algo\nfun bump N = N + 1\nCache = new index\nCache 0 = 0\nA = array 0\nLast = -1\nDone = 0');
             expect(() => withInterrupt(flag, () => diagnostics.run(() => runtime.execute(`try
  for I in 0 to 1000000
   Cache 0 += 1
   A 0 += 1
-  Last = I
+  Last = ${helper ? '(bump I) - 1' : 'I'}
  end
 finally
  Done = 1

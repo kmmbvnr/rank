@@ -1,0 +1,77 @@
+use io
+use text
+use graph
+use sequences
+use cli
+
+rem ACMP 879: Counts (Graphs)
+rem Min counts to make all mutual.
+
+arg Input text = "6
+AAABBB
+BBBCCC
+CCCAAA
+DDDEEE
+EEEFFF
+FFFDDD"
+
+fun parse_edge Word
+  B = Word bytes
+  Sh = B shape
+  L = Sh 0
+  H0 = (B 0) mod 32 - 1
+  H1 = (B 1) mod 32 - 1
+  H2 = (B 2) mod 32
+  U = H0 * 676 + H1 * 26 + H2
+  T0 = (B (L - 3)) mod 32 - 1
+  T1 = (B (L - 2)) mod 32 - 1
+  T2 = (B (L - 1)) mod 32
+  V = T0 * 676 + T1 * 26 + T2
+  return tuple U V
+end
+
+fun solve_counts Input
+  Tokens = Input words
+  N = Tokens 0 integer
+  Edges = array shape N 2 fill 0
+  for Idx in 0 to (N - 1)
+    Word = Tokens (Idx + 1)
+    unpack U V = parse_edge Word
+    Edges Idx 0 = U
+    Edges Idx 1 = V
+  end
+  G = new graph .directed
+  G add Edges
+  Res = G scc
+  Count = Res .count
+  Part = Res .component
+  HasIn = (
+    array shape (Count + 1) fill false
+  )
+  HasOut = (
+    array shape (Count + 1) fill false
+  )
+  for Edge in Edges
+    unpack U V = Edge
+    PU = Part U
+    PV = Part V
+    Diff = PU not equal PV
+    HasOut PU = Diff choose true (
+      HasOut PU
+    )
+    HasIn PV = Diff choose true (
+      HasIn PV
+    )
+  end
+  NoIn = (HasIn drop 1) equal false
+  NoOut = (HasOut drop 1) equal false
+  Sources = NoIn count
+  Sinks = NoOut count
+  Zero = 0
+  Need = Sources max Sinks
+  Base = (Count less 2) choose Zero Need
+  return (N less 2) choose Zero Base
+end
+
+Result = solve_counts Input
+Result print

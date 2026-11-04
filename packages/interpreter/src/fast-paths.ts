@@ -582,6 +582,11 @@ export class FastPaths {
                 effects: {
                     writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []),
                     stableArrayReads: stableReads,
+                    // Reuse the scalar proof, retaining its live call guards.
+                    // No captured state or reference argument can observe the
+                    // caller's private containers while this helper executes.
+                    privateStateSafe: stableReads && !captures && !scalarTypes.size
+                        && !proof.dependencies.length && types.every(isScalarType),
                 },
                 type: proof.type,
                 numberSafe,

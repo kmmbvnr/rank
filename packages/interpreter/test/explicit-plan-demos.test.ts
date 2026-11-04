@@ -324,7 +324,7 @@ end`);
         } finally { runtime.dispose(); }
     });
 
-    it('shares explicit Mertens memo entries beyond the precomputed cutoff', () => {
+    it('retains quotient-indexed Mertens values beyond the precomputed cutoff', () => {
         const source = readFileSync(new URL('../../../demos/euler/388_lines.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--n=40', '--cut=5'] });
         try {
@@ -332,7 +332,7 @@ end`);
             expect(runtime.variables.get('Answer')).toBe(56335n);
             expect(runtime.executeProgram(parse('Cache 1'), [])).toBe(0n);
             expect(runtime.executeProgram(parse('Cache 2'), [])).toBe(-3n);
-            expect(runtime.executeProgram(parse('40 mertens Cache', '<input>', { bindings: new Map([['mertens', [2]]]) }), [])).toBe(0n);
+            expect(formatValue(runtime.variables.get('Cache')!)).toBe('0 0 -3 -3 -1 -2');
         } finally { runtime.dispose(); }
     });
 

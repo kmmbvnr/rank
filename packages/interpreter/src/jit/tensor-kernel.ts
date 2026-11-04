@@ -262,7 +262,10 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
                 operations++;
                 return arithmetic(node.operand);
             }
-            if (node.kind === 'binary' && !node.native && ['+', '-', '*', '/', '//', 'mod', '**'].includes(node.op)) {
+            // Native integer bitwise nodes already carry builtin identity and
+            // exact-domain guards; they may compose with ordinary arithmetic.
+            if (node.kind === 'binary' && (node.native && bitwise(node.native)
+                || !node.native && ['+', '-', '*', '/', '//', 'mod', '**'].includes(node.op))) {
                 operations++;
                 return arithmetic(node.left) && arithmetic(node.right);
             }

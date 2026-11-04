@@ -1,0 +1,24 @@
+{
+  "language": {
+    "files": 84,
+    "sha256": "0990b1f0ab12d960f1027e73da60170c1d33c1678147c2ab64d0b0d211a52e02"
+  },
+  "variants": {
+    "current": {
+      "files": 376,
+      "sha256": "b65e70717c4c56f0f604d8e51873d25c4d8615855a768d1fd7a87f88befa5c72"
+    },
+    "pages": {
+      "files": 378,
+      "sha256": "e7c2d6b560118ffb80f74469ba5a38a153901150ff41d8de6064e4945a2d948e"
+    },
+    "journal": {
+      "files": 378,
+      "sha256": "ed91cfeb7659ed8d19814da00518020c0739e9e30f0897101e1a9109b7ba7dd7"
+    },
+    "checkpoint": {
+      "files": 376,
+      "sha256": "699c3253d833f6f3d27b2123f19993c8b82dd4f47b5fc98cf7b3230f8f66ccf0"
+    }
+  }
+}

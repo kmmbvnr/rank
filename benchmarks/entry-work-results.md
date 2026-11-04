@@ -103,3 +103,21 @@ Raw series: [Mac](baselines/2026-11-04-entry-work-mac.json),
 [Intel](baselines/2026-11-04-entry-work-intel.json),
 [Mac controls](baselines/2026-11-04-entry-work-mac-controls.json),
 [Intel controls](baselines/2026-11-04-entry-work-intel-controls.json).
+
+## Integration regression check
+
+The ordinary interpreter suite exposed a lost admission proof in Euler 379:
+`continue` had been grouped with escaping control, so a reverse vector loop
+could no longer use a later complete pass to amortize its snapshots. The shared
+proof now distinguishes stopping the current body from potentially leaving the
+loop. Nested abrupt bodies remain conservative. A focused regression checks a
+skipped first pass followed by a complete pass, alongside the existing break,
+mutable-bound, alias and overflow cases. The original full Euler 379 check
+passes unchanged, including four numeric regions and no copy probes.
+
+After merging main `44248615`, the relevant 70 Mac tests pass (69 in the initial
+rerun, followed by the Euler 288 check after updating its mixed-tier attempt
+counter). On Intel, 543 tests in 12 files pass, covering the shared work proof,
+array ownership, integer ranges, producer routing and main's new mixed-output,
+function-iterable and implicit-bitwise paths. These checks supplement the
+isolated measurements above; they do not replace them with new speedup claims.

@@ -17,32 +17,7 @@ rem indices for each prime p.
 Pr' = primes to PrimeLimit
 Mods = array shape 0 fill 0
 for P in Pr
-  D = 0
-  if P equal 2
-    D = 3
-  else
-    if P equal 5
-      D = 5
-    else
-      R = P mod 5
-      C = P + 1
-      if R equal 1 or R equal 4
-        C = P - 1
-      end
-      D = C
-      Fs' = C factors unique
-      for Q in Fs
-        for D mod Q equal 0
-          Part = D // Q
-          Zero = Part fibmod P equal 0
-          if not Zero
-            break
-          end
-          D = Part
-        end
-      end
-    end
-  end
+  D = P rankmod
   M = P * D
   if M greater Limit
     continue
@@ -59,8 +34,9 @@ for P in Pr
   end
 end
 
-rem Find the Count-th allowed index in bounded segments.
-rem Copy the sorted moduli once so marking loops read stored integers.
+rem Find the Count-th allowed index
+rem in bounded segments.
+rem Store sorted moduli for marking.
 SortedMods = Mods sort copy
 Segment = 1000000
 Have = 0
@@ -127,4 +103,35 @@ fun N fibmod Mod
     end
   end
   return A
+end
+
+rem Reduce the rank of apparition.
+fun P rankmod
+  D = 0
+  if P equal 2
+    D = 3
+  else
+    if P equal 5
+      D = 5
+    else
+      R = P mod 5
+      C = P + 1
+      if R equal 1 or R equal 4
+        C = P - 1
+      end
+      D = C
+      Fs' = C factors unique
+      for Q in Fs
+        for D mod Q equal 0
+          Part = D // Q
+          Zero = Part fibmod P equal 0
+          if not Zero
+            break
+          end
+          D = Part
+        end
+      end
+    end
+  end
+  return D
 end

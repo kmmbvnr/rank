@@ -15,6 +15,7 @@ interface Work { work: number; flow: Flow }
 interface Block {
     readonly writes: ReadonlySet<string>;
     readonly exits: boolean;
+    readonly escapes: boolean;
     readonly hasWork: boolean;
     run(values: Values, target: number): Work;
 }
@@ -110,7 +111,7 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
     }
     function block(statements: readonly Statement[]): Block {
         const writes = new Set<string>();
-        let exits = false, hasWork = false;
+        let exits = false, escapes = false, hasWork = false;
         const steps = statements.map(statement => {
             const next = (work = 0): Work => ({ work, flow: 'next' });
             if (isUnpackStatement(statement) && arrayPermutation(statement)) {
@@ -137,6 +138,7 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
                 for (const body of [...branches.map(branch => branch.body), otherwise]) {
                     body.writes.forEach(name => writes.add(name));
                     exits ||= body.exits;
+                    escapes ||= body.escapes;
                     hasWork ||= body.hasWork;
                 }
                 return (values: Values, target: number): Work => {
@@ -157,6 +159,7 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
                 const changed = new Set([...body.writes, ...(binding?.names ?? [])]);
                 changed.forEach(name => writes.add(name));
                 exits ||= body.exits;
+                escapes ||= body.escapes;
                 return (values: Values, target: number): Work => {
                     if (body.exits) return { work: 0, flow: 'unknown' };
                     const iterations = count(values);
@@ -179,15 +182,16 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
             if (isBreakStatement(statement) || isContinueStatement(statement)
                 || isReturnStatement(statement) || isYieldStatement(statement)) {
                 exits = true;
+                escapes ||= !isContinueStatement(statement);
                 const flow: Flow = isBreakStatement(statement) ? 'break' : isContinueStatement(statement) ? 'continue' : 'unknown';
                 return (): Work => ({ work: 0, flow });
             }
             // Unknown statements may change bindings or leave the region.
             // A surrounding repetition cannot assume invariant facts survive.
-            exits = true;
+            exits = escapes = true;
             return (): Work => ({ work: 0, flow: 'unknown' });
         });
-        return { writes, exits, hasWork, run(values, target) {
+        return { writes, exits, escapes, hasWork, run(values, target) {
             let work = 0;
             for (const step of steps) {
                 if (work >= target) break;

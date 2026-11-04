@@ -1,0 +1,501 @@
+{
+  "baseline": "08df1964fe25868de4468789fdc48d6d7fb3ca12",
+  "node": "v24.15.0",
+  "macCpu": "Apple M5",
+  "intelCpu": "Intel Core i7-10750H",
+  "mac": [
+    {
+      "trial": 0,
+      "sink": "False",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 30792.875416,
+      "rssMiB": 309.609375,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 0,
+      "sink": "False",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 24394.882042,
+      "rssMiB": 259.59375,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 0,
+      "sink": "True",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 3573.4132499999996,
+      "rssMiB": 227.9375,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 0,
+      "sink": "False",
+      "k": "10000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 5045.791083,
+      "rssMiB": 447.84375,
+      "answer": "1008745304821002"
+    },
+    {
+      "trial": 0,
+      "sink": "False",
+      "k": "10000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 3974.796583,
+      "rssMiB": 323.703125,
+      "answer": "1008745304821002"
+    },
+    {
+      "trial": 1,
+      "sink": "False",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 29983.573833,
+      "rssMiB": 308.59375,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 1,
+      "sink": "False",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 25140.115083,
+      "rssMiB": 219.609375,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 1,
+      "sink": "True",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 4102.51775,
+      "rssMiB": 207.71875,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 1,
+      "sink": "False",
+      "k": "10000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 6294.205167,
+      "rssMiB": 419.46875,
+      "answer": "1008745304821002"
+    },
+    {
+      "trial": 1,
+      "sink": "False",
+      "k": "10000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 3965.4146250000003,
+      "rssMiB": 325.703125,
+      "answer": "1008745304821002"
+    },
+    {
+      "trial": 2,
+      "sink": "False",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 30116.653124999997,
+      "rssMiB": 282.046875,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 2,
+      "sink": "False",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 24713.668125,
+      "rssMiB": 233.046875,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 2,
+      "sink": "True",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 3563.885292,
+      "rssMiB": 228.84375,
+      "answer": "141630459461893728"
+    },
+    {
+      "trial": 2,
+      "sink": "False",
+      "k": "10000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 6430.746792,
+      "rssMiB": 447.53125,
+      "answer": "1008745304821002"
+    },
+    {
+      "trial": 2,
+      "sink": "False",
+      "k": "10000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 3850.1205,
+      "rssMiB": 325.078125,
+      "answer": "1008745304821002"
+    }
+  ],
+  "macCompact": [
+    {
+      "sink": "1",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-compact.ra",
+      "x": "1000000000",
+      "ms": 4824.910709,
+      "rssMiB": 199.03125,
+      "answer": "141630459461893728"
+    },
+    {
+      "sink": "1",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-compact.ra",
+      "x": "1000000000",
+      "ms": 4772.317,
+      "rssMiB": 202.203125,
+      "answer": "141630459461893728"
+    },
+    {
+      "sink": "1",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-compact.ra",
+      "x": "1000000000",
+      "ms": 4935.8025,
+      "rssMiB": 200.21875,
+      "answer": "141630459461893728"
+    }
+  ],
+  "macManual": [
+    {
+      "mode": "manual-js",
+      "K": 1000000,
+      "X": 1000000000,
+      "answer": "141630459461893728",
+      "ms": 2397.8062919999998,
+      "rssMiB": 56.015625
+    },
+    {
+      "mode": "manual-js",
+      "K": 1000000,
+      "X": 1000000000,
+      "answer": "141630459461893728",
+      "ms": 2377.549959,
+      "rssMiB": 55.953125
+    },
+    {
+      "mode": "manual-js",
+      "K": 1000000,
+      "X": 1000000000,
+      "answer": "141630459461893728",
+      "ms": 2398.7302080000004,
+      "rssMiB": 55.90625
+    }
+  ],
+  "intelReduced": [
+    {
+      "trial": 0,
+      "sink": "False",
+      "k": "100000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 7180.7887009999995,
+      "rssMiB": 222.109375,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 0,
+      "sink": "False",
+      "k": "100000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 6109.18465,
+      "rssMiB": 217.23828125,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 0,
+      "sink": "True",
+      "k": "100000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 1576.2102650000002,
+      "rssMiB": 235.859375,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 0,
+      "sink": "False",
+      "k": "1000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 1412.66506,
+      "rssMiB": 213.125,
+      "answer": "63237130793050"
+    },
+    {
+      "trial": 0,
+      "sink": "False",
+      "k": "1000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 1042.789996,
+      "rssMiB": 178.8671875,
+      "answer": "63237130793050"
+    },
+    {
+      "trial": 1,
+      "sink": "False",
+      "k": "100000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 7749.112257,
+      "rssMiB": 213.5,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 1,
+      "sink": "False",
+      "k": "100000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 6049.710858,
+      "rssMiB": 207.30859375,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 1,
+      "sink": "True",
+      "k": "100000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 1584.4249949999999,
+      "rssMiB": 226.84375,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 1,
+      "sink": "False",
+      "k": "1000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 1472.775082,
+      "rssMiB": 213.19140625,
+      "answer": "63237130793050"
+    },
+    {
+      "trial": 1,
+      "sink": "False",
+      "k": "1000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 1033.239518,
+      "rssMiB": 178.1484375,
+      "answer": "63237130793050"
+    },
+    {
+      "trial": 2,
+      "sink": "False",
+      "k": "100000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 7383.722252,
+      "rssMiB": 200.05859375,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 2,
+      "sink": "False",
+      "k": "100000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 6195.711464,
+      "rssMiB": 206.6875,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 2,
+      "sink": "True",
+      "k": "100000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 1648.3201589999999,
+      "rssMiB": 213.0234375,
+      "answer": "13388504309158360"
+    },
+    {
+      "trial": 2,
+      "sink": "False",
+      "k": "1000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 1448.304852,
+      "rssMiB": 212.03125,
+      "answer": "63237130793050"
+    },
+    {
+      "trial": 2,
+      "sink": "False",
+      "k": "1000",
+      "mode": "reference",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 1058.687745,
+      "rssMiB": 179.4765625,
+      "answer": "63237130793050"
+    }
+  ],
+  "intelFull": [
+    {
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-original.ra",
+      "x": "1000000000",
+      "ms": 78595.949345,
+      "rssMiB": 268.91796875,
+      "answer": "141630459461893728"
+    },
+    {
+      "sink": false,
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 64427.905551,
+      "rssMiB": 223.25390625,
+      "answer": "141630459461893728"
+    }
+  ],
+  "intelConfirmation": [
+    {
+      "sink": "1",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 9075.383029999999,
+      "rssMiB": 215.56640625,
+      "answer": "141630459461893728"
+    },
+    {
+      "sink": "1",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-pruned.ra",
+      "x": "1000000000",
+      "ms": 8799.396211,
+      "rssMiB": 231.1328125,
+      "answer": "141630459461893728"
+    },
+    {
+      "sink": "1",
+      "k": "1000000",
+      "mode": "compiled",
+      "file": "benchmarks/experiments/euler397-compact.ra",
+      "x": "1000000000",
+      "ms": 10846.044049,
+      "rssMiB": 214.40625,
+      "answer": "141630459461893728"
+    },
+    {
+      "mode": "manual-js",
+      "K": 1000000,
+      "X": 1000000000,
+      "answer": "141630459461893728",
+      "ms": 2033.1163580000002,
+      "rssMiB": 57.53125
+    }
+  ],
+  "intelFirstFullPrototype": {
+    "sink": true,
+    "k": "1000000",
+    "ms": 8937.011188,
+    "rssMiB": 223.4765625,
+    "answer": "141630459461893728",
+    "note": "initial standalone full prototype, module loader enabled; later two confirmation samples in intelConfirmation"
+  },
+  "verification": {
+    "macNormal": {
+      "cases": 72,
+      "bufferBoundInputs": 1000000,
+      "maxDivisors": 4050,
+      "at": 720720
+    },
+    "macPrototype": {
+      "cases": 72,
+      "bufferBoundInputs": 1000000,
+      "maxDivisors": 4050,
+      "at": 720720
+    },
+    "intelPrototype": {
+      "cases": 72,
+      "bufferBoundInputs": 1000000,
+      "maxDivisors": 4050,
+      "at": 720720
+    },
+    "cppFullAnswer": "141630459461893728"
+  },
+  "hashes": {
+    "benchmarks/experiments/euler397-original.ra": "46033a7150a85cc3c5948e0cd33abea4099cd1eb1c1e488cef85bb120dea669a",
+    "benchmarks/experiments/euler397-wide-sink.mjs": "f916bb63250d7a4eb12097a0e1260bfd2fdb276f72f49fa0ac11a95436d9dd6f",
+    "benchmarks/experiments/euler397-verify.mjs": "43f02db4e7a10857e32abf7c10e281da4b5933c38e5a1baf2821a18949ec6a76",
+    "benchmarks/experiments/euler397-direct.mjs": "5067711a0f61ca5a7d25367ad7a3e4ee6ee8566fce285de5d173b6512db3d274",
+    "benchmarks/experiments/euler397-compact.ra": "f488ba948d9efeeb918a1791515212fc8f90c3275cb27e78540b6bcc85776e98",
+    "benchmarks/experiments/euler397-safe-products.ra": "d32d31b12d8a65ae80bbe67e4d2a120634b8a1d2223855ec745f6d16b8f08f5c",
+    "benchmarks/experiments/euler397-pruned.ra": "ec62adf6fbc4ff9331194ad9d56d2aa3af65d04f4272a88a60706992ffe85559",
+    "benchmarks/experiments/euler397-unrolled.ra": "1ccfc40da25bcbc10f4c6662a273aad5bf4c4ab8e7ceb222a90b71f6bd488be7",
+    "benchmarks/euler397-followup.mjs": "e20fe141883e76ec288eae6555fe34617300df9d3bb1a9ba77b7e3eab06e5ba9",
+    "packages/interpreter/out/jit/integer-loop-wide.js": "fb9d734e206d819e8acf388d3cff3c533194637da524ecc74319175dee4057f5"
+  }
+}
