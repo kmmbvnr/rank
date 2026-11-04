@@ -95,7 +95,9 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     // Replay-safe vector regions may have no publishing exact plan. They still
     // need one bounded copy-cost probe; overflow falls back to interpretation.
     const numberPlan = numberVariant ? lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true) : undefined;
-    const feedback: LoopWorkFeedback | undefined = numberVariant && (plan || numberPlan)?.destinations.size
+    const region = plan ?? numberPlan;
+    const copiesTrees = region && [...region.containers.values()].some(info => info.kind === 'fenwick');
+    const feedback: LoopWorkFeedback | undefined = numberVariant && (region?.destinations.size || copiesTrees)
         ? { cells: 0, allow: true } : undefined;
     const compileExactCounted = feedback ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, false, new Set(), true) : undefined;
     const exact = plan && prepareIntegerLoop(plan, host, () => {

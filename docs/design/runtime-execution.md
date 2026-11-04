@@ -1573,10 +1573,17 @@ scalar overflow uses bounded probe backoff, periodically retrying Number mode.
 Native integer-group consumers capture finite endpoints without allocating an
 intermediate Rank plan; ordinary sequence pipelines retain Rank sequences.
 
-Native Fenwick receivers compile in exact regions with identity, prototype,
-readonly and index guards. Number regions reject their external writes to avoid
-replaying published mutations. Fenwick storage uses Float64 cells for safe
-integers and promotes to bigint cells before an unsafe store; unsafe combined
-prefix sums are recomputed exactly. Small integer sort/argsort buffers use
+Native Fenwick receivers compile with identity, prototype, readonly and index
+checks. Number/mixed regions use invocation-private copies of native safe-integer
+value and tree buffers; aliases share one snapshot. Both buffers count toward
+the existing array copy/work admission policy. Ordinary errors and atomic
+cancellation publish preceding stores together with other region state; overflow
+discards the snapshot before exact replay. Tree snapshots poll for cancellation,
+while demand budgets, inspection and custom host polling retain the publishing
+backend. BigInt-backed trees keep exact execution. Fenwick storage uses Float64
+cells for safe integers and promotes to bigint cells before an unsafe store;
+unsafe combined prefix sums are recomputed exactly. Wide scalar accumulators
+remain BigInt in mixed regions. Delivery measurements and controls are in
+`benchmarks/euler378-investigation.md`. Small integer sort/argsort buffers use
 Int32 cells, widening as required. Measurements and controls are recorded in
 `benchmarks/euler-neighbours-runtime.md`.

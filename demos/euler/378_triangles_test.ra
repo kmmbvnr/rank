@@ -12,3 +12,16 @@ test "triangle triples"
   run
   Answer equal 11174776
 end
+
+test "no triples in short inputs"
+  use "378_triangles"
+  Limit = 0
+  run
+  Answer equal 0
+  Limit = 1
+  run
+  Answer equal 0
+  Limit = 2
+  run
+  Answer equal 0
+end

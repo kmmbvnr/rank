@@ -83,6 +83,22 @@ const MAX_LOOP_TEMPORARIES = 1024;
 // that policy to small moduli slowed Euler 365. See euler374-investigation.md.
 const MAX_SAFE_RESIDUE_MODULUS = Math.floor(Math.sqrt(Number.MAX_SAFE_INTEGER)) + 1;
 
+interface NumberVector {
+    readonly size: string;
+    readonly shape: string;
+    readonly rank: number;
+    readonly type: 'integer' | 'boolean' | 'real';
+    readonly sources: readonly string[];
+    readonly compactGuards: readonly string[];
+    cell(index: string, lines: string[], frame?: NumberVectorFrame): LoopTerm | undefined;
+}
+interface NumberVectorFrame {
+    readonly shape: string;
+    readonly rank: number;
+    readonly compact?: boolean;
+    readonly offsets: Map<string, string>;
+    readonly values: Map<string, LoopTerm>;
+}
 /** Expression lowering records its required bindings on the current plan. */
 export function createLoopExpressions(state: LoopCompilationState, wide = false) {
     const {
@@ -880,22 +896,6 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         lines.push(`const ${name} = ${code};`);
         return { code: name, type };
     }
-    interface NumberVector {
-        readonly size: string;
-        readonly shape: string;
-        readonly rank: number;
-        readonly type: 'integer' | 'boolean' | 'real';
-        readonly sources: readonly string[];
-        readonly compactGuards: readonly string[];
-        cell(index: string, lines: string[], frame?: NumberVectorFrame): LoopTerm | undefined;
-    }
-    interface NumberVectorFrame {
-        readonly shape: string;
-        readonly rank: number;
-        readonly compact?: boolean;
-        readonly offsets: Map<string, string>;
-        readonly values: Map<string, LoopTerm>;
-    }
     /** Existing dense integer kernels prove bounds and avoid per-cell safe
      * checks. On multidimensional +,-,* they beat the generic Number region
      * (see numeric-array-stages-results.md). Keep that backend unless this
@@ -1623,7 +1623,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const [head, ...arguments_] = flattenApplication(e);
             if (!isNameExpression(head) || head.name.includes('.')) return undefined;
             const current = !localTypes.has(head.name) && !arrays.has(head.name) ? host.read(head.name) : undefined;
-            if (!numberMode && hasNativeFenwick(current)) {
+            if (hasNativeFenwick(current)) {
                 const prefix = arguments_.length === 2 && isNameExpression(arguments_[0]) && arguments_[0].name === 'sum';
                 if (hint && hint !== 'integer' || arguments_.length !== (prefix ? 2 : 1)) return undefined;
                 const receiver = container(head.name, 'fenwick');
@@ -1773,7 +1773,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         return undefined;
     }
-    return { container, slot, knownType, realInput, emit, emitValue, arithmetic, numberOffset, arrayType, numberVectorLoop };
+    return { container, slot, knownType, realInput, emit, emitValue, arithmetic, numberOffset, arrayType, numberVectorLoop, numberVector };
 }
 
 export type LoopExpressions = ReturnType<typeof createLoopExpressions>;

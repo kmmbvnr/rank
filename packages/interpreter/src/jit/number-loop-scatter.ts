@@ -1,4 +1,4 @@
-import { isParenthesizedExpression, isBinaryExpression, isFunctionStatement, statementResultDiscarded, type Expression, type ArrayAssignmentStatement } from '@arrrank/language';
+import { isParenthesizedExpression, isBinaryExpression, isFunctionStatement, isNameExpression, isNumberLiteral, isBooleanLiteral, statementResultDiscarded, type Expression, type ArrayAssignmentStatement } from '@arrrank/language';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
 
@@ -24,6 +24,33 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     state.currentScope()?.assigned.add(assignment.name);
     if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
     state.numberVectors = true;
+    // A pure integer selector can be recomputed after validation. Source
+    // buffers remain private and disjoint from the boolean destination.
+    // Observable polling retains the original preparation/work boundaries.
+    const pure = (e: Expression): boolean => isParenthesizedExpression(e) ? pure(e.value)
+        : isNameExpression(e) || isNumberLiteral(e) || isBinaryExpression(e)
+            && ['+', '-', '*', '//', 'mod'].includes(e.operator) && pure(e.left) && pure(e.right);
+    const streamed: string[] = [];
+    if (type === 'boolean' && isBooleanLiteral(assignment.value) && pure(selector)) {
+        const setup: string[] = [];
+        const vector = expressions.numberVector(selector, setup);
+        if (vector?.type === 'integer') {
+            const index = `stream${state.serial++}`, stores: string[] = [];
+            const key = vector.cell(index, stores);
+            if (key?.type === 'integer') {
+                const cells = `cells${target.slot}`;
+                streamed.push(...setup, ...vector.sources.map(source =>
+                    `if (${source} === ${cells} || (${source}.buffer && ${source}.buffer === ${cells}.buffer)) throw overflow;`),
+                    // With no observer, an address failure can discard all
+                    // private stores and replay selector validation exactly.
+                    `try { ${expressions.numberVectorLoop(vector.size, index, [...stores,
+                        `if (${key.code} < 0 || ${key.code} >= ${cells}.length) throw overflow;`,
+                        `${cells}[${key.code}] = ${assignment.value.value}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key.code}] = 1;`}`])}
+                    } catch { throw overflow; }`,
+                    `iterationResult = ${assignment.value.value}; iterationType = 'boolean';`);
+            }
+        }
+    }
     const lines: string[] = [], calls = state.calls.length;
     const selected = expressions.emitValue(selector, lines);
     if (!selected || typeof selected.type === 'string') return undefined;
@@ -55,13 +82,14 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
         value = type === 'boolean' ? `Boolean(${operand}[${index}])`
             : type === 'real' ? `Number(${operand}[${index}])` : `safe(Number(${operand}[${index}]))`;
     }
-    body.push(`location = ${location};`, ...lines, expressions.numberVectorLoop(`${keys}.length`, index, [
+    const ordinary = [`location = ${location};`, ...lines, expressions.numberVectorLoop(`${keys}.length`, index, [
         `const ${key} = Number(${keys}[${index}]), value${n} = ${value};`,
         ...(type === 'integer' ? [`if (${cells} instanceof Int32Array && value${n} !== (value${n} | 0)) {
             ${cells} = cells[${target.slot}] = new Float64Array(${cells});
             ${state.arrayDefinitions.has(assignment.name) ? `r${target.slot}.cells = ${cells};` : ''}
         }`] : []),
         `${cells}[${key}] = value${n}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key}] = 1;`}`,
-    ]), `iterationResult = ${typeof rhs.type === 'string' ? operand : 'undefined'}; iterationType = '${typeof rhs.type === 'string' ? rhs.type : 'integer'}';`);
+    ]), `iterationResult = ${typeof rhs.type === 'string' ? operand : 'undefined'}; iterationType = '${typeof rhs.type === 'string' ? rhs.type : 'integer'}';`];
+    body.push(...(streamed.length ? [`if (streamScatterEnabled()) { location = ${location}; ${streamed.join('\n')} } else { ${ordinary.join('\n')} }`] : ordinary));
     return true;
 }

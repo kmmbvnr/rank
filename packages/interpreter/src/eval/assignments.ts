@@ -347,9 +347,9 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         }
         if (compactOperands) operands = Array.from(compactOperands, BigInt);
         else if (wideOperands) operands = Array.from(wideOperands);
-        if (count > 0 && host.options().compilation !== false && host.options().booleanSelectionCompilation !== false
-            && privateLoopPolling()
-            && statement.operator === '='
+        // Scalar boolean fills need no generated code. The primitive polls
+        // before each cell and reloads storage after observable host callbacks.
+        if (count > 0 && statement.operator === '='
             && typeof result === 'boolean' && hasWritableBooleanCells(target)) {
             host.checkArrayWrite(statement.name, target, [result]);
             fillBooleanSelection(ownedSelection() as typeof target, count, selection.offsetAt, result);

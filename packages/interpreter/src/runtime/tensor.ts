@@ -11,9 +11,9 @@ import { storedOperand } from './array-copy.js';
 export { broadcastShape } from '../jit/tensor-layout.js';
 import { prepareStoredScalarView, type LinearView } from './integer-view.js';
 import { mapPair, runExecution } from '../execution.js';
-import { evaluateArrayItem, prepareArrayEvaluation, derivedArray, denseScalarItems, storedOperandItems, float64Cells, integer32Cells, ownedArray, realCells, typedArray } from './array-storage.js';
+import { evaluateArrayItem, readArrayItem, prepareArrayEvaluation, derivedArray, denseScalarItems, storedOperandItems, float64Cells, integer32Cells, ownedArray, realCells, typedArray } from './array-storage.js';
 import { RankError } from '../errors.js';
-import { checkpoint, InterruptedError } from '../interrupt.js';
+import { checkpoint, InterruptedError, privateLoopPolling } from '../interrupt.js';
 import type { RankArray, RankValue } from './value.js';
 
 export function mapBroadcastArrays(
@@ -83,6 +83,8 @@ export function mapDenseArrays(
     const left = storedOperand(completeScalarBuiltin(leftOperand)), right = storedOperand(completeScalarBuiltin(rightOperand));
     const comparison = compareStoredInt32(left, right, integerOperation);
     if (comparison) return comparison;
+    const observed = compareObservedInt32(left, right, integerOperation, operation);
+    if (observed) return observed;
     const integers = mapStoredIntegers(left, right, integerOperation);
     if (integers) return integers;
     const operands = prepareDenseOperands(left, right, realCode, allowSmall);
@@ -175,6 +177,53 @@ export function mapDenseArrays(
     // Every cell is a number, a boolean or a bigint: the operands were scalar
     // and the operation returned a scalar.
     return typedResult ? typedArray(cells as unknown as Float64Array, shape) : ownedArray(cells, shape, true);
+}
+
+/** Scalar comparisons need no generated code. Observable polling can replace
+ * storage, so borrow compact cells again after every checkpoint, with ordinary
+ * reads if the host changed their domain or representation. */
+function compareObservedInt32(left: RankValue, right: RankValue, name: string | undefined,
+    operation: (left: RankValue, right: RankValue) => RankValue): RankArray | undefined {
+    if (privateLoopPolling()) return undefined;
+    const code = ['equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].indexOf(name ?? '');
+    if (code < 0 || isArrayValue(left) === isArrayValue(right)) return undefined;
+    const arrayFirst = isArrayValue(left);
+    const array = (arrayFirst ? left : right) as RankArray;
+    const scalar = arrayFirst ? right : left;
+    if (typeof scalar !== 'bigint' || scalar < -2147483648n || scalar > 2147483647n) return undefined;
+    const shape = array.shape;
+    const size = shape.reduce((n, axis) => n * axis, 1);
+    if (size < DENSE_MIN_CELLS) return undefined;
+    const eligible = (view: ReturnType<typeof prepareStoredScalarView>) =>
+        view?.compact && view.linear && (!view.validate || view.validateUniform);
+    if (!eligible(prepareStoredScalarView(array, true))) return undefined;
+    const cells: RankValue[] = new Array(size), value = Number(scalar);
+    try {
+        for (let start = 0; start < size; start += DENSE_CHUNK) {
+            checkpoint('computing array');
+            const end = Math.min(size, start + DENSE_CHUNK);
+            const view = prepareStoredScalarView(array, true);
+            if (eligible(view)) {
+                const { offset, stride } = view!.linear!;
+                const input = view!.compact!;
+                view!.validateUniform?.(BigInt(input[offset + start * stride]));
+                for (let i = start; i < end; i++) {
+                    const item = input[offset + i * stride];
+                    const a = arrayFirst ? item : value, b = arrayFirst ? value : item;
+                    cells[i] = code === 0 ? a === b : code === 1 ? a !== b : code === 2 ? a < b
+                        : code === 3 ? a > b : code === 4 ? a <= b : a >= b;
+                }
+            } else for (let i = start; i < end; i++) {
+                const item = readArrayItem(array, i);
+                cells[i] = arrayFirst ? operation(item, scalar) : operation(scalar, item);
+            }
+        }
+        return ownedArray(cells, shape, true);
+    } catch (error) {
+        if (error instanceof InterruptedError) throw error;
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
 }
 
 /** Stored selections borrow their cells for this synchronous kernel only. No

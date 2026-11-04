@@ -16,6 +16,8 @@ import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, L
 
 import { indexKey } from '../index-storage.js';
 import { hasPrivateIndexStorage, PrivateIntegerIndex } from './number-loop-index.js';
+import { hasNativeFenwick, type RankFenwick } from '../fenwick.js';
+import { PrivateNumberFenwick } from './number-loop-fenwick.js';
 import { sliceArray as selectArraySlice } from '../selectors.js';
 
 export { numberOverflow } from './number-arithmetic.js';
@@ -238,7 +240,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     const { names, localTypes, arrays, required, locations, statement } = plan;
     const reboundInputs = [...plan.arrayDefinitions].some(name => plan.arrayInputs.has(name));
     if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length
-        || [...plan.containers.values()].some(info => info.kind !== 'index')
+        || [...plan.containers.values()].some(info => info.kind !== 'index' && info.kind !== 'fenwick')
         || plan.containers.size > 0 && plan.calls.some(call => !call.privateIndexSafe)
         || plan.hasReturn || plan.hasYield
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
@@ -280,7 +282,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', code)(
             modularMultiply, safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -332,7 +334,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     for (let i = first; i < last; i++) result.store(i, safe(start + safe(i * step)));
                 }
                 return result;
-            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout, compactVector, integerCell);
+            }, () => demandBudgetEnabled() ? 1 : 1024, vectorLayout, compactVector, integerCell, () => !interruptsEnabled());
     try { run = compile(source); } catch { return undefined; }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These
@@ -350,6 +352,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         || !locations.some(isForStatement);
     return { run: (insideFinally = false) => {
         if (plan.hasControl && insideFinally || !privateLoopPolling()) return undefined;
+        // Copying a tree adds checkpoints before the first iteration. Keep
+        // observable demand budgets on the existing publishing backend.
+        if (demandBudgetEnabled() && [...plan.containers.values()].some(info => info.kind === 'fenwick')) return undefined;
         // Existing array contracts can poll again while publishing a rebound
         // binding. Retain ordinary statement boundaries for observable budgets.
         if (reboundInputs && demandBudgetEnabled()) return undefined;
@@ -380,15 +385,17 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 }
             }
         }
-        const indices = new Map<object, PrivateIntegerIndex>();
-        for (const [name, info] of plan.containers) {
+        const trees = new Map<RankFenwick, number[]>();
+        for (const [name, info] of plan.containers) if (info.kind === 'fenwick') {
             const value = host.read(name);
-            if (!value || !isRankIndex(value) || !hasPrivateIndexStorage(value)) return undefined;
-            let index = indices.get(value.entries);
-            if (!index) indices.set(value.entries, index = new PrivateIntegerIndex(value, overflow));
-            input[info.slot] = index;
+            if (!hasNativeFenwick(value)) return undefined;
+            const slots = trees.get(value) ?? [];
+            if (!trees.has(value)) trees.set(value, slots);
+            slots.push(info.slot);
         }
-        let conditionWriteCells = 0;
+        // All tree snapshots, including aliased/read-only inputs, share the
+        // same copy/work admission as array destinations. Count both buffers.
+        let conditionWriteCells = [...trees.keys()].reduce((size, tree) => size + tree.size * 2 + 1, 0);
         if (copyAdmission) for (const [name] of plan.destinations) {
             if (plan.arrayDefinitions.has(name) && !plan.arrayInputs.has(name)) continue;
             const value = host.read(name);
@@ -468,6 +475,21 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             }
             const diagnostics = currentDiagnostics();
             if (diagnostics) diagnostics.numberLoopCopyProbes++;
+        }
+        const indices = new Map<object, PrivateIntegerIndex | PrivateNumberFenwick>();
+        for (const [value, slots] of trees) {
+            const snapshot = value.numberSnapshot();
+            if (!snapshot) return undefined;
+            const tree = new PrivateNumberFenwick(value, snapshot, overflow);
+            indices.set(value, tree);
+            for (const slot of slots) input[slot] = tree;
+        }
+        for (const [name, info] of plan.containers) if (info.kind === 'index') {
+            const value = host.read(name);
+            if (!value || !isRankIndex(value) || !hasPrivateIndexStorage(value)) return undefined;
+            let index = indices.get(value.entries);
+            if (!index) indices.set(value.entries, index = new PrivateIntegerIndex(value, overflow));
+            input[info.slot] = index;
         }
         for (const [name, info] of storage) {
             if (plan.arrayDefinitions.has(name) && !plan.arrayInputs.has(name)) continue;

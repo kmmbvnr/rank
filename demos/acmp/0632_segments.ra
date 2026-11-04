@@ -107,41 +107,39 @@ HX2 = (HX2_q reverse) reverse
 
 D = new dsu (0 till Total)
 
-for J in 0 to (NY - 1)
+for Cid in 0 till Total
+  I = Cid mod NX
+  J = Cid // NX
+  Xlo = (UX I) integer
+  Xhi = (UX (I + 1)) integer
   Ylo = (UY J) integer
   Yhi = (UY (J + 1)) integer
 
-  for I in 0 to (NX - 1)
-    Xlo = (UX I) integer
-    Xhi = (UX (I + 1)) integer
-    Cid = (J * NX) + I
-
-    if (I + 1) less NX
-      Xw = Xhi
-      C2 = Cid + 1
-      HasV = ((VX shape) 0) greater 0
-      M = VX equal Xw
-      C1 = not (VY1 greater Ylo)
-      C2y = not (VY2 less Yhi)
-      Hit = (M and C1 and C2y) reduce or
-      HitV = HasV choose Hit false
-      if not HitV
-        D Cid C2 merge
-      end
+  if (I + 1) less NX
+    Xw = Xhi
+    C2 = Cid + 1
+    HasV = ((VX shape) 0) greater 0
+    M = VX equal Xw
+    C1 = not (VY1 greater Ylo)
+    C2y = not (VY2 less Yhi)
+    Hit = (M and C1 and C2y) reduce or
+    HitV = HasV choose Hit false
+    if not HitV
+      D Cid C2 merge
     end
+  end
 
-    if (J + 1) less NY
-      Yw = Yhi
-      Ctop = Cid + NX
-      HasH = ((HY shape) 0) greater 0
-      M = HY equal Yw
-      C1 = not (HX1 greater Xlo)
-      C2x = not (HX2 less Xhi)
-      Hit = (M and C1 and C2x) reduce or
-      HitH = HasH choose Hit false
-      if not HitH
-        D Cid Ctop merge
-      end
+  if (J + 1) less NY
+    Yw = Yhi
+    Ctop = Cid + NX
+    HasH = ((HY shape) 0) greater 0
+    M = HY equal Yw
+    C1 = not (HX1 greater Xlo)
+    C2x = not (HX2 less Xhi)
+    Hit = (M and C1 and C2x) reduce or
+    HitH = HasH choose Hit false
+    if not HitH
+      D Cid Ctop merge
     end
   end
 end

@@ -203,3 +203,70 @@ On the shipping runtime the historical `native-cache` variants simply use the
 production cache. `RUNTIME=uncached` is a research-only alternate Interpreter
 class that restores the old per-step capability resolution and missing FastPaths
 callback while retaining all other runtime changes. It writes no runtime files.
+
+## 2026-10-31 regression check after the test repairs
+
+The 59.705 / 66.386 s figures came from two broad ordinary-suite runs with four
+workers. An isolated source-based Vitest repeat completed in 34.518 s. Those
+measurements do not form a controlled before/after comparison. The 120-second
+limit introduced for the full 275 golden gives this existing large workload
+headroom under parallel host load; the input, answer and algorithm are intact.
+
+Built isolated interpreter snapshots from commits 7749fbf9 (before the 298
+COW fix), e3358470 (after COW) and 40adaba7 (test repairs). Language sources and
+package-lock are unchanged between these revisions, so those dependencies are
+shared. Each snapshot uses its own archived sources and generated JavaScript.
+The shipping 275 source is identical across all three. Node v24.15.0, macOS
+arm64; no own tests, builds or oracle jobs overlap timed runs. Other host load
+is uncontrolled. Each sample is a fresh process and asserts N=18 -> 15030564.
+
+First series, rotating revision order over three rounds:
+
+| Revision | Full N=18 median | Range |
+| --- | ---: | ---: |
+| 7749fbf9 | 24.496 s | 22.390-27.051 s |
+| e3358470 | 23.220 s | 22.401-26.498 s |
+| 40adaba7 | 25.227 s | 24.998-30.460 s |
+
+The apparent 8.6% shift versus e3358470 warranted another comparison rather
+than dismissing it. The second series alternates e3358470 and 40adaba7 in
+reversed pair order, three fresh processes per revision. It includes the same
+short CPU calibration before and after each case, outside the measured Rank
+execution. This does not normalize or remove host variability.
+
+| Revision | Full N=18 median | Range |
+| --- | ---: | ---: |
+| e3358470 | 22.899 s | 20.246-23.175 s |
+| 40adaba7 | 22.990 s | 22.481-24.677 s |
+
+The difference is now about **0.4%**, within the observed sample variation.
+The first series' shift did not reproduce. Current isolated time is also
+close to the earlier delivered 22.342-second median. There is no demonstrated
+persistent slowdown from the COW or test-repair commits.
+
+Additional checks:
+- All three N=15 diagnostics execute exactly two Number loops, zero mixed
+  loops and zero overflows. Both generated source SHA-256 hashes agree across
+  revisions (6793 and 36972 characters).
+- An instrumented full N=18 current run confirms the same two hashes and
+  Number-only execution. It completed in 22.239 s, separately from the medians.
+- The changed `writeIntegerSelection` path was called **zero** times during
+  that full run. The demand-budget fix does not participate in its hot loop.
+- No production performance code has been changed as part of this check.
+
+The broad-suite timings are consistent with contention/test-environment
+variation, rather than a changed search or a reproducible runtime regression.
+These experiments do not identify a specific OS scheduler, thermal or GC cause.
+
+Reproduction:
+
+```
+python3 benchmarks/experiments/euler275-build-versions.py
+node benchmarks/experiments/euler275-regression.mjs
+CALIBRATION=1 node benchmarks/experiments/euler275-regression.mjs followup
+node --import ./benchmarks/experiments/euler275-write-probe.mjs \
+  benchmarks/experiments/euler275-regression.mjs child 40adaba7 18 true
+```
+
+Raw samples and probe results are in the 2026-10-31 euler275 regression,
+followup and write-probe baseline JSON files.

@@ -15,7 +15,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
     return (assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined => {
         // Accumulation has its own numeric-only validation and reduction contract.
         if (assignment.accumulate) return reject(assignment);
-        if (!numberMode && host.arrayWrites && !assignment.name.includes('.') && hasNativeFenwick(host.read(assignment.name))) {
+        if (host.arrayWrites && !assignment.name.includes('.') && hasNativeFenwick(host.read(assignment.name))) {
             if (assignment.indices.length !== 1 || assignment.indices[0].all || assignment.indices[0].sign || !assignment.indices[0].value) return reject(assignment);
             const compound = assignment.operator !== '=';
             const operation = assignment.operator.slice(0,-1);
@@ -24,7 +24,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             const lines: string[] = [];
             const index = emit(assignment.indices[0].value,lines,'integer');
             if (!receiver || index?.type !== 'integer') return reject(assignment);
-            lines.push(`checkValueMutable(${receiver});`);
+            lines.push(numberMode ? `${receiver}.checkMutable();` : `checkValueMutable(${receiver});`);
             const value = emit(assignment.value,lines,'integer');
             if (value?.type !== 'integer') return reject(assignment);
             let result = value.code;

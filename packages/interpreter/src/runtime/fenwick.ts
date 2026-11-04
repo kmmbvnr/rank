@@ -1,5 +1,12 @@
+import { checkpoint } from '../interrupt.js';
 import { checkValueMutable } from './value-protection.js';
 import { MissingValueError, RankError } from '../errors.js';
+
+export interface FenwickNumberSnapshot {
+    values: Float64Array;
+    tree: Float64Array;
+    publish(): void;
+}
 
 const nativeInstances = new WeakSet<RankFenwick>();
 
@@ -22,6 +29,21 @@ export class RankFenwick {
 
     get size(): number {
         return this.#values.length;
+    }
+
+    /** Internal transaction snapshot. Native identity is checked before entry;
+     * budgets/custom polling keep the publishing backend instead. */
+    numberSnapshot(): FenwickNumberSnapshot | undefined {
+        if (!(this.#values instanceof Float64Array) || !(this.#tree instanceof Float64Array)) return undefined;
+        const values = new Float64Array(this.#values.length), tree = new Float64Array(this.#tree.length);
+        for (const [source, copy] of [[this.#values, values], [this.#tree, tree]]) {
+            for (let first = 0; first < source.length; first += 4096) {
+                const end = Math.min(first + 4096, source.length);
+                checkpoint('preparing fenwick tree', end - first);
+                copy.set(source.subarray(first, end), first);
+            }
+        }
+        return { values, tree, publish: () => { this.#values = values; this.#tree = tree; } };
     }
 
     at(index: bigint): bigint {

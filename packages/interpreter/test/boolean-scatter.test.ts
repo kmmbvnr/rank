@@ -76,6 +76,13 @@ tuple A Saved B`, observed);
         expect(r.observation.resultType).toBe(type);
         expect(r.d.numberLoops).toBe(1);
     });
+    it.each(['2 // Ix', '3 - Ix', 'Ix * 9007199254740991'])('replays a streamed selector failure before any store: %s', keys => {
+        const r = compare(`A = array shape 4 fill false\nIx = array 1 2 0\nSaved = A\nDone = 0\nfor I in 1 to 3\n A (${keys}) = true\n Done = I\nend`);
+        if (keys !== '3 - Ix') {
+            expect(r.observation.error).toBeDefined();
+            expect(r.d.numberLoopOverflows).toBeGreaterThan(0);
+        }
+    });
     it('retains an escaping live array RHS on the publishing backend', () => {
         const r = compare(head + 'for I in 1 to 3\n A Ix = A Ix\nend');
         expect(r.observation.error).toBeUndefined();
