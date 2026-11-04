@@ -110,6 +110,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0767** | [Дороги - 3](0767_roads_3.ra) | Graph Theory (67%) | Max one-way roads via Robbins' theorem: total edges minus bridges found with Tarjan's DFS and `choose` |
 | **0776** | [Юпитер](0776_jupiter.ra) | Graph Theory / BFS (62%) | BFS over (flights used, cell); each flight is one slice with `scan max` for the climb cost |
 | **0802** | [Магический квадрат](0802_magic_square.ra) | 2D Arrays / Combinatorics (70%) | $N \times N$ normal magic square construction with zero loops: closed-form Siamese for odd, inversion mask for $4k$, and vectorized Strachey quadrant `concat` for $4k+2$ |
+| **0808** | [Про любовь ...](0808_about_love_2.ra) | Computational Geometry (70%) | Earliest contact time between moving stick segments via Minkowski difference parallelogram ray-casting & 4-edge Cramer intersection with zero loops |
 | **0809** | [Спички детям не игрушка!](0809_matches.ra) | Computational Geometry (65%) | Min match moves under translation via canonicalized segment delta matching with `outer equal` & run-length translation voting |
 | **0812** | [Сжатие последовательности](0812_sequence_compression.ra) | Dynamic Programming (69%) | Compositions of $N$ into parts $\le A$ via arbitrary-precision DP $DP[i] = 2 DP[i-1] - DP[i-1-A]$ with safe bounded index `choose` |
 | **0813** | [Игра в 24](0813_game_24.ra) | Brute Force / Subset DP (62%) | Reachable values per card subset via `outer +`, `outer -`, `outer *` and `sort unique` |
