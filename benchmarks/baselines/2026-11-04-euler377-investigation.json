@@ -1,0 +1,773 @@
+{
+  "baseline": "80507fc94b7700ab385c43e5627b0d928e48c1a0",
+  "node": "24.15.0",
+  "samples": {
+    "mac": [
+      {
+        "file": "demos/euler/377_digitexperience.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 638.471167,
+        "rssMiB": 188.34375
+      },
+      {
+        "file": "benchmarks/experiments/euler377-library.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 184.40983300000002,
+        "rssMiB": 188.078125
+      },
+      {
+        "file": "benchmarks/experiments/euler377-reuse.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 111.042291,
+        "rssMiB": 175.9375
+      },
+      {
+        "file": "demos/euler/377_digitexperience.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 9986.946166,
+        "rssMiB": 326.171875
+      },
+      {
+        "file": "benchmarks/experiments/euler377-reuse.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 117.51574999999997,
+        "rssMiB": 173.046875
+      },
+      {
+        "file": "demos/euler/377_digitexperience.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 935.9148340000002,
+        "rssMiB": 178.5625
+      },
+      {
+        "file": "benchmarks/experiments/euler377-library.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 183.35845799999998,
+        "rssMiB": 187.75
+      },
+      {
+        "file": "benchmarks/experiments/euler377-reuse.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 115.562208,
+        "rssMiB": 176.078125
+      },
+      {
+        "file": "demos/euler/377_digitexperience.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 10223.064042,
+        "rssMiB": 354.65625
+      },
+      {
+        "file": "benchmarks/experiments/euler377-reuse.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 112.49800000000002,
+        "rssMiB": 174.3125
+      },
+      {
+        "file": "demos/euler/377_digitexperience.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 720.88375,
+        "rssMiB": 190.328125
+      },
+      {
+        "file": "benchmarks/experiments/euler377-library.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 197.44029200000003,
+        "rssMiB": 187.921875
+      },
+      {
+        "file": "benchmarks/experiments/euler377-reuse.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 123.35450000000003,
+        "rssMiB": 176.328125
+      },
+      {
+        "file": "demos/euler/377_digitexperience.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 8990.893875,
+        "rssMiB": 373.796875
+      },
+      {
+        "file": "benchmarks/experiments/euler377-reuse.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 210.073125,
+        "rssMiB": 176.796875
+      }
+    ],
+    "intel": [
+      {
+        "file": "377_digitexperience.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 1962.8929689999998,
+        "rssMiB": 178.0078125
+      },
+      {
+        "file": "euler377-library.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 493.64843800000006,
+        "rssMiB": 168.9609375
+      },
+      {
+        "file": "euler377-reuse.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 316.464963,
+        "rssMiB": 164.2578125
+      },
+      {
+        "file": "377_digitexperience.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 32788.82909,
+        "rssMiB": 297.921875
+      },
+      {
+        "file": "euler377-reuse.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 299.216241,
+        "rssMiB": 162.7890625
+      },
+      {
+        "file": "377_digitexperience.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 2071.800532,
+        "rssMiB": 172.12109375
+      },
+      {
+        "file": "euler377-library.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 489.55949000000004,
+        "rssMiB": 171
+      },
+      {
+        "file": "euler377-reuse.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 316.550689,
+        "rssMiB": 162.69921875
+      },
+      {
+        "file": "377_digitexperience.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 35600.025509,
+        "rssMiB": 304.4375
+      },
+      {
+        "file": "euler377-reuse.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 335.78711400000003,
+        "rssMiB": 162.80078125
+      },
+      {
+        "file": "377_digitexperience.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 1933.4753680000001,
+        "rssMiB": 171.78125
+      },
+      {
+        "file": "euler377-library.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 496.72107,
+        "rssMiB": 169.09375
+      },
+      {
+        "file": "euler377-reuse.ra",
+        "mode": "compiled",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 320.23454499999997,
+        "rssMiB": 163.34375
+      },
+      {
+        "file": "377_digitexperience.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 34803.392363,
+        "rssMiB": 294.6328125
+      },
+      {
+        "file": "euler377-reuse.ra",
+        "mode": "reference",
+        "terms": "17",
+        "answer": "732385277",
+        "ms": 296.64645499999995,
+        "rssMiB": 162.76171875
+      }
+    ]
+  },
+  "verification": [
+    {
+      "file": "benchmarks/experiments/euler377-original.ra",
+      "mode": "compiled",
+      "terms": 0,
+      "expected": "0"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-original.ra",
+      "mode": "reference",
+      "terms": 0,
+      "expected": "0"
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "compiled",
+      "terms": 0,
+      "expected": "0"
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "reference",
+      "terms": 0,
+      "expected": "0"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "compiled",
+      "terms": 0,
+      "expected": "0"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "reference",
+      "terms": 0,
+      "expected": "0"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "compiled",
+      "terms": 0,
+      "expected": "0"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "reference",
+      "terms": 0,
+      "expected": "0"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-original.ra",
+      "mode": "compiled",
+      "terms": 1,
+      "expected": "856884757"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-original.ra",
+      "mode": "reference",
+      "terms": 1,
+      "expected": "856884757"
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "compiled",
+      "terms": 1,
+      "expected": "856884757"
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "reference",
+      "terms": 1,
+      "expected": "856884757"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "compiled",
+      "terms": 1,
+      "expected": "856884757"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "reference",
+      "terms": 1,
+      "expected": "856884757"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "compiled",
+      "terms": 1,
+      "expected": "856884757"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "reference",
+      "terms": 1,
+      "expected": "856884757"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-original.ra",
+      "mode": "compiled",
+      "terms": 2,
+      "expected": "915796046"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-original.ra",
+      "mode": "reference",
+      "terms": 2,
+      "expected": "915796046"
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "compiled",
+      "terms": 2,
+      "expected": "915796046"
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "reference",
+      "terms": 2,
+      "expected": "915796046"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "compiled",
+      "terms": 2,
+      "expected": "915796046"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "reference",
+      "terms": 2,
+      "expected": "915796046"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "compiled",
+      "terms": 2,
+      "expected": "915796046"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "reference",
+      "terms": 2,
+      "expected": "915796046"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-original.ra",
+      "mode": "compiled",
+      "terms": 3,
+      "expected": "958202503"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-original.ra",
+      "mode": "reference",
+      "terms": 3,
+      "expected": "958202503"
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "compiled",
+      "terms": 3,
+      "expected": "958202503"
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "reference",
+      "terms": 3,
+      "expected": "958202503"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "compiled",
+      "terms": 3,
+      "expected": "958202503"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "reference",
+      "terms": 3,
+      "expected": "958202503"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "compiled",
+      "terms": 3,
+      "expected": "958202503"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "reference",
+      "terms": 3,
+      "expected": "958202503"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-original.ra",
+      "mode": "compiled",
+      "terms": 4,
+      "expected": "986889774"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-original.ra",
+      "mode": "reference",
+      "terms": 4,
+      "expected": "986889774"
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "compiled",
+      "terms": 4,
+      "expected": "986889774"
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "reference",
+      "terms": 4,
+      "expected": "986889774"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "compiled",
+      "terms": 4,
+      "expected": "986889774"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "reference",
+      "terms": 4,
+      "expected": "986889774"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "compiled",
+      "terms": 4,
+      "expected": "986889774"
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "reference",
+      "terms": 4,
+      "expected": "986889774"
+    }
+  ],
+  "discardedMacOverlap": [
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "compiled",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 627.8282079999999,
+      "rssMiB": 187.296875
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "compiled",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 180.16895900000003,
+      "rssMiB": 187.40625
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "compiled",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 111.53845799999999,
+      "rssMiB": 175.859375
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "reference",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 10062.846333,
+      "rssMiB": 371.6875
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "reference",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 109.78275,
+      "rssMiB": 174.46875
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "compiled",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 1103.7165830000001,
+      "rssMiB": 186.703125
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "compiled",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 224.199042,
+      "rssMiB": 187.078125
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "compiled",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 115.40141699999998,
+      "rssMiB": 176.4375
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "reference",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 9125.827167,
+      "rssMiB": 332.8125
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "reference",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 242.52941699999997,
+      "rssMiB": 176.96875
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "compiled",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 1308.737417,
+      "rssMiB": 188.40625
+    },
+    {
+      "file": "benchmarks/experiments/euler377-library.ra",
+      "mode": "compiled",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 366.4889170000001,
+      "rssMiB": 190.984375
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "compiled",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 276.941292,
+      "rssMiB": 175.921875
+    },
+    {
+      "file": "demos/euler/377_digitexperience.ra",
+      "mode": "reference",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 8922.841583,
+      "rssMiB": 319.984375
+    },
+    {
+      "file": "benchmarks/experiments/euler377-reuse.ra",
+      "mode": "reference",
+      "terms": "17",
+      "answer": "732385277",
+      "ms": 109.22066699999999,
+      "rssMiB": 175
+    }
+  ],
+  "fixtureChecks": {
+    "mac": [
+      {
+        "compilation": false,
+        "tests": [
+          {
+            "name": "first power of thirteen",
+            "passed": true,
+            "output": [
+              "856884757"
+            ],
+            "durationMs": 11.588792000000012
+          },
+          {
+            "name": "empty sum",
+            "passed": true,
+            "output": [
+              "0"
+            ],
+            "durationMs": 4.689082999999982
+          },
+          {
+            "name": "successive matrix powers",
+            "passed": true,
+            "output": [
+              "915796046"
+            ],
+            "durationMs": 6.264334000000019
+          },
+          {
+            "name": "full digit-sum total",
+            "passed": true,
+            "output": [
+              "732385277"
+            ],
+            "durationMs": 15.95316699999995
+          }
+        ]
+      },
+      {
+        "compilation": true,
+        "tests": [
+          {
+            "name": "first power of thirteen",
+            "passed": true,
+            "output": [
+              "856884757"
+            ],
+            "durationMs": 11.303916000000015
+          },
+          {
+            "name": "empty sum",
+            "passed": true,
+            "output": [
+              "0"
+            ],
+            "durationMs": 3.833082999999988
+          },
+          {
+            "name": "successive matrix powers",
+            "passed": true,
+            "output": [
+              "915796046"
+            ],
+            "durationMs": 3.959959000000026
+          },
+          {
+            "name": "full digit-sum total",
+            "passed": true,
+            "output": [
+              "732385277"
+            ],
+            "durationMs": 14.145083
+          }
+        ]
+      }
+    ],
+    "intel": [
+      {
+        "compilation": false,
+        "tests": [
+          {
+            "name": "first power of thirteen",
+            "passed": true,
+            "output": [
+              "856884757"
+            ],
+            "durationMs": 33.11072100000001
+          },
+          {
+            "name": "empty sum",
+            "passed": true,
+            "output": [
+              "0"
+            ],
+            "durationMs": 14.116496999999981
+          },
+          {
+            "name": "successive matrix powers",
+            "passed": true,
+            "output": [
+              "915796046"
+            ],
+            "durationMs": 17.180883999999992
+          },
+          {
+            "name": "full digit-sum total",
+            "passed": true,
+            "output": [
+              "732385277"
+            ],
+            "durationMs": 45.214902999999936
+          }
+        ]
+      },
+      {
+        "compilation": true,
+        "tests": [
+          {
+            "name": "first power of thirteen",
+            "passed": true,
+            "output": [
+              "856884757"
+            ],
+            "durationMs": 27.940661999999975
+          },
+          {
+            "name": "empty sum",
+            "passed": true,
+            "output": [
+              "0"
+            ],
+            "durationMs": 10.607008999999948
+          },
+          {
+            "name": "successive matrix powers",
+            "passed": true,
+            "output": [
+              "915796046"
+            ],
+            "durationMs": 12.132988999999952
+          },
+          {
+            "name": "full digit-sum total",
+            "passed": true,
+            "output": [
+              "732385277"
+            ],
+            "durationMs": 40.29905699999995
+          }
+        ]
+      }
+    ]
+  },
+  "focusedTests": {
+    "files": 3,
+    "tests": 66,
+    "passed": true
+  }
+}
