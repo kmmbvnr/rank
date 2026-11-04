@@ -955,7 +955,7 @@ end`;
         expect(values[0].result).not.toEqual(values[0].current);
     });
 
-    it('preserves local aliases through the existing COW fallback', () => {
+    it('preserves local aliases through private ownership', () => {
         const source = `A = array 0
 Snapshot = array 0
 for I in 1 to 2
@@ -963,7 +963,7 @@ for I in 1 to 2
  Snapshot = A
  A 0 = 99
 end`;
-        expect(compare(source).numberLoops).toBe(0);
+        expect(compare(source).numberLoops).toBe(1);
         expect(execute(source).observation.variables).toContainEqual(['Snapshot', '2 2']);
     });
 
