@@ -1,13 +1,97 @@
 # Composition of private numeric regions
 
-Status: implementation in progress. The main tables identify the older
-range-guarded snapshot. Later investigations below cover cold, post-GC and
-steady execution. Latest source validation and benchmark refresh are pending.
+Implementation and integration verified against current main. The implementation
+commit is `680bf539`; measurements below use the integrated source at
+`3b388cd6a575f17f47d731bfd35e452d33f3bbf5` against main `954ad5b6c1fb7316c79c56ea390840dfbd831022`.
+No demo sources are changed by this optimization.
 
-Baseline: `19ab2fe93429d33609291630ebb4f34887ff75d2`.
-Worktree branch: `perf/composable-regions`. No demo sources change.
+## Verified results
 
-## Changes and supported combinations
+Node 24.15.0, Apple M5 and Intel Core i7-10750H. Five fresh processes per
+version and case, alternating order; medians in milliseconds, baseline / new.
+Parsing is outside the timer. Each worker checks its answer against an
+independent BigInt recurrence. A separate diagnostic run is excluded from timing
+medians. Cold runs include compilation and execution.
+
+| Case | Mac cold | Intel cold |
+| --- | ---: | ---: |
+| inline | 22.11 / 22.47 | 52.41 / 53.41 |
+| helper | 29.39 / 21.39 | 70.04 / 52.10 |
+| array-helper | 32.63 / 22.34 | 79.11 / 54.61 |
+| mixed | 29.10 / 24.16 | 73.56 / 58.49 |
+| combined | 29.76 / 23.30 | 75.43 / 56.47 |
+| vector | 25.94 / 26.06 | 56.22 / 57.98 |
+| vector-mixed | 31.79 / 28.07 | 62.98 / 55.04 |
+| plans | 381.87 / 75.07 | 1322.48 / 191.79 |
+
+Forty warmups precede the following measurements. Post-GC explicitly collects
+before timing; steady execution does not. Both collect after timing for retained
+memory observations. These modes measure different costs.
+
+| Case | Mac post-GC | Intel post-GC | Mac steady | Intel steady |
+| --- | ---: | ---: | ---: | ---: |
+| inline | 12.48 / 12.31 | 19.56 / 19.44 | 2.00 / 2.00 | 6.68 / 6.65 |
+| helper | 7.38 / 3.22 | 15.35 / 8.36 | 5.96 / 2.69 | 14.06 / 7.50 |
+| array-helper | 10.08 / 3.06 | 22.27 / 8.49 | 9.72 / 2.79 | 20.28 / 7.32 |
+| combined | 8.17 / 4.22 | 14.88 / 8.17 | 6.05 / 2.91 | 15.78 / 7.87 |
+| vector-mixed | 5.17 / 3.06 | 14.01 / 9.52 | 3.60 / 1.97 | 9.25 / 5.59 |
+
+The inline and vector rows are controls. In particular, the plain vector case
+uses the existing tensor path in both versions; it is not evidence of new numeric
+region admission. The combined case joins a scalar helper, sequential array
+aliases and an exact accumulator in one mixed private region.
+
+Peak process RSS for the cold plans/container/array case (MiB, baseline / new):
+
+- mac: 320.4 / 185.1 (42.2% lower).
+- intel: 294.0 / 167.3 (43.1% lower).
+
+Peak RSS, retained heap and copied bytes are separate metrics. Compact integer
+snapshots and fewer region entries reduce copying; this does not imply a uniform
+process-memory reduction for every program.
+
+## Validation and limits
+
+- Integrated ordinary Mac suite: **12055 tests in 564 files pass**.
+- Integrated Intel selection: **853 tests in 28 files pass**, including the
+  current main changes for shared plan inputs and exact vector reductions.
+- TypeScript build/test types, 11 semantic-boundary tests (65 owners), and both
+  application-form checks pass.
+- Exhaustive inferred-type, differential and Nurikabe audits were not run.
+  They remain CI checks; this is not a claim that every possible Rank program
+  has been benchmarked or that all fallback paths can be fused.
+- Earlier ordinary failures were fixed: vector-search labels stay inside their
+  outlined function; generated-call assertions recognize locally bound callees.
+  The complete integrated ordinary run above includes those repairs.
+
+Reference controls check exact answers separately. Their timing is broadly
+unchanged; no reference-mode speed or memory improvement is claimed. Mac reference
+combined peak RSS was bimodal in the pre-integration runs: roughly 438 and 600 MiB,
+with the candidate hitting the higher mode more often. Retained array buffers
+and tracked COW traffic were equal; retained heap varied around 31.7/35.1 MiB.
+This process-level memory observation remains a limitation of the memory comparison,
+not evidence of reduced reference allocation. Raw reference runs and the nine-sample
+distribution check are retained alongside the compiled measurements.
+
+Final raw files have the `integrated-{cold,hot,steady}` suffix. The manifest records
+source and harness hashes. Earlier snapshots below are investigation history and
+should not be mixed with the verified tables above.
+
+## Reproduction
+
+Build both checkouts, then run from this checkout:
+
+```sh
+node benchmarks/composable-regions.mjs --baseline=/path/to/main --samples=5
+COMPOSABLE_WARMUPS=40 node benchmarks/composable-regions.mjs \
+  --baseline=/path/to/main --cases=inline,combined,helper,array-helper,vector-mixed --samples=5
+COMPOSABLE_WARMUPS=40 COMPOSABLE_PRE_GC=0 node benchmarks/composable-regions.mjs \
+  --baseline=/path/to/main --cases=inline,combined,helper,array-helper,vector-mixed --samples=5
+```
+
+## Investigation history
+
+### Changes and supported combinations
 
 Private-state summaries now compose through scalar helper chains and read-only
 rank-one integer array arguments. Current helper and native identities remain
@@ -38,7 +122,7 @@ counts, resets, cancelling growth and escaping control keep the previous order.
 Observable demand budgets also keep the previous order. This avoids a guaranteed
 failed attempt without relying on an observed array value or a previous run.
 
-## Workloads and measurement
+### Workloads and measurement
 
 `benchmarks/composable-regions.mjs` runs identical programs on both revisions.
 The array workloads use 32,768 cells and 24 passes; an independent BigInt
@@ -66,7 +150,7 @@ heap and ArrayBuffers are measured after GC with the interpreter reachable.
 Copy counters measure cumulative payload, not retained memory. None of these
 measurements is interchangeable with the others.
 
-## Range-guarded snapshot measurements
+### Range-guarded snapshot measurements
 
 | Host | Case | Baseline ms | Candidate ms | Speedup | Peak RSS MiB, before → after |
 | --- | --- | ---: | ---: | ---: | ---: |
@@ -105,7 +189,7 @@ Raw compiled series: [Mac](baselines/2026-11-04-composable-regions-mac-final.jso
 [Intel](baselines/2026-11-04-composable-regions-intel-final.json).
 [Manifest](baselines/2026-11-04-composable-regions-manifest.json) records hashes and verification scope.
 
-## Reference controls
+### Reference controls
 
 | Host | Case | Baseline ms | Candidate ms |
 | --- | --- | ---: | ---: |
@@ -120,7 +204,7 @@ No reference speedup is claimed. Raw controls:
 [Mac](baselines/2026-11-04-composable-regions-mac-reference.json),
 [Intel](baselines/2026-11-04-composable-regions-intel-reference.json).
 
-## Verification
+### Verification
 
 The ordinary interpreter selection excluded `types.test.ts`,
 `differential.test.ts` and `nurikabe.test.ts`, with four audit-config workers.
@@ -144,7 +228,7 @@ unsupported representations, shared slice stores and escaping control retain
 their existing fallbacks. The change does not promise identical demand-budget
 units between engines or a speedup for every admitted program.
 
-## Reproduction
+### Reproduction
 
 Build baseline and candidate with their locked dependencies, generated language
 and `tsc -b tsconfig.build.json`. From the candidate:
@@ -165,7 +249,7 @@ next confirmation (29.15 → 28.35 ms); the inline control was 21.08 → 21.44 m
 These are comparisons within each series, not absolute comparisons across
 machine-load conditions.
 
-## Remaining vector composition regression
+### Remaining vector composition regression
 
 The `vector` control above uses the existing tensor path in both revisions;
 it does not enter a numeric outer region. The additional `vector-mixed` case
@@ -185,7 +269,7 @@ That latest refinement passes 250 focused tests; it is not the snapshot used
 in the main tables. Backend preparation and vector execution costs still need
 to be separated before selecting the final implementation.
 
-## Outlining investigation
+### Outlining investigation
 
 Additional controls execute the same parsed program repeatedly, checking every
 warmup result. `COMPOSABLE_WARMUPS` selects warmups and `COMPOSABLE_ROUNDS`
@@ -213,11 +297,11 @@ callbacks did not remove the regression. Their measurements are retained, but
 those source changes were reverted. Four added tests still check bounds and
 partial error state when arrays are resized inside or outside an inner traversal.
 
-Current remaining work: identify the warm scalar-helper composition cost, verify
+Remaining work at that snapshot: identify the warm scalar-helper composition cost, verify
 outlining on Intel and broader ordinary tests, and repeat final measurements on
 the resulting source. No completion or universal speedup is claimed.
 
-## Stable helper bindings investigation
+### Stable helper bindings investigation
 
 The persistent traversal version still regressed on warm scalar compositions.
 A CPU profile of 300 warmups placed about 788 ms in `traversal0`, 34 ms in GC,
@@ -248,7 +332,7 @@ combined regression is not resolved. These are investigative Mac observations,
 not final cross-platform results. Raw reports have suffixes `stable-call-hot`
 and `bound-call-hot`; neither is the older range-guarded snapshot in the tables.
 
-## Compact snapshot investigation
+### Compact snapshot investigation
 
 Unboxing integer storage now starts with Int32 cells and widens at the first
 out-of-range safe integer. This preserves compact storage across private array
@@ -272,7 +356,7 @@ slower on both hosts (about 11% Mac, 5% Intel); this is not a completed result.
 The Intel candidate was synchronized from the same source and built output as
 the Mac candidate. Broader final verification remains outstanding.
 
-## Traversal frame and preparation boundaries
+### Traversal frame and preparation boundaries
 
 `COMPOSABLE_PRE_GC=0` adds a steady-execution control without the full GC between
 warmup and timing. The default remains `1`; both modes still collect after timing
@@ -305,7 +389,7 @@ calls or ownership preparation. Pure arithmetic retains its previous body.
 Mac selective measurements: inline 8.54/8.56 ms post-GC and 2.13/2.25 ms steady;
 combined 6.67/3.44 and 6.55/3.28 ms, respectively. The final refinement keeps
 store-mode constants local when no traversal needs to share them. This latter
-change awaits benchmark refresh. The ordinary suite is running on that source.
+change awaits benchmark refresh. The ordinary suite had not completed for that snapshot.
 
 Selective outlining also preserves Intel's inline control: 17.50/17.55 ms
 post-GC and 5.70/5.74 ms steady. Combined takes 13.60/7.59 and 12.58/6.79 ms,
