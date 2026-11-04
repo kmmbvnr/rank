@@ -78,7 +78,7 @@ Build baseline and candidate with Langium generation and TypeScript project buil
 Run from the candidate:
 
 ```sh
-node benchmarks/general-runtime.mjs --baseline=/path/to/built/baseline
+node benchmarks/general-runtime.mjs --baseline=/path/to/built/baseline --cases=routing,stored,entries
 ```
 
 Raw observations: [Mac](baselines/2026-11-04-general-runtime-mac.json) and

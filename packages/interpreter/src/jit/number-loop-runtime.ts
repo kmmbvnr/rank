@@ -430,18 +430,18 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (count !== undefined && count !== null && (count >= conditionWriteCells
                 || conditionWriteCells > COPY_PROBE_CAP && conditionWriteCells - count <= SMALL_COPY_CELLS)) conditionWriteCells = 0;
         }
-        // A condition loop can begin with several complete passes whose sum
-        // covers its private destination copies (Euler 333). Prove work only
-        // for an entered first iteration and unchanged, guarded scalar bounds.
+        // Shared block proofs compose passes, selected branches and stores.
+        // Budgeted execution retains exact publication: admitting a new private
+        // region would change observable preparation and checkpoint charges.
         // Keep the same small sentinel allowance as ordinary range admission.
-        if (conditionWriteCells > SMALL_COPY_CELLS && entryWork) {
-            const count = entryWork(input);
+        if (conditionWriteCells > SMALL_COPY_CELLS && entryWork && !demandBudgetEnabled()) {
+            const count = entryWork(input, conditionWriteCells);
             if (count >= conditionWriteCells || conditionWriteCells > COPY_PROBE_CAP
                 && count > 0 && conditionWriteCells - count <= SMALL_COPY_CELLS) conditionWriteCells = 0;
         }
         // A short prime/table vector may contain complete nested passes that
         // pay for the destination snapshots. Unknown work retains the cap.
-        if (conditionWriteCells > COPY_PROBE_CAP && vectorEntryWork) {
+        if (conditionWriteCells > COPY_PROBE_CAP && vectorEntryWork && !demandBudgetEnabled()) {
             const target = conditionWriteCells - SMALL_COPY_CELLS;
             if (vectorEntryWork(input, target) >= target) conditionWriteCells = 0;
         }

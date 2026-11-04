@@ -1,0 +1,312 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "observations": [
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 47.57682,
+      "peakRssKiB": 145788,
+      "retainedHeap": 30925448,
+      "retainedBuffers": 1080355
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 39.70464699999991,
+      "peakRssKiB": 137824,
+      "retainedHeap": 30870912,
+      "retainedBuffers": 1080355
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 42.61564499999997,
+      "peakRssKiB": 136856,
+      "retainedHeap": 30877160,
+      "retainedBuffers": 1080355
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 43.23768599999994,
+      "peakRssKiB": 146072,
+      "retainedHeap": 30893160,
+      "retainedBuffers": 1080355
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 40.66108699999995,
+      "peakRssKiB": 144628,
+      "retainedHeap": 30895928,
+      "retainedBuffers": 1342555
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 39.7527960000001,
+      "peakRssKiB": 139548,
+      "retainedHeap": 30873456,
+      "retainedBuffers": 1080355
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 39.976046,
+      "peakRssKiB": 137864,
+      "retainedHeap": 30873456,
+      "retainedBuffers": 1080355
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 39.07279299999993,
+      "peakRssKiB": 144416,
+      "retainedHeap": 30892144,
+      "retainedBuffers": 1080355
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 39.06162599999993,
+      "peakRssKiB": 144660,
+      "retainedHeap": 30895920,
+      "retainedBuffers": 1080355
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 40.42429800000002,
+      "peakRssKiB": 136792,
+      "retainedHeap": 30870328,
+      "retainedBuffers": 1080355
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 45.982624999999985,
+      "peakRssKiB": 136176,
+      "retainedHeap": 30894448,
+      "retainedBuffers": 1080355,
+      "keyedReaders": 0,
+      "publishedCells": 262200,
+      "numberLoops": 1,
+      "copyProbes": 0,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "scalar-expression:too-small": 1
+      }
+    },
+    {
+      "name": "work-passes",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 41.71828800000003,
+      "peakRssKiB": 147316,
+      "retainedHeap": 30915496,
+      "retainedBuffers": 1080355,
+      "keyedReaders": 0,
+      "publishedCells": 262200,
+      "numberLoops": 1,
+      "copyProbes": 0,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "scalar-expression:too-small": 1
+      }
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 144.64230099999997,
+      "peakRssKiB": 167644,
+      "retainedHeap": 31998920,
+      "retainedBuffers": 32067
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 147.80868800000007,
+      "peakRssKiB": 168600,
+      "retainedHeap": 31975688,
+      "retainedBuffers": 32067
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 150.38329399999998,
+      "peakRssKiB": 168520,
+      "retainedHeap": 31979296,
+      "retainedBuffers": 32067
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 145.34620700000005,
+      "peakRssKiB": 168012,
+      "retainedHeap": 31998008,
+      "retainedBuffers": 32067
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 141.27518399999997,
+      "peakRssKiB": 168520,
+      "retainedHeap": 31999808,
+      "retainedBuffers": 32067
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 148.43089199999997,
+      "peakRssKiB": 169144,
+      "retainedHeap": 31974320,
+      "retainedBuffers": 32067
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 147.934618,
+      "peakRssKiB": 169080,
+      "retainedHeap": 31973528,
+      "retainedBuffers": 32067
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 147.24476100000004,
+      "peakRssKiB": 168060,
+      "retainedHeap": 32005872,
+      "retainedBuffers": 32067
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 143.36775699999998,
+      "peakRssKiB": 168776,
+      "retainedHeap": 32005240,
+      "retainedBuffers": 32067
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 146.23024900000007,
+      "peakRssKiB": 168984,
+      "retainedHeap": 31978648,
+      "retainedBuffers": 32067
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 151.37339299999996,
+      "peakRssKiB": 168636,
+      "retainedHeap": 32022264,
+      "retainedBuffers": 32067,
+      "keyedReaders": 0,
+      "publishedCells": 128,
+      "numberLoops": 1,
+      "copyProbes": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "loop:unsupported-node:TupleExpression": 1,
+        "scalar-expression:unsupported-op:till": 1,
+        "scalar-expression:too-small": 1,
+        "tensor:unsupported-node:TupleExpression": 1,
+        "number-loop:condition-work": 9998
+      }
+    },
+    {
+      "name": "work-short",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 161.42361799999992,
+      "peakRssKiB": 168492,
+      "retainedHeap": 32045608,
+      "retainedBuffers": 32067,
+      "keyedReaders": 0,
+      "publishedCells": 128,
+      "numberLoops": 1,
+      "copyProbes": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "loop:unsupported-node:TupleExpression": 1,
+        "scalar-expression:unsupported-op:till": 1,
+        "scalar-expression:too-small": 1,
+        "tensor:unsupported-node:TupleExpression": 1,
+        "number-loop:condition-work": 9998
+      }
+    }
+  ],
+  "baselineCommit": "5bb084a2",
+  "candidateSourceSha256": "026186516fc27520c057174cc4a2c3452acbdca30da8978cde8bdf52b06fc634"
+}

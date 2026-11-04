@@ -826,12 +826,24 @@ the remaining pass still has at least 262081 iterations. Below the cap, partial
 passes retain measured work feedback. All destinations contribute to the copy
 cost; stepped ranges use their actual iteration count. This admission changes
 neither overflow replay nor publication of preceding stores on an ordinary error.
-A condition-controlled loop may also begin with several complete range passes.
-When a scalar integer entry comparison proves the first iteration is entered,
-the compiler sums those passes using guarded entry bounds and the same allowance.
-It stops at a non-range statement or a bound changed by a preceding pass; branches,
-early exits, calls, array-cell bounds and unknown lengths do not qualify.
-This proves enough work before copying without changing the probe cap.
+Condition and packed-vector regions share a prepared block-work proof. Sequential
+passes add their work; a selected branch contributes only its chosen block;
+complete nested ranges multiply work that is invariant across their back edges.
+The proof tracks scalar definitions and invalidates names written by a preceding
+pass, including induction variables. Strided stores contribute their selected
+cell count. Evaluation saturates at the required copy cost rather than expanding
+iterations or risking arithmetic overflow in the estimate.
+
+A condition-controlled loop uses this proof only after its entry condition is
+known true. Pure local bound calculations and known branches need not appear in
+a special source order. Unknown branches, array-cell bounds, calls, unsupported
+statements and early exits stop the proof conservatively. Blocks without any
+range/store work create no per-entry cost evaluator. These facts govern
+profitability only; type, alias, native identity and exact replay guards remain
+independent. Demand budgets bypass these extra work-based admission proofs,
+retaining the publishing path instead of charging newly admitted private
+preparation. Budget units already differ between reference and compiled engines;
+this does not promise identical stopping positions across engines.
 
 Packed integer-vector loops can also amortize large copies with complete nested
 range passes and strided slice stores. The compiler inspects at most the first
