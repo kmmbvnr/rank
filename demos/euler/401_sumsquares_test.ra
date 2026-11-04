@@ -17,7 +17,7 @@ test "reference value"
   Answer equal 401382971
 end
 
-test "two chunks of the root range"
+test "multiple chunks of the root range"
   use "401_sumsquares"
   Limit = 2000000000000
   run

@@ -200,6 +200,7 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
     const demandLocation = host.variable();
     lines.push(`const ${demandLocation} = location;`);
     const origins = new Map<TensorNode, FunctionPlan>();
+    const inputs = new Map<string, TensorNode>();
     const typed = (node: TensorNode, origin: FunctionPlan): TensorNode => {
         origins.set(node, origin);
         return node;
@@ -216,6 +217,16 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
             if (node.input.reduction) {
                 const reduction = node.input.reduction;
                 return typed({ kind: 'reduction', operation: reduction.name, source: lower(reduction.operand)!, rows: reduction.rows }, node);
+            }
+            // Input slots are protected across named stages. Entry proofs admit
+            // only completed storage, so repeated reads of one slot may share
+            // a cell temporary inside this consumer's generated loop body.
+            if (node.input.name && node.type.rank) {
+                const known = inputs.get(node.input.name);
+                if (known) return known;
+                const input = typed({ kind: 'input' }, node);
+                inputs.set(node.input.name, input);
+                return input;
             }
             return typed({ kind: 'input' }, node);
         },

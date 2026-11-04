@@ -286,3 +286,18 @@ Integer cells retain exact arithmetic, including values outside signed 64-bit
 storage. Unsupported values, changed builtins and failed selector/domain
 guards retain ordinary execution and error locations. This does not introduce
 row-buffer reuse or fuse a subsequent `concat` assignment.
+
+### Shared inputs in function-plan consumers
+
+A compiled function-plan consumer canonicalizes repeated references to the same
+protected array slot, including references through named lazy stages. Its inline
+emitter can then reuse one cell temporary at the same address in one generated
+loop body. Different input slots, indices, loop bodies and consumers remain
+separate. This adds no result arrays or runtime cell cache.
+
+The existing function-entry and linked-call proofs require completed, tracked
+storage and protect captured inputs against rebinding. Opaque or deferred inputs
+still pass through their ordinary completion and eligibility checks. Ordinary
+assignments remain completion boundaries; a helper's deferred return is still
+consumed at its original demand boundary. Cancellation, budgets and arithmetic
+error locations retain their existing paths.
