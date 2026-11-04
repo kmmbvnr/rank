@@ -1,0 +1,91 @@
+rem Roads 3 (Дороги - 3)
+rem https://acmp.ru/task.asp?id=767
+rem One-way roads via Robbins theorem:
+rem Max one-way = TotalEdges - Bridges.
+
+use algo
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "7
+0 1 0 1 0 0 0
+1 0 0 1 0 1 0
+0 0 0 0 1 1 1
+1 1 0 0 0 0 0
+0 0 1 0 0 1 0
+0 1 1 0 1 0 0
+0 0 1 0 0 0 0"
+
+Raw = (Input split "\r") join " "
+Clean = (Raw split "\n") join " "
+Parts = Clean split " "
+Tokens = Parts (Parts not equal "")
+
+N = (Tokens 0) integer
+Vals = (Tokens (1 to (N * N))) integer
+M = Vals reshape N N
+
+EdgeSum = (Vals reduce +) integer
+TotalEdges = EdgeSum / 2
+
+State = new index
+State "timer" = 0
+State "bridges" = 0
+State "tin" = new index
+State "low" = new index
+
+Tin = State "tin"
+for I in 0 to (N - 1)
+  Tin I = (-1)
+end
+
+fun U P State dfs
+  Tin = State "tin"
+  Low = State "low"
+  CurT = (State "timer") integer
+  NextT = CurT + 1
+  State "timer" = NextT
+  Tin U = NextT
+  Low U = NextT
+  Row = M U
+  Mask = Row equal 1
+  Neighbors = (0 to (N - 1)) Mask
+  K = ((Neighbors shape) 0) integer
+  for Idx in 0 to (K - 1)
+    V = (Neighbors Idx) integer
+    IsParent = V equal P
+    if not IsParent
+      Seen = (Tin V) greater (-1)
+      if Seen
+        LowU = (Low U) integer
+        TinV = (Tin V) integer
+        Low U = (LowU min TinV)
+      else
+        V U State dfs
+        LowU = (Low U) integer
+        LowV = (Low V) integer
+        Low U = (LowU min LowV)
+        IsBridge = LowV greater (Tin U)
+        Inc = IsBridge choose 1 0
+        OldB = (State "bridges") integer
+        State "bridges" = OldB + Inc
+      end
+    end
+  end
+  return 0
+end
+
+for I in 0 to (N - 1)
+  Tin = State "tin"
+  Unvisited = (Tin I) equal (-1)
+  if Unvisited
+    I (-1) State dfs
+  end
+end
+
+Bridges = (State "bridges") integer
+Ans = TotalEdges - Bridges
+(Ans text) print

@@ -99,6 +99,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0749** | [Неправильный RSA](0749_incorrect_rsa.ra) | Number Theory / Combinatorics (64%) | Count non-trivial factorizations of $n = p^k \cdot q^k$ ($1 \le k \le 23$) via $O(1)$ relative tolerance float64 $k$-th power detection and precomputed 2D vector partitions of $(k, k)$ |
 | **0752** | [2-3 Дерево](0752_two_three_tree.ra) | Combinatorics (61%) | Level-by-level counting `C(M, N - 2M)` with a rolling Pascal row and slice updates mod $R$ |
 | **0761** | [Ковбои](0761_cowboys.ra) | Graph Theory (65%) | Minimum edge-disjoint path cover / Eulerian trail decomposition via DSU and odd-degree vertex counting |
+| **0767** | [Дороги - 3](0767_roads_3.ra) | Graph Theory (67%) | Max one-way roads via Robbins' theorem: total edges minus bridges found with Tarjan's DFS and `choose` |
 | **0776** | [Юпитер](0776_jupiter.ra) | Graph Theory / BFS (62%) | BFS over (flights used, cell); each flight is one slice with `scan max` for the climb cost |
 | **0809** | [Спички детям не игрушка!](0809_matches.ra) | Computational Geometry (65%) | Min match moves under translation via canonicalized segment delta matching with `outer equal` & run-length translation voting |
 | **0813** | [Игра в 24](0813_game_24.ra) | Brute Force / Subset DP (62%) | Reachable values per card subset via `outer +`, `outer -`, `outer *` and `sort unique` |
