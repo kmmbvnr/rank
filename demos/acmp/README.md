@@ -86,6 +86,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0646** | [Сладкие забавы](0646_sweet_treats.ra) | Combinatorics / Knapsack (60%) | Fair candy partitioning into $\ge K$ subsets via vectorized 0-1 knapsack DP `DP (V till K) = (DP (V till K)) + (DP (0 till (K - V)))` |
 | **0647** | [Адаптивный поиск](0647_adaptive_search.ra) | Data Structures / BIT (65%) | Move-to-front table query sequence simulation via linear-built Fenwick tree prefix sums |
 | **0650** | [Странная сеть](0650_strange_network.ra) | Graph Theory (65%) | Total intermediate node distance in degree-$\le 2$ graph via DSU and closed formulas for paths and cycles |
+| **0652** | [Квантовый имитатор](0652_quantum_simulator.ra) | Data Structures / Intervals (70%) | Subarray reversal and range sum queries on $N \le 10^9$ via dynamic interval array splitting `scan + with 0 array` and vectorized range reduction |
 | **0655** | [Кодирование данных](0655_data_encoding.ra) | Number Theory / Carry Math (60%) | Smallest positive integer $A$ whose product with $K$ is a cyclic shift of $A$ via periodic carry transitions |
 | **0657** | [Привет, космос!](0657_hello_space.ra) | Integer Arithmetic / Decoding (60%) | Alien Manchester signal decoding from noisy pulse durations with $\le 10\%$ relative error via vectorized pulse classification and bounds intersection |
 | **0658** | [Фермерское счастье](0658_farmer_happiness.ra) | Computational Geometry (65%) | Count empty triangles among $N$ points via angular sweep around bottom pivot and cross-product wedge testing |

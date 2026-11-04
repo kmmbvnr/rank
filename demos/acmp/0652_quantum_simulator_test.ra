@@ -1,0 +1,35 @@
+rem Tests for ACMP 0652 Simulator
+
+use testing
+
+test "default: 10^9 elements 9 ops"
+  use "0652_quantum_simulator"
+  run
+
+  Ans 0 equal 11039
+  Ans 1 equal 101519
+  Ans 2 equal 86244
+  Ans 3 equal 194331
+end
+
+test "sample 1: 10 2 -> 19"
+  use "0652_quantum_simulator"
+  Input = "10 2
+I 1 5
+S 3 7"
+  run
+
+  Ans equal array 19
+end
+
+test "sample 2: 15 4 -> 65 21"
+  use "0652_quantum_simulator"
+  Input = "15 4
+S 2 11
+I 10 15
+I 1 10
+S 5 10"
+  run
+
+  Ans equal array 65 21
+end

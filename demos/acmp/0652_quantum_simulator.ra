@@ -1,0 +1,184 @@
+rem ACMP 0652 Quantum Simulator
+rem Interval reversal and range sum
+
+use algo
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "1000000000 9
+S 17 149
+I 199 428
+I 17 417
+I 212 987
+S 300 420
+I 400 700
+I 633 759
+S 11 238
+S 477 872"
+
+Tokens = Input words
+N = (Tokens 0) integer
+K = (Tokens 1) integer
+
+Us = array 1
+Vs = array N
+Ds = array 1
+
+AnsQ = new queue
+
+for Step in 0 till K
+  Base = 2 + (Step * 3)
+  Op = Tokens Base
+  L = (Tokens (Base + 1)) integer
+  R = (Tokens (Base + 2)) integer
+
+  rem Split at L - 1
+  K1 = L - 1
+  J1 = 0
+  if K1 greater 0
+    Lens1 = (Vs - Us) + 1
+    Cum1 = Lens1 scan + with 0 array
+    Count1 = (Cum1 less K1) count
+    I1 = Count1 - 1
+    Cur1 = Cum1 I1
+    EndCur1 = Cur1 + (Lens1 I1)
+    Exact1 = EndCur1 equal K1
+    if Exact1
+      J1 = Count1
+    else
+      K_in1 = K1 - Cur1
+      U1 = Us I1
+      V1 = Vs I1
+      D1 = Ds I1
+
+      EqD1 = D1 equal 1
+      U_rev1 = V1 - K_in1 + 1
+      P1_u1 = EqD1 choose U1 U_rev1
+      V_fwd1 = U1 + K_in1 - 1
+      P1_v1 = EqD1 choose V_fwd1 V1
+      P1_d1 = D1
+
+      U_fwd2 = U1 + K_in1
+      P2_u1 = EqD1 choose U_fwd2 U1
+      V_rev2 = V1 - K_in1
+      P2_v1 = EqD1 choose V1 V_rev2
+      P2_d1 = D1
+
+      L_u = Us take I1
+      R_u = Us drop (I1 + 1)
+      Mid_u1 = array P1_u1 P2_u1
+      Pref_u1 = concat L_u Mid_u1
+      Us = concat Pref_u1 R_u
+
+      L_v = Vs take I1
+      R_v = Vs drop (I1 + 1)
+      Mid_v1 = array P1_v1 P2_v1
+      Pref_v1 = concat L_v Mid_v1
+      Vs = concat Pref_v1 R_v
+
+      L_d = Ds take I1
+      R_d = Ds drop (I1 + 1)
+      Mid_d1 = array P1_d1 P2_d1
+      Pref_d1 = concat L_d Mid_d1
+      Ds = concat Pref_d1 R_d
+
+      J1 = I1 + 1
+    end
+  end
+
+  rem Split at R
+  K2 = R
+  TotalLen = Vs shape 0
+  J2 = TotalLen
+  Lens2 = (Vs - Us) + 1
+  Cum2 = Lens2 scan + with 0 array
+  Count2 = (Cum2 less K2) count
+  I2 = Count2 - 1
+  Cur2 = Cum2 I2
+  EndCur2 = Cur2 + (Lens2 I2)
+  Exact2 = EndCur2 equal K2
+  if Exact2
+    J2 = Count2
+  else
+    K_in2 = K2 - Cur2
+    U2 = Us I2
+    V2 = Vs I2
+    D2 = Ds I2
+
+    EqD2 = D2 equal 1
+    U_rev3 = V2 - K_in2 + 1
+    P1_u2 = EqD2 choose U2 U_rev3
+    V_fwd3 = U2 + K_in2 - 1
+    P1_v2 = EqD2 choose V_fwd3 V2
+    P1_d2 = D2
+
+    U_fwd4 = U2 + K_in2
+    P2_u2 = EqD2 choose U_fwd4 U2
+    V_rev4 = V2 - K_in2
+    P2_v2 = EqD2 choose V2 V_rev4
+    P2_d2 = D2
+
+    L_u2 = Us take I2
+    R_u2 = Us drop (I2 + 1)
+    Mid_u2 = array P1_u2 P2_u2
+    Pref_u2 = concat L_u2 Mid_u2
+    Us = concat Pref_u2 R_u2
+
+    L_v2 = Vs take I2
+    R_v2 = Vs drop (I2 + 1)
+    Mid_v2 = array P1_v2 P2_v2
+    Pref_v2 = concat L_v2 Mid_v2
+    Vs = concat Pref_v2 R_v2
+
+    L_d2 = Ds take I2
+    R_d2 = Ds drop (I2 + 1)
+    Mid_d2 = array P1_d2 P2_d2
+    Pref_d2 = concat L_d2 Mid_d2
+    Ds = concat Pref_d2 R_d2
+
+    J2 = I2 + 1
+  end
+
+  IsI = (Op equal "I") or (Op equal "i")
+  IsS = (Op equal "S") or (Op equal "s")
+  if IsI
+    L_u_i = Us take J1
+    Sub_u = Us (J1 till J2)
+    Mid_u_i = Sub_u reverse
+    R_u_i = Us drop J2
+    Pref_u_i = concat L_u_i Mid_u_i
+    Us = concat Pref_u_i R_u_i
+
+    L_v_i = Vs take J1
+    Sub_v = Vs (J1 till J2)
+    Mid_v_i = Sub_v reverse
+    R_v_i = Vs drop J2
+    Pref_v_i = concat L_v_i Mid_v_i
+    Vs = concat Pref_v_i R_v_i
+
+    L_d_i = Ds take J1
+    Sub_d = Ds (J1 till J2)
+    InvDs = 0 - Sub_d
+    Mid_d_i = InvDs reverse
+    R_d_i = Ds drop J2
+    Pref_d_i = concat L_d_i Mid_d_i
+    Ds = concat Pref_d_i R_d_i
+  elif IsS
+    RangeU = Us (J1 till J2)
+    RangeV = Vs (J1 till J2)
+    RangeCnt = (RangeV - RangeU) + 1
+    SumEnds = RangeU + RangeV
+    ProdSums = SumEnds * RangeCnt
+    RangeSums = ProdSums // 2
+    TotalSum = RangeSums sum
+    AnsQ push TotalSum
+  end
+end
+
+Ans = (AnsQ reverse) reverse
+for X in Ans
+  X print
+end
