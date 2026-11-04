@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "746_messydinner"
+  Families = 2
+  run
+  Answer equal 896
+  Families = 3
+  run
+  Answer equal 891776
+  Families = 10
+  run
+  Answer equal 399291975
+end
