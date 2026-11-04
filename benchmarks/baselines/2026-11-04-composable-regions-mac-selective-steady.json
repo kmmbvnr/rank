@@ -1,0 +1,1376 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "size": 32768,
+  "rounds": 24,
+  "warmups": 40,
+  "preGc": false,
+  "observations": [
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 2.1480000000000246,
+      "peakRssKiB": 194224,
+      "retainedHeap": 33466552,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 2.53449999999998,
+      "peakRssKiB": 196640,
+      "retainedHeap": 33502968,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 2.216374999999971,
+      "peakRssKiB": 196560,
+      "retainedHeap": 33536928,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 1.9975000000000023,
+      "peakRssKiB": 197520,
+      "retainedHeap": 33466632,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 2.1021670000000086,
+      "peakRssKiB": 194640,
+      "retainedHeap": 33433032,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 2.2072090000000344,
+      "peakRssKiB": 197744,
+      "retainedHeap": 33496880,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 2.684750000000008,
+      "peakRssKiB": 197728,
+      "retainedHeap": 33502296,
+      "retainedBuffers": 438937
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 2.182957999999985,
+      "peakRssKiB": 194928,
+      "retainedHeap": 33436960,
+      "retainedBuffers": 2696578
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 2.1264580000000137,
+      "peakRssKiB": 194976,
+      "retainedHeap": 33438784,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 2.2512500000000273,
+      "peakRssKiB": 196288,
+      "retainedHeap": 33530320,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 2.263916999999992,
+      "peakRssKiB": 195776,
+      "retainedHeap": 33558024,
+      "retainedBuffers": 424771,
+      "numberLoops": 1,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 2.2283330000000205,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.03470900000002075,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 1,
+          "milliseconds": 1.9604999999999677,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.snapshot": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 262144,
+          "copiedBytes": 262144,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.publish": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 2,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.execute": {
+          "calls": 1,
+          "milliseconds": 1.9143329999999992,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "scalar-expression:unsupported-op:sum": 2
+      }
+    },
+    {
+      "name": "inline",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 2.2256659999999897,
+      "peakRssKiB": 193984,
+      "retainedHeap": 33458048,
+      "retainedBuffers": 424771,
+      "numberLoops": 1,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 2.1845420000000217,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.033916999999973996,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 1,
+          "milliseconds": 1.9293749999999932,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.snapshot": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 262144,
+          "copiedBytes": 262144,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.publish": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 2,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.execute": {
+          "calls": 1,
+          "milliseconds": 1.8850419999999986,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "scalar-expression:unsupported-op:sum": 2
+      }
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 6.230332999999973,
+      "peakRssKiB": 247936,
+      "retainedHeap": 34679704,
+      "retainedBuffers": 32963395
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 3.13658300000003,
+      "peakRssKiB": 243680,
+      "retainedHeap": 33793712,
+      "retainedBuffers": 12876611
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 3.311208000000022,
+      "peakRssKiB": 242976,
+      "retainedHeap": 33768464,
+      "retainedBuffers": 38042435
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 6.549624999999992,
+      "peakRssKiB": 247024,
+      "retainedHeap": 34644136,
+      "retainedBuffers": 38959939
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 6.875458999999978,
+      "peakRssKiB": 249104,
+      "retainedHeap": 34630736,
+      "retainedBuffers": 26737475
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 3.282791999999972,
+      "peakRssKiB": 243856,
+      "retainedHeap": 33790704,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 3.4878330000000233,
+      "peakRssKiB": 241392,
+      "retainedHeap": 33756920,
+      "retainedBuffers": 13269827
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 6.577250000000049,
+      "peakRssKiB": 246304,
+      "retainedHeap": 34644632,
+      "retainedBuffers": 18086723
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 6.477874999999926,
+      "peakRssKiB": 251504,
+      "retainedHeap": 34631128,
+      "retainedBuffers": 20708163
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 3.1947920000000067,
+      "peakRssKiB": 243376,
+      "retainedHeap": 33765016,
+      "retainedBuffers": 8026947
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 8.719791999999984,
+      "peakRssKiB": 244688,
+      "retainedHeap": 33782904,
+      "retainedBuffers": 24410947,
+      "numberLoops": 1,
+      "mixedLoops": 1,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 8.679874999999981,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.040792000000010376,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 1,
+          "milliseconds": 8.358749999999986,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.snapshot": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 262144,
+          "copiedBytes": 262144,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.alias-copy": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3014656,
+          "copiedBytes": 3014656,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.publish": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 2,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.execute": {
+          "calls": 1,
+          "milliseconds": 8.306959000000006,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "scalar-expression:unsupported-op:sum": 2
+      }
+    },
+    {
+      "name": "combined",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 11.338583999999969,
+      "peakRssKiB": 251312,
+      "retainedHeap": 34635136,
+      "retainedBuffers": 12680003,
+      "numberLoops": 24,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 11.302041999999915,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.05174999999996999,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 24,
+          "milliseconds": 10.734625000000165,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.snapshot": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3145728,
+          "copiedBytes": 3145728,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.dirty": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 786432,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.publish": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 48,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.execute": {
+          "calls": 24,
+          "milliseconds": 10.343916999999806,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3014656,
+          "copiedBytes": 3014656,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "number-loop:range-input-proof": 48,
+        "tensor:output-shape": 24,
+        "scalar-expression:unsupported-op:sum": 2
+      }
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 6.461708000000044,
+      "peakRssKiB": 248064,
+      "retainedHeap": 34393992,
+      "retainedBuffers": 31947587
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 3.128499999999974,
+      "peakRssKiB": 195424,
+      "retainedHeap": 33403376,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 3.1804579999999874,
+      "peakRssKiB": 198240,
+      "retainedHeap": 33441840,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 6.662249999999972,
+      "peakRssKiB": 248576,
+      "retainedHeap": 34441016,
+      "retainedBuffers": 17660739
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 6.4789579999999205,
+      "peakRssKiB": 249056,
+      "retainedHeap": 34395392,
+      "retainedBuffers": 27032387
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 2.9975000000000023,
+      "peakRssKiB": 196160,
+      "retainedHeap": 33405400,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 3.339499999999987,
+      "peakRssKiB": 196176,
+      "retainedHeap": 33439464,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 6.7533750000000055,
+      "peakRssKiB": 249040,
+      "retainedHeap": 34396624,
+      "retainedBuffers": 23821123
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 6.756792000000019,
+      "peakRssKiB": 248112,
+      "retainedHeap": 34396064,
+      "retainedBuffers": 25885507
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 3.123125000000016,
+      "peakRssKiB": 195216,
+      "retainedHeap": 33405480,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 8.936041999999986,
+      "peakRssKiB": 195072,
+      "retainedHeap": 33430760,
+      "retainedBuffers": 1516930,
+      "numberLoops": 1,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 8.897208999999975,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.036791999999991276,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 1,
+          "milliseconds": 8.532832999999982,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.snapshot": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 262144,
+          "copiedBytes": 262144,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.publish": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 2,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.execute": {
+          "calls": 1,
+          "milliseconds": 8.447499999999991,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "scalar-expression:unsupported-op:sum": 2
+      }
+    },
+    {
+      "name": "helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 11.645208000000025,
+      "peakRssKiB": 249072,
+      "retainedHeap": 34391552,
+      "retainedBuffers": 14875459,
+      "numberLoops": 24,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 11.606124999999906,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.05637500000000273,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 24,
+          "milliseconds": 10.987462000000164,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.snapshot": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3145728,
+          "copiedBytes": 3145728,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.dirty": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 786432,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.publish": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 48,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.execute": {
+          "calls": 24,
+          "milliseconds": 10.58271000000002,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3014656,
+          "copiedBytes": 3014656,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "number-loop:range-input-proof": 48,
+        "scalar-expression:unsupported-op:sum": 2
+      }
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 12.222624999999994,
+      "peakRssKiB": 248064,
+      "retainedHeap": 33154488,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 3.277458000000024,
+      "peakRssKiB": 195376,
+      "retainedHeap": 33294480,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 3.237041999999974,
+      "peakRssKiB": 194928,
+      "retainedHeap": 33295456,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 10.627958999999919,
+      "peakRssKiB": 250720,
+      "retainedHeap": 33974280,
+      "retainedBuffers": 54721347
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 11.005999999999972,
+      "peakRssKiB": 244304,
+      "retainedHeap": 33976648,
+      "retainedBuffers": 15006531
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 3.2004590000000235,
+      "peakRssKiB": 197600,
+      "retainedHeap": 33299176,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 3.197749999999985,
+      "peakRssKiB": 196640,
+      "retainedHeap": 33336320,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 9.258417000000009,
+      "peakRssKiB": 247200,
+      "retainedHeap": 33164880,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 9.810084000000074,
+      "peakRssKiB": 244976,
+      "retainedHeap": 33937272,
+      "retainedBuffers": 30866243
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 2.7735829999999737,
+      "peakRssKiB": 195296,
+      "retainedHeap": 33289304,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 9.216166999999984,
+      "peakRssKiB": 195600,
+      "retainedHeap": 33318976,
+      "retainedBuffers": 424771,
+      "numberLoops": 1,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 9.18587500000001,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.031208999999989828,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 1,
+          "milliseconds": 8.918834000000004,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.snapshot": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 262144,
+          "copiedBytes": 262144,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.publish": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 2,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.execute": {
+          "calls": 1,
+          "milliseconds": 8.87620800000002,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "scalar-expression:unsupported-op:sum": 2
+      }
+    },
+    {
+      "name": "array-helper",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 12.472750000000019,
+      "peakRssKiB": 245552,
+      "retainedHeap": 33894928,
+      "retainedBuffers": 26868547,
+      "numberLoops": 24,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 12.438957999999957,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.045917000000031294,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 24,
+          "milliseconds": 11.998708999999849,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.snapshot": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3145728,
+          "copiedBytes": 3145728,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.dirty": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 786432,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.publish": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 48,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.execute": {
+          "calls": 24,
+          "milliseconds": 11.658375999999976,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3014656,
+          "copiedBytes": 3014656,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "number-loop:range-input-proof": 48,
+        "scalar-expression:unsupported-op:sum": 2
+      }
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 3.727458000000013,
+      "peakRssKiB": 249104,
+      "retainedHeap": 34441456,
+      "retainedBuffers": 555843
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 1.9433329999999955,
+      "peakRssKiB": 198960,
+      "retainedHeap": 33914952,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 1.916499999999985,
+      "peakRssKiB": 201200,
+      "retainedHeap": 33912632,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 3.457667000000015,
+      "peakRssKiB": 247712,
+      "retainedHeap": 34438320,
+      "retainedBuffers": 555843
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 3.622041999999965,
+      "peakRssKiB": 247744,
+      "retainedHeap": 34440136,
+      "retainedBuffers": 555843
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 1.960125000000005,
+      "peakRssKiB": 200976,
+      "retainedHeap": 33916712,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 1.9578750000000014,
+      "peakRssKiB": 200768,
+      "retainedHeap": 33916064,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 3.4284999999999854,
+      "peakRssKiB": 247536,
+      "retainedHeap": 34432872,
+      "retainedBuffers": 2128707
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 3.5443750000000023,
+      "peakRssKiB": 247600,
+      "retainedHeap": 34445632,
+      "retainedBuffers": 555843
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 1.9723339999999894,
+      "peakRssKiB": 200960,
+      "retainedHeap": 33913088,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 2.079250000000002,
+      "peakRssKiB": 200768,
+      "retainedHeap": 33895472,
+      "retainedBuffers": 424771,
+      "numberLoops": 1,
+      "mixedLoops": 1,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 2.047042000000033,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.033749999999997726,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 1,
+          "milliseconds": 1.7981250000000273,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.snapshot": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 131072,
+          "copiedBytes": 131072,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.publish": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 1,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.execute": {
+          "calls": 1,
+          "milliseconds": 1.750250000000051,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "number-loop:range-input-proof": 2,
+        "scalar-expression:unsupported-op:sum": 2
+      }
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 3.7914579999999773,
+      "peakRssKiB": 247328,
+      "retainedHeap": 34460672,
+      "retainedBuffers": 555843,
+      "numberLoops": 0,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 3.756416999999999,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.03570799999999963,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "tensor:output-shape": 24,
+        "scalar-expression:unsupported-op:sum": 2
+      }
+    }
+  ]
+}

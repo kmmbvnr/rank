@@ -21,7 +21,7 @@ import { registerFlatCombine } from './flat-combine.js';
 import { compileFusedReduction, compileFusedSum } from './jit/fused-reduction.js';
 import type { Operators } from './operators.js';
 import { compileScalarExpression, compileResumableScalarExpression } from './jit/scalar-compiler.js';
-import { scalarFunctionResult, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
+import { scalarFunctionResult, privateScalarFunction, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { completed, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './jit/call-specializations.js';
@@ -583,10 +583,10 @@ export class FastPaths {
                     writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []),
                     stableArrayReads: stableReads,
                     // Reuse the scalar proof, retaining its live call guards.
-                    // No captured state or reference argument can observe the
-                    // caller's private containers while this helper executes.
-                    privateStateSafe: stableReads && !captures && !scalarTypes.size
-                        && !proof.dependencies.length && types.every(isScalarType),
+                    // The Number ABI borrows current integer buffers only for
+                    // read-only scalar callees; no reference escapes. Captures
+                    // and unclassified dependencies retain their own boundary.
+                    privateStateSafe: numberSafe && privateScalarFunction(proof),
                 },
                 type: proof.type,
                 numberSafe,
@@ -619,6 +619,10 @@ export class FastPaths {
                         || proof.locals.some(local => active.context?.find(local))) return undefined;
                     const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes);
                     if ((proof.nativeReads.length || proof.dependencies.length) && !compiled || compiled?.available && !compiled.available()) return undefined;
+                    if (compiled?.numberRegion && privateScalarFunction(proof)) {
+                        const region = compiled.numberRegion();
+                        if (region) return region as unknown as LoopCallable;
+                    }
                     if (compiled?.numberDirect) return compiled.numberDirect as unknown as LoopCallable;
                     // Raw buffers have no Rank value wrapper. Only a proved
                     // read-only Number kernel may consume them; an exact callee

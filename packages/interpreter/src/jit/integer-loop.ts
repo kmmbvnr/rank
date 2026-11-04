@@ -6,7 +6,7 @@ import { createLoopStatements } from './integer-loop-statements.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
 import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan, type LoopWorkFeedback, type LoopPolling } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
-import { wideLoopScalars, wideLoopOutputs } from './integer-loop-wide.js';
+import { wideLoopScalars, wideLoopOutputs, overflowingLoopOutput } from './integer-loop-wide.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
@@ -113,23 +113,41 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     // A replay-safe backend can support expressions the publishing backend
     // cannot type statically (integer powers may become real for negative exponents).
     const compileFastCounted = feedback ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), true) : undefined;
-    const fast = numberPlan && prepareNumberLoop(numberPlan, host, feedback, compileFastCounted,
-        polling => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), false, polling));
+    const exactOutputFirst = numberPlan && overflowingLoopOutput(numberPlan);
+    let fast: CompiledLoop | undefined, preparedFast = false;
+    const prepareFast = () => {
+        if (!preparedFast) {
+            preparedFast = true;
+            fast = numberPlan && prepareNumberLoop(numberPlan, host, feedback, compileFastCounted,
+                polling => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), false, polling));
+        }
+        return fast;
+    };
+    // Do not generate a Number kernel whose output must overflow. Budgets or
+    // failed mixed entry can still request that kernel lazily on this invocation.
+    if (!exactOutputFirst) prepareFast();
     if (!fast && (!numberVariant || !region)) {
         if (!exact && currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));
         return exact;
     }
     let mixed: CompiledLoop | undefined, preparedMixed = false;
-    return { run: (...context) => {
-        const result = fast?.run(...context);
-        if (result) return result;
-        if (!fast && demandBudgetEnabled()) return exact?.run(...context);
+    const prepareMixed = () => {
         if (!preparedMixed) {
             preparedMixed = true;
             mixed = prepareMixedLoops(plan ?? numberPlan!, host, feedback, (wide, counting, polling) =>
                 lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide, counting, polling));
         }
-        return mixed?.run(...context) ?? exact?.run(...context);
+        return mixed;
+    };
+    return { run: (...context) => {
+        if (exactOutputFirst && !demandBudgetEnabled()) {
+            const result = prepareMixed()?.run(...context);
+            return result ?? prepareFast()?.run(...context) ?? exact?.run(...context);
+        }
+        const result = prepareFast()?.run(...context);
+        if (result) return result;
+        if (!fast && demandBudgetEnabled()) return exact?.run(...context);
+        return prepareMixed()?.run(...context) ?? exact?.run(...context);
     } };
 }
 
@@ -194,11 +212,14 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // An array-returning callee can share a caller operand after entry COW.
     // Per-store ownership preparation is required before these regions may write.
     if (state.hasArrayCall && destinations.size) return reject(statement, 'array-call-write-region');
+    // Proven calls cannot retain/observe private bindings. Their entry guards
+    // and Number ABI still apply, including current buffers after a move.
+    const unsafeCalls = calls.some(call => !call.privateStateSafe);
     const arrayTransfers = new Set(state.arrayTransfers.flat());
     if (arrayTransfers.size) {
         // A completed iteration replaces its prior result. Escaping control or
         // calls could retain/observe a tuple while its arrays are written later.
-        if (state.hasControl || calls.length || state.callouts.length) return reject(statement, 'array-transfer-effects');
+        if (state.hasControl || unsafeCalls || state.callouts.length) return reject(statement, 'array-transfer-effects');
         const mutable = new Set(destinations.keys());
         for (let size = -1; size !== mutable.size;) {
             size = mutable.size;
@@ -235,9 +256,9 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
             }
         }
         if (ownedAliases.size) {
-            // A prior result/callback or pooled vector can outlive a binding.
-            // Those owners are not represented by these scalar-store regions.
-            if (state.hasControl || calls.length || state.callouts.length || state.numberVectors)
+            // A prior result/callback can outlive a binding. Vector allocation
+            // instead consults the current register owners before reusing cells.
+            if (state.hasControl || unsafeCalls || state.callouts.length)
                 return reject(statement, 'array-ownership-effects');
             for (const name of ownedAliases) {
                 const info = arrays.get(name) ?? destinations.get(name);
@@ -264,7 +285,7 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // Numeric aliases may share read-only buffers. Mutation or calls require
     // a separate ownership proof. Exact bindings snapshot writable aliases;
     // source stores can still invalidate existing compiled alias readers.
-    if (numberMode && aliases.length && calls.length > 0) return reject(statement, 'array-alias-call');
+    if (numberMode && aliases.length && unsafeCalls) return reject(statement, 'array-alias-call');
     // Aliases outside the managed components still lack lifetime tracking.
     // Keep their rebound entry arrays on the publishing backend.
     if (numberMode && !ownedAliases.size && aliases.length && [...arrayDefinitions].some(name => arrayInputs.has(name)))
@@ -292,7 +313,7 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // program has later statements. Keep live mutable results on the exact path.
     if (numberMode && [...state.sliceResultSources].some(name => writable.has(name))) return reject(statement, 'mutable-slice-result');
     return {
-        statement, names, wideScalars, integerRanges: state.integerRanges, rangeNarrowing: state.rangeNarrowing, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
+        statement, names, wideScalars, integerRanges: state.integerRanges, rangeNarrowing: state.rangeNarrowing, exactInputs: state.exactInputs, arrays, destinations, root, body, outlinedLoops: state.outlinedLoops, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         ownershipChecks: state.ownershipChecks, ownedAliases, arrayTransfers, arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, writable, iteration, workCounting, polling, callouts: state.callouts,

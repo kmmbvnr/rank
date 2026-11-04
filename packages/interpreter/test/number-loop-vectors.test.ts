@@ -528,7 +528,7 @@ tuple A Saved`);
         expect(r.diagnostics.fallbacks['number-loop:rebound-call-state-proof']).toBeGreaterThan(0);
     });
 
-    it('reports the remaining wide-value proof for array replacement', () => {
+    it('composes array replacement with exact scalar registers', () => {
         const r = compare(`A = array shape 64 fill 0
 Total = 9007199254740993
 for I in 1 to 3
@@ -537,7 +537,7 @@ for I in 1 to 3
 end
 tuple A Total`);
         expect(r.observation.error).toBeUndefined();
-        expect(r.diagnostics.fallbacks['number-loop:rebound-wide-value-proof']).toBeGreaterThan(0);
+        expect(r.diagnostics.mixedIntegerLoops).toBe(1);
     });
 
     it('preserves earlier replacements and aliases when a helper fails', () => {

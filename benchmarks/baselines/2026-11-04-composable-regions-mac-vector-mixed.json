@@ -1,0 +1,268 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "observations": [
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 22.606875000000002,
+      "peakRssKiB": 165456,
+      "retainedHeap": 33245360,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 27.13137499999999,
+      "peakRssKiB": 163520,
+      "retainedHeap": 33055264,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 29.295625,
+      "peakRssKiB": 164480,
+      "retainedHeap": 33077304,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 22.842291999999986,
+      "peakRssKiB": 166704,
+      "retainedHeap": 33251392,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 22.892083999999983,
+      "peakRssKiB": 164816,
+      "retainedHeap": 33249048,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 29.561750000000018,
+      "peakRssKiB": 164672,
+      "retainedHeap": 33052184,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 27.970499999999987,
+      "peakRssKiB": 165440,
+      "retainedHeap": 33055656,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 24.22116700000001,
+      "peakRssKiB": 166640,
+      "retainedHeap": 33248416,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 22.460542000000004,
+      "peakRssKiB": 166048,
+      "retainedHeap": 33248280,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 27.076999999999998,
+      "peakRssKiB": 165600,
+      "retainedHeap": 33403576,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 28.42425,
+      "peakRssKiB": 164832,
+      "retainedHeap": 33088144,
+      "retainedBuffers": 424771,
+      "numberLoops": 1,
+      "mixedLoops": 1,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 28.381,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.11362500000001319,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "loop.prepare": {
+          "calls": 1,
+          "milliseconds": 8.644958000000031,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 1,
+          "milliseconds": 12.071000000000026,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.snapshot": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 131072,
+          "copiedBytes": 131072,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.publish": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 1,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.execute": {
+          "calls": 1,
+          "milliseconds": 9.862874999999974,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "scalar-expression:unsupported-op:I": 3,
+        "scalar-expression:unsupported-op:*": 3,
+        "scalar-expression:unsupported-op:+": 8,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 7,
+        "scalar-expression:unsupported-op:mod": 1,
+        "tensor:unsupported-type:array": 2,
+        "number-loop:range-input-proof": 2,
+        "scalar-expression:unsupported-op:sum": 8
+      }
+    },
+    {
+      "name": "vector-mixed",
+      "engine": "compiled",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 5,
+      "milliseconds": 22.93700000000004,
+      "peakRssKiB": 165792,
+      "retainedHeap": 33276976,
+      "retainedBuffers": 424771,
+      "numberLoops": 0,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 22.89775000000003,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.11129200000002015,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "loop.prepare": {
+          "calls": 1,
+          "milliseconds": 7.463582999999971,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "scalar-expression:unsupported-op:I": 3,
+        "scalar-expression:unsupported-op:*": 3,
+        "scalar-expression:unsupported-op:+": 8,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 7,
+        "scalar-expression:unsupported-op:mod": 1,
+        "tensor:unsupported-type:array": 2,
+        "loop:mutable-array-alias:ForStatement": 1,
+        "scalar-expression:unsupported-op:till": 1,
+        "tensor:output-shape": 24,
+        "scalar-expression:unsupported-op:sum": 8
+      }
+    }
+  ]
+}

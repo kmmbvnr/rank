@@ -1,3 +1,4 @@
+import { AstUtils } from 'langium';
 import { arrayPermutation } from './array-transfer.js';
 import { compileArrayRegion } from './array-region.js';
 import { type LoopTerm } from './integer-loop-plan.js';
@@ -44,7 +45,6 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             body.push(`location = ${location};`, ...lines,
                 `const ${completed} = ${move || !state.ownershipChecks ? value : `owned${destination} ? bindOwned(r${destination}, ${value}, ${aliasSlot !== undefined}) : ${value}`};`, dirty(destination),
                 `r${destination} = ${completed}; cells${destination} = cells[${destination}] = ${aliasSlot === undefined ? `${completed}.cells` : `cells${aliasSlot}`};`,
-                ...(state.numberVectors ? [`vectorLive[${destination}] = ${completed};`] : []),
                 ...Array.from({ length: rank > 1 ? rank : 0 }, (_, axis) => `size${destination}_${axis} = ${completed}.shape[${axis}];`),
                 `iterationResult = ${completed}; iterationType = 'array';`);
             recordAssigned(name);
@@ -147,18 +147,37 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 const loop = loopParts(assignment, binding, location);
                 if (!loop) return reject(assignment);
                 const innerScope = numberMode
-                    ? state.pushScope(loop.inductionVariable, loop.inductionSlot, loop.rangeInfo) : undefined;
+                    ? state.pushScope(loop.inductionVariable, loop.inductionSlot, loop.rangeInfo, assignment) : undefined;
+                const callsBefore = calls.length;
                 const innerBody: string[] = [];
                 if (statements(assignment.statements, innerBody, allowTail && !binding, loop.breakLabel) === undefined) return reject(assignment);
                 if (innerScope) state.popScope();
                 const innerSetup = innerScope && innerScope.setupLines.length > 0
                     ? `${loop.setup}\n${innerScope.setupLines.join('\n')}` : loop.setup;
-                // Keep the type with the last completed iteration: a later
-                // continue or break can change registers without replacing it.
-                body.push(`{ let result${numberMode ? ', resultType = "integer"' : ''}; location = ${location}; ${innerSetup} ${loop.header}`,
+                // Code boundaries need not split the private transaction.
+                const nodes = [...AstUtils.streamAllContents(assignment)];
+                // Plain arithmetic loops already optimize well as one body.
+                // Split traversals that compose calls or ownership preparation.
+                const outline = numberMode && (calls.length > callsBefore || !!innerScope?.preparedOwners.size)
+                    && !nodes.some(node =>
+                    isBreakStatement(node) || isContinueStatement(node) || isReturnStatement(node) || isYieldStatement(node));
+                const stable = outline && loop.rangeInfo
+                    && [...arrays.values(), ...destinations.values()].every(info => info.rank === 1)
+                    && !nodes.some(node => isUnpackStatement(node)
+                        || isAssignmentStatement(node) && arrays.has(node.name));
+                const code = [`{ let result${numberMode ? ', resultType = "integer"' : ''}; location = ${location}; ${stable ? '' : innerSetup} ${loop.header}`,
                     `let iterationResult${numberMode ? ', iterationType = "integer"' : ''};`, loop.bindings,
                     ...innerBody,
-                    `result = iterationResult; ${numberMode ? 'resultType = iterationType;' : ''} location = ${location}; } iterationResult = result; ${numberMode ? 'iterationType = resultType;' : ''} }`);
+                    `result = iterationResult; ${numberMode ? 'resultType = iterationType;' : ''} location = ${location}; } iterationResult = result; ${numberMode ? 'iterationType = resultType;' : ''} }`].join('\n');
+                if (stable) {
+                    const range = loop.rangeInfo!;
+                    const inputs = [range.startCode, range.endCode, range.strideCode,
+                        ...innerScope!.bceGuards.values(), ...innerScope!.hoistedOffsets.values()];
+                    const index = state.outlinedLoops.push({ body: code, inputs }) - 1;
+                    // Storage preparation stays outside the arithmetic traversal.
+                    // NUL markers cannot occur in JSON-escaped source literals.
+                    body.push(`{ location = ${location}; ${innerSetup} \0loop${index}\0 }`);
+                } else body.push(outline ? `(() => { ${code} })();` : code);
                 // An inner loop may run zero times, or leave through break.
                 assigned.clear();
                 for (const name of incoming) assigned.add(name);

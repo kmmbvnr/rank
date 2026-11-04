@@ -122,6 +122,7 @@ export interface IntegerLoopPlan {
     destinations: Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type']; slice?: boolean }>;
     root: { setup: string; header: string; bindings: string };
     body: string[];
+    outlinedLoops?: readonly { body: string; inputs: readonly string[] }[];
     locations: Statement[];
     required: Set<number>;
     localTypes: Map<string, LoopTerm['type']>;

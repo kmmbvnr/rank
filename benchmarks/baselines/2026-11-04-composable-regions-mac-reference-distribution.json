@@ -1,0 +1,304 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "size": 32768,
+  "rounds": 24,
+  "warmups": 0,
+  "preGc": true,
+  "observations": [
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 1801.9601670000002,
+      "peakRssKiB": 447536,
+      "retainedHeap": 33212968,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 1801.9995000000001,
+      "peakRssKiB": 616416,
+      "retainedHeap": 36808464,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 1749.00825,
+      "peakRssKiB": 448448,
+      "retainedHeap": 33410672,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 1773.456083,
+      "peakRssKiB": 448832,
+      "retainedHeap": 33194648,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 1743.077333,
+      "peakRssKiB": 446112,
+      "retainedHeap": 33205072,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 1775.844292,
+      "peakRssKiB": 448080,
+      "retainedHeap": 33219744,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 1759.491125,
+      "peakRssKiB": 448528,
+      "retainedHeap": 33213704,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 3,
+      "milliseconds": 1801.7862920000002,
+      "peakRssKiB": 451824,
+      "retainedHeap": 33201856,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 1808.364209,
+      "peakRssKiB": 448576,
+      "retainedHeap": 33193440,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 4,
+      "milliseconds": 1840.502041,
+      "peakRssKiB": 607104,
+      "retainedHeap": 36810096,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 5,
+      "milliseconds": 1833.148625,
+      "peakRssKiB": 601504,
+      "retainedHeap": 36820920,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 5,
+      "milliseconds": 1822.8653750000003,
+      "peakRssKiB": 448192,
+      "retainedHeap": 33193456,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 6,
+      "milliseconds": 1854.0253750000002,
+      "peakRssKiB": 449200,
+      "retainedHeap": 33202600,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 6,
+      "milliseconds": 1870.3805419999999,
+      "peakRssKiB": 617536,
+      "retainedHeap": 36821000,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 7,
+      "milliseconds": 1844.248834,
+      "peakRssKiB": 618576,
+      "retainedHeap": 36815432,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 7,
+      "milliseconds": 1844.574666,
+      "peakRssKiB": 450960,
+      "retainedHeap": 33213200,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 8,
+      "milliseconds": 1828.837166,
+      "peakRssKiB": 452416,
+      "retainedHeap": 33213120,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 8,
+      "milliseconds": 1846.214792,
+      "peakRssKiB": 448784,
+      "retainedHeap": 33211744,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 9,
+      "milliseconds": 1863.3726659999998,
+      "peakRssKiB": 448096,
+      "retainedHeap": 33254552,
+      "retainedBuffers": 424771,
+      "numberLoops": 0,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 1863.328125,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.12083300000000463,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3014656,
+          "copiedBytes": 3014656,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "loop:disabled": 2
+      }
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 9,
+      "milliseconds": 1855.0427920000002,
+      "peakRssKiB": 619792,
+      "retainedHeap": 36817952,
+      "retainedBuffers": 424771,
+      "numberLoops": 0,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 1854.9950419999998,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.11504200000001674,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3014656,
+          "copiedBytes": 3014656,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "loop:disabled": 2
+      }
+    }
+  ]
+}

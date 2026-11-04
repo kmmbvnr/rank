@@ -31,7 +31,7 @@ describe('exact outputs before wide intermediates', () => {
         expect(observation.error).toBeUndefined();
         expect(observation.values).toContainEqual(['Total', '27021597764222991']);
         expect(diagnostics.mixedIntegerLoops).toBe(1);
-        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
     });
     it('replays private array and index writes through both mixed tiers', () => {
         const { diagnostics, observation } = compare(`use algo
@@ -50,7 +50,7 @@ end`);
         expect(observation.values).toContainEqual(['Alias', '0 0 0']);
         expect(observation.values).toContainEqual(['Total', '27021597764222976']);
         expect(diagnostics.mixedIntegerLoops).toBe(2);
-        expect(diagnostics.numberLoopOverflows).toBe(2);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
     });
     it('retains the broad tier for a wide loop-carried predicate', () => {
         const { diagnostics, observation } = compare(`Total = 0

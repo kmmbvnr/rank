@@ -785,7 +785,8 @@ would add checkpoints before the original first iteration.
 Calls need separate proofs for Number-compatible results and for inability to
 observe private state. Audited scalar natives require no callbacks, no host
 override and no declared effects. Supported Rank helpers carry the same fact
-from their scalar proof when they have no captures or unresolved dependencies.
+from their scalar proof when all linked dependencies have the same private-state
+proof and no captured state is observed.
 Other helpers beside private containers report `number-loop:call-private-state-proof`:
 scalar arguments alone do not rule out observing captured state. `number-loop:call-number-result-proof` identifies the independent numeric
 result requirement. In particular, a native integer call lowered inside a wide
@@ -809,7 +810,7 @@ kernel, and checks every integer result for safe range. Overflow discards the
 attempt before exact replay. Powers use checked repeated squaring, with BigInt
 scalar registers available after overflow; backend preparation can select this
 private specialization even when no publishing BigInt plan supports the syntax.
-Other calls, collection mutation, array rebinding,
+Calls without these proofs, unsupported collection mutation or array rebinding,
 returns, arbitrary iterators, lazy arrays and unsupported contracts retain the
 BigInt backend. Most array reads
 use an invocation-owned Float64 buffer after checking every cell's type and
@@ -1704,26 +1705,58 @@ The existing analysis and preparation boundaries remain the source of facts:
   Escaping maps/closures and suspended frames retain their ordinary lifetimes;
   no general frame pool or new register interpreter is introduced.
 
-`CompiledCallee.effects.privateStateSafe` carries an existing scalar proof across
-the call boundary. Its initial scope requires scalar parameters/results, stable
-reads, no captured context or captured scalar domains, and no helper/data
-dependencies requiring a further private-state proof. Native dependencies keep
-their live implementation guards.
-A temporary scalar binding inside such a helper does not invalidate the proof.
-The loop consumer can reuse the same fact beside private containers and beside
-replacement of a local numeric array: the helper cannot observe an unpublished
-container or a retained array version. Call identity and native guards are still
-checked at region entry; replaced host functions use the publishing path.
+`CompiledCallee.effects.privateStateSafe` composes the existing scalar proofs
+across linked helper calls. Supported helpers read scalar arguments or read-only
+rank-one integer array arguments and return a scalar. Their bodies and linked
+helpers must not observe captured state, mutate arrays or containers, retain
+arguments through plans, or invoke opaque host callbacks. Native signatures and
+live helper identities remain guarded at entry. Unknown operations retain the
+publishing path. Read-only array arguments use the checked Number ABI with the
+current private buffer; raw buffers never enter an exact generic call fallback.
 
-Range handling keeps the existing checked Number call boundary and exact replay.
-This change does not claim a new interprocedural interval analysis. Helpers with
-captures, reference arguments, returned arrays or unresolved call dependencies
-still need a broader private-state/escape proof. Exact calls in mixed BigInt
-registers retain the separate call-result representation requirement. For rebound
-entry arrays, diagnostics distinguish `rebound-call-state-proof`,
-`rebound-wide-value-proof` and `rebound-layout-proof` rather than reporting one
-undifferentiated rejection. Ordinary assignment and alias boundaries remain in
-place, including when a helper raises or execution is cancelled.
+Callback-free numeric leaves can bind a reduced call boundary after checking
+hooks, call depth, inspection, polling, demand and storage capabilities at entry.
+The non-diagnostic wrapper retains its identity across entries; diagnostic
+bindings belong to the current observation. Checked boundaries remain available
+when these conditions do not hold. Control-free nested traversals that compose
+helper calls or ownership preparation can be outlined into persistent functions.
+Range evaluation and buffer detachment precede the arithmetic traversal. Its
+indexed temporary frame returns partial private state before error publication;
+no frame or user buffer is retained between invocations. Plain arithmetic loops
+retain their original body. Vector searches keep their exit label inside the
+outlined traversal so early exit does not cross a function boundary.
+
+Unboxed integer snapshots start with Int32 storage and widen to Float64 at the
+first safe integer that needs it. Stores can also widen later. Unsafe integers
+still reject the speculative attempt; real snapshots retain Float64 storage.
+
+These calls can coexist with private array permutations, ordinary array aliases,
+and exact scalar accumulators. Vector allocation checks current array registers
+before reusing a buffer, including aliases bound before the first vector stage.
+A direct indexed store in a range loop can prepare ownership once when the body
+cannot rebind its target or create aliases. The range bounds guard preparation,
+so an empty loop makes no alias copy. Other stores retain their per-store check.
+Wide scalars and rebound arrays publish through the same transaction. Cell stores
+still use checked Numbers; overflow discards the complete attempt before replay.
+Ordinary errors publish completed writes and bindings in their original order.
+
+Named finite plans can coexist with containers and independent local array
+writes in compiled functions. Captured plan sources retain their read-only
+contract. Binding an unused recipe does not demand its values, and repeated
+consumers remain independent.
+
+For an output-only additive accumulator, source intervals and constant trip
+counts can prove that normal completion must leave the safe Number interval for
+any safe initial value. Such loops try the exact-output mixed tier first. Unknown
+trip counts, resets, cancelling growth and escaping control retain the previous
+speculative order. Observable demand budgets also retain that order. This is
+an additive recurrence proof, not unrestricted interprocedural range analysis.
+
+Captured helpers, escaped array results, unsupported layouts and calls without
+an appropriate result representation retain their existing guards or fallback.
+Private ownership still excludes escaping control and does not infer last use
+of a binding. See [composition measurements](../../benchmarks/composable-regions-results.md)
+for tested combinations, costs and remaining limits.
 
 The demonstrated reference overhead was repeated AST traversal at return demand.
 Frame allocation, dispatch and contract costs remain separate profiling targets;

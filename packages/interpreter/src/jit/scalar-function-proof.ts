@@ -19,6 +19,33 @@ export function scalarCaptureKey(captures: ScalarCaptureTypes): string {
 }
 const noCaptures: ScalarCaptureTypes = new Map();
 
+const privateProofs = new WeakMap<ScalarFunctionProof, boolean>();
+
+/** Only arguments/local scalars and read-only argument arrays may be observed.
+ * Linked helpers compose the same proof; live identity guards remain at entry.
+ * Unknown operations fail closed rather than inheriting a callee's result type. */
+export function privateScalarFunction(proof: ScalarFunctionProof): boolean {
+    const known = privateProofs.get(proof);
+    if (known !== undefined) return known;
+    function expression(node: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>): boolean {
+        if (node.kind === 'literal') return true;
+        if (node.kind === 'group' || node.kind === 'unary') return expression(node.operand);
+        if (node.kind === 'binary' || node.kind === 'extreme') return expression(node.left)
+            && (!node.right || expression(node.right));
+        if (node.kind === 'call') return node.signature.callbacks === 'none' && !node.signature.hostFunction
+            && node.arguments.every(expression);
+        const input = node.input;
+        if (input.keyed || input.indices && !input.indices.every(expression)) return false;
+        if (input.operation === 'user-call') return !!input.callee && privateScalarFunction(input.callee.proof);
+        return !input.operation || ['self-call', 'choose', 'integer-power', 'text-at', 'array-len'].includes(input.operation);
+    }
+    const safe = !proof.containers && !proof.arrayWrites.size && !proof.observableCaptures
+        && !proof.planBindings.size && !proof.iterableBindings.size && !proof.planCalls.length
+        && [...proof.expressions.values()].every(expression);
+    privateProofs.set(proof, safe);
+    return safe;
+}
+
 export interface ScalarFunctionInput {
     readonly name: string;
     readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort' | 'choose' | 'concat' | 'concat-copy' | 'captured-bound-len';
@@ -677,6 +704,10 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 continue;
             }
             if (loops && isArrayAssignmentStatement(command)) {
+                // Erased recipes read captured slots at demand time. Independent
+                // destinations may change, but a captured slot must still denote
+                // its construction-time array after copy-on-write detaches it.
+                if (protectedNames.has(command.name)) return reject(command, 'plan-capture-write');
                 const receiver = env.get(command.name);
                 if (!receiver || typeof receiver === 'string' || isCompiledContainer(receiver) && receiver.kind !== 'index'
                     || command.indices.length !== (isCompiledContainer(receiver) ? 1 : receiver.rank)
@@ -778,7 +809,6 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     // Each invocation owns these constructor slots. Recursive calls only read
     // their arguments; writes through parameters or aliases still fail ownership.
     const result = outcome === null && resultType && !(recursive && (!localArrayWrites || nonnegativeParameters.size))
-        && !((planBindings.size || iterableBindings.size) && (containers || arrayWrites.size))
         ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, recursive, arrayWrites, localArrayWrites, observableCaptures, expressions,
             planCalls, planBindings, planReturn, planReturns, loopIterables, iterableBindings, nonnegative: [...nonnegativeParameters] } : undefined;
     const failure = rejection ?? { ...describeCompilerRejection('scalar-function', statement), reason: 'scalar-function:missing-return' };

@@ -25,7 +25,8 @@ const body=`fun N build
   end
   return Total
 end\n5 build`;
-const raw=(sources:string[])=>sources.some(s=>/calls\[0\]\(cells\d+,/.test(s));
+const raw=(sources:string[])=>sources.some(s=>/const call0 = calls\[0\];/.test(s)
+ && /call0\(cells\d+,/.test(s));
 
 describe('read-only array calls in private Number regions',()=>{
  it('reads private stores without publishing or copying the buffer',()=>{

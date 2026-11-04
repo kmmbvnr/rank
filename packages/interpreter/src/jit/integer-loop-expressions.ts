@@ -915,15 +915,18 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             || isBinaryExpression(source) && !source.step && ['+', '-', '*'].includes(source.operator)
                 && existingIntegerArrayArithmetic(source.left) && existingIntegerArrayArithmetic(source.right);
     }
-    function numberVectorLoop(size: string, index: string, body: readonly string[]): string {
+    function numberVectorLoop(size: string, index: string, body: readonly string[], exitLabel?: string): string {
         state.numberVectors = true;
         const block = `block${state.serial++}`, end = `end${state.serial++}`;
-        return `for (let ${block} = 0; ${block} < ${size}; ${block} += vectorStep) {
+        // Keep the hot vector traversal separate from the surrounding binding
+        // transaction. V8 can optimize it without exiting an OSR inner loop
+        // into scalar moves and exact accumulator updates on every vector.
+        return `(() => { ${exitLabel ? `${exitLabel}:` : ''} for (let ${block} = 0; ${block} < ${size}; ${block} += vectorStep) {
             const ${end} = Math.min(${size}, ${block} + vectorStep);
             ${state.workCounting ? `work += ${end} - ${block};` : ''}
             checkpoint(undefined, ${end} - ${block});
             for (let ${index} = ${block}; ${index} < ${end}; ${index}++) { ${body.join('\n')} }
-        }`;
+        } })();`;
     }
     function vectorOperation(e: Expression): { name: string; operands: Expression[]; module?: string } | undefined {
         const unwrap = (value: Expression) => { while (isParenthesizedExpression(value)) value = value.value; return value; };
@@ -1404,7 +1407,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const body: string[] = [], value = mask.cell(index, body);
             if (!value) return undefined;
             lines.push(...setup, `if (${source.code}.shape[0] !== ${mask.size}) throw overflow; let ${found} = -1;`,
-                `${label}: { ${numberVectorLoop(mask.size, index, [...body, `if (${value.code}) { ${found} = ${index}; break ${label}; }`])} }`,
+                numberVectorLoop(mask.size, index, [...body, `if (${value.code}) { ${found} = ${index}; break ${label}; }`], label),
                 `if (${found} < 0) throw overflow;`);
             return { type: 'integer', code: found };
         }
@@ -1615,7 +1618,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                                 numberSafe: true,
                                 bind: () => callable.bindNumber!(),
                             });
-                            const callCode = `calls[${index}](${arguments_.join(',')})`;
+                            const callCode = `call${index}(${arguments_.join(',')})`;
                             lines.push(`const ${name} = ${callable.type === 'integer' ? safe(callCode) : callCode};`);
                         } else {
                             calls.push({

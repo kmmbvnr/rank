@@ -9,6 +9,8 @@ export type PreparedScalarCall = ((arguments_: RankValue[], tail?: boolean) => R
     readonly available?: () => boolean;
     direct?: (...arguments_: RankValue[]) => RankValue;
     numberDirect?: (...arguments_: NumberCallArgument[]) => number;
+    /** Entry-checked leaf ABI for a caller with a private-state proof. */
+    numberRegion?: () => ((...arguments_: NumberCallArgument[]) => number) | undefined;
 };
 
 /**

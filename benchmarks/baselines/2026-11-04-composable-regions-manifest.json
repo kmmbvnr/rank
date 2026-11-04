@@ -1,0 +1,73 @@
+{
+  "candidate": {
+    "commit": "19ab2fe93429d33609291630ebb4f34887ff75d2",
+    "sourceSha256": "db9c6369162e1860a5eec901bfbad6df0f91c3e156525958db1db9e82745c27f",
+    "note": "Measured range-guarded snapshot, before subsequent lazy Number kernel preparation"
+  },
+  "baseline": {
+    "commit": "19ab2fe93429d33609291630ebb4f34887ff75d2",
+    "sourceSha256": "e1cf750b79d41442f2d41ea34cddbb66ecaec4bae5f4ea278dedb78cda0c65af"
+  },
+  "verification": {
+    "ordinaryMac": {
+      "passed": 11970,
+      "failed": 1,
+      "excludes": [
+        "types.test.ts",
+        "differential.test.ts",
+        "nurikabe.test.ts"
+      ],
+      "note": "Before final guarded ownership preparation; the sole failure was a changed overflow counter, and its replay fixture was corrected."
+    },
+    "finalFocusedMac": {
+      "files": 15,
+      "passed": 579
+    },
+    "finalFocusedIntel": {
+      "files": 15,
+      "passed": 579
+    },
+    "buildAndTestTypes": "passed",
+    "semanticBoundaryTests": 11,
+    "semanticOwners": 65,
+    "applicationFormChecks": 2,
+    "compactFocusedMac": {
+      "files": 5,
+      "passed": 364
+    },
+    "compactFocusedIntel": {
+      "files": 5,
+      "passed": 364
+    },
+    "splitSetupFocusedMac": {
+      "files": 5,
+      "passed": 366
+    },
+    "ordinaryMacLatest": {
+      "passed": 11982,
+      "failed": 8,
+      "total": 11990,
+      "files": 560,
+      "excludes": [
+        "types.test.ts",
+        "differential.test.ts",
+        "nurikabe.test.ts"
+      ],
+      "note": "Started before labelled vector-search repair and generated-call regex update. All eight failures pass in targeted reruns."
+    },
+    "correctedMac": {
+      "selectionVectorComposition": 176,
+      "borrowedArray": 23,
+      "fullEuler310": 1
+    },
+    "latestFocusedIntel": {
+      "files": 23,
+      "passed": 765
+    }
+  },
+  "status": "final benchmark refresh running; ordinary failures repaired and targeted reruns pass",
+  "workingSourceSha256": "d76c14d426239787e2001e7d34b0d7a5109b83ed52021b478eb56c7378187c1f",
+  "benchmarkSha256BeforeVectorMixed": "6d2886f32a5f10317b1311cb44b47799d71e030c976c471104abc08943ba43fb",
+  "benchmarkSha256": "2986039ae53f997bee2b4aba7285c3e08faa8efd960d742efe3b643603f6ea2e",
+  "workingSourceHashMethod": "Sorted interpreter src/**/*.ts relative paths, NUL, file bytes, NUL"
+}

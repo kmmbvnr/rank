@@ -4,7 +4,7 @@ import { INTERRUPT_POLL_INTERVAL } from '../interrupt.js';
 import { type LoopHost, type IntegerLoopPlan, type LoopTerm, type LoopPolling } from './integer-loop-plan.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    isFunctionStatement, isAssignmentStatement, isParenthesizedExpression, isUnpackStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
+    isFunctionStatement, isArrayAssignmentStatement, isAssignmentStatement, isParenthesizedExpression, isUnpackStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
     type Expression, type Statement, type ForStatement, type FunctionStatement,
 } from '@arrrank/language';
 
@@ -24,6 +24,8 @@ export interface LoopScope {
     range?: LoopRangeInfo;
     readonly setupLines: string[];
     readonly bceGuards: Map<string, string>;       // key: `${slot}_${axis}` -> guard var
+    readonly stableStores: ReadonlySet<string>;
+    readonly preparedOwners: Set<number>;
     readonly hoistedOffsets: Map<string, string>;  // key: `${slot}_${outerCoord}` -> rowBase var
 }
 
@@ -101,7 +103,19 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         }
         return branchDepth > 0 && (host.evaluate !== undefined || host.callout !== undefined) && callouts.length < 16;
     }
-    function pushScope(inductionVariable?: string, inductionSlot?: number, range?: LoopRangeInfo): LoopScope {
+    function pushScope(inductionVariable?: string, inductionSlot?: number, range?: LoopRangeInfo, source = statement): LoopScope {
+        const stableStores = new Set<string>();
+        if (ownershipChecks && range) {
+            for (const node of source.statements) if (isArrayAssignmentStatement(node)) stableStores.add(node.name);
+            for (const node of AstUtils.streamAllContents(source)) {
+                if (isUnpackStatement(node)) { stableStores.clear(); break; }
+                if (!isAssignmentStatement(node)) continue;
+                stableStores.delete(node.name);
+                let value = node.value;
+                while (isParenthesizedExpression(value)) value = value.value;
+                if (node.operator === '=' && isNameExpression(value)) { stableStores.clear(); break; }
+            }
+        }
         const scope: LoopScope = {
             depth: loopScopes.length,
             inductionVariable,
@@ -111,6 +125,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
             setupLines: [],
             bceGuards: new Map(),
             hoistedOffsets: new Map(),
+            stableStores, preparedOwners: new Set(),
         };
         loopScopes.push(scope);
         return scope;
@@ -130,6 +145,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         get branchDepth() { return branchDepth; },
         set branchDepth(v: number) { branchDepth = v; },
         arrayRegions: [] as NonNullable<IntegerLoopPlan['arrayRegions']>,
+        outlinedLoops: [] as { body: string; inputs: readonly string[] }[],
         exactInputs, rangeNarrowing: false, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
         loopScopes, rootSetupLines, pushScope, popScope, currentScope,
     };

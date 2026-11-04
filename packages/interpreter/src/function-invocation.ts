@@ -985,11 +985,27 @@ export class FunctionInvocation {
         };
         if (directFn) run.direct = directFn;
         if (rawNumber) {
+            // Hooks are constructor snapshots shared by ordinary and inspection
+            // profiles. Keep the hook call live without resolving capabilities
+            // for every cell of a compiled caller's loop.
+            const hooks = this.compiler.hooks;
+            const fail = (error: unknown, arguments_: NumberCallArgument[]): never => {
+                if (error === numberOverflow) throw error;
+                if (error instanceof RankError) {
+                    // Diagnostics need only eight cells, not a copy or an
+                    // integer conversion of the caller's complete buffer.
+                    const summaries = arguments_.map(value => typeof value === 'object' ? summarizeIntegerBuffer(value) : undefined);
+                    const values = arguments_.map((value, index) => typeof value === 'object' ? 0n
+                        : (types?.[index] ?? 'integer') === 'integer' ? BigInt(value as number) : value as RankValue);
+                    error.addCall(statement.name, statement.parameters, values, summaries);
+                }
+                throw error;
+            };
             run.numberDirect = (...arguments_: NumberCallArgument[]) => {
                 if (this.depth >= this.maxDepth) {
                     throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
                 }
-                this.compiler.hooks.onScalarFunctionExecuted?.();
+                hooks.onScalarFunctionExecuted?.();
                 try {
                     if (kernel.memberships.length && (!privateLoopPolling() || demandBudgetEnabled())) throw numberOverflow;
                     if (kernel.numberStorage && (!this.compiler.loops.number || !privateLoopPolling()
@@ -997,20 +1013,43 @@ export class FunctionInvocation {
                     const diagnostics = currentDiagnostics();
                     if (diagnostics) diagnostics.numberFunctions++;
                     return rawNumber(...arguments_ as never[]) as unknown as number;
-                } catch (error) {
-                    if (error === numberOverflow) throw error;
-                    if (error instanceof RankError) {
-                        // Diagnostics need only eight cells, not a copy or an
-                        // integer conversion of the caller's complete buffer.
-                        const summaries = arguments_.map(value => typeof value === 'object' ? summarizeIntegerBuffer(value) : undefined);
-                        const values = arguments_.map((value, index) => typeof value === 'object' ? 0n
-                            : (types?.[index] ?? 'integer') === 'integer' ? BigInt(value) : value);
-                        error.addCall(statement.name, statement.parameters, values, summaries);
-                    }
-                    throw error;
-                }
+                } catch (error) { return fail(error, arguments_); }
+            };
+            const regionCall = rawNumber as unknown as (...args: NumberCallArgument[]) => number;
+            // Retain the ordinary leaf identity across region entries and GC.
+            // Diagnostic bindings remain scoped to the current observation.
+            const plainRegion = statement.parameters.length === 1 ? (a: NumberCallArgument) => {
+                try { return regionCall(a); }
+                catch (error) { return fail(error, [a]); }
+            } : statement.parameters.length === 2 ? (a: NumberCallArgument, b: NumberCallArgument) => {
+                try { return regionCall(a, b); }
+                catch (error) { return fail(error, [a, b]); }
+            } : undefined;
+            run.numberRegion = () => {
+                // A callback-free leaf cannot change these facts while its
+                // caller runs synchronously. Keep hooks, observable demand and
+                // membership readers on the fully checked boundary above.
+                if (hooks.onScalarFunctionExecuted || this.depth >= this.maxDepth
+                    || inspectionEnabled() || !privateLoopPolling() || demandBudgetEnabled()
+                    || kernel.memberships.length || kernel.numberStorage === 'queues'
+                    || kernel.numberStorage && !this.compiler.loops.number) return undefined;
+                const diagnostics = currentDiagnostics();
+                if (!diagnostics) return plainRegion;
+                const call = regionCall;
+                // Fixed arities avoid argument arrays in the hot caller. Error
+                // summaries allocate only after the actual failing invocation.
+                if (statement.parameters.length === 1) return (a: NumberCallArgument) => {
+                    try { if (diagnostics) diagnostics.numberFunctions++; return call(a); }
+                    catch (error) { return fail(error, [a]); }
+                };
+                if (statement.parameters.length === 2) return (a: NumberCallArgument, b: NumberCallArgument) => {
+                    try { if (diagnostics) diagnostics.numberFunctions++; return call(a, b); }
+                    catch (error) { return fail(error, [a, b]); }
+                };
+                return undefined;
             };
         }
+
         if (kernel.rankedCalls.length || kernel.plans || kernel.dequeIteration || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             if (inspectionEnabled() || this.scalarFallbackDepth) return false;
             if (kernel.dequeIteration && (!privateLoopPolling() || !nativeDequeMethods())) return false;

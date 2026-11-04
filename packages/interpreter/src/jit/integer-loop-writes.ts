@@ -110,7 +110,19 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 if (out === undefined) return undefined;
                 result = out;
             }
-            if (state.ownershipChecks) lines.push(`if (owned${target.slot}) cells${target.slot} = cells[${target.slot}] = r${target.slot}.writable();`);
+            if (state.ownershipChecks) {
+                const scope = state.currentScope(), range = scope?.range;
+                const prepare = `if (owned${target.slot} && r${target.slot}?.shared) cells${target.slot} = cells[${target.slot}] = r${target.slot}.writable();`;
+                // A direct store with no rebinding or new aliases needs one
+                // detach per nonempty range. Pure calls cannot retain buffers.
+                if (range && scope.stableStores.has(assignment.name)) {
+                    if (!scope.preparedOwners.has(target.slot)) {
+                        const equal = range.operator === 'to' ? '=' : '';
+                        scope.setupLines.push(`if (${range.strideCode} > 0 ? ${range.startCode} <${equal} ${range.endCode} : ${range.startCode} >${equal} ${range.endCode}) { ${prepare} }`);
+                        scope.preparedOwners.add(target.slot);
+                    }
+                } else lines.push(prepare);
+            }
             if (type === 'integer') {
                 // Preserve compact private storage until a safe Number needs
                 // more than Int32. Publish through the updated buffer too.

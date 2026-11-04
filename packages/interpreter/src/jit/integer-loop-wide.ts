@@ -1,6 +1,6 @@
-import { safeIntegerRange } from './integer-range-facts.js';
+import { safeIntegerRange, integerRange, type IntegerRange } from './integer-range-facts.js';
 import { AstUtils, type AstNode } from 'langium';
-import { forIteration, flattenApplication, isApplicationExpression, isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isNameExpression, type Expression } from '@arrrank/language';
+import { expressionFacts, forIteration, flattenApplication, isApplicationExpression, isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isNameExpression, isIfStatement, isUnpackStatement, type Statement, type Expression } from '@arrrank/language';
 import type { IntegerLoopPlan } from './integer-loop-plan.js';
 
 /** Keep addresses, iteration bounds and cell stores checked Numbers. Integer
@@ -59,4 +59,47 @@ export function wideLoopOutputs(plan: IntegerLoopPlan, candidates: ReadonlySet<s
     const reads = new Set([plan.statement, ...AstUtils.streamAllContents(plan.statement)]
         .filter(isNameExpression).map(node => node.name));
     return new Set([...candidates].filter(name => !reads.has(name)));
+}
+
+/** Prefer the exact output tier when even the full safe-integer input interval
+ * cannot contain a normally completing additive recurrence. This is a source
+ * proof, never a sampled value or a permission to bypass mutation/entry guards.
+ * Unknown trip counts, resets and control transfers retain speculative entry. */
+export function overflowingLoopOutput(plan: IntegerLoopPlan): boolean {
+    if (!isForStatement(plan.statement) || plan.hasControl) return false;
+    function repeat(range: IntegerRange | undefined, loop: Statement): IntegerRange | undefined {
+        if (!range || range[0] === 0n && range[1] === 0n) return range;
+        if (!isForStatement(loop)) return undefined;
+        const binding = forIteration(loop.condition);
+        const count = binding && expressionFacts(binding.iterable, () => undefined).shape?.[0];
+        return count !== undefined && count !== null && Number.isSafeInteger(count) && count >= 0
+            ? integerRange('*', range, [BigInt(count), BigInt(count)]) : undefined;
+    }
+    function block(statements: readonly Statement[], name: string): IntegerRange | undefined {
+        let total: IntegerRange | undefined = [0n, 0n];
+        for (const statement of statements) {
+            let change: IntegerRange | undefined = [0n, 0n];
+            if (isAssignmentStatement(statement) && statement.name === name) {
+                const value = plan.integerRanges.values.get(statement.value);
+                change = statement.operator === '+=' ? value : statement.operator === '-=' && value ? [-value[1], -value[0]] : undefined;
+            } else if (isUnpackStatement(statement) && statement.names.includes(name)) return undefined;
+            else if (isForStatement(statement)) change = repeat(block(statement.statements, name), statement);
+            else if (isIfStatement(statement)) {
+                const paths = [statement.thenStatements, ...statement.elifClauses.map(branch => branch.statements), statement.elseStatements]
+                    .map(statements => block(statements, name));
+                if (paths.some(path => !path)) return undefined;
+                change = paths.reduce<IntegerRange>((bounds, path) => [bounds[0] < path![0] ? bounds[0] : path![0],
+                    bounds[1] > path![1] ? bounds[1] : path![1]], paths[0]!);
+            }
+            total = integerRange('+', total, change);
+            if (!total) return undefined;
+        }
+        return total;
+    }
+    const span = 2n * BigInt(Number.MAX_SAFE_INTEGER);
+    for (const name of wideLoopOutputs(plan, wideLoopScalars(plan))) {
+        const growth = repeat(block(plan.statement.statements, name), plan.statement);
+        if (growth && (growth[0] > span || growth[1] < -span)) return true;
+    }
+    return false;
 }

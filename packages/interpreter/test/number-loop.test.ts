@@ -316,7 +316,8 @@ end`);
         'S = 0\nA = 9007199254740991\nfor I in 0 to 2\n S += (A * 3) mod 1073741825\nend',
         'S = 0\nA = 9007199254740991\nfor I in 0 to 2\n S += A * 3 - A * 3\nend',
         'S = 0\nfor I in 9007199254740990 to 9007199254740991\n S += 1\nend',
-        'S = 0\nfor I in 0 to 3\n for J in 0 to 2\n  S += 9007199254740991\n end\nend',
+        // An input trip count keeps this a replay test, not a growth proof.
+        'S = 0\nCount = 3\nfor I in 0 to Count\n for J in 0 to 2\n  S += 9007199254740991\n end\nend',
     ])('discards private writes and uses exact original inputs on overflow: %s', source => {
         const diagnostics = compare(source);
         expect(diagnostics.numberLoops).toBeGreaterThan(0);

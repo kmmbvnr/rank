@@ -52,6 +52,7 @@ class PrivateNumericArray {
         return copy;
     }
     release(): void { this.owners.count--; }
+    get shared(): boolean { return this.owners.count > 1; }
     writable(): Int32Array | Float64Array {
         if (this.owners.count > 1) {
             this.owners.count--;
@@ -123,8 +124,11 @@ class PrivateSliceResult {
 function vectorArray(shape: readonly number[], real: boolean, pool: VectorBuffer[], live: unknown[], operands: unknown[]): PrivateNumericArray {
     const size = shape.reduce((a, b) => a * b, 1);
     const held = new Set<ArrayBufferLike>();
+    // Region-generated readers follow rebinding even when it precedes the
+    // first vector expression. Temporary operands are pinned directly below.
     const retain = (value: unknown): void => {
-        if (value instanceof PrivateSliceResult) retain(value.source);
+        if (typeof value === 'function') retain(value());
+        else if (value instanceof PrivateSliceResult) retain(value.source);
         else if (value instanceof PrivateNumericArray) held.add(value.cells.buffer);
         else if (ArrayBuffer.isView(value)) held.add(value.buffer);
     };
@@ -238,18 +242,45 @@ function rankValue(value: unknown, type: string | undefined): RankValue | undefi
 
 function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[], publish: string, workCounting = false): string {
     const { root, body } = plan;
+    // Persistent traversal functions keep their host-JIT identity across runs
+    // and GC. Frames carry private registers only for the duration of a call.
+    // Finally blocks return partial state before the region publishes an error.
+    const mutable = [...registers.map(register => register.split('=')[0].trim()),
+        'result', 'resultType', 'location', 'order', 'iterationResult', 'iterationType',
+        ...(workCounting ? ['work'] : []), ...(plan.polling === 'batched' ? ['pollWork'] : [])];
+    const fixed = ['input', 'cells', 'changes', 'calls', 'publish', 'entered',
+        ...plan.calls.map((_, index) => `call${index}`),
+        ...(plan.numberVectors ? ['vectorPool', 'vectorLive', 'vectorStep'] : [])];
+    const fields = [...new Set([...mutable, ...fixed])];
+    const field = (name: string) => `[${fields.indexOf(name)}]`;
+    const expand = (source: string): string => source.replace(/\0loop(\d+)\0/g, (_, index) =>
+        `{ const frame${index} = [${[...fields, ...plan.outlinedLoops![Number(index)].inputs].join(',')}];
+            try { traversal${index}(frame${index}); }
+            finally { ${mutable.map(name => `${name} = frame${index}${field(name)};`).join(' ')} } }`);
+    const traversals = (plan.outlinedLoops ?? []).map(({ body, inputs }, index) => `function traversal${index}(frame) {
+        let ${mutable.map(name => `${name} = frame${field(name)}`).join(',')};
+        const ${fixed.map(name => `${name} = frame${field(name)}`).join(',')};
+        ${inputs.length ? `const ${inputs.map((name, index) => `${name} = frame[${fields.length + index}]`).join(',')};` : ''}
+        try { ${expand(body)} }
+        finally { ${mutable.map(name => `frame${field(name)} = ${name};`).join(' ')} }
+    }`).join('\n');
     // Store modes: 0 tracks entry-cell changes, 1 is an already-dirty local
     // allocation, 2 must mark the first cell write to a rebound entry binding.
-    return `"use strict"; return function(input, cells, changes, calls, publish) {
+    const modes = [
+        ...(plan.ownershipChecks ? [...new Map<string, { slot: number }>([...plan.arrays, ...plan.destinations])] : []).map(([name, info]) => `const owned${info.slot} = ${plan.ownedAliases?.has(name) ?? false};`),
+        ...[...plan.destinations].map(([name, info]) => `const rebound${info.slot} = ${!plan.arrayDefinitions.has(name) ? 0 : plan.arrayInputs.has(name) ? 2 : 1};`),
+    ].join('\n');
+    return `"use strict"; ${traversals ? modes : ''}
+        ${traversals} return function(input, cells, changes, calls, publish) {
         let ${registers.length ? `${registers.join(',')}, ` : ''}result, resultType = 'integer', location = -1, order = 0${workCounting ? ', work = 0' : ''}${plan.polling === 'batched' ? ', pollWork = 0' : ''};
         const entered = [];
-        ${(plan.ownershipChecks ? [...new Map<string, { slot: number }>([...plan.arrays, ...plan.destinations])] : []).map(([name, info]) => `const owned${info.slot} = ${plan.ownedAliases?.has(name) ?? false};`).join('\n')}
-        ${[...plan.destinations].map(([name, info]) => `const rebound${info.slot} = ${!plan.arrayDefinitions.has(name) ? 0 : plan.arrayInputs.has(name) ? 2 : 1};`).join('\n')}
-        ${plan.numberVectors ? '\n        const vectorPool = [], vectorLive = input.slice(), vectorStep = vectorBlockSize();' : ''}
+        ${traversals ? '' : modes}
+        ${plan.calls.map((_, index) => `const call${index} = calls[${index}];`).join('\n')}
+        ${plan.numberVectors ? `\n        const vectorPool = [], vectorLive = [${[...new Set([...plan.arrays.values(), ...plan.destinations.values()].map(info => info.slot))].map(slot => `() => r${slot}`).join(',')}], vectorStep = vectorBlockSize();` : ''}
         try {
             ${root.setup} ${root.header}
                 let iterationResult, iterationType = 'integer';
-                ${root.bindings} ${body.join('\n')}
+                ${root.bindings} ${expand(body.join('\n'))}
                 result = iterationResult; resultType = iterationType; location = -1;
             }
             ${plan.polling === 'batched' ? 'checkpoint(undefined, pollWork);' : ''}
@@ -292,8 +323,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         return recordFallback('number-loop:mutable-traversal', 'aliasing');
     if (reboundInputs && plan.calls.some(call => !call.privateStateSafe))
         return recordFallback('number-loop:rebound-call-state-proof', 'proof');
-    if (reboundInputs && plan.wideScalars.size > 0)
-        return recordFallback('number-loop:rebound-wide-value-proof', 'proof');
+    // Wide scalars and array handles are independent private registers. Both
+    // publish in first-write order; overflow discards the entire transaction.
+    // Array cell stores still require checked Numbers, regardless of scalars.
     if (reboundInputs && [...plan.destinations].some(([name, info]) => plan.arrayDefinitions.has(name)
         && (info.type !== 'integer' && info.type !== 'real'
             || info.rank !== 1 && !plan.arrayTransfers?.has(name) && !plan.ownedAliases?.has(name))))
@@ -389,7 +421,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     // Re-entered regions often read the same factorial/search tables. These
     // buffers are private snapshots, never destinations. Tracked revisions
     // invalidate them after a store; weak keys do not retain earlier inputs.
-    const readBuffers = new WeakMap<RankArray, { revision: number; type: LoopTerm['type']; cells: Float64Array }>();
+    const readBuffers = new WeakMap<RankArray, { revision: number; type: LoopTerm['type']; cells: Int32Array | Float64Array }>();
     const traversal = plan.iteration && loopTraversal(plan.iteration);
     const entryWork = prepareLoopEntryWork(plan, host);
     const vectorEntryWork = prepareVectorEntryWork(plan, host);
@@ -578,7 +610,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     continue;
                 }
                 // Mutating/vector regions use an invocation-private numeric copy.
-                const cells = new Float64Array(items.length);
+                let cells: Int32Array | Float64Array = type === 'integer'
+                    ? new Int32Array(items.length) : new Float64Array(items.length);
                 const diagnostics = currentDiagnostics();
                 if (diagnostics) diagnostics.cost('number-loop.snapshot').allocatedBytes += cells.byteLength;
                 for (let index = 0; index < items.length; index++) {
@@ -587,7 +620,17 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     if (info.type === 'real' ? typeof item !== 'number'
                         : info.type === 'boolean' ? typeof item !== 'boolean'
                             : typeof item !== 'bigint' || !Number.isSafeInteger(Number(item))) return recordFallback('number-loop:unsafe-cell', 'representation');
-                    cells[index] = Number(item);
+                    const number = Number(item);
+                    if (cells instanceof Int32Array && number !== (number | 0)) {
+                        const compact = cells;
+                        cells = new Float64Array(compact);
+                        if (diagnostics) {
+                            const cost = diagnostics.cost('number-loop.snapshot');
+                            cost.allocatedBytes += cells.byteLength;
+                            cost.copiedBytes += compact.byteLength;
+                        }
+                    }
+                    cells[index] = number;
                     if (diagnostics) diagnostics.cost('number-loop.snapshot').unboxedCells++;
                 }
                 buffers[info.slot] = cells;

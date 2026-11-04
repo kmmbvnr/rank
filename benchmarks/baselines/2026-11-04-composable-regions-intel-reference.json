@@ -1,0 +1,472 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+  "observations": [
+    {
+      "name": "inline",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 1623.371853,
+      "peakRssKiB": 164108,
+      "retainedHeap": 32432008,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 1610.216898,
+      "peakRssKiB": 165236,
+      "retainedHeap": 32473088,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 1699.9097170000002,
+      "peakRssKiB": 165252,
+      "retainedHeap": 32489336,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 1685.9789100000003,
+      "peakRssKiB": 163864,
+      "retainedHeap": 32446688,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 1623.6154339999998,
+      "peakRssKiB": 164284,
+      "retainedHeap": 32446864,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 1638.2672069999999,
+      "peakRssKiB": 165188,
+      "retainedHeap": 32449464,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "inline",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 3,
+      "milliseconds": 1657.664353,
+      "peakRssKiB": 164544,
+      "retainedHeap": 32507744,
+      "retainedBuffers": 424771,
+      "numberLoops": 0,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 1657.563158,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.2725829999999405,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3014656,
+          "copiedBytes": 3014656,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "loop:disabled": 2
+      }
+    },
+    {
+      "name": "inline",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 3,
+      "milliseconds": 1665.7399779999998,
+      "peakRssKiB": 164304,
+      "retainedHeap": 32456424,
+      "retainedBuffers": 424771,
+      "numberLoops": 0,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 1665.6324690000001,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.2912029999999959,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3014656,
+          "copiedBytes": 3014656,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "loop:disabled": 2
+      }
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 6467.521059,
+      "peakRssKiB": 427844,
+      "retainedHeap": 33386936,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 6402.279846,
+      "peakRssKiB": 427496,
+      "retainedHeap": 33360408,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 6332.185193,
+      "peakRssKiB": 428800,
+      "retainedHeap": 33396008,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 6459.795561999999,
+      "peakRssKiB": 427372,
+      "retainedHeap": 33333064,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 6294.034197999999,
+      "peakRssKiB": 429132,
+      "retainedHeap": 33343864,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 6478.932513000001,
+      "peakRssKiB": 428496,
+      "retainedHeap": 33357888,
+      "retainedBuffers": 424771
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 3,
+      "milliseconds": 6834.762402,
+      "peakRssKiB": 427952,
+      "retainedHeap": 33363408,
+      "retainedBuffers": 424771,
+      "numberLoops": 0,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 6834.574057,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.26702000000000226,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3014656,
+          "copiedBytes": 3014656,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "loop:disabled": 2
+      }
+    },
+    {
+      "name": "combined",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 3,
+      "milliseconds": 6595.628353,
+      "peakRssKiB": 422512,
+      "retainedHeap": 33346456,
+      "retainedBuffers": 424771,
+      "numberLoops": 0,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 6595.530952,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.25680399999998826,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 3014656,
+          "copiedBytes": 3014656,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "loop:disabled": 2
+      }
+    },
+    {
+      "name": "plans",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 898.2827229999999,
+      "peakRssKiB": 292980,
+      "retainedHeap": 35516440,
+      "retainedBuffers": 33603
+    },
+    {
+      "name": "plans",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 0,
+      "milliseconds": 960.731086,
+      "peakRssKiB": 303832,
+      "retainedHeap": 35548200,
+      "retainedBuffers": 33603
+    },
+    {
+      "name": "plans",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 977.063436,
+      "peakRssKiB": 294316,
+      "retainedHeap": 35547544,
+      "retainedBuffers": 33603
+    },
+    {
+      "name": "plans",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 1,
+      "milliseconds": 991.4920430000001,
+      "peakRssKiB": 290980,
+      "retainedHeap": 35541896,
+      "retainedBuffers": 33603
+    },
+    {
+      "name": "plans",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 926.272591,
+      "peakRssKiB": 306780,
+      "retainedHeap": 35572896,
+      "retainedBuffers": 33603
+    },
+    {
+      "name": "plans",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "off",
+      "sample": 2,
+      "milliseconds": 927.880021,
+      "peakRssKiB": 307916,
+      "retainedHeap": 35586808,
+      "retainedBuffers": 33603
+    },
+    {
+      "name": "plans",
+      "engine": "reference",
+      "version": "candidate",
+      "diagnostics": "on",
+      "sample": 3,
+      "milliseconds": 1023.232411,
+      "peakRssKiB": 304952,
+      "retainedHeap": 35591920,
+      "retainedBuffers": 33603,
+      "numberLoops": 0,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 1023.114621,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.2781680000000506,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "name": "plans",
+      "engine": "reference",
+      "version": "baseline",
+      "diagnostics": "on",
+      "sample": 3,
+      "milliseconds": 1000.2284290000001,
+      "peakRssKiB": 304464,
+      "retainedHeap": 35539048,
+      "retainedBuffers": 33603,
+      "numberLoops": 0,
+      "mixedLoops": 0,
+      "costs": {
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 1000.076046,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.2879410000000462,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    }
+  ]
+}
