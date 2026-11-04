@@ -1,0 +1,67 @@
+rem Total Inversion Count of Divided Seqs
+rem https://projecteuler.net/problem=705
+
+use numbers
+use sequences
+use algo
+use bits
+use linalg
+use io
+use cli
+
+arg Nn integer = 10 ** 8
+arg Pm integer = 1000000007
+
+rem Positions i < j with digits a, b add
+rem N(a, b) inversions over the divided
+rem sequences: those with x | a, y | b,
+rem x > y, times the choices elsewhere,
+rem T / (tau(a) tau(b)). So only the 9 x
+rem 9 counts C(a, b) of ordered digit
+rem pairs matter. They come from running
+rem digit counts, chunk by chunk.
+Pr = (Nn - 1) primesieve
+Dg = array shape 0 fill 0
+for L in 1 to 9
+  Lo = Pr at least 10 ** (L - 1)
+  Hi = Pr less 10 ** L
+  Bk = Pr filter (Lo and Hi)
+  Ex = 10 ** (L - 1 - (0 to L - 1))
+  Mx = (Bk reshape (Bk len) 1) // Ex mod 10
+  Nk = Bk len
+  Fl = Mx reshape (Nk * L)
+  Dg = concat Dg (Fl filter (Fl greater 0))
+end
+Vs = 1 to 9
+Cs = 1048576
+Cn = (Dg len + Cs - 1) // Cs
+Cc = array shape 81 fill 0
+Cr = array shape 9 fill 0
+for K in 0 to Cn - 1
+  Hd = K * Cs
+  Tl = (Hd + Cs - 1) min (Dg len - 1)
+  Zs = Dg (Hd to Tl)
+  Hm = (Vs reshape 9 1) equal Zs integer
+  Cu = Hm scan + axis 1
+  Ex = Cu - Hm + (Cr reshape 9 1)
+  Pt = Ex matmul (Hm transpose)
+  Cc = Cc + (Pt reshape 81)
+  Cr = Cr + (Hm sum axis 1)
+end
+rem Divisor table, tau and the weights.
+Dm = (Vs reshape 9 1) mod Vs equal 0 integer
+Up = (Vs reshape 9 1) greater Vs integer
+Gm = Dm matmul Up
+Nb = Gm matmul (Dm transpose)
+Tau = Dm sum axis 1
+Iv = Tau (Pm - 2) Pm powmod
+Wg = Nb * (Iv reshape 9 1) mod Pm * Iv mod Pm
+Tw = (Tau equal 4 integer) * 2
+Tw = Tw + (Tau equal 2 integer)
+Th = Tau equal 3 integer
+E2 = Tw * Cr sum
+E3 = Th * Cr sum
+Tt = (2 E2 Pm powmod) * (3 E3 Pm powmod) mod Pm
+Cm = Cc reshape 9 9 mod Pm
+Answer = Tt * (Cm * Wg mod Pm sum) mod Pm
+Answer print
