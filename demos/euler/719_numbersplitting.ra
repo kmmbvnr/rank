@@ -1,0 +1,73 @@
+rem Number Splitting
+rem https://projecteuler.net/problem=719
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+arg Nn integer = 10 ** 12
+
+rem Search the roots r with r = r^2
+rem mod 9 (r mod 9 is 0 or 1), since
+rem splitting keeps the value mod 9.
+rem A state is (root, digits left, sum).
+rem Each wave cuts one more block off
+rem the front. A branch lives while
+rem sum + digit sum of the rest <= r <=
+rem sum + value of the rest.
+Rt = Nn isqrt
+Cs = 2 to Rt
+Rs = Cs filter ((Cs mod 9) at most 1)
+Nr = Rs len
+Sq = Rs * Rs
+Qs = Sq reshape Nr 1
+Pw = 10 ** (0 to 13)
+Vm = Qs mod Pw
+Dg = (Qs // (10 ** (0 to 12))) mod 10
+Rw = (0 to 12) reshape 13 1
+Tr = Rw less (0 to 13)
+Sd = Dg matmul (Tr integer)
+Lo = 10 ** (0 to 12)
+Dc = (Qs at least Lo) integer
+Dn = Dc sum axis 1
+Vf = Vm reshape (Nr * 14)
+Sf = Sd reshape (Nr * 14)
+Hit = array shape Nr fill 0
+Fi = 0 to Nr - 1
+Fm = Dn
+Fs = Fi * 0
+Fl = 1
+Ls = (1 to 13) reshape 1 13
+for Fi len greater 0
+  Ns = Fi len
+  Ci = Fi reshape Ns 1
+  Cm = Fm reshape Ns 1
+  Rm = Cm - Ls
+  Ok = Rm at least 0
+  Lm = Ls at most (Cm - Fl)
+  Ok = Ok and Lm
+  Rz = Rm max 0
+  Sv = Vf (Ci * 14 + Cm)
+  Bk = Sv // Pw Rz
+  Sn = (Fs reshape Ns 1) + Bk
+  Ix = Ci * 14 + Rz
+  Vn = Vf Ix
+  Dn2 = Sf Ix
+  Rr = Rs Ci
+  Fin = (Rz equal 0) and (Sn equal Rr)
+  Done = Ok and Fin
+  Wi = (Ci + Ls * 0) filter Done
+  Hit Wi = 1
+  Lw = Sn + Dn2 at most Rr
+  Alive = (Rz greater 0) and Lw
+  Alive = Alive and (Rr at most Sn + Vn)
+  Alive = Alive and Ok
+  Fi = (Ci + Ls * 0) filter Alive
+  Fs = Sn filter Alive
+  Fm = Rz filter Alive
+  Fl = 0
+end
+Answer = (Hit * Sq) sum
+Answer print
