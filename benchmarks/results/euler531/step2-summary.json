@@ -1,0 +1,137 @@
+{
+  "mac": {
+    "full": {
+      "step1": {
+        "medianMs": 3019.728333,
+        "medianPeakRssMiB": 921.375
+      },
+      "step2": {
+        "medianMs": 2609.908375,
+        "medianPeakRssMiB": 702
+      }
+    },
+    "prime-full": {
+      "step1": {
+        "medianMs": 62.566125,
+        "medianPeakRssMiB": 163.5625
+      },
+      "step2": {
+        "medianMs": 12.972042000000002,
+        "medianPeakRssMiB": 90.59375
+      }
+    },
+    "prime-small": {
+      "step1": {
+        "medianMs": 0.3092499999999916,
+        "medianPeakRssMiB": 88.3125
+      },
+      "step2": {
+        "medianMs": 0.30700000000000216,
+        "medianPeakRssMiB": 88.015625
+      }
+    },
+    "prime-narrow": {
+      "step1": {
+        "medianMs": 0.30937500000000284,
+        "medianPeakRssMiB": 88.28125
+      },
+      "step2": {
+        "medianMs": 0.3065419999999932,
+        "medianPeakRssMiB": 91.28125
+      }
+    }
+  },
+  "intel": {
+    "full": {
+      "step1": {
+        "medianMs": 8169.673975,
+        "medianPeakRssMiB": 899.77734375
+      },
+      "step2": {
+        "medianMs": 7433.864246,
+        "medianPeakRssMiB": 686.96875
+      }
+    },
+    "prime-full": {
+      "step1": {
+        "medianMs": 132.43272100000002,
+        "medianPeakRssMiB": 160.4140625
+      },
+      "step2": {
+        "medianMs": 28.704664999999977,
+        "medianPeakRssMiB": 91.59375
+      }
+    },
+    "prime-small": {
+      "step1": {
+        "medianMs": 0.6934159999999565,
+        "medianPeakRssMiB": 89.25390625
+      },
+      "step2": {
+        "medianMs": 0.6884909999999991,
+        "medianPeakRssMiB": 88.86328125
+      }
+    },
+    "prime-narrow": {
+      "step1": {
+        "medianMs": 0.6709659999999644,
+        "medianPeakRssMiB": 88.69921875
+      },
+      "step2": {
+        "medianMs": 0.7712580000000457,
+        "medianPeakRssMiB": 88.58984375
+      }
+    }
+  },
+  "warmFallbackControls": {
+    "mac": {
+      "prime-small": {
+        "step1": {
+          "medianMs": 0.001999999999995339,
+          "medianPeakRssMiB": 91.65625
+        },
+        "step2": {
+          "medianMs": 0.0020625000000009663,
+          "medianPeakRssMiB": 91.078125
+        }
+      },
+      "prime-narrow": {
+        "step1": {
+          "medianMs": 0.0026039999999980523,
+          "medianPeakRssMiB": 91.78125
+        },
+        "step2": {
+          "medianMs": 0.002562999999994986,
+          "medianPeakRssMiB": 91.390625
+        }
+      }
+    },
+    "intel": {
+      "prime-small": {
+        "step1": {
+          "medianMs": 0.004421500000034939,
+          "medianPeakRssMiB": 88.71875
+        },
+        "step2": {
+          "medianMs": 0.004496500000016113,
+          "medianPeakRssMiB": 89.08203125
+        }
+      },
+      "prime-narrow": {
+        "step1": {
+          "medianMs": 0.005274499999984528,
+          "medianPeakRssMiB": 88.8125
+        },
+        "step2": {
+          "medianMs": 0.005949999999984357,
+          "medianPeakRssMiB": 88.90234375
+        }
+      }
+    }
+  },
+  "notes": [
+    "Full input and full prime copy use cold fresh-process times. Small fallback controls additionally include warmed measurements; cold sub-millisecond startup differences are not reliable speed estimates.",
+    "Small fallback copies differ by less than 0.001 ms; full input time and peak RSS fall on both architectures. Startup RSS differences below a few MiB are visible in the raw samples.",
+    "Native copy is restricted to large Int32 domains, and declines demand budgets, inspection, opaque polling and host sieve overrides."
+  ]
+}

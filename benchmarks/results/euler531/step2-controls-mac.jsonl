@@ -1,0 +1,12 @@
+{"mode":"small","ms":0.0019585000000006403,"firstMs":0.28983399999999904,"maxRssMiB":91.078125,"node":"v24.15.0","arch":"arm64","step":"step1","sample":0,"case":"prime-small"}
+{"mode":"narrow","ms":0.0022090000000005716,"firstMs":0.30445899999999426,"maxRssMiB":91.453125,"node":"v24.15.0","arch":"arm64","step":"step1","sample":0,"case":"prime-narrow"}
+{"mode":"small","ms":0.002125000000006594,"firstMs":0.2978750000000048,"maxRssMiB":88.265625,"node":"v24.15.0","arch":"arm64","step":"step2","sample":0,"case":"prime-small"}
+{"mode":"narrow","ms":0.0028329999999954225,"firstMs":0.3059160000000105,"maxRssMiB":91.390625,"node":"v24.15.0","arch":"arm64","step":"step2","sample":0,"case":"prime-narrow"}
+{"mode":"small","ms":0.001999999999995339,"firstMs":0.30229199999999423,"maxRssMiB":91.921875,"node":"v24.15.0","arch":"arm64","step":"step1","sample":1,"case":"prime-small"}
+{"mode":"narrow","ms":0.0026039999999980523,"firstMs":0.3062499999999915,"maxRssMiB":91.921875,"node":"v24.15.0","arch":"arm64","step":"step1","sample":1,"case":"prime-narrow"}
+{"mode":"small","ms":0.0020410000000055106,"firstMs":0.2950840000000028,"maxRssMiB":91.65625,"node":"v24.15.0","arch":"arm64","step":"step2","sample":1,"case":"prime-small"}
+{"mode":"narrow","ms":0.002271000000000356,"firstMs":0.31075000000001296,"maxRssMiB":91.078125,"node":"v24.15.0","arch":"arm64","step":"step2","sample":1,"case":"prime-narrow"}
+{"mode":"small","ms":0.0020209999999991624,"firstMs":0.29779200000000117,"maxRssMiB":91.65625,"node":"v24.15.0","arch":"arm64","step":"step1","sample":2,"case":"prime-small"}
+{"mode":"narrow","ms":0.002687500000000398,"firstMs":0.30058299999998894,"maxRssMiB":91.78125,"node":"v24.15.0","arch":"arm64","step":"step1","sample":2,"case":"prime-narrow"}
+{"mode":"small","ms":0.0020625000000009663,"firstMs":0.29112499999999386,"maxRssMiB":91.078125,"node":"v24.15.0","arch":"arm64","step":"step2","sample":2,"case":"prime-small"}
+{"mode":"narrow","ms":0.002562999999994986,"firstMs":0.30262499999999193,"maxRssMiB":91.59375,"node":"v24.15.0","arch":"arm64","step":"step2","sample":2,"case":"prime-narrow"}

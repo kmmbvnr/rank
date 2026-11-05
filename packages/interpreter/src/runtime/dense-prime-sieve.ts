@@ -1,5 +1,7 @@
 import { RankError } from '../errors.js';
-import { checkpoint, checkInterrupt } from '../interrupt.js';
+import { checkpoint, checkInterrupt, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { typedArray } from './array-storage.js';
+import { registerSequenceCompletion } from '../sequence-completion.js';
 import { above, within, strongerLower, strongerUpper, membershipInteger, registerMetadataBounds, type Boundary } from '../sequence-bounds.js';
 import { registerStoredSequence } from './stored-value.js';
 import { registerSequenceMembership } from '../sequence-membership.js';
@@ -83,6 +85,10 @@ export class DensePrimeSieve {
     }
 }
 
+// Host overrides must retain ordinary iterator behavior.
+const nativeContains = DensePrimeSieve.prototype.contains;
+const nativeCount = DensePrimeSieve.prototype.count;
+
 // Clamp before conversion so arbitrary BigInt bounds stay exact.
 function countThrough(sieve: DensePrimeSieve, limit: bigint): number {
     return limit < 2n ? 0 : sieve.count(Number(limit > BigInt(sieve.limit) ? BigInt(sieve.limit) : limit));
@@ -126,6 +132,29 @@ function sievePlan(sieve: DensePrimeSieve, upper: Boundary, lower?: Boundary): S
             return sievePlan(sieve, upper, strongerLower(lower, { limit, inclusive }));
         },
     };
+    // Keep small slices on ordinary iteration. Large finite Int32 copies
+    // fill final cells without a temporary array of boxed prime values.
+    if (last <= 2147483647n && last - before >= 65536n) {
+        registerSequenceCompletion(plan, () => {
+            if (inspectionEnabled() || demandBudgetEnabled() || !privateLoopPolling()
+                || sieve.contains !== nativeContains || sieve.count !== nativeCount) return undefined;
+            const cells = new Int32Array(Number(countBetween(sieve, last, before)));
+            let at = 0;
+            if (before < 2n && last >= 2n) cells[at++] = 2;
+            let first = Number(before < 2n ? 3n : before + 1n);
+            if (first % 2 === 0) first++;
+            const end = Number(last);
+            for (let start = first; start <= end; start += 8192) {
+                const stop = Math.min(end, start + 8190);
+                checkpoint('materializing prime sieve', Math.floor((stop - start) / 2) + 1);
+                for (let value = start; value <= stop; value += 2) {
+                    if (sieve.contains(value)) cells[at++] = value;
+                }
+            }
+            checkInterrupt('materializing prime sieve');
+            return typedArray(cells);
+        });
+    }
     registerSequenceMembership(plan);
     registerMetadataBounds(plan, (limit, inclusive) => {
         const end = limit - (inclusive ? 0n : 1n);

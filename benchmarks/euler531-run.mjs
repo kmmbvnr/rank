@@ -9,10 +9,12 @@ const roots = process.argv.slice(2).map(value => {
 });
 assert.ok(roots.length);
 for (let sample = 0; sample < 3; sample++) for (const [step, root] of roots) {
-    for (const test of ['full', 'small', 'empty', 'sparse', 'dense']) {
+    for (const test of (process.env.RANK_CASES ?? 'full,small,empty,sparse,dense').split(',')) {
         const command = test === 'full'
             ? [resolve(import.meta.dirname, 'euler705-investigation.mjs'), '100000000']
-            : [resolve(import.meta.dirname, 'euler531-masks.mjs'), test];
+            : test.startsWith('prime-')
+                ? [resolve(import.meta.dirname, 'euler531-primes.mjs'), test.slice(6)]
+                : [resolve(import.meta.dirname, 'euler531-masks.mjs'), test];
         const run = spawnSync(process.execPath, command, {
             env: { ...process.env, RANK_ROOT: root }, encoding: 'utf8', maxBuffer: 1024 * 1024,
         });

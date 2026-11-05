@@ -1,0 +1,12 @@
+{"mode":"small","ms":0.004421500000034939,"firstMs":0.6802419999999643,"maxRssMiB":88.71875,"node":"v24.15.0","arch":"x64","step":"step1","sample":0,"case":"prime-small"}
+{"mode":"narrow","ms":0.0052730000000167365,"firstMs":0.7449550000000045,"maxRssMiB":88.8125,"node":"v24.15.0","arch":"x64","step":"step1","sample":0,"case":"prime-narrow"}
+{"mode":"small","ms":0.0058594999999854736,"firstMs":0.7491999999999734,"maxRssMiB":89.08203125,"node":"v24.15.0","arch":"x64","step":"step2","sample":0,"case":"prime-small"}
+{"mode":"narrow","ms":0.005949999999984357,"firstMs":0.6765010000000302,"maxRssMiB":88.921875,"node":"v24.15.0","arch":"x64","step":"step2","sample":0,"case":"prime-narrow"}
+{"mode":"small","ms":0.004591000000004897,"firstMs":0.6887710000000311,"maxRssMiB":88.453125,"node":"v24.15.0","arch":"x64","step":"step1","sample":1,"case":"prime-small"}
+{"mode":"narrow","ms":0.0058709999999848606,"firstMs":0.667917999999986,"maxRssMiB":88.93359375,"node":"v24.15.0","arch":"x64","step":"step1","sample":1,"case":"prime-narrow"}
+{"mode":"small","ms":0.004473500000017339,"firstMs":0.6768640000000232,"maxRssMiB":89.13671875,"node":"v24.15.0","arch":"x64","step":"step2","sample":1,"case":"prime-small"}
+{"mode":"narrow","ms":0.005639500000000908,"firstMs":0.6685640000000035,"maxRssMiB":88.45703125,"node":"v24.15.0","arch":"x64","step":"step2","sample":1,"case":"prime-narrow"}
+{"mode":"small","ms":0.004340500000012071,"firstMs":0.7465239999999653,"maxRssMiB":89.39453125,"node":"v24.15.0","arch":"x64","step":"step1","sample":2,"case":"prime-small"}
+{"mode":"narrow","ms":0.005274499999984528,"firstMs":0.7808459999999968,"maxRssMiB":88.76171875,"node":"v24.15.0","arch":"x64","step":"step1","sample":2,"case":"prime-narrow"}
+{"mode":"small","ms":0.004496500000016113,"firstMs":0.6755170000000135,"maxRssMiB":88.38671875,"node":"v24.15.0","arch":"x64","step":"step2","sample":2,"case":"prime-small"}
+{"mode":"narrow","ms":0.006391999999976861,"firstMs":0.7847889999999893,"maxRssMiB":88.90234375,"node":"v24.15.0","arch":"x64","step":"step2","sample":2,"case":"prime-narrow"}
