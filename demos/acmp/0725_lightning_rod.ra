@@ -1,0 +1,130 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 725: Lightning Rod
+rem Min rod height to protect city.
+
+arg Input text = "10 30
+0 0 100 100 20
+150 50 250 150 35
+300 0 400 100 15
+50 200 120 300 40
+200 250 320 350 25
+400 200 500 300 50
+100 400 200 500 30
+300 420 400 500 45
+500 50 600 180 20
+550 350 650 480 60"
+
+fun X Y eval_tip PX PY PZ C
+  DX = PX - X
+  DY = PY - Y
+  Dists = ((DX ** 2) + (DY ** 2)) sqrt
+  return ((PZ + (C * Dists)) max)
+end
+
+fun X YLo YHi best_y PX PY PZ C
+  for Step in 1 to 34
+    D = (YHi - YLo) / 3.0
+    M1 = YLo + D
+    M2 = YHi - D
+    V1 = X M1 eval_tip PX PY PZ C
+    V2 = X M2 eval_tip PX PY PZ C
+    if V1 less V2
+      YHi = M2
+    else
+      YLo = M1
+    end
+  end
+  MidY = (YLo + YHi) / 2.0
+  return (X MidY eval_tip PX PY PZ C)
+end
+
+fun B best_box X1 X2 Y1 Y2 H PX PY PZ C
+  XLo = X1 B
+  XHi = X2 B
+  YLo = Y1 B
+  YHi = Y2 B
+  for Step in 1 to 34
+    D = (XHi - XLo) / 3.0
+    M1 = XLo + D
+    M2 = XHi - D
+    V1 = M1 YLo YHi best_y PX PY PZ C
+    V2 = M2 YLo YHi best_y PX PY PZ C
+    if V1 less V2
+      XHi = M2
+    else
+      XLo = M1
+    end
+  end
+  MidX = (XLo + XHi) / 2.0
+  TipZ = MidX YLo YHi best_y PX PY PZ C
+  ReqH = TipZ - (H B)
+  if ReqH less 0.0
+    return 0.0
+  end
+  return ReqH
+end
+
+fun solve_rod Input
+  Toks = Input words real
+  ToksInt = Input words integer
+  N = ToksInt 0
+  Phi = Toks 1
+  PI = 3.141592653589793
+  Rad = Phi * PI / 180.0
+  C = (Rad cos) / (Rad sin)
+
+  PX = array shape (4 * N) fill 0.0
+  PY = array shape (4 * N) fill 0.0
+  PZ = array shape (4 * N) fill 0.0
+
+  X1 = array shape N fill 0.0
+  Y1 = array shape N fill 0.0
+  X2 = array shape N fill 0.0
+  Y2 = array shape N fill 0.0
+  H = array shape N fill 0.0
+
+  for I in 0 to (N - 1)
+    Base = 2 + (I * 5)
+    Bx1 = Toks Base
+    By1 = Toks (Base + 1)
+    Bx2 = Toks (Base + 2)
+    By2 = Toks (Base + 3)
+    Bh = Toks (Base + 4)
+    X1 I = Bx1
+    Y1 I = By1
+    X2 I = Bx2
+    Y2 I = By2
+    H I = Bh
+    P = I * 4
+    PX P = Bx1
+    PY P = By1
+    PZ P = Bh
+    PX (P + 1) = Bx1
+    PY (P + 1) = By2
+    PZ (P + 1) = Bh
+    PX (P + 2) = Bx2
+    PY (P + 2) = By1
+    PZ (P + 2) = Bh
+    PX (P + 3) = Bx2
+    PY (P + 3) = By2
+    PZ (P + 3) = Bh
+  end
+
+  Best = 1000000000.0
+  for I in 0 to (N - 1)
+    Cur = I best_box X1 X2 Y1 Y2 H PX (
+      PY) PZ C
+    if Cur less Best
+      Best = Cur
+    end
+  end
+  return Best
+end
+
+Result = solve_rod Input
+Result print
