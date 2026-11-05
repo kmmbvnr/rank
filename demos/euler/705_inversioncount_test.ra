@@ -2,10 +2,10 @@ use testing
 
 test "statement values"
   use "705_inversioncount"
-  Nn = 20
+  Limit = 20
   run
   Answer equal 3312
-  Nn = 50
+  Limit = 50
   run
   Answer equal 338079744
 end

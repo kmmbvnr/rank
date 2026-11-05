@@ -9,8 +9,8 @@ use linalg
 use io
 use cli
 
-arg Nn integer = 10 ** 8
-arg Pm integer = 1000000007
+arg Limit integer = 10 ** 8
+arg Prime integer = 1000000007
 
 rem Positions i < j with digits a, b add
 rem N(a, b) inversions over the divided
@@ -20,54 +20,66 @@ rem T / (tau(a) tau(b)). So only the 9 x
 rem 9 counts C(a, b) of ordered digit
 rem pairs matter. They come from running
 rem digit counts, chunk by chunk.
-Pr = (Nn - 1) primesieve
-Dg = array shape 0 fill 0
-for L in 1 to 9
-  Lo = Pr at least 10 ** (L - 1)
-  Hi = Pr less 10 ** L
-  Bk = Pr filter (Lo and Hi)
-  Ex = 10 ** (L - 1 - (0 to L - 1))
-  Nk = Bk len
-  Mx = (Bk reshape Nk 1) // Ex mod 10
-  Fl = Mx reshape (Nk * L)
-  Nz = Fl filter (Fl greater 0)
-  Dg = concat Dg Nz
+Primes = (Limit - 1) primesieve
+Digits = array shape 0 fill 0
+for Size in 1 to 9
+  Low = 10 ** (Size - 1)
+  Above = Primes at least Low
+  Below = Primes less 10 ** Size
+  Both = Above and Below
+  Block = Primes filter Both
+  Depth = Size - 1 - (0 to Size - 1)
+  Place = 10 ** Depth
+  Rows = Block len
+  Column2 = Block reshape Rows 1
+  Matrix = Column2 // Place mod 10
+  Flat = Matrix reshape (Rows * Size)
+  Nonzero = Flat filter (Flat greater 0)
+  Digits = concat Digits Nonzero
 end
-Vs = 1 to 9
-Cs = 1048576
-Cn = (Dg len + Cs - 1) // Cs
-Cc = array shape 81 fill 0
-Cr = array shape 9 fill 0
-for K in 0 to Cn - 1
-  Hd = K * Cs
-  Tl = (Hd + Cs - 1) min (Dg len - 1)
-  Zs = Dg (Hd to Tl)
-  Hm = (Vs reshape 9 1) equal Zs integer
-  Cu = Hm scan + axis 1
-  Ex = Cu - Hm + (Cr reshape 9 1)
-  Pt = Ex matmul (Hm transpose)
-  Cc = Cc + (Pt reshape 81)
-  Cr = Cr + (Hm sum axis 1)
+Faces = 1 to 9
+Chunk = 1048576
+Total2 = Digits len
+Chunks = (Total2 + Chunk - 1) // Chunk
+Pairs = array shape 81 fill 0
+Seen = array shape 9 fill 0
+for Index in 0 to Chunks - 1
+  Head = Index * Chunk
+  Last = Head + Chunk - 1
+  Tail = Last min (Total2 - 1)
+  Part = Digits (Head to Tail)
+  Wide = Faces reshape 9 1
+  Hot = Wide equal Part integer
+  Total = Hot scan + axis 1
+  Carry = Seen reshape 9 1
+  Before = Total - Hot + Carry
+  Cross = Before matmul (Hot transpose)
+  Pairs = Pairs + (Cross reshape 81)
+  Seen = Seen + (Hot sum axis 1)
 end
 rem Divisor table, tau and the weights.
-Cl = Vs reshape 9 1
-Dm = Cl mod Vs equal 0 integer
-Up = (Vs reshape 9 1) greater Vs integer
-Gm = Dm matmul Up
-Nb = Gm matmul (Dm transpose)
-Tau = Dm sum axis 1
-Iv = Tau (Pm - 2) Pm powmod
-Wg = Nb * (Iv reshape 9 1) mod Pm
-Wg = Wg * Iv mod Pm
-Tw = (Tau equal 4 integer) * 2
-Tw = Tw + (Tau equal 2 integer)
-Th = Tau equal 3 integer
-E2 = Tw * Cr sum
-E3 = Th * Cr sum
-P2 = 2 E2 Pm powmod
-P3 = 3 E3 Pm powmod
-Tt = P2 * P3 mod Pm
-Cm = Cc reshape 9 9 mod Pm
-Sm = Cm * Wg mod Pm sum
-Answer = Tt * Sm mod Pm
+Column = Faces reshape 9 1
+Whole = Column mod Faces equal 0
+Divides = Whole integer
+Bigger = Column greater Faces
+Larger = Bigger integer
+Mixed = Divides matmul Larger
+Moves = Mixed matmul (Divides transpose)
+Tau = Divides sum axis 1
+Inverse = Tau (Prime - 2) Prime powmod
+Side = Inverse reshape 9 1
+Weight = Moves * Side mod Prime
+Weight = Weight * Inverse mod Prime
+TwoPart = (Tau equal 4 integer) * 2
+Twice = Tau equal 2 integer
+TwoPart = TwoPart + Twice
+ThreePart = Tau equal 3 integer
+TwoExp = TwoPart * Seen sum
+ThreeExp = ThreePart * Seen sum
+TwoPow = 2 TwoExp Prime powmod
+ThreePow = 3 ThreeExp Prime powmod
+Choices = TwoPow * ThreePow mod Prime
+Counts = Pairs reshape 9 9 mod Prime
+Sum = Counts * Weight mod Prime sum
+Answer = Choices * Sum mod Prime
 Answer print

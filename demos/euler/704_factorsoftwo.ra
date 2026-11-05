@@ -6,22 +6,22 @@ use bits
 use io
 use cli
 
-arg Nn integer = 10 ** 16
+arg Limit integer = 10 ** 16
 
 rem Kummer: F(n) = k - min(v2(n+1), k)
 rem with k = floor(log2 n). A full
 rem block 2^k..2^(k+1)-1 sums to
 rem (k-1) 2^k + 1. In the last block
 rem count the multiples of 2^t.
-Kk = (Nn binary len) - 1
-Ks = 1 to Kk - 1
-Blk = (Ks - 1) * 2 ** Ks + 1
-Full = Blk sum
-Ts = 1 to Kk
-Up = (Nn + 1) // 2 ** Ts
-Mult = Up - 2 ** (Kk - Ts)
-Cut = Mult sum
-Mm = Nn - 2 ** Kk + 1
-Tail = Kk * Mm - Cut
+Top = (Limit binary len) - 1
+Blocks = 1 to Top - 1
+Sums = (Blocks - 1) * 2 ** Blocks + 1
+Full = Sums sum
+Levels = 1 to Top
+Count = (Limit + 1) // 2 ** Levels
+Extra = Count - 2 ** (Top - Levels)
+Cut = Extra sum
+Size = Limit - 2 ** Top + 1
+Tail = Top * Size - Cut
 Answer = Full + Tail
 Answer print
