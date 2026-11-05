@@ -150,5 +150,6 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0978** | [Последовательность - 5](0978_sequence_5.ra) | Number Theory (79%) | Legendre's formula for maximal $k$ with $n^k \mid n!$ using `N factors unique` |
 | **0989** | [Окопы](0989_trenches.ra) | Geometry / SAT (64%) | Strict separating line via Separating Axis Theorem (SAT) over difference vectors |
 | **0993** | [Симпатичные последовательности](0993_pretty_sequences.ra) | Data Structures / Segment Tree (61%) | Maximal $k$-pretty prefix via point increment updates and range prefix minimum segment tree queries `Tree 0 (V - 1) query` |
+| **0998** | [Велосипедные дорожки](0998_bike_paths.ra) | Computational Geometry / Snell's Law (72%) | Min travel time across two circular tracks via Snell's law dual virtual concentric circle common tangents and zero-loop analytical arc evaluation |
 | **0999** | [Диверсия](0999_sabotage.ra) | Graph Theory (70%) | Count 2-edge (stone, dirt) cuts via spanning tree BFS, back-edge difference accumulation, and reverse topological sum |
 | **1000** | [Упаковка чисел](1000_number_packing.ra) | Bitwise / Encodings (65%) | Variable-length prefix-free integer encoding (1–9 bytes) into hex |
