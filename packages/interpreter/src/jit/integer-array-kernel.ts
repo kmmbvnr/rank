@@ -129,6 +129,18 @@ function compactBinary(code: number, a: Int32Array, ao: number, as: number,
     return out;
 }
 
+/** Prove a compact broadcast result before allocating its output. Inspect
+ * only the logical view, which may be a tiny slice of a large buffer. */
+function compactMaximum(cells: Int32Array, offset: number, stride: number, size: number): number {
+    let maximum = 0;
+    for (let start = 0; start < size; start += 4096) {
+        const end = Math.min(size, start + 4096);
+        checkpoint('checking integer broadcast bounds', end - start);
+        for (let i = start; i < end; i++) maximum = Math.max(maximum, Math.abs(cells[offset + i * stride]));
+    }
+    return maximum;
+}
+
 /** Completed integer operands can produce a compact result without BigInt arithmetic.
  * A result that widens discards the temporary buffer and uses exact arithmetic. */
 function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-' | '*' | 'gcd' | 'mod' | '//' | 'min' | 'max' | '**'): RankArray | undefined {
@@ -165,30 +177,32 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
     // Contiguous lanes share one broadcast address per row. Keep the result
     // compact instead of allocating a double buffer for every broadcast cell.
     if (code === 2 && (ai || bi) && ac && bc && shape[shape.length - 1] >= 4) {
-        const cells = new Int32Array(size);
         const aShape = (left as RankArray).shape, bShape = (right as RankArray).shape;
-        const aStrides = arrayStrides(aShape), bStrides = arrayStrides(bShape);
-        const width = shape[shape.length - 1];
-        const aStep = !aShape.length || aShape[aShape.length - 1] === 1 ? 0 : as;
-        const bStep = !bShape.length || bShape[bShape.length - 1] === 1 ? 0 : bs;
-        let nextPoll = 0;
-        for (let row = 0; row < size; row += width) {
-            const ap = ao + broadcastOffset(row, shape, aShape, aStrides) * as;
-            const bp = bo + broadcastOffset(row, shape, bShape, bStrides) * bs;
-            for (let start = 0; start < width; start += 4096) {
-                const end = Math.min(width, start + 4096);
-                if (row + start >= nextPoll) {
-                    checkpoint('computing integer array', Math.min(4096, size - row - start));
-                    nextPoll = row + start + 4096;
-                }
-                for (let column = start; column < end; column++) {
-                    const value = ac[ap + column * aStep] * bc[bp + column * bStep];
-                    if (value !== (value | 0)) return undefined;
-                    cells[row + column] = value;
+        const aSize = aShape.reduce((n, axis) => n * axis, 1), bSize = bShape.reduce((n, axis) => n * axis, 1);
+        if (compactMaximum(ac, ao, as, aSize) * compactMaximum(bc, bo, bs, bSize) <= 2147483647) {
+            const cells = new Int32Array(size);
+            const aStrides = arrayStrides(aShape), bStrides = arrayStrides(bShape);
+            const width = shape[shape.length - 1];
+            const aStep = !aShape.length || aShape[aShape.length - 1] === 1 ? 0 : as;
+            const bStep = !bShape.length || bShape[bShape.length - 1] === 1 ? 0 : bs;
+            let nextPoll = 0;
+            for (let row = 0; row < size; row += width) {
+                const ap = ao + broadcastOffset(row, shape, aShape, aStrides) * as;
+                const bp = bo + broadcastOffset(row, shape, bShape, bStrides) * bs;
+                for (let start = 0; start < width; start += 4096) {
+                    const end = Math.min(width, start + 4096);
+                    if (row + start >= nextPoll) {
+                        checkpoint('computing integer array', Math.min(4096, size - row - start));
+                        nextPoll = row + start + 4096;
+                    }
+                    for (let column = start; column < end; column++) {
+                        const value = ac[ap + column * aStep] * bc[bp + column * bStep];
+                        cells[row + column] = value;
+                    }
                 }
             }
+            return typedArray(cells, shape);
         }
-        return typedArray(cells, shape);
     }
 
     // Allocate wide scratch only after the compact path declines. Most stored

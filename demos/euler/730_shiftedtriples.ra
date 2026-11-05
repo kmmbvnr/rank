@@ -1,0 +1,105 @@
+rem Shifted Pythagorean Triples
+rem https://projecteuler.net/problem=730
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Shifts integer = 100
+arg Perimeter integer = 10 ** 8
+arg Budget integer = 4000000
+
+rem The Berggren maps keep r^2 - p^2 -
+rem q^2 = k, preserve primitivity and
+rem lead from every root to its
+rem descendants. Roots are the primitive
+rem solutions with p, q <= max(4m, 10)
+rem and no positive parent. All ordered
+rem solutions with p + q + r <= n are
+rem grown from the roots in blocks taken
+rem from the end of a pool; the p <= q
+rem count is (all + those p = q) / 2.
+Span = (4 * Shifts) max 10
+Count = Shifts + 1
+Shift = (0 to Shifts) reshape Count 1 1
+Legs1 = (1 to Span) reshape 1 Span 1
+Legs2 = (1 to Span) reshape 1 1 Span
+Squares = Legs1 * Legs1 + Legs2 * Legs2
+Squares = Squares + Shift
+Hyp = Squares isqrt
+Exact = (Hyp * Hyp) equal Squares
+Common = (Legs1 gcd Legs2) gcd Hyp
+Coprime = Common equal 1
+FirstX = Legs1 + 2 * Legs2 - 2 * Hyp
+FirstY = 2 * Hyp - 2 * Legs1 - Legs2
+Height = 3 * Hyp - 2 * Legs1 - 2 * Legs2
+SecondY = 2 * Legs1 + Legs2 - 2 * Hyp
+ThirdX = 2 * Hyp - Legs1 - 2 * Legs2
+Tall = Height greater 0
+PosX = FirstX greater 0
+Up1 = PosX and (FirstY greater 0)
+Up1 = Up1 and Tall
+Up2 = PosX and (SecondY greater 0)
+Up2 = Up2 and Tall
+Up3 = (ThirdX greater 0)
+Up3 = Up3 and (SecondY greater 0)
+Up3 = Up3 and Tall
+Root = Exact and Coprime
+Root = Root and (Up1 not equal true)
+Root = Root and (Up2 not equal true)
+Root = Root and (Up3 not equal true)
+Sums = Legs1 + Legs2 + Hyp
+Root = Root and (Sums at most Perimeter)
+Zero = Legs1 * 0 + Legs2 * 0 + Shift * 0
+Pool1 = (Legs1 + Zero) filter Root
+Pool2 = (Legs2 + Zero) filter Root
+Pool3 = Hyp filter Root
+All = 0
+Diag = 0
+for Pool1 len greater 0
+  Size = Pool1 len
+  Take = Size min Budget
+  Keep = Size - Take
+  P = Pool1 drop Keep
+  Q = Pool2 drop Keep
+  R = Pool3 drop Keep
+  Pool1 = Pool1 take Keep
+  Pool2 = Pool2 take Keep
+  Pool3 = Pool3 take Keep
+  All += Take
+  Equal = P equal Q
+  Diag += Equal count
+  PA = P - 2 * Q + 2 * R
+  QA = 2 * P - Q + 2 * R
+  RA = 2 * P - 2 * Q + 3 * R
+  PB = P + 2 * Q + 2 * R
+  QB = 2 * P + Q + 2 * R
+  RB = 2 * P + 2 * Q + 3 * R
+  PC = 2 * Q + 2 * R - P
+  QC = Q + 2 * R - 2 * P
+  RC = 2 * Q + 3 * R - 2 * P
+  SumA = PA + QA + RA
+  SumB = PB + QB + RB
+  SumC = PC + QC + RC
+  FitA = SumA at most Perimeter
+  FitB = SumB at most Perimeter
+  FitC = SumC at most Perimeter
+  PBs = PB filter FitB
+  PCs = PC filter FitC
+  LegsB = concat PBs PCs
+  Pool1 = concat Pool1 (PA filter FitA)
+  Pool1 = concat Pool1 LegsB
+  QBs = QB filter FitB
+  QCs = QC filter FitC
+  LegsB = concat QBs QCs
+  Pool2 = concat Pool2 (QA filter FitA)
+  Pool2 = concat Pool2 LegsB
+  RBs = RB filter FitB
+  RCs = RC filter FitC
+  LegsB = concat RBs RCs
+  Pool3 = concat Pool3 (RA filter FitA)
+  Pool3 = concat Pool3 LegsB
+end
+Answer = (All + Diag) // 2
+Answer print

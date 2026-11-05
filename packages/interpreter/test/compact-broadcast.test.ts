@@ -39,9 +39,9 @@ describe('compact broadcast products', () => {
 
     it('widens a product outside Int32 without changing either input', () => {
         const left = typedArray(new Int32Array([1, 2147483647]), [2, 1]);
-        const right = typedArray(new Int32Array([1, 3]), [1, 2]);
+        const right = typedArray(new Int32Array([1, 3, -2, 0, 1]), [1, 5]);
         const result = mapStoredIntegers(left, right, '*') as RankArray;
-        expect([...result.items]).toEqual([1n, 3n, 2147483647n, 6442450941n]);
+        expect([...result.items]).toEqual([1n, 3n, -2n, 0n, 1n, 2147483647n, 6442450941n, -4294967294n, 0n, 2147483647n]);
         expect(readArrayItem(left, 1)).toBe(2147483647n);
     });
 

@@ -59,7 +59,8 @@
     "Broadcast product with one-cell rows: slower in the control; final row kernel requires at least four columns.",
     "Packed matrix rows in Rank: Mac 7.13 s / 599.5 MiB and Intel 20.11 s / 587.91 MiB; peak memory higher than dense step1.",
     "Eager arbitrary precision array bitwise fallback: packed solver Mac 6.05 s / 604.69 MiB and Intel 18.74 s / 597.02 MiB; discarded with packed solver since memory did not improve.",
-    "Packed choose masks: Mac 9.81 s / 620.67 MiB; slower and more memory than multiplication masks."
+    "Packed choose masks: Mac 9.81 s / 620.67 MiB; slower and more memory than multiplication masks.",
+    "Speculative compact output for wide broadcast products: replaced by a logical-view magnitude proof; wide products retain the existing wide kernel without allocating a compact scratch buffer."
   ],
   "verification": {
     "differentialCases": 126,
@@ -69,12 +70,133 @@
       true,
       false
     ],
-    "focusedRuntimeTests": 207,
+    "focusedRuntimeTests": 225,
     "fullEuler707Tests": 2,
     "demoTests": 2,
     "semanticBoundaryChecks": true,
-    "fullAuditsRun": false
+    "fullAuditsRun": false,
+    "integratedBothHosts": true
   },
   "measurement": "One fresh process per baseline and intermediate full run; three fresh processes per final full run and paired kernel control. maxRSS is whole process peak, not retained heap.",
-  "finalAlgorithm": "Fibonacci polynomial recurrence modulo the cyclic path matrix characteristic polynomial; nullity equals degree of polynomial gcd. No task-specific interpreter primitive."
+  "finalAlgorithm": "Fibonacci polynomial recurrence modulo the cyclic path matrix characteristic polynomial; nullity equals degree of polynomial gcd. No task-specific interpreter primitive.",
+  "final": {
+    "mac": {
+      "samples": 3,
+      "medianMs": 160.91312499999998,
+      "medianMaxRssMiB": 182.828125,
+      "maxRssMiB": 183.171875
+    },
+    "intel": {
+      "samples": 3,
+      "medianMs": 410.95493000000005,
+      "medianMaxRssMiB": 169.0390625,
+      "maxRssMiB": 170.83984375
+    }
+  },
+  "kernelControls": {
+    "mac": {
+      "broadcast": {
+        "baseline": {
+          "medianMs": 187.77708299999998,
+          "medianMaxRssMiB": 161.109375
+        },
+        "step1": {
+          "medianMs": 12.887166999999991,
+          "medianMaxRssMiB": 112.390625
+        }
+      },
+      "wide": {
+        "baseline": {
+          "medianMs": 198.89875,
+          "medianMaxRssMiB": 159.390625
+        },
+        "step1": {
+          "medianMs": 196.172459,
+          "medianMaxRssMiB": 157.65625
+        }
+      },
+      "lane": {
+        "baseline": {
+          "medianMs": 72.283584,
+          "medianMaxRssMiB": 139.53125
+        },
+        "step1": {
+          "medianMs": 71.344459,
+          "medianMaxRssMiB": 139.734375
+        }
+      },
+      "control": {
+        "baseline": {
+          "medianMs": 5.108125000000001,
+          "medianMaxRssMiB": 99.421875
+        },
+        "step1": {
+          "medianMs": 5.045625000000001,
+          "medianMaxRssMiB": 99.515625
+        }
+      }
+    },
+    "intel": {
+      "broadcast": {
+        "baseline": {
+          "medianMs": 492.77907600000003,
+          "medianMaxRssMiB": 153.609375
+        },
+        "step1": {
+          "medianMs": 32.203873999999985,
+          "medianMaxRssMiB": 108.90625
+        }
+      },
+      "wide": {
+        "baseline": {
+          "medianMs": 499.87410099999994,
+          "medianMaxRssMiB": 152.89453125
+        },
+        "step1": {
+          "medianMs": 500.030086,
+          "medianMaxRssMiB": 153.60546875
+        }
+      },
+      "lane": {
+        "baseline": {
+          "medianMs": 176.93403999999998,
+          "medianMaxRssMiB": 133.7578125
+        },
+        "step1": {
+          "medianMs": 173.07307799999995,
+          "medianMaxRssMiB": 134.69921875
+        }
+      },
+      "control": {
+        "baseline": {
+          "medianMs": 10.75690800000001,
+          "medianMaxRssMiB": 95.2890625
+        },
+        "step1": {
+          "medianMs": 10.586649999999963,
+          "medianMaxRssMiB": 95.84765625
+        }
+      }
+    }
+  },
+  "integrationBase": "e2370c824be706e67db963e1c92bd2bc21970f53",
+  "sourceSha256": "a9c68ab9ade69bfbd1dd6ea0ffb5a8312c0ecb70a161692511e514aa86caa73d",
+  "runtimeSha256": {
+    "jit/integer-array-kernel.js": "60872b335d6dd736c5f64903fdf0b3619419dafc4d8af8787d13056f565ccd99",
+    "reduction.js": "628036c7d00757e6d91048b8ca50d34d40bfbfbcd463f66d57c14c520a247b20",
+    "jit/integer-loop.js": "ba08062c7a9c130284c473dd5d27f91db0f1b0bcc22680bd51d5eab565aff27b",
+    "jit/integer-loop-wide.js": "f8df28b3c0e856f71322789ebd191b6c1c26d0a66daafae25f0d4081ed7e606b"
+  },
+  "runtimeOnlyFinal": {
+    "mac": {
+      "ms": 21803.630291,
+      "maxRssMiB": 543.84375,
+      "answer": "652907799"
+    },
+    "intel": {
+      "ms": 47357.15026,
+      "maxRssMiB": 472.71484375,
+      "answer": "652907799"
+    }
+  }
 }

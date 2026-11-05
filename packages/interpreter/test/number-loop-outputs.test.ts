@@ -33,6 +33,75 @@ describe('exact outputs before wide intermediates', () => {
         expect(diagnostics.mixedIntegerLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     });
+    it('keeps independent terms checked beside an exact modulus and accumulator', () => {
+        const { diagnostics, observation } = compare(`Modulus = 1000000000000000000
+Total = 0
+for I in 1 to 4
+ Term = I * 123
+ Total = (Total + Term) mod Modulus
+end`);
+        expect(observation.error).toBeUndefined();
+        expect(observation.values).toContainEqual(['Total', '1230']);
+        expect(diagnostics.mixedIntegerLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    });
+    it('replays the boundary tier when an independent term becomes wide', () => {
+        const { diagnostics, observation } = compare(`Modulus = 1000000000000000000
+A = array 0 0
+Alias = A
+Total = 0
+for I in 0 to 1
+ A I += 1
+ Term = 9007199254740991 + I
+ Total = (Total + Term) mod Modulus
+end`);
+        expect(observation.error).toBeUndefined();
+        expect(observation.values).toContainEqual(['A', '1 1']);
+        expect(observation.values).toContainEqual(['Alias', '0 0']);
+        expect(observation.values).toContainEqual(['Total', '18014398509481983']);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+    });
+    it('publishes boundary-tier writes before a failing exact expression', () => {
+        const { observation } = compare(`Modulus = 1000000000000000000
+A = array 0 0
+Total = 0
+for I in 0 to 1
+ A I += 1
+ Total = (Total + I) mod (Modulus * (1 - I))
+end`);
+        expect(observation.error).toContain('zero');
+        expect(observation.values).toContainEqual(['A', '1 1']);
+    });
+    it('reuses boundary plans across small and exact external inputs', () => {
+        const { observation } = compare(`fun score Modulus
+ Total = 0
+ for I in 1 to 4
+  Term = I * 123
+  Total = (Total + Term) mod Modulus
+ end
+ return Total
+end
+Small = score 100
+Wide = score 1000000000000000000
+Again = score 100`);
+        expect(observation.error).toBeUndefined();
+        expect(observation.values).toContainEqual(['Small', '30']);
+        expect(observation.values).toContainEqual(['Wide', '1230']);
+        expect(observation.values).toContainEqual(['Again', '30']);
+    });
+    it.each([1, 1000])('retains boundary-tier demand guards at %s', budget => {
+        const { observation } = execute(`Modulus = 1000000000000000000
+Total = 0
+for I in 1 to 4
+ Term = I * 123
+ Total = (Total + Term) mod Modulus
+end`, true, run => withDemandBudget(budget, run));
+        if (budget === 1) expect(observation.error).toContain('demand budget exhausted');
+        else {
+            expect(observation.error).toBeUndefined();
+            expect(observation.values).toContainEqual(['Total', '1230']);
+        }
+    });
     it('replays private array and index writes through both mixed tiers', () => {
         const { diagnostics, observation } = compare(`use algo
 A = array 0 0 0

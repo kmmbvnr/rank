@@ -1,0 +1,188 @@
+rem Duodigits
+rem https://projecteuler.net/problem=714
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Count integer = 50000
+arg Longest integer = 18
+arg Block integer = 16777216
+
+rem d(n) is the least duodigit multiple
+rem of n. Most n are settled by listing
+rem the duodigits of each length in
+rem order and taking the first multiple,
+rem in blocks of a rows by candidates
+rem matrix. The few left (no multiple of
+rem up to Longest digits) are settled by
+rem a breadth first search over residues
+rem for each digit pair, all problems at
+rem once; levels are lengths and
+rem children come in digit order, so the
+rem first visit of residue 0 is the
+rem smallest number.
+Numbers = 1 to Count
+Open = Numbers array
+Found = array shape (Count + 1) fill 0
+Size = 0
+Row = Count
+Rows = 1
+Cand = array 0
+Seed = array 0
+Range = Seed reshape 1 1
+for Size less Longest + 1
+  Total = Open len
+  if Row at least Total
+    Hit = (Found Open) equal 0
+    Open = Open filter Hit
+    Row = 0
+    Size += 1
+    if Size at most Longest
+      Lead = (1 to 9) reshape 9 1
+      Other = (0 to 9) reshape 1 10
+      Free = 2 ** (Size - 1)
+      Counted = 0 to Free - 1
+      Masks = Counted reshape Free 1
+      Places = Size - 1
+      Shifts = 0 to Size - 2
+      Bits = Shifts reshape 1 Places
+      Pick = (Masks shr Bits) band 1
+      Weights = 10 ** (Size - 2 - Bits)
+      Mixed = Pick * Weights
+      Spread = Mixed sum axis 1
+      Units = (10 ** Size - 1) // 9
+      Base = Lead * Units
+      Gap = Other - Lead
+      Step = Gap reshape 9 10 1
+      Long = Spread reshape 1 1 Free
+      Lift = Step * Long
+      Basic = Base reshape 9 1 1
+      Values = Basic + Lift
+      All = Values reshape (90 * Free)
+      Sorted = All sort
+      Cand = Sorted unique
+      Width = Cand len
+      Rows = 1 max (Block // Width)
+      Down = (1 to Width) reverse
+      Range = Down reshape 1 Width
+    end
+  else
+    Last = (Row + Rows) min Total
+    Part = Open (Row to Last - 1)
+    Width = Cand len
+    Count2 = Last - Row
+    Wide = Cand reshape 1 Width
+    Tall = Part reshape Count2 1
+    Mat = Wide mod Tall
+    Hits = (Mat equal 0) integer
+    Best = (Hits * Range) max axis 1
+    Has = Best greater 0
+    Where = Width - Best
+    Which = (Where filter Has) max 0
+    Found (Part filter Has) = Cand Which
+    Row = Last
+  end
+end
+rem Left over: search residues per pair.
+Left = Open len
+Beyond = 0.0
+if Left greater 0
+  Digs = 0 to 9
+  GridA = (Digs reshape 10 1) + Digs * 0
+  RowDigs = Digs reshape 1 10
+  ColDigs = Digs reshape 10 1
+  GridB = RowDigs + ColDigs * 0
+  Upper = GridB greater GridA
+  PairA = GridA filter Upper
+  PairB = GridB filter Upper
+  Total = Left * 45
+  Column = Open reshape Left 1
+  Blank = Column * 0
+  Moduli = Column + PairA * 0
+  Modulus = Moduli reshape Total
+  RowA = PairA reshape 1 45
+  RowB = PairB reshape 1 45
+  Numbers2 = RowA + Blank
+  DigitA = Numbers2 reshape Total
+  Numbers3 = RowB + Blank
+  DigitB = Numbers3 reshape Total
+  Stride = Count + 1
+  Cells = Total * Stride
+  Visited = array shape Cells fill 0
+  Parent = array shape Cells fill -1
+  Digit = array shape Cells fill 0
+  Winner = array shape Cells fill 0
+  Goal = array shape Total fill -1
+  Ids = 0 to Total - 1
+  Positive = DigitA greater 0
+  Pid = concat (Ids filter Positive) Ids
+  FirstA = DigitA filter Positive
+  Start = concat FirstA DigitB
+  Res = Start mod (Modulus Pid)
+  Key = Pid * Stride + Res
+  Visited Key = 1
+  Digit Key = Start
+  for Pid len greater 0
+    Size2 = Pid len * 2
+    Pos = 0 to Size2 - 1
+    Src = Pos // 2
+    Which = (Pos mod 2) equal 1
+    Own = Pid Src
+    Prev = Res Src
+    UseA = DigitA Own
+    UseB = DigitB Own
+    Chosen = Which choose UseB UseA
+    Next = Prev * 10 + Chosen
+    Next = Next mod (Modulus Own)
+    Child = Own * Stride + Next
+    Winner (Child reverse) = Pos reverse
+    Alive = (Goal Own) less 0
+    Lowest = (Winner Child) equal Pos
+    Fresh = (Visited Child) equal 0
+    Keep = Lowest and Fresh
+    Keep = Keep and Alive
+    NewKey = Child filter Keep
+    NewPid = Own filter Keep
+    NewRes = Next filter Keep
+    Behind = Own * Stride + Prev
+    From = Behind filter Keep
+    Visited NewKey = 1
+    Parent NewKey = From
+    Digit NewKey = Chosen filter Keep
+    Done = NewRes equal 0
+    Solved = NewPid filter Done
+    Goal Solved = NewKey filter Done
+    Open2 = (Goal NewPid) less 0
+    Pid = NewPid filter Open2
+    Res = NewRes filter Open2
+  end
+  Cursor = Goal
+  Value = Goal * 0.0
+  Power = Goal * 0.0 + 1.0
+  Live = Cursor at least 0
+  Walk = 1 to 80
+  for Step in Walk
+    Safe = Cursor max 0
+    Mask = Live integer
+    Add = (Digit Safe) * Power * Mask
+    Value = Value + Add
+    Power = Power * 10.0
+    Cursor = Parent Safe
+    Live = Live and (Cursor at least 0)
+  end
+  Lost = (Goal less 0) integer
+  Never = Lost * 1.0e300
+  Total2 = Value + Never
+  Table = Total2 reshape Left 45
+  Beyond = (Table min axis 1) sum
+end
+Together = Beyond + ((Found * 1.0) sum)
+Logged = Together log
+Exponent = Logged / (10.0 log) floor
+Mantissa = Together / 10.0 ** Exponent
+Answer = (Mantissa text ".12f") + "e"
+Answer += Exponent text
+Answer print

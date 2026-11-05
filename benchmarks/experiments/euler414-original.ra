@@ -1,0 +1,117 @@
+rem Kaprekar Constant
+rem https://projecteuler.net/problem=414
+
+use numbers
+use sequences
+use io
+use cli
+
+arg First integer = 2
+arg Last integer = 300
+arg Mod integer = 1000000000000000000
+
+rem Base b = 6k + 3. A 5-digit string
+rem sorted x0 <= .. <= x4 has state
+rem u = x4 - x0, v = x3 - x1. For
+rem u > 0 the digits of the difference
+rem are b-u, b-1-v, b-1, v-1 and u
+rem (v = 0: b-1 and u-1), so the next
+rem state needs no b^5 numbers. Dd
+rem holds steps to the constant: a
+rem walk stops at a known state and
+rem the path is filled back (memo).
+rem Strings per state: formula Mu.
+Tot = 0
+for K in First to Last
+  B = 6 * K + 3
+  M3 = B // 3
+  Cu = 2 * M3
+  Cv = M3
+  Sm = 0
+  X0 = 0
+  X1 = 0
+  X2 = 0
+  X3 = 0
+  X4 = 0
+  T = 0
+  Dd = ((0 to B * B - 1) * 0) copy
+  Sk = ((0 to 8191) * 0) copy
+  Dd (Cu * B + Cv) = 1
+  for U in 1 to B - 1
+    for V in 0 to U
+      I = U * B + V
+      if Dd I equal 0
+        Cx = U
+        Cy = V
+        Nn = 0
+        Ci = I
+        for Dd Ci equal 0
+          Sk Nn = Ci
+          Nn += 1
+          if Cy greater 0
+            X0 = B - Cx
+            X1 = B - 1 - Cy
+            X2 = B - 1
+            X3 = Cy - 1
+            X4 = Cx
+          else
+            X0 = B - Cx
+            X1 = B - 1
+            X2 = B - 1
+            X3 = B - 1
+            X4 = Cx - 1
+          end
+          T = X0 min X1
+          X1 = X0 max X1
+          X0 = T
+          T = X3 min X4
+          X4 = X3 max X4
+          X3 = T
+          T = X2 min X4
+          X4 = X2 max X4
+          X2 = T
+          T = X2 min X3
+          X3 = X2 max X3
+          X2 = T
+          T = X1 min X4
+          X4 = X1 max X4
+          X1 = T
+          T = X0 min X3
+          X3 = X0 max X3
+          X0 = T
+          T = X0 min X2
+          X2 = X0 max X2
+          X0 = T
+          T = X1 min X3
+          X3 = X1 max X3
+          X1 = T
+          T = X1 min X2
+          X2 = X1 max X2
+          X1 = T
+          Cx = X4 - X0
+          Cy = X3 - X1
+          Ci = Cx * B + Cy
+        end
+        Bs = Dd Ci
+        for J in 1 to Nn
+          Sj = Sk (Nn - J)
+          Dd Sj = Bs + J
+        end
+      end
+      Mu = 100 + 120 * (V - 1)
+      Mu += 120 * V * (U - V - 1)
+      if U equal V
+        Mu = 20 + 30 * (U - 1)
+      end
+      if V equal 0
+        Mu = 10 + 20 * (U - 1)
+      end
+      Dv = Dd I
+      Wt = Mu * (B - U) * Dv
+      Sm = (Sm + Wt) mod Mod
+    end
+  end
+  Tot += (Sm - 1) mod Mod
+end
+Answer = Tot mod Mod
+Answer print
