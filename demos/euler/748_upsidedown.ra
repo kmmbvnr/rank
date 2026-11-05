@@ -1,0 +1,83 @@
+rem Upside Down Diophantine Equation
+rem https://projecteuler.net/problem=748
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 16
+arg Digits integer = 1000000000
+arg Rows integer = 500
+
+rem Every primitive solution is x = q r,
+rem y = p r, z = p q with p^2 + q^2 =
+rem 13 r^2 and gcd(p, q) = 1. Taking
+rem r = m^2 + n^2 from a primitive
+rem Pythagorean pair (u, v) = (m^2 -
+rem n^2, 2 m n), multiplying by 3 +- 2i
+rem gives p, q = |3u -+ 2v|, |2u +- 3v|.
+rem Since x^2 + y^2 = 13 r^4 <= 2 N^2,
+rem r is bounded by R, so m <= sqrt R.
+rem Pairs (m, n) go in blocks of rows.
+Square = 2 * Limit * Limit // 13
+Bound = Square isqrt isqrt
+Top = Bound isqrt
+Cols = 0 to Top
+Total = 0
+for Block in 0 to Top // Rows
+  First = Block * Rows + 1
+  Last = (First + Rows - 1) min Top
+  Big = First to Last
+  Count = Last - First + 1
+  Lead = Big reshape Count 1
+  Low = Cols reshape 1 (Top + 1)
+  Radius = Lead * Lead + Low * Low
+  Inside = Radius at most Bound
+  Plain = (Low less Lead) and Inside
+  Odd = ((Lead - Low) mod 2) equal 1
+  Plain = Plain and Odd
+  Coprime = (Lead gcd Low) equal 1
+  Plain = Plain and Coprime
+  Across = Lead * Lead - Low * Low
+  Along = 2 * Lead * Low
+  One = (3 * Across - 2 * Along) abs
+  Two = (2 * Across + 3 * Along) abs
+  Three = (3 * Across + 2 * Along) abs
+  Four = (2 * Across - 3 * Along) abs
+  Wide1 = One max Two
+  Thin1 = One min Two
+  Wide2 = Three max Four
+  Thin2 = Three min Four
+  Good1 = Plain and (Thin1 greater 0)
+  Coprime1 = (Wide1 gcd Thin1) equal 1
+  Good1 = Good1 and Coprime1
+  Good2 = Plain and (Thin2 greater 0)
+  Coprime2 = (Wide2 gcd Thin2) equal 1
+  Good2 = Good2 and Coprime2
+  Alike = Wide1 equal Wide2
+  Same = Alike and (Thin1 equal Thin2)
+  Fresh = Same not equal true
+  Good2 = Good2 and Fresh
+  Xs1 = Thin1 * Radius
+  Ys1 = Wide1 * Radius
+  Zs1 = Wide1 * Thin1
+  Fit1 = Xs1 at most Limit
+  Fit1 = Fit1 and (Ys1 at most Limit)
+  Fit1 = Fit1 and (Zs1 at most Limit)
+  Sum1 = (Xs1 + Ys1 + Zs1) mod Digits
+  Xs2 = Thin2 * Radius
+  Ys2 = Wide2 * Radius
+  Zs2 = Wide2 * Thin2
+  Fit2 = Xs2 at most Limit
+  Fit2 = Fit2 and (Ys2 at most Limit)
+  Fit2 = Fit2 and (Zs2 at most Limit)
+  Sum2 = (Xs2 + Ys2 + Zs2) mod Digits
+  Keep1 = (Good1 and Fit1) integer
+  Keep2 = (Good2 and Fit2) integer
+  Both = Sum1 * Keep1 + Sum2 * Keep2
+  Added = Both sum
+  Total = (Total + Added) mod Digits
+end
+Answer = Total
+Answer print
