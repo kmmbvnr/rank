@@ -44,19 +44,22 @@ const COPY_PROBE_CAP = 262144;
 
 /** Fresh local storage stays private until publication. In particular, a later
  * allocation cannot replace the array retained as a previous iteration result. */
-interface VectorBuffer { cells: Int32Array | Float64Array }
+type PrivateCells = Uint8Array | Int32Array | Float64Array;
+interface VectorBuffer { cells: PrivateCells }
 export class PrivateNumericArray {
     private pool?: VectorBuffer;
     // Count register owners; accepted regions cannot expose an earlier result.
     // Shared publication preserves ordinary COW after the private region ends.
-    private owners: { count: number; cells?: Int32Array | Float64Array; published?: RankArray } = { count: 1 };
-    cells: Int32Array | Float64Array;
+    private owners: { count: number; cells?: PrivateCells; published?: RankArray } = { count: 1 };
+    cells: PrivateCells;
     constructor(readonly shape: number[], fill: number, source?: NumberCells, owned?: VectorBuffer, private readonly real = false, private readonly logical = false) {
         const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
         // Keep lengths outside the publishing backend's Array(length) range
         // on the exact path, before allocating speculative typed cells.
         if (size > 0xffffffff) throw overflow;
-        this.cells = owned ? owned.cells.subarray(0, size) : (source ? !real && source instanceof Int32Array ? source.slice() : source instanceof Float64Array ? source.slice() : Float64Array.from(source, Number)
+        this.cells = owned ? owned.cells.subarray(0, size) : logical
+            ? source ? Uint8Array.from(source, cell => Number(cell) !== 0 ? 1 : 0) : new Uint8Array(size).fill(fill ? 1 : 0)
+            : (source ? !real && source instanceof Int32Array ? source.slice() : source instanceof Float64Array ? source.slice() : Float64Array.from(source, Number)
             : !real && fill === (fill | 0) ? new Int32Array(size).fill(fill) : new Float64Array(size).fill(fill));
         this.owners.cells = this.cells;
         if (owned) this.pool = owned;
@@ -74,7 +77,7 @@ export class PrivateNumericArray {
         return { length: this.cells.length, read: index => owners.cells![index] };
     }
     get shared(): boolean { return this.owners.count > 1; }
-    writable(): Int32Array | Float64Array {
+    writable(): PrivateCells {
         if (this.owners.count > 1) {
             this.owners.count--;
             this.owners = { count: 1 };
@@ -107,7 +110,7 @@ export class PrivateNumericArray {
             }
             return result;
         })();
-        return this.owners.published ??= typedArray(this.real ? this.cells.slice() : this.cells instanceof Int32Array
+        return this.owners.published ??= typedArray(this.real ? new Float64Array(this.cells) : this.cells instanceof Int32Array
             ? this.cells : (() => {
                 const result = new BigInt64Array(this.cells.length);
                 for (let index = 0; index < result.length; index++) {
@@ -175,7 +178,8 @@ function vectorArray(shape: readonly number[], real: boolean, pool: VectorBuffer
     let replace = -1;
     for (let i = 0; i < pool.length; i++) {
         if (held.has(pool[i].cells.buffer)) continue;
-        if (pool[i].cells.length >= size && (!real || pool[i].cells instanceof Float64Array)) return new PrivateNumericArray([...shape], 0, undefined, pool[i], real, logical);
+        if (pool[i].cells.length >= size && (logical ? pool[i].cells instanceof Uint8Array
+            : !(pool[i].cells instanceof Uint8Array) && (!real || pool[i].cells instanceof Float64Array))) return new PrivateNumericArray([...shape], 0, undefined, pool[i], real, logical);
         replace = i;
     }
     // Grow only after a dead buffer proves too small. Fixed-size stages and
@@ -184,7 +188,7 @@ function vectorArray(shape: readonly number[], real: boolean, pool: VectorBuffer
     const previous = replace >= 0 ? pool[replace].cells.length : 0;
     const capacity = previous > 0 && previous < size && size <= 2 * previous
         ? Math.min(2 * previous, 0xffffffff) : size;
-    const buffer: VectorBuffer = { cells: real ? new Float64Array(capacity) : new Int32Array(capacity) };
+    const buffer: VectorBuffer = { cells: logical ? new Uint8Array(capacity) : real ? new Float64Array(capacity) : new Int32Array(capacity) };
     const cost = currentDiagnostics()?.cost('number-loop.vector-buffer');
     if (cost) { cost.calls++; cost.allocatedBytes += buffer.cells.byteLength; }
     if (replace >= 0) pool[replace] = buffer;
@@ -439,7 +443,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, integerSquareRoot, divide, checkedNumberPower, widePower,
             (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number, real = false, logical = false) => new PrivateNumericArray(shape, fill, undefined, undefined, real, logical),
             (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
-            (shape: number[], cells: NumberCells) => new PrivateNumericArray([...shape], 0, cells), concatArrays, textLength, indexKey,
+            (shape: number[], cells: NumberCells, real = false, logical = false) => new PrivateNumericArray([...shape], 0, cells, undefined, real, logical), concatArrays, textLength, indexKey,
             (cells: NumberCells, first: number, count: number, stride: number) => {
                 const diagnostics = currentDiagnostics();
                 if (diagnostics) { diagnostics.numberLoopSliceCopies++; diagnostics.numberLoopSliceCopyCells += count; }
@@ -741,7 +745,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             // Writable buffers above are already invocation-private. Keep the
             // wrapper in sync when stores widen it or concat replaces it.
             input[info.slot] = rebound ? new PrivateNumericArray([...value.shape], 0, undefined,
-                { cells: buffers[info.slot] as Int32Array | Float64Array }, info.type === 'real') : value;
+                { cells: buffers[info.slot] as Int32Array | Float64Array }, info.type === 'real', info.type === 'boolean') : value;
             // Rebound handles publish their final buffer through the binding;
             // only stable entry stores use a per-cell dirty mask.
             if (plan.destinations.has(name) && !rebound) {

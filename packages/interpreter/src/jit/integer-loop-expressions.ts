@@ -764,6 +764,16 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             || types.some(other => other?.rank !== 1 || other.element !== type.element)) return undefined;
         return { operands: form.items, type };
     }
+    function numericReshape(e: Expression) {
+        if (!numberMode || !host.nativeCalls || !host.arrayLocals || !host.module('sequences')
+            || !isApplicationExpression(e) || localTypes.has('reshape') || arrays.has('reshape') || containers.has('reshape')) return undefined;
+        const form = applicationForm(e, name => findOperation(name));
+        if (form.kind !== 'reshape' || form.rest.length
+            || form.dimensions.some(dimension => !isNameExpression(dimension) && !isNumberLiteral(dimension)
+                && !isParenthesizedExpression(dimension) && !isUnaryExpression(dimension) && !isBinaryExpression(dimension))) return undefined;
+        const type = arrayType(form.source);
+        return type && ['integer', 'real', 'boolean'].includes(type.element) ? { form, type } : undefined;
+    }
     // Array operands use the same concrete range/selection operations as the
     // evaluator, without re-entering expression evaluation on every iteration.
     function arrayType(e: Expression): CompiledArrayType | undefined {
@@ -772,9 +782,12 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (numberMode && isMaterializeExpression(e)) return arrayType(e.source);
         const concat = numericConcatCopy(e);
         if (concat) return concat.type;
+        const reshape = numericReshape(e);
+        if (reshape) return { ...reshape.type, rank: reshape.form.dimensions.length };
         if (numberMode && isTableFilterExpression(e) && e.condition && !e.conditions.length && !e.sourceFields.length) {
             const source = arrayType(e.source), mask = arrayType(e.condition);
-            if (source?.rank === 1 && ['integer', 'real'].includes(source.element) && mask?.rank === 1 && mask.element === 'boolean') return source;
+            if (source && source.rank > 0 && ['integer', 'real', 'boolean'].includes(source.element)
+                && mask?.rank === source.rank && mask.element === 'boolean') return { ...source, rank: 1 };
         }
         if (!numberMode && host.booleanArrays && isBinaryExpression(e)
             && ['equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(e.operator)) {
@@ -840,8 +853,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (parts.length === 2) {
                 const source = arrayType(parts[0]), selector = arrayType(last);
                 if (source && selector?.element === 'integer') return { ...source, rank: source.rank + selector.rank - 1 };
-                if (host.booleanArrays && source?.rank === 1 && selector?.rank === 1
-                    && selector.element === 'boolean') return source;
+                if (host.booleanArrays && source && source.rank > 0 && selector?.rank === source.rank
+                    && selector.element === 'boolean') return { ...source, rank: 1 };
             }
         }
         return undefined;
@@ -963,7 +976,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 }
             }
         }
-        if (isBinaryExpression(e) && !e.step && ['+', '-', '*', '**', '/', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(e.operator)) {
+        if (isBinaryExpression(e) && !e.step && ['+', '-', '*', '**', '/', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast', 'and', 'or'].includes(e.operator)) {
             return { name: e.operator, operands: [e.left, e.right].map(unwrap) };
         }
         if (host.nativeCalls && isApplicationExpression(e)) {
@@ -1206,10 +1219,30 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const selection = isApplicationExpression(e) ? flattenApplication(e) : [];
         const filter = isTableFilterExpression(e) && e.condition && !e.conditions.length && !e.sourceFields.length
             ? { source: e.source, mask: e.condition }
-            : selection.length === 2 && arrayType(selection[0])?.rank === 1
-                && arrayType(selection[1])?.element === 'boolean' && arrayType(selection[1])?.rank === 1
+            : selection.length === 2 && arrayType(selection[0])
+                && arrayType(selection[1])?.element === 'boolean' && arrayType(selection[1])?.rank === arrayType(selection[0])?.rank
                 ? { source: selection[0], mask: selection[1] } : undefined;
-        if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
+        const reshape = numericReshape(e);
+        if (reshape) {
+            state.numberVectors = true;
+            const input = emitNumberArray(reshape.form.source, lines);
+            if (!input || typeof input.type === 'string') return undefined;
+            lines.push(`vectorLive.push(${input.cells ?? `${input.code}.cells`});`);
+            const dimensions: string[] = [];
+            for (const part of reshape.form.dimensions) {
+                const value = emit(part, lines, 'integer');
+                if (value?.type !== 'integer') return undefined;
+                const dimension = `dimension${state.serial++}`;
+                lines.push(`const ${dimension} = ${value.code}; if (${dimension} < 0) throw overflow;`);
+                dimensions.push(dimension);
+            }
+            lines.push('vectorLive.pop();');
+            const shape = `shape${state.serial++}`, cells = input.cells ?? `${input.code}.cells`;
+            builtins.set('reshape', 'sequences');
+            lines.push(`const ${shape} = [${dimensions.join(',')}];
+                if (${shape}.reduce((a, b) => a * BigInt(b), 1n) !== BigInt(${cells}.length)) throw overflow;
+                const ${result} = copyArray(${shape}, ${cells}, ${type.element === 'real'}, ${type.element === 'boolean'});`);
+        } else if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
             state.numberVectors = true;
             const start = emit(e.left, lines, 'integer'), end = emit(e.right, lines, 'integer');
             const step = e.step ? emit(e.step, lines, 'integer') : undefined;
@@ -1218,12 +1251,18 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (state.workCounting) lines.push(`work += ${result}.cells.length;`);
         } else if (filter) {
             state.numberVectors = true;
-            const input = emitNumberArray(filter.source, lines), mask = numberVector(filter.mask, lines);
-            if (!input || typeof input.type === 'string' || !mask || mask.type !== 'boolean') return undefined;
-            const cells = input.cells ?? `${input.code}.cells`, index = `cell${state.serial++}`, count = `count${state.serial++}`, body: string[] = [];
+            const input = emitNumberArray(filter.source, lines);
+            if (!input || typeof input.type === 'string') return undefined;
+            const cells = input.cells ?? `${input.code}.cells`;
+            lines.push(`vectorLive.push(${cells});`);
+            const mask = numberVector(filter.mask, lines);
+            if (!mask || mask.type !== 'boolean') return undefined;
+            lines.push('vectorLive.pop();');
+            const index = `cell${state.serial++}`, count = `count${state.serial++}`, body: string[] = [];
             const selected = mask.cell(index, body);
             if (!selected) return undefined;
-            lines.push(`if (${cells}.length !== ${mask.size}) throw overflow;
+            lines.push(`if (${input.code}.shape.length !== ${mask.shape}.length || ${input.code}.shape.some((size, axis) => size !== ${mask.shape}[axis])) throw overflow;
+                if (${cells}.length !== ${mask.size}) throw overflow;
                 const ${result} = vectorArray([${cells}.length], ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${[cells, ...mask.sources].join(',')}], ${type.element === 'boolean'}); let ${count} = 0;
                 ${numberVectorLoop(`${cells}.length`, index, [...body, `if (${selected.code}) ${result}.store(${count}++, ${type.element === 'real' ? `Number(${cells}[${index}])` : `safe(Number(${cells}[${index}]))`});`])}
                 ${result}.shape[0] = ${count}; ${result}.cells = ${result}.cells.subarray(0, ${count});`);

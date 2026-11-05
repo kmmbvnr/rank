@@ -796,4 +796,150 @@ Result`);
 
 
 
+    it.each([
+        ['array 0 1 2 3 4 5', '3 2'],
+        ['array 1.5 -0.0 2.5 3.5 4.5 5.5', '2 3'],
+        ['array false true false true false true', '1 2 3'],
+        ['array shape 0 fill 0', '2 0 3'],
+    ])('reshapes private %s cells to %s', (values, shape) => {
+        const r = compare(`use sequences
+A = ${values}
+Saved = A
+B = A reshape ${shape}
+for I in 1 to 3
+ B = A reshape ${shape}
+end
+tuple B Saved`);
+        if (!shape.includes('0')) {
+            expect(r.observation.error).toBeUndefined();
+            expect(r.diagnostics.numberLoops).toBe(1);
+        }
+    });
+    it.each(['and', 'or'])('broadcasts private Boolean %s stages', operation => {
+        const r = compare(`use sequences
+A = (array 0 1) reshape 2 1
+B = array 1 2 3
+Mask = A less B
+Result = array 0
+for I in 1 to 3
+ Mask = (A less I) ${operation} (B greater I)
+ Values = A + B
+ Result = Values filter Mask
+end
+tuple Result Mask`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+    it.each(['2 3', '3 2', '1 2 3', '2 0 3'])(
+        'filters complete multidimensional masks with shape %s', shape => {
+            const r = compare(`use sequences
+A = array shape ${shape} fill 2
+Mask = A greater 1
+Result = array 0
+for I in 1 to 3
+ Result = (A + I) filter Mask
+end
+Result`);
+            expect(r.observation.error).toBeUndefined();
+            if (!shape.includes('0')) expect(r.diagnostics.numberLoops).toBe(1);
+        });
+    it.each(['2 2', '-1 6', '1.5 4', '# 3', '0 #'])(
+        'replays unsupported or invalid reshape dimensions (%s)', shape => {
+            compare(`use sequences
+A = array 1 2 3 4 5 6
+B = A
+for I in 1 to 3
+ B = A reshape ${shape}
+end
+B`);
+        });
+    it('keeps full mask shape checks even when cell counts agree', () => {
+        const r = compare(`use sequences
+A = array shape 2 3 fill 1
+Mask = array shape 3 2 fill true
+Result = array 0
+for I in 1 to 3
+ Result = A filter Mask
+end
+Result`);
+        expect(r.observation.error).toBeDefined();
+    });
+
+    it('keeps a reshaped snapshot independent of later source writes', () => {
+        const r = compare(`use sequences
+A = array 0 1 2 3 4 5
+Saved = A
+B = A reshape 2 3
+for I in 1 to 3
+ B = A reshape 2 3
+ A 0 += I
+end
+tuple B A Saved`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+    it('pins a fresh filtered source across allocating mask gathers', () => {
+        const r = compare(`use sequences
+A = (array 1 2 3 4 5 6) reshape 2 3
+B = array 0 1 2 3 4 5
+Keys = (array 5 4 3 2 1 0) reshape 2 3
+Result = array 0
+for I in 1 to 3
+ Result = (A + I) filter ((B Keys) greater I)
+end
+Result`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+    it.each(['and', 'or'])('retains %s error order in array masks', operation => {
+        const r = compare(`A = array 0 1
+B = array 2 0
+Mask = A greater 0
+for I in 1 to 3
+ Mask = (A greater I) ${operation} ((10 // B) greater 0)
+end
+Mask`);
+        expect(r.observation.error).toBeDefined();
+    });
+    it.each([70, 130, 250])('publishes complete Boolean reshape/filter stages under budget %s', budget => {
+        const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use sequences\nA = array 0 1 2 3 4 5\nB = A reshape 2 3\nMask = B greater 1\nResult = array 0');
+            expect(() => withDemandBudget(budget, () => diagnostics.run(() => runtime.execute(`for I in 1 to 100
+ B = A reshape 2 3
+ Mask = (B greater 1) and (B less 5)
+ Result = B filter Mask
+end`)))).toThrow(DemandBudgetExhausted);
+            const result = formatValue(runtime.variables.get('Result')!);
+            expect(['0', '2 3 4']).toContain(result);
+        } finally { runtime.dispose(); }
+    });
+
+    it('keeps byte-mask buffers separate from wide numeric pool results', () => {
+        const r = compare(`use sequences
+A = array 0 256 2147483648 9007199254740990
+Mask = A greater 1
+Saved = Mask
+Result = A
+for I in 1 to 3
+ Mask = A greater I
+ Result = A + I - I
+end
+tuple Result Mask Saved`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+    it('reshapes dynamic dimensions without changing the source snapshot', () => {
+        const r = compare(`use sequences
+A = array 0 1 2 3 4 5
+B = A reshape 2 3
+for I in 1 to 3
+ B = A reshape I (6 // I)
+end
+tuple A B`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+
 });
