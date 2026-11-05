@@ -6,7 +6,7 @@ import { createLoopStatements } from './integer-loop-statements.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
 import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan, type LoopWorkFeedback, type LoopPolling } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
-import { wideLoopScalars, wideLoopOutputs, overflowingLoopOutput } from './integer-loop-wide.js';
+import { wideLoopScalars, wideLoopOutputs, overflowingLoopOutput, localCallLoopOutput } from './integer-loop-wide.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
@@ -113,7 +113,7 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     // A replay-safe backend can support expressions the publishing backend
     // cannot type statically (integer powers may become real for negative exponents).
     const compileFastCounted = feedback ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), true) : undefined;
-    const exactOutputFirst = numberPlan && overflowingLoopOutput(numberPlan);
+    const exactOutputFirst = numberPlan && (overflowingLoopOutput(numberPlan) || localCallLoopOutput(numberPlan));
     let fast: CompiledLoop | undefined, preparedFast = false;
     const prepareFast = () => {
         if (!preparedFast) {
@@ -123,8 +123,8 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
         }
         return fast;
     };
-    // Do not generate a Number kernel whose output must overflow. Budgets or
-    // failed mixed entry can still request that kernel lazily on this invocation.
+    // Prefer exact outputs for proven overflow or costly local-storage calls.
+    // Budgets or failed mixed entry can still request the Number kernel lazily.
     if (!exactOutputFirst) prepareFast();
     if (!fast && (!numberVariant || !region)) {
         if (!exact && currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));

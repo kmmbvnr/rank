@@ -1,0 +1,15 @@
+{
+  "baseline": "dd5f656aa0cba6f6273239133dd89a93b430724b",
+  "initialCandidate": "9607ead7be6c2129873357cd58b63ccda5ba69f3",
+  "finalFiles": {
+    "packages/interpreter/src/fast-paths.ts": "81262bb78fc1773e6b04a37596b35ee6e8824dc751e828f76d1b428c8819f907",
+    "packages/interpreter/src/jit/compiled-callee.ts": "8b965178b9bfe9e6fb3937071b4665cb4f46b13264981cdf0b60afead82260fa",
+    "packages/interpreter/src/jit/integer-loop-expressions.ts": "0049301c0148e74aca82d13f51e67d691db95c6ebcb28c03fae6acdcd8c55923",
+    "packages/interpreter/src/jit/integer-loop-plan.ts": "792e4728fd6647566f0cb60e61360e42d3fa4587d1626f10b6c821a12de7c2fc",
+    "packages/interpreter/src/jit/integer-loop-wide.ts": "44a921385795b35365fe366b035102effa3af3d6ad9da876bd4379e9ab1fccb3",
+    "packages/interpreter/src/jit/integer-loop.ts": "e4738d83148eeba35c9016a380c6c9fac32070e26a7df69a6d4504cb9c68bee1",
+    "benchmarks/helper-effects-euler.mjs": "c55bea5558bd95f5abe44402f8f636a4964df7841aa11bd22d90189f757489da"
+  },
+  "macTests": 1044,
+  "intelTests": 169
+}

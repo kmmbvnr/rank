@@ -1691,6 +1691,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         }
                     }
                     const callable = prepareCallee(types);
+                    const exactCall = wide && state.numberMode;
+                    if (exactCall && (!callable?.effects.privateStateSafe
+                        || types.some(type => typeof type !== 'string')
+                        || callable.locals.some(name => destinations.has(name) || arrays.has(name)))) return undefined;
                     if (callable?.type === 'real' && !host.reals) return reject(e, 'unsupported-type:real');
                     if (numberMode && (!callable?.numberSafe || !callable.bindNumber || callable.locals.some(name => destinations.has(name) || arrays.has(name)))) return undefined;
                     if (callable) {
@@ -1710,6 +1714,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                                 stableArrayReads: callable.effects.stableArrayReads,
                                 privateStateSafe: callable.effects.privateStateSafe,
                                 numberSafe: true,
+                                exactOutput: callable.effects.localWrites && callable.effects.privateStateSafe
+                                    && types.every(type => typeof type === 'string') ? e : undefined,
                                 bind: () => callable.bindNumber!(),
                             });
                             const callCode = `call${index}(${arguments_.join(',')})`;
@@ -1719,6 +1725,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                                 name: last.name,
                                 locals: callable.locals,
                                 stableArrayReads: callable.effects.stableArrayReads,
+                                privateStateSafe: callable.effects.privateStateSafe,
+                                numberSafe: exactCall,
                                 bind: callable.bind,
                             });
                             lines.push(tail

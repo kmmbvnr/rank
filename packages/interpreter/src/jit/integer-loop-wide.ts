@@ -106,3 +106,15 @@ export function overflowingLoopOutput(plan: IntegerLoopPlan): boolean {
     }
     return false;
 }
+
+/** A local-storage helper can do substantial work before returning a wide
+ * scalar. If only exact outputs consume it, keep that call exact instead of
+ * discarding the caller's completed prefix when its result cannot narrow. */
+export function localCallLoopOutput(plan: IntegerLoopPlan): boolean {
+    const calls = new Set(plan.calls.flatMap(call => call.exactOutput ? [call.exactOutput] : []));
+    if (!calls.size) return false;
+    const outputs = wideLoopOutputs(plan, wideLoopScalars(plan));
+    return [plan.statement, ...AstUtils.streamAllContents(plan.statement)].some(node =>
+        isAssignmentStatement(node) && outputs.has(node.name)
+        && [node.value, ...AstUtils.streamAllContents(node.value)].some(value => calls.has(value as Expression)));
+}

@@ -638,3 +638,23 @@ end`;
     expect(actual.state.error).toBeUndefined();
     expect(actual.diagnostics.numberLoops).toBe(1);
 });
+
+it('keeps wide helper results exact without replaying the caller prefix', () => {
+    const prefix = `${setup}
+fun X scratch
+ Scratch = array shape 2 fill X
+ Scratch 0 *= 9007199254740991
+ return Scratch 0
+end`;
+    const body = `for R in 1 to 4
+ B 0 += 1
+ Total += R scratch // R
+ unpack A B = tuple B A
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toBeUndefined();
+    expect(actual.state.values[3]).toBe('36028797018963964');
+    expect(actual.diagnostics.mixedIntegerLoops).toBe(1);
+    expect(actual.diagnostics.numberLoopOverflows).toBe(0);
+});

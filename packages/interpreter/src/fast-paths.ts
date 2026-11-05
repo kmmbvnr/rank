@@ -585,6 +585,7 @@ export class FastPaths {
                     writes: effects.unknown ? types.flatMap((type, index) => isCompiledContainer(type) ? [index] : [])
                         : [...effects.parameters],
                     stableArrayReads: stableReads,
+                    localWrites: effects.localWrites,
                     // Reuse the scalar proof, retaining its live call guards.
                     // The Number ABI borrows current integer buffers only for
                     // read-only scalar callees; no reference escapes. Captures

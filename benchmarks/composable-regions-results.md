@@ -477,3 +477,56 @@ Raw observations: [Mac](baselines/2026-11-05-helper-effects-mac-benchmark.json),
 [Mac controls](baselines/2026-11-05-helper-effects-mac-controls.json),
 [Intel controls](baselines/2026-11-05-helper-effects-intel-controls.json).
 [Manifest](baselines/2026-11-05-helper-effects-manifest.json) records source hashes.
+
+
+### Unmodified Euler programs and exact call results
+
+The synthetic gain above did not establish a gain on the Euler corpus. A
+read-only scan of scalar helper proofs identified newly eligible functions in
+26, 44, 303 and 330, among others. These four were measured at their full
+default inputs, with 310 (no such helpers) as a control. The same unmodified
+source was run on the baseline and candidate; source hashes and full expected
+answers are checked. Three fresh-process samples, no warmup, a separate
+instrumented run, Node 24.15.0, no concurrent tests on either machine.
+
+This exposed a regression in the first implementation (`9607ead7`): Euler 303
+went from 372 to 467 ms on Mac and 908 to 1,116 ms on Intel. Narrowing a wide
+helper result caused the new outer Number region to replay an already completed
+prefix: 14,992 Number-function calls instead of 9,997, despite the same answer.
+
+The follow-up keeps a private scalar-only helper call exact when it feeds an
+exact output. Local writes in the existing effect summary make these calls
+prefer the existing mixed output tier, avoiding speculative replay of expensive
+local-storage work. Array addresses and stores still require checked Numbers;
+raw caller array buffers do not cross the exact Rank-value ABI. This uses the
+existing wide-output/dataflow proof and live binding guards, without a special
+case for Euler 303 or its source structure.
+
+After the correction, Euler 303 again executes 9,997 Number calls and three
+local function fallbacks, with one mixed outer loop. Final medians:
+
+| Full default | Mac baseline → final, ms | Intel baseline → final, ms |
+| --- | ---: | ---: |
+| Euler 026 | 16.22 → 16.24 | 40.34 → 39.57 |
+| Euler 044 | 93.07 → 93.76 | 197.40 → 198.72 |
+| Euler 303 | 375.57 → 378.11 | 911.66 → 919.52 |
+| Euler 330 | 39.89 → 39.19 | 97.79 → 95.05 |
+| Euler 310 | 348.03 → 354.35 | 810.60 → 809.84 |
+
+These five programs show no substantial speed or memory gain. Peak RSS differs
+by at most about 1.3 MiB in this series. In 330 an additional Number loop is
+selected, but the overall runtime remains close to the baseline. The result is
+better composition coverage and restored performance, not a demonstrated
+acceleration of existing Euler solutions. Three samples cannot establish a
+small percentage speedup or regression.
+
+Validation of the correction: build and 1,044 tests in 34 relevant Mac files
+pass; 169 focused Intel tests pass. A regression test checks exact wide helper
+results together with private array swaps and requires zero caller loop
+replays. All five full Euler answers pass in every benchmark worker.
+
+Reproduce with `node benchmarks/helper-effects-euler.mjs --baseline=/path/to/baseline`.
+Raw [initial Mac](baselines/2026-11-05-helper-effects-euler-mac-initial.json),
+[initial Intel](baselines/2026-11-05-helper-effects-euler-intel-initial.json),
+[final Mac](baselines/2026-11-05-helper-effects-euler-mac-final.json),
+[final Intel](baselines/2026-11-05-helper-effects-euler-intel-final.json).

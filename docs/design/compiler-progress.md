@@ -13,7 +13,11 @@ Scalar-result helpers with local arrays, integer indices, sets and queues can
 participate in private Number loops, including array swaps and wide exact
 accumulators. Read-only integer array arguments retain the raw-buffer ABI when
 an existing Number function kernel supports the helper. Scalar-only chains can
-use the exact helper adapter. This does not make every helper a Number kernel.
+use the exact helper adapter. This does not make every helper a Number kernel. When a scalar-only helper with
+local writes feeds an exact output, the existing mixed tier retains its result
+as a BigInt. A wide helper result therefore does not replay the caller's
+completed prefix merely to narrow the call result. Calls receiving raw caller
+array buffers remain outside this exact-call ABI.
 
 Live function/dependency checks, overflow replay and located errors remain in
 force. Queue method guards now cover locally constructed queues as well as

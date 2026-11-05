@@ -10,6 +10,7 @@ export interface CompiledCallee {
     readonly effects: {
         readonly writes: readonly number[];
         readonly stableArrayReads: boolean;
+        readonly localWrites?: boolean;
         readonly privateStateSafe: boolean;
     };
     readonly numberSafe?: boolean;
