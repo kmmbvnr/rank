@@ -1,0 +1,187 @@
+rem ACMP 0880: Covering (74%)
+rem Min planks to cover W x H floor
+use cli
+use text
+use bits
+
+arg Input text = (
+  "9 9\n" +
+  ".X.\n" +
+  "XXX\n" +
+  "XX."
+)
+
+Lines = Input split "\n"
+Dims = (Lines 0) split " "
+W = (Dims 0) integer
+H = (Dims 1) integer
+TotalCells = W * H
+
+PlankR = array shape 6 fill 0
+PlankC = array shape 6 fill 0
+PCount = 0
+
+PlankStr = (
+  (Lines 1) + (Lines 2) + (Lines 3)
+)
+for I in 0 to 8
+  if (PlankStr I) equal "X"
+    PlankR PCount = I // 3
+    PlankC PCount = I mod 3
+    PCount += 1
+  end
+end
+
+ShiftW = W + 2
+ShiftH = H + 2
+TotalShifts = ShiftW * ShiftH
+
+RawMasks = (
+  array shape TotalShifts fill 0
+)
+RawCount = 0
+
+for S in 0 to (TotalShifts - 1)
+  R0 = (S // ShiftW) - 2
+  C0 = (S mod ShiftW) - 2
+  Mask = 0
+  for P in 0 to 5
+    R = R0 + (PlankR P)
+    C = C0 + (PlankC P)
+    InR = (R at least 0) and (R less H)
+    InC = (C at least 0) and (C less W)
+    if InR and InC
+      Idx = R * W + C
+      Mask = Mask bor (1 shl Idx)
+    end
+  end
+  if Mask greater 0
+    RawMasks RawCount = Mask
+    RawCount += 1
+  end
+end
+
+Masks = array shape RawCount fill 0
+MaskCount = 0
+
+for I in 0 to (RawCount - 1)
+  M1 = RawMasks I
+  Dominated = false
+  for J in 0 to (RawCount - 1)
+    if I not equal J
+      M2 = RawMasks J
+      Sub = (M1 band M2) equal M1
+      if Sub and (M1 not equal M2)
+        Dominated = true
+        break
+      end
+    end
+  end
+  if not Dominated
+    Already = false
+    for K in 0 to (MaskCount - 1)
+      if (Masks K) equal M1
+        Already = true
+        break
+      end
+    end
+    if not Already
+      Masks MaskCount = M1
+      MaskCount += 1
+    end
+  end
+end
+
+CellMaskCount = (
+  array shape TotalCells fill 0
+)
+Shp = array TotalCells MaskCount
+CellMasks = array shape Shp fill 0
+Conflicts = (
+  array shape TotalCells fill 0
+)
+
+for Idx in 0 to (TotalCells - 1)
+  Cnt = 0
+  Conf = 0
+  for M in 0 to (MaskCount - 1)
+    Mask = Masks M
+    if Mask bit Idx
+      CellMasks Idx Cnt = Mask
+      Cnt += 1
+      Conf = Conf bor Mask
+    end
+  end
+  CellMaskCount Idx = Cnt
+  Conflicts Idx = Conf
+end
+
+Target = (1 shl TotalCells) - 1
+
+fun Uncovered lowerBound
+  Rem = Uncovered
+  Cnt = 0
+  for Step in 0 to 20
+    if Rem equal 0
+      break
+    end
+    FirstBit = 0
+    for I in 0 to (TotalCells - 1)
+      if Rem bit I
+        FirstBit = I
+        break
+      end
+    end
+    Cnt += 1
+    Conf = Conflicts FirstBit
+    Rem = Rem band (Conf bnot)
+  end
+  Pops = (Uncovered popcount) + 5
+  PopLB = Pops // 6
+  return Cnt max PopLB
+end
+
+Limit = 0
+
+fun Uncovered search Count
+  if Uncovered equal 0
+    return Count
+  end
+  LB = Uncovered lowerBound
+  if (Count + LB) greater Limit
+    return -1
+  end
+  FirstBit = 0
+  for I in 0 to (TotalCells - 1)
+    if Uncovered bit I
+      FirstBit = I
+      break
+    end
+  end
+  MCount = CellMaskCount FirstBit
+  for MIdx in 0 to (MCount - 1)
+    Mask = CellMasks FirstBit MIdx
+    Hit = Mask band Uncovered
+    if Hit not equal 0
+      NextU = Uncovered band (Mask bnot)
+      Res = NextU search (Count + 1)
+      if Res at least 0
+        return Res
+      end
+    end
+  end
+  return -1
+end
+
+InitLB = Target lowerBound
+Result = -1
+for L in InitLB to TotalCells
+  Limit = L
+  Res = Target search 0
+  if Res at least 0
+    Result = Res
+    break
+  end
+end
+
+Result text

@@ -1,0 +1,56 @@
+rem Tests for ACMP 0880: Covering
+use testing
+
+test "ACMP 880: Maximal 9x9"
+  use "0880_covering"
+  run
+  Result equal 17
+end
+
+test "ACMP 880: Sample 1 (3 3)"
+  use "0880_covering"
+  Input = (
+    "3 3\n" +
+    ".X.\n" +
+    "XXX\n" +
+    "XX."
+  )
+  run
+  Result equal 3
+end
+
+test "ACMP 880: Sample 2 (3 2)"
+  use "0880_covering"
+  Input = (
+    "3 2\n" +
+    "XXX\n" +
+    "XXX\n" +
+    "..."
+  )
+  run
+  Result equal 1
+end
+
+test "ACMP 880: Sample 3 (2 3)"
+  use "0880_covering"
+  Input = (
+    "2 3\n" +
+    "XXX\n" +
+    "XXX\n" +
+    "..."
+  )
+  run
+  Result equal 2
+end
+
+test "ACMP 880: Sample 4 (2 2)"
+  use "0880_covering"
+  Input = (
+    "2 2\n" +
+    "XXX\n" +
+    "X.X\n" +
+    "..X"
+  )
+  run
+  Result equal 2
+end
