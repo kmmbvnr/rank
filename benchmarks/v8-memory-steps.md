@@ -33,9 +33,20 @@ instrumentation is a diagnostic pass; do not use its timings as benchmarks.
 `baselines/2026-11-05-v8-memory/unary-mac.json` preserves the initial series,
 including the contaminated combined-process RSS numbers described above.
 
+## 2. Specialize unary operations: skipped
+
+Code inspection found that operation specialization alone retains the same
+input view, output buffer, publication wrapper and widening behavior in
+`jit/unary-array-kernel.ts`. Removing `operation(...)` dispatch or hoisting
+`if (!out)` does not eliminate a per-cell allocation: values here are Number
+registers, not boxed Rank records. Adding operation-specific loop bodies
+would increase static code. There is no identified memory-saving mechanism
+for this candidate, so it is rejected under the memory acceptance gate
+before expanding runtime code. No speed improvement is claimed or measured.
+A speed-only experiment can be considered separately if that goal changes.
+
 ## Remaining steps
 
-2. Specialize unary operations and representations.
 3. Reduce short-lived arrays around interpreted numeric expressions.
 4. Expand positional calls at compiled/runtime boundaries.
 5. Construct scalar function variants lazily.
