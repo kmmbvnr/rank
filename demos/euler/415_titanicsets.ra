@@ -7,7 +7,7 @@ use io
 use cli
 
 arg N integer = 100000000000
-arg L integer = 10000000
+arg L integer = 5000000
 
 rem A set is not titanic when it is
 rem empty, one point or at least three
@@ -23,80 +23,83 @@ rem to L and, above L, from
 rem Fj(x) = T - sum over k >= 2 of
 rem k^j Fj(x // k). Sums over l run by
 rem blocks of equal m.
-fun X tri Md
-  Od = X mod 2
-  Ha = X // (2 - Od)
-  Hb = (X + 1) // (1 + Od)
-  Rs = Ha mod Md * (Hb mod Md)
-  return Rs mod Md
+fun X triangle Mod
+  Odd = X mod 2
+  Left = X // (2 - Odd) mod Mod
+  Right = (X + 1) // (1 + Odd) mod Mod
+  return Left * Right mod Mod
 end
 
-fun X sqs Md
-  M6 = 6 * Md
-  Xa = X mod M6
-  Xb = (X + 1) mod M6
-  Xc = (2 * X + 1) mod M6
-  Rs = Xa * Xb mod M6 * Xc mod M6
-  return Rs // 6 mod Md
+fun X squares Mod
+  Six = 6 * Mod
+  Left = X mod Six
+  Middle = (X + 1) mod Six
+  Right = (2 * X + 1) mod Six
+  Part = Left * Middle mod Six
+  return Part * Right mod Six // 6
 end
 
-fun E p2 Md
-  Rs = E * 0 + 1
-  Bs = 2
-  for E max greater 0
-    Od = E mod 2 equal 1
-    Mu = Rs * Bs mod Md
-    Rs = Od choose Mu Rs
-    Bs = Bs * Bs mod Md
-    E = E // 2
+fun Limit prefixes Mod
+  Root = Limit isqrt
+  Primes = primes to Root copy
+  Count = Primes len
+  rem Four bits per decimal digit bound
+  rem every prime-power exponent.
+  Width = Limit text len
+  Levels = 4 * Width
+  Rows = Primes reshape Count 1
+  Grid = Rows ** (1 to Levels copy)
+  Flat = Grid reshape (Count * Levels)
+  Keep = Flat at most Limit indices
+  Powers = Flat Keep
+  Bases = Primes (Keep // Levels)
+  Phi = 0 to Limit copy
+  Size = Limit + 1
+  Smooth = array shape Size fill 1
+  Count = Powers len
+  for I in 0 till Count
+    P = Bases I
+    Q = Powers I
+    Slots = Q to Limit by Q
+    Smooth Slots *= P
+    if Q equal P
+      Phi Slots -= Phi Slots // P
+    end
   end
-  return Rs
+  Integers = 0 to Limit copy
+  Rest = Integers // Smooth
+  Extra = Rest greater 1
+  Prior = Phi
+  Reduced' = Prior - Prior // Rest
+  Phi = Extra choose Reduced Prior copy
+  Phi 0 = 0
+  Residues = Integers mod Mod
+  F0 = Phi mod Mod
+  F1 = Residues * F0 mod Mod
+  F2 = Residues * F1 mod Mod
+  Cs = (F0 scan + with 0) mod Mod
+  C0 = Cs (1 to Limit + 1) copy
+  Cs = (F1 scan + with 0) mod Mod
+  C1 = Cs (1 to Limit + 1) copy
+  Cs = (F2 scan + with 0) mod Mod
+  C2 = Cs (1 to Limit + 1) copy
+  return tuple C0 C1 C2
 end
 
 Mod = 100000000
-Rn = N isqrt + 2
-Lm = L max Rn min N
-Ph = 0 to Lm copy
-Sm = array shape (Lm + 1) fill 1
-Rt = Lm isqrt
-for P in primes to Rt
-  Q = P
-  for Q at most Lm
-    Sl = Q to Lm by Q
-    Sm Sl *= P
-    if Q equal P
-      Ph Sl -= Ph Sl // P
-    end
-    Q *= P
-  end
-end
-Ix = 0 to Lm copy
-Rs = Ix // Sm
-Big = Rs greater 1
-Pv = Ph
-Pc' = Pv - Pv // Rs
-Ph = Big choose Pc Pv copy
-Ph 0 = 0
-Im = Ix mod Mod
-F0 = Ph mod Mod
-F1 = Im * F0 mod Mod
-F2 = Im * F1 mod Mod
-Cs = F0 scan + with 0
-C0 = (Cs (1 to Lm + 1)) mod Mod
-Cs = F1 scan + with 0
-C1 = (Cs (1 to Lm + 1)) mod Mod
-Cs = F2 scan + with 0
-C2 = (Cs (1 to Lm + 1)) mod Mod
-Nq = N // Lm
-L0 = array shape (Nq + 2) fill 0
-L1 = array shape (Nq + 2) fill 0
-L2 = array shape (Nq + 2) fill 0
-for I in Nq to 1 by -1
+Root = N isqrt + 2
+Limit = L max Root min N
+unpack C0 C1 C2 = Limit prefixes Mod
+CacheSize = N // Limit
+L0 = array shape (CacheSize + 2) fill 0
+L1 = array shape (CacheSize + 2) fill 0
+L2 = array shape (CacheSize + 2) fill 0
+for I in CacheSize to 1 by -1
   X = N // I
-  if X greater Lm
+  if X greater Limit
     R = X isqrt
-    K0 = (X // (Lm + 1)) min R
-    rem k <= K0: X // k > Lm, so the
+    K0 = X // (Limit + 1) min R
+    rem k <= K0: X // k > Limit, so the
     rem recursion tables L0, L1, L2.
     Pa0 = 0
     Pa1 = 0
@@ -124,27 +127,24 @@ for I in Nq to 1 by -1
     end
     Qm = X // (R + 1)
     Qs = 1 to Qm copy
-    Hq = X // Qs
-    Hx = concat Hq (array R)
-    Hi = Hx (0 to Qm - 1)
-    Lo = Hx (1 to Qm)
+    Hi = X // Qs
+    Lo = X // (Qs + 1) max R
     D0 = (Hi - Lo) mod Mod
-    Tx = Hx tri Mod
-    Ta = Tx (0 to Qm - 1)
-    Tb = Tx (1 to Qm)
+    Ta = Hi triangle Mod
+    Tb = Lo triangle Mod
     D1 = (Ta - Tb) mod Mod
-    Sx = Hx sqs Mod
-    Sa = Sx (0 to Qm - 1)
-    Sb = Sx (1 to Qm)
+    Sa = Hi squares Mod
+    Sb = Lo squares Mod
     D2 = (Sa - Sb) mod Mod
     Pb0 = D0 * C0 Qs mod Mod sum
     Pb1 = D1 * C1 Qs mod Mod sum
     Pb2 = D2 * C2 Qs mod Mod sum
-    X6 = X * (X + 1) * (2 * X + 1) // 6
-    X2 = X * (X + 1) // 2
+    X6 = X squares Mod
+    X2 = X triangle Mod
     L0 I = (X2 - Pa0 - Pb0) mod Mod
     L1 I = (X6 - Pa1 - Pb1) mod Mod
-    L2 I = (X2 * X2 - Pa2 - Pb2) mod Mod
+    Square = X2 * X2 mod Mod
+    L2 I = (Square - Pa2 - Pb2) mod Mod
   end
 end
 Nn = N + 1
@@ -153,9 +153,9 @@ rem Single l up to the root.
 R2 = N isqrt
 Ls = 1 to R2 copy
 Ms = N // Ls
-Sk = Ms at most Lm
-Mc = Ms min Lm
-Ic = Ls min Nq
+Sk = Ms at most Limit
+Mc = Ms min Limit
+Ic = Ls min CacheSize
 G0 = Sk choose (C0 Mc) (L0 Ic)
 G1 = Sk choose (C1 Mc) (L1 Ic)
 G2 = Sk choose (C2 Mc) (L2 Ic)
@@ -166,9 +166,9 @@ Nb = 6 * Nm * Lq mod Mod
 Pl = Pl - Nb * G1 mod Mod
 Ls2 = Lq * Lq mod Mod
 Pl = Pl + 2 * Ls2 * G2 mod Mod
-Tw = Ls - 1 p2 Mod
+Tw = 2 (Ls - 1) Mod powmod
 Tm1 = (Tw - 1) mod Mod
-Su1 = ((Pl mod Mod) * Tm1 mod Mod) sum
+Su1 = Pl mod Mod * Tm1 mod Mod sum
 rem Blocks of equal m above the root.
 Mc2 = N // (R2 + 1)
 Mb = (1 to (Mc2 max 1)) copy
@@ -178,8 +178,8 @@ Ab = Lb + 1
 Ca = Na * C0 Mb mod Mod
 Cb = (0 - 6 * Nm * (C1 Mb)) mod Mod
 Cc = 2 * C2 Mb mod Mod
-Tb = Hb p2 Mod
-Ta = Ab - 1 p2 Mod
+Tb = 2 Hb Mod powmod
+Ta = 2 (Ab - 1) Mod powmod
 Bm = Hb mod Mod
 Am = (Ab - 1) mod Mod
 E0 = (Tb - Ta) mod Mod
@@ -191,12 +191,16 @@ E2a = (Am * Am - 2 * Am + 3) mod Mod
 E2 = E2b * Tb mod Mod
 E2 = E2 - (E2a * Ta mod Mod)
 Z0 = Hb - Ab + 1
-Z1 = Hb tri Mod - (Ab - 1 tri Mod)
-Z2 = Hb sqs Mod - (Ab - 1 sqs Mod)
+High = Hb triangle Mod
+Low = Ab - 1 triangle Mod
+Z1 = High - Low
+High = Hb squares Mod
+Low = Ab - 1 squares Mod
+Z2 = High - Low
 Q0 = Ca * ((E0 - Z0) mod Mod) mod Mod
 Q1 = Cb * ((E1 - Z1) mod Mod) mod Mod
 Q2 = Cc * ((E2 - Z2) mod Mod) mod Mod
-Su2 = ((Q0 + Q1 + Q2) mod Mod) sum
+Su2 = (Q0 + Q1 + Q2) mod Mod sum
 if Mc2 equal 0
   Su2 = 0
 end

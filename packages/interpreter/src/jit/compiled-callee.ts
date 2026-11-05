@@ -14,6 +14,8 @@ export interface CompiledCallee {
         readonly privateStateSafe: boolean;
     };
     readonly numberSafe?: boolean;
+    /** A fresh pointwise result using the private Number-array ABI. */
+    readonly numberArrayResult?: boolean;
     bind(work?: LoopWorkCounter): LoopCallable | undefined;
     bindNumber?(work?: LoopWorkCounter): LoopCallable | undefined;
 }

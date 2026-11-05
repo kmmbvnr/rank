@@ -1552,11 +1552,12 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (!state.numberMode && host.arrayLocals && host.arrayReads && host.arrayValues && arrayType(source)) {
             return emitArrayValue(source, lines);
         }
-        if (isApplicationExpression(source)) {
+        if (isApplicationExpression(source) || isDeclaredCallExpression(source)) {
             // Whole-value stores/returns may accept an array call. Other forms
             // keep the shared scalar inference, including min/max grouping.
-            const parts = flattenApplication(source), last = parts.at(-1);
-            if (last && isNameExpression(last) && host.scalarFunction(last.name, parts.length - 1)) {
+            const parts = isDeclaredCallExpression(source) ? positionalDeclaredCall(source) : flattenApplication(source);
+            const last = parts?.at(-1);
+            if (last && isNameExpression(last) && host.scalarFunction(last.name, parts!.length - 1)) {
                 return emitInput(source, lines, hint, tail);
             }
         }
@@ -1803,10 +1804,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     if (numberMode && (!callable?.numberSafe || !callable.bindNumber || callable.locals.some(name => destinations.has(name) || arrays.has(name)))) return undefined;
                     if (callable) {
                         if (typeof callable.type !== 'string') {
-                            if (numberMode || !host.arrayLocals || callable.type.element === 'real'
+                            if (numberMode && !callable.numberArrayResult || !host.arrayLocals || callable.type.element === 'real'
                                 || callable.type.element === 'boolean' && !host.booleanArrays
                                 || callable.type.element === 'text' && !host.textArrayLoops) return undefined;
-                            state.hasArrayCall = true;
+                            if (!numberMode) state.hasArrayCall = true;
                         }
                         const name = `v${state.serial++}`, index = calls.length;
                         // The proof fixes input domains and permitted mutations.
@@ -1818,6 +1819,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                                 stableArrayReads: callable.effects.stableArrayReads,
                                 privateStateSafe: callable.effects.privateStateSafe,
                                 numberSafe: true,
+                                numberArrayResult: callable.numberArrayResult,
                                 exactOutput: callable.effects.localWrites && callable.effects.privateStateSafe
                                     && types.every(type => typeof type === 'string') ? e : undefined,
                                 bind: work => callable.bindNumber!(work),
