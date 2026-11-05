@@ -1,0 +1,151 @@
+rem ACMP 0662: Green Darts (75%)
+rem Game outcomes for p in (0, 1]
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = (
+  "3\n" +
+  "1 99 1\n" +
+  "100 100 100\n" +
+  "51 49 13"
+)
+
+FlatText = Input split "\n" join " "
+RawTokens = FlatText split " "
+Tokens = RawTokens (
+  RawTokens not equal ""
+)
+N = (Tokens 0) integer
+
+Result = 1
+
+if N greater 1
+  Data = Tokens drop 1 integer
+  Idx = (0 till N) * 3
+  A1 = Data Idx
+  A2 = Data (Idx + 1)
+  A3 = Data (Idx + 2)
+
+  P = 0 till (N * N)
+  I = P // N
+  J = P mod N
+  Mask = I less J
+  PairsI = I Mask
+  PairsJ = J Mask
+
+  C2 = (A1 PairsI) - (A1 PairsJ)
+  C1 = (A2 PairsI) - (A2 PairsJ)
+  C0 = (A3 PairsI) - (A3 PairsJ)
+
+  AllRoots = array shape 0 fill 0.0
+
+  LinMask = (
+    (C2 equal 0) and (C1 not equal 0)
+  )
+  if LinMask any
+    LC1 = C1 LinMask
+    LC0 = C0 LinMask
+    LR = (0 - LC0) / LC1
+    LVal = (
+      (LR greater 0.0) and
+      (LR at most 1.0)
+    )
+    if LVal any
+      AllRoots = concat AllRoots (
+        LR LVal
+      )
+    end
+  end
+
+  QuadMask = C2 not equal 0
+  if QuadMask any
+    QC2 = C2 QuadMask
+    QC1 = C1 QuadMask
+    QC0 = C0 QuadMask
+    Disc = (
+      (QC1 * QC1) - (4 * QC2 * QC0)
+    )
+    PosDisc = Disc at least 0
+    if PosDisc any
+      RC2 = QC2 PosDisc
+      RC1 = QC1 PosDisc
+      RDisc = Disc PosDisc
+      Sq = RDisc sqrt
+      R1 = ((0 - RC1) - Sq) / (
+        2 * RC2
+      )
+      R2 = ((0 - RC1) + Sq) / (
+        2 * RC2
+      )
+      V1 = (
+        (R1 greater 0.0) and
+        (R1 at most 1.0)
+      )
+      V2 = (
+        (R2 greater 0.0) and
+        (R2 at most 1.0)
+      )
+      if V1 any
+        AllRoots = concat AllRoots (
+          R1 V1
+        )
+      end
+      if V2 any
+        AllRoots = concat AllRoots (
+          R2 V2
+        )
+      end
+    end
+  end
+
+  Roots = array shape 0 fill 0.0
+  if (AllRoots len) greater 0
+    Sorted = AllRoots sort
+    SLen = Sorted len
+    if SLen equal 1
+      Roots = Sorted
+    else
+      Keep = concat (array true) (
+        (Sorted drop 1) greater (
+          (Sorted take (SLen - 1)) +
+          0.000000001
+        )
+      )
+      Roots = Sorted Keep
+    end
+  end
+
+  Left = concat (array 0.0) Roots
+  Right = concat Roots (array 1.0)
+  Mids = (Left + Right) / 2.0
+  TestP = concat Mids Roots
+
+  TPCount = TestP len
+  Outcomes = array shape 0 fill ""
+
+  for Step in 0 till TPCount
+    CurP = TestP Step
+    S = (
+      (A1 * CurP * CurP) +
+      (A2 * CurP) + A3
+    )
+    Diff = (
+      (S reshape 1 N) -
+      (S reshape N 1)
+    )
+    Greater = Diff greater 0.000000001
+    Ranks = 1 + (
+      ((Greater integer) sum axis 1)
+    )
+    Key = Ranks join " "
+    Outcomes = concat Outcomes (
+      array Key
+    )
+  end
+
+  Result = (Outcomes unique) len
+end
+
+Result text
