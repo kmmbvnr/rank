@@ -1,11 +1,66 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { matmulValues } from '../src/modules/linalg.js';
-import { derivedArray, filledArray, ownedArray, readArrayItem, typedArray, writeArrayCell } from '../src/array-storage.js';
+import { derivedArray, filledArray, ownedArray, readArrayItem, typedArray, writeArrayCell, maskedArray } from '../src/array-storage.js';
 import { isRankArray, type RankArray } from '../src/value.js';
 import { DemandBudgetExhausted, withDemandBudget } from '../src/interrupt.js';
+import { permutedArray } from '../src/array-permutation.js';
 
 describe('exact integer matrix products', () => {
+    it.each(['int32', 'real', 'unsafe'] as const)('contracts a %s transpose without reading permutation cells', kind => {
+        const width = 130;
+        const scale = kind === 'unsafe' ? 2147483647 : 1;
+        const a = Array.from({ length: 3 * width }, (_, i) => (i % 7 - 3) * scale);
+        const b = Array.from({ length: 4 * width }, (_, i) => (i % 5 - 2) * (kind === 'unsafe' ? 100000000 : 1));
+        const cells = (items: number[]) => kind === 'real' ? Float64Array.from(items) : Int32Array.from(items);
+        // Keep unsafe test inputs within Int32 while making sums exceed 2^53.
+        if (kind === 'unsafe') for (let i = 0; i < a.length; i++) a[i] = (i % 2 ? -1 : 1) * scale;
+        const left = typedArray(cells(a), [3, width]);
+        const right = permutedArray(typedArray(cells(b), [4, width]), [1, 0]);
+        const diagnostics = new RuntimeDiagnostics();
+        const result = diagnostics.run(() => matmulValues(left, right)) as RankArray;
+        expect(result.shape).toEqual([3, 4]);
+        for (let row = 0; row < 3; row++) for (let column = 0; column < 4; column++) {
+            let exact = 0n, real = 0;
+            for (let k = 0; k < width; k++) {
+                exact += BigInt(a[row * width + k]) * BigInt(b[column * width + k]);
+                real += a[row * width + k] * b[column * width + k];
+            }
+            expect(readArrayItem(result, row * 4 + column)).toBe(kind === 'real' ? real : exact);
+        }
+        expect(diagnostics.cellsComputed).toBe(0);
+        expect(diagnostics.typedUnpacks).toBe(0);
+    });
+
+    it('preserves remaining-axis order for two permuted rank-3 operands', () => {
+        const left = permutedArray(typedArray(Int32Array.from({ length: 120 }, (_, i) => i % 11 - 5), [2, 3, 20]), [2, 0, 1]);
+        const right = permutedArray(typedArray(Int32Array.from({ length: 160 }, (_, i) => i % 7 - 3), [4, 20, 2]), [2, 0, 1]);
+        const result = matmulValues(left, right, [0, 2]) as RankArray;
+        expect(result.shape).toEqual([2, 3, 2, 4]);
+        for (let a = 0; a < 6; a++) for (let b = 0; b < 8; b++) {
+            let sum = 0n;
+            for (let k = 0; k < 20; k++) sum += readArrayItem(left, k * 6 + a) as bigint
+                * (readArrayItem(right, b * 20 + k) as bigint);
+            expect(readArrayItem(result, a * 8 + b)).toBe(sum);
+        }
+    });
+
+    it('uses a replaced permutation reader instead of the original storage', () => {
+        const left = typedArray(new Int32Array(260).fill(1), [2, 130]);
+        const right = permutedArray(left, [1, 0]);
+        Object.defineProperty(right, 'itemAt', { value: () => 3n });
+        const result = matmulValues(left, right) as RankArray;
+        expect(readArrayItem(result, 0)).toBe(390n);
+    });
+
+    it('keeps missing-cell errors in a permuted real operand', () => {
+        const left = typedArray(new Float64Array(260).fill(1), [2, 130]);
+        const right = permutedArray(maskedArray(new Float64Array(520).fill(1), new Uint32Array(17), [4, 130]), [1, 0]);
+        expect(() => {
+            const result = matmulValues(left, right) as RankArray;
+            readArrayItem(result, 0);
+        }).toThrow();
+    });
     it.each(['int32', 'int64', 'real'] as const)('copies leading-axis %s views in blocks before contraction', kind => {
         const runtime = new Interpreter();
         const left = Array.from({ length: 2 * 90 }, (_, i) => i % 7 - 3);

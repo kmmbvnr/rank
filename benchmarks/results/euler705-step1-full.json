@@ -1,0 +1,88 @@
+{
+  "baseCommit": "800a11db",
+  "conditions": "Fresh processes, no profiler, sequential full runs; focused checks occurred during baseline. Single full samples, not medians.",
+  "runs": [
+    {
+      "size": 100000000,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "480440153",
+      "ms": 200474.05545800002,
+      "maxRssMiB": 2690.71875,
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "phases": [
+        {
+          "stage": "sieve",
+          "ms": 218.012875,
+          "rssMiB": 180.6875,
+          "heapMiB": 68.14124298095703,
+          "buffersMiB": 6.0457000732421875
+        },
+        {
+          "stage": "digits",
+          "ms": 28643.866125,
+          "rssMiB": 1892.15625,
+          "heapMiB": 1385.3695831298828,
+          "buffersMiB": 487.45025539398193
+        },
+        {
+          "stage": "pairs",
+          "ms": 171604.003666,
+          "rssMiB": 1611.703125,
+          "heapMiB": 622.064697265625,
+          "buffersMiB": 481.7969961166382
+        },
+        {
+          "stage": "weights",
+          "ms": 7.996666999999434,
+          "rssMiB": 1612.265625,
+          "heapMiB": 625.9270248413086,
+          "buffersMiB": 481.8041753768921
+        }
+      ],
+      "tree": "base"
+    },
+    {
+      "size": 100000000,
+      "mode": "compiled",
+      "variant": "original",
+      "answer": "480440153",
+      "ms": 89772.831583,
+      "maxRssMiB": 2574.15625,
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "phases": [
+        {
+          "stage": "sieve",
+          "ms": 280.08516699999996,
+          "rssMiB": 180.3125,
+          "heapMiB": 68.00528717041016,
+          "buffersMiB": 6.05972957611084
+        },
+        {
+          "stage": "digits",
+          "ms": 42960.40375,
+          "rssMiB": 2571.890625,
+          "heapMiB": 1425.135597229004,
+          "buffersMiB": 487.45025539398193
+        },
+        {
+          "stage": "pairs",
+          "ms": 46520.234166,
+          "rssMiB": 1043.78125,
+          "heapMiB": 43.676536560058594,
+          "buffersMiB": 581.2529172897339
+        },
+        {
+          "stage": "weights",
+          "ms": 11.859666999996989,
+          "rssMiB": 1044.40625,
+          "heapMiB": 47.55687713623047,
+          "buffersMiB": 581.2600965499878
+        }
+      ],
+      "tree": "work"
+    }
+  ]
+}

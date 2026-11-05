@@ -2,10 +2,11 @@ import { resolveAxis } from '../tensor-index.js';
 import { prepareStoredScalarView } from '../integer-view.js';
 import { copyArrayStorage } from '../array-copy.js';
 import { tensorSource } from '../tensor-source.js';
+import { permutedArraySource } from '../array-permutation.js';
 import { diagonalResultShape, matmulResultShape } from '@arrrank/language';
 import { tuple } from '../value.js';
 import { checkpoint, interruptibleCallback, InterruptedError, privateLoopPolling } from '../interrupt.js';
-import { denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray } from '../array-storage.js';
+import { denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray, hasMaskedCells } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import { isRankArray, isRankLabel, type RankArray, type RankValue } from '../value.js';
@@ -545,6 +546,20 @@ function denseMatmul(
 ): RankArray | undefined {
     const size = outputShape.reduce((product, dimension) => product * dimension, 1);
     if (size * contracted < DENSE_MATMUL_WORK) return undefined;
+    // Complete numeric storage can be contracted in its original layout.
+    // Opaque readers retain the normal materialization and validation order.
+    const layout = (value: RankArray) => {
+        const plan = permutedArraySource(value);
+        if (!plan || hasMaskedCells(plan.source)
+            || !integer32Cells(plan.source) && !realCells(plan.source)) return undefined;
+        const strides = stridesOf(plan.source.shape);
+        return { source: plan.source, strides: plan.axes.map(axis => strides[axis]) };
+    };
+    const leftPlan = layout(left), rightPlan = layout(right);
+    const leftStrides = leftPlan?.strides ?? stridesOf(left.shape);
+    const rightStrides = rightPlan?.strides ?? stridesOf(right.shape);
+    if (leftPlan) left = leftPlan.source;
+    if (rightPlan) right = rightPlan.source;
     // Retain the copied operand's storage kind: Int32 cells are integers, even
     // though their raw buffer contains JS numbers. Other lazy inputs keep the
     // ordinary eager-operand fallback and demand-time errors.
@@ -555,8 +570,6 @@ function denseMatmul(
         if (error instanceof RankError && !(error instanceof InterruptedError)) return undefined;
         throw error;
     }
-    const leftStrides = stridesOf(left.shape);
-    const rightStrides = stridesOf(right.shape);
     const leftInner = leftStrides[leftAxis];
     const rightInner = rightStrides[rightAxis];
     const outputStrides = [

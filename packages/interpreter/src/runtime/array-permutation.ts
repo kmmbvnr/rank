@@ -5,6 +5,25 @@ import { arrayOffset, coordinatesAt } from '../tensor-index.js';
 import { isRankArray, type RankArray } from './value.js';
 import { registerScalarView } from './integer-view.js';
 
+interface Permutation {
+    source: RankArray;
+    axes: readonly number[];
+    sourceShape: readonly number[];
+    shape: readonly number[];
+    read: RankArray['itemAt'];
+}
+const permutations = new WeakMap<RankArray, Permutation>();
+
+/** Only the original reader and shapes establish this addressing proof. */
+export function permutedArraySource(value: RankArray): Permutation | undefined {
+    const plan = permutations.get(value);
+    return plan && plan.read === Object.getOwnPropertyDescriptor(value, 'itemAt')?.value
+        && plan.shape.length === value.shape.length
+        && plan.shape.every((size, axis) => size === value.shape[axis])
+        && plan.sourceShape.length === plan.source.shape.length
+        && plan.sourceShape.every((size, axis) => size === plan.source.shape[axis]) ? plan : undefined;
+}
+
 /** A checked axis permutation preserves scalar addressing and producer cells. */
 export function permutedArray(value: RankArray, permutation: readonly number[]): RankArray {
     const shape = permutation.map(axis => value.shape[axis]);
@@ -29,6 +48,8 @@ export function permutedArray(value: RankArray, permutation: readonly number[]):
         const offset = offsetAt(index);
         return value.itemAt?.(offset) ?? value.items[offset];
     }, isKnownFileFree(value))), value, offsetAt, { regular: true });
+    permutations.set(result, { source: value, axes: [...permutation],
+        sourceShape: [...value.shape], shape: [...shape], read: result.itemAt });
     const cells = arrayCells(value);
     if (!cells) return result;
     const sourceFrames = arrayFrameAxes(cells);
