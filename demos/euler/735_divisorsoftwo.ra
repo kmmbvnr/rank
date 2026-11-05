@@ -17,7 +17,7 @@ rem over g (odd squarefree) leaves
 rem F = sum mu(g) (HA + HB)(N / g^2)
 rem where HA sums over odd u the pair
 rem count Cg(X / u, u) and HB over w
-em the count Cg(X / w, 2w) -
+rem the count Cg(X / w, 2w) -
 rem Cg(X / 2w, w), with Cg(Y, L) the
 rem sum of Y // m for m = L..Y. A pair
 rem count is the divisor sum D(Y) minus
