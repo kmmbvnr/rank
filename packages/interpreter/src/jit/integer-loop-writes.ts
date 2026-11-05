@@ -40,6 +40,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             return true;
         }
         if (numberMode) {
+            if (state.ranges.has(assignment.name)) return reject(assignment, 'range-write');
             // Number regions mutate invocation-private cells. No array
             // store escapes until the region succeeds or raises an error.
             if (!host.arrayWrites || assignment.name.includes('.') || !assignment.indices.length

@@ -6,7 +6,7 @@ import type { LoopExpressions } from './integer-loop-expressions.js';
  * operands before stores. Escaping array RHS results retain the ordinary path. */
 export function emitNumberScatter(state: LoopCompilationState, expressions: LoopExpressions,
     assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined {
-    if (!state.numberMode || state.wideScalars.size || assignment.operator !== '=' || assignment.indices.length !== 1) return undefined;
+    if (!state.numberMode || assignment.operator !== '=' || assignment.indices.length !== 1) return undefined;
     const selector = assignment.indices[0].value;
     let range = selector;
     while (range && isParenthesizedExpression(range)) range = range.value;

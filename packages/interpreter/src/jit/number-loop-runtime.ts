@@ -1,6 +1,8 @@
+import { materializeValue } from '../materialize.js';
+import { primeRange } from '../prime-sequence.js';
 import { integerInput } from './integer-representation.js';
 import { broadcastShape, arrayStrides } from './tensor-layout.js';
-import { numberOverflow, checkedNumberModularMultiply as modularMultiply } from './number-arithmetic.js';
+import { numberOverflow, checkedNumberModularMultiply as modularMultiply, checkedNumberPower } from './number-arithmetic.js';
 import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
 import { textLength } from '../text-storage.js';
 import { expressionFacts, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
@@ -106,6 +108,15 @@ function concatArrays(sources: NumberCells[], real: boolean): PrivateNumericArra
     }
     return new PrivateNumericArray([size], 0, undefined, { cells }, real);
 }
+/** A completed arithmetic array has immutable, captured cells. Selectors
+ * consume its affine snapshot without a buffer; publication retains the
+ * ordinary array kind. Observable completion work uses the exact backend. */
+class PrivateRange {
+    private result?: RankValue;
+    constructor(readonly start: number, readonly end: number, readonly step: number, readonly inclusive: boolean,
+        private readonly publish: NonNullable<LoopHost['arrayValues']>['range']) {}
+    value(): RankValue { return this.result ??= materializeValue(this.publish(BigInt(this.start), BigInt(this.end), this.inclusive, BigInt(this.step))); }
+}
 /** The RHS snapshot used by stores is separate from the selection returned by
  * an assignment. Build that live selection only when the loop result escapes. */
 class PrivateSliceResult {
@@ -207,19 +218,7 @@ function int32(value: number): number {
     if (value !== (value | 0)) throw overflow;
     return value;
 }
-/** Repeated squaring uses only checked integer products. JS ** can round a
- * mathematical integer to a different safe integer, so checking its result alone
- * would not establish exactness. Negative exponents replay with real semantics. */
-export function checkedNumberPower(base: number, exponent: number): number {
-    if (exponent < 0) throw overflow;
-    let result = 1;
-    while (exponent > 0) {
-        if (exponent % 2 !== 0) result = safe(result * base);
-        exponent = Math.floor(exponent / 2);
-        if (exponent > 0) base = safe(base * base);
-    }
-    return result;
-}
+export { checkedNumberPower } from './number-arithmetic.js';
 function widePower(base: bigint, exponent: bigint): bigint {
     if (exponent < 0n) throw overflow;
     return base ** exponent;
@@ -244,7 +243,7 @@ function rankValue(value: unknown, type: string | undefined): RankValue | undefi
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.cost('number-loop.publish').boxedCells++;
     }
-    return value instanceof PrivateNumericArray || value instanceof PrivateSliceResult || value instanceof PrivateArrayTuple ? value.value()
+    return value instanceof PrivateNumericArray || value instanceof PrivateSliceResult || value instanceof PrivateArrayTuple || value instanceof PrivateRange ? value.value()
         : typeof value === 'number' && type === 'integer' ? BigInt(value) : value as RankValue | undefined;
 }
 
@@ -343,9 +342,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     const storage = new Map<string, { slot: number; rank: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
     if (plan.vectorIterations.length && !host.declareIteration) return recordFallback('number-loop:iteration-binding', 'proof');
     const written = new Set([...plan.writerNames, ...plan.binderNames]);
-    const bindings = [...written].map(name => [name, plan.arrayDefinitions.has(name) ? 'array' : localTypes.get(name)!,
-        plan.arrayDefinitions.has(name) ? arrays.get(name)?.rank : undefined,
-        plan.arrayDefinitions.has(name) ? arrays.get(name)?.type : undefined] as
+    const bindings = [...written].map(name => [name, plan.rangeDefinitions?.has(name) || plan.arrayDefinitions.has(name) ? 'array' : localTypes.get(name)!,
+        plan.rangeDefinitions?.has(name) ? 1 : plan.arrayDefinitions.has(name) ? arrays.get(name)?.rank : undefined,
+        plan.rangeDefinitions?.has(name) ? 'integer' : plan.arrayDefinitions.has(name) ? arrays.get(name)?.type : undefined] as
         [string, 'integer' | 'real' | 'boolean' | 'array', number?, ('integer' | 'real' | 'boolean')?]);
     const slots = [...written].map(name => names.indexOf(name));
     const registers = names.map((_, index) => `r${index} = input[${index}]`);
@@ -368,7 +367,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'recordWideFold', 'createRange', code)(
             modularMultiply, safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -426,6 +425,18 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 const next = alias ? value.fork() : value;
                 previous?.release();
                 return next;
+            }, function* (start: bigint | undefined, from: boolean, end: bigint | undefined, to: boolean) {
+                for (const value of primeRange(start, from, end, to)) yield safe(Number(value));
+            }, (cells: number, exact: number) => {
+                const cost = currentDiagnostics()?.cost('number-loop.wide-vector');
+                if (cost) { cost.calls++; cost.unboxedCells += cells - exact; cost.boxedCells += exact; }
+            }, (start: number, end: number, step: number, inclusive: boolean) => {
+                if (step === 0 || !host.arrayValues) throw overflow;
+                const span = safe(step > 0 ? end - start : start - end);
+                const count = span < (inclusive ? 0 : 1) ? 0 : Math.floor((span - (inclusive ? 0 : 1)) / Math.abs(step)) + 1;
+                if (!Number.isSafeInteger(count) || count > 0xffffffff) throw overflow;
+                if (count) safe(start + safe((count - 1) * step));
+                return new PrivateRange(start, end, step, inclusive, host.arrayValues.range);
             });
     try { run = compile(source); } catch { return recordFallback('number-loop:code-generation', 'proof'); }
     host.compiled?.(source);
@@ -446,6 +457,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         if (plan.hasControl && insideFinally || !privateLoopPolling()) return recordFallback('number-loop:observable-control', 'effects');
         // Existing array contracts can poll again while publishing a rebound
         // binding. Retain ordinary statement boundaries for observable budgets.
+        if (plan.rangeDefinitions?.size && interruptsEnabled()) return recordFallback('number-loop:observable-range-completion', 'effects');
         if (reboundInputs && demandBudgetEnabled()) return recordFallback('number-loop:observable-rebinding-budget', 'effects');
         if (plan.rangeNarrowing && demandBudgetEnabled()) return recordFallback('number-loop:observable-narrowing-budget', 'effects');
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return recordFallback('number-loop:builtin-binding', 'proof');

@@ -110,6 +110,7 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                 || isNameExpression(range) && (textSources.has(range.name) || localTypes.get(range.name) === 'text'));
             let collection = textIteration || isNameExpression(range);
             let elementType: 'integer' | 'text' = textIteration ? 'text' : 'integer';
+            if (numberMode && isNameExpression(range) && state.ranges.has(range.name)) return undefined;
             const bounds = primeBounds(range);
             if (textIteration) {
                 if (slice || reverse) return undefined;
@@ -159,7 +160,7 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                 }
             } else if (bounds) {
                 // The same bounded plan as `applyBound`; entry rechecks the binding.
-                if (numberMode || slice) return undefined;
+                if (slice) return undefined;
                 const limits: { code: string; inclusive: boolean; upper: boolean }[] = [];
                 for (const bound of bounds) {
                     const limit = emit(bound.value, tests, 'integer');
@@ -169,10 +170,10 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                 const lower = limits.find(limit => !limit.upper), upper = limits.find(limit => limit.upper);
                 // `for` rejects an unbounded sequence; that error stays ordinary.
                 if (!upper) return undefined;
-                const limit = (bound?: { code: string; inclusive: boolean }) => bound ? `${bound.code}, ${bound.inclusive}` : 'undefined, false';
+                const limit = (bound?: { code: string; inclusive: boolean }) => bound ? `${numberMode ? `BigInt(${bound.code})` : bound.code}, ${bound.inclusive}` : 'undefined, false';
                 builtins.set('primes', 'sequences');
-                setup = `${tests.join('\n')} const iterable = primeRange(${limit(lower)}, ${limit(upper)});
-                    ${indexed ? 'let ordinal = 0n;' : ''}`;
+                setup = `${tests.join('\n')} const iterable = ${numberMode ? 'numberPrimes' : 'primeRange'}(${limit(lower)}, ${limit(upper)});
+                    ${indexed ? `let ordinal = ${zero};` : ''}`;
                 header = `for (const cursor of iterable) { location = ${location}; ${state.checkpoint}`;
                 collection = true;
             } else {

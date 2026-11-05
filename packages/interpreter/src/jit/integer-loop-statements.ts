@@ -5,7 +5,7 @@ import { type LoopTerm } from './integer-loop-plan.js';
 import {
     applicationForm, isExpressionStatement, findOperation, matchCompiledEffectSignature, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement,
-    isPushStatement, isArrayAssignmentStatement, isReturnStatement, isYieldStatement, isArrayExpression,
+    isPushStatement, isBinaryExpression, isArrayAssignmentStatement, isReturnStatement, isYieldStatement, isArrayExpression,
     isParenthesizedExpression, isNameExpression, isUnpackStatement, isFunctionStatement, type Statement,
 } from '@arrrank/language';
 
@@ -326,6 +326,26 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 }
                 continue;
             }
+            if (numberMode && isAssignmentStatement(assignment) && assignment.operator === '='
+                && !assignment.name.includes('.') && host.arrayValues) {
+                let range = assignment.value;
+                while (isParenthesizedExpression(range)) range = range.value;
+                if (isBinaryExpression(range) && ['to', 'till'].includes(range.operator) && state.selectorRange(assignment.name)) {
+                    const name = assignment.name, previous = state.ranges.get(name);
+                    if (localTypes.has(name) || arrays.has(name) || previous && previous !== range.operator) return reject(assignment);
+                    const lines: string[] = [], bounds = expressions.rangeOperands(range, lines);
+                    if (!bounds) return reject(assignment);
+                    state.ranges.set(name, range.operator as 'to' | 'till');
+                    const destination = slot(name);
+                    writers.push(host.writer(name)); writerNames.push(name); written.add(name);
+                    body.push(`location = ${location};`, ...lines,
+                        `const range${state.serial} = createRange(${bounds.start.code}, ${bounds.end.code}, ${bounds.step.code}, ${bounds.inclusive});`,
+                        dirty(destination), `r${destination} = range${state.serial++}; iterationResult = r${destination}; iterationType = 'array';`);
+                    recordAssigned(name);
+                    continue;
+                }
+            }
+            if (numberMode && isAssignmentStatement(assignment) && state.ranges.has(assignment.name)) return reject(assignment, 'range-rebinding');
             if (host.arrayLocals && isAssignmentStatement(assignment) && assignment.operator === '='
                 && !assignment.name.includes('.')) {
                 let expression = assignment.value;
@@ -368,6 +388,22 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                         rank = source.rank; type = source.type; value = `r${source.slot}`;
                     }
                     if (!bindArray(assignment, assignment.name, value, rank, type, lines, body, location, source?.slot)) return undefined;
+                    continue;
+                }
+            }
+            // A whole-array compound update completes the same pointwise
+            // value as an explicit binding. Reuse its broadcast/alias guards.
+            if (numberMode && isAssignmentStatement(assignment) && assignment.operator !== '='
+                && !assignment.name.includes('.') && host.arrayLocals) {
+                const left = { $type: 'NameExpression', name: assignment.name } as import('@arrrank/language').Expression;
+                const type = expressions.arrayType(left);
+                const op = assignment.operator.slice(0, -1);
+                if (type && ['+', '-', '*', '//', 'mod'].includes(op)) {
+                    const expression = { $type: 'BinaryExpression', operator: op, left, right: assignment.value } as import('@arrrank/language').Expression;
+                    const lines: string[] = [];
+                    const value = emitValue(expression, lines);
+                    if (!value || typeof value.type === 'string'
+                        || !bindArray(assignment, assignment.name, value.code, value.type.rank, value.type.element, lines, body, location)) return reject(assignment);
                     continue;
                 }
             }

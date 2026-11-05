@@ -543,9 +543,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const real = (term: LoopTerm) => term.type === 'integer' ? `Number(${term.code})` : `(${term.code})`;
             const mixed = left.type !== right.type;
             if (op === '/') lines.push(`if (${zeroTestSource(b, right.type === 'integer' && !numberMode ? 'integer' : 'real')}) throw ${vectorCellDepth ? 'overflow' : 'zero()'};`);
-            if (op === '**') lines.push(`if (${zeroTestSource(a, left.type === 'integer' && !numberMode ? 'integer' : 'real')} && (${b}) < 0) throw powerZero();`);
+            if (op === '**') lines.push(`if (${zeroTestSource(a, left.type === 'integer' && !numberMode ? 'integer' : 'real')} && (${b}) < 0) throw ${vectorCellDepth ? 'overflow' : 'powerZero()'};`);
             lines.push(`const ${name} = ${type === 'boolean' ? binaryOperatorSource(operation, a, b, { mixed }) : binaryOperatorSource(operation, real(left), real(right))};`);
-            if (op === '**') lines.push(`if (Number.isNaN(${name})) throw powerDomain();`);
+            if (op === '**') lines.push(`if (Number.isNaN(${name})) throw ${vectorCellDepth ? 'overflow' : 'powerDomain()'};`);
             return name;
         }
         const divisor = right.bounds?.[0];
@@ -749,7 +749,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     // evaluator, without re-entering expression evaluation on every iteration.
     function arrayType(e: Expression): CompiledArrayType | undefined {
         while (isParenthesizedExpression(e)) e = e.value;
-        if (scalarInputs.has(e)) return undefined;
+        if (scalarInputs.has(e) || isNameExpression(e) && state.ranges.has(e.name)) return undefined;
         if (numberMode && isMaterializeExpression(e)) return arrayType(e.source);
         const concat = numericConcatCopy(e);
         if (concat) return concat.type;
@@ -944,7 +944,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 }
             }
         }
-        if (isBinaryExpression(e) && !e.step && ['+', '-', '*', '/', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(e.operator)) {
+        if (isBinaryExpression(e) && !e.step && ['+', '-', '*', '**', '/', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(e.operator)) {
             return { name: e.operator, operands: [e.left, e.right].map(unwrap) };
         }
         if (host.nativeCalls && isApplicationExpression(e)) {
@@ -1128,6 +1128,25 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return term;
         } };
     }
+    function isRange(source: Expression): boolean {
+        while (isParenthesizedExpression(source)) source = source.value;
+        return isBinaryExpression(source) && ['to', 'till'].includes(source.operator)
+            || isNameExpression(source) && assigned.has(source.name) && state.ranges.has(source.name);
+    }
+    function rangeOperands(source: Expression, lines: string[]) {
+        while (isParenthesizedExpression(source)) source = source.value;
+        if (isNameExpression(source) && assigned.has(source.name) && state.ranges.has(source.name)) {
+            const code = `r${slot(source.name)}`;
+            return { start: { code: `${code}.start`, type: 'integer' as const },
+                end: { code: `${code}.end`, type: 'integer' as const },
+                step: { code: `${code}.step`, type: 'integer' as const }, inclusive: state.ranges.get(source.name) === 'to' };
+        }
+        if (!isBinaryExpression(source) || !['to', 'till'].includes(source.operator)) return undefined;
+        const start = emit(source.left, lines, 'integer'), end = emit(source.right, lines, 'integer');
+        const step = source.step ? emit(source.step, lines, 'integer') : { code: '1', type: 'integer' as const };
+        if (start?.type !== 'integer' || end?.type !== 'integer' || step?.type !== 'integer') return undefined;
+        return { start, end, step, inclusive: source.operator === 'to' };
+    }
     function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {
         let copied = source;
         while (isParenthesizedExpression(copied)) copied = copied.value;
@@ -1289,13 +1308,24 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 || isUnaryExpression(e) && scalarSyntax(e.operand)
                 || isBinaryExpression(e) && !e.step && scalarSyntax(e.left) && scalarSyntax(e.right);
         }
-        function vector(e: Expression): Vector | undefined {
+        let numericExpressions: LoopExpressions | undefined;
+        const numericScalars: string[] = [];
+        const exactScalars = new Map<Expression, LoopTerm>();
+        function vector(e: Expression, numeric = false, setup = lines): Vector | undefined {
             while (isParenthesizedExpression(e)) e = e.value;
             const type = arrayType(e);
             if (!type) {
                 if (!scalarSyntax(e)) return undefined;
-                const scalar = emit(e, lines, 'integer');
-                return scalar?.type === 'integer' ? { size: '1', scalar: true, cell: () => scalar } : undefined;
+                const scalar = numeric ? exactScalars.get(e) : emit(e, setup, 'integer');
+                if (scalar?.type !== 'integer') return undefined;
+                if (!numeric) {
+                    exactScalars.set(e, scalar);
+                    return { size: '1', scalar: true, cell: () => scalar };
+                }
+                const value = `scalar${state.serial++}`;
+                setup.push(`const ${value} = Number(${scalar.code});`);
+                numericScalars.push(value);
+                return { size: '1', scalar: true, cell: () => ({ type: 'integer', code: value }) };
             }
             if (type.rank !== 1 || type.element !== 'integer') return undefined;
             if (isNameExpression(e)) {
@@ -1303,25 +1333,25 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 arrays.set(e.name, info);
                 if (!assigned.has(e.name)) arrayInputs.add(e.name);
                 const size = `length${state.serial++}`;
-                lines.push(`const ${size} = ${state.numberMode ? `cells${info.slot}.length` : `r${info.slot}.shape[0]`};`);
+                setup.push(`const ${size} = ${state.numberMode ? `cells${info.slot}.length` : `r${info.slot}.shape[0]`};`);
                 return { size, cell: index => ({ type: 'integer', code: state.numberMode
-                    ? wide ? `BigInt(cells${info.slot}[${index}])` : `safe(Number(cells${info.slot}[${index}]))`
+                    ? !numeric && wide ? `BigInt(cells${info.slot}[${index}])` : `safe(Number(cells${info.slot}[${index}]))`
                     : `reader${info.slot}(BigInt(${index}))` }) };
             }
             if (!isBinaryExpression(e) || e.step || !(wide && state.numberMode ? ['+', '-', '*', '//', 'mod'] : ['+', '-', '*']).includes(e.operator)) return undefined;
-            const left = vector(e.left), right = vector(e.right);
+            const left = vector(e.left, numeric, setup), right = vector(e.right, numeric, setup);
             if (!left || !right) return undefined;
             const size = `length${state.serial++}`;
             // A singleton array operand may fail before an empty broadcast
             // consumes it. Scalar inputs were already captured above.
-            if (wide && !left.scalar && !right.scalar) lines.push(
+            if (wide && !left.scalar && !right.scalar) setup.push(
                 `if (${left.size} !== ${right.size} && (${left.size} === 0 || ${right.size} === 0)) throw overflow;`);
-            lines.push(`if (${left.size} !== ${right.size} && ${left.size} !== 1 && ${right.size} !== 1) throw ${wide && state.numberMode ? 'overflow' : `shapeMismatch(${left.size}, ${right.size})`};`,
+            setup.push(`if (${left.size} !== ${right.size} && ${left.size} !== 1 && ${right.size} !== 1) throw ${wide && state.numberMode ? 'overflow' : `shapeMismatch(${left.size}, ${right.size})`};`,
                 `const ${size} = ${left.size} === 1 ? ${right.size} : ${left.size};`);
             return { size, cell: (index, body) => {
                 const a = left.cell(`(${left.size} === 1 ? 0 : ${index})`, body);
                 const b = right.cell(`(${right.size} === 1 ? 0 : ${index})`, body);
-                return { type: 'integer', code: arithmetic(e.operator, a, b, 'integer', body)! };
+                return { type: 'integer', code: (numeric ? numericExpressions! : { arithmetic }).arithmetic(e.operator, a, b, 'integer', body)! };
             } };
         }
         if (wide && !state.numberMode || !host.arrayReads || !arrayType(source)) return undefined;
@@ -1339,7 +1369,35 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         finally { if (wide) vectorCellDepth--; }
         builtins.set('sum', 'core');
         if (wide) {
-            lines.push(`let ${result} = 0n;`, numberVectorLoop(input.size, index,
+            // Total integer arithmetic may stay numeric until one cell
+            // overflows. Retry just that pure cell exactly; keep completed
+            // numeric subtotals instead of replaying the enclosing loop.
+            const numeric = [source, ...AstUtils.streamAllContents(source)].every(node =>
+                !isBinaryExpression(node) || ['+', '-', '*'].includes(node.operator));
+            const setup: string[] = [];
+            numericExpressions = numeric ? createLoopExpressions(state) : undefined;
+            const fast = numeric ? vector(source, true, setup) : undefined;
+            const fastBody: string[] = [], term = fast?.cell(index, fastBody);
+            if (fast && term) {
+                const subtotal = `partial${state.serial++}`, exact = `exact${state.serial++}`;
+                // Unsafe captured scalars keep this region and its numeric
+                // arrays; their reduction simply stays exact throughout.
+                const eligible = numericScalars.length ? numericScalars.map(value => `Number.isSafeInteger(${value})`).join(' && ') : undefined;
+                lines.push(...setup, `let ${result} = 0n, ${subtotal} = 0, ${exact} = 0;`,
+                    ...(eligible ? [`if (${eligible}) {`] : []),
+                    numberVectorLoop(input.size, index, [`try {
+                        ${fastBody.join('\n')}
+                        const term = ${term.code}, next = ${subtotal} + term;
+                        if (Number.isSafeInteger(next)) ${subtotal} = next;
+                        else { ${result} += BigInt(${subtotal}) + BigInt(term); ${subtotal} = 0; }
+                    } catch (error) {
+                        if (error !== overflow) throw error;
+                        ${body.join('\n')}
+                        ${result} += BigInt(${subtotal}) + ${value.code}; ${subtotal} = 0; ${exact}++;
+                    }`]), `${result} += BigInt(${subtotal}); recordWideFold(${input.size}, ${exact});`,
+                    ...(eligible ? ['} else {', numberVectorLoop(input.size, index,
+                        [...body, `${result} += ${value.code};`]), `recordWideFold(${input.size}, ${input.size}); }`] : []));
+            } else lines.push(`let ${result} = 0n;`, numberVectorLoop(input.size, index,
                 [...body, `${result} += ${value.code};`]));
             if (!temporaryBudget(source)) return undefined;
             return { code: result, type: 'integer' };
@@ -1481,6 +1539,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         return emit(e, lines, hint, tail);
     }
     function emitInput(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
+        if (isNameExpression(e) && state.ranges.has(e.name)) return reject(e, 'range-consumer');
         if (!temporaryBudget(e)) return undefined;
         if (numberMode && !wide && isFirstIndexWhereExpression(e)) {
             const setup: string[] = [];
@@ -1893,7 +1952,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         return undefined;
     }
-    return { container, slot, knownType, realInput, emit, emitValue, arithmetic, numberOffset, arrayType, numberVectorLoop, numberVector };
+    return { isRange, rangeOperands, container, slot, knownType, realInput, emit, emitValue, arithmetic, numberOffset, arrayType, numberVectorLoop, numberVector };
 }
 
 export type LoopExpressions = ReturnType<typeof createLoopExpressions>;
