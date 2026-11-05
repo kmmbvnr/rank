@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-arg Mm integer = 25
-arg Pm integer = 1000000007
+arg Bits integer = 25
+arg Prime integer = 1000000007
 
 rem The first unpredictable permutation
 rem of 2N comes from that of N: odd
@@ -17,26 +17,30 @@ rem and 2 p(N) - 1, then the even
 rem values 2p. The Lehmer code L is
 rem updated alongside, and the rank is
 rem 1 + sum of L(i) (n - 1 - i)!.
-fun A mulp B = A * B mod Pm
-Pp = array 1 3 2 4
-Ll = array 0 1 0 0
-Nn = 4
-for Nn less 2 ** Mm
-  Hd = Pp take (Nn - 1)
-  Tl = Pp drop 1
-  Pl = Pp (Nn - 1)
-  Br = array (2 * (Pp 0)) (2 * Pl - 1)
-  Lh = Ll take (Nn - 1)
-  Bl = array 0 (Nn - 2)
-  Pa = concat (2 * Hd - 1) Br
-  Pp = concat Pa (2 * Tl)
-  La = concat (Lh + Hd - 1) Bl
-  Ll = concat La (Ll drop 1)
-  Nn = Nn * 2
+fun A mulp B = A * B mod Prime
+Perm = array 1 3 2 4
+Lehmer = array 0 1 0 0
+Size = 4
+for Size less 2 ** Bits
+  Head = Perm take (Size - 1)
+  Tail = Perm drop 1
+  Last = Perm (Size - 1)
+  First = 2 * (Perm 0)
+  Bridge = array First (2 * Last - 1)
+  LHead = Lehmer take (Size - 1)
+  LBridge = array 0 (Size - 2)
+  Joined = concat (2 * Head - 1) Bridge
+  Perm = concat Joined (2 * Tail)
+  Shifted = LHead + Head - 1
+  LJoined = concat Shifted LBridge
+  Rest = Lehmer drop 1
+  Lehmer = concat LJoined Rest
+  Size = Size * 2
 end
-Fs = (1 to Nn - 1) scan mulp
-Fc = concat (array 1) Fs
-Wt = Ll * (Fc reverse) mod Pm
-Sm = Wt sum
-Answer = (1 + Sm) mod Pm
+Run = (1 to Size - 1) scan mulp
+Facts = concat (array 1) Run
+Back = Facts reverse
+Weights = Lehmer * Back mod Prime
+Total = Weights sum
+Answer = (1 + Total) mod Prime
 Answer print
