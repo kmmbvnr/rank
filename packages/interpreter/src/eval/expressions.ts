@@ -90,7 +90,7 @@ export class ExpressionEvaluator {
     private readonly plans: PlanConstruction;
 
     constructor(private readonly context: ExpressionContext) {
-        this.plans = new PlanConstruction({ bindings: context.bindings, findVariable: name => context.findVariable(name),
+        this.plans = new PlanConstruction({ nativeTensorPlansEnabled: () => context.fastPaths.nativeTensorPlansEnabled(), bindings: context.bindings, findVariable: name => context.findVariable(name),
             resolve: name => context.resolve(name), operationOf: name => this.operationOf(name),
             builtinValue: name => context.builtins.lookup(name),
             snapshotFunction: (fn, seen) => context.functions.snapshot(fn, seen),

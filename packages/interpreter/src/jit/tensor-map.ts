@@ -1,5 +1,6 @@
 import { keyedIntegerReader } from './keyed-reader.js';
 import { prepareNumberTensor } from './tensor-number.js';
+import { prepareLayoutNumberTensor } from './tensor-number-layout.js';
 import { registerPackedBooleanMap, countPackedBooleans } from '../packed-booleans.js';
 import { matchCompiledOperatorDomains, tensorOperatorSignatures, type CompiledAtomType } from '@arrrank/language';
 import { arrayCellValidator } from '../derived-array.js';
@@ -35,6 +36,13 @@ export function registerTensorScalarMap(value: RankArray, source: RankArray, cal
 }
 
 const concats = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[]; operands: readonly RankArray[]; axis: number }>();
+const selections = new WeakMap<RankArray, { source: RankArray; selector: RankArray; reader: RankArray['itemAt']; shape: readonly number[] }>();
+/** The pure deferred frontend owns both operands; no selector callback is run. */
+export function registerTensorSelection(value: RankArray, source: RankArray, selector: RankArray): RankArray {
+    selections.set(value, { source, selector, reader: value.itemAt, shape: [...value.shape] });
+    if (active?.enabled()) owners.set(value, active);
+    return value;
+}
 const shifts = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[];
     source: RankArray; amount: number; fill: RankValue; axis: number }>();
 const owners = new WeakMap<RankArray, PlanScope>();
@@ -251,6 +259,16 @@ function prepareNativeTensorGraph(value: RankArray, textDigits = false, integerB
         if (!isRankArray(value) || visiting.has(value)) return undefined;
         visiting.add(value);
         try {
+            const selected = selections.get(value);
+            if (selected && selected.reader === value.itemAt && selected.shape.length === value.shape.length
+                && selected.shape.every((n, axis) => n === value.shape[axis])) {
+                const source = lower(selected.source), selector = lower(selected.selector);
+                if (!source || !selector || domains.get(selector)?.join() !== 'integer') return undefined;
+                guardArray(value); transformed = true;
+                const node = typed({ kind: 'select', source, selector }, domains.get(source)!);
+                const validate = arrayCellValidator(value);
+                return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }), !value.columnNames);
+            }
             const view = prepareNativeScalarView(value);
             if (view === false) return undefined;
             if (view) {
@@ -262,7 +280,7 @@ function prepareNativeTensorGraph(value: RankArray, textDigits = false, integerB
                     && view.shape.length === view.source.shape.length
                     && view.shape.every((n, axis) => n === view.source.shape[axis]);
                 transformed ||= !identity;
-                return check(identity ? source : typed({ kind: 'view', source, shape: view.shape, offset: view.offset },
+                return check(identity ? source : typed({ kind: 'view', source, shape: view.shape, offset: view.offset, linear: view.linear },
                     domains.get(source)!), view.validate, view.uniform);
             }
             // Stored arrays are completion boundaries, even if their creation
@@ -297,7 +315,7 @@ function prepareNativeTensorGraph(value: RankArray, textDigits = false, integerB
                     : typed({ kind: 'call', source, validate: scalar.call }, types);
                 const validate = arrayCellValidator(value);
                 return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }),
-                    value.shape.length === 1 && !value.columnNames);
+                    !value.columnNames);
             }
             const shift = shifts.get(value);
             if (shift && shift.reader === value.itemAt && shift.shape.length === value.shape.length
@@ -359,7 +377,7 @@ function prepareNativeTensorGraph(value: RankArray, textDigits = false, integerB
                 : { kind: map.layout === 'outer' ? 'outer' : 'binary', op: map.operator, left: operands[0]!, right: operands[1]! }, matched.result);
             const validate = arrayCellValidator(value);
             return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }),
-                value.shape.length === 1 && !value.columnNames);
+                !value.columnNames);
         } finally { visiting.delete(value); }
     }
     const root = lower(value);
@@ -385,7 +403,9 @@ export function tensorMaskPositions(value: RankArray): number[] | undefined {
     const graph = prepareTensorGraph(value);
     if (!graph) return undefined;
     const { root, domains, host, scope } = graph;
-    const result = prepareNumberTensor(root, domains, 'positions', scope.code, host.valid)?.();
+    if (graph.nonReplayableChecks) return undefined;
+    const result = (prepareNumberTensor(root, domains, 'positions', scope.code, host.valid)
+        ?? prepareLayoutNumberTensor(root, domains, 'positions', scope.code, host.valid!, undefined, 0, host.compiled))?.();
     if (!Array.isArray(result)) return undefined;
     scope.executed();
     const diagnostics = currentDiagnostics();
@@ -398,12 +418,35 @@ export function sumTensorPositions(value: RankArray, positions: ArrayLike<number
     const graph = prepareTensorGraph(value);
     if (!graph) return undefined;
     const { root, domains, host, scope } = graph;
-    const result = prepareNumberTensor(root, domains, 'sum', scope.code, host.valid, positions)?.();
+    if (graph.nonReplayableChecks) return undefined;
+    const result = (prepareNumberTensor(root, domains, 'sum', scope.code, host.valid, positions)
+        ?? prepareLayoutNumberTensor(root, domains, 'sum', scope.code, host.valid!, positions, 0, host.compiled))?.();
     if (typeof result !== 'bigint') return undefined;
     scope.executed();
     const diagnostics = currentDiagnostics();
     if (diagnostics) diagnostics.numberTensors++;
     return result;
+}
+
+/** Selection validates every index before any selected source cell is read. */
+export function validateTensorIndices(selector: RankArray, size: number): boolean {
+    const graph = prepareTensorGraph(selector);
+    if (!graph || graph.nonReplayableChecks) return false;
+    const { root, domains, host, scope } = graph;
+    return prepareLayoutNumberTensor(root, domains, 'indices', scope.code, host.valid!, undefined, size, host.compiled)?.() === 0n;
+}
+
+/** Complete only the source positions already demanded by native mask selection. */
+export function materializeTensorPositions(value: RankArray, positions: ArrayLike<number>): RankArray | undefined {
+    const graph = prepareTensorGraph(value);
+    if (!graph || graph.nonReplayableChecks) return undefined;
+    const { root, domains, host, scope } = graph;
+    const result = prepareLayoutNumberTensor(root, domains, 'copy', scope.code, host.valid!, positions, 0, host.compiled)?.();
+    if (result === undefined || !isRankArray(result as RankValue)) return undefined;
+    scope.executed();
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.numberTensors++;
+    return result as RankArray;
 }
 
 function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bigint | undefined },
@@ -423,15 +466,17 @@ function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bi
         : compileNativeTensorReduction(root, operation as TensorReduction, domains, host, scope.code);
     // The selected-position sum already owns checked private Number state.
     // Reuse it for complete rank-one sums; overflow restarts the exact consumer.
-    const numeric = !graph.nonReplayableChecks && !visit && !scan && operation === 'sum'
-        ? prepareNumberTensor(root, domains, 'sum', scope.code, host.valid, undefined, host.compiled) : undefined;
+    const numeric = !graph.nonReplayableChecks && !visit && !scan
+        ? operation === 'sum' ? prepareNumberTensor(root, domains, 'sum', scope.code, host.valid, undefined, host.compiled)
+            ?? prepareLayoutNumberTensor(root, domains, 'sum', scope.code, host.valid!, undefined, 0, host.compiled)
+        : operation === 'copy' ? prepareLayoutNumberTensor(root, domains, 'copy', scope.code, host.valid!, undefined, 0, host.compiled) : undefined : undefined;
     return range => {
         if (!consumerCompilation || !scope.enabled()) return undefined;
         const fast = !range ? numeric?.() : undefined;
-        if (typeof fast === 'bigint') {
+        if (typeof fast === 'bigint' || fast !== undefined && isRankArray(fast as RankValue)) {
             scope.executed();
             if (diagnostics) diagnostics.numberTensors++;
-            return fast;
+            return fast as RankValue;
         }
         const result = kernel.run(range);
         if (result !== undefined) scope.executed();

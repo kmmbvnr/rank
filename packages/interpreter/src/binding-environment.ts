@@ -1,3 +1,4 @@
+import { inheritDeferredTensorPlan } from './deferred-tensor-plan.js';
 import { bindingTypes } from './binding-types.js';
 import {
     acceptsBindingType, availableBuiltin, bindingTypeMessage, builtinBindingMessage, possibleBindingTypeConflict,
@@ -70,7 +71,7 @@ export class BindingEnvironment {
         if (scope === this.globals) this.sourceBindings.add(name);
         if (this.isConstant(name, scope)) throw new RankError(`cannot reassign function declaration: ${name}`, 'TypeError');
         if (isRankPlan(value)) {
-            scope.set(name, checkPlan(value, computed => {
+            const check = (computed: RankValue) => {
                 const received = typeName(computed);
                 const expected = scope.typeOf(name);
                 if (expected && !acceptsBindingType(expected, received)) {
@@ -78,7 +79,10 @@ export class BindingEnvironment {
                 }
                 scope.declareType(name, expected ? settledBindingTypes(expected, [received]) : bindingTypes(received));
                 return scope.checkValue(name, computed);
-            }));
+            };
+            const checked = checkPlan(value, check);
+            inheritDeferredTensorPlan(value, checked, check);
+            scope.set(name, checked);
             return;
         }
         const received = typeName(value);

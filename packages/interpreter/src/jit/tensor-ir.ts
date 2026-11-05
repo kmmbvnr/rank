@@ -7,7 +7,7 @@ export type TensorNode =
     | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue; uniform?: boolean }
     | { kind: 'call'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
     | { kind: 'shift'; source: TensorNode; fill: TensorNode; amount: number; axis: number }
-    | { kind: 'view'; source: TensorNode; shape: readonly number[]; offset(index: number): number }
+    | { kind: 'view'; source: TensorNode; shape: readonly number[]; offset(index: number): number; linear?: { offset: number; stride: number } }
     | { kind: 'binary'; op: string; native?: 'bxor' | 'band' | 'bor' | 'shl' | 'shr' | 'min' | 'max'; ranks?: readonly [number, number]; left: TensorNode; right: TensorNode }
     | { kind: 'outer'; op: string; left: TensorNode; right: TensorNode }
     | { kind: 'reshape'; source: TensorNode; dimensions: (TensorNode | undefined)[] }

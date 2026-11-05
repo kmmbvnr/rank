@@ -4,7 +4,7 @@ import { RankError } from './errors.js';
 import { prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
 import { checkpoint } from './interrupt.js';
 import { packedTruePositions } from './packed-booleans.js';
-import { tensorMaskPositions, sumTensorPositions } from './tensor-map.js';
+import { tensorMaskPositions, sumTensorPositions, materializeTensorPositions } from './tensor-map.js';
 import { sameShape } from './tensor-index.js';
 import { MISSING, type RankArray, type RankSequence, type RankValue } from './value.js';
 
@@ -81,7 +81,14 @@ export function materializeMaskSelection(selected: RankSequence): RankArray | un
     if (!selection || selected.plan.iterate !== selection.iterate) return undefined;
     const { source, positions } = selection;
     const view = prepareStoredScalarView(source, true);
-    if (!view) return undefined;
+    if (!view) {
+        const result = materializeTensorPositions(source, positions);
+        if (result) {
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) { diagnostics.maskMaterializations++; diagnostics.maskMaterializedCells += positions.length; }
+        }
+        return result;
+    }
     const linear = view.linear;
     const direct = linear && (!view.validate || view.validateUniform);
     if (direct && positions.length) view.validateUniform?.(view.items[linear.offset + linear.stride * positions[0]]);

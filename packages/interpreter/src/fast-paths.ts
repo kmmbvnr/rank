@@ -1,5 +1,5 @@
 import { compileIntegerArrayFunction } from './jit/integer-array-function.js';
-import { interruptsEnabled } from './interrupt.js';
+import { interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { borrowIntegerBuffer } from './jit/borrowed-integer-buffer.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
 import { strictDataCall } from './jit/declared-scalar-call.js';
@@ -263,6 +263,10 @@ export class FastPaths {
             if (value !== undefined) this.tensorExecuted();
             return value;
         };
+    }
+
+    nativeTensorPlansEnabled(): boolean {
+        return this.compiler.tensors.fusion && this.compiler.tensors.cells && privateLoopPolling() && !interruptsEnabled();
     }
 
     tensorPlanScope(expression: Expression): <T>(run: () => T) => T {

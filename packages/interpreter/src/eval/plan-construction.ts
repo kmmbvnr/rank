@@ -1,6 +1,9 @@
+import { hasNativeImplementation } from '../native-implementation.js';
+import { constructDeferredTensor } from '../jit/deferred-tensor.js';
+import { registerDeferredTensorPlan, prepareDeferredTensorPlan } from '../deferred-tensor-plan.js';
 import { AstUtils, isAstNode, type AstNode } from 'langium';
 import {
-    applicationExpression, applicationForm, expressionFacts, expressionFreeReads, flattenApplication,
+    findOperation, applicationExpression, applicationForm, expressionFacts, expressionFreeReads, flattenApplication,
     isAllAxisExpression, isApplicationExpression, isBinaryExpression, isBooleanLiteral, isBoundClauseExpression, isDeclaredCallExpression, isLabelLiteral, isNumberLiteral, isStringLiteral,
     isExpression, isKeyedSortExpression, isNameExpression, isParenthesizedExpression, isStdinExpression, isSubjectComparisonExpression, isUnaryExpression, nameNeedsExecution, UNKNOWN_VALUE,
     type Expression, type NameExpression, type Operation, type ValueFacts,
@@ -18,6 +21,7 @@ import { registerTensorResult } from '../tensor-map.js';
 import { hasMetadataBounds } from '../sequence-bounds.js';
 
 interface ConstructionContext {
+    nativeTensorPlansEnabled(): boolean;
     readonly bindings: BindingEnvironment;
     findVariable(name: string): RankValue | undefined;
     resolve(name: string): RankValue;
@@ -389,13 +393,25 @@ export class PlanConstruction {
             this.kernels.set(expression, kernel);
         }
         const { compiled, withinPlan } = kernel;
-        return { kind: 'plan', expression, dependencies, result,
+        const plan: RankPlan = { kind: 'plan', expression, dependencies, result,
             evaluate: () => completed(this.context.bindings.withFrame(snapshot, () => withinPlan(() => {
                 try {
-                    const value = compiled?.() ?? runExecution(this.context.execute(expression, false));
+                    const value = (this.context.nativeTensorPlansEnabled() ? prepareDeferredTensorPlan(plan) : undefined)
+                        ?? compiled?.() ?? runExecution(this.context.execute(expression, false));
                     return registerTensorResult(identifySqliteSource(value, source));
                 } catch (error) { throw this.context.locate(error, expression); }
             }))),
         };
+        registerDeferredTensorPlan(plan, () => !this.context.nativeTensorPlansEnabled() ? undefined
+            : this.context.bindings.withFrame(snapshot, () => withinPlan(() => constructDeferredTensor(expression, {
+                read: name => dependencies.get(name),
+                builtin: name => {
+                    const value = this.context.builtinValue(name);
+                    return this.context.operationOf(name) === findOperation(name)
+                        && value !== undefined && isNativeFunction(value) && hasNativeImplementation(value);
+                },
+                evaluate: value => this.context.bindings.withFrame(snapshot, () => withinPlan(() => runExecution(this.context.execute(value, false)))),
+            }))));
+        return plan;
     }
 }

@@ -75,7 +75,7 @@ export function prepareNativeScalarView(value: RankArray): {
     linear?: LinearView; valid(): boolean;
     uniform: boolean;
     replaySafe: boolean;
-    validate(cell: RankValue, index: number): RankValue;
+    validate?: (cell: RankValue, index: number) => RankValue;
 } | false | undefined {
     const view = views.get(value);
     if (!view) return undefined;
@@ -89,14 +89,14 @@ export function prepareNativeScalarView(value: RankArray): {
     const validate = arrayCellValidator(value);
     return { ...snapshot, shape, linear: linear && { ...linear },
         replaySafe: !view.check || view.pureCheck === true,
-        uniform: shape.length === 1 && !value.columnNames && (!view.check || view.scalarCheck === true), valid() {
+        uniform: !value.columnNames && (!view.check || view.scalarCheck === true), valid() {
         const current = capture();
         return value.itemAt === view.reader && current.source === snapshot.source && current.offset === snapshot.offset
             && value.shape.length === shape.length && value.shape.every((n, axis) => n === shape[axis]);
-    }, validate(cell, index) {
+    }, validate: validate || view.check ? (cell, index) => {
         validate?.(cell, index);
         return view.check ? view.check(cell) : cell;
-    } };
+    } : undefined };
 }
 
 /** A selection that previously gathered eagerly keeps its writable value

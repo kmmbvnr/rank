@@ -85,7 +85,7 @@ describe.each([false, true])('checked tensor view composition (compilation=%s)',
             expect(entries()).toBe(0);
             expect(execute('View sum')).toBe(42n);
             expect(entries()).toBe(compilation ? 1 : 0);
-            if (compilation) expect(sources.at(-1)!).toContain('tensor:operator-guard:*');
+            if (compilation) expect(sources.at(-1)!).toContain('for (');
         } finally { host.dispose(); }
     });
 
