@@ -2,24 +2,24 @@ use testing
 
 test "statement values"
   use "734_bitofprime"
-  Nn = 5
-  Kk = 2
+  Limit = 5
+  Count = 2
   run
   Answer equal 5
-  Nn = 100
-  Kk = 3
+  Limit = 100
+  Count = 3
   run
   Answer equal 3355
-  Nn = 1000
-  Kk = 10
+  Limit = 1000
+  Count = 10
   run
   Answer equal 2071632
 end
 
 test "default input"
   use "734_bitofprime"
-  Nn = 1000000
-  Kk = 999983
+  Limit = 1000000
+  Count = 999983
   run
   Answer equal 557988060
 end

@@ -2,10 +2,10 @@ use testing
 
 test "statement values"
   use "733_ascendingsubsequences"
-  Nn = 6
+  Length = 6
   run
   Answer equal 94513710
-  Nn = 100
+  Length = 100
   run
   Answer equal 488692962
 end
