@@ -29,7 +29,10 @@ State = record
   .ways = array shape 1 fill 1
 end
 for Cell in 0 till Cells
-  State = State step (Cell mod Span)
+  Row = Cell mod Span
+  Empty = State blank Row
+  Filled = State paint Row
+  State = Empty coalesce Filled
 end
 Ways = State .ways
 Best = State .best
@@ -37,29 +40,39 @@ Sum = Ways * Best sum
 Answer = Sum real / (2 ** Cells)
 Answer print
 
-fun State step Row
+fun State blank Row
   Tags = State .tags
   Sizes = State .sizes
-  Ways = State .ways
-  Count = Ways len
-  Old = Tags # Row reshape Count 1
-  Part = Sizes # Row reshape Count 1
-  Near = (Row - 1) max 0
-  Left = Tags # Near reshape Count 1
-  Side = Sizes # Near reshape Count 1
-  Up = (Row greater 0) choose Left 0
-  Extra = (Row greater 0) choose Side 0
+  Old = Tags # (array Row)
 
   rem Empty cells may rename a region.
   Keep = Slots not equal Row
   Clear = Keep choose Tags 0
   Match = Clear equal Old
   First = Match choose (Slots + 1) 8
-  Least = First min axis 1
-  Root = Least reshape Count 1
+  Root = First min rank 1 reshape # 1
   Move = Match and Old equal Row + 1
   Empty = Move choose Root Clear
   Small = Keep choose Sizes 0
+
+  return record
+    .tags = Empty
+    .sizes = Small
+    .best = State .best
+    .ways = State .ways
+  end
+end
+
+fun State paint Row
+  Tags = State .tags
+  Sizes = State .sizes
+  Old = Tags # (array Row)
+  Part = Sizes # (array Row)
+  Near = (Row - 1) max 0
+  Left = Tags # (array Near)
+  Side = Sizes # (array Near)
+  Up = (Row greater 0) choose Left 0
+  Extra = (Row greater 0) choose Side 0
 
   rem Filled cells join both neighbors.
   Touch = Tags equal Old
@@ -77,12 +90,25 @@ fun State step Row
   Open = Total reshape #
   Peak = (State .best) max Open
 
+  return record
+    .tags = Full
+    .sizes = Large
+    .best = Peak
+    .ways = State .ways
+  end
+end
+
+fun Empty coalesce Filled
   rem Merge weights of equal states.
-  Labels = concat Empty Full
-  Areas = concat Small Large
-  Best = concat (State .best) Peak
+  Labels = (concat (Empty .tags)
+    (Filled .tags))
+  Areas = (concat (Empty .sizes)
+    (Filled .sizes))
+  Best = (concat (Empty .best)
+    (Filled .best))
   Key = Labels Areas Best pack
-  Weight = concat Ways Ways
+  Weight = (concat (Empty .ways)
+    (Filled .ways))
   Order = Key argsort
   Sorted = Key Order
   Prev = Sorted shift 1 with -1

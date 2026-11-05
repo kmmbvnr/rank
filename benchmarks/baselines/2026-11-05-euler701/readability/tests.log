@@ -1,0 +1,13 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/euler701.test.ts
+
+
+ RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter
+
+ ✓ test/euler701.test.ts (30 tests) 1408ms
+
+ Test Files  1 passed (1)
+      Tests  30 passed (30)
+   Start at  15:37:34
+   Duration  2.80s (transform 899ms, setup 0ms, collect 1.28s, tests 1.41s, environment 0ms, prepare 29ms)

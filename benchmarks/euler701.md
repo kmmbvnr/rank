@@ -67,8 +67,10 @@ fix improves execution time; it does not solve those aliasing costs.
 
 ## Separate solution rewrite
 
-The demo now has one loop, over cells. A function applies both empty and
-filled transitions to all states as arrays. Labels use the first frontier
+The demo has one loop, over cells. The `blank` and `paint` functions apply
+the empty and filled transitions to all states as arrays; `coalesce` merges
+the results. Singleton selectors retain column shapes without a state-count
+reshape. Labels use the first frontier
 position of each region; sizes are carried per occupied frontier position.
 The best area includes open regions, so states whose smaller closed maxima
 are already subsumed can merge. The shorter board side is the frontier.
@@ -154,12 +156,14 @@ per-cell equivalence checks are in `baselines/2026-11-05-euler701/memory/`.
 ## Remaining implementation weaknesses and interface question
 
 The reference path still pays substantial per-cell reader and rank overhead.
-The compiler still cannot keep this complete DP transition in one region:
-record fields and several array operations remain boundaries. A future SSA
-pass should make stage values, liveness, aliasing and consumer ownership
-explicit before deciding which completed arrays can disappear or reuse
-storage. Unconditional buffer reuse would be incorrect across aliases and
-late failures.
+Record fields and several array operations remain compiler boundaries.
+The intended source-level control is explicit: `X = Expr` completes and
+retains a result; `X' = Expr` preserves a plan and repeated demand recomputes.
+Do not automatically erase ordinary materialization boundaries or memoize
+plans. Any future SSA work should preserve that visible execution model;
+users should be able to inspect passes and allocations. Buffer reuse must
+preserve aliases and failure behavior. This task changes only demo helpers
+and indexing syntax, not compiler lifetime decisions.
 
 No new library primitive was required or added. One candidate to discuss is
 `Keys unique .indexed` in `sequences`, returning distinct values in first
@@ -205,3 +209,46 @@ four assertions fail there, with 62 other tests passing in both copies.
 No unrelated test or runtime changes were made to hide those failures.
 See the baseline/current failure logs beside the raw measurements.
 The exhaustive type, differential and Nurikabe audits were not started.
+
+## Readability follow-up
+
+The loop now names all three stages explicitly:
+
+```rank
+for Cell in 0 till Cells
+  Row = Cell mod Span
+  Empty = State blank Row
+  Filled = State paint Row
+  State = Empty coalesce Filled
+end
+```
+
+`Count` and four explicit column reshapes were removed using singleton
+selectors (`Tags # (array Row)`); the reduction result uses `reshape # 1`.
+Existing `rank` can also assemble a column when a row helper returns a
+one-element vector. `First min rank 1` alone returns shape N, while the
+following helper gives N×1 (also for an empty leading frame):
+
+```rank
+fun Values minimum
+  return array (Values min)
+end
+Root = First minimum rank 1
+```
+
+No new keep-dimensions modifier was added. The demo uses the existing chain
+`Root = First min rank 1 reshape # 1` without a separate row helper.
+
+Before replacing the axis fold with the requested `rank` chain, the simplified
+demo on Mac took 0.682 s for 5×5, 7.447 s for 6×6, and
+145.366 s / 2,404 MiB RSS for 7×7. The full result and exact numerator remain
+unchanged. These are individual measurements; the prior 7×7 sample was
+129.783 s, so this readability refactor is not claimed as a speedup.
+The 30 focused Euler tests and the native Rank test pass. Intel 6×6 took
+21.776 s and retained the exact numerator `738221900249`. Raw samples
+are in `baselines/2026-11-05-euler701/readability/`.
+The final `Root = First min rank 1 reshape # 1` variant was rechecked at
+6×6: 9.048 s, exact numerator `738221900249`. This syntax change is not
+claimed as a performance improvement; its raw sample is `mac6-rank-chain.json`.
+Research and the proposed classification interface are tracked in #528:
+https://github.com/kmmbvnr/rank/issues/528
