@@ -74,11 +74,13 @@ for Ex greater 0
     V0 = Aa mm V0
     V1 = W1
   end
-  X1 = Aa mm Bb
-  X2 = Bb mm Aa
-  Bb = (X1 + X2) mod Mod
-  Aa = Aa mm Aa
   Ex //= 2
+  if Ex greater 0
+    X1 = Aa mm Bb
+    X2 = Bb mm Aa
+    Bb = (X1 + X2) mod Mod
+    Aa = Aa mm Aa
+  end
 end
 S0 = V0 sum
 S1 = V1 sum

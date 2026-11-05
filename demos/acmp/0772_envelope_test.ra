@@ -1,0 +1,39 @@
+rem Tests for ACMP 0772: Envelope
+use testing
+use text
+
+test "ACMP 772: Sample 1 (3 3 2F 3R 1R)"
+  use "0772_envelope"
+  Input = "3 3 2F 3R 1R"
+  run
+  Result equal "P0R P3R"
+end
+
+test "ACMP 772: Sample 2 (3 3 2F 3R 1F)"
+  use "0772_envelope"
+  Input = "3 3 2F 3R 1F"
+  run
+  Result equal "P0F P1F"
+end
+
+test "ACMP 772: Sample 3 SCRUFFY"
+  use "0772_envelope"
+  Input = "3 2 2R 1R"
+  run
+  Result equal "SCRUFFY"
+end
+
+test "ACMP 772: Sample 4 (4 2 4F 3F)"
+  use "0772_envelope"
+  Input = "4 2 4F 3F"
+  run
+  Result equal (
+    "P0F P1F P2F P3F P0R P1R"
+  )
+end
+
+test "ACMP 772: Maximal 20 folds"
+  use "0772_envelope"
+  run
+  Result equal "P0F P20R"
+end
