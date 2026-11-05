@@ -1,0 +1,78 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 917: Fence - 3
+rem Max polygon area from given sides.
+
+arg Input text = "100
+91 24 13 45 41 38 27 23 96 79 21 85
+64 14 13 21 37 39 74 87 13 81 35 93
+99 79 63 38 67 85 45 10 30 99 64 53
+45 29 37 53 23 21 58 22 55 54 87 43
+15 68 78 25 58 20 80 47 90 89 56 83
+34 100 18 15 94 39 47 20 39 22 58 45
+68 91 56 30 57 55 36 95 44 99 97 92
+19 87 91 31 78 41 30 69 58 44 91 98
+81 38 97 51"
+
+fun solve_fence Input
+  Toks = Input words real
+  ToksInt = Input words integer
+  N = ToksInt 0
+  L = Toks (1 to N)
+  PI = 3.141592653589793
+  LMax = L max
+  MaxIdx = ((0 to (N - 1)) (
+    L equal LMax)) 0
+
+  TestX = 1.0 / LMax
+  TestScaled = (L * TestX) min 1.0
+  TestAngs = (TestScaled max 0.0) asin
+  OtherSum = (TestAngs sum) - (
+    TestAngs MaxIdx)
+  IsInside = not (OtherSum less (
+    PI / 2.0))
+
+  XLo = 0.0
+  XHi = 1.0 / LMax
+  for Step in 1 to 60
+    Mid = (XLo + XHi) / 2.0
+    Scaled = (L * Mid) min 1.0
+    Angs = (Scaled max 0.0) asin
+    if IsInside
+      Val = Angs sum
+      if Val less PI
+        XLo = Mid
+      else
+        XHi = Mid
+      end
+    else
+      Val = (2.0 * (Angs MaxIdx)) - (
+        Angs sum)
+      if Val less 0.0
+        XLo = Mid
+      else
+        XHi = Mid
+      end
+    end
+  end
+
+  FinX = (XLo + XHi) / 2.0
+  FinScaled = (L * FinX) min 1.0
+  Clamped = FinScaled max 0.0
+  T = (L / (4.0 * FinX)) * (
+    (1.0 - (Clamped ** 2)) sqrt)
+  Area = 0.0
+  if IsInside
+    Area = T sum
+  else
+    Area = (T sum) - (2.0 * (T MaxIdx))
+  end
+  return Area
+end
+
+Result = solve_fence Input
+Result print
