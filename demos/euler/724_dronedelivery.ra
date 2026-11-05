@@ -6,28 +6,30 @@ use sequences
 use io
 use cli
 
-arg Nn integer = 10 ** 8
+arg People integer = 10 ** 8
 
 rem E(n) = n / 2 (H^2 + H2), where H and
 rem H2 are the sums of 1 / k and 1 / k^2
 rem to n. Small n are summed directly;
 rem large n use the Euler-Maclaurin
 rem series with Euler's constant.
-Gm = 0.5772156649015329
+Euler = 0.5772156649015329
 Pi = 3.141592653589793
-Xn = Nn * 1.0
-Ks = (1 to (Nn min 1000)) * 1.0
-Hh = (1.0 / Ks) sum
-Hq = (1.0 / Ks ** 2) sum
-if Nn greater 1000
-  Hh = Xn log + Gm + 0.5 / Xn
-  Hh -= 1.0 / (12 * Xn ** 2)
-  Hh += 1.0 / (120 * Xn ** 4)
-  Hq = Pi ** 2 / 6 - 1.0 / Xn
-  Hq += 0.5 / Xn ** 2
-  Hq -= 1.0 / (6 * Xn ** 3)
+Real = People * 1.0
+Terms = (1 to (People min 1000)) * 1.0
+Harmonic = (1.0 / Terms) sum
+HarmSq = (1.0 / Terms ** 2) sum
+if People greater 1000
+  Logged = Real log
+  Harmonic = Logged + Euler + 0.5 / Real
+  Harmonic -= 1.0 / (12 * Real ** 2)
+  Harmonic += 1.0 / (120 * Real ** 4)
+  HarmSq = Pi ** 2 / 6 - 1.0 / Real
+  HarmSq += 0.5 / Real ** 2
+  HarmSq -= 1.0 / (6 * Real ** 3)
 end
-Ev = Xn / 2 * (Hh * Hh + Hq)
-Rv = Ev round 0
-Answer = Rv integer
+Squared = Harmonic * Harmonic
+Expected = Real / 2 * (Squared + HarmSq)
+Rounded = Expected round 0
+Answer = Rounded integer
 Answer print

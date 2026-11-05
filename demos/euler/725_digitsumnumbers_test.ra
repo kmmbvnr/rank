@@ -2,10 +2,10 @@ use testing
 
 test "statement values"
   use "725_digitsumnumbers"
-  Nn = 3
+  Length = 3
   run
   Answer equal 63270
-  Nn = 7
+  Length = 7
   run
   Answer equal 85499991450
 end
