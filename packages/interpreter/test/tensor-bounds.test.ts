@@ -78,7 +78,8 @@ describe('bounded homogeneous tensor arithmetic', () => {
         } finally { runtime.dispose(); }
     });
     it('retains bounds across iterations and rescans only a changed input', () => {
-        const runtime = new Interpreter();
+        // Exercise tensor bounds, independently of whole-loop specialization.
+        const runtime = new Interpreter(undefined, { integerLoopCompilation: false });
         try {
             runtime.execute('use sequences');
             runtime.variables.set('A', typedArray(new Float64Array(size).fill(1)));

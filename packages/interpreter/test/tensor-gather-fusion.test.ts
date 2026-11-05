@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { demandValue } from '../src/plan.js';
+import { DemandBudgetExhausted, withDemandBudget, withInterrupt } from '../src/interrupt.js';
 import { Interpreter, formatValue, MISSING, createArraySnapshot, type RankSequence, type RankValue, parse } from '../src/index.js';
 
 import { isFunctionStatement } from '@arrrank/language';
@@ -82,6 +83,83 @@ Va`;
 
     it('retains shape errors before publishing an output', () => {
         expect(compare(source.replace('array 1 2 3 4', 'array 1 2'))).toHaveProperty('error');
+    });
+});
+
+describe('computed gather producers', () => {
+    const source = `use sequences
+A = array 3 5 7 11
+Ix = array 3 1 1 0
+Result = (A * 2 + 1) Ix copy
+Result`;
+
+    it('fuses a computed producer with repeated and reordered indices', () => {
+        const actual = compare(source);
+        expect(actual.value).toBe('23 11 11 7');
+        expect(actual.kernels).toBe(1);
+        expect(actual.compiled).toHaveLength(1);
+    });
+
+    it.each(['array -1', 'array 4', 'array .NA', 'array 1.0', 'array 9007199254740993'])
+    ('preserves errors for selector %s', indices => {
+        expect(compare(source.replace('array 3 1 1 0', indices))).toHaveProperty('error');
+    });
+
+    it('leaves an unselected cell with division by zero undemanded', () => {
+        expect(compare(source.replace('array 3 5 7 11', 'array 3 0 7 11')
+            .replace('array 3 1 1 0', 'array 3 2 0')
+            .replace('(A * 2 + 1)', '(21 // A)'))).toMatchObject({ value: '1 3 7' });
+    });
+
+    it('preserves a selected division error and an empty gather', () => {
+        const division = source.replace('array 3 5 7 11', 'array 3 0 7 11')
+            .replace('(A * 2 + 1)', '(21 // A)');
+        expect(compare(division)).toHaveProperty('error');
+        expect(compare(division.replace('array 3 1 1 0', 'array shape 0 fill 0')))
+            .toMatchObject({ value: '' });
+    });
+
+    it('falls back to exact integers beyond Number precision', () => {
+        expect(compare(source.replace('array 3 5 7 11', 'array 9007199254740993 5 7 11')))
+            .toMatchObject({ value: '23 11 11 18014398509481987' });
+    });
+
+    it('keeps scalar failures and producer shape validation on empty selections', () => {
+        const empty = source.replace('array 3 1 1 0', 'array shape 0 fill 0');
+        expect(compare(empty.replace('(A * 2 + 1)', '(A + (1 // 0))'))).toHaveProperty('error');
+        expect(compare(empty.replace('(A * 2 + 1)', '(A + (array 1 2))'))).toHaveProperty('error');
+    });
+
+    it('keeps gathered results independent from subsequent source writes', () => {
+        expect(compare(source + '\nA 0 = 99\nResult')).toMatchObject({ value: '23 11 11 7' });
+    });
+
+    it.each([false, true])('honors cancellation and budgets without publishing (%s)', compilation => {
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.execute('use sequences\nA = 0 till 10000 copy\nIx = 0 till 10000 copy\nSaved = array 123');
+            const execute = () => runtime.execute('Saved = (A * 2 + 1) Ix copy');
+            expect(() => withDemandBudget(100, execute)).toThrow(DemandBudgetExhausted);
+            expect(formatValue(runtime.variables.get('Saved')!)).toBe('123');
+            const flag = new Int32Array(new SharedArrayBuffer(4));
+            flag[0] = 1;
+            expect(() => withInterrupt(flag, execute)).toThrow(/Interrupted/);
+            expect(formatValue(runtime.variables.get('Saved')!)).toBe('123');
+            execute();
+            expect(runtime.execute('Saved sum')).toBe(100000000n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains compacted boolean-filter indices in a nested gather', () => {
+        const filtered = source.replace('(A * 2 + 1)', '((A * 2 + 1) (array false true false true))')
+            .replace('array 3 1 1 0', 'array 1 0 1');
+        expect(compare(filtered)).toMatchObject({ value: '23 11 23' });
+        expect(compare(filtered.replace('array 1 0 1', 'array 2'))).toHaveProperty('error');
+    });
+
+    it('supports real computed producers', () => {
+        expect(compare(source.replace('array 3 5 7 11', 'array 3.5 5.5 7.5 11.5')))
+            .toMatchObject({ value: '24 12 12 8', kernels: 1 });
     });
 });
 

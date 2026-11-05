@@ -21,22 +21,43 @@ rem suffix. States merge by sorting.
 Tot = 0
 for N in 1 to Digits
   Pw = (3 ** (0 to N - 1)) copy
+  Half = N // 2
+  Split = 3 ** Half
+  Fast = N gcd 10 equal 1
+  LowMap = array 0
+  HighMap = array 0
+  if Fast
+    rem Coprime lengths permute digits;
+    rem two small tables replace N rows.
+    Remainders = 10 * (0 till N) mod N
+    Weights = 3 ** Remainders
+    Low = Weights (0 till Half)
+    High = Weights (Half till N)
+    LowMap = Low ternarymap
+    HighMap = High ternarymap
+  end
   Keys = array 0
   Cnt = array 1
   for Pos in 0 to N - 1
     W = Keys len
     Pk = Keys // 2
     Lay = Keys mod 2
-    Pr = Pk reshape 1 W
-    Dg = Pr // (Pw reshape N 1)
-    Dg = Dg mod 3 copy
-    Bm = array shape N W fill 0
-    for R in 0 to N - 1
-      T = R * 10 mod N
-      Bm T += Dg R
+    Bk = array 0
+    if Fast
+      Bk = LowMap (Pk mod Split)
+      Bk += HighMap (Pk // Split)
+    else
+      Pr = Pk reshape 1 W
+      Dg = Pr // (Pw reshape N 1)
+      Dg = Dg mod 3 copy
+      Bm = array shape N W fill 0
+      for R in 0 to N - 1
+        T = R * 10 mod N
+        Bm T += Dg R
+      end
+      Bm = Bm min 2
+      Bk = Pw matmul Bm copy
     end
-    Bm = Bm min 2
-    Bk = Pw matmul Bm copy
     Nk = array shape 0 fill 0
     Nc = array shape 0 fill 0
     D0 = 0
@@ -80,3 +101,14 @@ for N in 1 to Digits
 end
 Answer = Tot
 Answer print
+
+rem Pack a permuted half once.
+fun Weights ternarymap
+  Size = Weights len
+  Keys = 0 till 3 ** Size
+  Powers = 3 ** (0 till Size)
+  Rows = Keys reshape 1 (Keys len)
+  Columns = Powers reshape Size 1
+  Digits = Rows // Columns mod 3
+  return Weights matmul Digits copy
+end

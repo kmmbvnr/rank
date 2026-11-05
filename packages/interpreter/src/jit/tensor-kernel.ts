@@ -1,5 +1,5 @@
 import { tensorReductionStep } from './tensor-reduction-codegen.js';
-import { tensorBufferedNodes, tensorExpressionLowerer, type TensorNode } from './tensor-ir.js';
+import { tensorBufferedNodes, tensorChildren, tensorExpressionLowerer, type TensorNode } from './tensor-ir.js';
 export type { TensorNode } from './tensor-ir.js';
 import { RankError } from '../errors.js';
 import { prepareBoundedTensor } from './tensor-bounds.js';
@@ -731,7 +731,16 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     } else result = { shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
                 } else if (b.shape && b.boolean && a.shape.length === 1 && same(a.shape, b.shape)) {
                     result = { shape: a.shape, boolean: a.boolean, filter: true };
-                } else if (b.shape?.length === 1 && !b.boolean && a.view && a.shape.length === 1) {
+                } else if (b.shape?.length === 1 && !b.boolean && a.shape.length === 1) {
+                    // A filter's bound shape is its input domain, not its compact
+                    // result length. Keep nested filtered gathers on the lazy path.
+                    const seen = new Set<TensorNode>();
+                    const filtered = (source: TensorNode): boolean => {
+                        if (seen.has(source)) return false;
+                        seen.add(source);
+                        return !!bound.get(source)?.filter || tensorChildren(source).some(filtered);
+                    };
+                    if (filtered(node.source)) return undefined;
                     result = { shape: b.shape, boolean: a.boolean };
                 }
             }
@@ -1153,7 +1162,9 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     } else {
                         const source = bound.get(node.source)!;
                         lines.push(`if (typeof ${b} !== 'bigint' || ${b} < 0n || ${b} >= BigInt(${source.shape![0]})) ${decline}`);
-                        lines.push(`const ${name} = ${load(source.slot, `Number(${b})`)};`);
+                        // Guard the selector before demanding the computed source cell.
+                        const value = emit(node.source, `Number(${b})`, source.shape!);
+                        lines.push(`const ${name} = ${value};`);
                     }
                 }
                 return name;
@@ -1242,10 +1253,10 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     } else if (node.kind === 'select' && !info.filter) {
                         const source = bound.get(node.source)!;
                         const selector = go(node.selector, at, info.shape ?? frame);
-                        if (source.view?.kind !== 'integer' || !stored(source.slot) || !source.shape) ok = false;
+                        if (!source.shape) ok = false;
                         else {
                             body.push(`if (${selector} < 0 || ${selector} >= ${source.shape[0]}) throw overflow;`);
-                            value = read(source.slot!, selector);
+                            value = go(node.source, selector, source.shape);
                         }
                     } else ok = false;
                     let entries = names.get(node);
