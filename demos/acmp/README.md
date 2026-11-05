@@ -150,6 +150,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0937** | [Макрос](0937_macro.ra) | String Parsing / Interpreters (72%) | Lexical macro expansion with block-scoped closures and cyclic `#rep` generation via 1D array environments and vectorized macro lookup |
 | **0958** | [Осмотр королевства](0958_kings_tour.ra) | Graph Theory (62%) | Tournament Hamiltonian path merging $K$ chain routes |
 | **0959** | [Защита деревьев](0959_tree_protection.ra) | Computational Geometry (70%) | Max trees enclosed by rigid triangle of sides $a, b, c$ via 1D line projection intervals and 2D matrix overlap reduction in a single loop |
+| **0962** | [Развлечение с квадратиками](0962_squares.ra) | Computational Geometry (75%) | Count 4-tuples of squares with equal difference figures under translation via canonical signature grouping and (M)$ inclusion-exclusion |
 | **0963** | [Морфизм](0963_morphism.ra) | Dynamic Programming (63%) | Binary lifting over 20-character substitution prefix table |
 | **0972** | [Задачка по геометрии](0972_geometry.ra) | Computational Geometry (66%) | Circle intersecting two segments once via 4-pair vectorized endpoint midpoint margin optimization |
 | **0974** | [Странный Ним](0974_strange_nim.ra) | Game Theory (65%) | 3-coin Welter's Game via Conway's Frieze rule in $O(1)$ without loops |
