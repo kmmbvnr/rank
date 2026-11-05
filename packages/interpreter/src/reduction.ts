@@ -8,7 +8,7 @@ import { extremeIntegerAxis, extremeIntegerVector, extremeRealAxis, scanFloat64,
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
 import { storedOperand } from './array-copy.js';
-import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, registerArrayDependencies, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
+import { arrayCells, arrayValues, arrayValueTraversal, IntegerCells, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, registerArrayDependencies, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
 import { arithmeticRange } from './range-plan.js';
@@ -697,10 +697,12 @@ function sumIntegerAxis(value: RankArray, axis: number, seed?: RankValue): RankV
             }
         }
     }
-    const items: RankValue[] = new Array(totals.length);
+    if (!shape.length) return BigInt(totals[0]) + ((seed as bigint | undefined) ?? 0n);
+    const result = new IntegerCells(totals.length);
     for (let index = 0; index < totals.length; index++) {
         if ((index & 4095) === 0) checkpoint('completing integer axis sum');
-        items[index] = BigInt(totals[index]) + ((seed as bigint | undefined) ?? 0n);
+        if (seed === undefined) result.setNumber(index, totals[index]);
+        else result.set(index, BigInt(totals[index]) + (seed as bigint));
     }
-    return shape.length ? ownedArray(items, shape) : items[0];
+    return result.array(shape);
 }

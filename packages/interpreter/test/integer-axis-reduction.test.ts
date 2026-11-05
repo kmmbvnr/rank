@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type RankArray } from '../src/index.js';
-import { readArrayItem, typedArray } from '../src/array-storage.js';
+import { integer32Cells, integer64Cells, readArrayItem, typedArray } from '../src/array-storage.js';
 import { InterruptedError, withInterrupt } from '../src/interrupt.js';
 
 for (const compilation of [true, false]) describe(`integer axis sums (compilation=${compilation})`, () => {
@@ -22,6 +22,21 @@ for (const compilation of [true, false]) describe(`integer axis sums (compilatio
             expect([...result.items]).toEqual(expected);
             expect(diagnostics.cellsComputed).toBe(0);
             expect(diagnostics.typedUnpacks).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
+    it('keeps narrow sums compact and widens large or seeded sums exactly', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        runtime.variables.set('A', typedArray(new Int32Array(128).fill(1), [2, 64]));
+        runtime.variables.set('Wide', typedArray(new Int32Array(128).fill(2147483647), [2, 64]));
+        try {
+            runtime.execute('use sequences');
+            const narrow = runtime.execute('A reduce + axis 0') as RankArray;
+            expect(integer32Cells(narrow)).toEqual(new Int32Array(64).fill(2));
+            const wide = runtime.execute('Wide reduce + axis 0') as RankArray;
+            expect(integer64Cells(wide)).toEqual(new BigInt64Array(64).fill(4294967294n));
+            const huge = runtime.execute('A reduce + axis 0 with (2 ** 100)') as RankArray;
+            expect([...huge.items]).toEqual(Array(64).fill((1n << 100n) + 2n));
         } finally { runtime.dispose(); }
     });
 

@@ -1,0 +1,60 @@
+{
+  "baseCommit": "058a59a88e1507a505d6f501277588392931d569",
+  "baseline": {
+    "mac": {
+      "size": 199,
+      "ms": 156578.136417,
+      "answer": "652907799",
+      "maxRssMiB": 561.328125,
+      "phases": [
+        {
+          "stage": "stage:build",
+          "ms": 14360.515292,
+          "rss": 285769728,
+          "heapTotal": 107855872,
+          "heapUsed": 56465864,
+          "external": 102031052,
+          "arrayBuffers": 100144483
+        },
+        {
+          "stage": "stage:eliminate",
+          "ms": 142212.70804199998,
+          "rss": 335101952,
+          "heapTotal": 176013312,
+          "heapUsed": 34899848,
+          "external": 194232873,
+          "arrayBuffers": 192345163
+        }
+      ]
+    },
+    "intel": {
+      "size": 199,
+      "ms": 231973.319707,
+      "answer": "652907799",
+      "maxRssMiB": 558.99609375,
+      "phases": [
+        {
+          "stage": "stage:build",
+          "ms": 14321.694986,
+          "rss": 283828224,
+          "heapTotal": 107778048,
+          "heapUsed": 52657312,
+          "external": 100605416,
+          "arrayBuffers": 98718847
+        },
+        {
+          "stage": "stage:eliminate",
+          "ms": 217645.397314,
+          "rss": 525611008,
+          "heapTotal": 109088768,
+          "heapUsed": 34824416,
+          "external": 225755269,
+          "arrayBuffers": 223867559
+        }
+      ]
+    }
+  },
+  "rejected": [
+    "Standalone axis-sum compaction: small speed benefit, peak RSS not improved; retained only in combination with broadcast kernel."
+  ]
+}

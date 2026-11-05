@@ -162,6 +162,35 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         ? compactBinary(code, ac ?? Int32Array.of(x), a ? ao : 0, a ? as : 0,
             bc ?? Int32Array.of(y), b ? bo : 0, b ? bs : 0, size) : undefined;
     if (fast) return typedArray(fast, shape);
+    // Contiguous lanes share one broadcast address per row. Keep the result
+    // compact instead of allocating a double buffer for every broadcast cell.
+    if (code === 2 && (ai || bi) && ac && bc && shape[shape.length - 1] >= 4) {
+        const cells = new Int32Array(size);
+        const aShape = (left as RankArray).shape, bShape = (right as RankArray).shape;
+        const aStrides = arrayStrides(aShape), bStrides = arrayStrides(bShape);
+        const width = shape[shape.length - 1];
+        const aStep = !aShape.length || aShape[aShape.length - 1] === 1 ? 0 : as;
+        const bStep = !bShape.length || bShape[bShape.length - 1] === 1 ? 0 : bs;
+        let nextPoll = 0;
+        for (let row = 0; row < size; row += width) {
+            const ap = ao + broadcastOffset(row, shape, aShape, aStrides) * as;
+            const bp = bo + broadcastOffset(row, shape, bShape, bStrides) * bs;
+            for (let start = 0; start < width; start += 4096) {
+                const end = Math.min(width, start + 4096);
+                if (row + start >= nextPoll) {
+                    checkpoint('computing integer array', Math.min(4096, size - row - start));
+                    nextPoll = row + start + 4096;
+                }
+                for (let column = start; column < end; column++) {
+                    const value = ac[ap + column * aStep] * bc[bp + column * bStep];
+                    if (value !== (value | 0)) return undefined;
+                    cells[row + column] = value;
+                }
+            }
+        }
+        return typedArray(cells, shape);
+    }
+
     // Allocate wide scratch only after the compact path declines. Most stored
     // Int32 operations finish above and would discard this buffer unused.
     // Results beyond Int32 stay exact while they are safe integers; any other
