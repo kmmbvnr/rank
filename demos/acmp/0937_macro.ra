@@ -1,0 +1,227 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 937: Macro
+rem Lexical macro expansion.
+
+arg Input text = "4
+#a {#b {b}}
+#rep 5 {##b c}
+#rep 5 {##b #b {bb}##b cd}
+#rep 3 {rep 2 {b}#rep 3 {c}}"
+
+fun Start find_brace Chars
+  Depth = 1
+  P = Start + 1
+  N = Chars len
+  for Step in P to (N - 1)
+    if (Chars Step) equal "{"
+      Depth += 1
+    end
+    if (Chars Step) equal "}"
+      Depth -= 1
+      if Depth equal 0
+        return Step
+      end
+    end
+  end
+  return (N - 1)
+end
+
+fun S find_macro Name Meta Names
+  Scan = S
+  NM = Meta 1
+  for Step in 0 to 50
+    if Scan less 0
+      return -1
+    end
+    if NM greater 0
+      Idxs = 0 to (NM - 1)
+      CurNames = Names Idxs
+      CurScopes = Meta (2 + (Idxs * 2))
+      Mask = (CurNames equal Name) and (
+        CurScopes equal Scan)
+      Matches = Idxs Mask
+      if (Matches len) greater 0
+        return (Matches last)
+      end
+    end
+    Scan = Meta (1000 + Scan)
+  end
+  return -1
+end
+
+fun S Scope Meta Names Bodies eval_text
+  CurScope = Scope
+  Chars = S split ""
+  N = Chars len
+  Out = ""
+  I = 0
+  for Step in 0 to 10000
+    if not (I less N)
+      break
+    end
+    IsCall = false
+    if (I + 1) less N
+      if ((Chars I) equal "#") and (
+        (Chars (I + 1)) equal "#")
+        IsCall = true
+      end
+    end
+    if IsCall
+      J = I + 2
+      for S2 in (I + 2) to (N - 1)
+        if (Chars S2) in (
+          "abcdefghijklmnopqrstuvwxyz")
+          J = S2 + 1
+        else
+          break
+        end
+      end
+      if (J less N) and (
+        (Chars J) equal " ") and (
+        J greater (I + 2))
+        RngN = (I + 2) to (J - 1)
+        SubN = Chars RngN
+        Name = SubN join ""
+        I = J + 1
+        M = CurScope find_macro (
+          Name) Meta Names
+        if M greater -1
+          Body = Bodies M
+          DefS = Meta (3 + (M * 2))
+          ChildS = Meta 0
+          Meta 0 = ChildS + 1
+          Meta (1000 + ChildS) = DefS
+          Res = Body ChildS Meta (
+            Names) Bodies eval_text
+          Out = Out + Res
+        end
+        continue
+      end
+    end
+
+    IsDef = false
+    if (Chars I) equal "#"
+      IsDef = true
+    end
+    if IsDef
+      J = I + 1
+      for S3 in (I + 1) to (N - 1)
+        if (Chars S3) in (
+          "abcdefghijklmnopqrstuvwxyz")
+          J = S3 + 1
+        else
+          break
+        end
+      end
+      if (J less N) and (
+        (Chars J) equal " ") and (
+        J greater (I + 1))
+        RngN = (I + 1) to (J - 1)
+        SubN = Chars RngN
+        Name = SubN join ""
+        if Name equal "rep"
+          K = J + 1
+          for S4 in (J + 1) to (N - 1)
+            if (Chars S4) in (
+              "0123456789")
+              K = S4 + 1
+            else
+              break
+            end
+          end
+          if (K less N) and (
+            (Chars K) equal " ") and (
+            K greater (J + 1))
+            if ((K + 1) less N) and (
+              (Chars (K + 1)) equal "{")
+              RngK = (J + 1) to (K - 1)
+              SubK = Chars RngK
+              CntStr = SubK join ""
+              Cnt = CntStr integer
+              BOpen = K + 1
+              BClose = (
+                BOpen find_brace Chars)
+              Body = ""
+              if BClose greater (BOpen +
+                1)
+                RngB = (BOpen + 1) to (
+                  BClose - 1)
+                SubB = Chars RngB
+                Body = SubB join ""
+              end
+              I = BClose + 1
+              if Cnt greater 0
+                for Iter in 1 to Cnt
+                  ChildS = Meta 0
+                  Meta 0 = ChildS + 1
+                  Meta (1000 + ChildS
+                    ) = CurScope
+                  Res = Body ChildS (
+                    Meta) Names Bodies (
+                    eval_text)
+                  Out = Out + Res
+                end
+              end
+              continue
+            end
+          end
+        else
+          if ((J + 1) less N) and (
+            (Chars (J + 1)) equal "{")
+            BOpen = J + 1
+            BClose = (
+              BOpen find_brace Chars)
+            Body = ""
+            if BClose greater (BOpen +
+              1)
+              RngB = (BOpen + 1) to (
+                BClose - 1)
+              SubB = Chars RngB
+              Body = SubB join ""
+            end
+            I = BClose + 1
+            NM = Meta 1
+            Names NM = Name
+            Bodies NM = Body
+            Meta (2 + (NM * 2)) = (
+              CurScope)
+            Meta (3 + (NM * 2)) = (
+              CurScope)
+            Meta 1 = NM + 1
+            continue
+          end
+        end
+      end
+    end
+
+    Out = Out + (Chars I)
+    I += 1
+  end
+  return Out
+end
+
+fun solve_macro Input
+  Meta = array shape 2000 fill -1
+  Meta 0 = 1
+  Meta 1 = 0
+  Names = array shape 500 fill ""
+  Bodies = array shape 500 fill ""
+
+  Raw = (Input split "\r") join ""
+  Lines = Raw split "\n"
+  N = (Lines 0) integer
+  if N equal 0
+    return ""
+  end
+  Poem = (Lines (1 to N)) join "\n"
+  return (Poem 0 Meta Names Bodies (
+    eval_text))
+end
+
+Result = solve_macro Input
+Result print
