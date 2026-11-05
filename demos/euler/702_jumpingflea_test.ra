@@ -2,16 +2,16 @@ use testing
 
 test "statement values"
   use "702_jumpingflea"
-  Nn = 3
+  Size = 3
   run
   Answer equal 42
-  Nn = 5
+  Size = 5
   run
   Answer equal 126
-  Nn = 123
+  Size = 123
   run
   Answer equal 167178
-  Nn = 12345
+  Size = 12345
   run
   Answer equal 3185041956
 end
