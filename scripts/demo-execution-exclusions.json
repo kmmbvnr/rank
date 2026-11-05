@@ -84,7 +84,6 @@
   "euler/379_lcmcount.ra": "The full compiled answer is covered by euler379.test.ts after guarded nested-pass copy admission; full reference execution remains excluded, with the small _test.ra fixture in both audits.",
   "euler/397_parabola.ra": "The full input completes in about 16 s compiled after #395, but the reference traversal of 101 million divisors remains too slow for the shared differential audit. Its compiled default is checked in test/euler397.test.ts and benchmarks/euler397.mjs; small interpreted cases remain in 397_parabola_test.ra.",
   "euler/391_hopping.ra": "The full compiled default is checked in test/euler391.test.ts; scalar bank offsets reduce it below one second on the local Mac. Full reference still takes about 86 s, so the small _test.ra fixture stays in corpus audits.",
-  "euler/408_admissiblepaths.ra": "To fix later: the default input takes about 21 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/410_circleandtangent.ra": "To fix later: the default input takes about 50 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/411_uphillpaths.ra": "The default input takes about 26 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/413_onechild.ra": "To fix later: the default input takes about 95 s compiled; the small _test.ra fixture stays in the audits.",

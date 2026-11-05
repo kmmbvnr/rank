@@ -1,0 +1,99 @@
+rem Admissible Paths Through a Grid
+rem https://projecteuler.net/problem=408
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 10000000
+
+rem Forbidden points are (a^2, b^2)
+rem with a^2 + b^2 a square. Bs I
+rem counts paths whose first hit is
+rem the I-th such point, sorted by
+rem x then y. The answer is all
+rem paths minus the paths that
+rem first hit point I and go on.
+P = 1000000007
+Keys = N forbidden
+X = Keys // (N + 1)
+Y = Keys mod (N + 1)
+M = X len
+
+rem Factorials and their inverses.
+Fa = 1 to 2 * N scan * with 1 mod P
+Inv = Fa (2 * N) (P - 2) P powmod
+Down = 2 * N to 1 by -1
+If = Down scan * with Inv mod P
+If = If reverse copy
+
+Bs = array shape M fill 0
+Out = Fa (2 * N) * If N mod P
+Out = Out * If N mod P
+for I in 0 to M - 1
+  Xi = X I
+  Yi = Y I
+  Tot = Fa (Xi + Yi) * If Xi mod P
+  Tot = Tot * If Yi mod P
+  if I greater 0
+    Prev = 0 to I - 1 copy
+    Prev = Prev (Y Prev at most Yi) copy
+    Dx = Xi - X Prev
+    Dy = Yi - Y Prev
+    Fx = Fa (Dx + Dy) * If Dx mod P
+    Fy = Fx * If Dy mod P
+    Cj = Fy * Bs Prev mod P
+    Tot -= Cj sum
+  end
+  Bs I = Tot mod P
+  Rx = N - Xi
+  Ry = N - Yi
+  Cn = Fa (Rx + Ry) * If Rx mod P
+  Cn = Cn * If Ry mod P * Bs I mod P
+  Out -= Cn
+end
+Answer = Out mod P
+Answer print
+
+rem Primitive triples and their scales.
+fun Bound forbidden
+  Root = Bound isqrt
+  if Root less 4
+    return array shape 0 fill 0
+  end
+  Top = (2 * Root) isqrt
+  Pairs = 0 till Top * (Top - 1) // 2 copy
+  M = (1 + 8 * Pairs) isqrt
+  M = (M + 3) // 2
+  N = Pairs - (M - 1) * (M - 2) // 2 + 1
+  Keep = (M - N) mod 2 equal 1
+  M = M Keep copy
+  N = N Keep copy
+  Keep = M gcd N equal 1
+  M = M Keep copy
+  N = N Keep copy
+  Left = M * M - N * N
+  Right = 2 * M * N
+  Limit = Root // (Left max Right)
+  Keep = Limit greater 0
+  Left = Left Keep copy
+  Right = Right Keep copy
+  Limit = Limit Keep copy
+  Count = Limit len
+  Scale = 1 to Root // 4 copy
+  Width = Scale len
+  Grid = Scale reshape 1 Width
+  Limits = Limit reshape Count 1
+  Allowed = Grid at most Limits
+  Flat = Allowed reshape (Count * Width)
+  Ids = Flat indices
+  Parent = Ids // Width
+  Factor = Scale (Ids mod Width)
+  A = (Left Parent) * Factor
+  B = (Right Parent) * Factor
+  Key = A * A * (Bound + 1) + B * B
+  Other = B * B * (Bound + 1) + A * A
+  Keys = concat Key Other
+  return Keys sort
+end

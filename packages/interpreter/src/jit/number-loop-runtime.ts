@@ -139,7 +139,15 @@ function vectorArray(shape: readonly number[], real: boolean, pool: VectorBuffer
         if (pool[i].cells.length >= size && (!real || pool[i].cells instanceof Float64Array)) return new PrivateNumericArray([...shape], 0, undefined, pool[i], real);
         replace = i;
     }
-    const buffer: VectorBuffer = { cells: real ? new Float64Array(size) : new Int32Array(size) };
+    // Grow only after a dead buffer proves too small. Fixed-size stages and
+    // large jumps keep exact allocation; gradual growth amortizes churn.
+    // Logical cells remain the requested subarray, never the spare capacity.
+    const previous = replace >= 0 ? pool[replace].cells.length : 0;
+    const capacity = previous > 0 && previous < size && size <= 2 * previous
+        ? Math.min(2 * previous, 0xffffffff) : size;
+    const buffer: VectorBuffer = { cells: real ? new Float64Array(capacity) : new Int32Array(capacity) };
+    const cost = currentDiagnostics()?.cost('number-loop.vector-buffer');
+    if (cost) { cost.calls++; cost.allocatedBytes += buffer.cells.byteLength; }
     if (replace >= 0) pool[replace] = buffer;
     else pool.push(buffer);
     return new PrivateNumericArray([...shape], 0, undefined, buffer, real);

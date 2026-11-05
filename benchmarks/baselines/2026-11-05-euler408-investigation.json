@@ -1,0 +1,2630 @@
+{
+  "date": "2026-11-05",
+  "base": "fbc7621940c60929cac57d94d9bd56ee955168aa",
+  "status": "historical research on fbc76219; see Euler 408 follow-up",
+  "node": "24.15.0",
+  "limit": "10000000",
+  "golden": "299742733",
+  "method": "Three fresh sequential compiled processes per variant, alternating order; one reference sample per source. Separate later pool series, three samples. Parse+execute timed after imports and interpreter construction, whole-process RSS. Shared Mac has other sessions.",
+  "hosts": {
+    "mac": {
+      "cpu": "Apple M5 arm64",
+      "summary": {
+        "original": {
+          "samples": 3,
+          "ms": 10141.772292,
+          "rssMiB": 1624.4375
+        },
+        "candidate": {
+          "samples": 3,
+          "ms": 5286.614834,
+          "rssMiB": 860.828125
+        },
+        "candidate+compiler": {
+          "samples": 3,
+          "ms": 1817.854,
+          "rssMiB": 778.6875
+        },
+        "original-reference": {
+          "samples": 1,
+          "ms": 34458.243208,
+          "rssMiB": 1565.65625
+        },
+        "candidate-reference": {
+          "samples": 1,
+          "ms": 5326.179708,
+          "rssMiB": 713.15625
+        },
+        "candidate+compiler+pool": {
+          "samples": 3,
+          "ms": 1735.0847090000002,
+          "rssMiB": 568.0625
+        }
+      },
+      "samples": [
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 9978.557875,
+          "rssMiB": 1618.96875,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            }
+          },
+          "label": "original",
+          "round": 0
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 5263.184916,
+          "rssMiB": 863.65625,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 12,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate",
+          "round": 0
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1817.854,
+          "rssMiB": 778.6875,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler",
+          "round": 0
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1824.594958,
+          "rssMiB": 777.578125,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler",
+          "round": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 5286.614834,
+          "rssMiB": 860.828125,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 12,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10151.892209,
+          "rssMiB": 1624.4375,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            }
+          },
+          "label": "original",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10141.772292,
+          "rssMiB": 1629.640625,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            }
+          },
+          "label": "original",
+          "round": 2
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 5309.587500000001,
+          "rssMiB": 856.25,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 12,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate",
+          "round": 2
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1817.011041,
+          "rssMiB": 779.921875,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 34458.243208,
+          "rssMiB": 1565.65625,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "typedArrayPublications": 193575,
+            "typedArrayPublishedCells": 819167129,
+            "fallbacks": {
+              "loop:disabled": 3
+            }
+          },
+          "label": "original-reference"
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 5326.179708,
+          "rssMiB": 713.15625,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 8380416,
+            "numericSorts": 1,
+            "maskMaterializations": 7856,
+            "maskMaterializedCells": 19369758,
+            "typedArrayPublications": 140381,
+            "typedArrayPublishedCells": 431545897,
+            "fallbacks": {
+              "loop:disabled": 1
+            }
+          },
+          "label": "candidate-reference"
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1734.9840410000002,
+          "rssMiB": 556,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler+pool"
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1735.0847090000002,
+          "rssMiB": 568.3125,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler+pool"
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1738.823333,
+          "rssMiB": 568.0625,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler+pool"
+        }
+      ],
+      "manualJS": {
+        "N": 10000000,
+        "points": 7850,
+        "answer": 299742733,
+        "ms": 497.61850000000004,
+        "rssMiB": 205.890625
+      }
+    },
+    "intel": {
+      "cpu": "Intel Core i7-10750H x64",
+      "summary": {
+        "original": {
+          "samples": 3,
+          "ms": 29304.646969999998,
+          "rssMiB": 1041.14453125
+        },
+        "candidate": {
+          "samples": 3,
+          "ms": 15508.483088,
+          "rssMiB": 586.6796875
+        },
+        "candidate+compiler": {
+          "samples": 3,
+          "ms": 4455.903081,
+          "rssMiB": 538.421875
+        },
+        "original-reference": {
+          "samples": 1,
+          "ms": 114093.14863,
+          "rssMiB": 993.0703125
+        },
+        "candidate-reference": {
+          "samples": 1,
+          "ms": 15669.98005,
+          "rssMiB": 495.75
+        },
+        "candidate+compiler+pool": {
+          "samples": 3,
+          "ms": 4388.829855999999,
+          "rssMiB": 480.69921875
+        }
+      },
+      "samples": [
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 29304.646969999998,
+          "rssMiB": 1060.84375,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            }
+          },
+          "label": "original",
+          "round": 0
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 15508.483088,
+          "rssMiB": 586.6796875,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 12,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate",
+          "round": 0
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4493.700708,
+          "rssMiB": 538.421875,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler",
+          "round": 0
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4391.551444000001,
+          "rssMiB": 540.01171875,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler",
+          "round": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 15319.500825,
+          "rssMiB": 586.48828125,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 12,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 29812.498658,
+          "rssMiB": 1041.14453125,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            }
+          },
+          "label": "original",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 29022.304467,
+          "rssMiB": 1033.9765625,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            }
+          },
+          "label": "original",
+          "round": 2
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 16416.556733999998,
+          "rssMiB": 587.48828125,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 12,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate",
+          "round": 2
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4455.903081,
+          "rssMiB": 531.81640625,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 114093.14863,
+          "rssMiB": 993.0703125,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "typedArrayPublications": 193575,
+            "typedArrayPublishedCells": 819167129,
+            "fallbacks": {
+              "loop:disabled": 3
+            }
+          },
+          "label": "original-reference"
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 15669.98005,
+          "rssMiB": 495.75,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "cellsComputed": 8380416,
+            "numericSorts": 1,
+            "maskMaterializations": 7856,
+            "maskMaterializedCells": 19369758,
+            "typedArrayPublications": 140381,
+            "typedArrayPublishedCells": 431545897,
+            "fallbacks": {
+              "loop:disabled": 1
+            }
+          },
+          "label": "candidate-reference"
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4453.156892,
+          "rssMiB": 481.3359375,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler+pool"
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4380.45575,
+          "rssMiB": 480.69921875,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler+pool"
+        },
+        {
+          "file": "benchmarks/experiments/euler408-candidate.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4388.829855999999,
+          "rssMiB": 479.30078125,
+          "answer": "299742733",
+          "points": "7850",
+          "stages": [],
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 38,
+            "typedArrayPublishedCells": 60146233,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 29,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 8,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 18,
+              "scalar-expression:unsupported-op:mod": 9,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:binding:select": 1,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:range-input-proof": 4
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Top * (Top - 1) // 2 copy",
+                "line": 66,
+                "column": 11
+              }
+            ]
+          },
+          "label": "candidate+compiler+pool"
+        }
+      ],
+      "manualJS": {
+        "N": 10000000,
+        "points": 7850,
+        "answer": 299742733,
+        "ms": 1427.950732,
+        "rssMiB": 208.25390625
+      }
+    }
+  },
+  "verification": {
+    "mac": {
+      "comparisons": 78,
+      "limits": [
+        0,
+        1,
+        5,
+        8,
+        9,
+        15,
+        16,
+        17,
+        25,
+        36,
+        64,
+        100,
+        1000
+      ],
+      "files": [
+        "demos/euler/408_admissiblepaths.ra",
+        "benchmarks/experiments/euler408-filter.ra",
+        "benchmarks/experiments/euler408-candidate.ra"
+      ]
+    },
+    "intel": {
+      "comparisons": 78,
+      "limits": [
+        0,
+        1,
+        5,
+        8,
+        9,
+        15,
+        16,
+        17,
+        25,
+        36,
+        64,
+        100,
+        1000
+      ],
+      "files": [
+        "demos/euler/408_admissiblepaths.ra",
+        "benchmarks/experiments/euler408-filter.ra",
+        "benchmarks/experiments/euler408-candidate.ra"
+      ]
+    },
+    "fullControlledGoldens": 28,
+    "fullSuiteRun": false,
+    "productionCodeChanged": false
+  },
+  "compilerRepro": {
+    "before": {
+      "result": "2 12",
+      "number": 2,
+      "overflows": 2
+    },
+    "after": {
+      "result": "2 12",
+      "number": 1,
+      "overflows": 0
+    }
+  },
+  "stagedDiagnostic": {
+    "file": "demos/euler/408_admissiblepaths.ra",
+    "limit": "10000000",
+    "mode": "compiled",
+    "ms": 12698.04125,
+    "rssMiB": 1544.265625,
+    "answer": "299742733",
+    "points": "7850",
+    "stages": [
+      {
+        "name": "points",
+        "ms": 2950.138916,
+        "loops": 0,
+        "number": 0,
+        "overflows": 0
+      },
+      {
+        "name": "factorials",
+        "ms": 192.48649999999998,
+        "loops": 1,
+        "number": 1,
+        "overflows": 0
+      },
+      {
+        "name": "inverses",
+        "ms": 179.4217080000003,
+        "loops": 1,
+        "number": 1,
+        "overflows": 0
+      },
+      {
+        "name": "recurrence",
+        "ms": 9375.967333999999,
+        "loops": 1,
+        "number": 3,
+        "overflows": 3
+      }
+    ],
+    "diagnostics": {
+      "cellsComputed": 11045796,
+      "compiledLoops": 3,
+      "numberLoops": 5,
+      "numberLoopUnpolled": 5,
+      "mixedIntegerLoops": 2,
+      "numberLoopOverflows": 3,
+      "typedArrayPublications": 217116,
+      "typedArrayPublishedCells": 911589095,
+      "fallbacks": {
+        "tensor:unsupported-op:to": 1,
+        "scalar-expression:unsupported-op:to": 1,
+        "scalar-expression:too-small": 10,
+        "scalar-expression:unsupported-op:+": 2,
+        "scalar-expression:unsupported-op:**": 6,
+        "scalar-expression:unsupported-op:equal": 2,
+        "tensor:unsupported-type:array": 3,
+        "number-loop:range-input-proof": 20,
+        "scalar-expression:unsupported-op:Fa": 5,
+        "scalar-expression:unsupported-op:N": 10,
+        "scalar-expression:unsupported-op:mod": 4,
+        "scalar-expression:unsupported-op:*": 4,
+        "tensor:scalar-evaluation-timing": 2,
+        "number-loop:overflow": 3
+      }
+    }
+  },
+  "notes": [
+    "Staged execution splits source chunks and is not a sum of timings from the unsplit benchmark.",
+    "Scratch capacity rounding applies only up to 2^20 cells in the experiment; this is not Number admission policy and needs broader controls before shipping.",
+    "The modular prototype is integer-only and must preserve prior real paths in a production fix.",
+    "Manual JS has lower contracts and omits Rank observation/replay/polling semantics.",
+    "No precision, lazy-binding or copy-admission guard is removed."
+  ],
+  "exploratory": {
+    "original-compiled": {
+      "file": "demos/euler/408_admissiblepaths.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 10264.65925,
+      "rssMiB": 1664.90625,
+      "answer": "299742733",
+      "diagnostics": {
+        "cellsComputed": 11045796,
+        "compiledLoops": 3,
+        "numberLoops": 5,
+        "numberLoopUnpolled": 5,
+        "mixedIntegerLoops": 2,
+        "numberLoopOverflows": 3,
+        "typedArrayPublications": 217116,
+        "typedArrayPublishedCells": 911589095,
+        "fallbacks": {
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 10,
+          "scalar-expression:unsupported-op:+": 2,
+          "scalar-expression:unsupported-op:**": 6,
+          "scalar-expression:unsupported-op:equal": 2,
+          "tensor:unsupported-type:array": 3,
+          "number-loop:range-input-proof": 20,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "scalar-expression:unsupported-op:mod": 4,
+          "scalar-expression:unsupported-op:*": 4,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:overflow": 3
+        }
+      }
+    },
+    "original-reference": {
+      "file": "demos/euler/408_admissiblepaths.ra",
+      "limit": "10000000",
+      "mode": "reference",
+      "ms": 37295.185249999995,
+      "rssMiB": 1477.203125,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "cellsComputed": 11045796,
+        "typedArrayPublications": 193575,
+        "typedArrayPublishedCells": 819167129,
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      }
+    },
+    "modular-full": {
+      "file": "demos/euler/408_admissiblepaths.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 6996.534375,
+      "rssMiB": 1438.34375,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "cellsComputed": 9998244,
+        "compiledLoops": 3,
+        "numberLoops": 3,
+        "numberLoopUnpolled": 3,
+        "typedArrayPublications": 17,
+        "typedArrayPublishedCells": 50098764,
+        "fallbacks": {
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 10,
+          "scalar-expression:unsupported-op:+": 2,
+          "scalar-expression:unsupported-op:**": 6,
+          "scalar-expression:unsupported-op:equal": 2,
+          "tensor:unsupported-type:array": 3,
+          "number-loop:range-input-proof": 12,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "scalar-expression:unsupported-op:mod": 4,
+          "scalar-expression:unsupported-op:*": 4,
+          "tensor:scalar-evaluation-timing": 2
+        }
+      }
+    },
+    "scans-full": {
+      "file": "/tmp/rank408-scans.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 6828.83325,
+      "rssMiB": 1509.4375,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "cellsComputed": 9998244,
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "typedArrayPublications": 20,
+        "typedArrayPublishedCells": 110098766,
+        "fallbacks": {
+          "tensor:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:to": 5,
+          "scalar-expression:too-small": 16,
+          "scalar-expression:unsupported-op:+": 2,
+          "scalar-expression:unsupported-op:**": 6,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:*": 12,
+          "scalar-expression:unsupported-op:mod": 8,
+          "tensor:application-form:BinaryExpression": 2,
+          "tensor:binding:select": 1,
+          "tensor:binding:reverse": 1,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:range-input-proof": 4
+        }
+      }
+    },
+    "filter-full": {
+      "file": "/tmp/rank408-filter.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 4573.475417000001,
+      "rssMiB": 1417.140625,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "cellsComputed": 9998244,
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "typedArrayPublications": 20,
+        "typedArrayPublishedCells": 110087276,
+        "fallbacks": {
+          "tensor:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:to": 5,
+          "scalar-expression:too-small": 16,
+          "scalar-expression:unsupported-op:+": 2,
+          "scalar-expression:unsupported-op:**": 6,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:*": 12,
+          "scalar-expression:unsupported-op:mod": 8,
+          "tensor:application-form:BinaryExpression": 2,
+          "tensor:binding:select": 1,
+          "tensor:binding:reverse": 1,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:range-input-proof": 4
+        }
+      }
+    },
+    "filter-reference": {
+      "file": "/tmp/rank408-filter.ra",
+      "limit": "10000000",
+      "mode": "reference",
+      "ms": 10366.855834,
+      "rssMiB": 1228.078125,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "cellsComputed": 18378660,
+        "maskMaterializations": 7849,
+        "maskMaterializedCells": 19362376,
+        "typedArrayPublications": 140341,
+        "typedArrayPublishedCells": 481433676,
+        "fallbacks": {
+          "loop:disabled": 1
+        }
+      }
+    },
+    "euclid-full": {
+      "file": "/tmp/rank408-euclid.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 1866.4970420000002,
+      "rssMiB": 919.9375,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numericSorts": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "compiledTensors": 15,
+        "tensorRangeScans": 4,
+        "tensorRangeScannedCells": 10414,
+        "typedArrayPublications": 40,
+        "typedArrayPublishedCells": 100146234,
+        "fallbacks": {
+          "scalar-function:unsupported-op:till": 1,
+          "scalar-expression:too-small": 23,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:max": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:to": 5,
+          "scalar-expression:unsupported-op:Parent": 4,
+          "scalar-expression:unsupported-op:*": 16,
+          "scalar-expression:unsupported-op:mod": 8,
+          "tensor:application-form:BinaryExpression": 2,
+          "tensor:binding:select": 1,
+          "tensor:binding:reverse": 1,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:range-input-proof": 4
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "forbidden",
+            "expression": "0 till Top * (Top - 1) // 2 copy",
+            "line": 66,
+            "column": 11
+          }
+        ]
+      }
+    },
+    "euclid-reference": {
+      "file": "/tmp/rank408-euclid.ra",
+      "limit": "10000000",
+      "mode": "reference",
+      "ms": 5353.643459,
+      "rssMiB": 802.078125,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "cellsComputed": 8380416,
+        "numericSorts": 1,
+        "maskMaterializations": 7856,
+        "maskMaterializedCells": 19369758,
+        "typedArrayPublications": 140383,
+        "typedArrayPublishedCells": 471545898,
+        "fallbacks": {
+          "loop:disabled": 1
+        }
+      }
+    },
+    "lazy-range-full": {
+      "file": "/tmp/rank408-lazy-range.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 1858.4364170000001,
+      "rssMiB": 855.59375,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numericSorts": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "compiledTensors": 15,
+        "tensorRangeScans": 4,
+        "tensorRangeScannedCells": 10414,
+        "typedArrayPublications": 39,
+        "typedArrayPublishedCells": 80146234,
+        "fallbacks": {
+          "scalar-function:unsupported-op:till": 1,
+          "scalar-expression:too-small": 23,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:max": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 5,
+          "scalar-expression:unsupported-op:Parent": 4,
+          "scalar-expression:unsupported-op:*": 16,
+          "scalar-expression:unsupported-op:mod": 8,
+          "tensor:application-form:BinaryExpression": 2,
+          "tensor:binding:select": 1,
+          "tensor:deferred-binding:AssignmentStatement": 1,
+          "tensor:binding:reverse": 1,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:range-input-proof": 4
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "forbidden",
+            "expression": "0 till Top * (Top - 1) // 2 copy",
+            "line": 66,
+            "column": 11
+          }
+        ]
+      }
+    },
+    "lazy-range-reference": {
+      "file": "/tmp/rank408-lazy-range.ra",
+      "limit": "10000000",
+      "mode": "reference",
+      "ms": 5968.481583,
+      "rssMiB": 755.484375,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "cellsComputed": 8380416,
+        "numericSorts": 1,
+        "maskMaterializations": 7856,
+        "maskMaterializedCells": 19369758,
+        "typedArrayPublications": 140382,
+        "typedArrayPublishedCells": 451545898,
+        "fallbacks": {
+          "loop:disabled": 1
+        }
+      }
+    },
+    "candidate-full": {
+      "file": "/tmp/rank408-candidate.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 1845.084792,
+      "rssMiB": 777.421875,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numericSorts": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "compiledTensors": 15,
+        "tensorRangeScans": 4,
+        "tensorRangeScannedCells": 10414,
+        "typedArrayPublications": 38,
+        "typedArrayPublishedCells": 60146233,
+        "fallbacks": {
+          "scalar-function:unsupported-op:till": 1,
+          "scalar-expression:too-small": 23,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:max": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 5,
+          "scalar-expression:unsupported-op:Parent": 4,
+          "scalar-expression:unsupported-op:*": 16,
+          "scalar-expression:unsupported-op:mod": 8,
+          "tensor:application-form:BinaryExpression": 2,
+          "tensor:binding:select": 1,
+          "tensor:deferred-binding:AssignmentStatement": 1,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:range-input-proof": 4
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "forbidden",
+            "expression": "0 till Top * (Top - 1) // 2 copy",
+            "line": 66,
+            "column": 11
+          }
+        ]
+      }
+    },
+    "candidate-reference": {
+      "file": "/tmp/rank408-candidate.ra",
+      "limit": "10000000",
+      "mode": "reference",
+      "ms": 5325.784917,
+      "rssMiB": 702.65625,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "cellsComputed": 8380416,
+        "numericSorts": 1,
+        "maskMaterializations": 7856,
+        "maskMaterializedCells": 19369758,
+        "typedArrayPublications": 140381,
+        "typedArrayPublishedCells": 431545897,
+        "fallbacks": {
+          "loop:disabled": 1
+        }
+      }
+    },
+    "inline-scan-full": {
+      "file": "/tmp/rank408-inline-scan.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 1815.0175829999998,
+      "rssMiB": 779.21875,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numericSorts": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "compiledTensors": 15,
+        "tensorRangeScans": 4,
+        "tensorRangeScannedCells": 10414,
+        "typedArrayPublications": 38,
+        "typedArrayPublishedCells": 60146233,
+        "fallbacks": {
+          "scalar-function:unsupported-op:till": 1,
+          "scalar-expression:too-small": 29,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:max": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 8,
+          "scalar-expression:unsupported-op:Parent": 4,
+          "scalar-expression:unsupported-op:*": 18,
+          "scalar-expression:unsupported-op:mod": 9,
+          "tensor:application-form:BinaryExpression": 2,
+          "tensor:binding:select": 1,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:range-input-proof": 4
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "forbidden",
+            "expression": "0 till Top * (Top - 1) // 2 copy",
+            "line": 66,
+            "column": 11
+          }
+        ]
+      }
+    },
+    "inline-scan-reference": {
+      "file": "/tmp/rank408-inline-scan.ra",
+      "limit": "10000000",
+      "mode": "reference",
+      "ms": 5290.750333000001,
+      "rssMiB": 723.3125,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "cellsComputed": 8380416,
+        "numericSorts": 1,
+        "maskMaterializations": 7856,
+        "maskMaterializedCells": 19369758,
+        "typedArrayPublications": 140381,
+        "typedArrayPublishedCells": 431545897,
+        "fallbacks": {
+          "loop:disabled": 1
+        }
+      }
+    },
+    "range-full": {
+      "file": "/tmp/rank408-euclid.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 1872.596167,
+      "rssMiB": 925.75,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numericSorts": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "compiledTensors": 15,
+        "tensorRangeScans": 4,
+        "tensorRangeScannedCells": 10414,
+        "typedArrayPublications": 40,
+        "typedArrayPublishedCells": 100146234,
+        "fallbacks": {
+          "scalar-function:unsupported-op:till": 1,
+          "scalar-expression:too-small": 23,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:max": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:unsupported-op:to": 2,
+          "scalar-expression:unsupported-op:to": 5,
+          "scalar-expression:unsupported-op:Parent": 4,
+          "scalar-expression:unsupported-op:*": 16,
+          "scalar-expression:unsupported-op:mod": 8,
+          "tensor:application-form:BinaryExpression": 2,
+          "tensor:binding:select": 1,
+          "tensor:binding:reverse": 1,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:range-input-proof": 4
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "forbidden",
+            "expression": "0 till Top * (Top - 1) // 2 copy",
+            "line": 66,
+            "column": 11
+          }
+        ]
+      }
+    },
+    "stream-full": {
+      "file": "/tmp/rank408-inline-scan.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 1765.662333,
+      "rssMiB": 767.078125,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numericSorts": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "compiledTensors": 15,
+        "tensorRangeScans": 4,
+        "tensorRangeScannedCells": 10414,
+        "typedArrayPublications": 38,
+        "typedArrayPublishedCells": 60146233,
+        "fallbacks": {
+          "scalar-function:unsupported-op:till": 1,
+          "scalar-expression:too-small": 29,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:max": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 8,
+          "scalar-expression:unsupported-op:Parent": 4,
+          "scalar-expression:unsupported-op:*": 18,
+          "scalar-expression:unsupported-op:mod": 9,
+          "tensor:application-form:BinaryExpression": 2,
+          "tensor:binding:select": 1,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:range-input-proof": 4
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "forbidden",
+            "expression": "0 till Top * (Top - 1) // 2 copy",
+            "line": 66,
+            "column": 11
+          }
+        ]
+      }
+    },
+    "stream-reference": {
+      "file": "/tmp/rank408-inline-scan.ra",
+      "limit": "10000000",
+      "mode": "reference",
+      "ms": 5281.306667,
+      "rssMiB": 722.0625,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "cellsComputed": 8380416,
+        "numericSorts": 1,
+        "maskMaterializations": 7856,
+        "maskMaterializedCells": 19369758,
+        "typedArrayPublications": 140381,
+        "typedArrayPublishedCells": 431545897,
+        "fallbacks": {
+          "loop:disabled": 1
+        }
+      }
+    },
+    "stream-range-full": {
+      "file": "/tmp/rank408-inline-scan.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 1761.4415000000001,
+      "rssMiB": 778.5625,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numericSorts": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "compiledTensors": 15,
+        "tensorRangeScans": 4,
+        "tensorRangeScannedCells": 10414,
+        "typedArrayPublications": 38,
+        "typedArrayPublishedCells": 60146233,
+        "fallbacks": {
+          "scalar-function:unsupported-op:till": 1,
+          "scalar-expression:too-small": 29,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:max": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 8,
+          "scalar-expression:unsupported-op:Parent": 4,
+          "scalar-expression:unsupported-op:*": 18,
+          "scalar-expression:unsupported-op:mod": 9,
+          "tensor:application-form:BinaryExpression": 2,
+          "tensor:binding:select": 1,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:range-input-proof": 4
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "forbidden",
+            "expression": "0 till Top * (Top - 1) // 2 copy",
+            "line": 66,
+            "column": 11
+          }
+        ]
+      }
+    },
+    "pool-full": {
+      "file": "benchmarks/experiments/euler408-candidate.ra",
+      "limit": "10000000",
+      "mode": "compiled",
+      "ms": 1735.919042,
+      "rssMiB": 568.734375,
+      "answer": "299742733",
+      "points": "7850",
+      "stages": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numericSorts": 1,
+        "numberLoops": 1,
+        "numberLoopUnpolled": 1,
+        "compiledTensors": 15,
+        "tensorRangeScans": 4,
+        "tensorRangeScannedCells": 10414,
+        "typedArrayPublications": 38,
+        "typedArrayPublishedCells": 60146233,
+        "fallbacks": {
+          "scalar-function:unsupported-op:till": 1,
+          "scalar-expression:too-small": 29,
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "tensor:binding:isqrt": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:+": 1,
+          "scalar-expression:operator-guard:-": 1,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 1,
+          "scalar-expression:unsupported-op:gcd": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:max": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 8,
+          "scalar-expression:unsupported-op:Parent": 4,
+          "scalar-expression:unsupported-op:*": 18,
+          "scalar-expression:unsupported-op:mod": 9,
+          "tensor:application-form:BinaryExpression": 2,
+          "tensor:binding:select": 1,
+          "tensor:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:Fa": 5,
+          "scalar-expression:unsupported-op:N": 10,
+          "tensor:scalar-evaluation-timing": 2,
+          "number-loop:range-input-proof": 4
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "forbidden",
+            "expression": "0 till Top * (Top - 1) // 2 copy",
+            "line": 66,
+            "column": 11
+          }
+        ]
+      }
+    }
+  },
+  "initialProfile": [
+    {
+      "samples": 933,
+      "functionName": "mapStoredIntegers",
+      "lineNumber": 18,
+      "file": "integer-array-kernel.js"
+    },
+    {
+      "samples": 553,
+      "functionName": "(garbage collector)",
+      "lineNumber": -1,
+      "file": ""
+    },
+    {
+      "samples": 419,
+      "functionName": "mapDenseArrays",
+      "lineNumber": 63,
+      "file": "tensor.js"
+    },
+    {
+      "samples": 366,
+      "functionName": "mapDenseArrays",
+      "lineNumber": 63,
+      "file": "tensor.js"
+    },
+    {
+      "samples": 284,
+      "functionName": "compactBinary",
+      "lineNumber": 92,
+      "file": "integer-array-kernel.js"
+    },
+    {
+      "samples": 234,
+      "functionName": "gather",
+      "lineNumber": 481,
+      "file": "selectors.js"
+    },
+    {
+      "samples": 231,
+      "functionName": "",
+      "lineNumber": 159,
+      "file": "integer-view.js"
+    },
+    {
+      "samples": 192,
+      "functionName": "",
+      "lineNumber": 2,
+      "file": ""
+    },
+    {
+      "samples": 184,
+      "functionName": "",
+      "lineNumber": 91,
+      "file": "selectors.js"
+    },
+    {
+      "samples": 180,
+      "functionName": "outerValues",
+      "lineNumber": 474,
+      "file": "operators.js"
+    },
+    {
+      "samples": 179,
+      "functionName": "floorRemainder",
+      "lineNumber": 35,
+      "file": "numeric-division.js"
+    },
+    {
+      "samples": 129,
+      "functionName": "operation",
+      "lineNumber": 23,
+      "file": "integer-array-kernel.js"
+    },
+    {
+      "samples": 118,
+      "functionName": "chooseStoredIntegers",
+      "lineNumber": 601,
+      "file": "integer-array-kernel.js"
+    },
+    {
+      "samples": 116,
+      "functionName": "values",
+      "lineNumber": 72,
+      "file": "derived-array.js"
+    },
+    {
+      "samples": 107,
+      "functionName": "tensorSelection",
+      "lineNumber": 87,
+      "file": "selectors.js"
+    },
+    {
+      "samples": 102,
+      "functionName": "",
+      "lineNumber": 159,
+      "file": "integer-view.js"
+    },
+    {
+      "samples": 94,
+      "functionName": "",
+      "lineNumber": 14,
+      "file": "numeric-kernels.js"
+    },
+    {
+      "samples": 87,
+      "functionName": "",
+      "lineNumber": 3,
+      "file": ""
+    },
+    {
+      "samples": 87,
+      "functionName": "",
+      "lineNumber": 3,
+      "file": ""
+    },
+    {
+      "samples": 84,
+      "functionName": "(program)",
+      "lineNumber": -1,
+      "file": ""
+    },
+    {
+      "samples": 84,
+      "functionName": "mapStoredUnary",
+      "lineNumber": 6,
+      "file": "unary-array-kernel.js"
+    },
+    {
+      "samples": 81,
+      "functionName": "",
+      "lineNumber": 315,
+      "file": "array-read.js"
+    },
+    {
+      "samples": 73,
+      "functionName": "compareStoredInt32",
+      "lineNumber": 528,
+      "file": "integer-array-kernel.js"
+    },
+    {
+      "samples": 68,
+      "functionName": "arrayValues",
+      "lineNumber": 124,
+      "file": "array-read.js"
+    },
+    {
+      "samples": 67,
+      "functionName": "",
+      "lineNumber": 159,
+      "file": "integer-view.js"
+    }
+  ],
+  "historicalSourceHashes": {
+    "demos/euler/408_admissiblepaths.ra": "25aceb32ccbb2ebbc7e2dffe007d00269bec29011e7461b5faab12c6f01b49d7",
+    "demos/euler/408_admissiblepaths_test.ra": "1c4c74a81d87cb28ebdae21e3a6d028ab6923693dcfd6a55fce2783b22565a18",
+    "benchmarks/euler408-investigation.mjs": "e03292b3af18b344f8e6fabfa07064019a7372c45592f8a33e4baeb0492d0815",
+    "benchmarks/experiments/euler408-candidate.ra": "c8f9dfb8b2b6aba45690814e4be034fb82d60393ab2669153f3dd2d87bc58a98",
+    "benchmarks/experiments/euler408-euclid.ra": "4365377b7d6146657b521400048992465fdae6d9efa43eff415c5407c4c06bcb",
+    "benchmarks/experiments/euler408-filter.ra": "4338e4337372125b6002fab513860d241744157e2e07695709b7910771607b1b",
+    "benchmarks/experiments/euler408-hand.mjs": "b0699705638e93b37fc07fa8436070fa6ab2fd06e6ec7c4cb3c743bd7598e0e5",
+    "benchmarks/experiments/euler408-modular-prototype.mjs": "c0de486152ab9dc927a9b7ef54a8d6c6019b91530fe9253ee84fb077f6003445",
+    "benchmarks/experiments/euler408-modular-repro.ra": "0036da511eca44e9ba7ef0df5c32fcd0a61ba4d4362c9e0155ff6718d92f2584",
+    "benchmarks/experiments/euler408-pool-prototype.mjs": "eed0271ea3667c0c60c8a8ac04ff290d487186ce19ad8992544db91036f116d4",
+    "benchmarks/experiments/euler408-pool-series.py": "a3d368fa91e6dbbb90ef8db96c0a6f35694711db96d9e163ad477ae57b889c55",
+    "benchmarks/experiments/euler408-range-fold-prototype.mjs": "e3b2553754fcdf805d4d597d764d30953f6d25141d126c2e4c94c036e1b18f4d",
+    "benchmarks/experiments/euler408-repro.mjs": "54c0f9c0e4aecdfabecf90cec2e96d3aa3af0fbd2f11b7136e35f16f47b7efc9",
+    "benchmarks/experiments/euler408-scans.ra": "a5533e6b8cf2554d4ed5b4d4081b70217566e6b4af24ef30ad3c469f9850eda2",
+    "benchmarks/experiments/euler408-series.py": "850f57c531eabdbca086e73a5df0ea79bae0c1818c0d4059ba8fbfd1bb2e1b55",
+    "benchmarks/experiments/euler408-stream-scan-prototype.mjs": "db2ae42e225338c72ae6c775e8b1bae52a94866ccbf025c0d1e757a24ff0631f",
+    "benchmarks/experiments/euler408-verify.mjs": "2814e41d7167bed71d8a2f0539e54300d7e26b249d66756c866762aa3b51f8bf"
+  }
+}

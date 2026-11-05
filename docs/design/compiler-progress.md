@@ -3006,3 +3006,23 @@ Euler 407 uses library `powmod`, an exact array formula for its small totient
 table, and one factor-split loop. Updating the total by each decrease in the
 least idempotent removes the large final mask and reduction arrays.
 See [measurements and verification](../../benchmarks/euler407-followup.md).
+
+## Exact modular vector products and scratch growth (Euler 408, #447)
+
+Integer vector expressions `A * B mod P` feed their product operands directly
+to the existing scalar modular lowerer. A product outside safe Number range
+can therefore yield its exact small residue without speculative overflow first.
+All three inputs broadcast using the existing trailing-axis layout. Real inputs
+retain their prior path; unsupported integer domains replay exactly. Ordinary
+completed wide bindings are not removed or narrowed.
+
+The private vector pool can grow a dead buffer geometrically after a capacity
+miss. Initial buffers, fixed-size stages and large jumps retain exact allocation.
+Logical cells remain a subarray of the requested length; aliases, current
+operands and retained results keep their existing pins. This changes allocation
+churn, not precision or copy-admission thresholds. Allocation cost is recorded
+under `number-loop.vector-buffer`.
+
+Euler 408 now uses one recurrence loop, modular factorial scans, predecessor
+selection before binomial arithmetic and array generation of primitive triples.
+See [measurements and verification](../../benchmarks/euler408-followup.md).

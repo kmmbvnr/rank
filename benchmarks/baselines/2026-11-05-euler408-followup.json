@@ -1,0 +1,4836 @@
+{
+  "date": "2026-11-05",
+  "measurementBase": "fbc7621940c60929cac57d94d9bd56ee955168aa",
+  "node": "24.15.0",
+  "limit": "10000000",
+  "golden": "299742733",
+  "points": "7850",
+  "method": "Fresh sequential processes per host, three alternating compiled samples per variant and one reference sample per source. Controlled load hooks disable vector modular admission and/or restore exact-size scratch. Parse+execute timed after imports and interpreter construction; whole-process peak RSS. Other-demo controls have two samples per setting. Shared Mac has other load.",
+  "hosts": {
+    "mac": {
+      "cpu": "Apple M5 arm64",
+      "summary": {
+        "original-control": {
+          "samples": 3,
+          "ms": 10131.080750000001,
+          "rssMiB": 1626.75
+        },
+        "program-only": {
+          "samples": 3,
+          "ms": 5294.261458,
+          "rssMiB": 857.265625
+        },
+        "exact-pool": {
+          "samples": 3,
+          "ms": 1791.628167,
+          "rssMiB": 763.90625
+        },
+        "final": {
+          "samples": 3,
+          "ms": 1729.277916,
+          "rssMiB": 555.03125
+        },
+        "original-reference": {
+          "samples": 1,
+          "ms": 35269.234958,
+          "rssMiB": 1564.84375
+        },
+        "final-reference": {
+          "samples": 1,
+          "ms": 5304.253916000001,
+          "rssMiB": 726.140625
+        }
+      },
+      "samples": [
+        {
+          "file": "benchmarks/experiments/euler408-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10131.080750000001,
+          "rssMiB": 1623.625,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 106.59687499999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 10024.324417
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.13970799999998462
+              },
+              "loop.prepare": {
+                "calls": 3,
+                "milliseconds": 14.79024999999956
+              },
+              "number-loop.attempt": {
+                "calls": 5,
+                "milliseconds": 345.44450000000006
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 160094208,
+                "copiedBytes": 160094208
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 40023552
+              },
+              "number-loop.publish": {
+                "boxedCells": 4
+              },
+              "number-loop.execute": {
+                "calls": 5,
+                "milliseconds": 328.3535419999994
+              },
+              "number-loop.vector-buffer": {
+                "calls": 42,
+                "allocatedBytes": 240
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 1.8489169999998012
+              }
+            }
+          },
+          "label": "original-control",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 5312.44575,
+          "rssMiB": 857.25,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 6,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 114.951042
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 5197.325250000001
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.18524999999999636
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 8.670667000000094
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 5.289834000000155
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 94200,
+                "copiedBytes": 94200
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 23550
+              },
+              "number-loop.vector-buffer": {
+                "calls": 36,
+                "allocatedBytes": 180
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 1.6408760000000484
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 1.6467090000001008
+              }
+            }
+          },
+          "label": "program-only",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1791.628167,
+          "rssMiB": 764.578125,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 116.08758399999999
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 1675.396708
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.18016599999998562
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 9.988084000000072
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 1232.972167
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 23944,
+                "allocatedBytes": 373411076
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 1230.9604169999998
+              }
+            }
+          },
+          "label": "exact-pool",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1733.046,
+          "rssMiB": 555.328125,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 115.00099999999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 1617.8892079999998
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.18145900000001802
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 9.949040999999966
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 1175.407834
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 84,
+                "allocatedBytes": 393180
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 1173.3570829999999
+              }
+            }
+          },
+          "label": "final",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1729.277916,
+          "rssMiB": 555.03125,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 115.303833
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 1613.832167
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.19362499999999727
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 10.048124999999914
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 1176.1285830000002
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 84,
+                "allocatedBytes": 393180
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 1174.056959
+              }
+            }
+          },
+          "label": "final",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1789.1366670000002,
+          "rssMiB": 763.90625,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 116.72991599999997
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 1672.2640000000001
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.18395800000001827
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 9.911750000000097
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 1230.4600409999998
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 23944,
+                "allocatedBytes": 373411076
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 1228.2433330000001
+              }
+            }
+          },
+          "label": "exact-pool",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 5264.9259999999995,
+          "rssMiB": 857.265625,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 6,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 116.76804099999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 5148.000625
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.18045799999998735
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 8.846292000000062
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 5.40962600000023
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 94200,
+                "copiedBytes": 94200
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 23550
+              },
+              "number-loop.vector-buffer": {
+                "calls": 36,
+                "allocatedBytes": 180
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 1.6422910000001139
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 1.6496660000000247
+              }
+            }
+          },
+          "label": "program-only",
+          "round": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler408-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10201.705958,
+          "rssMiB": 1637.21875,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 108.60649999999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 10092.946167
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.1448750000000132
+              },
+              "loop.prepare": {
+                "calls": 3,
+                "milliseconds": 15.422291000000314
+              },
+              "number-loop.attempt": {
+                "calls": 5,
+                "milliseconds": 346.2666250000002
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 160094208,
+                "copiedBytes": 160094208
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 40023552
+              },
+              "number-loop.publish": {
+                "boxedCells": 4
+              },
+              "number-loop.execute": {
+                "calls": 5,
+                "milliseconds": 329.0432910000004
+              },
+              "number-loop.vector-buffer": {
+                "calls": 42,
+                "allocatedBytes": 240
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 1.8913750000001528
+              }
+            }
+          },
+          "label": "original-control",
+          "round": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler408-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 10121.243665999998,
+          "rssMiB": 1626.75,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 108.77662499999997
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 10012.318542
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.14350000000001728
+              },
+              "loop.prepare": {
+                "calls": 3,
+                "milliseconds": 15.543790999999601
+              },
+              "number-loop.attempt": {
+                "calls": 5,
+                "milliseconds": 352.10458199999994
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 160094208,
+                "copiedBytes": 160094208
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 40023552
+              },
+              "number-loop.publish": {
+                "boxedCells": 4
+              },
+              "number-loop.execute": {
+                "calls": 5,
+                "milliseconds": 334.9658749999994
+              },
+              "number-loop.vector-buffer": {
+                "calls": 42,
+                "allocatedBytes": 240
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 1.9382510000000366
+              }
+            }
+          },
+          "label": "original-control",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 5294.261458,
+          "rssMiB": 859.71875,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 6,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 114.68629200000001
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 5179.405333
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.18370799999996734
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 8.908791000000065
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 5.39408299999991
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 94200,
+                "copiedBytes": 94200
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 23550
+              },
+              "number-loop.vector-buffer": {
+                "calls": 36,
+                "allocatedBytes": 180
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 1.6041249999999536
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 1.6108339999999544
+              }
+            }
+          },
+          "label": "program-only",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1799.345667,
+          "rssMiB": 762.96875,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 117.52712499999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 1681.684916
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.18250000000000455
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 10.09420799999998
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 1234.4029999999998
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 23944,
+                "allocatedBytes": 373411076
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 1232.3394170000001
+              }
+            }
+          },
+          "label": "exact-pool",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 1729.07175,
+          "rssMiB": 554.578125,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 116.25170800000001
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 1612.6786659999998
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.18191699999999855
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 10.000500000000102
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 1170.5940420000002
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 84,
+                "allocatedBytes": 393180
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 1168.547458
+              }
+            }
+          },
+          "label": "final",
+          "round": 2
+        },
+        {
+          "file": "benchmarks/experiments/euler408-original.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 35269.234958,
+          "rssMiB": 1564.84375,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "typedArrayPublications": 193575,
+            "typedArrayPublishedCells": 819167129,
+            "fallbacks": {
+              "loop:disabled": 3
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 111.17654199999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 35157.897084
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.14691599999997607
+              }
+            }
+          },
+          "label": "original-reference"
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 5304.253916000001,
+          "rssMiB": 726.140625,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 8380416,
+            "numericSorts": 1,
+            "maskMaterializations": 7856,
+            "maskMaterializedCells": 19369758,
+            "typedArrayPublications": 140385,
+            "typedArrayPublishedCells": 431545905,
+            "fallbacks": {
+              "loop:disabled": 1
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 117.22099999999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 5186.861208
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.19183399999997164
+              }
+            }
+          },
+          "label": "final-reference"
+        }
+      ],
+      "crossPoolSummary": {
+        "demos/euler/404_crazyellipses.ra": {
+          "exact": {
+            "samples": 2,
+            "answer": "1199215615081353",
+            "ms": 6238.0348539999995,
+            "rssMiB": 298.15625,
+            "scratchBytes": [
+              758857708,
+              758857708
+            ]
+          },
+          "adaptive": {
+            "samples": 2,
+            "answer": "1199215615081353",
+            "ms": 6224.7314375000005,
+            "rssMiB": 178.4453125,
+            "scratchBytes": [
+              983004,
+              983004
+            ]
+          }
+        },
+        "demos/euler/407_idempotents.ra": {
+          "exact": {
+            "samples": 2,
+            "answer": "39782849136421",
+            "ms": 3378.159854,
+            "rssMiB": 510.734375,
+            "scratchBytes": [
+              242666608,
+              242666608
+            ]
+          },
+          "adaptive": {
+            "samples": 2,
+            "answer": "39782849136421",
+            "ms": 3352.718458,
+            "rssMiB": 510.9453125,
+            "scratchBytes": [
+              242666588,
+              242666588
+            ]
+          }
+        },
+        "demos/euler/401_sumsquares.ra": {
+          "exact": {
+            "samples": 2,
+            "answer": "281632621",
+            "ms": 2828.443792,
+            "rssMiB": 254.6171875,
+            "scratchBytes": [
+              3145728,
+              3145728
+            ]
+          },
+          "adaptive": {
+            "samples": 2,
+            "answer": "281632621",
+            "ms": 2822.4704375,
+            "rssMiB": 252.7265625,
+            "scratchBytes": [
+              3145728,
+              3145728
+            ]
+          }
+        },
+        "demos/euler/213_fleacircus.ra": {
+          "exact": {
+            "samples": 2,
+            "answer": "330.721154",
+            "ms": 1503.4528745,
+            "rssMiB": 259.3125,
+            "scratchBytes": [
+              0,
+              0
+            ]
+          },
+          "adaptive": {
+            "samples": 2,
+            "answer": "330.721154",
+            "ms": 1494.4108965,
+            "rssMiB": 259.1171875,
+            "scratchBytes": [
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "crossPoolSamples": [
+        {
+          "file": "demos/euler/404_crazyellipses.ra",
+          "args": [],
+          "ms": 6191.091332999999,
+          "rssMiB": 298.171875,
+          "answer": "1199215615081353",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "mixedIntegerLoops": 1,
+            "typedArrayPublications": 6,
+            "typedArrayPublishedCells": 53136,
+            "fallbacks": {
+              "tensor:scalar-evaluation-timing": 1,
+              "number-loop:unsafe-input": 2
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 93.58291699999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 6097.356209
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.09320900000000165
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 6.771125000000012
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 6083.766874999999
+              },
+              "number-loop.vector-buffer": {
+                "calls": 33749,
+                "allocatedBytes": 758857708
+              },
+              "number-loop.publish": {
+                "boxedCells": 2
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 6082.545125
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/404_crazyellipses.ra",
+          "args": [],
+          "ms": 6216.3742090000005,
+          "rssMiB": 178.515625,
+          "answer": "1199215615081353",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "mixedIntegerLoops": 1,
+            "typedArrayPublications": 6,
+            "typedArrayPublishedCells": 53136,
+            "fallbacks": {
+              "tensor:scalar-evaluation-timing": 1,
+              "number-loop:unsafe-input": 2
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 95.061083
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 6121.166499999999
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.09354099999998766
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 6.814707999999996
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 6107.498668
+              },
+              "number-loop.vector-buffer": {
+                "calls": 105,
+                "allocatedBytes": 983004
+              },
+              "number-loop.publish": {
+                "boxedCells": 2
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 6106.211959
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/404_crazyellipses.ra",
+          "args": [],
+          "ms": 6233.088666,
+          "rssMiB": 178.375,
+          "answer": "1199215615081353",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "mixedIntegerLoops": 1,
+            "typedArrayPublications": 6,
+            "typedArrayPublishedCells": 53136,
+            "fallbacks": {
+              "tensor:scalar-evaluation-timing": 1,
+              "number-loop:unsafe-input": 2
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 94.09887499999999
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 6138.834375
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.09416699999999878
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 7.063749999999999
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 6124.9390410000005
+              },
+              "number-loop.vector-buffer": {
+                "calls": 105,
+                "allocatedBytes": 983004
+              },
+              "number-loop.publish": {
+                "boxedCells": 2
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 6123.711958
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/404_crazyellipses.ra",
+          "args": [],
+          "ms": 6284.978375000001,
+          "rssMiB": 298.140625,
+          "answer": "1199215615081353",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "mixedIntegerLoops": 1,
+            "typedArrayPublications": 6,
+            "typedArrayPublishedCells": 53136,
+            "fallbacks": {
+              "tensor:scalar-evaluation-timing": 1,
+              "number-loop:unsafe-input": 2
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 94.597917
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 6190.233
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.09241600000001426
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 6.8951669999999865
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 6176.343376
+              },
+              "number-loop.vector-buffer": {
+                "calls": 33749,
+                "allocatedBytes": 758857708
+              },
+              "number-loop.publish": {
+                "boxedCells": 2
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 6175.101833000001
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "args": [],
+          "ms": 3361.304625,
+          "rssMiB": 510.828125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 98.414333
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 3262.7367919999997
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.12224999999997976
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 9.234291999999982
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 3147.872625
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 40000004,
+                "copiedBytes": 40000004
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 10000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 25,
+                "allocatedBytes": 242666608
+              },
+              "number-loop.publish": {
+                "boxedCells": 5
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 3141.314042
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "args": [],
+          "ms": 3373.1896659999998,
+          "rssMiB": 511.03125,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 98.31595899999999
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 3274.719542
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.11795800000001577
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 9.141999999999996
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 3155.816916
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 40000004,
+                "copiedBytes": 40000004
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 10000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 23,
+                "allocatedBytes": 242666588
+              },
+              "number-loop.publish": {
+                "boxedCells": 5
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 3149.357125
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "args": [],
+          "ms": 3332.24725,
+          "rssMiB": 510.859375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 98.60762500000001
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 3233.4766670000004
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.12129100000001358
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 9.235625000000027
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 3113.505125
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 40000004,
+                "copiedBytes": 40000004
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 10000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 23,
+                "allocatedBytes": 242666588
+              },
+              "number-loop.publish": {
+                "boxedCells": 5
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 3106.9514169999998
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "args": [],
+          "ms": 3395.015083,
+          "rssMiB": 510.640625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 98.08724999999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 3296.776667
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.11887500000000273
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 9.187625000000025
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 3177.713584
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 40000004,
+                "copiedBytes": 40000004
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 10000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 25,
+                "allocatedBytes": 242666608
+              },
+              "number-loop.publish": {
+                "boxedCells": 5
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 3171.1913750000003
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/401_sumsquares.ra",
+          "args": [],
+          "ms": 2814.067667,
+          "rssMiB": 254.625,
+          "answer": "281632621",
+          "diagnostics": {
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 966,
+            "typedArrayPublications": 4347,
+            "typedArrayPublishedCells": 284604984,
+            "fallbacks": {
+              "scalar-expression:too-small": 5,
+              "number-loop:overflow": 3,
+              "scalar-expression:unsupported-op:to": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:operator-guard:mod": 483,
+              "scalar-expression:operator-guard:+": 483,
+              "tensor:output-shape": 1
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 88.80529100000001
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 2725.1075
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.08504099999998971
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 6.530124999999998
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 11.397666999999984
+              },
+              "number-loop.vector-buffer": {
+                "calls": 12,
+                "allocatedBytes": 3145728
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 9.006665999999996
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 9.013374999999968
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/401_sumsquares.ra",
+          "args": [],
+          "ms": 2819.22475,
+          "rssMiB": 251.328125,
+          "answer": "281632621",
+          "diagnostics": {
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 966,
+            "typedArrayPublications": 4347,
+            "typedArrayPublishedCells": 284604984,
+            "fallbacks": {
+              "scalar-expression:too-small": 5,
+              "number-loop:overflow": 3,
+              "scalar-expression:unsupported-op:to": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:operator-guard:mod": 483,
+              "scalar-expression:operator-guard:+": 483,
+              "tensor:output-shape": 1
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 88.88612499999999
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 2730.1911250000003
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.08525000000000205
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 6.558042
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 11.386333000000064
+              },
+              "number-loop.vector-buffer": {
+                "calls": 12,
+                "allocatedBytes": 3145728
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 9.006667000000022
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 9.013624000000021
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/401_sumsquares.ra",
+          "args": [],
+          "ms": 2825.716125,
+          "rssMiB": 254.125,
+          "answer": "281632621",
+          "diagnostics": {
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 966,
+            "typedArrayPublications": 4347,
+            "typedArrayPublishedCells": 284604984,
+            "fallbacks": {
+              "scalar-expression:too-small": 5,
+              "number-loop:overflow": 3,
+              "scalar-expression:unsupported-op:to": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:operator-guard:mod": 483,
+              "scalar-expression:operator-guard:+": 483,
+              "tensor:output-shape": 1
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 89.108834
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 2736.455667
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.08379200000001674
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 6.681834000000009
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 11.530957999999998
+              },
+              "number-loop.vector-buffer": {
+                "calls": 12,
+                "allocatedBytes": 3145728
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 9.118250999999958
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 9.124999999999972
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/401_sumsquares.ra",
+          "args": [],
+          "ms": 2842.819917,
+          "rssMiB": 254.609375,
+          "answer": "281632621",
+          "diagnostics": {
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 966,
+            "typedArrayPublications": 4347,
+            "typedArrayPublishedCells": 284604984,
+            "fallbacks": {
+              "scalar-expression:too-small": 5,
+              "number-loop:overflow": 3,
+              "scalar-expression:unsupported-op:to": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:operator-guard:mod": 483,
+              "scalar-expression:operator-guard:+": 483,
+              "tensor:output-shape": 1
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 90.56166599999997
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 2752.101375
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.08508299999999736
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 6.550000000000011
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 11.406498999999997
+              },
+              "number-loop.vector-buffer": {
+                "calls": 12,
+                "allocatedBytes": 3145728
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 9.002583000000016
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 9.009456999999998
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/213_fleacircus.ra",
+          "args": [],
+          "ms": 1526.909791,
+          "rssMiB": 259.46875,
+          "answer": "330.721154",
+          "diagnostics": {
+            "cellsComputed": 1622700,
+            "compiledTensors": 952,
+            "tensorMapPreparations": 53,
+            "elementTypeScans": 53,
+            "elementTypeScannedCells": 10329300,
+            "typedArrayPublications": 106,
+            "typedArrayPublishedCells": 20456325,
+            "fallbacks": {
+              "scalar-expression:too-small": 24,
+              "tensor:unsupported-node:MaterializeExpression": 2,
+              "scalar-expression:unsupported-op:till": 2,
+              "tensor:deferred-binding:AssignmentStatement": 14,
+              "scalar-expression:unsupported-op:/": 1,
+              "tensor:binding:Ones": 1,
+              "scalar-expression:unsupported-op:Z": 3,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:*": 3,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:+": 152,
+              "scalar-expression:unsupported-op:equal": 1,
+              "scalar-expression:operator-guard://": 1,
+              "scalar-expression:operator-guard:*": 4,
+              "scalar-expression:operator-guard:mod": 1,
+              "loop:unsupported-op:Fn": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "tensor:binding:Up": 50
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 113.59525
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 1413.158709
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.13645800000000463
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 3.1830829999999537
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/213_fleacircus.ra",
+          "args": [],
+          "ms": 1495.1868339999999,
+          "rssMiB": 258.71875,
+          "answer": "330.721154",
+          "diagnostics": {
+            "cellsComputed": 1622700,
+            "compiledTensors": 952,
+            "tensorMapPreparations": 53,
+            "elementTypeScans": 53,
+            "elementTypeScannedCells": 10329300,
+            "typedArrayPublications": 106,
+            "typedArrayPublishedCells": 20456325,
+            "fallbacks": {
+              "scalar-expression:too-small": 24,
+              "tensor:unsupported-node:MaterializeExpression": 2,
+              "scalar-expression:unsupported-op:till": 2,
+              "tensor:deferred-binding:AssignmentStatement": 14,
+              "scalar-expression:unsupported-op:/": 1,
+              "tensor:binding:Ones": 1,
+              "scalar-expression:unsupported-op:Z": 3,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:*": 3,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:+": 152,
+              "scalar-expression:unsupported-op:equal": 1,
+              "scalar-expression:operator-guard://": 1,
+              "scalar-expression:operator-guard:*": 4,
+              "scalar-expression:operator-guard:mod": 1,
+              "loop:unsupported-op:Fn": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "tensor:binding:Up": 50
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 112.76579100000001
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 1382.272292
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.13654200000001993
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 3.095375000000047
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/213_fleacircus.ra",
+          "args": [],
+          "ms": 1493.634959,
+          "rssMiB": 259.515625,
+          "answer": "330.721154",
+          "diagnostics": {
+            "cellsComputed": 1622700,
+            "compiledTensors": 952,
+            "tensorMapPreparations": 53,
+            "elementTypeScans": 53,
+            "elementTypeScannedCells": 10329300,
+            "typedArrayPublications": 106,
+            "typedArrayPublishedCells": 20456325,
+            "fallbacks": {
+              "scalar-expression:too-small": 24,
+              "tensor:unsupported-node:MaterializeExpression": 2,
+              "scalar-expression:unsupported-op:till": 2,
+              "tensor:deferred-binding:AssignmentStatement": 14,
+              "scalar-expression:unsupported-op:/": 1,
+              "tensor:binding:Ones": 1,
+              "scalar-expression:unsupported-op:Z": 3,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:*": 3,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:+": 152,
+              "scalar-expression:unsupported-op:equal": 1,
+              "scalar-expression:operator-guard://": 1,
+              "scalar-expression:operator-guard:*": 4,
+              "scalar-expression:operator-guard:mod": 1,
+              "loop:unsupported-op:Fn": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "tensor:binding:Up": 50
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 113.03283299999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 1380.449208
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.13612500000004957
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 3.081291999999962
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/213_fleacircus.ra",
+          "args": [],
+          "ms": 1479.995958,
+          "rssMiB": 259.15625,
+          "answer": "330.721154",
+          "diagnostics": {
+            "cellsComputed": 1622700,
+            "compiledTensors": 952,
+            "tensorMapPreparations": 53,
+            "elementTypeScans": 53,
+            "elementTypeScannedCells": 10329300,
+            "typedArrayPublications": 106,
+            "typedArrayPublishedCells": 20456325,
+            "fallbacks": {
+              "scalar-expression:too-small": 24,
+              "tensor:unsupported-node:MaterializeExpression": 2,
+              "scalar-expression:unsupported-op:till": 2,
+              "tensor:deferred-binding:AssignmentStatement": 14,
+              "scalar-expression:unsupported-op:/": 1,
+              "tensor:binding:Ones": 1,
+              "scalar-expression:unsupported-op:Z": 3,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:*": 3,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:+": 152,
+              "scalar-expression:unsupported-op:equal": 1,
+              "scalar-expression:operator-guard://": 1,
+              "scalar-expression:operator-guard:*": 4,
+              "scalar-expression:operator-guard:mod": 1,
+              "loop:unsupported-op:Fn": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "tensor:binding:Up": 50
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 113.66179200000002
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 1366.1835419999998
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.13875000000001592
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 3.142750000000035
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 1
+        }
+      ]
+    },
+    "intel": {
+      "cpu": "Intel Core i7-10750H x64",
+      "summary": {
+        "original-control": {
+          "samples": 3,
+          "ms": 29334.519647,
+          "rssMiB": 1033.66015625
+        },
+        "program-only": {
+          "samples": 3,
+          "ms": 16247.232301,
+          "rssMiB": 585.3984375
+        },
+        "exact-pool": {
+          "samples": 3,
+          "ms": 4455.317153999999,
+          "rssMiB": 536.92578125
+        },
+        "final": {
+          "samples": 3,
+          "ms": 4296.097978,
+          "rssMiB": 482.8984375
+        },
+        "original-reference": {
+          "samples": 1,
+          "ms": 111279.15228000001,
+          "rssMiB": 994.73046875
+        },
+        "final-reference": {
+          "samples": 1,
+          "ms": 14428.074064,
+          "rssMiB": 495.078125
+        }
+      },
+      "samples": [
+        {
+          "file": "benchmarks/experiments/euler408-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 29334.519647,
+          "rssMiB": 1028.85546875,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 295.906039
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 29038.189015
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.5676089999999476
+              },
+              "loop.prepare": {
+                "calls": 3,
+                "milliseconds": 43.40612999999939
+              },
+              "number-loop.attempt": {
+                "calls": 5,
+                "milliseconds": 701.307014
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 160094208,
+                "copiedBytes": 160094208
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 40023552
+              },
+              "number-loop.publish": {
+                "boxedCells": 4
+              },
+              "number-loop.execute": {
+                "calls": 5,
+                "milliseconds": 605.6950689999994
+              },
+              "number-loop.vector-buffer": {
+                "calls": 42,
+                "allocatedBytes": 240
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 4.853369000000384
+              }
+            }
+          },
+          "label": "original-control",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 16339.735953,
+          "rssMiB": 584.4609375,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 6,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 351.66284499999995
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 15987.608269999999
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.5304710000000341
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 25.10659099999998
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 16.31041899999991
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 94200,
+                "copiedBytes": 94200
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 23550
+              },
+              "number-loop.vector-buffer": {
+                "calls": 36,
+                "allocatedBytes": 180
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 4.819565000000011
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 4.833705000000009
+              }
+            }
+          },
+          "label": "program-only",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4455.317153999999,
+          "rssMiB": 541.03125,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 351.21979600000003
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 4103.723129999999
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.5174759999999878
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 26.18878399999994
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 3090.599233
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 23944,
+                "allocatedBytes": 373411076
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 3084.4467730000006
+              }
+            }
+          },
+          "label": "exact-pool",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4296.097978,
+          "rssMiB": 482.80859375,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 323.488404
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 3972.2340649999996
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.5709299999999757
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 25.280303000000004
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 3008.147654
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 84,
+                "allocatedBytes": 393180
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 3002.897618
+              }
+            }
+          },
+          "label": "final",
+          "round": 0
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4395.378618,
+          "rssMiB": 559.203125,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 333.641035
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 4061.342307
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.515365000000088
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 29.645256000000018
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 3081.4022709999995
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 84,
+                "allocatedBytes": 393180
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 3074.776541
+              }
+            }
+          },
+          "label": "final",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4547.521052,
+          "rssMiB": 535.265625,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 330.86339499999997
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 4216.239731
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.53091500000005
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 28.530111000000034
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 3205.7277059999997
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 23944,
+                "allocatedBytes": 373411076
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 3199.2149999999997
+              }
+            }
+          },
+          "label": "exact-pool",
+          "round": 1
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 16247.232301,
+          "rssMiB": 586.875,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 6,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 340.399055
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 15906.386057000002
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.5678209999999808
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 28.70430999999985
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 16.977139999999963
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 94200,
+                "copiedBytes": 94200
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 23550
+              },
+              "number-loop.vector-buffer": {
+                "calls": 36,
+                "allocatedBytes": 180
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 4.708122999999887
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 4.728092999999944
+              }
+            }
+          },
+          "label": "program-only",
+          "round": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler408-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 30462.164795,
+          "rssMiB": 1033.66015625,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 356.48552099999995
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 30105.247867
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.4471019999999726
+              },
+              "loop.prepare": {
+                "calls": 3,
+                "milliseconds": 41.58609199999955
+              },
+              "number-loop.attempt": {
+                "calls": 5,
+                "milliseconds": 729.2324610000014
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 160094208,
+                "copiedBytes": 160094208
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 40023552
+              },
+              "number-loop.publish": {
+                "boxedCells": 4
+              },
+              "number-loop.execute": {
+                "calls": 5,
+                "milliseconds": 642.550894
+              },
+              "number-loop.vector-buffer": {
+                "calls": 42,
+                "allocatedBytes": 240
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 4.993021000000226
+              }
+            }
+          },
+          "label": "original-control",
+          "round": 1
+        },
+        {
+          "file": "benchmarks/experiments/euler408-original.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 29214.007487000003,
+          "rssMiB": 1058.16796875,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "compiledLoops": 3,
+            "numberLoops": 5,
+            "numberLoopUnpolled": 5,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "typedArrayPublications": 217116,
+            "typedArrayPublishedCells": 911589095,
+            "fallbacks": {
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "scalar-expression:too-small": 10,
+              "scalar-expression:unsupported-op:+": 2,
+              "scalar-expression:unsupported-op:**": 6,
+              "scalar-expression:unsupported-op:equal": 2,
+              "tensor:unsupported-type:array": 3,
+              "number-loop:range-input-proof": 20,
+              "scalar-expression:unsupported-op:Fa": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "scalar-expression:unsupported-op:mod": 4,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:scalar-evaluation-timing": 2,
+              "number-loop:overflow": 3
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 324.674859
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 28888.931092
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.5203860000000304
+              },
+              "loop.prepare": {
+                "calls": 3,
+                "milliseconds": 41.21354500000052
+              },
+              "number-loop.attempt": {
+                "calls": 5,
+                "milliseconds": 706.1979120000015
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 160094208,
+                "copiedBytes": 160094208
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 40023552
+              },
+              "number-loop.publish": {
+                "boxedCells": 4
+              },
+              "number-loop.execute": {
+                "calls": 5,
+                "milliseconds": 617.1006189999971
+              },
+              "number-loop.vector-buffer": {
+                "calls": 42,
+                "allocatedBytes": 240
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 5.812988999996378
+              }
+            }
+          },
+          "label": "original-control",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 15206.504302000001,
+          "rssMiB": 585.3984375,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 2095104,
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "maskMaterializations": 7849,
+            "maskMaterializedCells": 19362376,
+            "typedArrayPublications": 195074,
+            "typedArrayPublishedCells": 566956911,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 6,
+              "number-loop:overflow": 3
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 329.402993
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 14876.650109999999
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.5728339999999434
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 23.435162999999875
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 15.683003999999983
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 94200,
+                "copiedBytes": 94200
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 23550
+              },
+              "number-loop.vector-buffer": {
+                "calls": 36,
+                "allocatedBytes": 180
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 4.230335999999852
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 4.245567999999821
+              }
+            }
+          },
+          "label": "program-only",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4217.65796,
+          "rssMiB": 536.92578125,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 311.12632900000006
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 3906.163685
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.4863030000000208
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 25.66751699999986
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 2951.0416870000004
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 23944,
+                "allocatedBytes": 373411076
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 2944.8748579999997
+              }
+            }
+          },
+          "label": "exact-pool",
+          "round": 2
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "compiled",
+          "ms": 4070.676472,
+          "rssMiB": 482.8984375,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numericSorts": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 15,
+            "tensorRangeScans": 4,
+            "tensorRangeScannedCells": 10414,
+            "typedArrayPublications": 36,
+            "typedArrayPublishedCells": 60134365,
+            "fallbacks": {
+              "scalar-function:unsupported-op:till": 1,
+              "scalar-expression:too-small": 18,
+              "tensor:scalar-evaluation-timing": 3,
+              "tensor:unsupported-op:till": 1,
+              "scalar-expression:unsupported-op:till": 1,
+              "tensor:binding:isqrt": 1,
+              "scalar-expression:operator-guard:*": 1,
+              "scalar-expression:operator-guard:+": 1,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:gcd": 2,
+              "scalar-expression:unsupported-op:equal": 2,
+              "scalar-expression:unsupported-op:max": 2,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op://": 2,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:Parent": 4,
+              "scalar-expression:unsupported-op:*": 16,
+              "tensor:deferred-binding:AssignmentStatement": 2,
+              "scalar-expression:unsupported-op:mod": 8,
+              "tensor:application-form:BinaryExpression": 2,
+              "tensor:unsupported-type:array": 1,
+              "scalar-expression:unsupported-op:Last": 5,
+              "scalar-expression:unsupported-op:N": 10,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unsupported-op:till",
+                "node": "BinaryExpression",
+                "function": "forbidden",
+                "expression": "0 till Size copy",
+                "line": 74,
+                "column": 11
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 307.03946199999996
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 3763.269515
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.5368560000000571
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 24.258666000000176
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 2840.174577
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 31400,
+                "copiedBytes": 31400
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 7850
+              },
+              "number-loop.vector-buffer": {
+                "calls": 84,
+                "allocatedBytes": 393180
+              },
+              "number-loop.publish": {
+                "boxedCells": 9
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 2834.884884
+              }
+            }
+          },
+          "label": "final",
+          "round": 2
+        },
+        {
+          "file": "benchmarks/experiments/euler408-original.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 111279.15228000001,
+          "rssMiB": 994.73046875,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 11045796,
+            "typedArrayPublications": 193575,
+            "typedArrayPublishedCells": 819167129,
+            "fallbacks": {
+              "loop:disabled": 3
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 287.412308
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 110991.35598200001
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.4932659999999487
+              }
+            }
+          },
+          "label": "original-reference"
+        },
+        {
+          "file": "demos/euler/408_admissiblepaths.ra",
+          "limit": "10000000",
+          "mode": "reference",
+          "ms": 14428.074064,
+          "rssMiB": 495.078125,
+          "answer": "299742733",
+          "points": "7850",
+          "diagnostics": {
+            "cellsComputed": 8380416,
+            "numericSorts": 1,
+            "maskMaterializations": 7856,
+            "maskMaterializedCells": 19369758,
+            "typedArrayPublications": 140385,
+            "typedArrayPublishedCells": 431545905,
+            "fallbacks": {
+              "loop:disabled": 1
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 303.43822500000005
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 14124.225038
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.47625700000003235
+              }
+            }
+          },
+          "label": "final-reference"
+        }
+      ],
+      "crossPoolSummary": {
+        "demos/euler/404_crazyellipses.ra": {
+          "exact": {
+            "samples": 2,
+            "answer": "1199215615081353",
+            "ms": 14972.7949715,
+            "rssMiB": 173.404296875,
+            "scratchBytes": [
+              758857708,
+              758857708
+            ]
+          },
+          "adaptive": {
+            "samples": 2,
+            "answer": "1199215615081353",
+            "ms": 14838.833288000002,
+            "rssMiB": 164.3203125,
+            "scratchBytes": [
+              983004,
+              983004
+            ]
+          }
+        },
+        "demos/euler/407_idempotents.ra": {
+          "exact": {
+            "samples": 2,
+            "answer": "39782849136421",
+            "ms": 9912.2912005,
+            "rssMiB": 499.115234375,
+            "scratchBytes": [
+              242666608,
+              242666608
+            ]
+          },
+          "adaptive": {
+            "samples": 2,
+            "answer": "39782849136421",
+            "ms": 10097.280533500001,
+            "rssMiB": 499.8125,
+            "scratchBytes": [
+              242666588,
+              242666588
+            ]
+          }
+        },
+        "demos/euler/401_sumsquares.ra": {
+          "exact": {
+            "samples": 2,
+            "answer": "281632621",
+            "ms": 8739.9014295,
+            "rssMiB": 243.86328125,
+            "scratchBytes": [
+              3145728,
+              3145728
+            ]
+          },
+          "adaptive": {
+            "samples": 2,
+            "answer": "281632621",
+            "ms": 8737.2042645,
+            "rssMiB": 245.82421875,
+            "scratchBytes": [
+              3145728,
+              3145728
+            ]
+          }
+        },
+        "demos/euler/213_fleacircus.ra": {
+          "exact": {
+            "samples": 2,
+            "answer": "330.721154",
+            "ms": 5904.7946974999995,
+            "rssMiB": 234.279296875,
+            "scratchBytes": [
+              0,
+              0
+            ]
+          },
+          "adaptive": {
+            "samples": 2,
+            "answer": "330.721154",
+            "ms": 4252.405581499999,
+            "rssMiB": 225.560546875,
+            "scratchBytes": [
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "crossPoolSamples": [
+        {
+          "file": "demos/euler/404_crazyellipses.ra",
+          "args": [],
+          "ms": 14880.615769,
+          "rssMiB": 174.0078125,
+          "answer": "1199215615081353",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "mixedIntegerLoops": 1,
+            "typedArrayPublications": 6,
+            "typedArrayPublishedCells": 53136,
+            "fallbacks": {
+              "tensor:scalar-evaluation-timing": 1,
+              "number-loop:unsafe-input": 2
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 261.078749
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 14619.131127999999
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.2947149999999965
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 19.726643999999965
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 14577.460769000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 33749,
+                "allocatedBytes": 758857708
+              },
+              "number-loop.publish": {
+                "boxedCells": 2
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 14573.728207
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/404_crazyellipses.ra",
+          "args": [],
+          "ms": 14847.964535000001,
+          "rssMiB": 166.55859375,
+          "answer": "1199215615081353",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "mixedIntegerLoops": 1,
+            "typedArrayPublications": 6,
+            "typedArrayPublishedCells": 53136,
+            "fallbacks": {
+              "tensor:scalar-evaluation-timing": 1,
+              "number-loop:unsafe-input": 2
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 262.07831699999997
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 14585.45467
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.31526799999994637
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 19.8410090000001
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 14543.236844000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 105,
+                "allocatedBytes": 983004
+              },
+              "number-loop.publish": {
+                "boxedCells": 2
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 14539.531039
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/404_crazyellipses.ra",
+          "args": [],
+          "ms": 14829.702041,
+          "rssMiB": 162.08203125,
+          "answer": "1199215615081353",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "mixedIntegerLoops": 1,
+            "typedArrayPublications": 6,
+            "typedArrayPublishedCells": 53136,
+            "fallbacks": {
+              "tensor:scalar-evaluation-timing": 1,
+              "number-loop:unsafe-input": 2
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 273.09916200000004
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 14556.192461999999
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.3699010000000271
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 20.544508999999948
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 14512.719826
+              },
+              "number-loop.vector-buffer": {
+                "calls": 105,
+                "allocatedBytes": 983004
+              },
+              "number-loop.publish": {
+                "boxedCells": 2
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 14508.858705
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/404_crazyellipses.ra",
+          "args": [],
+          "ms": 15064.974174,
+          "rssMiB": 172.80078125,
+          "answer": "1199215615081353",
+          "diagnostics": {
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "mixedIntegerLoops": 1,
+            "typedArrayPublications": 6,
+            "typedArrayPublishedCells": 53136,
+            "fallbacks": {
+              "tensor:scalar-evaluation-timing": 1,
+              "number-loop:unsafe-input": 2
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 261.54432499999996
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 14803.026941
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.3095739999999978
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 20.06874999999991
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 14760.265632
+              },
+              "number-loop.vector-buffer": {
+                "calls": 33749,
+                "allocatedBytes": 758857708
+              },
+              "number-loop.publish": {
+                "boxedCells": 2
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 14756.157165999999
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "args": [],
+          "ms": 10124.104151,
+          "rssMiB": 500.65625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 287.92093500000004
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 9835.751856
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.3966699999999719
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 26.511359999999968
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 9480.168855999998
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 40000004,
+                "copiedBytes": 40000004
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 10000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 25,
+                "allocatedBytes": 242666608
+              },
+              "number-loop.publish": {
+                "boxedCells": 5
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 9449.165288999999
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "args": [],
+          "ms": 10359.738751,
+          "rssMiB": 500.609375,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 279.64021
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 10079.642559
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.3574579999999514
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 24.026597000000038
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 9752.027672
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 40000004,
+                "copiedBytes": 40000004
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 10000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 23,
+                "allocatedBytes": 242666588
+              },
+              "number-loop.publish": {
+                "boxedCells": 5
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 9724.418099
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "args": [],
+          "ms": 9834.822316,
+          "rssMiB": 499.015625,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 278.32107799999994
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 9556.076229
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.3617690000000948
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 26.448589000000084
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 9216.863349
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 40000004,
+                "copiedBytes": 40000004
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 10000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 23,
+                "allocatedBytes": 242666588
+              },
+              "number-loop.publish": {
+                "boxedCells": 5
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 9189.747147
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/407_idempotents.ra",
+          "args": [],
+          "ms": 9700.47825,
+          "rssMiB": 497.57421875,
+          "answer": "39782849136421",
+          "diagnostics": {
+            "cellsComputed": 6324,
+            "compiledLoops": 1,
+            "numberLoops": 1,
+            "numberLoopUnpolled": 1,
+            "compiledTensors": 1,
+            "typedArrayPublications": 20,
+            "typedArrayPublishedCells": 14250189,
+            "fallbacks": {
+              "scalar-function:unbound-name:NameExpression": 1,
+              "tensor:unsupported-op:to": 3,
+              "scalar-expression:unsupported-op:to": 3,
+              "scalar-expression:operator-guard:mod": 1,
+              "scalar-expression:operator-guard:equal": 1,
+              "scalar-expression:unsupported-op:*": 4,
+              "tensor:application-form:BinaryExpression": 2,
+              "scalar-expression:too-small": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "number-loop:range-input-proof": 2
+            },
+            "compilerRejections": [
+              {
+                "reason": "scalar-function:unbound-name:NameExpression",
+                "node": "NameExpression",
+                "name": "primes",
+                "function": "totients",
+                "expression": "primes",
+                "line": 52,
+                "column": 12
+              }
+            ],
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 276.336487
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 9423.718272
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.34292200000004414
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 26.561866999999893
+              },
+              "number-loop.attempt": {
+                "calls": 1,
+                "milliseconds": 9085.274887
+              },
+              "number-loop.snapshot": {
+                "allocatedBytes": 40000004,
+                "copiedBytes": 40000004
+              },
+              "number-loop.dirty": {
+                "allocatedBytes": 10000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 25,
+                "allocatedBytes": 242666608
+              },
+              "number-loop.publish": {
+                "boxedCells": 5
+              },
+              "number-loop.execute": {
+                "calls": 1,
+                "milliseconds": 9057.293599
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/401_sumsquares.ra",
+          "args": [],
+          "ms": 8910.323138,
+          "rssMiB": 242.6171875,
+          "answer": "281632621",
+          "diagnostics": {
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 966,
+            "typedArrayPublications": 4347,
+            "typedArrayPublishedCells": 284604984,
+            "fallbacks": {
+              "scalar-expression:too-small": 5,
+              "number-loop:overflow": 3,
+              "scalar-expression:unsupported-op:to": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:operator-guard:mod": 483,
+              "scalar-expression:operator-guard:+": 483,
+              "tensor:output-shape": 1
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 277.522229
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 8632.280768
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.2982919999999467
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 19.766340000000014
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 39.4816350000001
+              },
+              "number-loop.vector-buffer": {
+                "calls": 12,
+                "allocatedBytes": 3145728
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 31.17663099999993
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 31.21252599999991
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/401_sumsquares.ra",
+          "args": [],
+          "ms": 8848.158373,
+          "rssMiB": 244.98046875,
+          "answer": "281632621",
+          "diagnostics": {
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 966,
+            "typedArrayPublications": 4347,
+            "typedArrayPublishedCells": 284604984,
+            "fallbacks": {
+              "scalar-expression:too-small": 5,
+              "number-loop:overflow": 3,
+              "scalar-expression:unsupported-op:to": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:operator-guard:mod": 483,
+              "scalar-expression:operator-guard:+": 483,
+              "tensor:output-shape": 1
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 246.90163900000005
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 8600.791543
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.30698899999993046
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 19.664117999999917
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 35.988705999999866
+              },
+              "number-loop.vector-buffer": {
+                "calls": 12,
+                "allocatedBytes": 3145728
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 27.801901999999927
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 27.82737999999995
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/401_sumsquares.ra",
+          "args": [],
+          "ms": 8626.250156,
+          "rssMiB": 246.66796875,
+          "answer": "281632621",
+          "diagnostics": {
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 966,
+            "typedArrayPublications": 4347,
+            "typedArrayPublishedCells": 284604984,
+            "fallbacks": {
+              "scalar-expression:too-small": 5,
+              "number-loop:overflow": 3,
+              "scalar-expression:unsupported-op:to": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:operator-guard:mod": 483,
+              "scalar-expression:operator-guard:+": 483,
+              "tensor:output-shape": 1
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 259.58783500000004
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 8366.215956
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.27864999999997053
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 17.831571999999937
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 33.79293500000006
+              },
+              "number-loop.vector-buffer": {
+                "calls": 12,
+                "allocatedBytes": 3145728
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 25.92349200000001
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 25.94774300000006
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/401_sumsquares.ra",
+          "args": [],
+          "ms": 8569.479721,
+          "rssMiB": 245.109375,
+          "answer": "281632621",
+          "diagnostics": {
+            "numberLoops": 3,
+            "numberLoopUnpolled": 3,
+            "mixedIntegerLoops": 2,
+            "numberLoopOverflows": 3,
+            "compiledTensors": 966,
+            "typedArrayPublications": 4347,
+            "typedArrayPublishedCells": 284604984,
+            "fallbacks": {
+              "scalar-expression:too-small": 5,
+              "number-loop:overflow": 3,
+              "scalar-expression:unsupported-op:to": 2,
+              "tensor:dyadic-terminal:AssignmentStatement": 1,
+              "tensor:unsupported-op:to": 1,
+              "scalar-expression:operator-guard:mod": 483,
+              "scalar-expression:operator-guard:+": 483,
+              "tensor:output-shape": 1
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 236.22952099999998
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 8332.815090999999
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.28062400000010257
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 18.819961000000035
+              },
+              "number-loop.attempt": {
+                "calls": 3,
+                "milliseconds": 34.12442900000008
+              },
+              "number-loop.vector-buffer": {
+                "calls": 12,
+                "allocatedBytes": 3145728
+              },
+              "number-loop.execute": {
+                "calls": 3,
+                "milliseconds": 26.146278999999936
+              },
+              "number-loop.replay": {
+                "discardedAttempts": 3,
+                "discardedMilliseconds": 26.172462999999993
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/213_fleacircus.ra",
+          "args": [],
+          "ms": 4322.791142,
+          "rssMiB": 223.62890625,
+          "answer": "330.721154",
+          "diagnostics": {
+            "cellsComputed": 1622700,
+            "compiledTensors": 952,
+            "tensorMapPreparations": 53,
+            "elementTypeScans": 53,
+            "elementTypeScannedCells": 10329300,
+            "typedArrayPublications": 106,
+            "typedArrayPublishedCells": 20456325,
+            "fallbacks": {
+              "scalar-expression:too-small": 24,
+              "tensor:unsupported-node:MaterializeExpression": 2,
+              "scalar-expression:unsupported-op:till": 2,
+              "tensor:deferred-binding:AssignmentStatement": 14,
+              "scalar-expression:unsupported-op:/": 1,
+              "tensor:binding:Ones": 1,
+              "scalar-expression:unsupported-op:Z": 3,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:*": 3,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:+": 152,
+              "scalar-expression:unsupported-op:equal": 1,
+              "scalar-expression:operator-guard://": 1,
+              "scalar-expression:operator-guard:*": 4,
+              "scalar-expression:operator-guard:mod": 1,
+              "loop:unsupported-op:Fn": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "tensor:binding:Up": 50
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 341.65455699999995
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 3980.7015410000004
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.4447010000000091
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 8.032071000000087
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/213_fleacircus.ra",
+          "args": [],
+          "ms": 4249.908127,
+          "rssMiB": 223.265625,
+          "answer": "330.721154",
+          "diagnostics": {
+            "cellsComputed": 1622700,
+            "compiledTensors": 952,
+            "tensorMapPreparations": 53,
+            "elementTypeScans": 53,
+            "elementTypeScannedCells": 10329300,
+            "typedArrayPublications": 106,
+            "typedArrayPublishedCells": 20456325,
+            "fallbacks": {
+              "scalar-expression:too-small": 24,
+              "tensor:unsupported-node:MaterializeExpression": 2,
+              "scalar-expression:unsupported-op:till": 2,
+              "tensor:deferred-binding:AssignmentStatement": 14,
+              "scalar-expression:unsupported-op:/": 1,
+              "tensor:binding:Ones": 1,
+              "scalar-expression:unsupported-op:Z": 3,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:*": 3,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:+": 152,
+              "scalar-expression:unsupported-op:equal": 1,
+              "scalar-expression:operator-guard://": 1,
+              "scalar-expression:operator-guard:*": 4,
+              "scalar-expression:operator-guard:mod": 1,
+              "loop:unsupported-op:Fn": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "tensor:binding:Up": 50
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 321.531972
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 3927.9396369999995
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.5100250000000415
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 8.169682000000194
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 0
+        },
+        {
+          "file": "demos/euler/213_fleacircus.ra",
+          "args": [],
+          "ms": 4254.903036,
+          "rssMiB": 227.85546875,
+          "answer": "330.721154",
+          "diagnostics": {
+            "cellsComputed": 1622700,
+            "compiledTensors": 952,
+            "tensorMapPreparations": 53,
+            "elementTypeScans": 53,
+            "elementTypeScannedCells": 10329300,
+            "typedArrayPublications": 106,
+            "typedArrayPublishedCells": 20456325,
+            "fallbacks": {
+              "scalar-expression:too-small": 24,
+              "tensor:unsupported-node:MaterializeExpression": 2,
+              "scalar-expression:unsupported-op:till": 2,
+              "tensor:deferred-binding:AssignmentStatement": 14,
+              "scalar-expression:unsupported-op:/": 1,
+              "tensor:binding:Ones": 1,
+              "scalar-expression:unsupported-op:Z": 3,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:*": 3,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:+": 152,
+              "scalar-expression:unsupported-op:equal": 1,
+              "scalar-expression:operator-guard://": 1,
+              "scalar-expression:operator-guard:*": 4,
+              "scalar-expression:operator-guard:mod": 1,
+              "loop:unsupported-op:Fn": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "tensor:binding:Up": 50
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 318.373222
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 3936.096711
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.48036099999990256
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 7.424009999999953
+              }
+            }
+          },
+          "exactPool": false,
+          "round": 1
+        },
+        {
+          "file": "demos/euler/213_fleacircus.ra",
+          "args": [],
+          "ms": 7486.798253,
+          "rssMiB": 244.9296875,
+          "answer": "330.721154",
+          "diagnostics": {
+            "cellsComputed": 1622700,
+            "compiledTensors": 952,
+            "tensorMapPreparations": 53,
+            "elementTypeScans": 53,
+            "elementTypeScannedCells": 10329300,
+            "typedArrayPublications": 106,
+            "typedArrayPublishedCells": 20456325,
+            "fallbacks": {
+              "scalar-expression:too-small": 24,
+              "tensor:unsupported-node:MaterializeExpression": 2,
+              "scalar-expression:unsupported-op:till": 2,
+              "tensor:deferred-binding:AssignmentStatement": 14,
+              "scalar-expression:unsupported-op:/": 1,
+              "tensor:binding:Ones": 1,
+              "scalar-expression:unsupported-op:Z": 3,
+              "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+              "scalar-expression:unsupported-op:*": 3,
+              "scalar-expression:operator-guard:-": 1,
+              "scalar-expression:operator-guard:+": 152,
+              "scalar-expression:unsupported-op:equal": 1,
+              "scalar-expression:operator-guard://": 1,
+              "scalar-expression:operator-guard:*": 4,
+              "scalar-expression:operator-guard:mod": 1,
+              "loop:unsupported-op:Fn": 1,
+              "scalar-expression:unsupported-op:to": 1,
+              "tensor:binding:Up": 50
+            },
+            "costs": {
+              "program.parse": {
+                "calls": 1,
+                "milliseconds": 312.97236999999996
+              },
+              "program.execute": {
+                "calls": 1,
+                "milliseconds": 7173.383122
+              },
+              "input.prepare": {
+                "calls": 1,
+                "milliseconds": 0.4625749999999016
+              },
+              "loop.prepare": {
+                "calls": 1,
+                "milliseconds": 7.754707000000053
+              }
+            }
+          },
+          "exactPool": true,
+          "round": 1
+        }
+      ]
+    }
+  },
+  "verification": {
+    "focusedMac": {
+      "files": 39,
+      "tests": 1226
+    },
+    "focusedIntel": {
+      "files": 39,
+      "tests": 1226
+    },
+    "additionalWideModulusTest": 1,
+    "distinctFocusedTests": 1227,
+    "edgeRerunMac": 35,
+    "edgeRerunIntel": 35,
+    "euler408SmallLimits": [
+      0,
+      1,
+      5,
+      8,
+      9,
+      15,
+      16,
+      17,
+      25,
+      36,
+      64,
+      100,
+      1000
+    ],
+    "euler408Modes": [
+      false,
+      true
+    ],
+    "fullGoldenModes": [
+      false,
+      true
+    ],
+    "scopedMacAudits": {
+      "differential": 2,
+      "types": 2,
+      "nameFacts": 2
+    },
+    "exhaustiveAuditsRun": false,
+    "mainControlledRuns": 28,
+    "otherDemoControls": 32
+  },
+  "notes": [
+    "Scratch allocation diagnostics cover pool buffer acquisition only, not widening/COW/input snapshots/native arrays or retained bytes.",
+    "Real modular vector fallback remains; real multiplication can coexist with integer modular vector stages.",
+    "No precision or copy-admission threshold changed.",
+    "Intel Euler 213 has one slow exact-pool timing; that workload uses no vector scratch, so no pool-related speedup is inferred."
+  ],
+  "sourceHashes": {
+    "demos/euler/408_admissiblepaths.ra": "d52bb2865ea2d0dd96de696419e7f300de310fc814922feb17eef210d1cc7180",
+    "demos/euler/408_admissiblepaths_test.ra": "1c4c74a81d87cb28ebdae21e3a6d028ab6923693dcfd6a55fce2783b22565a18",
+    "packages/interpreter/src/jit/integer-loop-expressions.ts": "7de431d13dcc338f7f03da8bb172dd882e3d456061d655103fbe78594972e81e",
+    "packages/interpreter/src/jit/number-loop-runtime.ts": "fa7955288e9e06c7145715c7774d18ed9de4469cded1bcbd519a1df41613df39",
+    "benchmarks/euler408-followup.mjs": "bb61f45895c5d0d6a7261c33d5604b119870d9c7928554bc95c6754feb4cdec4",
+    "benchmarks/euler408-pool-controls.mjs": "baabe1d2a4855f83b5f26a336a6b129dc050b71fd0506eae10686a7e5743bb4a",
+    "benchmarks/experiments/euler408-original.ra": "25aceb32ccbb2ebbc7e2dffe007d00269bec29011e7461b5faab12c6f01b49d7",
+    "benchmarks/experiments/euler408-controls.mjs": "f9e61a6d4ed044a6a71af747a27caec6c950e666fc3af0fa4abd3525d803e1b6",
+    "benchmarks/experiments/euler408-cross-pool.py": "faf0698526762b3bead370837875cb8d803d93ef7569e1e35a4e0956f8f16c2d",
+    "benchmarks/experiments/euler408-final-series.py": "f92bb31bc93f69c3f89f4294b655a8f747d4de782e4b3b8092f2240fc0f53ee3"
+  }
+}

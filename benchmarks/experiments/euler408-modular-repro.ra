@@ -1,0 +1,10 @@
+use sequences
+A = array 1000000006 1000000004
+B = array 1000000005 1000000003
+R = A
+Count = 2
+for Count greater 0
+  R = A * B mod 1000000007
+  Count -= 1
+end
+R

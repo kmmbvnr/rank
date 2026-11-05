@@ -773,7 +773,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const operands = point.operands.map(arrayType);
                 if (operands.some(Boolean)) {
                     const types = operands.map((type, i) => type?.element ?? knownType(point.operands[i]) ?? 'integer');
-                    const type = point.name === 'choose'
+                    const type = point.fusedProduct ? types.every(type => type === 'integer') ? 'integer' : undefined
+                        : point.name === 'choose'
                         ? types[0] === 'boolean' && types[1] === types[2] ? types[1] : undefined
                         : point.name === 'min' || point.name === 'max'
                         ? types.every(type => type === types[0]) && (types[0] === 'integer' || types[0] === 'real') ? types[0] : undefined
@@ -930,8 +931,19 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             for (let ${index} = ${block}; ${index} < ${end}; ${index}++) { ${body.join('\n')} }
         } })();`;
     }
-    function vectorOperation(e: Expression): { name: string; operands: Expression[]; module?: string } | undefined {
+    function vectorOperation(e: Expression): { name: string; operands: Expression[]; module?: string; fusedProduct?: boolean } | undefined {
         const unwrap = (value: Expression) => { while (isParenthesizedExpression(value)) value = value.value; return value; };
+        if (isBinaryExpression(e) && e.operator === 'mod' && !e.step) {
+            const product = unwrap(e.left);
+            if (isBinaryExpression(product) && product.operator === '*') {
+                const operands = [product.left, product.right, e.right].map(unwrap);
+                if (operands.every(operand => (arrayType(operand)?.element ?? knownType(operand) ?? 'integer') === 'integer')) {
+                    // Expose the product leaves together. Computing a checked
+                    // product cell first would overflow before scalar mulmod.
+                    return { name: 'mod', operands, fusedProduct: true };
+                }
+            }
+        }
         if (isBinaryExpression(e) && !e.step && ['+', '-', '*', '/', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(e.operator)) {
             return { name: e.operator, operands: [e.left, e.right].map(unwrap) };
         }
@@ -1008,6 +1020,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 // temporary leaves alive until all operands are prepared.
                 if (input.sources.length) lines.push(`vectorLive.push(${input.sources.join(',')});`);
             }
+            if (point.fusedProduct && inputs.some(input => input.type !== 'integer')) return undefined;
             const pinned = inputs.reduce((count, input) => count + input.sources.length, 0);
             if (pinned) lines.push(`vectorLive.length -= ${pinned};`);
             if (point.module) builtins.set(point.name, point.module);
