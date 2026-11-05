@@ -1,0 +1,80 @@
+diff --git a/packages/interpreter/src/jit/typed-native.ts b/packages/interpreter/src/jit/typed-native.ts
+index fe5a194c..fd12af31 100644
+--- a/packages/interpreter/src/jit/typed-native.ts
++++ b/packages/interpreter/src/jit/typed-native.ts
+@@ -23,6 +23,17 @@ export function withNumberCalls(value: NativeFunction, calls: NumberCalls, coope
+     return value;
+ }
+ 
++type ExactPositionalCall = (...arguments_: RankValue[]) => RankValue;
++const positionalImplementations = new WeakMap<NativeFunction, {
++    call: NativeFunction['call']; calls: Readonly<Record<string, ExactPositionalCall>>;
++}>();
++
++/** Exact scalar ABI; binding still checks native identity and interrupt policy. */
++export function withPositionalCalls(value: NativeFunction, calls: Readonly<Record<string, ExactPositionalCall>>): NativeFunction {
++    positionalImplementations.set(value, { call: value.call, calls });
++    return value;
++}
++
+ const implementations = new WeakMap<NativeFunction, Readonly<Record<string, Call>>>();
+ 
+ /** Internal kernels, keyed by the complete comma-separated input signature.
+@@ -50,6 +61,7 @@ interface BuiltinHost {
+ 
+ interface BoundBuiltin {
+     readonly call: Call;
++    readonly positional?: ExactPositionalCall;
+     /** Interrupt scopes require an explicitly cooperative implementation. */
+     readonly kernel?: NumberCall;
+ }
+@@ -76,7 +88,9 @@ function prepareBuiltinBinding(host: BuiltinHost, module: string, name: string,
+             const kernel = interrupted
+                 ? privateLoopPolling() ? implementations?.cooperative?.[signature] : undefined
+                 : implementations?.calls[signature];
++            const positional = typed && !interrupted ? positionalImplementations.get(value) : undefined;
+             return {
++                positional: positional?.call === value.call ? positional.calls[signature] : undefined,
+                 call: typed ? typedNativeCall(value, signature) : value.call,
+                 kernel: kernel && interrupted ? (...arguments_: number[]) => {
+                     checkInterrupt(name);
+@@ -128,6 +142,7 @@ export function preparePositionalBuiltin(
+         const bound = prepared.bind();
+         if (!bound) return undefined;
+         if (numberMode && bound.kernel) return bound.kernel as PositionalCall;
++        if (!numberMode && bound.positional) return bound.positional as PositionalCall;
+         const { call } = bound;
+         const narrow = integerResult ? (value: RankValue) => Number(value) : (value: RankValue) => value;
+         const input = (value: RankValue, index: number) => widen[index] ? BigInt(value as number) : value;
+diff --git a/packages/interpreter/src/modules/numbers.ts b/packages/interpreter/src/modules/numbers.ts
+index d54dad38..f7f2b794 100644
+--- a/packages/interpreter/src/modules/numbers.ts
++++ b/packages/interpreter/src/modules/numbers.ts
+@@ -1,6 +1,6 @@
+ import { registerScalarBuiltin } from '../scalar-builtin.js';
+ import { Factorizer, maxFactorTableInteger } from '../factorization.js';
+-import { withNumberCalls } from '../typed-native.js';
++import { withNumberCalls, withPositionalCalls } from '../typed-native.js';
+ import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
+ import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
+ import { mapStoredUnary } from '../unary-array-kernel.js';
+@@ -131,14 +131,17 @@ export const numbersModule: RuntimeModule = {
+             return safeIntegerGcd(a, b);
+         },
+     }),
+-    powmod: () => withNumberCalls(native('powmod', 3, args => powerStoredInt32(args[0], args[1], args[2]) ?? mapStoredIntegerTernary(args, checkedModularPower,
++    powmod: () => withPositionalCalls(withNumberCalls(native('powmod', 3, args => powerStoredInt32(args[0], args[1], args[2]) ?? mapStoredIntegerTernary(args, checkedModularPower,
+         (base, exponent, modulus) => exponent >= 0 && modulus > 0 && modulus <= 1073741824
+             ? safeIntegerModularPower(base, exponent, modulus) : undefined)
+         ?? mapScalarArrays(args, arguments_ => checkedModularPower(
+         expectInteger(arguments_[0]),
+         expectInteger(arguments_[1]),
+         expectInteger(arguments_[2]),
+-    ))), modularPowerCalls, modularPowerCalls),
++    ))), modularPowerCalls, modularPowerCalls), {
++        'integer,integer,integer': (base, exponent, modulus) => checkedModularPower(
++            expectInteger(base), expectInteger(exponent), expectInteger(modulus)),
++    }),
+     convolve: () => native('convolve', 2, arguments_ => convolveExact(arguments_[0], arguments_[1])),
+     binomial: () => native('binomial', 2, arguments_ => mapBinaryValue(
+         arguments_[0],

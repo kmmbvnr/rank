@@ -1,0 +1,35 @@
+[
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 13.978084000000024,
+    "answer": 9110846700,
+    "peakRssKiB": 159296,
+    "heapUsed": 31409472,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "case": "048"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 14.181083000000001,
+    "answer": 67978127819110850000,
+    "peakRssKiB": 160064,
+    "heapUsed": 31411736,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "case": "048-wide"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 32.25812500000001,
+    "answer": 95962097,
+    "peakRssKiB": 170912,
+    "heapUsed": 33562096,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "case": "188"
+  }
+]

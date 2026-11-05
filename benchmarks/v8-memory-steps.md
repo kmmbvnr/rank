@@ -84,9 +84,30 @@ above was obtained by a temporary increment in the flat-storage branch.
 Both hosts used the same unmodified Euler 491 demo. Raw observations are
 in `baselines/2026-11-05-v8-memory/ranked-cell-491-{mac,intel}.json`.
 
+## 4. Exact positional native calls: skipped
+
+Prototype in `experiments/v8-exact-positional.patch` registers exact scalar
+positional implementations, guarded by builtin identity, original native
+call identity, typedNativeCalls option and absence of interrupts. A powmod
+implementation accepts three exact integer arguments without an argument
+array. Number mode retains the existing Number ABI.
+
+Three Euler probes returned correct results: 48 default, 48 with Digits=20,
+and 188 default. The 20-digit result was checked against independent direct
+BigInt exponentiation and reduction for all 1000 terms. An instrumented
+wrapper around the new exact positional entry recorded zero invocations in
+all three probes. Thus these programs establish no memory benefit for the
+new ABI; merely adding it is insufficient. The candidate was removed under
+the acceptance gate, with no Intel timing series because the selected
+workloads do not exercise it. Diagnostics are saved in
+`baselines/2026-11-05-v8-memory/exact-positional-diagnostic.json`; null means
+no increment occurred. Timings from that instrumented pass are exploratory.
+Existing Number positional calls were already present before this work.
+The TypeScript build and 31 existing typed-native/powmod-array tests passed
+on the prototype.
+
 ## Remaining steps
 
-4. Expand positional calls at compiled/runtime boundaries.
 5. Construct scalar function variants lazily.
 6. Fuse polynomial producers into scatter/fold consumers.
 
