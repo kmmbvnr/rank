@@ -1,0 +1,106 @@
+{
+  "mac": {
+    "full": {
+      "base": {
+        "medianMs": 3229.8568330000003,
+        "medianPeakRssMiB": 1681.515625
+      },
+      "step1": {
+        "medianMs": 3040.659,
+        "medianPeakRssMiB": 921.796875
+      }
+    },
+    "small": {
+      "base": {
+        "medianMs": 0.00011202100000000571,
+        "medianPeakRssMiB": 86.03125
+      },
+      "step1": {
+        "medianMs": 0.00011160399999999272,
+        "medianPeakRssMiB": 85.859375
+      }
+    },
+    "empty": {
+      "base": {
+        "medianMs": 0.04669164999999964,
+        "medianPeakRssMiB": 80.703125
+      },
+      "step1": {
+        "medianMs": 0.04670624999999973,
+        "medianPeakRssMiB": 81.453125
+      }
+    },
+    "sparse": {
+      "base": {
+        "medianMs": 0.04786040000000043,
+        "medianPeakRssMiB": 80.859375
+      },
+      "step1": {
+        "medianMs": 0.04810625000000002,
+        "medianPeakRssMiB": 80.859375
+      }
+    },
+    "dense": {
+      "base": {
+        "medianMs": 3.2717919999999765,
+        "medianPeakRssMiB": 393
+      },
+      "step1": {
+        "medianMs": 0.5171459999999968,
+        "medianPeakRssMiB": 170.28125
+      }
+    }
+  },
+  "intel": {
+    "full": {
+      "base": {
+        "medianMs": 9262.717576,
+        "medianPeakRssMiB": 1660.4921875
+      },
+      "step1": {
+        "medianMs": 8489.999184,
+        "medianPeakRssMiB": 900.0625
+      }
+    },
+    "small": {
+      "base": {
+        "medianMs": 0.00026372750000000164,
+        "medianPeakRssMiB": 84.03515625
+      },
+      "step1": {
+        "medianMs": 0.00025968449999999165,
+        "medianPeakRssMiB": 84.765625
+      }
+    },
+    "empty": {
+      "base": {
+        "medianMs": 0.10176999999999907,
+        "medianPeakRssMiB": 79.76953125
+      },
+      "step1": {
+        "medianMs": 0.09233025000000054,
+        "medianPeakRssMiB": 79.3828125
+      }
+    },
+    "sparse": {
+      "base": {
+        "medianMs": 0.09391999999999996,
+        "medianPeakRssMiB": 79.7734375
+      },
+      "step1": {
+        "medianMs": 0.11899554999999822,
+        "medianPeakRssMiB": 80.08203125
+      }
+    },
+    "dense": {
+      "base": {
+        "medianMs": 14.797292500000026,
+        "medianPeakRssMiB": 341.57421875
+      },
+      "step1": {
+        "medianMs": 1.464561500000002,
+        "medianPeakRssMiB": 168.015625
+      }
+    }
+  }
+}

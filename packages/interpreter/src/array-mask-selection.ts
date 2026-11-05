@@ -8,14 +8,15 @@ import { tensorMaskPositions, sumTensorPositions } from './tensor-map.js';
 import { sameShape } from './tensor-index.js';
 import { MISSING, type RankArray, type RankSequence, type RankValue } from './value.js';
 
-interface Selection { source: RankArray; positions: readonly number[]; iterate: RankSequence['plan']['iterate'] }
+interface Selection { source: RankArray; positions: readonly number[] | Uint32Array; iterate: RankSequence['plan']['iterate'] }
 const selections = new WeakMap<RankSequence['plan'], Selection>();
 
 /** Snapshot mask positions without demanding source cells. */
 export function maskSelection(source: RankArray, selector: RankArray): RankSequence {
     const size = selector.shape.reduce((n, axis) => n * axis, 1);
     const native = packedTruePositions(selector) ?? tensorMaskPositions(selector);
-    const positions: number[] = native ?? [];
+    const fallback: number[] = [];
+    const positions = native ?? fallback;
     const view = prepareStoredScalarView(selector, true);
     const linear = view?.linear;
     // Completed storage can be scanned directly, but each selection constructs
@@ -27,14 +28,14 @@ export function maskSelection(source: RankArray, selector: RankArray): RankSeque
         for (let index = 0; index < size; index++) {
             if ((index & 4095) === 0) checkpoint('selecting array positions', Math.min(4096, size - index));
             const item = direct ? view.items[linear.offset + linear.stride * index] : view.read(index);
-            if (item === true) positions.push(index);
+            if (item === true) fallback.push(index);
             else if (item !== false && item !== MISSING) invalidMaskElement(item);
         }
     } else if (!native) {
         for (let index = 0; index < size; index++) {
             checkpoint('selecting array positions');
             const item = readArrayItem(selector, index);
-            if (item === true) positions.push(index);
+            if (item === true) fallback.push(index);
             else if (item !== false && item !== MISSING) invalidMaskElement(item);
         }
     }

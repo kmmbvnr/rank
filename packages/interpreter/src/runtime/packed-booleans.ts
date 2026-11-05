@@ -236,10 +236,14 @@ export function countPackedBooleanRange(value: RankArray, start: number, length:
     return BigInt(count);
 }
 
-export function packedTruePositions(value: RankArray): number[] | undefined {
+export function packedTruePositions(value: RankArray): number[] | Uint32Array | undefined {
     const input = bitReader(value);
     if (!input) return undefined;
     if (input.length) input.validate?.();
+    if (input.length >= 65536 && popcountWord(boundedWord(input, 0)) >= 4) {
+        const dense = denseTruePositions(input);
+        if (dense) return dense;
+    }
     const positions: number[] = [];
     for (let i = 0; i < Math.ceil(input.length / 32); i++) {
         if ((i & 127) === 0) checkpoint('finding boolean indices', Math.min(4096, input.length - i * 32));
@@ -247,6 +251,35 @@ export function packedTruePositions(value: RankArray): number[] | undefined {
         while (word) {
             const bit = 31 - Math.clz32(word & -word);
             positions.push(i * 32 + bit);
+            word = (word & (word - 1)) >>> 0;
+        }
+    }
+    return positions;
+}
+
+/** Dense selections keep one four-byte index per match. Probe only a small
+ * prefix so sparse and empty masks retain their one-pass collection. Restrict
+ * the extra pass to physical snapshots under private, unbudgeted polling. */
+function denseTruePositions(input: BitReader): Uint32Array | undefined {
+    if (input.length < 65536 || input.length > 0xffffffff || !input.physical
+        || input.physical.offset !== 0 || input.physical.period !== undefined
+        || demandBudgetEnabled() || !privateLoopPolling()) return undefined;
+    let count = 0;
+    for (let i = 0; i < 128; i++) count += popcountWord(boundedWord(input, i));
+    if (count < 512) return undefined;
+    checkpoint('counting boolean indices', 4096);
+    const words = Math.ceil(input.length / 32);
+    for (let i = 128; i < words; i++) {
+        if ((i & 127) === 0) checkpoint('counting boolean indices', Math.min(4096, input.length - i * 32));
+        count += popcountWord(boundedWord(input, i));
+    }
+    const positions = new Uint32Array(count);
+    let at = 0;
+    for (let i = 0; i < words; i++) {
+        if ((i & 127) === 0) checkpoint('finding boolean indices', Math.min(4096, input.length - i * 32));
+        let word = boundedWord(input, i);
+        while (word) {
+            positions[at++] = i * 32 + 31 - Math.clz32(word & -word);
             word = (word & (word - 1)) >>> 0;
         }
     }

@@ -18,7 +18,7 @@ function divide(a: number, b: number): number {
 }
 type Cells = ArrayLike<number | bigint>;
 type Check = (cell: RankValue, index: number) => RankValue;
-type Run = (data: Cells[], scalars: (number | boolean)[], size: number, indices: readonly number[] | undefined, checks: Check[]) => number | number[];
+type Run = (data: Cells[], scalars: (number | boolean)[], size: number, indices: ArrayLike<number> | undefined, checks: Check[]) => number | number[];
 const caches = new WeakMap<TensorCodeCache, Map<string, Run>>();
 
 /** Private, checked Number registers for integer/boolean native recipes. Only
@@ -27,7 +27,7 @@ const caches = new WeakMap<TensorCodeCache, Map<string, Run>>();
  * Overflow discards private consumer state before the ordinary exact demand. */
 export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>,
     operation: 'sum' | 'positions', code: TensorCodeCache, valid: () => boolean,
-    indices?: readonly number[], compiled?: (source: string) => void): (() => bigint | number[] | undefined) | undefined {
+    indices?: ArrayLike<number>, compiled?: (source: string) => void): (() => bigint | number[] | undefined) | undefined {
     const expected = operation === 'sum' ? 'integer' : 'boolean';
     if (!privateLoopPolling() || domains.get(root)?.join() !== expected) return undefined;
     const data: Cells[] = [], scalars: (number | boolean)[] = [], lines: string[] = [];

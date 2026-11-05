@@ -394,7 +394,7 @@ export function tensorMaskPositions(value: RankArray): number[] | undefined {
 }
 
 /** Consume only the positions already validated by ordinary mask selection. */
-export function sumTensorPositions(value: RankArray, positions: readonly number[]): bigint | undefined {
+export function sumTensorPositions(value: RankArray, positions: ArrayLike<number>): bigint | undefined {
     const graph = prepareTensorGraph(value);
     if (!graph) return undefined;
     const { root, domains, host, scope } = graph;
