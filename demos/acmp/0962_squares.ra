@@ -1,0 +1,237 @@
+rem ACMP 0962: Squares (75%)
+rem Equal square differences
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = (
+  "60 -456213523 215798904 " +
+  "699544081 405361878 -60233904 " +
+  "360188031 -716695533 -138458949 " +
+  "217410726 -269663601 221988324 " +
+  "819818090 386134518 919101240 " +
+  "852176429 -441447953 -952966348 " +
+  "608404383 -508898962 -912214485 " +
+  "321148845 -925995789 4579653 " +
+  "966772314 -375281764 -939197031 " +
+  "632389071 -825342011 263412712 " +
+  "196774427 -841082553 922045579 " +
+  "661466081 350224032 -201053127 " +
+  "410457639 -115902902 -767251586 " +
+  "845333105 -343475399 418454049 " +
+  "153362776 161212843 -802301208 " +
+  "407303699 -686141215 -314312417 " +
+  "105140635 516677766 601371385 " +
+  "217892496 174350918 -292663976 " +
+  "993672819 291119256 -900976245 " +
+  "850704940 -729662391 362087008 " +
+  "411619415 -361827147 135791559 " +
+  "426554905 -205156004 3290654 " +
+  "477569325 -942499411 732099537 " +
+  "426475356 387157442 -307147996 " +
+  "906417544 881000523 983737659 " +
+  "336370635 -780507939 -952454200 " +
+  "826057426 -304291577 -663956375 " +
+  "427078096 -56093540 -424445017 " +
+  "406045802 615606282 -91848923 " +
+  "234574773 -931937623 -146831121 " +
+  "260311566 886375697 -261115055 " +
+  "993662190 979348087 155092164 " +
+  "212827114 -857060959 145617633 " +
+  "410071355 616510655 -641256894 " +
+  "802503104 783119522 782794999 " +
+  "525396191 -582984915 322844297 " +
+  "953233708 -841119711 -947380656 " +
+  "8397256 663411370 744691305 " +
+  "51376180 805297663 783514477 " +
+  "248901053 364833454 -408684298 " +
+  "360609494 775779758 -480133998 " +
+  "111873587 -870627263 28821696 " +
+  "417317939 69886126 -583525518 " +
+  "363654654 -443054891 -280361686 " +
+  "76417903 334641559 640814969 " +
+  "815260502 -237237677 998363183 " +
+  "580418918 184229289 556203706 " +
+  "734139946 962957050 -787796598 " +
+  "476989392 969150596 991626445 " +
+  "83107340 529817180 -446218625 " +
+  "71852035 -589390307 229124508 " +
+  "181247263 -675200426 293256289 " +
+  "170811298 -33618394 -8784542 " +
+  "94962617 -276043392 -587426818 " +
+  "725671949 -421251596 -584819211 " +
+  "14259313 -205399682 128890508 " +
+  "887202269 -762239776 32705754 " +
+  "190590642 -966948640 970089018 " +
+  "224256386 -703079763 244110362 " +
+  "838730210 -538385806 -671324623 " +
+  "250909168"
+)
+
+FlatText = Input split "
+" join " "
+Tokens = FlatText split " "
+Tokens = Tokens (Tokens not equal "")
+N = (Tokens 0) integer
+
+TotalPairs = 0
+if not (N less 4)
+  Raw = (Tokens drop 1) integer
+  IdxN = 0 till N
+  X = Raw (IdxN * 3)
+  Y = Raw ((IdxN * 3) + 1)
+  L = Raw ((IdxN * 3) + 2)
+
+  Zeros = (IdxN * 0)
+  GridU = (IdxN reshape N 1) + (
+    Zeros reshape 1 N
+  )
+  GridV = (IdxN reshape 1 N) + (
+    Zeros reshape N 1
+  )
+  PairMask = GridU not equal GridV
+  PairsU = GridU PairMask
+  PairsV = GridV PairMask
+
+  Xi = X PairsU
+  Yi = Y PairsU
+  Li = L PairsU
+  Xj = X PairsV
+  Yj = Y PairsV
+  Lj = L PairsV
+
+  Ix1 = Xi max Xj
+  Iy1 = Yi max Yj
+  Ix2 = (Xi + Li) min (Xj + Lj)
+  Iy2 = (Yi + Li) min (Yj + Lj)
+
+  HasInter = (Ix1 less Ix2) and (
+    Iy1 less Iy2
+  )
+  IsSub = (
+    (not (Ix1 greater Xi)) and (
+      not (Ix2 less (Xi + Li))
+    )
+  ) and (
+    (not (Iy1 greater Yi)) and (
+      not (Iy2 less (Yi + Li))
+    )
+  )
+
+  SubKind = IsSub choose 1 2
+  Kind = HasInter choose SubKind 0
+
+  IsDiff = Kind equal 2
+  SigLi = (Kind equal 1) choose 0 Li
+  SigX1 = IsDiff choose (Ix1 - Xi) 0
+  SigY1 = IsDiff choose (Iy1 - Yi) 0
+  SigX2 = IsDiff choose (Ix2 - Xi) 0
+  SigY2 = IsDiff choose (Iy2 - Yi) 0
+
+  P1 = 1000000007
+  P2 = 1000000009
+  H1 = (
+    (Kind * 17) + (
+      (SigLi mod P1) * 31
+    ) + (
+      (SigX1 mod P1) * 53
+    ) + (
+      (SigY1 mod P1) * 79
+    ) + (
+      (SigX2 mod P1) * 101
+    ) + (
+      (SigY2 mod P1) * 137
+    )
+  ) mod P1
+
+  H2 = (
+    (Kind * 23) + (
+      (SigLi mod P2) * 47
+    ) + (
+      (SigX2 mod P2) * 67
+    ) + (
+      (SigY1 mod P2) * 89
+    ) + (
+      (SigX1 mod P2) * 113
+    ) + (
+      (SigY2 mod P2) * 151
+    )
+  ) mod P2
+
+  Order2 = H2 argsort
+  H1Ord = H1 Order2
+  Order1 = H1Ord argsort
+  Order = Order2 Order1
+
+  SortedU = PairsU Order
+  SortedV = PairsV Order
+  SortedH1 = H1 Order
+  SortedH2 = H2 Order
+
+  K = Order len
+  Diff = (
+    SortedH1 drop 1 not equal (
+      SortedH1 take (K - 1)
+    )
+  ) or (
+    SortedH2 drop 1 not equal (
+      SortedH2 take (K - 1)
+    )
+  )
+  IdxK = 0 till (K - 1)
+  Cuts = (IdxK Diff) + 1
+  Bounds = concat (
+    concat (array 0) Cuts
+  ) (array K)
+  NumGroups = (Bounds len) - 1
+
+  for G in 0 till NumGroups
+    GStart = Bounds G
+    GEnd = Bounds (G + 1)
+    M = GEnd - GStart
+    if not (M less 2)
+      Gu = SortedU (GStart till GEnd)
+      Gv = SortedV (GStart till GEnd)
+
+      PairKey = (Gu * N) + Gv
+      RevKey = (Gv * N) + Gu
+      Both = concat PairKey RevKey sort
+      BLen = Both len
+      Dup = (
+        Both drop 1 equal (
+          Both take (BLen - 1)
+        )
+      )
+      RevCnt = (Dup integer) sum
+
+      AllNodes = concat Gu Gv sort
+      ALen = AllNodes len
+      DiffNode = (
+        AllNodes drop 1 not equal (
+          AllNodes take (ALen - 1)
+        )
+      )
+      NodeIdx = 0 till (ALen - 1)
+      NodeCuts = (NodeIdx DiffNode) + 1
+      NodeBnds = concat (
+        concat (array 0) NodeCuts
+      ) (array ALen)
+      NBLen = NodeBnds len
+      Degs = (
+        NodeBnds drop 1
+      ) - (
+        NodeBnds take (NBLen - 1)
+      )
+      SumDegSq = (Degs * Degs) sum
+      GroupAns = (
+        (M * (M + 1)) - SumDegSq
+      ) + RevCnt
+      TotalPairs = (
+        TotalPairs + GroupAns
+      )
+    end
+  end
+end
+
+TotalPairs text

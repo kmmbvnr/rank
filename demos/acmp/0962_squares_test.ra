@@ -1,0 +1,67 @@
+rem Tests for ACMP 0962: Squares
+use testing
+use text
+
+test "ACMP 962: Maximal 60 test"
+  use "0962_squares"
+  run
+  TotalPairs equal 2252
+end
+
+test "ACMP 962: Sample 1"
+  use "0962_squares"
+  Input = (
+    "4
+" +
+    "0 0 3
+" +
+    "1 1 1
+" +
+    "2 2 1
+" +
+    "1 1 3"
+  )
+  run
+  TotalPairs equal 6
+end
+
+test "ACMP 962: Sample 2"
+  use "0962_squares"
+  Input = (
+    "4
+" +
+    "0 0 3
+" +
+    "1 1 3
+" +
+    "2 2 3
+" +
+    "4 4 3"
+  )
+  run
+  TotalPairs equal 0
+end
+
+test "ACMP 962: Four disjoint"
+  use "0962_squares"
+  Input = (
+    "4
+" +
+    "0 0 2
+" +
+    "5 5 2
+" +
+    "10 10 2
+" +
+    "15 15 2"
+  )
+  run
+  TotalPairs equal 24
+end
+
+test "ACMP 962: Fewer than 4"
+  use "0962_squares"
+  Input = "3 0 0 1 2 2 1 4 4 1"
+  run
+  TotalPairs equal 0
+end
