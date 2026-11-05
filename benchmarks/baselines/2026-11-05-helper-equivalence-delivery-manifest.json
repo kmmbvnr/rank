@@ -1,0 +1,48 @@
+{
+  "baseline": "bff39e70bd7adf04636cbff262017aa1654f632a",
+  "candidate": "c9d3ae94e360d981982b13e81d781b33ae9258df",
+  "node": "24.15.0",
+  "sourceHashes": {
+    "benchmarks/helper-equivalence-euler.mjs": "0c0b8d722145cc94c4dce1268d52c981a5b936b7aa2a3a6cd0aff38c3f7a353a",
+    "benchmarks/helper-equivalence.mjs": "dd6d91f445bfabd4da5a8cf67d296b3ec8ad8ce7232ec753a18641ca4ae7d97b",
+    "packages/interpreter/src/fast-paths.ts": "54a6783f65a04625d1b75ea690404415beaf520505a5fda73c31c37c5ac546f9",
+    "packages/interpreter/src/function-invocation.ts": "64e8402165a94da138e869a2a485e5c8dbb8b29772b633f008aef0061ef3f5e9",
+    "packages/interpreter/src/function-plan.ts": "d30acdd3c25a1a4d2f7e03a3aac1ee9933b083440b1672e401bc6dc3bb1c0f4a",
+    "packages/interpreter/src/jit/borrowed-integer-buffer.ts": "54232f62c6fa96d21053d7b8c70a8274069aeaaa745b1e92c38e6ec106d29cee",
+    "packages/interpreter/src/jit/compiled-callee.ts": "dbf3c21f2fe37e727042b158bd95d32d39fde8c6ccdd1befa51bca0006fe670f",
+    "packages/interpreter/src/jit/integer-loop-expressions.ts": "7d50dc29135f1c1fcb4cf829643b7daa15128cd08c94e1c62457ef278f164cfd",
+    "packages/interpreter/src/jit/integer-loop-plan.ts": "da1d954f7ba54e48e0b7ef89ca5e1845359f8cd854902c1dc3f3fae59cbad283",
+    "packages/interpreter/src/jit/integer-loop-runtime.ts": "733e70d78d2b2d266b1cfbc409ac1d01fb454becc937823f62820a62258464a9",
+    "packages/interpreter/src/jit/number-loop-runtime.ts": "01dc6d876ae86adc28f0a7ff7c20d34dffff6c7cc615760b42b38bc119be55b7",
+    "packages/interpreter/src/jit/scalar-function-kernel.ts": "45beba8f622dc120ff6477ce18b8da87ff8e5e1dde4488501620bf6d331c604b",
+    "packages/interpreter/src/jit/scalar-function-proof.ts": "cbcddee3bb54f9ac5168631ae42058d42df9680b17129e89727a336e826de376",
+    "packages/interpreter/src/jit/tensor-inline.ts": "c56c825db898708ec018936a285aac94a4db48971824022d2d4c40c0106c57e0",
+    "packages/interpreter/src/jit/tensor-reduction-codegen.ts": "9e5ff61c9fd0767eb5a9aeea246ab8a7fd10393c2a5eb61ebc910b68b918a647",
+    "packages/interpreter/test/composable-regions.test.ts": "3147e641e20430af1c5ccd4827e097bb9992d66076ea2a3983e2431252c8e713",
+    "packages/interpreter/test/helper-work-feedback.test.ts": "2988bf9f07c1e686821b8a1cec709adf73b838998deb87b13596b03945a81a9c",
+    "packages/interpreter/test/number-function-plans.test.ts": "e62be3a2d85f2a4dda36d5c96c41160d16513c7867a93a65572bde6ecd267129",
+    "packages/interpreter/test/runtime-diagnostics.test.ts": "21ec63e866dd29668660caa3a7275bd37037eb85ef7a0d1a5a6b3179dadba50b",
+    "packages/interpreter/test/scalar-function-real-arrays.test.ts": "c4918da51686ec66bbb7f307aa9bc73f8fc7eff83fe0f2d357ea950444b91ad2"
+  },
+  "validation": {
+    "ordinaryMac": {
+      "files": 573,
+      "tests": 12222,
+      "beforeMainIntegration": true
+    },
+    "integratedFocusedMacAndIntel": {
+      "files": 13,
+      "tests": 341
+    },
+    "excludedAudits": [
+      "types",
+      "differential",
+      "nurikabe"
+    ]
+  },
+  "limits": [
+    "Existing 262144-cell speculative-copy cap remains unchanged.",
+    "Numeric plan lowering supports integer/boolean arithmetic, broadcasting, outer and row reductions; native/map/conversion/power stages retain exact fallback.",
+    "Deferred scalar returns require a proven immediate consumer; standalone results retain lazy semantics."
+  ]
+}

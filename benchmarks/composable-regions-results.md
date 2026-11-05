@@ -705,3 +705,85 @@ Still pending: direct deferred scalar returns versus forced scalar locals,
 copy admission above the existing speculative cap, broader ordinary tests and
 updated full Euler measurements before integration and delivery. The previous
 Euler tables do not measure this latest implementation.
+
+### Integrated helper-equivalence delivery
+
+The delivery snapshot is compared with `bff39e70` (current main at integration),
+not the older `c996b5aa` used by the progress tables above. The source identity
+and test counts are in
+[the delivery manifest](baselines/2026-11-05-helper-equivalence-delivery-manifest.json).
+
+The implementation now carries storage origins through aliases and helper
+returns, composes effects from existing scalar proofs, and counts nested helper
+work when measuring private-copy amortization. Integer consumed plans share
+the existing tensor emitter in the Number backend. Direct deferred scalar
+returns and forwarding chains enter that backend only at a proven immediate
+consumer; an unused returned plan remains lazy. Live implementation guards,
+observable consumers, exact overflow replay and error locations remain checked.
+
+The tested forms are inline, loop helper, consumed-plan helper, alias chain,
+direct plan return and forwarded plan return. This establishes the same numeric
+execution/storage class for this supported domain, not equal elapsed time for
+all source programs. Unsupported native/map/conversion/power plan stages still
+use exact lowering. The existing 262,144-cell speculative-copy cap is unchanged:
+above it, inline and equivalent helpers all decline the same private snapshot.
+Extending that cap requires a separate cost/admission design, since some
+permutation regions have no publishing exact backend from which to learn.
+
+Validation: 573 ordinary files / 12,222 tests passed on Mac before merging
+main (types, differential and Nurikabe audits excluded). After merging main,
+13 affected files / 341 tests passed on both Mac and Intel. Both builds pass.
+
+Five cold samples per version, alternating order in fresh processes; parsing
+is excluded. Every full unchanged program answer is asserted. Diagnostics use
+a separate run. Values below are medians of paired runtime changes; positive
+means slower. Small differences are not confidence bounds.
+
+| Euler | Mac | Intel |
+| --- | ---: | ---: |
+| 026 | +2.6% | +3.7% |
+| 044 | -0.4% | -1.2% |
+| 054 | -0.4% | -1.1% |
+| 263 | +0.5% | -0.6% |
+| 303 | -0.8% | -1.4% |
+| 310 | +0.7% | +0.6% |
+| 326 | +0.0% | +0.9% |
+| 330 | -0.4% | +0.8% |
+| 352 | +1.9% | +3.2% |
+| 399 | +0.2% | +0.9% |
+
+No broad Euler speedup or material memory reduction is established. Peak RSS
+median differences range from -1.0 to +1.4 MiB on Mac and -2.5 to +2.7 MiB
+on Intel. Both versions retain zero caller overflows in 303 and one in 326.
+The extra Number loop in 352 is not itself evidence of acceleration.
+
+Raw cold observations: [Mac](baselines/2026-11-05-helper-equivalence-delivery-euler-mac.json),
+[Intel](baselines/2026-11-05-helper-equivalence-delivery-euler-intel.json).
+
+Synthetic matrix (4,096-cell arrays, 50 passes, 10 warmups, seven samples;
+median milliseconds):
+
+| Form | Mac | Intel |
+| --- | ---: | ---: |
+| inline | 0.456 | 1.334 |
+| loop | 0.750 | 1.664 |
+| plan | 0.794 | 1.689 |
+| chain | 0.883 | 1.795 |
+| return | 0.852 | 1.653 |
+| forward | 0.845 | 1.770 |
+
+All six forms retain one Number loop, zero replay, zero exact borrowed-array
+views and 32,768 snapshot bytes. Helpers still have checking/polling overhead.
+Raw matrix: [Mac](baselines/2026-11-05-helper-equivalence-delivery-mac.jsonl),
+[Intel](baselines/2026-11-05-helper-equivalence-delivery-intel.jsonl).
+
+Warm controls (10 warmups, seven samples; median milliseconds):
+
+| Euler | Mac baseline → candidate | Intel baseline → candidate |
+| --- | ---: | ---: |
+| 026 | 9.93 → 9.95 | 25.02 → 25.30 |
+| 330 | 8.88 → 8.88 | 26.45 → 26.86 |
+| 352 | 20.52 → 20.67 | 47.78 → 47.78 |
+
+Raw warm observations: [Mac](baselines/2026-11-05-helper-equivalence-delivery-warm-mac.json),
+[Intel](baselines/2026-11-05-helper-equivalence-delivery-warm-intel.json).
