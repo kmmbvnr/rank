@@ -2,7 +2,7 @@ use testing
 
 test "statement value"
   use "713_turanwaterheating"
-  Nn = 1000
+  Limit = 1000
   run
   Answer equal 3281346
 end
