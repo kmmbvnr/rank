@@ -1,3 +1,4 @@
+import { registerModularCallbackScan } from './jit/modular-callback-scan.js';
 import { summarizeIntegerBuffer } from './value-summary.js';
 import { isStoredValue } from './runtime/stored-value.js';
 import { hasMetadataBounds, metadataBoundLength } from './sequence-bounds.js';
@@ -503,6 +504,14 @@ export class FunctionInvocation {
             });
         }
         if (!generator && !statement.memo) {
+            registerModularCallbackScan(fn, statement,
+                name => context?.lookup(name) ?? this.bindings.globals.get(name),
+                () => this.compiler.scalars.functions && this.compiler.scalars.entries && this.compiler.loops.number
+                    && !this.compiler.hooks.onScalarFunctionExecuted && this.depth < this.maxDepth,
+                (left, right, value) => {
+                    const args = [left, right];
+                    checkReturn(specialization(args), args, value);
+                });
             this.host.flatCombine(fn, statement, builtins => {
                 if (this.depth >= this.maxDepth) return false;
                 for (const name of builtins) {

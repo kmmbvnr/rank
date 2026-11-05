@@ -1,3 +1,4 @@
+import { registerModularScanCompletion } from './jit/modular-callback-scan.js';
 import { expectNumeric } from './modules/shared.js';
 import { prepareKeyedTensorReader } from './tensor-map.js';
 import { keyedAggregate, keyedFold } from './keyed-fold.js';
@@ -222,10 +223,12 @@ export class ReductionEvaluator {
         if (axis !== undefined) return this.evaluateNamedScanAxis(operation, value, axis, seed);
         if (isRankSequence(value)) operation = snapshotLazyFunction(operation);
         const scalar = this.scalarCallback(operation);
-        return this.scanValues(value, operation.name, seed, (left, right) => {
+        const result = this.scanValues(value, operation.name, seed, (left, right) => {
             const arguments_ = [left, right];
             return scalar ? scalar(arguments_) : operation.call(arguments_);
         }, isPureLazyFunction(operation), [new Map([['callback', operation]])]);
+        if (isRankSequence(value) && isRankSequence(result)) registerModularScanCompletion(result, value, operation, seed);
+        return result;
     }
 
     evaluateNamedReduction(operation: NativeFunction, value: RankValue, seed?: RankValue,
