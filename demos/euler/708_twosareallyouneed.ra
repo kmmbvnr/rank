@@ -7,7 +7,7 @@ use algo
 use io
 use cli
 
-arg Nn integer = 10 ** 14
+arg Limit integer = 10 ** 14
 
 rem 2^Omega(n) = (tau * c)(n) with c
 rem multiplicative, c(p) = 0 and c(p^e)
@@ -19,67 +19,78 @@ rem prime squared, or one more power of
 rem the last prime. D comes from a tau
 rem prefix table when N / q is below
 rem sqrt(N), else from the hyperbola.
-Rt = Nn isqrt
-Pz = Rt primesieve
-Prm = Pz array
-Tau = array shape (Rt + 1) fill 0
-Sq = (1 to Rt isqrt) ** 2
-Tau Sq = 1
-Am = ((4 * Rt + 1) isqrt - 1) // 2
-for A in 1 to Am
-  Tau (A * A + A to Rt by A) += 2
+Root = Limit isqrt
+Sieve = Root primesieve
+Primes = Sieve array
+Tau = array shape (Root + 1) fill 0
+Squares = (1 to Root isqrt) ** 2
+Tau Squares = 1
+Reach = ((4 * Root + 1) isqrt - 1) // 2
+for Step in 1 to Reach
+  First = Step * Step + Step
+  Tau (First to Root by Step) += 2
 end
-Dt = Tau scan +
-Q = array 1
-L = array -1
-W = array 1
-Qs = array shape 0 fill 0
-Ws = array shape 0 fill 0
+Table = Tau scan +
+Powerful = array 1
+LastIdx = array -1
+Weight = array 1
+SmallQ = array shape 0 fill 0
+SmallW = array shape 0 fill 0
 Answer = 0
-Iota = 0 to Rt * 4
-for Q len greater 0
-  Sm = Q at most Rt
-  Qs = concat Qs (Q filter Sm)
-  Ws = concat Ws (W filter Sm)
-  Bg = Q greater Rt
-  Xv = Nn // (Q filter Bg)
-  Bw = W filter Bg
-  Dv = Dt Xv
-  Cb = Bw * Dv
-  Answer += Cb sum
-  Pl = Prm (L max 0)
-  Fit = Q at most Nn // Pl
-  Lm = (L at least 0) and Fit
-  Qb = (Q * Pl) filter Lm
-  Lb = L filter Lm
-  Wb = (W * 2) filter Lm
-  Rs = (Nn // Q) isqrt
-  Jc = Prm upperindex Rs
-  Cn = (Jc - L - 1) max 0
-  Sl = Cn greater 0
-  Qa = Q filter Sl
-  La = L filter Sl
-  Wa = W filter Sl
-  Ca = Cn filter Sl
-  Tt = Ca sum
-  En = Ca scan +
-  St = En - Ca
-  Mk = array shape Tt fill 0
-  Mk St = 1
-  Pr = (Mk scan +) - 1
-  Of = (Iota take Tt) - (St Pr)
-  Jj = (La Pr) + 1 + Of
-  Pj = Prm Jj
-  Q = concat Qb ((Qa Pr) * Pj * Pj)
-  L = concat Lb Jj
-  W = concat Wb (Wa Pr)
+Iota = 0 to Root * 4
+for Powerful len greater 0
+  IsSmall = Powerful at most Root
+  KeepQ = Powerful filter IsSmall
+  KeepW = Weight filter IsSmall
+  SmallQ = concat SmallQ KeepQ
+  SmallW = concat SmallW KeepW
+  IsBig = Powerful greater Root
+  BigQ = Powerful filter IsBig
+  Values = Limit // BigQ
+  BigW = Weight filter IsBig
+  Divisors = Table Values
+  Gains = BigW * Divisors
+  Answer += Gains sum
+  LastPrime = Primes (LastIdx max 0)
+  Room = Limit // LastPrime
+  Fits = Powerful at most Room
+  Grow = (LastIdx at least 0) and Fits
+  Product = Powerful * LastPrime
+  UpQ = Product filter Grow
+  UpL = LastIdx filter Grow
+  UpW = (Weight * 2) filter Grow
+  Bound = (Limit // Powerful) isqrt
+  Allowed = Primes upperindex Bound
+  Free = Allowed - LastIdx - 1
+  Choices = Free max 0
+  HasKids = Choices greater 0
+  ParentQ = Powerful filter HasKids
+  ParentL = LastIdx filter HasKids
+  ParentW = Weight filter HasKids
+  KidCount = Choices filter HasKids
+  KidTotal = KidCount sum
+  Ends = KidCount scan +
+  Starts = Ends - KidCount
+  Marks = array shape KidTotal fill 0
+  Marks Starts = 1
+  Owner = (Marks scan +) - 1
+  Range = Iota take KidTotal
+  Offset = Range - (Starts Owner)
+  KidIdx = (ParentL Owner) + 1 + Offset
+  KidPrime = Primes KidIdx
+  Base = ParentQ Owner
+  Square = KidPrime * KidPrime
+  Powerful = concat UpQ (Base * Square)
+  LastIdx = concat UpL KidIdx
+  Weight = concat UpW (ParentW Owner)
 end
-for I in 0 to Qs len - 1
-  Xq = Nn // (Qs I)
-  Sr = Xq isqrt
-  Us = 1 to Sr
-  Hs = Xq // Us
-  Hy = Hs sum
-  Answer += (Ws I) * (2 * Hy - Sr * Sr)
+for Index in 0 to SmallQ len - 1
+  Value = Limit // (SmallQ Index)
+  Side = Value isqrt
+  Divs = 1 to Side
+  Quotients = Value // Divs
+  HyperSum = Quotients sum
+  Gain = 2 * HyperSum - Side * Side
+  Answer += (SmallW Index) * Gain
 end
 Answer print

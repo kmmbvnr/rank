@@ -7,43 +7,48 @@ use bits
 use io
 use cli
 
-arg Nn integer = 24680
-arg Pm integer = 1020202009
+arg Order integer = 24680
+arg Prime integer = 1020202009
 
 rem f(n) is the Euler zigzag number,
 rem n! [x^n] (1 + sin x) / cos x.
 rem Factorials come from a prefix
 rem product by doubling; 1 / cos x
 rem from a Newton iteration.
-Mx = 2 ** (Nn binary len)
-Ix = 0 to Mx - 1
-Fc = Ix max 1
-Dd = 1
-for Dd less Mx
-  Lw = (Ix less Dd) integer
-  Sh = (Fc shift Dd) + Lw
-  Fc = Fc * Sh mod Pm
-  Dd = Dd * 2
+Size = 2 ** (Order binary len)
+Index = 0 to Size - 1
+Fact = Index max 1
+Jump = 1
+for Jump less Size
+  Low = (Index less Jump) integer
+  Shifted = (Fact shift Jump) + Low
+  Fact = Fact * Shifted mod Prime
+  Jump = Jump * 2
 end
-Iv = Fc (Pm - 2) Pm powmod
-Sg = 1 - (Ix // 2 mod 2) * 2
-Ev = ((Ix mod 2) equal 0) integer
-Cs = Ev * Sg * Iv mod Pm
-Sn = (1 - Ev) * Sg * Iv mod Pm
-Z0 = (Ix equal 0) integer
-Sn = (Sn + Z0) mod Pm
-Bi = array 1
-Ln = 1
-for Ln less Mx
-  Ln = Ln * 2
-  Cp = Cs take Ln
-  Tm = (Cp convolve Bi mod Pm) take Ln
-  Ng = (0 - Tm) mod Pm
-  Ng 0 = (2 - Tm 0) mod Pm
-  Bi = (Bi convolve Ng mod Pm) take Ln
+Inverse = Fact (Prime - 2) Prime powmod
+Sign = 1 - (Index // 2 mod 2) * 2
+Even = ((Index mod 2) equal 0) integer
+Cosine = Even * Sign * Inverse mod Prime
+Odd = 1 - Even
+Sine = Odd * Sign * Inverse mod Prime
+Zero = (Index equal 0) integer
+Sine = (Sine + Zero) mod Prime
+Series = array 1
+Length = 1
+for Length less Size
+  Length = Length * 2
+  Part = Cosine take Length
+  Full = Part convolve Series mod Prime
+  Product = Full take Length
+  Negated = (0 - Product) mod Prime
+  Negated 0 = (2 - Product 0) mod Prime
+  Next = Series convolve Negated mod Prime
+  Series = Next take Length
 end
-Rb = Bi (Nn to 0 by -1)
-Sp = Sn take (Nn + 1)
-Tot = (Sp * Rb mod Pm) sum mod Pm
-Answer = Tot * Fc Nn mod Pm
+Reversed = Series (Order to 0 by -1)
+SinePart = Sine take (Order + 1)
+Terms = SinePart * Reversed mod Prime
+Summed = Terms sum
+Total = Summed mod Prime
+Answer = Total * Fact Order mod Prime
 Answer print

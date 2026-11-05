@@ -6,34 +6,40 @@ use sequences
 use io
 use cli
 
-arg Lg integer = 21
-arg Mm integer = 1000000
+arg Bits integer = 21
+arg Modulus integer = 1000000
 
 rem t(n) = 2^(n // 2) - a(n), where a
 rem counts the palindromic sums without
 rem a 2. The series of a is P / Q with
 rem the recurrence polynomial Q; 1 / Q
 rem comes from a Newton iteration.
-Ln = 2 ** Lg
-Qp = array 1 -1 -2 2 1 -1 -1 1
-A0 = array 1 1 1 2 2 3 4
-Pp = (A0 convolve Qp mod Mm) take 7
-Bi = array 1
-Cl = 1
-for Cl less Ln
-  Cl = Cl * 2
-  Zp = array shape Cl fill 0
-  Qc = (concat Qp Zp) take Cl
-  Tm = (Qc convolve Bi mod Mm) take Cl
-  Ng = (0 - Tm) mod Mm
-  Ng 0 = (2 - Tm 0) mod Mm
-  Bi = (Bi convolve Ng mod Mm) take Cl
+Length = 2 ** Bits
+Poly = array 1 -1 -2 2 1 -1 -1 1
+Start = array 1 1 1 2 2 3 4
+Mixed = Start convolve Poly mod Modulus
+Numerator = Mixed take 7
+Series = array 1
+Size = 1
+for Size less Length
+  Size = Size * 2
+  Zeros = array shape Size fill 0
+  Padded = (concat Poly Zeros) take Size
+  Full = Padded convolve Series mod Modulus
+  Product = Full take Size
+  Negated = (0 - Product) mod Modulus
+  First = 2 - Product 0
+  Negated 0 = First mod Modulus
+  Next = Series convolve Negated mod Modulus
+  Series = Next take Size
 end
-Aa = (Pp convolve Bi mod Mm) take Ln
-Ns = 0 to Ln - 1
-Pw = 2 (Ns // 2) Mm powmod
-Tt = (Pw - Aa) mod Mm
-Ok = (Tt equal 0) and (Ns greater 42)
-Hit = Ns filter Ok
-Answer = Hit min
+Whole = Numerator convolve Series mod Modulus
+Counts = Whole take Length
+Terms = 0 to Length - 1
+Powers = 2 (Terms // 2) Modulus powmod
+Totals = (Powers - Counts) mod Modulus
+Zero = Totals equal 0
+Match = Zero and (Terms greater 42)
+Found = Terms filter Match
+Answer = Found min
 Answer print

@@ -2,10 +2,10 @@ use testing
 
 test "statement values"
   use "709_evenstevens"
-  Nn = 4
+  Order = 4
   run
   Answer equal 5
-  Nn = 8
+  Order = 8
   run
   Answer equal 1385
 end
