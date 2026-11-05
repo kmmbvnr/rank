@@ -21,7 +21,7 @@ const runtime = new Interpreter(value => {
     const phase = { stage: label.slice(6), ms: now - last, rssMiB: memory.rss / 2 ** 20,
         heapMiB: memory.heapUsed / 2 ** 20, buffersMiB: memory.arrayBuffers / 2 ** 20 };
     phases.push(phase); console.log(JSON.stringify(phase)); last = now;
-}, { compilation: process.argv[3] !== 'reference', ...(process.env.SAVE_CODE && { onIntegerLoopCompiled: value => code.push(value) }) });
+}, { compilation: process.argv[3] !== 'reference', ...(process.env.SAVE_CODE && { onIntegerLoopCompiled: value => code.push(value), onTensorKernelCompiled: value => code.push(value) }) });
 const session = new Session();
 try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }

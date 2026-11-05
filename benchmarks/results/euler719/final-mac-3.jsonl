@@ -1,3 +1,3 @@
-{"stage":"setup","ms":135.03712499999997,"rssMiB":175.796875,"heapMiB":60.75116729736328,"buffersMiB":10.394214630126953}
-{"stage":"search","ms":17286.111500000003,"rssMiB":574.5625,"heapMiB":57.236427307128906,"buffersMiB":112.19358348846436}
-{"limit":1000000000000,"compilation":true,"answer":"128088830547982","ms":17422.157625,"maxRssMiB":580.640625,"node":"v24.15.0","arch":"arm64","phases":[{"stage":"setup","ms":135.03712499999997,"rssMiB":175.796875,"heapMiB":60.75116729736328,"buffersMiB":10.394214630126953},{"stage":"search","ms":17286.111500000003,"rssMiB":574.5625,"heapMiB":57.236427307128906,"buffersMiB":112.19358348846436}]}
+{"stage":"setup","ms":464.5868750000001,"rssMiB":479.25,"heapMiB":147.36795043945312,"buffersMiB":109.84893321990967}
+{"stage":"search","ms":16513.668958,"rssMiB":608.40625,"heapMiB":125.30269622802734,"buffersMiB":181.25327968597412}
+{"limit":1000000000000,"compilation":true,"answer":"128088830547982","ms":16981.972042,"maxRssMiB":676.71875,"node":"v24.15.0","arch":"arm64","phases":[{"stage":"setup","ms":464.5868750000001,"rssMiB":479.25,"heapMiB":147.36795043945312,"buffersMiB":109.84893321990967},{"stage":"search","ms":16513.668958,"rssMiB":608.40625,"heapMiB":125.30269622802734,"buffersMiB":181.25327968597412}]}
