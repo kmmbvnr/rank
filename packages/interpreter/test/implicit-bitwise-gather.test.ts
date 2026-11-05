@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {Interpreter, formatValue, RankError} from '../src/index.js';
 import {withDemandBudget, withInterrupt, DemandBudgetExhausted, InterruptedError} from '../src/interrupt.js';
+import { typedArray } from '../src/array-storage.js';
 
 const source = `use sequences
 use bits
@@ -44,6 +45,63 @@ describe('implicit bitwise tensor arithmetic', () => {
     it.each(['band', 'bor', 'bxor'])('fuses %s arithmetic without an explicit copy', op => {
         const actual = compare(`use sequences\nuse bits\nA = array -9007199254740993 9007199254740993\nB = (A ${op} 9007199254740992) + 3\nB`);
         expect(actual.kernels).toBe(1);
+    });
+
+    it.each(['shl', 'shr'])('fuses %s with array counts and a reduction', op => {
+        const values = [-9007199254740993n, 9007199254740993n, 1n << 100n];
+        const counts = [0n, 37n, 101n];
+        const actual = compare(`use bits
+A = array ${values.join(' ')}
+B = array ${counts.join(' ')}
+Answer = A ${op} B sum
+Answer`);
+        expect(actual.kernels).toBe(1);
+        expect(actual.value).toBe(String(values.reduce((sum, value, i) => sum
+            + (op === 'shl' ? value << counts[i] : value >> counts[i]), 0n)));
+        expect(actual.code[0].match(/for \(/g)).toHaveLength(1);
+    });
+
+    it('fuses packed decode and encode without Int32 truncation', () => {
+        const actual = compare(`use bits
+use sequences
+Counts = 0 till 8 array
+Value = 123456789012345678901234567890
+Answer = (Value shr Counts band 63) shl (Counts * 6) sum
+Answer`);
+        expect(actual.kernels).toBe(1);
+        expect(actual.value).toBe(String(Array.from({ length: 8 }, (_, i) =>
+            ((123456789012345678901234567890n >> BigInt(i)) & 63n) << BigInt(i * 6))
+            .reduce((a, b) => a + b, 0n)));
+    });
+
+    it.each(['shl', 'shr'])('retains %s errors and empty-count behavior', op => {
+        for (const counts of ['array 0 -1 3', 'array 0.0 1.0', 'array 0 .NA']) {
+            expect(compare(`use bits\nA = array 2 3 4\nB = ${counts}\nAnswer = A ${op} B sum\nAnswer`))
+                .toHaveProperty('error');
+        }
+        expect(compare(`use bits\nuse sequences\nA = array shape 0 fill 1\nAnswer = A ${op} -1 sum\nAnswer`).value).toBe('0');
+    });
+
+    it.each(['shl', 'shr'])('keeps an aliased destination unchanged when %s fails late', op => {
+        for (const tensorFusion of [false, true]) {
+            const runtime = new Interpreter(undefined, { tensorFusion });
+            try {
+                runtime.execute('use bits\nA = array 2 3 4\nSaved = A\nCounts = array 1 2 -1');
+                expect(() => runtime.execute(`A = (A ${op} Counts) + 1`)).toThrow(/shift count must be nonnegative/);
+                expect(formatValue(runtime.execute('A')!)).toBe('2 3 4');
+                expect(formatValue(runtime.execute('Saved')!)).toBe('2 3 4');
+            } finally { runtime.dispose(); }
+        }
+    });
+
+    it('keeps large single-shift sums on the native typed kernel', () => {
+        let kernels = 0;
+        const runtime = new Interpreter(undefined, { onTensorKernelExecuted: () => kernels++ });
+        try {
+            runtime.variables.set('A', typedArray(new Int32Array(2048).fill(3)));
+            expect(runtime.execute('use bits\nA shl 6 sum')).toBe(393216n);
+            expect(kernels).toBe(0);
+        } finally { runtime.dispose(); }
     });
 
     it('preserves counts beyond signed 64-bit storage', () => {

@@ -1,0 +1,19 @@
+
+ RUN  v3.2.7 /tmp/rank701-20261105/packages/interpreter
+
+ ✓ test/integer-axis-extreme.test.ts (9 tests) 479ms
+   ✓ packed integer extrema (false) > folds min on every axis without boxing cells  387ms
+ ✓ test/tensor-inplace-reuse.test.ts (12 tests) 735ms
+   ✓ tensor in-place destination buffer reuse > reuses Float64Array backing buffer in-place for += compound updates  462ms
+ ✓ test/implicit-bitwise-gather.test.ts (23 tests) 854ms
+   ✓ implicit bitwise tensor arithmetic > fuses bitwise selectors, gathers and exact wide arithmetic in one pass  386ms
+ ✓ test/euler701.test.ts (30 tests) 4862ms
+   ✓ Euler 701 (false) > matches exhaustive boards for 1x1  689ms
+   ✓ Euler 701 (false) > matches the original DP at 3x3  711ms
+   ✓ Euler 701 (true) > matches the original DP at 3x3  529ms
+
+ Test Files  4 passed (4)
+      Tests  74 passed (74)
+   Start at  13:39:47
+   Duration  8.41s (transform 2.41s, setup 0ms, collect 13.24s, tests 6.93s, environment 1ms, prepare 277ms)
+

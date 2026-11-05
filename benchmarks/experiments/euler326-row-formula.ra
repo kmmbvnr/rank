@@ -1,0 +1,25 @@
+fun N pairs M
+  Period = 6 * M
+  Whole = N // Period
+  Rest = N mod Period
+  Counts = array shape M fill 0
+  B = array -1 3 6 7 13 14
+  C = array 0 1 2 2 5 5
+  for R in 0 till 6
+    Slope = B R
+    Offset = C R
+    for T in 0 till M
+      Prefix = (9 * T * T + Slope * T)
+      Prefix = (Prefix + Offset) mod M
+      Counts Prefix += Whole
+      if 6 * T + R at most Rest
+        Counts Prefix += 1
+      end
+    end
+  end
+  Answer = 0
+  for Count in Counts
+    Answer += Count * (Count - 1) // 2
+  end
+  return Answer
+end

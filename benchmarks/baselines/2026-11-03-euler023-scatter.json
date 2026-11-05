@@ -1,0 +1,338 @@
+{
+  "baseline": "6763c766",
+  "method": "Three alternating serial fresh processes per engine and host; answer asserted. Compiler streaming uses no observers; reference/mobile include the already pending scalar boolean fill edit. Mobile is a desktop custom signal model, not a phone run. Unrelated load was not controlled.",
+  "mac": [
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 698.89775,
+      "sieve": 417.282459,
+      "pairs": 281.623416,
+      "answer": "4179871",
+      "rss": 268.203125,
+      "trial": 0,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 380.96075,
+      "sieve": 226.887583,
+      "pairs": 154.077542,
+      "answer": "4179871",
+      "rss": 243.734375,
+      "trial": 0,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 371.62149999999997,
+      "sieve": 221.02075000000002,
+      "pairs": 150.60533299999997,
+      "answer": "4179871",
+      "rss": 243.796875,
+      "trial": 1,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 440.19604200000003,
+      "sieve": 242.925042,
+      "pairs": 197.277666,
+      "answer": "4179871",
+      "rss": 266.9375,
+      "trial": 1,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 399.28687499999995,
+      "sieve": 231.243,
+      "pairs": 168.04837499999996,
+      "answer": "4179871",
+      "rss": 263.203125,
+      "trial": 2,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 401.587542,
+      "sieve": 242.56591699999998,
+      "pairs": 159.026166,
+      "answer": "4179871",
+      "rss": 245.125,
+      "trial": 2,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 1488.9303340000001,
+      "sieve": 228.79324999999997,
+      "pairs": 1260.1435000000001,
+      "answer": "4179871",
+      "rss": 560.296875,
+      "trial": 0,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 723.2746669999999,
+      "sieve": 219.927959,
+      "pairs": 503.353583,
+      "answer": "4179871",
+      "rss": 565.484375,
+      "trial": 0,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 729.571708,
+      "sieve": 221.88750000000002,
+      "pairs": 507.692792,
+      "answer": "4179871",
+      "rss": 567.765625,
+      "trial": 1,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 1459.133792,
+      "sieve": 220.76358399999998,
+      "pairs": 1238.376458,
+      "answer": "4179871",
+      "rss": 560.8125,
+      "trial": 1,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 1483.503875,
+      "sieve": 216.45054199999998,
+      "pairs": 1267.059708,
+      "answer": "4179871",
+      "rss": 561.09375,
+      "trial": 2,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 719.807583,
+      "sieve": 211.14495799999997,
+      "pairs": 508.669,
+      "answer": "4179871",
+      "rss": 563.875,
+      "trial": 2,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "mobile",
+      "ms": 12552.063666,
+      "sieve": 250.518041,
+      "pairs": 12301.55325,
+      "answer": "4179871",
+      "rss": 428.78125,
+      "trial": 0,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "mobile",
+      "ms": 11525.836125,
+      "sieve": 242.74341699999997,
+      "pairs": 11283.100041,
+      "answer": "4179871",
+      "rss": 454.6875,
+      "trial": 0,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "mobile",
+      "ms": 9755.215375,
+      "sieve": 275.12204199999996,
+      "pairs": 9480.100083000001,
+      "answer": "4179871",
+      "rss": 482.84375,
+      "trial": 1,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "mobile",
+      "ms": 11907.300583,
+      "sieve": 250.39625,
+      "pairs": 11656.911167,
+      "answer": "4179871",
+      "rss": 466.015625,
+      "trial": 1,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "mobile",
+      "ms": 10911.214041,
+      "sieve": 264.53075,
+      "pairs": 10646.694916,
+      "answer": "4179871",
+      "rss": 428.234375,
+      "trial": 2,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "mobile",
+      "ms": 9418.610166999999,
+      "sieve": 246.06300000000002,
+      "pairs": 9172.553667,
+      "answer": "4179871",
+      "rss": 457.03125,
+      "trial": 2,
+      "version": "after"
+    }
+  ],
+  "intel": [
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 1039.559257,
+      "sieve": 706.582625,
+      "pairs": 332.9844249999999,
+      "answer": "4179871",
+      "rss": 246.09375,
+      "trial": 0,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 965.4886280000001,
+      "sieve": 688.7962050000001,
+      "pairs": 276.7024299999998,
+      "answer": "4179871",
+      "rss": 242.8203125,
+      "trial": 0,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 1036.91746,
+      "sieve": 741.1623829999999,
+      "pairs": 295.76259300000015,
+      "answer": "4179871",
+      "rss": 239.578125,
+      "trial": 1,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 1043.7583009999998,
+      "sieve": 718.050222,
+      "pairs": 325.7177449999999,
+      "answer": "4179871",
+      "rss": 227.484375,
+      "trial": 1,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 1111.222801,
+      "sieve": 775.224718,
+      "pairs": 336.00726199999986,
+      "answer": "4179871",
+      "rss": 247.65625,
+      "trial": 2,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "compiled",
+      "ms": 1050.3146909999998,
+      "sieve": 784.1771879999999,
+      "pairs": 266.14595600000007,
+      "answer": "4179871",
+      "rss": 239.34375,
+      "trial": 2,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 3447.647896,
+      "sieve": 687.4496259999999,
+      "pairs": 2760.2058620000003,
+      "answer": "4179871",
+      "rss": 379.77734375,
+      "trial": 0,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 1882.009365,
+      "sieve": 667.8037549999999,
+      "pairs": 1214.213205,
+      "answer": "4179871",
+      "rss": 370.91796875,
+      "trial": 0,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 1930.389513,
+      "sieve": 696.164814,
+      "pairs": 1234.2320280000001,
+      "answer": "4179871",
+      "rss": 372.96875,
+      "trial": 1,
+      "version": "after"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 3482.349498,
+      "sieve": 723.22666,
+      "pairs": 2759.13032,
+      "answer": "4179871",
+      "rss": 381.83984375,
+      "trial": 1,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 3530.944903,
+      "sieve": 689.2500359999999,
+      "pairs": 2841.7040580000003,
+      "answer": "4179871",
+      "rss": 382.60546875,
+      "trial": 2,
+      "version": "before"
+    },
+    {
+      "variant": "original",
+      "mode": "reference",
+      "ms": 1949.1061980000002,
+      "sieve": 681.098086,
+      "pairs": 1268.0157150000002,
+      "answer": "4179871",
+      "rss": 367.41015625,
+      "trial": 2,
+      "version": "after"
+    }
+  ]
+}

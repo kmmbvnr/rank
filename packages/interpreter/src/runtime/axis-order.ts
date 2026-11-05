@@ -108,6 +108,56 @@ export function argsortStoredAxis(value: RankArray, axis: number, down: boolean)
 
 const INT32_MAX = 2147483647;
 
+/** Completed Int32 cells can fold any axis directly into compact storage.
+ * Empty reductions retain their ordinary lazy errors. No cells are boxed. */
+export function extremeIntegerAxis(value: RankArray, axis: number, operation: 'min' | 'max'): RankArray | bigint | undefined {
+    if (!privateLoopPolling() || value.columnNames || value.itemAt !== undefined) return undefined;
+    const cells = integer32Cells(value), length = value.shape[axis];
+    if (!cells || !length) return undefined;
+    const inner = value.shape.slice(axis + 1).reduce((n, d) => n * d, 1);
+    const shape = value.shape.filter((_, index) => index !== axis);
+    const size = shape.reduce((n, d) => n * d, 1);
+    const out = new Int32Array(size);
+    const outer = inner ? size / inner : 0;
+    for (let block = 0; block < outer; block++) {
+        const source = block * length * inner, target = block * inner;
+        if (inner === 1) {
+            let result = cells[source];
+            for (let start = 0; start < length; start += 4096) {
+                const end = Math.min(length, start + 4096);
+                checkpoint('reducing integer axis', end - start);
+                if (operation === 'min') for (let i = start; i < end; i++) {
+                    if (cells[source + i] < result) result = cells[source + i];
+                }
+                else for (let i = start; i < end; i++) {
+                    if (cells[source + i] > result) result = cells[source + i];
+                }
+            }
+            out[target] = result;
+            continue;
+        }
+        for (let lane = 0; lane < inner; lane += 4096) {
+            const end = Math.min(inner, lane + 4096);
+            checkpoint('reducing integer axis', end - lane);
+            out.set(cells.subarray(source + lane, source + end), target + lane);
+        }
+        for (let row = 1; row < length; row++) {
+            const at = source + row * inner;
+            for (let lane = 0; lane < inner; lane += 4096) {
+                const end = Math.min(inner, lane + 4096);
+                checkpoint('reducing integer axis', end - lane);
+                if (operation === 'min') for (let i = lane; i < end; i++) {
+                    if (cells[at + i] < out[target + i]) out[target + i] = cells[at + i];
+                }
+                else for (let i = lane; i < end; i++) {
+                    if (cells[at + i] > out[target + i]) out[target + i] = cells[at + i];
+                }
+            }
+        }
+    }
+    return shape.length ? typedArray(out, shape) : BigInt(out[0]);
+}
+
 /** Scalar min/max folds over stored reals, preserving axis order and the
  * first value on ties or unordered comparisons (including NaN and -0).
  * Empty axes retain the ordinary fold's deferred errors. */

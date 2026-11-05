@@ -28,7 +28,7 @@ import { arithmeticRange, modularRange } from '../range-plan.js';
 
 type Terminal = 'reduce+' | 'reduce-' | 'reduce*' | 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
 export type TensorReduction = Exclude<Terminal, 'copy'>;
-const bitwiseTokens = { bxor: '^', band: '&', bor: '|' } as const;
+const bitwiseTokens = { bxor: '^', band: '&', bor: '|', shl: '<<', shr: '>>' } as const;
 type Bitwise = keyof typeof bitwiseTokens;
 const bitwise = (name: string): name is Bitwise => Object.prototype.hasOwnProperty.call(bitwiseTokens, name);
 const terminals = new Set(['copy', 'sum', 'mean', 'any', 'all', 'count', 'min', 'max']);
@@ -330,7 +330,9 @@ function checkPointwiseSafety(node: TensorNode, destinationName: string): boolea
         return !containsNodeInput(node, destinationName);
     }
     if (node.kind === 'binary') {
-        if (['/', '//', 'mod', '**'].includes(node.op)) return false;
+        // Shift counts can fail after earlier cells succeeded. A destination
+        // must remain untouched until the complete expression is valid.
+        if (['/', '//', 'mod', '**', 'shl', 'shr'].includes(node.op)) return false;
         return checkPointwiseSafety(node.left, destinationName) && checkPointwiseSafety(node.right, destinationName);
     }
     if (node.kind === 'unary') {
@@ -799,6 +801,19 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             return recordFallback('tensor:broadcast-selection');
         }
         const size = output.shape.reduce((p, n) => p * n, 1);
+        // A single bulk shift over completed typed integers already has a
+        // word-pair kernel. Boxing each cell for a fused sum regressed both
+        // Mac and Intel probes. Small arrays and composed graphs still fuse.
+        if (!nativeGraph && terminal === 'sum' && root.kind === 'binary'
+            && (root.native === 'shl' || root.native === 'shr') && size >= DENSE_MIN_CELLS
+            && privateLoopPolling() && [root.left, root.right].every(node => {
+                if (node.kind !== 'input') return false;
+                const info = bound.get(node)!;
+                return typeof info.scalar === 'bigint'
+                    ? info.scalar >= -(1n << 63n) && info.scalar < 1n << 63n
+                    : info.view?.kind === 'integer'
+                        && (info.view.items instanceof Int32Array || info.view.items instanceof BigInt64Array);
+            })) return recordFallback('tensor:stored-shift-sum', 'cost');
         // Plain stored concat copies have a bulk kernel. Scalar emission boxes
         // Int32 cells into BigInt (Euler 223). Small copies retain their cached
         // tensor loop: 1000-copy probes put the crossover near 1024 output cells,
@@ -1087,6 +1102,9 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     }
                     if (node.kind === 'binary' && node.native && bitwise(node.native)) {
                         lines.push(`if (typeof ${a} !== 'bigint' || typeof ${b} !== 'bigint') ${decline}`);
+                        if (node.native === 'shl' || node.native === 'shr') {
+                            lines.push(`if (${b} < 0n) ${decline}`);
+                        }
                         lines.push(`const ${name} = ${a} ${bitwiseTokens[node.native]} ${b};`);
                         return name;
                     }

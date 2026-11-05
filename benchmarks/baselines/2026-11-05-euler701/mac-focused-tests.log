@@ -1,0 +1,17 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/implicit-bitwise-gather.test.ts test/integer-axis-extreme.test.ts test/euler701.test.ts test/tensor-inplace-reuse.test.ts
+
+
+ RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter
+
+ ✓ test/integer-axis-extreme.test.ts (9 tests) 158ms
+ ✓ test/tensor-inplace-reuse.test.ts (12 tests) 215ms
+ ✓ test/implicit-bitwise-gather.test.ts (23 tests) 289ms
+ ✓ test/euler701.test.ts (30 tests) 1429ms
+
+ Test Files  4 passed (4)
+      Tests  74 passed (74)
+   Start at  13:44:15
+   Duration  2.80s (transform 886ms, setup 0ms, collect 5.06s, tests 2.09s, environment 0ms, prepare 106ms)
+

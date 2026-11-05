@@ -1,0 +1,1665 @@
+{
+  "revision": "c39c6b28",
+  "note": "Research only. Production unchanged; exploratory controls are not repeated medians. Intel row-formula/reference trial 1 is excluded from final medians because a short verification process overlapped it; replacement-intel supplies the third sample.",
+  "results": {
+    "series-mac": {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "records": [
+        {
+          "trial": 0,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 3224.76775,
+          "rssMiB": 306.484375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 207.45237500000002,
+          "rssMiB": 174.5,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 184.839167,
+          "rssMiB": 184.75,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 950.455417,
+          "rssMiB": 155.25,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 250.18291699999997,
+          "rssMiB": 245.640625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 129.527,
+          "rssMiB": 175.3125,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 1321.4749590000001,
+          "rssMiB": 460.296875,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 125.52520799999999,
+          "rssMiB": 174.828125,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 193.35379199999997,
+          "rssMiB": 175.59375,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 173.78416699999997,
+          "rssMiB": 186.40625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 235.56729099999998,
+          "rssMiB": 184.5,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 233.960333,
+          "rssMiB": 247.265625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 124.02408299999999,
+          "rssMiB": 173.921875,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 1250.739083,
+          "rssMiB": 462.375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 125.027042,
+          "rssMiB": 175.625,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 1570.093875,
+          "rssMiB": 324.3125,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 176.29904100000002,
+          "rssMiB": 183.5,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 235.623417,
+          "rssMiB": 185.03125,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 234.269041,
+          "rssMiB": 248.859375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 123.67708300000001,
+          "rssMiB": 164.0625,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 1769.5545,
+          "rssMiB": 466.53125,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 251.034,
+          "rssMiB": 174.25,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 3160.3833329999998,
+          "rssMiB": 279.671875,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 214.715333,
+          "rssMiB": 174.609375,
+          "answer": "128888888388011115766"
+        }
+      ]
+    },
+    "series-intel": {
+      "node": "v24.15.0",
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+      "records": [
+        {
+          "trial": 0,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 4467.573015,
+          "rssMiB": 283.44140625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 486.916388,
+          "rssMiB": 162.72265625,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 453.29394900000005,
+          "rssMiB": 168.5625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 702.658722,
+          "rssMiB": 170.5703125,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 535.52133,
+          "rssMiB": 221.77734375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 300.24101999999993,
+          "rssMiB": 162.53515625,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 2461.4108429999997,
+          "rssMiB": 429.58984375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 309.58531,
+          "rssMiB": 163.91796875,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 488.81280999999996,
+          "rssMiB": 165.13671875,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 453.317733,
+          "rssMiB": 171.59375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 654.160736,
+          "rssMiB": 170.90234375,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 537.700059,
+          "rssMiB": 222.46484375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 292.69905,
+          "rssMiB": 162.48828125,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 2542.9668030000003,
+          "rssMiB": 427.5703125,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 303.53178700000007,
+          "rssMiB": 162.765625,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 1,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 4626.635410000001,
+          "rssMiB": 279.9140625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 467.75078499999995,
+          "rssMiB": 170.9375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-formula"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-formula",
+          "ms": 656.2193949999998,
+          "rssMiB": 171.671875,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 550.834122,
+          "rssMiB": 223.28515625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "weighted-accumulate"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "weighted-accumulate",
+          "ms": 304.969457,
+          "rssMiB": 163.140625,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 2514.5829900000003,
+          "rssMiB": 449.56640625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "keyed"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "keyed",
+          "ms": 302.526681,
+          "rssMiB": 164.453125,
+          "answer": "128888888388011115766"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "compiled",
+            "1000000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 4433.787587,
+          "rssMiB": 268.0859375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "args": [
+            "reference",
+            "10000",
+            "1000000000000",
+            "original"
+          ],
+          "status": 0,
+          "signal": null,
+          "mode": "reference",
+          "m": "10000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 514.494511,
+          "rssMiB": 163.4140625,
+          "answer": "128888888388011115766"
+        }
+      ]
+    },
+    "full-reference": [
+      {
+        "mode": "reference",
+        "m": "1000000",
+        "n": "1000000000000",
+        "variant": "original",
+        "ms": 7195.179208,
+        "rssMiB": 183.390625,
+        "answer": "1966666166408794329"
+      },
+      {
+        "mode": "reference",
+        "m": "1000000",
+        "n": "1000000000000",
+        "variant": "weighted-formula",
+        "ms": 13734.938167,
+        "rssMiB": 406.6875,
+        "answer": "1966666166408794329"
+      },
+      {
+        "mode": "reference",
+        "m": "1000000",
+        "n": "1000000000000",
+        "variant": "weighted-accumulate",
+        "ms": 1196.8229170000002,
+        "rssMiB": 428.4375,
+        "answer": "1966666166408794329"
+      }
+    ],
+    "extra-mac": [
+      {
+        "variant": "batched",
+        "mode": "compiled",
+        "status": 0,
+        "m": "1000000",
+        "n": "1000000000000",
+        "ms": 267.630709,
+        "rssMiB": 262.578125,
+        "answer": "1966666166408794329"
+      },
+      {
+        "variant": "batched",
+        "mode": "reference",
+        "status": 0,
+        "m": "1000000",
+        "n": "1000000000000",
+        "ms": 1385.9671250000001,
+        "rssMiB": 365.765625,
+        "answer": "1966666166408794329"
+      },
+      {
+        "variant": "batched-real",
+        "mode": "compiled",
+        "status": 1,
+        "error": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:65\n            throw new RankError(error.message, this.errorKind);\n                  ^\n\nRankError: Keys array elements holds array rank 1 of real and cannot receive array rank 1 of integer\n    at ArrayBindingContract.merge (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:65:19)\n    at ArrayBindingContract.check (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:147:27)\n    at LocalFrame.checkArray (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:288:34)\n    at LocalFrame.checkBinding (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:280:21)\n    at LocalFrame.store (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:115:22)\n    at file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js:146:36\n    at file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:451:17\n    at mapResult (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:17:26)\n    at Object.stream (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:448:20)\n    at run (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/jit/block-compiler.js:42:39) {\n  rankKind: 'TypeError',\n  value: undefined,\n  cause: undefined,\n  calls: [ 'pairs\\n  N = 1000000000000\\n  M = 1000000' ],\n  location: {\n    sourceId: '<input>',\n    line: 25,\n    column: 7,\n    sourceLine: '      Keys = (Keys mod M) integer'\n  },\n  sourceText: 'rem Modulo Summations\\n' +\n    'rem https://projecteuler.net/problem=326\\n' +\n    '\\n' +\n    'use io\\n' +\n    '\\n' +\n    'Answer = 1000000000000 pairs 1000000\\n' +\n    'Answer print\\n' +\n    '\\n' +\n    'fun N pairs M\\n' +\n    '  Period = 6 * M\\n' +\n    '  Whole = N // Period\\n' +\n    '  Rest = N mod Period\\n' +\n    '  Counts = array shape M fill 0\\n' +\n    '  B = array -1 3 6 7 13 14\\n' +\n    '  C = array 0 1 2 2 5 5\\n' +\n    '  Batch = 32768\\n' +\n    '  for Start in 0 till M by Batch\\n' +\n    '    End = (Start + Batch) min M\\n' +\n    '    T = Start till End array real\\n' +\n    '    Base = (9 * T * T) mod M\\n' +\n    '    for R in 0 till 6\\n' +\n    '      Slope = B R\\n' +\n    '      Offset = C R\\n' +\n    '      Keys = (Base + Slope * T + Offset)\\n' +\n    '      Keys = (Keys mod M) integer\\n' +\n    '      if Whole greater 0\\n' +\n    '        Counts Keys += Whole .accumulate\\n' +\n    '      end\\n' +\n    '      Length = (Rest - R) // 6 + 1 - Start\\n' +\n    '      Length = Length min (End - Start)\\n' +\n    '      if Length greater 0\\n' +\n    '        Part = Keys take Length\\n' +\n    '        Counts Part += 1 .accumulate\\n' +\n    '      end\\n' +\n    '    end\\n' +\n    '  end\\n' +\n    '  Answer = 0\\n' +\n    '  for Count in Counts\\n' +\n    '    Answer += Count * (Count - 1) // 2\\n' +\n    '  end\\n' +\n    '  return Answer\\n' +\n    'end\\n'\n}\n\nNode.js v24.15.0\n"
+      },
+      {
+        "variant": "batched-real",
+        "mode": "reference",
+        "status": 1,
+        "error": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:65\n            throw new RankError(error.message, this.errorKind);\n                  ^\n\nRankError: Keys array elements holds array rank 1 of real and cannot receive array rank 1 of integer\n    at ArrayBindingContract.merge (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:65:19)\n    at ArrayBindingContract.check (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/runtime/array-binding-contract.js:147:27)\n    at LocalFrame.checkArray (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:288:34)\n    at LocalFrame.checkBinding (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:280:21)\n    at LocalFrame.store (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/frame.js:115:22)\n    at file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js:146:36\n    at file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:451:17\n    at mapResult (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js:17:26)\n    at Object.stream (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js:448:20)\n    at BlockExecution.execute (file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/blocks.js:57:43) {\n  rankKind: 'TypeError',\n  value: undefined,\n  cause: undefined,\n  calls: [ 'pairs\\n  N = 1000000000000\\n  M = 1000000' ],\n  location: {\n    sourceId: '<input>',\n    line: 25,\n    column: 7,\n    sourceLine: '      Keys = (Keys mod M) integer'\n  },\n  sourceText: 'rem Modulo Summations\\n' +\n    'rem https://projecteuler.net/problem=326\\n' +\n    '\\n' +\n    'use io\\n' +\n    '\\n' +\n    'Answer = 1000000000000 pairs 1000000\\n' +\n    'Answer print\\n' +\n    '\\n' +\n    'fun N pairs M\\n' +\n    '  Period = 6 * M\\n' +\n    '  Whole = N // Period\\n' +\n    '  Rest = N mod Period\\n' +\n    '  Counts = array shape M fill 0\\n' +\n    '  B = array -1 3 6 7 13 14\\n' +\n    '  C = array 0 1 2 2 5 5\\n' +\n    '  Batch = 32768\\n' +\n    '  for Start in 0 till M by Batch\\n' +\n    '    End = (Start + Batch) min M\\n' +\n    '    T = Start till End array real\\n' +\n    '    Base = (9 * T * T) mod M\\n' +\n    '    for R in 0 till 6\\n' +\n    '      Slope = B R\\n' +\n    '      Offset = C R\\n' +\n    '      Keys = (Base + Slope * T + Offset)\\n' +\n    '      Keys = (Keys mod M) integer\\n' +\n    '      if Whole greater 0\\n' +\n    '        Counts Keys += Whole .accumulate\\n' +\n    '      end\\n' +\n    '      Length = (Rest - R) // 6 + 1 - Start\\n' +\n    '      Length = Length min (End - Start)\\n' +\n    '      if Length greater 0\\n' +\n    '        Part = Keys take Length\\n' +\n    '        Counts Part += 1 .accumulate\\n' +\n    '      end\\n' +\n    '    end\\n' +\n    '  end\\n' +\n    '  Answer = 0\\n' +\n    '  for Count in Counts\\n' +\n    '    Answer += Count * (Count - 1) // 2\\n' +\n    '  end\\n' +\n    '  return Answer\\n' +\n    'end\\n'\n}\n\nNode.js v24.15.0\n"
+      },
+      {
+        "variant": "flat-formula",
+        "mode": "compiled",
+        "status": 0,
+        "m": "1000000",
+        "n": "1000000000000",
+        "ms": 196.52825,
+        "rssMiB": 183.1875,
+        "answer": "1966666166408794329"
+      },
+      {
+        "variant": "flat-formula",
+        "mode": "reference",
+        "status": 0,
+        "m": "1000000",
+        "n": "1000000000000",
+        "ms": 12444.882542,
+        "rssMiB": 179.625,
+        "answer": "1966666166408794329"
+      }
+    ],
+    "row-mac": [
+      {
+        "mode": "compiled",
+        "m": "1000000",
+        "n": "1000000000000",
+        "variant": "row-formula",
+        "ms": 184.29337500000003,
+        "rssMiB": 183.96875,
+        "answer": "1966666166408794329"
+      },
+      {
+        "mode": "reference",
+        "m": "1000000",
+        "n": "1000000000000",
+        "variant": "row-formula",
+        "ms": 5238.489333,
+        "rssMiB": 180.515625,
+        "answer": "1966666166408794329"
+      }
+    ],
+    "verify-mac": {
+      "programs": 2790,
+      "cases": 93,
+      "failures": 0
+    },
+    "verify-intel": {
+      "programs": 1116,
+      "cases": 93,
+      "failures": 0
+    },
+    "verify-final-mac": {
+      "programs": 837,
+      "cases": 93,
+      "failures": 0
+    },
+    "verify-row-intel": {
+      "programs": 279,
+      "cases": 93,
+      "failures": 0
+    },
+    "oracle": {
+      "m": 1000000,
+      "n": "1000000000000",
+      "answer": "1966666166408794329",
+      "sequenceChecks": 6000000,
+      "prefixChecks": 6000000,
+      "ms": 487.852958,
+      "rssMiB": 61.1875
+    },
+    "formula-proof": {
+      "sequenceAlpha": [
+        4,
+        3,
+        1,
+        6,
+        1,
+        3
+      ],
+      "sequenceBeta": [
+        1,
+        1,
+        0,
+        3,
+        0,
+        3
+      ],
+      "prefixSlopes": [
+        -1,
+        3,
+        6,
+        7,
+        13,
+        14
+      ],
+      "prefixOffsets": [
+        0,
+        1,
+        2,
+        2,
+        5,
+        5
+      ],
+      "quotients": [
+        [
+          -1,
+          -1,
+          6
+        ],
+        [
+          0,
+          2,
+          6
+        ],
+        [
+          1,
+          4,
+          6
+        ],
+        [
+          0,
+          4,
+          6
+        ],
+        [
+          3,
+          9,
+          6
+        ],
+        [
+          2,
+          9,
+          6
+        ]
+      ],
+      "exactIdentities": true,
+      "prefixPeriod": "6*M since f_r(t+M)-f_r(t)=M*(18*t+9*M+b_r)"
+    },
+    "full-diagnostics": {
+      "mode": "compiled",
+      "m": "1000000",
+      "n": "1000000000000",
+      "variant": "original",
+      "ms": 1592.974708,
+      "rssMiB": 338.5,
+      "answer": "1966666166408794329",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 4,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 1,
+        "numberLoopOverflows": 3,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 2,
+        "typedArrayPublishedCells": 2000000,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "tensor:unsupported-type:array": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    "weighted-accum-diag": {
+      "mode": "reference",
+      "m": "10000",
+      "n": "1000000000000",
+      "variant": "weighted-accumulate",
+      "ms": 137.35800000000003,
+      "rssMiB": 171.796875,
+      "answer": "128888888388011115766",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 35,
+        "typedArrayPublishedCells": 330001,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "loop:disabled": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    "plan-diagnostics": {
+      "mode": "compiled",
+      "m": "1000000",
+      "n": "1000000000000",
+      "variant": "keyed-plan",
+      "ms": 4155.456292,
+      "rssMiB": 481.203125,
+      "answer": "1966666166408794329",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 24,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "compiledTensors": 3,
+        "tensorRangeScans": 2,
+        "tensorRangeScannedCells": 2000000,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 18,
+        "typedArrayPublishedCells": 18000000,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unsupported-op:till": 1,
+          "scalar-expression:too-small": 5,
+          "tensor:unsupported-type:array": 5,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "tensor:deferred-binding:AssignmentStatement": 3,
+          "scalar-expression:unsupported-op:R": 30,
+          "scalar-expression:unsupported-op:*": 4,
+          "scalar-expression:unsupported-op:+": 5,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op:mod": 1,
+          "scalar-expression:operator-guard:*": 12,
+          "scalar-expression:operator-guard:+": 24,
+          "scalar-expression:operator-guard:mod": 12,
+          "tensor:scalar-evaluation-timing": 6
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:till",
+            "node": "BinaryExpression",
+            "function": "pairs",
+            "expression": "0 till M array",
+            "line": 17,
+            "column": 7
+          }
+        ]
+      }
+    },
+    "final-mac": {
+      "cpu": "Apple M5",
+      "node": "v24.15.0",
+      "records": [
+        {
+          "trial": 0,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 1585.180292,
+          "rssMiB": 328.453125,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 7842.14325,
+          "rssMiB": 183.90625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 372.49162499999994,
+          "rssMiB": 183.1875,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 6834.465875,
+          "rssMiB": 182.09375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 174.375458,
+          "rssMiB": 185.875,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 5454.354375,
+          "rssMiB": 180.609375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 1623.0935419999998,
+          "rssMiB": 332.046875,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 10097.158875000001,
+          "rssMiB": 184.25,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 1645.486166,
+          "rssMiB": 306.484375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 9074.637999999999,
+          "rssMiB": 183.625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 601.3902919999998,
+          "rssMiB": 180.9375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 5958.985125,
+          "rssMiB": 183.578125,
+          "answer": "1966666166408794329"
+        }
+      ]
+    },
+    "final-intel": {
+      "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+      "node": "v24.15.0",
+      "records": [
+        {
+          "trial": 0,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 4486.29317,
+          "rssMiB": 283.49609375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 20520.646391,
+          "rssMiB": 172.0078125,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 453.80831399999994,
+          "rssMiB": 170.953125,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 0,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 14477.22913,
+          "rssMiB": 167.26953125,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 448.99634700000007,
+          "rssMiB": 171.08984375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 14568.453006,
+          "rssMiB": 168.83984375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 4856.921743,
+          "rssMiB": 278.8984375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 1,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 21008.69425,
+          "rssMiB": 170.6015625,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 4594.004852,
+          "rssMiB": 282.796875,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "original",
+          "ms": 21534.499668999997,
+          "rssMiB": 170.52734375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "mode": "compiled",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 472.993623,
+          "rssMiB": 171.18359375,
+          "answer": "1966666166408794329"
+        },
+        {
+          "trial": 2,
+          "mode": "reference",
+          "m": "1000000",
+          "n": "1000000000000",
+          "variant": "row-formula",
+          "ms": 15913.461214,
+          "rssMiB": 167.265625,
+          "answer": "1966666166408794329"
+        }
+      ]
+    },
+    "replacement-intel": {
+      "mode": "reference",
+      "m": "1000000",
+      "n": "1000000000000",
+      "variant": "row-formula",
+      "ms": 15124.703535,
+      "rssMiB": 167.48828125,
+      "answer": "1966666166408794329"
+    }
+  }
+}

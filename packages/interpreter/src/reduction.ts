@@ -4,7 +4,7 @@ import { keyedAggregate, keyedFold } from './keyed-fold.js';
 import { foldAxisPartition, foldAxisDiagnostic } from '@arrrank/language';
 import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
-import { extremeIntegerVector, extremeRealAxis, scanFloat64, scanInt32Axis, scanInt64, sumRealAxis } from './axis-order.js';
+import { extremeIntegerAxis, extremeIntegerVector, extremeRealAxis, scanFloat64, scanInt32Axis, scanInt64, sumRealAxis } from './axis-order.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
 import { storedOperand } from './array-copy.js';
@@ -242,6 +242,7 @@ export class ReductionEvaluator {
                 // A lazy numeric map becomes stored cells before the fold.
                 const cells = materializeTensorMap(value) ?? storedOperand(value) as RankArray;
                 const real = extremeRealAxis(cells, axis, extreme)
+                    ?? extremeIntegerAxis(cells, axis, extreme)
                     ?? (cells.shape.length === 1 ? extremeIntegerVector(cells, extreme) : undefined);
                 if (real !== undefined) return real;
             }
@@ -495,6 +496,11 @@ export class ReductionEvaluator {
             return definition !== undefined && reducer === this.standardFunctions.get(definition);
         });
         const booleanFold = builtin && (operation === 'any' || operation === 'all');
+        if (builtin && (operation === 'min' || operation === 'max') && axes.length === 1
+            && !inspectionEnabled() && privateLoopPolling()) {
+            const packed = extremeIntegerAxis(value, axes[0], operation);
+            if (packed !== undefined) return packed;
+        }
         if (builtin && operation === 'sum' && axes.length === 1 && !inspectionEnabled() && privateLoopPolling()
             && reducer === this.standardFunctions.get(standardModules.core.sum)) {
             const packed = sumRealAxis(value, axes[0]) ?? sumIntegerAxis(value, axes[0]);

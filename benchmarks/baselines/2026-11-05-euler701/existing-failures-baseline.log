@@ -1,0 +1,130 @@
+
+ RUN  v3.2.7 /tmp/rank701-baseline/packages/interpreter
+
+ ❯ test/tensor-bounds.test.ts (28 tests | 1 failed) 278ms
+   ✓ bounded homogeneous tensor arithmetic > emits a direct float64 update and reuses storage 112ms
+   ✓ bounded homogeneous tensor arithmetic > emits a direct int32 update and reuses storage 2ms
+   ✓ bounded homogeneous tensor arithmetic > emits a direct int64 update and reuses storage 2ms
+   ✓ bounded homogeneous tensor arithmetic > widens int32 output without narrowing an exact result 9ms
+   ✓ bounded homogeneous tensor arithmetic > keeps unsafe integer intermediates exact when the final result fits int64 7ms
+   ✓ bounded homogeneous tensor arithmetic > invalidates cached ranges after a write of Infinity 10ms
+   ✓ bounded homogeneous tensor arithmetic > invalidates cached ranges after a write of NaN 8ms
+   ✓ bounded homogeneous tensor arithmetic > invalidates cached ranges after a write of 1.7976931348623157e+308 9ms
+   ✓ bounded homogeneous tensor arithmetic > refreshes scalar proofs and retains aliases across iterative matrix updates 8ms
+   × bounded homogeneous tensor arithmetic > retains bounds across iterations and rescans only a changed input 19ms
+     → expected +0 to be 10 // Object.is equality
+   ✓ bounded homogeneous tensor arithmetic > matches the reference for signed real + chains 10ms
+   ✓ bounded homogeneous tensor arithmetic > matches the reference for signed real - chains 10ms
+   ✓ bounded homogeneous tensor arithmetic > matches the reference for signed real * chains 11ms
+   ✓ bounded homogeneous tensor arithmetic > matches the reference for signed real / chains 7ms
+   ✓ bounded homogeneous tensor arithmetic > keeps exact wide int64 input 9223372036854775807n 1ms
+   ✓ bounded homogeneous tensor arithmetic > keeps exact wide int64 input -9223372036854775808n 1ms
+   ✓ bounded homogeneous tensor arithmetic > declines int64 output overflow without wrapping the mathematical integer 2ms
+   ✓ bounded homogeneous tensor arithmetic > keeps a failed division assignment atomic after a successful bounded call 8ms
+   ✓ bounded homogeneous tensor arithmetic > does not round wide integer intermediates before cancellation 6ms
+   ✓ bounded homogeneous tensor arithmetic > does not round wide integer intermediates before cancellation + 0.0 6ms
+   ✓ bounded homogeneous tensor arithmetic > preserves the sign of real zero in (A * -1) / 1.0 6ms
+   ✓ bounded homogeneous tensor arithmetic > preserves the sign of real zero in (-A) / 1.0 5ms
+   ✓ bounded homogeneous tensor arithmetic > preserves the sign of real zero in A / -1.0 2ms
+   ✓ bounded homogeneous tensor arithmetic > does not round wide integer operands before their small difference is promoted 2ms
+   ✓ bounded homogeneous tensor arithmetic > matches exact signed int32 matrix arithmetic across interval extremes 7ms
+   ✓ bounded homogeneous tensor arithmetic > matches exact signed int64 matrix arithmetic across interval extremes 4ms
+   ✓ bounded homogeneous tensor arithmetic > keys integer zero normalization by changing scalar primitive types 2ms
+   ✓ bounded homogeneous tensor arithmetic > rechecks storage after a compilation observer materializes an input 1ms
+ ❯ test/runtime-diagnostics.test.ts (30 tests | 1 failed) 319ms
+   ✓ runtime diagnostics and stable tensor reads > counts only copy-on-write copies and their cells 119ms
+   ✓ runtime diagnostics and stable tensor reads > counts lazy work without forcing cells and restores nested scopes 1ms
+   ✓ runtime diagnostics and stable tensor reads > compiles explicitly stored tensors with hoisting true 26ms
+   ✓ runtime diagnostics and stable tensor reads > compiles explicitly stored tensors with hoisting false 10ms
+   ✓ runtime diagnostics and stable tensor reads > reuses storage-kind evidence across same-kind writes and rejects changed kinds 8ms
+   ✓ runtime diagnostics and stable tensor reads > keeps host-owned arrays with no tracked revision on the interpreted path 5ms
+   ✓ runtime diagnostics and stable tensor reads > does not inspect an unread host cell with compilation true 3ms
+   ✓ runtime diagnostics and stable tensor reads > does not inspect an unread host cell with compilation false 2ms
+   ✓ runtime diagnostics and stable tensor reads > does not inspect an empty host iteration source with compilation true 2ms
+   ✓ runtime diagnostics and stable tensor reads > does not inspect an empty host iteration source with compilation false 1ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination for empty range 0 till N 6ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination for empty range 2 to 1 3ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination for empty range 0 to 1 by -1 6ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination before a zero range step fails 5ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination when array iteration is empty (number compilation false) 5ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination when array iteration is empty (number compilation true) 3ms
+   ✓ runtime diagnostics and stable tensor reads > checks a shared destination before copying with compilation true 3ms
+   ✓ runtime diagnostics and stable tensor reads > checks a shared destination before copying with compilation false 1ms
+   ✓ runtime diagnostics and stable tensor reads > checks every destination before copying with compilation true 3ms
+   ✓ runtime diagnostics and stable tensor reads > checks every destination before copying with compilation false 2ms
+   ✓ runtime diagnostics and stable tensor reads > keeps a stored tensor clear of writes through another name 5ms
+   ✓ runtime diagnostics and stable tensor reads > compiles stored reads across a proven scalar callee 17ms
+   × runtime diagnostics and stable tensor reads > leaves a compiled region before effects after callee redefinition 29ms
+     → expected { first: 24n, second: 27n, …(4) } to match object { compiledBefore: 1, compiledAfter: 1 }
+(4 matching properties omitted from actual)
+   ✓ runtime diagnostics and stable tensor reads > rejects a changed array element type before entering a compiled region 14ms
+   ✓ runtime diagnostics and stable tensor reads > compiles stored reads across a bound synchronous builtin 5ms
+   ✓ runtime diagnostics and stable tensor reads > leaves a compiled builtin region after the host replaces a builtin 6ms
+   ✓ runtime diagnostics and stable tensor reads > rejects a shadowed builtin before entering the compiled region 7ms
+   ✓ runtime diagnostics and stable tensor reads > does not hoist across a callee that writes explicit state 11ms
+   ✓ runtime diagnostics and stable tensor reads > never caches untracked host reads and records unsupported loops separately 2ms
+   ✓ rechecks linked helper array storage on each cached loop entry 8ms
+ ❯ test/tensor-compound.test.ts (8 tests | 2 failed) 333ms
+   × compound tensor arithmetic > fuses += while retaining aliases and refreshing scalar terms 158ms
+     → expected +0 to be 3 // Object.is equality
+   × compound tensor arithmetic > fuses -= while retaining aliases and refreshing scalar terms 20ms
+     → expected +0 to be 3 // Object.is equality
+   ✓ compound tensor arithmetic > fuses *= while retaining aliases and refreshing scalar terms 23ms
+   ✓ compound tensor arithmetic > retains BigInt precision and both broadcast layouts 19ms
+   ✓ compound tensor arithmetic > handles empty tensors and retains errors in unsupported scalar expressions 9ms
+   ✓ compound tensor arithmetic > leaves sequence callbacks on the reference path 31ms
+   ✓ compound tensor arithmetic > does not publish partially computed output when the fused pass is cancelled 6ms
+   ✓ compound tensor arithmetic > does not reuse folded scalar slots between calls or integer/real inputs 68ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/runtime-diagnostics.test.ts > runtime diagnostics and stable tensor reads > leaves a compiled region before effects after callee redefinition
+AssertionError: expected { first: 24n, second: 27n, …(4) } to match object { compiledBefore: 1, compiledAfter: 1 }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "compiledAfter": 1,
++   "compiledAfter": 2,
+    "compiledBefore": 1,
+  }
+
+ ❯ test/runtime-diagnostics.test.ts:312:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/tensor-bounds.test.ts > bounded homogeneous tensor arithmetic > retains bounds across iterations and rescans only a changed input
+AssertionError: expected +0 to be 10 // Object.is equality
+
+- Expected
++ Received
+
+- 10
++ 0
+
+ ❯ test/tensor-bounds.test.ts:90:46
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  test/tensor-compound.test.ts > compound tensor arithmetic > fuses += while retaining aliases and refreshing scalar terms
+ FAIL  test/tensor-compound.test.ts > compound tensor arithmetic > fuses -= while retaining aliases and refreshing scalar terms
+AssertionError: expected +0 to be 3 // Object.is equality
+
+- Expected
++ Received
+
+- 3
++ 0
+
+ ❯ test/tensor-compound.test.ts:24:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  4 failed | 62 passed (66)
+   Start at  13:43:11
+   Duration  1.95s (transform 1.09s, setup 0ms, collect 4.54s, tests 930ms, environment 0ms, prepare 75ms)
+

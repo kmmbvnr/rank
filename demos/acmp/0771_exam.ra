@@ -1,0 +1,216 @@
+rem ACMP 0771: Exam (74%)
+rem FC-NS tree ASCII drawing
+use cli
+use text
+
+arg Input text = (
+  "62\n" +
+  "0 -\n1 -\n2 0\n" +
+  "3 0\n4 0\n5 0\n" +
+  "6 0\n7 0\n8 0\n" +
+  "9 0\na 1\nb 1\n" +
+  "c 1\nd 1\ne 1\n" +
+  "f 9\ng 2\nh 3\n" +
+  "i 4\nj 5\nk 6\n" +
+  "l 7\nm 8\nn 9\n" +
+  "o 2\np 3\nq 4\n" +
+  "r 5\ns 6\nt 7\n" +
+  "u f\nv g\nw h\n" +
+  "x i\ny j\nz k\n" +
+  "A l\nB m\nC n\n" +
+  "D o\nE p\nF q\n" +
+  "G r\nH s\nI t\n" +
+  "J u\nK v\nL w\n" +
+  "M x\nN y\nO z\n" +
+  "P A\nQ B\nR C\n" +
+  "S D\nT E\nU F\n" +
+  "V G\nW H\nX I\n" +
+  "Y u\nZ v"
+)
+
+InLines = Input split "\n"
+FirstLine = InLines 0
+P = ((FirstLine split " ") 0) integer
+
+Parent = array shape 128 fill -1
+Present = array shape 128 fill false
+
+for K in 1 to P
+  Line = InLines K
+  Parts = Line split " "
+  C = ((Parts 0) 0) codepoint
+  PCh = (Parts 1) 0
+  Par = -2
+  if PCh not equal "-"
+    Par = PCh codepoint
+  end
+  Parent C = Par
+  Present C = true
+  if Par at least 0
+    Present Par = true
+  end
+end
+
+FC = array shape 128 fill -1
+NS = array shape 128 fill -1
+
+rem Link roots
+PrevRoot = -1
+for C in 0 to 127
+  IsRoot = (Parent C) equal -2
+  if (Present C) and IsRoot
+    if PrevRoot at least 0
+      NS PrevRoot = C
+    end
+    PrevRoot = C
+  end
+end
+
+rem Link children per parent
+for PId in 0 to 127
+  if Present PId
+    PrevChild = -1
+    for C in 0 to 127
+      IsCh = (Parent C) equal PId
+      if (Present C) and IsCh
+        if PrevChild at least 0
+          NS PrevChild = C
+        else
+          FC PId = C
+        end
+        PrevChild = C
+      end
+    end
+  end
+end
+
+rem BFS levels
+LCount = array shape 64 fill 0
+LNodes = array shape 64 64 fill 0
+
+MaxD = 0
+Curr = -1
+for C in 0 to 127
+  IsR = (Parent C) equal -2
+  if (Curr less 0) and IsR
+    if Present C
+      Curr = C
+    end
+  end
+end
+
+for Step in 0 to 63
+  if Curr less 0
+    break
+  end
+  Cnt = LCount 0
+  LNodes 0 Cnt = Curr
+  LCount 0 = Cnt + 1
+  Curr = NS Curr
+end
+
+D = 0
+for Step in 0 to 63
+  if (LCount D) equal 0
+    break
+  end
+  NextD = D + 1
+  NextCnt = 0
+  for I in 0 to ((LCount D) - 1)
+    U = LNodes D I
+    Ch = FC U
+    for S in 0 to 63
+      if Ch less 0
+        break
+      end
+      LNodes NextD NextCnt = Ch
+      NextCnt += 1
+      Ch = NS Ch
+    end
+  end
+  LCount NextD = NextCnt
+  if NextCnt greater 0
+    MaxD = NextD
+  end
+  D += 1
+end
+
+rem Relax coordinates
+Col = array shape 128 fill 0
+for Iter in 1 to 128
+  for U in 0 to 127
+    if (FC U) at least 0
+      V = FC U
+      M = (Col U) max (Col V)
+      Col U = M
+      Col V = M
+    end
+  end
+  for L in 0 to MaxD
+    Cnt = LCount L
+    if Cnt greater 1
+      for I in 0 to (Cnt - 2)
+        U = LNodes L I
+        V = LNodes L (I + 1)
+        if (Col V) less ((Col U) + 2)
+          Col V = (Col U) + 2
+        end
+      end
+    end
+  end
+end
+
+MaxC = (Col reduce max) + 2
+H = 2 * MaxD + 1
+Lines = array shape H fill ""
+
+rem Render lines
+for L in 0 to MaxD
+  R = 2 * L
+  Cnt = LCount L
+  LastC = 0
+  RowChars = array shape MaxC fill " "
+  for I in 0 to (Cnt - 1)
+    U = LNodes L I
+    CU = Col U
+    RowChars CU = U character
+    if CU greater LastC
+      LastC = CU
+    end
+    Nxt = NS U
+    if Nxt at least 0
+      PU = Parent U
+      if (Parent Nxt) equal PU
+        CV = Col Nxt
+        FromC = CU + 1
+        ToC = CV - 1
+        for FillC in FromC to ToC
+          RowChars FillC = "-"
+        end
+      end
+    end
+  end
+  SubRow = RowChars (0 to LastC)
+  Lines R = SubRow join ""
+
+  if L less MaxD
+    SepR = R + 1
+    SepChars = array shape MaxC fill " "
+    LastSepC = 0
+    for I in 0 to (Cnt - 1)
+      U = LNodes L I
+      if (FC U) at least 0
+        CU = Col U
+        SepChars CU = "|"
+        if CU greater LastSepC
+          LastSepC = CU
+        end
+      end
+    end
+    SubSep = SepChars (0 to LastSepC)
+    Lines SepR = SubSep join ""
+  end
+end
+
+Result = Lines join "\n"
+Result

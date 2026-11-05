@@ -1,0 +1,68 @@
+rem Tests for ACMP 0771: Exam
+use testing
+use text
+
+test "ACMP 771: Maximal 62-node tree"
+  use "0771_exam"
+  run
+  Lines = Result split "\n"
+  (Lines len) equal 9
+  (Lines 0) equal (
+    "0-----------------------------" +
+    "1"
+  )
+  (Lines 1) equal (
+    "|                             " +
+    "|"
+  )
+end
+
+test "ACMP 771: Sample 1 (9 nodes)"
+  use "0771_exam"
+  Input = (
+    "9\n" +
+    "1 -\n" +
+    "2 1\n" +
+    "3 1\n" +
+    "4 1\n" +
+    "5 2\n" +
+    "6 2\n" +
+    "7 4\n" +
+    "8 7\n" +
+    "9 7"
+  )
+  run
+  Lines = Result split "\n"
+  (Lines len) equal 7
+  (Lines 0) equal "1"
+  (Lines 1) equal "|"
+  (Lines 2) equal "2-3-4"
+  (Lines 3) equal "|   |"
+  (Lines 4) equal "5-6 7"
+  (Lines 5) equal "    |"
+  (Lines 6) equal "    8-9"
+end
+
+test "ACMP 771: Sample 2 single node"
+  use "0771_exam"
+  Input = "1\nA -"
+  run
+  Result equal "A"
+end
+
+test "ACMP 771: Two trees"
+  use "0771_exam"
+  Input = (
+    "5\n" +
+    "A -\n" +
+    "B -\n" +
+    "C A\n" +
+    "D A\n" +
+    "E B"
+  )
+  run
+  Lines = Result split "\n"
+  (Lines 0) equal "A---B"
+  (Lines 1) equal "|   |"
+  (Lines 2) equal "C-D E"
+end
