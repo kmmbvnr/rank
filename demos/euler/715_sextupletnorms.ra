@@ -55,27 +55,23 @@ for P in Primes
   FromBig = CubeBig LargeAt
   FromLow = CubeLow SmallAt
   Pick = Inside choose FromBig FromLow
-  CDelta = Pick - CBefore
   FromBig = ChiBig LargeAt
   FromLow = ChiLow SmallAt
   Pick2 = Inside choose FromBig FromLow
   XDelta = Pick2 - XBefore
-  CDelta = CDelta mod Prime
+  CDelta = (Pick - CBefore) mod Prime
   CDelta = Cube * CDelta mod Prime
   CNew = CubeBig Index - CDelta
   CubeBig Index = CNew mod Prime
-  XNew = Sign * XDelta
-  ChiBig Index = ChiBig Index - XNew
+  ChiBig Index = ChiBig Index - Sign * XDelta
   Range = P * P to Root
   Parents = Range // P
   CUp = CubeLow Parents - CBefore
-  CDelta = CUp mod Prime
-  CCut = Cube * CDelta mod Prime
+  CCut = Cube * (CUp mod Prime) mod Prime
   CNew = CubeLow Range - CCut
   CubeLow Range = CNew mod Prime
   XDelta = ChiLow Parents - XBefore
-  XNew = Sign * XDelta
-  ChiLow Range = ChiLow Range - XNew
+  ChiLow Range = ChiLow Range - Sign * XDelta
 end
 Gap = CubeLow - ChiLow
 PrimeSmall = Gap mod Prime
@@ -103,8 +99,7 @@ for P in Bigs reverse
   FromBig = SumBig LargeAt
   FromLow = SumLow SmallAt
   Pick = Inside choose FromBig FromLow
-  Value = Pick - Below
-  Value = Value mod Prime
+  Value = (Pick - Below) mod Prime
   Value = Weight * Value mod Prime
   Gain = SumBig Index + Value + Weight2
   SumBig Index = Gain mod Prime
@@ -113,8 +108,7 @@ for P in Bigs reverse
     Over = SumLow (Range // P) - Below
     Over = Over mod Prime
     Scaled = Weight * Over mod Prime
-    Part = Scaled + Weight2
-    Fresh = SumLow Range + Part
+    Fresh = SumLow Range + Scaled + Weight2
     SumLow Range = Fresh mod Prime
   end
 end
@@ -175,8 +169,7 @@ for Step in 0 to Pairs - 1
   FromBig = SnapBig LargeAt
   FromLow = SnapLow SmallAt
   Pick = Inside choose FromBig FromLow
-  Value = Pick - Below
-  Value = Value mod Prime
+  Value = (Pick - Below) mod Prime
   Value = WeightX * Value mod Prime
   Gain = SumBig Index + Value + Weight3
   SumBig Index = Gain mod Prime
@@ -186,8 +179,7 @@ for Step in 0 to Pairs - 1
     Over = SnapLow Which - Below
     Over = Over mod Prime
     Scaled = WeightX * Over mod Prime
-    Part = Scaled + Weight3
-    Fresh = SumLow Range + Part
+    Fresh = SumLow Range + Scaled + Weight3
     SumLow Range = Fresh mod Prime
   end
 end

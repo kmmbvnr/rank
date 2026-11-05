@@ -45,9 +45,11 @@ for (const [file, expected] of [
     ['310_nimsquare.ra', 2586528661783n],
     ['426_boxball.ra', 31591886008n],
     ['705_inversioncount.ra', 480440153n],
+    ['715_sextupletnorms.ra', 883188017n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
-    const timeout = file === '275_balancedsculptures.ra' ? 120_000 : 60_000;
+    const timeout = file === '715_sextupletnorms.ra' ? 240_000
+        : file === '275_balancedsculptures.ra' ? 120_000 : 60_000;
     it(`checks the full compiled answer for ${file}`, () => {
         const url = new URL(`../../../demos/euler/${file}`, import.meta.url);
         const diagnostics = new RuntimeDiagnostics();
@@ -56,6 +58,7 @@ for (const [file, expected] of [
             diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
             expect(runtime.variables.get('Answer')).toBe(expected);
             if (file === '705_inversioncount.ra') expect(diagnostics.nativeSequenceCopies).toBeGreaterThan(0);
+            if (file === '715_sextupletnorms.ra') expect(diagnostics.numberLoops).toBe(3);
             if (file === '310_nimsquare.ra') expect(diagnostics.numberLoops).toBe(3);
             expect(diagnostics.numberLoops).toBeGreaterThan(0);
             expect(diagnostics.numberLoopOverflows).toBe(0);
