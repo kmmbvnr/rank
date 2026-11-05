@@ -103,3 +103,9 @@ install -o root -g root -m 0644 \
 When copying deployment files with rsync, use `--no-owner --no-group` to avoid
 preserving the Mac's numeric owner. The nightly wrapper also reinstalls the
 cron file with explicit root ownership after each successful pull.
+
+Use **Run** to view a historical pass: its header, histogram, counters and
+individual results update together. **Compare with** selects the baseline for
+comparison columns. **Refresh** reloads the selected pass and preserves the
+run, comparison and table filters in the page URL. Loading failures appear
+beside Refresh and leave the last valid report visible.
