@@ -60,9 +60,12 @@ for (const [file, expected] of [
             expect(runtime.variables.get('Answer')).toBe(expected);
             if (file === '705_inversioncount.ra') expect(diagnostics.nativeSequenceCopies).toBeGreaterThan(0);
             if (file === '715_sextupletnorms.ra') expect(diagnostics.numberLoops).toBe(3);
-            if (file === '719_numbersplitting.ra') expect(diagnostics.numberLoops).toBe(55);
+            if (file === '719_numbersplitting.ra') {
+                expect(diagnostics.numberTensors).toBeGreaterThan(0);
+                expect(diagnostics.rankedArrayBatches).toBe(0);
+            }
             if (file === '310_nimsquare.ra') expect(diagnostics.numberLoops).toBe(3);
-            expect(diagnostics.numberLoops).toBeGreaterThan(0);
+            if (file !== '719_numbersplitting.ra') expect(diagnostics.numberLoops).toBeGreaterThan(0);
             expect(diagnostics.numberLoopOverflows).toBe(0);
         } finally { runtime.dispose(); }
     }, timeout);

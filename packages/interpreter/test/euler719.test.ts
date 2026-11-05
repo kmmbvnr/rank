@@ -4,7 +4,7 @@ import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 
 const source = readFileSync(new URL('../../../demos/euler/719_numbersplitting.ra', import.meta.url), 'utf8');
 
-// Enumerate decimal cut positions directly, without the batched frontier.
+// Enumerate decimal cut positions directly, independently of the frontier search.
 function oracle(limit: number) {
     let total = 0n;
     for (let root = 2; root * root <= limit; root++) {
@@ -23,11 +23,11 @@ function oracle(limit: number) {
     }
     return total;
 }
-function run(limit: number, compilation = true, batch = 4096) {
+function run(limit: number, compilation = true) {
     const runtime = new Interpreter(() => {}, { compilation });
     const diagnostics = new RuntimeDiagnostics();
     try {
-        diagnostics.run(() => runtime.execute(source.replace('arg Limit integer = 10 ** 12', `Limit = ${limit}`).replace('Batch = 4096', `Batch = ${batch}`)));
+        diagnostics.run(() => runtime.execute(source.replace('arg Limit integer = 10 ** 12', `Limit = ${limit}`)));
         return { answer: runtime.variables.get('Answer'), diagnostics };
     } finally { runtime.dispose(); }
 }
@@ -39,15 +39,13 @@ describe('Euler 719 decimal partitions', () => {
             expect(run(limit).answer).toBe(expected);
             expect(run(limit, false).answer).toBe(expected);
         });
-    it('keeps the published statement example in one Number loop', () => {
+    it('compiles deferred tensors for the published statement example', () => {
         const result = run(10000);
         expect(result.answer).toBe(41333n);
-        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberTensors).toBeGreaterThan(0);
+        expect(result.diagnostics.rankedArrayBatches).toBe(0);
         expect(result.diagnostics.numberLoopOverflows).toBe(0);
     });
-    it.each([1, 2, 7, 32])('keeps batch boundaries and zero padding exact (batch=%s)', batch => {
-        expect(run(10000, true, batch).answer).toBe(41333n);
-        expect(run(10000, false, batch).answer).toBe(41333n);
-    });
+
 
 });

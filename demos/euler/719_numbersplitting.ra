@@ -22,80 +22,67 @@ Candidates = 2 to Root
 Mod9 = Candidates mod 9
 Fit = Mod9 at most 1
 Roots = Candidates filter Fit
-
-rem Search independent roots in batches.
-rem Padding roots are zero and add nothing.
-fun Roots splitnumbers
-  Count = Roots len
-  Squares = Roots * Roots
-  Column = Squares reshape Count 1
-  Powers = 10 ** (0 to 13)
-  Suffixes = Column mod Powers
-  Scale = 10 ** (0 to 12)
-  Digits = (Column // Scale) mod 10
-  Rows = (0 to 12) reshape 13 1
-  Lower = Rows less (0 to 13)
-  Mask = Lower integer
-  DigitSums = Digits matmul Mask
-  Floors = 10 ** (0 to 12)
-  Reach = Column at least Floors
-  Present = Reach integer
-  Lengths = Present sum axis 1
-  Cells = Count * 14
-  FlatSuffix = Suffixes reshape Cells
-  FlatSums = DigitSums reshape Cells
-  Hits = array shape Count fill 0
-  Front = 0 to Count - 1
-  Left = Lengths
-  Sums = Front * 0
-  First = 1
-  Cuts = (1 to 13) reshape 1 13
-  for Front len greater 0
-    Size = Front len
-    RootCol = Front reshape Size 1
-    LeftCol = Left reshape Size 1
-    Remain = LeftCol - Cuts
-    Valid = Remain at least 0
-    CutOk = Cuts at most (LeftCol - First)
-    Valid = Valid and CutOk
-    Safe = Remain max 0
-    Where = RootCol * 14 + LeftCol
-    Value = FlatSuffix Where
-    Block = Value // Powers Safe
-    NewSum = (Sums reshape Size 1) + Block
-    Spot = RootCol * 14 + Safe
-    Rest = FlatSuffix Spot
-    RestSum = FlatSums Spot
-    Target = Roots RootCol
-    Empty = Safe equal 0
-    Equal = NewSum equal Target
-    Final = Empty and Equal
-    Success = Valid and Final
-    Wide = RootCol + Cuts * 0
-    Wins = Wide filter Success
-    Hits Wins = 1
-    Low = NewSum + RestSum
-    Under = Low at most Target
-    Alive = (Safe greater 0) and Under
-    High = NewSum + Rest
-    Within = Target at most High
-    Alive = Alive and Within
-    Alive = Alive and Valid
-    Front = Wide filter Alive
-    Sums = NewSum filter Alive
-    Left = Safe filter Alive
-    First = 0
-  end
-  Total = (Hits * Squares) sum
-  return Total
-end
-
-Batch = 4096
 Count = Roots len
-Padding = (-Count) mod Batch
-Zeros = array shape Padding fill 0
-Padded = concat Roots Zeros
-Groups = Padded reshape # Batch
-Totals = Groups splitnumbers rank 1
-Answer = Totals sum
+Squares = Roots * Roots
+Column = Squares reshape Count 1
+Powers = 10 ** (0 to 13)
+Suffixes = Column mod Powers
+Scale = 10 ** (0 to 12)
+Digits = (Column // Scale) mod 10
+Rows = (0 to 12) reshape 13 1
+Lower = Rows less (0 to 13)
+Mask = Lower integer
+DigitSums = Digits matmul Mask
+Floors = 10 ** (0 to 12)
+Reach = Column at least Floors
+Present = Reach integer
+Lengths = Present sum axis 1
+Cells = Count * 14
+FlatSuffix = Suffixes reshape Cells
+FlatSums = DigitSums reshape Cells
+Hits = array shape Count fill 0
+Front = 0 to Count - 1
+Left = Lengths
+Sums = Front * 0
+First = 1
+Cuts = (1 to 13) reshape 1 13
+rem Fuse deferred matrix stages.
+rem Retain the shared frontier mask.
+for Front len greater 0
+  Size = Front len
+  RootCol' = Front reshape Size 1
+  LeftCol' = Left reshape Size 1
+  Remain' = LeftCol - Cuts
+  Valid' = Remain at least 0
+  CutOk' = Cuts at most (LeftCol - First)
+  Valid' = Valid and CutOk
+  Safe' = Remain max 0
+  Where' = RootCol * 14 + LeftCol
+  Value' = FlatSuffix Where
+  Block' = Value // Powers Safe
+  NewSum' = (Sums reshape Size 1) + Block
+  Spot' = RootCol * 14 + Safe
+  Rest' = FlatSuffix Spot
+  RestSum' = FlatSums Spot
+  Target' = Roots RootCol
+  Empty' = Safe equal 0
+  Equal' = NewSum equal Target
+  Final' = Empty and Equal
+  Success' = Valid and Final
+  Wide' = RootCol + Cuts * 0
+  Wins' = Wide filter Success
+  Hits Wins = 1
+  Low' = NewSum + RestSum
+  Under' = Low at most Target
+  Alive' = (Safe greater 0) and Under
+  High' = NewSum + Rest
+  Within' = Target at most High
+  Alive' = Alive and Within
+  Alive = Alive and Valid
+  Front = Wide filter Alive
+  Sums = NewSum filter Alive
+  Left = Safe filter Alive
+  First = 0
+end
+Answer = (Hits * Squares) sum
 Answer print
