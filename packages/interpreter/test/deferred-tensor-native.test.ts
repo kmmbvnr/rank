@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, RankError, formatValue } from '../src/index.js';
+import { typedArray } from '../src/array-storage.js';
+import { prepareLayoutNumberTensor } from '../src/jit/tensor-number-layout.js';
+import type { TensorNode } from '../src/jit/tensor-ir.js';
 import { completed } from '../src/execution.js';
 import { isRankPlan } from '../src/plan.js';
 import { withDemandBudget, DemandBudgetExhausted } from '../src/interrupt.js';
@@ -90,4 +93,18 @@ Answer = Values filter Mask`, true);
             expect(demand()).toBe(100040000n);
         } finally { runtime.dispose(); }
     });
+});
+
+
+it('refreshes completed numeric inputs on repeated native demands and rejects unsafe replacements', () => {
+    const cells = new BigInt64Array([1n, 2n, 3n, 4n]);
+    const input: TensorNode = { kind: 'input', value: typedArray(cells, [2, 2]) };
+    const run = prepareLayoutNumberTensor(input, new Map([[input, ['integer']]]), 'sum', new Map(), () => true);
+    expect(run?.()).toBe(10n);
+    cells[0] = 10n;
+    expect(run?.()).toBe(19n);
+    cells[0] = 9007199254740993n;
+    expect(run?.()).toBeUndefined();
+    cells[0] = -10n;
+    expect(run?.()).toBe(-1n);
 });
