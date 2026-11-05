@@ -7,9 +7,9 @@ use linalg
 use io
 use cli
 
-arg Ww integer = 199
-arg Nn integer = 199
-arg Pm integer = 1000000007
+arg Width integer = 199
+arg Count integer = 199
+arg Prime integer = 1000000007
 
 rem F(w, h) = 2^(w h - nullity), with
 rem nullity = w - rank over GF(2) of
@@ -22,62 +22,70 @@ rem A(m+n) = A(m+1)A(n) + A(m)A(n+1)
 rem            + T A(m)A(n)
 rem The ranks of all B = A(f+1) come
 rem from one batched elimination.
-Ix = 0 to Ww - 1
-Dl = (Ix reshape Ww 1) - Ix
-Id = (Dl equal 0) integer
-Tm = (Dl abs less 2) integer
-Z3 = array shape (Nn * Ww * Ww) fill 0
-Bs = Z3 reshape Nn Ww Ww
-Bs 0 = Tm
-Bs 1 = Tm
-Am = Id
-Bm = Tm
-An = Id
-Bn = Tm
-Ga = 1
-Gb = 1
-Fs = array shape Nn fill 1
-for K in 2 to Nn - 1
-  Pp = Am matmul An mod 2
-  Qq = Am matmul Bn mod 2
-  Rr = Bm matmul An mod 2
-  Ss = Bm matmul Bn mod 2
-  Tp = Pp + (Pp shift 1) + (Pp shift -1)
-  Tp = Tp mod 2
-  An = Am
-  Bn = Bm
-  Am = (Qq + Rr + Tp) mod 2
-  Bm = (Ss + Pp) mod 2
-  Bs K = Bm
-  Gc = (Ga + Gb) mod (Pm - 1)
-  Ga = Gb
-  Gb = Gc
-  Fs K = Gc
+Index = 0 to Width - 1
+Delta = (Index reshape Width 1) - Index
+Identity = (Delta equal 0) integer
+Path = (Delta abs less 2) integer
+Cells3 = Count * Width * Width
+Zeros3 = array shape Cells3 fill 0
+Stack = Zeros3 reshape Count Width Width
+Stack 0 = Path
+Stack 1 = Path
+AHigh = Identity
+BHigh = Path
+ALow = Identity
+BLow = Path
+FibA = 1
+FibB = 1
+Fibs = array shape Count fill 1
+for Step in 2 to Count - 1
+  Prod = AHigh matmul ALow mod 2
+  Cross1 = AHigh matmul BLow mod 2
+  Cross2 = BHigh matmul ALow mod 2
+  Both = BHigh matmul BLow mod 2
+  Down = Prod shift 1
+  Up = Prod shift -1
+  Shifted = Prod + Down + Up
+  Shifted = Shifted mod 2
+  ALow = AHigh
+  BLow = BHigh
+  Sum = Cross1 + Cross2 + Shifted
+  AHigh = Sum mod 2
+  BHigh = (Both + Prod) mod 2
+  Stack Step = BHigh
+  FibC = (FibA + FibB) mod (Prime - 1)
+  FibA = FibB
+  FibB = FibC
+  Fibs Step = FibC
 end
-Z2 = array shape (Nn * Ww) fill 0
-Us = Z2 reshape Nn Ww
-Rk = array shape Nn fill 0
-Ob = (Ww - Ix) reshape 1 Ww
-for C in 0 to Ww - 1
-  Cl = Bs # # C
-  Wt = Cl * (1 - Us) * Ob
-  Mx = Wt max axis 1
-  Hs = (Mx greater 0) integer
-  Pv = Ww - Mx
-  Hr = Hs reshape Nn 1
-  Pc = Pv reshape Nn 1
-  Hot = (Ix equal Pc) integer
-  Hot = Hot * Hr
-  Hb = Hot reshape Nn Ww 1
-  Pr = Hb * Bs sum axis 1
-  Fc = Cl * (1 - Hot) * Hr
-  Fb = Fc reshape Nn Ww 1
-  Pb = Pr reshape Nn 1 Ww
-  Bs = (Bs + Fb * Pb) mod 2
-  Us = Us + Hot
-  Rk = Rk + Hs
+Cells2 = Count * Width
+Zeros2 = array shape Cells2 fill 0
+Used = Zeros2 reshape Count Width
+Rank = array shape Count fill 0
+Order = (Width - Index) reshape 1 Width
+for Column in 0 to Width - 1
+  Col = Stack # # Column
+  Weight = Col * (1 - Used) * Order
+  Best = Weight max axis 1
+  Has = (Best greater 0) integer
+  Pivot = Width - Best
+  HasCol = Has reshape Count 1
+  PivotCol = Pivot reshape Count 1
+  Hot = (Index equal PivotCol) integer
+  Hot = Hot * HasCol
+  HotCube = Hot reshape Count Width 1
+  PivotRow = HotCube * Stack sum axis 1
+  Factor = Col * (1 - Hot) * HasCol
+  Down2 = Factor reshape Count Width 1
+  Across = PivotRow reshape Count 1 Width
+  Update = Down2 * Across
+  Stack = (Stack + Update) mod 2
+  Used = Used + Hot
+  Rank = Rank + Has
 end
-Ex = (Ww * Fs - (Ww - Rk)) mod (Pm - 1)
-Pw = 2 Ex Pm powmod
-Answer = Pw sum mod Pm
+Cycle = Prime - 1
+Nullity = Width - Rank
+Exponent = (Width * Fibs - Nullity) mod Cycle
+Powers = 2 Exponent Prime powmod
+Answer = Powers sum mod Prime
 Answer print

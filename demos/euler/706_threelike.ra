@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-arg Dd integer = 100000
-arg Pm integer = 1000000007
+arg Digits integer = 100000
+arg Prime integer = 1000000007
 
 rem Since 10 = 1 mod 3, a substring is
 rem divisible when two prefix digit sums
@@ -16,37 +16,46 @@ rem A of prefixes per sum (mod 3) and
 rem pairs T so far (mod 3): 243 states.
 rem Each digit class moves states by a
 rem permutation: a step is 3 scatters.
-Xs = 0 to 242
-Ss = Xs mod 3
-Cl = Xs reshape 243 1
-Ar = Cl // (3 ** (1 to 3)) mod 3
-Tt = Xs // 81
-S2 = (Ss reshape 243 1 + (0 to 2)) mod 3
-Sr = S2 reshape 243 3 1
-Ht = Sr equal (0 to 2) integer
-Ar1 = Ar reshape 243 1 3
-Ac = Ar1 * Ht sum axis 2
-T2 = (Tt reshape 243 1 + Ac) mod 3
-Bd = (Ar1 + Ht) mod 3
-Pk = Bd * 3 ** (0 to 2) sum axis 2
-Sc = (S2 + 3 * Pk + 81 * T2) transpose
-Wt = array 4 3 3
-Cur = array shape 243 fill 0
-Cur 3 = 1
-Fs = array 3 3 3
-Nx = array shape 243 fill 0
-for K in 1 to Dd
-  Wg = Fs
-  if K greater 1
-    Wg = Wt
+States = 0 to 242
+Sums = States mod 3
+Column = States reshape 243 1
+Counts = Column // (3 ** (1 to 3)) mod 3
+Pairs = States // 81
+Sum1 = Sums reshape 243 1
+Next = (Sum1 + (0 to 2)) mod 3
+NextCol = Next reshape 243 3 1
+Hot = NextCol equal (0 to 2) integer
+Counts3 = Counts reshape 243 1 3
+Added = Counts3 * Hot sum axis 2
+Pair1 = Pairs reshape 243 1
+NewPairs = (Pair1 + Added) mod 3
+Bumped = (Counts3 + Hot) mod 3
+Scaled = Bumped * 3 ** (0 to 2)
+Packed = Scaled sum axis 2
+Cell = Next + 3 * Packed
+Where = Cell + 81 * NewPairs
+Targets = Where transpose
+Later = array 4 3 3
+Current = array shape 243 fill 0
+Current 3 = 1
+First = array 3 3 3
+Empty = array shape 243 fill 0
+for Place in 1 to Digits
+  Weight = First
+  if Place greater 1
+    Weight = Later
   end
-  N0 = Nx
-  N1 = Nx
-  N2 = Nx
-  N0 (Sc 0) = Cur * (Wg 0)
-  N1 (Sc 1) = Cur * (Wg 1)
-  N2 (Sc 2) = Cur * (Wg 2)
-  Cur = (N0 + N1 + N2) mod Pm
+  ByZero = Empty
+  ByOne = Empty
+  ByTwo = Empty
+  Gain0 = Current * (Weight 0)
+  Gain1 = Current * (Weight 1)
+  Gain2 = Current * (Weight 2)
+  ByZero (Targets 0) = Gain0
+  ByOne (Targets 1) = Gain1
+  ByTwo (Targets 2) = Gain2
+  Sum2 = ByZero + ByOne + ByTwo
+  Current = Sum2 mod Prime
 end
-Answer = Cur (0 to 80) sum mod Pm
+Answer = Current (0 to 80) sum mod Prime
 Answer print
