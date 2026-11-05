@@ -2,16 +2,16 @@ use testing
 
 test "statement values"
   use "716_gridgraphs"
-  Hh = 3
-  Ww = 3
+  Height = 3
+  Width = 3
   run
   Answer equal 408
-  Hh = 3
-  Ww = 6
+  Height = 3
+  Width = 6
   run
   Answer equal 4696
-  Hh = 10
-  Ww = 20
+  Height = 10
+  Width = 20
   run
   Answer equal 988971143
 end
