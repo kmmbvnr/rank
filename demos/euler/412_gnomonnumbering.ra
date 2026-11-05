@@ -18,40 +18,42 @@ rem t! with a corner block and two
 rem arms of width K. Prime modulus,
 rem so division is a power.
 P = 76543217
-fun V modprod P
-  for V len greater 1
-    if V len mod 2 equal 1
-      V = concat V (array 1)
-    end
-    H = V len // 2
-    Lo = V (0 to H - 1)
-    Hi = V (H to 2 * H - 1)
-    V = Lo * Hi mod P copy
-  end
-  return V 0
-end
-
 Cells = M * M - K * K
+rem Wilson gives the shorter product
+rem when the factorial stops below P.
+Tail = Cells greater (P - 1) // 2
+if Cells at least P
+  Tail = false
+end
+Start = 1
+Last = Cells
+if Tail
+  Start = Cells + 1
+  Last = P - 1
+end
 Fact = 1
-for Lo in 1 to Cells by Chunk
-  Hi = Cells min (Lo + Chunk - 1)
-  Part = (Lo to Hi) mod P copy
-  Fact = Fact * (Part modprod P) mod P
+for Lo in Start to Last by Chunk
+  Hi = Last min (Lo + Chunk - 1)
+  Part' = Lo to Hi
+  Prod = Part reduce * with 1 mod P
+  Fact = Fact * Prod mod P
 end
 
-Fc = array shape (2 * M) fill 1
-for T in 1 to 2 * M - 1
-  Fc T = Fc (T - 1) * T mod P
+if Tail
+  Fact = P - Fact (P - 2) P powmod
 end
+
+Up' = 1 to 2 * M - 1
+Fc = Up scan * with 1 mod P
 W = M - K
-Sl = Fc (M + K to (2 * M - 1))
-An = Sl copy modprod P
-Sl = Fc (2 * K to (M + K - 1))
-Ad = Sl copy modprod P
-Sl = Fc (K to (M - 1))
-Bn = Sl copy modprod P
-Sl = Fc (0 to (W - 1))
-Bd = Sl copy modprod P
+Sl = Fc (M + K to 2 * M - 1)
+An = Sl reduce * with 1 mod P
+Sl = Fc (2 * K to M + K - 1)
+Ad = Sl reduce * with 1 mod P
+Sl = Fc (K to M - 1)
+Bn = Sl reduce * with 1 mod P
+Sl = Fc (0 to W - 1)
+Bd = Sl reduce * with 1 mod P
 Den = An * Bn mod P * Bn mod P
 Num = Ad * Bd mod P * Bd mod P
 Inv = Den (P - 2) P powmod
