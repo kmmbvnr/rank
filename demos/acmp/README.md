@@ -121,6 +121,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0761** | [Ковбои](0761_cowboys.ra) | Graph Theory (65%) | Minimum edge-disjoint path cover / Eulerian trail decomposition via DSU and odd-degree vertex counting |
 | **0767** | [Дороги - 3](0767_roads_3.ra) | Graph Theory (67%) | Max one-way roads via Robbins' theorem: total edges minus bridges found with Tarjan's DFS and `choose` |
 | **0771** | [Экзамен](0771_exam.ra) | Data Structures / Trees (74%) | First Child - Next Sibling (FC-NS) binary tree representation and compact non-overlapping pseudographic layout via difference constraint relaxation |
+| **0772** | [Конверт](0772_envelope.ra) | Simulation / Modeling (75%) | Flat paper folding simulation tracking interval layers, stack boundaries and outward face orientations |
 | **0776** | [Юпитер](0776_jupiter.ra) | Graph Theory / BFS (62%) | BFS over (flights used, cell); each flight is one slice with `scan max` for the climb cost |
 | **0802** | [Магический квадрат](0802_magic_square.ra) | 2D Arrays / Combinatorics (70%) | $N \times N$ normal magic square construction with zero loops: closed-form Siamese for odd, inversion mask for $4k$, and vectorized Strachey quadrant `concat` for $4k+2$ |
 | **0808** | [Про любовь ...](0808_about_love_2.ra) | Computational Geometry (70%) | Earliest contact time between moving stick segments via Minkowski difference parallelogram ray-casting & 4-edge Cramer intersection with zero loops |

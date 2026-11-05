@@ -1,0 +1,345 @@
+rem ACMP 0772: Envelope (75%)
+rem Flat paper folding simulation
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = (
+  "20 20 1F 2R 3F 4R 5F 6R 7F 8R " +
+  "9F 10R 11F 12R 13F 14R 15F 16R " +
+  "17F 18R 19F 20R"
+)
+
+Tokens = Input split " "
+Tokens = Tokens (Tokens not equal "")
+N = (Tokens 0) integer
+M = (Tokens 1) integer
+Commands = Tokens drop 2
+
+OFFSET = 100
+MAX_Y = 200
+MAX_STACK = 25
+
+BlankFrags = (
+  array shape 200 25 fill -1
+)
+BlankFaces = (
+  array shape 200 25 fill 0
+)
+
+StackFrag = BlankFrags copy
+StackFace = BlankFaces copy
+StackLen = array shape MAX_Y fill 0
+
+for I in 0 to N
+  Y = OFFSET + I
+  StackFrag Y 0 = I
+  StackFace Y 0 = 0
+  StackLen Y = 1
+end
+
+Pos = OFFSET + (0 to (N + 1))
+IsScruffy = false
+
+for Step in 0 till M
+  if IsScruffy
+    break
+  end
+  Cmd = Commands Step
+  CLen = Cmd len
+  FoldType = Cmd (CLen - 1)
+  K = (Cmd take (CLen - 1)) integer
+
+  Pivot = Pos K
+  SizeA = K
+  SizeB = (N + 1) - K
+
+  Sides = array 0
+  if SizeA less SizeB
+    Sides = array 0
+  else
+    if SizeB less SizeA
+      Sides = array 1
+    else
+      Sides = array 0 1
+    end
+  end
+
+  StepSuccess = false
+  for SideIdx in 0 till (Sides len)
+    if StepSuccess
+      break
+    end
+    MoveSide = Sides SideIdx
+    RefP = K - 1
+    if MoveSide equal 1
+      RefP = K
+    end
+
+    RefFace = 0
+    FoundRef = false
+    for Y in 0 till MAX_Y
+      if FoundRef
+        break
+      end
+      SLen = StackLen Y
+      for S in 0 till SLen
+        if (StackFrag Y S) equal RefP
+          RefFace = StackFace Y S
+          FoundRef = true
+          break
+        end
+      end
+    end
+
+    FoldDir = 0
+    if FoldType equal "F"
+      if RefFace equal 0
+        FoldDir = 1
+      else
+        FoldDir = 0
+      end
+    else
+      if RefFace equal 0
+        FoldDir = 0
+      else
+        FoldDir = 1
+      end
+    end
+
+    Possible = true
+    MovingY = array shape 0 fill 0
+    MovingFrags = BlankFrags copy
+    MovingFaces = BlankFaces copy
+    MovingLen = array shape MAX_Y fill 0
+
+    StatFrags = BlankFrags copy
+    StatFaces = BlankFaces copy
+    StatLen = array shape MAX_Y fill 0
+
+    for Y in 0 till MAX_Y
+      if not Possible
+        break
+      end
+      SLen = StackLen Y
+      if SLen greater 0
+        MovedCount = 0
+        FixedCount = 0
+        for S in 0 till SLen
+          P = StackFrag Y S
+          IsMoved = P less K
+          if MoveSide equal 1
+            IsMoved = P at least K
+          end
+          if IsMoved
+            MovedCount += 1
+          else
+            FixedCount += 1
+          end
+        end
+
+        if (MovedCount greater 0) and (
+          FixedCount greater 0
+        )
+          if FoldDir equal 0
+            for S in 0 till MovedCount
+              P = StackFrag Y S
+              IsMoved = P less K
+              if MoveSide equal 1
+                IsMoved = P at least K
+              end
+              if not IsMoved
+                Possible = false
+                break
+              end
+            end
+          else
+            for S in 0 till FixedCount
+              P = StackFrag Y S
+              IsMoved = P less K
+              if MoveSide equal 1
+                IsMoved = P at least K
+              end
+              if IsMoved
+                Possible = false
+                break
+              end
+            end
+          end
+        end
+
+        if Possible
+          if MovedCount greater 0
+            NewY = 2 * Pivot - Y - 1
+            MovingY = concat MovingY (
+              array NewY
+            )
+            MovingLen NewY = MovedCount
+            Idx = 0
+            RevRange = (
+              (0 to (SLen - 1)) reverse
+            )
+            for S in RevRange
+              P = StackFrag Y S
+              IsMoved = P less K
+              if MoveSide equal 1
+                IsMoved = P at least K
+              end
+              if IsMoved
+                MovingFrags NewY Idx = P
+                MovingFaces NewY Idx = (
+                  1 - (StackFace Y S)
+                )
+                Idx += 1
+              end
+            end
+          end
+
+          if FixedCount greater 0
+            StatLen Y = FixedCount
+            Idx = 0
+            for S in 0 till SLen
+              P = StackFrag Y S
+              IsMoved = P less K
+              if MoveSide equal 1
+                IsMoved = P at least K
+              end
+              if not IsMoved
+                StatFrags Y Idx = P
+                StatFaces Y Idx = (
+                  StackFace Y S
+                )
+                Idx += 1
+              end
+            end
+          end
+        end
+      end
+    end
+
+    if Possible
+      NewStackFrag = StatFrags copy
+      NewStackFace = StatFaces copy
+      NewStackLen = StatLen copy
+
+      for MY in MovingY
+        MLen = MovingLen MY
+        OldLen = StatLen MY
+        if OldLen equal 0
+          for S in 0 till MLen
+            NewStackFrag MY S = (
+              MovingFrags MY S
+            )
+            NewStackFace MY S = (
+              MovingFaces MY S
+            )
+          end
+          NewStackLen MY = MLen
+        else
+          Tot = OldLen + MLen
+          if FoldDir equal 0
+            for S in 0 till MLen
+              NewStackFrag MY S = (
+                MovingFrags MY S
+              )
+              NewStackFace MY S = (
+                MovingFaces MY S
+              )
+            end
+            for S in 0 till OldLen
+              NewStackFrag MY (
+                MLen + S
+              ) = StatFrags MY S
+              NewStackFace MY (
+                MLen + S
+              ) = StatFaces MY S
+            end
+          else
+            for S in 0 till OldLen
+              NewStackFrag MY S = (
+                StatFrags MY S
+              )
+              NewStackFace MY S = (
+                StatFaces MY S
+              )
+            end
+            for S in 0 till MLen
+              NewStackFrag MY (
+                OldLen + S
+              ) = MovingFrags MY S
+              NewStackFace MY (
+                OldLen + S
+              ) = MovingFaces MY S
+            end
+          end
+          NewStackLen MY = Tot
+        end
+      end
+
+      StackFrag = NewStackFrag
+      StackFace = NewStackFace
+      StackLen = NewStackLen
+
+      if MoveSide equal 0
+        for I in 0 till K
+          Pos I = 2 * Pivot - (Pos I)
+        end
+      else
+        for I in (K + 1) to (N + 1)
+          Pos I = 2 * Pivot - (Pos I)
+        end
+      end
+      StepSuccess = true
+    end
+  end
+
+  if not StepSuccess
+    IsScruffy = true
+  end
+end
+
+Result = ""
+if IsScruffy
+  Result = "SCRUFFY"
+else
+  VisF = array shape (N + 1) fill false
+  VisR = array shape (N + 1) fill false
+
+  for Y in 0 till MAX_Y
+    SLen = StackLen Y
+    if SLen greater 0
+      PLeft = StackFrag Y 0
+      FLeft = StackFace Y 0
+      if FLeft equal 0
+        VisF PLeft = true
+      else
+        VisR PLeft = true
+      end
+
+      PRight = StackFrag Y (SLen - 1)
+      FRight = StackFace Y (SLen - 1)
+      if FRight equal 1
+        VisF PRight = true
+      else
+        VisR PRight = true
+      end
+    end
+  end
+
+  OutF = array shape 0 fill ""
+  OutR = array shape 0 fill ""
+  for P in 0 to N
+    if VisF P
+      Tag = "P" + (P text) + "F"
+      OutF = concat OutF (array Tag)
+    end
+    if VisR P
+      Tag = "P" + (P text) + "R"
+      OutR = concat OutR (array Tag)
+    end
+  end
+  Result = (concat OutF OutR) join " "
+end
+
+Result text
