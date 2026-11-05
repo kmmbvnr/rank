@@ -7,7 +7,7 @@ use linalg
 use io
 use cli
 
-arg Nn integer = 10 ** 12
+arg Limit integer = 10 ** 12
 
 rem Search the roots r with r = r^2
 rem mod 9 (r mod 9 is 0 or 1), since
@@ -17,57 +17,70 @@ rem Each wave cuts one more block off
 rem the front. A branch lives while
 rem sum + digit sum of the rest <= r <=
 rem sum + value of the rest.
-Rt = Nn isqrt
-Cs = 2 to Rt
-Rs = Cs filter ((Cs mod 9) at most 1)
-Nr = Rs len
-Sq = Rs * Rs
-Qs = Sq reshape Nr 1
-Pw = 10 ** (0 to 13)
-Vm = Qs mod Pw
-Dg = (Qs // (10 ** (0 to 12))) mod 10
-Rw = (0 to 12) reshape 13 1
-Tr = Rw less (0 to 13)
-Sd = Dg matmul (Tr integer)
-Lo = 10 ** (0 to 12)
-Dc = (Qs at least Lo) integer
-Dn = Dc sum axis 1
-Vf = Vm reshape (Nr * 14)
-Sf = Sd reshape (Nr * 14)
-Hit = array shape Nr fill 0
-Fi = 0 to Nr - 1
-Fm = Dn
-Fs = Fi * 0
-Fl = 1
-Ls = (1 to 13) reshape 1 13
-for Fi len greater 0
-  Ns = Fi len
-  Ci = Fi reshape Ns 1
-  Cm = Fm reshape Ns 1
-  Rm = Cm - Ls
-  Ok = Rm at least 0
-  Lm = Ls at most (Cm - Fl)
-  Ok = Ok and Lm
-  Rz = Rm max 0
-  Sv = Vf (Ci * 14 + Cm)
-  Bk = Sv // Pw Rz
-  Sn = (Fs reshape Ns 1) + Bk
-  Ix = Ci * 14 + Rz
-  Vn = Vf Ix
-  Dn2 = Sf Ix
-  Rr = Rs Ci
-  Fin = (Rz equal 0) and (Sn equal Rr)
-  Done = Ok and Fin
-  Wi = (Ci + Ls * 0) filter Done
-  Hit Wi = 1
-  Lw = Sn + Dn2 at most Rr
-  Alive = (Rz greater 0) and Lw
-  Alive = Alive and (Rr at most Sn + Vn)
-  Alive = Alive and Ok
-  Fi = (Ci + Ls * 0) filter Alive
-  Fs = Sn filter Alive
-  Fm = Rz filter Alive
-  Fl = 0
+Root = Limit isqrt
+Candidates = 2 to Root
+Mod9 = Candidates mod 9
+Fit = Mod9 at most 1
+Roots = Candidates filter Fit
+Count = Roots len
+Squares = Roots * Roots
+Column = Squares reshape Count 1
+Powers = 10 ** (0 to 13)
+Suffixes = Column mod Powers
+Scale = 10 ** (0 to 12)
+Digits = (Column // Scale) mod 10
+Rows = (0 to 12) reshape 13 1
+Lower = Rows less (0 to 13)
+Mask = Lower integer
+DigitSums = Digits matmul Mask
+Floors = 10 ** (0 to 12)
+Reach = Column at least Floors
+Present = Reach integer
+Lengths = Present sum axis 1
+Cells = Count * 14
+FlatSuffix = Suffixes reshape Cells
+FlatSums = DigitSums reshape Cells
+Hits = array shape Count fill 0
+Front = 0 to Count - 1
+Left = Lengths
+Sums = Front * 0
+First = 1
+Cuts = (1 to 13) reshape 1 13
+for Front len greater 0
+  Size = Front len
+  RootCol = Front reshape Size 1
+  LeftCol = Left reshape Size 1
+  Remain = LeftCol - Cuts
+  Valid = Remain at least 0
+  CutOk = Cuts at most (LeftCol - First)
+  Valid = Valid and CutOk
+  Safe = Remain max 0
+  Where = RootCol * 14 + LeftCol
+  Value = FlatSuffix Where
+  Block = Value // Powers Safe
+  NewSum = (Sums reshape Size 1) + Block
+  Spot = RootCol * 14 + Safe
+  Rest = FlatSuffix Spot
+  RestSum = FlatSums Spot
+  Target = Roots RootCol
+  Empty = Safe equal 0
+  Equal = NewSum equal Target
+  Final = Empty and Equal
+  Success = Valid and Final
+  Wide = RootCol + Cuts * 0
+  Wins = Wide filter Success
+  Hits Wins = 1
+  Low = NewSum + RestSum
+  Under = Low at most Target
+  Alive = (Safe greater 0) and Under
+  High = NewSum + Rest
+  Within = Target at most High
+  Alive = Alive and Within
+  Alive = Alive and Valid
+  Front = Wide filter Alive
+  Sums = NewSum filter Alive
+  Left = Safe filter Alive
+  First = 0
 end
-Answer = (Hit * Sq) sum
+Answer = (Hits * Squares) sum
 Answer print

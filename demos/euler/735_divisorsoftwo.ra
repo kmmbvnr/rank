@@ -1,0 +1,152 @@
+rem Divisors of 2n^2
+rem https://projecteuler.net/problem=735
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg Limit integer = 10 ** 12
+arg Budget integer = 16777216
+
+rem Write d | 2 n^2, d <= n as n = g a b
+rem with coprime a, b and either a odd,
+rem b >= a, or b odd, b >= 2a. Moebius
+rem over g (odd squarefree) leaves
+rem F = sum mu(g) (HA + HB)(N / g^2)
+rem where HA sums over odd u the pair
+rem count Cg(X / u, u) and HB over w
+rem the count Cg(X / w, 2w) -
+rem Cg(X / 2w, w), with Cg(Y, L) the
+rem sum of Y // m for m = L..Y. A pair
+rem count is the divisor sum D(Y) minus
+rem a short prefix or, for large L, a
+rem sum over t <= Y / L. All terms form
+rem one ragged array, summed in chunks.
+Root = Limit isqrt
+Mobius = array shape (Root + 1) fill 1
+Mobius 0 = 0
+for Prime in primes to Root
+  Hits = Prime to Root by Prime
+  Old = Mobius Hits
+  Mobius Hits = 0 - Old
+  Square = Prime * Prime
+  if Square at most Root
+    Zeroed = Square to Root by Square
+    Mobius Zeroed = 0
+  end
+end
+Odds = 1 to Root by 2
+Keep = (Mobius Odds) not equal 0
+Gs = Odds filter Keep
+Signs = Mobius Gs
+Bounds = Limit // (Gs * Gs)
+CountA = ((Bounds isqrt) + 1) // 2
+CountB = (Bounds // 2) isqrt
+rem Tasks of group A: odd u per g.
+Who = 0 to Gs len - 1
+HasA = CountA greater 0
+WhoA = Who filter HasA
+KeepA = CountA filter HasA
+SizeA = KeepA sum
+EndsA = KeepA scan +
+StartA = EndsA - KeepA
+MarkA = array shape SizeA fill 0
+MarkA StartA = 1
+OwnerA = WhoA ((MarkA scan +) - 1)
+RangeA = 0 to SizeA - 1
+Slot = (MarkA scan +) - 1
+OffsetA = RangeA - (StartA Slot)
+OddU = 2 * OffsetA + 1
+BoundA = Bounds OwnerA
+YA = BoundA // OddU
+SignA = Signs OwnerA
+rem Tasks of group B: every w per g.
+HasB = CountB greater 0
+WhoB = Who filter HasB
+KeepB = CountB filter HasB
+SizeB = KeepB sum
+EndsB = KeepB scan +
+StartB = EndsB - KeepB
+MarkB = array shape SizeB fill 0
+MarkB StartB = 1
+OwnerB = WhoB ((MarkB scan +) - 1)
+RangeB = 0 to SizeB - 1
+SlotB = (MarkB scan +) - 1
+OffsetB = RangeB - (StartB SlotB) + 1
+BoundB = Bounds OwnerB
+SignB = Signs OwnerB
+Ys = concat YA (BoundB // OffsetB)
+Ys = concat Ys (BoundB // (2 * OffsetB))
+Ls = concat OddU (2 * OffsetB)
+Ls = concat Ls OffsetB
+Gains = concat SignA SignB
+Gains = concat Gains (0 - SignB)
+rem Cost of a task in terms.
+Wide = (Ls * Ls) less Ys
+Sides = Ys isqrt
+Direct = Sides + Ls
+Cost = Wide choose Direct (Ys // Ls)
+Spent = Cost scan +
+Tasks = Ys len
+Last = Tasks - 1
+Final = Spent Last
+Chunks = Final // Budget + 1
+Bucket = (Spent - 1) // Budget
+Edges = (0 to Chunks) array
+Firsts = Bucket lowerindex Edges
+Total = 0
+Widest = Cost max
+Iota = (0 to Budget + Widest + 1) array
+for Piece in 0 to Chunks - 1
+  Begin = Firsts Piece
+  End = Firsts (Piece + 1) - 1
+  if End at least Begin
+    Area = Begin to End
+    Y = Ys Area
+    L = Ls Area
+    Gain = Gains Area
+    Short = (L * L) less Y
+    Y1 = Y filter Short
+    L1 = L filter Short
+    G1 = Gain filter Short
+    Long = (L * L) at least Y
+    Y2 = Y filter Long
+    L2 = L filter Long
+    G2 = Gain filter Long
+    Side = Y1 isqrt
+    Tail = Y2 // L2
+    Values = concat (concat Y1 Y1) Y2
+    Twice = 2 * G1
+    Minus = 0 - G1
+    Pair = concat Twice Minus
+    Signs2 = concat Pair G2
+    Prefix = L1 - 1
+    Both = concat Side Prefix
+    Sizes = concat Both Tail
+    Fix1 = Side * Side * G1
+    Fix2 = Tail * (1 - L2) * G2
+    Gain2 = Fix2 sum
+    Cut1 = Fix1 sum
+    Fixed = Gain2 - Cut1
+    Used = Sizes greater 0
+    Values = Values filter Used
+    Signs2 = Signs2 filter Used
+    Sizes = Sizes filter Used
+    Many = Sizes sum
+    Ends = Sizes scan +
+    Starts = Ends - Sizes
+    Marks = array shape Many fill 0
+    Marks Starts = 1
+    Owner = (Marks scan +) - 1
+    Run = Iota take Many
+    Index = Run - (Starts Owner) + 1
+    Divided = (Values Owner) // Index
+    Term = (Signs2 Owner) * Divided
+    Added = Term sum
+    Total = Total + Added + Fixed
+  end
+end
+Answer = Total
+Answer print

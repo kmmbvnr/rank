@@ -2,16 +2,16 @@ use testing
 
 test "statement values"
   use "707_lightsout"
-  Ww = 3
-  Nn = 3
+  Width = 3
+  Count = 3
   run
   Answer equal 32
-  Ww = 4
-  Nn = 5
+  Width = 4
+  Count = 5
   run
   Answer equal 1052960
-  Ww = 5
-  Nn = 7
+  Width = 5
+  Count = 7
   run
   Answer equal 346547294
 end

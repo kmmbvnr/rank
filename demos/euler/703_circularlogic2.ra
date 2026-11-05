@@ -8,8 +8,8 @@ use bits
 use io
 use cli
 
-arg Nn integer = 20
-arg Pm integer = 1001001011
+arg Bits integer = 20
+arg Prime integer = 1001001011
 
 rem T is an independent set of the
 rem functional graph x -> f(x). Trees
@@ -18,76 +18,90 @@ rem per node (W0 free, W1 chosen) in
 rem waves: each wave merges one ready
 rem child per parent. A cycle is a path
 rem DP split on its first node.
-Sz = 2 ** Nn
-Xs = 0 to Sz - 1
-Xo = Xs shr 1 bxor (Xs shr 2) band 1
-Hi = Xs band Xo shl (Nn - 1)
-Fx = Xs shr 1 + Hi
-Pe = (new counter Fx) Xs
-Sent = Xs less 0
-W0 = array shape Sz fill 1
-W1 = array shape Sz fill 1
-Win = array shape Sz fill 0
-Rd = Xs filter (Pe equal 0)
-for Rd len greater 0
-  Pr = Fx Rd
-  Win Pr = Rd
-  Pk = Rd filter ((Win Pr) equal Rd)
-  Pp = Fx Pk
-  Sent Pk = true
-  Pe Pp = Pe Pp - 1
-  E0 = W0 Pk
-  W0 Pp = W0 Pp * (E0 + W1 Pk) mod Pm
-  W1 Pp = W1 Pp * E0 mod Pm
-  Ok = (Pe equal 0) and not Sent
-  Rd = Xs filter Ok
+Count = 2 ** Bits
+States = 0 to Count - 1
+Half1 = States shr 1
+Mixed = Half1 bxor (States shr 2) band 1
+Top = States band Mixed shl (Bits - 1)
+Next = States shr 1 + Top
+Pending = (new counter Next) States
+Done = States less 0
+Free = array shape Count fill 1
+Chosen = array shape Count fill 1
+Winner = array shape Count fill 0
+Ready = States filter (Pending equal 0)
+for Ready len greater 0
+  Parents = Next Ready
+  Winner Parents = Ready
+  Won = Winner Parents
+  Same = Won equal Ready
+  Picked = Ready filter Same
+  Parent = Next Picked
+  Done Picked = true
+  Pending Parent = Pending Parent - 1
+  ChildFree = Free Picked
+  Both = ChildFree + Chosen Picked
+  Scaled = Free Parent * Both
+  Free Parent = Scaled mod Prime
+  Product = Chosen Parent * ChildFree
+  Chosen Parent = Product mod Prime
+  Mask = (Pending equal 0) and not Done
+  Ready = States filter Mask
 end
 rem Cycle nodes: Pe stays positive.
-Lb = Xs
-Jp = Fx
-for K in 1 to Nn + 1
-  Lb = Lb min (Lb Jp)
-  Jp = Jp Jp
+Label = States
+Jump = Next
+for Step in 1 to Bits + 1
+  Label = Label min (Label Jump)
+  Jump = Jump Jump
 end
-Ok = (Pe greater 0) and (Lb equal Xs)
-Rs = Xs filter Ok
+Mask = Pending greater 0
+Mask = Mask and (Label equal States)
+Starts = States filter Mask
 rem Walk every cycle at once from its
 rem first node; A = first free, B =
 rem first chosen; pairs: free, used.
-Cu = Fx Rs
-Aa = W0 Rs
-Ab = Aa * 0
-Ba = Aa * 0
-Bb = W1 Rs
-Ac = Cu not equal Rs
-for Ac count greater 0
-  F0 = W0 Cu
-  F1 = W1 Cu
-  Na = (Aa + Ab) * F0 mod Pm
-  Nb = Aa * F1 mod Pm
-  Ma = (Ba + Bb) * F0 mod Pm
-  Mb = Ba * F1 mod Pm
-  Aa = Ac choose Na Aa
-  Ab = Ac choose Nb Ab
-  Ba = Ac choose Ma Ba
-  Bb = Ac choose Mb Bb
-  Cu = Ac choose (Fx Cu) Cu
-  Ac = Cu not equal Rs
+Current = Next Starts
+Free1 = Free Starts
+Used1 = Free1 * 0
+Free2 = Free1 * 0
+Used2 = Chosen Starts
+Active = Current not equal Starts
+for Active count greater 0
+  Off = Free Current
+  On = Chosen Current
+  Sum1 = Free1 + Used1
+  NewFree1 = Sum1 * Off mod Prime
+  NewUsed1 = Free1 * On mod Prime
+  Sum2 = Free2 + Used2
+  NewFree2 = Sum2 * Off mod Prime
+  NewUsed2 = Free2 * On mod Prime
+  Free1 = Active choose NewFree1 Free1
+  Used1 = Active choose NewUsed1 Used1
+  Free2 = Active choose NewFree2 Free2
+  Used2 = Active choose NewUsed2 Used2
+  Ahead = Next Current
+  Current = Active choose Ahead Current
+  Active = Current not equal Starts
 end
-Loop = Fx Rs equal Rs
-Cm = (Aa + Ab + Ba) mod Pm
-Cm = Loop choose (W0 Rs) Cm
+SelfLoop = Next Starts equal Starts
+Total = Free1 + Used1 + Free2
+Cycles = Total mod Prime
+Alone = Free Starts
+Cycles = SelfLoop choose Alone Cycles
 rem Product of the cycle factors by
 rem pairwise halving.
-Ln = Cm len
-Tp = 2 ** ((Ln - 1) binary len)
-Pad = array shape (Tp - Ln) fill 1
-Cm = concat Cm Pad
-Hf = Tp // 2
-for Hf greater 0
-  Lo = Cm take Hf
-  Cm = Lo * (Cm drop Hf) mod Pm
-  Hf = Hf // 2
+Length = Cycles len
+Padded = 2 ** ((Length - 1) binary len)
+Extra = Padded - Length
+Pad = array shape Extra fill 1
+Cycles = concat Cycles Pad
+Half = Padded // 2
+for Half greater 0
+  Low = Cycles take Half
+  High = Cycles drop Half
+  Cycles = Low * High mod Prime
+  Half = Half // 2
 end
-Answer = Cm 0
+Answer = Cycles 0
 Answer print

@@ -2,10 +2,10 @@ use testing
 
 test "statement values"
   use "704_factorsoftwo"
-  Nn = 100
+  Limit = 100
   run
   Answer equal 389
-  Nn = 10000000
+  Limit = 10000000
   run
   Answer equal 203222840
 end

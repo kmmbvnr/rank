@@ -9,8 +9,8 @@ use linalg
 use io
 use cli
 
-arg Nn integer = 10 ** 8
-arg Pm integer = 1000000007
+arg Limit integer = 10 ** 8
+arg Prime integer = 1000000007
 
 rem Positions i < j with digits a, b add
 rem N(a, b) inversions over the divided
@@ -23,10 +23,10 @@ rem the current column before counting
 rem the current digit itself.
 rem Leading zeroes disappear with all
 rem other zeroes from the digit stream.
-fun Limit primedigits
-  Primes = Limit primesieve array
+fun Bound primedigits
+  Primes = Bound primesieve array
   Count = Primes len
-  Width = Limit text len
+  Width = Bound text len
   Places = Width - 1 - (0 to Width - 1)
   Powers = 10 ** Places
   Matrix = Primes reshape Count 1
@@ -34,42 +34,46 @@ fun Limit primedigits
   Cells = Matrix reshape (Count * Width)
   return Cells filter (Cells greater 0)
 end
-Digits = (Nn - 1) primedigits
-Vs = 1 to 9
+Digits = (Limit - 1) primedigits
+Faces = 1 to 9
 Pairs = array shape 81 fill 0
-Counts = array shape 9 fill 0
+Seen = array shape 9 fill 0
 for Digit in Digits
-  Column = Digit - 1
-  Pairs Column += Counts 0
-  Pairs (9 + Column) += Counts 1
-  Pairs (18 + Column) += Counts 2
-  Pairs (27 + Column) += Counts 3
-  Pairs (36 + Column) += Counts 4
-  Pairs (45 + Column) += Counts 5
-  Pairs (54 + Column) += Counts 6
-  Pairs (63 + Column) += Counts 7
-  Pairs (72 + Column) += Counts 8
-  Counts Column += 1
+  DigitIndex = Digit - 1
+  Pairs DigitIndex += Seen 0
+  Pairs (9 + DigitIndex) += Seen 1
+  Pairs (18 + DigitIndex) += Seen 2
+  Pairs (27 + DigitIndex) += Seen 3
+  Pairs (36 + DigitIndex) += Seen 4
+  Pairs (45 + DigitIndex) += Seen 5
+  Pairs (54 + DigitIndex) += Seen 6
+  Pairs (63 + DigitIndex) += Seen 7
+  Pairs (72 + DigitIndex) += Seen 8
+  Seen DigitIndex += 1
 end
 rem Divisor table, tau and the weights.
-Cl = Vs reshape 9 1
-Dm = Cl mod Vs equal 0 integer
-Up = (Vs reshape 9 1) greater Vs integer
-Gm = Dm matmul Up
-Nb = Gm matmul (Dm transpose)
-Tau = Dm sum axis 1
-Iv = Tau (Pm - 2) Pm powmod
-Wg = Nb * (Iv reshape 9 1) mod Pm
-Wg = Wg * Iv mod Pm
-Tw = (Tau equal 4 integer) * 2
-Tw = Tw + (Tau equal 2 integer)
-Th = Tau equal 3 integer
-E2 = Tw * Counts sum
-E3 = Th * Counts sum
-P2 = 2 E2 Pm powmod
-P3 = 3 E3 Pm powmod
-Tt = P2 * P3 mod Pm
-Cm = Pairs reshape 9 9 mod Pm
-Sm = Cm * Wg mod Pm sum
-Answer = Tt * Sm mod Pm
+Column = Faces reshape 9 1
+Whole = Column mod Faces equal 0
+Divides = Whole integer
+Bigger = Column greater Faces
+Larger = Bigger integer
+Mixed = Divides matmul Larger
+Moves = Mixed matmul (Divides transpose)
+Tau = Divides sum axis 1
+Inverse = Tau (Prime - 2) Prime powmod
+Side = Inverse reshape 9 1
+Weight = Moves * Side mod Prime
+Weight = Weight * Inverse mod Prime
+TwoPart = (Tau equal 4 integer) * 2
+Twice = Tau equal 2 integer
+TwoPart = TwoPart + Twice
+ThreePart = Tau equal 3 integer
+TwoExp = TwoPart * Seen sum
+ThreeExp = ThreePart * Seen sum
+TwoPow = 2 TwoExp Prime powmod
+ThreePow = 3 ThreeExp Prime powmod
+Choices = TwoPow * ThreePow mod Prime
+Counts = Pairs reshape 9 9 mod Prime
+Sum = Counts * Weight mod Prime sum
+Answer = Choices * Sum mod Prime
 Answer print

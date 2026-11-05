@@ -1,0 +1,64 @@
+rem Minimum Area of a Convex Polygon
+rem https://projecteuler.net/problem=742
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Vertices integer = 1000
+arg Reach integer = 40
+arg Width integer = 2400
+
+rem The mirror axes pass through half
+rem integers, so a polygon with 4 Q
+rem vertices has a top and a side edge
+rem of length 1 and, in each quadrant,
+rem K = Q - 1 edges with distinct
+rem primitive directions (x, y), slope
+rem y / x rising. With X the sum of the
+rem x of the edges before it, an edge
+rem adds 4 X y + 2x + 2y + 2 x y to the
+rem area, which starts at 1. So a
+rem knapsack over the edges in slope
+rem order, indexed by count and X, keeps
+rem the least area. Vectors have
+rem coordinates up to Reach and X up to
+rem Width, both above the optimum.
+Quarter = Vertices // 4
+Edges = Quarter - 1
+Side = Width + 1
+Row = 1 to Reach
+Column1 = Row reshape Reach 1
+Common = Row gcd Column1
+Across = Row + Common * 0
+Down = Column1 + Common * 0
+Good = Common equal 1
+Xs = Across filter Good
+Ys = Down filter Good
+Slope = Ys * 1.0 / Xs
+Order = Slope argsort
+Xs = Xs Order
+Ys = Ys Order
+Huge = 4000000000000000000
+Cells = (Edges + 1) * Side
+Table = array shape Cells fill Huge
+Table 0 = 0
+Place = 0 to Cells - 1
+Column = Place mod Side
+for Step in 0 to Xs len - 1
+  Run = Xs Step
+  Rise = Ys Step
+  Cost = 2 * Run + 2 * Rise
+  Cost = Cost + 2 * Run * Rise
+  Grow = 4 * Column * Rise + Cost
+  Added = Table + Grow
+  Jump = Side + Run
+  Moved = Added shift Jump with Huge
+  Valid = Column at least Run
+  Better = Valid choose Moved Huge
+  Table = Table min Better
+end
+Last = Table (Edges * Side to Cells - 1)
+Answer = 1 + Last min
+Answer print

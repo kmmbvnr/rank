@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-arg Nn integer = 2020
-arg Pm integer = 10 ** 16
+arg Length integer = 2020
+arg Modulus integer = 10 ** 16
 
 rem A DS-number has digit sum 2s and a
 rem digit s, for exactly one s. Per s
@@ -17,52 +17,64 @@ rem count A and value sum B. Appending
 rem d gives A' = A and B' = 10 B + d A.
 rem Each target state gathers its
 rem sources through a padded table.
-Ss = (0 to 9) reshape 10 1 1 1
-Us = (0 to 18) reshape 1 19 1 1
-Hs = (0 to 1) reshape 1 1 2 1
-Ds = (0 to 9) reshape 1 1 1 10
-Uo = Us - Ds
-Ok = Uo at least 0
-Ix0 = Ss * 38 + Uo * 2
-Z0 = 380
-Ix = Ix0 + Hs
-Am = (Hs equal 1) or (Ds not equal Ss)
-Sa = Ok and Am
-Ta = Sa choose Ix Z0
-Ge = (Hs equal 1) and (Ds equal Ss)
-Ge = Ge and Ok
-Tb = Ge choose Ix0 Z0
-Ga = Ta reshape 380 10
-Gb = Tb reshape 380 10
-Dd = (Ds + Ta * 0) reshape 380 10
-Dg = Dd integer
+Witness = (0 to 9) reshape 10 1 1 1
+Sums = (0 to 18) reshape 1 19 1 1
+Seen = (0 to 1) reshape 1 1 2 1
+Digit = (0 to 9) reshape 1 1 1 10
+Before = Sums - Digit
+Valid = Before at least 0
+Index0 = Witness * 38 + Before * 2
+Nothing = 380
+Index1 = Index0 + Seen
+Marked = Seen equal 1
+Other = Digit not equal Witness
+Allowed = Marked or Other
+Plain = Valid and Allowed
+PlainSrc = Plain choose Index1 Nothing
+Extra = Marked and (Digit equal Witness)
+Extra = Extra and Valid
+ExtraSrc = Extra choose Index0 Nothing
+PlainTab = PlainSrc reshape 380 10
+ExtraTab = ExtraSrc reshape 380 10
+Spread = Digit + PlainSrc * 0
+Digits = Spread reshape 380 10
+DigitInt = Digits integer
 rem Layer 1: leading digits d <= 2 s.
-Dl = 1 to 9
-Ai = array shape 381 fill 0
-Bi = array shape 381 fill 0
-Sl = 0 to 9
-Sc = Sl reshape 10 1
-Hh = (Dl equal Sc) integer
-Il = Sc * 38 + Dl * 2 + Hh
-Vl = Dl at most (Sc * 2)
-Ix2 = Il filter Vl
-Dx = (Dl + Sc * 0) filter Vl
-Ai Ix2 = 1
-Bi Ix2 = Dx
-Ts = Sl * 42 + 1
-Answer = Bi Ts sum
-for L in 2 to Nn
-  Ca = Ai Ga
-  Cb = Ai Gb
-  Ba = Bi Ga
-  Bb = Bi Gb
-  An = (Ca sum axis 1) + (Cb sum axis 1)
-  Bn = (Ba sum axis 1) + (Bb sum axis 1)
-  Bn = 10 * Bn + (Ca * Dg sum axis 1)
-  Bn = Bn + (Cb * Dg sum axis 1)
-  Ai = concat (An mod Pm) (array 0)
-  Bi = concat (Bn mod Pm) (array 0)
-  Sm = Bi Ts sum
-  Answer = (Answer + Sm) mod Pm
+Leading = 1 to 9
+Counts = array shape 381 fill 0
+Values = array shape 381 fill 0
+Witnesses = 0 to 9
+WitCol = Witnesses reshape 10 1
+Hit = (Leading equal WitCol) integer
+Start = WitCol * 38 + Leading * 2 + Hit
+Fits = Leading at most (WitCol * 2)
+Slots = Start filter Fits
+Spread2 = Leading + WitCol * 0
+Firsts = Spread2 filter Fits
+Counts Slots = 1
+Values Slots = Firsts
+Targets = Witnesses * 42 + 1
+Answer = Values Targets sum
+for Step in 2 to Length
+  CountA = Counts PlainTab
+  CountB = Counts ExtraTab
+  ValueA = Values PlainTab
+  ValueB = Values ExtraTab
+  SumA = CountA sum axis 1
+  SumB = CountB sum axis 1
+  NewCount = SumA + SumB
+  ValueSum = ValueA sum axis 1
+  ValueTwo = ValueB sum axis 1
+  ValueSum = ValueSum + ValueTwo
+  WeightA = CountA * DigitInt sum axis 1
+  WeightB = CountB * DigitInt sum axis 1
+  Extra2 = WeightA + WeightB
+  NewValue = 10 * ValueSum + Extra2
+  Reduced = NewCount mod Modulus
+  Counts = concat Reduced (array 0)
+  Cut = NewValue mod Modulus
+  Values = concat Cut (array 0)
+  Added = Values Targets sum
+  Answer = (Answer + Added) mod Modulus
 end
 Answer print

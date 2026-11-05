@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-arg Mx integer = 98
-arg Lo integer = 2
-arg Sp integer = 2
+arg Max integer = 98
+arg Least integer = 2
+arg Step integer = 2
 
 rem A word of m steps with R letters r
 rem and S letters s ends at x = y
@@ -24,73 +24,79 @@ rem 0. Lengths run in order (Lo, Sp: the
 rem odd path lengths are even step
 rem counts); the first unique word is
 rem replayed to get the final value.
-memo Fx cnt Dd
-  Rr = Fx // 128
-  Ss = Fx mod 128
-  if Rr equal 0 and Ss equal 0
-    return (Dd equal 0) integer
+memo Packed cnt Diff
+  Reds = Packed // 128
+  Blues = Packed mod 128
+  if Reds equal 0 and Blues equal 0
+    return (Diff equal 0) integer
   end
-  Lo = Dd + Rr - Ss * 2 ** Rr
-  Hi = Dd + Rr * 2 ** Ss - Ss
-  if Lo greater 0 or Hi less 0
+  PowR = 2 ** Reds
+  PowB = 2 ** Blues
+  Floor = Diff + Reds - Blues * PowR
+  Ceil = Diff + Reds * PowB - Blues
+  if Floor greater 0 or Ceil less 0
     return 0
   end
-  Cn = 0
-  if Rr greater 0
-    Pk = (Rr - 1) * 128 + Ss
-    Cn = Pk cnt (Dd + 2 ** Ss)
+  Count = 0
+  if Reds greater 0
+    Child = (Reds - 1) * 128 + Blues
+    Next = Diff + 2 ** Blues
+    Count = Child cnt Next
   end
-  if Ss greater 0 and Cn less 2
-    Pk = Rr * 128 + Ss - 1
-    Cn += Pk cnt (Dd - 2 ** Rr)
+  if Blues greater 0 and Count less 2
+    Child = Reds * 128 + Blues - 1
+    Next = Diff - 2 ** Reds
+    Count += Child cnt Next
   end
-  return Cn min 2
+  return Count min 2
 end
-Ms = Lo to Mx by Sp
-Rs = 0 to Mx
-Mc = Ms reshape (Ms len) 1
-Qm = Mc + Rs * 0
-Qr = Mc * 0 + Rs
-Ok = Qr at most Qm
-Fm = (Qm filter Ok) array
-Fr = (Qr filter Ok) array
-Hit = 0
-Wr = 0
-Ws = 0
-for J in 0 to Fm len - 1
-  Rr = Fr J
-  Ss = Fm J - Rr
-  Dd = 45 * 2 ** Ss - 90 * 2 ** Rr
-  Cn = Rr * 128 + Ss cnt Dd
-  if Cn equal 1
-    Hit = 1
-    Wr = Rr
-    Ws = Ss
+Lengths = Least to Max by Step
+Splits = 0 to Max
+Total = Lengths len
+LengthCol = Lengths reshape Total 1
+GridLen = LengthCol + Splits * 0
+GridR = LengthCol * 0 + Splits
+Valid = GridR at most GridLen
+FlatLen = (GridLen filter Valid) array
+FlatR = (GridR filter Valid) array
+Found = 0
+BestR = 0
+BestS = 0
+for Index in 0 to FlatLen len - 1
+  Reds = FlatR Index
+  Blues = FlatLen Index - Reds
+  Start = 45 * 2 ** Blues
+  Diff = Start - 90 * 2 ** Reds
+  Count = Reds * 128 + Blues cnt Diff
+  if Count equal 1
+    Found = 1
+    BestR = Reds
+    BestS = Blues
     break
   end
 end
-Xx = 45
-Yy = 90
-Rr = Wr
-Ss = Ws
-Dd = 45 * 2 ** Ss - 90 * 2 ** Rr
-for K in 1 to Wr + Ws
-  Pk = Rr * 128 + Ss - 128
-  Gr = 0
-  if Rr greater 0
-    Gr = Pk cnt (Dd + 2 ** Ss)
+ValueX = 45
+ValueY = 90
+Reds = BestR
+Blues = BestS
+Diff = 45 * 2 ** Blues - 90 * 2 ** Reds
+for Move in 1 to BestR + BestS
+  Child = Reds * 128 + Blues - 128
+  Ways = 0
+  if Reds greater 0
+    Ways = Child cnt (Diff + 2 ** Blues)
   end
-  if Gr greater 0
-    Xx += 1
-    Yy *= 2
-    Dd += 2 ** Ss
-    Rr -= 1
+  if Ways greater 0
+    ValueX += 1
+    ValueY *= 2
+    Diff += 2 ** Blues
+    Reds -= 1
   else
-    Xx *= 2
-    Yy += 1
-    Dd -= 2 ** Rr
-    Ss -= 1
+    ValueX *= 2
+    ValueY += 1
+    Diff -= 2 ** Reds
+    Blues -= 1
   end
 end
-Answer = Xx
+Answer = ValueX
 Answer print

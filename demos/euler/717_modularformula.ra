@@ -6,22 +6,23 @@ use sequences
 use io
 use cli
 
-arg Nn integer = 10 ** 7
+arg Limit integer = 10 ** 7
 
 rem By Fermat, b = 2^(2^p) mod p is
 rem 2^(2^p mod (p-1)) mod p. Halving
 rem mod p gives h with 2h = b; then
 rem w = h 2^p mod p^2 equals b + p g
 rem with g the wanted residue.
-Pr = (Nn - 1) primesieve
-Ps = (Pr array) drop 1
-Ae = 2 Ps (Ps - 1) powmod
-Bb = 2 Ae Ps powmod
-Hh = Bb * ((Ps + 1) // 2) mod Ps
-Qq = Ps * Ps
-Tw = 2 Ps Qq powmod
-Ww = Hh * Tw mod Qq
-Dl = (Ww - Bb) mod Qq
-Gg = Dl // Ps
-Answer = Gg sum
+Sieve = (Limit - 1) primesieve
+Primes = (Sieve array) drop 1
+Reduced = 2 Primes (Primes - 1) powmod
+Power = 2 Reduced Primes powmod
+Inverse2 = (Primes + 1) // 2
+Half = Power * Inverse2 mod Primes
+Squares = Primes * Primes
+TwoPow = 2 Primes Squares powmod
+Lift = Half * TwoPow mod Squares
+Diff = (Lift - Power) mod Squares
+Digits = Diff // Primes
+Answer = Digits sum
 Answer print

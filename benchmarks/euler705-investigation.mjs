@@ -15,10 +15,10 @@ if (variant !== 'original') source = source.replace('Ex matmul (Hm transpose)', 
 if (variant === 'bounds') source = source.replace(
     '  Lo = Pr at least 10 ** (L - 1)\n  Hi = Pr less 10 ** L\n  Bk = Pr filter (Lo and Hi)',
     '  Bk = Pr from (10 ** (L - 1))\n  Bk = Bk till (10 ** L)');
-source = source.replace('arg Nn integer = 10 ** 8', `Nn = ${size}`);
+source = source.replace(/arg (Nn|Limit) integer = 10 \*\* 8/, (_, name) => `${name} = ${size}`);
 // Mark completed stages without splitting execution or changing variable lifetimes.
 for (const [before, label] of [
-    [source.includes('Primes =') ? 'Width =' : 'Dg = array', 'sieve'], ['Vs = 1 to 9', 'digits'],
+    [source.includes('Primes =') ? 'Width =' : 'Dg = array', 'sieve'], [source.includes('Faces =') ? 'Faces = 1 to 9' : 'Vs = 1 to 9', 'digits'],
     ['rem Divisor table', 'pairs'], ['Answer print', 'weights'],
 ]) source = source.replace(before, `"stage:${label}" print\n${before}`);
 const phases = [];

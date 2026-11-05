@@ -7,7 +7,7 @@ use bits
 use io
 use cli
 
-arg Pp integer = 25
+arg Period integer = 25
 
 rem Each period-m orbit of a -> a - 1/a
 rem is the fixed point of a composition
@@ -21,64 +21,72 @@ rem growing prenecklaces level by level.
 rem The fixed points are found for all
 rem words at once by Newton steps at the
 rem end of each cycle.
-Wd = array 0 1
-Per = array 1 1
-Lw = array shape 0 fill 0
-Lm = array shape 0 fill 0
-for K in 1 to Pp - 1
-  Aa = (Wd shr (Per - 1)) band 1
-  W1 = 2 * Wd + Aa
-  Z0 = Aa equal 0
-  W2 = (2 * Wd + 1) filter Z0
-  P2 = (Wd * 0 + K + 1) filter Z0
-  Wd = concat W1 W2
-  Per = concat Per P2
-  Ly = Per equal (K + 1)
-  Nl = Wd filter Ly
-  Lw = concat Lw Nl
-  Lm = concat Lm (Nl * 0 + K + 1)
+Words = array 0 1
+Periods = array 1 1
+Lyndon = array shape 0 fill 0
+Lengths = array shape 0 fill 0
+for Level in 1 to Period - 1
+  Shift = Periods - 1
+  Probe = (Words shr Shift) band 1
+  Same = 2 * Words + Probe
+  Zeros = Probe equal 0
+  Raised = (2 * Words + 1) filter Zeros
+  Counts = Words * 0 + Level + 1
+  NewPeriods = Counts filter Zeros
+  Words = concat Same Raised
+  Periods = concat Periods NewPeriods
+  IsLyndon = Periods equal (Level + 1)
+  Found = Words filter IsLyndon
+  Lyndon = concat Lyndon Found
+  Longer = Found * 0 + Level + 1
+  Lengths = concat Lengths Longer
 end
-Ny = Lw len
-Yy = Lw * 0.0
-Y0 = Yy
-Dd = Lw * 0.0 + 1.0
-Tc = 6 * Pp
-for T in 0 to Tc - 1
-  Ix = T mod Lm
-  Bt = (Lw shr (Lm - 1 - Ix)) band 1
-  Sg = Bt * 2.0 - 1.0
-  Rt = (Yy * Yy + 4.0) sqrt
-  Dd = Dd * 0.5 * (1.0 + Sg * Yy / Rt)
-  Yy = 0.5 * (Yy + Sg * Rt)
-  En = Ix equal (Lm - 1)
-  Nw = (T // Lm) at least 2
-  Yn = Y0 - (Yy - Y0) / (Dd - 1.0)
-  Ys = Nw choose Yn Yy
-  Yy = En choose Ys Yy
-  Y0 = En choose Yy Y0
-  Dd = En choose 1.0 Dd
+Point = Lyndon * 0.0
+Start = Point
+Slope = Lyndon * 0.0 + 1.0
+Cycles = 6 * Period
+for Time in 0 to Cycles - 1
+  Phase = Time mod Lengths
+  Shift = Lengths - 1 - Phase
+  Bit = (Lyndon shr Shift) band 1
+  Sign = Bit * 2.0 - 1.0
+  Root = (Point * Point + 4.0) sqrt
+  Turn = Sign * Point / Root
+  Slope = Slope * 0.5 * (1.0 + Turn)
+  Point = 0.5 * (Point + Sign * Root)
+  AtEnd = Phase equal (Lengths - 1)
+  Done = Time // Lengths
+  UseNewton = Done at least 2
+  Error = Point - Start
+  Newton = Start - Error / (Slope - 1.0)
+  Pick = UseNewton choose Newton Point
+  Point = AtEnd choose Pick Point
+  Start = AtEnd choose Point Start
+  Slope = AtEnd choose 1.0 Slope
 end
-Mn = Yy
-Mx = Yy
-for T in Tc to Tc + Pp - 1
-  Ix = T mod Lm
-  Bt = (Lw shr (Lm - 1 - Ix)) band 1
-  Sg = Bt * 2.0 - 1.0
-  Rt = (Yy * Yy + 4.0) sqrt
-  Yy = 0.5 * (Yy + Sg * Rt)
-  Mn = Mn min Yy
-  Mx = Mx max Yy
+Lowest = Point
+Highest = Point
+Last = Cycles + Period - 1
+for Time in Cycles to Last
+  Phase = Time mod Lengths
+  Shift = Lengths - 1 - Phase
+  Bit = (Lyndon shr Shift) band 1
+  Sign = Bit * 2.0 - 1.0
+  Root = (Point * Point + 4.0) sqrt
+  Point = 0.5 * (Point + Sign * Root)
+  Lowest = Lowest min Point
+  Highest = Highest max Point
 end
-Rg = Lm * (Mx - Mn)
+Ranges = Lengths * (Highest - Lowest)
 rem Sum by blocks of 64 for accuracy.
-for Rg len greater 1
-  Ln = Rg len
-  Pd = (0 - Ln) mod 64
-  Zp = array shape Pd fill 0.0
-  Pg = concat Rg Zp
-  Rw = (Ln + Pd) // 64
-  Mt = Pg reshape Rw 64
-  Rg = Mt sum axis 1
+for Ranges len greater 1
+  Size = Ranges len
+  Pad = (0 - Size) mod 64
+  Fill = array shape Pad fill 0.0
+  Padded = concat Ranges Fill
+  Rows = (Size + Pad) // 64
+  Grid = Padded reshape Rows 64
+  Ranges = Grid sum axis 1
 end
-Answer = Rg 0 text ".4f"
+Answer = Ranges 0 text ".4f"
 Answer print

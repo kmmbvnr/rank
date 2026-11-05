@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "749_nearpowersums"
+  Length = 2
+  run
+  Answer equal 110
+  Length = 6
+  run
+  Answer equal 2562701
+end

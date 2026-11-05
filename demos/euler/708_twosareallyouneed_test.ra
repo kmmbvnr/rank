@@ -2,13 +2,13 @@ use testing
 
 test "statement values"
   use "708_twosareallyouneed"
-  Nn = 10
+  Limit = 10
   run
   Answer equal 33
-  Nn = 1000
+  Limit = 1000
   run
   Answer equal 15301
-  Nn = 100000000
+  Limit = 100000000
   run
   Answer equal 9613563919
 end

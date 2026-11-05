@@ -7,9 +7,9 @@ use bits
 use io
 use cli
 
-arg Nn integer = 10 ** 6
-arg Kk integer = 999983
-arg Pm integer = 1000000007
+arg Limit integer = 10 ** 6
+arg Count integer = 999983
+arg Prime integer = 1000000007
 
 rem Over masks of B bits: the subset sum
 rem A(S) counts primes inside S, so
@@ -18,28 +18,29 @@ rem in S; Moebius inversion gives the
 rem tuples with OR exactly S. Each
 rem subset transform is one pass per bit
 rem on the array as (hi, bit, lo).
-Bw = Nn binary len
-Sz = 2 ** Bw
-Pz = Nn primesieve
-Aa = array shape Sz fill 0
-Aa (Pz array) = 1
-for J in 0 to Bw - 1
-  Hi = Sz // 2 ** (J + 1)
-  Lo = 2 ** J
-  Cs = Aa reshape Hi 2 Lo
-  Zs = Cs scan + axis 1
-  Aa = Zs reshape Sz
+Bits = Limit binary len
+Size = 2 ** Bits
+Primes = Limit primesieve
+Zeta = array shape Size fill 0
+Zeta (Primes array) = 1
+for Bit in 0 to Bits - 1
+  High = Size // 2 ** (Bit + 1)
+  Low = 2 ** Bit
+  Cube = Zeta reshape High 2 Low
+  Scanned = Cube scan + axis 1
+  Zeta = Scanned reshape Size
 end
-Bb = Aa Kk Pm powmod
-for J in 0 to Bw - 1
-  Hi = Sz // 2 ** (J + 1)
-  Lo = 2 ** J
-  Cs = Bb reshape Hi 2 Lo
-  X0 = Cs # 0 #
-  X1 = (Cs # 1 # - X0) mod Pm
-  Ms = stack X0 X1 axis 1
-  Bb = Ms reshape Sz
+Powers = Zeta Count Prime powmod
+for Bit in 0 to Bits - 1
+  High = Size // 2 ** (Bit + 1)
+  Low = 2 ** Bit
+  Cube = Powers reshape High 2 Low
+  Without = Cube # 0 #
+  Upper = Cube # 1 #
+  With = (Upper - Without) mod Prime
+  Merged = stack Without With axis 1
+  Powers = Merged reshape Size
 end
-Ee = Bb (Pz array)
-Answer = Ee sum mod Pm
+Exact = Powers (Primes array)
+Answer = Exact sum mod Prime
 Answer print

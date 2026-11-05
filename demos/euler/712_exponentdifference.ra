@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-arg Nn integer = 10 ** 12
-arg Pm integer = 1000000007
+arg Limit integer = 10 ** 12
+arg Prime integer = 1000000007
 
 rem Per prime p and level k, a pair has
 rem one number divisible by p^k and the
@@ -18,43 +18,54 @@ rem powers. Larger ones have k = 1 and
 rem are grouped by q = n // p, using
 rem prime counts pi(n // q) from a
 rem Lucy sieve.
-Rt = Nn isqrt
-Vs = 0 to Rt
-Gs = Vs - 1
-Gs 0 = 0
-Gl = Nn // (Vs max 1) - 1
-Pr = primes to Rt array
-for P in Pr
-  Gp = Gs (P - 1)
-  Ih = Rt min (Nn // (P * P))
-  Ix = 1 to Ih
-  Pi = P * Ix
-  Mk = Pi at most Rt
-  Va = Gl (Pi min Rt)
-  Vb = Gs (Nn // Pi min Rt)
-  Dv = (Mk choose Va Vb) - Gp
-  Gl Ix = Gl Ix - Dv
-  Iw = P * P to Rt
-  Gs Iw = Gs Iw - (Gs (Iw // P) - Gp)
+Root = Limit isqrt
+Values = 0 to Root
+Small = Values - 1
+Small 0 = 0
+Large = Limit // (Values max 1) - 1
+Primes = primes to Root array
+for P in Primes
+  Before = Small (P - 1)
+  Reach = Root min (Limit // (P * P))
+  Index = 1 to Reach
+  Product = P * Index
+  Inside = Product at most Root
+  FromLarge = Large (Product min Root)
+  Where = Limit // Product min Root
+  FromSmall = Small Where
+  Low2 = FromLarge
+  Chosen = Inside choose Low2 FromSmall
+  Delta = Chosen - Before
+  Large Index = Large Index - Delta
+  Range = P * P to Root
+  Parent = Small (Range // P)
+  Gap = Parent - Before
+  Small Range = Small Range - Gap
 end
-Qk = array shape (Pr len) fill Nn
+Count2 = Primes len
+Quotient = array shape Count2 fill Limit
 Answer = 0
-for Qk max greater 0
-  Qk = Qk // Pr
-  Lv = Qk filter (Qk greater 0)
-  Rv = (Nn - Lv) mod Pm
-  Ga = (Lv mod Pm) * Rv mod Pm
-  Answer += Ga sum
+for Quotient max greater 0
+  Quotient = Quotient // Primes
+  Positive = Quotient greater 0
+  Levels = Quotient filter Positive
+  Rest = (Limit - Levels) mod Prime
+  Part = Levels mod Prime
+  Gain = Part * Rest mod Prime
+  Answer += Gain sum
 end
-Qs = 1 to Nn // (Rt + 1)
-Hi = Gl Qs
-Nx = Nn // (Qs + 1)
-Gn = Gl ((Qs + 1) min Rt)
-Lo = (Nx greater Rt) choose Gn (Gs Rt)
-Ct = (Hi - Lo) mod Pm
-Rq = (Nn - Qs) mod Pm
-Gq = (Qs mod Pm) * Rq mod Pm
-Cg = Ct * Gq mod Pm
-Answer += Cg sum
-Answer = 2 * Answer mod Pm
+Quotients = 1 to Limit // (Root + 1)
+High = Large Quotients
+Next = Limit // (Quotients + 1)
+Upper = Large ((Quotients + 1) min Root)
+Edge = Small Root
+Above = Next greater Root
+Low = Above choose Upper Edge
+Count = (High - Low) mod Prime
+RestQ = (Limit - Quotients) mod Prime
+Part2 = Quotients mod Prime
+GainQ = Part2 * RestQ mod Prime
+Gains = Count * GainQ mod Prime
+Answer += Gains sum
+Answer = 2 * Answer mod Prime
 Answer print

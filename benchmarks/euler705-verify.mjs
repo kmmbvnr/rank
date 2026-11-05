@@ -8,8 +8,8 @@ const run = (source, size, modulus, compilation) => {
     const runtime = new Interpreter(() => {}, { compilation });
     const diagnostics = new RuntimeDiagnostics();
     try {
-        source = source.replace('arg Nn integer = 10 ** 8', `Nn = ${size}`)
-            .replace('arg Pm integer = 1000000007', `Pm = ${modulus}`);
+        source = source.replace(/arg (Nn|Limit) integer = 10 \*\* 8/, (_, name) => `${name} = ${size}`)
+            .replace(/arg (Pm|Prime) integer = 1000000007/, (_, name) => `${name} = ${modulus}`);
         diagnostics.run(() => runtime.execute(source));
         const cells = name => {
             const value = runtime.variables.get(name);
@@ -17,7 +17,7 @@ const run = (source, size, modulus, compilation) => {
         };
         return { answer: runtime.variables.get('Answer'),
             pairs: cells(source.includes('Pairs =') ? 'Pairs' : 'Cc'),
-            counts: cells(source.includes('Counts =') ? 'Counts' : 'Cr'),
+            counts: cells(source.includes('Seen =') ? 'Seen' : source.includes('Counts =') ? 'Counts' : 'Cr'),
             loops: diagnostics.numberLoops };
     } finally { runtime.dispose(); }
 };

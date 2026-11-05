@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-arg Nn integer = 10 ** 7
+arg Limit integer = 10 ** 7
 
 rem With d = m - 1, T(n, m) is the sum
 rem of k // d for k < n. Writing a =
@@ -13,9 +13,11 @@ rem n // d and b = n - d a, values
 rem 0 to a - 1 occur d times each and
 rem a occurs b times:
 rem T = d a (a - 1) / 2 + a b.
-Ds = 1 to Nn - 1
-Aa = Nn // Ds
-Bb = Nn - Ds * Aa
-Tt = Ds * Aa * (Aa - 1) // 2 + Aa * Bb
-Answer = Tt sum
+Divisors = 1 to Limit - 1
+Quotient = Limit // Divisors
+Rest = Limit - Divisors * Quotient
+Full = Divisors * Quotient
+Full = Full * (Quotient - 1) // 2
+Terms = Full + Quotient * Rest
+Answer = Terms sum
 Answer print

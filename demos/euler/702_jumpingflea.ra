@@ -6,36 +6,41 @@ use io
 use bits
 use cli
 
-arg Nn integer = 123456789
+arg Size integer = 123456789
 
 rem S(N) = bulk term, minus the dyadic
 rem corrections C(N, 2^d), plus a gap
 rem correction. C(u, v) = (v-1)(v-2)
-rem minus Ph(u, v); Ph recurses like
+rem minus Phi(u, v); Phi recurses like
 rem Euclid and is memoised.
-memo U phi V
-  A = U mod V
-  if V less 2 or A less 2
+memo Top phi Base
+  Part = Top mod Base
+  if Base less 2 or Part less 2
     return 0
   end
-  Q = V // A
-  R = V mod A
-  Pa = A phi R
-  Pb = A phi (A - R)
-  Sq = Q * (Q + 1) * A * (A - 1) // 4
-  return Sq + (Q + 1) * Pa - Q * Pb
+  Times = Base // Part
+  Rest = Base mod Part
+  Inner = Part phi Rest
+  Outer = Part phi (Part - Rest)
+  Next = Times + 1
+  Edge = Part * (Part - 1)
+  Pairs = Times * Next * Edge // 4
+  Gain = Next * Inner
+  return Pairs + Gain - Times * Outer
 end
 
-Lg = Nn binary len
-Bk = Nn * (3 * Nn + 1) // 2
-Answer = Bk * (Lg + 1)
-for D in 2 to Lg
-  V = 2 ** D
-  Ph = Nn phi V
-  Answer -= (V - 1) * (V - 2) - Ph
+Bits = Size binary len
+Bulk = Size * (3 * Size + 1) // 2
+Answer = Bulk * (Bits + 1)
+for Level in 2 to Bits
+  Base = 2 ** Level
+  Phi = Size phi Base
+  Cut = (Base - 1) * (Base - 2)
+  Answer -= Cut - Phi
 end
-V = 2 ** Lg - Nn
-Ph = Nn phi V
-Cv = (V - 1) * (V - 2) - Ph
-Answer += 2 * Cv
+Base = 2 ** Bits - Size
+Phi = Size phi Base
+Cut = (Base - 1) * (Base - 2)
+Gap = Cut - Phi
+Answer += 2 * Gap
 Answer print

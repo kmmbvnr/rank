@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-arg Nn integer = 1411033124176203125
+arg Number integer = 1411033124176203125
 
 rem For r^2 with prime exponents e the
 rem count is F = 7 P1 - 14 P2 - 4 P3
@@ -18,22 +18,27 @@ rem and B5 = (e + 1)(2e^2 + 4e + 3) / 3.
 rem Only primes 1 mod 4 count. Summing F
 rem over all divisors replaces each
 rem B by its running sum A over 0..e.
-Fa = Nn factors array
-Ps = Fa unique
-Qm = Ps filter ((Ps mod 4) equal 1)
-Rw = Qm reshape (Qm len) 1
-Hm = (Rw equal Fa) integer
-Ee = Hm sum axis 1
-A1 = (Ee + 1) * (Ee + 2) // 2
-A2 = A1 * (2 * Ee + 3) // 3
-A3 = (A2 + Ee // 2 + 1) // 2
-A4 = A1 * A1
-A5 = A1 * (Ee * Ee + 3 * Ee + 3) // 3
-P1 = A1 reduce *
-P2 = A2 reduce *
-P3 = A3 reduce *
-P4 = A4 reduce *
-P5 = A5 reduce *
-Answer = 7 * P1 - 14 * P2 - 4 * P3
-Answer += 8 * P4 + 4 * P5
+Factors = Number factors array
+Primes = Factors unique
+Mod4 = Primes mod 4
+Good = Primes filter (Mod4 equal 1)
+Rows = Good reshape (Good len) 1
+Match = (Rows equal Factors) integer
+Exponents = Match sum axis 1
+Next = Exponents + 1
+Sum1 = Next * (Exponents + 2) // 2
+Sum2 = Sum1 * (2 * Exponents + 3) // 3
+Sum3 = (Sum2 + Exponents // 2 + 1) // 2
+Sum4 = Sum1 * Sum1
+Shape = Exponents * Exponents
+Shape = Shape + 3 * Exponents + 3
+Sum5 = Sum1 * Shape // 3
+Prod1 = Sum1 reduce *
+Prod2 = Sum2 reduce *
+Prod3 = Sum3 reduce *
+Prod4 = Sum4 reduce *
+Prod5 = Sum5 reduce *
+Answer = 7 * Prod1 - 14 * Prod2
+Answer -= 4 * Prod3
+Answer += 8 * Prod4 + 4 * Prod5
 Answer print

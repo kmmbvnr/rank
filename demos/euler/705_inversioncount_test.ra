@@ -2,23 +2,23 @@ use testing
 
 test "statement values"
   use "705_inversioncount"
-  Nn = 20
+  Limit = 20
   run
   Answer equal 3312
-  Nn = 50
+  Limit = 50
   run
   Answer equal 338079744
 end
 
 test "empty and decimal boundaries"
   use "705_inversioncount"
-  Nn = 1
+  Limit = 1
   run
   Answer equal 0
-  Nn = 100
+  Limit = 100
   run
   Answer equal 719294528
-  Nn = 1000
+  Limit = 1000
   run
   Answer equal 461640134
 end

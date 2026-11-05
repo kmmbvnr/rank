@@ -2,10 +2,10 @@ use testing
 
 test "statement values"
   use "723_pythagoreanquads"
-  Nn = 325
+  Number = 325
   run
   Answer equal 2370
-  Nn = 1105
+  Number = 1105
   run
   Answer equal 5535
 end

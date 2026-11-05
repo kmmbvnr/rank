@@ -5,9 +5,9 @@ use numbers
 use io
 use cli
 
-arg Hh integer = 10000
-arg Ww integer = 20000
-arg Pm integer = 1000000007
+arg Height integer = 10000
+arg Width integer = 20000
+arg Prime integer = 1000000007
 
 rem Closed form for the sum of the
 rem component counts, checked against
@@ -15,14 +15,17 @@ rem all three given values:
 rem C = 2hw (2^h + 2^w + 1) + 9 2^(h+w)
 rem - (8w + 10) 2^h - (8h + 10) 2^w
 rem + 10 (h + w + 1)
-Ph = 2 Hh Pm powmod
-Pw = 2 Ww Pm powmod
-Hw = Hh * Ww mod Pm
-Sm = (Ph + Pw + 1) mod Pm
-Ta = 2 * Hw * Sm mod Pm
-Tb = 9 * Ph mod Pm * Pw mod Pm
-Tc = (8 * Ww + 10) * Ph mod Pm
-Td = (8 * Hh + 10) * Pw mod Pm
-Te = 10 * (Hh + Ww + 1)
-Answer = (Ta + Tb - Tc - Td + Te) mod Pm
+PowH = 2 Height Prime powmod
+PowW = 2 Width Prime powmod
+Area = Height * Width mod Prime
+Sum = (PowH + PowW + 1) mod Prime
+Main = 2 * Area * Sum mod Prime
+Mixed = 9 * PowH mod Prime
+Cross = Mixed * PowW mod Prime
+CutW = (8 * Width + 10) * PowH mod Prime
+Side = 8 * Height + 10
+CutH = Side * PowW mod Prime
+Linear = 10 * (Height + Width + 1)
+Total = Main + Cross - CutW - CutH
+Answer = (Total + Linear) mod Prime
 Answer print

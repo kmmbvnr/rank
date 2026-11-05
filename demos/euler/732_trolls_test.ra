@@ -2,10 +2,10 @@ use testing
 
 test "statement values"
   use "732_trolls"
-  Nn = 5
+  Trolls = 5
   run
   Answer equal 401
-  Nn = 15
+  Trolls = 15
   run
   Answer equal 941
 end

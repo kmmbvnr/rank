@@ -4,7 +4,7 @@
     "c1f0723a",
     "b0577232"
   ],
-  "sourceSha256": "bae1e2597d00f20c6c8cd9095e606c90a458788d47a8f11d7f39e29adc129d6a",
+  "sourceSha256": "bae603ba7f1d9a17cb69c7e0a2cc597c5a499186fd311dd6aed1dd9fddf2a0c1",
   "baselineMac": {
     "size": 100000000,
     "mode": "compiled",
@@ -47,14 +47,14 @@
   },
   "final": {
     "mac": {
-      "medianMs": 3216.0485,
-      "medianMaxRssMiB": 1681.125,
-      "worstMaxRssMiB": 1682.421875
+      "medianMs": 6330.644041,
+      "medianMaxRssMiB": 1623.453125,
+      "worstMaxRssMiB": 1645.53125
     },
     "intel": {
-      "medianMs": 9236.660528,
-      "medianMaxRssMiB": 1660.33203125,
-      "worstMaxRssMiB": 1660.9765625
+      "medianMs": 8795.02711,
+      "medianMaxRssMiB": 1660.63671875,
+      "worstMaxRssMiB": 1661.6484375
     }
   },
   "validation": {
@@ -160,5 +160,7 @@
     "No full original-solution Intel baseline measured.",
     "Small reference-mode cases passed; full default measured with compilation enabled.",
     "No exhaustive audit or full npm test was run."
-  ]
+  ],
+  "integrationBase": "1589193d",
+  "integrationNotes": "Preserve main argument and variable names. Repeat-run tests caught and fixed a loop index collision with Column; all verification repeated after resolution."
 }

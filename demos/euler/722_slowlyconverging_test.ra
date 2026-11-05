@@ -2,12 +2,12 @@ use testing
 
 test "statement values"
   use "722_slowlyconverging"
-  Kk = 3
-  Pp = 8
+  Order = 3
+  Shift = 8
   run
   Answer equal "2.767385314772e10"
-  Kk = 7
-  Pp = 15
+  Order = 7
+  Shift = 15
   run
   Answer equal "6.725803486744e39"
 end

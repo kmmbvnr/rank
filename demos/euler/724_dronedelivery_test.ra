@@ -2,10 +2,10 @@ use testing
 
 test "statement values rounded"
   use "724_dronedelivery"
-  Nn = 5
+  People = 5
   run
   Answer equal 17
-  Nn = 100
+  People = 100
   run
   Answer equal 1427
 end
