@@ -1,0 +1,88 @@
+rem ACMP 0976: Sum or Product (74%)
+rem Count sets where prod = sum
+use cli
+use text
+
+arg Input text = "500"
+N = Input integer
+
+Ans = array shape 501 fill 0
+
+rem Pairs for k = 2 (flat 1D loop)
+X = 1
+Y = 1
+for Step in 0 to 2500
+  if X greater 23
+    break
+  end
+  Val = X * Y + 1
+  if Val at most 500
+    Ans Val += 1
+    Y += 1
+  else
+    X += 1
+    Y = X
+  end
+end
+
+rem BFS queue for k >= 3
+Q = array shape 3500 4 fill 0
+Tail = 0
+
+rem Seeds with k = 2 (flat 1D loop)
+for Idx in 0 to 224
+  B1 = 2 + (Idx // 15)
+  B2 = B1 + (Idx mod 15)
+  if B2 at most 16
+    P = B1 * B2
+    S = B1 + B2
+    PProd = P * B2
+    SSum = S + B2
+    CheckVal = PProd - SSum + 3
+    if CheckVal at most 500
+      Q Tail 0 = B2
+      Q Tail 1 = P
+      Q Tail 2 = S
+      Q Tail 3 = 2
+      Tail += 1
+    end
+  end
+end
+
+Head = 0
+CurrB = 2
+
+rem BFS queue processing (flat 1D loop)
+for Step in 0 to 6000
+  if Head equal Tail
+    break
+  end
+  LastB = Q Head 0
+  P = Q Head 1
+  S = Q Head 2
+  K = Q Head 3
+  MaxB = (500 + S - K - 1) // (P - 1)
+  if CurrB at most MaxB
+    NP = P * CurrB
+    NS = S + CurrB
+    NK = K + 1
+    Val = NP - NS + NK
+    if Val at most 500
+      Ans Val += 1
+      Q Tail 0 = CurrB
+      Q Tail 1 = NP
+      Q Tail 2 = NS
+      Q Tail 3 = NK
+      Tail += 1
+    end
+    CurrB += 1
+  else
+    Head += 1
+    if Head less Tail
+      CurrB = Q Head 0
+    end
+  end
+end
+
+Result = Ans N
+Result text
