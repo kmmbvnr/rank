@@ -214,3 +214,53 @@ Saved 0 = 99`);
         expect(runtime.execute('(V sum by K with 0 size 2) sum')).toBe(0n);
     } finally { runtime.dispose(); }
 });
+
+for (const compilation of [false, true]) {
+    it.each([0n, 1n, 2n, 3n, 17n])('streams exact integer powers with exponent %s (' + compilation + ')', exponent => {
+        const runtime = new Interpreter(() => {}, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        const expected = [0n, 0n, 0n];
+        for (let i = -8n; i < 9n; i++) {
+            expected[Number((i + 8n) % 3n)] += (i * 9007199254740993n) ** exponent;
+        }
+        try {
+            runtime.execute(`use sequences
+T = -8 till 9 array
+Values' = (T * 9007199254740993) ** ${exponent}
+Keys' = (T + 8) mod 3`);
+            const result = diagnostics.run(() => runtime.execute('Values sum by Keys size 3'));
+            if (!result || !isRankArray(result)) throw new Error('expected array');
+            expect(expected.map((_, i) => readArrayItem(result, i))).toEqual(expected);
+            expect(diagnostics.keyedNativeReaders).toBe(2);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains negative power fallback and key error order (' + compilation + ')', () => {
+        const runtime = new Interpreter(() => {}, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute(`use sequences
+T = 0 till 3 array
+Values' = T ** -1
+Keys = array 4 0 0`);
+            expect(() => diagnostics.run(() => runtime.execute('Values sum by Keys size 1'))).toThrow('outside the result size');
+            expect(diagnostics.keyedNativeReaders).toBe(1);
+            runtime.execute('Keys = array 0 0 0');
+            expect(() => runtime.execute('Values sum by Keys size 1')).toThrow('zero cannot be raised');
+        } finally { runtime.dispose(); }
+    });
+}
+
+it.each([false, true])('retains array exponent fallback (%s)', compilation => {
+    const runtime = new Interpreter(() => {}, { compilation });
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        runtime.execute(`Base = array 2 3 4
+Exponents = array 3 2 1
+Values' = Base ** Exponents
+Keys = array 0 0 0`);
+        expect(diagnostics.run(() => runtime.execute('(Values sum by Keys size 1) sum'))).toBe(21n);
+        // The stored keys have a reader; the power producer keeps ordinary reads.
+        expect(diagnostics.keyedNativeReaders).toBe(1);
+    } finally { runtime.dispose(); }
+});
