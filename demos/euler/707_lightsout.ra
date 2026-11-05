@@ -77,15 +77,16 @@ for Column in 0 to Width - 1
   PivotRow = HotCube * Stack sum axis 1
   Factor = Col * (1 - Hot) * HasCol
   Down2 = Factor reshape Count Width 1
-  Across = PivotRow reshape Count 1 Width
-  Update = Down2 * Across
+  Row2 = PivotRow reshape Count 1 Width
+  Update = Down2 * Row2
   Stack = (Stack + Update) mod 2
   Used = Used + Hot
   Rank = Rank + Has
 end
 Cycle = Prime - 1
 Nullity = Width - Rank
-Exponent = (Width * Fibs - Nullity) mod Cycle
+Total = Width * Fibs - Nullity
+Exponent = Total mod Cycle
 Powers = 2 Exponent Prime powmod
 Answer = Powers sum mod Prime
 Answer print
