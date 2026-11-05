@@ -1,0 +1,164 @@
+{
+  "baseCommit": "800a11db",
+  "runtimeSteps": [
+    "c1f0723a",
+    "b0577232"
+  ],
+  "sourceSha256": "bae1e2597d00f20c6c8cd9095e606c90a458788d47a8f11d7f39e29adc129d6a",
+  "baselineMac": {
+    "size": 100000000,
+    "mode": "compiled",
+    "variant": "original",
+    "answer": "480440153",
+    "ms": 200474.05545800002,
+    "maxRssMiB": 2690.71875,
+    "node": "v24.15.0",
+    "arch": "arm64",
+    "phases": [
+      {
+        "stage": "sieve",
+        "ms": 218.012875,
+        "rssMiB": 180.6875,
+        "heapMiB": 68.14124298095703,
+        "buffersMiB": 6.0457000732421875
+      },
+      {
+        "stage": "digits",
+        "ms": 28643.866125,
+        "rssMiB": 1892.15625,
+        "heapMiB": 1385.3695831298828,
+        "buffersMiB": 487.45025539398193
+      },
+      {
+        "stage": "pairs",
+        "ms": 171604.003666,
+        "rssMiB": 1611.703125,
+        "heapMiB": 622.064697265625,
+        "buffersMiB": 481.7969961166382
+      },
+      {
+        "stage": "weights",
+        "ms": 7.996666999999434,
+        "rssMiB": 1612.265625,
+        "heapMiB": 625.9270248413086,
+        "buffersMiB": 481.8041753768921
+      }
+    ]
+  },
+  "final": {
+    "mac": {
+      "medianMs": 3216.0485,
+      "medianMaxRssMiB": 1681.125,
+      "worstMaxRssMiB": 1682.421875
+    },
+    "intel": {
+      "medianMs": 9236.660528,
+      "medianMaxRssMiB": 1660.33203125,
+      "worstMaxRssMiB": 1660.9765625
+    }
+  },
+  "validation": {
+    "focusedTests": 215,
+    "comparisonAndOracleCasesPerHost": 47,
+    "quadraticOracleDigits": 460,
+    "demoTests": 2,
+    "testTypecheck": "passed"
+  },
+  "rejectedExperiments": [
+    {
+      "change": "single padded digit matrix with original one-hot counting",
+      "reason": "N=1e6 peak RSS rose from about 416 to 468 MiB; pair-count stage slowed"
+    },
+    {
+      "change": "widen Int32 directly into Int64 concat destination",
+      "reason": "Isolated mixed-copy kernel improved, but full-run peak RSS was 2944 MiB versus 2551 MiB in matched runtime control; no confirmed application memory benefit",
+      "experimentalFull": {
+        "size": 100000000,
+        "mode": "compiled",
+        "variant": "original",
+        "answer": "480440153",
+        "ms": 52640.658625000004,
+        "maxRssMiB": 2944.40625,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "phases": [
+          {
+            "stage": "sieve",
+            "ms": 236.27579100000003,
+            "rssMiB": 181.125,
+            "heapMiB": 67.69934844970703,
+            "buffersMiB": 6.05613899230957
+          },
+          {
+            "stage": "digits",
+            "ms": 22049.120209,
+            "rssMiB": 2694.984375,
+            "heapMiB": 1383.7101974487305,
+            "buffersMiB": 487.45025539398193
+          },
+          {
+            "stage": "pairs",
+            "ms": 30346.384332999998,
+            "rssMiB": 2538,
+            "heapMiB": 43.36738586425781,
+            "buffersMiB": 581.2529172897339
+          },
+          {
+            "stage": "weights",
+            "ms": 8.753167000002577,
+            "rssMiB": 2538.3125,
+            "heapMiB": 47.16576385498047,
+            "buffersMiB": 581.2600965499878
+          }
+        ]
+      },
+      "controlFull": {
+        "size": 100000000,
+        "mode": "compiled",
+        "variant": "original",
+        "answer": "480440153",
+        "ms": 56902.494374999995,
+        "maxRssMiB": 2550.5,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "phases": [
+          {
+            "stage": "sieve",
+            "ms": 214.82758300000003,
+            "rssMiB": 183.484375,
+            "heapMiB": 62.935264587402344,
+            "buffersMiB": 6.031728744506836
+          },
+          {
+            "stage": "digits",
+            "ms": 23437.642959,
+            "rssMiB": 2366.125,
+            "heapMiB": 1397.249168395996,
+            "buffersMiB": 487.45025539398193
+          },
+          {
+            "stage": "pairs",
+            "ms": 33242.727249999996,
+            "rssMiB": 1999.921875,
+            "heapMiB": 44.274818420410156,
+            "buffersMiB": 581.2529172897339
+          },
+          {
+            "stage": "weights",
+            "ms": 7.158125000001746,
+            "rssMiB": 2000.328125,
+            "heapMiB": 48.148162841796875,
+            "buffersMiB": 581.2600965499878
+          }
+        ]
+      }
+    }
+  ],
+  "conditions": [
+    "Full baseline is one fresh Mac process, no profiler; focused checks occurred during baseline.",
+    "Final samples are three sequential fresh processes per host, no profiler and no concurrent tests.",
+    "No full original-solution Intel baseline measured.",
+    "Small reference-mode cases passed; full default measured with compilation enabled.",
+    "No exhaustive audit or full npm test was run."
+  ]
+}

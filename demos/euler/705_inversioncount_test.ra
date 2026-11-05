@@ -9,3 +9,16 @@ test "statement values"
   run
   Answer equal 338079744
 end
+
+test "empty and decimal boundaries"
+  use "705_inversioncount"
+  Nn = 1
+  run
+  Answer equal 0
+  Nn = 100
+  run
+  Answer equal 719294528
+  Nn = 1000
+  run
+  Answer equal 461640134
+end
