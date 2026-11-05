@@ -1587,6 +1587,27 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             lines.push(`const ${result} = ${values[0].code} ? ${values[1].code} : ${values[2].code};`);
             return { code: result, type: values[1].type };
         }
+        if (numberMode && !wide && host.nativeCalls && host.arrayReads && host.module('algo') && isApplicationExpression(e)) {
+            const parts = flattenApplication(e);
+            const op = parts[2];
+            if (parts.length === 3 && isNameExpression(parts[0]) && isNameExpression(op)
+                && ['lowerindex', 'upperindex'].includes(op.name)
+                && !localTypes.has(op.name) && !arrays.has(op.name) && !containers.has(op.name)) {
+                const type = arrayType(parts[0]);
+                if (type?.rank === 1 && type.element === 'integer') {
+                    const source = emitArrayValue(parts[0], lines), target = emit(parts[1], lines, 'integer');
+                    if (!source || target?.type !== 'integer') return undefined;
+                    const info = arrays.get(parts[0].name)!;
+                    const result = `searchIndex${state.serial++}`;
+                    builtins.set(op.name, 'algo');
+                    // One native-size search over already guarded numeric cells.
+                    // Observable search checkpoints retain the publishing path.
+                    if (state.workCounting) lines.push(`work += Math.ceil(Math.log2(cells${info.slot}.length + 1));`);
+                    lines.push(`const ${result} = sortedIndex(cells${info.slot}, ${target.code}, ${op.name === 'upperindex'});`);
+                    return { code: result, type: 'integer' };
+                }
+            }
+        }
         if (isNameExpression(e) && !e.name.includes('.')) {
             if (arrays.has(e.name)) return undefined;
             const type = localTypes.get(e.name) ?? (textSources.has(e.name) ? 'text' : hint ?? realInput(e.name) ?? 'integer');

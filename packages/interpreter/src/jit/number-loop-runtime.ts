@@ -5,7 +5,8 @@ import { broadcastShape, arrayStrides } from './tensor-layout.js';
 import { numberOverflow, checkedNumberModularMultiply as modularMultiply, checkedNumberPower } from './number-arithmetic.js';
 import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
 import { textLength } from '../text-storage.js';
-import { expressionFacts, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
+import { AstUtils, type AstNode } from 'langium';
+import { expressionFacts, flattenApplication, isApplicationExpression, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
 import { prepareLoopEntryWork } from './loop-entry-work.js';
 import { prepareVectorEntryWork } from './vector-entry-work.js';
 import { loopTraversal } from '../loop-traversal.js';
@@ -25,6 +26,18 @@ export { numberOverflow } from './number-arithmetic.js';
 
 type NumberCells = ArrayLike<number | bigint>;
 const overflow = numberOverflow;
+
+// Only prepared numeric buffers reach this helper; raw packed inputs are
+// admitted solely for direct indexed loads. Observable searches stay native.
+function numberSortedIndex(cells: ArrayLike<number>, target: number, upper: boolean): number {
+    let low = 0, high = cells.length;
+    while (low < high) {
+        const middle = Math.floor((low + high) / 2), value = cells[middle];
+        if (value < target || upper && value === target) low = middle + 1;
+        else high = middle;
+    }
+    return low;
+}
 
 const SMALL_COPY_CELLS = 64;
 const COPY_PROBE_CAP = 262144;
@@ -339,6 +352,37 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         return recordFallback('number-loop:rebound-layout-proof', 'proof');
     const cursor = plan.iteration?.names[0];
     const indexedPass = cursor !== undefined && !plan.writerNames.includes(cursor) && !locations.some(isForStatement) && !plan.vectorIterations.length;
+    // A scalar load outside nested loops can borrow its packed source even
+    // while another array is updated privately. Audit every source use: a
+    // vector consumer or rebinding would require prepared numeric cells.
+    const borrowedInputs = new Set<string>();
+    if (plan.calls.every(call => call.stableArrayReads && call.privateStateSafe) && !plan.vectorIterations.length) {
+        const nodes = [...AstUtils.streamAllContents(statement)];
+        for (const [name, index] of plan.indexedReads) {
+            if (index === undefined || plan.writerNames.includes(index) || plan.destinations.has(name) || plan.arrayDefinitions.has(name)) continue;
+            const uses = nodes.filter(isNameExpression).filter(node => node.name === name).filter(node => {
+                const parent = (node as AstNode).$container;
+                if (!isApplicationExpression(parent) || plan.builtins.get('len') !== 'core') return true;
+                const parts = flattenApplication(parent);
+                // Shape metadata does not consume or validate any integer cell.
+                return !(parts.length === 2 && parts[0] === node && isNameExpression(parts[1]) && parts[1].name === 'len');
+            });
+            if (uses.length !== 1) continue;
+            const use = uses[0];
+            const parent = (use as AstNode).$container;
+            if (!isApplicationExpression(parent)) continue;
+            const parts = flattenApplication(parent);
+            if (parts.length !== 2 || parts[0] !== use || !isNameExpression(parts[1]) || parts[1].name !== index) continue;
+            const loops = [];
+            for (let node: AstNode | undefined = parent.$container; node; node = node.$container) {
+                if (isForStatement(node)) loops.push(node);
+                if (node === statement) break;
+            }
+            // Whole function regions include their outer traversal in the
+            // body rather than plan.iteration. The same one-pass proof applies.
+            if (loops.length === 1 && host.iteration(loops[0].condition)?.names[0] === index) borrowedInputs.add(name);
+        }
+    }
     const storage = new Map<string, { slot: number; rank: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
     if (plan.vectorIterations.length && !host.declareIteration) return recordFallback('number-loop:iteration-binding', 'proof');
     const written = new Set([...plan.writerNames, ...plan.binderNames]);
@@ -357,18 +401,17 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     }
     for (const info of plan.destinations.values()) registers.push(`changed${info.slot} = changes[${info.slot}]`);
     const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
-    // Array-writing regions cannot borrow the raw packed read-only path below:
-    // entry validates/converts all integer buffers, and stores remain checked.
-    // Read-only indexed passes may defer validation of untouched BigInt cells.
-    const integerCell = plan.destinations.size > 0 ? (value: number) => value
+    // Stores stay private and checked. A borrowed packed input is validated
+    // at its actual load; overflow discards those stores before exact replay.
+    const integerCell = plan.destinations.size > 0 ? (value: number | bigint) => typeof value === 'bigint' ? safe(Number(value)) : value
         : (value: number | bigint) => safe(Number(value));
     const source = emitNumberLoopSource(plan, registers, publish, false);
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'recordWideFold', 'createRange', code)(
-            modularMultiply, safe, int32, overflow, () => new RankError('division by zero'),
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'recordWideFold', 'createRange', code)(
+            modularMultiply, safe, numberSortedIndex, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
             (name: string) => new RankError(`${name} expects a nonnegative integer count`),
@@ -458,6 +501,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         // Existing array contracts can poll again while publishing a rebound
         // binding. Retain ordinary statement boundaries for observable budgets.
         if (plan.rangeDefinitions?.size && interruptsEnabled()) return recordFallback('number-loop:observable-range-completion', 'effects');
+        if ((plan.builtins.has('lowerindex') || plan.builtins.has('upperindex')) && (demandBudgetEnabled() || interruptsEnabled()))
+            return recordFallback('number-loop:observable-sorted-search', 'effects');
         if (reboundInputs && demandBudgetEnabled()) return recordFallback('number-loop:observable-rebinding-budget', 'effects');
         if (plan.rangeNarrowing && demandBudgetEnabled()) return recordFallback('number-loop:observable-narrowing-budget', 'effects');
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return recordFallback('number-loop:builtin-binding', 'proof');
@@ -618,8 +663,12 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     cost.allocatedBytes += compact.byteLength;
                     cost.copiedBytes += compact.byteLength;
                 }
-            } else if (indexedPass && plan.indexedReads.get(name) === cursor && !plan.destinations.size && info.type === 'integer' && typedElementKind(value) === 'integer') {
+            } else if ((indexedPass && plan.indexedReads.get(name) === cursor && !plan.destinations.size
+                || borrowedInputs.has(name) && !demandBudgetEnabled() && !interruptsEnabled())
+                && info.type === 'integer' && typedElementKind(value) === 'integer') {
                 buffers[info.slot] = items as ArrayLike<bigint>;
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) { diagnostics.numberLoopBorrowedIntegerBuffers++; diagnostics.numberLoopBorrowedIntegerCells += items.length; }
             } else {
                 const readOnly = !plan.destinations.has(name);
                 const type = info.type ?? 'integer';

@@ -3071,3 +3071,19 @@ Stored integer power also shares the checked multiplier with compiled loops;
 negative exponents and unsupported kinds keep their existing real/error path.
 No numeric precision checks, copy-admission thresholds or language semantics
 were relaxed. See [measurements and verification](../../benchmarks/euler410-followup.md).
+
+## Packed read-only scans and sorted indexes (Euler 411, #447)
+
+A scalar input scan can borrow completed packed integers while unrelated
+arrays remain private destinations. The proof checks every use, permits length
+metadata and stable private helper calls, and rejects nested repeated reads,
+rebindings and vector consumers. Each actual load checks safe conversion;
+overflow discards private writes before exact replay. Observable budgets and
+cancellation retain the prior preparation path. Precision and copy-admission
+thresholds are unchanged.
+
+Private numeric arrays also support existing `lowerindex` and `upperindex`
+operations through a small numeric search helper. Observable native search
+checkpoints retain the publishing path. Euler 411 uses `upperindex` over sorted
+tails padded above the largest possible height, avoiding a sliced prefix or
+interpreted helper call per point. See [verification and measurements](../../benchmarks/euler411-followup.md).
