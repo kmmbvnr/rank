@@ -1,0 +1,82 @@
+{
+  "limit": 100000000,
+  "source": "original demo, before Number admission",
+  "samples": 1085,
+  "topSelfSamples": [
+    {
+      "function": "ownedArray",
+      "file": "owned-array.js",
+      "samples": 116
+    },
+    {
+      "function": "mapStoredInt32Binary",
+      "file": "integer-array-kernel.js",
+      "samples": 95
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "samples": 65
+    },
+    {
+      "function": "compactBinary",
+      "file": "integer-array-kernel.js",
+      "samples": 44
+    },
+    {
+      "function": "createOwned",
+      "file": "owned-array.js",
+      "samples": 38
+    },
+    {
+      "function": "",
+      "file": "",
+      "samples": 32
+    },
+    {
+      "function": "gather",
+      "file": "selectors.js",
+      "samples": 21
+    },
+    {
+      "function": "chooseStoredIntegers",
+      "file": "integer-array-kernel.js",
+      "samples": 18
+    },
+    {
+      "function": "mapStoredWords",
+      "file": "integer-array-kernel.js",
+      "samples": 18
+    },
+    {
+      "function": "mapStoredIntegers",
+      "file": "integer-array-kernel.js",
+      "samples": 17
+    },
+    {
+      "function": "",
+      "file": "selectors.js",
+      "samples": 17
+    },
+    {
+      "function": "closure",
+      "file": "all-star-lookahead.js",
+      "samples": 15
+    },
+    {
+      "function": "compareStoredInt32",
+      "file": "integer-array-kernel.js",
+      "samples": 14
+    },
+    {
+      "function": "semanticArrayType",
+      "file": "semantic-array-type.js",
+      "samples": 14
+    },
+    {
+      "function": "checkArray",
+      "file": "frame.js",
+      "samples": 10
+    }
+  ]
+}
