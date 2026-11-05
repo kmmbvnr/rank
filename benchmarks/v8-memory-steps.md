@@ -45,9 +45,47 @@ for this candidate, so it is rejected under the memory acceptance gate
 before expanding runtime code. No speed improvement is claimed or measured.
 A speed-only experiment can be considered separately if that goal changes.
 
+## 3. Numeric cell coordinates: skipped
+
+Prototype in `experiments/v8-ranked-cell-coordinates.patch` computes frame
+storage offsets directly, allocating coordinate arrays only when nested
+array-cell slicing needs them. Natural leading frames use multiplication.
+This removes two temporary coordinate arrays and their callback from each
+flat-storage cell read. Euler 491 full input exercised the allocation-free
+branch 119,724 times in a separate instrumented run. It returned the exact
+answer 194505988824000. Euler 701 4x4 did not exercise this branch.
+
+Nine alternating fresh-process pairs, Node v24.15.0 on both hosts:
+
+| Host | Metric | Baseline | Prototype |
+| --- | --- | ---: | ---: |
+| Mac | Median milliseconds | 314.61 | 317.48 |
+| Mac | Median peak RSS KiB | 346560 | 334272 |
+| Mac | Median retained heap bytes | 39236712 | 37148408 |
+| Intel | Median milliseconds | 937.36 | 874.57 |
+| Intel | Median peak RSS KiB | 318216 | 328740 |
+| Intel | Median retained heap bytes | 37155104 | 39243576 |
+
+Mac timing was noisy (baseline mean 331.92 ms, SD 29.48; prototype mean
+314.04 ms, SD 21.90). This does not establish a Mac speed regression or
+speedup. Intel memory increased despite fewer temporary allocations.
+Consequently the candidate fails the cross-host memory gate and is removed.
+No claim is made about the cause of the retained-heap reversal.
+The earlier general scalar-only shortcut was also unhelpful on Euler 701;
+its five-pair exploratory series is preserved as scalar-cell-mac.json.
+
+109 focused rank/axis tests passed on the final prototype, plus TypeScript
+build. No full suite or exhaustive audits were run.
+
+`v8-ranked-cell-memory.mjs CHECKOUT [491|077|701]` checks answers, times program
+execution after parsing, then measures retained heap after explicit GC and
+process peak RSS. `scalarReads` is null in normal timing passes; the count
+above was obtained by a temporary increment in the flat-storage branch.
+Both hosts used the same unmodified Euler 491 demo. Raw observations are
+in `baselines/2026-11-05-v8-memory/ranked-cell-491-{mac,intel}.json`.
+
 ## Remaining steps
 
-3. Reduce short-lived arrays around interpreted numeric expressions.
 4. Expand positional calls at compiled/runtime boundaries.
 5. Construct scalar function variants lazily.
 6. Fuse polynomial producers into scatter/fold consumers.
