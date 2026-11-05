@@ -1,0 +1,63 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 585: Egyptian Signs
+rem Smallest power of 2 starting with N.
+
+arg Input text = "10000000"
+
+Ln10 = 10.0 log
+Alpha = (2.0 log) / Ln10
+Eps = 0.000000000001
+
+fun N solve_egyptian
+  L = ((N log) / Ln10) mod 1.0
+  R0 = ((N + 1.0) log) / Ln10
+  R = (R0 mod 1.0) - Eps
+  if R less 0.0
+    R = 1.0 - Eps
+  end
+
+  B = 5000
+  BAlpha = (B * Alpha) mod 1.0
+  J = 0 to (B - 1)
+  Fracs = (J * Alpha) mod 1.0
+  Order = Fracs argsort
+  SortedFracs = Fracs Order
+  SortedJ = J Order
+
+  for I in 0 to 6000
+    Shift = (I * BAlpha) mod 1.0
+    LowRaw = (L - Shift) mod 1.0
+    Low = (LowRaw + 1.0) mod 1.0
+    HiRaw = (R - Shift) mod 1.0
+    High = (HiRaw + 1.0) mod 1.0
+
+    InLow = not (SortedFracs less Low)
+    InHi = SortedFracs less High
+    Mask = array shape B fill false
+    if Low less High
+      Mask = InLow and InHi
+    else
+      Mask = InLow or InHi
+    end
+
+    if Mask any
+      Cands = SortedJ Mask
+      Valid = (I * B + Cands) greater 0
+      if Valid any
+        BestJ = (Cands Valid) min
+        return (I * B + BestJ)
+      end
+    end
+  end
+
+  return -1
+end
+
+Num = (Input words real) 0
+Result = Num solve_egyptian
+Result print

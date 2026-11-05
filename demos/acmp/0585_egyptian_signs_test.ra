@@ -1,0 +1,43 @@
+rem Tests for ACMP 0585: Egyptian Signs
+
+use testing
+
+test "ACMP 585: Sample 1 (12 -> 7)"
+  use "0585_egyptian_signs"
+  Input = "12"
+  run
+
+  Result equal 7
+end
+
+test "ACMP 585: Sample 2 (134 -> 27)"
+  use "0585_egyptian_signs"
+  Input = "134"
+  run
+
+  Result equal 27
+end
+
+test "ACMP 585: Sample 3 (82 -> 209)"
+  use "0585_egyptian_signs"
+  Input = "82"
+  run
+
+  Result equal 209
+end
+
+test "ACMP 585: Single digit 1 -> 4"
+  use "0585_egyptian_signs"
+  Input = "1"
+  run
+
+  Result equal 4
+end
+
+test "ACMP 585: Max N 10^7 -> 6432163"
+  use "0585_egyptian_signs"
+  Input = "10000000"
+  run
+
+  Result equal 6432163
+end
