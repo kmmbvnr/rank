@@ -5,7 +5,7 @@ import { tensorSource } from '../tensor-source.js';
 import { permutedArraySource } from '../array-permutation.js';
 import { diagonalResultShape, matmulResultShape } from '@arrrank/language';
 import { tuple } from '../value.js';
-import { checkpoint, interruptibleCallback, InterruptedError, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, interruptibleCallback, InterruptedError, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
 import { denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray, hasMaskedCells } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { currentDiagnostics } from '../diagnostics.js';
@@ -689,6 +689,12 @@ function numberMatmul(
     leftInner: number, rightInner: number, outputShape: readonly number[],
     outputStrides: readonly number[], leftRank: number,
 ): Float64Array {
+    if (privateLoopPolling() && !demandBudgetEnabled() && outputShape.length === 2 && leftRank === 1
+        && outputShape[0] >= 2 && outputShape[1] >= 4
+        && leftInner === 1 && rightInner === outputShape[1]
+        && outputStrides[0] === contracted && outputStrides[1] === 1) {
+        return contiguousNumberMatmul(leftItems, rightItems, outputShape[0], outputShape[1], contracted);
+    }
     const out = new Float64Array(size);
     const rank = outputShape.length;
     const coordinates = new Array<number>(rank).fill(0);
@@ -713,6 +719,56 @@ function numberMatmul(
         }
     }
     return out;
+}
+
+/** Contiguous columns and four independent accumulators reuse each left cell.
+ * Keep the contraction order of every result, including real rounding. The
+ * temporary transpose is invocation-local; no operand or scratch cache escapes.
+ * Observable polling/budgets retain the original per-output kernel. */
+function contiguousNumberMatmul(
+    left: Float64Array | Int32Array, right: Float64Array | Int32Array,
+    rows: number, columns: number, inner: number,
+): Float64Array {
+    const transpose = new Float64Array(right.length);
+    for (let k = 0; k < inner; k++) {
+        for (let j = 0; j < columns; j++) {
+            const index = k * columns + j;
+            if ((index & 4095) === 0) checkpoint('preparing matrix product', Math.min(4096, right.length - index));
+            transpose[j * inner + k] = right[index];
+        }
+    }
+    const result = new Float64Array(rows * columns);
+    const period = inner >= 256 ? 1 : 1024;
+    for (let i = 0; i < rows; i++) {
+        const offset = i * inner, row = i * columns;
+        let j = 0;
+        for (; j + 3 < columns; j += 4) {
+            const index = row + j;
+            // Results stay private. Batch opaque cancellation checkpoints
+            // at most three outputs before their ordinary boundary.
+            if (period === 1) checkpoint('computing linear algebra', 4);
+            else if ((index & 1023) === 0 || (index & 1023) > 1020) checkpoint('computing linear algebra');
+            const b0 = j * inner, b1 = b0 + inner, b2 = b1 + inner, b3 = b2 + inner;
+            let s0 = 0, s1 = 0, s2 = 0, s3 = 0;
+            for (let k = 0; k < inner; k++) {
+                const a = left[offset + k];
+                s0 += a * transpose[b0 + k];
+                s1 += a * transpose[b1 + k];
+                s2 += a * transpose[b2 + k];
+                s3 += a * transpose[b3 + k];
+            }
+            result[index] = s0; result[index + 1] = s1;
+            result[index + 2] = s2; result[index + 3] = s3;
+        }
+        for (; j < columns; j++) {
+            const index = row + j, base = j * inner;
+            if (index % period === 0) checkpoint('computing linear algebra');
+            let total = 0;
+            for (let k = 0; k < inner; k++) total += left[offset + k] * transpose[base + k];
+            result[index] = total;
+        }
+    }
+    return result;
 }
 
 function stridesOf(shape: readonly number[]): number[] {
