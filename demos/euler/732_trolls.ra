@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-arg Nn integer = 1000
+arg Trolls integer = 1000
 
 rem With shoulder heights a, arm lengths
 rem b and IQs w, a troll can finish a
@@ -17,34 +17,41 @@ rem A set is feasible when it passes in
 rem deadline order, so a knapsack over
 rem the total height t keeps the best
 rem total IQ for each t.
-Ts = 0 to 3 * Nn - 1
-Pw = 5 Ts 1000000007 powmod
-Rr = Pw mod 101 + 50
-Mt = Rr reshape Nn 3
-Aa = Mt # 0
-Bb = Mt # 1
-Ww = Mt # 2
-Sa = Aa sum
-Th = (Sa * Sa // 2) isqrt
-if 2 * Th * Th less Sa * Sa
-  Th += 1
+Index = 0 to 3 * Trolls - 1
+Powers = 5 Index 1000000007 powmod
+Values = Powers mod 101 + 50
+Table = Values reshape Trolls 3
+Heights = Table # 0
+Reach = Table # 1
+IQ = Table # 2
+Total = Heights sum
+Target = (Total * Total // 2) isqrt
+Square = Total * Total
+if 2 * Target * Target less Square
+  Target += 1
 end
-Dl = Sa + Bb - Th + Aa
-Od = (Dl * 1000 + Aa) argsort
-Dn = Dl Od
-Pn = Aa Od
-Wn = Ww Od
-Mx = Dn max
-Dp = array shape (Mx + 1) fill -1000000
-Dp 0 = 0
-for J in 0 to Nn - 1
-  Pj = Pn J
-  Dj = Dn J
-  if Dj at least Pj
-    Lo = Dp (0 to Dj - Pj) + Wn J
-    Hi = Dp (Pj to Dj)
-    Dp (Pj to Dj) = Hi max Lo
+Deadlines = Total + Reach
+Deadlines = Deadlines - Target + Heights
+Key = Deadlines * 1000 + Heights
+Order = Key argsort
+SortedD = Deadlines Order
+SortedH = Heights Order
+SortedIQ = IQ Order
+Horizon = SortedD max
+Size = Horizon + 1
+Best = array shape Size fill -1000000
+Best 0 = 0
+for Step in 0 to Trolls - 1
+  Height = SortedH Step
+  Deadline = SortedD Step
+  if Deadline at least Height
+    Reach2 = Deadline - Height
+    Gain = SortedIQ Step
+    Shifted = Best (0 to Reach2) + Gain
+    Window = Best (Height to Deadline)
+    Both = Window max Shifted
+    Best (Height to Deadline) = Both
   end
 end
-Answer = Dp max
+Answer = Best max
 Answer print

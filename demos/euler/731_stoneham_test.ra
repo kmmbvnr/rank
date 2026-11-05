@@ -2,10 +2,10 @@ use testing
 
 test "statement values"
   use "731_stoneham"
-  Nn = 100
+  Start = 100
   run
   Answer equal "4938271604"
-  Nn = 100000000
+  Start = 100000000
   run
   Answer equal "2584642393"
 end

@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-arg Nn integer = 10 ** 16
+arg Start integer = 10 ** 16
 
 rem The ten digits from n are
 rem floor(10^(n+9) A) mod 10^10, with
@@ -17,21 +17,24 @@ rem (3^k 10^10) = s gives the quotient
 rem s // 3^k (mod 10^10) and a remainder
 rem r = s mod 3^k, whose fractions r/3^k
 rem add up to a carry c.
-Ll = ((Nn + 9) real log) / (3 real log)
-Lk = (Ll floor) integer
-Bd = Nn + 9
-Up = (3 ** (Lk + 1)) at most Bd
-Lk = Lk + (Up integer)
-Ks = 1 to Lk
-P3 = 3 ** Ks
-Ee = Nn + 9 - P3
-Md = P3 * 10 ** 10
-Ss = 10 Ee Md powmod
-Qs = Ss // P3
-Rs = Ss mod P3
-Cn = Rs * 3 ** (Lk - Ks)
-Nm = Cn sum
-Cc = Nm // 3 ** Lk
-Aa = (Qs sum + Cc) mod 10 ** 10
-Answer = Aa text
+Total = (Start + 9) real
+Ratio = (Total log) / (3 real log)
+Terms = (Ratio floor) integer
+Bound = Start + 9
+Extra = (3 ** (Terms + 1)) at most Bound
+Terms = Terms + (Extra integer)
+Index = 1 to Terms
+Powers3 = 3 ** Index
+Exponents = Start + 9 - Powers3
+Modulus = Powers3 * 10 ** 10
+Residues = 10 Exponents Modulus powmod
+Quotients = Residues // Powers3
+Remainders = Residues mod Powers3
+Scale = 3 ** (Terms - Index)
+Weighted = Remainders * Scale
+Numerator = Weighted sum
+Carry = Numerator // 3 ** Terms
+Whole = Quotients sum
+Digits = (Whole + Carry) mod 10 ** 10
+Answer = Digits text
 Answer print
