@@ -224,5 +224,6 @@
   "euler/746_messydinner.ra": "About 30 s: 4042 transfer steps over 9 x 5 x 2022 tables; run manually.",
   "euler/747_triangularpizza.ra": "About 20 s: 10^8 pairs in vector rows; run manually.",
   "euler/748_upsidedown.ra": "About 70 s: 3 x 10^7 (m, n) pairs in row blocks; run manually.",
+  "euler/749_nearpowersums.ra": "About 2.2 min and 2.6 GB: 2 x 10^6 count vectors for 53 exponents; run manually.",
   "euler/644_squaresontheline.ra": "Full default remains a manual row-sweep workload (#447, #480); the small fixture stays in audits."
 }

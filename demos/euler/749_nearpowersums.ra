@@ -1,0 +1,94 @@
+rem Near Power Sums
+rem https://projecteuler.net/problem=749
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Length integer = 16
+
+rem A near power sum n has digit power
+rem sum P = n -+ 1, and P depends only
+rem on how many times each digit 1..9
+rem occurs (zeros add nothing). So all
+rem count vectors with at most Length
+rem nonzero digits are built, and for
+rem each exponent k both P - 1 and P + 1
+rem are tested: right size, n mod 9
+rem equal to the digit sum, and a base
+rem 17 digit count signature equal to
+rem the vector's.
+Cap = 2 * 10 ** 16
+Limit = 10 ** Length
+Zero = array 0
+Start = 0 to Length
+Counts = Start reshape (Length + 1) 1
+Left = Length - Start
+for Level in 2 to 9
+  Ways = Left + 1
+  Total = Ways sum
+  Ends = Ways scan +
+  Begin = Ends - Ways
+  Marks = array shape Total fill 0
+  Marks Begin = 1
+  Owner = (Marks scan +) - 1
+  Index = 0 to Total - 1
+  Offset = Index - (Begin Owner)
+  Older = Counts Owner
+  Newest = Offset reshape Total 1
+  Counts = concat Older Newest axis 1
+  Left = (Left Owner) - Offset
+end
+Matrix = Counts transpose
+Digits = (1 to 9) reshape 9 1
+Sizes = Matrix sum axis 0
+Mass = (Matrix * Digits) sum axis 0
+Mod9 = Mass mod 9
+Base17 = 17 ** (1 to 9) reshape 9 1
+Signature = (Matrix * Base17) sum axis 0
+Rows = Sizes len
+Ids = 0 to Rows - 1
+Wide = concat Ids Ids
+Wide9 = concat Mod9 Mod9
+Numbers = (1 to 9) array
+Real = (Numbers max 2) * 1.0
+Big = (Cap * 1.0) log
+Room = (Big / (Real log)) floor integer
+Plain = Numbers equal 1
+Room = Plain choose 60 Room
+Found = array shape 0 fill 0
+Places = 10 ** (0 to 15) reshape 1 16
+Last = Length - 1
+for Exponent in 1 to 53
+  Safe = Room min Exponent
+  Power = Numbers ** Safe
+  Short = Room less Exponent
+  Power = Short choose Cap Power
+  Power = Plain choose 1 Power
+  Column = Power reshape 9 1
+  Sums = (Matrix * Column) sum axis 0
+  Near = concat (Sums - 1) (Sums + 1)
+  Small = Near less Limit
+  Good = (Near at least 1) and Small
+  Same9 = (Near mod 9) equal Wide9
+  Good = Good and Same9
+  Value = Near filter Good
+  Owner = Wide filter Good
+  Size = Value len
+  Rise = Value reshape Size 1
+  Digit2 = (Rise // Places) mod 10
+  Alive = Rise at least Places
+  Alive = Alive or (Places equal 1)
+  Live = Alive integer
+  Weight = (17 ** Digit2) * Live
+  Shape = Weight sum axis 1
+  Count = (Alive integer) sum axis 1
+  Own = Signature Owner
+  Mine = Own + Count - (Sizes Owner)
+  Keep = Value filter (Shape equal Mine)
+  Found = concat Found Keep
+end
+Unique = Found unique
+Answer = Unique sum
+Answer print
