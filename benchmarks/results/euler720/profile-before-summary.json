@@ -1,0 +1,208 @@
+{
+  "bits": 23,
+  "totalSamples": 3635,
+  "fileSelfSamples": {
+    "": 925,
+    "function-invocation.js": 716,
+    "scalar-function-proof.js": 609,
+    "sequence.js": 384,
+    "array-copy.js": 173,
+    "owned-array.js": 161,
+    "element-source.js": 148,
+    "function-scopes.js": 79,
+    "operators.js": 65,
+    "frame.js": 51,
+    "tensor-bounds.js": 33,
+    "return-contract.js": 29,
+    "interpreter.js": 27,
+    "tensor-kernel.js": 25,
+    "integer-array-kernel.js": 23,
+    "all-star-lookahead.js": 20,
+    "ordered-source.js": 15,
+    "rest.js": 11,
+    "cst-node-builder.js": 9,
+    "concat-array.js": 9,
+    "call-specializations.js": 8,
+    "lookahead.js": 7,
+    "helpers.js": 6,
+    "model.js": 5,
+    "value.js": 5,
+    "binding-environment.js": 5,
+    "syntax-tree.js": 4,
+    "stream.js": 4,
+    "dfa.js": 4,
+    "bindings.js": 4,
+    "execution.js": 4,
+    "lexer_public.js": 3,
+    "atn.js": 3,
+    "langium-parser.js": 3,
+    "ast-utils.js": 3,
+    "expressions.js": 3,
+    "ast.js": 3,
+    "grammar-utils.js": 2,
+    "base-regexp-visitor.js": 2,
+    "gast_recorder.js": 2,
+    "visitor.js": 2,
+    "array-binding-contract.js": 2,
+    "integer-loop-expressions.js": 2,
+    "slice-source.js": 2,
+    "node:inspector": 1,
+    "module.js": 1,
+    "json-serializer.js": 1,
+    "token-builder.js": 1,
+    "regexp-utils.js": 1,
+    "lexer.js": 1,
+    "rank-module.js": 1,
+    "parser.js": 1,
+    "llk_lookahead.js": 1,
+    "first.js": 1,
+    "perf_tracer.js": 1,
+    "map.js": 1,
+    "_arrayMap.js": 1,
+    "signature-lexer.js": 1,
+    "tokens.js": 1,
+    "primary-applications.js": 1,
+    "application-forms.js": 1,
+    "clause-conditions.js": 1,
+    "block-scope.js": 1,
+    "function-scope-diagnostics.js": 1,
+    "diagnostics.js": 1,
+    "flat-array-borrow.js": 1,
+    "integer-range-facts.js": 1,
+    "tensor-map.js": 1,
+    "array-read.js": 1,
+    "semantic-array-type.js": 1,
+    "integer-view.js": 1,
+    "derived-array.js": 1,
+    "array-ownership.js": 1,
+    "application.js": 1,
+    "materialize.js": 1,
+    "assignments.js": 1,
+    "fast-paths.js": 1,
+    "expression-grouping.js": 1,
+    "writable": 1
+  },
+  "scalarCaptureKeySamples": 608,
+  "topSelfSamples": [
+    {
+      "samples": 605,
+      "function": "scalarCaptureKey",
+      "file": "scalar-function-proof.js",
+      "line": 9
+    },
+    {
+      "samples": 452,
+      "function": "(garbage collector)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 283,
+      "function": "",
+      "file": "function-invocation.js",
+      "line": 596
+    },
+    {
+      "samples": 269,
+      "function": "",
+      "file": "",
+      "line": 3
+    },
+    {
+      "samples": 262,
+      "function": "iterate",
+      "file": "sequence.js",
+      "line": 134
+    },
+    {
+      "samples": 173,
+      "function": "copyStoredArrayBlocks",
+      "file": "array-copy.js",
+      "line": 102
+    },
+    {
+      "samples": 148,
+      "function": "reduce",
+      "file": "element-source.js",
+      "line": 21
+    },
+    {
+      "samples": 115,
+      "function": "stackItems",
+      "file": "sequence.js",
+      "line": 456
+    },
+    {
+      "samples": 104,
+      "function": "packedIntegers",
+      "file": "owned-array.js",
+      "line": 811
+    },
+    {
+      "samples": 95,
+      "function": "scalarCaptureTypes",
+      "file": "function-invocation.js",
+      "line": 560
+    },
+    {
+      "samples": 79,
+      "function": "functionScope",
+      "file": "function-scopes.js",
+      "line": 228
+    },
+    {
+      "samples": 78,
+      "function": "collect",
+      "file": "function-invocation.js",
+      "line": 563
+    },
+    {
+      "samples": 72,
+      "function": "(program)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 71,
+      "function": "",
+      "file": "function-invocation.js",
+      "line": 474
+    },
+    {
+      "samples": 67,
+      "function": "",
+      "file": "",
+      "line": 5
+    },
+    {
+      "samples": 61,
+      "function": "iterate",
+      "file": "operators.js",
+      "line": 633
+    },
+    {
+      "samples": 57,
+      "function": "value",
+      "file": "function-invocation.js",
+      "line": 1144
+    },
+    {
+      "samples": 56,
+      "function": "",
+      "file": "",
+      "line": 3
+    },
+    {
+      "samples": 51,
+      "function": "ownedArray",
+      "file": "owned-array.js",
+      "line": 708
+    },
+    {
+      "samples": 45,
+      "function": "",
+      "file": "function-invocation.js",
+      "line": 614
+    }
+  ]
+}

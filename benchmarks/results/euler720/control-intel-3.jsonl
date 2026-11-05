@@ -1,0 +1,5 @@
+{"stage":"setup","ms":469.57138499999996,"rssMiB":181.984375,"heapMiB":72.01112365722656,"buffersMiB":16.990283012390137}
+{"stage":"sieve","ms":2734.22952,"rssMiB":201.96875,"heapMiB":73.56166076660156,"buffersMiB":24.76852321624756}
+{"stage":"large-primes","ms":380.69246699999985,"rssMiB":210.45703125,"heapMiB":66.41850280761719,"buffersMiB":33.38291835784912}
+{"stage":"small-primes","ms":3249.954158,"rssMiB":270.53515625,"heapMiB":61.03971862792969,"buffersMiB":37.19404315948486}
+{"limit":10000000000,"compilation":true,"answer":"800568803","ms":6838.163692,"maxRssMiB":289.18359375,"node":"v24.15.0","arch":"x64","phases":[{"stage":"setup","ms":469.57138499999996,"rssMiB":181.984375,"heapMiB":72.01112365722656,"buffersMiB":16.990283012390137},{"stage":"sieve","ms":2734.22952,"rssMiB":201.96875,"heapMiB":73.56166076660156,"buffersMiB":24.76852321624756},{"stage":"large-primes","ms":380.69246699999985,"rssMiB":210.45703125,"heapMiB":66.41850280761719,"buffersMiB":33.38291835784912},{"stage":"small-primes","ms":3249.954158,"rssMiB":270.53515625,"heapMiB":61.03971862792969,"buffersMiB":37.19404315948486}]}

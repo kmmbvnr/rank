@@ -1,0 +1,189 @@
+{
+  "bits": 25,
+  "totalSamples": 1118,
+  "fileSelfSamples": {
+    "": 333,
+    "array-copy.js": 168,
+    "modular-callback-scan.js": 162,
+    "integer-array-kernel.js": 87,
+    "tensor-bounds.js": 80,
+    "all-star-lookahead.js": 59,
+    "ordered-source.js": 37,
+    "element-source.js": 31,
+    "tensor-kernel.js": 29,
+    "interpreter.js": 16,
+    "lookahead.js": 10,
+    "rest.js": 10,
+    "concat-array.js": 9,
+    "cst-node-builder.js": 8,
+    "stream.js": 6,
+    "helpers.js": 5,
+    "dfa.js": 5,
+    "base-regexp-visitor.js": 3,
+    "parser-builder-base.js": 3,
+    "model.js": 3,
+    "atn.js": 3,
+    "frame.js": 3,
+    "visitor.js": 2,
+    "first.js": 2,
+    "langium-parser.js": 2,
+    "ast-utils.js": 2,
+    "expressions.js": 2,
+    "fast-paths.js": 2,
+    "integer-loop-expressions.js": 2,
+    "tensor.js": 2,
+    "execution.js": 2,
+    "binding-environment.js": 2,
+    "node:inspector": 1,
+    "json-serializer.js": 1,
+    "lexer.js": 1,
+    "lexer_public.js": 1,
+    "gast_recorder.js": 1,
+    "resolver.js": 1,
+    "map.js": 1,
+    "_arrayMap.js": 1,
+    "parser.js": 1,
+    "signature-lexer.js": 1,
+    "tokens.js": 1,
+    "syntax-tree.js": 1,
+    "grammar-utils.js": 1,
+    "ast.js": 1,
+    "bindings.js": 1,
+    "expression-grouping.js": 1,
+    "block-scope.js": 1,
+    "function-mutations.js": 1,
+    "prepared-function.js": 1,
+    "operators.js": 1,
+    "array-binding-contract.js": 1,
+    "masked-kernels.js": 1,
+    "tensor-layout.js": 1,
+    "writable": 1,
+    "value.js": 1,
+    "reduction.js": 1,
+    "modular-fold.js": 1,
+    "sequence-completion.js": 1
+  },
+  "scalarCaptureKeySamples": 0,
+  "topSelfSamples": [
+    {
+      "samples": 167,
+      "function": "copyStoredArrayBlocks",
+      "file": "array-copy.js",
+      "line": 102
+    },
+    {
+      "samples": 162,
+      "function": "",
+      "file": "modular-callback-scan.js",
+      "line": 41
+    },
+    {
+      "samples": 149,
+      "function": "",
+      "file": "",
+      "line": 3
+    },
+    {
+      "samples": 135,
+      "function": "",
+      "file": "",
+      "line": 3
+    },
+    {
+      "samples": 58,
+      "function": "compactBinary",
+      "file": "integer-array-kernel.js",
+      "line": 95
+    },
+    {
+      "samples": 54,
+      "function": "inputBounds",
+      "file": "tensor-bounds.js",
+      "line": 15
+    },
+    {
+      "samples": 37,
+      "function": "reverseArray",
+      "file": "ordered-source.js",
+      "line": 27
+    },
+    {
+      "samples": 31,
+      "function": "reduce",
+      "file": "element-source.js",
+      "line": 21
+    },
+    {
+      "samples": 29,
+      "function": "(program)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 29,
+      "function": "compactBinary",
+      "file": "integer-array-kernel.js",
+      "line": 95
+    },
+    {
+      "samples": 28,
+      "function": "execute",
+      "file": "tensor-kernel.js",
+      "line": 1460
+    },
+    {
+      "samples": 25,
+      "function": "run",
+      "file": "tensor-bounds.js",
+      "line": 85
+    },
+    {
+      "samples": 17,
+      "function": "(garbage collector)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 8,
+      "function": "copyFrom",
+      "file": "concat-array.js",
+      "line": 145
+    },
+    {
+      "samples": 7,
+      "function": "lookAheadSequenceFromAlternatives",
+      "file": "lookahead.js",
+      "line": 368
+    },
+    {
+      "samples": 2,
+      "function": "getAlternativesForProd",
+      "file": "interpreter.js",
+      "line": 172
+    },
+    {
+      "samples": 2,
+      "function": "getConflictingAltSets",
+      "file": "all-star-lookahead.js",
+      "line": 623
+    },
+    {
+      "samples": 2,
+      "function": "advance",
+      "file": "execution.js",
+      "line": 92
+    },
+    {
+      "samples": 2,
+      "function": "consoleCall",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 1,
+      "function": "post",
+      "file": "node:inspector",
+      "line": 115
+    }
+  ]
+}
