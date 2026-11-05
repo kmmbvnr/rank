@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {typedArray, readArrayItem} from '../packages/interpreter/out/array-storage.js';
+const mode = process.argv[2] ?? '.';
+const {mapStoredUnary} = await import(pathToFileURL(resolve(mode, 'packages/interpreter/out/jit/unary-array-kernel.js')));
+const input = typedArray(new Int32Array(1000000).fill(81));
+for (let i = 0; i < 5; i++) mapStoredUnary(input, 'integer', Math.sqrt, 'integer');
+global.gc();
+const before = process.memoryUsage().arrayBuffers;
+const start = performance.now();
+const output = mapStoredUnary(input, 'integer', Math.sqrt, 'integer');
+const milliseconds = performance.now() - start;
+const allocatedBuffers = process.memoryUsage().arrayBuffers - before;
+assert.equal(readArrayItem(output, 999999), 9n);
+// Exercise a late Int32 failure, then widening and prefix preservation.
+const wide = mapStoredUnary(input, 'integer', n => n + 2147483647, 'integer');
+assert.equal(readArrayItem(wide, 999999), 2147483728n);
+console.log(JSON.stringify({mode, milliseconds, allocatedBuffers, node: process.version}));

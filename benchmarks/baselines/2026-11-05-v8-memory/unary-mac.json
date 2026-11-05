@@ -1,0 +1,182 @@
+[
+  {
+    "sample": 0,
+    "mode": "baseline",
+    "results": [
+      {
+        "mode": "baseline",
+        "milliseconds": 2.686542000000003,
+        "allocatedBuffers": 8000000,
+        "node": "v24.15.0"
+      },
+      {
+        "euler": 42,
+        "milliseconds": 206.49958300000003,
+        "peakRssKiB": 312512,
+        "answer": "162"
+      }
+    ]
+  },
+  {
+    "sample": 0,
+    "mode": "candidate",
+    "results": [
+      {
+        "mode": "candidate",
+        "milliseconds": 2.5762499999999875,
+        "allocatedBuffers": 4000000,
+        "node": "v24.15.0"
+      },
+      {
+        "euler": 42,
+        "milliseconds": 204.167417,
+        "peakRssKiB": 293984,
+        "answer": "162"
+      }
+    ]
+  },
+  {
+    "sample": 1,
+    "mode": "candidate",
+    "results": [
+      {
+        "mode": "candidate",
+        "milliseconds": 2.5408749999999998,
+        "allocatedBuffers": 4000000,
+        "node": "v24.15.0"
+      },
+      {
+        "euler": 42,
+        "milliseconds": 204.312208,
+        "peakRssKiB": 289664,
+        "answer": "162"
+      }
+    ]
+  },
+  {
+    "sample": 1,
+    "mode": "baseline",
+    "results": [
+      {
+        "mode": "baseline",
+        "milliseconds": 2.7142920000000004,
+        "allocatedBuffers": 8000000,
+        "node": "v24.15.0"
+      },
+      {
+        "euler": 42,
+        "milliseconds": 214.8995,
+        "peakRssKiB": 312928,
+        "answer": "162"
+      }
+    ]
+  },
+  {
+    "sample": 2,
+    "mode": "baseline",
+    "results": [
+      {
+        "mode": "baseline",
+        "milliseconds": 2.9237500000000125,
+        "allocatedBuffers": 8000000,
+        "node": "v24.15.0"
+      },
+      {
+        "euler": 42,
+        "milliseconds": 202.436167,
+        "peakRssKiB": 296160,
+        "answer": "162"
+      }
+    ]
+  },
+  {
+    "sample": 2,
+    "mode": "candidate",
+    "results": [
+      {
+        "mode": "candidate",
+        "milliseconds": 2.7353750000000048,
+        "allocatedBuffers": 4000000,
+        "node": "v24.15.0"
+      },
+      {
+        "euler": 42,
+        "milliseconds": 199.643125,
+        "peakRssKiB": 289744,
+        "answer": "162"
+      }
+    ]
+  },
+  {
+    "sample": 3,
+    "mode": "candidate",
+    "results": [
+      {
+        "mode": "candidate",
+        "milliseconds": 2.570541999999989,
+        "allocatedBuffers": 4000000,
+        "node": "v24.15.0"
+      },
+      {
+        "euler": 42,
+        "milliseconds": 206.337042,
+        "peakRssKiB": 295968,
+        "answer": "162"
+      }
+    ]
+  },
+  {
+    "sample": 3,
+    "mode": "baseline",
+    "results": [
+      {
+        "mode": "baseline",
+        "milliseconds": 2.88570900000002,
+        "allocatedBuffers": 8000000,
+        "node": "v24.15.0"
+      },
+      {
+        "euler": 42,
+        "milliseconds": 202.79575,
+        "peakRssKiB": 297936,
+        "answer": "162"
+      }
+    ]
+  },
+  {
+    "sample": 4,
+    "mode": "baseline",
+    "results": [
+      {
+        "mode": "baseline",
+        "milliseconds": 2.788916999999998,
+        "allocatedBuffers": 8000000,
+        "node": "v24.15.0"
+      },
+      {
+        "euler": 42,
+        "milliseconds": 203.943875,
+        "peakRssKiB": 287472,
+        "answer": "162"
+      }
+    ]
+  },
+  {
+    "sample": 4,
+    "mode": "candidate",
+    "results": [
+      {
+        "mode": "candidate",
+        "milliseconds": 2.6637079999999855,
+        "allocatedBuffers": 4000000,
+        "node": "v24.15.0"
+      },
+      {
+        "euler": 42,
+        "milliseconds": 204.772583,
+        "peakRssKiB": 291744,
+        "answer": "162"
+      }
+    ]
+  }
+]
