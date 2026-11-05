@@ -650,6 +650,11 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (plan.arrayDefinitions.has(name) && !plan.arrayInputs.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== info.rank) return recordFallback('number-loop:array-storage', 'representation');
+            // The fresh array-call ABI carries numeric buffers, not table
+            // labels or ordering metadata, including through local aliases.
+            if (plan.calls.some(call => call.numberArrayResult)
+                && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
+                return recordFallback('number-loop:array-call-metadata', 'proof');
             // Named table rows can return positional products rather than
             // plain arrays. Keep their selection/result contract in the evaluator.
             if (plan.sliceReadSources.has(name) && value.columnNames) return recordFallback('number-loop:named-selection', 'proof');

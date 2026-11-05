@@ -1,3 +1,5 @@
+import { compileIntegerArrayFunction } from './jit/integer-array-function.js';
+import { interruptsEnabled } from './interrupt.js';
 import { borrowIntegerBuffer } from './jit/borrowed-integer-buffer.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
 import { strictDataCall } from './jit/declared-scalar-call.js';
@@ -578,23 +580,27 @@ export class FastPaths {
             const stableReads = privateScalarFunction(proof, consumed) || typeof proof.type === 'string'
                 && !proof.containers && !proof.arrayWrites.size && !proof.observableCaptures;
             const numberArrays = types.some(type => typeof type !== 'string');
-            const numberSafe = stableReads && isScalarType(proof.type) && types.every(type => isScalarType(type)
+            const arrayKernel = this.compiler.scalars.functions && !captures && typeof proof.type !== 'string'
+                && Object.getOwnPropertyDescriptor(value!, 'call')?.value === definition.call
+                ? compileIntegerArrayFunction(statement, types) : undefined;
+            const numberSafe = !!arrayKernel || stableReads && isScalarType(proof.type) && types.every(type => isScalarType(type)
                 || !isCompiledContainer(type) && typeof type !== 'string' && type.rank === 1 && type.element === 'integer');
             return {
                 parameters: types,
                 effects: {
                     writes: effects.unknown ? types.flatMap((type, index) => isCompiledContainer(type) ? [index] : [])
                         : [...effects.parameters],
-                    stableArrayReads: stableReads,
+                    stableArrayReads: !!arrayKernel || stableReads,
                     localWrites: effects.localWrites,
                     // Reuse the scalar proof, retaining its live call guards.
                     // The Number ABI borrows current integer buffers only for
                     // read-only scalar callees; no reference escapes. Captures
                     // and unclassified dependencies retain their own boundary.
-                    privateStateSafe: numberSafe && privateScalarFunction(proof, consumed),
+                    privateStateSafe: !!arrayKernel || numberSafe && privateScalarFunction(proof, consumed),
                 },
                 type: proof.type,
                 numberSafe,
+                numberArrayResult: !!arrayKernel,
                 locals: [...(captures ? proof.locals : []), ...proof.nativeReads, ...proof.dependencies],
                 bind: work => {
                     const current = this.context.bindings.find(name);
@@ -602,6 +608,12 @@ export class FastPaths {
                     const active = this.context.functions.definitionOf(current);
                     if (active?.statement !== statement || (active.context !== undefined) !== captures
                         || proof.locals.some(local => active.context?.find(local))) return undefined;
+                    if (arrayKernel && Object.getOwnPropertyDescriptor(current, 'call')?.value !== active.call) return undefined;
+                    // If speculative array evaluation declines, preserve the
+                    // ordinary callee's demand and call-site error boundary.
+                    if (arrayKernel) return ((...args: RankValue[]) => current.call(
+                        args.length === 2 && Array.isArray(args[0]) && typeof args[1] === 'boolean'
+                            ? args[0] as RankValue[] : args)) as LoopCallable;
                     const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes, work);
                     if ((proof.nativeReads.length || proof.dependencies.length) && !compiled || compiled?.available && !compiled.available()) return undefined;
                     return ((...arguments_: RankValue[]) => {
@@ -622,6 +634,17 @@ export class FastPaths {
                     const active = this.context.functions.definitionOf(current);
                     if (active?.statement !== statement || (active.context !== undefined) !== captures
                         || proof.locals.some(local => active.context?.find(local))) return undefined;
+                    if (arrayKernel) {
+                        if (Object.getOwnPropertyDescriptor(current, 'call')?.value !== active.call) return undefined;
+                        // A new private consumer must not move observable
+                        // demand or cancellation boundaries into the callee.
+                        if (interruptsEnabled()) return undefined;
+                        return ((...args: (number | ArrayLike<number | bigint>)[]) => {
+                            const result = arrayKernel(...args);
+                            if (work) work.value += result.cells.length;
+                            return result;
+                        }) as unknown as LoopCallable;
+                    }
                     const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes, work);
                     if ((proof.nativeReads.length || proof.dependencies.length) && !compiled || compiled?.available && !compiled.available()) return undefined;
                     if (compiled?.numberRegion && privateScalarFunction(proof, consumed)) {
