@@ -107,6 +107,43 @@ array (Before sum) (Again sum)`;
         } finally { host.dispose(); }
     });
 
+    it('retains the original source plan if a host replaces the sequence header', () => {
+        const execute = (compilation: boolean) => {
+            const host = new Interpreter(undefined, { compilation });
+            try {
+                host.execute('use sequences\n' + definition);
+                const source = host.execute('1 to 20');
+                if (!source || !isRankSequence(source)) throw Error('expected range');
+                host.variables.set('Source', source);
+                const result = host.execute('Source scan combine');
+                if (!result || !isRankSequence(result)) throw Error('expected scan');
+                host.variables.set('Saved', result);
+                const replacement = host.execute('5 to 10');
+                if (!replacement || !isRankSequence(replacement)) throw Error('expected range');
+                Object.defineProperty(source, 'plan', { value: replacement.plan });
+                return formatValue(host.execute('Saved copy')!);
+            } finally { host.dispose(); }
+        };
+        expect(execute(true)).toBe(execute(false));
+    });
+
+    it('does not probe opaque sequence readers before or beyond actual demand', () => {
+        const execute = (compilation: boolean) => {
+            const host = new Interpreter(undefined, { compilation }), reads: number[] = [];
+            try {
+                host.execute('use sequences\n' + definition);
+                host.variables.set('Source', { kind: 'sequence', plan: { name: 'opaque', size: { kind: 'exact', value: 20n },
+                    *iterate() { for (let i = 0; i < 20; i++) { reads.push(i); yield BigInt(i + 1); } },
+                } });
+                host.execute("Later' = Source scan combine");
+                expect(reads).toEqual([]);
+                const value = host.execute('Later 2');
+                return { value, reads };
+            } finally { host.dispose(); }
+        };
+        expect(execute(true)).toEqual(execute(false));
+    });
+
     it('keeps budget exhaustion atomic and can retry the same plan', () => {
         const host = new Interpreter();
         try {
