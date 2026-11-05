@@ -40,9 +40,9 @@ for Length less Size
   Part = Cosine take Length
   Full = Part convolve Series mod Prime
   Product = Full take Length
-  Negated = (0 - Product) mod Prime
-  Negated 0 = (2 - Product 0) mod Prime
-  Next = Series convolve Negated mod Prime
+  Minus = (0 - Product) mod Prime
+  Minus 0 = (2 - Product 0) mod Prime
+  Next = Series convolve Minus mod Prime
   Series = Next take Length
 end
 Reversed = Series (Order to 0 by -1)

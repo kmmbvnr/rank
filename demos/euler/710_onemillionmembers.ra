@@ -7,7 +7,7 @@ use io
 use cli
 
 arg Bits integer = 21
-arg Modulus integer = 1000000
+arg Base integer = 1000000
 
 rem t(n) = 2^(n // 2) - a(n), where a
 rem counts the palindromic sums without
@@ -17,7 +17,7 @@ rem comes from a Newton iteration.
 Length = 2 ** Bits
 Poly = array 1 -1 -2 2 1 -1 -1 1
 Start = array 1 1 1 2 2 3 4
-Mixed = Start convolve Poly mod Modulus
+Mixed = Start convolve Poly mod Base
 Numerator = Mixed take 7
 Series = array 1
 Size = 1
@@ -25,19 +25,20 @@ for Size less Length
   Size = Size * 2
   Zeros = array shape Size fill 0
   Padded = (concat Poly Zeros) take Size
-  Full = Padded convolve Series mod Modulus
+  Full = Padded convolve Series mod Base
   Product = Full take Size
-  Negated = (0 - Product) mod Modulus
+  Minus = (0 - Product) mod Base
   First = 2 - Product 0
-  Negated 0 = First mod Modulus
-  Next = Series convolve Negated mod Modulus
+  Minus 0 = First mod Base
+  Next = Series convolve Minus mod Base
   Series = Next take Size
 end
-Whole = Numerator convolve Series mod Modulus
+Whole = Numerator convolve Series
+Whole = Whole mod Base
 Counts = Whole take Length
 Terms = 0 to Length - 1
-Powers = 2 (Terms // 2) Modulus powmod
-Totals = (Powers - Counts) mod Modulus
+Powers = 2 (Terms // 2) Base powmod
+Totals = (Powers - Counts) mod Base
 Zero = Totals equal 0
 Match = Zero and (Terms greater 42)
 Found = Terms filter Match

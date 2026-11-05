@@ -5,8 +5,8 @@ use numbers
 use io
 use cli
 
-arg Nn integer = 12345678
-arg Pm integer = 1000000007
+arg Bits integer = 12345678
+arg Prime integer = 1000000007
 
 rem Eric wins exactly for n in layers
 rem of 4^k: the odd layer holds only
@@ -15,20 +15,29 @@ rem 4^k + E_k with 2^k offsets summing
 rem to T_k = (8^k - 2^k) / 6 + 4^k
 rem - 2^k.
 rem Layers are summed in closed form.
-Hf = Nn // 2
-Ky = Hf + Nn mod 2
-Iv = (array 3 6 7) (Pm - 2) Pm powmod
-P8 = 8 Ky Pm powmod
-P4 = 4 Ky Pm powmod
-P2 = 2 Ky Pm powmod
-G8 = (P8 - 1) * (Iv 2) mod Pm
-Tk = (G8 - P2 + 1) * (Iv 1) mod Pm
-Qt = (P4 - 1) * (Iv 0)
-Tk = (Tk + Qt - P2 + 1) mod Pm
-Ev = (G8 + Tk) mod Pm
-Q4 = 4 (Hf + 1) Pm powmod
-Od = ((Q4 - 4) * (Iv 0) - Hf) mod Pm
-Ex = (Nn mod 2 equal 0) integer
-Lp = 4 Hf Pm powmod
-Answer = (Ev + Od + Ex * Lp) mod Pm
+Half = Bits // 2
+Layers = Half + Bits mod 2
+Divisors = array 3 6 7
+Power = Prime - 2
+Inverse = Divisors Power Prime powmod
+Pow8 = 8 Layers Prime powmod
+Pow4 = 4 Layers Prime powmod
+Pow2 = 2 Layers Prime powmod
+Seventh = Inverse 2
+Sum8 = (Pow8 - 1) * Seventh mod Prime
+Sixth = Inverse 1
+Base6 = Sum8 - Pow2 + 1
+Offsets = Base6 * Sixth mod Prime
+Quarter = (Pow4 - 1) * (Inverse 0)
+Joined = Offsets + Quarter - Pow2 + 1
+Offsets = Joined mod Prime
+Even = (Sum8 + Offsets) mod Prime
+Next4 = 4 (Half + 1) Prime powmod
+Third = Inverse 0
+Steps = (Next4 - 4) * Third
+Odd = (Steps - Half) mod Prime
+Extra = (Bits mod 2 equal 0) integer
+Last = 4 Half Prime powmod
+Sum = Even + Odd + Extra * Last
+Answer = Sum mod Prime
 Answer print

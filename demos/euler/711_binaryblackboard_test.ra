@@ -2,13 +2,13 @@ use testing
 
 test "statement values"
   use "711_binaryblackboard"
-  Nn = 4
+  Bits = 4
   run
   Answer equal 46
-  Nn = 12
+  Bits = 12
   run
   Answer equal 54532
-  Nn = 1234
+  Bits = 1234
   run
   Answer equal 690421393
 end

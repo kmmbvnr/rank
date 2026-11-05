@@ -2,13 +2,13 @@ use testing
 
 test "statement values"
   use "712_exponentdifference"
-  Nn = 10
+  Limit = 10
   run
   Answer equal 210
-  Nn = 100
+  Limit = 100
   run
   Answer equal 37018
-  Nn = 100000000
+  Limit = 100000000
   run
   Answer equal 478653324
 end
