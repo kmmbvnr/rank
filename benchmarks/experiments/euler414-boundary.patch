@@ -1,0 +1,26 @@
+diff --git a/packages/interpreter/src/jit/integer-loop.ts b/packages/interpreter/src/jit/integer-loop.ts
+index 61ad3bf2..dbf388b8 100644
+--- a/packages/interpreter/src/jit/integer-loop.ts
++++ b/packages/interpreter/src/jit/integer-loop.ts
+@@ -1,3 +1,4 @@
++import { AstUtils } from 'langium';
+ import { demandBudgetEnabled } from '../interrupt.js';
+ import { createLoopState } from './integer-loop-state.js';
+ import { createLoopExpressions } from './integer-loop-expressions.js';
+@@ -158,7 +159,15 @@ function prepareMixedLoops(plan: IntegerLoopPlan, host: LoopHost, feedback: Loop
+     const wide = wideLoopScalars(plan);
+     if (!wide.size) return undefined;
+     const outputs = wideLoopOutputs(plan, wide);
+-    const widths = outputs.size && outputs.size < wide.size ? [outputs, wide] : [wide];
++    const boundary = new Set([...outputs, ...[...plan.required].map(slot => plan.names[slot]).filter(name => wide.has(name))]);
++    const assignments = [plan.statement, ...AstUtils.streamAllContents(plan.statement)].filter(isAssignmentStatement);
++    for (let size = -1; size !== boundary.size;) {
++        size = boundary.size;
++        for (const assignment of assignments) if (wide.has(assignment.name)
++            && [assignment.value, ...AstUtils.streamAllContents(assignment.value)].some(node => isNameExpression(node) && boundary.has(node.name))) boundary.add(assignment.name);
++    }
++    const widths = [outputs, boundary, wide].filter((width, index, all) => width.size
++        && !all.slice(0, index).some(previous => previous.size === width.size && [...width].every(name => previous.has(name))));
+     const variants = widths.map(width => ({ width, compiled: undefined as CompiledLoop | null | undefined }));
+     return { run: (...context) => {
+         for (const variant of variants) {

@@ -6,7 +6,7 @@ import { createLoopStatements } from './integer-loop-statements.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
 import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan, type LoopWorkFeedback, type LoopPolling } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
-import { wideLoopScalars, wideLoopOutputs, overflowingLoopOutput, localCallLoopOutput } from './integer-loop-wide.js';
+import { wideLoopScalars, wideLoopOutputs, wideLoopBoundary, overflowingLoopOutput, localCallLoopOutput } from './integer-loop-wide.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
@@ -151,14 +151,16 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     } };
 }
 
-/** Each tier is transactional. Compile the broader tier only if checked
- * intermediate arithmetic declines the output-only tier; retain exact fallback. */
+/** Each tier is transactional. Compile broader tiers only if checked
+ * intermediate arithmetic or input admission declines a narrower tier; retain exact fallback. */
 function prepareMixedLoops(plan: IntegerLoopPlan, host: LoopHost, feedback: LoopWorkFeedback | undefined,
     lower: (wide: ReadonlySet<string>, counting: boolean, polling: LoopPolling) => IntegerLoopPlan | undefined): CompiledLoop | undefined {
     const wide = wideLoopScalars(plan);
     if (!wide.size) return undefined;
     const outputs = wideLoopOutputs(plan, wide);
-    const widths = outputs.size && outputs.size < wide.size ? [outputs, wide] : [wide];
+    const boundary = wideLoopBoundary(plan, wide, outputs);
+    const widths = [outputs, boundary, wide].filter((width, index, all) => width.size
+        && !all.slice(0, index).some(previous => previous.size === width.size && [...width].every(name => previous.has(name))));
     const variants = widths.map(width => ({ width, compiled: undefined as CompiledLoop | null | undefined }));
     return { run: (...context) => {
         for (const variant of variants) {

@@ -64,6 +64,23 @@ export function wideLoopOutputs(plan: IntegerLoopPlan, candidates: ReadonlySet<s
     return new Set([...candidates].filter(name => !reads.has(name)));
 }
 
+/** Widen external exact inputs and their scalar consumers before widening
+ * independent intermediates. Every remaining Number operation is checked;
+ * overflow retains the broader mixed tier and the exact fallback. */
+export function wideLoopBoundary(plan: IntegerLoopPlan, candidates: ReadonlySet<string>, outputs: ReadonlySet<string>): Set<string> {
+    const boundary = new Set([...outputs, ...[...plan.required]
+        .map(slot => plan.names[slot]).filter(name => candidates.has(name))]);
+    const dependencies = [plan.statement, ...AstUtils.streamAllContents(plan.statement)]
+        .filter(isAssignmentStatement).filter(node => candidates.has(node.name))
+        .map(node => ({ name: node.name, reads: [node.value, ...AstUtils.streamAllContents(node.value)]
+            .filter(isNameExpression).map(read => read.name) }));
+    for (let size = -1; size !== boundary.size;) {
+        size = boundary.size;
+        for (const { name, reads } of dependencies) if (reads.some(read => boundary.has(read))) boundary.add(name);
+    }
+    return boundary;
+}
+
 /** Prefer the exact output tier when even the full safe-integer input interval
  * cannot contain a normally completing additive recurrence. This is a source
  * proof, never a sampled value or a permission to bypass mutation/entry guards.
