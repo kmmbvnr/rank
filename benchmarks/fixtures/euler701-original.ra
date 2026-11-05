@@ -1,0 +1,115 @@
+rem Random Connected Area
+rem https://projecteuler.net/problem=701
+
+use algo
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+arg Ww integer = 7
+arg Hh integer = 7
+
+rem Cell by cell frontier DP. A state is
+rem the last Hh cells: label = first
+rem frontier row of the component plus
+rem one, size per label, and the best
+rem closed size. Counts of equal states
+rem are merged through an index.
+Ix = 0 to Hh - 1
+Jx = 0 to Hh
+Ks = Jx * 6
+Ky = array shape 1 fill 0
+Kz = array shape 1 fill 0
+Kb = array shape 1 fill 0
+Wt = array shape 1 fill 1
+Ns = 1
+for C in 0 to Ww - 1
+  for R in 0 to Hh - 1
+    Pos = new index
+    Cap = Ns * 2
+    Ny = array shape Cap fill 0
+    Nz = array shape Cap fill 0
+    Nb = array shape Cap fill 0
+    Nw = array shape Cap fill 0
+    Nn = 0
+    for S in 0 to Ns - 1
+      Lb = Ky S shr (3 * Ix) band 7
+      Sz = Kz S shr Ks band 63
+      Bs = Kb S
+      Ol = Lb R
+      Up = 0
+      if R greater 0
+        Up = Lb (R - 1)
+      end
+      for V in 0 to 1
+        L2 = Lb
+        S2 = Sz
+        B2 = Bs
+        if V equal 0
+          L2 R = 0
+          if Ol greater 0
+            Hit = L2 equal Ol
+            if Hit count equal 0
+              B2 = B2 max (Sz Ol)
+              S2 Ol = 0
+            else
+              if Ol equal R + 1
+                P1 = Hit findall true
+                Q1 = (P1 0) + 1
+                L2 = Hit choose Q1 L2
+                S2 Q1 = Sz Ol
+                S2 Ol = 0
+              end
+            end
+          end
+        else
+          Tt = 1 + Sz Ol
+          if Up not equal Ol
+            Tt += Sz Up
+          end
+          Nl = R + 1
+          if Ol greater 0
+            Nl = Nl min Ol
+          end
+          if Up greater 0
+            Nl = Nl min Up
+          end
+          Mg = L2 equal Ol
+          Mg = Mg or (L2 equal Up)
+          Mg = Mg and L2 greater 0
+          L2 = Mg choose Nl L2
+          L2 R = Nl
+          S2 Ol = 0
+          S2 Up = 0
+          S2 Nl = Tt
+        end
+        K1 = L2 shl (3 * Ix) sum
+        K2 = S2 shl Ks sum
+        J = Pos K1 K2 B2 default -1
+        if J at least 0
+          Nw J += Wt S
+        else
+          Pos K1 K2 B2 = Nn
+          Ny Nn = K1
+          Nz Nn = K2
+          Nb Nn = B2
+          Nw Nn = Wt S
+          Nn += 1
+        end
+      end
+    end
+    Ky = Ny (0 to Nn - 1)
+    Kz = Nz (0 to Nn - 1)
+    Kb = Nb (0 to Nn - 1)
+    Wt = Nw (0 to Nn - 1)
+    Ns = Nn
+  end
+end
+rem Best of closed and open components.
+Sm = (Kz reshape Ns 1) shr Ks band 63
+Bt = Sm max axis 1 max Kb
+Tot = Wt * Bt sum
+Answer = Tot real / (2 ** (Ww * Hh))
+Answer print

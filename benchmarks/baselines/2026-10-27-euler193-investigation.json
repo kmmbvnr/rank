@@ -1,0 +1,1354 @@
+{
+  "revision": "f9e7fe91d025d5dff05fe8e1a8daae82b6ee1260",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.15.0",
+  "samples": [
+    {
+      "args": [],
+      "nodeFlags": [],
+      "power": 50,
+      "fixture": false,
+      "reference": false,
+      "ms": 576.935792,
+      "rssMiB": 498.75,
+      "answer": "684465067343069",
+      "output": [
+        {
+          "ms": 576.9,
+          "line": "684465067343069"
+        }
+      ],
+      "oracle": false,
+      "top": "33554431",
+      "primeCount": "2063689",
+      "sourceHash": "f96c38c5c69f6ab2d143a710444a70b2c1ec18bd949b244d66b0573175fe4c38"
+    },
+    {
+      "args": [
+        "--fixture"
+      ],
+      "nodeFlags": [],
+      "power": 50,
+      "fixture": true,
+      "reference": false,
+      "ms": 130.375958,
+      "rssMiB": 166.46875,
+      "output": [],
+      "oracle": false,
+      "sourceHash": "5b9bc3a33b3848f4974361682bf3b1f808e85c4c426f2acaf4f2b84e9aea00bd"
+    },
+    {
+      "args": [
+        "--fixture",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 50,
+      "fixture": true,
+      "reference": true,
+      "ms": 178.29225000000002,
+      "rssMiB": 181.828125,
+      "output": [],
+      "oracle": false,
+      "sourceHash": "5b9bc3a33b3848f4974361682bf3b1f808e85c4c426f2acaf4f2b84e9aea00bd"
+    },
+    {
+      "args": [
+        "--power=40",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 40,
+      "fixture": false,
+      "reference": true,
+      "ms": 6217.411582999999,
+      "rssMiB": 434.53125,
+      "answer": "668422917419",
+      "output": [
+        {
+          "ms": 6217.355707999999,
+          "line": "668422917419"
+        }
+      ],
+      "oracle": false,
+      "top": "1048575",
+      "primeCount": "82025",
+      "sourceHash": "3a42cf877fee9eaebc58753f6fb61457186de5e5e2689943ce9b71a9637050de"
+    },
+    {
+      "args": [],
+      "nodeFlags": [],
+      "power": 50,
+      "fixture": false,
+      "reference": false,
+      "ms": 558.600833,
+      "rssMiB": 494.375,
+      "answer": "684465067343069",
+      "output": [
+        {
+          "ms": 558.561958,
+          "line": "684465067343069"
+        }
+      ],
+      "oracle": false,
+      "top": "33554431",
+      "primeCount": "2063689",
+      "sourceHash": "f96c38c5c69f6ab2d143a710444a70b2c1ec18bd949b244d66b0573175fe4c38"
+    },
+    {
+      "args": [
+        "--fixture",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 50,
+      "fixture": true,
+      "reference": true,
+      "ms": 177.51574999999997,
+      "rssMiB": 177.859375,
+      "output": [],
+      "oracle": false,
+      "sourceHash": "5b9bc3a33b3848f4974361682bf3b1f808e85c4c426f2acaf4f2b84e9aea00bd"
+    },
+    {
+      "args": [
+        "--fixture"
+      ],
+      "nodeFlags": [],
+      "power": 50,
+      "fixture": true,
+      "reference": false,
+      "ms": 130.12433299999998,
+      "rssMiB": 166.21875,
+      "output": [],
+      "oracle": false,
+      "sourceHash": "5b9bc3a33b3848f4974361682bf3b1f808e85c4c426f2acaf4f2b84e9aea00bd"
+    },
+    {
+      "args": [
+        "--power=40",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 40,
+      "fixture": false,
+      "reference": true,
+      "ms": 6243.3727499999995,
+      "rssMiB": 436.6875,
+      "answer": "668422917419",
+      "output": [
+        {
+          "ms": 6243.3141669999995,
+          "line": "668422917419"
+        }
+      ],
+      "oracle": false,
+      "top": "1048575",
+      "primeCount": "82025",
+      "sourceHash": "3a42cf877fee9eaebc58753f6fb61457186de5e5e2689943ce9b71a9637050de"
+    },
+    {
+      "args": [],
+      "nodeFlags": [],
+      "power": 50,
+      "fixture": false,
+      "reference": false,
+      "ms": 586.270125,
+      "rssMiB": 493.9375,
+      "answer": "684465067343069",
+      "output": [
+        {
+          "ms": 586.229333,
+          "line": "684465067343069"
+        }
+      ],
+      "oracle": false,
+      "top": "33554431",
+      "primeCount": "2063689",
+      "sourceHash": "f96c38c5c69f6ab2d143a710444a70b2c1ec18bd949b244d66b0573175fe4c38"
+    },
+    {
+      "args": [
+        "--fixture"
+      ],
+      "nodeFlags": [],
+      "power": 50,
+      "fixture": true,
+      "reference": false,
+      "ms": 132.87475,
+      "rssMiB": 166.484375,
+      "output": [],
+      "oracle": false,
+      "sourceHash": "5b9bc3a33b3848f4974361682bf3b1f808e85c4c426f2acaf4f2b84e9aea00bd"
+    },
+    {
+      "args": [
+        "--fixture",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 50,
+      "fixture": true,
+      "reference": true,
+      "ms": 176.567791,
+      "rssMiB": 177.4375,
+      "output": [],
+      "oracle": false,
+      "sourceHash": "5b9bc3a33b3848f4974361682bf3b1f808e85c4c426f2acaf4f2b84e9aea00bd"
+    },
+    {
+      "args": [
+        "--power=40",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 40,
+      "fixture": false,
+      "reference": true,
+      "ms": 6284.509959,
+      "rssMiB": 429.8125,
+      "answer": "668422917419",
+      "output": [
+        {
+          "ms": 6284.4526670000005,
+          "line": "668422917419"
+        }
+      ],
+      "oracle": false,
+      "top": "1048575",
+      "primeCount": "82025",
+      "sourceHash": "3a42cf877fee9eaebc58753f6fb61457186de5e5e2689943ce9b71a9637050de"
+    },
+    {
+      "args": [
+        "--diag",
+        "--phases"
+      ],
+      "nodeFlags": [],
+      "power": 50,
+      "fixture": false,
+      "reference": false,
+      "ms": 568.552458,
+      "rssMiB": 493.46875,
+      "answer": "684465067343069",
+      "output": [
+        {
+          "ms": 128.02575,
+          "line": "33554431"
+        },
+        {
+          "ms": 568.516417,
+          "line": "684465067343069"
+        }
+      ],
+      "oracle": false,
+      "top": "33554431",
+      "primeCount": "2063689",
+      "sourceHash": "b49233badbdb0f87e6753e4a5c2912cc6d61ff6d985c07fb9c00dc21b86b936f",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 2,
+          "scalar-expression:unsupported-op:-": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:unsupported-type:array": 2,
+          "scalar-expression:too-small": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "args": [],
+      "nodeFlags": [
+        "--cpu-prof",
+        "--cpu-prof-dir=/tmp",
+        "--cpu-prof-name=rank193-compiled.cpuprofile"
+      ],
+      "power": 50,
+      "fixture": false,
+      "reference": false,
+      "ms": 589.6282920000001,
+      "rssMiB": 509.046875,
+      "answer": "684465067343069",
+      "output": [
+        {
+          "ms": 589.584042,
+          "line": "684465067343069"
+        }
+      ],
+      "oracle": false,
+      "top": "33554431",
+      "primeCount": "2063689",
+      "sourceHash": "f96c38c5c69f6ab2d143a710444a70b2c1ec18bd949b244d66b0573175fe4c38"
+    },
+    {
+      "args": [
+        "--power=40",
+        "--reference"
+      ],
+      "nodeFlags": [
+        "--cpu-prof",
+        "--cpu-prof-dir=/tmp",
+        "--cpu-prof-name=rank193-reference.cpuprofile"
+      ],
+      "power": 40,
+      "fixture": false,
+      "reference": true,
+      "ms": 6300.812083,
+      "rssMiB": 449.015625,
+      "answer": "668422917419",
+      "output": [
+        {
+          "ms": 6300.756625,
+          "line": "668422917419"
+        }
+      ],
+      "oracle": false,
+      "top": "1048575",
+      "primeCount": "82025",
+      "sourceHash": "3a42cf877fee9eaebc58753f6fb61457186de5e5e2689943ce9b71a9637050de"
+    },
+    {
+      "args": [
+        "--power=1",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 1,
+      "fixture": false,
+      "reference": false,
+      "ms": 120.6575,
+      "rssMiB": 154.671875,
+      "answer": "1",
+      "output": [
+        {
+          "ms": 120.62591599999999,
+          "line": "1"
+        }
+      ],
+      "oracle": true,
+      "top": "1",
+      "primeCount": "0",
+      "sourceHash": "d7e801be7d49a697aed7f1b3762c3fd924f0dbd335a1e25da5d892f51c4530c9"
+    },
+    {
+      "args": [
+        "--power=1",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 1,
+      "fixture": false,
+      "reference": true,
+      "ms": 110.93295799999999,
+      "rssMiB": 153.671875,
+      "answer": "1",
+      "output": [
+        {
+          "ms": 110.90441700000002,
+          "line": "1"
+        }
+      ],
+      "oracle": true,
+      "top": "1",
+      "primeCount": "0",
+      "sourceHash": "d7e801be7d49a697aed7f1b3762c3fd924f0dbd335a1e25da5d892f51c4530c9"
+    },
+    {
+      "args": [
+        "--power=2",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 2,
+      "fixture": false,
+      "reference": false,
+      "ms": 121.28895799999998,
+      "rssMiB": 154.5,
+      "answer": "3",
+      "output": [
+        {
+          "ms": 121.254458,
+          "line": "3"
+        }
+      ],
+      "oracle": true,
+      "top": "1",
+      "primeCount": "0",
+      "sourceHash": "90e2dc33039d3bf37dfe92c65d147cad782f794c5cbd9f9fc401569031104657"
+    },
+    {
+      "args": [
+        "--power=2",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 2,
+      "fixture": false,
+      "reference": true,
+      "ms": 116.083166,
+      "rssMiB": 153.40625,
+      "answer": "3",
+      "output": [
+        {
+          "ms": 116.05195800000001,
+          "line": "3"
+        }
+      ],
+      "oracle": true,
+      "top": "1",
+      "primeCount": "0",
+      "sourceHash": "90e2dc33039d3bf37dfe92c65d147cad782f794c5cbd9f9fc401569031104657"
+    },
+    {
+      "args": [
+        "--power=3",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 3,
+      "fixture": false,
+      "reference": false,
+      "ms": 116.61362500000001,
+      "rssMiB": 154.75,
+      "answer": "6",
+      "output": [
+        {
+          "ms": 116.58387499999998,
+          "line": "6"
+        }
+      ],
+      "oracle": true,
+      "top": "2",
+      "primeCount": "1",
+      "sourceHash": "5a3fb56ae84a10f7e9b03529cef791464e95d7a4b616017c3680ea5771232318"
+    },
+    {
+      "args": [
+        "--power=3",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 3,
+      "fixture": false,
+      "reference": true,
+      "ms": 118.23483399999998,
+      "rssMiB": 160.984375,
+      "answer": "6",
+      "output": [
+        {
+          "ms": 118.20416699999998,
+          "line": "6"
+        }
+      ],
+      "oracle": true,
+      "top": "2",
+      "primeCount": "1",
+      "sourceHash": "5a3fb56ae84a10f7e9b03529cef791464e95d7a4b616017c3680ea5771232318"
+    },
+    {
+      "args": [
+        "--power=4",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 4,
+      "fixture": false,
+      "reference": false,
+      "ms": 121.940958,
+      "rssMiB": 158.65625,
+      "answer": "11",
+      "output": [
+        {
+          "ms": 121.90925000000001,
+          "line": "11"
+        }
+      ],
+      "oracle": true,
+      "top": "3",
+      "primeCount": "2",
+      "sourceHash": "21c2da36671099f7739fb87ef13d595e52f47332e19626db0a93f861a60eb3f2"
+    },
+    {
+      "args": [
+        "--power=4",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 4,
+      "fixture": false,
+      "reference": true,
+      "ms": 117.11200000000002,
+      "rssMiB": 159.890625,
+      "answer": "11",
+      "output": [
+        {
+          "ms": 117.08441699999997,
+          "line": "11"
+        }
+      ],
+      "oracle": true,
+      "top": "3",
+      "primeCount": "2",
+      "sourceHash": "21c2da36671099f7739fb87ef13d595e52f47332e19626db0a93f861a60eb3f2"
+    },
+    {
+      "args": [
+        "--power=5",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 5,
+      "fixture": false,
+      "reference": false,
+      "ms": 117.45449999999997,
+      "rssMiB": 155.6875,
+      "answer": "20",
+      "output": [
+        {
+          "ms": 117.42600000000002,
+          "line": "20"
+        }
+      ],
+      "oracle": true,
+      "top": "5",
+      "primeCount": "3",
+      "sourceHash": "87e337015beb2e23300d96526cf17f8226ce09249037d69c1109d6f3e46922e7"
+    },
+    {
+      "args": [
+        "--power=5",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 5,
+      "fixture": false,
+      "reference": true,
+      "ms": 122.07575,
+      "rssMiB": 160.5,
+      "answer": "20",
+      "output": [
+        {
+          "ms": 122.04595800000001,
+          "line": "20"
+        }
+      ],
+      "oracle": true,
+      "top": "5",
+      "primeCount": "3",
+      "sourceHash": "87e337015beb2e23300d96526cf17f8226ce09249037d69c1109d6f3e46922e7"
+    },
+    {
+      "args": [
+        "--power=6",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 6,
+      "fixture": false,
+      "reference": false,
+      "ms": 122.37041600000003,
+      "rssMiB": 160.015625,
+      "answer": "39",
+      "output": [
+        {
+          "ms": 122.341791,
+          "line": "39"
+        }
+      ],
+      "oracle": true,
+      "top": "7",
+      "primeCount": "4",
+      "sourceHash": "143923793fdf13f1485dbfd4b1da322c6a32dcf9c46efa358b8773722097c49c"
+    },
+    {
+      "args": [
+        "--power=6",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 6,
+      "fixture": false,
+      "reference": true,
+      "ms": 117.643833,
+      "rssMiB": 155.171875,
+      "answer": "39",
+      "output": [
+        {
+          "ms": 117.61487500000001,
+          "line": "39"
+        }
+      ],
+      "oracle": true,
+      "top": "7",
+      "primeCount": "4",
+      "sourceHash": "143923793fdf13f1485dbfd4b1da322c6a32dcf9c46efa358b8773722097c49c"
+    },
+    {
+      "args": [
+        "--power=7",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 7,
+      "fixture": false,
+      "reference": false,
+      "ms": 120.19983300000001,
+      "rssMiB": 154.390625,
+      "answer": "78",
+      "output": [
+        {
+          "ms": 120.16866700000003,
+          "line": "78"
+        }
+      ],
+      "oracle": true,
+      "top": "11",
+      "primeCount": "5",
+      "sourceHash": "faff6baed9d93602334dccd0830db75c0e12feaff00c99357855b8cac8e9478f"
+    },
+    {
+      "args": [
+        "--power=7",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 7,
+      "fixture": false,
+      "reference": true,
+      "ms": 117.39012500000001,
+      "rssMiB": 154.53125,
+      "answer": "78",
+      "output": [
+        {
+          "ms": 117.35979199999997,
+          "line": "78"
+        }
+      ],
+      "oracle": true,
+      "top": "11",
+      "primeCount": "5",
+      "sourceHash": "faff6baed9d93602334dccd0830db75c0e12feaff00c99357855b8cac8e9478f"
+    },
+    {
+      "args": [
+        "--power=8",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 8,
+      "fixture": false,
+      "reference": false,
+      "ms": 120.79700000000003,
+      "rssMiB": 154.578125,
+      "answer": "157",
+      "output": [
+        {
+          "ms": 120.76650000000001,
+          "line": "157"
+        }
+      ],
+      "oracle": true,
+      "top": "15",
+      "primeCount": "6",
+      "sourceHash": "89206c8be96bea5d4078eab8fc65633fd5e8a15d73888e3e0a024f20a657a3e9"
+    },
+    {
+      "args": [
+        "--power=8",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 8,
+      "fixture": false,
+      "reference": true,
+      "ms": 112.96550000000002,
+      "rssMiB": 155.125,
+      "answer": "157",
+      "output": [
+        {
+          "ms": 112.93770899999998,
+          "line": "157"
+        }
+      ],
+      "oracle": true,
+      "top": "15",
+      "primeCount": "6",
+      "sourceHash": "89206c8be96bea5d4078eab8fc65633fd5e8a15d73888e3e0a024f20a657a3e9"
+    },
+    {
+      "args": [
+        "--power=9",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 9,
+      "fixture": false,
+      "reference": false,
+      "ms": 121.41245800000002,
+      "rssMiB": 155.28125,
+      "answer": "314",
+      "output": [
+        {
+          "ms": 121.3825,
+          "line": "314"
+        }
+      ],
+      "oracle": true,
+      "top": "22",
+      "primeCount": "8",
+      "sourceHash": "48ed5eee2a25a2b86a530bcb58fdbb76d343c6a3f6e0fbc4af31406127300936"
+    },
+    {
+      "args": [
+        "--power=9",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 9,
+      "fixture": false,
+      "reference": true,
+      "ms": 116.23391699999999,
+      "rssMiB": 155.140625,
+      "answer": "314",
+      "output": [
+        {
+          "ms": 116.206042,
+          "line": "314"
+        }
+      ],
+      "oracle": true,
+      "top": "22",
+      "primeCount": "8",
+      "sourceHash": "48ed5eee2a25a2b86a530bcb58fdbb76d343c6a3f6e0fbc4af31406127300936"
+    },
+    {
+      "args": [
+        "--power=10",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 10,
+      "fixture": false,
+      "reference": false,
+      "ms": 122.17170800000002,
+      "rssMiB": 155.546875,
+      "answer": "624",
+      "output": [
+        {
+          "ms": 122.13745799999998,
+          "line": "624"
+        }
+      ],
+      "oracle": true,
+      "top": "31",
+      "primeCount": "11",
+      "sourceHash": "6f8c78acfb990ba2832595daab20bd2d6196c3c5fa510dda5c511c9e02e565e6"
+    },
+    {
+      "args": [
+        "--power=10",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 10,
+      "fixture": false,
+      "reference": true,
+      "ms": 117.10833400000001,
+      "rssMiB": 155.3125,
+      "answer": "624",
+      "output": [
+        {
+          "ms": 117.07829199999998,
+          "line": "624"
+        }
+      ],
+      "oracle": true,
+      "top": "31",
+      "primeCount": "11",
+      "sourceHash": "6f8c78acfb990ba2832595daab20bd2d6196c3c5fa510dda5c511c9e02e565e6"
+    },
+    {
+      "args": [
+        "--power=12",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 12,
+      "fixture": false,
+      "reference": false,
+      "ms": 122.59637500000002,
+      "rssMiB": 159.5,
+      "answer": "2491",
+      "output": [
+        {
+          "ms": 122.56345900000002,
+          "line": "2491"
+        }
+      ],
+      "oracle": true,
+      "top": "63",
+      "primeCount": "18",
+      "sourceHash": "f0c94574a712fd6ca15255b0b63b35eee6475d4759cf551d1d137a04eb0eb22d"
+    },
+    {
+      "args": [
+        "--power=12",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 12,
+      "fixture": false,
+      "reference": true,
+      "ms": 121.46529099999998,
+      "rssMiB": 160.234375,
+      "answer": "2491",
+      "output": [
+        {
+          "ms": 121.43483299999997,
+          "line": "2491"
+        }
+      ],
+      "oracle": true,
+      "top": "63",
+      "primeCount": "18",
+      "sourceHash": "f0c94574a712fd6ca15255b0b63b35eee6475d4759cf551d1d137a04eb0eb22d"
+    },
+    {
+      "args": [
+        "--power=16",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 16,
+      "fixture": false,
+      "reference": false,
+      "ms": 118.25120899999999,
+      "rssMiB": 154.859375,
+      "answer": "39844",
+      "output": [
+        {
+          "ms": 118.22183400000003,
+          "line": "39844"
+        }
+      ],
+      "oracle": true,
+      "top": "255",
+      "primeCount": "54",
+      "sourceHash": "3d5673d2912f4b1ce70b6fac3fb413e1de6089af0abc566e11eee772afaa51c5"
+    },
+    {
+      "args": [
+        "--power=16",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 16,
+      "fixture": false,
+      "reference": true,
+      "ms": 122.82216700000004,
+      "rssMiB": 160.46875,
+      "answer": "39844",
+      "output": [
+        {
+          "ms": 122.78595899999999,
+          "line": "39844"
+        }
+      ],
+      "oracle": true,
+      "top": "255",
+      "primeCount": "54",
+      "sourceHash": "3d5673d2912f4b1ce70b6fac3fb413e1de6089af0abc566e11eee772afaa51c5"
+    },
+    {
+      "args": [
+        "--power=20",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 20,
+      "fixture": false,
+      "reference": false,
+      "ms": 121.16195899999997,
+      "rssMiB": 155.109375,
+      "answer": "637461",
+      "output": [
+        {
+          "ms": 121.130875,
+          "line": "637461"
+        }
+      ],
+      "oracle": true,
+      "top": "1023",
+      "primeCount": "172",
+      "sourceHash": "5189bb930efd04536d8fb22741493e15f0dc17a852d7a0ef13b25a41c99b02f3"
+    },
+    {
+      "args": [
+        "--power=20",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 20,
+      "fixture": false,
+      "reference": true,
+      "ms": 130.33795899999998,
+      "rssMiB": 177.21875,
+      "answer": "637461",
+      "output": [
+        {
+          "ms": 130.29433400000002,
+          "line": "637461"
+        }
+      ],
+      "oracle": true,
+      "top": "1023",
+      "primeCount": "172",
+      "sourceHash": "5189bb930efd04536d8fb22741493e15f0dc17a852d7a0ef13b25a41c99b02f3"
+    },
+    {
+      "args": [
+        "--power=24",
+        "--oracle"
+      ],
+      "nodeFlags": [],
+      "power": 24,
+      "fixture": false,
+      "reference": false,
+      "ms": 124.10300000000001,
+      "rssMiB": 160.5625,
+      "answer": "10199301",
+      "output": [
+        {
+          "ms": 124.07008400000001,
+          "line": "10199301"
+        }
+      ],
+      "oracle": true,
+      "top": "4095",
+      "primeCount": "564",
+      "sourceHash": "f2206028ef23c365b696bc781d8093f0b2d34f4ab161573e2f0f6b8380a93869"
+    },
+    {
+      "args": [
+        "--power=24",
+        "--oracle",
+        "--reference"
+      ],
+      "nodeFlags": [],
+      "power": 24,
+      "fixture": false,
+      "reference": true,
+      "ms": 158.36420799999996,
+      "rssMiB": 174.5625,
+      "answer": "10199301",
+      "output": [
+        {
+          "ms": 158.31354199999998,
+          "line": "10199301"
+        }
+      ],
+      "oracle": true,
+      "top": "4095",
+      "primeCount": "564",
+      "sourceHash": "f2206028ef23c365b696bc781d8093f0b2d34f4ab161573e2f0f6b8380a93869"
+    }
+  ],
+  "referenceFull": {
+    "power": 50,
+    "reference": true,
+    "ms": 201706.863542,
+    "rssMiB": 574.203125,
+    "answer": "684465067343069",
+    "output": [
+      {
+        "ms": 117.19174999999998,
+        "line": "33554431"
+      },
+      {
+        "ms": 201706.812083,
+        "line": "684465067343069"
+      }
+    ],
+    "sourceHash": "b49233badbdb0f87e6753e4a5c2912cc6d61ff6d985c07fb9c00dc21b86b936f"
+  },
+  "completed": true,
+  "provenance": {
+    "cpu": "Apple M5",
+    "cohort": "Serial fresh processes. Full reference first, then 3 rounds: full compiled, fixture both engines (alternating order), Power=40 reference. Diagnostics/profiles/oracles separate.",
+    "timing": "Interpreter construction, parse, compile, execution and print callback; excludes imports, result/oracle assertions and disposal. maxRSS is whole-process peak, captured before oracle.",
+    "fullReference": "One correctness/timing observation, with an extra Top print. Not a repeated reference median.",
+    "oracle": "28 checks: powers 1-10,12,16,20,24 in both engines. Direct mark-all-square-multiples sieve, independent of Moebius/linear prime sieve.",
+    "source": "rem Squarefree Numbers\nrem https://projecteuler.net/problem=193\nrem Count the squarefree numbers below\nrem two to the power Power\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Power integer = 50\n\nrem Q = sum of mu(d) floor(M / d^2) over\nrem d up to the root of M, the last n.\nrem A linear sieve gives mu on the way.\nM = 2 ** Power - 1\nTop = M isqrt\nMu = array shape (Top + 1) fill 2\nMu 1 = 1\nPr = array shape (Top // 8 + 100) fill 0\nCnt = 0\nAnswer = M\nfor I in 2 to Top\n  if Mu I equal 2\n    Pr Cnt = I\n    Cnt += 1\n    Mu I = 0 - 1\n  end\n  for J in 0 to Cnt - 1\n    V = I * Pr J\n    if V greater Top\n      break\n    end\n    if I mod Pr J equal 0\n      Mu V = 0\n      break\n    end\n    Mu V = 0 - Mu I\n  end\n  Answer += Mu I * (M // (I * I))\nend\nAnswer print\n"
+  },
+  "profileSummary": {
+    "compiled": {
+      "scope": "Power=50, compiled",
+      "totalSamples": 491,
+      "topSelf": [
+        {
+          "function": "",
+          "url": "",
+          "line": 3,
+          "samples": 240,
+          "percent": 48.87983706720978
+        },
+        {
+          "function": "writeInteger32Cells",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/owned-array.js",
+          "line": 898,
+          "samples": 45,
+          "percent": 9.164969450101832
+        },
+        {
+          "function": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "samples": 13,
+          "percent": 2.6476578411405294
+        },
+        {
+          "function": "run",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/number-loop-runtime.js",
+          "line": 119,
+          "samples": 7,
+          "percent": 1.4256619144602851
+        },
+        {
+          "function": "filledArray",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/owned-array.js",
+          "line": 602,
+          "samples": 6,
+          "percent": 1.2219959266802445
+        },
+        {
+          "function": "compileSourceTextModule",
+          "url": "node:internal/modules/esm/utils",
+          "line": 316,
+          "samples": 4,
+          "percent": 0.814663951120163
+        },
+        {
+          "function": "compileSourceTextModule",
+          "url": "node:internal/modules/esm/utils",
+          "line": 316,
+          "samples": 4,
+          "percent": 0.814663951120163
+        },
+        {
+          "function": "getConflictingAltSets",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+          "line": 623,
+          "samples": 3,
+          "percent": 0.6109979633401222
+        },
+        {
+          "function": "compileSourceTextModule",
+          "url": "node:internal/modules/esm/utils",
+          "line": 316,
+          "samples": 2,
+          "percent": 0.4073319755600815
+        },
+        {
+          "function": "compileSourceTextModule",
+          "url": "node:internal/modules/esm/utils",
+          "line": 316,
+          "samples": 2,
+          "percent": 0.4073319755600815
+        },
+        {
+          "function": "compileSourceTextModule",
+          "url": "node:internal/modules/esm/utils",
+          "line": 316,
+          "samples": 2,
+          "percent": 0.4073319755600815
+        },
+        {
+          "function": "#asyncInstantiate",
+          "url": "node:internal/modules/esm/module_job",
+          "line": 304,
+          "samples": 2,
+          "percent": 0.4073319755600815
+        },
+        {
+          "function": "wrapSafe",
+          "url": "node:internal/modules/cjs/loader",
+          "line": 1721,
+          "samples": 2,
+          "percent": 0.4073319755600815
+        },
+        {
+          "function": "wrapSafe",
+          "url": "node:internal/modules/cjs/loader",
+          "line": 1721,
+          "samples": 2,
+          "percent": 0.4073319755600815
+        },
+        {
+          "function": "partialMatches",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/langium/lib/utils/regexp-utils.js",
+          "line": 149,
+          "samples": 2,
+          "percent": 0.4073319755600815
+        },
+        {
+          "function": "isLL1Sequence",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+          "line": 190,
+          "samples": 2,
+          "percent": 0.4073319755600815
+        },
+        {
+          "function": "(program)",
+          "url": "",
+          "line": 0,
+          "samples": 1,
+          "percent": 0.20366598778004075
+        },
+        {
+          "function": "compileForInternalLoader",
+          "url": "node:internal/bootstrap/realm",
+          "line": 383,
+          "samples": 1,
+          "percent": 0.20366598778004075
+        },
+        {
+          "function": "Socket",
+          "url": "node:net",
+          "line": 364,
+          "samples": 1,
+          "percent": 0.20366598778004075
+        },
+        {
+          "function": "createSupportedAlgorithms",
+          "url": "node:internal/crypto/util",
+          "line": 448,
+          "samples": 1,
+          "percent": 0.20366598778004075
+        }
+      ]
+    },
+    "reference": {
+      "scope": "Power=40, reference",
+      "totalSamples": 4301,
+      "topSelf": [
+        {
+          "function": "stream",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/loops.js",
+          "line": 66,
+          "samples": 255,
+          "percent": 5.928853754940712
+        },
+        {
+          "function": "(garbage collector)",
+          "url": "",
+          "line": 0,
+          "samples": 170,
+          "percent": 3.952569169960474
+        },
+        {
+          "function": "",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/sequence.js",
+          "line": 387,
+          "samples": 153,
+          "percent": 3.5573122529644268
+        },
+        {
+          "function": "sequenceValues",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/sequence.js",
+          "line": 381,
+          "samples": 121,
+          "percent": 2.813299232736573
+        },
+        {
+          "function": "makeRange",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+          "line": 570,
+          "samples": 110,
+          "percent": 2.557544757033248
+        },
+        {
+          "function": "general",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js",
+          "line": 94,
+          "samples": 100,
+          "percent": 2.325040688212044
+        },
+        {
+          "function": "(program)",
+          "url": "",
+          "line": 0,
+          "samples": 98,
+          "percent": 2.278539874447803
+        },
+        {
+          "function": "iterate",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+          "line": 632,
+          "samples": 94,
+          "percent": 2.185538246919321
+        },
+        {
+          "function": "registerRangePlan",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/range-plan.js",
+          "line": 6,
+          "samples": 93,
+          "percent": 2.1622878400372008
+        },
+        {
+          "function": "continueStatementStream",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/blocks.js",
+          "line": 163,
+          "samples": 83,
+          "percent": 1.9297837712159962
+        },
+        {
+          "function": "advance",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/execution.js",
+          "line": 92,
+          "samples": 77,
+          "percent": 1.7902813299232736
+        },
+        {
+          "function": "",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+          "line": 267,
+          "samples": 60,
+          "percent": 1.3950244129272262
+        },
+        {
+          "function": "",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/assignments.js",
+          "line": 348,
+          "samples": 58,
+          "percent": 1.3485235991629854
+        },
+        {
+          "function": "",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+          "line": 267,
+          "samples": 54,
+          "percent": 1.2555219716345036
+        },
+        {
+          "function": "",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+          "line": 267,
+          "samples": 53,
+          "percent": 1.2322715647523832
+        },
+        {
+          "function": "execute",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/blocks.js",
+          "line": 31,
+          "samples": 47,
+          "percent": 1.0927691234596606
+        },
+        {
+          "function": "",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+          "line": 267,
+          "samples": 46,
+          "percent": 1.0695187165775402
+        },
+        {
+          "function": "",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+          "line": 253,
+          "samples": 44,
+          "percent": 1.0230179028132993
+        },
+        {
+          "function": "assign",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/binding-environment.js",
+          "line": 57,
+          "samples": 44,
+          "percent": 1.0230179028132993
+        },
+        {
+          "function": "",
+          "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/eval/expressions.js",
+          "line": 253,
+          "samples": 42,
+          "percent": 0.9765170890490583
+        }
+      ]
+    }
+  },
+  "controller": "import { readFileSync, writeFileSync, statSync } from 'node:fs';\nimport { spawnSync } from 'node:child_process';\nconst report = { revision: 'f9e7fe91d025d5dff05fe8e1a8daae82b6ee1260', platform: process.platform,\n    arch: process.arch, node: process.version, samples: [] };\nconst target = 'benchmarks/baselines/2026-10-27-euler193-investigation.json';\nconst save = () => writeFileSync(target, JSON.stringify(report, null, 2) + '\\n');\nwhile (!statSync('/tmp/euler193-reference-full.json').size) await new Promise(resolve => setTimeout(resolve, 1000));\nreport.referenceFull = JSON.parse(readFileSync('/tmp/euler193-reference-full.json', 'utf8'));\nsave();\nfunction run(args, nodeFlags = []) {\n    const r = spawnSync(process.execPath, [...nodeFlags, 'benchmarks/euler193-squarefree.mjs', ...args],\n        { encoding: 'utf8', timeout: 300_000 });\n    if (r.status !== 0) throw new Error(JSON.stringify({ args, status: r.status, error: r.error?.message, stderr: r.stderr }));\n    const sample = { args, nodeFlags, ...JSON.parse(r.stdout) };\n    report.samples.push(sample); save();\n    console.log(JSON.stringify({ args, ms: sample.ms, answer: sample.answer }));\n}\nfor (let i = 0; i < 3; i++) {\n    run([]);\n    for (const args of i % 2 ? [['--fixture', '--reference'], ['--fixture']] : [['--fixture'], ['--fixture', '--reference']]) run(args);\n    run(['--power=40', '--reference']);\n}\nrun(['--diag', '--phases']);\nrun([], ['--cpu-prof', '--cpu-prof-dir=/tmp', '--cpu-prof-name=rank193-compiled.cpuprofile']);\nrun(['--power=40', '--reference'], ['--cpu-prof', '--cpu-prof-dir=/tmp', '--cpu-prof-name=rank193-reference.cpuprofile']);\nfor (const power of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16, 20, 24]) {\n    for (const engine of [[], ['--reference']]) run([`--power=${power}`, '--oracle', ...engine]);\n}\nreport.completed = true; save();\n",
+  "verification": {
+    "build": "npx tsc -b tsconfig.build.json: passed",
+    "script": "node --check benchmarks/euler193-squarefree.mjs: passed",
+    "scoped": "\n> @arrrank/interpreter@0.0.2 test\n> node scripts/test.mjs test/types.test.ts test/differential.test.ts -t euler/193_squarefree_test.ra\n\n\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/193_squarefree_test.ra\nauditing euler/193_squarefree_test.ra\n\n ✓ test/types.test.ts (1775 tests | 1774 skipped) 116ms\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/193_squarefree_test.ra\ncomparing euler/193_squarefree_test.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution\ndifferential: 1/1775 compared, 1 completed, 1 test blocks, 38 compiled entries, 3 Number loop entries\n\n ✓ test/differential.test.ts (1776 tests | 1775 skipped) 238ms\n\n Test Files  2 passed (2)\n      Tests  2 passed | 3549 skipped (3551)\n   Start at  16:39:31\n   Duration  1.82s (transform 791ms, setup 0ms, collect 2.73s, tests 354ms, environment 0ms, prepare 74ms)\n\n"
+  }
+}

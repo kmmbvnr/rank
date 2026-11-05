@@ -1,115 +1,114 @@
 rem Random Connected Area
 rem https://projecteuler.net/problem=701
 
-use algo
 use bits
-use numbers
 use sequences
 use io
 use cli
 
-arg Ww integer = 7
-arg Hh integer = 7
+arg Width integer = 7
+arg Height integer = 7
 
-rem Cell by cell frontier DP. A state is
-rem the last Hh cells: label = first
-rem frontier row of the component plus
-rem one, size per label, and the best
-rem closed size. Counts of equal states
-rem are merged through an index.
-Ix = 0 to Hh - 1
-Jx = 0 to Hh
-Ks = Jx * 6
-Ky = array shape 1 fill 0
-Kz = array shape 1 fill 0
-Kb = array shape 1 fill 0
-Wt = array shape 1 fill 1
-Ns = 1
-for C in 0 to Ww - 1
-  for R in 0 to Hh - 1
-    Pos = new index
-    Cap = Ns * 2
-    Ny = array shape Cap fill 0
-    Nz = array shape Cap fill 0
-    Nb = array shape Cap fill 0
-    Nw = array shape Cap fill 0
-    Nn = 0
-    for S in 0 to Ns - 1
-      Lb = Ky S shr (3 * Ix) band 7
-      Sz = Kz S shr Ks band 63
-      Bs = Kb S
-      Ol = Lb R
-      Up = 0
-      if R greater 0
-        Up = Lb (R - 1)
-      end
-      for V in 0 to 1
-        L2 = Lb
-        S2 = Sz
-        B2 = Bs
-        if V equal 0
-          L2 R = 0
-          if Ol greater 0
-            Hit = L2 equal Ol
-            if Hit count equal 0
-              B2 = B2 max (Sz Ol)
-              S2 Ol = 0
-            else
-              if Ol equal R + 1
-                P1 = Hit findall true
-                Q1 = (P1 0) + 1
-                L2 = Hit choose Q1 L2
-                S2 Q1 = Sz Ol
-                S2 Ol = 0
-              end
-            end
-          end
-        else
-          Tt = 1 + Sz Ol
-          if Up not equal Ol
-            Tt += Sz Up
-          end
-          Nl = R + 1
-          if Ol greater 0
-            Nl = Nl min Ol
-          end
-          if Up greater 0
-            Nl = Nl min Up
-          end
-          Mg = L2 equal Ol
-          Mg = Mg or (L2 equal Up)
-          Mg = Mg and L2 greater 0
-          L2 = Mg choose Nl L2
-          L2 R = Nl
-          S2 Ol = 0
-          S2 Up = 0
-          S2 Nl = Tt
-        end
-        K1 = L2 shl (3 * Ix) sum
-        K2 = S2 shl Ks sum
-        J = Pos K1 K2 B2 default -1
-        if J at least 0
-          Nw J += Wt S
-        else
-          Pos K1 K2 B2 = Nn
-          Ny Nn = K1
-          Nz Nn = K2
-          Nb Nn = B2
-          Nw Nn = Wt S
-          Nn += 1
-        end
-      end
-    end
-    Ky = Ny (0 to Nn - 1)
-    Kz = Nz (0 to Nn - 1)
-    Kb = Nb (0 to Nn - 1)
-    Wt = Nw (0 to Nn - 1)
-    Ns = Nn
+if Width less 1 or Height less 1
+  raise "grid sides must be positive"
+end
+Span = Width min Height
+Cells = Width * Height
+if Span greater 7
+  raise "frontier width exceeds 7"
+end
+if Cells greater 63
+  raise "packed area exceeds 63"
+end
+
+Slots = 0 till Span
+State = record
+  .tags = array shape 1 Span fill 0
+  .sizes = array shape 1 Span fill 0
+  .best = array shape 1 fill 0
+  .ways = array shape 1 fill 1
+end
+for Cell in 0 till Cells
+  State = State step (Cell mod Span)
+end
+Ways = State .ways
+Best = State .best
+Sum = Ways * Best sum
+Answer = Sum real / (2 ** Cells)
+Answer print
+
+fun State step Row
+  Tags = State .tags
+  Sizes = State .sizes
+  Ways = State .ways
+  Count = Ways len
+  Old = Tags # Row reshape Count 1
+  Part = Sizes # Row reshape Count 1
+  Near = (Row - 1) max 0
+  Left = Tags # Near reshape Count 1
+  Side = Sizes # Near reshape Count 1
+  Up = (Row greater 0) choose Left 0
+  Extra = (Row greater 0) choose Side 0
+
+  rem Empty cells may rename a region.
+  Keep = Slots not equal Row
+  Clear = Keep choose Tags 0
+  Match = Clear equal Old
+  First = Match choose (Slots + 1) 8
+  Least = First min axis 1
+  Root = Least reshape Count 1
+  Move = Match and Old equal Row + 1
+  Empty = Move choose Root Clear
+  Small = Keep choose Sizes 0
+
+  rem Filled cells join both neighbors.
+  Touch = Tags equal Old
+  Neighbors = Touch or Tags equal Up
+  Live = Neighbors and Tags greater 0
+  Join = Live or Slots equal Row
+  Above = (Old greater 0) choose Old 8
+  Beside = (Up greater 0) choose Up 8
+  Label = Above min Beside min (Row + 1)
+  Full = Join choose Label Tags
+  Same = Up equal Old
+  More = Same choose 0 Extra
+  Total = 1 + Part + More
+  Large = Join choose Total Sizes
+  Open = Total reshape #
+  Peak = (State .best) max Open
+
+  rem Merge weights of equal states.
+  Labels = concat Empty Full
+  Areas = concat Small Large
+  Best = concat (State .best) Peak
+  Key = Labels Areas Best pack
+  Weight = concat Ways Ways
+  Order = Key argsort
+  Sorted = Key Order
+  Prev = Sorted shift 1 with -1
+  Change = Sorted not equal Prev
+  Marks = Change integer
+  Group = (Marks scan +) - 1
+  Weights = Weight Order
+  Counts = Weights sum by Group
+  Unique = Sorted Change
+  Frame = (Unique shr 6) reshape # 1
+  Bits = Frame shr (3 * Span)
+  Decoded = Bits shr (6 * Slots) band 63
+  return record
+    .tags = Frame shr (3 * Slots) band 7
+    .sizes = Decoded
+    .best = Unique band 63
+    .ways = Counts
   end
 end
-rem Best of closed and open components.
-Sm = (Kz reshape Ns 1) shr Ks band 63
-Bt = Sm max axis 1 max Kb
-Tot = Wt * Bt sum
-Answer = Tot real / (2 ** (Ww * Hh))
-Answer print
+
+fun Labels Areas Best pack
+  Parts = Areas shl (6 * Slots)
+  Sizes = Parts sum axis 1
+  Packed = Sizes shl (3 * Span)
+  Bits = Labels shl (3 * Slots)
+  Tags = Bits sum axis 1
+  Key = Tags + Packed
+  return (Key shl 6) + Best
+end

@@ -1,0 +1,7 @@
+{"node":"v24.15.0","arch":"x64","platform":"linux","mode":"mobile-signal-model","phoneMeasured":false}
+{"trial":0,"version":"before","mode":"mobile","variant":"original","sieveMs":750.8512199999999,"pairsMs":23235.376185999998,"pairsCpuMs":23991.33,"totalMs":23986.227405999998,"rssMiB":322.27734375,"answer":"4179871"}
+{"trial":0,"version":"after","mode":"mobile","variant":"original","sieveMs":768.2021090000001,"pairsMs":14012.738355,"pairsCpuMs":14991.509,"totalMs":14780.940464,"rssMiB":354.921875,"answer":"4179871"}
+{"trial":1,"version":"before","mode":"mobile","variant":"original","sieveMs":827.066548,"pairsMs":23846.638365,"pairsCpuMs":24901.951,"totalMs":24673.704912999998,"rssMiB":356.31640625,"answer":"4179871"}
+{"trial":1,"version":"after","mode":"mobile","variant":"original","sieveMs":791.1663080000001,"pairsMs":13467.107184,"pairsCpuMs":14365.446,"totalMs":14258.273492,"rssMiB":352.7109375,"answer":"4179871"}
+{"trial":2,"version":"before","mode":"mobile","variant":"original","sieveMs":759.16411,"pairsMs":24497.379442999998,"pairsCpuMs":25532.931,"totalMs":25256.543553,"rssMiB":357.44921875,"answer":"4179871"}
+{"trial":2,"version":"after","mode":"mobile","variant":"original","sieveMs":772.46667,"pairsMs":14359.689312,"pairsCpuMs":15308.506,"totalMs":15132.155982,"rssMiB":354.60546875,"answer":"4179871"}

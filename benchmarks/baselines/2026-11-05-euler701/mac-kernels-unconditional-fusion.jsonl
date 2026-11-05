@@ -1,0 +1,4 @@
+{"operation":"pack","compilation":false,"rows":100000,"ms":17.459124999999972,"arch":"arm64","node":"v24.15.0","rssMiB":178.71875,"compiledTensors":0,"cellsComputed":0,"typedUnpacks":0}
+{"operation":"min-axis","compilation":false,"rows":100000,"ms":4.08016600000002,"arch":"arm64","node":"v24.15.0","rssMiB":184.6875,"compiledTensors":0,"cellsComputed":0,"typedUnpacks":0}
+{"operation":"pack","compilation":true,"rows":100000,"ms":13.810999999999979,"arch":"arm64","node":"v24.15.0","rssMiB":188,"compiledTensors":1,"cellsComputed":0,"typedUnpacks":0}
+{"operation":"min-axis","compilation":true,"rows":100000,"ms":2.048041000000012,"arch":"arm64","node":"v24.15.0","rssMiB":193.578125,"compiledTensors":0,"cellsComputed":0,"typedUnpacks":0}

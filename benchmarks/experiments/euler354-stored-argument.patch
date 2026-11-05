@@ -1,0 +1,20 @@
+--- a/packages/interpreter/src/jit/integer-loop-expressions.ts
++++ b/packages/interpreter/src/jit/integer-loop-expressions.ts
+@@ -11,7 +11,7 @@
+ import { IndexEntries } from '../index-storage.js';
+ import { hasNativeFenwick } from '../fenwick.js';
+ import { hasNativeIntegerGroups } from '../runtime/integer-groups.js';
+-import { compiledArgumentType, hasNativeDeque } from './compiled-argument-type.js';
++import { compiledArgumentType, compiledEntryArgumentType, hasNativeDeque } from './compiled-argument-type.js';
+ import {
+     compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
+     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
+@@ -1501,7 +1501,7 @@
+                             continue;
+                         }
+                         const type = existing ? { kind: 'array' as const, element: existing.type, rank: existing.rank }
+-                            : current === undefined ? undefined : compiledArgumentType(current);
++                            : current === undefined ? undefined : compiledEntryArgumentType(current);
+                         if (type && typeof type !== 'string' && isNameExpression(part)) {
+                             if (numberMode || !host.arrayReads || type.element === 'real' || type.element === 'bytes'
+                                 || type.element === 'text' && !host.textArrayLoops

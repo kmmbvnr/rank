@@ -1,0 +1,7 @@
+{"node":"v24.15.0","arch":"arm64","platform":"darwin","mode":"mobile-signal-model","phoneMeasured":false}
+{"trial":0,"version":"before","mode":"mobile","variant":"original","sieveMs":470.706791,"pairsMs":11341.307999999999,"pairsCpuMs":11450.749,"totalMs":11812.014791,"rssMiB":416.953125,"answer":"4179871"}
+{"trial":0,"version":"after","mode":"mobile","variant":"original","sieveMs":247.816916,"pairsMs":8003.730624999999,"pairsCpuMs":8129.768,"totalMs":8251.547541,"rssMiB":451.765625,"answer":"4179871"}
+{"trial":1,"version":"before","mode":"mobile","variant":"original","sieveMs":276.732709,"pairsMs":11190.092375,"pairsCpuMs":11438.576,"totalMs":11466.825084,"rssMiB":456.625,"answer":"4179871"}
+{"trial":1,"version":"after","mode":"mobile","variant":"original","sieveMs":520.002459,"pairsMs":7139.437875,"pairsCpuMs":7105.159,"totalMs":7659.440334,"rssMiB":369.21875,"answer":"4179871"}
+{"trial":2,"version":"before","mode":"mobile","variant":"original","sieveMs":253.052042,"pairsMs":12798.222834,"pairsCpuMs":12530.206,"totalMs":13051.274876,"rssMiB":449.171875,"answer":"4179871"}
+{"trial":2,"version":"after","mode":"mobile","variant":"original","sieveMs":309.629375,"pairsMs":5922.672875,"pairsCpuMs":6197.351,"totalMs":6232.302250000001,"rssMiB":459,"answer":"4179871"}

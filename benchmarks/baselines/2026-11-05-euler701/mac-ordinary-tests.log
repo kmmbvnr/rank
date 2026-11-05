@@ -1,0 +1,1057 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs --exclude test/types.test.ts --exclude test/differential.test.ts --exclude test/nurikabe.test.ts
+
+
+ RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter
+
+ ✓ test/number-loop-adaptive.test.ts (42 tests) 8929ms
+   ✓ adaptive vector-loop copying > caps short copies but retains a full pass beyond the probe cap  509ms
+   ✓ adaptive range-loop copying > retains a complete range pass beyond the probe cap (0 till 262145)  309ms
+   ✓ adaptive range-loop copying > retains a complete range pass beyond the probe cap (262144 to 0 by -1)  314ms
+   ✓ adaptive range-loop copying > amortizes a large pass with at most 64 sentinel cells (1 to 262144)  396ms
+   ✓ adaptive range-loop copying > amortizes a large pass with at most 64 sentinel cells (262144 to 1 by -1)  453ms
+   ✓ adaptive range-loop copying > amortizes a large pass with at most 64 sentinel cells (32 till 262113)  405ms
+   ✓ adaptive range-loop copying > compiles a prefix recurrence without copying a separate scan result  480ms
+   ✓ adaptive range-loop copying > retains the cap outside the small sentinel allowance  344ms
+   ✓ adaptive range-loop copying > charges every destination before admitting a near-complete pass  610ms
+   ✓ adaptive range-loop copying > retains admission for a short root range with substantial nested work  334ms
+   ✓ condition-loop entry range work > combines complete strided passes above the copy cap  484ms
+   ✓ condition-loop entry range work > counts descending passes and keeps the existing sentinel allowance  512ms
+   ✓ condition-loop entry range work > does not count passes with an early exit  368ms
+   ✓ condition-loop entry range work > does not count a range hidden behind a conditional branch  386ms
+   ✓ condition-loop entry range work > charges all destination arrays rather than just the longest pass  717ms
+   ✓ condition-loop entry range work > replays overflow and preserves preceding writes before an error  585ms
+ ✓ test/fibonacci-tree.test.ts (3 tests) 9256ms
+   ✓ Fibonacci tree rolling DP > preserves checkpoints, row boundaries and exact counts beyond safe Number integers  410ms
+   ✓ Fibonacci tree rolling DP > preserves the full default answer in both execution modes  8551ms
+ ✓ test/concat-depth.test.ts (17 tests) 11669ms
+   ✓ deep concat (compiled=false) > keeps deep sequence concatenation lazy and ordered  5161ms
+   ✓ deep concat (compiled=true) > keeps deep sequence concatenation lazy and ordered  5442ms
+ ✓ test/euler376.test.ts (5 tests) 12224ms
+   ✓ matches enumerated dice, including empty/no-cycle cases ({})  344ms
+   ✓ matches enumerated dice, including empty/no-cycle cases ({"numberLoopCompilation":false})  5982ms
+   ✓ matches enumerated dice, including empty/no-cycle cases ({"compilation":false})  5141ms
+   ✓ matches the original exact recurrence below, at and beyond 18 labels  713ms
+ ✓ test/loop-functions.test.ts (22 tests) 4667ms
+   ✓ functions in loops (compiled=false) > preserves all queens placements and their order  2182ms
+   ✓ functions in loops (compiled=true) > preserves all queens placements and their order  2157ms
+ ✓ test/memo.test.ts (13 tests) 3615ms
+   ✓ memo functions and explicit index caches > runs deep memo JavaScript recursion without using the call stack  3397ms
+ ✓ test/indices.test.ts (16 tests) 4856ms
+   ✓ tensor indices (compiled=false) > runs the queens demo with small boards and empty solution sets  1174ms
+   ✓ tensor indices (compiled=false) > grows queens placements by one column per placed queen  1072ms
+   ✓ tensor indices (compiled=true) > runs the queens demo with small boards and empty solution sets  1080ms
+   ✓ tensor indices (compiled=true) > grows queens placements by one column per placed queen  1254ms
+ ✓ test/array-block-copy.test.ts (31 tests) 2335ms
+   ✓ stored block copies (compilation=true) > copies row windows directly from int32 storage  350ms
+   ✓ stored block copies (compilation=true) > copies row windows directly from int64 storage  345ms
+   ✓ stored block copies (compilation=true) > copies row windows directly from real storage  343ms
+   ✓ stored block copies (compilation=false) > copies row windows directly from int32 storage  337ms
+   ✓ stored block copies (compilation=false) > copies row windows directly from int64 storage  328ms
+   ✓ stored block copies (compilation=false) > copies row windows directly from real storage  344ms
+ ✓ test/bulk-numeric-paths.test.ts (50 tests) 385ms
+ ✓ test/integer-range-facts.test.ts (18 tests) 231ms
+ ✓ test/integer-loop.test.ts (328 tests) 1720ms
+ ✓ test/euler155.test.ts (22 tests) 5473ms
+   ✓ capacitor circuits (compilation=false) > retains all existing fixture assertions  4727ms
+ ✓ test/euler337.test.ts (5 tests) 6414ms
+   ✓ Euler 337 (compilation=false) > matches every direct prefix through 200 and odd/even larger bounds  846ms
+   ✓ Euler 337 (compilation=false) > keeps repeated solves independent and matches the supplied checkpoints  520ms
+   ✓ solves the default input in one private numeric region with compact storage  4890ms
+ ✓ test/euler110.test.ts (46 tests) 3324ms
+   ✓ reciprocal exponent tables (compilation=false) > retains every assertion in 110_reciprocals2_default_test  1233ms
+   ✓ reciprocal exponent tables (compilation=true) > retains every assertion in 110_reciprocals2_default_test  602ms
+ ✓ test/euler154.test.ts (31 tests) 4513ms
+   ✓ Euler 154 (compilation=false) > agrees with exact coefficients for N=624, Power=6  518ms
+   ✓ Euler 154 (compilation=false) > agrees with exact coefficients for N=625, Power=6  647ms
+   ✓ Euler 154 (compilation=false) > agrees with exact coefficients for N=626, Power=6  653ms
+   ✓ Euler 154 (compilation=true) > agrees with exact coefficients for N=624, Power=6  543ms
+   ✓ Euler 154 (compilation=true) > agrees with exact coefficients for N=625, Power=6  533ms
+   ✓ Euler 154 (compilation=true) > agrees with exact coefficients for N=626, Power=6  532ms
+ ✓ test/compiled-integer-collections.test.ts (17 tests) 12179ms
+   ✓ compiled integer collections > compiles unchanged Euler 044 at full size  6137ms
+   ✓ compiled integer collections > compiles the abundant-sum collection search at full size  5790ms
+ ✓ test/local-automaton.test.ts (4 tests) 1426ms
+   ✓ Euler 305 local automaton (compiled=false) > keeps filtered callback captures independent after the enclosing calls return  450ms
+   ✓ Euler 305 local automaton (compiled=false) > matches known positions and keeps engine state separate between parent calls  399ms
+   ✓ Euler 305 local automaton (compiled=true) > matches known positions and keeps engine state separate between parent calls  343ms
+ ✓ test/euler170.test.ts (16 tests) 2687ms
+   ✓ Euler 170 (compilation=false) > matches an input-partition oracle for digits 987654  811ms
+   ✓ Euler 170 (compilation=false) > matches an input-partition oracle for digits 543210  624ms
+   ✓ Euler 170 (compilation=false) > matches an input-partition oracle for digits 983210  572ms
+ ✓ test/euler-331.test.ts (4 tests) 2199ms
+   ✓ Euler 331 streamed rows > retains the exact full answer above the safe Number range  1774ms
+ ✓ test/mask-reductions.test.ts (30 tests) 1041ms
+ ✓ test/euler-320.test.ts (28 tests) 3022ms
+   ✓ Euler 320 (reference) > matches binary-search inversion, including carry digits and wide integers  420ms
+   ✓ retains the full compiled Euler 320 answer  1676ms
+ ✓ test/euler-324.test.ts (16 tests) 2085ms
+   ✓ Euler 324 (reference) > matches unreduced polynomial powering across period boundaries  854ms
+   ✓ Euler 324 (reference) > retains the full 10000-digit default answer  673ms
+ ✓ test/extreme-direct.test.ts (18 tests) 1441ms
+   ✓ direct binary extrema > keeps effectful operands on the resumable path without replay  463ms
+   ✓ direct binary extrema > supports deep recursive calls to mincustom  390ms
+   ✓ direct binary extrema > supports deep recursive calls to maxcustom  357ms
+ ✓ test/euler-319.test.ts (23 tests) 1501ms
+   ✓ retains the full compiled Euler 319 answer  1018ms
+ ✓ test/collection-chain.test.ts (15 tests) 1413ms
+   ✓ selects smallest K with and without distinct and a sum terminal  1179ms
+ ✓ test/factorization.test.ts (12 tests) 1217ms
+   ✓ bounded factorization > matches all prime-minus-one inputs in the Euler 302 table range  514ms
+   ✓ Euler 302 using builtin factors > preserves the published reduced counts in both execution modes  319ms
+ ✓ test/euler701.test.ts (30 tests) 1947ms
+ ✓ test/decimal-waiting.test.ts (5 tests) 1155ms
+   ✓ Euler 316 numeric borders > compiles the full default workload including the waiting-time function  887ms
+ ✓ test/euler177.test.ts (8 tests) 1005ms
+   ✓ Euler 177 (compilation=false) > matches a direct angle-tuple oracle for pi/24  308ms
+ ✓ test/euler-388.test.ts (4 tests) 1473ms
+   ✓ Euler 388 quotient tables (compilation=false) > matches trial-factorization Mobius sums across quotient and cutoff boundaries  555ms
+   ✓ Euler 388 quotient tables (compilation=false) > reproduces the statement checkpoint with a tiny cutoff and compact tables  371ms
+   ✓ Euler 388 quotient tables (compilation=true) > matches trial-factorization Mobius sums across quotient and cutoff boundaries  517ms
+ ✓ test/compact-integer-scan.test.ts (7 tests) 1307ms
+   ✓ compact integer scan (compilation=true) > falls back to exact integers above Number range without changing the input  400ms
+   ✓ compact integer scan (compilation=false) > falls back to exact integers above Number range without changing the input  380ms
+   ✓ widens safe positive and negative prefixes to integers and rejects unsafe ones  374ms
+ ✓ test/integer-groups.test.ts (13 tests) 211ms
+ ✓ test/euler336.test.ts (7 tests) 970ms
+   ✓ Euler 336 (compilation=false) > matches all small ranks and both ends of the larger ordering  490ms
+ ✓ test/array-region.test.ts (30 tests) 901ms
+ ✓ test/euler-328.test.ts (3 tests) 856ms
+   ✓ Euler 328 monotone frontier > retains the full golden and executes the numeric loop  566ms
+ ✓ test/euler166.test.ts (9 tests) 757ms
+ ✓ test/generator-loop.test.ts (33 tests) 895ms
+   ✓ generator loops (reference) > sieves with lazy yields and uses the selected execution path  443ms
+ ✓ test/euler153.test.ts (40 tests) 811ms
+ ✓ test/contiguous-slice.test.ts (47 tests) 617ms
+ ✓ test/argument-signature.test.ts (39 tests) 320ms
+ ✓ test/array-length-loops.test.ts (16 tests) 714ms
+   ✓ array lengths in compiled loop bounds > recognizes stored integers even without a semantic array type  461ms
+ ✓ test/function-body.test.ts (15 tests) 639ms
+   ✓ compiled function body completion > retains tail calls and lexical captures  353ms
+ ✓ test/convolution.test.ts (80 tests) 682ms
+   ✓ convolve mod > squares a vector as the Kitamasa step does  338ms
+ ✓ test/composable-regions.test.ts (64 tests) 728ms
+ ✓ test/demo-numerical.test.ts (6 tests) 951ms
+   ✓ numerical demo host oracles > runs Euler 337 at limit 10000 on both numeric backends and the interpreter  628ms
+ ✓ test/fold-modifiers.test.ts (66 tests) 612ms
+ ✓ test/argument-signature-memory.test.ts (2 tests) 466ms
+ ✓ test/column-tables-memory.test.ts (2 tests) 564ms
+   ✓ column table memory > keeps a 100 000-row CSV table far below the row-object footprint  321ms
+ ✓ test/expressions.test.ts (58 tests) 655ms
+stdout | test/intrinsic-matrix-ranks.test.ts > intrinsic matrix cells > executes the documented Euler 8 and 11 programs
+23514624000
+70600674
+
+ ✓ test/intrinsic-matrix-ranks.test.ts (11 tests) 450ms
+ ✓ test/max-pipeline.test.ts (50 tests) 304ms
+ ✓ test/image-processing.test.ts (12 tests) 538ms
+ ✓ test/expression-grouping.test.ts (29 tests) 369ms
+ ✓ test/function-plan.test.ts (22 tests) 572ms
+ ✓ test/compiled-operators.test.ts (82 tests) 325ms
+ ✓ test/keyed-modular.test.ts (29 tests) 257ms
+ ✓ test/array-storage.test.ts (43 tests) 325ms
+ ✓ test/loop-control.test.ts (64 tests) 278ms
+ ✓ test/loop-callout-real.test.ts (20 tests) 275ms
+ ✓ test/integer-square-root.test.ts (39 tests) 508ms
+ ✓ test/mixed-numeric-types.test.ts (30 tests) 399ms
+ ✓ test/keyed-application.test.ts (27 tests) 255ms
+ ✓ test/keyed-producers.test.ts (76 tests) 454ms
+ ✓ test/for-axis.test.ts (85 tests) 395ms
+ ✓ test/array-transfer.test.ts (31 tests) 330ms
+ ✓ test/collection-compilation.test.ts (42 tests) 408ms
+ ✓ test/euler165.test.ts (16 tests) 649ms
+ ✓ test/containers.test.ts (18 tests) 465ms
+ ✓ test/diagnostics.test.ts (33 tests) 642ms
+   ✓ runtime diagnostics > prints CLI diagnostics without a Node stack and exits unsuccessfully  436ms
+ ✓ test/euler-213.test.ts (16 tests) 461ms
+ ✓ test/dense-envelope.test.ts (8 tests) 440ms
+ ✓ test/euler-326.test.ts (5 tests) 427ms
+ ✓ test/digit-product-fusion.test.ts (35 tests) 481ms
+ ✓ test/compiled-groups.test.ts (7 tests) 204ms
+ ✓ test/array-last-use.test.ts (76 tests) 400ms
+ ✓ test/array-chain-demos.test.ts (4 tests) 376ms
+ ✓ test/flat-combine.test.ts (9 tests) 348ms
+ ✓ test/empty-rank-composition.test.ts (46 tests) 400ms
+ ✓ test/graph.test.ts (60 tests) 379ms
+ ✓ test/compiled-array-operations.test.ts (23 tests) 389ms
+ ✓ test/genes.test.ts (6 tests) 387ms
+ ✓ test/cell-axis.test.ts (26 tests) 321ms
+ ✓ test/manual.test.ts (304 tests) 639ms
+ ✓ test/cooperative-number-calls.test.ts (17 tests) 269ms
+ ✓ test/dense-prime-sieve.test.ts (15 tests) 533ms
+ ✓ test/missing-cells.test.ts (27 tests) 270ms
+ ✓ test/function-scope-helpers.test.ts (40 tests) 271ms
+ ✓ test/keyed-fusion.test.ts (6 tests) 224ms
+ ✓ test/control-functions.test.ts (26 tests) 302ms
+ ✓ test/collection-filter.test.ts (20 tests) 319ms
+ ✓ test/loop-sum.test.ts (23 tests) 343ms
+ ✓ test/compiled-declared-call.test.ts (19 tests) 271ms
+ ✓ test/lazy-array-depth.test.ts (15 tests) 306ms
+ ✓ test/euler179.test.ts (30 tests) 312ms
+ ✓ test/array-returning-loop-calls.test.ts (12 tests) 235ms
+ ✓ test/function-iterable-plans.test.ts (13 tests) 355ms
+ ✓ test/compiled-ranked-callback.test.ts (17 tests) 229ms
+ ✓ test/declared-call.test.ts (23 tests) 217ms
+ ✓ test/block-scope.test.ts (37 tests) 235ms
+ ✓ test/integer-matmul.test.ts (20 tests) 274ms
+ ✓ test/compiled-array-stages.test.ts (30 tests) 340ms
+ ✓ test/demo-borrow.test.ts (14 tests) 300ms
+ ✓ test/dense-arithmetic.test.ts (22 tests) 264ms
+ ✓ test/mixed-predicates.test.ts (25 tests) 432ms
+ ✓ test/divmod.test.ts (5 tests) 261ms
+ ✓ test/logical-guards.test.ts (7 tests) 206ms
+ ✓ test/captured-scalar-reads.test.ts (8 tests) 216ms
+ ✓ test/io-programs.test.ts (36 tests) 286ms
+ ✓ test/loop-array-frames.test.ts (21 tests) 269ms
+ ✓ test/distinct-function.test.ts (20 tests) 298ms
+ ✓ test/direct-iteration.test.ts (15 tests) 235ms
+ ✓ test/compiler-rejection.test.ts (17 tests) 262ms
+ ✓ test/bulk-slice-write.test.ts (12 tests) 195ms
+ ✓ test/accumulate-writes.test.ts (96 tests) 427ms
+ ✓ test/euler333.test.ts (5 tests) 343ms
+ ✓ test/conversions.test.ts (18 tests) 242ms
+ ✓ test/counter-gather.test.ts (30 tests) 266ms
+ ✓ test/euler341.test.ts (5 tests) 13482ms
+   ✓ Euler 341 self-describing runs > matches direct Golomb values at every small cube (compilation=false)  4400ms
+   ✓ Euler 341 self-describing runs > keeps the complete default answer (compilation=false)  8014ms
+   ✓ Euler 341 self-describing runs > keeps the original array recurrence in one mixed private region  595ms
+ ✓ test/euler378.test.ts (3 tests) 20399ms
+   ✓ Euler 378 Fenwick passes true > matches direct divisor/triple enumeration  310ms
+   ✓ retains the full sixty-million-element answer  19997ms
+ ✓ test/euler372.test.ts (7 tests) 7035ms
+   ✓ Euler 372 {} > keeps irrational sums exact beyond the Number range  1438ms
+   ✓ Euler 372 { numberLoopCompilation: false } > keeps irrational sums exact beyond the Number range  1129ms
+   ✓ Euler 372 { compilation: false } > matches direct lattice enumeration around square boundaries  1943ms
+   ✓ Euler 372 { compilation: false } > keeps irrational sums exact beyond the Number range  1096ms
+   ✓ retains the full exact answer and compiles the helper chain  991ms
+ ✓ test/euler129.test.ts (26 tests) 329ms
+ ✓ test/block-compiler.test.ts (10 tests) 231ms
+ ✓ test/euler352.test.ts (3 tests) 4585ms
+   ✓ matches uncapped DP across pool and prefix boundaries (false)  4330ms
+ ✓ test/euler404.test.ts (6 tests) 36669ms
+   ✓ Euler 404 (compilation=false) > keeps the full exact golden value  25307ms
+   ✓ Euler 404 (compilation=true) > keeps the full exact golden value  10995ms
+ ✓ test/euler680.test.ts (3 tests) 32655ms
+   ✓ matches independent flat reversals including empty workloads, endpoints and repeated cuts  900ms
+   ✓ keeps the full Euler 680 answer  31459ms
+ ✓ test/euler408.test.ts (6 tests) 14764ms
+   ✓ Euler 408 (compilation=false) > matches every grid cell at empty, square and first-forbidden-point boundaries  627ms
+   ✓ Euler 408 (compilation=false) > retains the full default answer without overflow replay  10332ms
+   ✓ Euler 408 (compilation=true) > matches every grid cell at empty, square and first-forbidden-point boundaries  514ms
+   ✓ Euler 408 (compilation=true) > retains the full default answer without overflow replay  3103ms
+ ✓ test/tail-calls.test.ts (11 tests) 2930ms
+   ✓ tail calls > runs a million tail calls with a one-frame call budget  727ms
+   ✓ tail calls > replaces frames for mutual recursion and parenthesized returns  1838ms
+ ✓ test/sum-squares-divisors.test.ts (8 tests) 15269ms
+   ✓ Euler 401 (compilation=false) > keeps the large existing checkpoint  346ms
+   ✓ Euler 401 (compilation=false) > returns the full default golden value  8689ms
+   ✓ Euler 401 (compilation=true) > returns the full default golden value  5264ms
+ ✓ test/euler410.test.ts (7 tests) 11026ms
+   ✓ Euler 410 (compilation=false) > matches distinct-prime trial division at parity and prime-power boundaries  1282ms
+   ✓ Euler 410 (compilation=false) > retains the segmented fixture and statement values  396ms
+   ✓ Euler 410 (compilation=true) > matches distinct-prime trial division at parity and prime-power boundaries  796ms
+   ✓ retains the full Euler 410 golden through private stages and an exact wide reduction  8401ms
+ ✓ test/euler407.test.ts (4 tests) 39869ms
+   ✓ Euler 407 (compilation=false) > matches exhaustive idempotents at empty, prime-power and mixed-factor bounds  423ms
+   ✓ Euler 407 (compilation=false) > retains the full golden answer  33426ms
+   ✓ Euler 407 (compilation=true) > retains the full golden answer  5722ms
+ ✓ test/search-loops.test.ts (11 tests) 8669ms
+   ✓ executes the complete depth-array search as one loop and preserves the output snapshot  8502ms
+ ✓ test/euler379.test.ts (5 tests) 13804ms
+   ✓ Euler 379 {} > matches direct divisor counts at square and quotient boundaries  458ms
+   ✓ compiles both full sieves above the private-copy cap  12941ms
+ ✓ test/euler671.test.ts (4 tests) 7631ms
+   ✓ keeps Euler 671 for K=4, N=3  564ms
+   ✓ keeps Euler 671 for K=5, N=7  475ms
+   ✓ keeps Euler 671 for K=6, N=101  794ms
+   ✓ keeps Euler 671 for K=10, N=10004003002001  5797ms
+ ✓ test/recursion.test.ts (21 tests) 8741ms
+   ✓ stack-safe Rank calls > returns through 100,000 non-tail recursive calls, including the host API  4586ms
+   ✓ stack-safe Rank calls > visits a chain of 100,000 vertices and accumulates subtree sizes after returning  2239ms
+   ✓ stack-safe Rank calls > supports mutual recursion and explicit scalar rank  338ms
+   ✓ stack-safe Rank calls > unwinds deep returns and caught errors through finally with explicit cleanup state  326ms
+ ✓ test/euler342.test.ts (3 tests) 7245ms
+   ✓ Euler 342 factor-residue search (compilation=false) > matches every small prefix and prime-power/product boundaries  1969ms
+   ✓ Euler 342 factor-residue search (compilation=true) > matches every small prefix and prime-power/product boundaries  685ms
+   ✓ Euler 342 matches an independent million-bound sieve and the full search in compiled execution  4590ms
+ ✓ test/euler370.test.ts (4 tests) 14703ms
+   ✓ matches exhaustive geometric triangles around row and quotient boundaries (compilation=false)  430ms
+   ✓ computes the full geometric-triangle golden with compiled numeric loops  14002ms
+ ✓ test/euler375.test.ts (10 tests) 9524ms
+   ✓ matches enumerated periodic subsequence minima ({})  452ms
+   ✓ keeps packed-array and wide-answer cases exact ({"numberLoopCompilation":false})  372ms
+   ✓ matches independent minima across period boundaries (compilation=false)  2392ms
+   ✓ matches independent minima across period boundaries (compilation=true)  2507ms
+   ✓ handles tied minima and forces actual stack growth (compilation=false)  1252ms
+   ✓ handles tied minima and forces actual stack growth (compilation=true)  1355ms
+   ✓ computes the full golden with two Number loops and a growing stack  645ms
+ ✓ test/outer-lazy-operands.test.ts (12 tests) 5325ms
+   ✓ reductions stream over a lazy table > sums, finds the extremes and averages a large table one cell at a time  2682ms
+   ✓ reductions stream over a lazy table > sums the whole table through `sum rank 2` without collecting it  668ms
+   ✓ reductions stream over a lazy table > counts a streamed comparison  1100ms
+   ✓ reductions stream over a lazy table > streams a named-function outer table too  690ms
+stdout | test/scalar-function-iterators.test.ts > finite iterators in compiled scalar functions > compiles the unchanged full Euler 263 search and retains its golden answer
+2039506520
+
+ ✓ test/scalar-function-iterators.test.ts (24 tests) 6511ms
+   ✓ finite iterators in compiled scalar functions > compiles the unchanged full Euler 263 search and retains its golden answer  6219ms
+ ✓ test/euler696.test.ts (5 tests) 3967ms
+   ✓ keeps Euler 696 for n=4, s=1, t=1  452ms
+   ✓ keeps Euler 696 for n=100000000, s=100000000, t=30  2881ms
+ ✓ test/euler361.test.ts (4 tests) 3548ms
+   ✓ Euler 361 scalar memoization (compilation=true) > completes the published Power=18 input  727ms
+   ✓ Euler 361 scalar memoization (compilation=true) > matches enumerated factor counts, length boundaries and word values  1162ms
+   ✓ Euler 361 scalar memoization (compilation=false) > completes the published Power=18 input  589ms
+   ✓ Euler 361 scalar memoization (compilation=false) > matches enumerated factor counts, length boundaries and word values  1068ms
+ ✓ test/euler397.test.ts (8 tests) 8020ms
+   ✓ finishes the default bound with exact wide accumulation  7438ms
+ ✓ test/vector-entry-work.test.ts (13 tests) 3873ms
+   ✓ complete nested passes in packed vector loops > amortizes copies above the probe cap (reverse=false)  442ms
+   ✓ complete nested passes in packed vector loops > keeps helper calls outside the entry work proof  526ms
+   ✓ complete nested passes in packed vector loops > retains the cap for incomplete or mutable passes  424ms
+   ✓ complete nested passes in packed vector loops > retains the cap for incomplete or mutable passes  529ms
+   ✓ complete nested passes in packed vector loops > preserves exact replay when an admitted pass overflows  534ms
+ ✓ test/repeat.test.ts (36 tests) 4034ms
+   ✓ repeat (compiled=false) > runs the Queens transition from an empty placement  1599ms
+   ✓ repeat (compiled=true) > runs the Queens transition from an empty placement  1782ms
+ ✓ test/number-loop.test.ts (191 tests) 4097ms
+   ✓ private safe-integer loop registers > compiles a larger guarded array region with normal semantics  349ms
+   ✓ private safe-integer loop registers > reports the temporary budget when a large region retains exact execution  1543ms
+ ✓ test/prime-long-runs.test.ts (7 tests) 2976ms
+   ✓ demanded long prime traversals > promotes only after demand continues beyond the short prefix  448ms
+   ✓ demanded long prime traversals > keeps promoted finite inclusive/exclusive endpoints exact  882ms
+   ✓ demanded long prime traversals > keeps distant membership and separate iterators independent  385ms
+   ✓ demanded long prime traversals > continues exactly when a promoted traversal crosses its upper bound  501ms
+   ✓ demanded long prime traversals > marks exact odd cells at the wide upper edge  385ms
+   ✓ demanded long prime traversals > rebuilds interrupted wide preparation without publishing a partial base  357ms
+ ✓ test/scalar-mapping.test.ts (44 tests) 1665ms
+ ✓ test/euler374.test.ts (3 tests) 5525ms
+   ✓ matches exact partition products through complete and partial groups (compilation=false)  2035ms
+   ✓ matches exact partition products through complete and partial groups (compilation=true)  1989ms
+   ✓ computes the full partition-product golden in one numeric loop without array storage  1501ms
+ ✓ test/scalar-compiler.test.ts (47 tests) 1632ms
+   ✓ resumes compiled arithmetic through 20000 non-tail recursive children  1115ms
+ ✓ test/euler338.test.ts (3 tests) 2244ms
+   ✓ Euler 338 hyperbola counting > computes the full target without materializing reciprocal ranges  1485ms
+   ✓ Euler 338 hyperbola counting > matches enumeration around square and cube boundaries (compilation=true)  347ms
+   ✓ Euler 338 hyperbola counting > matches enumeration around square and cube boundaries (compilation=false)  411ms
+ ✓ test/euler346.test.ts (4 tests) 757ms
+   ✓ Euler 346 strong repunits > matches base-digit enumeration (compilation=true)  400ms
+ ✓ test/euler373.test.ts (4 tests) 1010ms
+   ✓ retains the full default and empty prime-selection boundaries  616ms
+ ✓ test/number-loop-modular-product.test.ts (13 tests) 1517ms
+   ✓ exact modular products in Number loops > checks signed products, zero and the modulus admission boundaries against BigInt  1391ms
+ ✓ test/slice-write-snapshots.test.ts (29 tests) 2071ms
+ ✓ test/tensor-kernel.test.ts (63 tests) 1308ms
+ ✓ test/prime-membership.test.ts (7 tests) 1487ms
+   ✓ prime membership > decides large primes without a divisor table growing toward their root  543ms
+   ✓ prime membership > rejects huge small-factor composites quickly  468ms
+ ✓ test/numeric-function.test.ts (45 tests) 1151ms
+ ✓ test/euler391.test.ts (19 tests) 1756ms
+   ✓ compiles the full Euler 391 search without rotating array snapshots  1183ms
+ ✓ test/queens-recursive.test.ts (2 tests) 1241ms
+   ✓ recursive queens demo (compiled=false) > runs the queens demo with small boards and empty solution sets  866ms
+   ✓ recursive queens demo (compiled=true) > runs the queens demo with small boards and empty solution sets  374ms
+ ✓ test/number-loop-vectors.test.ts (93 tests) 1219ms
+ ✓ test/nullary-functions.test.ts (20 tests) 1068ms
+   ✓ nullary calls (compiled: true) > keeps nullary calls stack-safe and honors the depth limit  420ms
+   ✓ nullary calls (compiled: false) > keeps nullary calls stack-safe and honors the depth limit  340ms
+ ✓ test/sorted-search.test.ts (13 tests) 1117ms
+   ✓ sorted index batches > matches single searches for unordered, repeated and extreme targets  644ms
+ ✓ test/operations.test.ts (68 tests) 612ms
+ ✓ test/sparse-profile.test.ts (28 tests) 1515ms
+   ✓ sparse integer profile compilation > retains the exact unchanged Euler 393 answer for N=10  585ms
+ ✓ test/numeric-call-loop.test.ts (29 tests) 921ms
+ ✓ test/euler393.test.ts (3 tests) 1253ms
+   ✓ matches direct ant enumeration, compilation=false  437ms
+   ✓ retains the exact full answer and compiles the recursive row search  629ms
+ ✓ test/rank-shape-parity.test.ts (15 tests) 967ms
+   ✓ agrees on bounded unary cell/frame shapes, including negative ranks and empty frames  307ms
+ ✓ test/quadratic-factors.test.ts (7 tests) 2353ms
+   ✓ Euler 343 bulk factorization (compilation=false) > passes the companion Rank tests  334ms
+   ✓ Euler 343 bulk factorization (compilation=false) > matches every quadratic largest factor against independent trial division  321ms
+   ✓ preserves the full Euler 343 checksum with compiled slice writes  1436ms
+ ✓ test/range-fold.test.ts (21 tests) 620ms
+ ✓ test/euler353.test.ts (5 tests) 18540ms
+   ✓ Euler 353 reduced geometric search > generates exactly the full sphere orbits, including zero and equal coordinates  569ms
+   ✓ Euler 353 reduced geometric search > matches the independent coordinate scan at every default radius in both engines  4525ms
+   ✓ Euler 353 reduced geometric search > preserves the full golden and keeps geometric search in a Number kernel  13250ms
+ ✓ test/segmented-integer-kernels.test.ts (13 tests) 869ms
+   ✓ stored segmented integer arithmetic > bounds the recurrence without copy (compiled=true)  475ms
+ ✓ test/scalar-function-kernel.test.ts (30 tests) 925ms
+   ✓ scalar function speculative number mode and BigInt overflow fallback > backs off repeated overflow and recovers after the input scale changes  305ms
+ ✓ test/euler399.test.ts (7 tests) 867ms
+ ✓ test/packed-booleans.test.ts (51 tests) 703ms
+ ✓ test/title-search.test.ts (8 tests) 721ms
+ ✓ test/negative-axis.test.ts (86 tests) 613ms
+ ✓ test/prime-sequence.test.ts (15 tests) 654ms
+ ✓ test/number-loop-slice.test.ts (53 tests) 690ms
+ ✓ test/plan-composition.test.ts (78 tests) 492ms
+ ✓ test/full-scale-demos.test.ts (34 tests) 193373ms
+   ✓ checks the full 314_mousemoon.ra answer with borrowed real tables  1222ms
+   ✓ checks the full 311_biclinic.ra answer in private Number helpers  20965ms
+   ✓ checks the full compiled answer for 257_angularbisectors.ra  1146ms
+   ✓ checks the full compiled answer for 258_laggedfibonacci.ra  593ms
+   ✓ checks the full compiled answer for 259_reachablenumbers.ra  8917ms
+   ✓ checks the full compiled answer for 275_balancedsculptures.ra  39167ms
+   ✓ checks the full compiled answer for 287_quadtree.ra  2305ms
+   ✓ checks the full compiled answer for 296_angularbisector.ra  5806ms
+   ✓ checks the full compiled answer for 299_threesimilar.ra  2718ms
+   ✓ checks the full compiled answer for 309_ladders.ra  519ms
+   ✓ checks the full compiled answer for 310_nimsquare.ra  536ms
+   ✓ checks the full compiled answer for 426_boxball.ra  1527ms
+   ✓ compiles the full Euler 255 interval traversal and preserves the exact total  1780ms
+   ✓ checks the full compiled Euler 289 with private integer index stores  593ms
+   ✓ checks the full Euler 291 polynomial sieve and compiled root preparation  19219ms
+   ✓ cross-checks the full box-ball answer with a per-ball reference  2383ms
+   ✓ checks the full Euler 260 exact-bitset answer  430ms
+   ✓ compiles the full Euler 262 contour and preserves the sampled route  4420ms
+   ✓ checks the full compiled answer for Euler 272  3648ms
+   ✓ compiles the full Euler 283 reduced-divisor search with an exact wide total  5628ms
+   ✓ checks the full Euler 300 maximum-contact reduction  17985ms
+   ✓ checks the full Euler 302 search with recursive owned-array helpers  10823ms
+   ✓ checks Euler 303 with private Number state and exact wide reconstruction  523ms
+   ✓ checks Euler 304 with the full prime range and array Fibonacci suffix  1529ms
+   ✓ checks Euler 305 with the full reflexive-position sum  6210ms
+   ✓ checks the full Euler 378 total with a private numeric Fenwick tree  25413ms
+   ✓ checks the full Euler 386 antichain sum with linked vector recursion  2967ms
+   ✓ checks the full Euler 388 wide sum with bounded tables (Cut=4641589)  821ms
+   ✓ checks the full Euler 388 wide sum with bounded tables (Cut=1)  2762ms
+ ✓ test/requirements.test.ts (3 tests) 671ms
+   ✓ accepts runtime-valid rank applications across scalar, text, tensor and empty inputs  631ms
+ ✓ test/euler557.test.ts (10 tests) 741ms
+   ✓ Euler 557 windowed adjacent-key search > preserves all matching pairs for N=20, window=7  306ms
+ ✓ test/predicate-graph.test.ts (31 tests) 699ms
+ ✓ test/recursive-search.test.ts (19 tests) 1020ms
+   ✓ linked recursive searches with arrays and indices > runs Euler 362 against enumerated factorizations  577ms
+ ✓ test/region-boolean-arrays.test.ts (25 tests) 505ms
+ ✓ test/recursive-owned-arrays.test.ts (14 tests) 361ms
+ ✓ test/scalar-function-number-builtins.test.ts (23 tests) 682ms
+ ✓ test/vector-slice-work.test.ts (19 tests) 712ms
+ ✓ test/number-loop-fenwick.test.ts (45 tests) 645ms
+ ✓ test/numbers-math.test.ts (16 tests) 596ms
+ ✓ test/ranked-gather.test.ts (30 tests) 509ms
+ ✓ test/scalar-sequence-concat.test.ts (24 tests) 880ms
+   ✓ linked scalar array concat and bounded lengths > compiles the Euler 386 recursive count with the known million-limit answer  359ms
+ ✓ test/result-inference.test.ts (78 tests) 551ms
+ ✓ test/scalar-dependencies.test.ts (22 tests) 475ms
+ ✓ test/modular-matpow.test.ts (23 tests) 870ms
+   ✓ modular matrix powers > matches exact powers over small matrices (parenthesized=false)  407ms
+ ✓ test/number-matrix-loop.test.ts (21 tests) 507ms
+ ✓ test/tensor-gather-fusion.test.ts (42 tests) 594ms
+ ✓ test/tensors-collections.test.ts (31 tests) 519ms
+ ✓ test/rope.test.ts (17 tests) 417ms
+ ✓ test/number-loop-shift-right.test.ts (14 tests) 573ms
+   ✓ matches exact signed shifts through the safe-integer and shift-count boundaries  437ms
+ ✓ test/vector-modular-product.test.ts (29 tests) 559ms
+ ✓ test/real-loop.test.ts (39 tests) 488ms
+ ✓ test/slice-arithmetic.test.ts (35 tests) 428ms
+ ✓ test/successor-graph.test.ts (26 tests) 447ms
+ ✓ test/scalar-function-membership-number.test.ts (23 tests) 549ms
+ ✓ test/scalar-function-real.test.ts (21 tests) 518ms
+ ✓ test/scalar-function-ranges.test.ts (51 tests) 470ms
+ ✓ test/sorting.test.ts (16 tests) 294ms
+ ✓ test/sort-memory.test.ts (22 tests) 323ms
+ ✓ test/slice-reduction.test.ts (88 tests) 433ms
+ ✓ test/sequence-reuse.test.ts (58 tests) 469ms
+ ✓ test/slice-writes.test.ts (74 tests) 372ms
+ ✓ test/stats.test.ts (24 tests) 375ms
+ ✓ test/tables.test.ts (38 tests) 333ms
+ ✓ test/sequence-cells.test.ts (19 tests) 328ms
+ ✓ test/scalar-function-modular-product.test.ts (9 tests) 461ms
+   ✓ exact modular products in scalar Number functions > keeps wide products of safe signed integers in Number mode  342ms
+ ✓ test/scalar-recursion.test.ts (21 tests) 556ms
+ ✓ test/scalar-function-captured-length.test.ts (21 tests) 396ms
+ ✓ test/sqlite-plan.test.ts (25 tests) 307ms
+ ✓ test/singleton-slice.test.ts (14 tests) 249ms
+ ✓ test/single-pass-bindings.test.ts (19 tests) 280ms
+ ✓ test/scalar-plans.test.ts (42 tests) 317ms
+ ✓ test/stack.test.ts (13 tests) 316ms
+ ✓ test/small-array-kernels.test.ts (25 tests) 253ms
+ ✓ test/take-drop.test.ts (9 tests) 270ms
+ ✓ test/table-context.test.ts (9 tests) 278ms
+ ✓ test/split-rank.test.ts (5 tests) 225ms
+ ✓ test/sequence-short-circuit.test.ts (7 tests) 224ms
+ ✓ test/stored-scalar-kinds.test.ts (12 tests) 221ms
+ ✓ test/stored-writes.test.ts (34 tests) 228ms
+ ✓ test/scalar-function-domains.test.ts (18 tests) 271ms
+ ❯ test/tensor-bounds.test.ts (28 tests | 1 failed) 310ms
+   ✓ bounded homogeneous tensor arithmetic > emits a direct float64 update and reuses storage 129ms
+   ✓ bounded homogeneous tensor arithmetic > emits a direct int32 update and reuses storage 2ms
+   ✓ bounded homogeneous tensor arithmetic > emits a direct int64 update and reuses storage 2ms
+   ✓ bounded homogeneous tensor arithmetic > widens int32 output without narrowing an exact result 7ms
+   ✓ bounded homogeneous tensor arithmetic > keeps unsafe integer intermediates exact when the final result fits int64 8ms
+   ✓ bounded homogeneous tensor arithmetic > invalidates cached ranges after a write of Infinity 16ms
+   ✓ bounded homogeneous tensor arithmetic > invalidates cached ranges after a write of NaN 7ms
+   ✓ bounded homogeneous tensor arithmetic > invalidates cached ranges after a write of 1.7976931348623157e+308 6ms
+   ✓ bounded homogeneous tensor arithmetic > refreshes scalar proofs and retains aliases across iterative matrix updates 8ms
+   × bounded homogeneous tensor arithmetic > retains bounds across iterations and rescans only a changed input 21ms
+     → expected +0 to be 10 // Object.is equality
+   ✓ bounded homogeneous tensor arithmetic > matches the reference for signed real + chains 13ms
+   ✓ bounded homogeneous tensor arithmetic > matches the reference for signed real - chains 10ms
+   ✓ bounded homogeneous tensor arithmetic > matches the reference for signed real * chains 8ms
+   ✓ bounded homogeneous tensor arithmetic > matches the reference for signed real / chains 9ms
+   ✓ bounded homogeneous tensor arithmetic > keeps exact wide int64 input 9223372036854775807n 2ms
+   ✓ bounded homogeneous tensor arithmetic > keeps exact wide int64 input -9223372036854775808n 2ms
+   ✓ bounded homogeneous tensor arithmetic > declines int64 output overflow without wrapping the mathematical integer 3ms
+   ✓ bounded homogeneous tensor arithmetic > keeps a failed division assignment atomic after a successful bounded call 12ms
+   ✓ bounded homogeneous tensor arithmetic > does not round wide integer intermediates before cancellation 8ms
+   ✓ bounded homogeneous tensor arithmetic > does not round wide integer intermediates before cancellation + 0.0 4ms
+   ✓ bounded homogeneous tensor arithmetic > preserves the sign of real zero in (A * -1) / 1.0 5ms
+   ✓ bounded homogeneous tensor arithmetic > preserves the sign of real zero in (-A) / 1.0 5ms
+   ✓ bounded homogeneous tensor arithmetic > preserves the sign of real zero in A / -1.0 3ms
+   ✓ bounded homogeneous tensor arithmetic > does not round wide integer operands before their small difference is promoted 2ms
+   ✓ bounded homogeneous tensor arithmetic > matches exact signed int32 matrix arithmetic across interval extremes 6ms
+   ✓ bounded homogeneous tensor arithmetic > matches exact signed int64 matrix arithmetic across interval extremes 6ms
+   ✓ bounded homogeneous tensor arithmetic > keys integer zero normalization by changing scalar primitive types 2ms
+   ✓ bounded homogeneous tensor arithmetic > rechecks storage after a compilation observer materializes an input 2ms
+stdout | test/slice-assign.test.ts > slice assignment from stored cells > copies a stored slice into a slice
+89900
+
+stdout | test/slice-assign.test.ts > slice assignment from stored cells > reads the whole right side before an overlapping write
+0 0 5 10 15 20 25 30 35 40
+5 15 25 35 45 55 65 75 85 45
+
+stdout | test/slice-assign.test.ts > slice assignment from stored cells > handles constant strides on either side
+10 1 30 3 50 5 70 7 90 9
+0 21 42 63 84 5 6 7 8 9
+
+stdout | test/slice-assign.test.ts > slice assignment from stored cells > widens past Int32 when a sum overflows
+6000000000
+
+stdout | test/slice-assign.test.ts > slice assignment from stored cells > adds Int32 slices into wide cells with carries and signs
+4999999991 -4294967302 4294967292 4294967295 4294967298 4294967301
+
+stdout | test/slice-assign.test.ts > slice assignment from stored cells > subtracts Int32 slices from wide cells
+3000000000 2999999998 2999999996 2999999994
+
+stdout | test/slice-assign.test.ts > slice assignment from stored cells > reads a slice of an array that shares storage with the destination
+10 13 16 19 22 5 6 7 8 9
+0 1 2 3 4 5 6 7 8 9
+
+ ✓ test/strided-scalar-writes.test.ts (56 tests) 229ms
+stdout | test/slice-assign.test.ts > slice assignment from stored cells > widens an Int32 destination without losing signs or other cells
+3000000000 3000000000 3000000000 -5 -5 -5
+4000000000 4000000000 4000000000 2000000000 2000000000 2000000000
+
+stdout | test/slice-assign.test.ts > slice assignment from stored cells > binds a strided slice as an independent copy
+20099
+
+ ✓ test/slice-assign.test.ts (10 tests) 255ms
+ ✓ test/tensor-abs-extrema.test.ts (15 tests) 286ms
+ ✓ test/scalar-entry.test.ts (27 tests) 337ms
+ ✓ test/scalar-choose.test.ts (12 tests) 361ms
+ ✓ test/text-storage.test.ts (11 tests) 473ms
+ ✓ test/native-loop.test.ts (42 tests) 541ms
+ ✓ test/open-ranges.test.ts (56 tests) 536ms
+ ✓ test/scalar-extrema.test.ts (7 tests) 559ms
+ ✓ test/number-loop-index.test.ts (35 tests) 568ms
+ ✓ test/vector-ternary-calls.test.ts (31 tests) 596ms
+ ✓ test/native-boolean-axis.test.ts (20 tests) 457ms
+ ✓ test/numeric-region-stages.test.ts (44 tests) 574ms
+ ✓ test/number-loop-selections.test.ts (34 tests) 559ms
+ ✓ test/resource-summary.test.ts (19 tests) 440ms
+ ✓ test/plan-clause-capture.test.ts (58 tests) 472ms
+ ✓ test/ranked-address.test.ts (56 tests) 512ms
+ ✓ test/numbers-loop.test.ts (39 tests) 553ms
+ ✓ test/trigonometric-compilation.test.ts (27 tests) 406ms
+ ✓ test/vector-exact-reduction.test.ts (37 tests) 509ms
+ ✓ test/tensor-operator-catalogue.test.ts (49 tests) 558ms
+ ✓ test/window-dimensions.test.ts (31 tests) 438ms
+ ✓ test/number-builtin.test.ts (35 tests) 539ms
+ ✓ test/native-numeric-axis.test.ts (26 tests) 426ms
+ ✓ test/prepared-function.test.ts (3 tests) 242ms
+ ✓ test/reshape-view.test.ts (34 tests) 425ms
+ ✓ test/plan-tensor-reduction.test.ts (52 tests) 400ms
+ ✓ test/outer-empty-composition.test.ts (31 tests) 408ms
+ ✓ test/qualified-plans.test.ts (12 tests) 248ms
+ ✓ test/turbo-loop.test.ts (22 tests) 318ms
+ ✓ test/unique-tensor-consumers.test.ts (38 tests) 386ms
+ ✓ test/number-loop-read-buffers.test.ts (21 tests) 429ms
+ ✓ test/reference-integer-fill.test.ts (18 tests) 255ms
+ ✓ test/producer-composition.test.ts (38 tests) 421ms
+ ✓ test/function-control.test.ts (16 tests) 305ms
+ ✓ test/infix-rank.test.ts (24 tests) 384ms
+ ✓ test/index-modifiers.test.ts (10 tests) 244ms
+ ✓ test/loop-range-values.test.ts (32 tests) 458ms
+ ✓ test/membership-function.test.ts (15 tests) 391ms
+ ✓ test/dense-sum-squares.test.ts (5 tests) 349ms
+ ✓ test/checked-input.test.ts (34 tests) 358ms
+ ✓ test/counter-tensor-consumers.test.ts (38 tests) 398ms
+ ✓ test/mixed-sequence-arithmetic.test.ts (17 tests) 309ms
+ ✓ test/index-storage.test.ts (5 tests) 222ms
+ ✓ test/min-pipeline.test.ts (50 tests) 381ms
+ ✓ test/mask-selection.test.ts (38 tests) 324ms
+ ✓ test/dates.test.ts (14 tests) 313ms
+ ✓ test/array-construction.test.ts (18 tests) 337ms
+ ✓ test/column-table-ops.test.ts (23 tests) 339ms
+ ✓ test/axis-argsort.test.ts (104 tests) 330ms
+ ✓ test/merge.test.ts (12 tests) 319ms
+ ✓ test/int64-words.test.ts (3 tests) 212ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 394ms
+ ✓ test/loop-bounds-licm.test.ts (11 tests) 347ms
+ ✓ test/dense-division.test.ts (17 tests) 368ms
+ ✓ test/loop-bindings.test.ts (5 tests) 231ms
+ ✓ test/grouped-materialization.test.ts (18 tests) 218ms
+ ✓ test/graph-trips.test.ts (9 tests) 313ms
+ ✓ test/eager-binding-sites.test.ts (22 tests) 262ms
+ ✓ test/environment.test.ts (14 tests) 282ms
+ ✓ test/implicit-bitwise-gather.test.ts (23 tests) 410ms
+ ✓ test/integer-axis-reduction.test.ts (16 tests) 357ms
+ ✓ test/linalg.test.ts (37 tests) 489ms
+ ✓ test/binary-operands.test.ts (46 tests) 301ms
+ ✓ test/application-forms.test.ts (17 tests) 361ms
+ ✓ test/address-composition.test.ts (6 tests) 248ms
+ ✓ test/cuboid-layers.test.ts (2 tests) 307ms
+ ✓ test/boolean-equality.test.ts (11 tests) 306ms
+ ✓ test/aoc-chess.test.ts (2 tests) 282ms
+ ✓ test/comparison-rank.test.ts (19 tests) 422ms
+ ✓ test/compiled-binding-storage.test.ts (22 tests) 322ms
+ ✓ test/choose.test.ts (30 tests) 500ms
+ ✓ test/binomialmod-array.test.ts (21 tests) 280ms
+ ✓ test/boolean-scatter.test.ts (23 tests) 447ms
+ ✓ test/compiled-array-arguments.test.ts (14 tests) 347ms
+ ✓ test/dense-slice.test.ts (7 tests) 273ms
+ ✓ test/empty-frame-rank.test.ts (8 tests) 236ms
+ ✓ test/bitmask-dp.test.ts (1 test) 268ms
+ ✓ test/column-tables.test.ts (13 tests) 267ms
+ ✓ test/deferred-bindings.test.ts (26 tests) 266ms
+ ✓ test/lookup.test.ts (4 tests) 186ms
+ ✓ test/bytes.test.ts (21 tests) 244ms
+ ✓ test/integer-copy.test.ts (16 tests) 202ms
+ ✓ test/compact-integer-kernels.test.ts (14 tests) 284ms
+ ✓ test/core-vocabulary.test.ts (14 tests) 287ms
+ ✓ test/bitwise-integer-arrays.test.ts (12 tests) 307ms
+ ✓ test/derived-revisions.test.ts (19 tests) 267ms
+ ✓ test/membership.test.ts (17 tests) 273ms
+ ✓ test/geometric-loop.test.ts (19 tests) 336ms
+ ✓ test/axis-statistics-fusion.test.ts (8 tests) 277ms
+ ✓ test/int32-product-scan.test.ts (11 tests) 184ms
+ ✓ test/compiled-sequence-callback.test.ts (8 tests) 248ms
+ ✓ test/integer-comparison-mask.test.ts (21 tests) 371ms
+ ✓ test/images.test.ts (2 tests) 178ms
+ ✓ test/continue.test.ts (10 tests) 258ms
+ ✓ test/keyed-real.test.ts (10 tests) 183ms
+ ✓ test/euler-neighbours.test.ts (13 tests) 10344ms
+   ✓ Euler neighbour oracles (compiled=false) > counts eight-divisor numbers by independent divisor enumeration  438ms
+   ✓ Euler neighbour oracles (compiled=false) > streams Tribonacci pairs across chunk boundaries  988ms
+   ✓ Euler neighbour oracles (compiled=false) > counts integral medians by direct triangle enumeration  918ms
+   ✓ Euler neighbour oracles (compiled=false) > counts divisor residues by one-step dynamic programming  528ms
+   ✓ Euler neighbour oracles (compiled=false) > matches linear generating-series coefficients for small castles  1165ms
+   ✓ Euler neighbour oracles (compiled=true) > streams Tribonacci pairs across chunk boundaries  663ms
+   ✓ Euler neighbour oracles (compiled=true) > counts integral medians by direct triangle enumeration  885ms
+   ✓ Euler neighbour oracles (compiled=true) > counts divisor residues by one-step dynamic programming  615ms
+   ✓ Euler neighbour oracles (compiled=true) > matches linear generating-series coefficients for small castles  1378ms
+   ✓ compiles the unmodified array-style square lookup with packed gathers  2281ms
+ ✓ test/interrupt.test.ts (16 tests) 304ms
+ ✓ test/demand-work-budget.test.ts (8 tests) 209ms
+ ✓ test/application-role-cache.test.ts (4 tests) 221ms
+ ✓ test/bit-arrays.test.ts (21 tests) 248ms
+ ✓ test/mask-materialization.test.ts (21 tests) 234ms
+ ✓ test/ends.test.ts (14 tests) 257ms
+ ✓ test/collection-contracts.test.ts (26 tests) 301ms
+ ✓ test/computed-array-update.test.ts (22 tests) 279ms
+ ✓ test/keyed-modular-effects.test.ts (3 tests) 152ms
+ ✓ test/bag-query-ranks.test.ts (5 tests) 228ms
+ ✓ test/lazy-array-limit.test.ts (3 tests) 292ms
+ ✓ test/int64-scan.test.ts (7 tests) 170ms
+ ✓ test/eager-bindings.test.ts (22 tests) 232ms
+ ✓ test/callback-references.test.ts (18 tests) 250ms
+ ✓ test/mod-operator.test.ts (21 tests) 286ms
+ ✓ test/affine-integer-updates.test.ts (14 tests) 217ms
+ ✓ test/keyed-integer.test.ts (8 tests) 173ms
+ ✓ test/dense-integer-kernels.test.ts (5 tests) 180ms
+ ✓ test/builtin-sequence-membership.test.ts (7 tests) 233ms
+ ✓ test/documents.test.ts (10 tests) 259ms
+ ✓ test/euler-numeric-helpers.test.ts (4 tests) 1183ms
+   ✓ Euler numeric helpers (compiled=false) > reduces arbitrary small independent bases against exhaustive coefficients  591ms
+   ✓ Euler numeric helpers (compiled=true) > reduces arbitrary small independent bases against exhaustive coefficients  301ms
+ ✓ test/loop-slice-copy.test.ts (14 tests) 389ms
+ ✓ test/integer-representation.test.ts (4 tests) 3ms
+ ✓ test/modifier-pipelines.test.ts (8 tests) 217ms
+ ✓ test/compiled-fenwick.test.ts (12 tests) 337ms
+ ✓ test/choose-fold-chains.test.ts (46 tests) 344ms
+ ✓ test/builtin-grouping.test.ts (5 tests) 162ms
+ ✓ test/condition-composition.test.ts (1 test) 152ms
+ ✓ test/grids.test.ts (4 tests) 161ms
+ ✓ test/lowercase-variable.test.ts (3 tests) 141ms
+ ✓ test/direct-scalar-live.test.ts (6 tests) 165ms
+ ✓ test/array-shape-vector.test.ts (4 tests) 158ms
+ ✓ test/array-binding-lifetime.test.ts (18 tests) 237ms
+ ✓ test/dense-builtins.test.ts (4 tests) 210ms
+ ✓ test/loop-array-arguments.test.ts (12 tests) 285ms
+ ✓ test/graph-traversal.test.ts (14 tests) 181ms
+ ✓ test/compiler-capabilities.test.ts (8 tests) 224ms
+ ✓ test/integer32-storage.test.ts (19 tests) 278ms
+ ✓ test/builtin-bindings.test.ts (22 tests) 232ms
+ ✓ test/compiled-scalar-captures.test.ts (12 tests) 254ms
+ ✓ test/loop-output-growth.test.ts (9 tests) 207ms
+ ✓ test/integer-axis-extreme.test.ts (9 tests) 183ms
+ ✓ test/disabled-scalar-entry.test.ts (5 tests) 192ms
+ ✓ test/boolean-masks.test.ts (8 tests) 191ms
+ ✓ test/binary-scalar-ranks.test.ts (4 tests) 166ms
+ ✓ test/arrow-table.test.ts (36 tests) 24ms
+ ✓ test/collection-capabilities.test.ts (5 tests) 151ms
+ ✓ test/mapped-array-traversal.test.ts (14 tests) 11ms
+ ✓ test/keyed-fold.test.ts (4 tests) 4ms
+ ✓ test/capture-protection.test.ts (9 tests) 8ms
+ ✓ test/element-source.test.ts (5 tests) 5ms
+ ✓ test/debug-session.test.ts (3 tests) 3ms
+ ✓ test/array-packed-read.test.ts (6 tests) 5ms
+ ✓ test/array-revisions.test.ts (5 tests) 4ms
+ ✓ test/membership-keys.test.ts (4 tests) 5ms
+ ✓ test/euler364.test.ts (6 tests) 1173ms
+   ✓ Euler 364 compilation=true > matches direct seating orders including one-seat and parity boundaries  387ms
+   ✓ Euler 364 compilation=false > preserves the full million-seat answer  398ms
+ ✓ test/euler350.test.ts (4 tests) 1886ms
+   ✓ matches independent tuple enumeration (false)  717ms
+   ✓ matches independent tuple enumeration (true)  420ms
+   ✓ retains larger inputs across the library sieve boundary  533ms
+ ✓ test/euler023.test.ts (4 tests) 1943ms
+   ✓ Euler 23 (false) > matches direct divisor/pair search for every limit 0 through 80  660ms
+   ✓ Euler 23 (false) > keeps the full default answer under observable mobile polling  394ms
+   ✓ Euler 23 (true) > matches direct divisor/pair search for every limit 0 through 80  494ms
+   ✓ Euler 23 (true) > keeps the full default answer under observable mobile polling  395ms
+ ✓ test/floor-division.test.ts (93 tests) 331ms
+ ✓ test/euler514-geoboard.test.ts (3 tests) 5339ms
+   ✓ matches independent geometry and the old algorithm (false)  2000ms
+   ✓ matches independent geometry and the old algorithm (true)  1359ms
+   ✓ retains the full default answer  1979ms
+ ✓ test/value-semantics.test.ts (20 tests) 353ms
+ ✓ test/vector-buffer-growth.test.ts (6 tests) 422ms
+ ✓ test/modulo.test.ts (8 tests) 300ms
+ ✓ test/number-function-private-state.test.ts (22 tests) 447ms
+ ✓ test/typed-arrays.test.ts (12 tests) 261ms
+ ✓ test/euler347.test.ts (4 tests) 7731ms
+   ✓ Euler 347 two-prime maxima > matches integer factorization (compilation=true)  1118ms
+   ✓ Euler 347 two-prime maxima > matches integer factorization (compilation=false)  1563ms
+   ✓ Euler 347 two-prime maxima > computes the full target (compilation=false)  4842ms
+ ✓ test/factor-sieve.test.ts (4 tests) 312ms
+ ✓ test/producer-cell-demand.test.ts (35 tests) 341ms
+ ✓ test/number-function-prefix.test.ts (22 tests) 426ms
+ ✓ test/named-structures.test.ts (14 tests) 321ms
+ ✓ test/unary-array-kernel.test.ts (21 tests) 330ms
+ ✓ test/modular-fold.test.ts (141 tests) 395ms
+ ✓ test/tensor-shift.test.ts (28 tests) 423ms
+ ✓ test/function-snapshots.test.ts (30 tests) 349ms
+ ✓ test/function-binding.test.ts (22 tests) 305ms
+ ✓ test/euler351.test.ts (4 tests) 9104ms
+   ✓ matches an independent totient sieve (false)  2789ms
+   ✓ preserves the full orchard answer (false)  5840ms
+   ✓ matches an independent totient sieve (true)  387ms
+ ✓ test/prime-loops.test.ts (10 tests) 237ms
+ ✓ test/flat.test.ts (9 tests) 302ms
+ ✓ test/readonly-state.test.ts (57 tests) 396ms
+ ✓ test/number-call-borrowed-array.test.ts (23 tests) 504ms
+ ✓ test/exact-bit-loop.test.ts (16 tests) 316ms
+ ✓ test/typed-native.test.ts (13 tests) 263ms
+ ✓ test/unique-sort.test.ts (17 tests) 258ms
+ ✓ test/real-axis-extreme.test.ts (14 tests) 429ms
+ ✓ test/plan-tensor-axis.test.ts (50 tests) 324ms
+ ✓ test/plan-tensor-outer.test.ts (49 tests) 400ms
+ ✓ test/scalar-function-real-arrays.test.ts (7 tests) 364ms
+ ❯ test/runtime-diagnostics.test.ts (30 tests | 1 failed) 398ms
+   ✓ runtime diagnostics and stable tensor reads > counts only copy-on-write copies and their cells 157ms
+   ✓ runtime diagnostics and stable tensor reads > counts lazy work without forcing cells and restores nested scopes 1ms
+   ✓ runtime diagnostics and stable tensor reads > compiles explicitly stored tensors with hoisting true 29ms
+   ✓ runtime diagnostics and stable tensor reads > compiles explicitly stored tensors with hoisting false 6ms
+   ✓ runtime diagnostics and stable tensor reads > reuses storage-kind evidence across same-kind writes and rejects changed kinds 10ms
+   ✓ runtime diagnostics and stable tensor reads > keeps host-owned arrays with no tracked revision on the interpreted path 7ms
+   ✓ runtime diagnostics and stable tensor reads > does not inspect an unread host cell with compilation true 3ms
+   ✓ runtime diagnostics and stable tensor reads > does not inspect an unread host cell with compilation false 2ms
+   ✓ runtime diagnostics and stable tensor reads > does not inspect an empty host iteration source with compilation true 3ms
+   ✓ runtime diagnostics and stable tensor reads > does not inspect an empty host iteration source with compilation false 2ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination for empty range 0 till N 9ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination for empty range 2 to 1 6ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination for empty range 0 to 1 by -1 7ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination before a zero range step fails 5ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination when array iteration is empty (number compilation false) 5ms
+   ✓ runtime diagnostics and stable tensor reads > does not copy a shared destination when array iteration is empty (number compilation true) 5ms
+   ✓ runtime diagnostics and stable tensor reads > checks a shared destination before copying with compilation true 7ms
+   ✓ runtime diagnostics and stable tensor reads > checks a shared destination before copying with compilation false 2ms
+   ✓ runtime diagnostics and stable tensor reads > checks every destination before copying with compilation true 5ms
+   ✓ runtime diagnostics and stable tensor reads > checks every destination before copying with compilation false 3ms
+   ✓ runtime diagnostics and stable tensor reads > keeps a stored tensor clear of writes through another name 7ms
+   ✓ runtime diagnostics and stable tensor reads > compiles stored reads across a proven scalar callee 22ms
+   × runtime diagnostics and stable tensor reads > leaves a compiled region before effects after callee redefinition 33ms
+     → expected { first: 24n, second: 27n, …(4) } to match object { compiledBefore: 1, compiledAfter: 1 }
+(4 matching properties omitted from actual)
+   ✓ runtime diagnostics and stable tensor reads > rejects a changed array element type before entering a compiled region 16ms
+   ✓ runtime diagnostics and stable tensor reads > compiles stored reads across a bound synchronous builtin 7ms
+   ✓ runtime diagnostics and stable tensor reads > leaves a compiled builtin region after the host replaces a builtin 8ms
+   ✓ runtime diagnostics and stable tensor reads > rejects a shadowed builtin before entering the compiled region 8ms
+   ✓ runtime diagnostics and stable tensor reads > does not hoist across a callee that writes explicit state 11ms
+   ✓ runtime diagnostics and stable tensor reads > never caches untracked host reads and records unsupported loops separately 3ms
+   ✓ rechecks linked helper array storage on each cached loop entry 7ms
+ ✓ test/number-loop-concat.test.ts (21 tests) 346ms
+ ✓ test/powmod-array.test.ts (18 tests) 281ms
+ ✓ test/reshape-inferred.test.ts (27 tests) 275ms
+ ✓ test/vector-integer-power.test.ts (20 tests) 347ms
+ ✓ test/plan-tensor-terminals.test.ts (55 tests) 358ms
+ ✓ test/window-tensor-fusion.test.ts (21 tests) 279ms
+ ✓ test/number-loop-exact-consumers.test.ts (16 tests) 358ms
+ ✓ test/euler369.test.ts (2 tests) 527ms
+   ✓ matches all small-deck hand sizes (compilation=false)  428ms
+ ✓ test/ranked-broadcast-fusion.test.ts (14 tests) 273ms
+ ✓ test/packed-integers.test.ts (9 tests) 286ms
+ ✓ test/records.test.ts (13 tests) 240ms
+ ✓ test/fused-reduction.test.ts (10 tests) 258ms
+ ✓ test/ranked-text-demand.test.ts (12 tests) 195ms
+ ✓ test/segment.test.ts (16 tests) 260ms
+ ✓ test/nested-materialization.test.ts (30 tests) 247ms
+ ✓ test/execution-composition.test.ts (12 tests) 196ms
+ ✓ test/typed-bits.test.ts (8 tests) 344ms
+ ✓ test/random.test.ts (12 tests) 245ms
+ ❯ test/tensor-compound.test.ts (8 tests | 2 failed) 411ms
+   × compound tensor arithmetic > fuses += while retaining aliases and refreshing scalar terms 198ms
+     → expected +0 to be 3 // Object.is equality
+   × compound tensor arithmetic > fuses -= while retaining aliases and refreshing scalar terms 16ms
+     → expected +0 to be 3 // Object.is equality
+   ✓ compound tensor arithmetic > fuses *= while retaining aliases and refreshing scalar terms 32ms
+   ✓ compound tensor arithmetic > retains BigInt precision and both broadcast layouts 26ms
+   ✓ compound tensor arithmetic > handles empty tensors and retains errors in unsupported scalar expressions 7ms
+   ✓ compound tensor arithmetic > leaves sequence callbacks on the reference path 37ms
+   ✓ compound tensor arithmetic > does not publish partially computed output when the fused pass is cancelled 6ms
+   ✓ compound tensor arithmetic > does not reuse folded scalar slots between calls or integer/real inputs 87ms
+ ✓ test/named-reduce.test.ts (9 tests) 214ms
+ ✓ test/unique-length.test.ts (19 tests) 242ms
+ ✓ test/for-leading-axis.test.ts (20 tests) 247ms
+ ✓ test/fused-sum.test.ts (8 tests) 249ms
+ ✓ test/plan-tensor-views.test.ts (29 tests) 351ms
+ ✓ test/plan-tensor-composition.test.ts (40 tests) 370ms
+ ✓ test/wide-integer-arithmetic.test.ts (9 tests) 265ms
+ ✓ test/tensor-copy-fusion.test.ts (24 tests) 358ms
+ ✓ test/range-entry-work.test.ts (9 tests) 330ms
+ ✓ test/number-tensor-selection.test.ts (20 tests) 320ms
+ ✓ test/record-binding-contracts.test.ts (30 tests) 287ms
+ ✓ test/record-contracts.test.ts (16 tests) 259ms
+ ✓ test/numeric-search.test.ts (15 tests) 203ms
+ ✓ test/plan-effects.test.ts (22 tests) 334ms
+ ✓ test/new-filled-structures.test.ts (10 tests) 231ms
+ ✓ test/rank-assignment.test.ts (29 tests) 317ms
+ ✓ test/tensor-concat.test.ts (15 tests) 317ms
+ ✓ test/real-extreme-kernel.test.ts (16 tests) 242ms
+ ✓ test/rank-demand.test.ts (14 tests) 249ms
+ ✓ test/text-rank.test.ts (8 tests) 297ms
+ ✓ test/popcount.test.ts (9 tests) 235ms
+ ✓ test/program-args.test.ts (15 tests) 169ms
+ ✓ test/readonly-aliases.test.ts (42 tests) 329ms
+ ✓ test/tensor-numeric-calls.test.ts (23 tests) 366ms
+ ✓ test/multiset.test.ts (10 tests) 232ms
+ ✓ test/record-signatures.test.ts (10 tests) 174ms
+ ✓ test/window-fold.test.ts (15 tests) 193ms
+ ✓ test/text-search.test.ts (10 tests) 209ms
+ ✓ test/range-map-completion.test.ts (4 tests) 159ms
+ ✓ test/tensor-region.test.ts (21 tests) 355ms
+ ✓ test/wide-argsort.test.ts (13 tests) 194ms
+ ✓ test/query-default.test.ts (5 tests) 170ms
+ ✓ test/wide-integer-cells.test.ts (3 tests) 225ms
+ ✓ test/number-loop-aliases.test.ts (9 tests) 261ms
+ ✓ test/operator-signatures.test.ts (3 tests) 194ms
+ ✓ test/parameter-bindings.test.ts (34 tests) 289ms
+ ✓ test/wavelet.test.ts (8 tests) 225ms
+ ✓ test/plan-escape.test.ts (30 tests) 309ms
+ ✓ test/scalar-write-evaluation.test.ts (18 tests) 208ms
+ ✓ test/tensor-copy-storage.test.ts (15 tests) 306ms
+ ✓ test/runtime-fast-paths.test.ts (11 tests) 200ms
+ ✓ test/tensor-broadcast-fusion.test.ts (13 tests) 299ms
+ ✓ test/tensor-dag.test.ts (14 tests) 305ms
+ ✓ test/native-array-demand.test.ts (12 tests) 221ms
+ ✓ test/scalar-function-proof.test.ts (56 tests) 232ms
+ ✓ test/number-loop-vector-bounds.test.ts (10 tests) 281ms
+ ✓ test/rotate.test.ts (7 tests) 190ms
+ ✓ test/number-loop-integer-loads.test.ts (10 tests) 260ms
+ ✓ test/text-format.test.ts (6 tests) 210ms
+ ✓ test/numeric-collections.test.ts (23 tests) 206ms
+ ✓ test/transpose-plan.test.ts (4 tests) 201ms
+ ✓ test/numeric-kernels.test.ts (25 tests) 295ms
+ ✓ test/tensor-inplace-reuse.test.ts (12 tests) 295ms
+ ✓ test/tensor-copy.test.ts (1 test) 308ms
+   ✓ tensor cell copies > matches independent coordinate grouping for all cell ranks and ordered cell-axis lists  307ms
+ ✓ test/set-key-integrity.test.ts (8 tests) 206ms
+ ✓ test/rolling-calendar.test.ts (2 tests) 176ms
+ ✓ test/scalar-array-reader.test.ts (13 tests) 166ms
+ ✓ test/outer-sequence-demand.test.ts (20 tests) 172ms
+ ✓ test/plan-tensor-concat.test.ts (26 tests) 294ms
+ ✓ test/plan-callbacks.test.ts (16 tests) 292ms
+ ✓ test/return-contract.test.ts (13 tests) 251ms
+ ✓ test/window-demand.test.ts (15 tests) 180ms
+ ✓ test/permutation-completion.test.ts (15 tests) 222ms
+ ✓ test/tensor-expression-fusion.test.ts (22 tests) 306ms
+ ✓ test/native-tensor-copy.test.ts (14 tests) 226ms
+ ✓ test/number-loop-outputs.test.ts (12 tests) 254ms
+ ✓ test/radix-rounding.test.ts (18 tests) 247ms
+ ✓ test/modular-product.test.ts (3 tests) 186ms
+ ✓ test/named-sum.test.ts (14 tests) 159ms
+ ✓ test/ranges.test.ts (23 tests) 226ms
+ ✓ test/region-entry-work.test.ts (6 tests) 1288ms
+   ✓ composes invariant nested work after local bound definitions  617ms
+   ✓ replays exact overflow and publishes preceding stores before errors  450ms
+ ✓ test/plan-tensor-extrema.test.ts (26 tests) 251ms
+ ✓ test/reference-mode.test.ts (9 tests) 262ms
+ ✓ test/number-loop-polling.test.ts (12 tests) 262ms
+ ✓ test/observed-integer-comparison.test.ts (17 tests) 247ms
+ ✓ test/ranked-bulk-demand.test.ts (10 tests) 180ms
+ ✓ test/region-array-write.test.ts (5 tests) 138ms
+ ✓ test/function-ranks.test.ts (10 tests) 243ms
+ ✓ test/packed-boolean-gather.test.ts (5 tests) 577ms
+   ✓ stored boolean gathers > gathers repeated irregular indices directly into a bitmap  534ms
+ ✓ test/fill-contract.test.ts (17 tests) 235ms
+ ✓ test/function-identity.test.ts (4 tests) 179ms
+ ✓ test/shift-storage.test.ts (5 tests) 177ms
+ ✓ test/runtime-scope.test.ts (4 tests) 166ms
+ ✓ test/text-string-ops.test.ts (4 tests) 176ms
+ ✓ test/stored-selection-writes.test.ts (46 tests) 281ms
+ ✓ test/scan.test.ts (20 tests) 325ms
+ ✓ test/text-block.test.ts (6 tests) 187ms
+ ✓ test/euler516-5smoothtotients.test.ts (4 tests) 4047ms
+   ✓ matches an independent totient sieve (false)  535ms
+   ✓ retains the full default answer (false)  1700ms
+   ✓ retains the full default answer (true)  1566ms
+ ✓ test/extrema-text.test.ts (3 tests) 164ms
+ ✓ test/stats-demand.test.ts (5 tests) 152ms
+ ✓ test/scalar-function-return-seed.test.ts (7 tests) 251ms
+ ✓ test/text-words.test.ts (3 tests) 166ms
+ ✓ test/tensor-gather-tables.test.ts (6 tests) 255ms
+ ✓ test/explicit-plan-demos.test.ts (200 tests) 9830ms
+   ✓ explicit-plan demo migration (compilation=false) > matches interval minimax costs beyond the unrestricted prefix  1438ms
+   ✓ explicit-plan demo migration (compilation=false) > rebuilds amnesia states before deferred column weights on repeated runs  1813ms
+   ✓ explicit-plan demo migration (compilation=true) > rebuilds amnesia states before deferred column weights on repeated runs  598ms
+ ✓ test/mutation-guards.test.ts (4 tests) 149ms
+ ✓ test/execution-cost.test.ts (28 tests) 322ms
+ ✓ test/sum-axis-stored.test.ts (25 tests) 227ms
+ ✓ test/tensor-number-mode.test.ts (6 tests) 239ms
+ ✓ test/exact-loop-aliases.test.ts (6 tests) 229ms
+ ✓ test/table-materialization.test.ts (21 tests) 203ms
+ ✓ test/function-plan-inputs.test.ts (14 tests) 317ms
+ ✓ test/tuples.test.ts (34 tests) 319ms
+ ✓ test/euler362.test.ts (1 test) 11260ms
+   ✓ keeps the full Euler 362 answer without memoizing terminal factor states  11259ms
+ ✓ test/ranked-cells.test.ts (8 tests) 244ms
+ ✓ test/tensor-cell-compiler.test.ts (11 tests) 192ms
+ ✓ test/unpack-axis.test.ts (5 tests) 202ms
+ ✓ test/euler644-squaresontheline.test.ts (2 tests) 12853ms
+   ✓ checks every gap maximum against sorted scalar events (false)  6681ms
+   ✓ checks every gap maximum against sorted scalar events (true)  6172ms
+ ✓ test/number-loop-unary-chains.test.ts (7 tests) 215ms
+ ✓ test/plan-binding-location.test.ts (14 tests) 212ms
+ ✓ test/tensor-binding-boundaries.test.ts (12 tests) 194ms
+ ✓ test/fenwick.test.ts (12 tests) 232ms
+ ✓ test/scalar-boolean-writes.test.ts (9 tests) 177ms
+ ✓ test/tensor-real-proof.test.ts (3 tests) 175ms
+ ✓ test/scalar-function-text-iteration.test.ts (5 tests) 219ms
+ ✓ test/scalar-container-return.test.ts (6 tests) 224ms
+ ✓ test/packed-distinct.test.ts (10 tests) 98ms
+ ✓ test/stored-integer-selection.test.ts (17 tests) 235ms
+ ✓ test/return-preparation.test.ts (2 tests) 172ms
+ ✓ test/scalar-borrowed-array.test.ts (2 tests) 197ms
+ ✓ test/tensor-primitive-specialization.test.ts (8 tests) 164ms
+ ✓ test/modular-power.test.ts (3 tests) 40ms
+ ✓ test/scalar-tensor-selection.test.ts (10 tests) 174ms
+ ✓ test/reverse-packed.test.ts (5 tests) 149ms
+ ✓ test/shape-contracts.test.ts (121 tests) 38ms
+ ✓ test/numeric-set.test.ts (14 tests) 7ms
+ ✓ test/native-callback-demand.test.ts (5 tests) 7ms
+ ✓ test/numeric-conversion-evidence.test.ts (12 tests) 17ms
+ ✓ test/plan.test.ts (4 tests) 6ms
+ ✓ test/sequence-retention.test.ts (8 tests) 6ms
+ ✓ test/transpose-reader.test.ts (4 tests) 5ms
+ ✓ test/tensor-cache.test.ts (4 tests) 7ms
+ ✓ test/selector-type-checks.test.ts (22 tests) 16ms
+ ✓ test/field-contracts.test.ts (2 tests) 3ms
+ ✓ test/table-revisions.test.ts (3 tests) 4ms
+ ✓ test/array-traversal.test.ts (3 tests) 3ms
+ ✓ test/type-audit-runner.test.ts (2 tests) 3ms
+ ✓ test/selection-kind-evidence.test.ts (8 tests) 7ms
+ ✓ test/modular-power-shared.test.ts (1 test) 3ms
+ ✓ test/native-array-storage.test.ts (2 tests) 3ms
+ ✓ test/scalar-native-overloads.test.ts (10 tests) 273ms
+ ✓ test/euler348.test.ts (1 test) 482ms
+   ✓ preserves the full Euler 348 answer with compiled root helpers  481ms
+ ✓ test/euler-neighbours-full.test.ts (7 tests) 81582ms
+   ✓ checks the complete Euler 501 answer  2558ms
+   ✓ checks the complete Euler 502 answer  6133ms
+   ✓ checks the complete Euler 504 answer  1215ms
+   ✓ checks the complete Euler 505 answer  59308ms
+   ✓ checks the complete Euler 507 answer  8255ms
+   ✓ checks the complete Euler 511 answer  988ms
+   ✓ checks the complete Euler 513 answer  3124ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/runtime-diagnostics.test.ts > runtime diagnostics and stable tensor reads > leaves a compiled region before effects after callee redefinition
+AssertionError: expected { first: 24n, second: 27n, …(4) } to match object { compiledBefore: 1, compiledAfter: 1 }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "compiledAfter": 1,
++   "compiledAfter": 2,
+    "compiledBefore": 1,
+  }
+
+ ❯ test/runtime-diagnostics.test.ts:312:28
+    310|         });
+    311|         expect(results.map(({ first, second }) => [first, second])).to…
+    312|         expect(results[1]).toMatchObject({ compiledBefore: 1, compiled…
+       |                            ^
+    313|         expect(results[1].calleeFallbacks).toBeGreaterThan(0);
+    314|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/tensor-bounds.test.ts > bounded homogeneous tensor arithmetic > retains bounds across iterations and rescans only a changed input
+AssertionError: expected +0 to be 10 // Object.is equality
+
+- Expected
++ Received
+
+- 10
++ 0
+
+ ❯ test/tensor-bounds.test.ts:90:46
+     88|             warm.run(() => runtime.execute('for N in 1 to 10\n A += B …
+     89|             expect(warm.tensorRangeScans).toBe(0);
+     90|             expect(warm.reusedTensorBuffers).toBe(10);
+       |                                              ^
+     91|             writeArrayCell(runtime.variables.get('B') as RankArray, 0,…
+     92|             const changed = new RuntimeDiagnostics();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  test/tensor-compound.test.ts > compound tensor arithmetic > fuses += while retaining aliases and refreshing scalar terms
+ FAIL  test/tensor-compound.test.ts > compound tensor arithmetic > fuses -= while retaining aliases and refreshing scalar terms
+AssertionError: expected +0 to be 3 // Object.is equality
+
+- Expected
++ Received
+
+- 3
++ 0
+
+ ❯ test/tensor-compound.test.ts:24:31
+     22|         const reference = run(source,false), fused = run(source,true);
+     23|         expect(fused.value).toBe(reference.value);
+     24|         expect(fused.kernels).toBe(3);
+       |                               ^
+     25|     });
+     26| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  3 failed | 575 passed (578)
+      Tests  4 failed | 12329 passed (12333)
+   Start at  13:36:50
+   Duration  391.41s (transform 3.96s, setup 0ms, collect 260.36s, tests 989.69s, environment 54ms, prepare 18.31s)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter
+npm error workspace @arrrank/interpreter@0.0.2
+npm error location /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter
+npm error command failed
+npm error command sh -c node scripts/test.mjs --exclude test/types.test.ts --exclude test/differential.test.ts --exclude test/nurikabe.test.ts
