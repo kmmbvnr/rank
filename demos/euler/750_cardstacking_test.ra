@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "750_cardstacking"
+  Cards = 6
+  run
+  Answer equal 8
+  Cards = 16
+  run
+  Answer equal 47
+end
