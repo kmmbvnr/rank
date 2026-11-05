@@ -1,0 +1,24 @@
+{
+  "mac": {
+    "step2": {
+      "medianMs": 2612.2019999999998,
+      "medianPeakRssMiB": 702.65625
+    },
+    "chunked": {
+      "medianMs": 3041.7180829999998,
+      "medianPeakRssMiB": 275.25
+    }
+  },
+  "intel": {
+    "step2": {
+      "medianMs": 7359.776511,
+      "medianPeakRssMiB": 684.9765625
+    },
+    "chunked": {
+      "medianMs": 8293.401999,
+      "medianPeakRssMiB": 249.5078125
+    }
+  },
+  "sourceSha256": "642c2d73c4bcf1c8492b9bbef0fb697bc05d658520932823ce7ec5ea8fed943b",
+  "decision": "Rejected: numeric prime blocks of 1e6 reduce memory further but slow the full input on both architectures. Keep the original demo algorithm."
+}

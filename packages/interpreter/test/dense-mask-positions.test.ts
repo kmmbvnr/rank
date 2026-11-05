@@ -45,11 +45,17 @@ Mask = Input greater 0
 Values' = Input + 2
 Answer = (Values filter Mask) sum
 Stored = (Input filter Mask) sum
-Indices = Mask indices`);
+Indices = Mask indices
+Grid = array shape 2 40000 fill true
+Pairs = Grid indices`);
             expect(runtime.variables.get('Answer')).toBe(5000550012n);
             expect(runtime.variables.get('Stored')).toBe(5000350006n);
             const indices = runtime.variables.get('Indices') as ReturnType<typeof typedArray>;
             expect(readArrayItem(indices, 100002)).toBe(100002n);
+            const pairs = runtime.variables.get('Pairs') as ReturnType<typeof typedArray>;
+            expect(pairs.shape).toEqual([80000, 2]);
+            expect(readArrayItem(pairs, 159998)).toBe(1n);
+            expect(readArrayItem(pairs, 159999)).toBe(39999n);
         } finally { runtime.dispose(); }
     });
     it('keeps budgets and can retry after cancellation', () => {

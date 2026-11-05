@@ -1,0 +1,11 @@
+{
+  "step2": {
+    "medianMs": 2612.724833,
+    "medianPeakRssMiB": 702.234375
+  },
+  "literal-guards": {
+    "medianMs": 2723.00325,
+    "medianPeakRssMiB": 702.609375
+  },
+  "decision": "Rejected: full input slower on Mac; no Intel trial needed to reject a regression. Semantic focused tests passed, but extra compiler complexity has no measured benefit."
+}

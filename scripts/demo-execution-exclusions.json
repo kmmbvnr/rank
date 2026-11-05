@@ -209,7 +209,7 @@
   "euler/646_boundeddivisors.ra": "About 15 s: 3.6 x 10^12 divisors by meet in the middle; run manually.",
   "euler/650_binomialproduct.ra": "About 4.5 min: 20000 steps of vector powmod over 2262 primes (#479); run manually.",
   "euler/701_randomconnectedarea.ra": "Default 7 x 7 DP over about 4 million states per cell: hours (#520); 4 x 4 stays in the test.",
-  "euler/705_inversioncount.ra": "About 2.5 min: sieve to 10^8 and 4.6 x 10^7 digit pair counts; run manually.",
+  "euler/705_inversioncount.ra": "Compiled default is covered in full-scale-demos.test.ts; uncompiled execution still traverses tens of millions of digit updates; run full differential manually.",
   "euler/715_sextupletnorms.ra": "About 3 min: two Lucy sieves and prime-power sums at 10^12; run manually.",
   "euler/719_numbersplitting.ra": "About 1 min: pruned split search over 2 x 10^5 roots; run manually.",
   "euler/720_unpredictablepermutations.ra": "About 20 s and 4 GB: 2^25 element permutation, Lehmer code and factorials; run manually.",
