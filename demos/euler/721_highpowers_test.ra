@@ -2,7 +2,7 @@ use testing
 
 test "statement value"
   use "721_highpowers"
-  Nn = 1000
+  Limit = 1000
   run
   Answer equal 163861845
 end
