@@ -40,6 +40,38 @@ for R in 0 till ${rounds}
  ${wide ? 'Total += 9007199254740991' : ''}
 end
 (A sum) + Total + (Saved sum)`, sum + BigInt(size) + (wide ? BigInt(rounds) * 9007199254740991n : 0n)];
+for (const [name, helper] of [
+    ['scratch-array', `Scratch = array shape 2 fill X
+ Scratch 0 = (X * 2 + 1) mod 1000003
+ return Scratch 0`],
+    ['scratch-queue', `Queue = new queue
+ Queue push ((X * 2 + 1) mod 1000003)
+ return Queue pop`],
+    ['scratch-index', `Store = new index
+ Store 0 = (X * 2 + 1) mod 1000003
+ return Store 0`],
+    ['scratch-set', `Store = new set
+ Store add X
+ if X in Store
+  return (X * 2 + 1) mod 1000003
+ end
+ return 0`],
+]) cases[name] = [`${prefix}
+use algo
+fun X scratch
+ ${helper}
+end
+fun X linked
+ return X scratch
+end
+for R in 0 till ${rounds}
+ for I in 0 till ${size}
+  B I = (A I) linked
+ end
+ unpack A B = tuple B A
+ Total += 9007199254740991
+end
+(A sum) + Total + (Saved sum)`, sum + BigInt(size) + BigInt(rounds) * 9007199254740991n];
 cases.vector = [`${prefix}
 for R in 0 till ${rounds}
  B = (A * 2 + 1) mod 1000003

@@ -21,7 +21,7 @@ import { registerFlatCombine } from './flat-combine.js';
 import { compileFusedReduction, compileFusedSum } from './jit/fused-reduction.js';
 import type { Operators } from './operators.js';
 import { compileScalarExpression, compileResumableScalarExpression } from './jit/scalar-compiler.js';
-import { scalarFunctionResult, privateScalarFunction, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
+import { scalarFunctionResult, privateScalarFunction, scalarFunctionEffects, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { completed, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './jit/call-specializations.js';
@@ -573,14 +573,17 @@ export class FastPaths {
             const captures = definition.context !== undefined;
             const isScalarType = (type: CompiledCalleeType): boolean =>
                 type === 'integer' || type === 'real' || type === 'boolean' || type === 'text';
-            const stableReads = typeof proof.type === 'string' && !proof.containers && !proof.arrayWrites.size && !proof.observableCaptures;
+            const effects = scalarFunctionEffects(proof);
+            const stableReads = privateScalarFunction(proof) || typeof proof.type === 'string'
+                && !proof.containers && !proof.arrayWrites.size && !proof.observableCaptures;
             const numberArrays = types.some(type => typeof type !== 'string');
             const numberSafe = stableReads && isScalarType(proof.type) && types.every(type => isScalarType(type)
                 || !isCompiledContainer(type) && typeof type !== 'string' && type.rank === 1 && type.element === 'integer');
             return {
                 parameters: types,
                 effects: {
-                    writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []),
+                    writes: effects.unknown ? types.flatMap((type, index) => isCompiledContainer(type) ? [index] : [])
+                        : [...effects.parameters],
                     stableArrayReads: stableReads,
                     // Reuse the scalar proof, retaining its live call guards.
                     // The Number ABI borrows current integer buffers only for

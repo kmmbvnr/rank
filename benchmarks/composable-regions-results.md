@@ -402,3 +402,78 @@ results and actual Number entry/replay. All 765 tests in the 23-file Intel
 selection pass after the fix; 176 focused Mac tests and the full Euler 310 case
 also pass. The ongoing ordinary Mac run had already executed Euler 310 before
 that fix and reported its missing Number region; its targeted rerun passes.
+
+
+## Constructor-owned storage across helper chains (2026-11-05)
+
+Compared with `dd5f656aa0cba6f6273239133dd89a93b430724b`. The same source
+runs on both checkouts, including a two-helper chain, array swaps, a retained
+input alias and a wide exact accumulator. Each invocation creates its own
+scratch storage. Five fresh-process samples, two warmups, four rounds of 32,768
+cells; Node 24.15.0 on Apple M5 and Intel i7-10750H. Every result is asserted.
+Diagnostics run separately from timing. Tests and benchmarks do not overlap
+on either host. All four changed production files have identical SHA-256 hashes
+on both hosts.
+
+| Case | Mac baseline → candidate, ms | Intel baseline → candidate, ms |
+| --- | ---: | ---: |
+| scratch-array | 2181.96 → 59.04 | 8242.02 → 175.17 |
+| scratch-queue | 105.46 → 101.13 | 319.00 → 313.24 |
+| scratch-index | 140.06 → 140.33 | 413.31 → 389.60 |
+| scratch-set | 166.79 → 163.62 | 464.20 → 456.21 |
+
+The array case improves about 37× on Mac and 47× on Intel. Its baseline cannot
+link the scratch-array helper and does not enter a Number loop. The candidate
+enters one mixed outer region. Constructor-only local writes no longer force
+that helper back through ordinary invocation.
+
+The collection cases already compile their inner traversal on the baseline;
+they now compose into one mixed outer region instead of four separately entered
+inner regions. Their timings are approximately unchanged, with small gains in
+some cases. This change does not eliminate per-call container allocation or
+make linked exact helpers into raw Number kernels.
+
+For scratch-array, median peak RSS falls from 476.6 to 178.7 MiB on Mac and
+449.2 to 163.3 MiB on Intel. Retained heap after GC falls by about 3.9 MiB on
+both. Collection peak RSS changes by less than 2 MiB, and retained heap by less
+than 0.5 MiB. Retained buffers are identical (424,771 bytes) in every measured
+case; these measurements do not establish a general storage reduction.
+
+Longer warmed controls use 24 rounds, 20 warmups and seven samples:
+
+| Control | Mac baseline → candidate, ms | Intel baseline → candidate, ms |
+| --- | ---: | ---: |
+| helper | 3.02 → 3.05 | 7.41 → 7.12 |
+| vector-mixed | 2.80 → 2.87 | 8.78 → 8.52 |
+
+Validation: TypeScript build passes. The ordinary Mac run executed 12,169
+tests: 12,168 passed and one expected Number-function count needed updating
+because both calls in a linked bridge now compile. After that correction and
+final guard changes, all 122 focused Mac tests pass. Intel passes 139 tests,
+including compiled integer collections. Cases cover local arrays, queues,
+indices and sets; mapping parameter writes into caller-owned storage; aliased
+external writes; current borrowed array buffers; overflow replay; original
+errors; live nested-helper replacement; and overridden queue methods.
+The three excluded audits are types, differential and Nurikabe.
+
+This is a bounded composition improvement. Captured observations, unknown
+aliases, reference-returning private calls and lazy plans within these effect
+summaries remain conservative. The reference engine is unchanged and provides
+the semantic oracle in the tests; no reference-engine speedup is claimed.
+
+Reproduce:
+
+```sh
+COMPOSABLE_ROUNDS=4 COMPOSABLE_WARMUPS=2 \
+  node benchmarks/composable-regions.mjs --baseline=/path/to/baseline \
+  --samples=5 --cases=scratch-array,scratch-queue,scratch-index,scratch-set,helper,vector-mixed
+COMPOSABLE_ROUNDS=24 COMPOSABLE_WARMUPS=20 \
+  node benchmarks/composable-regions.mjs --baseline=/path/to/baseline \
+  --samples=7 --cases=helper,vector-mixed
+```
+
+Raw observations: [Mac](baselines/2026-11-05-helper-effects-mac-benchmark.json),
+[Intel](baselines/2026-11-05-helper-effects-intel-benchmark.json),
+[Mac controls](baselines/2026-11-05-helper-effects-mac-controls.json),
+[Intel controls](baselines/2026-11-05-helper-effects-intel-controls.json).
+[Manifest](baselines/2026-11-05-helper-effects-manifest.json) records source hashes.

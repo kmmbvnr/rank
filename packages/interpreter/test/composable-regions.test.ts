@@ -1,6 +1,7 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { Interpreter, RankError, RuntimeDiagnostics, formatValue, parse } from '../src/index.js';
 import { withDemandBudget, withInterrupt } from '../src/interrupt.js';
+import { RankDeque } from '../src/containers.js';
 import { native } from '../src/modules/shared.js';
 
 const setup = `use sequences
@@ -236,11 +237,12 @@ end`;
     expect(actual.diagnostics.numberLoops).toBe(captured ? 0 : 1);
 });
 
-it('invalidates a warmed private-call proof when a nested helper is replaced', () => {
+it.each(['return X + 1', 'Scratch = array shape 2 fill X\n Scratch 0 += 1\n return Scratch 0'])(
+    'invalidates a warmed private-call proof when a nested helper is replaced: %s', helper => {
     function execute(compilation: boolean) {
         const runtime = new Interpreter(() => {}, { compilation, scalarEntryCompilation: false });
         try {
-            const program = parse(`${setup}\nfun X advanceagain\n return X advance\nend
+            const program = parse(`${setup.replace('return X + 1', helper)}\nfun X advanceagain\n return X advance\nend
 for R in 0 till 3
  B 0 = (A 0) advanceagain
  unpack A B = tuple B A
@@ -471,4 +473,168 @@ end`); }
     const actual = execute(true);
     expect(actual).toEqual(execute(false));
     expect(actual.error).toContain('division by zero');
+});
+
+const scratchHelpers = [
+    `Scratch = array shape 2 fill X
+ Scratch 0 += 1
+ return Scratch 0`,
+    `Queue = new queue
+ Queue push X
+ Value = Queue pop
+ return Value + 1`,
+    `Store = new index
+ Store 0 = X + 1
+ return Store 0`,
+    `Store = new set
+ Store add X
+ if X in Store
+  return X + 1
+ end
+ return 0`,
+];
+
+it.each(scratchHelpers)('composes helper-owned storage with private moves: %s', helper => {
+    const prefix = `${setup}
+use algo
+fun X scratch
+ ${helper}
+end
+fun X linked
+ return X scratch
+end`;
+    const body = `for R in 0 till 3
+ B 0 = (A 0) linked
+ Total += 9007199254740991
+ unpack A B = tuple B A
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toBeUndefined();
+    expect(actual.diagnostics.mixedIntegerLoops).toBe(1);
+});
+
+it('maps a linked container write to caller-owned storage', () => {
+    const prefix = `${setup}
+use algo
+fun Store storevalue X
+ Store 0 = X + 1
+ return Store 0
+end
+fun X scratch
+ Store = new index
+ return Store storevalue X
+end`;
+    const body = `for R in 0 till 3
+ B 0 = (A 0) scratch
+ unpack A B = tuple B A
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toBeUndefined();
+    expect(actual.diagnostics.numberLoops).toBe(1);
+});
+
+it.each(scratchHelpers)('replays local-storage helpers after caller overflow: %s', helper => {
+    const prefix = `${setup}
+use algo
+fun X scratch
+ ${helper}
+end`;
+    const body = `for R in 0 till 3
+ B 0 = (A 0) scratch
+ Total += 9007199254740991
+ unpack A B = tuple B A
+ A 1 += 9007199254740991
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toBeUndefined();
+    expect(actual.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+    expect(actual.diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
+});
+
+it('preserves the error and preceding writes from a failing scratch helper', () => {
+    const prefix = `${setup}
+fun X scratch
+ Scratch = array shape 2 fill X
+ Scratch 0 = 1 // (1 - X)
+ return Scratch 0
+end`;
+    const body = `for R in 0 till 3
+ A 0 += 1
+ Total += 9007199254740991
+ B 0 = R scratch
+ unpack A B = tuple B A
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toContain('division by zero');
+    expect(actual.diagnostics.mixedIntegerLoops).toBe(1);
+});
+
+it('does not hide a write through an aliased container parameter', () => {
+    const prefix = `${setup}
+use algo
+Store = new index
+Store 0 = 0
+fun Store changevalue X
+ Alias = Store
+ Alias 0 += X
+ return Alias 0
+end`;
+    const body = `for R in 0 till 3
+ B 0 = Store changevalue (A 0)
+ Total += B 0
+ unpack A B = tuple B A
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toBeUndefined();
+    expect(actual.diagnostics.numberLoops).toBe(0);
+});
+
+it('rechecks local queue methods through a linked helper', () => {
+    const prefix = `${setup}
+use algo
+fun X scratch
+ ${scratchHelpers[1]}
+end
+fun X linked
+ return X scratch
+end`;
+    const body = `for R in 0 till 3
+ A 0 += 1
+ B 0 = (A 0) linked
+ unpack A B = tuple B A
+end`;
+    const push = RankDeque.prototype.push;
+    const spy = vi.spyOn(RankDeque.prototype, 'push').mockImplementation(function (this: RankDeque, value) {
+        return push.call(this, value);
+    });
+    try {
+        const actual = run(body, true, prefix);
+        expect(actual.state).toEqual(run(body, false, prefix).state);
+        expect(actual.state.error).toBeUndefined();
+        expect(actual.diagnostics.numberLoops).toBe(0);
+        expect(spy).toHaveBeenCalled();
+    } finally { spy.mockRestore(); }
+});
+
+it('borrows the current caller array into a helper with private scratch storage', () => {
+    const prefix = `${setup}
+fun Input scratch
+ Scratch = array shape 2 fill 0
+ Scratch 0 = Input 0 + 1
+ return Scratch 0
+end`;
+    const body = `for R in 0 till 3
+ A 0 += 1
+ B 0 = A scratch
+ unpack A B = tuple B A
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toBeUndefined();
+    expect(actual.diagnostics.numberLoops).toBe(1);
 });

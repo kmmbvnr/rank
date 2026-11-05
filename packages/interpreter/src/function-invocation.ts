@@ -1058,9 +1058,9 @@ export class FunctionInvocation {
             };
         }
 
-        if (kernel.rankedCalls.length || kernel.plans || kernel.dequeIteration || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
+        if (kernel.rankedCalls.length || kernel.plans || kernel.deques || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             if (inspectionEnabled() || this.scalarFallbackDepth) return false;
-            if (kernel.dequeIteration && (!privateLoopPolling() || !nativeDequeMethods())) return false;
+            if (kernel.deques && (!privateLoopPolling() || !nativeDequeMethods())) return false;
             if (kernel.setMembership && (!privateLoopPolling() || !nativeSetMembership())) return false;
             if (kernel.plans && (!this.compiler.tensors.fusion || !privateLoopPolling())) return false;
             if (kernel.scalarCaptures.length && (!privateLoopPolling()

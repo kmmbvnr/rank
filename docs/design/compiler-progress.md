@@ -1,5 +1,28 @@
 # Compiler progress
 
+## Local storage across scalar helper calls
+
+Scalar function proofs now summarize writes to parameters separately from
+constructor-owned local writes. Linked calls map those writes back to the
+caller's arguments: writing a caller-owned local index does not become an
+external effect. The summary uses the language analysis's parameter-effect
+convention and the existing compiled expression and ownership proofs; it does
+not introduce a separate AST analysis or an SSA representation.
+
+Scalar-result helpers with local arrays, integer indices, sets and queues can
+participate in private Number loops, including array swaps and wide exact
+accumulators. Read-only integer array arguments retain the raw-buffer ABI when
+an existing Number function kernel supports the helper. Scalar-only chains can
+use the exact helper adapter. This does not make every helper a Number kernel.
+
+Live function/dependency checks, overflow replay and located errors remain in
+force. Queue method guards now cover locally constructed queues as well as
+iteration, so an overridden method cannot observe an unpublished caller state.
+Unknown effects, captured reads, writes through unproved aliases and lazy plans
+inside helper summaries still retain conservative boundaries. Reference-valued
+results do not enter the private scalar-call ABI. See the
+[measurements and verification](../../benchmarks/composable-regions-results.md#constructor-owned-storage-across-helper-chains-2026-11-05).
+
 ## Borrowed disjoint slice operands (Euler 292)
 
 Number regions can read integer RHS slices without a temporary cell buffer when

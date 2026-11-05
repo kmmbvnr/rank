@@ -6,8 +6,7 @@ function invoke(source: string, args: (number | bigint | boolean)[], compilation
     const runtime = new Interpreter(() => {}, { compilation, sourceId: '/virtual/real.ra' });
     const diagnostics = new RuntimeDiagnostics();
     try {
-        // The loop selects the scalar callee backend used by the demo;
-        // ordinary entries keep owned-array writes in a binding frame.
+        // Both calls can use the scalar backend through a linked helper.
         const call = args.length === 1 ? 'X sample' : 'X sample Y';
         runtime.execute(source + `\nfun X bridge ${args.length === 1 ? '' : 'Y'}
   R = ${call}
@@ -37,7 +36,7 @@ end`;
             const expected = invoke(source, [x, twice], false);
             const actual = invoke(source, [x, twice]);
             expect(actual.value).toBe(expected.value);
-            expect(actual.diagnostics.numberFunctions).toBe(1);
+            expect(actual.diagnostics.numberFunctions).toBe(2);
             expect(actual.diagnostics.numberFunctionFallbacks).toBe(0);
         }
     }

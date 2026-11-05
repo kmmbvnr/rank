@@ -42,7 +42,7 @@ interface Kernel {
     readonly source: string;
     readonly returnType?: CompiledCalleeType;
     readonly plans: boolean;
-    readonly dequeIteration: boolean;
+    readonly deques: boolean;
     readonly setMembership: boolean;
     readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[];
     readonly rankedCalls: ScalarFunctionProof['planCalls'];
@@ -523,7 +523,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const memberships: string[] = [];
     const captures: { name: string; rank: number }[] = [];
     const writtenSlots = new Set([...proof.arrayWrites].filter(isArrayAssignmentStatement).map(command => command.name));
-    let serial = 0, dequeIteration = false, setMembership = false;
+    let serial = 0, deques = false, setMembership = false;
     function binary(operation: CompiledOperator, left: string, right: string, lines: string[], resultType?: CompiledCalleeType, inputs?: readonly CompiledCalleeType[]): string {
         const op = operation.name;
         const result = `v${serial++}`;
@@ -734,6 +734,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             if (operation) {
                 const arguments_ = expression.input.indices?.map(index => lower(index, lines)) ?? [];
                 const result = `v${serial++}`;
+                // Local queues can invoke observable overridden methods too.
+                if (typeof expression.type !== 'string' && expression.type.kind === 'deque'
+                    || operation === 'pop') deques = true;
                 const code = operation === 'new' ? `newStructure(${JSON.stringify(expression.input.name)})`
                     : operation === 'pop' ? `${receiver}.pop()`
                     : operation === 'len' ? `BigInt(${receiver}.kind === 'index' ? ${receiver}.entries.size : ${receiver}.size)`
@@ -905,7 +908,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     const iterableType = expressions.get(range)?.type;
                     const deque = iterableType && isCompiledContainer(iterableType) && iterableType.kind === 'deque';
                     if (iterableType === 'text' || deque) {
-                        dequeIteration ||= !!deque;
+                        deques ||= !!deque;
                         const text = emit(range, lines), id = serial++;
                         const indexed = binding.names[1] !== undefined && binding.names[1] !== '#';
                         if (indexed) lines.push(`let ordinal${id} = 0n;`);
@@ -1064,7 +1067,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         kernel = {
             source,
             plans: proof.planBindings.size > 0 || proof.iterableBindings.size > 0 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan'),
-            dequeIteration,
+            deques,
             setMembership,
             locations,
             calls,

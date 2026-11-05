@@ -1,0 +1,30 @@
+{
+  "baseline": "dd5f656aa0cba6f6273239133dd89a93b430724b",
+  "candidateFiles": {
+    "packages/interpreter/src/fast-paths.ts": "2f75fae26bc07f860186d8fbcfaeea51861fdce86f51f82d326f6d566ee49a3c",
+    "packages/interpreter/src/function-invocation.ts": "3b923e1d8969223deae2f16e1a88f2b9b2947cb86d58b048bbec4c6fca1cfaf1",
+    "packages/interpreter/src/jit/scalar-function-kernel.ts": "fe655ebb6a9435bc931f37359b1c19ff4c25d0dfc16ef62c9bc244d5be376631",
+    "packages/interpreter/src/jit/scalar-function-proof.ts": "2e6e7029b6e3aafc138326b7cb5cfa02c1d297a7e6f214b0012dfde64030cff3",
+    "benchmarks/composable-regions.mjs": "81ce6f7fcbb55d87fae10320dd71defb5d0fd273c035fe6e1fd32ae191eb991a"
+  },
+  "observations": [
+    "benchmarks/baselines/2026-11-05-helper-effects-mac-benchmark.json",
+    "benchmarks/baselines/2026-11-05-helper-effects-mac-controls.json",
+    "benchmarks/baselines/2026-11-05-helper-effects-intel-benchmark.json",
+    "benchmarks/baselines/2026-11-05-helper-effects-intel-controls.json"
+  ],
+  "validation": {
+    "macOrdinary": {
+      "passed": 12168,
+      "failed": 1,
+      "failure": "Expected Number-function count 1 became 2; corrected and rerun"
+    },
+    "macFinalFocusedPassed": 122,
+    "intelFocusedPassed": 139,
+    "excludedAudits": [
+      "types",
+      "differential",
+      "nurikabe"
+    ]
+  }
+}

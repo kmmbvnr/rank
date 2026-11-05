@@ -5,7 +5,7 @@ import {
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, flattenApplication, isApplicationExpression, isDeclaredCallExpression,
     isNameExpression, isExpressionStatement, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
-    isCountClauseExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement, type Operation,
+    isCountClauseExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement, type Operation, type FunctionEffects,
 } from '@arrrank/language';
 import { describeCompilerRejection, recordCompilerRejection, type CompilerRejection } from './compiler-rejection.js';
 import { recordFallback } from '../diagnostics.js';
@@ -19,14 +19,29 @@ export function scalarCaptureKey(captures: ScalarCaptureTypes): string {
 }
 const noCaptures: ScalarCaptureTypes = new Map();
 
-const privateProofs = new WeakMap<ScalarFunctionProof, boolean>();
+/** The compiled subset uses the same parameter-effect convention as the
+ * language analysis. Unknown operations remain an observation boundary. */
+export interface ScalarFunctionEffects extends Pick<FunctionEffects, 'unknown' | 'parameters' | 'readParameters'> {
+    readonly localWrites: boolean;
+    readonly returnsReference: boolean;
+}
+const effectProofs = new WeakMap<ScalarFunctionProof, ScalarFunctionEffects>();
 
-/** Only arguments/local scalars and read-only argument arrays may be observed.
- * Linked helpers compose the same proof; live identity guards remain at entry.
- * Unknown operations fail closed rather than inheriting a callee's result type. */
-export function privateScalarFunction(proof: ScalarFunctionProof): boolean {
-    const known = privateProofs.get(proof);
-    if (known !== undefined) return known;
+export function scalarFunctionEffects(proof: ScalarFunctionProof): ScalarFunctionEffects {
+    const known = effectProofs.get(proof);
+    if (known) return known;
+    const parameters = new Set<number>();
+    let unknown = proof.observableCaptures || !proof.localArrayWrites
+        || !!proof.planBindings.size || !!proof.iterableBindings.size || !!proof.planCalls.length
+        || !!proof.loopIterables.size;
+    let localWrites = !!proof.arrayWrites.size;
+    function write(name: string): void {
+        if (proof.ownedStorage.has(name)) { localWrites = true; return; }
+        const index = proof.parameters.indexOf(name);
+        if (index >= 0) parameters.add(index);
+        else unknown = true;
+    }
+    for (const name of proof.containerWrites) write(name);
     function expression(node: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>): boolean {
         if (node.kind === 'literal') return true;
         if (node.kind === 'group' || node.kind === 'unary') return expression(node.operand);
@@ -35,15 +50,38 @@ export function privateScalarFunction(proof: ScalarFunctionProof): boolean {
         if (node.kind === 'call') return node.signature.callbacks === 'none' && !node.signature.hostFunction
             && node.arguments.every(expression);
         const input = node.input;
-        if (input.keyed || input.indices && !input.indices.every(expression)) return false;
-        if (input.operation === 'user-call') return !!input.callee && privateScalarFunction(input.callee.proof);
-        return !input.operation || ['self-call', 'choose', 'integer-power', 'text-at', 'array-len'].includes(input.operation);
+        if (input.indices && !input.indices.every(expression)
+            || input.dimensions && !input.dimensions.every(dimension => expression(dimension.value))) return false;
+        if (input.operation === 'user-call') {
+            if (!input.callee) return false;
+            const effects = scalarFunctionEffects(input.callee.proof);
+            localWrites ||= effects.localWrites;
+            for (const index of effects.parameters) {
+                let argument = input.indices?.[index];
+                while (argument?.kind === 'group') argument = argument.operand;
+                if (argument?.kind !== 'input' || argument.input.operation || argument.input.indices) return false;
+                write(argument.input.name);
+            }
+            return !effects.unknown;
+        }
+        if (input.operation === 'pop') write(input.name);
+        // Self calls keep the same parameter domains, but may remap references.
+        if (input.operation === 'self-call') return !proof.parameterTypes.some(type => typeof type !== 'string');
+        return !input.operation || ['choose', 'integer-power', 'text-at', 'array-len',
+            'array', 'vector', 'new', 'pop', 'len', 'contains', 'not-contains',
+            'set-contains', 'set-not-contains', 'index-default'].includes(input.operation);
     }
-    const safe = !proof.containers && !proof.arrayWrites.size && !proof.observableCaptures
-        && !proof.planBindings.size && !proof.iterableBindings.size && !proof.planCalls.length
-        && [...proof.expressions.values()].every(expression);
-    privateProofs.set(proof, safe);
-    return safe;
+    if (![...proof.expressions.values()].every(expression)) unknown = true;
+    const effects = { unknown, parameters, localWrites, returnsReference: typeof proof.type !== 'string',
+        readParameters: new Set(proof.parameterTypes.flatMap((type, index) => typeof type !== 'string' ? [index] : [])) };
+    effectProofs.set(proof, effects);
+    return effects;
+}
+
+/** Live binding and native implementation guards are still checked at entry. */
+export function privateScalarFunction(proof: ScalarFunctionProof): boolean {
+    const effects = scalarFunctionEffects(proof);
+    return !effects.unknown && !effects.parameters.size && !effects.returnsReference;
 }
 
 export interface ScalarFunctionInput {
@@ -63,6 +101,10 @@ export type ScalarLoopIterable = { readonly kind: 'literal'; readonly expression
     | { readonly kind: 'native'; readonly element: CompiledScalarType; readonly operation: Operation; readonly source: ScalarLoopIterable | Expression;
         readonly origin: Expression; readonly argument?: FunctionPlan; readonly deferred?: boolean };
 export interface ScalarFunctionProof {
+    readonly parameters: readonly string[];
+    readonly parameterTypes: readonly CompiledCalleeType[];
+    readonly ownedStorage: ReadonlySet<string>;
+    readonly containerWrites: ReadonlySet<string>;
     readonly type: CompiledCalleeType;
     readonly dependencies: readonly string[];
     readonly callDepth: number;
@@ -129,6 +171,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     let callDepth = 1, callCount = 0, recursive = false, observableCaptures = false;
     const modules = new Set<string>();
     const arrayWrites = new Set<Statement>();
+    const containerWrites = new Set<string>();
     let containers = types.some(isCompiledContainer);
     const parameters = new Set(statement.parameters);
     const locals = new Set<string>();
@@ -228,7 +271,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         // across linked calls. Writes to arguments still need a binding frame.
         if (!inputs.every((input): input is CompiledCalleeType => input !== undefined)) return undefined;
         const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement], captures);
-        if (!proof || !proof.localArrayWrites || proof.arrayWrites.size && !proof.containers && !proof.recursive
+        if (!proof || !proof.localArrayWrites
             || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
         if (proof.planReturn && (!consumerRoot || unwrap(consumerRoot) !== source)) return undefined;
         if (proof.nonnegative.some(index => !nonnegative(arguments_[index]))) return undefined;
@@ -688,6 +731,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     const receiver = env.get(mutation.receiver.name);
                     if (receiver && isCompiledContainer(receiver) && receiver.kind === 'set'
                         && type(mutation.value, env) === 'integer') {
+                        containerWrites.add(mutation.receiver.name);
                         modules.add('algo');
                         nativeReads.add('add');
                         continue;
@@ -700,6 +744,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 const receiver = isNameExpression(command.receiver) ? env.get(command.receiver.name) : undefined;
                 if (!receiver || !isCompiledContainer(receiver) || receiver.kind !== 'deque'
                     || type(command.value, env) !== 'integer') return reject(command, 'container-push');
+                if (isNameExpression(command.receiver)) containerWrites.add(command.receiver.name);
                 modules.add('algo');
                 continue;
             }
@@ -719,6 +764,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     if (!signature?.compound || signature.result !== element) return reject(command, 'array-compound');
                 }
                 if (!isCompiledContainer(receiver)) arrayWrites.add(command);
+                else containerWrites.add(command.name);
                 continue;
             }
             if (loops && isForStatement(command)) {
@@ -798,18 +844,19 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const outcome = flow(statement.statements, new Map(settled));
     // Only constructor-owned slots can be written without an argument frame.
     // Reject aliases and every later assignment from a non-constructor source.
-    const localArrays = new Set([...arrayWrites].filter(isArrayAssignmentStatement).map(command => command.name));
-    for (const name of parameters) localArrays.delete(name);
+    const ownedStorage = new Set([...settled].filter(([, type]) => typeof type !== 'string').map(([name]) => name));
+    for (const name of parameters) ownedStorage.delete(name);
     for (const node of AstUtils.streamAst(statement)) {
-        if (!isAssignmentStatement(node) || !localArrays.has(node.name)) continue;
+        if (!isAssignmentStatement(node)) continue;
         const source = unwrap(node.value);
-        if (node.operator !== '=' || !isArrayExpression(source) || !source.dimensions.length || !source.fill) localArrays.delete(node.name);
+        if (node.operator !== '=' || !(isNewStructureExpression(source) || isArrayExpression(source)
+            && source.dimensions.length && source.fill)) ownedStorage.delete(node.name);
     }
-    const localArrayWrites = [...arrayWrites].every(command => isArrayAssignmentStatement(command) && localArrays.has(command.name));
+    const localArrayWrites = [...arrayWrites].every(command => isArrayAssignmentStatement(command) && ownedStorage.has(command.name));
     // Each invocation owns these constructor slots. Recursive calls only read
     // their arguments; writes through parameters or aliases still fail ownership.
     const result = outcome === null && resultType && !(recursive && (!localArrayWrites || nonnegativeParameters.size))
-        ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, recursive, arrayWrites, localArrayWrites, observableCaptures, expressions,
+        ? { parameters: statement.parameters, parameterTypes: types, ownedStorage, containerWrites, type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, recursive, arrayWrites, localArrayWrites, observableCaptures, expressions,
             planCalls, planBindings, planReturn, planReturns, loopIterables, iterableBindings, nonnegative: [...nonnegativeParameters] } : undefined;
     const failure = rejection ?? { ...describeCompilerRejection('scalar-function', statement), reason: 'scalar-function:missing-return' };
     // A path-depth limit must not poison a helper that is shallow on its own.
