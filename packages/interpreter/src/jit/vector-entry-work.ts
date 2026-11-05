@@ -35,9 +35,9 @@ export function prepareVectorEntryWork(plan: IntegerLoopPlan, host: LoopHost):
             const step = range.step ? proof.integer(range.step)(base) : 1n;
             if (!count || first === undefined || step === undefined || step === 0n) return 0;
             let work = 0;
-            // Three leading harmonic passes can amortize a large snapshot.
-            // Only arithmetic entry facts are inspected, never body arrays.
-            const ordinals = body.escapes ? [0] : [...new Set([0, Math.min(1, count - 1), Math.min(2, count - 1), count - 1])];
+            // Boundary passes can amortize a large snapshot.
+            // Only guarded entry facts are inspected, never body arrays.
+            const ordinals = entryOrdinals(count, body.escapes);
             for (const ordinal of ordinals) {
                 const values = new Map(base);
                 if (binding.names[0] !== '#') values.set(binding.names[0], first + BigInt(ordinal) * step);
@@ -61,10 +61,10 @@ export function prepareVectorEntryWork(plan: IntegerLoopPlan, host: LoopHost):
             if (other === value || buffer?.buffer === cells.buffer) return 0;
         }
         let work = 0;
-        // Two leading sieve passes can pay for the copy even when the last
-        // pass is tiny. Deduplicate short vectors; keep the same bounded proof
-        // and do not inspect later entries after a possible escaping jump.
-        const ordinals = body.escapes ? [0] : [...new Set([0, Math.min(1, cells.length - 1), cells.length - 1])];
+        // Count distinct boundary passes; a descending sieve may have
+        // its largest passes at the end. Do not inspect later entries
+        // after a possible escaping jump.
+        const ordinals = entryOrdinals(cells.length, body.escapes);
         for (const ordinal of ordinals) {
             const values = new Map(base), at = traversal.reverse ? cells.length - 1 - ordinal : ordinal;
             if (binding.names[0] !== '#') values.set(binding.names[0], BigInt(cells[at]));
@@ -76,4 +76,14 @@ export function prepareVectorEntryWork(plan: IntegerLoopPlan, host: LoopHost):
         }
         return work;
     };
+}
+
+/** Inspect actual distinct boundary entries, never extrapolated values. A
+ * descending harmonic pass can be tiny at its start and large at its end.
+ * This bounds proof effort, without changing the snapshot or Number limits. */
+function entryOrdinals(count: number, escapes: boolean): number[] {
+    if (escapes) return [0];
+    const width = Math.min(256, count);
+    return [...new Set([...Array.from({ length: width }, (_, i) => i),
+        ...Array.from({ length: width }, (_, i) => count - 1 - i)])];
 }

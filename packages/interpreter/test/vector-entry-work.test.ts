@@ -111,4 +111,53 @@ describe('complete nested passes in packed vector loops',()=>{
             expect(diagnostics.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
         } finally {runtime.dispose();}
     });
+    it('counts bounded distinct passes beyond the first two entries',()=>{
+        const text='V = array shape 600 fill 262\n'+source;
+        const result=execute(text);
+        expect(result.values).toEqual(execute(text,false).values);
+        expect(result.values).toEqual([600n,0n,600n,0n]);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopCopyProbes).toBe(0);
+    });
+    it('uses immutable indexed entry cells and checked powers for bounds',()=>{
+        const text='Entry = array shape 600 fill 16\n'+source
+            .replace('for P in V','for Step in 0 till 600\n  P = Entry Step')
+            .replace('524288 // P','524288 // (P ** 2)');
+        const result=execute(text);
+        expect(result.values).toEqual(execute(text,false).values);
+        expect(result.values).toEqual([600n,0n,600n,0n]);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopCopyProbes).toBe(0);
+    });
+
+
+    it('preserves changing indexed entry bounds',()=>{
+        const text='Entry = array shape 600 fill 16\n'+source
+            .replace('for P in V','for Step in 0 till 600\n  P = Entry Step\n  Entry 0 = 17')
+            .replace('524288 // P','524288 // (P ** 2)');
+        const result=execute(text);
+        expect(result.values).toEqual(execute(text,false).values);
+        expect(result.values[1]).toBe(0n);
+    });
+
+    it('preserves indexed entry bounds sharing a destination buffer',()=>{
+        const text=source.replace('A = array shape (N + 1) fill 0\n','')
+            .replace('for P in V','for Step in 0 till 600\n  P = Entry Step')
+            .replace('524288 // P','524288 // (P ** 2)');
+        function run(numberLoopCompilation: boolean) {
+            const runtime=new Interpreter(()=>{},{numberLoopCompilation});
+            const diagnostics=new RuntimeDiagnostics();
+            const cells=new Int32Array(n+1);cells.fill(16,0,600);
+            try {
+                runtime.variables.set('Entry',sharedTypedArray(cells.subarray(0,600),[600]));
+                runtime.variables.set('A',sharedTypedArray(cells,[n+1]));
+                diagnostics.run(()=>runtime.execute(text));
+                return {diagnostics,values:[runtime.execute('A 1'),runtime.execute('B 1')]};
+            } finally {runtime.dispose();}
+        }
+        const result=run(true);
+        expect(result.values).toEqual(run(false).values);
+        expect(result.values[0]).toBeGreaterThan(16n);
+    });
+
 });

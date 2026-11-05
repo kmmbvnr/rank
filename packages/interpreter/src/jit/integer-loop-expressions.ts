@@ -320,7 +320,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 : (denseScalarItems(value) ?? materializedArrayItems(value))?.[0] : value;
         return typeof first === 'number' ? 'real' : undefined;
     }
-    type LoopValue = LoopTerm | { readonly code: string; readonly type: CompiledArrayType; readonly deque?: boolean; readonly cells?: string };
+    type LoopValue = LoopTerm | { readonly code: string; readonly type: CompiledArrayType; readonly deque?: boolean; readonly cells?: string; readonly fresh?: boolean };
     function isScalar(value: LoopValue): value is LoopTerm { return typeof value.type === 'string'; }
     interface LoopInput { readonly term: LoopTerm; readonly lines: readonly string[] }
     /** Only a known completion boundary may borrow a deferred scalar result.
@@ -677,6 +677,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (numberMode && (signature.callbacks !== 'none' || signature.hostFunction
             || !['integer', 'real', 'boolean'].includes(signature.result)
             || signature.inputs.some(type => !['integer', 'real', 'boolean', 'number'].includes(type)))) return undefined;
+        if (numberMode) builtins.set(operation.name, operation.module);
         const arguments_: string[] = [];
         const types: string[] = [];
         let firstType: LoopTerm['type'] | undefined;
@@ -1193,7 +1194,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         let e = source;
         while (isParenthesizedExpression(e) || isMaterializeExpression(e)) e = isParenthesizedExpression(e) ? e.value : e.source;
         const type = arrayType(e);
-        if (!type || type.element !== 'integer' && type.element !== 'real') return undefined;
+        if (!type || type.element !== 'integer' && type.element !== 'real' && type.element !== 'boolean') return undefined;
         if (!state.numberVectors && type.rank > 1 && type.element === 'integer' && existingIntegerArrayArithmetic(e)) return undefined;
         if (isNameExpression(e)) {
             const info = arrays.get(e.name) ?? { slot: slot(e.name), rank: type.rank, type: type.element };
@@ -1223,7 +1224,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const selected = mask.cell(index, body);
             if (!selected) return undefined;
             lines.push(`if (${cells}.length !== ${mask.size}) throw overflow;
-                const ${result} = vectorArray([${cells}.length], ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${[cells, ...mask.sources].join(',')}]); let ${count} = 0;
+                const ${result} = vectorArray([${cells}.length], ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${[cells, ...mask.sources].join(',')}], ${type.element === 'boolean'}); let ${count} = 0;
                 ${numberVectorLoop(`${cells}.length`, index, [...body, `if (${selected.code}) ${result}.store(${count}++, ${type.element === 'real' ? `Number(${cells}[${index}])` : `safe(Number(${cells}[${index}]))`});`])}
                 ${result}.shape[0] = ${count}; ${result}.cells = ${result}.cells.subarray(0, ${count});`);
         } else if (isApplicationExpression(e) && flattenApplication(e).length === 2
@@ -1243,19 +1244,24 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             lines.push('vectorLive.pop();');
             const cells = source.cells ?? `${source.code}.cells`, keys = selectors.cells ?? `${selectors.code}.cells`;
             const index = `cell${state.serial++}`, key = `key${state.serial++}`;
-            lines.push(`const ${result} = vectorArray(${selectors.code}.shape, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${cells}, ${keys}]);
-                ${numberVectorLoop(`${keys}.length`, index, [
-                    `const ${key} = safe(Number(${keys}[${index}]));`,
-                    `if (${key} < 0 || ${key} >= ${cells}.length) throw overflow;`,
-                    `${result}.store(${index}, ${type.element === 'real' ? `Number(${cells}[${key}])` : `safe(Number(${cells}[${key}]))`});`,
-                ])}`);
+            const gather = (compact: boolean) => numberVectorLoop(`${keys}.length`, index, [
+                `const ${key} = ${compact ? `${keys}[${index}]` : `safe(Number(${keys}[${index}]))`};`,
+                `if (${key} < 0 || ${key} >= ${cells}.length) throw overflow;`,
+                compact ? `${result}.cells[${index}] = ${cells}[${key}];`
+                    : `${result}.store(${index}, ${type.element === 'real' ? `Number(${cells}[${key}])` : `safe(Number(${cells}[${key}]))`});`,
+            ]);
+            // Int32 sources and selectors need only bounds checks. Every cell
+            // fits either pooled output representation, without widening.
+            lines.push(`const ${result} = vectorArray(${selectors.code}.shape, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${cells}, ${keys}], ${type.element === 'boolean'});
+                if (${cells} instanceof Int32Array && ${keys} instanceof Int32Array) { ${gather(true)} }
+                else { ${gather(false)} }`);
         } else if (vectorOperation(e)) {
             const input = numberVector(e, lines);
             if (!input) return undefined;
             const index = `cell${state.serial++}`, body: string[] = [];
             const value = input.cell(index, body);
             if (!value) return undefined;
-            let loop = numberVectorLoop(input.size, index, [...body, `${result}.store(${index}, ${value.code});`]);
+            let loop = numberVectorLoop(input.size, index, [...body, type.element === 'boolean' ? `${result}.cells[${index}] = ${value.code} ? 1 : 0;` : `${result}.store(${index}, ${value.code});`]);
             if (type.element === 'integer' && input.sources.length) {
                 const fast: string[] = [];
                 const proven = input.cell(index, fast, { shape: input.shape, rank: input.rank,
@@ -1268,9 +1274,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     } else { ${loop} }`;
                 }
             }
-            lines.push(`const ${result} = vectorArray(${input.shape}, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${input.sources.join(',')}]); ${loop}`);
+            lines.push(`const ${result} = vectorArray(${input.shape}, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${input.sources.join(',')}], ${type.element === 'boolean'}); ${loop}`);
         } else return undefined;
-        return { code: result, cells: `${result}.cells`, type };
+        return { code: result, cells: `${result}.cells`, type, fresh: true };
     }
     /** Scalar inputs retain evaluation order. Number-vector divisions replay
      * the ordinary region on failure, preserving array error order; the exact

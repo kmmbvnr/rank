@@ -5,7 +5,10 @@ import {
     isNameExpression, isParenthesizedExpression, isReturnStatement, isUnaryExpression, isYieldStatement, isUnpackStatement,
     type Expression, type Statement,
 } from '@arrrank/language';
+import { hasNativeArrayHeader, integer32Cells, integer64Cells } from '../array-storage.js';
+import { ownedStorage } from '../array-storage-state.js';
 import { loopTraversal } from '../loop-traversal.js';
+import { checkedNumberPower, numberOverflow } from './number-arithmetic.js';
 import { floorDivide, floorRemainder } from '../numeric-division.js';
 import type { IntegerLoopPlan, LoopHost } from './integer-loop-plan.js';
 
@@ -26,7 +29,7 @@ const facts = (values: Values) => (name: string) => {
     return typeof value === 'bigint' ? { types: ['integer' as const], rank: 0, shape: [], integer: String(value) } : undefined;
 };
 
-/** Entry facts contain no array reads, callbacks or computed-cell caches. */
+/** Entry scalar facts contain no callbacks or computed-cell caches. */
 export function entryWorkValues(plan: IntegerLoopPlan, input: unknown[], excluded?: ReadonlySet<string>): Values {
     const values: Values = new Map();
     for (const slot of plan.required) {
@@ -42,19 +45,48 @@ export function entryWorkValues(plan: IntegerLoopPlan, input: unknown[], exclude
 /** Prepare one compositional cost proof for condition and vector regions.
  * Counts describe normally completing passes, not permission to execute or
  * mutate. Runtime guards, error publication and overflow replay remain separate.
- * No loops are executed here: invariant nested work composes by multiplication. */
+ * No loops are executed here: invariant nested work composes by multiplication.
+ * Indexed facts may read only guarded immutable entry cells, disjoint from writes. */
 export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
     function integer(expression: Expression): Integer {
         if (isParenthesizedExpression(expression)) return integer(expression.value);
-        if (isBinaryExpression(expression) && ['+', '-', '*', '//', 'mod'].includes(expression.operator)) {
+        if (isBinaryExpression(expression) && ['+', '-', '*', '//', 'mod', '**'].includes(expression.operator)) {
             const left = integer(expression.left), right = integer(expression.right), op = expression.operator;
             return values => {
                 const a = left(values), b = right(values);
                 if (a === undefined || b === undefined || b === 0n && ['//', 'mod'].includes(op)) return undefined;
+                if (op === '**') {
+                    // Safe exponents bound the checked squaring proof to 53 steps.
+                    if (b < 0n || !Number.isSafeInteger(Number(a)) || !Number.isSafeInteger(Number(b))) return undefined;
+                    try { return BigInt(checkedNumberPower(Number(a), Number(b))); }
+                    catch (error) { if (error !== numberOverflow) throw error; return undefined; }
+                }
                 const value = op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b
                     : op === '//' ? floorDivide(a, b) : floorRemainder(a, b);
                 return value >= -BigInt(Number.MAX_SAFE_INTEGER) && value <= BigInt(Number.MAX_SAFE_INTEGER) ? value : undefined;
             };
+        }
+        const selected = isApplicationExpression(expression) ? flattenApplication(expression) : undefined;
+        if (selected?.length === 2 && isNameExpression(selected[0])) {
+            const name = selected[0].name, index = integer(selected[1]);
+            if (plan.arrayInputs.has(name) && !plan.arrayDefinitions.has(name) && !plan.writable.has(name)) {
+                return values => {
+                    const at = index(values);
+                    if (at === undefined || at < 0n || at > BigInt(Number.MAX_SAFE_INTEGER)) return undefined;
+                    const value = host.read(name);
+                    if (!value || !hasNativeArrayHeader(value) || value.shape.length !== 1) return undefined;
+                    const cells = integer32Cells(value) ?? integer64Cells(value);
+                    if (!cells || cells.length !== value.shape[0] || at >= BigInt(cells.length)) return undefined;
+                    for (const destination of plan.destinations.keys()) {
+                        if (plan.arrayDefinitions.has(destination) && !plan.arrayInputs.has(destination)) continue;
+                        const other = host.read(destination);
+                        if (!other || !hasNativeArrayHeader(other) || other === value
+                            || ownedStorage.get(other)?.typed?.buffer === cells.buffer) return undefined;
+                    }
+                    const result = cells[Number(at)];
+                    return Number.isSafeInteger(Number(result)) ? BigInt(result) : undefined;
+                };
+            }
         }
         const parts = isApplicationExpression(expression) && host.extrema ? flattenApplication(expression) : undefined;
         const word = parts?.at(-1);

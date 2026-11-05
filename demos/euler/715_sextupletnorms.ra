@@ -40,7 +40,7 @@ CubeLow 0 = 0
 ChiLow 0 = 0
 Primes = primes to Root array
 for P in Primes
-  Cube = P ** 3 mod Prime
+  Cube = P 3 Prime powmod
   One = (P mod 4 equal 1) integer
   Three = (P mod 4 equal 3) integer
   Sign = One - Three
@@ -60,7 +60,8 @@ for P in Primes
   FromLow = ChiLow SmallAt
   Pick2 = Inside choose FromBig FromLow
   XDelta = Pick2 - XBefore
-  CDelta = Cube * (CDelta mod Prime)
+  CDelta = CDelta mod Prime
+  CDelta = Cube * CDelta mod Prime
   CNew = CubeBig Index - CDelta
   CubeBig Index = CNew mod Prime
   XNew = Sign * XDelta
@@ -69,7 +70,7 @@ for P in Primes
   Parents = Range // P
   CUp = CubeLow Parents - CBefore
   CDelta = CUp mod Prime
-  CCut = Cube * CDelta
+  CCut = Cube * CDelta mod Prime
   CNew = CubeLow Range - CCut
   CubeLow Range = CNew mod Prime
   XDelta = ChiLow Parents - XBefore
@@ -86,7 +87,7 @@ Cubes3 = Primes ** 3
 Isbig = Cubes3 greater Limit
 Bigs = Primes filter Isbig
 for P in Bigs reverse
-  Cube = P ** 3 mod Prime
+  Cube = P 3 Prime powmod
   One = (P mod 4 equal 1) integer
   Three = (P mod 4 equal 3) integer
   Raw = Cube - One + Three
@@ -103,13 +104,15 @@ for P in Bigs reverse
   FromLow = SumLow SmallAt
   Pick = Inside choose FromBig FromLow
   Value = Pick - Below
-  Value = Weight * (Value mod Prime)
+  Value = Value mod Prime
+  Value = Weight * Value mod Prime
   Gain = SumBig Index + Value + Weight2
   SumBig Index = Gain mod Prime
   if P * P at most Root
     Range = P * P to Root
     Over = SumLow (Range // P) - Below
-    Scaled = Weight * (Over mod Prime)
+    Over = Over mod Prime
+    Scaled = Weight * Over mod Prime
     Part = Scaled + Weight2
     Fresh = SumLow Range + Part
     SumLow Range = Fresh mod Prime
@@ -152,7 +155,7 @@ for Step in 0 to Pairs - 1
     SnapBig = SumBig copy
     SnapLow = SumLow copy
   end
-  Cube = P ** 3 mod Prime
+  Cube = P 3 Prime powmod
   One = (P mod 4 equal 1) integer
   Three = (P mod 4 equal 3) integer
   Raw = Cube - One + Three
@@ -173,14 +176,16 @@ for Step in 0 to Pairs - 1
   FromLow = SnapLow SmallAt
   Pick = Inside choose FromBig FromLow
   Value = Pick - Below
-  Value = WeightX * (Value mod Prime)
+  Value = Value mod Prime
+  Value = WeightX * Value mod Prime
   Gain = SumBig Index + Value + Weight3
   SumBig Index = Gain mod Prime
   if Power * P at most Root
     Range = Power * P to Root
     Which = Range // Power
     Over = SnapLow Which - Below
-    Scaled = WeightX * (Over mod Prime)
+    Over = Over mod Prime
+    Scaled = WeightX * Over mod Prime
     Part = Scaled + Weight3
     Fresh = SumLow Range + Part
     SumLow Range = Fresh mod Prime

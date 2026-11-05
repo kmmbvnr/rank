@@ -176,9 +176,30 @@ tuple A Saved Picked`);
     it('retains the live selection when an assignment result escapes', () => {
         compare(`A = array 1 2 3
 Ix = array 0 2
-Result = for N in 1 to 2
+for N in 1 to 2
  A Ix = N
-end
-tuple Result A`);
+end`);
     });
+    it.each(['A Ix + N', '(A + N) Ix', '(A Ix) + (A Ix)'])(
+        'publishes a fresh escaping scatter result: %s', rhs => {
+            const r = compare(`A = array 1 2 3
+Ix = array 0 2
+for N in 1 to 3
+ A Ix = ${rhs}
+end`);
+            expect(r.observation.error).toBeUndefined();
+            expect(r.diagnostics.numberLoops).toBe(1);
+        });
+    it.each(['continue', 'break', 'A 8 = 0'])(
+        'retains the last fresh scatter result before %s', exit => {
+            compare(`A = array 1 2 3
+Ix = array 0 2
+for N in 1 to 3
+ if N equal 2
+  ${exit}
+ end
+ A Ix = A Ix + N
+end`);
+        });
+
 });

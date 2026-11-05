@@ -41,7 +41,8 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
         writers.push(host.writer(name)); writerNames.push(name);
         const completed = `completed${state.serial++}`;
         if (numberMode) {
-            if (type !== 'integer' && (type !== 'real' || !host.reals)) return reject(assignment);
+            if (type !== 'integer' && (type !== 'real' || !host.reals)
+                && (type !== 'boolean' || !host.booleanArrays)) return reject(assignment);
             body.push(`location = ${location};`, ...lines,
                 `const ${completed} = ${move || !state.ownershipChecks ? value : `owned${destination} ? bindOwned(r${destination}, ${value}, ${aliasSlot !== undefined}) : ${value}`};`, dirty(destination),
                 `r${destination} = ${completed}; cells${destination} = cells[${destination}] = ${aliasSlot === undefined ? `${completed}.cells` : `cells${aliasSlot}`};`,
@@ -380,7 +381,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                         if (!fill || fill.type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || fill.type === 'bytes' || fill.type === 'boolean' && !host.booleanArrays) return reject(assignment);
                         rank = dimensions.length; type = fill.type;
                         value = `created${state.serial++}`;
-                        lines.push(`const ${value} = ${numberMode ? `createArray(${shape}, ${fill.code}, ${type === 'real'})` : `ownedArray(Array(Number(${size})).fill(${fill.code}), ${shape}, true)`};`);
+                        lines.push(`const ${value} = ${numberMode ? `createArray(${shape}, ${type === 'boolean' ? `Number(${fill.code})` : fill.code}, ${type === 'real'}, ${type === 'boolean'})` : `ownedArray(Array(Number(${size})).fill(${fill.code}), ${shape}, true)`};`);
                     } else {
                         if (!isNameExpression(expression) || !source) return reject(assignment);
                         const name = expression.name;

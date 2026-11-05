@@ -745,4 +745,55 @@ end`)))).toThrow(DemandBudgetExhausted);
             expect(diagnostics.numberLoops).toBe(1);
         } finally { runtime.dispose(); }
     });
+    it.each(['array 0 1 2 3', 'array shape 2 1 fill 2', 'array shape 0 fill 0'])(
+        'publishes Boolean vector stages with shape and type (%s)', values => {
+            const r = compare(`use sequences
+A = ${values}
+Mask = A greater 1
+for N in 1 to 3
+ Mask = A greater N
+end
+tuple Mask (Mask integer)`);
+            expect(r.observation.error).toBeUndefined();
+            expect(r.diagnostics.numberLoops).toBe(1);
+        });
+    it('keeps Boolean masks intact across gathers and pooled numeric stages', () => {
+        const r = compare(`A = array 0 1 2 3
+Ix = array 3 1 0
+Mask = A greater 1
+Picked = Mask Ix
+Scratch = A
+Count = 0
+for N in 1 to 3
+ Mask = A greater N
+ Picked = Mask Ix
+ Count += (N greater 1) integer
+ Scratch = A + N
+end
+tuple Mask Picked Count Scratch`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+    it('publishes locally created Boolean fills', () => {
+        const r = compare(`Mask = array false
+for N in 1 to 3
+ Mask = array shape 35 fill (N greater 1)
+end
+Mask`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+    it.each(['1.5', '"123"', '9007199254740993'])(
+        'preserves existing scalar integer conversion for %s', value => {
+            const r = compare(`Value = ${value}
+Result = 0
+for N in 1 to 3
+ Result = Value integer
+end
+Result`);
+            expect(r.observation.error).toBeUndefined();
+        });
+
+
+
 });

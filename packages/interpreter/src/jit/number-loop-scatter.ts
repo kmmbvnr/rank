@@ -3,7 +3,8 @@ import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
 
 /** Vector selection prepares every index before the RHS and snapshots aliased
- * operands before stores. Escaping array RHS results retain the ordinary path. */
+ * operands before stores. Escaping live RHS views retain the ordinary path; fresh private results
+ * remain pinned until their loop result is replaced or published. */
 export function emitNumberScatter(state: LoopCompilationState, expressions: LoopExpressions,
     assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined {
     if (!state.numberMode || assignment.operator !== '=' || assignment.indices.length !== 1) return undefined;
@@ -66,8 +67,8 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     const rhs = expressions.emitValue(assignment.value, lines, type);
     if (!rhs || (typeof rhs.type === 'string' ? rhs.type : rhs.type.element) !== type || state.calls.length !== calls) return undefined;
     // Assignments return their original RHS. A scalar has no live selection
-    // to retain; array RHS results still need the publishing backend.
-    if (typeof rhs.type !== 'string' && !discarded) return undefined;
+    // to retain; fresh array results can be pinned by iterationResult.
+    if (typeof rhs.type !== 'string' && !discarded && !rhs.fresh) return undefined;
     lines.push('vectorLive.pop();');
     const operand = `operand${n}`;
     let value: string;
@@ -89,7 +90,7 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
             ${state.arrayDefinitions.has(assignment.name) ? `r${target.slot}.cells = ${cells};` : ''}
         }`] : []),
         `${cells}[${key}] = value${n}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key}] = 1;`}`,
-    ]), `iterationResult = ${typeof rhs.type === 'string' ? operand : 'undefined'}; iterationType = '${typeof rhs.type === 'string' ? rhs.type : 'integer'}';`];
+    ]), `iterationResult = ${typeof rhs.type === 'string' ? operand : discarded ? 'undefined' : rhs.code}; iterationType = '${typeof rhs.type === 'string' ? rhs.type : discarded ? 'integer' : 'array'}';`];
     body.push(...(streamed.length ? [`if (streamScatterEnabled()) { location = ${location}; ${streamed.join('\n')} } else { ${ordinary.join('\n')} }`] : ordinary));
     return true;
 }
