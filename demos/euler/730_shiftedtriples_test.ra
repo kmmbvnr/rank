@@ -1,0 +1,12 @@
+use testing
+
+test "statement values"
+  use "730_shiftedtriples"
+  Shifts = 0
+  Perimeter = 10000
+  run
+  Answer equal 703
+  Shifts = 10
+  run
+  Answer equal 10956
+end
