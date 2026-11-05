@@ -337,3 +337,12 @@ it.each([4641589, 1])('checks the full Euler 388 wide sum with bounded tables (C
         expect(diagnostics.numberLoopOverflows).toBe(2);
     } finally { runtime.dispose(); }
 }, 30_000);
+
+for (const compilation of [true, false]) it(`checks the full Euler 707 polynomial calculation (compilation=${compilation})`, () => {
+    const url = new URL('../../../demos/euler/707_lightsout.ra', import.meta.url);
+    const runtime = new Interpreter(() => {}, { compilation });
+    try {
+        runtime.execute(readFileSync(url, 'utf8'));
+        expect(runtime.variables.get('Answer')).toBe(652907799n);
+    } finally { runtime.dispose(); }
+});

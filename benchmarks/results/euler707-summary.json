@@ -55,6 +55,26 @@
     }
   },
   "rejected": [
-    "Standalone axis-sum compaction: small speed benefit, peak RSS not improved; retained only in combination with broadcast kernel."
-  ]
+    "Standalone axis-sum compaction: small speed benefit, peak RSS not improved; retained only in combination with broadcast kernel.",
+    "Broadcast product with one-cell rows: slower in the control; final row kernel requires at least four columns.",
+    "Packed matrix rows in Rank: Mac 7.13 s / 599.5 MiB and Intel 20.11 s / 587.91 MiB; peak memory higher than dense step1.",
+    "Eager arbitrary precision array bitwise fallback: packed solver Mac 6.05 s / 604.69 MiB and Intel 18.74 s / 597.02 MiB; discarded with packed solver since memory did not improve.",
+    "Packed choose masks: Mac 9.81 s / 620.67 MiB; slower and more memory than multiplication masks."
+  ],
+  "verification": {
+    "differentialCases": 126,
+    "independentChecks": 43,
+    "fullOriginalCompared": true,
+    "fullCompilationModes": [
+      true,
+      false
+    ],
+    "focusedRuntimeTests": 207,
+    "fullEuler707Tests": 2,
+    "demoTests": 2,
+    "semanticBoundaryChecks": true,
+    "fullAuditsRun": false
+  },
+  "measurement": "One fresh process per baseline and intermediate full run; three fresh processes per final full run and paired kernel control. maxRSS is whole process peak, not retained heap.",
+  "finalAlgorithm": "Fibonacci polynomial recurrence modulo the cyclic path matrix characteristic polynomial; nullity equals degree of polynomial gcd. No task-specific interpreter primitive."
 }

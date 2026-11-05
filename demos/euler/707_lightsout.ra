@@ -3,7 +3,7 @@ rem https://projecteuler.net/problem=707
 
 use numbers
 use sequences
-use linalg
+use bits
 use io
 use cli
 
@@ -11,81 +11,111 @@ arg Width integer = 199
 arg Count integer = 199
 arg Prime integer = 1000000007
 
-rem F(w, h) = 2^(w h - nullity), with
-rem nullity = w - rank over GF(2) of
-rem A(h+1). A(0) = 0, A(1) = I and
-rem A(n+2) = T A(n+1) + A(n), T the
-rem path matrix with unit diagonal.
-rem Doubling steps to Fibonacci heights:
-rem A(m+n+1) = A(m+1)A(n+1) + A(m)A(n)
-rem A(m+n) = A(m+1)A(n) + A(m)A(n+1)
-rem            + T A(m)A(n)
-rem The ranks of all B = A(f+1) come
-rem from one batched elimination.
-Index = 0 to Width - 1
-Delta = (Index reshape Width 1) - Index
-Identity = (Delta equal 0) integer
-Path = (Delta abs less 2) integer
-Cells3 = Count * Width * Width
-Zeros3 = array shape Cells3 fill 0
-Stack = Zeros3 reshape Count Width Width
-Stack 0 = Path
-Stack 1 = Path
-AHigh = Identity
-BHigh = Path
-ALow = Identity
-BLow = Path
+if (Width less 0) or (Count less 0)
+  .DomainError raise
+end
+
+rem Integers encode GF(2) polynomials.
+rem T has ones on three diagonals. Its
+rem characteristic polynomial satisfies
+rem P(n) = (x+1) P(n-1) + P(n-2).
+fun Size characteristic
+  Low = 1
+  High = 3
+  if Size equal 0
+    return Low
+  end
+  for I in 2 to Size
+    Next = High shl 1
+    Next = Next bxor High bxor Low
+    Low = High
+    High = Next
+  end
+  return High
+end
+
+fun Value remainder Divisor
+  Rest = Value
+  Size = Divisor binary len
+  for Rest greater 0
+    Shift = (Rest binary len) - Size
+    if Shift less 0
+      break
+    end
+    Rest = Rest bxor (Divisor shl Shift)
+  end
+  return Rest
+end
+
+fun Left commonfactor Right
+  First = Left
+  Second = Right
+  for Second greater 0
+    Rest = First remainder Second
+    First = Second
+    Second = Rest
+  end
+  return First
+end
+
+Modulus = Width characteristic
+Variable = 2 remainder Modulus
+
+fun Left multiply Right
+  Carry = Left
+  Bits = Right
+  Result = 0
+  for Bits greater 0
+    if Bits bit 0
+      Result = Result bxor Carry
+    end
+    Bits = Bits shr 1
+    Carry = Carry shl 1
+    if Carry bit Width
+      Carry = Carry bxor Modulus
+    end
+  end
+  return Result
+end
+
+rem The first basis vector is cyclic
+rem for T, so nullity of B(T) equals
+rem degree(gcd(P, B)). This also holds
+rem when P has repeated factors.
+Initial = Modulus commonfactor Variable
+Initial = (Initial binary len) - 1
+Nullity = array shape Count fill Initial
+Fibs = array shape Count fill 1
+AHigh = 1
+BHigh = Variable
+ALow = 1
+BLow = Variable
 FibA = 1
 FibB = 1
-Fibs = array shape Count fill 1
+
+rem Same Fibonacci-height doubling
+rem identities as the matrix solution.
 for Step in 2 to Count - 1
-  Prod = AHigh matmul ALow mod 2
-  Cross1 = AHigh matmul BLow mod 2
-  Cross2 = BHigh matmul ALow mod 2
-  Both = BHigh matmul BLow mod 2
-  Down = Prod shift 1
-  Up = Prod shift -1
-  Shifted = Prod + Down + Up
-  Shifted = Shifted mod 2
+  Prod = AHigh multiply ALow
+  Cross1 = AHigh multiply BLow
+  Cross2 = BHigh multiply ALow
+  Both = BHigh multiply BLow
+  Shifted = Variable multiply Prod
   ALow = AHigh
   BLow = BHigh
-  Sum = Cross1 + Cross2 + Shifted
-  AHigh = Sum mod 2
-  BHigh = (Both + Prod) mod 2
-  Stack Step = BHigh
+  Sum = Cross1 bxor Cross2
+  AHigh = Sum bxor Shifted
+  BHigh = Both bxor Prod
+  Factor = Modulus commonfactor BHigh
+  Nullity Step = (Factor binary len) - 1
   FibC = (FibA + FibB) mod (Prime - 1)
   FibA = FibB
   FibB = FibC
   Fibs Step = FibC
 end
-Cells2 = Count * Width
-Zeros2 = array shape Cells2 fill 0
-Used = Zeros2 reshape Count Width
-Rank = array shape Count fill 0
-Order = (Width - Index) reshape 1 Width
-for Column in 0 to Width - 1
-  Col = Stack # # Column
-  Weight = Col * (1 - Used) * Order
-  Best = Weight max axis 1
-  Has = (Best greater 0) integer
-  Pivot = Width - Best
-  HasCol = Has reshape Count 1
-  PivotCol = Pivot reshape Count 1
-  Hot = (Index equal PivotCol) integer
-  Hot = Hot * HasCol
-  HotCube = Hot reshape Count Width 1
-  PivotRow = HotCube * Stack sum axis 1
-  Factor = Col * (1 - Hot) * HasCol
-  Down2 = Factor reshape Count Width 1
-  Across = PivotRow reshape Count 1 Width
-  Update = Down2 * Across
-  Stack = (Stack + Update) mod 2
-  Used = Used + Hot
-  Rank = Rank + Has
-end
 Cycle = Prime - 1
-Nullity = Width - Rank
-Exponent = (Width * Fibs - Nullity) mod Cycle
+Total = Width * Fibs - Nullity
+Exponent = Total mod Cycle
 Powers = 2 Exponent Prime powmod
 Answer = Powers sum mod Prime
 Answer print

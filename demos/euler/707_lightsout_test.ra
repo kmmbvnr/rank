@@ -15,3 +15,19 @@ test "statement values"
   run
   Answer equal 346547294
 end
+
+test "empty and single-cell widths"
+  use "707_lightsout"
+  Width = 0
+  Count = 3
+  run
+  Answer equal 3
+  Width = 1
+  Count = 1
+  run
+  Answer equal 2
+  Width = 3
+  Count = 0
+  run
+  Answer equal 0
+end
