@@ -38,6 +38,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0337** | [Лампочки](0337_lightbulbs.ra) | Number Theory / Inclusion-Exclusion (94%) | Parity LCM inclusion-exclusion term update with vector `lcm`, `argsort` & run-length merge |
 | **0342** | [Вписанная окружность](0342_inscribed_circle.ra) | Computational Geometry (68%) | Convex polygon incircle via vector inward normals, $2 \times 2$ Cramer solve & `(Diffs less 0.0001) all` |
 | **0396** | [Точки и отрезки](0396_points_and_segments.ra) | Data Structures / Scan (62%) | Segment point containment using tagged coordinate prefix scans `scan +` & scatter assignment |
+| **0402** | [Коттеджный поселок](0402_cottages.ra) | Computational Geometry (75%) | Linearly separable 2-colorings via canonical line classification and vectorized square roots |
 | **0403** | [Обмен валюты](0403_currency_exchange.ra) | Digit DP (70%) | Count integers in $[A, B]$ with $\le 2$ copies of each digit via memoized digit DP |
 | **0404** | [Игра в камешки](0404_stone_game.ra) | Game Theory (63%) | Square-root subtraction game up to $10^{12}$ via P-position sieve |
 | **0405** | [Туристическое агентство](0405_travel_agency.ra) | Graph Theory (80%) | Count cut-vertex disconnected component pairs using vector DSU & `(Roots U outer equal integer) sum axis 0` |
