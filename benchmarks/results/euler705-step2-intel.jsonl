@@ -1,0 +1,10 @@
+{"ms": 92.09792200000001, "maxRssMiB": 85.390625, "tree": "base", "sample": 0}
+{"ms": 52.385873000000004, "maxRssMiB": 84.31640625, "tree": "work", "sample": 0}
+{"ms": 95.80522900000003, "maxRssMiB": 84.83203125, "tree": "base", "sample": 1}
+{"ms": 53.93192799999997, "maxRssMiB": 85.45703125, "tree": "work", "sample": 1}
+{"ms": 98.92435900000001, "maxRssMiB": 85.25, "tree": "base", "sample": 2}
+{"ms": 54.27956599999999, "maxRssMiB": 84.1015625, "tree": "work", "sample": 2}
+{"ms": 102.11913800000002, "maxRssMiB": 85.46484375, "tree": "base", "sample": 3}
+{"ms": 54.15912399999999, "maxRssMiB": 84.75390625, "tree": "work", "sample": 3}
+{"ms": 91.84547200000003, "maxRssMiB": 85.7265625, "tree": "base", "sample": 4}
+{"ms": 54.71960500000003, "maxRssMiB": 84.66796875, "tree": "work", "sample": 4}

@@ -108,7 +108,8 @@ function sievePlan(sieve: DensePrimeSieve, upper: Boundary, lower?: Boundary): S
             if (first < 3n) first = 3n;
             if (first % 2n === 0n) first += 1n;
             if (first > last) return;
-            for (let value = Number(first); value <= Number(last); value += 2) {
+            const end = Number(last);
+            for (let value = Number(first); value <= end; value += 2) {
                 checkpoint('reading sequence');
                 if (sieve.contains(value)) yield BigInt(value);
             }
