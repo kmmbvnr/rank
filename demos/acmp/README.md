@@ -80,6 +80,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0612** | [Подстрока](0612_substring.ra) | Free Groups / Strings (68%) | Shortest word in free group equivalent to $X$ containing $Y$ via longest common subword of reduced forms, binary search & vectorized set window matching |
 | **0614** | [Скобки - 3](0614_brackets_3.ra) | Dynamic Programming / Strings (61%) | Count distinct regular bracket subsequences via DFA state transitions on greedy next-occurrence jumps |
 | **0615** | [Новый год](0615_new_year.ra) | Graph Theory / Matching (62%) | Minimum weight edge cover in bipartite graph via reduction to maximum savings matching and Hungarian/MCMF augmentation |
+| **0618** | [Диаграммы Юнга](0618_young_diagrams.ra) | Dynamic Programming / Partitions (74%) | Max subdiagrams in Young diagram for $N \le 100$ via suffix sum DP with `scan +` and `reduce +` over precomputed optimal partitions |
 | **0620** | [Бассейн реки](0620_river_basin.ra) | Computational Geometry (67%) | Max river basin area via tributary reachability, Andrew's monotone chain convex hull and vectorized Shoelace formula |
 | **0622** | [Прямоугольное деление](0622_rectangular_division.ra) | Computational Geometry / Graph (66%) | Planar face count formed by $N \le 100$ rectangles via dual compressed grid and `new dsu` |
 | **0624** | [Электронная почта](0624_email.ra) | Graph Theory (62%) | Distributed email log consistency check via chronological dependency DAG and `Graph cycle` |
