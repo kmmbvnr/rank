@@ -1,5 +1,8 @@
 # V8 runtime memory investigation
 
+Update: the recheck below supersedes the initial blanket rejection. Unary
+output-buffer reuse is now accepted based on an exercising Rank workload.
+
 Acceptance: retain a runtime change only with correct results, demonstrated
 memory savings on affected Euler workloads, and no measured speed regression.
 Use separate commits for accepted steps; record rejected candidates as well.
@@ -188,10 +191,45 @@ Raw observations are producer-fold-mac.json, scatter-producer-mac.json and
 scatter-producer-diagnostic.json in the baseline directory. The diagnostic
 pass is separate from the timing series.
 
-## Final disposition
+## Initial disposition (d84fa828)
 
 All six steps were evaluated in order. No runtime candidate passed the joint
 Euler memory/speed gate; runtime and demos are unchanged from 4e5fe2bc.
 The branch contains investigation reports, reproducible probes, raw samples
 and rejected prototype patches. Each completed step was committed and pushed
 separately. No issue, PR or external discussion comment was created.
+
+
+## Recheck: unary buffer reuse accepted
+
+The original rejection confused lack of coverage in Euler 42 with lack of
+benefit. The exercising end-to-end Rank workload now materializes one million
+integers, executes `Roots = Input isqrt array`, and checks `Roots sum` against
+an independent integer square-root sum. It warms up eight times and measures
+12 executions per process. All values are created by the tested interpreter.
+A separate constructor-counting pass reports 24 -> 12 Int32 allocations and
+96 -> 48 million allocated bytes. Post-GC buffer delta is zero in both:
+the improvement is allocation volume, not retained output size.
+
+The first A/B series used different module paths and showed a suspicious
+Mac Euler 491 difference despite only unary-array-kernel.js differing.
+The final series uses the same module path, swaps only that generated file,
+and pairs V8 random seeds 101..109 with alternating order. Timing passes
+have no allocation instrumentation. Each process checks its exact answer.
+
+| Host | Rank unary median ms | Euler 491 median ms |
+| --- | ---: | ---: |
+| Mac | 3.448 -> 3.199 | 323.557 -> 321.784 |
+| Intel | 9.856 -> 9.670 | 937.081 -> 934.075 |
+
+These nine paired-process series show no speed regression in the exercised
+workload or Euler control. Both hosts use Node v24.15.0. Tests: 22 unary
+kernel tests, including a new compact-prefix/late-widening regression test.
+The full suite and exhaustive audits were not run.
+
+Reproduce with `v8-unary-samepath.py NODE BASELINE OUTPUT.json` in a built
+candidate checkout. It restores the candidate JS in a finally block.
+`v8-unary-recheck.mjs CHECKOUT --allocations` measures constructor bytes
+separately. Raw files are unary-recheck-{mac,intel,allocations}.json and
+unary-samepath-{mac,intel}.json. The initial different-path series remains
+available and is not used as evidence of a causal Euler regression.

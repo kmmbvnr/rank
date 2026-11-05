@@ -158,6 +158,18 @@ describe('stored unary numeric kernels', () => {
         } finally { runtime.dispose(); }
     });
 
+    it('preserves the compact prefix when an integer result widens', () => {
+        const cells = new Int32Array(size).fill(2);
+        cells[size - 2] = 50000;
+        const input = typedArray(cells);
+        const result = mapStoredUnary(input, 'integer', value => value * value, 'integer')!;
+        expect(result).toBeDefined();
+        for (let index = 0; index < size; index++) {
+            expect(readArrayItem(result, index)).toBe(BigInt(cells[index]) ** 2n);
+        }
+        expect(readArrayItem(input, size - 2)).toBe(50000n);
+    });
+
     it('refuses lazy host cells without reading or invoking getters', () => {
         const input: RankArray = { kind: 'array', shape: [size],
             get items(): never { throw Error('host items'); },

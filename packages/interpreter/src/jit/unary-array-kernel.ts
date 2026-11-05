@@ -27,7 +27,7 @@ export function mapStoredUnary(source: RankArray, input: 'real' | 'integer' | 'n
         if (compact) {
             // Int32 cells are exact Numbers: no BigInt round trip per cell.
             if (size) view.validateUniform?.(BigInt(compact[offset]));
-            const out = result === 'integer' ? new Int32Array(size) : undefined;
+            const out = result === 'integer' ? cells as Int32Array : undefined;
             let fits = true;
             for (let start = 0; fits && start < size; start += 4096) {
                 const end = Math.min(size, start + 4096);
