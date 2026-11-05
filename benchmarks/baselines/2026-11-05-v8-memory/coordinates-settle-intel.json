@@ -1,0 +1,222 @@
+[
+  {
+    "heapSameJob": 39289576,
+    "heapAfterJob": 39232400,
+    "checkout": "/tmp/rank-v8-recheck/candidate",
+    "milliseconds": 947.5265029999999,
+    "answer": 194505988824000,
+    "peakRssKiB": 325268,
+    "coordinateArrays": 0,
+    "heapUsed": 39268456,
+    "code": {
+      "code_and_metadata_size": 4967328,
+      "bytecode_and_metadata_size": 2057232,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 0
+  },
+  {
+    "heapSameJob": 39292424,
+    "heapAfterJob": 39235384,
+    "checkout": "/tmp/rank-v8-recheck/candidate",
+    "milliseconds": 871.6888200000001,
+    "answer": 194505988824000,
+    "peakRssKiB": 330356,
+    "coordinateArrays": 0,
+    "heapUsed": 39271440,
+    "code": {
+      "code_and_metadata_size": 4969945,
+      "bytecode_and_metadata_size": 2057128,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 0
+  },
+  {
+    "heapSameJob": 37191080,
+    "heapAfterJob": 37165304,
+    "checkout": "/tmp/rank-v8-recheck/candidate",
+    "milliseconds": 888.207227,
+    "answer": 194505988824000,
+    "peakRssKiB": 320040,
+    "coordinateArrays": 0,
+    "heapUsed": 37201360,
+    "code": {
+      "code_and_metadata_size": 4989972,
+      "bytecode_and_metadata_size": 2057128,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 1
+  },
+  {
+    "heapSameJob": 37196088,
+    "heapAfterJob": 37139168,
+    "checkout": "/tmp/rank-v8-recheck/candidate",
+    "milliseconds": 963.5206219999999,
+    "answer": 194505988824000,
+    "peakRssKiB": 319720,
+    "coordinateArrays": 0,
+    "heapUsed": 37175224,
+    "code": {
+      "code_and_metadata_size": 4970606,
+      "bytecode_and_metadata_size": 2057232,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 1
+  },
+  {
+    "heapSameJob": 39289360,
+    "heapAfterJob": 39232224,
+    "checkout": "/tmp/rank-v8-recheck/candidate",
+    "milliseconds": 931.5410370000001,
+    "answer": 194505988824000,
+    "peakRssKiB": 326732,
+    "coordinateArrays": 0,
+    "heapUsed": 39268280,
+    "code": {
+      "code_and_metadata_size": 4968173,
+      "bytecode_and_metadata_size": 2057232,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 2
+  },
+  {
+    "heapSameJob": 39288712,
+    "heapAfterJob": 39231672,
+    "checkout": "/tmp/rank-v8-recheck/candidate",
+    "milliseconds": 919.786055,
+    "answer": 194505988824000,
+    "peakRssKiB": 329228,
+    "coordinateArrays": 0,
+    "heapUsed": 39267728,
+    "code": {
+      "code_and_metadata_size": 4967117,
+      "bytecode_and_metadata_size": 2057128,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 2
+  },
+  {
+    "heapSameJob": 39317696,
+    "heapAfterJob": 39292088,
+    "checkout": "/tmp/rank-v8-recheck/candidate",
+    "milliseconds": 889.0927049999999,
+    "answer": 194505988824000,
+    "peakRssKiB": 330576,
+    "coordinateArrays": 0,
+    "heapUsed": 39328144,
+    "code": {
+      "code_and_metadata_size": 5006225,
+      "bytecode_and_metadata_size": 2057128,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 3
+  },
+  {
+    "heapSameJob": 39295144,
+    "heapAfterJob": 39236184,
+    "checkout": "/tmp/rank-v8-recheck/candidate",
+    "milliseconds": 966.012807,
+    "answer": 194505988824000,
+    "peakRssKiB": 328176,
+    "coordinateArrays": 0,
+    "heapUsed": 39272240,
+    "code": {
+      "code_and_metadata_size": 4970566,
+      "bytecode_and_metadata_size": 2057232,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 3
+  },
+  {
+    "heapSameJob": 37204544,
+    "heapAfterJob": 37185464,
+    "checkout": "/tmp/rank-v8-recheck/candidate",
+    "milliseconds": 957.2245210000001,
+    "answer": 194505988824000,
+    "peakRssKiB": 319136,
+    "coordinateArrays": 0,
+    "heapUsed": 37221520,
+    "code": {
+      "code_and_metadata_size": 5001785,
+      "bytecode_and_metadata_size": 2057232,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 4
+  },
+  {
+    "heapSameJob": 39294864,
+    "heapAfterJob": 39237824,
+    "checkout": "/tmp/rank-v8-recheck/candidate",
+    "milliseconds": 872.595871,
+    "answer": 194505988824000,
+    "peakRssKiB": 329912,
+    "coordinateArrays": 0,
+    "heapUsed": 39273880,
+    "code": {
+      "code_and_metadata_size": 4971679,
+      "bytecode_and_metadata_size": 2057128,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 4
+  }
+]

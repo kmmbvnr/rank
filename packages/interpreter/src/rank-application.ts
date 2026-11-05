@@ -536,24 +536,28 @@ export function tensorCells(source: RankArray, frameAxes: readonly number[], ord
     const cellShape = cellAxes.map(axis => source.shape[axis]);
     const strides = source.shape.map((_, axis) => arraySize(source.shape.slice(axis + 1)));
     const contiguous = cellAxes.every((axis, index) => axis === frameAxes.length + index);
+    const linearFrame = frameAxes.every((axis, index) => axis === index);
+    const cellSize = arraySize(cellShape);
     return {
         frameShape,
         cellShape,
         cellAt(frameIndex) {
-            const sourceCoordinates = Array(source.shape.length).fill(0) as number[];
-            coordinatesAt(frameShape, frameIndex).forEach((coordinate, index) => {
-                sourceCoordinates[frameAxes[index]] = coordinate;
-            });
-            if (cellShape.length === 0) {
-                return arrayItem(source, arrayOffset(source.shape, sourceCoordinates));
+            let base = linearFrame ? frameIndex * cellSize : 0, remaining = frameIndex;
+            for (let index = linearFrame ? -1 : frameShape.length - 1; index >= 0; index--) {
+                base += remaining % frameShape[index] * strides[frameAxes[index]];
+                remaining = Math.floor(remaining / frameShape[index]);
             }
+            if (cellShape.length === 0) return arrayItem(source, base);
             if (arrayCells(source)) {
+                const sourceCoordinates = Array(source.shape.length).fill(0) as number[];
+                coordinatesAt(frameShape, frameIndex).forEach((coordinate, index) => {
+                    sourceCoordinates[frameAxes[index]] = coordinate;
+                });
                 const cell = sliceArray(source, tensorSelection(source,
                     sourceCoordinates.map((coordinate, axis) => frameSet.has(axis) ? BigInt(coordinate) : ALL_AXIS)));
                 const order = cellAxes.map(axis => naturalCellAxes.indexOf(axis));
                 return !isRankArray(cell) || order.every((axis, index) => axis === index) ? cell : permutedArray(cell, order);
             }
-            const base = arrayOffset(source.shape, sourceCoordinates);
             // A contiguous completed numeric cell can share storage. The storage
             // layer protects overlapping writes with its usual slice ownership.
             const stored = contiguous ? sliceStoredArray(source, base, cellShape) : undefined;

@@ -1,0 +1,40 @@
+[
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 5079.375042000001,
+    "answer": 194505988824000,
+    "peakRssKiB": 356352,
+    "coordinateArrays": 239448,
+    "heapUsed": 37311744,
+    "code": {
+      "code_and_metadata_size": 2914082,
+      "bytecode_and_metadata_size": 2058048,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 3709.296042,
+    "answer": 194505988824000,
+    "peakRssKiB": 344064,
+    "coordinateArrays": 0,
+    "heapUsed": 37279944,
+    "code": {
+      "code_and_metadata_size": 2896722,
+      "bytecode_and_metadata_size": 2057944,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate"
+  }
+]

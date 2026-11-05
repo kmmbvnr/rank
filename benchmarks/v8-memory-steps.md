@@ -1,7 +1,8 @@
 # V8 runtime memory investigation
 
 Update: the recheck below supersedes the initial blanket rejection. Unary
-output-buffer reuse is now accepted based on an exercising Rank workload.
+output-buffer reuse and direct numeric cell offsets are now accepted after
+exercising workloads, separate allocation counts and paired timing runs.
 
 Acceptance: retain a runtime change only with correct results, demonstrated
 memory savings on affected Euler workloads, and no measured speed regression.
@@ -233,3 +234,57 @@ candidate checkout. It restores the candidate JS in a finally block.
 separately. Raw files are unary-recheck-{mac,intel,allocations}.json and
 unary-samepath-{mac,intel}.json. The initial different-path series remains
 available and is not used as evidence of a causal Euler regression.
+
+
+## Recheck: numeric cell coordinates accepted
+
+The original rejection treated process peak RSS as equivalent to allocation
+volume. Recheck measures them separately. An instrumented Array constructor
+counts only the two coordinate-array call sites in tensorCells.cellAt and
+coordinatesAt when called by that method. Full Euler 491 removes 239,448
+such allocations (119,724 cells); the candidate count is zero. This is a
+separate diagnostic pass; its timing is not used.
+
+Timing changes only rank-application.js at the same module path, with matched
+V8 seeds 201..209, alternating version order and a fresh process per sample.
+The unary optimization is present in both sides. Warm cases execute the same
+program four times before the measured run. Each run checks the known exact
+answer. Both hosts run Node v24.15.0.
+
+| Host / workload | Baseline median ms | Candidate median ms |
+| --- | ---: | ---: |
+| Mac / Euler 491 cold | 327.312 | 328.500 |
+| Mac / Euler 491 warm | 321.004 | 276.074 |
+| Intel / Euler 491 cold | 950.718 | 900.401 |
+| Intel / Euler 491 warm | 865.928 | 723.471 |
+| Mac / Euler 77 cold | 25.130 | 25.201 |
+| Intel / Euler 77 cold | 66.231 | 65.799 |
+
+The candidate is faster in 8/9 warm Mac pairs and 9/9 warm Intel pairs.
+The small cold Mac median difference is not evidence of a regression:
+6/9 matched pairs are faster, with median paired ratio 0.939. Median-of-times
+and median-of-paired-ratios are different summaries; all observations are saved.
+
+Memory is not universally lower in every metric. Cold Intel initially showed
+about 2 MiB higher post-GC heap, while warm Intel showed about 4 MiB lower heap
+and 37 MiB lower peak RSS. Warm Mac retained heap was about 21 KiB higher.
+A separate five-pair memory check (seeds 301..305) drains two event-loop turns
+and collects after each, since WeakRef targets can survive the current job.
+Post-job heap medians are 37,136,232 -> 37,131,384 bytes on Mac and
+39,232,224 -> 39,235,384 on Intel: effectively unchanged retained data.
+That check does not prove WeakRefs caused the earlier reversal. The accepted
+benefit is fewer transient allocations and faster warmed execution, not a
+claim that every run has lower RSS or a smaller final result.
+
+109 focused rank/axis tests passed; the build passed. These include permuted
+axes, empty frames and negative rank semantics. No full suite or exhaustive
+audit was run. The original nested-array selection path is retained.
+
+Reproduce with `v8-coordinate-samepath.py NODE BASELINE OUTPUT.json` and
+`v8-coordinate-settle.py NODE BASELINE OUTPUT.json`. Both restore the candidate
+file after each series. `v8-ranked-cell-memory.mjs . 491 --coordinate-allocations`
+is the allocation diagnostic. Raw observations: coordinates-{mac,intel}.json,
+coordinates-allocations.json and coordinates-settle-{mac,intel}.json.
+
+The branch now retains two runtime changes, each committed and pushed separately.
+Other initial candidates remain rejected; their historical evidence is preserved.

@@ -21,6 +21,20 @@ const outputs = [];
 const runtime = new Interpreter(value => outputs.push(String(value)), {
     io: {read: path => readFileSync(resolve(path))},
 });
+if (process.argv.includes('--warm')) {
+    for (let i = 0; i < 4; i++) { runtime.executeProgram(source, args); outputs.length = 0; }
+}
+let coordinateArrays = 0;
+const NativeArray = globalThis.Array;
+if (process.argv.includes('--coordinate-allocations')) globalThis.Array = new Proxy(NativeArray, {
+    apply(target, receiver, args) {
+        const frames = new Error().stack.split('\n').slice(2, 4);
+        if (/at Object.cellAt .*rank-application.js/.test(frames[0])
+            || /at coordinatesAt .*tensor-index.js/.test(frames[0])
+                && /at Object.cellAt .*rank-application.js/.test(frames[1])) coordinateArrays++;
+        return Reflect.apply(target, receiver, args);
+    },
+});
 global.gc();
 const start = performance.now();
 runtime.executeProgram(source, args);
@@ -33,8 +47,18 @@ if (test === '048-wide') {
     assert.equal(outputs.join('').trim(), String(total));
 } else assert.equal(Number(answer.toFixed(8)), expected);
 global.gc();
-console.log(JSON.stringify({checkout, milliseconds, answer,
+const heapSameJob = process.memoryUsage().heapUsed;
+let heapAfterJob;
+if (process.argv.includes('--settle')) {
+    await new Promise(resolve => setImmediate(resolve));
+    global.gc();
+    await new Promise(resolve => setImmediate(resolve));
+    global.gc();
+    heapAfterJob = process.memoryUsage().heapUsed;
+}
+console.log(JSON.stringify({heapSameJob, heapAfterJob, checkout, milliseconds, answer,
     peakRssKiB: process.resourceUsage().maxRSS,
-    heapUsed: process.memoryUsage().heapUsed, code: getHeapCodeStatistics(),
+    coordinateArrays, heapUsed: process.memoryUsage().heapUsed, code: getHeapCodeStatistics(),
     runCompiles: globalThis.__runCompiles ?? null, scalarReads: globalThis.__scalarReads ?? null, positionalCalls: globalThis.__positionalCalls ?? null, node: process.version}));
+globalThis.Array = NativeArray;
 runtime.dispose();
