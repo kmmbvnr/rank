@@ -1,0 +1,284 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 931: Two Circles - 2
+rem Partition points onto two circles.
+
+arg Input text = "110
+-65000 0
+-64960 2280
+-64600 7200
+-64032 11176
+-63000 16000
+-62400 18200
+-60840 22880
+-60000 25000
+-56000 33000
+-54808 34944
+-53336 37152
+-52000 39000
+-50600 40800
+-47360 44520
+-44520 47360
+-40800 50600
+-39000 52000
+-37152 53336
+-34944 54808
+-33000 56000
+-25000 60000
+-22880 60840
+-18200 62400
+-16000 63000
+-11176 64032
+-7200 64600
+-2280 64960
+0 65000
+2280 64960
+7200 64600
+11176 64032
+16000 63000
+18200 62400
+22880 60840
+25000 60000
+33000 56000
+34944 54808
+37152 53336
+39000 52000
+40800 50600
+44520 47360
+47360 44520
+50600 40800
+52000 39000
+53336 37152
+54808 34944
+56000 33000
+60000 25000
+60840 22880
+62400 18200
+63000 16000
+64032 11176
+64600 7200
+64960 2280
+65000 0
+-55000 20000
+-54960 22280
+-54600 27200
+-54032 31176
+-53000 36000
+-52400 38200
+-50840 42880
+-50000 45000
+-46000 53000
+-44808 54944
+-43336 57152
+-42000 59000
+-40600 60800
+-37360 64520
+-34520 67360
+-30800 70600
+-29000 72000
+-27152 73336
+-24944 74808
+-23000 76000
+-15000 80000
+-12880 80840
+-8200 82400
+-6000 83000
+-1176 84032
+2800 84600
+7720 84960
+10000 85000
+12280 84960
+17200 84600
+21176 84032
+26000 83000
+28200 82400
+32880 80840
+35000 80000
+43000 76000
+44944 74808
+47152 73336
+49000 72000
+50800 70600
+54520 67360
+57360 64520
+60600 60800
+62000 59000
+63336 57152
+64808 54944
+66000 53000
+70000 45000
+70840 42880
+72400 38200
+73000 36000
+74032 31176
+74600 27200
+74960 22280
+75000 20000"
+
+fun solve_circles Input
+  Raw1 = Input split "
+" join " "
+  Raw2 = Raw1 split "
+" join " "
+  RawToks = Raw2 split " "
+  NonEmpty = not (RawToks equal "")
+  ToksStr = RawToks NonEmpty
+  Toks = ToksStr real
+  ToksInt = ToksStr integer
+  N = ToksInt 0
+  Coords = Toks (1 to (2 * N))
+  IdxX = (0 to (N - 1)) * 2
+  IdxY = IdxX + 1
+  X = Coords IdxX
+  Y = Coords IdxY
+  AllIdx = 0 to (N - 1)
+
+  TA = "0 0 0 0 0 0 1 1 1 2"
+  TB = "1 1 1 2 2 3 2 2 3 3"
+  TC = "2 3 4 3 4 4 3 4 4 4"
+  TripA = TA words integer
+  TripB = TB words integer
+  TripC = TC words integer
+
+  Found = false
+  Res1 = ""
+  Res2 = ""
+
+  for T in 0 to 9
+    if not Found
+      I1 = TripA T
+      I2 = TripB T
+      I3 = TripC T
+      if (I3 less N)
+        X1 = X I1
+        Y1 = Y I1
+        X2 = X I2
+        Y2 = Y I2
+        X3 = X I3
+        Y3 = Y I3
+        A1 = 2.0 * (X2 - X1)
+        B1 = 2.0 * (Y2 - Y1)
+        C1 = ((X2 ** 2) + (Y2 ** 2)) - (
+          (X1 ** 2) + (Y1 ** 2))
+        A2 = 2.0 * (X3 - X1)
+        B2 = 2.0 * (Y3 - Y1)
+        C2 = ((X3 ** 2) + (Y3 ** 2)) - (
+          (X1 ** 2) + (Y1 ** 2))
+        Det = (A1 * B2) - (A2 * B1)
+        if not ((Det abs) less 1e-6)
+          XC1 = ((C1 * B2) - (
+            C2 * B1)) / Det
+          YC1 = ((A1 * C2) - (
+            A2 * C1)) / Det
+          R1 = ((X1 - XC1) ** 2) + (
+            (Y1 - YC1) ** 2)
+          D1 = ((X - XC1) ** 2) + (
+            (Y - YC1) ** 2)
+          Diff1 = (D1 - R1) abs
+          Tol1 = (R1 * 1e-5) max 0.1
+          On1 = Diff1 less Tol1
+          Rem = AllIdx (not On1)
+          RemN = Rem len
+          if RemN equal 0
+            Found = true
+            Res1 = (AllIdx + 1) join " "
+            Res2 = "1 2"
+          end
+          if RemN equal 1
+            Found = true
+            P1 = (AllIdx On1) + 1
+            Res1 = P1 join " "
+            RemP = (Rem 0) + 1
+            Res2 = (RemP text) + " 1"
+          end
+          if RemN equal 2
+            J1 = Rem 0
+            J2 = Rem 1
+            XC2 = (X J1 + (X J2)) / 2.0
+            YC2 = (Y J1 + (Y J2)) / 2.0
+            DX2 = (X J1) - (X J2)
+            DY2 = (Y J1) - (Y J2)
+            R2 = ((DX2 ** 2) + (
+              DY2 ** 2)) / 4.0
+            D2 = ((X - XC2) ** 2) + (
+              (Y - YC2) ** 2)
+            Diff2 = (D2 - R2) abs
+            Tol2 = (R2 * 1e-5) max 0.1
+            On2 = Diff2 less Tol2
+            Found = true
+            P1 = (AllIdx On1) + 1
+            P2 = (AllIdx On2) + 1
+            Res1 = P1 join " "
+            Res2 = P2 join " "
+          end
+          if RemN greater 2
+            J1 = Rem 0
+            J2 = Rem 1
+            J3 = Rem 2
+            JX1 = X J1
+            JY1 = Y J1
+            JX2 = X J2
+            JY2 = Y J2
+            JX3 = X J3
+            JY3 = Y J3
+            JA1 = 2.0 * (JX2 - JX1)
+            JB1 = 2.0 * (JY2 - JY1)
+            JC1 = ((JX2 ** 2) + (
+              JY2 ** 2)) - (
+              (JX1 ** 2) + (JY1 ** 2))
+            JA2 = 2.0 * (JX3 - JX1)
+            JB2 = 2.0 * (JY3 - JY1)
+            JC2 = ((JX3 ** 2) + (
+              JY3 ** 2)) - (
+              (JX1 ** 2) + (JY1 ** 2))
+            JDet = (JA1 * JB2) - (
+              JA2 * JB1)
+            if not (JDet abs less 1e-6)
+              XC2 = ((JC1 * JB2) - (
+                JC2 * JB1)) / JDet
+              YC2 = ((JA1 * JC2) - (
+                JA2 * JC1)) / JDet
+              R2 = (JX1 - XC2) ** 2 + (
+                (JY1 - YC2) ** 2)
+              D2 = ((X - XC2) ** 2) + (
+                (Y - YC2) ** 2)
+              Diff2 = (D2 - R2) abs
+              Tol2 = (R2 * 1e-5) max 0.1
+            On2 = Diff2 less Tol2
+              if ((On2 Rem) all)
+                Found = true
+                P1 = (AllIdx On1) + 1
+                P2 = (AllIdx On2) + 1
+                Res1 = P1 join " "
+                Res2 = P2 join " "
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  if not Found
+    Res1 = "1"
+    Res2 = "2"
+    if N equal 4
+      Res1 = "1 2"
+      Res2 = "3 4"
+    end
+    if N equal 3
+      Res1 = "1 2"
+      Res2 = "2 3"
+    end
+  end
+
+  return Res1 + "
+" + Res2
+end
+
+Result = solve_circles Input
+Result print

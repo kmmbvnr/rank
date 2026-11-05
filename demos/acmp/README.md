@@ -138,6 +138,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0920** | [Игуана](0920_iguana.ra) | Bitmask / Inclusion-Exclusion (62%) | Chromatic number $N \le 18$: independent sets by doubling, zeta transform, $\sum (-1)^{N-|S|} I(S)^k$ over vectors |
 | **0921** | [Турнир - 2](0921_tournament_2.ra) | Math / Vector Arithmetic (60%) | Optimal chess match count minimizing expected score differences via vectorized vector arithmetic `C = 1 till K`, `Diffs = ((C * (A - B)) + (K * B)) abs`, `MinDiff = Diffs min` |
 | **0928** | [Березовая аллея](0928_birch_alley.ra) | Computational Geometry / Binary Search (70%) | Max enclosed trees under ribbon length $L$ via 2D tensor difference matrix of decoupled top/bottom perimeter boundaries and binary search |
+| **0931** | [Две окружности - 2](0931_two_circles_2.ra) | Computational Geometry (72%) | Partition $N \le 2000$ points onto two circles via Pigeonhole 5-point triple candidate search and zero-loop vectorized distance classification |
 | **0958** | [Осмотр королевства](0958_kings_tour.ra) | Graph Theory (62%) | Tournament Hamiltonian path merging $K$ chain routes |
 | **0959** | [Защита деревьев](0959_tree_protection.ra) | Computational Geometry (70%) | Max trees enclosed by rigid triangle of sides $a, b, c$ via 1D line projection intervals and 2D matrix overlap reduction in a single loop |
 | **0963** | [Морфизм](0963_morphism.ra) | Dynamic Programming (63%) | Binary lifting over 20-character substitution prefix table |
