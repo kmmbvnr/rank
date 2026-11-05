@@ -106,9 +106,40 @@ Existing Number positional calls were already present before this work.
 The TypeScript build and 31 existing typed-native/powmod-array tests passed
 on the prototype.
 
+## 5. Lazy scalar run variant: skipped
+
+Prototype in `experiments/v8-lazy-scalar-run.patch` defers construction of the
+array-ABI run variant until first use. The positional direct variant still
+compiles eagerly, retaining the entry-time CSP fallback. A captured Function
+constructor avoids changing behavior merely because a host replaces the
+global property after preparation. Deferred construction remains a tradeoff
+if host CSP changes after preparation; the prototype was not retained.
+
+Separate instrumentation confirmed eager baseline run construction on Euler
+26 (2), 44 (2), and 48 (1), versus zero constructions in the lazy candidate.
+These tasks use other variants. 188 did not compile a run variant in either.
+All exact answers matched and 30 scalar-function-kernel tests passed.
+
+Nine alternating fresh-process pairs per task, Node v24.15.0, full inputs:
+
+| Host / Euler | Time ms before/after | Peak RSS KiB before/after | Retained heap bytes before/after |
+| --- | ---: | ---: | ---: |
+| Mac / 26 | 16.850 / 16.886 | 178256 / 165376 | 32046928 / 32051504 |
+| Mac / 44 | 93.856 / 94.039 | 181296 / 180592 | 33953400 / 33964808 |
+| Mac / 54 | 188.316 / 187.778 | 307056 / 306480 | 40922808 / 40914160 |
+| Intel / 26 | 41.119 / 40.832 | 161508 / 161464 | 32050032 / 32053568 |
+| Intel / 44 | 204.808 / 205.939 | 163976 / 164192 | 33954384 / 33945408 |
+| Intel / 54 | 744.346 / 752.764 | 290100 / 289844 | 40842792 / 40844296 |
+
+Mac code/metadata medians were about 23-26 KiB lower, but overall retained
+heap and peak RSS did not decrease consistently across tasks and hosts.
+Intel 54 was about 1.1% slower by median. These small differences cannot
+establish a uniform benefit; deferred factories also retain their inputs.
+Reject under the joint memory/speed gate. No runtime change retained.
+Raw data: `lazy-run-{diagnostic,mac,intel}.json` in the baseline directory.
+
 ## Remaining steps
 
-5. Construct scalar function variants lazily.
 6. Fuse polynomial producers into scatter/fold consumers.
 
 Each requires its own workload evidence before retaining a runtime patch.

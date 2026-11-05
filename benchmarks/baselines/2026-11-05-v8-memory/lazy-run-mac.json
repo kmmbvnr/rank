@@ -1,0 +1,1082 @@
+[
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 16.712625000000003,
+    "answer": 983,
+    "peakRssKiB": 178256,
+    "heapUsed": 32044968,
+    "code": {
+      "code_and_metadata_size": 2389636,
+      "bytecode_and_metadata_size": 1974080,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 0,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 16.885541000000018,
+    "answer": 983,
+    "peakRssKiB": 165952,
+    "heapUsed": 32051504,
+    "code": {
+      "code_and_metadata_size": 2366328,
+      "bytecode_and_metadata_size": 1974144,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 0,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 16.878209000000027,
+    "answer": 983,
+    "peakRssKiB": 164960,
+    "heapUsed": 32050000,
+    "code": {
+      "code_and_metadata_size": 2365064,
+      "bytecode_and_metadata_size": 1974144,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 1,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 16.813499999999976,
+    "answer": 983,
+    "peakRssKiB": 178688,
+    "heapUsed": 32047408,
+    "code": {
+      "code_and_metadata_size": 2391754,
+      "bytecode_and_metadata_size": 1974080,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 1,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 16.850416999999965,
+    "answer": 983,
+    "peakRssKiB": 179584,
+    "heapUsed": 32047768,
+    "code": {
+      "code_and_metadata_size": 2391790,
+      "bytecode_and_metadata_size": 1974080,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 2,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 16.836208999999997,
+    "answer": 983,
+    "peakRssKiB": 165392,
+    "heapUsed": 32050088,
+    "code": {
+      "code_and_metadata_size": 2365098,
+      "bytecode_and_metadata_size": 1974144,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 2,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 16.773499999999984,
+    "answer": 983,
+    "peakRssKiB": 165216,
+    "heapUsed": 32050112,
+    "code": {
+      "code_and_metadata_size": 2365102,
+      "bytecode_and_metadata_size": 1974144,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 3,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 16.734249999999975,
+    "answer": 983,
+    "peakRssKiB": 178144,
+    "heapUsed": 32045128,
+    "code": {
+      "code_and_metadata_size": 2389638,
+      "bytecode_and_metadata_size": 1974080,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 3,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 16.78770799999998,
+    "answer": 983,
+    "peakRssKiB": 178144,
+    "heapUsed": 32046536,
+    "code": {
+      "code_and_metadata_size": 2390904,
+      "bytecode_and_metadata_size": 1974080,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 4,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 16.884415999999987,
+    "answer": 983,
+    "peakRssKiB": 165952,
+    "heapUsed": 32048912,
+    "code": {
+      "code_and_metadata_size": 2364214,
+      "bytecode_and_metadata_size": 1974144,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 4,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 17.26725000000002,
+    "answer": 983,
+    "peakRssKiB": 155968,
+    "heapUsed": 32071272,
+    "code": {
+      "code_and_metadata_size": 2373438,
+      "bytecode_and_metadata_size": 1974144,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 5,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 17.70958300000001,
+    "answer": 983,
+    "peakRssKiB": 180752,
+    "heapUsed": 32047872,
+    "code": {
+      "code_and_metadata_size": 2391976,
+      "bytecode_and_metadata_size": 1974080,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 5,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 17.589875000000035,
+    "answer": 983,
+    "peakRssKiB": 178816,
+    "heapUsed": 32050776,
+    "code": {
+      "code_and_metadata_size": 2393115,
+      "bytecode_and_metadata_size": 1974080,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 6,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 16.957166,
+    "answer": 983,
+    "peakRssKiB": 165376,
+    "heapUsed": 32054600,
+    "code": {
+      "code_and_metadata_size": 2367127,
+      "bytecode_and_metadata_size": 1974144,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 6,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 17.003875000000022,
+    "answer": 983,
+    "peakRssKiB": 164576,
+    "heapUsed": 32054400,
+    "code": {
+      "code_and_metadata_size": 2367127,
+      "bytecode_and_metadata_size": 1974144,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 7,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 16.92437499999997,
+    "answer": 983,
+    "peakRssKiB": 177776,
+    "heapUsed": 32044888,
+    "code": {
+      "code_and_metadata_size": 2389572,
+      "bytecode_and_metadata_size": 1974080,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 7,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 17.691958,
+    "answer": 983,
+    "peakRssKiB": 178192,
+    "heapUsed": 32046928,
+    "code": {
+      "code_and_metadata_size": 2390597,
+      "bytecode_and_metadata_size": 1974080,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 8,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 17.846666999999968,
+    "answer": 983,
+    "peakRssKiB": 179408,
+    "heapUsed": 32080264,
+    "code": {
+      "code_and_metadata_size": 2386393,
+      "bytecode_and_metadata_size": 1974144,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 8,
+    "case": "026"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 99.60537500000004,
+    "answer": 5482660,
+    "peakRssKiB": 181808,
+    "heapUsed": 33949560,
+    "code": {
+      "code_and_metadata_size": 2503632,
+      "bytecode_and_metadata_size": 2001680,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 0,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 93.86066699999998,
+    "answer": 5482660,
+    "peakRssKiB": 181760,
+    "heapUsed": 33948928,
+    "code": {
+      "code_and_metadata_size": 2479439,
+      "bytecode_and_metadata_size": 2001744,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 0,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 94.21087500000004,
+    "answer": 5482660,
+    "peakRssKiB": 180384,
+    "heapUsed": 33953288,
+    "code": {
+      "code_and_metadata_size": 2481730,
+      "bytecode_and_metadata_size": 2001744,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 1,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 98.925791,
+    "answer": 5482660,
+    "peakRssKiB": 181136,
+    "heapUsed": 33953400,
+    "code": {
+      "code_and_metadata_size": 2508187,
+      "bytecode_and_metadata_size": 2001680,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 1,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 93.03995900000001,
+    "answer": 5482660,
+    "peakRssKiB": 181296,
+    "heapUsed": 33953368,
+    "code": {
+      "code_and_metadata_size": 2501226,
+      "bytecode_and_metadata_size": 2001680,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 2,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 93.93508300000002,
+    "answer": 5482660,
+    "peakRssKiB": 180592,
+    "heapUsed": 34167200,
+    "code": {
+      "code_and_metadata_size": 2486654,
+      "bytecode_and_metadata_size": 2001744,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 2,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 94.03945799999997,
+    "answer": 5482660,
+    "peakRssKiB": 181600,
+    "heapUsed": 33996496,
+    "code": {
+      "code_and_metadata_size": 2483965,
+      "bytecode_and_metadata_size": 2001744,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 3,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 93.67304200000001,
+    "answer": 5482660,
+    "peakRssKiB": 182752,
+    "heapUsed": 34192240,
+    "code": {
+      "code_and_metadata_size": 2504548,
+      "bytecode_and_metadata_size": 2001680,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 3,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 93.992459,
+    "answer": 5482660,
+    "peakRssKiB": 181344,
+    "heapUsed": 33966048,
+    "code": {
+      "code_and_metadata_size": 2504489,
+      "bytecode_and_metadata_size": 2001680,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 4,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 93.382958,
+    "answer": 5482660,
+    "peakRssKiB": 179152,
+    "heapUsed": 33964808,
+    "code": {
+      "code_and_metadata_size": 2480428,
+      "bytecode_and_metadata_size": 2001744,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 4,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 93.92404100000005,
+    "answer": 5482660,
+    "peakRssKiB": 181072,
+    "heapUsed": 33979392,
+    "code": {
+      "code_and_metadata_size": 2480392,
+      "bytecode_and_metadata_size": 2001744,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 5,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 93.557459,
+    "answer": 5482660,
+    "peakRssKiB": 180480,
+    "heapUsed": 33950928,
+    "code": {
+      "code_and_metadata_size": 2506011,
+      "bytecode_and_metadata_size": 2001680,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 5,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 93.85566599999999,
+    "answer": 5482660,
+    "peakRssKiB": 180496,
+    "heapUsed": 33954240,
+    "code": {
+      "code_and_metadata_size": 2503442,
+      "bytecode_and_metadata_size": 2001680,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 6,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 94.294375,
+    "answer": 5482660,
+    "peakRssKiB": 181216,
+    "heapUsed": 34223752,
+    "code": {
+      "code_and_metadata_size": 2481821,
+      "bytecode_and_metadata_size": 2001744,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 6,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 96.868833,
+    "answer": 5482660,
+    "peakRssKiB": 178960,
+    "heapUsed": 33952968,
+    "code": {
+      "code_and_metadata_size": 2481732,
+      "bytecode_and_metadata_size": 2001744,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 7,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 93.48391700000002,
+    "answer": 5482660,
+    "peakRssKiB": 182176,
+    "heapUsed": 33990832,
+    "code": {
+      "code_and_metadata_size": 2506041,
+      "bytecode_and_metadata_size": 2001680,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 7,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 94.86237499999999,
+    "answer": 5482660,
+    "peakRssKiB": 180704,
+    "heapUsed": 33952432,
+    "code": {
+      "code_and_metadata_size": 2505920,
+      "bytecode_and_metadata_size": 2001680,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 8,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 95.494708,
+    "answer": 5482660,
+    "peakRssKiB": 180448,
+    "heapUsed": 33954760,
+    "code": {
+      "code_and_metadata_size": 2484306,
+      "bytecode_and_metadata_size": 2001744,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 8,
+    "case": "044"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 188.75066599999997,
+    "answer": 376,
+    "peakRssKiB": 308208,
+    "heapUsed": 40923816,
+    "code": {
+      "code_and_metadata_size": 4908709,
+      "bytecode_and_metadata_size": 2347608,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 0,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 188.24812500000002,
+    "answer": 376,
+    "peakRssKiB": 304736,
+    "heapUsed": 40914160,
+    "code": {
+      "code_and_metadata_size": 4882171,
+      "bytecode_and_metadata_size": 2347672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 0,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 185.303333,
+    "answer": 376,
+    "peakRssKiB": 305120,
+    "heapUsed": 40911232,
+    "code": {
+      "code_and_metadata_size": 4880025,
+      "bytecode_and_metadata_size": 2347672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 1,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 184.023667,
+    "answer": 376,
+    "peakRssKiB": 306480,
+    "heapUsed": 40922720,
+    "code": {
+      "code_and_metadata_size": 4907984,
+      "bytecode_and_metadata_size": 2347608,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 1,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 189.060208,
+    "answer": 376,
+    "peakRssKiB": 306384,
+    "heapUsed": 40916320,
+    "code": {
+      "code_and_metadata_size": 4904047,
+      "bytecode_and_metadata_size": 2347608,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 2,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 186.675792,
+    "answer": 376,
+    "peakRssKiB": 306480,
+    "heapUsed": 40919560,
+    "code": {
+      "code_and_metadata_size": 4884810,
+      "bytecode_and_metadata_size": 2347672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 2,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 189.097917,
+    "answer": 376,
+    "peakRssKiB": 306992,
+    "heapUsed": 40911312,
+    "code": {
+      "code_and_metadata_size": 4880023,
+      "bytecode_and_metadata_size": 2347672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 3,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 185.40670799999998,
+    "answer": 376,
+    "peakRssKiB": 307072,
+    "heapUsed": 40924352,
+    "code": {
+      "code_and_metadata_size": 4909455,
+      "bytecode_and_metadata_size": 2347608,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 3,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 193.99837499999995,
+    "answer": 376,
+    "peakRssKiB": 306640,
+    "heapUsed": 40922808,
+    "code": {
+      "code_and_metadata_size": 4907986,
+      "bytecode_and_metadata_size": 2347608,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 4,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 187.179416,
+    "answer": 376,
+    "peakRssKiB": 305600,
+    "heapUsed": 40911248,
+    "code": {
+      "code_and_metadata_size": 4879393,
+      "bytecode_and_metadata_size": 2347672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 4,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 187.77775000000003,
+    "answer": 376,
+    "peakRssKiB": 307056,
+    "heapUsed": 40920768,
+    "code": {
+      "code_and_metadata_size": 4886831,
+      "bytecode_and_metadata_size": 2347672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 5,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 188.572542,
+    "answer": 376,
+    "peakRssKiB": 308016,
+    "heapUsed": 40921864,
+    "code": {
+      "code_and_metadata_size": 4907863,
+      "bytecode_and_metadata_size": 2347608,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 5,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 187.24837499999995,
+    "answer": 376,
+    "peakRssKiB": 307472,
+    "heapUsed": 40925424,
+    "code": {
+      "code_and_metadata_size": 4910134,
+      "bytecode_and_metadata_size": 2347608,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 6,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 191.37183399999998,
+    "answer": 376,
+    "peakRssKiB": 307504,
+    "heapUsed": 40941072,
+    "code": {
+      "code_and_metadata_size": 4900633,
+      "bytecode_and_metadata_size": 2347672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 6,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 188.190333,
+    "answer": 376,
+    "peakRssKiB": 306624,
+    "heapUsed": 40913216,
+    "code": {
+      "code_and_metadata_size": 4881652,
+      "bytecode_and_metadata_size": 2347672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 7,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 186.579542,
+    "answer": 376,
+    "peakRssKiB": 307056,
+    "heapUsed": 40926304,
+    "code": {
+      "code_and_metadata_size": 4910887,
+      "bytecode_and_metadata_size": 2347608,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 7,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-baseline",
+    "milliseconds": 188.31599999999997,
+    "answer": 376,
+    "peakRssKiB": 305520,
+    "heapUsed": 40910864,
+    "code": {
+      "code_and_metadata_size": 4901308,
+      "bytecode_and_metadata_size": 2347608,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 8,
+    "case": "054"
+  },
+  {
+    "checkout": "/private/tmp/rank-v8-memory-steps",
+    "milliseconds": 187.27112500000004,
+    "answer": 376,
+    "peakRssKiB": 305920,
+    "heapUsed": 40920808,
+    "code": {
+      "code_and_metadata_size": 4884053,
+      "bytecode_and_metadata_size": 2347672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 8,
+    "case": "054"
+  }
+]

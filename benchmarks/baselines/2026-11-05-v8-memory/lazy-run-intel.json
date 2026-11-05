@@ -1,0 +1,1082 @@
+[
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 44.24689699999999,
+    "answer": 983,
+    "peakRssKiB": 161760,
+    "heapUsed": 32052464,
+    "code": {
+      "code_and_metadata_size": 4456791,
+      "bytecode_and_metadata_size": 1973072,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 0,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 41.45359799999994,
+    "answer": 983,
+    "peakRssKiB": 160980,
+    "heapUsed": 32056256,
+    "code": {
+      "code_and_metadata_size": 4458210,
+      "bytecode_and_metadata_size": 1973136,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 0,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 40.678638999999976,
+    "answer": 983,
+    "peakRssKiB": 161296,
+    "heapUsed": 32093320,
+    "code": {
+      "code_and_metadata_size": 4485920,
+      "bytecode_and_metadata_size": 1973136,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 1,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 41.153234,
+    "answer": 983,
+    "peakRssKiB": 162496,
+    "heapUsed": 32048528,
+    "code": {
+      "code_and_metadata_size": 4453375,
+      "bytecode_and_metadata_size": 1973072,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 1,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 40.63260500000001,
+    "answer": 983,
+    "peakRssKiB": 162776,
+    "heapUsed": 32055488,
+    "code": {
+      "code_and_metadata_size": 4458965,
+      "bytecode_and_metadata_size": 1973072,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 2,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 41.03142500000001,
+    "answer": 983,
+    "peakRssKiB": 162012,
+    "heapUsed": 32049904,
+    "code": {
+      "code_and_metadata_size": 4453694,
+      "bytecode_and_metadata_size": 1973136,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 2,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 40.83158300000002,
+    "answer": 983,
+    "peakRssKiB": 160844,
+    "heapUsed": 32049736,
+    "code": {
+      "code_and_metadata_size": 4453694,
+      "bytecode_and_metadata_size": 1973136,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 3,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 41.40669200000002,
+    "answer": 983,
+    "peakRssKiB": 162720,
+    "heapUsed": 32048496,
+    "code": {
+      "code_and_metadata_size": 4453373,
+      "bytecode_and_metadata_size": 1973072,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 3,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 40.974559,
+    "answer": 983,
+    "peakRssKiB": 161208,
+    "heapUsed": 32054544,
+    "code": {
+      "code_and_metadata_size": 4458210,
+      "bytecode_and_metadata_size": 1973072,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 4,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 41.51841200000001,
+    "answer": 983,
+    "peakRssKiB": 161464,
+    "heapUsed": 32049840,
+    "code": {
+      "code_and_metadata_size": 4453694,
+      "bytecode_and_metadata_size": 1973136,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 4,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 40.79671599999995,
+    "answer": 983,
+    "peakRssKiB": 162332,
+    "heapUsed": 32053568,
+    "code": {
+      "code_and_metadata_size": 4456181,
+      "bytecode_and_metadata_size": 1973136,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 5,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 40.54639199999997,
+    "answer": 983,
+    "peakRssKiB": 160892,
+    "heapUsed": 32050032,
+    "code": {
+      "code_and_metadata_size": 4454992,
+      "bytecode_and_metadata_size": 1973072,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 5,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 41.257070999999996,
+    "answer": 983,
+    "peakRssKiB": 161268,
+    "heapUsed": 32048672,
+    "code": {
+      "code_and_metadata_size": 4453694,
+      "bytecode_and_metadata_size": 1973072,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 6,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 41.535168999999996,
+    "answer": 983,
+    "peakRssKiB": 161236,
+    "heapUsed": 32092872,
+    "code": {
+      "code_and_metadata_size": 4485548,
+      "bytecode_and_metadata_size": 1973136,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 6,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 40.802723000000015,
+    "answer": 983,
+    "peakRssKiB": 161712,
+    "heapUsed": 32051528,
+    "code": {
+      "code_and_metadata_size": 4454992,
+      "bytecode_and_metadata_size": 1973136,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 7,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 40.77131499999996,
+    "answer": 983,
+    "peakRssKiB": 161368,
+    "heapUsed": 32053232,
+    "code": {
+      "code_and_metadata_size": 4456912,
+      "bytecode_and_metadata_size": 1973072,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 7,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 41.119235,
+    "answer": 983,
+    "peakRssKiB": 161508,
+    "heapUsed": 32048664,
+    "code": {
+      "code_and_metadata_size": 4453694,
+      "bytecode_and_metadata_size": 1973072,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 8,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 40.48961600000007,
+    "answer": 983,
+    "peakRssKiB": 162228,
+    "heapUsed": 32057144,
+    "code": {
+      "code_and_metadata_size": 4458965,
+      "bytecode_and_metadata_size": 1973136,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 8,
+    "case": "026"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 194.99229000000003,
+    "answer": 5482660,
+    "peakRssKiB": 163920,
+    "heapUsed": 33954712,
+    "code": {
+      "code_and_metadata_size": 4567349,
+      "bytecode_and_metadata_size": 2000672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 0,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 202.18383399999993,
+    "answer": 5482660,
+    "peakRssKiB": 163696,
+    "heapUsed": 33945408,
+    "code": {
+      "code_and_metadata_size": 4564723,
+      "bytecode_and_metadata_size": 2000736,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 0,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 195.34725100000003,
+    "answer": 5482660,
+    "peakRssKiB": 163876,
+    "heapUsed": 33942256,
+    "code": {
+      "code_and_metadata_size": 4561271,
+      "bytecode_and_metadata_size": 2000736,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 1,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 199.580021,
+    "answer": 5482660,
+    "peakRssKiB": 162764,
+    "heapUsed": 33947512,
+    "code": {
+      "code_and_metadata_size": 4563894,
+      "bytecode_and_metadata_size": 2000672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 1,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 205.88496299999997,
+    "answer": 5482660,
+    "peakRssKiB": 162568,
+    "heapUsed": 33952200,
+    "code": {
+      "code_and_metadata_size": 4567235,
+      "bytecode_and_metadata_size": 2000672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 2,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 197.16171599999996,
+    "answer": 5482660,
+    "peakRssKiB": 163132,
+    "heapUsed": 33943296,
+    "code": {
+      "code_and_metadata_size": 4561850,
+      "bytecode_and_metadata_size": 2000736,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 2,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 207.91463599999997,
+    "answer": 5482660,
+    "peakRssKiB": 164552,
+    "heapUsed": 33943984,
+    "code": {
+      "code_and_metadata_size": 4564144,
+      "bytecode_and_metadata_size": 2000736,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 3,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 208.60580100000004,
+    "answer": 5482660,
+    "peakRssKiB": 164676,
+    "heapUsed": 33944072,
+    "code": {
+      "code_and_metadata_size": 4559501,
+      "bytecode_and_metadata_size": 2000672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 3,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 225.77866899999992,
+    "answer": 5482660,
+    "peakRssKiB": 163976,
+    "heapUsed": 33954384,
+    "code": {
+      "code_and_metadata_size": 4567164,
+      "bytecode_and_metadata_size": 2000672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 4,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 205.938853,
+    "answer": 5482660,
+    "peakRssKiB": 166080,
+    "heapUsed": 33939304,
+    "code": {
+      "code_and_metadata_size": 4559172,
+      "bytecode_and_metadata_size": 2000736,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 4,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 204.34820200000001,
+    "answer": 5482660,
+    "peakRssKiB": 164192,
+    "heapUsed": 33946960,
+    "code": {
+      "code_and_metadata_size": 4564162,
+      "bytecode_and_metadata_size": 2000736,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 5,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 204.80777,
+    "answer": 5482660,
+    "peakRssKiB": 163228,
+    "heapUsed": 33975000,
+    "code": {
+      "code_and_metadata_size": 4583159,
+      "bytecode_and_metadata_size": 2000672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 5,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 204.44216099999994,
+    "answer": 5482660,
+    "peakRssKiB": 165740,
+    "heapUsed": 33983504,
+    "code": {
+      "code_and_metadata_size": 4588964,
+      "bytecode_and_metadata_size": 2000672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 6,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 212.20286899999996,
+    "answer": 5482660,
+    "peakRssKiB": 164268,
+    "heapUsed": 33952128,
+    "code": {
+      "code_and_metadata_size": 4568224,
+      "bytecode_and_metadata_size": 2000736,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 6,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 216.07594099999994,
+    "answer": 5482660,
+    "peakRssKiB": 164628,
+    "heapUsed": 33952112,
+    "code": {
+      "code_and_metadata_size": 4567852,
+      "bytecode_and_metadata_size": 2000736,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 7,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 208.40190099999995,
+    "answer": 5482660,
+    "peakRssKiB": 165644,
+    "heapUsed": 33989472,
+    "code": {
+      "code_and_metadata_size": 4593006,
+      "bytecode_and_metadata_size": 2000672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 7,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 200.87281200000007,
+    "answer": 5482660,
+    "peakRssKiB": 164332,
+    "heapUsed": 33946248,
+    "code": {
+      "code_and_metadata_size": 4561508,
+      "bytecode_and_metadata_size": 2000672,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 8,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 211.53896500000008,
+    "answer": 5482660,
+    "peakRssKiB": 163544,
+    "heapUsed": 33986552,
+    "code": {
+      "code_and_metadata_size": 4593304,
+      "bytecode_and_metadata_size": 2000736,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 8,
+    "case": "044"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 745.0559050000002,
+    "answer": 376,
+    "peakRssKiB": 290324,
+    "heapUsed": 40837040,
+    "code": {
+      "code_and_metadata_size": 6888192,
+      "bytecode_and_metadata_size": 2347200,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 0,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 781.313123,
+    "answer": 376,
+    "peakRssKiB": 289560,
+    "heapUsed": 40847688,
+    "code": {
+      "code_and_metadata_size": 6898509,
+      "bytecode_and_metadata_size": 2347264,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 0,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 730.9682210000001,
+    "answer": 376,
+    "peakRssKiB": 290732,
+    "heapUsed": 40850168,
+    "code": {
+      "code_and_metadata_size": 6900562,
+      "bytecode_and_metadata_size": 2347264,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 1,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 771.915725,
+    "answer": 376,
+    "peakRssKiB": 289512,
+    "heapUsed": 40850912,
+    "code": {
+      "code_and_metadata_size": 6897722,
+      "bytecode_and_metadata_size": 2347200,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 1,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 743.7412150000001,
+    "answer": 376,
+    "peakRssKiB": 289320,
+    "heapUsed": 40837016,
+    "code": {
+      "code_and_metadata_size": 6888192,
+      "bytecode_and_metadata_size": 2347200,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 2,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 731.84331,
+    "answer": 376,
+    "peakRssKiB": 290676,
+    "heapUsed": 40844296,
+    "code": {
+      "code_and_metadata_size": 6896598,
+      "bytecode_and_metadata_size": 2347264,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 2,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 751.3481229999999,
+    "answer": 376,
+    "peakRssKiB": 289688,
+    "heapUsed": 40836240,
+    "code": {
+      "code_and_metadata_size": 6891032,
+      "bytecode_and_metadata_size": 2347264,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 3,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 726.357729,
+    "answer": 376,
+    "peakRssKiB": 290912,
+    "heapUsed": 40842792,
+    "code": {
+      "code_and_metadata_size": 6891703,
+      "bytecode_and_metadata_size": 2347200,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 3,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 744.3457220000001,
+    "answer": 376,
+    "peakRssKiB": 288968,
+    "heapUsed": 40829160,
+    "code": {
+      "code_and_metadata_size": 6883529,
+      "bytecode_and_metadata_size": 2346600,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 4,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 778.428276,
+    "answer": 376,
+    "peakRssKiB": 289844,
+    "heapUsed": 40833608,
+    "code": {
+      "code_and_metadata_size": 6888979,
+      "bytecode_and_metadata_size": 2347264,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 4,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 753.856849,
+    "answer": 376,
+    "peakRssKiB": 289272,
+    "heapUsed": 40842344,
+    "code": {
+      "code_and_metadata_size": 6908354,
+      "bytecode_and_metadata_size": 2347264,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 5,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 726.789894,
+    "answer": 376,
+    "peakRssKiB": 290080,
+    "heapUsed": 40888304,
+    "code": {
+      "code_and_metadata_size": 6925432,
+      "bytecode_and_metadata_size": 2347200,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 5,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 741.3675380000001,
+    "answer": 376,
+    "peakRssKiB": 291928,
+    "heapUsed": 40827392,
+    "code": {
+      "code_and_metadata_size": 6882099,
+      "bytecode_and_metadata_size": 2346600,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 6,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 752.764126,
+    "answer": 376,
+    "peakRssKiB": 292332,
+    "heapUsed": 40849552,
+    "code": {
+      "code_and_metadata_size": 6898509,
+      "bytecode_and_metadata_size": 2347264,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 6,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 761.073026,
+    "answer": 376,
+    "peakRssKiB": 290132,
+    "heapUsed": 40836336,
+    "code": {
+      "code_and_metadata_size": 6891032,
+      "bytecode_and_metadata_size": 2347264,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 7,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 750.4984729999999,
+    "answer": 376,
+    "peakRssKiB": 290100,
+    "heapUsed": 40848448,
+    "code": {
+      "code_and_metadata_size": 6895669,
+      "bytecode_and_metadata_size": 2347200,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 7,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/baseline",
+    "milliseconds": 745.4050050000001,
+    "answer": 376,
+    "peakRssKiB": 291128,
+    "heapUsed": 40843112,
+    "code": {
+      "code_and_metadata_size": 6893059,
+      "bytecode_and_metadata_size": 2346600,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "baseline",
+    "sample": 8,
+    "case": "054"
+  },
+  {
+    "checkout": "/tmp/rank-v8-step5/candidate",
+    "milliseconds": 723.924611,
+    "answer": 376,
+    "peakRssKiB": 289680,
+    "heapUsed": 40845392,
+    "code": {
+      "code_and_metadata_size": 6896718,
+      "bytecode_and_metadata_size": 2347264,
+      "external_script_source_size": 1983199,
+      "cpu_profiler_metadata_size": 0
+    },
+    "runCompiles": null,
+    "scalarReads": null,
+    "positionalCalls": null,
+    "node": "v24.15.0",
+    "mode": "candidate",
+    "sample": 8,
+    "case": "054"
+  }
+]

@@ -1,0 +1,25 @@
+diff --git a/packages/interpreter/src/jit/scalar-function-kernel.ts b/packages/interpreter/src/jit/scalar-function-kernel.ts
+index 0d16aba3..fb451c20 100644
+--- a/packages/interpreter/src/jit/scalar-function-kernel.ts
++++ b/packages/interpreter/src/jit/scalar-function-kernel.ts
+@@ -1202,7 +1202,8 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
+         'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems', 'concatValues', 'concatCopy',
+     ];
+     try {
+-        const run = new Function(...kernelParameterNames, source)(...kernelArguments) as Kernel['run'];
++        let run: Kernel['run'] | undefined;
++        const FunctionConstructor = Function;
+         const direct = new Function(...kernelParameterNames, directSource)(...kernelArguments) as Kernel['direct'];
+         // Default proofs already use integer parameter domains. Build the same
+         // Number variant whichever caller first populates the proof-keyed cache.
+@@ -1225,7 +1226,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
+             guards: proof.nativeReads,
+             modules: proof.modules,
+             returnType: proof.type as CompiledCalleeType,
+-            run,
++            get run() {
++                return run ??= new FunctionConstructor(...kernelParameterNames, source)(...kernelArguments) as Kernel['run'];
++            },
+             direct,
+             numberDirect,
+             numberArrayArguments: (parameterTypes ?? []).flatMap((type,index) => typeof type !== 'string'

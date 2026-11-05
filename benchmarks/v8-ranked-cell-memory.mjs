@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {getHeapCodeStatistics} from 'node:v8';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -8,13 +9,18 @@ const cases = { '701': ['701_randomconnectedarea.ra', 5.76487732, ['--ww=4', '--
     '077': ['077_primesummations.ra', 71, []],
     '491': ['491_doublepandigital.ra', 194505988824000, []],
     '048': ['048_selfpowers.ra', 9110846700, []],
+    '026': ['026_reciprocal.ra', 983, []],
+    '054': ['054_poker.ra', 376, []],
+    '044': ['044_pentagondiff.ra', 5482660, []],
     '188': ['188_hyperexponentiation.ra', 95962097, []],
     '048-wide': ['048_selfpowers.ra', null, ['--digits=20']] };
 const [file, expected, args] = cases[test];
 const {Interpreter, parse} = await import(pathToFileURL(resolve(checkout, 'packages/interpreter/out/index.js')));
 const source = parse(readFileSync(`demos/euler/${file}`, 'utf8'));
 const outputs = [];
-const runtime = new Interpreter(value => outputs.push(String(value)));
+const runtime = new Interpreter(value => outputs.push(String(value)), {
+    io: {read: path => readFileSync(resolve(path))},
+});
 global.gc();
 const start = performance.now();
 runtime.executeProgram(source, args);
@@ -29,6 +35,6 @@ if (test === '048-wide') {
 global.gc();
 console.log(JSON.stringify({checkout, milliseconds, answer,
     peakRssKiB: process.resourceUsage().maxRSS,
-    heapUsed: process.memoryUsage().heapUsed,
-    scalarReads: globalThis.__scalarReads ?? null, positionalCalls: globalThis.__positionalCalls ?? null, node: process.version}));
+    heapUsed: process.memoryUsage().heapUsed, code: getHeapCodeStatistics(),
+    runCompiles: globalThis.__runCompiles ?? null, scalarReads: globalThis.__scalarReads ?? null, positionalCalls: globalThis.__positionalCalls ?? null, node: process.version}));
 runtime.dispose();
