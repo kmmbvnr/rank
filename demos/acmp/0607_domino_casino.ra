@@ -1,0 +1,174 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 607: Domino in Casino
+rem Max weight K-matching on grid.
+
+arg Input text = "4 4 4
+1 4 2 5
+3 2 6 1
+7 2 3 4
+1 5 2 6"
+
+fun solve_domino Input
+  Tokens = Input words integer
+  M = Tokens 0
+  N = Tokens 1
+  K = Tokens 2
+  V = M * N
+  Last = (Tokens len) - 1
+  Vals = Tokens (3 to Last)
+
+  RawAdj = (
+    array shape (V * 4) fill -1)
+  Adj = RawAdj reshape V 4
+  RawW = array shape (V * 4) fill 0
+  W = RawW reshape V 4
+
+  for U in 0 to (V - 1)
+    R = U // N
+    C = U mod N
+    if ((R + C) mod 2) equal 0
+      if R greater 0
+        Adj U 0 = U - N
+        W U 0 = (Vals U) * (
+          Vals (U - N))
+      end
+      if R less (M - 1)
+        Adj U 1 = U + N
+        W U 1 = (Vals U) * (
+          Vals (U + N))
+      end
+      if C greater 0
+        Adj U 2 = U - 1
+        W U 2 = (Vals U) * (
+          Vals (U - 1))
+      end
+      if C less (N - 1)
+        Adj U 3 = U + 1
+        W U 3 = (Vals U) * (
+          Vals (U + 1))
+      end
+    end
+  end
+
+  MatchW = array shape V fill -1
+  MatchB = array shape V fill -1
+  AllV = 0 to (V - 1)
+  IsWhite = (
+    ((AllV // N) + (AllV mod N)) mod 2
+  ) equal 0
+  IsBlack = not IsWhite
+
+  for Step in 1 to K
+    Dist = array shape V fill (
+      0 - 1000000000)
+    Parent = array shape V fill -1
+    InQ = array shape V fill false
+    Q = array shape 20000 fill 0
+
+    UnmatchedW = IsWhite and (
+      MatchW equal -1)
+    InitQ = AllV UnmatchedW
+    InitLen = InitQ len
+    if InitLen equal 0
+      break
+    end
+    Dist InitQ = 0
+    Q (0 to (InitLen - 1)) = InitQ
+    InQ InitQ = true
+    Head = 0
+    Tail = InitLen
+
+    for Loop in 0 to 50000
+      if not (Head less Tail)
+        break
+      end
+      U = Q Head
+      Head += 1
+      InQ U = false
+      R = U // N
+      C = U mod N
+
+      if ((R + C) mod 2) equal 0
+        for D in 0 to 3
+          Neighbor = Adj U D
+          if Neighbor greater -1
+            if not (Neighbor equal (
+              MatchW U))
+              Weight = W U D
+              NewDist = (Dist U) + (
+                Weight)
+              if NewDist greater (
+                Dist Neighbor)
+                Dist Neighbor = NewDist
+                Parent Neighbor = U
+                if not (InQ Neighbor)
+                  Q Tail = Neighbor
+                  Tail += 1
+                  InQ Neighbor = true
+                end
+              end
+            end
+          end
+        end
+      else
+        MatchedW = MatchB U
+        if MatchedW greater -1
+          Weight = 0 - (
+            (Vals MatchedW) * (Vals U))
+          NewDist = (Dist U) + Weight
+          if NewDist greater (
+            Dist MatchedW)
+            Dist MatchedW = NewDist
+            Parent MatchedW = U
+            if not (InQ MatchedW)
+              Q Tail = MatchedW
+              Tail += 1
+              InQ MatchedW = true
+            end
+          end
+        end
+      end
+    end
+
+    UnmatchedB = IsBlack and (
+      MatchB equal -1)
+    BlackIdx = AllV UnmatchedB
+    BestD = (Dist BlackIdx) max
+    if BestD less -900000000
+      break
+    end
+    BestPos = (
+      Dist BlackIdx) find BestD
+    BestV = BlackIdx BestPos
+
+    Cur = BestV
+    for Trace in 0 to V
+      if Cur equal -1
+        break
+      end
+      P = Parent Cur
+      if P equal -1
+        break
+      end
+      Nxt = Parent P
+      MatchB Cur = P
+      MatchW P = Cur
+      Cur = Nxt
+    end
+  end
+
+  Matched = IsWhite and (
+    MatchW greater -1)
+  PairsW = AllV Matched
+  PairsB = MatchW Matched
+  Scores = (Vals PairsW) * (Vals PairsB)
+  return (Scores sum)
+end
+
+Result = solve_domino Input
+Result print
