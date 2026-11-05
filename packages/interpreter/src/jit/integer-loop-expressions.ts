@@ -16,7 +16,7 @@ import { compiledArgumentType, compiledStoredArgumentType, hasNativeDeque } from
 import {
     groupedUnaryDyadicChain, compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
-    isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isBooleanLiteral, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
+    isAssignmentStatement, isArrayAssignmentStatement, isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isBooleanLiteral, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType, type CompiledCallSignature,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex, isRankSet } from '../value.js';
@@ -323,6 +323,24 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     type LoopValue = LoopTerm | { readonly code: string; readonly type: CompiledArrayType; readonly deque?: boolean; readonly cells?: string };
     function isScalar(value: LoopValue): value is LoopTerm { return typeof value.type === 'string'; }
     interface LoopInput { readonly term: LoopTerm; readonly lines: readonly string[] }
+    /** Only a known completion boundary may borrow a deferred scalar result.
+     * Sibling calls/reads that can fail must run before the result is demanded. */
+    function immediateConsumer(expression: Expression): boolean {
+        let node = expression;
+        for (;;) {
+            const parent = node.$container;
+            if (isParenthesizedExpression(parent) || isUnaryExpression(parent)) { node = parent; continue; }
+            if (isBinaryExpression(parent)) {
+                const other = parent.left === node ? parent.right : parent.left;
+                if (isNumberLiteral(other) || isBooleanLiteral(other)
+                    || isNameExpression(other) && ['integer', 'real', 'boolean'].includes(knownType(other) ?? '')) {
+                    node = parent; continue;
+                }
+            }
+            return isAssignmentStatement(parent) && !parent.deferred && parent.value === node
+                || isArrayAssignmentStatement(parent) && parent.value === node;
+        }
+    }
     function emit(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopTerm | undefined {
         // A predicate may read exact counters while array addresses and range
         // geometry retain their independently checked Number dependencies.
@@ -1637,7 +1655,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const signatures = operation ? compiledCallSignatures(operation) : [];
                 const signature = signatures.length === 1 ? signatures[0]
                     : operation && matchCompiledCallSignature(operation, parts.slice(0, -1).map(part => knownType(part) ?? 'unknown'));
-                const prepareCallee = host.scalarFunction(last.name, parts.length - 1, declared);
+                const prepareCallee = host.scalarFunction(last.name, parts.length - 1, declared, immediateConsumer(e));
                 // Prefer a known user function while its namesake module is unopened.
                 // An unresolved name can still bind the builtin after a later import.
                 if (operation && signature && signature.inputs.length === parts.length - 1
@@ -1716,7 +1734,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                                 numberSafe: true,
                                 exactOutput: callable.effects.localWrites && callable.effects.privateStateSafe
                                     && types.every(type => typeof type === 'string') ? e : undefined,
-                                bind: () => callable.bindNumber!(),
+                                bind: work => callable.bindNumber!(work),
                             });
                             const callCode = `call${index}(${arguments_.join(',')})`;
                             lines.push(`const ${name} = ${callable.type === 'integer' ? safe(callCode) : callCode};`);

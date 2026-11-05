@@ -185,9 +185,13 @@ export function proveFunctionPlan(expression: Expression, host: {
 }
 
 interface PlanEmitter {
+    readonly number?: boolean;
+    check?(value: string, type: CompiledScalarType): string;
+    array?(name: string, domain: FunctionPlanDomain): PreparedTensor;
     variable(): string;
     slot(name: string): string;
     locate(expression: Expression, lines: string[], demandLocation: string): void;
+    locateShape?(expression: Expression, lines: string[], demandLocation: string): void;
     capture(key: number, lines: string[]): void;
     callback(key: number, value: string, lines: string[]): string;
     binary(operation: CompiledOperator, left: string, right: string, lines: string[], type: CompiledScalarType, inputs?: readonly CompiledScalarType[]): string;
@@ -241,18 +245,19 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
             input.native?.operand, input.length].filter((n): n is FunctionPlan => !!n).map(n => lower(n)!);
     });
     const emit = inlineTensorEmitter(lines, {
-        buffered,
+        buffered, number: host.number, check: host.check,
         variable: () => host.variable(),
         input: node => prepareInput(origins.get(node)!),
         element: node => origins.get(node)!.type.element,
         locate: (node, body) => host.locate(origins.get(node)!.source, body, demandLocation),
+        locateShape: host.locateShape ? (node, body) => host.locateShape!(origins.get(node)!.source, body, demandLocation) : undefined,
         demandLocation,
         binary: (...args) => host.binary(...args),
     });
     const prepare = (node: FunctionPlan): PreparedTensor => emit(lower(node)!);
     function prepareInput(node: FunctionPlan): PreparedTensor {
         if (node.kind === 'literal') {
-            const code = typeof node.value === 'bigint' ? `${node.value}n`
+            const code = typeof node.value === 'bigint' ? `${node.value}${host.number ? '' : 'n'}`
                 : typeof node.value === 'number' && Object.is(node.value, -0) ? '-0' : JSON.stringify(node.value);
             return { read: () => code };
         }
@@ -282,10 +287,11 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
             }
             if (node.input.length) {
                 const operand = prepare(node.input.length), result = host.variable();
-                lines.push(`const ${result} = BigInt(${operand.size});`);
+                lines.push(`const ${result} = ${host.number ? operand.size : `BigInt(${operand.size})`};`);
                 return { read: () => result };
             }
             if (node.input.name) {
+                if (node.type.rank && host.array) return host.array(node.input.name, node.type);
                 const slot = host.slot(node.input.name);
                 return node.type.rank ? { value: slot, size: node.type.rank === 2 ? `(${slot}.shape[0] * ${slot}.shape[1])` : `${slot}.shape[0]`,
                     shape: node.type.rank === 2 ? `${slot}.shape` : undefined,
@@ -340,11 +346,12 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
     if (consumer.terminal === 'copy' && source.value) { lines.push('planConsumed?.();'); return source.value; }
     if (!source.size) return source.read('0', lines);
     const result = host.variable(), index = host.variable();
-    lines.push(`let ${result} = ${consumer.terminal === 'copy' ? '[]' : '0n'};`);
+    lines.push(`let ${result} = ${consumer.terminal === 'copy' ? '[]' : host.number ? '0' : '0n'};`);
     const body: string[] = [];
     const value = source.read(index, body);
     body.push(consumer.terminal === 'copy' ? `${result}.push(${value});`
-        : tensorReductionStep('sum', result, value, index));
+        : tensorReductionStep('sum', result, value, index, !!host.number));
+    if (host.check && consumer.terminal !== 'copy') body.push(`${result} = ${host.check(result, consumer.stage.type.element)};`);
     lines.push(`for (let ${index} = 0; ${index} < ${source.size}; ${index}++) { checkpoint('consuming function plan'); ${body.join('\n')} }`);
     lines.push('planConsumed?.();');
     return consumer.terminal === 'copy' ? `ownedArray(${result}, ${source.shape ?? `[${source.size}]`}, true)` : result;

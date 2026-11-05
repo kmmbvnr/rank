@@ -47,7 +47,7 @@ import { currentDiagnostics } from './diagnostics.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { FunctionPlanDemandError } from './function-plan.js';
 import { preparePositionalBuiltin } from './jit/typed-native.js';
-import type { LoopCallable } from './jit/integer-loop-plan.js';
+import type { LoopCallable, LoopWorkCounter } from './jit/integer-loop-plan.js';
 import { numberOverflow, checkedNumberPower } from './jit/number-loop-runtime.js';
 import { nativeSetMembership } from './collections.js';
 import { sequence } from './sequence.js';
@@ -708,7 +708,7 @@ export class FunctionInvocation {
     }
 
     /** A proven scalar body compiled to a direct call, counted against the call depth. */
-    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledCalleeType[], loops = false, capturedTypes?: ScalarCaptureTypes): PreparedScalarCall | undefined {
+    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledCalleeType[], loops = false, capturedTypes?: ScalarCaptureTypes, work?: LoopWorkCounter): PreparedScalarCall | undefined {
         if (!this.compiler.scalars.functions) return undefined;
         let cache = context ? this.localScalarCalls.get(context) : this.globalScalarCalls;
         if (!cache) this.localScalarCalls.set(context!, cache = new WeakMap());
@@ -716,14 +716,15 @@ export class FunctionInvocation {
         if (!instances) cache.set(statement, instances = new Map());
         const scalarTypes = capturedTypes ?? this.scalarCaptureTypes(statement, context);
         const key = `${loops ? 'loops:' : ''}${types?.map(compiledCalleeTypeKey).join(',') ?? ''}|${scalarCaptureKey(scalarTypes)}`;
-        const cached = instances.get(key);
+        const cached = !work && instances.get(key);
         if (cached) return cached;
         const kernel = compileScalarFunction(statement, types, loops, scalarTypes);
         if (!kernel || kernel.userCalls.length && !this.compiler.scalars.calls
             || kernel.memberships.length && !this.compiler.scalars.sequenceMembership
             || kernel.userCalls.some(call => call.tail) && !this.compiler.scalars.tailCalls) return undefined;
         const resolve = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
-        const userBinders = kernel.userCalls.map(call => () => {
+        const numberUsers: LoopCallable[] = [];
+        const userBinders = kernel.userCalls.map((call, index) => () => {
             const value = resolve(call.name);
             const definition = value && isNativeFunction(value) ? this.definitionOf(value) : undefined;
             if (!definition || definition.statement !== call.statement
@@ -746,8 +747,9 @@ export class FunctionInvocation {
                     return run.direct ? run.direct(...arguments_) : run(arguments_);
                 }) as LoopCallable;
             }
-            const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures);
+            const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures, work);
             if (!compiled || compiled.available && !compiled.available()) return undefined;
+            numberUsers[index] = (compiled.numberDirect ?? (() => { throw numberOverflow; })) as unknown as LoopCallable;
             if (call.tail) {
                 return ((arguments_: RankValue[]) => {
                     if (definition.owner === this) throw new TailCallSignal(definition, arguments_, compiled);
@@ -772,7 +774,7 @@ export class FunctionInvocation {
             // including a fresh return contract for a captured closure.
             const frozen = this.snapshot(value), definition = this.definitionOf(frozen);
             const compiled = definition?.statement === call.statement
-                ? definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures) : undefined;
+                ? definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures, work) : undefined;
             if (!definition || !compiled || compiled.available && !compiled.available()) return (arguments_: RankValue[]) => frozen.call(arguments_);
             return (arguments_: RankValue[]) => {
                 const contract = definition.specialization(arguments_);
@@ -844,19 +846,29 @@ export class FunctionInvocation {
             const diagnostics = currentDiagnostics();
             if (diagnostics) diagnostics.compiledTensors++;
         };
-        const kernelDirect = kernel.direct?.(locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls);
+        // Only measured bindings install a counting checkpoint. The generated
+        // hot kernels keep their ordinary checkpoint and call conventions.
+        const poll: typeof checkpoint = work ? (activity, amount = 1, details) => {
+            work.value += amount;
+            checkpoint(activity, amount, details);
+        } : checkpoint;
+        const kernelDirect = kernel.direct?.(locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls, poll);
         const rawNumber = kernel.numberDirect ? kernel.numberDirect(
             locate,
             val => { if (!Number.isSafeInteger(val)) throw numberOverflow; return val; },
             () => new RankError('division by zero'),
             numberOverflow,
-            checkpoint,
+            poll,
             checkedNumberPower,
             () => new RankError('range step must be a nonzero integer'),
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
             memberships,
+            numberUsers,
+            planConsumed,
         ) : undefined;
+        const observablePlan = kernel.plans && !!(this.compiler.hooks.onTensorKernelExecuted
+            || this.compiler.hooks.onScalarFunctionExecuted);
         const hasTailCalls = kernel.userCalls.some(call => call.tail);
         const hasUserCalls = kernel.userCalls.length > 0 || kernel.rankedCalls.length > 0;
         let directFn: ((...arguments_: RankValue[]) => RankValue) | undefined;
@@ -878,7 +890,8 @@ export class FunctionInvocation {
                         const diagnostics = currentDiagnostics();
                         if (diagnostics) diagnostics.numberFunctionSkips++;
                     }
-                    if (rawNumber && probeNumber && (!kernel.memberships.length || privateLoopPolling() && !demandBudgetEnabled())
+                    if (rawNumber && probeNumber && (!kernel.plans || !observablePlan && privateLoopPolling() && !demandBudgetEnabled())
+                        && (!kernel.memberships.length || privateLoopPolling() && !demandBudgetEnabled())
                         && (!kernel.numberStorage || this.compiler.loops.number && privateLoopPolling()
                         && (kernel.numberStorage !== 'queues' || nativeDequeMethods()))
                         && arguments_.every((a,index) => typeof a === 'bigint' || typeof a === 'number' || typeof a === 'boolean'
@@ -967,7 +980,7 @@ export class FunctionInvocation {
                 for (;;) {
                     try {
                         this.compiler.hooks.onScalarFunctionExecuted?.();
-                        return kernel.run(arguments_, locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls);
+                        return kernel.run(arguments_, locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls, poll);
                     } catch (error) {
                         if (error instanceof FunctionPlanDemandError) throw error.error;
                         // A self tail transfer replaces this frame without growing
@@ -998,6 +1011,7 @@ export class FunctionInvocation {
             // for every cell of a compiled caller's loop.
             const hooks = this.compiler.hooks;
             const fail = (error: unknown, arguments_: NumberCallArgument[]): never => {
+                if (error instanceof FunctionPlanDemandError) throw error.error;
                 if (error === numberOverflow) throw error;
                 if (error instanceof RankError) {
                     // Diagnostics need only eight cells, not a copy or an
@@ -1010,6 +1024,9 @@ export class FunctionInvocation {
                 throw error;
             };
             run.numberDirect = (...arguments_: NumberCallArgument[]) => {
+                // An observable consumer may mutate a captured caller buffer.
+                // The exact ABI retains its binding; a raw read view cannot.
+                if (kernel.plans && (observablePlan || !privateLoopPolling() || demandBudgetEnabled())) throw numberOverflow;
                 if (this.depth >= this.maxDepth) {
                     throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
                 }
@@ -1020,7 +1037,9 @@ export class FunctionInvocation {
                         || kernel.numberStorage === 'queues' && !nativeDequeMethods())) throw numberOverflow;
                     const diagnostics = currentDiagnostics();
                     if (diagnostics) diagnostics.numberFunctions++;
-                    return rawNumber(...arguments_ as never[]) as unknown as number;
+                    if (hasUserCalls) this.depth++;
+                    try { return rawNumber(...arguments_ as never[]) as unknown as number; }
+                    finally { if (hasUserCalls) this.depth--; }
                 } catch (error) { return fail(error, arguments_); }
             };
             const regionCall = rawNumber as unknown as (...args: NumberCallArgument[]) => number;
@@ -1037,7 +1056,7 @@ export class FunctionInvocation {
                 // A callback-free leaf cannot change these facts while its
                 // caller runs synchronously. Keep hooks, observable demand and
                 // membership readers on the fully checked boundary above.
-                if (hooks.onScalarFunctionExecuted || this.depth >= this.maxDepth
+                if (hasUserCalls || observablePlan || hooks.onScalarFunctionExecuted || this.depth >= this.maxDepth
                     || inspectionEnabled() || !privateLoopPolling() || demandBudgetEnabled()
                     || kernel.memberships.length || kernel.numberStorage === 'queues'
                     || kernel.numberStorage && !this.compiler.loops.number) return undefined;
@@ -1071,7 +1090,7 @@ export class FunctionInvocation {
                 const definition = value && isNativeFunction(value) ? this.definitionOf(value) : undefined;
                 if (!definition || definition.statement !== call.statement
                     || call.proof.locals.some(name => definition.context?.find(name))) return false;
-                const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures);
+                const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures, work);
                 if (!compiled || compiled.available && !compiled.available()) return false;
             }
             for (let index = 0; index < userBinders.length; index++) {
@@ -1109,7 +1128,7 @@ export class FunctionInvocation {
             }
             return true;
         } });
-        instances.set(key, run);
+        if (!work) instances.set(key, run);
         return run;
     }
 

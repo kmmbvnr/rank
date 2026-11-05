@@ -1,0 +1,32 @@
+{
+  "baselineRevision": "c996b5aa0262f6ba7c616b333598c7bfae641756",
+  "candidateBase": "88a57910c02b0ba8afdb92af768e4c82af5146e5",
+  "candidateState": "uncommitted; composition acceptance still incomplete",
+  "sourceHashes": {
+    "packages/interpreter/src/fast-paths.ts": "e9076533fd73258348546c3098918544a717e4037f48fc23bb7c4ca4abb38989",
+    "packages/interpreter/src/function-invocation.ts": "19833ab2ac78c9411389bfc34dc4706ae8e62b50286478e61364f8f2fb771453",
+    "packages/interpreter/src/jit/number-loop-runtime.ts": "2c7eca20e6d87af1e4896f8a18ee97ec00687b7b2596e5b8218d84c41cba671c",
+    "packages/interpreter/src/jit/scalar-function-kernel.ts": "cbcefc4daba54c28772cdb92523a75f8c53139701719737a0cc5871eccf0c9e9",
+    "packages/interpreter/src/jit/scalar-function-proof.ts": "89b9497f1ed85ef99755924fc337b990764025e4fcec9ab130fa171c3dfe2f65",
+    "packages/interpreter/test/composable-regions.test.ts": "857f0e929b8124258572bba27d72a5a97240d2fa4c954c43ac1c0730ee420ae1",
+    "packages/interpreter/test/runtime-diagnostics.test.ts": "21ec63e866dd29668660caa3a7275bd37037eb85ef7a0d1a5a6b3179dadba50b",
+    "packages/interpreter/test/scalar-function-real-arrays.test.ts": "c4918da51686ec66bbb7f307aa9bc73f8fc7eff83fe0f2d357ea950444b91ad2",
+    "packages/interpreter/src/jit/borrowed-integer-buffer.ts": "54232f62c6fa96d21053d7b8c70a8274069aeaaa745b1e92c38e6ec106d29cee",
+    "benchmarks/helper-equivalence-euler.mjs": "0c0b8d722145cc94c4dce1268d52c981a5b936b7aa2a3a6cd0aff38c3f7a353a"
+  },
+  "demoHashes": {
+    "263_engineersdream.ra": "ea31b51e4c62dc6c28751ef1eba880d71040dc39c596dbccb1dc44ae36f3ef03",
+    "026_reciprocal.ra": "df2ef31d04ed5e976db6e72aee313499ad7e9baf5652da2804386cadb308a44c",
+    "326_modulosums.ra": "a05b96396e62c0703331825b0565f4099b3dac50ea72ed480679636e9ff81a75",
+    "352_bloodtests.ra": "492ee890bdbed3893f548978c1e63f0d411a17e0ce416a2649b81b8a1113ce99",
+    "399_squarefree.ra": "289020bf1be2c870e6e37b38b713c2a2508ead5d6d6b31991c100afca8918341",
+    "330_eulerian.ra": "5e9512c5f6ccbf113cd096c2f0ca5b79e026708a89c32a4bd10eb6eccbfd2916",
+    "303_smalldigits.ra": "c1915ced26acca540a80baa6dcf4f3018aa2cc9cbc1a53c187a66fe29aff1168",
+    "044_pentagondiff.ra": "b610596008d48105e91c951eba0fac2a71d6d5f1714ae245c332d814e213fe07",
+    "310_nimsquare.ra": "a2cd5e3f0c0bc66f00fa3061d444218d280c03957c23d03a2e1486ec401e0350",
+    "054_poker.ra": "fa9ac28805a1cca1c184e52a75b604fd65ff8ab90d08f3f9dfc1c84041eb4fbf"
+  },
+  "fixtureHashes": {
+    "0054_poker.txt": "0ecdf24e712750ac0797faf808726a6da149ab49dc3563a75af124af3cc3af16"
+  }
+}

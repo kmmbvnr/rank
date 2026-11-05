@@ -1,3 +1,4 @@
+import { borrowIntegerBuffer } from './jit/borrowed-integer-buffer.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
 import { strictDataCall } from './jit/declared-scalar-call.js';
 import { selectValues } from './value-selection.js';
@@ -368,7 +369,7 @@ export class FastPaths {
             prepareEffectCall: (name, receiver, types) => prepareEffectCall({
                 read: name => this.context.bindings.find(name), module: name => this.context.modules.has(name),
             }, name, receiver, types),
-            scalarFunction: (name, arity, strictData) => this.scalarCall(name, arity, strictData),
+            scalarFunction: (name, arity, strictData, consumed) => this.scalarCall(name, arity, strictData, consumed),
             sequenceMembership: scalars.sequenceMembership,
             absolute: loops.absolute,
             reals: loops.reals,
@@ -556,7 +557,7 @@ export class FastPaths {
      * when the callee's body has a proven scalar or array result. `bind` rechecks the
      * binding at loop entry, since the name can be rebound between runs.
      */
-    scalarCall(name: string, arity: number, strictData = false): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined {
+    scalarCall(name: string, arity: number, strictData = false, consumed = false): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined {
         if (!this.compiler.scalars.calls) return undefined;
         const value = this.context.bindings.find(name);
         const definition = value && isNativeFunction(value) ? this.context.functions.definitionOf(value) : undefined;
@@ -569,12 +570,12 @@ export class FastPaths {
             const proof = scalarFunctionResult(statement, this.compiler.scalars.blockCalls, types, true, [], scalarTypes);
             // Whole-loop registers do not yet accept returned containers.
             // Scalar helper chains retain their reference-valued result.
-            if (!proof || isCompiledContainer(proof.type) || proof.planReturn || proof.nonnegative.length) return undefined;
+            if (!proof || isCompiledContainer(proof.type) || proof.planReturn && !consumed || proof.nonnegative.length) return undefined;
             const captures = definition.context !== undefined;
             const isScalarType = (type: CompiledCalleeType): boolean =>
                 type === 'integer' || type === 'real' || type === 'boolean' || type === 'text';
             const effects = scalarFunctionEffects(proof);
-            const stableReads = privateScalarFunction(proof) || typeof proof.type === 'string'
+            const stableReads = privateScalarFunction(proof, consumed) || typeof proof.type === 'string'
                 && !proof.containers && !proof.arrayWrites.size && !proof.observableCaptures;
             const numberArrays = types.some(type => typeof type !== 'string');
             const numberSafe = stableReads && isScalarType(proof.type) && types.every(type => isScalarType(type)
@@ -590,18 +591,18 @@ export class FastPaths {
                     // The Number ABI borrows current integer buffers only for
                     // read-only scalar callees; no reference escapes. Captures
                     // and unclassified dependencies retain their own boundary.
-                    privateStateSafe: numberSafe && privateScalarFunction(proof),
+                    privateStateSafe: numberSafe && privateScalarFunction(proof, consumed),
                 },
                 type: proof.type,
                 numberSafe,
                 locals: [...(captures ? proof.locals : []), ...proof.nativeReads, ...proof.dependencies],
-                bind: () => {
+                bind: work => {
                     const current = this.context.bindings.find(name);
                     if (!current || !isNativeFunction(current)) return undefined;
                     const active = this.context.functions.definitionOf(current);
                     if (active?.statement !== statement || (active.context !== undefined) !== captures
                         || proof.locals.some(local => active.context?.find(local))) return undefined;
-                    const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes);
+                    const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes, work);
                     if ((proof.nativeReads.length || proof.dependencies.length) && !compiled || compiled?.available && !compiled.available()) return undefined;
                     return ((...arguments_: RankValue[]) => {
                         if (arguments_.length === 2 && Array.isArray(arguments_[0]) && typeof arguments_[1] === 'boolean') {
@@ -615,26 +616,29 @@ export class FastPaths {
                         return compiled?.direct ? compiled.direct(...arguments_) : compiled ? compiled(arguments_) : current.call(arguments_);
                     }) as LoopCallable;
                 },
-                bindNumber: numberSafe ? () => {
+                bindNumber: numberSafe ? work => {
                     const current = this.context.bindings.find(name);
                     if (!current || !isNativeFunction(current)) return undefined;
                     const active = this.context.functions.definitionOf(current);
                     if (active?.statement !== statement || (active.context !== undefined) !== captures
                         || proof.locals.some(local => active.context?.find(local))) return undefined;
-                    const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes);
+                    const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes, work);
                     if ((proof.nativeReads.length || proof.dependencies.length) && !compiled || compiled?.available && !compiled.available()) return undefined;
-                    if (compiled?.numberRegion && privateScalarFunction(proof)) {
+                    if (compiled?.numberRegion && privateScalarFunction(proof, consumed)) {
                         const region = compiled.numberRegion();
                         if (region) return region as unknown as LoopCallable;
                     }
                     if (compiled?.numberDirect) return compiled.numberDirect as unknown as LoopCallable;
-                    // Raw buffers have no Rank value wrapper. Only a proved
-                    // read-only Number kernel may consume them; an exact callee
-                    // requires replay of the caller, never ad-hoc conversion.
-                    if (numberArrays) return undefined;
+                    // Exact kernels borrow a call-scoped read view only when
+                    // the complete helper graph cannot mutate or retain it.
+                    if (numberArrays && (!compiled || !privateScalarFunction(proof, consumed))) return undefined;
                     const direct = compiled?.direct ?? ((...args: RankValue[]) => compiled ? compiled(args) : current.call(args));
                     const widen = types.map(t => t === 'integer');
                     const narrow = proof.type === 'integer' ? (v: RankValue) => typeof v === 'bigint' ? Number(v) : v : (v: RankValue) => v;
+                    if (numberArrays) return ((...arguments_: (number | boolean | ArrayLike<number | bigint>)[]) =>
+                        narrow(direct(...arguments_.map((value, index) => typeof types[index] !== 'string'
+                            ? borrowIntegerBuffer(value as ArrayLike<number | bigint>)
+                            : widen[index] ? BigInt(value as number) : value as RankValue)))) as unknown as LoopCallable;
                     if (arity === 1) {
                         const w0 = widen[0];
                         return ((a: number) => narrow(direct(w0 ? BigInt(a) : a))) as unknown as LoopCallable;

@@ -1,0 +1,24 @@
+{
+  "candidateBase": "88a57910c02b0ba8afdb92af768e4c82af5146e5",
+  "state": "uncommitted; direct deferred-return and large-copy admission boundaries remain",
+  "sourceHashes": {
+    "packages/interpreter/src/fast-paths.ts": "655ba711d4f34fe70ce60b905f809e9333ae8f54bc6952aa51250af6d1ab42df",
+    "packages/interpreter/src/function-invocation.ts": "53757a5c87d6c0562a9802d1e6fb18d56027303c84419035308977be73bffd5e",
+    "packages/interpreter/src/function-plan.ts": "d30acdd3c25a1a4d2f7e03a3aac1ee9933b083440b1672e401bc6dc3bb1c0f4a",
+    "packages/interpreter/src/jit/compiled-callee.ts": "dbf3c21f2fe37e727042b158bd95d32d39fde8c6ccdd1befa51bca0006fe670f",
+    "packages/interpreter/src/jit/integer-loop-expressions.ts": "4d46b262845a2e9f87aeb3a8c5b4792dba48e9d283b2bf5fa7a2ade772781d22",
+    "packages/interpreter/src/jit/integer-loop-plan.ts": "2c3e8d45ddfce41bff77f68711a6a05e40c283db34dbd524cb053a725185d4f8",
+    "packages/interpreter/src/jit/integer-loop-runtime.ts": "03ef77ed595d099252c3f98daf76013b35f8a342d8df7f9602a99985e1298f83",
+    "packages/interpreter/src/jit/number-loop-runtime.ts": "602e5e43a635e7e21dfbdd6d79dda18c4db34c56fd03bb6906cc2168e024ebfc",
+    "packages/interpreter/src/jit/scalar-function-kernel.ts": "587d637235d14bd5a3a9f177d55b2ea1fc1f14f6cdabce56705213f76740a9ef",
+    "packages/interpreter/src/jit/scalar-function-proof.ts": "89b9497f1ed85ef99755924fc337b990764025e4fcec9ab130fa171c3dfe2f65",
+    "packages/interpreter/src/jit/tensor-inline.ts": "c56c825db898708ec018936a285aac94a4db48971824022d2d4c40c0106c57e0",
+    "packages/interpreter/src/jit/tensor-reduction-codegen.ts": "9e5ff61c9fd0767eb5a9aeea246ab8a7fd10393c2a5eb61ebc910b68b918a647",
+    "packages/interpreter/test/composable-regions.test.ts": "8015765cfd78754e7a6c4b46fc62155b2391bec7d59cda66b5244b70b01f9fff",
+    "packages/interpreter/test/runtime-diagnostics.test.ts": "21ec63e866dd29668660caa3a7275bd37037eb85ef7a0d1a5a6b3179dadba50b",
+    "packages/interpreter/test/scalar-function-real-arrays.test.ts": "c4918da51686ec66bbb7f307aa9bc73f8fc7eff83fe0f2d357ea950444b91ad2",
+    "packages/interpreter/src/jit/borrowed-integer-buffer.ts": "54232f62c6fa96d21053d7b8c70a8274069aeaaa745b1e92c38e6ec106d29cee",
+    "packages/interpreter/test/number-function-plans.test.ts": "b2338dd9d13e1fab3f84f993f8beae43382f7c43cd78b17f95956013df43ac3c",
+    "benchmarks/helper-equivalence.mjs": "f3832f7bb8fdf02d89c96a6502eb27aac9c5c2d29a1e9d1b4a48c493dd6bebd2"
+  }
+}

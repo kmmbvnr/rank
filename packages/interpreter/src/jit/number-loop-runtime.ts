@@ -30,11 +30,11 @@ const COPY_PROBE_CAP = 262144;
 /** Fresh local storage stays private until publication. In particular, a later
  * allocation cannot replace the array retained as a previous iteration result. */
 interface VectorBuffer { cells: Int32Array | Float64Array }
-class PrivateNumericArray {
+export class PrivateNumericArray {
     private pool?: VectorBuffer;
     // Count register owners; accepted regions cannot expose an earlier result.
     // Shared publication preserves ordinary COW after the private region ends.
-    private owners: { count: number; published?: RankArray } = { count: 1 };
+    private owners: { count: number; cells?: Int32Array | Float64Array; published?: RankArray } = { count: 1 };
     cells: Int32Array | Float64Array;
     constructor(readonly shape: number[], fill: number, source?: NumberCells, owned?: VectorBuffer, private readonly real = false) {
         const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
@@ -43,6 +43,7 @@ class PrivateNumericArray {
         if (size > 0xffffffff) throw overflow;
         this.cells = owned ? owned.cells.subarray(0, size) : (source ? !real && source instanceof Int32Array ? source.slice() : Float64Array.from(source, Number)
             : !real && fill === (fill | 0) ? new Int32Array(size).fill(fill) : new Float64Array(size).fill(fill));
+        this.owners.cells = this.cells;
         if (owned) this.pool = owned;
     }
     fork(): PrivateNumericArray {
@@ -52,12 +53,18 @@ class PrivateNumericArray {
         return copy;
     }
     release(): void { this.owners.count--; }
+    readView(): { length: number; read(index: number): number } {
+        // Iteration follows storage mutations, but is not a COW owner.
+        const owners = this.owners;
+        return { length: this.cells.length, read: index => owners.cells![index] };
+    }
     get shared(): boolean { return this.owners.count > 1; }
     writable(): Int32Array | Float64Array {
         if (this.owners.count > 1) {
             this.owners.count--;
             this.owners = { count: 1 };
             this.cells = this.cells.slice();
+            this.owners.cells = this.cells;
             this.pool = undefined;
             const cost = currentDiagnostics()?.cost('number-loop.alias-copy');
             if (cost) { cost.allocatedBytes += this.cells.byteLength; cost.copiedBytes += this.cells.byteLength; }
@@ -67,6 +74,7 @@ class PrivateNumericArray {
     store(index: number, value: number): void {
         if (this.cells instanceof Int32Array && value !== (value | 0)) {
             this.cells = Float64Array.from(this.cells);
+            this.owners.cells = this.cells;
             if (this.pool) this.pool.cells = this.cells;
         }
         this.cells[index] = value;
@@ -559,6 +567,12 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             const diagnostics = currentDiagnostics();
             if (diagnostics) diagnostics.numberLoopCopyProbes++;
         }
+        const helperWork = probe && plan.calls.length ? { value: 0 } : undefined;
+        if (helperWork) for (let index = 0; index < plan.calls.length; index++) {
+            const bound = plan.calls[index].bind(helperWork);
+            if (!bound) return recordFallback('number-loop:call-binding', 'proof');
+            calls[index] = bound;
+        }
         const transactions = prepareNumberContainers(containers, input, overflow);
         if (!transactions) return undefined;
         for (const [name, info] of storage) {
@@ -748,9 +762,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             }
             return recordFallback('number-loop:overflow', 'representation');
         }
-        if (probe && result.work! >= conditionWriteCells) {
-            feedback!.allow = true;
-            if (diagnostics) diagnostics.numberLoopCopyAmortized++;
+        if (probe) {
+            feedback!.allow = result.work! + (helperWork?.value ?? 0) >= conditionWriteCells;
+            if (feedback!.allow && diagnostics) diagnostics.numberLoopCopyAmortized++;
         }
         return completed(rankValue(result.value, result.type));
     };

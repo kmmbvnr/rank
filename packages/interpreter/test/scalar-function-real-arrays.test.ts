@@ -120,7 +120,7 @@ end`;
     expect(invoke(source, [0.25, 1n]).value).toBe(0.5);
 });
 
-it('does not speculate when an array alias or result can escape', () => {
+it('keeps local aliases private and escaping array results outside Number', () => {
     for (const source of [`fun X sample
   A = array shape 2 fill X
   B = A
@@ -132,7 +132,8 @@ end`, `fun X sample
   return A
 end`]) {
         const actual = invoke(source, [0.25]);
-        expect(actual.diagnostics.numberFunctions).toBe(0);
+        if (!source.includes('return A\n')) expect(actual.value).toBe(invoke(source, [0.25], false).value);
+        expect(actual.diagnostics.numberFunctions).toBe(source.includes('return A\n') ? 0 : 2);
     }
 });
 

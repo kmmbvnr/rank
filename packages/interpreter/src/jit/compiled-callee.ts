@@ -1,6 +1,6 @@
 import type { CompiledFunctionType } from '@arrrank/language';
 import type { CompiledCalleeType } from './compiled-callee-type.js';
-import type { LoopCallable } from './integer-loop-plan.js';
+import type { LoopCallable, LoopWorkCounter } from './integer-loop-plan.js';
 
 /** A proven call boundary; bind rechecks closure and builtin identities at region entry. */
 export interface CompiledCallee {
@@ -14,6 +14,6 @@ export interface CompiledCallee {
         readonly privateStateSafe: boolean;
     };
     readonly numberSafe?: boolean;
-    bind(): LoopCallable | undefined;
-    bindNumber?(): LoopCallable | undefined;
+    bind(work?: LoopWorkCounter): LoopCallable | undefined;
+    bindNumber?(work?: LoopWorkCounter): LoopCallable | undefined;
 }

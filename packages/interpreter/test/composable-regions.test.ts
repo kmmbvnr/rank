@@ -658,3 +658,139 @@ end`;
     expect(actual.diagnostics.mixedIntegerLoops).toBe(1);
     expect(actual.diagnostics.numberLoopOverflows).toBe(0);
 });
+
+it.each([
+    ['inline', '', 'A 0 + 1'],
+    ['helper', 'fun Input firstvalue\n return Input 0 + 1\nend', 'A firstvalue'],
+    ['scalar local', 'fun Input firstvalue\n Value = Input 0\n return Value + 1\nend', 'A firstvalue'],
+    ['array alias', 'fun Input firstvalue\n Alias = Input\n return Alias 0 + 1\nend', 'A firstvalue'],
+    ['chain', 'fun Input middle\n return Input 0 + 1\nend\nfun Input firstvalue\n return Input middle\nend', 'A firstvalue'],
+    ['alias chain', 'fun Input middle\n Alias = Input\n return Alias 0 + 1\nend\nfun Input firstvalue\n Alias = Input\n return Alias middle\nend', 'A firstvalue'],
+])('preserves the private array-call execution class: %s', (_name, helpers, value) => {
+    const prefix = `${setup}\n${helpers}`;
+    const body = `for R in 0 till 3
+ B 0 = ${value}
+ unpack A B = tuple B A
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toBeUndefined();
+    expect(actual.diagnostics.numberLoops).toBe(1);
+    expect(actual.diagnostics.numberLoopOverflows).toBe(0);
+});
+
+it.each([
+    'Scratch 0 = X + 1\n return Alias 0',
+    'Alias 0 = X + 1\n return Scratch 0',
+    'Scratch = array shape 2 fill 8\n Alias 0 = X + 1\n return Scratch 0',
+])('keeps helper-local array aliases in the Number tier: %s', writes => {
+    const prefix = `${setup}\nfun X scratch\n Scratch = array shape 2 fill X\n Alias = Scratch\n ${writes}\nend`;
+    const body = `for R in 0 till 3
+ B 0 = (A 0) scratch
+ unpack A B = tuple B A
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toBeUndefined();
+    expect(actual.diagnostics.numberLoops).toBe(1);
+    expect(actual.diagnostics.numberFunctions).toBe(3);
+    expect(actual.diagnostics.numberLoopOverflows).toBe(0);
+});
+
+it.each([
+    ['inline', '', '(A * 2) sum'],
+    ['plan helper', 'fun Input planned\n Twice\' = Input * 2\n Result = Twice sum\n return Result\nend', 'A planned'],
+    ['plan alias', 'fun Input planned\n Alias = Input\n Twice\' = Alias * 2\n Result = Twice sum\n return Result\nend', 'A planned'],
+    ['plan chain', 'fun Input middle\n Twice\' = Input * 2\n Result = Twice sum\n return Result\nend\nfun Input planned\n return Input middle\nend', 'A planned'],
+])('preserves the execution class of a consumed plan: %s', (_name, helpers, value) => {
+    const prefix = `${setup}\n${helpers}`;
+    const body = `for R in 0 till 3
+ B 0 = ${value}
+ unpack A B = tuple B A
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toBeUndefined();
+    expect(actual.diagnostics.numberLoops).toBe(1);
+    expect(actual.diagnostics.numberLoopOverflows).toBe(0);
+});
+
+
+it.each(['4294967296', '9007199254740992'])('preserves integer iteration through a borrowed alias: %s', cell => {
+    const prefix = `${setup}
+fun Input total
+ Alias = Input
+ Value = 0
+ for Cell in Alias
+  Value += Cell
+ end
+ return Value
+end
+A = array shape 4 fill ${cell}`;
+    const body = `for R in 0 till 3
+ Total += A total
+end`;
+    const actual = run(body, true, prefix);
+    expect(actual.state).toEqual(run(body, false, prefix).state);
+    expect(actual.state.error).toBeUndefined();
+    if (cell === '4294967296') expect(actual.diagnostics.numberLoopOverflows).toBe(0);
+});
+
+it.each([
+    ['inline', '', '(A * 2) sum'],
+    ['loop helper', 'fun Input total\n Value = 0\n for Cell in Input\n  Value += Cell * 2\n end\n return Value\nend', 'A total'],
+    ['plan helper', "fun Input total\n Twice' = Input * 2\n Value = Twice sum\n return Value\nend", 'A total'],
+    ['direct plan return', "fun Input total\n Twice' = Input * 2\n return Twice sum\nend", 'A total'],
+    ['forwarded plan return', "fun Input inner\n Twice' = Input * 2\n return Twice sum\nend\nfun Input total\n return Input inner\nend", 'A total'],
+    ['plan alias chain', "fun Input inner\n Alias = Input\n Twice' = Alias * 2\n Value = Twice sum\n return Value\nend\nfun Input total\n return Input inner\nend", 'A total'],
+])('counts nested work when amortizing large private arrays: %s', (_name, helpers, expression) => {
+    const source = parse(`use sequences
+${helpers}
+A = array shape 1024 fill 1
+B = array shape 1024 fill 2
+for R in 0 till 5
+ B 0 = (${expression}) mod 1000003
+ unpack A B = tuple B A
+end`);
+    const execute = (compilation: boolean) => {
+        const runtime = new Interpreter(() => {}, { compilation, scalarEntryCompilation: false });
+        try {
+            // Reuse the same AST so the second and third entries consume
+            // the first entry's copy-amortization feedback.
+            for (let entry = 0; entry < 2; entry++) runtime.executeProgram(source);
+            const diagnostics = new RuntimeDiagnostics();
+            diagnostics.run(() => runtime.executeProgram(source));
+            return { value: runtime.execute('A 0'), diagnostics };
+        } finally { runtime.dispose(); }
+    };
+    const actual = execute(true);
+    expect(actual.value).toEqual(execute(false).value);
+    expect(actual.diagnostics.numberLoops).toBe(1);
+    expect(actual.diagnostics.numberLoopOverflows).toBe(0);
+    expect(actual.diagnostics.numberFunctionArrayBorrows).toBe(0);
+});
+
+it.each([
+    'return Input 0',
+    'for Cell in Input\n  return Cell\n end\n return 0',
+])('does not charge a full array pass to a short helper: %s', body => {
+    const source = parse(`use sequences
+fun Input firstvalue
+ ${body}
+end
+A = array shape 1024 fill 1
+B = array shape 1024 fill 2
+for R in 0 till 5
+ B 0 = A firstvalue
+ unpack A B = tuple B A
+end`);
+    const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
+    try {
+        for (let entry = 0; entry < 2; entry++) runtime.executeProgram(source);
+        const diagnostics = new RuntimeDiagnostics();
+        diagnostics.run(() => runtime.executeProgram(source));
+        expect(runtime.execute('A 0')).toBe(1n);
+        expect(diagnostics.numberLoops).toBe(0);
+        expect(diagnostics.exactLoopWorkPromotions).toBe(0);
+    } finally { runtime.dispose(); }
+});

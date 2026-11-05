@@ -26,7 +26,7 @@ import { readArrayItem, storedScalarKinds, denseScalarItems, materializedArrayIt
 
 function emitIntegerLoopSource(plan: IntegerLoopPlan, workCounting = false): string {
     const { names, arrays, destinations, root, body, hasYield } = plan;
-    return `"use strict"; return function${hasYield ? '*' : ''}(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads, callouts) {
+    return `"use strict"; return function${hasYield ? '*' : ''}(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads, callouts, helperWork) {
         ${names.length ? `let ${names.map((name, index) => {
             const value = `r${index} = input[${index}]`;
             // Scalar/container slots never use tensor accessors. In short loops,
@@ -41,7 +41,7 @@ function emitIntegerLoopSource(plan: IntegerLoopPlan, workCounting = false): str
             let iterationResult;
             ${root.bindings} ${body.join('\n')}
             result = iterationResult; location = -1;
-        } ${workCounting ? 'observeWork(work); ' : ''}return result; } catch (error) { throw locate(error, location); }
+        } ${workCounting ? 'observeWork(work + (helperWork?.value ?? 0)); ' : ''}return result; } catch (error) { throw locate(error, location); }
     };`;
 }
 
@@ -85,7 +85,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         },
     };
     const source = emitIntegerLoopSource(plan, false);
-    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, callouts?: (() => RankValue)[]) => RankValue | undefined;
+    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, callouts?: (() => RankValue)[], helperWork?: { value: number }) => RankValue | undefined;
     const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', 'shapeMismatch', 'aliasValue', code)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, checkValueMutable, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
@@ -206,7 +206,9 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         if (hasYield && (!insideGenerator || insideFinally || inspectionEnabled())) return recordFallback('loop:control-context');
         if (needsAlgo && !host.module('algo')) return entryGuard('builtin', 'algo');
         for (const [name, module] of builtins) if (!host.builtin(module, name)) return entryGuard('builtin', name);
-        const activeCalls = calls.map(call => call.bind());
+        const sampleWork = !!feedback?.cells && privateLoopPolling() && !hasYield;
+        const helperWork = sampleWork && calls.length ? { value: 0 } : undefined;
+        const activeCalls = calls.map(call => call.bind(helperWork));
         const rejectedCall = activeCalls.findIndex(call => !call);
         if (rejectedCall >= 0) return entryGuard('callee', calls[rejectedCall].name);
         if ([...destinations].some(([name]) => {
@@ -344,7 +346,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         const activeBinders = host.prepareWriter
             ? binders.map((checked, index) => host.prepareWriter!(binderNames[index], checked)) : binders;
         let runner = run;
-        if (feedback?.cells && privateLoopPolling() && !hasYield) {
+        if (sampleWork && feedback) {
             if (!countedRun) {
                 const countedPlan = compileCountedPlan ? compileCountedPlan() : plan;
                 if (countedPlan) {
@@ -363,7 +365,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         const calloutFns = plan.callouts?.map(({ expression }) => () => {
             return host.evaluate ? host.evaluate(expression) : host.callout ? host.callout(expression)() : undefined as unknown as RankValue;
         }) ?? [];
-        const outcome = runner(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites, stableReads, calloutFns);
+        const outcome = runner(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites, stableReads, calloutFns, helperWork);
         // A suspending region returns its own task for the execution driver.
         return hasYield ? outcome as unknown as Execution<RankValue | undefined> : completed(outcome);
     } };

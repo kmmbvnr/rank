@@ -15,6 +15,9 @@ export interface InlineTensorHost {
     input(node: TensorNode): PreparedTensor;
     element(node: TensorNode): CompiledScalarType;
     locate(node: TensorNode, lines: string[]): void;
+    locateShape?(node: TensorNode, lines: string[]): void;
+    readonly number?: boolean;
+    check?(value: string, type: CompiledScalarType): string;
     readonly demandLocation?: string;
     readonly buffered?: ReadonlySet<TensorNode>;
     binary(operation: CompiledOperator, left: string, right: string, lines: string[], type: CompiledScalarType, inputs?: readonly CompiledScalarType[]): string;
@@ -74,13 +77,14 @@ export function inlineTensorEmitter(lines: string[], host: InlineTensorHost): (n
             const { operation: name, source: operand, rows } = node, input = prepare(operand);
             const read = (row: string, body: string[]) => {
                 const result = host.variable(), index = host.variable();
-                body.push(`let ${result} = 0n;`);
+                body.push(`let ${result} = ${host.number ? '0' : '0n'};`);
                 const size = rows ? input.columns! : input.size!;
                 host.locate(node, body);
                 if (name === 'min' || name === 'max') body.push(`${host.demandLocation ? `location = ${host.demandLocation}; ` : ''}if (${size} === 0) throw new RankError('${name} requires at least one value', 'EmptyReduction');`);
                 const loop: string[] = [];
                 const value = input.read(rows ? `((${row}) * ${size} + ${index})` : index, loop);
-                loop.push(tensorReductionStep(name, result, value, index, true));
+                loop.push(tensorReductionStep(name, result, value, index, true, false, host.number));
+                if (host.check) loop.push(`${result} = ${host.check(result, host.element(node))};`);
                 body.push(`for (let ${index} = 0; ${index} < ${size}; ${index}++) { checkpoint('reducing function plan'); ${loop.join('\n')} }`);
                 return result;
             };
@@ -93,7 +97,8 @@ export function inlineTensorEmitter(lines: string[], host: InlineTensorHost): (n
             const read = (index: string, body: string[]) => {
                 const value = operand.read(index, body), result = host.variable();
                 host.locate(node, body);
-                body.push(`const ${result} = ${findCompiledOperator(node.op)!.unary}(${value});`);
+                const code = `${findCompiledOperator(node.op)!.unary}(${value})`;
+                body.push(`const ${result} = ${host.check ? host.check(code, host.element(node)) : code};`);
                 return result;
             };
             if (operand.size) return { size: operand.size, read };
@@ -105,7 +110,7 @@ export function inlineTensorEmitter(lines: string[], host: InlineTensorHost): (n
         let size = left.size ?? right.size;
         if (left.size && right.size && left.size !== right.size) {
             size = host.variable();
-            host.locate(node, lines);
+            (host.locateShape ?? host.locate)(node, lines);
             lines.push(`const ${size} = broadcastShape([${left.size}], [${right.size}])[0];`);
         }
         const read = (index: string, body: string[]) => {

@@ -44,7 +44,7 @@ export interface LoopHost {
     prepareEffectCall(name: string, receiver: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
     readonly sequenceMembership: boolean;
-    scalarFunction(name: string, arity: number, strictData?: boolean): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined;
+    scalarFunction(name: string, arity: number, strictData?: boolean, consumed?: boolean): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined;
     readonly booleanLocals: boolean;
     readonly booleanArrays: boolean;
     readonly arrayLocals: boolean;
@@ -98,6 +98,8 @@ export function loopValueType(value: RankValue | undefined): CompiledLoopType | 
 
 /** Per-region backend feedback; contains no language values or cached results. */
 export interface LoopWorkFeedback { cells: number; allow: boolean }
+/** Invocation-scoped work shared by measured caller and helper kernels. */
+export interface LoopWorkCounter { value: number }
 
 /** Whole numeric loop: keep reads in local registers and commit every assignment.
  * Writers retain fixed-type checks and partial state on errors; optional bound
@@ -128,7 +130,7 @@ export interface IntegerLoopPlan {
     localTypes: Map<string, LoopTerm['type']>;
     containers: Map<string, { slot: number; kind: 'index' | 'deque' | 'set' | 'fenwick' | 'groups'; integers: boolean; mode?: RankDeque['mode']; array?: { rank: number; type: LoopTerm['type'] } }>;
     builtins: Map<string, string>;
-    calls: { exactOutput?: Expression; privateStateSafe?: boolean; numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): LoopCallable | undefined }[];
+    calls: { exactOutput?: Expression; privateStateSafe?: boolean; numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(work?: LoopWorkCounter): LoopCallable | undefined }[];
     vectorIterations: { slot: number; binding: IterationBinding }[];
     iterators: ((source: RankArray | RankDeque | RankSet | string) => Iterable<RankValue>)[];
     writerNames: string[];

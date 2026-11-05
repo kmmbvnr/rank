@@ -530,3 +530,178 @@ Raw [initial Mac](baselines/2026-11-05-helper-effects-euler-mac-initial.json),
 [initial Intel](baselines/2026-11-05-helper-effects-euler-intel-initial.json),
 [final Mac](baselines/2026-11-05-helper-effects-euler-mac-final.json),
 [final Intel](baselines/2026-11-05-helper-effects-euler-intel-final.json).
+
+
+### Helper equivalence: Euler audit of the unfinished implementation
+
+This measures the uncommitted `perf/helper-equivalence` implementation against
+`c996b5aa`. Its base is `88a57910`; the interpreter and language source trees
+are unchanged between those two commits. This is a progress measurement,
+not a completed composition improvement or a comparison against later main.
+Source and fixture hashes are in the
+[manifest](baselines/2026-11-05-helper-equivalence-euler-manifest.json).
+
+All programs use their unchanged full default inputs. A proof scan newly
+admitted helpers in 263, 326, 352 and 399. The previous five-program control
+set is retained. Full 054 is added because the ordinary tests exposed a
+captured-helper compilation regression, corrected before this final series.
+The proof scan uses default scalar parameter types; it is not an exhaustive
+inventory of all array-typed specializations in the Euler corpus.
+
+Node 24.15.0 on both machines. Five cold samples per version, separate fresh
+processes, alternating version order, followed by one separate diagnostic
+sample. Parsing is outside the timer; execution includes first compilation.
+No test suite runs concurrently with the benchmark on the same host.
+Every worker asserts the full answer. Peak RSS is whole-process high-water
+usage; retained heap and buffers are sampled after GC.
+
+The table reports the median of the five paired candidate/baseline time
+ratios. Positive means slower. These are observations, not statistical
+confidence bounds or evidence that a small percentage change is repeatable.
+
+| Full default | Mac time change | Intel time change |
+| --- | ---: | ---: |
+| Euler 026 | +0.5% | +3.3% |
+| Euler 044 | +0.1% | -1.7% |
+| Euler 054 | +0.7% | -4.4% |
+| Euler 263 | +1.0% | +1.0% |
+| Euler 303 | +2.3% | +0.2% |
+| Euler 310 | +0.5% | -0.7% |
+| Euler 326 | -0.9% | +1.8% |
+| Euler 330 | -0.5% | -0.5% |
+| Euler 352 | +2.7% | +3.8% |
+| Euler 399 | +0.9% | -1.7% |
+
+No broad Euler speedup or material memory saving is established. In particular,
+352 selects one additional Number loop but has slightly higher cold runtime.
+Peak RSS differences in the nine-program final series range from -3.8 to
++5.1 MiB on Mac and -2.6 to +0.8 MiB on Intel, without a consistent reduction.
+
+Mac 263 is especially noisy: the final baseline spans 2.59–3.56 seconds and
+candidate 2.54–3.65 seconds. Taking independent medians suggests a 22% gain,
+while the median paired change is +1%. Earlier series even suggested a loss.
+Neither a speedup nor a regression should be claimed from these measurements.
+
+The 303 replay regression remains fixed: both versions execute 9,997 Number
+functions, three function fallbacks, and zero caller-loop overflows. The one
+loop overflow in 326 is present in both versions. In 352 both execute 50
+Number functions; the new outer Number loop alone is not a performance win.
+
+Initial repeated Intel cold measurements showed about 2 ms additional cost
+for 026 and 4 ms for 330. Ten warmups and seven measured samples reduced those
+differences to essentially zero (026: 25.25 → 24.86 ms; 330: 27.52 → 27.60 ms).
+These initial warm results precede the last captured-helper and integer-alias
+repairs; final warm controls are recorded separately below.
+
+Validation: build passes. The ordinary Mac suite excluding types,
+differential and Nurikabe executed 12,188 tests: 12,185 passed and three
+failed. Two failures exposed the captured-helper eligibility regression;
+restoring the pre-existing capture-safe path fixes both. The remaining check
+expected no fresh compiled loop after helper replacement; the new binding is
+correctly rejected, then a new region compiles against the replacement.
+Its assertion now checks the binding rejection and correct outputs. All 168
+tests in the five affected files pass after these corrections. The full
+ordinary suite was not repeated after the corrections. The same 168 focused
+tests also pass on Intel after the final benchmark series.
+
+Composition acceptance remains incomplete: for large private arrays, work
+inside a consumed-plan helper is not included in copy-amortization feedback.
+The tiny inline/helper/alias/chain matrix passes, but that does not establish
+equivalent execution cost or class at realistic sizes. No SSA rewrite is
+needed to address this remaining cost-accounting boundary.
+
+Reproduce:
+
+```sh
+node benchmarks/helper-equivalence-euler.mjs --baseline=/path/to/baseline --samples=5
+node benchmarks/helper-equivalence-euler.mjs --baseline=/path/to/baseline --samples=7 --warmups=10 --cases=026,330,352
+```
+
+Raw final observations: [Mac](baselines/2026-11-05-helper-equivalence-euler-mac-final.json),
+[Intel](baselines/2026-11-05-helper-equivalence-euler-intel-final.json),
+[Mac 054](baselines/2026-11-05-helper-equivalence-euler-mac-poker.json),
+[Intel 054](baselines/2026-11-05-helper-equivalence-euler-intel-poker.json).
+Initial series and repeated controls use the same `helper-equivalence-euler`
+filename prefix in `baselines/`.
+
+Final warm controls (10 warmups, seven samples, median milliseconds):
+
+| Full default | Mac baseline → candidate | Intel baseline → candidate |
+| --- | ---: | ---: |
+| Euler 026 | 9.89 → 9.84 | 25.19 → 25.47 |
+| Euler 330 | 10.29 → 10.19 | 26.31 → 26.66 |
+| Euler 352 | 20.53 → 20.82 | 47.46 → 46.59 |
+
+Raw warm controls: [Mac](baselines/2026-11-05-helper-equivalence-euler-mac-warm-final.json), [Intel](baselines/2026-11-05-helper-equivalence-euler-intel-warm-final.json).
+
+
+### Measured helper work across call boundaries (in progress)
+
+The next change shares an invocation-scoped work counter through measured
+callee bindings, including ordinary helper chains and ranked callbacks.
+Generated exact kernels accept the counting checkpoint at binding time;
+Number kernels reuse their existing checkpoint parameter. Ordinary cached
+bindings do not retain counters, and runtime binding guards remain mandatory.
+Both Number copy probes and exact fallback samples include completed nested
+work. The existing large-copy cap remains conservative.
+
+The new repeated-entry matrix uses 1,024-cell arrays and checks inline,
+loop-helper, plan-helper and alias-chain forms. All retain the outer Number
+loop after feedback. A helper that reads only its first cell, or returns from
+its first iteration, does not earn a full-pass budget. Build and 178 tests in
+seven relevant files pass.
+
+This fixes measured admission, not yet the complete execution-cost criterion.
+`node benchmarks/helper-equivalence.mjs` exposes the remaining difference:
+with 4,096-cell arrays and 50 passes, a local exploratory warmed run gave
+inline 0.46 ms, loop helper 0.75 ms, plan helper 4.78 ms, plan alias chain
+12.67 ms. Every form returns 301144, selects one Number loop and has zero
+caller overflows. The plan variants still use the exact borrowed-array ABI,
+so their internal per-cell BigInt work remains. These exploratory numbers
+are not a cross-architecture performance claim.
+
+The Euler tables above precede this work-counter change; their manifest
+identifies that earlier measured snapshot. Euler must be rerun after the
+remaining execution changes, before delivery.
+
+### Shared Number lowering for consumed integer plans (in progress)
+
+Consumed integer plans now use the existing function-plan/tensor emitter with
+Number inputs and checked reductions. Scalar operations reuse the Number
+function arithmetic emitter. The initial supported domain includes integer
+arithmetic, broadcasting, outer operations and row reductions; unsupported
+native/conversion/callback/power stages retain the exact path. A plan's
+observable consumer hooks retain the exact captured-binding ABI.
+
+This removes per-cell BigInt conversion from the plan and alias-chain cases
+above. Repeated local synthetic measurements (10 warmups, seven samples,
+median milliseconds; diagnostic sample separate):
+
+| Form | Mac | Intel |
+| --- | ---: | ---: |
+| Inline | 0.476 | 1.286 |
+| Loop helper | 0.865 | 1.718 |
+| Plan helper | 0.899 | 1.743 |
+| Plan alias chain | 0.944 | 1.657 |
+
+Every form returns 301144, retains one Number loop, performs no caller replay,
+and reports exactly 32,768 snapshot bytes. All report zero exact-ABI borrowed
+views. This is equivalent numeric execution/storage class, not identical
+wall time: helpers still carry per-cell checks and polling overhead.
+The earlier exploratory plan and chain times were 4.78 and 12.67 ms on Mac.
+
+Build and 235 focused tests in eight files pass on both Mac and Intel.
+New boundary tests compare Number execution, exact fallback and reference
+results for overflow, signed division/remainder, broadcasting, outer/row
+reductions, empty input, local COW aliases and located errors. Consumer
+arithmetic errors and construction-time shape errors retain distinct locations;
+scalar deferred-value errors retain their existing construction locations.
+
+Raw [Mac](baselines/2026-11-05-helper-equivalence-number-plan-mac.jsonl),
+[Intel](baselines/2026-11-05-helper-equivalence-number-plan-intel.jsonl),
+[manifest](baselines/2026-11-05-helper-equivalence-number-plan-manifest.json).
+
+Still pending: direct deferred scalar returns versus forced scalar locals,
+copy admission above the existing speculative cap, broader ordinary tests and
+updated full Euler measurements before integration and delivery. The previous
+Euler tables do not measure this latest implementation.

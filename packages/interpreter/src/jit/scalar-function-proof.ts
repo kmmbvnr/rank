@@ -5,7 +5,7 @@ import {
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, flattenApplication, isApplicationExpression, isDeclaredCallExpression,
     isNameExpression, isExpressionStatement, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
-    isCountClauseExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement, type Operation, type FunctionEffects,
+    isCountClauseExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement, type Operation, type FunctionEffects, type ReturnOrigin,
 } from '@arrrank/language';
 import { describeCompilerRejection, recordCompilerRejection, type CompilerRejection } from './compiler-rejection.js';
 import { recordFallback } from '../diagnostics.js';
@@ -21,9 +21,54 @@ const noCaptures: ScalarCaptureTypes = new Map();
 
 /** The compiled subset uses the same parameter-effect convention as the
  * language analysis. Unknown operations remain an observation boundary. */
-export interface ScalarFunctionEffects extends Pick<FunctionEffects, 'unknown' | 'parameters' | 'readParameters'> {
+export interface ScalarFunctionEffects extends Pick<FunctionEffects, 'unknown' | 'parameters' | 'readParameters' | 'returns'> {
     readonly localWrites: boolean;
     readonly returnsReference: boolean;
+    readonly deferredResult: boolean;
+}
+type ProvenExpression = CompiledExpression<CompiledCalleeType, ScalarFunctionInput>;
+const freshOrigin: ReturnOrigin = { kind: 'fresh' };
+const unknownOrigin: ReturnOrigin = { kind: 'unknown' };
+function originKey(origin: ReturnOrigin): string {
+    return origin.kind === 'parameter' ? `parameter:${origin.index}`
+        : origin.kind === 'capture' ? `capture:${origin.name}` : origin.kind;
+}
+function joinOrigins(origins: readonly ReturnOrigin[]): ReturnOrigin[] {
+    return [...new Map(origins.map(origin => [originKey(origin), origin])).values()];
+}
+/** Origin transfer uses the expressions already accepted by the scalar proof.
+ * A union over rebindings and branches is conservative, without another AST pass. */
+function expressionOrigins(expression: ProvenExpression | undefined,
+    bindings: ReadonlyMap<string, readonly ReturnOrigin[]>): readonly ReturnOrigin[] {
+    if (!expression) return [unknownOrigin];
+    if (typeof expression.type === 'string') return [freshOrigin];
+    if (expression.kind === 'group') return expressionOrigins(expression.operand, bindings);
+    if (expression.kind !== 'input') return [unknownOrigin];
+    const input = expression.input;
+    if (!input.operation && !input.indices) return bindings.get(input.name) ?? [];
+    if (input.operation === 'user-call' && input.callee) {
+        return scalarFunctionEffects(input.callee.proof).returns.flatMap(origin =>
+            origin.kind === 'parameter' ? [...expressionOrigins(input.indices?.[origin.index], bindings)] : [origin]);
+    }
+    return ['array', 'new', 'vector', 'copy', 'concat-copy', 'materialize-deque', 'sort', 'unique', 'argsort', 'gather']
+        .includes(input.operation ?? '') ? [freshOrigin] : [unknownOrigin];
+}
+function storageOrigins(parameters: readonly string[], types: readonly CompiledCalleeType[],
+    bindings: ReadonlyMap<string, readonly ProvenExpression[]>): ReadonlyMap<string, readonly ReturnOrigin[]> {
+    const origins = new Map<string, readonly ReturnOrigin[]>();
+    parameters.forEach((name, index) => {
+        if (typeof types[index] !== 'string') origins.set(name, joinOrigins([...(origins.get(name) ?? []), { kind: 'parameter', index }]));
+    });
+    for (let changed = true; changed;) {
+        changed = false;
+        for (const [name, values] of bindings) {
+            const previous = origins.get(name) ?? [];
+            const next = joinOrigins([...previous, ...values.flatMap(value => [...expressionOrigins(value, origins)])]);
+            if (next.length !== previous.length) { origins.set(name, next); changed = true; }
+        }
+    }
+    for (const name of bindings.keys()) if (!origins.get(name)?.length) origins.set(name, [unknownOrigin]);
+    return origins;
 }
 const effectProofs = new WeakMap<ScalarFunctionProof, ScalarFunctionEffects>();
 
@@ -31,15 +76,27 @@ export function scalarFunctionEffects(proof: ScalarFunctionProof): ScalarFunctio
     const known = effectProofs.get(proof);
     if (known) return known;
     const parameters = new Set<number>();
-    let unknown = proof.observableCaptures || !proof.localArrayWrites
-        || !!proof.planBindings.size || !!proof.iterableBindings.size || !!proof.planCalls.length
-        || !!proof.loopIterables.size;
+    let unknown = proof.observableCaptures || !proof.localArrayWrites;
+    // Plan operands already have closed local/parameter domains. Only their
+    // linked callbacks add effects; native iterator bindings stay guarded.
+    for (const call of proof.planCalls) {
+        const effects = scalarFunctionEffects(call.proof);
+        unknown ||= effects.unknown || !!effects.parameters.size || effects.returnsReference;
+    }
+    function iterableSafe(iterable: ScalarLoopIterable): boolean {
+        if (iterable.kind === 'group') return false;
+        if (iterable.kind === 'literal') return true;
+        return !iterable.operation.effects?.length
+            && (!('kind' in iterable.source) || iterableSafe(iterable.source));
+    }
+    unknown ||= [...proof.loopIterables.values()].some(iterable => !iterableSafe(iterable));
     let localWrites = !!proof.arrayWrites.size;
     function write(name: string): void {
-        if (proof.ownedStorage.has(name)) { localWrites = true; return; }
-        const index = proof.parameters.indexOf(name);
-        if (index >= 0) parameters.add(index);
-        else unknown = true;
+        for (const origin of proof.storageOrigins.get(name) ?? [unknownOrigin]) {
+            if (origin.kind === 'fresh') localWrites = true;
+            else if (origin.kind === 'parameter') parameters.add(origin.index);
+            else unknown = true;
+        }
     }
     for (const name of proof.containerWrites) write(name);
     function expression(node: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>): boolean {
@@ -69,19 +126,21 @@ export function scalarFunctionEffects(proof: ScalarFunctionProof): ScalarFunctio
         if (input.operation === 'self-call') return !proof.parameterTypes.some(type => typeof type !== 'string');
         return !input.operation || ['choose', 'integer-power', 'text-at', 'array-len',
             'array', 'vector', 'new', 'pop', 'len', 'contains', 'not-contains',
-            'set-contains', 'set-not-contains', 'index-default'].includes(input.operation);
+            'set-contains', 'set-not-contains', 'index-default', 'plan'].includes(input.operation);
     }
     if (![...proof.expressions.values()].every(expression)) unknown = true;
-    const effects = { unknown, parameters, localWrites, returnsReference: typeof proof.type !== 'string',
-        readParameters: new Set(proof.parameterTypes.flatMap((type, index) => typeof type !== 'string' ? [index] : [])) };
+    const effects = { unknown, parameters, localWrites, returnsReference: typeof proof.type !== 'string' || proof.planReturn, deferredResult: proof.planReturn,
+        readParameters: new Set(proof.parameterTypes.flatMap((type, index) => typeof type !== 'string' ? [index] : [])),
+        returns: joinOrigins(proof.returned.flatMap(value => [...expressionOrigins(value, proof.storageOrigins)])) };
     effectProofs.set(proof, effects);
     return effects;
 }
 
 /** Live binding and native implementation guards are still checked at entry. */
-export function privateScalarFunction(proof: ScalarFunctionProof): boolean {
+export function privateScalarFunction(proof: ScalarFunctionProof, consumed = false): boolean {
     const effects = scalarFunctionEffects(proof);
-    return !effects.unknown && !effects.parameters.size && !effects.returnsReference;
+    return !effects.unknown && !effects.parameters.size
+        && (!effects.returnsReference || consumed && effects.deferredResult && typeof proof.type === 'string');
 }
 
 export interface ScalarFunctionInput {
@@ -104,6 +163,8 @@ export interface ScalarFunctionProof {
     readonly parameters: readonly string[];
     readonly parameterTypes: readonly CompiledCalleeType[];
     readonly ownedStorage: ReadonlySet<string>;
+    readonly storageOrigins: ReadonlyMap<string, readonly ReturnOrigin[]>;
+    readonly returned: readonly ProvenExpression[];
     readonly containerWrites: ReadonlySet<string>;
     readonly type: CompiledCalleeType;
     readonly dependencies: readonly string[];
@@ -164,6 +225,8 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return undefined;
     }
     const expressions = new Map<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>();
+    const bindings = new Map<string, ProvenExpression[]>();
+    const returned: ProvenExpression[] = [];
     const nativeReads = new Set<string>();
     const dependencies = new Set<string>();
     const lexical = functionScope(statement);
@@ -233,7 +296,8 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 const signature = functionCallSignature(callee);
                 if (signature.words.length || signature.parameters.some(parameter => parameter.kind === 'function' || parameter.deferred)) return undefined;
                 const proof = scalarFunctionResult(callee, true, [element], true, [...path, statement], captures);
-                if (!proof || typeof proof.type !== 'string' || proof.planReturn || proof.containers || proof.arrayWrites.size
+                if (!proof || typeof proof.type !== 'string' || proof.planReturn
+                    || (proof.containers || proof.arrayWrites.size) && !privateScalarFunction(proof)
                     || proof.nonnegative.length || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
                 callDepth = Math.max(callDepth, proof.callDepth + 1);
                 callCount += proof.callCount + 1;
@@ -651,7 +715,16 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
             if (--budget.remaining < 0) return reject(command, 'budget');
             if (isReturnStatement(command) && command.value) {
                 const delayed = readsStage(command.value);
+                consumerRoot = command.value;
                 const value = type(command.value, env);
+                consumerRoot = undefined;
+                let returnedCall = expressions.get(command.value);
+                while (returnedCall?.kind === 'group') returnedCall = returnedCall.operand;
+                if (returnedCall?.kind === 'input' && returnedCall.input.operation === 'user-call'
+                    && returnedCall.input.callee?.proof.planReturn) {
+                    planReturn = true;
+                    planReturns.add(command);
+                }
                 if (delayed) {
                     let expression = expressions.get(command.value);
                     while (expression?.kind === 'group') expression = expression.operand;
@@ -661,6 +734,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 }
                 if (!value || resultType && !sameCompiledCalleeType(resultType, value)) return reject(command, 'return-type');
                 resultType = value;
+                returned.push(expressions.get(command.value)!);
                 // Reject unreachable syntax as well: local functions are hoisted.
                 return index === commands.length - 1 ? null : reject(commands[index + 1], 'unreachable');
             }
@@ -707,6 +781,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     const signature = scalarOperatorSignature(command.operator.slice(0, -1), [value, value]);
                     if (!signature?.compound || signature.result !== value) return reject(command, `unsupported-op:${command.operator}`);
                 }
+                if (typeof value !== 'string') bindings.set(command.name, [...bindings.get(command.name) ?? [], expressions.get(command.value)!]);
                 settled.set(command.name, value);
                 env.set(command.name, value);
                 if (!parameters.has(command.name)) locals.add(command.name);
@@ -842,21 +917,15 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         if (!seed.failure) resultType = seed.expression.type;
     }
     const outcome = flow(statement.statements, new Map(settled));
-    // Only constructor-owned slots can be written without an argument frame.
-    // Reject aliases and every later assignment from a non-constructor source.
-    const ownedStorage = new Set([...settled].filter(([, type]) => typeof type !== 'string').map(([name]) => name));
-    for (const name of parameters) ownedStorage.delete(name);
-    for (const node of AstUtils.streamAst(statement)) {
-        if (!isAssignmentStatement(node)) continue;
-        const source = unwrap(node.value);
-        if (node.operator !== '=' || !(isNewStructureExpression(source) || isArrayExpression(source)
-            && source.dimensions.length && source.fill)) ownedStorage.delete(node.name);
-    }
+    // Only origins fresh to this invocation may be written without a frame.
+    const origins = storageOrigins(statement.parameters, types, bindings);
+    const ownedStorage = new Set([...origins].filter(([, values]) => values.length
+        && values.every(origin => origin.kind === 'fresh')).map(([name]) => name));
     const localArrayWrites = [...arrayWrites].every(command => isArrayAssignmentStatement(command) && ownedStorage.has(command.name));
     // Each invocation owns these constructor slots. Recursive calls only read
     // their arguments; writes through parameters or aliases still fail ownership.
     const result = outcome === null && resultType && !(recursive && (!localArrayWrites || nonnegativeParameters.size))
-        ? { parameters: statement.parameters, parameterTypes: types, ownedStorage, containerWrites, type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, recursive, arrayWrites, localArrayWrites, observableCaptures, expressions,
+        ? { parameters: statement.parameters, parameterTypes: types, ownedStorage, storageOrigins: origins, returned, containerWrites, type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, recursive, arrayWrites, localArrayWrites, observableCaptures, expressions,
             planCalls, planBindings, planReturn, planReturns, loopIterables, iterableBindings, nonnegative: [...nonnegativeParameters] } : undefined;
     const failure = rejection ?? { ...describeCompilerRejection('scalar-function', statement), reason: 'scalar-function:missing-return' };
     // A path-depth limit must not poison a helper that is shallow on its own.
