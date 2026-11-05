@@ -1,0 +1,167 @@
+rem Tests for ACMP 0656: Road Auction
+use testing
+use text
+
+test "ACMP 656: Sample 1 (9 8 4)"
+  use "0656_road_auction"
+  run
+  Lines = Result split "\n"
+  (Lines len) equal 4
+  OutNums = Lines integer
+  Has1 = (OutNums equal 1) any
+  Has3 = (OutNums equal 3) any
+  Has4 = (OutNums equal 4) any
+  Has8 = (OutNums equal 8) any
+  (
+    Has1 and Has3 and Has4 and Has8
+  ) equal true
+end
+
+test "ACMP 656: Star graph (K = 2)"
+  use "0656_road_auction"
+  Input = (
+    "5 4 2\n" +
+    "1 2 5\n" +
+    "1 3 2\n" +
+    "1 4 8\n" +
+    "1 5 1"
+  )
+  run
+  Lines = Result split "\n"
+  (Lines len) equal 2
+  OutNums = Lines integer
+  Has2 = (OutNums equal 2) any
+  Has4 = (OutNums equal 4) any
+  (Has2 and Has4) equal true
+end
+
+test "ACMP 656: K = 1 cheapest edge"
+  use "0656_road_auction"
+  Input = (
+    "3 2 1\n" +
+    "1 2 10\n" +
+    "2 3 5"
+  )
+  run
+  Result equal "2"
+end
+
+test "ACMP 656: Unicyclic graph (K = 3)"
+  use "0656_road_auction"
+  Input = (
+    "8 8 3\n" +
+    "1 2 10\n" +
+    "2 3 10\n" +
+    "3 4 10\n" +
+    "4 1 10\n" +
+    "1 5 1\n" +
+    "2 6 2\n" +
+    "3 7 3\n" +
+    "4 8 4"
+  )
+  run
+  Lines = Result split "\n"
+  (Lines len) equal 3
+  OutNums = Lines integer
+  Has1 = (OutNums equal 1) any
+  Has5 = (OutNums equal 5) any
+  Has6 = (OutNums equal 6) any
+  (Has1 and Has5 and Has6) equal true
+end
+
+test "ACMP 656: Full cycle (K = 5)"
+  use "0656_road_auction"
+  Input = (
+    "8 8 5\n" +
+    "1 2 10\n" +
+    "2 3 10\n" +
+    "3 4 10\n" +
+    "4 1 10\n" +
+    "1 5 1\n" +
+    "2 6 2\n" +
+    "3 7 3\n" +
+    "4 8 4"
+  )
+  run
+  Lines = Result split "\n"
+  (Lines len) equal 5
+  OutNums = Lines integer
+  Has1 = (OutNums equal 1) any
+  Has2 = (OutNums equal 2) any
+  Has5 = (OutNums equal 5) any
+  Has6 = (OutNums equal 6) any
+  Has7 = (OutNums equal 7) any
+  (
+    Has1 and Has2 and Has5 and
+    Has6 and Has7
+  ) equal true
+end
+
+test "ACMP 656: Maximal 60-node graph"
+  use "0656_road_auction"
+  Input = (
+    "60 59 35\n" +
+    "1 2 11\n" +
+    "2 3 12\n" +
+    "3 4 13\n" +
+    "4 5 14\n" +
+    "5 6 15\n" +
+    "6 7 16\n" +
+    "7 8 10\n" +
+    "8 9 11\n" +
+    "9 10 12\n" +
+    "10 11 13\n" +
+    "11 12 14\n" +
+    "12 13 15\n" +
+    "13 14 16\n" +
+    "14 15 10\n" +
+    "15 16 11\n" +
+    "16 17 12\n" +
+    "17 18 13\n" +
+    "18 19 14\n" +
+    "19 20 15\n" +
+    "20 21 16\n" +
+    "21 22 10\n" +
+    "22 23 11\n" +
+    "23 24 12\n" +
+    "24 25 13\n" +
+    "25 26 14\n" +
+    "26 27 15\n" +
+    "27 28 16\n" +
+    "28 29 10\n" +
+    "29 30 11\n" +
+    "1 31 8\n" +
+    "2 32 11\n" +
+    "3 33 14\n" +
+    "4 34 6\n" +
+    "5 35 9\n" +
+    "6 36 12\n" +
+    "7 37 15\n" +
+    "8 38 7\n" +
+    "9 39 10\n" +
+    "10 40 13\n" +
+    "11 41 5\n" +
+    "12 42 8\n" +
+    "13 43 11\n" +
+    "14 44 14\n" +
+    "15 45 6\n" +
+    "16 46 9\n" +
+    "17 47 12\n" +
+    "18 48 15\n" +
+    "19 49 7\n" +
+    "20 50 10\n" +
+    "21 51 13\n" +
+    "22 52 5\n" +
+    "23 53 8\n" +
+    "24 54 11\n" +
+    "25 55 14\n" +
+    "26 56 6\n" +
+    "27 57 9\n" +
+    "28 58 12\n" +
+    "29 59 15\n" +
+    "30 60 7"
+  )
+  run
+  Lines = Result split "\n"
+  (Lines len) equal 35
+end

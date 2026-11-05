@@ -1,0 +1,365 @@
+rem ACMP 0656: Road Auction (75%)
+rem Min-weight connected subgraph
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = (
+  "9 8 4\n" +
+  "8 9 2\n" +
+  "5 1 10\n" +
+  "3 8 11\n" +
+  "2 5 7\n" +
+  "8 7 8\n" +
+  "5 6 12\n" +
+  "4 7 9\n" +
+  "3 5 5"
+)
+
+FlatText = Input split "\n" join " "
+RawTokens = FlatText split " "
+Tokens = RawTokens (
+  RawTokens not equal ""
+)
+N = (Tokens 0) integer
+M = (Tokens 1) integer
+K = (Tokens 2) integer
+
+Data = Tokens drop 3 integer
+Idx = (0 till M) * 3
+EU = Data Idx
+EV = Data (Idx + 1)
+EW = Data (Idx + 2)
+EId = (0 till M) + 1
+
+Deg = array shape (N + 1) fill 0
+for I in 0 till M
+  U = EU I
+  V = EV I
+  Deg U += 1
+  Deg V += 1
+end
+
+IsCycle = M equal N
+InSpine = Deg at least 2
+if not (InSpine any)
+  InSpine 1 = true
+end
+
+AllNodes = 1 to N
+SpineNodes = AllNodes (
+  InSpine (1 to N)
+)
+P = SpineNodes len
+
+SpineEdge = (
+  (InSpine EU) and (InSpine EV)
+)
+SpineEdgeIdx = (0 till M) SpineEdge
+SpineDeg = array shape (N + 1) fill 0
+for E in SpineEdgeIdx
+  SpineDeg (EU E) += 1
+  SpineDeg (EV E) += 1
+end
+
+StartNode = SpineNodes 0
+if not IsCycle
+  StartCandidates = SpineNodes (
+    (SpineDeg SpineNodes) at most 1
+  )
+  if (StartCandidates len) greater 0
+    StartNode = StartCandidates 0
+  end
+end
+
+Path = array shape P fill 0
+Path 0 = StartNode
+Visited = array shape (N + 1) fill false
+Visited StartNode = true
+CurNode = StartNode
+
+SpineU = concat (
+  EU SpineEdgeIdx
+) (EV SpineEdgeIdx)
+SpineV = concat (
+  EV SpineEdgeIdx
+) (EU SpineEdgeIdx)
+
+for Step in 1 till P
+  Cand = SpineV (SpineU equal CurNode)
+  Unvis = Cand (not (Visited Cand))
+  NextNode = Unvis 0
+  Path Step = NextNode
+  Visited NextNode = true
+  CurNode = NextNode
+end
+
+FullP = P
+if IsCycle
+  FullP = (2 * P) - 1
+end
+
+FullPPath = Path
+if IsCycle
+  FullPPath = concat Path (
+    Path (0 till (P - 1))
+  )
+end
+
+EvType = array 0
+EvW = array 0
+EvId = array 0
+EvC = array 0
+EvCount = 0
+
+for Step in 0 till FullP
+  CNode = FullPPath Step
+  if Step greater 0
+    PrevNode = FullPPath (Step - 1)
+    EdgeMask = (
+      ((EU equal PrevNode) and (
+        EV equal CNode
+      )) or
+      ((EU equal CNode) and (
+        EV equal PrevNode
+      ))
+    )
+    EIndex = ((0 till M) EdgeMask) 0
+    PW = EW EIndex
+    PId = EId EIndex
+    if EvCount equal 0
+      EvType = array 0
+      EvW = array PW
+      EvId = array PId
+      EvC = array Step
+    else
+      EvType = concat EvType (array 0)
+      EvW = concat EvW (array PW)
+      EvId = concat EvId (array PId)
+      EvC = concat EvC (array Step)
+    end
+    EvCount += 1
+  end
+
+  LeafMask = (
+    ((EU equal CNode) and (
+      not (InSpine EV)
+    )) or
+    ((EV equal CNode) and (
+      not (InSpine EU)
+    ))
+  )
+  LeafIdx = (0 till M) LeafMask
+  NumLeaves = LeafIdx len
+  if NumLeaves greater 0
+    LW = EW LeafIdx
+    LId = EId LeafIdx
+    LOrder = LW argsort
+    SortedLW = LW LOrder
+    SortedLId = LId LOrder
+    for L in 0 till NumLeaves
+      CurLW = SortedLW L
+      CurLId = SortedLId L
+      if EvCount equal 0
+        EvType = array 1
+        EvW = array CurLW
+        EvId = array CurLId
+        EvC = array Step
+      else
+        EvType = concat EvType (
+          array 1
+        )
+        EvW = concat EvW (array CurLW)
+        EvId = concat EvId (
+          array CurLId
+        )
+        EvC = concat EvC (array Step)
+      end
+      EvCount += 1
+    end
+  end
+end
+
+INF = 1000000000000000
+Cost = concat (array 0) (
+  array shape K fill INF
+)
+StartA = concat (array 0) (
+  array shape K fill -1
+)
+
+BestAns = INF
+BestA = -1
+BestB = -1
+
+for Step in 0 till EvCount
+  T = EvType Step
+  W = EvW Step
+  C = EvC Step
+  if T equal 0
+    Cost = concat (array 0) (
+      ((Cost take K) + W) min INF
+    )
+    StartA = concat (array C) (
+      StartA take K
+    )
+    if IsCycle
+      TooLong = (C - StartA) at least P
+      Cost = TooLong choose (
+        array shape (K + 1) fill INF
+      ) Cost
+    end
+  else
+    Shifted = concat (array INF) (
+      (Cost take K) + W
+    )
+    ShiftedA = concat (array -1) (
+      StartA take K
+    )
+    Pick = Shifted less Cost
+    Cost = Pick choose Shifted Cost
+    StartA = Pick choose ShiftedA StartA
+  end
+  LastCost = Cost K
+  if LastCost less BestAns
+    BestAns = LastCost
+    BestA = StartA K
+    BestB = C
+  end
+end
+
+FullCycleUsed = false
+if IsCycle and (K at least P)
+  CycCost = 0
+  for Step in 0 till P
+    U1 = Path Step
+    V1 = Path ((Step + 1) mod P)
+    EMask = (
+      ((EU equal U1) and (
+        EV equal V1
+      )) or
+      ((EU equal V1) and (
+        EV equal U1
+      ))
+    )
+    EIdx = ((0 till M) EMask) 0
+    CycCost += EW EIdx
+  end
+  AllLeafMask = (
+    (not (InSpine EU)) or
+    (not (InSpine EV))
+  )
+  AllLeafIdx = (0 till M) AllLeafMask
+  AllLW = EW AllLeafIdx
+  Rem = K - P
+  if (AllLeafIdx len) at least Rem
+    AllLOrder = AllLW argsort
+    RemW = (AllLW AllLOrder) take Rem
+    TotalCycCost = CycCost + (RemW sum)
+    if TotalCycCost less BestAns
+      BestAns = TotalCycCost
+      FullCycleUsed = true
+    end
+  end
+end
+
+Sol = array 0
+SolLen = 0
+
+if FullCycleUsed
+  for Step in 0 till P
+    U1 = Path Step
+    V1 = Path ((Step + 1) mod P)
+    EMask = (
+      ((EU equal U1) and (
+        EV equal V1
+      )) or
+      ((EU equal V1) and (
+        EV equal U1
+      ))
+    )
+    EIdx = ((0 till M) EMask) 0
+    if SolLen equal 0
+      Sol = array (EId EIdx)
+    else
+      Sol = concat Sol (
+        array (EId EIdx)
+      )
+    end
+    SolLen += 1
+  end
+  Rem = K - P
+  if Rem greater 0
+    AllLeafMask = (
+      (not (InSpine EU)) or
+      (not (InSpine EV))
+    )
+    AllLeafIdx = (
+      (0 till M) AllLeafMask
+    )
+    AllLW = EW AllLeafIdx
+    AllLId = EId AllLeafIdx
+    AllLOrder = AllLW argsort
+    PickId = (AllLId AllLOrder) take Rem
+    Sol = concat Sol PickId
+  end
+else
+  SpineEdgesCount = BestB - BestA
+  if SpineEdgesCount greater 0
+    for Step in BestA till BestB
+      U1 = FullPPath Step
+      V1 = FullPPath (Step + 1)
+      EMask = (
+        ((EU equal U1) and (
+          EV equal V1
+        )) or
+        ((EU equal V1) and (
+          EV equal U1
+        ))
+      )
+      EIdx = ((0 till M) EMask) 0
+      if SolLen equal 0
+        Sol = array (EId EIdx)
+      else
+        Sol = concat Sol (
+          array (EId EIdx)
+        )
+      end
+      SolLen += 1
+    end
+  end
+  Rem = K - SpineEdgesCount
+  if Rem greater 0
+    CentersSub = FullPPath (
+      BestA to BestB
+    )
+    LeavesMask = (
+      array shape M fill false
+    )
+    for C in CentersSub
+      CMask = (
+        ((EU equal C) and (
+          not (InSpine EV)
+        )) or
+        ((EV equal C) and (
+          not (InSpine EU)
+        ))
+      )
+      LeavesMask = LeavesMask or CMask
+    end
+    SubLeafIdx = (0 till M) LeavesMask
+    SubLW = EW SubLeafIdx
+    SubLId = EId SubLeafIdx
+    SubLOrder = SubLW argsort
+    PickId = (SubLId SubLOrder) take Rem
+    if SolLen equal 0
+      Sol = PickId
+    else
+      Sol = concat Sol PickId
+    end
+  end
+end
+
+Result = Sol join "\n"
+Result text
