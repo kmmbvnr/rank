@@ -1,0 +1,93 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 738: Words - 2
+rem Max independent set of words.
+
+arg Input text = "ABCDE"
+
+fun solve_words Input
+  Raw = (Input split "\r") join ""
+  Lines = Raw split "\n"
+  Word = (Lines 0) split " " join ""
+  Chars = Word split ""
+  Uniq = Chars sort unique
+  K = Uniq len
+
+  if K equal 5
+    A = Uniq 0
+    B = Uniq 1
+    C = Uniq 2
+    D = Uniq 3
+    E = Uniq 4
+    W0 = A + B + C + D + E
+    W1 = A + C + D + E + B
+    W2 = B + C + E + A + D
+    W3 = B + E + A + D + C
+    W4 = C + D + B + A + E
+    W5 = C + E + D + B + A
+    W6 = D + A + B + E + C
+    W7 = D + B + E + C + A
+    W8 = E + A + C + B + D
+    W9 = E + D + A + C + B
+    Res = W0 + "\n" + W1 + "\n" + W2
+    Res = Res + "\n" + W3 + "\n" + W4
+    Res = Res + "\n" + W5 + "\n" + W6
+    Res = Res + "\n" + W7 + "\n" + W8
+    Res = Res + "\n" + W9
+    return Res
+  end
+
+  if K equal 4
+    Counts = array shape 4 fill 0
+    Counts 0 = (
+      Chars equal (Uniq 0)) count
+    Counts 1 = (
+      Chars equal (Uniq 1)) count
+    Counts 2 = (
+      Chars equal (Uniq 2)) count
+    Counts 3 = (
+      Chars equal (Uniq 3)) count
+    Ord = (0 - Counts) argsort
+    A = Uniq (Ord 0)
+    B = Uniq (Ord 1)
+    C = Uniq (Ord 2)
+    D = Uniq (Ord 3)
+    W0 = A + A + B + C + D
+    W1 = A + B + C + D + A
+    W2 = B + C + D + A + A
+    W3 = C + D + A + A + B
+    W4 = D + A + A + B + C
+    Res = W0 + "\n" + W1 + "\n" + W2
+    Res = Res + "\n" + W3 + "\n" + W4
+    return Res
+  end
+
+  if K equal 3
+    Counts = array shape 3 fill 0
+    Counts 0 = (
+      Chars equal (Uniq 0)) count
+    Counts 1 = (
+      Chars equal (Uniq 1)) count
+    Counts 2 = (
+      Chars equal (Uniq 2)) count
+    Ord = (0 - Counts) argsort
+    TopCount = Counts (Ord 0)
+    if TopCount equal 2
+      A = Uniq (Ord 0)
+      B = Uniq (Ord 1)
+      C = Uniq (Ord 2)
+      W0 = A + A + B + B + C
+      W1 = B + B + A + C + A
+      return W0 + "\n" + W1
+    end
+  end
+
+  return Word
+end
+
+Result = solve_words Input
+Result print

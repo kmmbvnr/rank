@@ -108,6 +108,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0725** | [Громоотвод](0725_lightning_rod.ra) | Computational Geometry / Optimization (72%) | Min lightning rod height to cover $N \le 10$ 3D buildings via 2D nested ternary search on building roofs with zero-loop vectorized corner distance evaluation |
 | **0727** | [Распределение участков](0727_plot_distribution.ra) | Game Theory / Greedy (62%) | Pure Nash equilibrium via greedy matching over all pairs sorted by `(0 - Key) argsort` |
 | **0734** | [Строковый компьютер](0734_string_computer.ra) | Combinatorics / Free Monoids (61%) | Maximum non-redundant set size and number of such sets over alphabet $K$ and max length $N$ via geometric series and parity analysis |
+| **0738** | [Слова - 2](0738_words_2.ra) | Combinatorics / Graph Theory (74%) | Maximum independent set of 5-letter transposition-confusion graph via frequency classification and canonical template substitution |
 | **0740** | [Ключи](0740_keys.ra) | Data Structures / Sweep-line (61%) | Max overlapping holes under translation: pairwise open rectangles via `outer -`, Y compression with `lowerindex`, range-add segment tree |
 | **0741** | [Замечательные дороги](0741_wonderful_roads.ra) | Graph Theory (62%) | Colors = largest biconnected block; iterative Tarjan with edge stack over CSR from `argsort` + `lowerindex` |
 | **0746** | [Гонки](0746_races.ra) | Graph Theory (64%) | 4-cycles via `(Adj matpow 2)` common neighbors and `sum` |
