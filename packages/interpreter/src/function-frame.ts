@@ -1,3 +1,4 @@
+import { bindingTypes } from './binding-types.js';
 import { inspectionEnabled } from './interrupt.js';
 import { isRankPlan } from './plan.js';
 import { prepareCaptureProtection } from './capture-protection.js';
@@ -112,7 +113,7 @@ export class FunctionFrames {
                     throw new RankError(`Function parameters use lowercase names: ${parameter}`, 'TypeError');
                 }
                 if (isRankPlan(argument)) frame.set(parameter, argument);
-                else frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
+                else frame.define(parameter, argument, bindingTypes(typeName(argument)), borrowed);
                 if (deferred) {
                     const message = deferredBindingMessage(parameter);
                     const publish = prepareCaptureProtection(argument, message);

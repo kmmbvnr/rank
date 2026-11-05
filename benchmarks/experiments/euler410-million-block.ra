@@ -1,0 +1,73 @@
+rem Circle and Tangent Line
+rem https://projecteuler.net/problem=410
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg R integer = 100000000
+arg X integer = 1000000000
+arg Block integer = 1000000
+
+Limit = R min X
+unpack Powers Factors = Limit stages
+Count = Powers len
+Starts = 1 to Limit by Block copy
+Totals = Starts blocksum rank 0
+Answer = 2 * Totals sum
+Answer print
+
+rem Flatten prime powers once; every
+rem stage touches its multiples.
+fun Bound stages
+  Root = Bound isqrt
+  Primes = primes to Root copy
+  Places = Bound binary len
+  Count = Primes len
+  Cells = Count * (Places - 1)
+  Grid = Primes (1 till Places) outer **
+  Allowed = Grid at most Bound
+  Keep = Allowed reshape Cells
+  Powers = Grid reshape Cells
+  Rows = Primes reshape Count 1
+  Present = Grid greater 0
+  Expanded = Present choose Rows 0
+  Factors = Expanded reshape Cells
+  Powers = Powers Keep copy
+  Factors = Factors Keep copy
+  return tuple Powers Factors
+end
+
+rem Count distinct-prime choices while
+rem tracking the factored smooth part.
+fun Start blocksum
+  Stop = Limit min (Start + Block - 1)
+  Size = Stop - Start + 1
+  Values = Start to Stop copy
+  Smooth = array shape Size fill 1
+  Ways = array shape Size fill 1
+  for I in 0 till Count
+    Power = Powers I
+    Prime = Factors I
+    First = (Start + Power - 1) // Power
+    First = First * Power - Start
+    Slots = First till Size by Power
+    Smooth Slots *= Prime
+    if Power equal Prime
+      Ways Slots *= 2
+    end
+  end
+  Ways *= Smooth less Values choose 2 1
+  rem Parity picks the odd/even formula.
+  rem only the final sum needs BigInts.
+  A = R // Values
+  B = X // Values
+  Parity = Values mod 2
+  Scale = Ways * (1 + Parity)
+  Tail = Ways * (1 - Parity)
+  Tail *= A mod 2 * (B mod 2)
+  Total = Scale * A * B + Tail sum
+  return Total
+end

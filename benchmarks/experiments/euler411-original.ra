@@ -1,0 +1,99 @@
+rem Uphill Paths
+rem https://projecteuler.net/problem=411
+
+use numbers
+use sequences
+use io
+use cli
+
+arg First integer = 1
+arg Count integer = 30
+arg Power integer = 5
+
+rem Stations (2^i, 3^i) mod n repeat
+rem after p + T steps: p = max power
+rem of 2 and 3 in n, T = lcm of the
+rem orders of 2 and 3 modulo the rest.
+rem S(n) is the longest nondecreasing
+rem run of y over stations by x.
+fun A order M
+  if M equal 1
+    return 1
+  end
+  Ph = M
+  for Q in M factors unique array
+    Ph = Ph // Q * (Q - 1)
+  end
+  D = Ph
+  for Q in Ph factors unique array
+    for D mod Q equal 0
+      if A (D // Q) M powmod equal 1
+        D //= Q
+      else
+        break
+      end
+    end
+  end
+  return D
+end
+
+Tot = 0
+for K in First to Count
+  N = K ** Power
+  N2 = N
+  Al = 0
+  for N2 mod 2 equal 0
+    N2 //= 2
+    Al += 1
+  end
+  N3 = N
+  Be = 0
+  for N3 mod 3 equal 0
+    N3 //= 3
+    Be += 1
+  end
+  O2 = 2 order N2
+  O3 = 3 order N3
+  T = O2 lcm O3
+  Len = 2 * N + 1 min (Al max Be + T)
+  rem Keys x * n + y of the first Len
+  rem stations, sorted by x then y.
+  Ks = array shape Len fill 0
+  X = 1
+  Y = 1
+  for I in 0 to Len - 1
+    Ks I = X * N + Y
+    X = X * 2 mod N
+    Y = Y * 3 mod N
+  end
+  Ks = Ks sort
+  rem Longest nondecreasing run of y,
+  rem skipping repeated stations.
+  Tl = array shape Len fill 0
+  Ln = 0
+  Pv = 0 - 1
+  for I in 0 to Len - 1
+    Cu = Ks I
+    if Cu not equal Pv
+      Pv = Cu
+      V = Cu mod N
+      Lo = 0
+      Hi = Ln
+      for Lo less Hi
+        Mid = (Lo + Hi) // 2
+        if Tl Mid greater V
+          Hi = Mid
+        else
+          Lo = Mid + 1
+        end
+      end
+      Tl Lo = V
+      if Lo equal Ln
+        Ln += 1
+      end
+    end
+  end
+  Tot += Ln
+end
+Answer = Tot
+Answer print

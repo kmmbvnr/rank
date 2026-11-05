@@ -1,0 +1,6 @@
+{"mode": "ordinary", "count": 2000000, "ms": 1515.182917, "rssMiB": 347.4375, "answer": "2666664666673000000", "sample": 0}
+{"mode": "stream", "count": 2000000, "ms": 998.47525, "rssMiB": 182.046875, "answer": "2666664666673000000", "sample": 0}
+{"mode": "stream", "count": 2000000, "ms": 1006.684708, "rssMiB": 180.21875, "answer": "2666664666673000000", "sample": 1}
+{"mode": "ordinary", "count": 2000000, "ms": 1459.0088329999999, "rssMiB": 349.546875, "answer": "2666664666673000000", "sample": 1}
+{"mode": "ordinary", "count": 2000000, "ms": 1471.166959, "rssMiB": 351.265625, "answer": "2666664666673000000", "sample": 2}
+{"mode": "stream", "count": 2000000, "ms": 941.2810000000001, "rssMiB": 181.34375, "answer": "2666664666673000000", "sample": 2}

@@ -1,5 +1,5 @@
-import { loopOperatorSignature, flattenApplication, isApplicationExpression, isBinaryExpression, isNameExpression,
-    isParenthesizedExpression, isFunctionStatement, statementResultDiscarded, type ArrayAssignmentStatement, type BinaryExpression, type Expression } from '@arrrank/language';
+import { loopOperatorSignature, flattenApplication, isApplicationExpression, isNameExpression,
+    isParenthesizedExpression, isFunctionStatement, statementResultDiscarded, type ArrayAssignmentStatement, type Expression } from '@arrrank/language';
 import { isRankArray } from '../value.js';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
@@ -15,7 +15,7 @@ function unparenthesized(value: Expression): Expression {
  * a complete RHS snapshot when source and destination may overlap. */
 export function emitNumberSlice(state: LoopCompilationState, expressions: LoopExpressions,
     assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined {
-    if (!state.numberMode || state.wideScalars.size || !['=', '+=', '-=', '*='].includes(assignment.operator)) return undefined;
+    if (!state.numberMode || !['=', '+=', '-=', '*='].includes(assignment.operator)) return undefined;
     if (assignment.operator !== '=') {
         const signature = loopOperatorSignature(assignment.operator.slice(0, -1), ['integer', 'integer'], state.host.nativeCalls);
         if (!signature?.compound || signature.result !== 'integer') return undefined;
@@ -24,7 +24,7 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
     const last = selectors.at(-1);
     if (!last) return undefined;
     const range = unparenthesized(last);
-    if (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)) return undefined;
+    if (!expressions.isRange(range)) return undefined;
     // A function prefix excludes its final return. Do not use that caller's
     // statement as a discard proof either; its last compiled statement is a
     // conservative boundary for the slice results we can eliminate.
@@ -35,7 +35,7 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
     const source = parts.shift();
     const inputRange = parts.length ? unparenthesized(parts.at(-1)!) : undefined;
     const slice = source && isNameExpression(source) && !source.name.includes('.')
-        && inputRange && isBinaryExpression(inputRange) && ['to', 'till'].includes(inputRange.operator)
+        && inputRange && expressions.isRange(inputRange)
         ? { name: source.name, parts, range: inputRange } : undefined;
     const { arrays, destinations, assigned, arrayInputs } = state;
     const previous = destinations.get(assignment.name), known = arrays.get(assignment.name);
@@ -60,7 +60,7 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
         if (!assigned.has(slice.name)) arrayInputs.add(slice.name);
     }
     const lines: string[] = [];
-    function selection(slot: number, coordinates: (Expression | undefined)[], r: BinaryExpression): { offset: string; count: string; stride: string } | undefined {
+    function selection(slot: number, coordinates: (Expression | undefined)[], r: Expression): { offset: string; count: string; stride: string } | undefined {
         const prefix: string[] = [];
         for (const coordinate of coordinates.slice(0, -1)) {
             if (!coordinate) return undefined;
@@ -70,15 +70,17 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
             lines.push(`const ${name} = ${term.code};`);
             prefix.push(name);
         }
-        const start = expressions.emit(r.left, lines, 'integer');
+        const bounds = expressions.rangeOperands(r, lines);
+        if (!bounds) return undefined;
+        const start = bounds.start;
         if (start?.type !== 'integer') return undefined;
         const first = `first${state.serial++}`;
         lines.push(`const ${first} = ${start.code};`);
-        const end = expressions.emit(r.right, lines, 'integer');
+        const end = bounds.end;
         if (end?.type !== 'integer') return undefined;
         const limit = `limit${state.serial++}`;
         lines.push(`const ${limit} = ${end.code};`);
-        const step = r.step ? expressions.emit(r.step, lines, 'integer') : { code: '1', type: 'integer' };
+        const step = bounds.step;
         if (step?.type !== 'integer') return undefined;
         const n = state.serial++, stride = `stride${n}`, count = `count${n}`, offset = `offset${n}`;
         const size = coordinates.length === 1 ? `cells${slot}.length` : `size${slot}_${coordinates.length - 1}`;
@@ -89,8 +91,8 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
             base = `(${base} * size${slot}_${axis} + ${coordinate})`;
         });
         lines.push(`const span${n} = safe(${stride} > 0 ? ${limit} - ${first} : ${first} - ${limit});
-            const ${count} = span${n} < ${r.operator === 'to' ? '0' : '1'} ? 0
-                : Math.floor((span${n}${r.operator === 'to' ? '' : ' - 1'}) / Math.abs(${stride})) + 1;
+            const ${count} = span${n} < ${bounds.inclusive ? '0' : '1'} ? 0
+                : Math.floor((span${n}${bounds.inclusive ? '' : ' - 1'}) / Math.abs(${stride})) + 1;
             if (${count} > 0) {
                 const last${n} = safe(${first} + safe((${count} - 1) * ${stride}));
                 if (${first} < 0 || ${first} >= ${size} || last${n} < 0 || last${n} >= ${size}) throw overflow;

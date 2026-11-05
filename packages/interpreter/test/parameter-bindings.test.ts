@@ -174,3 +174,23 @@ describe.each([false, true])('parameter binding boundaries (compilation=%s)', co
         } finally { runtime.dispose(); }
     });
 });
+
+it.each([false, true])('keeps shared type descriptions independent of bindings (%s)', compilation => {
+    const runtime = new Interpreter(undefined, { compilation });
+    try {
+        runtime.execute(`First = .NA
+Second = .NA
+First = 7
+Second = "text"
+fun X keep
+ Local = .NA
+ Local = X
+ return Local
+end`);
+        expect(runtime.execute('First keep')).toBe(7n);
+        expect(runtime.execute('Second keep')).toBe('text');
+        expect(runtime.execute('true keep')).toBe(true);
+        expect(() => runtime.execute('First = "wrong"')).toThrow(/cannot receive/);
+        expect(runtime.execute('Second')).toBe('text');
+    } finally { runtime.dispose(); }
+});

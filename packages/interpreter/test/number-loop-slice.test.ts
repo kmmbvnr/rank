@@ -73,7 +73,8 @@ for I in 0 to 1
  S += 1
  A I (0 to 2) += 2
 end`);
-        expect(result.diagnostics.numberLoopOverflows).toBe(1);
+        // Both numeric tiers retain checked cells and replay this store.
+        expect(result.diagnostics.numberLoopOverflows).toBe(2);
     });
 
     it.each([
@@ -141,7 +142,8 @@ for I in 0 to 1
  A I 0 += 3
  A I (0 to 2) += B I (0 to 2)
 end`);
-        expect(result.diagnostics.numberLoopOverflows).toBe(1);
+        // Both numeric tiers retain checked cells and replay this store.
+        expect(result.diagnostics.numberLoopOverflows).toBe(2);
     });
 
     it.each([

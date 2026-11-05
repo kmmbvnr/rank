@@ -1,0 +1,205 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 998: Bike Paths
+rem Shortest path across two tracks.
+
+arg Input text = "100.0 40.0
+40.0 0.0 40.0 100.0
+10.0 1.0"
+
+fun Ang norm_ang
+  PI = 3.141592653589793
+  TwoPI = 2.0 * PI
+  V = Ang mod TwoPI
+  if V less 0.0
+    return V + TwoPI
+  end
+  return V
+end
+
+fun solve_bike Input
+  Raw1 = Input split "" join " "
+  Raw2 = Raw1 split "
+" join " "
+  RawToks = Raw2 split " "
+  ToksStr = RawToks (
+    not (RawToks equal ""))
+  Toks = ToksStr real
+  D = Toks 0
+  R = Toks 1
+  X1 = Toks 2
+  Y1 = Toks 3
+  X2 = Toks 4
+  Y2 = Toks 5
+  U = Toks 6
+  V = Toks 7
+
+  Rin = R * V / U
+  Straight = (((X2 - X1) ** 2) + (
+    (Y2 - Y1) ** 2)) sqrt
+  Best = Straight / V
+
+  AngA = Y1 atan2 X1
+  AngB = (Y2 - D) atan2 X2
+
+  L = ((R ** 2) - (Rin ** 2)) sqrt
+
+  NumLines = 2
+  if not ((2.0 * Rin) greater D)
+    NumLines = 4
+  end
+
+  Nxs = array shape NumLines fill 0.0
+  Nys = array shape NumLines fill 0.0
+  Nxs 0 = 1.0
+  Nys 0 = 0.0
+  Nxs 1 = -1.0
+  Nys 1 = 0.0
+  if NumLines equal 4
+    NyIn = 2.0 * Rin / D
+    NxIn = ((1.0 - (NyIn ** 2)) max (
+      0.0)) sqrt
+    Nxs 2 = NxIn
+    Nys 2 = NyIn
+    Nxs 3 = 0.0 - NxIn
+    Nys 3 = NyIn
+  end
+
+  for T in 0 to (NumLines - 1)
+    Nx = Nxs T
+    Ny = Nys T
+    DirX = 0.0 - Ny
+    DirY = Nx
+    if DirY less 0.0
+      DirX = Ny
+      DirY = 0.0 - Nx
+    end
+
+    P1x = (Rin * Nx) + (L * DirX)
+    P1y = (Rin * Ny) + (L * DirY)
+    P2x = ((Rin - (Ny * D)) * Nx) - (
+      L * DirX)
+    P2y = (D + ((Rin - (Ny * D)) * Ny
+      )) - (L * DirY)
+
+    Fwd = ((P2x - P1x) * DirX) + (
+      (P2y - P1y) * DirY)
+    if not (Fwd less 0.0)
+      FDist = (((P2x - P1x) ** 2) + (
+        (P2y - P1y) ** 2)) sqrt
+      AngP1 = P1y atan2 P1x
+      AngP2 = (P2y - D) atan2 P2x
+
+      Arc1CCW = (AngP1 - AngA
+          ) norm_ang
+      Arc1CW = (AngA - AngP1) norm_ang
+      Arc2CCW = (AngB - AngP2
+          ) norm_ang
+      Arc2CW = (AngP2 - AngB) norm_ang
+
+      Dot1 = ((0.0 - (AngP1 sin)) * (
+        DirX)) + ((AngP1 cos) * DirY)
+      Arc1 = Arc1CW
+      if Dot1 greater 0.0
+        Arc1 = Arc1CCW
+      end
+
+      Dot2 = ((0.0 - (AngP2 sin)) * (
+        DirX)) + ((AngP2 cos) * DirY)
+      Arc2 = Arc2CW
+      if Dot2 greater 0.0
+        Arc2 = Arc2CCW
+      end
+
+      Time = (R * Arc1 / U) + (
+        FDist / V) + (R * Arc2 / U)
+      if Time less Best
+        Best = Time
+      end
+    end
+  end
+
+  DistA = ((X1 ** 2) + (
+    (D - Y1) ** 2)) sqrt
+  if DistA greater Rin
+    PsiA = (Rin / DistA) asin
+    BaseA = (D - Y1) atan2 (0.0 - X1)
+    LTanA = ((DistA ** 2) - (
+      Rin ** 2)) sqrt
+    FDistA = LTanA - L
+    if not (FDistA less 0.0)
+      Signs = "1.0 -1.0" words real
+      for SgnIdx in 0 to 1
+        Sgn = Signs SgnIdx
+        RayAng = BaseA + (Sgn * PsiA)
+        DirX = RayAng cos
+        DirY = RayAng sin
+        P2x = X1 + (FDistA * DirX)
+        P2y = Y1 + (FDistA * DirY)
+        AngP2 = (P2y - D) atan2 P2x
+        Arc2CCW = (AngB - AngP2
+          ) norm_ang
+        Arc2CW = (AngP2 - AngB) norm_ang
+        Dot2 = ((0.0 - (
+          AngP2 sin)) * DirX) + (
+          (AngP2 cos) * DirY)
+        Arc2 = Arc2CW
+        if Dot2 greater 0.0
+          Arc2 = Arc2CCW
+        end
+        Time = (FDistA / V) + (
+          R * Arc2 / U)
+        if Time less Best
+          Best = Time
+        end
+      end
+    end
+  end
+
+  DistB = ((X2 ** 2) + (Y2 ** 2)) sqrt
+  if DistB greater Rin
+    PsiB = (Rin / DistB) asin
+    BaseB = (0.0 - Y2) atan2 (0.0 - X2)
+    LTanB = ((DistB ** 2) - (
+      Rin ** 2)) sqrt
+    FDistB = LTanB - L
+    if not (FDistB less 0.0)
+      Signs = "1.0 -1.0" words real
+      for SgnIdx in 0 to 1
+        Sgn = Signs SgnIdx
+        RayAng = BaseB + (Sgn * PsiB)
+        DirX = RayAng cos
+        DirY = RayAng sin
+        P1x = X2 + (FDistB * DirX)
+        P1y = Y2 + (FDistB * DirY)
+        AngP1 = P1y atan2 P1x
+        Arc1CCW = (AngP1 - AngA
+          ) norm_ang
+        Arc1CW = (AngA - AngP1) norm_ang
+        FwdX = 0.0 - DirX
+        FwdY = 0.0 - DirY
+        Dot1 = ((0.0 - (
+          AngP1 sin)) * FwdX) + (
+          (AngP1 cos) * FwdY)
+        Arc1 = Arc1CW
+        if Dot1 greater 0.0
+          Arc1 = Arc1CCW
+        end
+        Time = (R * Arc1 / U) + (
+          FDistB / V)
+        if Time less Best
+          Best = Time
+        end
+      end
+    end
+  end
+
+  return Best
+end
+
+Result = solve_bike Input
+Result print

@@ -146,6 +146,7 @@ export interface IntegerLoopPlan {
     hasYield: boolean;
     needsAlgo: boolean;
     arrayDefinitions: Set<string>;
+    rangeDefinitions?: ReadonlySet<string>;
     arrayTransfers?: ReadonlySet<string>;
     ownershipChecks?: boolean;
     ownedAliases?: ReadonlySet<string>;

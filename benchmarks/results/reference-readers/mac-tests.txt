@@ -1,0 +1,28 @@
+
+ RUN  v3.2.7 /private/tmp/rank-reference-readers/packages/interpreter
+
+ ✓ test/array-binding-contracts.test.ts (54 tests) 574ms
+ ✓ test/accumulate-writes.test.ts (96 tests) 765ms
+ ✓ test/keyed-producers.test.ts (76 tests) 883ms
+ ✓ test/plan-effects.test.ts (22 tests) 514ms
+ ✓ test/function-scope-helpers.test.ts (40 tests) 542ms
+ ✓ test/loop-array-frames.test.ts (21 tests) 495ms
+ ✓ test/scalar-plans.test.ts (42 tests) 420ms
+ ✓ test/parameter-bindings.test.ts (34 tests) 388ms
+ ✓ test/block-scope.test.ts (37 tests) 404ms
+ ✓ test/keyed-fusion.test.ts (6 tests) 399ms
+ ✓ test/tail-calls.test.ts (11 tests) 4361ms
+   ✓ tail calls > runs a million tail calls with a one-frame call budget  1173ms
+   ✓ tail calls > replaces frames for mutual recursion and parenthesized returns  2708ms
+   ✓ tail calls > allows tail calls again after leaving a try block  359ms
+ ✓ test/function-binding.test.ts (22 tests) 423ms
+ ✓ test/record-binding-contracts.test.ts (30 tests) 393ms
+ ✓ test/deferred-bindings.test.ts (26 tests) 330ms
+ ✓ test/keyed-integer.test.ts (8 tests) 211ms
+ ✓ test/builtin-bindings.test.ts (22 tests) 318ms
+ ✓ test/return-preparation.test.ts (2 tests) 226ms
+
+ Test Files  17 passed (17)
+      Tests  549 passed (549)
+   Start at  12:33:34
+   Duration  8.27s (transform 1.86s, setup 0ms, collect 18.21s, tests 11.65s, environment 2ms, prepare 731ms)

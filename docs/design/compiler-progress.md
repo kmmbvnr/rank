@@ -3053,3 +3053,37 @@ under `number-loop.vector-buffer`.
 Euler 408 now uses one recurrence loop, modular factorial scans, predecessor
 selection before binomial arithmetic and array generation of primitive triples.
 See [measurements and verification](../../benchmarks/euler408-followup.md).
+
+
+## Numeric selector stages and wide vector sums (Euler 410, #447)
+
+Private numeric regions lower bounded native prime iteration, whole-array
+compound arithmetic and nonnegative integer vector powers. Direct named arithmetic
+selectors retain captured range cells without constructing an index buffer per
+store. They publish ordinary completed arrays; other array consumers, mutations,
+observable completion budgets and cancellation retain their ordinary path.
+
+Numeric slice and scatter stores can coexist with independent exact scalar
+registers. Pure integer sums of sums/products retain checked numeric subtotals
+and retry only overflowing cells with BigInt arithmetic, preserving prior numeric
+work. Separately completed wide array bindings retain exact fallback.
+Stored integer power also shares the checked multiplier with compiled loops;
+negative exponents and unsupported kinds keep their existing real/error path.
+No numeric precision checks, copy-admission thresholds or language semantics
+were relaxed. See [measurements and verification](../../benchmarks/euler410-followup.md).
+
+## Packed read-only scans and sorted indexes (Euler 411, #447)
+
+A scalar input scan can borrow completed packed integers while unrelated
+arrays remain private destinations. The proof checks every use, permits length
+metadata and stable private helper calls, and rejects nested repeated reads,
+rebindings and vector consumers. Each actual load checks safe conversion;
+overflow discards private writes before exact replay. Observable budgets and
+cancellation retain the prior preparation path. Precision and copy-admission
+thresholds are unchanged.
+
+Private numeric arrays also support existing `lowerindex` and `upperindex`
+operations through a small numeric search helper. Observable native search
+checkpoints retain the publishing path. Euler 411 uses `upperindex` over sorted
+tails padded above the largest possible height, avoiding a sliced prefix or
+interpreted helper call per point. See [verification and measurements](../../benchmarks/euler411-followup.md).

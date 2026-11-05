@@ -3,54 +3,69 @@ rem https://projecteuler.net/problem=410
 
 use numbers
 use sequences
+use bits
 use io
 use cli
 
 arg R integer = 100000000
 arg X integer = 1000000000
-arg Block integer = 10000000
+arg Block integer = 500000
 
-rem F(A, B) = sum over m <= min(A, B)
-rem of 2^w(m) U(m), w = distinct
-rem primes, a = A // m, b = B // m,
-rem U = 2 a b for odd m and
-rem a b + (a mod 2)(b mod 2) for
-rem even m. F is symmetric, so the
-rem answer is 2 F(R, X). w comes
-rem from a sieve of each block by
-rem primes up to sqrt: the smooth
-rem part of m shows a big factor.
-L = R min X
-Root = L isqrt
-Tot = 0
-for Lo in 1 to L by Block
-  Hi = L min (Lo + Block - 1)
-  Len = Hi - Lo + 1
-  M = Lo to Hi copy
-  Sm = array shape Len fill 1
-  Om = array shape Len fill 0
-  for P in primes to Root
-    Q = P
-    for Q at most Hi
-      S = (Lo + Q - 1) // Q * Q - Lo
-      if S less Len
-        Sl = S to Len - 1 by Q
-        Sm Sl *= P
-        if Q equal P
-          Om Sl += 1
-        end
-      end
-      Q *= P
+Limit = R min X
+unpack Powers Factors = Limit stages
+Starts = 1 to Limit by Block copy
+Totals = Starts blocksum rank 0
+Answer = 2 * Totals sum
+Answer print
+
+rem Flatten prime powers once; every
+rem stage touches its multiples.
+fun Bound stages
+  Root = Bound isqrt
+  Primes = primes to Root copy
+  Places = Bound binary len
+  Count = Primes len
+  Cells = Count * (Places - 1)
+  Grid = Primes (1 till Places) outer **
+  Allowed = Grid at most Bound
+  Keep = Allowed reshape Cells
+  Powers = Grid reshape Cells
+  Rows = Primes reshape Count 1
+  Present = Grid greater 0
+  Expanded = Present choose Rows 0
+  Factors = Expanded reshape Cells
+  Powers = Powers Keep copy
+  Factors = Factors Keep copy
+  return tuple Powers Factors
+end
+
+rem Count distinct-prime choices while
+rem tracking the factored smooth part.
+rem Q is a prime power; P is its prime.
+fun Start blocksum
+  Stop = Limit min (Start + Block - 1)
+  Size = Stop - Start + 1
+  Values = Start to Stop copy
+  Smooth = array shape Size fill 1
+  Ways = array shape Size fill 1
+  for Q I in Powers
+    P = Factors I
+    First = (Start + Q - 1) // Q
+    First = First * Q - Start
+    Smooth (First till Size by Q) *= P
+    if Q equal P
+      Ways (First till Size by Q) *= 2
     end
   end
-  Big = Sm less M choose 1 0
-  Om += Big
-  A = R // M
-  B = X // M
-  Odd = M mod 2 equal 1
-  Even = (A * B + A mod 2 * (B mod 2))
-  Us = Odd choose (2 * A * B) Even
-  Tot += 2 ** Om * Us sum
+  Ways *= Smooth less Values choose 2 1
+  rem Parity picks the odd/even formula.
+  rem only the final sum needs BigInts.
+  A = R // Values
+  B = X // Values
+  Parity = Values mod 2
+  Scale = Ways * (1 + Parity)
+  Tail = Ways * (1 - Parity)
+  Tail *= A mod 2 * (B mod 2)
+  Total = Scale * A * B + Tail sum
+  return Total
 end
-Answer = 2 * Tot
-Answer print

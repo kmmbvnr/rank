@@ -1,0 +1,39 @@
+rem Tests for ACMP 0738: Words - 2
+
+use testing
+use text
+
+test "ACMP 738: Sample TATRA"
+  use "0738_words_2"
+  Input = "TATRA"
+  run
+
+  Lines = Result split "\n"
+  (Lines len) equal 2
+end
+
+test "ACMP 738: Distinct letters"
+  use "0738_words_2"
+  Input = "ABCDE"
+  run
+
+  Lines = Result split "\n"
+  (Lines len) equal 10
+end
+
+test "ACMP 738: Four distinct letters"
+  use "0738_words_2"
+  Input = "AABCD"
+  run
+
+  Lines = Result split "\n"
+  (Lines len) equal 5
+end
+
+test "ACMP 738: Identical letters"
+  use "0738_words_2"
+  Input = "AAAAA"
+  run
+
+  Result equal "AAAAA"
+end

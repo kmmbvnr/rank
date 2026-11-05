@@ -1,3 +1,4 @@
+import { bindingTypes } from './binding-types.js';
 import {
     acceptsBindingType, availableBuiltin, bindingTypeMessage, builtinBindingMessage, possibleBindingTypeConflict,
     settledBindingTypes, deferredBindingMessage,
@@ -75,7 +76,7 @@ export class BindingEnvironment {
                 if (expected && !acceptsBindingType(expected, received)) {
                     throw new RankError(bindingTypeMessage(name, expected, [received], true));
                 }
-                scope.declareType(name, expected ? settledBindingTypes(expected, [received]) : new Set([received]));
+                scope.declareType(name, expected ? settledBindingTypes(expected, [received]) : bindingTypes(received));
                 return scope.checkValue(name, computed);
             }));
             return;
@@ -90,7 +91,7 @@ export class BindingEnvironment {
         if (recorded !== undefined) {
             if (received === 'integer' && holdsInfiniteLimit(recorded, scope.get(name))) {
                 // An unbounded accumulator seed settles on its first exact integer.
-                scope.declareType(name, new Set([received]));
+                scope.declareType(name, bindingTypes(received));
                 scope.set(name, value);
                 return;
             }
@@ -104,11 +105,11 @@ export class BindingEnvironment {
             return;
         }
         const previous = scope.get(name);
-        const expected = previous === undefined || isRankPlan(previous) ? undefined : new Set([typeName(previous)]);
+        const expected = previous === undefined || isRankPlan(previous) ? undefined : bindingTypes(typeName(previous));
         if (expected !== undefined && !acceptsBindingType(expected, received)) {
             throw new RankError(bindingTypeMessage(name, expected, [received], true));
         }
-        scope.define(name, value, expected === undefined ? new Set([received])
+        scope.define(name, value, expected === undefined ? bindingTypes(received)
             : settledBindingTypes(expected, [received]));
     }
 
@@ -185,7 +186,7 @@ export class BindingEnvironment {
             if (rank !== undefined && previousRank !== undefined && rank !== previousRank) return false;
             const held = scope.get(name);
             if (element && rank !== undefined && held !== undefined && !scope.canDeferArray(name, rank, element)) return false;
-            const accepted = scope.typeOf(name) ?? (held === undefined ? undefined : new Set([typeName(held)]));
+            const accepted = scope.typeOf(name) ?? (held === undefined ? undefined : bindingTypes(typeName(held)));
             return accepted === undefined || acceptsBindingType(accepted, type);
         });
     }
@@ -199,7 +200,7 @@ export class BindingEnvironment {
             if (!inferred || inferred.size === 0) return;
             const held = scope.get(name);
             const previous = scope.typeOf(name)
-                ?? (held !== undefined ? new Set([typeName(held)]) : undefined);
+                ?? (held !== undefined ? bindingTypes(typeName(held)) : undefined);
             if (previous && possibleBindingTypeConflict(previous, inferred)) {
                 throw new RankError(bindingTypeMessage(name, previous, inferred, true));
             }

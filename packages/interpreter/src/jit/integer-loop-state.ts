@@ -60,6 +60,29 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         }
         if (isUnpackStatement(node)) node.names.forEach(name => reboundNames.add(name));
     }
+    // Only direct selector uses may keep an affine snapshot. Ordinary array
+    // arithmetic, aliases, mutation and unused completed bindings retain the
+    // existing materialized array path instead of losing its specialization.
+    function selectorRange(name: string): boolean {
+        const nodes = [statement, ...AstUtils.streamAllContents(statement)];
+        const uses = nodes.filter(isNameExpression).filter(node => node.name === name);
+        const selectors = new Set<Expression>();
+        const add = (value: Expression | undefined) => {
+            while (value && isParenthesizedExpression(value)) value = value.value;
+            if (value && isNameExpression(value) && value.name === name) selectors.add(value);
+        };
+        for (const node of nodes) {
+            if (isArrayAssignmentStatement(node)) {
+                if (node.name === name) return false;
+                node.indices.forEach(index => add(index.value));
+            }
+            if (isApplicationExpression(node)) {
+                const parts = flattenApplication(node);
+                if (parts.length > 1 && isNameExpression(parts[0]) && parts[0].name !== name) add(parts.at(-1));
+            }
+        }
+        return uses.length > 0 && uses.every(node => selectors.has(node));
+    }
     const required = new Set<number>(), assigned = new Set<string>();
     const writers: IntegerLoopPlan['writers'] = [];
     const binders: IntegerLoopPlan['binders'] = [];
@@ -75,6 +98,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
     // One read per source at a named cursor; computed/repeated reads use undefined.
     const indexedReads = new Map<string, string | undefined>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
+    const ranges = new Map<string, 'to' | 'till'>();
     const exactInputs = new Set<Expression>();
     const aliases: [string, string][] = [];
     const localAliases: [string, string][] = [];
@@ -140,13 +164,13 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         statement, ownershipChecks, integerRanges: integerRangeFacts(statement),
         host, numberMode, wideScalars, workCounting, checkpoint, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, reboundNames, writers, binders, writerNames, binderNames,
-        containers, builtins, calls, arrays, calleeArrays, sliceReadSources, sliceResultSources, indexedReads, arrayInputs, arrayDefinitions, aliases, localAliases, arrayTransfers, dequeArrays,
+        containers, builtins, calls, arrays, calleeArrays, sliceReadSources, sliceResultSources, indexedReads, arrayInputs, arrayDefinitions, ranges, aliases, localAliases, arrayTransfers, dequeArrays,
         vectorIterations, iterators, destinations, locations, callouts, canCallout,
         get branchDepth() { return branchDepth; },
         set branchDepth(v: number) { branchDepth = v; },
         arrayRegions: [] as NonNullable<IntegerLoopPlan['arrayRegions']>,
         outlinedLoops: [] as { body: string; inputs: readonly string[] }[],
-        exactInputs, rangeNarrowing: false, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
+        exactInputs, rangeNarrowing: false, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, selectorRange, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
         loopScopes, rootSetupLines, pushScope, popScope, currentScope,
     };
 }

@@ -63,7 +63,11 @@ export function keyedIntegerReader(root: TensorNode,
             const source = lower(node.operand);
             if (source) result = { shape: source.shape, read: index => node.op === '-' ? -source.read(index) : source.read(index) };
         } else if ((node.kind === 'outer' || node.kind === 'binary') && !('ranks' in node && node.ranks)
-            && ['+', '-', '*', '//', 'mod', 'min', 'max'].includes(node.op)) {
+            && ['+', '-', '*', '//', 'mod', 'min', 'max', '**'].includes(node.op)) {
+            // Integer inputs alone do not prove an integer power result.
+            // A captured scalar exponent grants the domain without reading cells.
+            if (node.op === '**' && (node.right.kind !== 'input'
+                || typeof node.right.value !== 'bigint' || node.right.value < 0n)) return undefined;
             const left = lower(node.left), right = lower(node.right);
             if (!left || !right) return undefined;
             const combine = (a: bigint, b: bigint): bigint => {
@@ -74,6 +78,7 @@ export function keyedIntegerReader(root: TensorNode,
                     case '+': return a + b;
                     case '-': return a - b;
                     case '*': return a * b;
+                    case '**': return a ** b;
                     case '//': return floorDivide(a, b);
                     case 'mod': return floorRemainder(a, b);
                     case 'min': return a < b ? a : b;

@@ -1,0 +1,47 @@
+
+ RUN  v3.2.7 /tmp/rank-reference-readers/packages/interpreter
+
+ ✓ test/scalar-plans.test.ts (42 tests) 783ms
+   ✓ scalar expression plans (compilation=false) > keeps data-dependent symbolic dimensions fresh between captures  348ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 965ms
+   ✓ array binding contracts (compiled true) > checks every lazy scalar read after establishing the type: 1n  392ms
+ ✓ test/accumulate-writes.test.ts (96 tests) 1339ms
+   ✓ accumulating writes (compilation=false) > broadcast addition  325ms
+ ✓ test/keyed-producers.test.ts (76 tests) 1400ms
+   ✓ streams wide integer reduce + (true)  376ms
+ ✓ test/block-scope.test.ts (37 tests) 698ms
+   ✓ block scope > lexical block frames (compilation true) > rejects header capture before executing a cell: I = 99 / for I in 1 to 3
+end  324ms
+ ✓ test/keyed-fusion.test.ts (6 tests) 686ms
+   ✓ streams outer values and keys without matrix buffers (true)  332ms
+ ✓ test/function-binding.test.ts (22 tests) 698ms
+   ✓ single-expression function bindings > keeps both inline and multiline declarations constant  386ms
+ ✓ test/parameter-bindings.test.ts (34 tests) 655ms
+   ✓ parameter binding boundaries (compilation=false) > honors the parameter marker: ''  346ms
+ ✓ test/function-scope-helpers.test.ts (40 tests) 756ms
+   ✓ function scope helpers (compiled=false) > rejects retaining a nested callback through an import   325ms
+ ✓ test/loop-array-frames.test.ts (21 tests) 801ms
+   ✓ compiled scalar array frames > grows and unpacks stack frames in one region  466ms
+ ✓ test/record-binding-contracts.test.ts (30 tests) 616ms
+   ✓ record binding contracts (compiled true) > rejects a replacement with .name = "Ada" atomically  304ms
+ ✓ test/builtin-bindings.test.ts (22 tests) 558ms
+   ✓ rejects core names, parameters and nested declarations  306ms
+ ✓ test/deferred-bindings.test.ts (26 tests) 532ms
+   ✓ deferred binding validation (compilation=false) > rejects captured array writes before any program effects run  314ms
+ ✓ test/return-preparation.test.ts (2 tests) 427ms
+   ✓ rechecks native effects after preparing a return (false)  392ms
+ ✓ test/plan-effects.test.ts (22 tests) 781ms
+   ✓ effects in explicit plans (compilation=false) > repeats callback effects on demand and retains an explicit result: fun A combine B rank 0 0
+ B print
+ return A + B
+end  390ms
+ ✓ test/keyed-integer.test.ts (8 tests) 291ms
+ ✓ test/tail-calls.test.ts (11 tests) 8108ms
+   ✓ tail calls > runs a million tail calls with a one-frame call budget  1721ms
+   ✓ tail calls > replaces frames for mutual recursion and parenthesized returns  5514ms
+   ✓ tail calls > allows tail calls again after leaving a try block  727ms
+
+ Test Files  17 passed (17)
+      Tests  549 passed (549)
+   Start at  12:34:20
+   Duration  17.30s (transform 2.59s, setup 0ms, collect 24.65s, tests 20.09s, environment 3ms, prepare 1.19s)

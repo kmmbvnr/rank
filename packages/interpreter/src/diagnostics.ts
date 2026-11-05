@@ -66,6 +66,9 @@ export class RuntimeDiagnostics {
     numberLoopReadBuffers = 0;
     numberLoopReadBufferCells = 0;
     numberLoopReadBufferHits = 0;
+    /** Packed read-only integer inputs validated at their actual scalar loads. */
+    numberLoopBorrowedIntegerBuffers = 0;
+    numberLoopBorrowedIntegerCells = 0;
     numberLoopBorrowedRealBuffers = 0;
     numberLoopBorrowedRealCells = 0;
     modularMatrixPowers = 0;

@@ -80,6 +80,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0612** | [Подстрока](0612_substring.ra) | Free Groups / Strings (68%) | Shortest word in free group equivalent to $X$ containing $Y$ via longest common subword of reduced forms, binary search & vectorized set window matching |
 | **0614** | [Скобки - 3](0614_brackets_3.ra) | Dynamic Programming / Strings (61%) | Count distinct regular bracket subsequences via DFA state transitions on greedy next-occurrence jumps |
 | **0615** | [Новый год](0615_new_year.ra) | Graph Theory / Matching (62%) | Minimum weight edge cover in bipartite graph via reduction to maximum savings matching and Hungarian/MCMF augmentation |
+| **0618** | [Диаграммы Юнга](0618_young_diagrams.ra) | Dynamic Programming / Partitions (74%) | Max subdiagrams in Young diagram for $N \le 100$ via suffix sum DP with `scan +` and `reduce +` over precomputed optimal partitions |
 | **0620** | [Бассейн реки](0620_river_basin.ra) | Computational Geometry (67%) | Max river basin area via tributary reachability, Andrew's monotone chain convex hull and vectorized Shoelace formula |
 | **0622** | [Прямоугольное деление](0622_rectangular_division.ra) | Computational Geometry / Graph (66%) | Planar face count formed by $N \le 100$ rectangles via dual compressed grid and `new dsu` |
 | **0624** | [Электронная почта](0624_email.ra) | Graph Theory (62%) | Distributed email log consistency check via chronological dependency DAG and `Graph cycle` |
@@ -107,6 +108,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0725** | [Громоотвод](0725_lightning_rod.ra) | Computational Geometry / Optimization (72%) | Min lightning rod height to cover $N \le 10$ 3D buildings via 2D nested ternary search on building roofs with zero-loop vectorized corner distance evaluation |
 | **0727** | [Распределение участков](0727_plot_distribution.ra) | Game Theory / Greedy (62%) | Pure Nash equilibrium via greedy matching over all pairs sorted by `(0 - Key) argsort` |
 | **0734** | [Строковый компьютер](0734_string_computer.ra) | Combinatorics / Free Monoids (61%) | Maximum non-redundant set size and number of such sets over alphabet $K$ and max length $N$ via geometric series and parity analysis |
+| **0738** | [Слова - 2](0738_words_2.ra) | Combinatorics / Graph Theory (74%) | Maximum independent set of 5-letter transposition-confusion graph via frequency classification and canonical template substitution |
 | **0740** | [Ключи](0740_keys.ra) | Data Structures / Sweep-line (61%) | Max overlapping holes under translation: pairwise open rectangles via `outer -`, Y compression with `lowerindex`, range-add segment tree |
 | **0741** | [Замечательные дороги](0741_wonderful_roads.ra) | Graph Theory (62%) | Colors = largest biconnected block; iterative Tarjan with edge stack over CSR from `argsort` + `lowerindex` |
 | **0746** | [Гонки](0746_races.ra) | Graph Theory (64%) | 4-cycles via `(Adj matpow 2)` common neighbors and `sum` |
@@ -139,6 +141,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0921** | [Турнир - 2](0921_tournament_2.ra) | Math / Vector Arithmetic (60%) | Optimal chess match count minimizing expected score differences via vectorized vector arithmetic `C = 1 till K`, `Diffs = ((C * (A - B)) + (K * B)) abs`, `MinDiff = Diffs min` |
 | **0928** | [Березовая аллея](0928_birch_alley.ra) | Computational Geometry / Binary Search (70%) | Max enclosed trees under ribbon length $L$ via 2D tensor difference matrix of decoupled top/bottom perimeter boundaries and binary search |
 | **0931** | [Две окружности - 2](0931_two_circles_2.ra) | Computational Geometry (72%) | Partition $N \le 2000$ points onto two circles via Pigeonhole 5-point triple candidate search and zero-loop vectorized distance classification |
+| **0937** | [Макрос](0937_macro.ra) | String Parsing / Interpreters (72%) | Lexical macro expansion with block-scoped closures and cyclic `#rep` generation via 1D array environments and vectorized macro lookup |
 | **0958** | [Осмотр королевства](0958_kings_tour.ra) | Graph Theory (62%) | Tournament Hamiltonian path merging $K$ chain routes |
 | **0959** | [Защита деревьев](0959_tree_protection.ra) | Computational Geometry (70%) | Max trees enclosed by rigid triangle of sides $a, b, c$ via 1D line projection intervals and 2D matrix overlap reduction in a single loop |
 | **0963** | [Морфизм](0963_morphism.ra) | Dynamic Programming (63%) | Binary lifting over 20-character substitution prefix table |
@@ -149,5 +152,6 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0978** | [Последовательность - 5](0978_sequence_5.ra) | Number Theory (79%) | Legendre's formula for maximal $k$ with $n^k \mid n!$ using `N factors unique` |
 | **0989** | [Окопы](0989_trenches.ra) | Geometry / SAT (64%) | Strict separating line via Separating Axis Theorem (SAT) over difference vectors |
 | **0993** | [Симпатичные последовательности](0993_pretty_sequences.ra) | Data Structures / Segment Tree (61%) | Maximal $k$-pretty prefix via point increment updates and range prefix minimum segment tree queries `Tree 0 (V - 1) query` |
+| **0998** | [Велосипедные дорожки](0998_bike_paths.ra) | Computational Geometry / Snell's Law (72%) | Min travel time across two circular tracks via Snell's law dual virtual concentric circle common tangents and zero-loop analytical arc evaluation |
 | **0999** | [Диверсия](0999_sabotage.ra) | Graph Theory (70%) | Count 2-edge (stone, dirt) cuts via spanning tree BFS, back-edge difference accumulation, and reverse topological sum |
 | **1000** | [Упаковка чисел](1000_number_packing.ra) | Bitwise / Encodings (65%) | Variable-length prefix-free integer encoding (1–9 bytes) into hex |

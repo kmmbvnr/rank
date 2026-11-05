@@ -1,3 +1,4 @@
+import { checkedNumberPower, numberOverflow } from './number-arithmetic.js';
 import { DENSE_MIN_CELLS } from './tensor-operands.js';
 import { BooleanCells } from '../boolean-cells.js';
 import { createOwned } from '../owned-array.js';
@@ -28,12 +29,13 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
         : name === 'min' ? (a: bigint, b: bigint) => b < a ? b : a
         : name === 'max' ? (a: bigint, b: bigint) => b > a ? b : a
         : name === 'gcd' ? greatestCommonDivisor
+        : name === '**' ? (a: bigint, b: bigint) => a ** b
         : name === 'abs' ? (a: bigint) => a < 0n ? -a : a : undefined;
     if (name === 'band' || name === 'bor' || name === 'bxor' || name === 'shl' || name === 'shr') {
         return inspectionEnabled() || !privateLoopPolling() ? undefined : mapStoredBitwise(left, right, name);
     }
     if (!operation || inspectionEnabled() || !privateLoopPolling()) return undefined;
-    if (name === '+' || name === '-' || name === '*' || name === 'gcd' || name === 'mod' || name === '//' || name === 'min' || name === 'max') {
+    if (name === '+' || name === '-' || name === '*' || name === 'gcd' || name === 'mod' || name === '//' || name === 'min' || name === 'max' || name === '**') {
         try {
             const compact = mapStoredInt32Binary(left, right, name);
             if (compact) return compact;
@@ -46,7 +48,7 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
             }
         } catch (error) {
             if (error instanceof InterruptedError) throw error;
-            if (!(error instanceof RankError)) throw error;
+            if (!(error instanceof RankError) && error !== numberOverflow) throw error;
         }
     }
     const a = isRankArray(left) ? prepareIntegerView(left, true) : undefined;
@@ -65,13 +67,13 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
             for (let i = start; i < end; i++) {
                 const x = a ? a.read(ai(i)) : left as bigint;
                 const y = b ? b.read(bi(i)) : right as bigint;
-                if ((name === 'mod' || name === '//') && y === 0n) return undefined;
+                if ((name === 'mod' || name === '//') && y === 0n || name === '**' && y < 0n) return undefined;
                 cells.set(i, operation(x, y));
             }
         }
     } catch (error) {
         if (error instanceof InterruptedError) throw error;
-        if (error instanceof RankError) return undefined;
+        if (error instanceof RankError || name === '**' && error instanceof RangeError) return undefined;
         throw error;
     }
     return cells.array(shape);
@@ -129,7 +131,7 @@ function compactBinary(code: number, a: Int32Array, ao: number, as: number,
 
 /** Completed integer operands can produce a compact result without BigInt arithmetic.
  * A result that widens discards the temporary buffer and uses exact arithmetic. */
-function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-' | '*' | 'gcd' | 'mod' | '//' | 'min' | 'max'): RankArray | undefined {
+function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-' | '*' | 'gcd' | 'mod' | '//' | 'min' | 'max' | '**'): RankArray | undefined {
     const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
     const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
     const eligible = (value: RankValue, view: typeof a) => isRankArray(value)
@@ -145,7 +147,7 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
     }
     const x = a ? 0 : Number(left), y = b ? 0 : Number(right);
     const code = name === '+' ? 0 : name === '-' ? 1 : name === '*' ? 2 : name === 'mod' ? 3
-        : name === '//' ? 4 : name === 'min' ? 5 : name === 'max' ? 6 : 7;
+        : name === '//' ? 4 : name === 'min' ? 5 : name === 'max' ? 6 : name === '**' ? 8 : 7;
     // Equal shapes address both operands in place, with no broadcast mapping.
     const sameShape = (value: RankValue) => !isRankArray(value) || same(value.shape, shape);
     const ai = sameShape(left) ? undefined : broadcastIndex(isRankArray(left) ? left.shape : undefined, shape);
@@ -202,6 +204,7 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
                 }
                 case 5: result = bv < av ? bv : av; break;
                 case 6: result = bv > av ? bv : av; break;
+                case 8: result = checkedNumberPower(av, bv); break;
                 default: result = safeIntegerGcd(av, bv);
             }
             if (result !== (result | 0)) {
