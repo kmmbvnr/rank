@@ -1,0 +1,37 @@
+diff --git a/packages/interpreter/src/selectors.ts b/packages/interpreter/src/selectors.ts
+index a26be936..41924a32 100644
+--- a/packages/interpreter/src/selectors.ts
++++ b/packages/interpreter/src/selectors.ts
+@@ -10,7 +10,7 @@ import { indexedSource } from './indexed-source.js';
+ import { inheritSemanticArrayType, semanticArrayType } from './semantic-array-type.js';
+ import { registerScalarView, deferSelectionCopy, prepareIntegerRange, type LinearView } from './integer-view.js';
+ import { positionalValue } from './positional-value.js';
+-import { materializeTensorMap } from './tensor-map.js';
++import { prepareKeyedTensorReader, materializeTensorMap } from './tensor-map.js';
+ import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, sliceStoredArray, storedScalarKinds, knownStoredScalarKind, typedArray, typedElementKind } from './array-storage.js';
+ import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from './interrupt.js';
+ import { MissingValueError, RankError } from './errors.js';
+@@ -167,6 +167,23 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
+         // Native arithmetic can complete that demand as one numeric kernel;
+         // opaque readers and failing recipes retain the ordinary cell path.
+         if (isRankArray(selector) && selector.itemAt !== undefined) {
++            const reader = privateLoopPolling() && !inspectionEnabled() && !demandBudgetEnabled()
++                ? prepareKeyedTensorReader(selector) : undefined;
++            if (reader) {
++                // Snapshot all indices before the RHS or any mutation. Native
++                // producers need only this offset buffer, not a key array too.
++                const shape = selector.shape;
++                const count = arraySize(shape), offsets = new Float64Array(count);
++                for (let index = 0; index < count; index++) {
++                    checkpoint('preparing array indices');
++                    const value = reader(index);
++                    if (value < 0n) throw new RankError(`array index must be nonnegative on axis ${axis}`);
++                    if (value >= BigInt(size)) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${value}`);
++                    offsets[index] = Number(value);
++                }
++                return { preserve: true, size: count, shape, offsets,
++                    indexAt: (index: number) => offsets[index] };
++            }
+             selector = materializeTensorMap(selector) ?? selector;
+         }
+         // Trusted dense integer selectors can be checked into one compact

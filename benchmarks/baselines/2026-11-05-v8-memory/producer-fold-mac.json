@@ -1,0 +1,83 @@
+[
+  {
+    "variant": "production",
+    "milliseconds": 86.90791700000003,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 179888,
+    "heapUsed": 32877984,
+    "sample": 0
+  },
+  {
+    "variant": "accumulate",
+    "milliseconds": 135.43025,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 249856,
+    "heapUsed": 33542824,
+    "sample": 0
+  },
+  {
+    "variant": "keyed",
+    "milliseconds": 2745.922667,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 437808,
+    "heapUsed": 33860536,
+    "sample": 0
+  },
+  {
+    "variant": "keyed",
+    "milliseconds": 2739.081792,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 494512,
+    "heapUsed": 33842960,
+    "sample": 1
+  },
+  {
+    "variant": "accumulate",
+    "milliseconds": 138.369459,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 249520,
+    "heapUsed": 33549416,
+    "sample": 1
+  },
+  {
+    "variant": "production",
+    "milliseconds": 87.726542,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 186464,
+    "heapUsed": 32853648,
+    "sample": 1
+  },
+  {
+    "variant": "production",
+    "milliseconds": 87.746209,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 180000,
+    "heapUsed": 32856360,
+    "sample": 2
+  },
+  {
+    "variant": "accumulate",
+    "milliseconds": 136.495875,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 249088,
+    "heapUsed": 33548464,
+    "sample": 2
+  },
+  {
+    "variant": "keyed",
+    "milliseconds": 2754.278125,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 494176,
+    "heapUsed": 33839192,
+    "sample": 2
+  }
+]

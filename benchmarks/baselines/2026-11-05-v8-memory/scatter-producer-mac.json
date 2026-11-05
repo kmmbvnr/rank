@@ -1,0 +1,62 @@
+[
+  {
+    "variant": "accumulate-deferred",
+    "milliseconds": 703.470167,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 236224,
+    "heapUsed": 34004120,
+    "mode": "baseline",
+    "sample": 0
+  },
+  {
+    "variant": "accumulate-deferred",
+    "milliseconds": 1428.93475,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 237040,
+    "heapUsed": 33792200,
+    "mode": "candidate",
+    "sample": 0
+  },
+  {
+    "variant": "accumulate-deferred",
+    "milliseconds": 1440.139542,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 237056,
+    "heapUsed": 33792520,
+    "mode": "candidate",
+    "sample": 1
+  },
+  {
+    "variant": "accumulate-deferred",
+    "milliseconds": 713.400625,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 242752,
+    "heapUsed": 34013200,
+    "mode": "baseline",
+    "sample": 1
+  },
+  {
+    "variant": "accumulate-deferred",
+    "milliseconds": 708.254375,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 242768,
+    "heapUsed": 34015776,
+    "mode": "baseline",
+    "sample": 2
+  },
+  {
+    "variant": "accumulate-deferred",
+    "milliseconds": 1445.549833,
+    "answer": "1966666166408794329",
+    "node": "v24.15.0",
+    "peakRssKiB": 236560,
+    "heapUsed": 33794864,
+    "mode": "candidate",
+    "sample": 2
+  }
+]

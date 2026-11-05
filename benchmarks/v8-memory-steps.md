@@ -138,8 +138,60 @@ establish a uniform benefit; deferred factories also retain their inputs.
 Reject under the joint memory/speed gate. No runtime change retained.
 Raw data: `lazy-run-{diagnostic,mac,intel}.json` in the baseline directory.
 
-## Remaining steps
+## 6. Polynomial producers into scatter/fold: skipped
 
-6. Fuse polynomial producers into scatter/fold consumers.
+The initial proposal was partly stale: HEAD already contains exact integer
+producer readers and ordered keyed folds (e9050b5c and 53cbe00c). Admission
+is not limited to Int32 intermediates. The existing keyed-producers tests
+cover wide arithmetic, overflow, errors, host effects and both engines.
 
-Each requires its own workload evidence before retaining a runtime patch.
+A full Euler 326 keyed-plan control exercised 24 native reader preparations
+and 12 integer folds and returned 1966666166408794329. Three uninstrumented
+Mac controls of the keyed-plan formulation took a median 2746 ms / 494176
+KiB peak RSS, versus 136 ms / 249520 KiB for weighted scatter and 88 ms /
+180000 KiB for the production scalar formulation. These are algorithmic
+controls, not a runtime before/after speed claim. The keyed formulation
+keeps separate Seen/Tail histograms and is not adopted as an optimization.
+
+The direct runtime prototype in `experiments/v8-scatter-producer.patch`
+streams a deferred integer key producer into one checked offset snapshot
+in tensorSelection, before RHS evaluation or target writes. This avoids
+materializing the producer as a separate Rank key array. It keeps private
+polling, inspection and demand-budget eligibility checks. A deferred-key
+version of the weighted Euler 326 fixture exercises this path (12 native
+reader preparations, zero keyed folds). Both versions return the exact
+full answer. No producer-specific bypass is added to error handling.
+
+Three alternating fresh-process pairs on Mac / Node v24.15.0:
+
+| Metric | Baseline | Producer snapshot |
+| --- | ---: | ---: |
+| Median milliseconds | 708.254 | 1440.140 |
+| Median peak RSS KiB | 242752 | 237040 |
+| Median retained heap bytes | 34013200 | 33792520 |
+
+Reject: the memory saving costs about 2x execution time. No Intel series
+was needed once this speed gate failed. The exact per-cell BigInt reader
+replaces a bulk materialization path; this is a candidate explanation, not
+a CPU-profile finding. A Number-specialized streaming producer compiler
+would be separate future work, not a result delivered here.
+
+87 keyed-producer/fusion/Euler-326 tests passed while inspecting the existing
+fold path. 118 selector-type-checks/accumulate-writes tests passed on the direct
+scatter prototype. The TypeScript build passed. Exhaustive audits and
+the full suite were not run.
+
+`v8-producer-fold-memory.mjs CHECKOUT VARIANT [--diagnostics]` runs the full
+Euler input. Variants are production, keyed, accumulate, accumulate-deferred.
+Fixtures preserve the formula and only defer Keys/Part in the final variant.
+Raw observations are producer-fold-mac.json, scatter-producer-mac.json and
+scatter-producer-diagnostic.json in the baseline directory. The diagnostic
+pass is separate from the timing series.
+
+## Final disposition
+
+All six steps were evaluated in order. No runtime candidate passed the joint
+Euler memory/speed gate; runtime and demos are unchanged from 4e5fe2bc.
+The branch contains investigation reports, reproducible probes, raw samples
+and rejected prototype patches. Each completed step was committed and pushed
+separately. No issue, PR or external discussion comment was created.
