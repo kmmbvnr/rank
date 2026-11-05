@@ -1,5 +1,5 @@
-{"stage":"sieve","ms":322.82675,"rssMiB":212.34375,"heapMiB":34.72101593017578,"buffersMiB":22.008307456970215}
-{"stage":"digits","ms":747.381583,"rssMiB":710.1875,"heapMiB":35.775146484375,"buffersMiB":523.3858785629272}
-{"stage":"pairs","ms":1538.490959,"rssMiB":711.359375,"heapMiB":40.70957946777344,"buffersMiB":495.9150505065918}
-{"stage":"weights","ms":7.334875000000011,"rssMiB":712.125,"heapMiB":44.910400390625,"buffersMiB":495.9206848144531}
-{"size":100000000,"mode":"compiled","variant":"original","answer":"480440153","ms":2616.1429169999997,"maxRssMiB":712.125,"node":"v24.15.0","arch":"arm64","phases":[{"stage":"sieve","ms":322.82675,"rssMiB":212.34375,"heapMiB":34.72101593017578,"buffersMiB":22.008307456970215},{"stage":"digits","ms":747.381583,"rssMiB":710.1875,"heapMiB":35.775146484375,"buffersMiB":523.3858785629272},{"stage":"pairs","ms":1538.490959,"rssMiB":711.359375,"heapMiB":40.70957946777344,"buffersMiB":495.9150505065918},{"stage":"weights","ms":7.334875000000011,"rssMiB":712.125,"heapMiB":44.910400390625,"buffersMiB":495.9206848144531}]}
+{"stage":"sieve","ms":321.483709,"rssMiB":212.609375,"heapMiB":34.88836669921875,"buffersMiB":22.008307456970215}
+{"stage":"digits","ms":733.515958,"rssMiB":711.734375,"heapMiB":38.28852081298828,"buffersMiB":523.3858785629272}
+{"stage":"pairs","ms":1548.904375,"rssMiB":713.03125,"heapMiB":41.0560302734375,"buffersMiB":523.387809753418}
+{"stage":"weights","ms":7.722332999999708,"rssMiB":713.734375,"heapMiB":44.89923858642578,"buffersMiB":523.3934440612793}
+{"size":100000000,"mode":"compiled","variant":"original","answer":"480440153","ms":2611.74875,"maxRssMiB":713.734375,"node":"v24.15.0","arch":"arm64","phases":[{"stage":"sieve","ms":321.483709,"rssMiB":212.609375,"heapMiB":34.88836669921875,"buffersMiB":22.008307456970215},{"stage":"digits","ms":733.515958,"rssMiB":711.734375,"heapMiB":38.28852081298828,"buffersMiB":523.3858785629272},{"stage":"pairs","ms":1548.904375,"rssMiB":713.03125,"heapMiB":41.0560302734375,"buffersMiB":523.387809753418},{"stage":"weights","ms":7.722332999999708,"rssMiB":713.734375,"heapMiB":44.89923858642578,"buffersMiB":523.3934440612793}]}

@@ -1,77 +1,83 @@
 {
-  "note": "Separate sampled CPU profile, excluded from performance medians. Generated anonymous code includes compiled loop and tensor kernels.",
+  "note": "Final integrated runtime sampled separately; excluded from performance medians. Generated anonymous code includes compiled loop and tensor kernels.",
   "top": [
     {
       "name": "(generated anonymous code)",
       "source": "",
       "line": 4,
-      "ms": 1526.917
+      "ms": 1535.209
     },
     {
       "name": "(generated anonymous code)",
       "source": "",
       "line": 3,
-      "ms": 417.918
+      "ms": 430.5
     },
     {
       "name": "materializeMaskSelection",
       "source": "interpreter/array-mask-selection.js",
       "line": 80,
-      "ms": 120.875
+      "ms": 117.333
     },
     {
       "name": "compareStoredInt32",
       "source": "interpreter/jit/integer-array-kernel.js",
       "line": 576,
-      "ms": 105.5
+      "ms": 105.042
     },
     {
       "name": "DensePrimeSieve",
       "source": "interpreter/runtime/dense-prime-sieve.js",
       "line": 20,
-      "ms": 101.125
+      "ms": 101.542
     },
     {
       "name": "(generated anonymous code)",
       "source": "interpreter/runtime/dense-prime-sieve.js",
       "line": 142,
-      "ms": 97.291
-    },
-    {
-      "name": "invoke",
-      "source": "interpreter/jit/tensor-kernel.js",
-      "line": 449,
-      "ms": 44.125
+      "ms": 97.791
     },
     {
       "name": "denseTruePositions",
       "source": "interpreter/runtime/packed-booleans.js",
       "line": 267,
-      "ms": 38.375
+      "ms": 38.25
+    },
+    {
+      "name": "invoke",
+      "source": "interpreter/jit/tensor-kernel.js",
+      "line": 449,
+      "ms": 33.083
     },
     {
       "name": "post",
       "source": "node:inspector",
       "line": 115,
-      "ms": 20.333
+      "ms": 20.375
     },
     {
       "name": "(garbage collector)",
       "source": "",
       "line": 0,
-      "ms": 17.125
+      "ms": 8.375
     },
     {
       "name": "count",
       "source": "interpreter/runtime/dense-prime-sieve.js",
       "line": 52,
-      "ms": 4.625
+      "ms": 4.542
     },
     {
-      "name": "(generated anonymous code)",
-      "source": "interpreter/jit/integer-loop-writes.js",
-      "line": 11,
-      "ms": 3
+      "name": "lookAheadSequenceFromAlternatives",
+      "source": "node_modules/chevrotain/lib/src/parse/grammar/lookahead.js",
+      "line": 368,
+      "ms": 4.417
+    },
+    {
+      "name": "(program)",
+      "source": "",
+      "line": 0,
+      "ms": 2.958
     }
   ]
 }

@@ -134,10 +134,11 @@ function sievePlan(sieve: DensePrimeSieve, upper: Boundary, lower?: Boundary): S
     };
     // Keep small slices on ordinary iteration. Large finite Int32 copies
     // fill final cells without a temporary array of boxed prime values.
-    if (last <= 2147483647n && last - before >= 65536n) {
+    if (last <= 2147483647n && last - (before < 1n ? 1n : before) >= 65536n) {
         registerSequenceCompletion(plan, () => {
             if (inspectionEnabled() || demandBudgetEnabled() || !privateLoopPolling()
-                || sieve.contains !== nativeContains || sieve.count !== nativeCount) return undefined;
+                || Object.getOwnPropertyDescriptor(DensePrimeSieve.prototype, 'contains')?.value !== nativeContains
+                || Object.getOwnPropertyDescriptor(DensePrimeSieve.prototype, 'count')?.value !== nativeCount) return undefined;
             const cells = new Int32Array(Number(countBetween(sieve, last, before)));
             let at = 0;
             if (before < 2n && last >= 2n) cells[at++] = 2;

@@ -1,0 +1,151 @@
+{
+  "issue": 531,
+  "input": {
+    "Limit": 100000000,
+    "Prime": 1000000007
+  },
+  "answer": "480440153",
+  "initialStepBase": "a931422b",
+  "finalComparisonBase": "227483c76dee804d6167b4c07bc9eb0e60183724",
+  "integrationCommit": "842e49724dad3b182578253e3fa31691fa14d2b3",
+  "steps": [
+    "9efc176b",
+    "2a8af552",
+    "4ecdd724"
+  ],
+  "demoAlgorithmChanged": false,
+  "sourceSha256": "bae603ba7f1d9a17cb69c7e0a2cc597c5a499186fd311dd6aed1dd9fddf2a0c1",
+  "runtimeSha256": {
+    "runtime/packed-booleans.js": "62fc34850f0c0bf38a27a408cf34c7e6e665c230fc0c0101ff4a5cf52296a5fe",
+    "runtime/dense-prime-sieve.js": "22c630cdd7a739827b29d7587c9278e7b53b5153c8082c18470ddc474855839e",
+    "sequence-completion.js": "242093b0fe8d8feb18e04772f80eaaaa3c0065f038eaea14fe6b641b567b2a5d",
+    "array-mask-selection.js": "a8c273488a78f75180066304ef0307f93eb5d48b3a63b3d0f5770c09cc5c0f1d",
+    "jit/tensor-map.js": "86e903461d50c223eb11387d775c575f896d3e06b0e4aa65738fb9fad11de155",
+    "jit/tensor-number.js": "0b6aa87f6f65d9c1d651e2ea436cd5cc07ee52849351cbd3a20a7422f0ca9a42",
+    "jit/integer-loop-statements.js": "4429bd47350dc1a9ca1a8f09cca6782ad3e38df65174ea194a6d4babe958c86c",
+    "jit/integer-loop-expressions.js": "94e30312a3301c835a95bbdfb1dc4ee056793eb78acdda749ee9578717d47852"
+  },
+  "runtimeHashesMatchAcrossHosts": true,
+  "measurements": {
+    "mac": {
+      "full": {
+        "base": {
+          "samples": 3,
+          "medianMs": 3243.732542,
+          "medianPeakRssMiB": 1680.921875,
+          "worstPeakRssMiB": 1683.359375
+        },
+        "final": {
+          "samples": 3,
+          "medianMs": 2616.4844999999996,
+          "medianPeakRssMiB": 702.234375,
+          "worstPeakRssMiB": 702.375
+        }
+      },
+      "prime-small-negative": {
+        "base": {
+          "samples": 3,
+          "medianMs": 0.002145499999997469,
+          "medianPeakRssMiB": 91.28125,
+          "worstPeakRssMiB": 91.609375
+        },
+        "final": {
+          "samples": 3,
+          "medianMs": 0.002124999999992383,
+          "medianPeakRssMiB": 91.25,
+          "worstPeakRssMiB": 91.859375
+        }
+      }
+    },
+    "intel": {
+      "full": {
+        "base": {
+          "samples": 3,
+          "medianMs": 9281.178552,
+          "medianPeakRssMiB": 1660.73046875,
+          "worstPeakRssMiB": 1660.80078125
+        },
+        "final": {
+          "samples": 3,
+          "medianMs": 7357.683423,
+          "medianPeakRssMiB": 685.39453125,
+          "worstPeakRssMiB": 686.13671875
+        }
+      },
+      "prime-small-negative": {
+        "base": {
+          "samples": 3,
+          "medianMs": 0.00491149999999152,
+          "medianPeakRssMiB": 88.91015625,
+          "worstPeakRssMiB": 89.08203125
+        },
+        "final": {
+          "samples": 3,
+          "medianMs": 0.004881500000010419,
+          "medianPeakRssMiB": 89.4921875,
+          "worstPeakRssMiB": 90.0234375
+        }
+      }
+    }
+  },
+  "verification": {
+    "focusedTests": 296,
+    "focusedFiles": 16,
+    "fullScaleTest": "Euler 705 only, compiled default input; other full-scale cases not run",
+    "cliFixtureTests": 2,
+    "oracleAndOriginalComparisonsPerHost": 47,
+    "independentQuadraticOracleDigits": 460,
+    "widePrimeBoundaryPerHost": "4 exact primes straddling signed Int32; trial division oracle; native Int32 completion declined",
+    "negativeLowerBoundRegression": "reproduced with a failing test, fixed by clamping the eligible domain to primes >=2; final focused tests and fresh-process small-negative controls passed",
+    "typeScriptBuild": "passed",
+    "semanticBoundaryTests": 11,
+    "semanticOwners": 65,
+    "applicationForms": "passed",
+    "exhaustiveAudits": "not run; full npm test not run"
+  },
+  "rejectedExperiments": {
+    "literalIndexHoisting": {
+      "step2": {
+        "medianMs": 2612.724833,
+        "medianPeakRssMiB": 702.234375
+      },
+      "literal-guards": {
+        "medianMs": 2723.00325,
+        "medianPeakRssMiB": 702.609375
+      },
+      "decision": "Rejected: full input slower on Mac; no Intel trial needed to reject a regression. Semantic focused tests passed, but extra compiler complexity has no measured benefit."
+    },
+    "numericPrimeBlocks": {
+      "mac": {
+        "step2": {
+          "medianMs": 2612.2019999999998,
+          "medianPeakRssMiB": 702.65625
+        },
+        "chunked": {
+          "medianMs": 3041.7180829999998,
+          "medianPeakRssMiB": 275.25
+        }
+      },
+      "intel": {
+        "step2": {
+          "medianMs": 7359.776511,
+          "medianPeakRssMiB": 684.9765625
+        },
+        "chunked": {
+          "medianMs": 8293.401999,
+          "medianPeakRssMiB": 249.5078125
+        }
+      },
+      "sourceSha256": "642c2d73c4bcf1c8492b9bbef0fb697bc05d658520932823ce7ec5ea8fed943b",
+      "decision": "Rejected: numeric prime blocks of 1e6 reduce memory further but slow the full input on both architectures. Keep the original demo algorithm."
+    }
+  },
+  "conditions": [
+    "Node v24.15.0, Mac arm64 and Intel x64.",
+    "Three alternating fresh processes per variant and architecture; no profiler or concurrent tests in timing samples.",
+    "RSS is process peak, including runtime startup. Median peak RSS and worst sample are reported separately.",
+    "Full default measured with compilation enabled. Uncompiled behavior compared on small inputs, not the full default.",
+    "The variant label original in euler705-investigation.mjs means the unchanged current demo, not the historical one-hot fixture.",
+    "Tiny fallback copies vary by less than 0.001 ms and startup RSS varies by a few MiB; see per-step cold and warmed controls."
+  ]
+}

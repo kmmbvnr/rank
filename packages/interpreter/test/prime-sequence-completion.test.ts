@@ -35,7 +35,9 @@ describe('bounded prime sequence completion', () => {
     it('keeps small, empty and extreme bounds exact', () => {
         const plan = densePrimePlan(200003n);
         for (const view of [densePrimePlan(0n), plan.withUpperBound!(17n, true),
-            plan.withLowerBound!(10n ** 100n, true), plan.withUpperBound!(-(10n ** 100n), true)]) {
+            plan.withLowerBound!(10n ** 100n, true), plan.withUpperBound!(-(10n ** 100n), true),
+            plan.withLowerBound!(-(10n ** 100n), true).withUpperBound!(17n, true),
+            plan.withLowerBound!(-(10n ** 100n), true).withUpperBound!(-1n, true)]) {
             expect(copy(view).diagnostics.nativeSequenceCopies).toBe(0);
             expect(copy(view).result.items).toEqual([...view.iterate()]);
         }
@@ -65,6 +67,19 @@ describe('bounded prime sequence completion', () => {
             DensePrimeSieve.prototype.contains = () => false;
             expect(copy(densePrimePlan(200003n)).diagnostics.nativeSequenceCopies).toBe(0);
         } finally { DensePrimeSieve.prototype.contains = original; }
+    });
+    it.each(['contains', 'count'])('does not execute a host %s getter during admission', method => {
+        const plan = densePrimePlan(200003n);
+        const descriptor = Object.getOwnPropertyDescriptor(DensePrimeSieve.prototype, method)!;
+        let reads = 0;
+        Object.defineProperty(DensePrimeSieve.prototype, method, { configurable: true,
+            get() { reads++; return descriptor.value; } });
+        try {
+            const { result, diagnostics } = copy(plan);
+            expect(result.items).toEqual(expected(2, 200003));
+            expect(diagnostics.nativeSequenceCopies).toBe(0);
+            expect(reads).toBe(method === 'contains' ? 100002 : 0);
+        } finally { Object.defineProperty(DensePrimeSieve.prototype, method, descriptor); }
     });
     it('preserves budgets and opaque polling demands', () => {
         const plan = densePrimePlan(200003n);
