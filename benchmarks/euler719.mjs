@@ -30,7 +30,7 @@ try {
     const ms = performance.now() - start, answer = String(runtime.variables.get('Answer'));
     const expected = new Map([[10000, '41333'], [1e12, '128088830547982']]);
     if (expected.has(limit)) assert.equal(answer, expected.get(limit));
-    console.log(JSON.stringify({ limit, answer, ms, maxRssMiB: process.resourceUsage().maxRSS / 1024,
+    console.log(JSON.stringify({ limit, compilation: process.argv[3] !== 'reference', answer, ms, maxRssMiB: process.resourceUsage().maxRSS / 1024,
         node: process.version, arch: process.arch, phases, ...(diagnostics && { diagnostics }) }));
     if (process.env.PROFILE) { const { profile } = await session.post('Profiler.stop'); writeFileSync(process.env.PROFILE, JSON.stringify(profile)); }
     if (process.env.SAVE_CODE) writeFileSync(process.env.SAVE_CODE, code.join('\n/* region */\n'));

@@ -23,11 +23,11 @@ function oracle(limit: number) {
     }
     return total;
 }
-function run(limit: number, compilation = true) {
+function run(limit: number, compilation = true, batch = 4096) {
     const runtime = new Interpreter(() => {}, { compilation });
     const diagnostics = new RuntimeDiagnostics();
     try {
-        diagnostics.run(() => runtime.execute(source.replace('arg Limit integer = 10 ** 12', `Limit = ${limit}`)));
+        diagnostics.run(() => runtime.execute(source.replace('arg Limit integer = 10 ** 12', `Limit = ${limit}`).replace('Batch = 4096', `Batch = ${batch}`)));
         return { answer: runtime.variables.get('Answer'), diagnostics };
     } finally { runtime.dispose(); }
 }
@@ -45,4 +45,9 @@ describe('Euler 719 decimal partitions', () => {
         expect(result.diagnostics.numberLoops).toBe(1);
         expect(result.diagnostics.numberLoopOverflows).toBe(0);
     });
+    it.each([1, 2, 7, 32])('keeps batch boundaries and zero padding exact (batch=%s)', batch => {
+        expect(run(10000, true, batch).answer).toBe(41333n);
+        expect(run(10000, false, batch).answer).toBe(41333n);
+    });
+
 });
