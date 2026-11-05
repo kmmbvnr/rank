@@ -1,0 +1,44 @@
+rem Tests for ACMP 0975: Numbers - 4
+
+use testing
+use text
+
+test "ACMP 975: Samples"
+  use "0975_numbers_4"
+  Input = "2000 17
+2000 20
+2000 22
+0 0"
+  run
+
+  Result equal "1003
+100
+1012"
+end
+
+test "ACMP 975: Single case"
+  use "0975_numbers_4"
+  Input = "10 3
+0 0"
+  run
+
+  Result equal "3"
+end
+
+test "ACMP 975: Exact multiple prefix"
+  use "0975_numbers_4"
+  Input = "100 10
+0 0"
+  run
+
+  Result equal "10"
+end
+
+test "ACMP 975: Up to 10^12"
+  use "0975_numbers_4"
+  Input = "1000000000000 1234567
+0 0"
+  run
+
+  Result equal "100001161567"
+end

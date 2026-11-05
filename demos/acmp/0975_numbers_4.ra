@@ -1,0 +1,77 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 975: Numbers - 4
+rem Lexicographically smallest multiple.
+
+arg Input text = "2000 17
+2000 20
+2000 22
+1000000000000 1234567
+0 0"
+
+Powers = 10 ** (0 to 18)
+
+fun P N K prefix_has
+  Lows = P * Powers
+  Valid = not (Lows greater N)
+  if not (Valid any)
+    return false
+  end
+  Highs = (Lows + Powers - 1) min N
+  Mults = not (
+    ((Highs // K) * K) less Lows)
+  return ((Valid and Mults) any)
+end
+
+fun N solve_case K
+  Cur = 0
+  for D in 1 to 9
+    if D N K prefix_has
+      Cur = D
+      break
+    end
+  end
+
+  for Step in 1 to 18
+    if (Cur mod K) equal 0
+      return Cur
+    end
+    for D in 0 to 9
+      Cand = (Cur * 10) + D
+      if Cand N K prefix_has
+        Cur = Cand
+        break
+      end
+    end
+  end
+
+  return Cur
+end
+
+fun solve_numbers_4 Input
+  Tokens = Input words integer
+  NumPairs = (Tokens len) // 2
+  RawPairs = Tokens (0 to (
+    (NumPairs * 2) - 1))
+  Pairs = RawPairs reshape NumPairs 2
+  Ns = Pairs (0 to (NumPairs - 1)) 0
+  Ks = Pairs (0 to (NumPairs - 1)) 1
+  Valid = (Ns greater 0) and (
+    Ks greater 0)
+  ActN = Ns Valid
+  ActK = Ks Valid
+  Count = ActN len
+  Out = array shape Count fill 0
+  for I in 0 to (Count - 1)
+    Out I = (ActN I) solve_case (
+      ActK I)
+  end
+  return (Out join "\n")
+end
+
+Result = solve_numbers_4 Input
+Result print
