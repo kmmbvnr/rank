@@ -27,16 +27,21 @@ runtime.variables.set('probe', native('probe', 1, ([sample]) => {
     trace.push({ cell, stage, memory: process.memoryUsage(), storage: storage(value) });
     return 0n;
 }));
-source = source.replace('fun State step Row\n', 'fun State step Row\n  (tuple State "input") probe\n');
+const entry = 'fun State blank Row\n';
+assert(source.includes(entry), 'missing transition entry for memory probe');
+source = source.replace(entry, `${entry}  (tuple State "input") probe\n`);
 for (const [line, name, stage] of [
-    ['  Labels = concat Empty Full', 'Labels', 'labels'],
-    ['  Areas = concat Small Large', 'Areas', 'areas'],
+    ['  Labels = (concat (Empty .tags)\n    (Filled .tags))', 'Labels', 'labels'],
+    ['  Areas = (concat (Empty .sizes)\n    (Filled .sizes))', 'Areas', 'areas'],
     ['  Key = Labels Areas Best pack', 'Key', 'key'],
     ['  Order = Key argsort', 'Order', 'order'],
     ['  Group = (Marks scan +) - 1', 'Group', 'groups'],
     ['  Weights = Weight Order', 'Weights', 'weights'],
     ['  Unique = Sorted Change', 'Unique', 'unique'],
-]) source = source.replace(line, `${line}\n  (tuple ${name} "${stage}") probe`);
+]) {
+    assert(source.includes(line), `missing stage for memory probe: ${stage}`);
+    source = source.replace(line, `${line}\n  (tuple ${name} "${stage}") probe`);
+}
 const start = performance.now();
 try {
     runtime.execute(source);
