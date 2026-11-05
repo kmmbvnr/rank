@@ -2,7 +2,7 @@ use testing
 
 test "single triple 1 2 3"
   use "727_circulararcs"
-  Nn = 3
+  Limit = 3
   run
   Answer equal "0.15676310"
 end

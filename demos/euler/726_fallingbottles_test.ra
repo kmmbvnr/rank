@@ -2,13 +2,13 @@ use testing
 
 test "statement values"
   use "726_fallingbottles"
-  Nn = 1
+  Bottles = 1
   run
   Answer equal 1
-  Nn = 2
+  Bottles = 2
   run
   Answer equal 7
-  Nn = 3
+  Bottles = 3
   run
   Answer equal 1015
 end

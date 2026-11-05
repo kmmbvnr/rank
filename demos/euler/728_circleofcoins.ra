@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-arg Nn integer = 10 ** 7
-arg Pm integer = 1000000007
+arg Limit integer = 10 ** 7
+arg Prime integer = 1000000007
 
 rem With g = gcd(n, k): F = 2^(n-g+1) if
 rem v2(k) <= v2(n), else 2^(n-g). Write
@@ -18,23 +18,28 @@ rem and 3 phi(h) / 2 2^(t(h-1)) when
 rem odd. The geometric sum over t up to
 rem N // h is taken in closed form; the
 rem case k = n adds 2 N.
-Ph = (0 to Nn) copy
-for P in primes to Nn
-  Sl = P to Nn by P
-  Ph Sl = Ph Sl - (Ph Sl // P)
+Phi = (0 to Limit) copy
+for P in primes to Limit
+  Slice = P to Limit by P
+  Old = Phi Slice
+  Phi Slice = Old - Old // P
 end
-Hs = 2 to Nn
-Cf = Ph (2 to Nn)
-Ev = ((Hs mod 2) equal 0) integer
-Ca = Ev * 2 * Cf
-Cb = (1 - Ev) * 3 * Cf // 2
-Cf = Ca + Cb
-Xx = 2 (Hs - 1) Pm powmod
-Mm = Nn // Hs
-Xm = Xx Mm Pm powmod
-Iv = (Xx - 1) (Pm - 2) Pm powmod
-Gs = Xx * (Xm - 1) mod Pm * Iv mod Pm
-Tt = (Cf mod Pm) * Gs mod Pm
-Sm = Tt sum
-Answer = (2 * Nn + Sm) mod Pm
+Heights = 2 to Limit
+Coeff = Phi (2 to Limit)
+Even = ((Heights mod 2) equal 0) integer
+EvenPart = Even * 2 * Coeff
+OddPart = (1 - Even) * 3 * Coeff // 2
+Coeff = EvenPart + OddPart
+Base = 2 (Heights - 1) Prime powmod
+Counts = Limit // Heights
+Powers = Base Counts Prime powmod
+Less = Base - 1
+Power = Prime - 2
+Inverse = Less Power Prime powmod
+Raised = Base * (Powers - 1) mod Prime
+Geometric = Raised * Inverse mod Prime
+Reduced = Coeff mod Prime
+Terms = Reduced * Geometric mod Prime
+Total = Terms sum
+Answer = (2 * Limit + Total) mod Prime
 Answer print

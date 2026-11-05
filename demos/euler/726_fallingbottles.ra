@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-arg Nn integer = 10000
-arg Pm integer = 1000000033
+arg Bottles integer = 10000
+arg Prime integer = 1000000033
 
 rem Removing all bottles counts the
 rem linear extensions of the triangle
@@ -17,15 +17,19 @@ rem with T = n (n + 1) / 2 and R_h =
 rem (2^h - 1) / (2h - 1). Prefix
 rem products of R give Q, and of Q the
 rem powers; T! is a prefix product too.
-fun A mulp B = A * B mod Pm
-Hs = 1 to Nn
-Num = (2 Hs Pm powmod) - 1
-Inv = (2 * Hs - 1) (Pm - 2) Pm powmod
-Rr = Num * Inv mod Pm
-Qq = Rr scan mulp
-Pp = Qq scan mulp
-Tn = Hs * (Hs + 1) // 2
-Fa = (1 to Nn * (Nn + 1) // 2) scan mulp
-Ff = (Fa (Tn - 1)) * Pp mod Pm
-Answer = Ff sum mod Pm
+fun A mulp B = A * B mod Prime
+Layers = 1 to Bottles
+Numerator = (2 Layers Prime powmod) - 1
+Odd = 2 * Layers - 1
+Power = Prime - 2
+Inverse = Odd Power Prime powmod
+Ratio = Numerator * Inverse mod Prime
+Prefix = Ratio scan mulp
+Powers = Prefix scan mulp
+Triangle = Layers * (Layers + 1) // 2
+Top = Bottles * (Bottles + 1) // 2
+Facts = (1 to Top) scan mulp
+Chosen = Facts (Triangle - 1)
+Terms = Chosen * Powers mod Prime
+Answer = Terms sum mod Prime
 Answer print
