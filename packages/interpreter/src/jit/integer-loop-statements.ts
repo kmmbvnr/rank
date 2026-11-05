@@ -157,8 +157,11 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 // Code boundaries need not split the private transaction.
                 const nodes = [...AstUtils.streamAllContents(assignment)];
                 // Plain arithmetic loops already optimize well as one body.
-                // Split traversals that compose calls or ownership preparation.
-                const outline = numberMode && (calls.length > callsBefore || !!innerScope?.preparedOwners.size)
+                // Keep arithmetic in the caller even when stores need ownership
+                // preparation: moving the whole register frame per call can
+                // cost more than the traversal. Calls still benefit from a
+                // persistent host-JIT function; storage setup stays outside it.
+                const outline = numberMode && calls.length > callsBefore
                     && !nodes.some(node =>
                     isBreakStatement(node) || isContinueStatement(node) || isReturnStatement(node) || isYieldStatement(node));
                 const stable = outline && loop.rangeInfo

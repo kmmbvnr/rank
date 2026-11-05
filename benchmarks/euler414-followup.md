@@ -1,5 +1,7 @@
 # Euler 414: delivered compiler and demo changes
 
+For the subsequent compiler-only speedup, see [ownership-only loop frames](euler414-loop-frames.md).
+
 The compiler now tries an intermediate mixed-integer tier between exact
 outputs and broad BigInt arithmetic. Exact required inputs and their scalar
 consumers remain BigInts; independent intermediates use checked Numbers.
