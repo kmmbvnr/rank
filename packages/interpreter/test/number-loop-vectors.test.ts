@@ -942,4 +942,33 @@ tuple A B`);
         expect(r.diagnostics.numberLoops).toBe(1);
     });
 
+    it.each(['A filter Mask', 'A Mask'])('publishes Boolean matrix selection: %s', selection => {
+        const r = compare(`use sequences
+A = (array false true true false true false) reshape 2 3
+Mask = (array true true false false true true) reshape 2 3
+Result = array false
+for I in 1 to 3
+ Result = ${selection}
+end
+Result`);
+        expect(r.observation.error).toBeUndefined();
+        expect(r.observation.result).toBe('false true true false');
+        expect(r.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('reuses capacity across alternating byte masks and numeric stages', () => {
+        const program = (rounds: number) => `A = array shape 4096 fill 1
+Mask = A greater 0
+for I in 1 to ${rounds}
+ Mask = A greater I
+ A = A + I
+end
+tuple A Mask`;
+        const short = compare(program(3)), long = compare(program(30));
+        expect(long.observation.error).toBeUndefined();
+        expect(long.diagnostics.numberLoops).toBe(1);
+        expect(long.diagnostics.costs['number-loop.vector-buffer'].calls)
+            .toBeLessThanOrEqual(2 * short.diagnostics.costs['number-loop.vector-buffer'].calls);
+    });
+
 });

@@ -178,8 +178,11 @@ function vectorArray(shape: readonly number[], real: boolean, pool: VectorBuffer
     let replace = -1;
     for (let i = 0; i < pool.length; i++) {
         if (held.has(pool[i].cells.buffer)) continue;
-        if (pool[i].cells.length >= size && (logical ? pool[i].cells instanceof Uint8Array
-            : !(pool[i].cells instanceof Uint8Array) && (!real || pool[i].cells instanceof Float64Array))) return new PrivateNumericArray([...shape], 0, undefined, pool[i], real, logical);
+        // Byte masks and numeric stages must not repeatedly evict each
+        // other's dead capacity when a loop alternates between their types.
+        if ((pool[i].cells instanceof Uint8Array) !== logical) continue;
+        if (pool[i].cells.length >= size && (!real || pool[i].cells instanceof Float64Array))
+            return new PrivateNumericArray([...shape], 0, undefined, pool[i], real, logical);
         replace = i;
     }
     // Grow only after a dead buffer proves too small. Fixed-size stages and
