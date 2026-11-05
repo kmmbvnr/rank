@@ -1,0 +1,39 @@
+rem Tests for ACMP 0663: Petya
+
+use testing
+
+test "ACMP 663: Sample 1"
+  use "0663_enterprising_petya"
+  Input = "3 2
+petr
+lexa
+sergey
+PROBA
+PROBB
+4
+lexa-PROBA-100
+???g??-?????-0
+?e??-PROBA-70
+?e??-PROB?-60
+2
+3 2"
+  run
+
+  Result equal 160
+end
+
+test "ACMP 663: Exact match"
+  use "0663_enterprising_petya"
+  Input = "2 2
+ivan
+igor
+PROBA
+PROBB
+1
+ivan-PROBA-100
+1
+1"
+  run
+
+  Result equal 100
+end

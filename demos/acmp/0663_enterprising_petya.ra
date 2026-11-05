@@ -1,0 +1,219 @@
+use io
+use numbers
+use sequences
+use text
+use cli
+
+rem ACMP 663: Enterprising Petya
+rem Max weight bipartite matching.
+
+arg Input text = "3 2
+petr
+lexa
+sergey
+PROBA
+PROBB
+4
+lexa-PROBA-100
+???g??-?????-0
+?e??-PROBA-70
+?e??-PROB?-60
+2
+3 2"
+
+fun Pattern match_pattern Text
+  PChars = Pattern split ""
+  TChars = Text split ""
+  if not ((PChars len) equal (
+    TChars len))
+    return false
+  end
+  Eq = (PChars equal "?") or (
+    PChars equal TChars)
+  return (Eq all)
+end
+
+fun solve_petya Input
+  Raw = (Input split "\r") join ""
+  Lines = Raw split "\n"
+  Lens = array shape (Lines len) fill 0
+  for I in 0 to ((Lines len) - 1)
+    Lens I = (Lines I) len
+  end
+  Clean = Lines (Lens greater 0)
+  Head = (Clean 0) words integer
+  N = Head 0
+  M = Head 1
+
+  Names = Clean (1 to N)
+  Probs = Clean ((N + 1) to (N + M))
+  KPos = N + M + 1
+  K = ((Clean KPos) words integer) 0
+  MaskLines = Clean (
+    (KPos + 1) to (KPos + K))
+  PPos = KPos + K + 1
+  P = ((Clean PPos) words integer) 0
+  Friends = (
+    Clean (PPos + 1)) words integer
+
+  FriendMask = (
+    array shape (N + 1) fill false)
+  FriendMask Friends = true
+
+  PCnt = N * M
+  RawAdj = (
+    array shape (K * PCnt) fill -1)
+  AdjW = RawAdj reshape K PCnt
+
+  for KIdx in 0 to (K - 1)
+    Mask = MaskLines KIdx
+    Parts = Mask split "-"
+    NMask = Parts 0
+    PMask = Parts 1
+    Score = (Parts 2) integer
+
+    for I in 0 to (N - 1)
+      if NMask match_pattern (Names I)
+        IsFriend = FriendMask (I + 1)
+        Weight = 0
+        if IsFriend
+          Weight = Score
+        end
+        for J in 0 to (M - 1)
+          if PMask match_pattern (
+            Probs J)
+            PIdx = (I * M) + J
+            AdjW KIdx PIdx = Weight
+          end
+        end
+      end
+    end
+  end
+
+  MatchK = array shape K fill -1
+  MatchP = array shape PCnt fill -1
+
+  for Step in 1 to K
+    DistK = array shape K fill (
+      0 - 1000000000)
+    DistP = array shape PCnt fill (
+      0 - 1000000000)
+    ParentK = array shape K fill -1
+    ParentP = array shape PCnt fill -1
+
+    InQK = array shape K fill false
+    InQP = array shape PCnt fill false
+    QK = array shape 2000 fill 0
+    QP = array shape 2000 fill 0
+    HeadK = 0
+    TailK = 0
+    HeadP = 0
+    TailP = 0
+
+    for KIdx in 0 to (K - 1)
+      if (MatchK KIdx) equal -1
+        DistK KIdx = 0
+        QK TailK = KIdx
+        TailK += 1
+        InQK KIdx = true
+      end
+    end
+
+    for Loop in 0 to 10000
+      HasK = HeadK less TailK
+      HasP = HeadP less TailP
+      if not (HasK or HasP)
+        break
+      end
+
+      if HasK
+        CurrK = QK HeadK
+        HeadK += 1
+        InQK CurrK = false
+        for PIdx in 0 to (PCnt - 1)
+          W = AdjW CurrK PIdx
+          if W greater -1
+            MatchKP = (
+              (MatchK CurrK) equal PIdx)
+            if not MatchKP
+              NewD = (DistK CurrK) + W
+              if NewD greater (
+                DistP PIdx)
+                DistP PIdx = NewD
+                ParentP PIdx = CurrK
+                if not (InQP PIdx)
+                  QP TailP = PIdx
+                  TailP += 1
+                  InQP PIdx = true
+                end
+              end
+            end
+          end
+        end
+      end
+
+      if HasP
+        CurrP = QP HeadP
+        HeadP += 1
+        InQP CurrP = false
+        MatchedK = MatchP CurrP
+        if MatchedK greater -1
+          W = 0 - (AdjW MatchedK CurrP)
+          NewD = (DistP CurrP) + W
+          if NewD greater (
+            DistK MatchedK)
+            DistK MatchedK = NewD
+            ParentK MatchedK = CurrP
+            if not (InQK MatchedK)
+              QK TailK = MatchedK
+              TailK += 1
+              InQK MatchedK = true
+            end
+          end
+        end
+      end
+    end
+
+    BestP = -1
+    BestD = 0 - 1000000000
+    for PIdx in 0 to (PCnt - 1)
+      if (MatchP PIdx) equal -1
+        if (DistP PIdx) greater BestD
+          BestD = DistP PIdx
+          BestP = PIdx
+        end
+      end
+    end
+
+    if BestP equal -1
+      break
+    end
+
+    CurrP = BestP
+    for Trace in 0 to PCnt
+      if CurrP equal -1
+        break
+      end
+      KIdx = ParentP CurrP
+      if KIdx equal -1
+        break
+      end
+      PrevP = ParentK KIdx
+      MatchP CurrP = KIdx
+      MatchK KIdx = CurrP
+      CurrP = PrevP
+    end
+  end
+
+  Total = 0
+  for KIdx in 0 to (K - 1)
+    PIdx = MatchK KIdx
+    if PIdx greater -1
+      Total += AdjW KIdx PIdx
+    end
+  end
+  return Total
+end
+
+Result = solve_petya Input
+Result print
