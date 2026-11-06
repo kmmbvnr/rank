@@ -7,78 +7,87 @@ use io
 use cli
 
 arg Last integer = 10000000
-arg Cap integer = 4000000
 
-rem Match balls to empty boxes like
-rem brackets. A pair removed in round
-rem r has all pairs inside it removed
-rem before, so its round is one more
-rem than the largest round inside. Nr
-rem pairs in round r mean Nr solitons
-rem of length >= r, and the sum of
-rem squares is the sum of (2r - 1) Nr.
-rem The stack holds runs of balls with
-rem the round already inside them.
-Sv = array shape (Last + 10) fill 0
-Sc = array shape (Last + 10) fill 0
-Df = array shape (Cap + 2) fill 0
-Sp = 0
-S = 290797
-Mx = 0
-for K in 0 to Last + 1
-  Rem = 0
-  if K at most Last
-    T = S mod 64 + 1
-    S = S * S mod 50515093
-    if K mod 2 equal 0
-      Sv Sp = 0
-      Sc Sp = T
-      Sp += 1
-    else
-      Rem = T
-    end
-  else
-    Rem = Last * 100
-  end
-  for Rem greater 0
-    if Sp equal 0
-      break
-    end
-    V = Sv (Sp - 1)
-    C = Sc (Sp - 1)
-    Kk = Rem min C
-    Df (V + 1) += 1
-    Df (V + Kk + 1) -= 1
-    Mx = Mx max (V + Kk)
-    Rem -= Kk
-    if Kk less C
-      Sc (Sp - 1) = C - Kk - 1
-      if C - Kk - 1 equal 0
-        Sp -= 1
+rem Match balls to gaps as brackets.
+rem Closing rounds r contribute 2r - 1.
+rem A run closing at rounds v+1..v+k
+rem contributes (v+k)^2 - v^2 directly.
+fun Last solve
+  rem Grow only the live run stack.
+  Capacity = Last + 10 min 1024
+  Rounds = array shape Capacity fill 0
+  Counts = array shape Capacity fill 0
+  Depth = 0
+  State = 290797
+  Modulus = 50515093
+  Answer = 0
+  Run = 0
+  Gap = 0
+  for true
+    if Gap equal 0 or Depth equal 0
+      if Run greater Last + 1
+        break
       end
-      Sv Sp = V + Kk
-      Sc Sp = 1
-      Sp += 1
+      if Depth + 1 at least Capacity
+        Rounds = concat Rounds Rounds copy
+        Counts = concat Counts Counts copy
+        Capacity *= 2
+      end
+      Gap = 0
+      if Run at most Last
+        Length = State mod 64 + 1
+        State = State * State mod Modulus
+        if Run mod 2 equal 0
+          Rounds Depth = 0
+          Counts Depth = Length
+          Depth += 1
+        else
+          Gap = Length
+        end
+      else
+        Gap = Last * 64 + 64
+      end
+      Run += 1
+    end
+    if Gap equal 0 or Depth equal 0
+      continue
+    end
+    Top = Depth - 1
+    Round = Rounds Top
+    Count = Counts Top
+    Closed = Gap min Count
+    Weight = 2 * Round + Closed
+    Answer += Closed * Weight
+    Gap -= Closed
+    if Closed less Count
+      Left = Count - Closed - 1
+      Counts Top = Left
+      if Left equal 0
+        Depth -= 1
+      end
+      Rounds Depth = Round + Closed
+      Counts Depth = 1
+      Depth += 1
     else
-      Sp -= 1
-      if Sp greater 0
-        W = Sv (Sp - 1)
-        if V + C greater W
-          if Sc (Sp - 1) equal 1
-            Sv (Sp - 1) = V + C
+      Depth -= 1
+      if Depth greater 0
+        Top = Depth - 1
+        Previous = Rounds Top
+        Merged = Round + Count
+        if Merged greater Previous
+          if Counts Top equal 1
+            Rounds Top = Merged
           else
-            Sc (Sp - 1) -= 1
-            Sv Sp = V + C
-            Sc Sp = 1
-            Sp += 1
+            Counts Top -= 1
+            Rounds Depth = Merged
+            Counts Depth = 1
+            Depth += 1
           end
         end
       end
     end
   end
+  return Answer
 end
-Ns = Df (0 to Mx + 1) scan + with 0
-Rs = 1 to Mx copy
-Nr = Ns (2 to Mx + 1)
-Answer = ((2 * Rs - 1) * Nr) sum
+Answer = Last solve
 Answer print

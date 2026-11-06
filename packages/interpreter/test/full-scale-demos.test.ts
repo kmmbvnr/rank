@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { perBallReference } from '../../../benchmarks/experiments/euler426-oracle.mjs';
 
 it('checks the full 314_mousemoon.ra answer with borrowed real tables', () => {
     const url = new URL('../../../demos/euler/314_mousemoon.ra', import.meta.url);
@@ -64,6 +65,11 @@ for (const [file, expected] of [
         try {
             diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
             expect(runtime.variables.get('Answer')).toBe(expected);
+            if (file === '426_boxball.ra') {
+                expect(diagnostics.numberLoops).toBe(1);
+                expect(diagnostics.numberLoopOverflows).toBe(0);
+                expect(diagnostics.numberFunctionFallbacks).toBe(0);
+            }
             if (file === '705_inversioncount.ra') expect(diagnostics.nativeSequenceCopies).toBeGreaterThan(0);
             if (file === '715_sextupletnorms.ra') expect(diagnostics.numberLoops).toBe(3);
             if (file === '719_numbersplitting.ra') {
@@ -180,35 +186,7 @@ it('checks full Euler 292 with disjoint slices and no operand snapshots', () => 
 }, 60_000);
 
 // Independent representation: match individual balls and boxes, rather than
-// the Rank program's run stack and difference table of removal rounds.
-function perBallReference(last: number): number {
-    let stack = new Uint32Array(1024), depth = 0, state = 290797, total = 0;
-    const close = () => {
-        if (!depth) return;
-        const round = stack[--depth] + 1;
-        total += 2 * round - 1;
-        if (depth && stack[depth - 1] < round) stack[depth - 1] = round;
-    };
-    for (let run = 0; run <= last; run++) {
-        const count = state % 64 + 1;
-        // The generator's product is below 2^53, so integer arithmetic is exact.
-        state = state * state % 50515093;
-        if (run % 2 === 0) {
-            if (depth + count > stack.length) {
-                const next = new Uint32Array(Math.max(depth + count, stack.length * 2));
-                next.set(stack);
-                stack = next;
-            }
-            stack.fill(0, depth, depth + count);
-            depth += count;
-        } else {
-            for (let box = 0; box < count && depth; box++) close();
-        }
-    }
-    while (depth) close();
-    return total;
-}
-
+// the Rank program's compressed stack of closing rounds.
 it('cross-checks the full box-ball answer with a per-ball reference', () => {
     for (const [last, answer] of [[10, 8912], [100, 170376], [1000, 1714252], [10000000, 31591886008]])
         expect(perBallReference(last)).toBe(answer);

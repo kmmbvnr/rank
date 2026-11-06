@@ -16,3 +16,16 @@ test "per-ball stack references"
   run
   Answer equal 1714252
 end
+
+test "drain even the first ball run"
+  use "426_boxball"
+  Last = 0
+  run
+  Answer equal 2116
+  Last = 1
+  run
+  Answer equal 2116
+  Last = 2
+  run
+  Answer equal 2197
+end
