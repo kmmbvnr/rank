@@ -349,7 +349,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     }
     function type(expression: Expression, env: ReadonlyMap<string, CompiledCalleeType>): CompiledCalleeType | undefined {
         const sumReduction = terminalReductionForm(flattenApplication(unwrap(expression)), name => !env.has(name) && !lexicalBinding(scope, name));
-        const stageSum = stages.size > 0 && sumReduction?.operation === 'sum';
+        const stageSum = sumReduction?.operation === 'sum';
         if (loops && !stageSum && !isNameExpression(expression) && AstUtils.streamAst(expression).some(node => isNameExpression(node)
             && (stages.has(node.name) || typeof env.get(node.name) === 'object' && !isCompiledContainer(env.get(node.name)!)))) {
             const stage = plan(expression, env, false);
@@ -390,7 +390,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     const stage = stages.get(source.name)!;
                     return { type: functionPlanType(stage), input: { name: '', operation: 'plan', plan: { stage, terminal: 'copy' } } };
                 }
-                if (loops && stages.size && isApplicationExpression(source)) {
+                if (loops && isApplicationExpression(source)) {
                     const reduction = terminalReductionForm(flattenApplication(source), name => !env.has(name) && !lexicalBinding(scope, name));
                     if (reduction?.operation === 'sum') {
                         const stage = plan(reduction.source, env, false);

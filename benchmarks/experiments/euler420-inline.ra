@@ -1,0 +1,106 @@
+rem 2x2 Positive Integer Matrix
+rem https://projecteuler.net/problem=420
+
+use numbers
+use algo
+use sequences
+use io
+use cli
+
+arg N integer = 10000000
+
+fun X divisor_counts
+  Tau = array shape (X + 1) fill 0
+  Root = X isqrt
+  for D in 1 to Root
+    Slots = D * D to X by D
+    Tau Slots += 2
+    Tau (D * D) -= 1
+  end
+  return Tau
+end
+
+fun Prefix P Q rowsum N
+  Top' = (N * Q - 1) // P
+  Slot' = (Top + 2 - N mod 2) // 2
+  return (Prefix Slot) sum
+end
+
+rem Bounds below three have no roots.
+Limit = N max 3
+
+rem A matrix with two roots of the
+rem trace ratio p : q (p > q coprime)
+rem comes from n and m with
+rem |m| < q n / p, trace (p^2+q^2)
+rem n^2 / 2 < N, and contributes
+rem tau((n^2 - m^2) / 4). Parity: n,
+rem m even if p - q is odd, else m = n
+rem mod 2. For each n a table of
+rem partial sums over m is read at
+rem (n q - 1) // p for every pair.
+Bound = (2 * Limit - 1) // 4
+MaxP = Bound isqrt
+PValues = 2 to MaxP copy
+QValues = 1 to MaxP copy
+QGrid = QValues reshape 1 MaxP
+Radius = (Bound - PValues * PValues) isqrt
+Widths = Radius min (PValues - 1)
+MaxQ = Widths reshape (MaxP - 1) 1
+Inside = QGrid at most MaxQ
+Flat = Inside reshape ((MaxP - 1) * MaxP)
+Indices = Flat indices
+PairP = Indices // MaxP + 2
+PairQ = Indices mod MaxP + 1
+Coprime' = PairP gcd PairQ equal 1
+Chosen = Coprime indices
+P = PairP Chosen
+Q = PairQ Chosen
+Squares = P * P + Q * Q
+Odd = (P - Q) mod 2 equal 1
+EvenRows = Odd equal true indices
+OddRows = Odd equal false indices
+EvenOrder = Squares EvenRows argsort
+OddOrder = Squares OddRows argsort
+P0 = (P EvenRows) EvenOrder
+Q0 = (Q EvenRows) EvenOrder
+S0 = (Squares EvenRows) EvenOrder
+P1 = (P OddRows) OddOrder
+Q1 = (Q OddRows) OddOrder
+S1 = (Squares OddRows) OddOrder
+MaxTrace = (2 * Limit - 1) // 5 isqrt
+MaxValue = MaxTrace * MaxTrace // 4
+Tau = MaxValue divisor_counts
+Total = 0
+rem Find the usable sorted pair prefix
+rem for each decreasing trace bound.
+for Trace in 2 to MaxTrace
+  Square = Trace * Trace
+  TraceBound = (2 * Limit - 1) // Square
+  Count0 = S0 upperindex TraceBound
+  Count1 = S1 upperindex TraceBound
+  Parity = Trace mod 2
+  M = Parity to Trace - 1 by 2 copy
+  Values = (Square - M * M) // 4
+  Positive = M greater 0 choose 1 0
+  Multiplicity = 1 + Positive
+  Weights = Tau Values * Multiplicity
+  Prefix = Weights scan + with 0 copy
+  Even = Parity equal 0
+  if Count0 greater 0 and Even
+    Q = Q0 (0 till Count0)
+    P = P0 (0 till Count0)
+    Top = (Trace * Q - 1) // P
+    Slot = (Top + 2 - Parity) // 2
+    Total += (Prefix Slot) sum
+  end
+  if Count1 greater 0
+    Q = Q1 (0 till Count1)
+    P = P1 (0 till Count1)
+    Top = (Trace * Q - 1) // P
+    Slot = (Top + 2 - Parity) // 2
+    Total += (Prefix Slot) sum
+  end
+end
+Answer = Total
+Answer print

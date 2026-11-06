@@ -14,7 +14,7 @@ import { hasNativeFenwick } from '../fenwick.js';
 import { hasNativeIntegerGroups } from '../runtime/integer-groups.js';
 import { compiledArgumentType, compiledStoredArgumentType, hasNativeDeque } from './compiled-argument-type.js';
 import {
-    groupedUnaryDyadicChain, compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
+    symbolicApplicationForm, groupedUnaryDyadicChain, compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
     isAssignmentStatement, isArrayAssignmentStatement, isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isBooleanLiteral, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType, type CompiledCallSignature,
@@ -774,12 +774,25 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const type = arrayType(form.source);
         return type && ['integer', 'real', 'boolean'].includes(type.element) ? { form, type } : undefined;
     }
+    /** A native integer prefix owns fresh storage. Callback scans, axes and
+     * mixed scalar kinds retain their ordinary execution and demand rules. */
+    function numericScan(e: Expression) {
+        if (!numberMode || !host.nativeCalls || !host.arrayLocals || !host.arrayReads
+            || localTypes.has('scan') || arrays.has('scan') || containers.has('scan') || host.read('scan') !== undefined) return undefined;
+        const form = symbolicApplicationForm(e);
+        if (form?.kind !== 'scan' || form.operator !== '+' || form.rank || form.axis || form.keys || form.size) return undefined;
+        const type = arrayType(form.source);
+        if (type?.rank !== 1 || type.element !== 'integer' || form.seed && knownType(form.seed) !== 'integer') return undefined;
+        return { form, type };
+    }
     // Array operands use the same concrete range/selection operations as the
     // evaluator, without re-entering expression evaluation on every iteration.
     function arrayType(e: Expression): CompiledArrayType | undefined {
         while (isParenthesizedExpression(e)) e = e.value;
         if (scalarInputs.has(e) || isNameExpression(e) && state.ranges.has(e.name)) return undefined;
         if (numberMode && isMaterializeExpression(e)) return arrayType(e.source);
+        const scan = numericScan(e);
+        if (scan) return scan.type;
         const concat = numericConcatCopy(e);
         if (concat) return concat.type;
         const reshape = numericReshape(e);
@@ -1222,8 +1235,26 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             : selection.length === 2 && arrayType(selection[0])
                 && arrayType(selection[1])?.element === 'boolean' && arrayType(selection[1])?.rank === arrayType(selection[0])?.rank
                 ? { source: selection[0], mask: selection[1] } : undefined;
+        const scan = numericScan(e);
         const reshape = numericReshape(e);
-        if (reshape) {
+        if (scan) {
+            const input = emitNumberArray(scan.form.source, lines);
+            if (!input || typeof input.type === 'string') return undefined;
+            const cells = input.cells ?? `${input.code}.cells`;
+            lines.push(`vectorLive.push(${cells});`);
+            const seed = scan.form.seed ? emit(scan.form.seed, lines, 'integer') : undefined;
+            if (scan.form.seed && seed?.type !== 'integer') return undefined;
+            lines.push('vectorLive.pop();');
+            state.syntax.add('scan');
+            const index = `cell${state.serial++}`, total = `prefix${state.serial++}`;
+            const offset = seed ? 1 : 0;
+            lines.push(`const ${result} = vectorArray([${cells}.length + ${offset}], false, vectorPool, vectorLive, [result, iterationResult, ${cells}]);
+                let ${total} = ${seed?.code ?? '0'}; ${seed ? `${result}.store(0, ${total});` : ''}
+                ${numberVectorLoop(`${cells}.length`, index, [
+                    `${total} = safe(${total} + safe(Number(${cells}[${index}])));`,
+                    `${result}.store(${index} + ${offset}, ${total});`,
+                ])}`);
+        } else if (reshape) {
             state.numberVectors = true;
             const input = emitNumberArray(reshape.form.source, lines);
             if (!input || typeof input.type === 'string') return undefined;
