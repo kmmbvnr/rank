@@ -1,5 +1,7 @@
 import { currentDiagnostics } from '../diagnostics.js';
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, checkInterrupt, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { registerSequenceCompletion } from '../sequence-completion.js';
+import { typedArray } from '../array-storage.js';
 import { PrimeSieve, maxSieveInteger, maxPrimeRunInteger, primeSegmentSpan } from './prime-sieve.js';
 import { primeMembership } from './primality.js';
 import { registerSequenceMembership } from '../sequence-membership.js';
@@ -71,6 +73,38 @@ export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
             return primePlan(boundary, strongerLower(lower, { limit, inclusive }));
         },
     };
+    if (boundary) registerSequenceCompletion(plan, () => {
+        // Preserve observable demand. Opaque cancellation still polls the
+        // ordinary prime iterator, including while a sieve segment is built.
+        if (inspectionEnabled() || demandBudgetEnabled() || !privateLoopPolling()) return undefined;
+        const high = boundary.limit - (boundary.inclusive ? 0n : 1n);
+        const low = lower ? lower.limit + (lower.inclusive ? 0n : 1n) : 2n;
+        // Small slices keep normal iteration; large copies avoid retaining
+        // boxed values. Wider primes must not be truncated into Int32 cells.
+        if (high > 2147483647n || high - (low < 2n ? 2n : low) < 65536n) return undefined;
+        const width = 16384;
+        const chunks: Int32Array[] = [];
+        let cells = new Int32Array(width), used = 0, count = 0;
+        for (const value of primeIterator(boundary, lower)) {
+            if (used === cells.length) {
+                chunks.push(cells);
+                cells = new Int32Array(width);
+                used = 0;
+            }
+            cells[used++] = Number(value);
+            count++;
+        }
+        const result = new Int32Array(count);
+        let offset = 0;
+        for (const chunk of chunks) {
+            checkpoint('materializing primes', chunk.length);
+            result.set(chunk, offset);
+            offset += chunk.length;
+        }
+        result.set(cells.subarray(0, used), offset);
+        checkInterrupt('materializing primes');
+        return typedArray(result);
+    });
     registerSequenceMembership(plan);
     registerMetadataBounds(plan);
     return plan;
