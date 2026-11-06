@@ -9,7 +9,7 @@ use cli
 arg Width integer = 10 ** 8
 arg Length integer = 10 ** 16
 arg Prime integer = 1000000007
-arg Chunk integer = 4194304
+arg Chunk integer = 262144
 
 rem With q = n / k and b = 2^q, the
 rem count is the constant term of
