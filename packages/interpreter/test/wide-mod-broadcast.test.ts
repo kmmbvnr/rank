@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray } from '../src/index.js';
-import { integer32Cells, readArrayItem, typedArray } from '../src/array-storage.js';
+import { integer32Cells, readArrayItem, sliceStoredArray, typedArray } from '../src/array-storage.js';
 import { mapStoredIntegers } from '../src/integer-array-kernel.js';
 import { withDemandBudget, withInterrupt } from '../src/interrupt.js';
 
@@ -12,6 +12,15 @@ const divisors = Int32Array.of(1, 2, 3, 7, 65535, 33554431, 67108863, 67108864);
 const mod = (a: bigint, b: bigint) => ((a % b) + b) % b;
 
 describe('wide integer modulo compact broadcast divisors', () => {
+    it('keeps compact signed row broadcasts exact', () => {
+        const input = Int32Array.of(-2147483648, -2147483647, -1, 0, 1, 2147483646, 2147483647);
+        const result = mapStoredIntegers(typedArray(input, [1, input.length]),
+            typedArray(divisors, [divisors.length, 1]), 'mod')!;
+        expect(integer32Cells(result)).toBeDefined();
+        for (let row = 0; row < divisors.length; row++) for (let i = 0; i < input.length; i++) {
+            expect(readArrayItem(result, row * input.length + i)).toBe(mod(BigInt(input[i]), BigInt(divisors[row])));
+        }
+    });
     it('matches BigInt at signed word and precision boundaries', () => {
         const result = mapStoredIntegers(typedArray(values, [1, values.length]),
             typedArray(divisors, [divisors.length, 1]), 'mod')!;
@@ -33,6 +42,17 @@ describe('wide integer modulo compact broadcast divisors', () => {
         const result = mapStoredIntegers(typedArray(values), typedArray(right), 'mod')!;
         expect(Array.from(values, (value, i) => readArrayItem(result, i)))
             .toEqual(Array.from(values, (value, i) => mod(value, BigInt(right[i]))));
+    });
+    it('preserves offsets across three-dimensional broadcast rows', () => {
+        const source = typedArray(values.slice(0, 34));
+        const left = sliceStoredArray(source, 1, [2, 1, 16])!;
+        const right = typedArray(Int32Array.of(7, 11, 67108863), [1, 3, 1]);
+        const result = mapStoredIntegers(left, right, 'mod')!;
+        expect(result.shape).toEqual([2, 3, 16]);
+        for (let batch = 0; batch < 2; batch++) for (let row = 0; row < 3; row++) for (let i = 0; i < 16; i++) {
+            expect(readArrayItem(result, (batch * 3 + row) * 16 + i))
+                .toBe(mod(values[1 + batch * 16 + i], BigInt([7, 11, 67108863][row])));
+        }
     });
     it.each([-7, 67108865])('retains exact fallback for divisor %i', divisor => {
         const result = mapStoredIntegers(typedArray(values, [1, values.length]),

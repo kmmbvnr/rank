@@ -24,6 +24,7 @@ try {
     if (process.env.EXPECTED) assert.equal(answer, process.env.EXPECTED);
     const used = process.cpuUsage(cpu);
     console.log(JSON.stringify({ count, longest, block, answer, total: String(runtime.variables.get('Together')),
+        pending: String(runtime.variables.get('Left')), bfsCells: String(runtime.variables.get('Cells')),
         ms: performance.now() - start, cpuMs: (used.user + used.system) / 1000,
         maxRssMiB: process.resourceUsage().maxRSS / 1024, node: process.version, arch: process.arch,
         ...(diagnostics && { diagnostics }) }));

@@ -345,19 +345,21 @@ function mapStoredWords(left: RankValue, right: RankValue, name: string): RankAr
     return typedArray(out, shape);
 }
 
-/** Exact Int64 remainders with compact positive array divisors. Reading the
- * two words avoids both BigInt boxing and speculative Float64 output. */
+/** Exact remainders with compact positive array divisors. Reading Int64
+ * words avoids BigInt boxing; row broadcasts avoid Float64 scratch output. */
 function mapStoredWordRemainders(left: RankValue, right: RankValue): RankArray | undefined {
     if (demandBudgetEnabled() || !isRankArray(left) || !isRankArray(right)) return undefined;
     const a = prepareStoredScalarView(left, true), b = prepareStoredScalarView(right, true);
     const fine = (view: typeof a) => view?.kinds?.join() === 'integer' && view.linear !== undefined
         && (!view.validate || view.validateUniform !== undefined);
-    if (!fine(a) || !fine(b) || !(a!.items instanceof BigInt64Array) || !b!.compact) return undefined;
+    if (!fine(a) || !fine(b) || !a!.compact && !(a!.items instanceof BigInt64Array) || !b!.compact) return undefined;
     const shape = broadcastShape(left.shape, right.shape), size = shape.reduce((x, y) => x * y, 1);
+    const width = shape.at(-1) ?? 1, compact = a!.compact;
+    if (compact && (right.shape.at(-1) !== 1 || width < 4)) return undefined;
     if (!size) return typedArray(new Int32Array(0), shape);
     const ao = a!.linear!.offset, as = a!.linear!.stride, bo = b!.linear!.offset, bs = b!.linear!.stride;
     const values = a!.items as BigInt64Array, divisors = b!.compact;
-    a!.validateUniform?.(values[ao]); b!.validateUniform?.(BigInt(divisors[bo]));
+    a!.validateUniform?.(compact ? BigInt(compact[ao]) : values[ao]); b!.validateUniform?.(BigInt(divisors[bo]));
     const count = right.shape.reduce((x, y) => x * y, 1);
     for (let start = 0; start < count; start += 4096) {
         const end = Math.min(count, start + 4096);
@@ -367,16 +369,18 @@ function mapStoredWordRemainders(left: RankValue, right: RankValue): RankArray |
             if (m < 1 || m > 67108864) return undefined;
         }
     }
-    const words = new Int32Array(values.buffer, values.byteOffset, values.length * 2);
+    const words = compact ? undefined : new Int32Array(values.buffer, values.byteOffset, values.length * 2);
     const highWord = 1 - lowWord, cells = new Int32Array(size);
-    const remainder = (at: number, m: number, factor: number) => {
-        let high = words[2 * at + highWord] % m;
+    const remainder = compact ? (at: number, m: number, _factor: number) => {
+        const value = compact[at], rest = value - Math.floor(value / m) * m;
+        return rest < 0 ? rest + m : rest >= m ? rest - m : rest;
+    } : (at: number, m: number, factor: number) => {
+        let high = words![2 * at + highWord] % m;
         if (high < 0) high += m;
-        let value = high * factor + (words[2 * at + lowWord] >>> 0);
+        let value = high * factor + (words![2 * at + lowWord] >>> 0);
         value -= Math.floor(value / m) * m;
         return value < 0 ? value + m : value >= m ? value - m : value;
     };
-    const width = shape.at(-1) ?? 1;
     if (right.shape.at(-1) === 1) {
         const aStrides = arrayStrides(left.shape), bStrides = arrayStrides(right.shape);
         const step = left.shape.at(-1) === 1 ? 0 : as;
