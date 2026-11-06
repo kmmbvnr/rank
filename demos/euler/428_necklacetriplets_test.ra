@@ -23,3 +23,16 @@ test "brute force over divisors"
   run
   Answer equal 25992
 end
+
+test "empty and square boundaries"
+  use "428_necklacetriplets"
+  N = 0
+  run
+  Answer equal 0
+  N = 24
+  run
+  Answer equal 942
+  N = 25
+  run
+  Answer equal 989
+end

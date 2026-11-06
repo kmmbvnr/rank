@@ -19,6 +19,7 @@ test('execution exclusions name existing workloads and explain the resource cost
     assert.ok(!files.has('euler/322_binomial.ra'), 'corrected carry constraints keep the default product small');
     assert.ok(!files.has('euler/339_peredur.ra'), 'the linear expected-value recurrence stays eligible');
     assert.ok(!files.has('euler/342_totientcube.ra'), 'prime-factor residue search keeps the full bound eligible');
+    assert.ok(!files.has('euler/428_necklacetriplets.ra'), 'fused quotient statistics keep the full default eligible');
     assert.ok(files.has('euler/331_crossflips.ra'));
     assert.ok(!files.has('euler/393_ants.ra'), 'compiled sparse profiles keep the default 10x10 board eligible');
     assert.ok(!files.has('euler/332_sphericaltriangles.ra'), 'array geometry and sphere symmetries keep all 50 radii eligible');

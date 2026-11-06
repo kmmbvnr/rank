@@ -195,7 +195,7 @@ export class FastPaths {
             if (body && this.compiler.functions.arrayFunctions) {
                 const numeric = compileNumericFunction(statement, {
                     lookup: name => this.context.bindings.find(name),
-                    builtin: name => name === 'concat' ? this.context.modules.has('sequences') : this.tensorHost().builtin(name),
+                    builtin: name => name === 'concat' ? this.context.modules.has('sequences') : this.nativeBuiltin(name),
                     compiled: source => this.compiler.hooks.onFunctionBodyCompiled?.(source),
                     executed: () => {
                         this.compiler.hooks.onFunctionBodyExecuted?.();
@@ -219,18 +219,20 @@ export class FastPaths {
         return body ?? undefined;
     }
 
+    private nativeBuiltin(name: string): boolean {
+        const module = findOperation(name)?.module;
+        if (module === undefined || !this.context.modules.has(module)) return false;
+        const value = this.context.resolve(name);
+        return isNativeFunction(value) && hasNativeImplementation(value)
+            && this.context.builtins.is(module, name, value);
+    }
+
     private tensorHost(): TensorKernelHost {
         return {
             textDigits: this.compiler.tensors.textDigits,
             lookup: name => this.context.bindings.find(name),
             compiled: this.compiler.hooks.onTensorKernelCompiled,
-            builtin: name => {
-                const module = findOperation(name)?.module;
-                if (module === undefined || !this.context.modules.has(module)) return false;
-                const value = this.context.resolve(name);
-                return isNativeFunction(value) && hasNativeImplementation(value)
-                    && this.context.builtins.is(module, name, value);
-            },
+            builtin: name => this.nativeBuiltin(name),
         };
     }
 
@@ -427,7 +429,7 @@ export class FastPaths {
                             check: (arguments_, result) => { definition.specialization(definition.bindParameters(arguments_)).check(result); },
                         } : undefined;
                 },
-                builtin: name => name === 'concat' ? this.context.modules.has('sequences') : this.tensorHost().builtin(name),
+                builtin: name => name === 'concat' ? this.context.modules.has('sequences') : this.nativeBuiltin(name),
                 enabled: () => this.compiler.loops.number && this.compiler.loops.arrayLocals && this.compiler.loops.arrays
                     && this.compiler.functions.arrayFunctions && this.compiler.functions.bodies
                     && !Object.values(this.compiler.hooks).some(Boolean),

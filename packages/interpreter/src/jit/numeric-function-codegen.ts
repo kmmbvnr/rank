@@ -1,5 +1,5 @@
 import type { NumericBound, NumericNode } from './numeric-function.js';
-export type NumericRun = (data: ArrayLike<number>[], scalars: number[], output: Float64Array[]) => boolean;
+export type NumericRun = (data: ArrayLike<number>[], scalars: number[], output: Float64Array[], sizes?: readonly number[]) => boolean;
 const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
 const sizeOf = (shape: readonly number[]) => shape.reduce((a, b) => a * b, 1);
 const unshape = (node: NumericNode): NumericNode => node.kind === 'reshape' ? unshape(node.source) : node;
@@ -7,6 +7,9 @@ const unshape = (node: NumericNode): NumericNode => node.kind === 'reshape' ? un
 /** Structural nodes contribute addressing, not intermediate array allocations.
  * Common concat layouts stream all pieces of all returned arrays together. */
 export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<NumericNode, NumericBound>, scalarSlots: ReadonlyMap<NumericNode, number>): string | undefined {
+    if (roots.every(root => !bound.get(root)!.shape.length)) return emitReductions(roots, bound, scalarSlots);
+    if ([...bound.keys()].some(node => !scalarSlots.has(node) && (node.kind === 'choose' || node.kind === 'sum' || node.kind === 'sqrt'
+        || node.kind === 'binary' && !['+', '-', '*', '/', '//'].includes(node.op)))) return undefined;
     const sources = roots.map(unshape);
     const first = sources[0], concat = first.kind === 'concat' ? first : undefined;
     const common = concat && sources.every(n => n.kind === 'concat' && n.axis === concat.axis && n.sources.length === concat.sources.length
@@ -74,4 +77,88 @@ export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<Num
         }
     } else for (const [out, root] of roots.entries()) assignments.push(`output[${out}][i] = ${emit(root, 'i')};`);
     return `"use strict"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < ${size}; i++) { ${lines.join('\n')} ${assignments.join('\n')} } return true; };`;
+}
+
+/** Independent exact integer reductions share one traversal per input shape.
+ * Input bounds prove integer cell arithmetic; prefix sums and final scalar
+ * arithmetic retain guards. Compilation observers revalidate inputs first. */
+function emitReductions(roots: NumericNode[], bound: ReadonlyMap<NumericNode, NumericBound>, scalarSlots: ReadonlyMap<NumericNode, number>): string | undefined {
+    const all = [...bound.keys()].filter((node): node is NumericNode & { kind: 'sum' } => node.kind === 'sum');
+    if (!all.length) return undefined;
+    const reductions = all.filter(node => !scalarSlots.has(node));
+    const sums = new Map<NumericNode, string>(reductions.map((node, i) => [node, `sum${i}`]));
+    const groups = new Map<string, typeof reductions>();
+    for (const reduction of reductions) {
+        const key = bound.get(reduction.source)!.shape.join(',');
+        let group = groups.get(key); if (!group) groups.set(key, group = []);
+        group.push(reduction);
+    }
+    let serial = 0, failed = false;
+    const loops: string[] = [];
+    const operators: Record<string, string> = { equal: '===', notequal: '!==', less: '<', greater: '>', atmost: '<=', atleast: '>=' };
+    function emitter(lines: string[], inside: boolean) {
+        const cache = new Map<NumericNode, Map<string, string>>();
+        const index = (at: string, parent: readonly number[], child: readonly number[]) => {
+            if (!child.length || sizeOf(child) === 1) return '0';
+            if (same(parent, child)) return at;
+            const leading = parent.length - child.length;
+            return child.flatMap((n, i) => n === 1 ? [] : [`(Math.floor((${at}) / ${sizeOf(parent.slice(leading + i + 1))}) % ${n}) * ${sizeOf(child.slice(i + 1))}`]).join(' + ') || '0';
+        };
+        function emit(node: NumericNode, at: string): string {
+            const info = bound.get(node)!;
+            const scalar = scalarSlots.get(node); if (scalar !== undefined) return `scalars[${scalar}]`;
+            if (node.kind === 'sum') {
+                if (inside) { failed = true; return '0'; }
+                return sums.get(node)!;
+            }
+            const previous = cache.get(node)?.get(at); if (previous) return previous;
+            let expression: string;
+            if (node.kind === 'input') expression = `data[${info.data}][${at}]`;
+            else if (node.kind === 'range') expression = `${emit(node.start, '0')} + (${at})`;
+            else if (node.kind === 'reshape') return emit(node.source, at);
+            else if (node.kind === 'gather') return emit(node.source, emit(node.indices, at));
+            else if (node.kind === 'unary') expression = `${node.op}(${emit(node.child, at)})`;
+            else if (node.kind === 'choose') {
+                const condition = emit(node.condition, index(at, info.shape, bound.get(node.condition)!.shape));
+                const yes = emit(node.yes, index(at, info.shape, bound.get(node.yes)!.shape));
+                const no = emit(node.no, index(at, info.shape, bound.get(node.no)!.shape));
+                expression = `${condition} ? ${yes} : ${no}`;
+            } else if (node.kind === 'binary') {
+                const a = emit(node.left, index(at, info.shape, bound.get(node.left)!.shape));
+                const b = emit(node.right, index(at, info.shape, bound.get(node.right)!.shape));
+                expression = node.op === '//' ? `Math.floor((${a}) / (${b}))`
+                    : node.op === 'mod' ? `(${a}) % (${b})` : `(${a}) ${operators[node.op] ?? node.op} (${b})`;
+                if (node.op === 'mod') {
+                    const name = `v${serial++}`;
+                    lines.push(`let ${name} = ${expression}; if (${name} !== 0 && (${name} < 0) !== (${b} < 0)) ${name} += ${b};`);
+                    expression = name;
+                }
+            } else { failed = true; return '0'; }
+            const name = `v${serial++}`;
+            let entries = cache.get(node); if (!entries) cache.set(node, entries = new Map()); entries.set(at, name);
+            lines.push(`let ${name} = ${expression};`);
+            if (!info.boolean && !inside) lines.push(`if (!Number.isSafeInteger(${name})) return false; if (${name} === 0) ${name} = 0;`);
+            return name;
+        }
+        return emit;
+    }
+    let frame = 0;
+    for (const group of groups.values()) {
+        const lines: string[] = [], emit = emitter(lines, true);
+        const additions = group.map(node => {
+            const value = emit(node.source, 'i'), sum = sums.get(node)!;
+            return `${sum} += ${value}; if (!Number.isSafeInteger(${sum})) return false;`;
+        });
+        loops.push(`for (let i = 0; i < ${`sizes[${frame++}]`}; i++) { ${lines.join('\n')} ${additions.join('\n')} }`);
+    }
+    const final: string[] = [], emit = emitter(final, false);
+    const outputs = roots.map((root, i) => `output[${i}][0] = ${emit(root, '0')};`);
+    if (failed) return undefined;
+    return `"use strict"; /* numeric-array-function integer reductions */ return function(data, scalars, output, sizes) {
+        ${[...sums.values()].map(name => `let ${name} = 0;`).join('\n')}
+        ${loops.join('\n')}
+        ${final.join('\n')}
+        ${outputs.join('\n')}
+        return true;
+    };`;
 }
