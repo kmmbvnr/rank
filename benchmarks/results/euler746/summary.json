@@ -1,0 +1,90 @@
+{
+  "mac": {
+    "baseline": {
+      "families": 2021,
+      "answer": "867150922",
+      "ms": 24448.180333,
+      "cpuMs": 35582.824,
+      "maxRssMiB": 447.28125,
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    "final": [
+      {
+        "families": 2021,
+        "answer": "867150922",
+        "ms": 7275.5265,
+        "cpuMs": 14713.354,
+        "maxRssMiB": 386.96875,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "families": 2021,
+        "answer": "867150922",
+        "ms": 7307.379,
+        "cpuMs": 14590.155,
+        "maxRssMiB": 389.65625,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "families": 2021,
+        "answer": "867150922",
+        "ms": 7410.943708,
+        "cpuMs": 14740.431,
+        "maxRssMiB": 382.65625,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      }
+    ],
+    "medianMs": 7307.379,
+    "speedup": 3.3456839084164103,
+    "medianPeakMiB": 386.96875,
+    "peakReductionPercent": 13.484245091874525
+  },
+  "intel": {
+    "baseline": {
+      "families": 2021,
+      "answer": "867150922",
+      "ms": 60751.971216000005,
+      "cpuMs": 85689.154,
+      "maxRssMiB": 371.65234375,
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    "final": [
+      {
+        "families": 2021,
+        "answer": "867150922",
+        "ms": 26305.894966,
+        "cpuMs": 45367.793,
+        "maxRssMiB": 308.39453125,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "families": 2021,
+        "answer": "867150922",
+        "ms": 26704.416754,
+        "cpuMs": 44644.78,
+        "maxRssMiB": 309.703125,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "families": 2021,
+        "answer": "867150922",
+        "ms": 26536.999913000003,
+        "cpuMs": 44769.138,
+        "maxRssMiB": 307.1328125,
+        "node": "v24.15.0",
+        "arch": "x64"
+      }
+    ],
+    "medianMs": 26536.999913000003,
+    "speedup": 2.2893307990794654,
+    "medianPeakMiB": 308.39453125,
+    "peakReductionPercent": 17.02069516412138
+  }
+}
