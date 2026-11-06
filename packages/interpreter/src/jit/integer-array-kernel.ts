@@ -120,6 +120,11 @@ function compactBinary(code: number, a: Int32Array, ao: number, as: number,
                 const u = a[ao + i * as], v = b[bo + i * bs];
                 out[i] = v < u ? v : u;
             } break;
+            case 7: for (let i = start; i < end; i++) {
+                const value = safeIntegerGcd(a[ao + i * as], b[bo + i * bs]);
+                if (value > 2147483647) return undefined;
+                out[i] = value;
+            } break;
             default: for (let i = start; i < end; i++) {
                 const u = a[ao + i * as], v = b[bo + i * bs];
                 out[i] = v > u ? v : u;
@@ -175,12 +180,12 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         ? new Int32Array(items.buffer, items.byteOffset, items.length * 2) : undefined;
     const aw = words(ab), bw = words(bb);
     const ao = a?.linear!.offset ?? 0, as = a?.linear!.stride ?? 0, bo = b?.linear!.offset ?? 0, bs = b?.linear!.stride ?? 0;
-    const fast = !ai && !bi && code < 7 && (!a || ac) && (!b || bc) && x === (x | 0) && y === (y | 0)
+    const fast = !ai && !bi && code <= 7 && (!a || ac) && (!b || bc) && x === (x | 0) && y === (y | 0)
         ? compactBinary(code, ac ?? Int32Array.of(x), a ? ao : 0, a ? as : 0,
             bc ?? Int32Array.of(y), b ? bo : 0, b ? bs : 0, size) : undefined;
     if (fast) return typedArray(fast, shape);
     if (a && b && size >= DENSE_MIN_CELLS && shape.at(-1)! >= 4 && (ai || bi)
-        && (code <= 1 || code === 5 || code === 6 || code === 2 && (!ac || !bc))) {
+        && (code <= 1 || code === 5 || code === 6 || code === 7 || code === 2 && (!ac || !bc))) {
         const lanes = compactBroadcastLanes(left as RankArray, right as RankArray, a, b, shape, code);
         if (lanes) return typedArray(lanes, shape);
     }
@@ -334,6 +339,11 @@ function compactBroadcastLanes(left: RankArray, right: RankArray,
                 case 0: for (let column = start; column < end; column++) cells[row + column] = ac[ap + column * aStep] + bc[bp + column * bStep]; break;
                 case 1: for (let column = start; column < end; column++) cells[row + column] = ac[ap + column * aStep] - bc[bp + column * bStep]; break;
                 case 2: for (let column = start; column < end; column++) cells[row + column] = ac[ap + column * aStep] * bc[bp + column * bStep]; break;
+                case 7: for (let column = start; column < end; column++) {
+                    const value = safeIntegerGcd(ac[ap + column * aStep], bc[bp + column * bStep]);
+                    if (value > 2147483647) return undefined;
+                    cells[row + column] = value;
+                } break;
                 default: for (let column = start; column < end; column++) {
                     const av = ac[ap + column * aStep], bv = bc[bp + column * bStep];
                     cells[row + column] = code === 5 ? bv < av ? bv : av : bv > av ? bv : av;
