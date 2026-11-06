@@ -169,22 +169,47 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
     const sameShape = (value: RankValue) => !isRankArray(value) || same(value.shape, shape);
     const ai = sameShape(left) ? undefined : broadcastIndex(isRankArray(left) ? left.shape : undefined, shape);
     const bi = sameShape(right) ? undefined : broadcastIndex(isRankArray(right) ? right.shape : undefined, shape);
-    const ac = a?.compact, ab = a?.items, bc = b?.compact, bb = b?.items;
+    let ac = a?.compact, bc = b?.compact;
+    const ab = a?.items, bb = b?.items;
     // Int64 cells are read as two Int32 words: no BigInt per cell.
     const words = (items: ArrayLike<RankValue> | undefined) => items instanceof BigInt64Array
         ? new Int32Array(items.buffer, items.byteOffset, items.length * 2) : undefined;
     const aw = words(ab), bw = words(bb);
-    const ao = a?.linear!.offset ?? 0, as = a?.linear!.stride ?? 0, bo = b?.linear!.offset ?? 0, bs = b?.linear!.stride ?? 0;
+    let ao = a?.linear!.offset ?? 0, as = a?.linear!.stride ?? 0, bo = b?.linear!.offset ?? 0, bs = b?.linear!.stride ?? 0;
     const fast = !ai && !bi && code < 7 && (!a || ac) && (!b || bc) && x === (x | 0) && y === (y | 0)
         ? compactBinary(code, ac ?? Int32Array.of(x), a ? ao : 0, a ? as : 0,
             bc ?? Int32Array.of(y), b ? bo : 0, b ? bs : 0, size) : undefined;
     if (fast) return typedArray(fast, shape);
+    // Tiny completed boxed tables often provide the repeated lane constants.
+    // Pack only their logical view, keeping large source storage untouched.
+    if ((code <= 2 || code === 5 || code === 6) && (ai || bi) && ((ac === undefined) !== (bc === undefined))
+        && a && b && size >= DENSE_MIN_CELLS && shape.at(-1)! >= 4) {
+        const small = (view: typeof a, count: number) => {
+            if (count > 64) return undefined;
+            const cells = new Int32Array(count), { offset, stride } = view!.linear!;
+            for (let i = 0; i < count; i++) {
+                const value = view!.items[offset + i * stride];
+                if (typeof value !== 'bigint' || value < -2147483648n || value > 2147483647n) return undefined;
+                cells[i] = Number(value);
+            }
+            return cells;
+        };
+        if (!ac) { ac = small(a, (left as RankArray).shape.reduce((n, d) => n * d, 1)); if (ac) { ao = 0; as = 1; } }
+        if (!bc) { bc = small(b, (right as RankArray).shape.reduce((n, d) => n * d, 1)); if (bc) { bo = 0; bs = 1; } }
+    }
     // Contiguous lanes share one broadcast address per row. Keep the result
     // compact instead of allocating a double buffer for every broadcast cell.
-    if (code === 2 && (ai || bi) && ac && bc && shape[shape.length - 1] >= 4) {
+    if ((code <= 2 || code === 5 || code === 6) && (ai || bi) && ac && bc && shape[shape.length - 1] >= 4) {
         const aShape = (left as RankArray).shape, bShape = (right as RankArray).shape;
         const aSize = aShape.reduce((n, axis) => n * axis, 1), bSize = bShape.reduce((n, axis) => n * axis, 1);
-        if (compactMaximum(ac, ao, as, aSize) * compactMaximum(bc, bo, bs, bSize) <= 2147483647) {
+        // Min/max stay compact. Arithmetic needs bounds; sums/differences
+        // only pay for that pass when broadcasting repeats enough input.
+        let bounded = code === 5 || code === 6;
+        if (!bounded && (code === 2 || aSize + bSize <= size)) {
+            const av = compactMaximum(ac, ao, as, aSize), bv = compactMaximum(bc, bo, bs, bSize);
+            bounded = (code === 2 ? av * bv : av + bv) <= 2147483647;
+        }
+        if (bounded) {
             const cells = new Int32Array(size);
             const aStrides = arrayStrides(aShape), bStrides = arrayStrides(bShape);
             const width = shape[shape.length - 1];
@@ -200,9 +225,14 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
                         checkpoint('computing integer array', Math.min(4096, size - row - start));
                         nextPoll = row + start + 4096;
                     }
-                    for (let column = start; column < end; column++) {
-                        const value = ac[ap + column * aStep] * bc[bp + column * bStep];
-                        cells[row + column] = value;
+                    switch (code) {
+                        case 0: for (let column = start; column < end; column++) cells[row + column] = ac[ap + column * aStep] + bc[bp + column * bStep]; break;
+                        case 1: for (let column = start; column < end; column++) cells[row + column] = ac[ap + column * aStep] - bc[bp + column * bStep]; break;
+                        case 2: for (let column = start; column < end; column++) cells[row + column] = ac[ap + column * aStep] * bc[bp + column * bStep]; break;
+                        default: for (let column = start; column < end; column++) {
+                            const av = ac[ap + column * aStep], bv = bc[bp + column * bStep];
+                            cells[row + column] = code === 5 ? bv < av ? bv : av : bv > av ? bv : av;
+                        }
                     }
                 }
             }
