@@ -1990,7 +1990,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 state.indexedReads.set(head.name, info.rank === 1 && !state.indexedReads.has(head.name) && isNameExpression(argument) ? argument.name : undefined);
                 const offset = numberOffset(info, indices, lines);
                 const cell = `cells${info.slot}[${offset}]`;
-                const load = type === 'integer' ? wide ? `BigInt(${cell})` : `integerCell(${cell})`
+                const load = type === 'integer' ? wide ? `BigInt(${cell})` : `integerCell${info.slot}(${cell})`
                     : type === 'boolean' ? `Boolean(${cell})` : cell;
                 lines.push(`const ${name} = ${load};`);
             } else {

@@ -53,9 +53,14 @@ export function prepareLayoutNumberTensor(root: TensorNode,
                 slots.set(node, scalars.push(value) - 1); shape = [];
             } else if (node.value !== undefined && isRankArray(node.value)) {
                 const cells = integer32Cells(node.value), stored = cells ? undefined : prepareStoredScalarView(node.value, true);
+                // Bound eager conversion for speculative sums: wide inputs can
+                // overflow after paying for a full copy. Small inputs and
+                // compact Int32 sources retain the numeric path.
                 if (!cells && (!stored || stored.validate || stored.linear?.offset !== 0 || stored.linear.stride !== 1
                     || stored.kinds?.join() !== domains.get(node)?.join())) return false;
                 const items = cells ?? stored!.compact ?? stored!.items;
+                if (operation === 'sum' && !cells && items.length > 64
+                    && domains.get(node)?.join() === 'integer') return false;
                 shape = [...node.value.shape];
                 if (shape.some(n => !Number.isSafeInteger(n) || n < 0)
                     || shape.reduce((a, b) => safe(a * b), 1) !== items.length) return false;

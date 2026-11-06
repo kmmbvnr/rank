@@ -423,16 +423,18 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     }
     for (const info of plan.destinations.values()) registers.push(`changed${info.slot} = changes[${info.slot}]`);
     const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
-    // Stores stay private and checked. A borrowed packed input is validated
-    // at its actual load; overflow discards those stores before exact replay.
-    const integerCell = plan.destinations.size > 0 ? (value: number | bigint) => typeof value === 'bigint' ? safe(Number(value)) : value
-        : (value: number | bigint) => safe(Number(value));
+    // Only borrowed slots need actual-load guards. One borrowed source must
+    // not add conversion calls to every already validated array in the region.
+    const readers = [...arrays].map(([name, info]) =>
+        `const integerCell${info.slot} = ${plan.destinations.size > 0 && !borrowedInputs.has(name)
+            ? '(value) => value' : 'integerCell'};`).join('\n');
+    const integerCell = (value: number | bigint) => safe(Number(value));
     const source = emitNumberLoopSource(plan, registers, publish, false);
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'recordWideFold', 'createRange', code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'recordWideFold', 'createRange', readers + '\n' + code)(
             modularMultiply, safe, numberSortedIndex, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
