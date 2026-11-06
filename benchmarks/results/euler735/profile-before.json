@@ -1,0 +1,156 @@
+{
+  "samples": 43367,
+  "durationMs": 49249.208,
+  "selfSamples": [
+    {
+      "function": "mapStoredInt32Binary",
+      "file": "integer-array-kernel.js",
+      "samples": 14034
+    },
+    {
+      "function": "(generated)",
+      "file": "",
+      "samples": 6201
+    },
+    {
+      "function": "gather",
+      "file": "selectors.js",
+      "samples": 5443
+    },
+    {
+      "function": "scanInt32Axis",
+      "file": "axis-order.js",
+      "samples": 3700
+    },
+    {
+      "function": "(generated)",
+      "file": "selectors.js",
+      "samples": 2829
+    },
+    {
+      "function": "compactBinary",
+      "file": "integer-array-kernel.js",
+      "samples": 2455
+    },
+    {
+      "function": "reduce",
+      "file": "element-source.js",
+      "samples": 1293
+    },
+    {
+      "function": "mapDenseArrays",
+      "file": "tensor.js",
+      "samples": 1244
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "samples": 803
+    },
+    {
+      "function": "sliceArray",
+      "file": "selectors.js",
+      "samples": 477
+    },
+    {
+      "function": "sumPacked",
+      "file": "numbers.js",
+      "samples": 409
+    },
+    {
+      "function": "compareStoredInt32",
+      "file": "integer-array-kernel.js",
+      "samples": 366
+    },
+    {
+      "function": "Proxy",
+      "file": "owned-array.js",
+      "samples": 274
+    },
+    {
+      "function": "materializeMaskSelection",
+      "file": "array-mask-selection.js",
+      "samples": 274
+    },
+    {
+      "function": "evaluateBinaryValue",
+      "file": "operators.js",
+      "samples": 272
+    },
+    {
+      "function": "filledArray",
+      "file": "owned-array.js",
+      "samples": 222
+    },
+    {
+      "function": "ownedArray",
+      "file": "owned-array.js",
+      "samples": 189
+    },
+    {
+      "function": "mapStoredUnary",
+      "file": "unary-array-kernel.js",
+      "samples": 176
+    },
+    {
+      "function": "tensorSelection",
+      "file": "selectors.js",
+      "samples": 169
+    },
+    {
+      "function": "(program)",
+      "file": "",
+      "samples": 162
+    },
+    {
+      "function": "createOwned",
+      "file": "owned-array.js",
+      "samples": 140
+    },
+    {
+      "function": "chooseStoredIntegers",
+      "file": "integer-array-kernel.js",
+      "samples": 137
+    },
+    {
+      "function": "(generated)",
+      "file": "numbers.js",
+      "samples": 118
+    },
+    {
+      "function": "constructor",
+      "file": "operators.js",
+      "samples": 84
+    },
+    {
+      "function": "materializeSequence",
+      "file": "sequence.js",
+      "samples": 80
+    },
+    {
+      "function": "get",
+      "file": "owned-array.js",
+      "samples": 74
+    },
+    {
+      "function": "copyStoredArrayBlocks",
+      "file": "array-copy.js",
+      "samples": 71
+    },
+    {
+      "function": "writeIntegerSelection",
+      "file": "owned-array.js",
+      "samples": 69
+    },
+    {
+      "function": "prepare",
+      "file": "prime-sieve.js",
+      "samples": 64
+    },
+    {
+      "function": "general",
+      "file": "assignments.js",
+      "samples": 63
+    }
+  ]
+}

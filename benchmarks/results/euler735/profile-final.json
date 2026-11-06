@@ -1,0 +1,156 @@
+{
+  "samples": 14348,
+  "durationMs": 15495.75,
+  "selfSamples": [
+    {
+      "function": "(generated)",
+      "file": "",
+      "samples": 4323
+    },
+    {
+      "function": "scanInt32Axis",
+      "file": "axis-order.js",
+      "samples": 2106
+    },
+    {
+      "function": "mapStoredInt32Binary",
+      "file": "integer-array-kernel.js",
+      "samples": 1305
+    },
+    {
+      "function": "compactBinary",
+      "file": "integer-array-kernel.js",
+      "samples": 675
+    },
+    {
+      "function": "materializeMaskSelection",
+      "file": "array-mask-selection.js",
+      "samples": 431
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "samples": 417
+    },
+    {
+      "function": "search",
+      "file": "sorted-search.js",
+      "samples": 333
+    },
+    {
+      "function": "chooseStoredIntegers",
+      "file": "integer-array-kernel.js",
+      "samples": 313
+    },
+    {
+      "function": "reduce",
+      "file": "element-source.js",
+      "samples": 310
+    },
+    {
+      "function": "integerKeyedFold",
+      "file": "keyed-fold.js",
+      "samples": 277
+    },
+    {
+      "function": "mapDenseArrays",
+      "file": "tensor.js",
+      "samples": 257
+    },
+    {
+      "function": "ownedArray",
+      "file": "owned-array.js",
+      "samples": 240
+    },
+    {
+      "function": "evaluateBinaryValue",
+      "file": "operators.js",
+      "samples": 202
+    },
+    {
+      "function": "compareStoredInt32",
+      "file": "integer-array-kernel.js",
+      "samples": 194
+    },
+    {
+      "function": "widenInt32",
+      "file": "owned-array.js",
+      "samples": 160
+    },
+    {
+      "function": "numericUniqueSort",
+      "file": "numeric-collections.js",
+      "samples": 155
+    },
+    {
+      "function": "(generated)",
+      "file": "selectors.js",
+      "samples": 137
+    },
+    {
+      "function": "sumPacked",
+      "file": "numbers.js",
+      "samples": 124
+    },
+    {
+      "function": "orderingCopy",
+      "file": "numeric-collections.js",
+      "samples": 106
+    },
+    {
+      "function": "packedTruePositions",
+      "file": "packed-booleans.js",
+      "samples": 102
+    },
+    {
+      "function": "materializeSequence",
+      "file": "sequence.js",
+      "samples": 100
+    },
+    {
+      "function": "mapStoredIntegers",
+      "file": "integer-array-kernel.js",
+      "samples": 93
+    },
+    {
+      "function": "denseTruePositions",
+      "file": "packed-booleans.js",
+      "samples": 91
+    },
+    {
+      "function": "mapStoredWords",
+      "file": "integer-array-kernel.js",
+      "samples": 84
+    },
+    {
+      "function": "gather",
+      "file": "selectors.js",
+      "samples": 79
+    },
+    {
+      "function": "mapStoredUnary",
+      "file": "unary-array-kernel.js",
+      "samples": 78
+    },
+    {
+      "function": "general",
+      "file": "assignments.js",
+      "samples": 76
+    },
+    {
+      "function": "constructor",
+      "file": "operators.js",
+      "samples": 75
+    },
+    {
+      "function": "executeKeyedFold",
+      "file": "keyed-fold.js",
+      "samples": 73
+    },
+    {
+      "function": "createOwned",
+      "file": "owned-array.js",
+      "samples": 68
+    }
+  ]
+}
