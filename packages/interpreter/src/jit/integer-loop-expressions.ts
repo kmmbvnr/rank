@@ -1,7 +1,7 @@
 import { fitsIntegerRepresentation } from './integer-representation.js';
 import { integerRange, safeIntegerRange, type IntegerRange } from './integer-range-facts.js';
 import { positionalDeclaredCall } from './declared-scalar-call.js';
-import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
+import { binaryOperatorSource, scalarExtremeSource, zeroTestSource, numberBitwiseSource } from './operator-codegen.js';
 import { numericBoundSource } from './numeric-bound-codegen.js';
 import { AstUtils } from 'langium';
 import { loopValueType, type LoopHost, type LoopTerm } from './integer-loop-plan.js';
@@ -676,9 +676,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const value = emit(operand, lines, 'integer');
                 if (value?.type !== 'integer') return undefined;
                 const name = `v${state.serial++}`;
-                // Number bitwise operators truncate to signed Int32. Wider
-                // integers must discard the private attempt and replay exactly.
-                lines.push(`const ${name} = int32(${value.code});`);
+                // Shift/test domains retain the existing Int32 guard. Logical
+                // bitwise operations can combine both halves of a safe integer.
+                lines.push(`const ${name} = ${['band', 'bor', 'bxor'].includes(operation.name) ? 'safe' : 'int32'}(${value.code});`);
                 arguments_.push(name);
             }
             builtins.set(operation.name, operation.module);
@@ -691,7 +691,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 lines.push(`const ${name} = ${operation.name === 'bit'
                     ? `((${left} & (1 << ${right})) !== 0)` : `safe(${left} * (2 ** ${right}))`};`);
             } else {
-                lines.push(`const ${name} = ${left} ${operation.name === 'band' ? '&' : operation.name === 'bor' ? '|' : '^'} ${right};`);
+                lines.push(`const ${name} = safe(${numberBitwiseSource(operation.name as 'band' | 'bor' | 'bxor', left, right)});`);
             }
             return { code: name, type: operation.name === 'bit' ? 'boolean' : 'integer' };
         }

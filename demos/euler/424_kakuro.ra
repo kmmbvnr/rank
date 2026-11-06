@@ -14,36 +14,94 @@ arg Input path = (
 )
 arg Count integer = 200
 
-rem Search the letters A-J in order of
-rem use, checking every run whose sum
-rem letters are known against the digit
-rem sets that can sum to it. A full
-rem letter map then fills the empty
-rem cells by backtracking. Each run
-rem keeps its sum, digit mask and
-rem count, so a digit try is O(1),
-rem and a letter only rechecks the
-rem runs that depend on it.
-Mk = ((0 to 511) * 2) copy
-Ml = Mk * 0
-Ms = Mk * 0
-for D in 1 to 9
-  Bd = Mk // 2 ** D mod 2
-  Ml += Bd
-  Ms += Bd * D
+rem Extend each row's required digit set
+rem to every possible sum. Partial clues
+rem then prune letter assignments before
+rem blank-cell search. Each digit try
+rem also checks a feasible completion.
+Masks = 0 to 511 array
+Sizes = Masks popcount
+Digits = 1 to 9 array
+Powers = 2 ** (Digits - 1)
+Rows = Masks reshape 512 1
+Present = Rows band Powers greater 0
+Weights = Present integer * Digits
+Scores = Weights sum rank 1
+P2 = 2 ** (0 to 11 array)
+rem Sums extending each required mask.
+Fits = array shape 5120 fill 0
+Subsets = 0 to 511 array
+for Mask in 0 to 511
+  Keep = Subsets band Mask equal Subsets
+  Keys = Sizes Mask * 512 + Subsets Keep
+  Flag = 2 ** Scores Mask
+  Fits Keys = Fits Keys bor Flag
 end
-Key = Ml * 64 + Ms
-Od0 = Key argsort
-Cmb = Mk Od0
-Kso = Key Od0
-Kc = array shape 700 fill 0
-for I in 0 to 511
-  Kc (Kso I) += 1
+rem Two-digit clues: -1 means unknown.
+Clues = array shape 121 fill 0
+Sums = 10 to 45 array
+Tens = Sums // 10
+Units = Sums mod 10
+Flags = 2 ** Sums
+for Pair in 0 to 120
+  First = Pair // 11 - 1
+  Second = Pair mod 11 - 1
+  High = Tens equal First
+  Match = High or First less 0
+  Match = Match and (
+    Units equal Second or Second less 0
+  )
+  Clues Pair = Flags Match sum
 end
-Off = Kc scan + with 0
-P2 = array shape 12 fill 1
-for I in 1 to 11
-  P2 I = P2 (I - 1) * 2
+Tables = concat Fits Clues P2 copy
+rem Packed read-only lookup context:
+rem 5120 supports, 121 clues, 12 powers,
+rem then 12 cells per run: two clue IDs,
+rem length and nine cell-letter IDs.
+fun Map Context fits Run
+  ClueAt = 5120
+  BitsAt = ClueAt + 121
+  RunAt = BitsAt + 12
+  Base = RunAt + Run * 12
+  First = Map (Context Base)
+  SecondId = Context (Base + 1)
+  Length = Context (Base + 2)
+  rem Single-digit sums: 1 through 9.
+  Allowed = 1022
+  if SecondId less 0
+    if First at least 0
+      Allowed = Context (BitsAt + First)
+    end
+  else
+    Second = Map SecondId
+    Pair = (First + 1) * 11 + Second + 1
+    Allowed = Context (ClueAt + Pair)
+    if Context Base equal SecondId
+      rem Same letters: 11,22,33,44.
+      Same = 17600780175360
+      Allowed = Allowed band Same
+    end
+  end
+  Mask = 0
+  for J in 0 till Length
+    Letter = Context (Base + 3 + J)
+    if Letter at least 0
+      Digit = Map Letter
+      if Digit at least 0
+        if Digit equal 0
+          return false
+        end
+        Flag = Context (BitsAt + Digit)
+        if Mask band Flag greater 0
+          return false
+        end
+        Mask += Flag
+      end
+    end
+  end
+  Key = Length * 512 + Mask // 2
+  Possible = Context Key band Allowed
+  return Possible greater 0
 end
 Lines = Input readlines
 Tot = 0
@@ -183,6 +241,12 @@ for Ln in 0 to Count - 1
       end
     end
   end
+  Heads = concat R1 R2 Rn copy
+  Headers = Heads reshape 3 64 transpose
+  Letters = Lt (Rc max 0)
+  Info = concat Headers Letters axis 1
+  Flat = Info reshape 768
+  Context = concat Tables Flat copy
   rem Letters in order of use.
   Fq = array shape 10 fill 0
   for Rr in 0 to Nr - 1
@@ -203,7 +267,6 @@ for Ln in 0 to Count - 1
   Mp = array shape 10 fill 0 - 1
   Us = array shape 10 fill 0
   Ptr = array shape 12 fill 0
-  Fd = array shape 12 fill 0
   Wh = Kd equal 1 indices
   rem Backtracking over the letters.
   K = 0
@@ -221,22 +284,14 @@ for Ln in 0 to Count - 1
         end
       end
       Dg = array shape Nc fill 0
-      Whl = array shape 0 fill 0
-      for Cell in 0 to Nc - 1
-        if Kd Cell equal 1
-          if Lt Cell at least 0
-            Dg Cell = Mp (Lt Cell)
-          else
-            Wc1 = array Cell
-            Whl = concat Whl Wc1
-          end
-        end
-      end
+      Labels = Lt Wh
+      Known = Wh (Labels at least 0)
+      Dg Known = Mp (Lt Known)
+      Whl = Wh (Labels less 0) copy
       Nw = Whl len
-      rem Per run: sum, mask, count.
+      rem Per run: sum and digit mask.
       Sr = array shape 64 fill 0
       Mr = array shape 64 fill 0
-      Cr = array shape 64 fill 0
       for Rr in 0 to Nr - 1
         Le = Rn Rr - 1
         for J in 0 to Le
@@ -244,7 +299,6 @@ for Ln in 0 to Count - 1
           if Dv greater 0
             Sr Rr += Dv
             Mr Rr += P2 Dv
-            Cr Rr += 1
           end
         end
       end
@@ -286,12 +340,10 @@ for Ln in 0 to Count - 1
             if Ra at least 0
               Sr Ra -= Pd
               Mr Ra -= P2 Pd
-              Cr Ra -= 1
             end
             if Rb at least 0
               Sr Rb -= Pd
               Mr Rb -= P2 Pd
-              Cr Rb -= 1
             end
             Dg Cc = 0
           end
@@ -315,11 +367,14 @@ for Ln in 0 to Count - 1
                   if Sn greater Tg
                     Ok = 0
                   end
-                  Cn = Cr Rr + 1
-                  if Cn equal (Rn Rr)
-                    if Sn not equal Tg
-                      Ok = 0
-                    end
+                  Union = Mr Rr bor Pw
+                  Lookup = Rn Rr * 512
+                  Lookup += Union // 2
+                  Options = Fits Lookup
+                  if Options band (
+                    2 ** Tg
+                  ) equal 0
+                    Ok = 0
                   end
                 end
               end
@@ -328,12 +383,10 @@ for Ln in 0 to Count - 1
                 if Ra at least 0
                   Sr Ra += D
                   Mr Ra += Pw
-                  Cr Ra += 1
                 end
                 if Rb at least 0
                   Sr Rb += D
                   Mr Rb += Pw
-                  Cr Rb += 1
                 end
                 Try Ix = D
                 Ix += 1
@@ -363,70 +416,12 @@ for Ln in 0 to Count - 1
           Mp Lc = D
           Ok = 1
           for Rr in 0 to Nr - 1
-            Va = Mp (R1 Rr)
-            Vb = 0
-            if R2 Rr at least 0
-              Vb = Mp (R2 Rr)
-            end
-            Mn = Va min Vb
-            Bt = Dm Rr // P2 Lc mod 2
-            if Bt equal 0
-              Mn = 0 - 1
-            end
-            if Mn at least 0
-              Sm = Va
-              if R2 Rr at least 0
-                Sm = Va * 10 + Vb
-                if Va equal 0
-                  Ok = 0
-                end
-              end
-              Nf = 0
-              Le = Rn Rr - 1
-              for J in 0 to Le
-                Lw = Lt (Rc Rr J)
-                if Lw at least 0
-                  Dv = Mp Lw
-                  if Dv at least 0
-                    if Dv equal 0
-                      Ok = 0
-                    end
-                    if Nf greater 0
-                      Nm = Nf - 1
-                      for I in 0 to Nm
-                        if Fd I equal Dv
-                          Ok = 0
-                        end
-                      end
-                    end
-                    Fd Nf = Dv
-                    Nf += 1
-                  end
-                end
-              end
-              Ky = Rn Rr * 64 + Sm
-              Hit = 0
-              Ob = Off Ky
-              Oc = Off (Ky + 1)
-              if Oc greater Ob
-                for I in Ob to Oc - 1
-                  Z = Cmb I
-                  Hs = 1
-                  if Nf greater 0
-                    Nm = Nf - 1
-                    for J in 0 to Nm
-                      W = P2 (Fd J)
-                      Y = Z // W mod 2
-                      if Y equal 0
-                        Hs = 0
-                      end
-                    end
-                  end
-                  Hit += Hs
-                end
-              end
-              if Hit equal 0
+            Changed = Dm Rr band P2 Lc
+            if Changed greater 0
+              Valid = Mp Context fits Rr
+              if not Valid
                 Ok = 0
+                break
               end
             end
           end

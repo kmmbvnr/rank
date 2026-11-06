@@ -6,7 +6,7 @@ import { safeIntegerGcd } from '../integer-gcd.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { checkValueMutable } from '../value-protection.js';
 import { materializeValue } from '../materialize.js';
-import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
+import { binaryOperatorSource, scalarExtremeSource, zeroTestSource, numberBitwiseSource } from './operator-codegen.js';
 import { numericBoundSource } from './numeric-bound-codegen.js';
 import { membershipLookup } from '../membership-lookup.js';
 import { type CompiledCalleeType, isCompiledContainer, sameCompiledCalleeType } from './compiled-callee-type.js';
@@ -93,7 +93,7 @@ function compileScalarNumberKernel(
     users: Kernel['userCalls'],
 ): Kernel['numberDirect'] | undefined {
     if (!proof.localArrayWrites || proof.planCalls.length
-        || proof.iterableBindings.size || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt', 'sum', 'count', 'powmod', 'gcd'].includes(name))
+        || proof.iterableBindings.size || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt', 'sum', 'count', 'powmod', 'gcd', 'band', 'bor', 'bxor'].includes(name))
         || proof.recursive || (proof.callCount ? !privateScalarFunction(proof, true)
             : proof.dependencies.some(name => !memberships.includes(name)))) return undefined;
     // Newly admitted captured memberships retain the exact kernel's reader
@@ -308,6 +308,20 @@ function compileScalarNumberKernel(
         }
         if (compiled.kind === 'call') {
             const name = compiled.operation.name;
+            if (compiled.operation.module === 'bits' && ['band', 'bor', 'bxor'].includes(name)
+                && compiled.arguments.length === 2 && compiled.arguments.every(argument => argument.type === 'integer')) {
+                const args: string[] = [];
+                for (const argument of compiled.arguments) {
+                    const value = lowerNum(argument, lines);
+                    if (value === undefined) return undefined;
+                    const temporary = `v${serial++}`;
+                    lines.push(`const ${temporary} = safe(${value});`);
+                    args.push(temporary);
+                }
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = safe(${numberBitwiseSource(name as 'band' | 'bor' | 'bxor', args[0], args[1])});`);
+                return result;
+            }
             if (compiled.operation.module === 'numbers' && name === 'gcd' && compiled.arguments.length === 2
                 && compiled.arguments.every(argument => argument.type === 'integer')) {
                 const args = compiled.arguments.map(argument => lowerNum(argument, lines));
