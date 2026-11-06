@@ -1,0 +1,38 @@
+{
+  "baseline": "9769664c",
+  "compiler": "f6b3a0f8",
+  "integrated": "da8999bd",
+  "answer": "143091030",
+  "rankSolutionChanged": false,
+  "node": "v24.15.0",
+  "mac": {
+    "baselineSamples": 3,
+    "finalSamples": 3,
+    "baselineMedianMs": 193477.338125,
+    "finalMedianMs": 7749.816459,
+    "baselineMedianRssMiB": 1014.65625,
+    "finalMedianRssMiB": 537
+  },
+  "intelDefaultAffinity": {
+    "baselineSamples": 1,
+    "finalSamples": 3,
+    "baselineMs": 620733.825386,
+    "finalMedianMs": 20497.505656,
+    "baselineRssMiB": 912.30859375,
+    "finalMedianRssMiB": 406.98828125
+  },
+  "verification": {
+    "focusedMacPassed": 311,
+    "integrationMacPassed": 105,
+    "focusedIntelPassed": 78,
+    "fullDefaultPassed": true,
+    "baselineFailuresReproduced": 3,
+    "fullAuditsRun": false
+  },
+  "limitations": [
+    "Only one Intel baseline sample",
+    "Other host load uncontrolled",
+    "Intel plain-pass cold control 3-4% slower; identical generated loop sources; warm control not slower",
+    "Three pre-existing compiler-count test failures"
+  ]
+}
