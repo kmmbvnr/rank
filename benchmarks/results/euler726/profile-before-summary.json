@@ -1,0 +1,187 @@
+{
+  "bottles": 3000,
+  "totalSamples": 1386,
+  "fileSelfSamples": {
+    "function-invocation.js": 402,
+    "scalar-function-proof.js": 290,
+    "": 270,
+    "sequence.js": 160,
+    "owned-array.js": 34,
+    "return-contract.js": 27,
+    "operators.js": 24,
+    "frame.js": 23,
+    "function-scopes.js": 22,
+    "interpreter.js": 16,
+    "rest.js": 13,
+    "all-star-lookahead.js": 9,
+    "stream.js": 8,
+    "cst-node-builder.js": 7,
+    "call-specializations.js": 6,
+    "model.js": 5,
+    "helpers.js": 4,
+    "lookahead.js": 4,
+    "reduction.js": 4,
+    "value.js": 4,
+    "lexer.js": 3,
+    "checks.js": 3,
+    "atn.js": 3,
+    "recognizer_engine.js": 3,
+    "dfa.js": 3,
+    "tensor-kernel.js": 3,
+    "visitor.js": 2,
+    "first.js": 2,
+    "ast-utils.js": 2,
+    "syntax-tree.js": 2,
+    "node:inspector": 1,
+    "module.js": 1,
+    "json-serializer.js": 1,
+    "regexp-utils.js": 1,
+    "base-regexp-visitor.js": 1,
+    "recognizer_api.js": 1,
+    "gast_recorder.js": 1,
+    "resolver.js": 1,
+    "follow.js": 1,
+    "map.js": 1,
+    "_arrayMap.js": 1,
+    "error-lookahead.js": 1,
+    "lexer_public.js": 1,
+    "tokens.js": 1,
+    "langium-parser.js": 1,
+    "application-forms.js": 1,
+    "ast.js": 1,
+    "modifier-grouping.js": 1,
+    "function-mutations.js": 1,
+    "array-binding-contract.js": 1,
+    "shared.js": 1,
+    "modular-power.js": 1,
+    "expressions.js": 1,
+    "writable": 1,
+    "function-definition.js": 1,
+    "value-selection.js": 1,
+    "selectors.js": 1,
+    "scalar-compiler.js": 1
+  },
+  "scalarCaptureKeySamples": 289,
+  "topSelfSamples": [
+    {
+      "samples": 288,
+      "function": "scalarCaptureKey",
+      "file": "scalar-function-proof.js",
+      "line": 9
+    },
+    {
+      "samples": 159,
+      "function": "(garbage collector)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 149,
+      "function": "",
+      "file": "function-invocation.js",
+      "line": 596
+    },
+    {
+      "samples": 93,
+      "function": "iterate",
+      "file": "sequence.js",
+      "line": 134
+    },
+    {
+      "samples": 71,
+      "function": "value",
+      "file": "function-invocation.js",
+      "line": 1144
+    },
+    {
+      "samples": 65,
+      "function": "stackItems",
+      "file": "sequence.js",
+      "line": 456
+    },
+    {
+      "samples": 61,
+      "function": "",
+      "file": "function-invocation.js",
+      "line": 614
+    },
+    {
+      "samples": 56,
+      "function": "",
+      "file": "",
+      "line": 5
+    },
+    {
+      "samples": 47,
+      "function": "(program)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 36,
+      "function": "scalarCaptureTypes",
+      "file": "function-invocation.js",
+      "line": 560
+    },
+    {
+      "samples": 32,
+      "function": "ownedArray",
+      "file": "owned-array.js",
+      "line": 708
+    },
+    {
+      "samples": 25,
+      "function": "check",
+      "file": "return-contract.js",
+      "line": 88
+    },
+    {
+      "samples": 25,
+      "function": "",
+      "file": "function-invocation.js",
+      "line": 474
+    },
+    {
+      "samples": 23,
+      "function": "collect",
+      "file": "function-invocation.js",
+      "line": 563
+    },
+    {
+      "samples": 23,
+      "function": "iterate",
+      "file": "operators.js",
+      "line": 633
+    },
+    {
+      "samples": 21,
+      "function": "functionScope",
+      "file": "function-scopes.js",
+      "line": 228
+    },
+    {
+      "samples": 15,
+      "function": "run",
+      "file": "function-invocation.js",
+      "line": 987
+    },
+    {
+      "samples": 10,
+      "function": "directLeaf",
+      "file": "function-invocation.js",
+      "line": 882
+    },
+    {
+      "samples": 10,
+      "function": "get",
+      "file": "frame.js",
+      "line": 87
+    },
+    {
+      "samples": 10,
+      "function": "get",
+      "file": "frame.js",
+      "line": 87
+    }
+  ]
+}

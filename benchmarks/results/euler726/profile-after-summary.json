@@ -1,0 +1,182 @@
+{
+  "bottles": 10000,
+  "totalSamples": 386,
+  "fileSelfSamples": {
+    "modular-callback-scan.js": 247,
+    "interpreter.js": 18,
+    "": 10,
+    "cst-node-builder.js": 9,
+    "lookahead.js": 8,
+    "rest.js": 8,
+    "all-star-lookahead.js": 8,
+    "stream.js": 6,
+    "ast-utils.js": 3,
+    "model.js": 3,
+    "helpers.js": 3,
+    "first.js": 3,
+    "atn.js": 3,
+    "tensor-kernel.js": 3,
+    "owned-array.js": 3,
+    "function-invocation.js": 3,
+    "reduction.js": 3,
+    "value.js": 3,
+    "lexer.js": 2,
+    "base-regexp-visitor.js": 2,
+    "parser-builder-base.js": 2,
+    "visitor.js": 2,
+    "checks.js": 2,
+    "ast.js": 2,
+    "expression-grouping.js": 2,
+    "node:inspector": 1,
+    "json-serializer.js": 1,
+    "reg_exp.js": 1,
+    "gast_recorder.js": 1,
+    "map.js": 1,
+    "_arrayMap.js": 1,
+    "rank-module.js": 1,
+    "signature-lexer.js": 1,
+    "dfa.js": 1,
+    "tokens.js": 1,
+    "langium-parser.js": 1,
+    "syntax-tree.js": 1,
+    "application-forms.js": 1,
+    "function-mutations.js": 1,
+    "flat-array-borrow.js": 1,
+    "fast-paths.js": 1,
+    "materialize.js": 1,
+    "modular-power.js": 1,
+    "integer-array-kernel.js": 1,
+    "numbers.js": 1,
+    "scalar-function-proof.js": 1,
+    "scalar-function-kernel.js": 1,
+    "application.js": 1,
+    "writable": 1,
+    "frame.js": 1,
+    "call-specializations.js": 1,
+    "return-contract.js": 1,
+    "selectors.js": 1
+  },
+  "scalarCaptureKeySamples": 0,
+  "topSelfSamples": [
+    {
+      "samples": 247,
+      "function": "",
+      "file": "modular-callback-scan.js",
+      "line": 41
+    },
+    {
+      "samples": 5,
+      "function": "(garbage collector)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 2,
+      "function": "containsPath",
+      "file": "lookahead.js",
+      "line": 440
+    },
+    {
+      "samples": 2,
+      "function": "firstSet",
+      "file": "all-star-lookahead.js",
+      "line": 243
+    },
+    {
+      "samples": 2,
+      "function": "run",
+      "file": "tensor-kernel.js",
+      "line": 480
+    },
+    {
+      "samples": 2,
+      "function": "ownedArray",
+      "file": "owned-array.js",
+      "line": 708
+    },
+    {
+      "samples": 2,
+      "function": "",
+      "file": "",
+      "line": 5
+    },
+    {
+      "samples": 1,
+      "function": "post",
+      "file": "node:inspector",
+      "line": 115
+    },
+    {
+      "samples": 1,
+      "function": "linkNode",
+      "file": "json-serializer.js",
+      "line": 144
+    },
+    {
+      "samples": 1,
+      "function": "",
+      "file": "stream.js",
+      "line": 442
+    },
+    {
+      "samples": 1,
+      "function": "iterator",
+      "file": "stream.js",
+      "line": 16
+    },
+    {
+      "samples": 1,
+      "function": "",
+      "file": "ast-utils.js",
+      "line": 115
+    },
+    {
+      "samples": 1,
+      "function": "DefaultLexer",
+      "file": "lexer.js",
+      "line": 17
+    },
+    {
+      "samples": 1,
+      "function": "visitChildren",
+      "file": "base-regexp-visitor.js",
+      "line": 2
+    },
+    {
+      "samples": 1,
+      "function": "findDuplicatePatterns",
+      "file": "lexer.js",
+      "line": 419
+    },
+    {
+      "samples": 1,
+      "function": "visitChildren",
+      "file": "base-regexp-visitor.js",
+      "line": 2
+    },
+    {
+      "samples": 1,
+      "function": "firstCharOptimizedIndices",
+      "file": "reg_exp.js",
+      "line": 42
+    },
+    {
+      "samples": 1,
+      "function": "",
+      "file": "stream.js",
+      "line": 24
+    },
+    {
+      "samples": 1,
+      "function": "buildElement",
+      "file": "parser-builder-base.js",
+      "line": 105
+    },
+    {
+      "samples": 1,
+      "function": "",
+      "file": "parser-builder-base.js",
+      "line": 369
+    }
+  ]
+}
