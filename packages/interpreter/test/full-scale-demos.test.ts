@@ -48,6 +48,7 @@ for (const [file, expected] of [
     ['715_sextupletnorms.ra', 883188017n],
     ['719_numbersplitting.ra', 128088830547982n],
     ['720_unpredictablepermutations.ra', 688081048n],
+    ['726_fallingbottles.ra', 578040951n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
     const timeout = file === '715_sextupletnorms.ra' ? 240_000
@@ -66,8 +67,11 @@ for (const [file, expected] of [
                 expect(diagnostics.rankedArrayBatches).toBe(0);
             }
             if (file === '310_nimsquare.ra') expect(diagnostics.numberLoops).toBe(3);
-            if (file === '720_unpredictablepermutations.ra') expect(diagnostics.modularCallbackScans).toBe(1);
-            if (file !== '719_numbersplitting.ra' && file !== '720_unpredictablepermutations.ra') {
+            const nativeScan = ['720_unpredictablepermutations.ra', '726_fallingbottles.ra'].includes(file);
+            if (nativeScan) {
+                expect(diagnostics.modularCallbackScans).toBe(1);
+            }
+            if (file !== '719_numbersplitting.ra' && !nativeScan) {
                 expect(diagnostics.numberLoops).toBeGreaterThan(0);
             }
             expect(diagnostics.numberLoopOverflows).toBe(0);

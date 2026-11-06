@@ -212,7 +212,7 @@
   "euler/715_sextupletnorms.ra": "About 3 min: two Lucy sieves and prime-power sums at 10^12; run manually.",
   "euler/719_numbersplitting.ra": "About 1 min: pruned split search over 2 x 10^5 roots; run manually.",
   "euler/720_unpredictablepermutations.ra": "Large retained arrays at 2^25 elements; full default checked in full-scale-demos.test.ts.",
-  "euler/726_fallingbottles.ra": "About 20 s and 2.7 GB: factorial prefix product to 5 x 10^7; run manually.",
+  "euler/726_fallingbottles.ra": "About 50 million prefix cells retained; compiled full default checked in full-scale-demos.test.ts; reference execution remains expensive.",
   "euler/729_periodicrange.ra": "About 2.7 min: Newton on 2.8 million Lyndon words; run manually.",
   "euler/737_coinloops.ra": "About 2.3 min: 7.6 x 10^8 turn angles in chunks; run manually.",
   "euler/738_orderedfactorisations.ra": "About 2 min: factor-descending knapsack on 2 x 10^5 quotient values; run manually.",
