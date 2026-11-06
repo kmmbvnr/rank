@@ -1,0 +1,47 @@
+rem ACMP 0990: Cakes tests
+use testing
+
+test "ACMP 990: Maximal 30 children"
+  use "0990_cakes"
+  run
+  MinCost equal 29
+  (ResCakes sum) equal 5000
+  Pos = ResCakes (ResCakes greater 0)
+  (Pos len) equal 30
+end
+
+test "ACMP 990: Sample 1"
+  use "0990_cakes"
+  Input = "3 20
+1 2 3"
+  run
+  MinCost equal 2
+  (ResCakes sum) equal 20
+end
+
+test "ACMP 990: Sample 2"
+  use "0990_cakes"
+  Input = "4 9
+2 1 5 8"
+  run
+  Result equal "7
+2 1 3 3"
+end
+
+test "ACMP 990: Single child"
+  use "0990_cakes"
+  Input = "1 5
+10"
+  run
+  Result equal "0
+5"
+end
+
+test "ACMP 990: N equals M"
+  use "0990_cakes"
+  Input = "5 5
+5 4 3 2 1"
+  run
+  Result equal "0
+1 1 1 1 1"
+end
