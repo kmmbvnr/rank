@@ -1,0 +1,126 @@
+{
+  "commit": "f6b3a0f8",
+  "durationSeconds": 7.635125,
+  "selfSamples": [
+    [
+      " ",
+      4460
+    ],
+    [
+      "retain jit/number-loop-runtime.js",
+      742
+    ],
+    [
+      " jit/number-loop-runtime.js",
+      237
+    ],
+    [
+      "vectorArray jit/number-loop-runtime.js",
+      210
+    ],
+    [
+      "(program) ",
+      66
+    ],
+    [
+      "vectorLive ",
+      58
+    ],
+    [
+      "(garbage collector) ",
+      31
+    ],
+    [
+      "store jit/number-loop-runtime.js",
+      29
+    ],
+    [
+      "PrivateNumericArray jit/number-loop-runtime.js",
+      27
+    ],
+    [
+      "checkedArrayDimension out/tensor-index.js",
+      23
+    ],
+    [
+      "getAlternativesForProd grammar/interpreter.js",
+      11
+    ],
+    [
+      "safe jit/number-loop-runtime.js",
+      11
+    ],
+    [
+      "attempt jit/number-loop-runtime.js",
+      10
+    ],
+    [
+      "add lib/dfa.js",
+      8
+    ],
+    [
+      "remainingPathWith grammar/interpreter.js",
+      7
+    ],
+    [
+      "getConflictingAltSets lib/all-star-lookahead.js",
+      5
+    ],
+    [
+      "typeOf analysis/types.js",
+      4
+    ],
+    [
+      "writeInteger32Cells runtime/owned-array.js",
+      4
+    ],
+    [
+      "realArray runtime/numeric-conversions.js",
+      3
+    ],
+    [
+      "radixOrder runtime/numeric-collections.js",
+      3
+    ],
+    [
+      "widenInt32 runtime/owned-array.js",
+      3
+    ],
+    [
+      "evaluateFacts analysis/value-facts.js",
+      3
+    ],
+    [
+      "isSubtype lib/syntax-tree.js",
+      3
+    ],
+    [
+      " grammar/lookahead.js",
+      2
+    ],
+    [
+      "possiblePathsFrom grammar/interpreter.js",
+      2
+    ],
+    [
+      "walkFlat grammar/rest.js",
+      2
+    ],
+    [
+      "firstForSequence grammar/first.js",
+      2
+    ],
+    [
+      " lib/dfa.js",
+      2
+    ],
+    [
+      "linkContentToContainer utils/ast-utils.js",
+      2
+    ],
+    [
+      "isInstance lib/syntax-tree.js",
+      2
+    ]
+  ]
+}

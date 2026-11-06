@@ -1,0 +1,15 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/full-scale-demos.test.ts -t 738
+
+
+ RUN  v3.2.7 /private/tmp/rank542-work/packages/interpreter
+
+ ✓ test/full-scale-demos.test.ts (44 tests | 43 skipped) 7735ms
+   ✓ checks the full compiled answer for 738_orderedfactorisations.ra  7734ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 43 skipped (44)
+   Start at  10:26:09
+   Duration  9.02s (transform 817ms, setup 0ms, collect 1.19s, tests 7.73s, environment 0ms, prepare 23ms)
+

@@ -1,0 +1,125 @@
+{
+  "durationSeconds": 144.707416,
+  "selfSamples": [
+    [
+      "privateArrayCopy runtime/array-ownership.js",
+      51135
+    ],
+    [
+      "(garbage collector) ",
+      15589
+    ],
+    [
+      "mapStoredInt32Binary jit/integer-array-kernel.js",
+      5392
+    ],
+    [
+      " ",
+      3886
+    ],
+    [
+      "createOwned runtime/owned-array.js",
+      3791
+    ],
+    [
+      "compactBinary jit/integer-array-kernel.js",
+      2084
+    ],
+    [
+      " out/selectors.js",
+      2037
+    ],
+    [
+      "derivedArray runtime/derived-array.js",
+      1582
+    ],
+    [
+      "tensorSelection out/selectors.js",
+      1261
+    ],
+    [
+      "chooseStoredIntegers jit/integer-array-kernel.js",
+      1224
+    ],
+    [
+      "semanticArrayType runtime/semantic-array-type.js",
+      1151
+    ],
+    [
+      "sliceArray out/selectors.js",
+      823
+    ],
+    [
+      "visit runtime/array-binding-contract.js",
+      557
+    ],
+    [
+      " eval/expressions.js",
+      523
+    ],
+    [
+      "setSemanticArrayType runtime/semantic-array-type.js",
+      492
+    ],
+    [
+      "register runtime/packed-booleans.js",
+      478
+    ],
+    [
+      "registerScalarView runtime/integer-view.js",
+      477
+    ],
+    [
+      "gather out/selectors.js",
+      466
+    ],
+    [
+      "registerArrayCopy runtime/array-copy.js",
+      462
+    ],
+    [
+      "retainSelectionSnapshot runtime/array-ownership.js",
+      451
+    ],
+    [
+      "inheritArrayDeclaration runtime/array-declaration.js",
+      446
+    ],
+    [
+      "deferSelectionCopy runtime/integer-view.js",
+      437
+    ],
+    [
+      "general eval/assignments.js",
+      405
+    ],
+    [
+      "(program) ",
+      381
+    ],
+    [
+      "execute jit/tensor-kernel.js",
+      378
+    ],
+    [
+      "isRankArray runtime/value.js",
+      288
+    ],
+    [
+      "evaluateBinaryValue out/operators.js",
+      279
+    ],
+    [
+      "materializeValue out/materialize.js",
+      271
+    ],
+    [
+      " eval/application.js",
+      240
+    ],
+    [
+      "broadcastShape jit/tensor-layout.js",
+      233
+    ]
+  ]
+}

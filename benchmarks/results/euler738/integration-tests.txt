@@ -1,0 +1,29 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/euler738.test.ts test/range-entry-work.test.ts test/vector-entry-work.test.ts test/region-entry-work.test.ts test/euler423.test.ts test/prime-completion.test.ts
+
+
+ RUN  v3.2.7 /private/tmp/rank542-work/packages/interpreter
+
+ ✓ test/prime-completion.test.ts (9 tests) 211ms
+ ✓ test/range-entry-work.test.ts (17 tests) 464ms
+ ✓ test/region-entry-work.test.ts (6 tests) 907ms
+   ✓ composes invariant nested work after local bound definitions  466ms
+ ✓ test/euler738.test.ts (38 tests) 2215ms
+ ✓ test/euler423.test.ts (18 tests) 3483ms
+   ✓ Euler 423 modular recurrence > checks the full fifty-million limit  3129ms
+ ✓ test/vector-entry-work.test.ts (17 tests) 4400ms
+   ✓ complete nested passes in packed vector loops > amortizes copies above the probe cap (reverse=false)  394ms
+   ✓ complete nested passes in packed vector loops > keeps helper calls outside the entry work proof  359ms
+   ✓ complete nested passes in packed vector loops > retains the cap for incomplete or mutable passes  351ms
+   ✓ complete nested passes in packed vector loops > preserves exact replay when an admitted pass overflows  362ms
+   ✓ complete nested passes in packed vector loops > counts bounded distinct passes beyond the first two entries  675ms
+   ✓ complete nested passes in packed vector loops > uses immutable indexed entry cells and checked powers for bounds  303ms
+   ✓ complete nested passes in packed vector loops > preserves changing indexed entry bounds  307ms
+   ✓ complete nested passes in packed vector loops > preserves indexed entry bounds sharing a destination buffer  310ms
+
+ Test Files  6 passed (6)
+      Tests  105 passed (105)
+   Start at  10:26:03
+   Duration  5.97s (transform 958ms, setup 0ms, collect 6.47s, tests 11.68s, environment 0ms, prepare 184ms)
+

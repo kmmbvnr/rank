@@ -1,0 +1,30 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/euler738.test.ts test/range-entry-work.test.ts test/vector-entry-work.test.ts test/region-entry-work.test.ts test/number-loop-slice.test.ts test/number-loop-vector-bounds.test.ts test/number-loop-vectors.test.ts test/region-array-write.test.ts test/bulk-slice-write.test.ts test/demand-work-budget.test.ts test/interrupt.test.ts
+
+
+ RUN  v3.2.7 /private/tmp/rank542-work/packages/interpreter
+
+ ✓ test/region-entry-work.test.ts (6 tests) 983ms
+   ✓ composes invariant nested work after local bound definitions  542ms
+ ✓ test/number-loop-vectors.test.ts (129 tests) 1150ms
+ ✓ test/number-loop-slice.test.ts (53 tests) 554ms
+ ✓ test/range-entry-work.test.ts (17 tests) 420ms
+ ✓ test/euler738.test.ts (38 tests) 2443ms
+ ✓ test/number-loop-vector-bounds.test.ts (10 tests) 201ms
+ ✓ test/interrupt.test.ts (16 tests) 198ms
+ ✓ test/bulk-slice-write.test.ts (12 tests) 162ms
+ ✓ test/region-array-write.test.ts (5 tests) 93ms
+ ✓ test/demand-work-budget.test.ts (8 tests) 141ms
+ ✓ test/vector-entry-work.test.ts (17 tests) 4178ms
+   ✓ complete nested passes in packed vector loops > amortizes copies above the probe cap (reverse=false)  439ms
+   ✓ complete nested passes in packed vector loops > keeps helper calls outside the entry work proof  333ms
+   ✓ complete nested passes in packed vector loops > retains the cap for incomplete or mutable passes  322ms
+   ✓ complete nested passes in packed vector loops > preserves exact replay when an admitted pass overflows  334ms
+   ✓ complete nested passes in packed vector loops > counts bounded distinct passes beyond the first two entries  630ms
+
+ Test Files  11 passed (11)
+      Tests  311 passed (311)
+   Start at  10:16:18
+   Duration  5.59s (transform 914ms, setup 0ms, collect 7.52s, tests 10.52s, environment 1ms, prepare 268ms)
+

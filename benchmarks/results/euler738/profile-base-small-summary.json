@@ -1,0 +1,125 @@
+{
+  "durationSeconds": 2.28975,
+  "selfSamples": [
+    [
+      "privateArrayCopy runtime/array-ownership.js",
+      210
+    ],
+    [
+      "(garbage collector) ",
+      198
+    ],
+    [
+      "createOwned runtime/owned-array.js",
+      92
+    ],
+    [
+      "mapStoredInt32Binary jit/integer-array-kernel.js",
+      79
+    ],
+    [
+      "chooseStoredIntegers jit/integer-array-kernel.js",
+      42
+    ],
+    [
+      "compactBinary jit/integer-array-kernel.js",
+      40
+    ],
+    [
+      " out/selectors.js",
+      37
+    ],
+    [
+      "tensorSelection out/selectors.js",
+      29
+    ],
+    [
+      "(program) ",
+      26
+    ],
+    [
+      "general eval/assignments.js",
+      25
+    ],
+    [
+      "sliceArray out/selectors.js",
+      24
+    ],
+    [
+      " ",
+      23
+    ],
+    [
+      "semanticArrayType runtime/semantic-array-type.js",
+      21
+    ],
+    [
+      " eval/expressions.js",
+      18
+    ],
+    [
+      "visit runtime/array-binding-contract.js",
+      17
+    ],
+    [
+      "isRankArray runtime/value.js",
+      17
+    ],
+    [
+      "derivedArray runtime/derived-array.js",
+      15
+    ],
+    [
+      "integer32Items runtime/owned-array.js",
+      14
+    ],
+    [
+      "setSemanticArrayType runtime/semantic-array-type.js",
+      14
+    ],
+    [
+      "materializeValue out/materialize.js",
+      12
+    ],
+    [
+      "shareSources runtime/array-ownership.js",
+      12
+    ],
+    [
+      "typeName runtime/value.js",
+      12
+    ],
+    [
+      "prepareStoredScalarView runtime/integer-view.js",
+      11
+    ],
+    [
+      "evaluateBinaryValue out/operators.js",
+      9
+    ],
+    [
+      "bindRun jit/tensor-kernel.js",
+      9
+    ],
+    [
+      "getAlternativesForProd grammar/interpreter.js",
+      8
+    ],
+    [
+      "gather out/selectors.js",
+      8
+    ],
+    [
+      "run jit/tensor-kernel.js",
+      8
+    ],
+    [
+      "getConflictingAltSets lib/all-star-lookahead.js",
+      7
+    ],
+    [
+      "applySelectors out/value-selection.js",
+      7
+    ]
+  ]
+}

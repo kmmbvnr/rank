@@ -1,0 +1,24 @@
+
+> rank-workspace@0.0.1 check:semantic-boundaries
+> node --test scripts/semantic-source.test.mjs scripts/demo-execution-exclusions.test.mjs scripts/local-demo-audits.test.mjs && node scripts/check-semantic-boundaries.mjs
+
+✔ execution exclusions name existing workloads and explain the resource cost (2.299291ms)
+✔ recorded timeouts stay excluded while corrected compiler cases remain eligible (0.074833ms)
+✔ new full-scale exclusions retain their small test fixtures unless they timed out (26.324167ms)
+✔ local concurrency uses CPU and memory limits, with a serial CI path (0.811791ms)
+✔ shards execute concurrently and all results enter the coverage gate (571.704542ms)
+✔ a failing worker fails the audit (536.41175ms)
+✔ successful workers with incomplete summaries still fail coverage (555.685083ms)
+✔ comments and ordinary strings do not create dependencies or semantic violations (5.131875ms)
+✔ distinguishes runtime dependencies from all forms of type-only imports and exports (1.879792ms)
+✔ recognizes semantic owner helpers from declarations and typed closures (1.875667ms)
+✔ retains requirement restrictions for aliases, properties, types, and module paths (0.896375ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1718.807459
+Semantic boundaries: 65 owners checked
