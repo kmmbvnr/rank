@@ -1,0 +1,17 @@
+{
+  "limit": 1000000,
+  "output": [
+    "5610899769745488"
+  ],
+  "ms": 238769.213167,
+  "peakRssBytes": 3158687744,
+  "node": "v24.15.0",
+  "arch": "arm64",
+  "expected": "5610899769745488",
+  "verifiedBy": [
+    "independent C++ sequential order stripping and lifting",
+    "benchmarks/euler752-investigation.mjs reference-only"
+  ],
+  "runtimeCommit": "86081718",
+  "measurement": "One local arm64 run; focused checks overlapped briefly. RSS is process peak, not live heap."
+}

@@ -1,0 +1,111 @@
+rem Powers of 1 + sqrt 7
+rem https://projecteuler.net/problem=752
+
+use numbers
+use sequences
+use bits
+use linalg
+use io
+use cli
+
+arg Limit integer = 1000000
+
+rem One row per prime power.
+Primes = primes to Limit copy
+Primes = Primes filter greater 3
+Small = Primes to (Limit isqrt)
+Count = Small len
+Column = Small reshape Count 1
+Depth = Limit binary len
+Grid = Column ** (2 to Depth)
+Owners = Grid * 0 + Column
+Size = Count * (Depth - 1)
+Powers = Grid reshape Size
+Bases = Owners reshape Size
+Keep = Powers at most Limit
+Moduli = concat Primes (Powers Keep)
+Bases = concat Primes (Bases Keep)
+
+rem Test M/q^j for each prime factor q
+rem of a known period multiple M.
+fun Mods candidates Bases
+  for I in 0 till Mods len
+    Mod = Mods I
+    Prime = Bases I
+    Lift = Mod // Prime
+    Bound = Prime - 1
+    Facts = Bound factors copy
+    Test = 7 (Bound // 2) Prime powmod
+    if Test not equal 1
+      Extra = (Prime + 1) factors
+      Facts = concat Facts Extra
+      Bound *= Prime + 1
+    end
+    Facts = concat Facts (Lift factors)
+    Bound *= Lift
+    if Prime equal 7
+      Bound = Mod
+      Facts = Mod factors copy
+    end
+    Facts = Facts sort
+    Count = Facts len
+    Index = 0 till Count
+    First = Facts find Facts
+    Back = Facts reverse find Facts
+    Last = Count - 1 - Back
+    Power = Facts ** (Index - First + 1)
+    Need = Facts ** (Last - Index + 1)
+    Exp = Bound // Power
+    Owner = Exp * 0 + Mod
+    Rows = array Owner Exp Need Facts
+    yield Rows transpose
+  end
+end
+
+Parts' = Moduli candidates Bases
+Empty = array shape 0 4 fill 0
+Rows = concat Empty unpack Parts
+Cols = Rows transpose
+Mod = Cols 0
+Exp = Cols 1
+Need = Cols 2
+Factor = Cols 3
+Count = Mod len
+Mods = Mod reshape Count 1 1
+rem Matrices represent a + b sqrt(7).
+Base = (array 1 7 1 1) reshape 2 2
+Mat = Base matpow Exp rank 2 0 mod Mods
+Flat = Mat reshape Count 4
+Cells = Flat transpose
+Real = Cells 0
+Root = Cells 2
+
+rem The first failed M/q^j test needs
+rem q^(v-j+1), where q^v divides M.
+rem Multiply one such power per q.
+Pass = Real equal 1 and Root equal 0
+Key = Mod * (Limit + 1) + Factor
+Prev = Key shift 1 with 0
+Before = Pass shift 1 with true
+First = Key not equal Prev or Before
+Keep = First and (Pass equal false)
+Orders = array shape (Limit + 1) fill 1
+Ids = Mod Keep
+Orders Ids *= Need Keep .accumulate
+
+rem Coprime prime powers combine by lcm.
+fun N period rank 0
+  Facts = N factors copy
+  Primes = Facts unique
+  Count = Facts len
+  First = Facts find Primes
+  Back = Facts reverse find Primes
+  Last = Count - 1 - Back
+  Powers = Primes ** (Last - First + 1)
+  return Orders Powers lcm
+end
+Numbers = 5 to Limit
+Keep = Numbers gcd 6 equal 1
+Numbers = Numbers Keep
+Answer = Numbers period sum
+Answer print
