@@ -1,0 +1,50 @@
+rem Prime Factors of n^15+1
+use numbers
+use sequences
+use io
+use cli
+arg N integer = 100000000000
+arg M integer = 100000000
+
+fun P unity_root D
+  Power = (P - 1) // D
+  for Base in 2 to P - 1
+    Root = Base Power P powmod
+    if Root greater 1
+      if D less 15
+        return Root
+      end
+      Cube = Root 3 P powmod
+      Fifth = Root 5 P powmod
+      if Cube greater 1 and Fifth greater 1
+        return Root
+      end
+    end
+  end
+  return 0
+end
+
+fun N root_sum P
+  D = 15 gcd (P - 1)
+  if D equal 1
+    return P * ((N + 1) // P)
+  end
+  Root = P unity_root D
+  Power = 1
+  Whole = N // P
+  Tail = N mod P
+  Matches = 0
+  for J in 1 to D
+    if P - Power at most Tail
+      Matches += 1
+    end
+    Power = Power * Root mod P
+  end
+  return P * (D * Whole + Matches)
+end
+
+Answer = 0
+for P in primes to M
+  Answer += N root_sum P
+end
+Answer print

@@ -1,0 +1,69 @@
+rem Prime Factors of n^15+1
+use numbers
+use sequences
+use io
+use cli
+arg N integer = 100000000000
+arg M integer = 100000000
+arg Batch integer = 32768
+
+fun Primes unity_roots D
+  Roots = Primes * 0
+  Left = Primes copy
+  Slots = 0 till Primes len copy
+  Powers = (Left - 1) // D
+  Base = 2
+  for Left len greater 0
+    Candidate = Base Powers Left powmod
+    Good = Candidate greater 1
+    if D equal 15
+      Cubes = Candidate 3 Left powmod
+      Fifths = Candidate 5 Left powmod
+      Good = Good and (Cubes greater 1)
+      Good = Good and (Fifths greater 1)
+    end
+    Found = Good indices
+    Roots (Slots Found) = Candidate Found
+    Pending = Good equal false indices
+    Left = Left Pending
+    Slots = Slots Pending
+    Powers = Powers Pending
+    Base += 1
+  end
+  return Roots
+end
+
+fun N Primes Roots root_sum D
+  Power = Primes * 0 + 1
+  Total = 0
+  for J in 1 to D
+    Residue = Primes - Power
+    Count = (N + Primes - Residue) // Primes
+    Total += Primes * Count sum
+    Power = Power * Roots mod Primes
+  end
+  return Total
+end
+
+fun N group_sum Primes
+  Orders = 15 gcd (Primes - 1)
+  Ones = Primes (Orders equal 1 indices)
+  Counts = (N + 1) // Ones
+  Total = Ones * Counts sum
+  for D in array 3 5 15
+    Group = Primes (Orders equal D indices)
+    Roots = Group unity_roots D
+    Total += N Group Roots root_sum D
+  end
+  return Total
+end
+
+Primes = primes to M array
+Count = Primes len
+Answer = 0
+for Start in 0 till Count by Batch
+  End = (Start + Batch) min Count
+  Group = Primes (Start till End)
+  Answer += N group_sum Group
+end
+Answer print

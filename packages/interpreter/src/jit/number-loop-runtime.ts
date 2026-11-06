@@ -531,6 +531,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         if (reboundInputs && demandBudgetEnabled()) return recordFallback('number-loop:observable-rebinding-budget', 'effects');
         if (plan.rangeNarrowing && demandBudgetEnabled()) return recordFallback('number-loop:observable-narrowing-budget', 'effects');
         for (const name of plan.syntax) if (host.read(name) !== undefined) return recordFallback('number-loop:syntax-binding', 'proof');
+        if (plan.vectorReductions && interruptsEnabled()) return recordFallback('number-loop:observable-extrema', 'effects');
         if (plan.syntax.has('scan') && interruptsEnabled()) return recordFallback('number-loop:observable-scan', 'effects');
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return recordFallback('number-loop:builtin-binding', 'proof');
         const calls: LoopCallable[] = [];
