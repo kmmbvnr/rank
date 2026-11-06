@@ -93,7 +93,10 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
         if (applicationForm(e).kind !== 'plain') return undefined;
         let product = e.operator === 'mod' ? e.left : undefined;
         while (product && isParenthesizedExpression(product)) product = product.value;
-        if (product && isBinaryExpression(product) && product.operator === '*' && !product.step && applicationForm(product).kind === 'plain') {
+        // A computed modulus may mutate inputs or throw. Finish multiplication
+        // before evaluating that expression, retaining ordinary error order.
+        if ((isNameExpression(e.right) || isNumberLiteral(e.right))
+            && product && isBinaryExpression(product) && product.operator === '*' && !product.step && applicationForm(product).kind === 'plain') {
             // A*B mod M reduces each product, so arrays never form exact wide products.
             const a = emit(product.left), b = emit(product.right), m = emit(e.right);
             if (!a || !b || !m) return undefined;

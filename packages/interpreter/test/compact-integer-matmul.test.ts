@@ -14,7 +14,7 @@ function product(row: readonly bigint[], real = false) {
     runtime.variables.set('Right', right);
     try {
         const result = runtime.execute('use linalg\nLeft matmul Right');
-        if (!isRankArray(result)) throw Error('expected matrix');
+        if (result === undefined || !isRankArray(result)) throw Error('expected matrix');
         return {result, cells: Array.from({length: 1024}, (_, i) => readArrayItem(result, i))};
     } finally { runtime.dispose(); }
 }

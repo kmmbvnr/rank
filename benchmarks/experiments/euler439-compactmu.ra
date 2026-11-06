@@ -1,0 +1,158 @@
+rem Sum of Sum of Divisors
+rem https://projecteuler.net/problem=439
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 100000000000
+arg L integer = 10000000
+
+rem sigma(xy) = sum over d | gcd of
+rem mu(d) d sigma(x/d) sigma(y/d), so
+rem S(N) = sum of mu(d) d A(N//d)^2
+rem over d, A the summatory sigma. A and
+rem W(x) = sum of k mu(k) are prefix
+rem tables up to L. Above L, A comes
+rem from the hyperbola method and W
+rem from W(x) = 1 - sum over k >= 2
+rem of k W(x // k).
+Mod = 1000000000
+fun Bound mobius
+  Size = Bound + 1
+  Mu = array shape Size fill 1
+  Removed = array shape Size fill 1
+  Root = Bound isqrt
+  Primes = primes to Root copy
+  Count = Primes len
+  Index = 0
+  P = 2
+  Power = P
+  for Index less Count
+    P = Primes Index
+    Slots = Power to Bound by Power
+    Removed Slots *= P
+    if Power equal P
+      Mu Slots *= -1
+    end
+    Power *= P
+    if Power greater Bound
+      Square = P * P
+      Slots = Square to Bound by Square
+      Mu Slots = 0
+      Index += 1
+      if Index less Count
+        Power = Primes Index
+      end
+    end
+  end
+  Keys = 0 to Bound
+  Large = Keys // Removed greater 1
+  Negative = 0 - Mu
+  Mu = Large choose Negative Mu copy
+  Mu 0 = 0
+  return Mu
+end
+
+fun Bound sigma_prefix
+  Size = Bound + 1
+  Values = array shape Size fill 0
+  Root = Bound isqrt
+  for D in 1 to Root
+    Square = D * D
+    Slots = Square to Bound by D
+    Values Slots += D + Slots // D
+    Values Square -= D
+  end
+  return Values scan + mod Mod
+end
+
+fun Mu weighted_prefix
+  Size = Mu len
+  Keys = 0 till Size
+  Values = Keys * Mu
+  return Values scan + mod Mod
+end
+
+Rn = N isqrt + 2
+Cap = N max 1
+Lm = L max Rn min Cap
+Mu = Lm mobius
+At = Lm sigma_prefix
+Wt = Mu weighted_prefix
+Nq = N // Lm
+Lw = array shape (Nq + 2) fill 0
+La = array shape (Nq + 2) fill 0
+for I in Nq to 1 by -1
+  X = N // I
+  if X greater Lm
+    R = X isqrt
+    K0 = (X // (Lm + 1)) min R
+    rem k <= K0: X // k is above L, so
+    rem W comes from the recursion Lw.
+    Pa = 0
+    if K0 at least 2
+      Ka = 2 to K0 copy
+      Va = Lw (I * Ka)
+      Pa += Ka * Va mod Mod sum
+    end
+    rem k > K0: X // k is a table index.
+    if R greater K0
+      Kb = K0 + 1 to R copy
+      Vb = Wt (X // Kb)
+      Pa += Kb * Vb mod Mod sum
+    end
+    Qz = X // (R + 1)
+    Qs = 1 to Qz copy
+    Hq = X // Qs
+    Hx = concat Hq (array R)
+    Od = Hx mod 2
+    Ha = Hx // (2 - Od)
+    Hb = (Hx + 1) // (1 + Od)
+    Left = Ha mod Mod
+    Tx = Left * (Hb mod Mod) mod Mod
+    Tu = Tx (0 to Qz - 1)
+    Tb = Tx (1 to Qz)
+    Dk = (Tu - Tb) mod Mod
+    Pb = Dk * Wt Qs mod Mod sum
+    Lw I = (1 - Pa - Pb) mod Mod
+    rem A(X) by the hyperbola method.
+    Ka = 1 to R copy
+    Qa = X // Ka
+    Od = Qa mod 2
+    Ha = Qa // (2 - Od)
+    Hb = (Qa + 1) // (1 + Od)
+    Left = Ha mod Mod
+    Tr = Left * (Hb mod Mod) mod Mod
+    Kq = Ka * (Qa mod Mod)
+    Terms = Tr + Kq mod Mod
+    Ta = Terms sum
+    Rr = R mod Mod
+    Rp = R * (R + 1) // 2 mod Mod
+    La I = (Ta - Rr * Rp) mod Mod
+  end
+end
+R2 = N isqrt
+Dd = 1 to R2 copy
+Nd = N // Dd
+Sa = At (Nd min Lm)
+Lq = La (Dd min Nq)
+Ad = Nd at most Lm choose Sa Lq
+Pd = (Mu Dd) * (Dd mod Mod) mod Mod
+Ad2 = Ad * Ad mod Mod
+P1 = Pd * Ad2 mod Mod sum
+Qq = 1 to N // (R2 + 1) copy
+Xq = N // Qq
+Sx = Wt (Xq min Lm)
+Qm = Qq min Nq
+Fx = Xq at most Lm choose Sx (Lw Qm)
+Lo2 = N // (Qq + 1) max R2
+Sw = Wt (Lo2 min Lm)
+Qn = Qq + 1 min Nq
+Fl = Lo2 at most Lm choose Sw (Lw Qn)
+Dq = (Fx - Fl) mod Mod
+Aq = At Qq
+P2 = Aq * Aq mod Mod * Dq mod Mod sum
+Answer = (P1 + P2) mod Mod
+Answer print

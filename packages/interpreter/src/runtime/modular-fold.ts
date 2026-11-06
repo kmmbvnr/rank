@@ -1,4 +1,4 @@
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, privateLoopPolling } from '../interrupt.js';
 import { collectArrayCells } from './array-read.js';
 import { multiply } from './modular-power.js';
 import { integer32Cells, typedArray } from './owned-array.js';
@@ -117,6 +117,18 @@ export function modularReduce(op: '+' | '*', source: Residues, seed: bigint | un
 export function modularProduct(a: RankArray, b: RankArray, modulus: bigint): RankArray | undefined {
     const m = modulusOf(modulus);
     if (m === undefined || m > 2 ** 30 || a.shape.length !== b.shape.length || a.shape.some((n, i) => n !== b.shape[i])) return undefined;
+    // Stable Int32 inputs need only the result buffer. Reduce cells in place
+    // in the arithmetic expression, rather than allocating two residue copies.
+    const left = integer32Cells(a), right = integer32Cells(b);
+    if (left && right && !a.columnNames && !b.columnNames && privateLoopPolling() && !demandBudgetEnabled()) {
+        checkpoint('computing integer array', left.length);
+        const out = new Int32Array(left.length);
+        for (let i = 0; i < out.length; i++) {
+            const x = left[i] % m, y = right[i] % m;
+            out[i] = multiply(x < 0 ? x + m : x, y < 0 ? y + m : y, m);
+        }
+        return typedArray(out, a.shape);
+    }
     const x = arrayResidues(a, modulus), y = arrayResidues(b, modulus);
     if (!x || !y) return undefined;
     checkpoint('computing integer array', x.cells.length);
