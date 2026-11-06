@@ -22,3 +22,16 @@ test "small and large k loops"
   run
   Answer equal 54843257
 end
+
+test "empty and binary alphabets"
+  use "427_nsequences"
+  N = 0
+  run
+  Answer equal 0
+  N = 1
+  run
+  Answer equal 1
+  N = 2
+  run
+  Answer equal 6
+end
