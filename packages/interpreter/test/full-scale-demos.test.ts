@@ -49,9 +49,10 @@ for (const [file, expected] of [
     ['719_numbersplitting.ra', 128088830547982n],
     ['720_unpredictablepermutations.ra', 688081048n],
     ['726_fallingbottles.ra', 578040951n],
+    ['729_periodicrange.ra', '308896374.2502'],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
-    const timeout = file === '715_sextupletnorms.ra' ? 240_000
+    const timeout = ['715_sextupletnorms.ra', '729_periodicrange.ra'].includes(file) ? 240_000
         : ['275_balancedsculptures.ra', '719_numbersplitting.ra'].includes(file) ? 120_000 : 60_000;
     it(`checks the full compiled answer for ${file}`, () => {
         const url = new URL(`../../../demos/euler/${file}`, import.meta.url);
@@ -71,7 +72,8 @@ for (const [file, expected] of [
             if (nativeScan) {
                 expect(diagnostics.modularCallbackScans).toBe(1);
             }
-            if (file !== '719_numbersplitting.ra' && !nativeScan) {
+            if (file === '729_periodicrange.ra') expect(diagnostics.compiledTensors).toBeGreaterThan(0);
+            if (file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && !nativeScan) {
                 expect(diagnostics.numberLoops).toBeGreaterThan(0);
             }
             expect(diagnostics.numberLoopOverflows).toBe(0);
