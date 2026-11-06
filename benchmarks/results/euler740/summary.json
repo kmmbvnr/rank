@@ -1,0 +1,96 @@
+{
+  "baselineCommit": "76d64b62",
+  "initialRuntimeCommit": "f144c1a2",
+  "finalRuntimeCommit": "7a4196f1",
+  "solutionCommit": "d000548d",
+  "hosts": {
+    "mac": {
+      "baseline": {
+        "people": 100,
+        "answer": "0.0189581208",
+        "ms": 26627.958499999997,
+        "cpuMs": 32865.969,
+        "maxRssMiB": 436.5,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      "final": [
+        {
+          "people": 100,
+          "answer": "0.0189581208",
+          "ms": 7079.580541,
+          "cpuMs": 9222.805,
+          "maxRssMiB": 400.109375,
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "people": 100,
+          "answer": "0.0189581208",
+          "ms": 7062.551083,
+          "cpuMs": 9047.476,
+          "maxRssMiB": 400.34375,
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "people": 100,
+          "answer": "0.0189581208",
+          "ms": 7110.7841659999995,
+          "cpuMs": 9310.286,
+          "maxRssMiB": 431.4375,
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ],
+      "medianMs": 7079.580541,
+      "medianPeakMiB": 400.34375,
+      "speedup": 3.761233924211951,
+      "rssReductionPercent": 8.283218785796109
+    },
+    "intel": {
+      "baseline": {
+        "people": 100,
+        "answer": "0.0189581208",
+        "ms": 60670.895061,
+        "cpuMs": 76491.205,
+        "maxRssMiB": 411.796875,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      "final": [
+        {
+          "people": 100,
+          "answer": "0.0189581208",
+          "ms": 19147.10925,
+          "cpuMs": 25739.066,
+          "maxRssMiB": 395.859375,
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "people": 100,
+          "answer": "0.0189581208",
+          "ms": 19252.434635,
+          "cpuMs": 25403.672,
+          "maxRssMiB": 374.63671875,
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "people": 100,
+          "answer": "0.0189581208",
+          "ms": 19283.118324,
+          "cpuMs": 25405.042,
+          "maxRssMiB": 343.96875,
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ],
+      "medianMs": 19252.434635,
+      "medianPeakMiB": 374.63671875,
+      "speedup": 3.151336244544533,
+      "rssReductionPercent": 9.023904382470116
+    }
+  }
+}

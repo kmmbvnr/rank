@@ -1,0 +1,104 @@
+rem Secret Santa
+rem https://projecteuler.net/problem=740
+
+use numbers
+use sequences
+use io
+use cli
+
+arg People integer = 100
+
+rem A stage is a table over (own, last,
+rem single, double): slips left with the
+rem drawer's name, with the last
+rem person's name, and how many later
+rem names have one or two slips left.
+rem Other slips form one generic pool.
+rem A draw takes two allowed slips from
+rem 4 categories (16 ordered pairs,
+rem tabulated at once).
+rem The next drawer is a uniform later
+rem name, which gives the continuation.
+rem The last stage is 1 if a slip with
+rem the last person's name is left.
+Side = People + 2
+Grid = Side * Side
+Cells = 9 * Grid
+Place = 0 to Cells - 1
+Own = Place // (3 * Grid)
+Last = Place // Grid mod 3
+Single = Place // Side mod Side
+Double = Place mod Side
+Table = (Last greater 0) integer * 1.0
+Spot = 0 to 3 * Grid - 1
+Mark = Spot // Grid
+Near = Spot // Side mod Side
+Far = Spot mod Side
+rem Moves of (last, single, double)
+rem when a slip of each kind is drawn.
+Move = array 0 -1 0 0
+Step = array 0 0 -1 1
+Drop = array 0 0 0 -1
+Top = array -1 0 0 0 0 -1 0 0
+Low = array 0 0 -1 0 0 0 1 -2
+Rows = concat Top Low
+Fewer = Rows reshape 4 4 1
+Move1 = Move reshape 4 1 1
+Move2 = Move reshape 1 4 1
+Step1 = Step reshape 4 1 1
+Step2 = Step reshape 1 4 1
+Drop1 = Drop reshape 4 1 1
+Drop2 = Drop reshape 1 4 1
+Mover = Move1 + Move2
+Stepper = Step1 + Step2
+Dropper = Drop1 + Drop2
+Back1 = (Near - 1) max 0
+Back2 = (Far - 1) max 0
+Offset1 = 3 * Grid + Mark * Grid
+Offset2 = 6 * Grid + Mark * Grid
+Twice = 2 * Double
+Used = Own + Last + Single + Twice
+Back = concat Single Twice
+AtOne = Offset1 + Back1 * Side + Far
+AtTwo = Offset2 + Near * Side + Back2
+Edge = Side - 1
+Final' = ((Last + Mover) max 0) min 2
+Ones' = (((Single + Stepper) max 0)
+  min Edge)
+Twos' = (((Double + Dropper) max 0)
+  min Edge)
+Where = (((Final * Side + Ones) * Side
+  + Twos) copy)
+for Stage in People - 1 to 1 by -1
+  Later = People - Stage - 1
+  Total = 2 * (People - Stage + 1)
+  Zero = Table Spot
+  One = Table AtOne
+  Two = Table AtTwo
+  Cont = (Mark greater 0) integer * 1.0
+  if Later greater 0
+    Spare = Later - Near - Far
+    Blend = Spare * Zero + Near * One
+    Blend = Blend + Far * Two
+    Cont = Blend / Later
+  end
+  Gamma = Total - Used
+  Admit = Total - Own
+  Front = concat Gamma Last
+  Both = concat Front Back
+  Counts = Both reshape 4 Cells
+  Floor = Counts max 0
+  Whole = Floor reshape 4 1 Cells
+  Firsts' = Whole * 1.0 / (Admit * 1.0)
+  Row = Counts reshape 1 4 Cells
+  Raw = Row + Fewer
+  Roomy = ((Admit - 1) max 1) * 1.0
+  Seconds' = (Raw max 0) / Roomy
+  Chance' = Firsts * Seconds
+  Mixed = (Chance * (Cont Where)) copy
+  Flat = Mixed reshape 16 Cells
+  Table = Flat sum axis 0
+end
+Start = (8 * Side) * Side + People - 2
+Answer = Table Start text ".10f"
+Answer print

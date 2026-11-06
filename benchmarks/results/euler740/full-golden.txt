@@ -1,0 +1,20 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/full-scale-demos.test.ts -t 740
+
+
+ RUN  v3.2.7 /private/tmp/rank544-work/packages/interpreter
+
+ ✓ test/full-scale-demos.test.ts (48 tests | 47 skipped) 7075ms
+   ✓ checks the full compiled answer for 740_secretsanta.ra  7075ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 47 skipped (48)
+   Start at  17:02:34
+   Duration  8.35s (transform 812ms, setup 0ms, collect 1.18s, tests 7.08s, environment 0ms, prepare 22ms)
+
+npm notice
+npm notice New major version of npm available! 11.12.1 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice

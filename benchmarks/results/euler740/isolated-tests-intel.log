@@ -1,0 +1,108 @@
+
+ RUN  v3.2.7 /tmp/rank544/final/packages/interpreter
+
+Sourcemap for "/tmp/rank544/final/packages/language/out/index.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/rank-module.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/error-lookahead.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/expression-grouping.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/application-forms.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/call-words.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/generated/ast.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/operations.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/collection-capabilities.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/expressions.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/function-declaration.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/declared-calls.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/function-binding.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/function-call-signature.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/function-pipeline.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/modifier-grouping.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/bindings.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/completion-facts.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/types.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/signature-matching.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/shape-index.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/shape-signature.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/value-domain.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/clause-conditions.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/signature-lexer.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/primary-applications.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/generated/module.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/generated/grammar.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/rank-validator.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/value-diagnostics.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/axis-diagnostics.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/operation-shape.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/axis-index.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/fold-axes.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/type-signature.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/signature-compaction.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/function-ranks.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/application-facts.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/fold-facts.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/ranked-function-facts.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/binary-facts.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/operation-proofs.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/array-binding-contract.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/requirements.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/function-effects.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/value-facts.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/value-safety.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/collection-facts.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/control-flow.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/return-contract.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/binding-rule.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/requirement-graph.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/requirement-solver.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/requirement-diagnostics.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/builtin-bindings.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/builtin-renames.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/function-yields.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/function-calls.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/function-relationships.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/compiled-operators.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/operator-signature.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/numeric-recursion.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/return-paths.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/loop-analysis.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/function-scope-diagnostics.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/function-scopes.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/function-escape.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/function-escape-calls.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/deferred-bindings.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/function-mutations.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/block-scope.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/compiled-expression.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/type-names.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/flat-array-borrow.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/test-examples.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/next-tokens.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/compiled-function-type.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/function-signature.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/function-contracts.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/symbolic-function-contracts.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/generator-contracts.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/last-array-use.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/numeric-array-update.js" points to missing source files
+Sourcemap for "/tmp/rank544/final/packages/language/out/analysis/lazy-function.js" points to missing source files
+ ✓ test/compact-broadcast-arithmetic.test.ts (17 tests) 1523ms
+ ✓ test/deferred-real-tensor.test.ts (18 tests) 896ms
+   ✓ deferred real tensor recipes > fuses real arithmetic and registered math without changing any cell  453ms
+ ✓ test/tensor-gather-fusion.test.ts (57 tests) 1471ms
+   ✓ completed gather arithmetic > fuses an ordinary gather/multiply/mod assignment before the next statement  321ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 716ms
+ ✓ test/wide-mod-broadcast.test.ts (10 tests) 436ms
+ ✓ test/compact-broadcast.test.ts (13 tests) 16ms
+ ✓ test/wide-integer-arithmetic.test.ts (9 tests) 404ms
+ ✓ test/euler740.test.ts (16 tests) 3869ms
+   ✓ Euler 740 (compiled=false) > matches labelled-slip enumeration for People=1  530ms
+   ✓ Euler 740 (compiled=false) > matches labelled-slip enumeration for People=5  323ms
+   ✓ Euler 740 (compiled=false) > matches labelled-slip enumeration for People=6  461ms
+   ✓ Euler 740 (compiled=false) > matches labelled-slip enumeration for People=7  620ms
+   ✓ Euler 740 (compiled=false) > matches labelled-slip enumeration for People=8  755ms
+
+ Test Files  8 passed (8)
+      Tests  194 passed (194)
+   Start at  17:04:03
+   Duration  6.89s (transform 2.38s, setup 0ms, collect 12.71s, tests 9.33s, environment 2ms, prepare 533ms)
+

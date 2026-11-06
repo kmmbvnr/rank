@@ -1,0 +1,26 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/euler740.test.ts test/compact-broadcast-arithmetic.test.ts test/compact-broadcast.test.ts test/wide-mod-broadcast.test.ts test/wide-integer-arithmetic.test.ts test/deferred-real-tensor.test.ts test/tensor-gather-fusion.test.ts test/array-binding-contracts.test.ts
+
+
+ RUN  v3.2.7 /private/tmp/rank544-work/packages/interpreter
+
+ ✓ test/compact-broadcast-arithmetic.test.ts (17 tests) 393ms
+ ✓ test/deferred-real-tensor.test.ts (18 tests) 364ms
+ ✓ test/tensor-gather-fusion.test.ts (57 tests) 531ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 293ms
+ ✓ test/compact-broadcast.test.ts (13 tests) 7ms
+ ✓ test/wide-mod-broadcast.test.ts (10 tests) 172ms
+ ✓ test/wide-integer-arithmetic.test.ts (9 tests) 151ms
+ ✓ test/euler740.test.ts (16 tests) 1369ms
+
+ Test Files  8 passed (8)
+      Tests  194 passed (194)
+   Start at  17:00:49
+   Duration  2.67s (transform 986ms, setup 0ms, collect 5.49s, tests 3.28s, environment 0ms, prepare 193ms)
+
+npm notice
+npm notice New major version of npm available! 11.12.1 -> 12.2.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.2
+npm notice To update run: npm install -g npm@12.2.2
+npm notice
