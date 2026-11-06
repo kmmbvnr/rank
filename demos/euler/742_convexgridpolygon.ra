@@ -40,25 +40,30 @@ Slope = Ys * 1.0 / Xs
 Order = Slope argsort
 Xs = Xs Order
 Ys = Ys Order
-Huge = 4000000000000000000
-Cells = (Edges + 1) * Side
-Table = array shape Cells fill Huge
-Table 0 = 0
-Place = 0 to Cells - 1
-Column = Place mod Side
+rem Bound every feasible prefix cost.
+Missing = 4000000000000000000
+Limit = (4 * Width * Reach + 4 * Reach
+  + 2 * Reach * Reach)
+Huge = (Edges * Limit + 1) min Missing
+Table = array shape Quarter Side fill Huge
+Table 0 0 = 0
+Column = 0 to Width
 for Step in 0 to Xs len - 1
   Run = Xs Step
   Rise = Ys Step
   Cost = 2 * Run + 2 * Rise
   Cost = Cost + 2 * Run * Rise
   Grow = 4 * Column * Rise + Cost
-  Added = Table + Grow
-  Jump = Side + Run
-  Moved = Added shift Jump with Huge
-  Valid = Column at least Run
-  Better = Valid choose Moved Huge
-  Table = Table min Better
+  Before = Table
+  Added = Before + Grow
+  Rows = Added shift 1 with Huge axis 0
+  Moved = Rows shift Run with Huge axis 1
+  Table = Before min Moved
 end
-Last = Table (Edges * Side to Cells - 1)
-Answer = 1 + Last min
+Last = Table Edges
+Best = Last min
+Answer = 1 + Best
+if Best equal Huge
+  Answer = Missing + 1
+end
 Answer print
