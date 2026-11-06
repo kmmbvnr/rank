@@ -13,7 +13,8 @@ const mod = (a: bigint, b: bigint) => ((a % b) + b) % b;
 
 describe('wide integer modulo compact broadcast divisors', () => {
     it('keeps compact signed row broadcasts exact', () => {
-        const input = Int32Array.of(-2147483648, -2147483647, -1, 0, 1, 2147483646, 2147483647);
+        const edge = [-2147483648, -2147483647, -1, 0, 1, 2147483646, 2147483647];
+        const input = Int32Array.from({ length: 257 }, (_, i) => edge[i % edge.length]);
         const result = mapStoredIntegers(typedArray(input, [1, input.length]),
             typedArray(divisors, [divisors.length, 1]), 'mod')!;
         expect(integer32Cells(result)).toBeDefined();
@@ -38,26 +39,28 @@ describe('wide integer modulo compact broadcast divisors', () => {
         }
     });
     it('handles matching vectors with varying divisors', () => {
-        const right = Int32Array.from({ length: values.length }, (_, i) => divisors[i % divisors.length]);
-        const result = mapStoredIntegers(typedArray(values), typedArray(right), 'mod')!;
-        expect(Array.from(values, (value, i) => readArrayItem(result, i)))
-            .toEqual(Array.from(values, (value, i) => mod(value, BigInt(right[i]))));
+        const input = BigInt64Array.from({ length: 4096 }, (_, i) => values[i % values.length]);
+        const right = Int32Array.from({ length: input.length }, (_, i) => divisors[i % divisors.length]);
+        const result = mapStoredIntegers(typedArray(input), typedArray(right), 'mod')!;
+        expect(Array.from(input, (value, i) => readArrayItem(result, i)))
+            .toEqual(Array.from(input, (value, i) => mod(value, BigInt(right[i]))));
     });
     it('preserves offsets across three-dimensional broadcast rows', () => {
-        const source = typedArray(values.slice(0, 34));
-        const left = sliceStoredArray(source, 1, [2, 1, 16])!;
+        const input = BigInt64Array.from({ length: 514 }, (_, i) => values[i % values.length]);
+        const source = typedArray(input);
+        const left = sliceStoredArray(source, 1, [2, 1, 256])!;
         const right = typedArray(Int32Array.of(7, 11, 67108863), [1, 3, 1]);
         const result = mapStoredIntegers(left, right, 'mod')!;
-        expect(result.shape).toEqual([2, 3, 16]);
-        for (let batch = 0; batch < 2; batch++) for (let row = 0; row < 3; row++) for (let i = 0; i < 16; i++) {
-            expect(readArrayItem(result, (batch * 3 + row) * 16 + i))
-                .toBe(mod(values[1 + batch * 16 + i], BigInt([7, 11, 67108863][row])));
+        expect(result.shape).toEqual([2, 3, 256]);
+        for (let batch = 0; batch < 2; batch++) for (let row = 0; row < 3; row++) for (let i = 0; i < 256; i++) {
+            expect(readArrayItem(result, (batch * 3 + row) * 256 + i))
+                .toBe(mod(input[1 + batch * 256 + i], BigInt([7, 11, 67108863][row])));
         }
     });
     it.each([-7, 67108865])('retains exact fallback for divisor %i', divisor => {
         const result = mapStoredIntegers(typedArray(values, [1, values.length]),
-            typedArray(Int32Array.of(3, divisor), [2, 1]), 'mod')!;
-        for (let i = 0; i < values.length; i++) expect(readArrayItem(result, values.length + i))
+            typedArray(Int32Array.of(3, 3, 3, 3, 3, 3, 3, divisor), [8, 1]), 'mod')!;
+        for (let i = 0; i < values.length; i++) expect(readArrayItem(result, 7 * values.length + i))
             .toBe(mod(values[i], BigInt(divisor)));
     });
     it('keeps zero division and empty broadcasts on their ordinary contracts', () => {
@@ -77,12 +80,13 @@ describe('wide integer modulo compact broadcast divisors', () => {
     it('preserves reversed views and independent result storage', () => {
         const runtime = new Interpreter();
         try {
-            runtime.variables.set('A', typedArray(values.slice()));
+            const input = BigInt64Array.from({ length: 5000 }, (_, i) => values[i % values.length]);
+            runtime.variables.set('A', typedArray(input.slice()));
             runtime.execute('use sequences\nReversed = A reverse\nB = Reversed mod (array 7)\nSaved = B\nA 0 = 42\nB 0 = 3');
             const saved = runtime.variables.get('Saved');
             if (!saved || !isRankArray(saved)) throw Error('expected array');
-            expect(Array.from(values, (_, i) => readArrayItem(saved, i)))
-                .toEqual(Array.from(values).reverse().map(value => mod(value, 7n)));
+            expect(Array.from(input, (_, i) => readArrayItem(saved, i)))
+                .toEqual(Array.from(input).reverse().map(value => mod(value, 7n)));
         } finally { runtime.dispose(); }
     });
     it('retains cancellation, budget failures and retry without modifying operands', () => {

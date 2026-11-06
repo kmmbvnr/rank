@@ -37,10 +37,6 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
     if (!operation || inspectionEnabled() || !privateLoopPolling()) return undefined;
     if (name === '+' || name === '-' || name === '*' || name === 'gcd' || name === 'mod' || name === '//' || name === 'min' || name === 'max' || name === '**') {
         try {
-            if (name === 'mod') {
-                const broadcast = mapStoredWordRemainders(left, right);
-                if (broadcast) return broadcast;
-            }
             const compact = mapStoredInt32Binary(left, right, name);
             if (compact) return compact;
             const wide = mapStoredWords(left, right, name);
@@ -160,6 +156,11 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
     if (size) {
         if (a) a.validateUniform?.(a.compact ? BigInt(a.compact[a.linear!.offset]) : a.items[a.linear!.offset]);
         if (b) b.validateUniform?.(b.compact ? BigInt(b.compact[b.linear!.offset]) : b.items[b.linear!.offset]);
+    }
+    // Bulk setup must amortize over enough cells; short calls keep their path.
+    if (name === 'mod' && a && b && size >= DENSE_MIN_CELLS) {
+        const remainder = mapStoredWordRemainders(left, right, a, b, shape);
+        if (remainder) return remainder;
     }
     const x = a ? 0 : Number(left), y = b ? 0 : Number(right);
     const code = name === '+' ? 0 : name === '-' ? 1 : name === '*' ? 2 : name === 'mod' ? 3
@@ -347,19 +348,17 @@ function mapStoredWords(left: RankValue, right: RankValue, name: string): RankAr
 
 /** Exact remainders with compact positive array divisors. Reading Int64
  * words avoids BigInt boxing; row broadcasts avoid Float64 scratch output. */
-function mapStoredWordRemainders(left: RankValue, right: RankValue): RankArray | undefined {
+function mapStoredWordRemainders(left: RankValue, right: RankValue,
+    a: NonNullable<ReturnType<typeof prepareStoredScalarView>>,
+    b: NonNullable<ReturnType<typeof prepareStoredScalarView>>, shape: readonly number[]): RankArray | undefined {
     if (demandBudgetEnabled() || !isRankArray(left) || !isRankArray(right)) return undefined;
-    const a = prepareStoredScalarView(left, true), b = prepareStoredScalarView(right, true);
-    const fine = (view: typeof a) => view?.kinds?.join() === 'integer' && view.linear !== undefined
-        && (!view.validate || view.validateUniform !== undefined);
-    if (!fine(a) || !fine(b) || !a!.compact && !(a!.items instanceof BigInt64Array) || !b!.compact) return undefined;
-    const shape = broadcastShape(left.shape, right.shape), size = shape.reduce((x, y) => x * y, 1);
+    if (!a.compact && !(a.items instanceof BigInt64Array) || !b.compact) return undefined;
+    const size = shape.reduce((x, y) => x * y, 1);
     const width = shape.at(-1) ?? 1, compact = a!.compact;
     if (compact && (right.shape.at(-1) !== 1 || width < 4)) return undefined;
     if (!size) return typedArray(new Int32Array(0), shape);
     const ao = a!.linear!.offset, as = a!.linear!.stride, bo = b!.linear!.offset, bs = b!.linear!.stride;
     const values = a!.items as BigInt64Array, divisors = b!.compact;
-    a!.validateUniform?.(compact ? BigInt(compact[ao]) : values[ao]); b!.validateUniform?.(BigInt(divisors[bo]));
     const count = right.shape.reduce((x, y) => x * y, 1);
     for (let start = 0; start < count; start += 4096) {
         const end = Math.min(count, start + 4096);
