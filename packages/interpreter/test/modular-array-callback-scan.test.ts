@@ -76,7 +76,7 @@ it('preserves opaque host read order', () => {
     const run = (compilation: boolean) => {
         const runtime = new Interpreter(undefined, { compilation }), reads: number[] = [];
         try {
-            runtime.variables.set('Input', { kind: 'array', shape: [2053], itemAt: i => { reads.push(i); return BigInt(input[i]); }, get items() { throw Error('opaque'); } });
+            runtime.variables.set('Input', { kind: 'array', shape: [2053], itemAt: i => { reads.push(i); return BigInt(input[i]); }, get items(): never { throw Error('opaque'); } });
             runtime.execute(definition('*', 17n) + 'Answer = Input scan combine');
             return { answer: formatValue(runtime.execute('Answer')!), reads };
         } finally { runtime.dispose(); }
@@ -98,4 +98,17 @@ it('keeps interruption, demand budgets and retry atomic', () => {
         if (!original || !isRankArray(original)) throw Error('expected original array');
         expect(readArrayItem(original, 0)).toBe(2147483647n);
     } finally { runtime.dispose(); }
+});
+
+it('preserves captured modulus and independent snapshots on repeated deferred demands', () => {
+    const run = (compilation: boolean) => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.variables.set('Input', typedArray(input.slice()));
+            runtime.execute(definition('*', 17n)
+                + "Later' = Input scan combine with 40\nMod = 19\nBefore = Later copy\nAgain = Later copy\nBefore 0 = 99");
+            return formatValue(runtime.execute('array (Before sum) (Again sum)')!);
+        } finally { runtime.dispose(); }
+    };
+    expect(run(true)).toBe(run(false));
 });

@@ -1,0 +1,104 @@
+{
+  "baselineCommit": "54b83975",
+  "runtimeCommit": "bd4e1f8f",
+  "correctnessCommit": "bbe37b85",
+  "integrationCommit": "8d603c61",
+  "hosts": {
+    "mac": {
+      "baseline": {
+        "length": 100000000,
+        "chunk": 4194304,
+        "answer": "711399016",
+        "ms": 95877.60475,
+        "cpuMs": 103677.15,
+        "maxRssMiB": 1509.4375,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      "final": [
+        {
+          "length": 100000000,
+          "chunk": 4194304,
+          "answer": "711399016",
+          "ms": 24895.064292000003,
+          "cpuMs": 31613.395,
+          "maxRssMiB": 1133.21875,
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "length": 100000000,
+          "chunk": 4194304,
+          "answer": "711399016",
+          "ms": 26219.102041,
+          "cpuMs": 32724.089,
+          "maxRssMiB": 1071.671875,
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "length": 100000000,
+          "chunk": 4194304,
+          "answer": "711399016",
+          "ms": 27059.993417,
+          "cpuMs": 33917.153,
+          "maxRssMiB": 1080.25,
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ],
+      "medianMs": 26219.102041,
+      "medianPeakMiB": 1080.25,
+      "speedup": 3.656784454329208,
+      "rssReductionPercent": 28.433605233737737
+    },
+    "intel": {
+      "baseline": {
+        "length": 100000000,
+        "chunk": 4194304,
+        "answer": "711399016",
+        "ms": 231676.099929,
+        "cpuMs": 251778.105,
+        "maxRssMiB": 1477.90625,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      "final": [
+        {
+          "length": 100000000,
+          "chunk": 4194304,
+          "answer": "711399016",
+          "ms": 59102.119273000004,
+          "cpuMs": 80625.207,
+          "maxRssMiB": 1053.96875,
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "length": 100000000,
+          "chunk": 4194304,
+          "answer": "711399016",
+          "ms": 56020.160909000006,
+          "cpuMs": 70094.681,
+          "maxRssMiB": 1104.6953125,
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "length": 100000000,
+          "chunk": 4194304,
+          "answer": "711399016",
+          "ms": 57875.398755,
+          "cpuMs": 71938.264,
+          "maxRssMiB": 1120.875,
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ],
+      "medianMs": 57875.398755,
+      "medianPeakMiB": 1104.6953125,
+      "speedup": 4.003015182836816,
+      "rssReductionPercent": 25.25268010064915
+    }
+  }
+}

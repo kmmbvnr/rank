@@ -1,0 +1,6 @@
+
+> rank-workspace@0.0.1 check:application-forms
+> node scripts/check-application-forms.mjs
+
+Application forms: both consumers reject an unhandled form
+Application forms: isolated #24 pilot uses unchanged runtime and analysis handlers

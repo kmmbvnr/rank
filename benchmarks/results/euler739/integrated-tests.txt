@@ -1,0 +1,27 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/euler739.test.ts test/modular-array-callback-scan.test.ts test/modular-callback-scan.test.ts test/scalar-function-modular-product.test.ts test/array-binding-contracts.test.ts test/scan.test.ts test/compact-integer-scan.test.ts test/int64-scan.test.ts test/int32-product-scan.test.ts test/return-contract.test.ts
+
+
+ RUN  v3.2.7 /private/tmp/rank543-work/packages/interpreter
+
+ ✓ test/modular-array-callback-scan.test.ts (17 tests) 424ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 441ms
+ ✓ test/modular-callback-scan.test.ts (32 tests) 456ms
+ ✓ test/scalar-function-modular-product.test.ts (9 tests) 497ms
+   ✓ exact modular products in scalar Number functions > keeps wide products of safe signed integers in Number mode  396ms
+ ✓ test/return-contract.test.ts (13 tests) 216ms
+ ✓ test/int32-product-scan.test.ts (11 tests) 139ms
+ ✓ test/scan.test.ts (20 tests) 246ms
+ ✓ test/int64-scan.test.ts (7 tests) 109ms
+ ✓ test/compact-integer-scan.test.ts (7 tests) 1138ms
+   ✓ compact integer scan (compilation=true) > falls back to exact integers above Number range without changing the input  332ms
+   ✓ compact integer scan (compilation=false) > falls back to exact integers above Number range without changing the input  340ms
+   ✓ widens safe positive and negative prefixes to integers and rejects unsafe ones  324ms
+ ✓ test/euler739.test.ts (26 tests) 1408ms
+
+ Test Files  10 passed (10)
+      Tests  196 passed (196)
+   Start at  15:48:16
+   Duration  5.19s (transform 1.41s, setup 0ms, collect 10.50s, tests 5.08s, environment 1ms, prepare 278ms)
+

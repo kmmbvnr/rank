@@ -54,8 +54,8 @@ for (const [file, expected] of [
     ['729_periodicrange.ra', '308896374.2502'],
     ['735_divisorsoftwo.ra', 174848216767932n],
     ['737_coinloops.ra', 757794899n],
-    ['739_summationofsummations.ra', 711399016n],
     ['738_orderedfactorisations.ra', 143091030n],
+    ['739_summationofsummations.ra', 711399016n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
     const timeout = ['715_sextupletnorms.ra', '729_periodicrange.ra'].includes(file) ? 240_000

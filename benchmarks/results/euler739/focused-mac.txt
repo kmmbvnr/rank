@@ -1,0 +1,20 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/modular-array-callback-scan.test.ts test/modular-callback-scan.test.ts test/scalar-function-modular-product.test.ts test/euler739.test.ts test/scan-shapes.test.ts test/reduction.test.ts test/array-binding-contracts.test.ts
+
+
+ RUN  v3.2.7 /private/tmp/rank543-work/packages/interpreter
+
+ ✓ test/array-binding-contracts.test.ts (54 tests) 393ms
+ ✓ test/modular-callback-scan.test.ts (32 tests) 411ms
+ ✓ test/scalar-function-modular-product.test.ts (9 tests) 433ms
+   ✓ exact modular products in scalar Number functions > keeps wide products of safe signed integers in Number mode  334ms
+ ✓ test/modular-array-callback-scan.test.ts (16 tests) 243ms
+ ✓ test/euler739.test.ts (26 tests) 1591ms
+   ✓ Euler 739 (compiled=false) > matches repeated summation for Length=1  301ms
+
+ Test Files  5 passed (5)
+      Tests  137 passed (137)
+   Start at  15:39:18
+   Duration  3.34s (transform 1.06s, setup 0ms, collect 6.33s, tests 3.07s, environment 0ms, prepare 194ms)
+

@@ -1,0 +1,15 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/full-scale-demos.test.ts -t 739
+
+
+ RUN  v3.2.7 /private/tmp/rank543-work/packages/interpreter
+
+ ✓ test/full-scale-demos.test.ts (47 tests | 46 skipped) 26939ms
+   ✓ checks the full compiled answer for 739_summationofsummations.ra  26938ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 46 skipped (47)
+   Start at  15:42:44
+   Duration  28.42s (transform 906ms, setup 0ms, collect 1.35s, tests 26.94s, environment 0ms, prepare 32ms)
+
