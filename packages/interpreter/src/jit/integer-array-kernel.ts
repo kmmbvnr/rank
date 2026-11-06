@@ -8,7 +8,7 @@ import { RankError } from '../errors.js';
 import { modularPowerQuad, safeIntegerModularPower } from '../modular-power.js';
 import { prepareIntegerView, prepareStoredScalarView } from '../integer-view.js';
 import { storedOperand } from '../array-copy.js';
-import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
 import { floorDivide, floorRemainder } from '../numeric-division.js';
 import { arrayStrides, broadcastOffset, broadcastShape, trailingCells } from './tensor-layout.js';
 import { isRankArray, type RankArray, type RankValue } from '../value.js';
@@ -37,6 +37,10 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
     if (!operation || inspectionEnabled() || !privateLoopPolling()) return undefined;
     if (name === '+' || name === '-' || name === '*' || name === 'gcd' || name === 'mod' || name === '//' || name === 'min' || name === 'max' || name === '**') {
         try {
+            if (name === 'mod') {
+                const broadcast = mapStoredWordRemainders(left, right);
+                if (broadcast) return broadcast;
+            }
             const compact = mapStoredInt32Binary(left, right, name);
             if (compact) return compact;
             const wide = mapStoredWords(left, right, name);
@@ -339,6 +343,69 @@ function mapStoredWords(left: RankValue, right: RankValue, name: string): RankAr
         }
     }
     return typedArray(out, shape);
+}
+
+/** Exact Int64 remainders with compact positive array divisors. Reading the
+ * two words avoids both BigInt boxing and speculative Float64 output. */
+function mapStoredWordRemainders(left: RankValue, right: RankValue): RankArray | undefined {
+    if (demandBudgetEnabled() || !isRankArray(left) || !isRankArray(right)) return undefined;
+    const a = prepareStoredScalarView(left, true), b = prepareStoredScalarView(right, true);
+    const fine = (view: typeof a) => view?.kinds?.join() === 'integer' && view.linear !== undefined
+        && (!view.validate || view.validateUniform !== undefined);
+    if (!fine(a) || !fine(b) || !(a!.items instanceof BigInt64Array) || !b!.compact) return undefined;
+    const shape = broadcastShape(left.shape, right.shape), size = shape.reduce((x, y) => x * y, 1);
+    if (!size) return typedArray(new Int32Array(0), shape);
+    const ao = a!.linear!.offset, as = a!.linear!.stride, bo = b!.linear!.offset, bs = b!.linear!.stride;
+    const values = a!.items as BigInt64Array, divisors = b!.compact;
+    a!.validateUniform?.(values[ao]); b!.validateUniform?.(BigInt(divisors[bo]));
+    const count = right.shape.reduce((x, y) => x * y, 1);
+    for (let start = 0; start < count; start += 4096) {
+        const end = Math.min(count, start + 4096);
+        checkpoint('checking integer remainder divisors', end - start);
+        for (let i = start; i < end; i++) {
+            const m = divisors[bo + i * bs];
+            if (m < 1 || m > 67108864) return undefined;
+        }
+    }
+    const words = new Int32Array(values.buffer, values.byteOffset, values.length * 2);
+    const highWord = 1 - lowWord, cells = new Int32Array(size);
+    const remainder = (at: number, m: number, factor: number) => {
+        let high = words[2 * at + highWord] % m;
+        if (high < 0) high += m;
+        let value = high * factor + (words[2 * at + lowWord] >>> 0);
+        value -= Math.floor(value / m) * m;
+        return value < 0 ? value + m : value >= m ? value - m : value;
+    };
+    const width = shape.at(-1) ?? 1;
+    if (right.shape.at(-1) === 1) {
+        const aStrides = arrayStrides(left.shape), bStrides = arrayStrides(right.shape);
+        const step = left.shape.at(-1) === 1 ? 0 : as;
+        let nextPoll = 0;
+        for (let row = 0; row < size; row += width) {
+            const at = ao + broadcastOffset(row, shape, left.shape, aStrides) * as;
+            const m = divisors[bo + broadcastOffset(row, shape, right.shape, bStrides) * bs];
+            const factor = 4294967296 % m;
+            for (let start = 0; start < width; start += 4096) {
+                const end = Math.min(width, start + 4096);
+                if (row + start >= nextPoll) {
+                    checkpoint('computing integer array', Math.min(4096, size - row - start));
+                    nextPoll = row + start + 4096;
+                }
+                for (let column = start; column < end; column++) cells[row + column] = remainder(at + column * step, m, factor);
+            }
+        }
+    } else {
+        const ai = broadcastIndex(left.shape, shape), bi = broadcastIndex(right.shape, shape);
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('computing integer array', end - start);
+            for (let i = start; i < end; i++) {
+                const m = divisors[bo + bi(i) * bs];
+                cells[i] = remainder(ao + ai(i) * as, m, 4294967296 % m);
+            }
+        }
+    }
+    return typedArray(cells, shape);
 }
 
 /** Bitwise operations on Int32/Int64 storage, one Int32 word pair per cell.
