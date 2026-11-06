@@ -23,7 +23,7 @@ rem sum of Y // m for m = L..Y. A pair
 rem count is the divisor sum D(Y) minus
 rem a short prefix or, for large L, a
 rem sum over t <= Y / L. All terms form
-rem one ragged array, summed in chunks.
+rem weighted intervals, then chunks.
 Root = Limit isqrt
 Mobius = array shape (Root + 1) fill 1
 Mobius 0 = 0
@@ -83,13 +83,75 @@ Ls = concat OddU (2 * OffsetB)
 Ls = concat Ls OffsetB
 Gains = concat SignA SignB
 Gains = concat Gains (0 - SignB)
-rem Cost of a task in terms.
-Wide = (Ls * Ls) less Ys
-Sides = Ys isqrt
-Direct = Sides + Ls
-Cost = Wide choose Direct (Ys // Ls)
-Spent = Cost scan +
-Tasks = Ys len
+rem Merge overlapping floor-sum ranges.
+Short = (Ls * Ls) less Ys
+Y1 = Ys filter Short
+L1 = Ls filter Short
+G1 = Gains filter Short
+Long = (Ls * Ls) at least Ys
+Y2 = Ys filter Long
+L2 = Ls filter Long
+G2 = Gains filter Long
+Side = Y1 isqrt
+Tail = Y2 // L2
+Values = concat (concat Y1 Y1) Y2
+Twice = 2 * G1
+Minus = 0 - G1
+Pair = concat Twice Minus
+Signs2 = concat Pair G2
+Prefix = L1 - 1
+Both = concat Side Prefix
+Sizes = concat Both Tail
+Fix1 = Side * Side * G1
+Fix2 = Tail * (1 - L2) * G2
+Gain2 = Fix2 sum
+Cut1 = Fix1 sum
+Fixed = Gain2 - Cut1
+Used = Sizes greater 0
+Values = Values filter Used
+Signs2 = Signs2 filter Used
+Sizes = Sizes filter Used
+rem Equal numerators share their work.
+Base = Root + 1
+Encoded = Values * Base + Sizes
+Keys = Encoded unique sort
+Group = Keys lowerindex Encoded
+Weights = Signs2 sum by Group
+Saved = Weights not equal 0
+Codes = Keys filter Saved
+Weights = Weights filter Saved
+Numerators = Codes // Base
+Stops = Codes mod Base
+Count = Codes len
+Last = Count - 1
+Leading = Numerators take Last
+Prior = concat (array 0) Leading
+New = Numerators not equal Prior
+Mark = New choose 1 0
+Groups = Mark scan +
+Groups = Groups - 1
+Positions = (0 to Count - 1) array
+Heads = Positions filter New
+Prefix = Weights scan +
+rem Remaining weights cover the interval
+rem since the previous endpoint.
+Before = Prefix - Weights
+Origins = Before Heads
+Totals = Weights sum by Groups
+Remaining = Before - (Origins Groups)
+Remaining = (Totals Groups) - Remaining
+Leading = Stops take Last
+Previous = concat (array 0) Leading
+Low = New choose 0 Previous
+Lengths = Stops - Low
+Good = Remaining not equal 0
+Good = Good and (Lengths greater 0)
+Numerators = Numerators filter Good
+Counts = Lengths filter Good
+Weights = Remaining filter Good
+Begins = (Low + 1) filter Good
+Spent = Counts scan +
+Tasks = Counts len
 Last = Tasks - 1
 Final = Spent Last
 Chunks = Final // Budget + 1
@@ -97,43 +159,17 @@ Bucket = (Spent - 1) // Budget
 Edges = (0 to Chunks) array
 Firsts = Bucket lowerindex Edges
 Total = 0
-Widest = Cost max
+Widest = Counts max
 Iota = (0 to Budget + Widest + 1) array
 for Piece in 0 to Chunks - 1
   Begin = Firsts Piece
   End = Firsts (Piece + 1) - 1
   if End at least Begin
     Area = Begin to End
-    Y = Ys Area
-    L = Ls Area
-    Gain = Gains Area
-    Short = (L * L) less Y
-    Y1 = Y filter Short
-    L1 = L filter Short
-    G1 = Gain filter Short
-    Long = (L * L) at least Y
-    Y2 = Y filter Long
-    L2 = L filter Long
-    G2 = Gain filter Long
-    Side = Y1 isqrt
-    Tail = Y2 // L2
-    Values = concat (concat Y1 Y1) Y2
-    Twice = 2 * G1
-    Minus = 0 - G1
-    Pair = concat Twice Minus
-    Signs2 = concat Pair G2
-    Prefix = L1 - 1
-    Both = concat Side Prefix
-    Sizes = concat Both Tail
-    Fix1 = Side * Side * G1
-    Fix2 = Tail * (1 - L2) * G2
-    Gain2 = Fix2 sum
-    Cut1 = Fix1 sum
-    Fixed = Gain2 - Cut1
-    Used = Sizes greater 0
-    Values = Values filter Used
-    Signs2 = Signs2 filter Used
-    Sizes = Sizes filter Used
+    Values = Numerators Area
+    Signs2 = Weights Area
+    Sizes = Counts Area
+    Initial = Begins Area
     Many = Sizes sum
     Ends = Sizes scan +
     Starts = Ends - Sizes
@@ -141,12 +177,15 @@ for Piece in 0 to Chunks - 1
     Marks Starts = 1
     Owner = (Marks scan +) - 1
     Run = Iota take Many
-    Index = Run - (Starts Owner) + 1
-    Divided = (Values Owner) // Index
-    Term = (Signs2 Owner) * Divided
+    Index' = (
+      Run - (Starts Owner)
+      + (Initial Owner)
+    )
+    Divided' = (Values Owner) // Index
+    Term' = (Signs2 Owner) * Divided
     Added = Term sum
-    Total = Total + Added + Fixed
+    Total = Total + Added
   end
 end
-Answer = Total
+Answer = Total + Fixed
 Answer print

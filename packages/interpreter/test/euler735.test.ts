@@ -20,7 +20,7 @@ function run(limit: number, budget: number, compilation: boolean): bigint {
     } finally { runtime.dispose(); }
 }
 for (const compilation of [false, true]) describe(`Euler 735 (compiled=${compilation})`, () => {
-    it.each([1, 2, 3, 4, 5, 10, 15, 31, 64, 100, 257, 1000])('matches direct divisor counts through %i', limit => {
+    it.each([1, 2, 3, 4, 5, 8, 9, 10, 15, 16, 17, 24, 25, 26, 31, 49, 50, 63, 64, 65, 99, 100, 101, 257, 999, 1000, 1001, 4095, 4096, 4097])('matches direct divisor counts through %i', limit => {
         expect(run(limit, 128, compilation)).toBe(brute(limit));
     });
     it.each([1, 7, 64, 1024])('keeps chunk budget %i independent of the result', budget => {
