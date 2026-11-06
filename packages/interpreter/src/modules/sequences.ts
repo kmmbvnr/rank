@@ -1,3 +1,5 @@
+import { registerSequenceCompletion } from '../sequence-completion.js';
+import { storedMaskSelection } from '../array-mask-selection.js';
 import { materializeTensorMap, registerTensorConcat } from '../tensor-map.js';
 import { resolveAxis, resolveAxes } from '../tensor-index.js';
 import { copyArrayStorage } from '../array-copy.js';
@@ -24,9 +26,9 @@ import { elementSource } from '../element-source.js';
 import { inheritArrayDeclaration } from '../array-declaration.js';
 import { semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
-import { prepareIntegerView, registerScalarView } from '../integer-view.js';
+import { prepareIntegerView, prepareStoredScalarView, registerScalarView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, copyStoredNumericArray, typedArray, copyMaterializedArrayItems, arrayValueTraversal, arrayValues, collectArrayCells, prepareArrayRead, readArrayItem, evaluateArrayItem, reshapeStoredArray } from '../array-storage.js';
+import { MAX_HELD_CELLS, ownedArray, derivedArray, copyStoredNumericArray, typedArray, copyMaterializedArrayItems, arrayValueTraversal, arrayValues, collectArrayCells, prepareArrayRead, readArrayItem, evaluateArrayItem, reshapeStoredArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { rotateArray } from '../runtime/rotate.js';
@@ -430,6 +432,98 @@ function* concatItems(sources: readonly (RankArray | RankSequence)[]): Generator
     }
 }
 
+/** Complete stored numeric concatenations without boxed iterator cells. All
+ * inputs are prepared before any validation or copying; opaque sources decline. */
+function copyScalarConcat(sources: readonly (RankArray | RankSequence)[]): RankArray | undefined {
+    if (!privateLoopPolling() || inspectionEnabled()) return undefined;
+    const leaves: (RankArray | RankSequence)[] = [];
+    const pending = [sources[Symbol.iterator]()];
+    while (pending.length) {
+        checkpoint('preparing concatenation');
+        const next = pending[pending.length - 1].next();
+        if (next.done) { pending.pop(); continue; }
+        const source = next.value;
+        const plan = isRankSequence(source)
+            ? Object.getOwnPropertyDescriptor(source, 'plan')?.value as SequencePlan | undefined : undefined;
+        if (isRankSequence(source) && !plan) return undefined;
+        const nested = plan && concatPlans.get(plan);
+        if (nested && Object.getOwnPropertyDescriptor(plan, 'iterate')?.value === nested.iterate) pending.push(nested.sources[Symbol.iterator]());
+        else leaves.push(source);
+    }
+    const parts = [];
+    let size = 0, wide = false;
+    let kind: string | undefined;
+    for (const leaf of leaves) {
+        const selection = isRankSequence(leaf) ? storedMaskSelection(leaf) : undefined;
+        if (isRankSequence(leaf) && !selection) return undefined;
+        const source = selection ? selection.source : leaf as RankArray;
+        if (!selection && source.shape.length !== 1) return undefined;
+        const view = prepareStoredScalarView(source, true);
+        const cells = view?.compact ?? view?.items;
+        const count = selection ? selection.positions.length : source.shape[0];
+        if (!view?.linear || view.validate && !view.validateUniform
+            || !(cells instanceof Int32Array || cells instanceof BigInt64Array || cells instanceof Float64Array || Array.isArray(cells))) return undefined;
+        if (!Number.isSafeInteger(count) || count < 0) return undefined;
+        if (count) {
+            const { offset, stride } = view.linear;
+            const first = offset + stride * (selection ? selection.positions[0] : 0);
+            const last = offset + stride * (selection ? selection.positions[count - 1] : count - 1);
+            if (![first, last].every(at => Number.isSafeInteger(at) && at >= 0 && at < cells.length)) return undefined;
+            const next = view.kinds?.length === 1 ? view.kinds[0] : undefined;
+            if (!next || kind && kind !== next) return undefined;
+            kind = next;
+        }
+        size += count;
+        if (!Number.isSafeInteger(size) || size > Number(MAX_HELD_CELLS)) return undefined;
+        wide ||= count > 0 && cells instanceof BigInt64Array;
+        parts.push({ view, cells, count, positions: selection?.positions });
+    }
+    if (!kind || !['integer', 'real'].includes(kind)) return undefined;
+    // Small integer arrays are boxed. Prove their selected values fit before
+    // choosing packed output; arbitrary precision retains normal stacking.
+    if (kind === 'integer') for (const { view, cells, count, positions } of parts) {
+        if (!Array.isArray(cells)) continue;
+        const { offset, stride } = view.linear!;
+        for (let start = 0; start < count; start += 4096) {
+            const end = Math.min(start + 4096, count);
+            checkpoint('checking concatenation integers', end - start);
+            for (let i = start; i < end; i++) {
+                const cell = cells[offset + stride * (positions ? positions[i] : i)] as bigint;
+                if (cell < -(1n << 63n) || cell >= 1n << 63n) return undefined;
+                wide ||= cell < -2147483648n || cell > 2147483647n;
+            }
+        }
+    }
+    const out = kind === 'real' ? new Float64Array(size) : wide ? new BigInt64Array(size) : new Int32Array(size);
+    let target = 0;
+    for (const { view, cells, count, positions } of parts) {
+        const { offset, stride } = view.linear!;
+        if (count) {
+            const first = offset + stride * (positions ? positions[0] : 0);
+            view.validateUniform?.(cells instanceof Int32Array ? BigInt(cells[first]) : cells[first]);
+        }
+        for (let start = 0; start < count; start += 4096) {
+            const end = Math.min(start + 4096, count);
+            checkpoint('materializing concatenation', end - start);
+            if (!positions && stride === 1 && out instanceof Int32Array && cells instanceof Int32Array) {
+                out.set(cells.subarray(offset + start, offset + end), target + start);
+            } else if (!positions && stride === 1 && out instanceof BigInt64Array && cells instanceof BigInt64Array) {
+                out.set(cells.subarray(offset + start, offset + end), target + start);
+            } else if (!positions && stride === 1 && out instanceof Float64Array && cells instanceof Float64Array) {
+                out.set(cells.subarray(offset + start, offset + end), target + start);
+            } else if (out instanceof Int32Array && cells instanceof Int32Array || out instanceof Float64Array && cells instanceof Float64Array) {
+                for (let i = start; i < end; i++) out[target + i] = cells[offset + stride * (positions ? positions[i] : i)];
+            } else for (let i = start; i < end; i++) {
+                const at = offset + stride * (positions ? positions[i] : i);
+                if (out instanceof BigInt64Array) out[target + i] = cells instanceof BigInt64Array ? cells[at] : BigInt(cells[at]);
+                else out[target + i] = Number(cells[at]);
+            }
+        }
+        target += count;
+    }
+    return typedArray(out, [size]);
+}
+
 /** Join equal-rank arrays on an existing axis. Rank-one sequences retain their plans. */
 export function concatValues(values: readonly RankValue[], axis = 0): RankArray | RankSequence {
     const mismatch = (message: string) => new RankError(message, 'DimensionMismatch');
@@ -468,6 +562,7 @@ export function concatValues(values: readonly RankValue[], axis = 0): RankArray 
             iterate: () => concatItems(sources),
         });
         concatPlans.set(result.plan, { sources, iterate: result.plan.iterate });
+        registerSequenceCompletion(result.plan, () => copyScalarConcat(sources));
         return result;
     }
     const shape = [...arrays[0]!.shape];

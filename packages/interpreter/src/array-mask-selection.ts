@@ -61,6 +61,13 @@ export function maskSelection(source: RankArray, selector: RankArray): RankSeque
     return selected;
 }
 
+/** Constructor-owned mask positions; replaced iterators retain ordinary demand. */
+export function storedMaskSelection(selected: RankSequence): { source: RankArray; positions: readonly number[] | Uint32Array } | undefined {
+    const plan = Object.getOwnPropertyDescriptor(selected, 'plan')?.value as RankSequence['plan'] | undefined;
+    const selection = plan && selections.get(plan);
+    return selection && Object.getOwnPropertyDescriptor(plan, 'iterate')?.value === selection.iterate ? selection : undefined;
+}
+
 export function sumMaskSelection(selected: RankSequence): bigint | undefined {
     const selection = selections.get(selected.plan);
     if (!selection || selected.plan.iterate !== selection.iterate) return undefined;
