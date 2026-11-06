@@ -4,6 +4,7 @@ import {
 } from '@arrrank/language';
 import { ownedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
+import { interruptibleValues } from '../interrupt.js';
 import { mapExecution, resume, type Evaluation, type Execution } from '../execution.js';
 import { directedMerge } from '../modules/sorted-merge.js';
 import {
@@ -13,7 +14,7 @@ import {
 import { rotateArray } from '../runtime/rotate.js';
 import { shiftValue, windowValue } from '../sequence.js';
 import { unpackApplicationItems } from '../value-selection.js';
-import { isNativeFunction, isRankArray, type RankValue } from '../value.js';
+import { isNativeFunction, isRankArray, isRankSequence, type RankValue } from '../value.js';
 
 import type { ApplicationContext } from './application.js';
 import type { ModuleApplication } from './application-module.js';
@@ -109,7 +110,16 @@ export function compileSequenceApplication(context: ApplicationContext, applicat
                 for (const item of constructor.items) {
                     if (isUnpackExpression(item)) {
                         const source = yield* resume(context.evaluate(item.value));
-                        items.push(...unpackApplicationItems(source));
+                        if (constructor.operation === 'concat' && isRankSequence(source)) {
+                            if (source.plan.size.kind === 'infinite') {
+                                throw new RankError('cannot unpack an infinite sequence into concat');
+                            }
+                            for (const block of interruptibleValues(source.plan.iterate(), 'unpacking concat blocks')) {
+                                items.push(block);
+                            }
+                        } else {
+                            for (const value of unpackApplicationItems(source)) items.push(value);
+                        }
                     } else {
                         items.push(yield* resume(context.evaluate(item)));
                     }
