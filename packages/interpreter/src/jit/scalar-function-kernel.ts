@@ -404,8 +404,12 @@ function compileScalarNumberKernel(
             } else if (op === '//' || op === 'mod') {
                 lines.push(`if (${right} === 0) throw zero();`);
                 const remainder = `v${serial++}`;
+                // As in Number loops, |a| < 2^52 cannot round a/b across
+                // an integer. Keep the remainder path for wider numerators.
+                if (op === '//') lines.push(`let ${res}; if (Math.abs(${left}) < 4503599627370496) { ${res} = Math.floor((${left}) / (${right})) || 0; } else {`);
                 lines.push(`const ${remainder} = (${left}) % (${right});`);
-                lines.push(`const ${res} = ${binaryOperatorSource(operation, left, right, { number: true, remainder, safe: s => `safe(${s})` })};`);
+                lines.push(`${op === '//' ? '' : 'const '}${res} = ${binaryOperatorSource(operation, left, right, { number: true, remainder, safe: s => `safe(${s})` })};`);
+                if (op === '//') lines.push('}');
             } else if (op === '**') {
                 lines.push(`if (${zeroTestSource(left, 'numeric')} && (${right}) < 0) throw powerZero();`);
                 const isInteger = type === 'integer';

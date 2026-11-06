@@ -1,0 +1,123 @@
+rem Steps in Euclid's Algorithm
+rem https://projecteuler.net/problem=433
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 5000000
+
+rem Prime multiples flip mu;
+rem prime squares make mu zero.
+fun Bound mobius_prefix
+  Last = Bound + 1
+  Mu = array shape (Bound + 2) fill 1
+  for P in primes to Last
+    Slots = P to Last by P
+    Mu Slots *= -1
+    Square = P * P
+    if Square at most Last
+      Slots = Square to Last by Square
+      Mu Slots = 0
+    end
+  end
+  Mu 0 = 0
+  return Mu scan + with 0 copy
+end
+
+rem Pairs share a coprime Euclid chain.
+rem Invert common scales with mu and
+rem group equal quotients N // d.
+
+rem Advance the pair only after its
+rem two floor sums finish. This keeps
+rem one loop without per-pair calls.
+fun Q chains
+  Root = Q isqrt
+  X = 2
+  Y = 1
+  Split = Q // 3
+  Left = Q // 2 - Split
+  Right = Root - Split max 0
+  Slope = -2
+  Divisor = 1
+  Offset = Q - 2 * Split
+  Sign = 1
+  FloorSum = 0
+  Result = 0
+  for X at most Root
+    Turns = Offset // Divisor
+    Offset -= Turns * Divisor
+    Balance = 2 * Left - Right
+    FloorSum += Sign * Turns * Balance
+    Turns = Slope // Divisor
+    Slope -= Turns * Divisor
+    First = Left * (Left + 1)
+    Second = Right * (Right + 1)
+    Balance = (2 * First - Second) // 2
+    FloorSum += Sign * Turns * Balance
+    if Slope not equal 0
+      Numerator = Slope * Left + Offset
+      NextLeft = Numerator // Divisor
+      Numerator = Slope * Right + Offset
+      NextRight = Numerator // Divisor
+      Balance = 2 * Left * NextLeft
+      Balance -= Right * NextRight
+      FloorSum += Sign * Balance
+      Left = NextLeft
+      Right = NextRight
+      Old = Slope
+      Slope = Divisor
+      Divisor = Old
+      Offset = 0 - Offset - 1
+      Sign = 0 - Sign
+    else
+      Triangle = Split * (Split - 1)
+      Triangle //= 2
+      Base = 2 * Triangle
+      if Split at most Root
+        Base -= Triangle
+      else
+        Base -= Root * (Root - 1) // 2
+      end
+      Result += Base + FloorSum
+      Y += 1
+      if Y equal X
+        X += 1
+        Y = 1
+      end
+      Split = Q // (X + Y)
+      Left = Q // X - Split
+      Right = Root - Split max 0
+      Slope = 0 - X
+      Divisor = Y
+      Offset = Q - Split * X
+      Sign = 1
+      FloorSum = 0
+    end
+  end
+  return Result
+end
+
+Limit = N // 5
+Prefix = Limit mobius_prefix
+Half = N // 2
+Total = 3 * Half * Half + Half
+if N mod 2 equal 0
+  Total = (3 * Half - 2) * Half
+end
+LeftBound = 1
+for LeftBound at most Limit
+  Q = N // LeftBound
+  RightBound = Limit min (N // Q)
+  Weight = Prefix (RightBound + 1)
+  Weight -= Prefix LeftBound
+  if Weight not equal 0
+    Count = Q chains
+    Total += 2 * Weight * Count
+  end
+  LeftBound = RightBound + 1
+end
+Answer = 2 * Total + N * (N + 1) // 2
+Answer print
