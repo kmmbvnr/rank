@@ -108,3 +108,16 @@ it('refreshes completed numeric inputs on repeated native demands and rejects un
     cells[0] = -10n;
     expect(run?.()).toBe(-1n);
 });
+
+it('keeps large wide layout sums exact without an eager numeric copy', () => {
+    const cells = new BigInt64Array(128).fill(9007199254740993n);
+    const value = typedArray(cells, [64, 2]);
+    const input: TensorNode = { kind: 'input', value };
+    expect(prepareLayoutNumberTensor(input, new Map([[input, ['integer']]]),
+        'sum', new Map(), () => true)).toBeUndefined();
+    const runtime = new Interpreter();
+    try {
+        runtime.variables.set('Input', value);
+        expect(runtime.execute("use numbers\nValues' = Input * 2\nValues sum")).toBe(2305843009213694208n);
+    } finally { runtime.dispose(); }
+});

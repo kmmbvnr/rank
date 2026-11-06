@@ -1,0 +1,660 @@
+{
+  "nightlyBefore": "fbc7621940c60929cac57d94d9bd56ee955168aa",
+  "nightlyAfter": "fa79cd791e20719f9ee75a7ebf6889beca41113f",
+  "patchBase": "5e4a0cb1",
+  "variants": [
+    "nightlyAfter",
+    "patchBase plus this change"
+  ],
+  "node": "v24.15.0",
+  "nightlyTop": [
+    [
+      1.580582781865272,
+      503.85651399999983,
+      "demos/euler/700_eulercoin.ra",
+      867.846119,
+      1371.7026329999999,
+      true
+    ],
+    [
+      1.5633392597117683,
+      8338.965311,
+      "demos/euler/212_combinedvolume.ra",
+      14802.741274,
+      23141.706585,
+      true
+    ],
+    [
+      1.5416305952374392,
+      247.38601600000004,
+      "demos/euler/645_everydayholiday.ra",
+      456.743061,
+      704.129077,
+      true
+    ],
+    [
+      1.5037393690136311,
+      386.8849829999999,
+      "demos/euler/234_semidivisible.ra",
+      768.0261,
+      1154.911083,
+      true
+    ],
+    [
+      1.4245429424685532,
+      5226.453124,
+      "demos/euler/245_coresilience.ra",
+      12310.776134,
+      17537.229258,
+      true
+    ],
+    [
+      1.4003566321171101,
+      3722.651098999999,
+      "demos/euler/283_integertriangles.ra",
+      9298.337533000002,
+      13020.988632,
+      true
+    ],
+    [
+      1.3663421268914184,
+      349.7191839999999,
+      "demos/euler/695_randomrectangles.ra",
+      954.624539,
+      1304.343723,
+      true
+    ]
+  ],
+  "mac": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 307.614208,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 340.64200000000005,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 8715.437124999999,
+      "answer": "328968937309"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 5154.010542,
+      "answer": "328968937309"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 106.67291700000001,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 110.61529199999998,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 329.26587499999994,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 189.94675,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 7159.69225,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 7025.771917,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 6764.973958,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 3808.9104580000003,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 235.855083,
+      "answer": "0.1017786859"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 431.78012500000006,
+      "answer": "0.1017786859"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 565.776375,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 466.96349999999995,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 6457.003167,
+      "answer": "328968937309"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 9122.525208000001,
+      "answer": "328968937309"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 110.51541699999999,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 117.353792,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 193.11445799999998,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 337.35508300000004,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 4135.74525,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 5730.612625,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 3834.32325,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 7965.841958,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 233.17820900000004,
+      "answer": "0.1017786859"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 235.33495800000003,
+      "answer": "0.1017786859"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 312.93679199999997,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 298.12762499999997,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 9010.643917000001,
+      "answer": "328968937309"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 5057.29125,
+      "answer": "328968937309"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 106.06183399999998,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 111.25375,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 335.182542,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 191.626333,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 5688.648708000001,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 5950.851917,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 6933.047166,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 3778.197166,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 235.196417,
+      "answer": "0.1017786859"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 235.950166,
+      "answer": "0.1017786859"
+    }
+  ],
+  "intel": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 945.549758,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 971.5050600000001,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 25385.68603,
+      "answer": "328968937309"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 15983.364690999999,
+      "answer": "328968937309"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 519.677531,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 514.5760590000001,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 1307.007603,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 812.352219,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 19587.677934,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 13853.76942,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 14446.517053,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 10459.334159,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 1091.0032580000002,
+      "answer": "0.1017786859"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 1086.510716,
+      "answer": "0.1017786859"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 962.031915,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 956.6299570000001,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 15911.377665,
+      "answer": "328968937309"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 25439.628548999997,
+      "answer": "328968937309"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 527.731629,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 520.5868499999999,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 807.7782300000001,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 1311.7850939999998,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 13804.212617000001,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 19430.578152,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 10527.695484,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 14356.196068,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 1057.917464,
+      "answer": "0.1017786859"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 1107.24509,
+      "answer": "0.1017786859"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 978.7465769999999,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/700_eulercoin.ra",
+      "ms": 950.6706409999999,
+      "answer": "1517926517777556"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 24983.680476999998,
+      "answer": "328968937309"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/212_combinedvolume.ra",
+      "ms": 16043.565394000001,
+      "answer": "328968937309"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 526.600141,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/645_everydayholiday.ra",
+      "ms": 502.63682800000004,
+      "answer": "48894.2174"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 1327.6480259999998,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/234_semidivisible.ra",
+      "ms": 791.3508570000001,
+      "answer": "1259187438574927161"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 19406.333981,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/245_coresilience.ra",
+      "ms": 13913.844899,
+      "answer": "288084712410001"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 14430.015447,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/283_integertriangles.ra",
+      "ms": 10455.006514,
+      "answer": "28038042525570324"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 1096.9919380000001,
+      "answer": "0.1017786859"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/695_randomrectangles.ra",
+      "ms": 1094.187657,
+      "answer": "0.1017786859"
+    }
+  ]
+}
