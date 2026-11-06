@@ -79,3 +79,29 @@ describe('convolve mod', () => {
         for (const k of spot) expect(out[k]).toBe(mod(full[k], m));
     });
 });
+
+
+it('retains exact roots across repeated and evicted transform lengths', () => {
+    const modulus = 1000000033n;
+    for (const size of [101, 101, 5000, 101, 257, 101]) {
+        const a = new Int32Array(size).fill(Number(modulus - 1n));
+        const b = new Int32Array(size).fill(Number(modulus - 2n));
+        const expected = Array.from({length: size * 2 - 1}, (_, i) =>
+            BigInt(2 * Math.min(i + 1, size * 2 - 1 - i, size)));
+        expect(run(`A convolve B mod ${modulus}`, {A: a, B: b})).toEqual(expected);
+    }
+});
+
+it('keeps demand checkpoints and input buffers unchanged with warm roots', async () => {
+    const {withDemandBudget, DemandBudgetExhausted} = await import('../src/interrupt.js');
+    const {modularConvolve} = await import('../src/convolution.js');
+    const a = {cells: Int32Array.from({length: 101}, (_, i) => i + 1), shape: [101]};
+    const b = {cells: Int32Array.from({length: 101}, (_, i) => i + 3), shape: [101]};
+    const beforeA = a.cells.slice(), beforeB = b.cells.slice();
+    const call = () => modularConvolve(a, b, 1000000033);
+    expect(() => withDemandBudget(1, call)).toThrow(DemandBudgetExhausted);
+    expect(call()).toBeDefined();
+    expect(() => withDemandBudget(1, call)).toThrow(DemandBudgetExhausted);
+    expect(a.cells).toEqual(beforeA);
+    expect(b.cells).toEqual(beforeB);
+});

@@ -23,21 +23,28 @@ function power(base: number, exponent: number, p: number): number {
     return result;
 }
 
-const twiddles = new Map<string, Int32Array>();
+// Each level depends on p and half, not the final transform length:
+// a larger table supplies every smaller prefix. Three short tables retain
+// at most 48 KiB; larger transforms keep the previous one-table policy.
+const SHORT_TWIDDLE_LENGTH = 4096;
+const twiddles = new Map<number, Int32Array>();
+let largeTwiddle = false;
 
 /** `tw[half + j]` is the j-th power of the primitive root of order `2 * half`. */
 function twiddlesOf(p: number, n: number): Int32Array {
-    const key = `${p}:${n}`;
-    let tw = twiddles.get(key);
-    if (tw) return tw;
+    let tw = twiddles.get(p);
+    if (tw && tw.length >= n) return tw;
     tw = new Int32Array(n);
     for (let half = 1; half < n; half *= 2) {
         const w = power(ROOT, (p - 1) / (2 * half), p);
         tw[half] = 1;
         for (let j = 1; j < half; j++) tw[half + j] = multiply(tw[half + j - 1], w, p);
     }
-    twiddles.clear();
-    twiddles.set(key, tw);
+    if (n > SHORT_TWIDDLE_LENGTH || largeTwiddle) {
+        twiddles.clear();
+        largeTwiddle = n > SHORT_TWIDDLE_LENGTH;
+    }
+    twiddles.set(p, tw);
     return tw;
 }
 
