@@ -14,6 +14,18 @@ const safe = (value: number): number => {
 };
 const divide = (a: number, b: number): number => {
     if (!b) throw overflow;
+    // The product stays exact inside this bound. One correction handles a
+    // rounded quotient without paying for floating-point remainder.
+    if (Math.abs(a) + Math.abs(b) <= Number.MAX_SAFE_INTEGER) {
+        let quotient = Math.floor(a / b);
+        const remainder = a - quotient * b;
+        if (b > 0) {
+            if (remainder < 0) quotient--;
+            else if (remainder >= b) quotient++;
+        } else if (remainder > 0) quotient--;
+        else if (remainder <= b) quotient++;
+        return safe(quotient);
+    }
     const remainder = a % b;
     return safe(safe(safe(a - remainder) / b) - ((a < 0) !== (b < 0) && remainder !== 0 ? 1 : 0));
 };
@@ -39,6 +51,7 @@ export function prepareLayoutNumberTensor(root: TensorNode,
     const sizes = new Map<TensorNode, number>();
     const visiting = new Set<TensorNode>();
     let remaining = 1024;
+    const wideInputs: number[] = [];
     function size(node: TensorNode) {
         return shapes.get(node)!.reduce((a, b) => safe(a * b), 1);
     }
@@ -60,7 +73,7 @@ export function prepareLayoutNumberTensor(root: TensorNode,
                     || stored.kinds?.join() !== domains.get(node)?.join())) return false;
                 const items = cells ?? stored!.compact ?? stored!.items;
                 if (operation === 'sum' && !cells && items.length > 64
-                    && domains.get(node)?.join() === 'integer') return false;
+                    && domains.get(node)?.join() === 'integer') wideInputs.push(items.length);
                 shape = [...node.value.shape];
                 if (shape.some(n => !Number.isSafeInteger(n) || n < 0)
                     || shape.reduce((a, b) => safe(a * b), 1) !== items.length) return false;
@@ -90,6 +103,10 @@ export function prepareLayoutNumberTensor(root: TensorNode,
     }
     try { if (!bind(root) || !shapes.get(root)!.length) return undefined; }
     catch (error) { if (error !== overflow) throw error; return undefined; }
+    const count = indices?.length ?? size(root);
+    // Repeated gathers amortize conversion; equal-size wide sums stay capped.
+    if (wideInputs.reduce((a, b) => a + b, 0) * 4 > count) return undefined;
+    const uniformLines = new Set<number>();
     const loads: { slot: number; at: string; name: string; line: number }[] = [];
     const lines: string[] = [], emitted = new Map<TensorNode, Map<string, string>>();
     let serial = 0;
@@ -130,6 +147,7 @@ export function prepareLayoutNumberTensor(root: TensorNode,
             const source = emit(node.source, at);
             if (!source) return undefined;
             const checked = `checked${serial++}`, raw = type === 'integer' ? `BigInt(${source})` : source;
+            if (node.uniform) uniformLines.add(lines.length);
             lines.push(`${node.uniform ? `if (!validated[${slots.get(node)}]) {` : ''} const ${checked} = checks[${slots.get(node)}](${raw}, ${at});
                 if (${checked} !== ${raw}) throw overflow; ${node.uniform ? `validated[${slots.get(node)}] = true; }` : ''}`);
             value = source;
@@ -167,7 +185,7 @@ export function prepareLayoutNumberTensor(root: TensorNode,
     // A completed input can be unboxed once when the emitted traversal has
     // at least as many loads as input cells. Sparse reads keep their direct
     // exact loads. The numeric copy belongs only to this demand.
-    const count = indices?.length ?? size(root), fast = new Set<number>();
+    const fast = new Set<number>();
     const conversions: { input: ArrayLike<RankValue>; output: Float64Array }[] = [];
     for (let slot = 0; slot < data.length; slot++) {
         const cells = data[slot];
@@ -180,16 +198,20 @@ export function prepareLayoutNumberTensor(root: TensorNode,
         data[slot] = numeric; fast.add(slot);
     }
     for (const load of loads) if (fast.has(load.slot)) lines[load.line] = `const ${load.name} = data[${load.slot}][${load.at}];`;
+    const action = `${operation === 'indices' ? `if (${result} < 0 || ${result} >= upper) throw overflow;` : operation === 'sum' ? `result = safe(result + ${result});` : operation === 'positions' ? `if (${result}) result.push(i);`
+                : type === 'boolean' ? `if (${result}) result[at >>> 5] |= 1 << (at & 31);`
+                : `if (result instanceof Int32Array && ${result} !== (${result} | 0)) result = widen(result);
+                    result[at] = result instanceof Int32Array ? ${result} : BigInt(${result});`}`;
+    const step = (uniform: boolean) => `const i = indices ? safe(indices[at]) : at;
+        ${lines.filter((_, index) => uniform || !uniformLines.has(index)).join('\n')}
+        ${action}`;
+    const peel = uniformLines.size > 0 && count >= 64;
     const source = `return function(data, scalars, limits, routes, checks, count, indices, upper) {
         const validated = [];
         let result = ${operation === 'sum' || operation === 'indices' ? '0' : operation === 'positions' ? '[]' : type === 'boolean' ? 'new Uint32Array(Math.ceil(count / 32))' : 'new Int32Array(count)'};
-        for (let at = 0; at < count; at++) {
-            const i = indices ? safe(indices[at]) : at;
-            ${lines.join('\n')}
-            ${operation === 'indices' ? `if (${result} < 0 || ${result} >= upper) throw overflow;` : operation === 'sum' ? `result = safe(result + ${result});` : operation === 'positions' ? `if (${result}) result.push(i);`
-                : type === 'boolean' ? `if (${result}) result[at >>> 5] |= 1 << (at & 31);`
-                : `if (result instanceof Int32Array && ${result} !== (${result} | 0)) result = widen(result);
-                    result[at] = result instanceof Int32Array ? ${result} : BigInt(${result});`}
+        ${peel ? `if (count) { const at = 0; ${step(true)} }` : ''}
+        for (let at = ${peel ? 1 : 0}; at < count; at++) {
+            ${step(!peel)}
         }
         return result;
     }`;
@@ -212,7 +234,9 @@ export function prepareLayoutNumberTensor(root: TensorNode,
                 const cost = currentDiagnostics()?.cost('number-tensor.read-buffer');
                 if (cost) { cost.calls++; cost.allocatedBytes += output.byteLength; cost.unboxedCells += input.length; }
             }
-            const value = run!(data, scalars, limits, routes, checks, indices?.length ?? size(root), indices, upper);
+            const execute = () => run!(data, scalars, limits, routes, checks, indices?.length ?? size(root), indices, upper);
+            const diagnostics = currentDiagnostics();
+            const value = diagnostics ? diagnostics.measure(`number-tensor.${operation}`, execute) : execute();
             if (operation === 'sum' || operation === 'indices') return BigInt(value as number);
             if (operation === 'positions') return value as number[];
             const shape = indices ? [indices.length] : [...shapes.get(root)!];

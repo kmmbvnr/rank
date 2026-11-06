@@ -29,12 +29,13 @@ const runtime = new Interpreter(value => {
 const session = new Session();
 try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
-    const start = performance.now(); last = start;
+    const start = performance.now(), cpu = process.cpuUsage(); last = start;
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
     const answer = String(runtime.variables.get('Answer'));
     const expected = new Map([[1, '1'], [15, '63'], [1000, '15066'], [1000000000000, '174848216767932']]);
     if (expected.has(limit)) assert.equal(answer, expected.get(limit));
-    console.log(JSON.stringify({ limit, budget, answer, terms: String(runtime.variables.get('Final')),
+    const used = process.cpuUsage(cpu);
+    console.log(JSON.stringify({ cpuMs: (used.user + used.system) / 1000, limit, budget, answer, terms: String(runtime.variables.get('Final')),
         ms: performance.now() - start, maxRssMiB: process.resourceUsage().maxRSS / 1024,
         node: process.version, arch: process.arch, phases, ...(diagnostics && { diagnostics }) }));
     if (process.env.PROFILE) { const { profile } = await session.post('Profiler.stop'); writeFileSync(process.env.PROFILE, JSON.stringify(profile)); }

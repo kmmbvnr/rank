@@ -1,0 +1,5 @@
+{"stage":"mobius","ms":245.33466699999997,"rssMiB":201.921875,"heapMiB":74.02819061279297,"buffersMiB":0.8509197235107422}
+{"stage":"tasks","ms":84.30337500000002,"rssMiB":256.34375,"heapMiB":70.1845703125,"buffersMiB":52.64491558074951}
+{"stage":"chunks","ms":130.285208,"rssMiB":420.3125,"heapMiB":88.83763122558594,"buffersMiB":126.00617504119873}
+{"stage":"terms","ms":2453.710083,"rssMiB":849.59375,"heapMiB":86.91921997070312,"buffersMiB":373.4993085861206}
+{"limit":10000000000,"budget":1048576,"answer":"1242976038265","terms":"58789541","ms":2914.24025,"maxRssMiB":852.734375,"node":"v24.15.0","arch":"arm64","phases":[{"stage":"mobius","ms":245.33466699999997,"rssMiB":201.921875,"heapMiB":74.02819061279297,"buffersMiB":0.8509197235107422},{"stage":"tasks","ms":84.30337500000002,"rssMiB":256.34375,"heapMiB":70.1845703125,"buffersMiB":52.64491558074951},{"stage":"chunks","ms":130.285208,"rssMiB":420.3125,"heapMiB":88.83763122558594,"buffersMiB":126.00617504119873},{"stage":"terms","ms":2453.710083,"rssMiB":849.59375,"heapMiB":86.91921997070312,"buffersMiB":373.4993085861206}]}
