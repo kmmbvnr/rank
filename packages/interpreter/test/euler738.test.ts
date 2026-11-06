@@ -18,7 +18,7 @@ function brute(limit: number, count: number): bigint {
     return total % 1000000007n;
 }
 for (const compilation of [false, true]) describe(`Euler 738 (compiled=${compilation})`, () => {
-    it.each([2, 3, 4, 8, 9, 10, 15, 16, 17, 24, 25, 26, 63, 64, 65, 100])('counts ordered products through %i', limit => {
+    it.each([1, 2, 3, 4, 8, 9, 10, 15, 16, 17, 24, 25, 26, 63, 64, 65, 100])('counts ordered products through %i', limit => {
         const runtime = new Interpreter(() => {}, { compilation });
         try {
             for (const count of [1, 2, 3, 7]) {
@@ -26,6 +26,14 @@ for (const compilation of [false, true]) describe(`Euler 738 (compiled=${compila
                     .replace('arg Kmax integer = 10 ** 10', `Kmax = ${count}`));
                 expect(runtime.variables.get('Answer')).toBe(brute(limit, count));
             }
+        } finally { runtime.dispose(); }
+    });
+    it.each([[10, 153n], [100, 35384n]])('preserves the published example at limit %i', (limit, expected) => {
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.execute(source.replace('arg Limit integer = 10 ** 10', `Limit = ${limit}`)
+                .replace('arg Kmax integer = 10 ** 10', `Kmax = ${limit}`));
+            expect(runtime.variables.get('Answer')).toBe(expected);
         } finally { runtime.dispose(); }
     });
 });

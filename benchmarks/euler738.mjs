@@ -20,6 +20,7 @@ try {
     const start = performance.now(), cpu = process.cpuUsage();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
     const answer = String(runtime.variables.get('Answer'));
+    if (limit === 1e10 && count === 1e10) assert.equal(answer, '143091030');
     if (process.env.EXPECTED) assert.equal(answer, process.env.EXPECTED);
     const used = process.cpuUsage(cpu);
     console.log(JSON.stringify({ limit, count, answer, ms: performance.now() - start,

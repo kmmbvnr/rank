@@ -213,7 +213,7 @@
   "euler/726_fallingbottles.ra": "About 50 million prefix cells retained; compiled full default checked in full-scale-demos.test.ts; reference execution remains expensive.",
   "euler/729_periodicrange.ra": "Full compiled answer is covered in full-scale-demos.test.ts; reference execution still processes 2.8 million inverse orbits; run full differential manually.",
   "euler/737_coinloops.ra": "About 2.3 min: 7.6 x 10^8 turn angles in chunks; run manually.",
-  "euler/738_orderedfactorisations.ra": "About 2 min: factor-descending knapsack on 2 x 10^5 quotient values; run manually.",
+  "euler/738_orderedfactorisations.ra": "Full compiled answer is covered by full-scale-demos.test.ts; the reference factor-descending knapsack takes about 2 min, so exclude it from repeated corpus audits.",
   "euler/739_summationofsummations.ra": "About 1.5 min: 10^8 weights in chunks; run manually.",
   "euler/740_secretsanta.ra": "About 35 s: 16 pair tables over 9 x 10^4 states for 99 stages; run manually.",
   "euler/743_windowmatrix.ra": "About 40 s: 5 x 10^7 terms in chunks; run manually.",
