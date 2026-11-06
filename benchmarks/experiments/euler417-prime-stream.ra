@@ -1,0 +1,109 @@
+rem Reciprocal Cycles II
+rem https://projecteuler.net/problem=417
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 100000000
+
+rem L(n) is the multiplicative order
+rem of 10 modulo the part m of n
+rem coprime to 10 (0 for m = 1). The
+rem sum is over m of L(m) times the
+rem count of 2^a 5^b <= N // m. Orders
+rem of m come from its smallest prime
+rem power and the rest by lcm, an
+rem order of a prime p from the prime
+rem factors of p - 1 and an order of
+rem a prime power by lifting.
+fun Sp Q2 cycles N
+  Size = N // 2 + 1
+  Od = array shape Size fill 0
+  Ways = Q2 len
+  Bound = N
+  if Ways greater 0
+    Bound = N // Q2 (Ways - 1)
+  end
+  Tot = 0
+  for M in 3 to N by 2
+    if M mod 5 not equal 0
+      P = Sp (M // 2)
+      if P equal 0
+        P = M
+      end
+      R = M
+      Pk = 1
+      for R mod P equal 0
+        R //= P
+        Pk *= P
+      end
+      Dp = 0
+      if M equal P
+        X = P - 1
+        Dp = X
+        for X greater 1
+          Q = 2
+          if X mod 2 equal 1
+            Q = Sp (X // 2)
+            if Q equal 0
+              Q = X
+            end
+          end
+          for X mod Q equal 0
+            X //= Q
+          end
+          for Dp mod Q equal 0
+            Ef = Dp // Q
+            if 10 Ef P powmod not equal 1
+              break
+            end
+            Dp = Ef
+          end
+        end
+      elif R equal 1
+        Dp = Od (P // 2)
+        Pj = P
+        for Pj less Pk
+          Pj *= P
+          if 10 Dp Pj powmod not equal 1
+            Dp *= P
+          end
+        end
+      else
+        A = Od (Pk // 2)
+        B = Od (R // 2)
+        Dp = A lcm B
+      end
+      Od (M // 2) = Dp
+      for M greater Bound
+        Ways -= 1
+        Bound = N // Q2 (Ways - 1)
+      end
+      Tot += Dp * Ways
+    end
+  end
+  return Tot
+end
+
+fun N odd_factors
+  Size = N // 2 + 1
+  Sp = array shape Size fill 0
+  Rt = N isqrt
+  for P in primes from 3 to Rt
+    Start = P * P // 2
+    Sp (Start till Size by P) = P
+  end
+  return Sp
+end
+
+Sp = N odd_factors
+Twos = 2 ** (0 to 40 copy)
+Fives = 5 ** (0 to 20 copy)
+Products = Twos Fives outer *
+Flat = Products reshape 861
+Values = Flat (Flat at most N)
+Q2 = Values sort
+Answer = Sp Q2 cycles N
+Answer print

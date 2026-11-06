@@ -317,7 +317,7 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     return {
         statement, names, wideScalars, integerRanges: state.integerRanges, rangeNarrowing: state.rangeNarrowing, exactInputs: state.exactInputs, arrays, destinations, root, body, outlinedLoops: state.outlinedLoops, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
-        binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
+        binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, reversedPrimes: state.reversedPrimes, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         ownershipChecks: state.ownershipChecks, ownedAliases, arrayTransfers, arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, rangeDefinitions: new Set(state.ranges.keys()), writable, iteration, workCounting, polling, callouts: state.callouts,
     };
 }

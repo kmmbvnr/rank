@@ -1,6 +1,7 @@
 import { AstUtils } from 'langium';
 import { PrivateNumericArray } from './number-loop-runtime.js';
-import { checkedNumberModularMultiply } from './number-arithmetic.js';
+import { checkedNumberModularMultiply, numberOverflow } from './number-arithmetic.js';
+import { safeIntegerModularPower } from '../modular-power.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { checkValueMutable } from '../value-protection.js';
 import { materializeValue } from '../materialize.js';
@@ -16,7 +17,7 @@ import {
     type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { sequenceValues } from '../sequence.js';
-import { checkpoint, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
 import { argumentSelectionError, RankError } from '../errors.js';
 import { recordFallback } from '../diagnostics.js';
 import { isRankArray, type RankArray, type RankSequence, type RankValue } from '../value.js';
@@ -91,7 +92,7 @@ function compileScalarNumberKernel(
     users: Kernel['userCalls'],
 ): Kernel['numberDirect'] | undefined {
     if (!proof.localArrayWrites || proof.planCalls.length
-        || proof.iterableBindings.size || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt', 'sum', 'count'].includes(name))
+        || proof.iterableBindings.size || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt', 'sum', 'count', 'powmod'].includes(name))
         || proof.recursive || (proof.callCount ? !privateScalarFunction(proof, true)
             : proof.dependencies.some(name => !memberships.includes(name)))) return undefined;
     // Newly admitted captured memberships retain the exact kernel's reader
@@ -306,6 +307,14 @@ function compileScalarNumberKernel(
         }
         if (compiled.kind === 'call') {
             const name = compiled.operation.name;
+            if (compiled.operation.module === 'numbers' && name === 'powmod'
+                && compiled.arguments.length === 3 && compiled.arguments.every(argument => argument.type === 'integer')) {
+                const args = compiled.arguments.map(argument => lowerNum(argument, lines));
+                if (args.some(argument => argument === undefined)) return undefined;
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = powmod(${args.join(',')});`);
+                return result;
+            }
             if (compiled.operation.module !== 'numbers' || name !== 'floor' && name !== 'ceil' && name !== 'abs' && name !== 'isqrt'
                 || compiled.arguments.length !== 1) return undefined;
             const argument = compiled.arguments[0];
@@ -611,7 +620,13 @@ function compileScalarNumberKernel(
         };
     };`;
     try {
-        return new Function('isqrt', 'mulmod', 'PrivateNumericArray', 'broadcastShape', 'RankError', 'FunctionPlanDemandError', source)(safeIntegerSquareRoot, checkedNumberModularMultiply, PrivateNumericArray, broadcastShape, RankError, FunctionPlanDemandError) as Kernel['numberDirect'];
+        return new Function('isqrt', 'mulmod', 'PrivateNumericArray', 'broadcastShape', 'RankError', 'FunctionPlanDemandError', 'powmod', source)(safeIntegerSquareRoot, checkedNumberModularMultiply, PrivateNumericArray, broadcastShape, RankError, FunctionPlanDemandError,
+            (base: number, exponent: number, modulus: number) => {
+                // Replay through the ordinary native call for domain errors,
+                // wider moduli, and observable budget/cancellation boundaries.
+                if (!privateLoopPolling() || demandBudgetEnabled() || exponent < 0 || !(modulus > 0 && modulus <= 2 ** 30)) throw numberOverflow;
+                return safeIntegerModularPower(base, exponent, modulus);
+            }) as Kernel['numberDirect'];
     } catch {
         return undefined;
     }

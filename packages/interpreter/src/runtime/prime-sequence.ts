@@ -77,9 +77,15 @@ export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
 }
 
 /** Compiled loops iterate `primes` with the bounds `applyBound` would plan. */
-export function primeRange(start: bigint | undefined, from: boolean, end: bigint | undefined, to: boolean): Iterable<bigint> {
-    return primeIterator(end === undefined ? undefined : { limit: end, inclusive: to },
+export function primeRange(start: bigint | undefined, from: boolean, end: bigint | undefined, to: boolean, reverse = false): Iterable<bigint> {
+    const values = primeIterator(end === undefined ? undefined : { limit: end, inclusive: to },
         start === undefined ? undefined : { limit: start, inclusive: from });
+    if (!reverse) return values;
+    // A reversed finite plan consumes its bounds and values before the first
+    // body iteration, just as ordinary reverse does. Observable execution is
+    // declined at compiled entry, including after an earlier unguarded run.
+    if (end === undefined) throw new Error('reversed prime iteration requires an upper bound');
+    return [...values].reverse();
 }
 
 function* primeIterator(

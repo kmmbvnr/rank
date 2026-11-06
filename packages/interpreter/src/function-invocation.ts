@@ -758,7 +758,20 @@ export class FunctionInvocation {
             }
             const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures, work);
             if (!compiled || compiled.available && !compiled.available()) return undefined;
-            numberUsers[index] = (compiled.numberDirect ?? (() => { throw numberOverflow; })) as unknown as LoopCallable;
+            // A linked private leaf cannot rebind its dependencies. Reuse its
+            // fixed-arity Number entry instead of allocating argument arrays
+            // on every nested call, retaining the live call-depth boundary.
+            const region = kernel.numberDirect ? compiled.numberRegion?.() : undefined;
+            const checkDepth = () => {
+                if (definition.owner.depth >= definition.owner.maxDepth)
+                    throw new RankError(`function call depth exceeds ${definition.owner.maxDepth}`, 'RecursionLimit');
+            };
+            const linked = !region ? undefined : call.types.length === 1 ? (a: NumberCallArgument) => { checkDepth(); return region(a); }
+                : call.types.length === 2 ? (a: NumberCallArgument, b: NumberCallArgument) => { checkDepth(); return region(a, b); }
+                : call.types.length === 3 ? (a: NumberCallArgument, b: NumberCallArgument, c: NumberCallArgument) => { checkDepth(); return region(a, b, c); }
+                : call.types.length === 4 ? (a: NumberCallArgument, b: NumberCallArgument, c: NumberCallArgument, d: NumberCallArgument) => { checkDepth(); return region(a, b, c, d); }
+                : undefined;
+            numberUsers[index] = (linked ?? compiled.numberDirect ?? (() => { throw numberOverflow; })) as unknown as LoopCallable;
             if (call.tail) {
                 return ((arguments_: RankValue[]) => {
                     if (definition.owner === this) throw new TailCallSignal(definition, arguments_, compiled);
@@ -1060,6 +1073,12 @@ export class FunctionInvocation {
             } : statement.parameters.length === 2 ? (a: NumberCallArgument, b: NumberCallArgument) => {
                 try { return regionCall(a, b); }
                 catch (error) { return fail(error, [a, b]); }
+            } : statement.parameters.length === 3 ? (a: NumberCallArgument, b: NumberCallArgument, c: NumberCallArgument) => {
+                try { return regionCall(a, b, c); }
+                catch (error) { return fail(error, [a, b, c]); }
+            } : statement.parameters.length === 4 ? (a: NumberCallArgument, b: NumberCallArgument, c: NumberCallArgument, d: NumberCallArgument) => {
+                try { return regionCall(a, b, c, d); }
+                catch (error) { return fail(error, [a, b, c, d]); }
             } : undefined;
             run.numberRegion = () => {
                 // A callback-free leaf cannot change these facts while its
@@ -1082,12 +1101,23 @@ export class FunctionInvocation {
                     try { if (diagnostics) diagnostics.numberFunctions++; return call(a, b); }
                     catch (error) { return fail(error, [a, b]); }
                 };
+                if (statement.parameters.length === 3) return (a: NumberCallArgument, b: NumberCallArgument, c: NumberCallArgument) => {
+                    try { diagnostics.numberFunctions++; return call(a, b, c); }
+                    catch (error) { return fail(error, [a, b, c]); }
+                };
+                if (statement.parameters.length === 4) return (a: NumberCallArgument, b: NumberCallArgument, c: NumberCallArgument, d: NumberCallArgument) => {
+                    try { diagnostics.numberFunctions++; return call(a, b, c, d); }
+                    catch (error) { return fail(error, [a, b, c, d]); }
+                };
                 return undefined;
             };
         }
 
         if (kernel.rankedCalls.length || kernel.plans || kernel.deques || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             if (inspectionEnabled() || this.scalarFallbackDepth) return false;
+            // A native powmod helper keeps ordinary demand/error boundaries
+            // under guards, including when this prepared function was cached.
+            if (kernel.guards.includes('powmod') && (!privateLoopPolling() || demandBudgetEnabled())) return false;
             if (kernel.deques && (!privateLoopPolling() || !nativeDequeMethods())) return false;
             if (kernel.setMembership && (!privateLoopPolling() || !nativeSetMembership())) return false;
             if (kernel.plans && (!this.compiler.tensors.fusion || !privateLoopPolling())) return false;

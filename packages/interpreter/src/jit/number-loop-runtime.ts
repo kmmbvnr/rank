@@ -490,8 +490,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 const next = alias ? value.fork() : value;
                 previous?.release();
                 return next;
-            }, function* (start: bigint | undefined, from: boolean, end: bigint | undefined, to: boolean) {
-                for (const value of primeRange(start, from, end, to)) yield safe(Number(value));
+            }, function* (start: bigint | undefined, from: boolean, end: bigint | undefined, to: boolean, reverse = false) {
+                for (const value of primeRange(start, from, end, to, reverse)) yield safe(Number(value));
             }, (cells: number, exact: number) => {
                 const cost = currentDiagnostics()?.cost('number-loop.wide-vector');
                 if (cost) { cost.calls++; cost.unboxedCells += cells - exact; cost.boxedCells += exact; }
@@ -519,6 +519,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         || plan.vectorIterations.some(vector => vector.binding === plan.iteration)
         || !locations.some(isForStatement);
     const attempt: CompiledLoop['run'] = (insideFinally = false) => {
+        if (plan.reversedPrimes && interruptsEnabled()) return recordFallback('number-loop:observable-reversed-primes', 'effects');
         if (plan.hasControl && insideFinally || !privateLoopPolling()) return recordFallback('number-loop:observable-control', 'effects');
         // Existing array contracts can poll again while publishing a rebound
         // binding. Retain ordinary statement boundaries for observable budgets.

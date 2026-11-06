@@ -170,7 +170,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         set branchDepth(v: number) { branchDepth = v; },
         arrayRegions: [] as NonNullable<IntegerLoopPlan['arrayRegions']>,
         outlinedLoops: [] as { body: string; inputs: readonly string[] }[],
-        exactInputs, rangeNarrowing: false, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, selectorRange, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
+        exactInputs, rangeNarrowing: false, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, reversedPrimes: false, selectorRange, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
         loopScopes, rootSetupLines, pushScope, popScope, currentScope,
     };
 }
