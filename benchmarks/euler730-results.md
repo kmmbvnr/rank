@@ -75,6 +75,14 @@ RSS is a process high-water mark and varies with garbage collection. Reduced
 RSS on the paired inputs does not establish a fixed memory bound for larger
 inputs.
 
+The final branch also includes upstream `5e4a0cb1` (integer prefix scans and
+function gather sums). Euler 730 uses neither feature. After integration at
+`88989cd7`, the small input retained the same answer, node count, tensor count,
+native-completion count and fallback counters, including the count-clause
+whole-loop rejection. Euler 729 period 20 retained `9103992.8345`. Those
+integration validation runs overlapped focused tests; their timings are not
+used in the table. Full timing samples above belong to runtime `10cc3d1f`.
+
 ## Profiles and memory investigation
 
 Separate CPU profiles use the Mac small input. Before: 9838 self-time samples,
@@ -102,8 +110,9 @@ Budget; a traced medium run reached 8521803 pending entries even with Budget
 
 ## Verification
 
-- 357 focused tests across 15 files passed; the final shape-admission guard
-  was additionally checked by the 30 packed-comparison tests.
+- 357 focused tests across 15 files passed before integration. After merging
+  upstream `5e4a0cb1` at `88989cd7`, 415 tests across 18 files passed, including
+  Euler 729 and the new native-prefix/function-plan tests from main.
 - Independent small-input oracle enumerates leg pairs and possible hypotenuses,
   without Berggren maps or a root bound. Both compilation modes agree for
   shifts 0–10, and pool budgets 1, 7, 64 and 4096 retain the same counts.
