@@ -37,7 +37,7 @@ for Pr in array 13 7 5
   Mk' = Seq reshape Size 1
   Bt = Mk bit (0 till K array)
   Vals' = L // (Ms * Ms)
-  Sums' = Bt choose Vals 0 sum axis 1
+  Sums' = (Bt choose Vals 0) sum axis 1
   Good' = Sums mod Pk equal 0
   Used = (Bt (Good indices)) any axis 0
   Keep = Ms filter Used array

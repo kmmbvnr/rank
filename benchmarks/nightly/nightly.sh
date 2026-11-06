@@ -59,6 +59,16 @@ timeout 1200 npm ci --no-audit --no-fund
 phase building
 timeout 300 npm run langium:generate
 timeout 1200 node node_modules/typescript/bin/tsc -b tsconfig.build.json
+# Ignored datasets are absent from a clean checkout. The pgexercises club
+# database is rebuilt from the official dump; a failure only leaves those
+# demos without data, which the report marks as no-data.
+phase datasets
+PGDATA=demos/pgexercises/data
+mkdir -p "$PGDATA"
+if [ ! -f "$PGDATA/club.sqlite3" ]; then
+  { timeout 60 curl -fsSL -o "$PGDATA/clubdata.sql" https://pgexercises.com/dbfiles/clubdata.sql \
+    && python3 demos/pgexercises/import_clubdata.py; } || rm -f "$PGDATA/club.sqlite3"
+fi
 # CPU 2 is fixed for reproducible affinity; all subprocesses inherit it.
 phase benchmarking
 heartbeat & PUBLISH_PID=$!

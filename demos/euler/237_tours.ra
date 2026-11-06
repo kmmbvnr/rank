@@ -23,17 +23,17 @@ R0 = array 2 2 -2 1
 R1 = array 1 0 0 0
 R2 = array 0 1 0 0
 R3 = array 0 0 1 0
-Step = concat R0 R1 R2 R3 reshape 4 4
+Step = (concat R0 R1 R2 R3) reshape 4 4
 Ids = 0 till 4 array
-Unit' = Ids reshape 4 1 equal Ids
+Unit' = (Ids reshape 4 1) equal Ids
 Acc = Unit choose 1 0
 Start = array 8 4 1 1
 for B in 0 to 40
-  if N - 4 bit B
-    Acc = Acc matmul Step mod Mod
+  if (N - 4) bit B
+    Acc = (Acc matmul Step) mod Mod
   end
-  Step = Step matmul Step mod Mod
+  Step = (Step matmul Step) mod Mod
 end
 Last' = Acc matmul Start
-Answer = Last 0 mod Mod
+Answer = (Last 0) mod Mod
 Answer print

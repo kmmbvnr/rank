@@ -84,3 +84,11 @@ test('uses companion fixtures for required arguments and stdin programs',t=>{
  assert.match(a.results[3].workloadReason,/Stdin workload/);
  assert.equal(a.results[4].status,'no-workload');
 });
+
+test('reports a missing git-ignored dataset as no-data, not as an error',t=>{
+ const missing="process.stderr.write(\"RankError [IO]: demos/kaggle/data/x/train.csv: ENOENT: no such file or directory, open 'demos/kaggle/data/x/train.csv'\\n\");process.exitCode=1";
+ const a=run(fixture(t,missing),3000);
+ assert.ok(a.results.every(x=>x.status==='no-data'));
+ const b=run(fixture(t,"process.stderr.write('RankError [Runtime]: boom\\n');process.exitCode=1"),3000);
+ assert.ok(b.results.every(x=>x.status==='error'));
+});

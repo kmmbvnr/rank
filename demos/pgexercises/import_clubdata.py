@@ -57,6 +57,18 @@ def copy_blocks(source: str):
         yield name, rows
 
 
+def insert_statements(source: str):
+    """Yield the INSERT statements of the current official dump."""
+    buffer = ""
+    for line in source.splitlines(keepends=True):
+        if not buffer and not line.startswith("INSERT INTO "):
+            continue
+        buffer += line
+        if sqlite3.complete_statement(buffer):
+            yield buffer
+            buffer = ""
+
+
 def main():
     directory = Path(__file__).parent / "data"
     parser = argparse.ArgumentParser(description=__doc__)
@@ -66,16 +78,26 @@ def main():
     if args.output.exists():
         parser.error(f"output already exists: {args.output}")
 
-    blocks = dict(copy_blocks(args.source.read_text(encoding="utf-8")))
-    if set(blocks) != set(TABLES):
-        raise ValueError(f"expected COPY blocks for {', '.join(TABLES)}")
+    source = args.source.read_text(encoding="utf-8")
+    # The older dump uses COPY blocks; the current one uses INSERT statements.
+    blocks = dict(copy_blocks(source))
+    inserts = [] if blocks else list(insert_statements(source))
+    if blocks and set(blocks) != set(TABLES) or not blocks and not inserts:
+        raise ValueError(f"expected data for {', '.join(TABLES)}")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(args.output) as db:
         for name, (schema, columns, _) in TABLES.items():
             db.execute(f'CREATE TABLE "{name}" ({schema})')
+            if not blocks:
+                continue
             placeholders = ", ".join("?" for _ in columns)
             db.executemany(f'INSERT INTO "{name}" VALUES ({placeholders})', blocks[name])
             print(f"{name}: {len(blocks[name])} rows")
+        for statement in inserts:
+            db.execute(statement)
+        for name in TABLES:
+            if not blocks:
+                print(f"{name}: {db.execute(f'SELECT count(*) FROM {name}').fetchone()[0]} rows")
         db.execute("CREATE INDEX bookings_facid ON bookings(facid)")
         db.execute("CREATE INDEX bookings_memid ON bookings(memid)")
 
