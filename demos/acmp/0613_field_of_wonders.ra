@@ -1,0 +1,180 @@
+rem ACMP 0613: Field of Wonders 2
+rem Dynamic programming on game states
+use io
+use cli
+use sequences
+use numbers
+use text
+
+arg Input text = "10 7
+ABCDEFGHIJKL
+0.99 0.5 0.2 0.8 0.1
+0.9 0.3 0.7 0.4 0.6"
+
+Flat = Input split "\r" join " "
+Flat = Flat split "\n" join " "
+Tokens = Flat split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+R = (Tokens 1) integer
+Friend = R - 1
+Word = Tokens 2
+Q = (Tokens (3 till (3 + N))) real
+
+RawChars = Word split ""
+Chars = RawChars (RawChars not equal "")
+AlphaStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+AlphaChars = AlphaStr split ""
+Alpha = AlphaChars (
+  AlphaChars not equal ""
+)
+NChars = Chars len
+CGrid = Chars reshape NChars 1
+AGrid = Alpha reshape 1 26
+Grid = (CGrid equal AGrid) integer
+Counts = Grid reduce + axis 0
+PosCounts = Counts (Counts greater 0)
+
+MultsAll = 1 till 13
+NPos = PosCounts len
+MPos = PosCounts reshape NPos 1
+MGrid = (MPos equal (
+  MultsAll reshape 1 12
+)) integer
+MFreq = MGrid reduce + axis 0
+HasMult = MFreq greater 0
+Mults = MultsAll HasMult
+Caps = MFreq HasMult
+K = Mults len
+
+Mults = (
+  concat Mults (array 1 1 1 1)
+) (0 till 4)
+Caps = (
+  concat Caps (array 0 0 0 0)
+) (0 till 4)
+
+Sizes = Caps + 1
+S0 = Sizes 0
+S1 = Sizes 1
+S2 = Sizes 2
+S3 = Sizes 3
+B0 = 1
+B1 = S0
+B2 = S0 * S1
+B3 = B2 * S2
+B4 = B3 * S3
+Bases = array B0 B1 B2 B3 B4
+NumStates = Bases K
+Idxs = 0 till NumStates
+
+R0 = ((Idxs / B0) integer) mod S0
+R1 = ((Idxs / B1) integer) mod S1
+R2 = ((Idxs / B2) integer) mod S2
+R3 = ((Idxs / B3) integer) mod S3
+
+JArr = R0 + R1 + R2 + R3
+KArr = (R0 * (Mults 0)) + (
+  R1 * (Mults 1)
+)
+KArr = KArr + (R2 * (Mults 2))
+KArr = KArr + (R3 * (Mults 3))
+
+SafeJ = (JArr equal 0) choose 1.0 (
+  JArr real
+)
+
+Nxt0 = ((Idxs - B0) + NumStates) mod (
+  NumStates
+)
+Cond0 = (JArr Nxt0) equal 0
+Win0 = Cond0 reshape NumStates 1
+Prob0 = (R0 greater 0) choose (
+  (R0 real) / SafeJ
+) 0.0
+P0Val = (K greater 0) choose Prob0 0.0
+P0 = P0Val reshape NumStates 1
+
+Nxt1 = ((Idxs - B1) + NumStates) mod (
+  NumStates
+)
+Cond1 = (JArr Nxt1) equal 0
+Win1 = Cond1 reshape NumStates 1
+Prob1 = (R1 greater 0) choose (
+  (R1 real) / SafeJ
+) 0.0
+P1Val = (K greater 1) choose Prob1 0.0
+P1 = P1Val reshape NumStates 1
+
+Nxt2 = ((Idxs - B2) + NumStates) mod (
+  NumStates
+)
+Cond2 = (JArr Nxt2) equal 0
+Win2 = Cond2 reshape NumStates 1
+Prob2 = (R2 greater 0) choose (
+  (R2 real) / SafeJ
+) 0.0
+P2Val = (K greater 2) choose Prob2 0.0
+P2 = P2Val reshape NumStates 1
+
+Nxt3 = ((Idxs - B3) + NumStates) mod (
+  NumStates
+)
+Cond3 = (JArr Nxt3) equal 0
+Win3 = Cond3 reshape NumStates 1
+Prob3 = (R3 greater 0) choose (
+  (R3 real) / SafeJ
+) 0.0
+P3Val = (K greater 3) choose Prob3 0.0
+P3 = P3Val reshape NumStates 1
+
+TotCells = NumStates * N
+Zeros = (0 till TotCells) * 0.0
+DP = Zeros reshape NumStates N
+WinBool = (0 till N) equal Friend
+WinVec = (WinBool integer) real
+WinRows = WinVec reshape 1 N
+
+J2D = JArr reshape NumStates 1
+K2D = KArr reshape NumStates 1
+Denom = (K2D - J2D) + 1.0
+Denom = (Denom equal 0.0) choose (
+  1.0
+) Denom
+QRow = Q reshape 1 N
+
+for I in (1 till 27)
+  V0 = Win0 choose WinRows (DP Nxt0)
+  V1 = Win1 choose WinRows (DP Nxt1)
+  V2 = Win2 choose WinRows (DP Nxt2)
+  V3 = Win3 choose WinRows (DP Nxt3)
+  Pick = (P0 * V0) + (P1 * V1)
+  Pick = Pick + (P2 * V2)
+  Pick = Pick + (P3 * V3)
+
+  DpT = DP transpose
+  DpRot = DpT rotate (-1)
+  DpNext = DpRot transpose
+
+  IReal = I real
+  B = QRow ** (1.0 / Denom)
+  SafeExp = (I - JArr) max 0
+  Exp2D = SafeExp reshape NumStates 1
+  Base2 = 1.0 - (1.0 / IReal)
+  Term2 = Base2 ** (Exp2D real)
+  Pc = ((1.0 - B) * (
+    (J2D real) / IReal
+  )) + (B * Term2)
+  Pf = 1.0 - Pc
+
+  NewDP = (Pc * Pick) + (Pf * DpNext)
+  Valid = (JArr greater 0) and (
+    not (I less JArr)
+  )
+  VMask = Valid reshape NumStates 1
+  DP = VMask choose NewDP 0.0
+end
+
+Answer = (DP (NumStates - 1)) 0
+Answer print
