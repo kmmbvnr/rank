@@ -1,0 +1,15 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/segmented-integer-kernels.test.ts
+
+
+ RUN  v3.2.7 /private/tmp/rank533-work/packages/interpreter
+
+ ✓ test/segmented-integer-kernels.test.ts (13 tests) 546ms
+   ✓ stored segmented integer arithmetic > bounds the recurrence without copy (compiled=true)  306ms
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  12:48:08
+   Duration  2.08s (transform 973ms, setup 0ms, collect 1.42s, tests 546ms, environment 0ms, prepare 28ms)
+

@@ -1,0 +1,15 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/full-scale-demos.test.ts -t 714
+
+
+ RUN  v3.2.7 /private/tmp/rank533-work/packages/interpreter
+
+ ✓ test/full-scale-demos.test.ts (45 tests | 44 skipped) 60532ms
+   ✓ checks the full compiled answer for 714_duodigits.ra  60531ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 44 skipped (45)
+   Start at  12:35:26
+   Duration  63.33s (transform 1.64s, setup 0ms, collect 2.51s, tests 60.53s, environment 0ms, prepare 43ms)
+

@@ -1,0 +1,202 @@
+rem Duodigits
+rem https://projecteuler.net/problem=714
+
+use numbers
+use sequences
+use bits
+use algo
+use io
+use cli
+
+arg Count integer = 50000
+arg Longest integer = 18
+arg Block integer = 16777216
+
+fun Keys minima Values
+  Unique = Keys unique sort
+  Group = Unique lowerindex Keys
+  Least = Values reduce min by Group
+  return tuple Unique Least
+end
+
+fun Open duodigits
+  Left = Open len
+  if Left equal 0
+    return array shape 0 fill 0
+  end
+  Digs = 0 to 9
+  Col = Digs reshape 10 1
+  Row = Digs reshape 1 10
+  GridA = Col + Row * 0
+  GridB = Row + Col * 0
+  Upper = GridB greater GridA
+  PairA = GridA filter Upper
+  PairB = GridB filter Upper
+  Total = Left * 45
+  Column = Open reshape Left 1
+  Blank = Column * 0
+  Moduli = Column + PairA * 0
+  Modulus = Moduli reshape Total
+  DigitA = (Blank + PairA) reshape Total
+  DigitB = (Blank + PairB) reshape Total
+  Ids = 0 to Total - 1
+  Owner = Ids // 45
+  rem A final digit must be divisible
+  rem by gcd(n, 10).
+  Ends = (Open gcd 10) reshape Left 1
+  First = (PairA mod Ends) equal 0
+  Second = (PairB mod Ends) equal 0
+  Good = (First or Second) reshape Total
+  Modulus = Modulus filter Good
+  DigitA = DigitA filter Good
+  DigitB = DigitB filter Good
+  Owner = Owner filter Good
+  Starts = (Modulus scan +) - Modulus
+  Cells = Modulus sum
+  Visited = array shape Cells fill false
+  Finished = array shape Left fill false
+  Best = array shape Left fill 0
+  Total = Modulus len
+  Ids = 0 to Total - 1
+  Positive = DigitA greater 0
+  Pid = concat (Ids filter Positive) Ids
+  FirstA = DigitA filter Positive
+  Value = concat FirstA DigitB
+  Res = Value mod (Modulus Pid)
+  Key = (Starts Pid) + Res
+  Visited Key = true
+  Done = Res equal 0
+  Rows = Owner Pid
+  Targets = Rows filter Done
+  Answers = Value filter Done
+  unpack Solved Least = (
+    Targets minima Answers
+  )
+  Best Solved = Least
+  Finished Solved = true
+  Keep = not (Finished Rows)
+  Pid = Pid filter Keep
+  Res = Res filter Keep
+  Value = Value filter Keep
+  rem First-arrival length is minimal.
+  rem Keep the least prefix per state;
+  rem finish every pair at that length.
+  for Pid len greater 0
+    Size = Pid len * 2
+    Pos = 0 to Size - 1
+    Src = Pos // 2
+    Odd = (Pos mod 2) equal 1
+    Own = Pid Src
+    Prev = Res Src
+    UseA = DigitA Own
+    UseB = DigitB Own
+    Digit = Odd choose UseB UseA
+    Next = (Prev * 10 + Digit)
+    Next = Next mod (Modulus Own)
+    Child = (Starts Own) + Next
+    Fresh = not (Visited Child)
+    Child = Child filter Fresh
+    Prefix = Value Src
+    Number = Prefix * 10 + Digit
+    Number = Number filter Fresh
+    unpack Keys Number = (
+      Child minima Number
+    )
+    Visited Keys = true
+    After = Starts upperindex Keys
+    NewPid = After - 1
+    NewRes = Keys - (Starts NewPid)
+    Rows = Owner NewPid
+    Done = NewRes equal 0
+    Targets = Rows filter Done
+    Answers = Number filter Done
+    unpack Solved Least = (
+    Targets minima Answers
+  )
+    Best Solved = Least
+    Finished Solved = true
+    Keep = not (Finished Rows)
+    Pid = NewPid filter Keep
+    Res = NewRes filter Keep
+    Value = Number filter Keep
+  end
+  return Best
+end
+
+Numbers = 1 to Count
+Open = Numbers array
+Found = array shape (Count + 1) fill 0
+Size = 0
+Row = Count
+Rows = 1
+Cand = array 0
+Seed = array 0
+Range = Seed reshape 1 1
+for Size less Longest + 1
+  Total = Open len
+  if Row at least Total
+    Hit = (Found Open) equal 0
+    Open = Open filter Hit
+    Pending = Open sum
+    States = Pending * 45
+    rem Leave room for frontier values.
+    Fits = States at most Block * 4
+    if Fits or (Size at least Longest)
+      break
+    end
+    Row = 0
+    Size += 1
+    if Size at most Longest
+      Lead = (1 to 9) reshape 9 1
+      Other = (0 to 9) reshape 1 10
+      Free = 2 ** (Size - 1)
+      Counted = 0 to Free - 1
+      Masks = Counted reshape Free 1
+      Places = Size - 1
+      Shifts = 0 to Size - 2
+      Bits = Shifts reshape 1 Places
+      Pick = (Masks shr Bits) band 1
+      Weights = 10 ** (Size - 2 - Bits)
+      Mixed = Pick * Weights
+      Spread = Mixed sum axis 1
+      Units = (10 ** Size - 1) // 9
+      Base = Lead * Units
+      Gap = Other - Lead
+      Step = Gap reshape 9 10 1
+      Long = Spread reshape 1 1 Free
+      Lift = Step * Long
+      Basic = Base reshape 9 1 1
+      Values = Basic + Lift
+      All = Values reshape (90 * Free)
+      Cand = All sort unique
+      Width = Cand len
+      Rows = 1 max (Block // Width)
+      Down = (1 to Width) reverse
+      Range = Down reshape 1 Width
+    end
+  else
+    Last = (Row + Rows) min Total
+    Part = Open (Row to Last - 1)
+    Width = Cand len
+    Count2 = Last - Row
+    Wide = Cand reshape 1 Width
+    Tall = Part reshape Count2 1
+    Mat = Wide mod Tall
+    Hits = (Mat equal 0) integer
+    Best = (Hits * Range) max axis 1
+    Has = Best greater 0
+    Where = Width - Best
+    Which = (Where filter Has) max 0
+    Found (Part filter Has) = Cand Which
+    Row = Last
+  end
+end
+Tail = Open duodigits
+Beyond = (Tail * 1.0) sum
+Together = Beyond + ((Found * 1.0) sum)
+Logged = Together log
+Exponent = Logged / (10.0 log) floor
+Mantissa = Together / 10.0 ** Exponent
+Answer = (Mantissa text ".12f") + "e"
+Answer += Exponent text
+Answer print

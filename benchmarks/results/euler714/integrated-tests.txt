@@ -1,0 +1,27 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/euler714.test.ts test/wide-mod-broadcast.test.ts test/wide-integer-arithmetic.test.ts test/segmented.test.ts test/compact-broadcast.test.ts test/indices.test.ts test/packed-distinct.test.ts test/numeric-collections.test.ts test/unique-length.test.ts test/unique-sort.test.ts
+
+
+ RUN  v3.2.7 /private/tmp/rank533-work/packages/interpreter
+
+ ✓ test/numeric-collections.test.ts (23 tests) 219ms
+ ✓ test/unique-length.test.ts (19 tests) 283ms
+ ✓ test/wide-integer-arithmetic.test.ts (9 tests) 249ms
+ ✓ test/unique-sort.test.ts (17 tests) 237ms
+ ✓ test/packed-distinct.test.ts (10 tests) 84ms
+ ✓ test/wide-mod-broadcast.test.ts (10 tests) 187ms
+ ✓ test/compact-broadcast.test.ts (13 tests) 8ms
+ ✓ test/euler714.test.ts (32 tests) 2375ms
+   ✓ Euler 714 (compiled=false) > matches direct multiples through 1  325ms
+ ✓ test/indices.test.ts (16 tests) 4587ms
+   ✓ tensor indices (compiled=false) > runs the queens demo with small boards and empty solution sets  1368ms
+   ✓ tensor indices (compiled=false) > grows queens placements by one column per placed queen  1001ms
+   ✓ tensor indices (compiled=true) > runs the queens demo with small boards and empty solution sets  835ms
+   ✓ tensor indices (compiled=true) > grows queens placements by one column per placed queen  1070ms
+
+ Test Files  9 passed (9)
+      Tests  149 passed (149)
+   Start at  12:47:52
+   Duration  6.57s (transform 1.33s, setup 0ms, collect 9.34s, tests 8.23s, environment 1ms, prepare 304ms)
+

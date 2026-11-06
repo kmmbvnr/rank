@@ -1,0 +1,138 @@
+
+> rank-workspace@0.0.1 build
+> npm run langium:generate && tsc -b tsconfig.build.json && npm run build --workspaces
+
+
+> rank-workspace@0.0.1 langium:generate
+> npm run --workspace packages/language langium:generate
+
+
+> @arrrank/language@0.0.2 langium:generate
+> langium generate
+
+Reading config from /private/tmp/rank533-work/packages/language/langium-config.json
+Writing generated files to /private/tmp/rank533-work/packages/language/src/generated
+Writing textmate grammar to /private/tmp/rank533-work/packages/language/syntaxes/rank.tmLanguage.json
+[12:46:29] Langium generator finished successfully in 162ms
+
+> @arrrank/language@0.0.2 build
+> echo 'No build step'
+
+No build step
+
+> @arrrank/interpreter@0.0.2 build
+> echo 'No build step'
+
+No build step
+
+> @arrrank/common@0.0.2 build
+> echo 'No build step'
+
+No build step
+
+> @arrrank/cli@0.0.2 build
+> node scripts/build-sqlite-interrupt.mjs
+
+gyp info it worked if it ends with ok
+gyp info using node-gyp@12.2.0
+gyp info using node@24.15.0 | darwin | arm64
+gyp info chdir /private/tmp/rank533-work/packages/cli/native/
+gyp info find Python using Python version 3.9.6 found at "/Applications/Xcode.app/Contents/Developer/usr/bin/python3"
+
+gyp info spawn /Applications/Xcode.app/Contents/Developer/usr/bin/python3
+gyp info spawn args [
+gyp info spawn args '/Users/kmmbvnr/.local/share/fnm/node-versions/v24.15.0/installation/lib/node_modules/npm/node_modules/node-gyp/gyp/gyp_main.py',
+gyp info spawn args 'binding.gyp',
+gyp info spawn args '-f',
+gyp info spawn args 'make',
+gyp info spawn args '-I',
+gyp info spawn args '/private/tmp/rank533-work/packages/cli/native/build/config.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/Users/kmmbvnr/.local/share/fnm/node-versions/v24.15.0/installation/lib/node_modules/npm/node_modules/node-gyp/addon.gypi',
+gyp info spawn args '-I',
+gyp info spawn args '/Users/kmmbvnr/Library/Caches/node-gyp/24.15.0/include/node/common.gypi',
+gyp info spawn args '-Dlibrary=shared_library',
+gyp info spawn args '-Dvisibility=default',
+gyp info spawn args '-Dnode_root_dir=/Users/kmmbvnr/Library/Caches/node-gyp/24.15.0',
+gyp info spawn args '-Dnode_gyp_dir=/Users/kmmbvnr/.local/share/fnm/node-versions/v24.15.0/installation/lib/node_modules/npm/node_modules/node-gyp',
+gyp info spawn args '-Dnode_lib_file=/Users/kmmbvnr/Library/Caches/node-gyp/24.15.0/<(target_arch)/node.lib',
+gyp info spawn args '-Dmodule_root_dir=/private/tmp/rank533-work/packages/cli/native',
+gyp info spawn args '-Dnode_engine=v8',
+gyp info spawn args '--depth=.',
+gyp info spawn args '--no-parallel',
+gyp info spawn args '--generator-output',
+gyp info spawn args 'build',
+gyp info spawn args '-Goutput_dir=.'
+gyp info spawn args ]
+gyp info spawn make
+gyp info spawn args [ 'BUILDTYPE=Release', '-C', 'build' ]
+  CXX(target) Release/obj.target/rank_sqlite_interrupt/sqlite-interrupt.o
+  SOLINK_MODULE(target) Release/rank_sqlite_interrupt.node
+gyp info ok 
+
+> @arrrank/compile@0.0.2 build
+> node --check src/index.js && node --check bin/cli.js
+
+
+> @arrrank/web@0.0.1 build
+> tsc --noEmit && vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 1207 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/console.html                                   6.42 kB │ gzip:   2.22 kB
+dist/assets/google-play-DKCO3_FV.svg                7.11 kB │ gzip:   2.91 kB
+dist/index.html                                     8.01 kB │ gzip:   2.77 kB
+dist/assets/app-store-CVyK0T4N.svg                 10.80 kB │ gzip:   3.96 kB
+dist/assets/worker-D8k9uwJD.js                  2,542.98 kB
+dist/assets/index-Q7iZZfGN.css                      5.29 kB │ gzip:   1.77 kB
+dist/assets/console-DPReaci_.css                   32.59 kB │ gzip:   6.97 kB
+dist/assets/index-DtIHEKhu.js                       0.53 kB │ gzip:   0.35 kB
+dist/assets/modulepreload-polyfill-B5Qt9EMX.js      0.71 kB │ gzip:   0.40 kB
+dist/assets/console-BuztdqsC.js                 2,167.08 kB │ gzip: 567.73 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.25s
+
+> @arrrank/mobile@0.1.0-beta.1 build
+> npm run build --workspace @arrrank/web -- --mode mobile && cap sync
+
+
+> @arrrank/web@0.0.1 build
+> tsc --noEmit && vite build --mode mobile
+
+vite v7.3.6 building client environment for mobile...
+transforming...
+✓ 1204 modules transformed.
+rendering chunks...
+computing gzip size...
+dist-mobile/index.html                     6.32 kB │ gzip:   2.19 kB
+dist-mobile/console.html                   6.32 kB │ gzip:   2.19 kB
+dist-mobile/assets/worker-D8k9uwJD.js  2,542.98 kB
+dist-mobile/assets/main-DPReaci_.css      32.59 kB │ gzip:   6.97 kB
+dist-mobile/assets/main-D2BBS_Eo.js    2,167.43 kB │ gzip: 567.82 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.30s
+✔ Copying web assets from dist-mobile to android/app/src/main/assets/public in 5.67ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 193.58μs
+✔ copy android in 7.56ms
+✔ Updating Android plugins in 179.08μs
+✖ update android - failed!
+[error] Unable to find node_modules/@capacitor/android.
+        Are you sure @capacitor/android is installed?
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path /private/tmp/rank533-work/packages/mobile
+npm error workspace @arrrank/mobile@0.1.0-beta.1
+npm error location /private/tmp/rank533-work/packages/mobile
+npm error command failed
+npm error command sh -c npm run build --workspace @arrrank/web -- --mode mobile && cap sync

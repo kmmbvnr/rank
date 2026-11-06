@@ -1,0 +1,69 @@
+diff --git a/packages/interpreter/src/runtime/numeric-collections.ts b/packages/interpreter/src/runtime/numeric-collections.ts
+index 31cb2984..8d10b5ee 100644
+--- a/packages/interpreter/src/runtime/numeric-collections.ts
++++ b/packages/interpreter/src/runtime/numeric-collections.ts
+@@ -4,7 +4,7 @@ import { denseScalarItems, typedArray, ownedScalarArray, isSharedArray, sortStor
+ import { constructingTensorPlan, visitIntegerTensorMap } from '../jit/tensor-map.js';
+ import { currentDiagnostics } from '../diagnostics.js';
+ import { integerConcatCells } from './concat-array.js';
+-import { checkpoint, interruptsEnabled, privateLoopPolling } from '../interrupt.js';
++import { checkpoint, demandBudgetEnabled, interruptsEnabled, privateLoopPolling } from '../interrupt.js';
+ import { isRankArray, isRankSequence, type RankArray, type RankValue } from './value.js';
+ 
+ const MIN_INT64 = -(1n << 63n), MAX_INT64 = (1n << 63n) - 1n;
+@@ -280,6 +280,39 @@ export function numericUniqueSort(value: RankValue): RankArray | undefined {
+     return resultValues(buffer.slice(0, size));
+ }
+ 
++/** Completed monotone Int64 storage needs adjacent comparisons, not a Set of
++ * boxed integers. Prove order before allocating the exact output length. */
++function monotoneDistinct(cells: BigInt64Array, countOnly: boolean): RankArray | bigint | undefined {
++    checkpoint('counting distinct values', 4096);
++    let count = 1, direction = 0, previous = cells[0];
++    for (let i = 1; i < cells.length; i++) {
++        if ((i & 4095) === 0) checkpoint('counting distinct values', 4096);
++        const value = cells[i];
++        if (value === previous) continue;
++        const step = value > previous ? 1 : -1;
++        if (direction && step !== direction) return undefined;
++        direction = step; previous = value; count++;
++    }
++    if (countOnly) return BigInt(count);
++    const first = cells[0];
++    const compact = first >= -2147483648n && first <= 2147483647n
++        && previous >= -2147483648n && previous <= 2147483647n;
++    const out = compact ? new Int32Array(count) : new BigInt64Array(count);
++    let size = 1;
++    previous = first;
++    checkpoint('building distinct values', 4096);
++    if (out instanceof Int32Array) out[0] = Number(first); else out[0] = first;
++    for (let i = 1; i < cells.length; i++) {
++        if ((i & 4095) === 0) checkpoint('building distinct values', 4096);
++        const value = cells[i];
++        if (value === previous) continue;
++        if (size >= count || (value > previous ? 1 : -1) !== direction) return undefined;
++        if (out instanceof Int32Array) out[size++] = Number(value); else out[size++] = value;
++        previous = value;
++    }
++    return size === count ? typedArray(out) : undefined;
++}
++
+ /** One kernel for materialized unique and fused distinct counts. Keep the first
+  * original cell, including -0 and NaN, rather than rebuilding values from keys. */
+ export function numericDistinct(value: RankValue, countOnly = false): RankArray | bigint | undefined {
+@@ -289,6 +322,15 @@ export function numericDistinct(value: RankValue, countOnly = false): RankArray
+     if (!length) return tensorDistinct(value, countOnly);
+     const kind = cells ? typeof cells[0] : 'bigint';
+     if (!['bigint', 'number', 'boolean'].includes(kind)) return undefined;
++    const wide = cells && isRankArray(value) && !demandBudgetEnabled() ? integer64Cells(value) : undefined;
++    if (wide && wide.length === length) {
++        const monotone = monotoneDistinct(wide, countOnly);
++        if (monotone !== undefined) {
++            const diagnostics = currentDiagnostics();
++            if (diagnostics) diagnostics.numericDistincts++;
++            return monotone;
++        }
++    }
+     // Trusted Int32 cells have exact Number keys. Avoid boxing every input
+     // through the integer items Proxy; the result still exposes Rank integers.
+     const compact = cells && isRankArray(value) ? integer32Cells(value) : undefined;

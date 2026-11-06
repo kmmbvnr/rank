@@ -1,0 +1,125 @@
+{
+  "baselineCommit": "73cfd27f",
+  "runtimeCommit": "9653e318",
+  "solutionCommit": "4bc6f3b3",
+  "hosts": {
+    "mac": {
+      "baseline": {
+        "count": 50000,
+        "longest": 18,
+        "block": 16777216,
+        "answer": "2.452767775565e20",
+        "total": "245276777556527600000",
+        "ms": 267121.37891699997,
+        "cpuMs": 281309.363,
+        "maxRssMiB": 2287.796875,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      "finalRuns": [
+        {
+          "count": 50000,
+          "longest": 18,
+          "block": 16777216,
+          "answer": "2.452767775565e20",
+          "total": "245276777556527600000",
+          "pending": "6",
+          "ms": 82228.026917,
+          "cpuMs": 92157.797,
+          "maxRssMiB": 1248.796875,
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "count": 50000,
+          "longest": 18,
+          "block": 16777216,
+          "answer": "2.452767775565e20",
+          "total": "245276777556527600000",
+          "pending": "6",
+          "ms": 68486.748458,
+          "cpuMs": 77257.32,
+          "maxRssMiB": 1282.9375,
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "count": 50000,
+          "longest": 18,
+          "block": 16777216,
+          "answer": "2.452767775565e20",
+          "total": "245276777556527600000",
+          "pending": "6",
+          "ms": 53973.251292,
+          "cpuMs": 62061.653,
+          "maxRssMiB": 1252.53125,
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ],
+      "medianMs": 68486.748458,
+      "medianMaxRssMiB": 1252.53125,
+      "speedup": 3.9003367064624785,
+      "rssReductionPercent": 45.25164083896216
+    },
+    "intel": {
+      "baseline": {
+        "count": 50000,
+        "longest": 18,
+        "block": 16777216,
+        "answer": "2.452767775565e20",
+        "total": "245276777556527600000",
+        "ms": 609928.673781,
+        "cpuMs": 654958.126,
+        "maxRssMiB": 1767.69140625,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      "finalRuns": [
+        {
+          "count": 50000,
+          "longest": 18,
+          "block": 16777216,
+          "answer": "2.452767775565e20",
+          "total": "245276777556527600000",
+          "pending": "6",
+          "ms": 105848.71933,
+          "cpuMs": 122021.889,
+          "maxRssMiB": 718.421875,
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "count": 50000,
+          "longest": 18,
+          "block": 16777216,
+          "answer": "2.452767775565e20",
+          "total": "245276777556527600000",
+          "pending": "6",
+          "ms": 107565.038293,
+          "cpuMs": 124037.654,
+          "maxRssMiB": 779.98828125,
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "count": 50000,
+          "longest": 18,
+          "block": 16777216,
+          "answer": "2.452767775565e20",
+          "total": "245276777556527600000",
+          "pending": "6",
+          "ms": 107045.354987,
+          "cpuMs": 123021.162,
+          "maxRssMiB": 730.16015625,
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ],
+      "medianMs": 107045.354987,
+      "medianMaxRssMiB": 730.16015625,
+      "speedup": 5.697852782636594,
+      "rssReductionPercent": 58.69413893916191
+    }
+  }
+}
