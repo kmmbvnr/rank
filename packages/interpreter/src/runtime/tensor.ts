@@ -1,3 +1,4 @@
+import { ownedStorage } from './array-storage-state.js';
 import { BooleanCells } from './boolean-cells.js';
 import { createOwned } from './owned-array.js';
 import { mapPackedBooleanArrays } from './packed-booleans.js';
@@ -11,7 +12,7 @@ import { storedOperand } from './array-copy.js';
 export { broadcastShape } from '../jit/tensor-layout.js';
 import { prepareStoredScalarView, type LinearView } from './integer-view.js';
 import { mapPair, runExecution } from '../execution.js';
-import { evaluateArrayItem, readArrayItem, prepareArrayEvaluation, derivedArray, denseScalarItems, storedOperandItems, float64Cells, integer32Cells, ownedArray, realCells, typedArray } from './array-storage.js';
+import { evaluateArrayItem, readArrayItem, prepareArrayEvaluation, derivedArray, denseScalarItems, storedOperandItems, float64Cells, integer32Cells, booleanCells, ownedArray, realCells, typedArray } from './array-storage.js';
 import { RankError } from '../errors.js';
 import { checkpoint, InterruptedError, privateLoopPolling } from '../interrupt.js';
 import type { RankArray, RankValue } from './value.js';
@@ -301,6 +302,9 @@ export function chooseDenseArrays(
     if (integers) return integers;
     const size = shape.reduce((product, dimension) => product * dimension, 1);
     if (size < DENSE_MIN_CELLS) return undefined;
+    // Native bitmap reads avoid one compatibility-Proxy lookup per cell.
+    // Capture the mask beside its facade, before any broadcast branch work.
+    let packedTest: BooleanCells | undefined;
     const operands = [condition, whenTrue, whenFalse];
     const cells: ArrayLike<RankValue>[] = [];
     try {
@@ -312,8 +316,14 @@ export function chooseDenseArrays(
             }
             const items = storedOperandItems(operand);
             if (!items) return undefined;
-            cells.push(trailingCells(operand.shape, shape) === 0 ? items
-                : expandOperand<RankValue>(items, operand.shape, shape, Array as never));
+            const direct = trailingCells(operand.shape, shape) === 0;
+            if (cells.length === 0 && direct && ownedStorage.has(operand)
+                && Object.getPrototypeOf(operand) === Object.prototype
+                && !Object.getOwnPropertyDescriptor(operand, 'itemAt')) {
+                const bitmap = booleanCells(operand);
+                if (bitmap?.length === size) packedTest = bitmap;
+            }
+            cells.push(direct ? items : expandOperand<RankValue>(items, operand.shape, shape, Array as never));
         }
     } catch (error) {
         if (error instanceof InterruptedError) throw error;
@@ -339,7 +349,7 @@ export function chooseDenseArrays(
         checkpoint('computing array');
         const end = Math.min(size, start + DENSE_CHUNK);
         for (let index = start; index < end; index += 1) {
-            const selected = test[index * testStep];
+            const selected = packedTest ? packedTest.read(index) : test[index * testStep];
             if (typeof selected !== 'boolean') return undefined;
             out[index] = selected ? yes[index * yesStep] : no[index * noStep];
         }
