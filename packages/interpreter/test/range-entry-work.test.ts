@@ -48,4 +48,27 @@ describe('range entry work without changing copy thresholds', () => {
         expect(result.values).toEqual(execute(text, false).values);
         expect(result.diagnostics.numberLoops).toBe(1);
     });
+    it.each(['Slots + 0', '0 + Slots', '(Slots * 2) // 2', 'Slots + (Slots - Slots)'])(
+        'counts completed pointwise selectors: %s', selector => {
+            const text = source.replace(' A Slots =', ` Target = ${selector}\n A Target =`);
+            const result = execute(text);
+            expect(result.values).toEqual(execute(text, false).values);
+            expect(result.values).toEqual([0n, 7n, 7n, 7n, 3n]);
+            expect(result.diagnostics.numberLoops).toBe(1);
+            expect(result.diagnostics.numberLoopCopyProbes).toBe(0);
+        });
+    it('does not assume an unknown vector is a scalar broadcast', () => {
+        const text = source.replace('Count =', 'Other = array 0\nCount =')
+            .replace(' A Slots =', ' Target = Slots + Other\n A Target =');
+        const result = execute(text);
+        expect(result.values).toEqual(execute(text, false).values);
+        expect(result.diagnostics.numberLoops).toBe(0);
+        expect(result.diagnostics.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
+    });
+    it('does not reuse a selector length after a shorter replacement', () => {
+        const text = source.replace(' A Slots =', ' Slots = 2 to 2 copy\n Target = Slots + 0\n A Target =');
+        const result = execute(text);
+        expect(result.values).toEqual(execute(text, false).values);
+        expect(result.diagnostics.numberLoops).toBe(0);
+    });
 });

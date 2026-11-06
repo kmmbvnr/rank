@@ -143,10 +143,21 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
             }
         }
         const source = expression;
+        const pointwise = source && isBinaryExpression(source) && ['+', '-', '*', '//', 'mod'].includes(source.operator)
+            ? { left: range(source.left), right: range(source.right), a: integer(source.left), b: integer(source.right) } : undefined;
         return (values: Values): number => {
             if (source && isNameExpression(source)) {
                 const count = values.get(rangeKey(source.name));
                 return typeof count === 'bigint' ? Number(count) : 0;
+            }
+            if (pointwise) {
+                const left = pointwise.left(values), right = pointwise.right(values);
+                // Scalar broadcasts preserve the completed selector length.
+                // Two vectors must agree; unknown operands prove no work.
+                if (left && right) return left === right ? left : 0;
+                if (left && pointwise.b(values) !== undefined) return left;
+                if (right && pointwise.a(values) !== undefined) return right;
+                return 0;
             }
             if (!source || !isBinaryExpression(source) || !['to', 'till'].includes(source.operator)) return 0;
             const count = expressionFacts(source, facts(values)).shape?.[0];
