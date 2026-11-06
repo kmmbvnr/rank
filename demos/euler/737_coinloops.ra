@@ -62,7 +62,8 @@ for Done equal 0
     Total = Turn scan +
     Lead = concat Zero (Total take Last)
     FinalHarm = Harm copy
-    Angle = 4.0 * Coins / FinalHarm - 1.0
+    Angle = (4.0 * Coins / FinalHarm -
+      1.0)
     Slope = Angle sqrt
     Reach = Slope atan + Carry + Lead
     Hit = Reach greater Target

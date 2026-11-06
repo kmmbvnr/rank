@@ -1,0 +1,29 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { Session } from 'node:inspector/promises';
+const root = resolve(process.env.RANK_ROOT ?? resolve(import.meta.dirname, '..'));
+const { Interpreter, RuntimeDiagnostics } = await import(pathToFileURL(`${root}/packages/interpreter/out/index.js`));
+const loops = Number(process.argv[2] ?? 2020);
+let source = readFileSync(process.env.RANK_SOURCE ?? `${root}/demos/euler/737_coinloops.ra`, 'utf8')
+    .replace('arg Loops integer = 2020', `Loops = ${loops}`);
+const diagnostics = process.env.DIAGNOSTICS ? new RuntimeDiagnostics() : undefined;
+const runtime = new Interpreter(value => { if (process.env.TRACE) console.error(String(value)); },
+    { compilation: process.argv[3] !== 'reference' });
+const session = new Session();
+try {
+    if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
+    const start = performance.now(), cpu = process.cpuUsage();
+    if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
+    const answer = String(runtime.variables.get('Answer'));
+    const expected = new Map([[1, '31'], [2, '154'], [10, '6947']]);
+    if (expected.has(loops)) assert.equal(answer, expected.get(loops));
+    if (process.env.EXPECTED) assert.equal(answer, process.env.EXPECTED);
+    const used = process.cpuUsage(cpu);
+    console.log(JSON.stringify({ loops, answer,
+        ms: performance.now() - start, cpuMs: (used.user + used.system) / 1000,
+        maxRssMiB: process.resourceUsage().maxRSS / 1024, node: process.version, arch: process.arch,
+        ...(diagnostics && { diagnostics }) }));
+    if (process.env.PROFILE) { const { profile } = await session.post('Profiler.stop'); writeFileSync(process.env.PROFILE, JSON.stringify(profile)); }
+} finally { session.disconnect(); runtime.dispose(); }

@@ -1,0 +1,26 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/euler737.test.ts test/deferred-real-tensor.test.ts test/deferred-tensor-native.test.ts test/unary-array-kernel.test.ts test/numbers-math.test.ts test/tensor-kernel.test.ts test/tensor-binding-boundaries.test.ts test/tensor-primitive-specialization.test.ts test/tensor-real-proof.test.ts test/array-binding-contracts.test.ts test/tensor-numeric-calls.test.ts test/plan-tensor-axis.test.ts
+
+
+ RUN  v3.2.7 /private/tmp/rank541-work/packages/interpreter
+
+ ✓ test/array-binding-contracts.test.ts (54 tests) 404ms
+ ✓ test/plan-tensor-axis.test.ts (50 tests) 407ms
+ ✓ test/numbers-math.test.ts (16 tests) 590ms
+ ✓ test/tensor-kernel.test.ts (63 tests) 1042ms
+ ✓ test/tensor-numeric-calls.test.ts (23 tests) 279ms
+ ✓ test/deferred-real-tensor.test.ts (18 tests) 333ms
+ ✓ test/deferred-tensor-native.test.ts (27 tests) 255ms
+ ✓ test/tensor-primitive-specialization.test.ts (8 tests) 121ms
+ ✓ test/unary-array-kernel.test.ts (22 tests) 243ms
+ ✓ test/tensor-binding-boundaries.test.ts (12 tests) 141ms
+ ✓ test/tensor-real-proof.test.ts (3 tests) 112ms
+ ✓ test/euler737.test.ts (16 tests) 1287ms
+   ✓ Euler 737 (compiled=false) > matches direct recurrence through 50 loops  801ms
+
+ Test Files  12 passed (12)
+      Tests  312 passed (312)
+   Start at  14:19:35
+   Duration  4.95s (transform 1.02s, setup 0ms, collect 8.67s, tests 5.22s, environment 1ms, prepare 349ms)
+

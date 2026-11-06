@@ -1,0 +1,15 @@
+
+> @arrrank/interpreter@0.0.2 test
+> node scripts/test.mjs test/full-scale-demos.test.ts -t 737
+
+
+ RUN  v3.2.7 /private/tmp/rank541-work/packages/interpreter
+
+ ✓ test/full-scale-demos.test.ts (46 tests | 45 skipped) 39956ms
+   ✓ checks the full compiled answer for 737_coinloops.ra  39955ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 45 skipped (46)
+   Start at  14:26:44
+   Duration  41.34s (transform 886ms, setup 0ms, collect 1.26s, tests 39.96s, environment 0ms, prepare 25ms)
+

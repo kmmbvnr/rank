@@ -1,0 +1,77 @@
+rem Coin Loops
+rem https://projecteuler.net/problem=737
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Loops integer = 2020
+
+rem With harmonic numbers Harm(n), coin
+rem n+1 turns by arctan(sqrt(n / Harm
+rem - 1/4) / (n + 1/2)) after coin n.
+rem After m coins the total is the sum
+rem of these turns for n < m plus the
+rem last angle arctan(sqrt(4m / Harm
+rem - 1)). Harm(n) is a prefix sum for
+rem the first million coins, then the
+rem Euler-Maclaurin series. The first m
+rem past 2 pi Loops gives m + 1 coins.
+Pi = 3.141592653589793
+Euler = 0.5772156649015329
+Target = 2 * Pi * Loops
+Prefix = 1000000
+Before = Prefix - 1
+Coins = (1 to Prefix) * 1.0
+Harm = (1.0 / Coins) scan +
+Ratio = (Coins / Harm - 0.25) sqrt
+Turn = (Ratio / (Coins + 0.5)) atan
+Slope = (4.0 * Coins / Harm - 1.0) sqrt
+Total = Turn scan +
+Zero = array 0.0
+Lead = concat Zero (Total take Before)
+Reach = Slope atan + Lead
+Hit = Reach greater Target
+Found = (1 to Prefix) filter Hit
+Answer = 0
+Done = 0
+if Found len greater 0
+  Answer = Found 0 + 1
+  Done = 1
+end
+Carry = Total Before
+Start = Prefix + 1
+Chunk = 8388608
+Last = Chunk - 1
+for Done equal 0
+  Coins = (Start to Start + Last) * 1.0
+  Estimate' = (Coins log + Euler +
+    0.5 / Coins)
+  Harm' = (Estimate -
+    1.0 / (12.0 * Coins * Coins))
+  Ratio' = (Coins / Harm - 0.25) sqrt
+  Turn = ((Ratio / (Coins + 0.5)) atan) copy
+  Grid = Turn reshape 2048 4096
+  Rows = Grid sum axis 1
+  Piece = Rows sum
+  Upper = Carry + Piece + Pi / 2
+  if Upper greater Target
+    Total = Turn scan +
+    Lead = concat Zero (Total take Last)
+    FinalHarm = Harm copy
+    Angle = 4.0 * Coins / FinalHarm - 1.0
+    Slope = Angle sqrt
+    Reach = Slope atan + Carry + Lead
+    Hit = Reach greater Target
+    Index = Start to Start + Last
+    Found = Index filter Hit
+    if Found len greater 0
+      Answer = Found 0 + 1
+      Done = 1
+    end
+  end
+  Carry += Piece
+  Start += Chunk
+end
+Answer print
