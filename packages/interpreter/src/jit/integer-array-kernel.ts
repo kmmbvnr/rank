@@ -344,11 +344,11 @@ function compactBroadcastLanes(left: RankArray, right: RankArray,
     return cells;
 }
 
-/** Sums and differences of Int32/Int64 cells, and Int64 cells modulo an Int32
+/** Sums, differences and extrema of Int32/Int64 cells, and Int64 cells modulo an Int32
  * scalar, on Int32 word pairs with no BigInt per cell. A result outside Int64
  * declines. */
 function mapStoredWords(left: RankValue, right: RankValue, name: string): RankArray | undefined {
-    const code = name === '+' ? 0 : name === '-' ? 1 : name === 'mod' ? 2 : -1;
+    const code = name === '+' ? 0 : name === '-' ? 1 : name === 'mod' ? 2 : name === 'min' ? 3 : name === 'max' ? 4 : -1;
     if (code < 0) return undefined;
     const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
     const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
@@ -375,6 +375,28 @@ function mapStoredWords(left: RankValue, right: RankValue, name: string): RankAr
     const m = code === 2 ? Number(right) : 0, c = 4294967296 % m;
     const out = code === 2 ? new Int32Array(size) : new BigInt64Array(size);
     const ow = code === 2 ? out as Int32Array : new Int32Array(out.buffer);
+    if (code >= 3) {
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(start + 4096, size);
+            checkpoint('computing integer array', end - start);
+            for (let i = start; i < end; i++) {
+                let ah = xh, al = xl, bh = yh, bl = yl;
+                if (a) {
+                    const p = ao + i * as;
+                    if (ac) { al = ac[p]; ah = al >> 31; } else { al = aw![2 * p + lowWord]; ah = aw![2 * p + hi]; }
+                }
+                if (b) {
+                    const p = bo + i * bs;
+                    if (bc) { bl = bc[p]; bh = bl >> 31; } else { bl = bw![2 * p + lowWord]; bh = bw![2 * p + hi]; }
+                }
+                const better = code === 3 ? bh < ah || bh === ah && (bl >>> 0) < (al >>> 0)
+                    : bh > ah || bh === ah && (bl >>> 0) > (al >>> 0);
+                ow[2 * i + lowWord] = better ? bl : al;
+                ow[2 * i + hi] = better ? bh : ah;
+            }
+        }
+        return typedArray(out, shape);
+    }
     for (let start = 0; start < size; start += 4096) {
         const end = Math.min(start + 4096, size);
         checkpoint('computing integer array', end - start);

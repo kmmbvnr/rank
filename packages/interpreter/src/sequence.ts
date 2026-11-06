@@ -1,4 +1,4 @@
-import { registerScalarView } from './integer-view.js';
+import { prepareStoredScalarView, registerScalarView } from './integer-view.js';
 import { registerTensorResult, registerTensorShift } from './tensor-map.js';
 import { completeNativeSequence } from './sequence-completion.js';
 import { resolveAxis } from './tensor-index.js';
@@ -8,7 +8,7 @@ import { sliceSource } from './slice-source.js';
 import { safeDimension } from './tensor-index.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
-import { derivedArray, IntegerCells, knownStoredScalarKind, MAX_HELD_CELLS, ownedArray, readArrayItem, typedArray, typedElementKind } from './array-storage.js';
+import { arrayRevision, hasNativeArrayHeader, derivedArray, IntegerCells, knownStoredScalarKind, MAX_HELD_CELLS, ownedArray, readArrayItem, typedArray, typedElementKind } from './array-storage.js';
 import { copyStoredArrayBlocks, registerArrayCopy } from './array-copy.js';
 import { arithmeticRange, registerArrayRange } from './range-plan.js';
 import { booleanReductionHint } from '@arrrank/language';
@@ -682,20 +682,45 @@ export function shiftValue(
     });
     registerPackedBooleanShift(result, source, amount, fillValue, axis);
     registerTensorShift(result, source, amount, fillValue, axis);
-    // Zero-filled shifts copy shifted runs of the stored cells. The fill is a
-    // zero of the source's own kind (a mismatch was rejected above), so the
-    // copy has the same element type as the source.
+    // Copy completed shifted runs and bounded, typed fill blocks. Unread
+    // sources and fills outside the storage domain retain ordinary demand.
     registerArrayCopy(result, () => {
         const kind = typedElementKind(source);
-        if (!(kind === 'integer' && fillValue === 0n || kind === 'real' && typeof fillValue === 'number' && Object.is(fillValue, 0))) return undefined;
+        const zero = kind === 'integer' && fillValue === 0n
+            || kind === 'real' && typeof fillValue === 'number' && Object.is(fillValue, 0);
         const width = shape[axis], moved = Math.min(Math.abs(amount), width);
         const length = (width - moved) * stride;
         const outer = shape.slice(0, axis).reduce((size, dimension) => size * dimension, 1);
-        return copyStoredArrayBlocks(shape, [source], function* () {
-            for (let row = 0; length > 0 && row < outer; row++) {
+        let padding: RankArray | undefined;
+        if (!zero && moved && outer) {
+            if (!hasNativeArrayHeader(source) || arrayRevision(source) === undefined) return undefined;
+            const view = prepareStoredScalarView(source, true);
+            if (!view?.linear || view.linear.stride !== 1 || !view.validateUniform) return undefined;
+            const cells = view.compact ?? view.items, count = moved * stride;
+            if (count > MAX_HELD_CELLS) return undefined;
+            let fill: Int32Array | BigInt64Array | Float64Array;
+            if (typeof fillValue === 'bigint' && (cells instanceof Int32Array || cells instanceof BigInt64Array)) {
+                if (fillValue < -(1n << 63n) || fillValue >= 1n << 63n) return undefined;
+                fill = cells instanceof Int32Array && fillValue >= -2147483648n && fillValue <= 2147483647n
+                    ? new Int32Array(count) : new BigInt64Array(count);
+            } else if (typeof fillValue === 'number' && cells instanceof Float64Array) fill = new Float64Array(count);
+            else return undefined;
+            for (let start = 0; start < count; start += 65536) {
+                const end = Math.min(count, start + 65536);
+                checkpoint('filling shift padding', end - start);
+                if (fill instanceof BigInt64Array) fill.fill(fillValue as bigint, start, end);
+                else fill.fill(Number(fillValue), start, end);
+            }
+            padding = typedArray(fill);
+        }
+        return copyStoredArrayBlocks(shape, padding ? [source, padding] : [source], function* () {
+            if (!length && !padding) return;
+            for (let row = 0; row < outer; row++) {
                 const base = row * width * stride;
-                yield { source, length, offset: base + (amount < 0 ? moved * stride : 0),
+                if (padding && amount > 0) yield { source: padding, offset: 0, length: moved * stride, target: base };
+                if (length > 0) yield { source, length, offset: base + (amount < 0 ? moved * stride : 0),
                     target: base + (amount > 0 ? moved * stride : 0) };
+                if (padding && amount < 0) yield { source: padding, offset: 0, length: moved * stride, target: base + length };
             }
         });
     });
