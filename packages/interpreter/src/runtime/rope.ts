@@ -1,10 +1,12 @@
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, checkInterrupt, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { prepareStoredScalarView } from '../integer-view.js';
+import { registerSequenceCompletion } from '../sequence-completion.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { arithmeticRange } from '../range-plan.js';
 import { ResourceSummary } from '../resource-summary.js';
 import { registerStoredSequence } from './stored-value.js';
 import { materializeValue } from '../materialize.js';
-import { noteArrayBinding, ownedArray, readArrayItem, typedArray } from './array-storage.js';
+import { noteArrayBinding, ownedArray, readArrayItem, typedArray, integer32Cells, integer64Cells, MAX_HELD_CELLS } from './array-storage.js';
 import { isRankArray, isRankSequence, type RankArray, type RankSequence, type RankValue, type SequencePlan } from './value.js';
 
 interface Common {
@@ -12,17 +14,39 @@ interface Common {
     readonly height: number;
     readonly blocks: number;
     readonly scalar: boolean;
+    readonly integerWidth?: 32 | 64;
     readonly capture?: RankValue;
 }
 interface Range extends Common { readonly start: bigint; readonly step: bigint }
-interface Cells extends Common { readonly items: readonly RankValue[]; readonly offset: number; readonly stride: number }
+interface Cells extends Common {
+    readonly items: readonly RankValue[] | Int32Array | BigInt64Array;
+    readonly integer32?: boolean;
+    readonly offset: number;
+    readonly stride: number;
+}
 interface Branch extends Common { readonly left: Node; readonly right: Node; readonly reversed: boolean }
 type Leaf = Range | Cells;
 type Node = Leaf | Branch;
 const roots = new WeakMap<SequencePlan, Node | null>();
 
+function integerWidth(low: bigint, high: bigint): 32 | 64 | undefined {
+    return low >= -2147483648n && high <= 2147483647n ? 32
+        : low >= -9223372036854775808n && high <= 9223372036854775807n ? 64 : undefined;
+}
+function cellWidth(items: readonly RankValue[]): 32 | 64 | undefined {
+    let width: 32 | 64 = 32;
+    for (const value of items) {
+        if (typeof value !== 'bigint') return undefined;
+        const next = integerWidth(value, value);
+        if (!next) return undefined;
+        if (next === 64) width = 64;
+    }
+    return width;
+}
 function range(start: bigint, step: bigint, length: bigint): Range {
-    return { start, step, length, height: 1, blocks: 1, scalar: true };
+    const last = start + step * (length - 1n);
+    return { start, step, length, height: 1, blocks: 1, scalar: true,
+        integerWidth: integerWidth(start < last ? start : last, start > last ? start : last) };
 }
 function capture(values: readonly RankValue[]): RankValue {
     const value = { kind: 'tuple' as const, items: [...values] };
@@ -35,6 +59,8 @@ function branch(left: Node, right: Node): Branch {
     return { left, right, length: left.length + right.length,
         height: Math.max(left.height, right.height) + 1, blocks: left.blocks + right.blocks,
         scalar: left.scalar && right.scalar, reversed: false,
+        integerWidth: left.integerWidth && right.integerWidth
+            ? left.integerWidth === 64 || right.integerWidth === 64 ? 64 : 32 : undefined,
         ...(!left.scalar || !right.scalar ? { capture: capture([left.capture, right.capture].filter((x): x is RankValue => x !== undefined)) } : {}) };
 }
 function flip(node: Node): Node {
@@ -103,7 +129,7 @@ function item(node: Node, index: bigint): RankValue {
         else { index -= left.length; node = reversed ? node.left : node.right; }
     }
     if (reversed) index = node.length - 1n - index;
-    return 'start' in node ? node.start + node.step * index : node.items[node.offset + Number(index) * node.stride];
+    return 'start' in node ? node.start + node.step * index : cell(node, Number(index));
 }
 function* leaves(root: Node | null): Generator<Leaf> {
     const pending: { node: Node; reversed: boolean }[] = root ? [{ node: root, reversed: false }] : [];
@@ -117,8 +143,12 @@ function* leaves(root: Node | null): Generator<Leaf> {
         } else yield (reversed ? flip(node) : node) as Leaf;
     }
 }
+function cell(leaf: Cells, index: number): RankValue {
+    const value = leaf.items[leaf.offset + index * leaf.stride];
+    return leaf.integer32 ? BigInt(value as number) : value;
+}
 function leafValue(leaf: Leaf): RankValue {
-    if ('items' in leaf) return ownedArray(Array.from({ length: Number(leaf.length) }, (_, i) => leaf.items[leaf.offset + i * leaf.stride]));
+    if ('items' in leaf) return ownedArray(Array.from({ length: Number(leaf.length) }, (_, i) => cell(leaf, i)));
     // A chunk is itself indexed and compressed, including for huge ranges.
     return wrap(leaf);
 }
@@ -132,7 +162,7 @@ function wrap(root: Node | null): RankSequence {
             for (const leaf of leaves(root)) {
                 for (let i = 0n; i < leaf.length; i++) {
                     checkpoint('reading rope');
-                    yield 'start' in leaf ? leaf.start + leaf.step * i : leaf.items[leaf.offset + Number(i) * leaf.stride];
+                    yield 'start' in leaf ? leaf.start + leaf.step * i : cell(leaf, Number(i));
                 }
             }
         },
@@ -141,6 +171,37 @@ function wrap(root: Node | null): RankSequence {
     };
     const result = { kind: 'sequence' as const, plan, rope: true as const };
     roots.set(plan, root);
+    if (root?.integerWidth) registerSequenceCompletion(plan, () => {
+        if (inspectionEnabled() || demandBudgetEnabled() || !privateLoopPolling()
+            || root.length > BigInt(MAX_HELD_CELLS)) return undefined;
+        const out = root.integerWidth === 32 ? new Int32Array(Number(root.length)) : new BigInt64Array(Number(root.length));
+        let at = 0;
+        for (const leaf of leaves(root)) {
+            const count = Number(leaf.length);
+            if ('items' in leaf && leaf.stride === 1
+                && (out instanceof Int32Array && leaf.items instanceof Int32Array
+                    || out instanceof BigInt64Array && leaf.items instanceof BigInt64Array)) {
+                for (let start = 0; start < count; start += 4096) {
+                    const end = Math.min(count, start + 4096);
+                    checkpoint('copying rope', end - start);
+                    const part = leaf.items.subarray(leaf.offset + start, leaf.offset + end);
+                    if (out instanceof Int32Array) out.set(part as Int32Array, at);
+                    else out.set(part as BigInt64Array, at);
+                    at += end - start;
+                }
+            } else for (let start = 0; start < count; start += 4096) {
+                const end = Math.min(count, start + 4096);
+                checkpoint('copying rope', end - start);
+                for (let i = start; i < end; i++) {
+                    const value = 'start' in leaf ? leaf.start + leaf.step * BigInt(i) : cell(leaf, i) as bigint;
+                    if (out instanceof Int32Array) out[at++] = Number(value);
+                    else out[at++] = value;
+                }
+            }
+        }
+        checkInterrupt('copying rope');
+        return typedArray(out);
+    });
     if (scalar) registerStoredSequence(plan);
     else Object.freeze(plan);
     const resources = new ResourceSummary(() => scalar);
@@ -152,6 +213,54 @@ export function isRope(value: RankValue): value is RankSequence & { readonly rop
     return isRankSequence(value) && roots.has(value.plan);
 }
 
+/** Copy packed integer blocks without retaining a boxed BigInt per cell.
+ * Keep the ordinary 256-cell chunk/range partition, including chunks/runs
+ * observations. Guarded host reads and observable demand retain the old path. */
+function packedRope(value: RankArray): RankSequence | undefined {
+    if (inspectionEnabled() || demandBudgetEnabled() || !privateLoopPolling()) return undefined;
+    const cells = integer32Cells(value) ?? integer64Cells(value);
+    if (!cells) return undefined;
+    const view = prepareStoredScalarView(value, true), linear = view?.linear;
+    if (!linear
+        || view!.kinds?.length !== 1 || view!.kinds[0] !== 'integer'
+        || view!.validate && !view!.validateUniform
+        || typeof SharedArrayBuffer !== 'undefined' && cells.buffer instanceof SharedArrayBuffer) return undefined;
+    const size = value.shape[0];
+    if (!size) return undefined;
+    view!.validateUniform?.(view!.items[linear.offset]);
+    let root: Node | null = null;
+    for (let start = 0; start < size; start += 256) {
+        const count = Math.min(256, size - start), offset = linear.offset + start * linear.stride;
+        checkpoint('building rope', count);
+        const first = cells[offset], second = count > 1 ? cells[offset + linear.stride] : first;
+        let regular = true;
+        if (cells instanceof Int32Array) {
+            const step = Number(second) - Number(first);
+            for (let i = 2; i < count; i++) {
+                if (cells[offset + i * linear.stride] !== Number(first) + i * step) { regular = false; break; }
+            }
+        } else {
+            const step = BigInt(second) - BigInt(first);
+            for (let i = 2; i < count; i++) {
+                if (cells[offset + i * linear.stride] !== BigInt(first) + BigInt(i) * step) { regular = false; break; }
+            }
+        }
+        if (regular) root = join(root, range(BigInt(first), BigInt(second) - BigInt(first), BigInt(count)));
+        else {
+            const items = cells instanceof Int32Array ? new Int32Array(count) : new BigInt64Array(count);
+            for (let i = 0; i < count; i++) {
+                if (items instanceof Int32Array) items[i] = (cells as Int32Array)[offset + i * linear.stride];
+                else items[i] = (cells as BigInt64Array)[offset + i * linear.stride];
+            }
+            root = join(root, { items, offset: 0, stride: 1, integer32: cells instanceof Int32Array,
+                length: BigInt(count), blocks: 1, height: 1, scalar: true,
+                integerWidth: cells instanceof Int32Array ? 32 : 64 });
+        }
+    }
+    checkInterrupt('building rope');
+    return wrap(root);
+}
+
 /** Snapshot finite input once. Native arithmetic ranges remain one leaf. */
 export function rope(value: RankValue): RankSequence {
     if (isRope(value)) return value;
@@ -161,6 +270,10 @@ export function rope(value: RankValue): RankSequence {
         if (value.plan.size.kind === 'infinite') throw new RankError('rope requires a finite sequence', 'TypeError');
     }
     if (isRankArray(value) && value.shape.length !== 1) throw new RankError('rope expects a rank-1 array', 'TypeError');
+    if (isRankArray(value)) {
+        const packed = packedRope(value);
+        if (packed) return packed;
+    }
     const input = typeof value === 'string' ? value
         : isRankSequence(value) ? { [Symbol.iterator]: () => value.plan.iterate() }
         : isRankArray(value) ? { *[Symbol.iterator]() { for (let i = 0; i < value.shape[0]; i++) yield readArrayItem(value, i); } }
@@ -179,7 +292,7 @@ export function rope(value: RankValue): RankSequence {
             return;
         }
         root = join(root, { items, offset: 0, stride: 1, length: BigInt(items.length),
-            blocks: 1, height: 1, scalar: items.every(x => typeof x !== 'object'),
+            blocks: 1, height: 1, scalar: items.every(x => typeof x !== 'object'), integerWidth: cellWidth(items),
             ...(items.some(x => typeof x === 'object') && { capture: capture(items) }) });
         buffer = [];
     };
@@ -231,9 +344,9 @@ export function ropeRuns(value: RankSequence): RankArray {
         for (const leaf of leaves(root)) {
             if ('start' in leaf) { yield leaf.start; yield leaf.step; yield leaf.length; }
             else for (let i = 0; i < Number(leaf.length); i++) {
-                const cell = leaf.items[leaf.offset + i * leaf.stride];
-                if (typeof cell !== 'bigint') throw new RankError('runs requires an integer rope', 'TypeError');
-                yield cell; yield 0n; yield 1n;
+                const value = cell(leaf, i);
+                if (typeof value !== 'bigint') throw new RankError('runs requires an integer rope', 'TypeError');
+                yield value; yield 0n; yield 1n;
             }
         }
     };

@@ -8,85 +8,112 @@ use cli
 
 arg N integer = 10000000
 
-rem Primes join when they differ in
-rem one digit, or one is the other
-rem plus a leading digit. Add each
-rem prime's edges to smaller primes in
-rem increasing order with union-find
-rem and see whether it meets 2.
-Pr = primes to N array
-Ip = array shape (N + 1) fill 0
-Ip Pr = 1
-Hi = array shape 0 fill 0
-Lo = array shape 0 fill 0
-for J in 0 to 6
-  Pw = 10 ** J
-  Dg = Pr // Pw mod 10
-  Lead = Pr // Pw less 10
-  for D in 0 to 9
-    Q = Pr + (D - Dg) * Pw
-    Ok = Pr at least Pw choose 1 0
-    Ok *= Dg greater D choose 1 0
-    if D equal 0
-      Ok *= Lead choose 0 1
+rem A prime is relative to 2 only if its
+rem component reaches 2 before any
+rem larger prime is added. Keep 2 as
+rem the smallest component root.
+fun Parents root_of Node
+  Current = Node
+  for Parents Current not equal Current
+    Current = Parents Current
+  end
+  return Current
+end
+fun Edges prime_flags Base
+  Parents = 0 till Base copy
+  Flags = array shape Base fill false
+  if Base at least 3
+    Flags 2 = true
+  end
+  for Edge in Edges
+    High = Edge // Base
+    Low = Edge mod Base
+    rem High's parent is a root.
+    Left = Parents High
+    Right = Parents Low
+    if Parents Right not equal Right
+      Right = Parents root_of Right
     end
-    Qc = Q max 0 min N
-    Ok = Ok * (Ip Qc)
-    Ix = Ok greater 0 indices
-    Hi = concat Hi (Pr Ix)
-    Lo = concat Lo (Q Ix)
+    Root = Left min Right
+    if Left not equal Right
+      Parents (Left max Right) = Root
+    end
+    Parents High = Root
+    Parents Low = Root
+    if Root equal 2
+      Flags High = true
+    end
   end
+  return Flags
 end
-rem Leading digit deleted.
-for J in 1 to 6
-  Pw = 10 ** J
-  Top = Pr // Pw
-  Q = Pr - Top * Pw
-  Ok = Top greater 0 choose 1 0
-  Ok *= Top less 10 choose 1 0
-  Ok *= Q at least Pw // 10 choose 1 0
-  Qc = Q max 0 min N
-  Ok = Ok * (Ip Qc)
-  Ix = Ok greater 0 indices
-  Hi = concat Hi (Pr Ix)
-  Lo = concat Lo (Q Ix)
+rem Store edges as High * Base + Low.
+rem Completed blocks in a rope avoid
+rem repeatedly copying earlier edges.
+fun Primes edge_keys PrimeMask
+  Base = PrimeMask len
+  Limit = Base - 1
+  rem 16K paid too much setup; 1M used
+  rem more memory without a clear gain.
+  rem Bound digit edits at 256K primes.
+  Block = 262144
+  Count = Primes len
+  Blocks = (Count + Block - 1) // Block
+  Width = 0
+  if Count greater 0
+    Last = Primes (Count - 1)
+    Width = Last text len
+  end
+  Powers = 10 ** (0 till Width array)
+  Empty = array shape 0 fill 0
+  Edges = Empty rope
+  Tasks = Blocks * Width * 11
+  for Task in 0 till Tasks
+    Start = Task mod Blocks * Block
+    End = Start + Block min Count
+    Batch = Primes (Start till End) copy
+    Pass = Task // Blocks
+    Power = Powers (Pass // 11)
+    Digit = Pass mod 11
+    Candidates = Batch
+    Valid = Batch greater 0
+    rem Edit 10 drops a leading digit.
+    if Digit equal 10
+      Prefix = Batch // Power
+      Candidates = Batch mod Power
+      Valid = Prefix greater 0
+      Valid = Valid and Prefix less 10
+      Cutoff = Power // 10
+      Kept = Candidates at least Cutoff
+      Valid = Valid and Kept
+    else
+      Original = Batch // Power mod 10
+      Leading = Batch // Power less 10
+      Delta = (Digit - Original) * Power
+      Candidates = Batch + Delta
+      Valid = Batch at least Power
+      Lower = Original greater Digit
+      Valid = Valid and Lower
+      if Digit equal 0
+        Valid = Valid and not Leading
+      end
+    end
+    Clamped = Candidates max 0 min Limit
+    Keep = Valid and PrimeMask Clamped
+    Indices = Keep indices
+    High = Batch Indices
+    Low = Candidates Indices
+    Keys = High * Base + Low
+    Edges = concat Edges (Keys rope)
+  end
+  return Edges copy sort
 end
-Od = Hi argsort
-Hs = Hi Od copy
-Ls = Lo Od copy
-Par = 0 to N copy
-Done = array shape (N + 1) fill 0
-Done 2 = 1
-Ne = Hs len - 1
-for E in 0 to Ne
-  A = Hs E
-  B = Ls E
-  for Par A not equal A
-    Par A = Par (Par A)
-    A = Par A
-  end
-  for Par B not equal B
-    Par B = Par (Par B)
-    B = Par B
-  end
-  if A not equal B
-    Par A = B
-  end
-  Tp = Hs E
-  Rt = Tp
-  for Par Rt not equal Rt
-    Par Rt = Par (Par Rt)
-    Rt = Par Rt
-  end
-  Rs = 2
-  for Par Rs not equal Rs
-    Par Rs = Par (Par Rs)
-    Rs = Par Rs
-  end
-  if Rt equal Rs
-    Done Tp = 1
-  end
-end
-Conn = Pr (Done Pr equal 1 indices)
-Answer = Pr sum - (Conn sum)
+Primes = primes to N array
+Base = N + 1
+PrimeMask = array shape Base fill false
+PrimeMask Primes = true
+Edges = Primes edge_keys PrimeMask
+Flags = Edges prime_flags Base
+Connected = Flags Primes
+Missing = Primes (not Connected)
+Answer = Missing sum
 Answer print
