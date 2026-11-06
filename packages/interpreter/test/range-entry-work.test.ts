@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, RankError } from '../src/index.js';
+import { withDemandBudget } from '../src/interrupt.js';
 
 const source = `use sequences
 N = 300000
@@ -70,5 +71,29 @@ describe('range entry work without changing copy thresholds', () => {
         const result = execute(text);
         expect(result.values).toEqual(execute(text, false).values);
         expect(result.diagnostics.numberLoops).toBe(0);
+    });
+    it.each([undefined, 2000])('preserves prior stores and failure with derived selectors (budget=%s)', budget => {
+        const text = source.replace(' A Slots =', ' Target = Slots + (P - 2)\n A Target =');
+        function run(numberLoopCompilation: boolean) {
+            const runtime = new Interpreter(() => {}, { numberLoopCompilation });
+            const diagnostics = new RuntimeDiagnostics();
+            let error: string | undefined;
+            try {
+                try {
+                    diagnostics.run(() => budget === undefined ? runtime.execute(text)
+                        : withDemandBudget(budget, () => runtime.execute(text)));
+                } catch (failure) { error = failure instanceof RankError ? failure.format() : String(failure); }
+                return { diagnostics, state: { error,
+                    count: runtime.variables.get('Count'), p: runtime.variables.get('P'),
+                    cells: [2, 3, 6, 300000].map(index => runtime.execute(`A ${index}`)) } };
+            } finally { runtime.dispose(); }
+        }
+        const result = run(true);
+        expect(result.state).toEqual(run(false).state);
+        expect(result.state.error).toBeDefined();
+        if (budget === undefined) {
+            expect(result.state.cells).toEqual([7n, 0n, 7n, 7n]);
+            expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+        } else expect(result.diagnostics.numberLoops).toBe(0);
     });
 });
