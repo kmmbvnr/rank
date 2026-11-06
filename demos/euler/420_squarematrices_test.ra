@@ -29,3 +29,22 @@ test "bound 10^5"
   run
   Answer equal 518497
 end
+
+test "small and empty bounds"
+  use "420_squarematrices"
+  N = 0
+  run
+  Answer equal 0
+  N = 1
+  run
+  Answer equal 0
+  N = 2
+  run
+  Answer equal 0
+  N = 3
+  run
+  Answer equal 0
+  N = 11
+  run
+  Answer equal 1
+end

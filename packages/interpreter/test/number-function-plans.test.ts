@@ -127,3 +127,35 @@ Value`);
     if (statement.startsWith('Saved')) expect(results[1].value).toBe('1');
     else expect(results[1].error).toBeDefined();
 });
+
+it.each([
+    ["return (Input (array 2 0 2)) sum", '(array 10 20 30)'],
+    ["Slots' = Input mod 3\n return (Input Slots) sum", '(array 2 0 1)'],
+    ["Slots' = Input - 1\n return (Input Slots) sum", '(array 1 2 3)'],
+])('compiles a stored vector gather into a helper reduction: %s', (body, input) => {
+    const actual = execute(body, input);
+    expect(actual.result).toEqual(execute(body, input, false).result);
+    expect(actual.result.error).toBeUndefined();
+    expect(actual.diagnostics.numberFunctions).toBeGreaterThan(0);
+    expect(actual.diagnostics.numberFunctionFallbacks).toBe(0);
+    expect(execute(body, input, true, false).result).toEqual(execute(body, input, false).result);
+});
+
+it.each([
+    ["return (Input (array -1 0)) sum", '(array 10 20 30)'],
+    ["return (Input (array 0 3)) sum", '(array 10 20 30)'],
+    ["Slots' = Input // (array 1 0)\n return (Input Slots) sum", '(array 10 20)'],
+    ["return (Input (array 0 1)) sum", '(array 9007199254740991 1)'],
+    ["Unused' = Input (array -1)\n return 7", '(array 10 20)'],
+    ["Unused = Input (array -1)\n return 7", '(array 10 20)'],
+])('retains gather validation and demand timing: %s', (body, input) => {
+    const reference = execute(body, input, false).result;
+    expect(execute(body, input).result).toEqual(reference);
+    expect(execute(body, input, true, false).result).toEqual(reference);
+});
+
+it('keeps an empty gather recipe without numeric entry evidence', () => {
+    const body = "Slots' = Input + 1\n return (Input Slots) sum";
+    expect(execute(body, '(array shape 0 fill 1)').result)
+        .toEqual(execute(body, '(array shape 0 fill 1)', false).result);
+});

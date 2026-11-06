@@ -409,7 +409,7 @@ function compileScalarNumberKernel(
             if (input.map || input.native || input.conversion || input.power) return false;
             if (input.name) return !node.type.rank || node.type.rank === 1 && arrays.has(input.name);
             return [input.stage, input.operand, ...input.vector ?? [], input.outer?.left,
-                input.outer?.right, input.reduction?.operand, input.length]
+                input.outer?.right, input.reduction?.operand, input.length, input.gather?.source, input.gather?.indices]
                 .filter((value): value is FunctionPlan => !!value).every(supported);
         }
         if (consumer.terminal !== 'sum' || !supported(consumer.stage)) return undefined;

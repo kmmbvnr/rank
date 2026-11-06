@@ -11,6 +11,7 @@ import {
 export interface FunctionPlanDomain { readonly element: CompiledScalarType; readonly rank: 0 | 1 | 2 }
 interface PlanInput {
     readonly vector?: readonly FunctionPlan[];
+    readonly gather?: { readonly source: FunctionPlan; readonly indices: FunctionPlan };
     readonly map?: { readonly key: number; readonly operand: FunctionPlan };
     readonly outer?: { readonly operation: CompiledOperator; readonly left: FunctionPlan; readonly right: FunctionPlan };
     readonly reduction?: { readonly name: 'count' | 'sum' | 'min' | 'max'; readonly operand: FunctionPlan; readonly rows: boolean };
@@ -46,7 +47,7 @@ export function functionPlanArrays(plan: FunctionPlan, names = new Set<string>()
         if (plan.input.stage) functionPlanArrays(plan.input.stage, names, seen);
         if (plan.input.operand) functionPlanArrays(plan.input.operand, names, seen);
         for (const node of [...plan.input.power ?? [], ...plan.input.vector ?? [], plan.input.map?.operand,
-            plan.input.outer?.left, plan.input.outer?.right, plan.input.reduction?.operand, plan.input.native?.operand, plan.input.length]) {
+            plan.input.gather?.source, plan.input.gather?.indices, plan.input.outer?.left, plan.input.outer?.right, plan.input.reduction?.operand, plan.input.native?.operand, plan.input.length]) {
             if (node) functionPlanArrays(node, names, seen);
         }
     } else if (plan.kind === 'group' || plan.kind === 'unary') functionPlanArrays(plan.operand, names, seen);
@@ -60,7 +61,7 @@ export function functionPlanCallbacks(plan: FunctionPlan, keys = new Set<number>
         if (plan.input.stage) return keys;
         if (plan.input.map) keys.add(plan.input.map.key);
         for (const node of [plan.input.operand, ...plan.input.power ?? [], ...plan.input.vector ?? [], plan.input.map?.operand,
-            plan.input.outer?.left, plan.input.outer?.right, plan.input.reduction?.operand, plan.input.native?.operand, plan.input.length]) {
+            plan.input.gather?.source, plan.input.gather?.indices, plan.input.outer?.left, plan.input.outer?.right, plan.input.reduction?.operand, plan.input.native?.operand, plan.input.length]) {
             if (node) functionPlanCallbacks(node, keys);
         }
     } else if (plan.kind === 'group' || plan.kind === 'unary') functionPlanCallbacks(plan.operand, keys);
@@ -164,6 +165,17 @@ export function proveFunctionPlan(expression: Expression, host: {
                         return { type: { element: 'text', rank: 0 }, input: { conversion: 'text', operand } };
                     }
                 }
+                // A stored rank-one source is already a snapshot. Do not
+                // classify native terminal names as selector expressions.
+                if (parts.length === 2 && isNameExpression(parts[0])
+                    && host.input(parts[0].name)?.rank === 1 && !host.stage(parts[0].name)
+                    && (!isNameExpression(parts[1]) || host.stage(parts[1].name) || host.input(parts[1].name)?.rank === 1)) {
+                    const indices = parse(parts[1]);
+                    if (indices?.type.rank === 1 && indices.type.element === 'integer') {
+                        const source = parse(parts[0])!;
+                        return { type: source.type, input: { gather: { source, indices } } };
+                    }
+                }
                 return undefined;
             },
             isBound: name => !!host.input(name) || !!host.stage(name),
@@ -242,7 +254,7 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
         if (origin.kind !== 'input') return [];
         const input = origin.input;
         return [input.operand, ...input.power ?? [], ...input.vector ?? [], input.map?.operand,
-            input.native?.operand, input.length].filter((n): n is FunctionPlan => !!n).map(n => lower(n)!);
+            input.native?.operand, input.length, input.gather?.source, input.gather?.indices].filter((n): n is FunctionPlan => !!n).map(n => lower(n)!);
     });
     const emit = inlineTensorEmitter(lines, {
         buffered, number: host.number, check: host.check,
@@ -262,6 +274,29 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
             return { read: () => code };
         }
         if (node.kind === 'input') {
+            if (node.input.gather) {
+                const source = prepare(node.input.gather.source), indices = prepare(node.input.gather.indices);
+                if (!host.number) {
+                    // Complete selectors before native bounds validation. An
+                    // invalid early index must not hide a later recipe error.
+                    const keys = complete(indices), result = host.variable();
+                    host.locate(node.source, lines, demandLocation);
+                    lines.push(`const ${result} = applySelectors([${source.value}, ${keys}]);`);
+                    return { value: result, size: `${result}.shape[0]`, read: (index, body) => {
+                        const value = host.variable();
+                        body.push(`const ${value} = readArrayItem(${result}, ${index});`);
+                        return value;
+                    } };
+                }
+                return { size: indices.size, read: (index, body) => {
+                    const key = host.variable();
+                    body.push(`const ${key} = ${indices.read(index, body)};`);
+                    // Replay native selection on a bad address, preserving its
+                    // error text, location and validation order.
+                    body.push(`if (${key} < 0 || ${key} >= ${source.size}) throw overflow;`);
+                    return source.read(key, body);
+                } };
+            }
             if (node.input.vector) {
                 const values = node.input.vector.map(prepare).map(item => item.read('0', lines));
                 const array = host.variable();

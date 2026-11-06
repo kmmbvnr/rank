@@ -184,7 +184,7 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     const state = createLoopState(statement, host, textSources, textArrays, failed, numberMode, wideScalars, workCounting, polling);
     const {
         localTypes, names, required, writers, binders, writerNames, binderNames, written, containers,
-        builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
+        builtins, syntax, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
         vectorIterations, iterators, destinations, locations, reject,
     } = state;
     if (!statement.statements.length) return reject(statement, 'statement-budget');
@@ -209,7 +209,7 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
     if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return reject(statement, 'unstable-bindings');
     if ([...destinations].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
-    if ([...builtins.keys()].some(name => written.has(name)) || calls.some(call => written.has(call.name) || call.locals.some(name => written.has(name)))) return reject(statement, 'unstable-bindings');
+    if ([...builtins.keys(), ...syntax].some(name => written.has(name)) || calls.some(call => written.has(call.name) || call.locals.some(name => written.has(name)))) return reject(statement, 'unstable-bindings');
     if (calls.some(call => call.receiver && (written.has(call.receiver) || names.includes(call.receiver)))) return reject(statement, 'unstable-effect-receiver');
     // An array-returning callee can share a caller operand after entry COW.
     // Per-store ownership preparation is required before these regions may write.
@@ -316,7 +316,7 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     if (numberMode && [...state.sliceResultSources].some(name => writable.has(name))) return reject(statement, 'mutable-slice-result');
     return {
         statement, names, wideScalars, integerRanges: state.integerRanges, rangeNarrowing: state.rangeNarrowing, exactInputs: state.exactInputs, arrays, destinations, root, body, outlinedLoops: state.outlinedLoops, locations, required, localTypes, containers,
-        builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
+        builtins, syntax, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, reversedPrimes: state.reversedPrimes, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         ownershipChecks: state.ownershipChecks, ownedAliases, arrayTransfers, arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, rangeDefinitions: new Set(state.ranges.keys()), writable, iteration, workCounting, polling, callouts: state.callouts,
     };
