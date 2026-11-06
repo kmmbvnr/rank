@@ -36,6 +36,36 @@ export function mapPackedBooleanArrays(left: RankArray, right?: RankArray, opera
     return createOwned(cells, left.shape, true);
 }
 
+/** Equality of completed bitmaps and Boolean scalars stays packed. Different
+ * shapes, opaque readers and mixed domains retain ordinary comparison. */
+export function comparePackedBooleans(left: RankValue, right: RankValue, operator?: string): RankArray | undefined {
+    if (operator !== 'equal' && operator !== 'notequal' || inspectionEnabled() || !privateLoopPolling()) return undefined;
+    const borrow = (value: RankValue) => {
+        if (typeof value === 'boolean') return value;
+        if (!isRankArray(value) || Object.getPrototypeOf(value) !== Object.prototype
+            || Object.getOwnPropertyDescriptor(value, 'itemAt') !== undefined) return undefined;
+        const shape = Object.getOwnPropertyDescriptor(value, 'shape')?.value as readonly number[] | undefined;
+        const state = ownedStorage.get(value);
+        return Array.isArray(shape) && shape.every(n => Number.isSafeInteger(n) && n >= 0) && state?.stable && state.scalarOnly && !state.validity && state.booleans
+            && shape.reduce((a, b) => a * b, 1) === state.booleans.length
+            ? { shape, cells: state.booleans } : undefined;
+    };
+    const a = borrow(left), b = borrow(right);
+    if (a === undefined || b === undefined || typeof a === 'boolean' && typeof b === 'boolean') return undefined;
+    if (typeof a !== 'boolean' && typeof b !== 'boolean'
+        && (a.shape.length !== b.shape.length || a.shape.some((n, i) => n !== b.shape[i]))) return undefined;
+    const array = typeof a === 'boolean' ? b as Exclude<typeof b, boolean> : a;
+    const cells = new BooleanCells(array.cells.length);
+    for (let i = 0; i < cells.words.length; i++) {
+        if ((i & 127) === 0) checkpoint('comparing boolean words', Math.min(4096, cells.length - i * 32));
+        const x = typeof a === 'boolean' ? a ? 0xffffffff : 0 : a.cells.words[i];
+        const y = typeof b === 'boolean' ? b ? 0xffffffff : 0 : b.cells.words[i];
+        cells.words[i] = operator === 'equal' ? ~(x ^ y) : x ^ y;
+    }
+    cells.trim();
+    return createOwned(cells, array.shape, true);
+}
+
 /** Validated irregular indices can gather stored bits without proxy reads or
  * an intermediate boxed array. Callers retain the ordinary eager threshold. */
 export function gatherPackedBooleans(source: RankArray, offsets: Float64Array | Int32Array,

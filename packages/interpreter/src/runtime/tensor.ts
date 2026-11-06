@@ -1,7 +1,7 @@
 import { ownedStorage } from './array-storage-state.js';
 import { BooleanCells } from './boolean-cells.js';
 import { createOwned } from './owned-array.js';
-import { mapPackedBooleanArrays } from './packed-booleans.js';
+import { comparePackedBooleans, mapPackedBooleanArrays } from './packed-booleans.js';
 import { chooseStoredIntegers, compareStoredInt32, mapStoredIntegers } from '../jit/integer-array-kernel.js';
 import { mapArrayCells } from './array-cell-mapping.js';
 import { mapScalarArrays } from '../jit/scalar-array-map.js';
@@ -82,6 +82,8 @@ export function mapDenseArrays(
     integerOperation = ['+', '-', '*'][realCode],
 ): RankArray | undefined {
     const left = storedOperand(completeScalarBuiltin(leftOperand)), right = storedOperand(completeScalarBuiltin(rightOperand));
+    const packedComparison = comparePackedBooleans(left, right, integerOperation);
+    if (packedComparison) return packedComparison;
     const comparison = compareStoredInt32(left, right, integerOperation);
     if (comparison) return comparison;
     const observed = compareObservedInt32(left, right, integerOperation, operation);
