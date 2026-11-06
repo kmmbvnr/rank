@@ -20,7 +20,7 @@ diagnostics enabled, uncontrolled host load:
 | Host | Original full, single observation | Final compiled median | Original RSS | Final RSS range |
 | --- | ---: | ---: | ---: | ---: |
 | Mac | 40.684 s | 13.699 s | 1241.6 MiB | 536–552 MiB |
-| Intel | 100.119 s | 33.397 s | 907 MiB | 557–560 MiB |
+| Intel | 66.459 s | 26.758 s | 897.0 MiB | 553–559 MiB |
 
 The original full observations predate the final batch; these are not three
 interleaved full before/after pairs. At M=10^6, three alternating original /
@@ -30,12 +30,21 @@ final pairs provide the more controlled comparison:
 | --- | ---: | ---: |
 | Mac compiled | 0.716 s | 0.355 s |
 | Mac reference | 0.613 s | 0.263 s |
-| Intel compiled | 1.851 s | 0.978 s |
-| Intel reference | 1.745 s | 0.739 s |
+| Intel compiled | 1.563 s | 0.822 s |
+| Intel reference | 1.521 s | 0.615 s |
 
 Full reference single probes return the same answer: 8.740 s / 588.9 MiB
-on Mac and 18.088 s / 546.9 MiB on Intel. No original full reference timing
+on Mac and 12.778 s / 545.0 MiB on Intel. No original full reference timing
 was recorded; do not infer its improvement from compiled measurements.
+
+The final Intel dependency check found that its node_modules had resolved an
+older language build, which declined an unrelated Boolean-to-integer Number
+call. The demo answers were unchanged, but that environment was unsuitable
+for final compiler coverage. Isolated dependencies now use the same language
+operation metadata as Mac (SHA-256 recorded in the JSON); 149 latest Intel
+coverage tests pass and all Intel final samples above were repeated. Earlier
+Intel samples remain explicitly archived, not used as the final comparison.
+The runner now records the language metadata checksum to catch such drift.
 
 ## General compiler changes
 
@@ -66,7 +75,8 @@ The final demo deliberately uses the array batching compromise above.
 
 ## Verification
 
-431 targeted tests passed on Mac and 131 on Intel, plus four scoped type/
+431 targeted tests passed on Mac and 131 on Intel, followed by 149 final
+aligned-dependency Intel tests, plus four scoped type/
 differential audit cases (the default and its fixture). After rebasing onto
 the concurrent integer-reader/wide-sum repairs, 299 integration cases passed
 (including two additional hook/cache-policy cases). The suite covers
