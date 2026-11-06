@@ -3161,3 +3161,18 @@ budgets, call-depth checks, binding guards and ownership rules are retained.
 
 See [Euler 433 controls](../../benchmarks/euler433-followup.md) for separate
 source/compiler effects, reference storage checks and rejected variants.
+
+## Exact polynomial row work and root reuse (Euler 434, #447)
+
+The rigid-grid recurrence now computes normalized connected-graph rows with the
+existing native `convolve mod` operation. This removes per-cell rectangular
+intermediates and benefits reference execution as well as compiled tensors.
+No new language form or Euler-specific compiler rule is introduced.
+
+The shared NTT backend retains one prefix root table per prime for short
+transforms. Roots for a level depend on the prime and half-length, so a larger
+cached table supplies smaller transforms too. Three tables of at most 4096
+Int32 cells retain at most 48 KiB; larger tables are cached alone as before.
+Input/result buffers, algorithm dispatch and cooperative checkpoints are
+unchanged. Tests cover prefix reuse after large transforms and warm-cache demand
+exhaustion. See [Euler 434 controls](../../benchmarks/euler434-followup.md).
