@@ -54,11 +54,12 @@ for (const [file, expected] of [
     ['729_periodicrange.ra', '308896374.2502'],
     ['735_divisorsoftwo.ra', 174848216767932n],
     ['737_coinloops.ra', 757794899n],
+    ['739_summationofsummations.ra', 711399016n],
     ['738_orderedfactorisations.ra', 143091030n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
     const timeout = ['715_sextupletnorms.ra', '729_periodicrange.ra'].includes(file) ? 240_000
-        : ['275_balancedsculptures.ra', '714_duodigits.ra', '719_numbersplitting.ra', '735_divisorsoftwo.ra', '737_coinloops.ra'].includes(file) ? 120_000 : 60_000;
+        : ['275_balancedsculptures.ra', '714_duodigits.ra', '719_numbersplitting.ra', '735_divisorsoftwo.ra', '737_coinloops.ra', '739_summationofsummations.ra'].includes(file) ? 120_000 : 60_000;
     it(`checks the full compiled answer for ${file}`, () => {
         const url = new URL(`../../../demos/euler/${file}`, import.meta.url);
         const diagnostics = new RuntimeDiagnostics();
@@ -68,7 +69,9 @@ for (const [file, expected] of [
             expect(runtime.variables.get('Answer')).toBe(expected);
             if (file === '426_boxball.ra') {
                 expect(diagnostics.numberLoops).toBe(1);
-                expect(diagnostics.numberLoopOverflows).toBe(0);
+                // Euler 739 already replays one speculative Number loop for
+            // wide integer intermediates; the modular scans stay native.
+            expect(diagnostics.numberLoopOverflows).toBe(file === '739_summationofsummations.ra' ? 1 : 0);
                 expect(diagnostics.numberFunctionFallbacks).toBe(0);
             }
             if (file === '705_inversioncount.ra') expect(diagnostics.nativeSequenceCopies).toBeGreaterThan(0);
@@ -92,11 +95,12 @@ for (const [file, expected] of [
                 expect(diagnostics.tensorMapPreparations).toBeGreaterThan(0);
                 expect(diagnostics.compiledTensors).toBeGreaterThan(0);
             }
+            if (file === '739_summationofsummations.ra') expect(diagnostics.modularCallbackScans).toBe(48);
             if (file === '738_orderedfactorisations.ra') {
                 expect(diagnostics.numberLoops).toBe(1);
                 expect(diagnostics.cowCopies).toBe(0);
             }
-            if (file !== '714_duodigits.ra' && file !== '737_coinloops.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
+            if (file !== '714_duodigits.ra' && file !== '737_coinloops.ra' && file !== '739_summationofsummations.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
                 expect(diagnostics.numberLoops).toBeGreaterThan(0);
             }
             expect(diagnostics.numberLoopOverflows).toBe(0);

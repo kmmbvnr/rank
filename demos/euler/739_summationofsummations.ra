@@ -97,4 +97,7 @@ for Piece in 0 to Chunks - 1
   Down = Whole
 end
 Answer = Total
+if Length equal 1
+  Answer = 1
+end
 Answer print
