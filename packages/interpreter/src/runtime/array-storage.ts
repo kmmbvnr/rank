@@ -2,7 +2,7 @@
 export {
     createArraySnapshot, isFlatScalarArray, denseScalarItems, storedScalarKinds, knownStoredScalarKind, realCells,
     writableIntegerCells, writableRealCells, writeArrayCell, hasWritableBooleanCells, fillBooleanSelection,
-    writeIntegerSelection, writeRealSelection, writeComputedSelection, accumulateIntegerSelection, reduceIntegerUpdates, copyStoredNumericArray, sortStoredIntegerArray, booleanCells, float64Cells, storedOperandItems, eagerOperandItems, ownedArray, ownedScalarArray,
+    writeIntegerSelection, prepareIntegerScalarDivision, writeRealSelection, writeComputedSelection, accumulateIntegerSelection, reduceIntegerUpdates, copyStoredNumericArray, sortStoredIntegerArray, booleanCells, float64Cells, storedOperandItems, eagerOperandItems, ownedArray, ownedScalarArray,
     filledArray, typedArray, integer32Cells, integer64Cells, writeInteger32Cells, IntegerCells, sharedTypedArray, sliceStoredArray, reshapeStoredArray, typedElementKind, maskedArray, maskedCells,
     maskedNumericCells, hasMaskedCells, prepareScalarArrayWriter,
 } from './owned-array.js';

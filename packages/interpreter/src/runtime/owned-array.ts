@@ -1,6 +1,6 @@
 import { BooleanCells, booleanItems } from './boolean-cells.js';
 import { copyArrayStorage } from './array-copy.js';
-import { checkpoint, InterruptedError, interruptsEnabled, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
+import { checkpoint, InterruptedError, interruptsEnabled, privateLoopPolling, demandBudgetEnabled, inspectionEnabled } from '../interrupt.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import { ResourceSummary } from '../resource-summary.js';
 import { StoredValueSummary } from './stored-value.js';
@@ -243,6 +243,46 @@ export function fillBooleanSelection(
         if (state.booleans) state.booleans.write(offsetAt(i), operand);
         else state.items[offsetAt(i)] = operand;
     }
+}
+
+/** A positive scalar divisor keeps every Int32 quotient in Int32. Native
+ * strided writes need neither a boxed replacement vector nor generated code.
+ * Selection/ownership and the binding contract remain the caller's checks. */
+export function prepareIntegerScalarDivision(value: RankArray, count: number,
+    linear: { offset: number; stride: number }, divisor: bigint): {
+        representative: bigint; write(destination: RankArray): boolean;
+    } | undefined {
+    if (count <= 0 || divisor <= 0n || divisor > BigInt(Number.MAX_SAFE_INTEGER)
+        || inspectionEnabled() || !privateLoopPolling() || demandBudgetEnabled()) return undefined;
+    const state = ownedStorage.get(value), cells = state?.typed;
+    if (!state?.stable || state.readOnlyCells || state.validity || !(cells instanceof Int32Array)
+        || !(cells.buffer instanceof ArrayBuffer)) return undefined;
+    if (['itemAt', 'columnNames', 'tableScopes', 'sortKeys'].some(name => Object.getOwnPropertyDescriptor(value, name))) return undefined;
+    const last = linear.offset + (count - 1) * linear.stride;
+    if (!Number.isSafeInteger(linear.offset) || !Number.isSafeInteger(last)
+        || linear.offset < 0 || linear.offset >= cells.length || last < 0 || last >= cells.length) return undefined;
+    const denominator = Number(divisor);
+    return {
+        representative: BigInt(Math.floor(cells[linear.offset] / denominator)),
+        write(destination) {
+            const target = ownedStorage.get(destination), output = target?.typed;
+            if (!target?.stable || target.readOnlyCells || target.validity || !(output instanceof Int32Array)
+                || !(output.buffer instanceof ArrayBuffer)) return false;
+            target.revision = noteMutation(target.birth);
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) { diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count; }
+            // abs(numerator) <= 2^31, so rounded division cannot cross an
+            // integer boundary; positive denominators also preclude widening.
+            for (let start = 0; start < count; start += 4096) {
+                const end = Math.min(count, start + 4096);
+                checkpoint('writing array', end - start);
+                let offset = linear.offset + start * linear.stride;
+                for (let i = start; i < end; i++, offset += linear.stride)
+                    output[offset] = Math.floor(output[offset] / denominator);
+            }
+            return true;
+        },
+    };
 }
 
 /** Commit a prevalidated integer selection without per-cell Proxy traffic.
@@ -837,7 +877,7 @@ export function sharedTypedArray(data: Float64Array | BigInt64Array | Int32Array
 export function sliceStoredArray(value: RankArray, offset: number, shape: readonly number[]): RankArray | undefined {
     const state = ownedStorage.get(value);
     if (!state?.stable || !state.scalarOnly || !state.typed || state.validity || state.readOnlyCells
-        || value.itemAt !== undefined || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
+        || ['itemAt', 'columnNames', 'tableScopes', 'sortKeys'].some(name => Object.getOwnPropertyDescriptor(value, name))) return undefined;
     const size = shape.reduce((n, dimension) => n * dimension, 1);
     if (offset < 0 || offset + size > state.typed.length) return undefined;
     checkpoint('sharing numeric slice', size);

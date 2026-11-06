@@ -1,4 +1,4 @@
-import { flattenApplication, isApplicationExpression, isNameExpression, isFunctionStatement, statementResultDiscarded, findCompiledOperator, loopOperatorSignature, isParenthesizedExpression, isBinaryExpression, rangeSliceOperands, type ArrayAssignmentStatement } from '@arrrank/language';
+import { flattenApplication, isApplicationExpression, isNameExpression, findCompiledOperator, loopOperatorSignature, isParenthesizedExpression, isBinaryExpression, rangeSliceOperands, type ArrayAssignmentStatement } from '@arrrank/language';
 import { isRankIndex } from '../value.js';
 import { hasNativeFenwick } from '../fenwick.js';
 import type { LoopTerm } from './integer-loop-plan.js';
@@ -150,12 +150,12 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 && !(host.booleanArrays && bulkType.element === 'boolean')) return undefined;
             // An escaping self-selection follows the current binding after a
             // COW rebind. Lowered register operands would retain the old buffer.
-            const boundary = isFunctionStatement(state.statement) ? state.statement.statements.at(-2) : state.statement;
+            const discarded = state.resultDiscarded(assignment);
             let value = assignment.value;
             while (isParenthesizedExpression(value)) value = value.value;
             const parts = isApplicationExpression(value) ? flattenApplication(value) : [];
             if (parts.length > 1 && isNameExpression(parts[0]) && parts[0].name === assignment.name
-                && !(boundary && statementResultDiscarded(assignment, boundary))) {
+                && !discarded) {
                 return reject(assignment, 'escaping-self-slice-result');
             }
             const type = bulkType.element;

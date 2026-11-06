@@ -27,7 +27,8 @@ describe('boolean scatter and numeric mask selections', () => {
     it.each(['true', 'false', 'A Ix'])('snapshots boolean RHS %s with duplicate selectors', rhs => {
         const r = compare(head + `for I in 1 to 3\n A Ix = ${rhs}\n Done = I\nend\ntuple A Saved`);
         expect(r.observation.error).toBeUndefined();
-        expect(r.d.numberLoops).toBe(rhs === 'A Ix' ? 0 : 1);
+        // Indexed gathers are fresh snapshots, including with duplicate keys.
+        expect(r.d.numberLoops).toBe(1);
     });
     it.each([false, true])('compiles mask selection and bool stores with observation %s', observed => {
         const r = compare(`A = array shape 25 fill false
@@ -83,8 +84,14 @@ tuple A Saved B`, observed);
             expect(r.d.numberLoopOverflows).toBeGreaterThan(0);
         }
     });
-    it('retains an escaping live array RHS on the publishing backend', () => {
+    it('publishes an escaping fresh gather snapshot', () => {
         const r = compare(head + 'for I in 1 to 3\n A Ix = A Ix\nend');
+        expect(r.observation.error).toBeUndefined();
+        expect(r.d.numberLoops).toBe(1);
+    });
+    it('retains an escaping live named array on the publishing backend', () => {
+        const r = compare(head.replace('Ix = array 2 0 2', 'Ix = array 3 1 2 0')
+            + 'for I in 1 to 3\n A Ix = A\nend');
         expect(r.observation.error).toBeUndefined();
         expect(r.d.numberLoops).toBe(0);
     });

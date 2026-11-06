@@ -20,3 +20,10 @@ test "short table uses the recursion"
   run
   Answer equal 821125120
 end
+
+test "empty sum"
+  use "432_totientsum"
+  N = 0
+  run
+  Answer equal 0
+end

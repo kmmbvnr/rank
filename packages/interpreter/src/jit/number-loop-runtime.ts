@@ -226,10 +226,12 @@ function vectorLayout(left: readonly number[], right: readonly number[]) {
 /** All selected cells were validated before this test. Distinct buffers or
  * disjoint arithmetic selections can be read directly, even after destination
  * widening: none of these source cells changes during the assignment. Unknown
- * shared-buffer views and overlapping selections retain the complete snapshot. */
+ * shared-buffer views and overlapping selections retain the complete snapshot.
+ * A discarded pointwise transform may also use the identical selection: each
+ * unique source cell is consumed before its own store. */
 function disjointSlices(target: NumberCells, first: number, stride: number,
-    source: NumberCells, other: number, otherStride: number, count: number): boolean {
-    let direct = count === 0;
+    source: NumberCells, other: number, otherStride: number, count: number, pointwise = false): boolean {
+    let direct = count === 0 || pointwise && target === source && first === other && stride === otherStride;
     if (!direct && (target instanceof Int32Array || target instanceof Float64Array)
         && (source instanceof Int32Array || source instanceof Float64Array)) {
         if (target.buffer !== source.buffer) direct = true;

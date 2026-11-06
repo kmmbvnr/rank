@@ -8,82 +8,136 @@ use cli
 
 arg N integer = 100000000000
 arg L integer = 10000000
-
-rem For n = 2*3*5*7*11*13*17 the sum
-rem of phi(n i) for i <= N is phi(n)
-rem times the sum of F(N // d) over d
-rem with only these primes, F the
-rem summatory totient. F is a prefix
-rem table up to L, and for x = N // i
-rem above L it comes from F(x) =
-rem x(x+1)/2 - sum over k >= 2 of
-rem F(x // k).
 Mod = 1000000000
-Rn = N isqrt + 2
-Lm = L max Rn min N
-Ph = 0 to Lm copy
-Sm = array shape (Lm + 1) fill 1
-Rt = Lm isqrt
-for P in primes to Rt
-  Q = P
-  for Q at most Lm
-    Sl = Q to Lm by Q
-    Sm Sl *= P
-    if Q equal P
-      Ph Sl -= Ph Sl // P
+
+rem Remove small prime factors in place;
+rem any remaining factor is prime.
+fun Bound totients Primes
+  Phi = 0 to Bound copy
+  Remaining = 0 to Bound copy
+  Count = Primes len
+  Index = 0
+  P = 2
+  if Count greater 0
+    P = Primes 0
+  end
+  Power = P
+  for Index less Count
+    Slots = Power to Bound by Power
+    Remaining Slots //= P
+    if Power equal P
+      Phi Slots -= Phi Slots // P
     end
-    Q *= P
-  end
-end
-Ix = 0 to Lm copy
-Rs = Ix // Sm
-Big = Rs greater 1
-Pv = Ph
-Pc' = Pv - Pv // Rs
-Ph = Big choose Pc Pv copy
-Ph 0 = 0
-Cs = Ph scan + with 0
-C0 = (Cs (1 to Lm + 1)) mod Mod
-Nq = N // Lm
-Lt = array shape (Nq + 2) fill 0
-for I in Nq to 1 by -1
-  X = N // I
-  if X greater Lm
-    R = X isqrt
-    Ks = 2 to R copy
-    Ys = X // Ks
-    Sv = C0 (Ys min Lm)
-    Lv = Lt (I * Ks min Nq)
-    Va = Ys at most Lm choose Sv Lv
-    Pa = Va sum
-    Qs = (1 to X // (R + 1)) copy
-    Hi = X // Qs
-    Lo = X // (Qs + 1) max R
-    Dk = (Hi - Lo) mod Mod
-    Pb = Dk * C0 Qs mod Mod sum
-    T2 = X * (X + 1) // 2
-    Lt I = (T2 - Pa - Pb) mod Mod
-  end
-end
-rem Numbers with primes 2 .. 17 only.
-Sd = array 1
-for P in (array 2 3 5 7 11 13 17)
-  Cur = Sd
-  Acc = Sd
-  for Step in 1 to 60
-    Cur = Cur * P
-    Cur = Cur (Cur at most N indices)
-    if Cur len equal 0
-      break
+    Power *= P
+    if Power greater Bound
+      Index += 1
+      if Index less Count
+        P = Primes Index
+        Power = P
+      end
     end
-    Acc = concat Acc Cur
   end
-  Sd = Acc
+  Remaining = Remaining max 1
+  Mask = Remaining greater 1
+  Values = Phi - Phi // Remaining
+  Phi = Mask choose Values Phi
+  return Phi
 end
-Xd = N // Sd
-Sx = C0 (Xd min Lm)
-Qd = Sd min Nq
-Fv = Xd at most Lm choose Sx (Lt Qd)
-Tot = Fv sum mod Mod
-Answer = 92160 * Tot mod Mod
+
+fun Bound prefix_table
+  Root = Bound isqrt
+  Primes = primes to Root copy
+  Phi = Bound totients Primes
+  Prefix = Phi scan + with 0 mod Mod
+  Keys = 1 to Bound + 1
+  return Prefix Keys copy
+end
+
+rem Halve before reducing the factors.
+fun X triangle
+  Left = X
+  Right = X + 1
+  if X mod 2 equal 0
+    Left //= 2
+  else
+    Right //= 2
+  end
+  Left = Left mod Mod
+  Right = Right mod Mod
+  return Left * Right mod Mod
+end
+
+rem Quotients above the prefix table
+rem reuse already computed entries.
+fun N Prefix large_table Bound
+  Count = N // Bound
+  Large = array shape (Count + 2) fill 0
+  for Index in Count to 1 by -1
+    X = N // Index
+    if X greater Bound
+      Root = X isqrt
+      Keys = 2 to Root copy
+      Q = X // Keys
+      Small = Prefix (Q min Bound)
+      Slots = Index * Keys min Count
+      Big = Large Slots
+      Mask = Q at most Bound
+      Values = Mask choose Small Big
+      Left = Values sum
+      Keys = 1 to X // (Root + 1) copy
+      High = X // Keys
+      Low = X // (Keys + 1) max Root
+      Gap = (High - Low) mod Mod
+      Terms = Gap * Prefix Keys mod Mod
+      Right = Terms sum
+      Total = X triangle
+      Value = Total - Left - Right
+      Large Index = Value mod Mod
+    end
+  end
+  return Large
+end
+
+rem Build numbers with primes 2 .. 17.
+fun Limit smooth
+  fun Values extend Prime
+    Current = Values
+    Result = Values
+    for Current len greater 0
+      Current *= Prime
+      Mask = Current at most Limit
+      Current = Current Mask
+      Result = concat Result Current
+    end
+    return Result
+  end
+  Primes = array 2 3 5 7 11 13 17
+  Seed = array 1
+  return Primes reduce extend with Seed
+end
+
+rem phi(510510 i) sums to phi(510510)
+rem times F(N // d) over smooth d,
+rem where F is the summatory totient.
+fun N solve Limit
+  if N equal 0
+    return 0
+  end
+  Root = N isqrt + 2
+  Bound = Limit max Root min N
+  Prefix = Bound prefix_table
+  Large = N Prefix large_table Bound
+  Smooth = N smooth
+  X = N // Smooth
+  Left = Prefix (X min Bound)
+  Count = N // Bound
+  Keys = Smooth min Count
+  Right = Large Keys
+  Mask = X at most Bound
+  Values = Mask choose Left Right
+  Total = Values sum mod Mod
+  return 92160 * Total mod Mod
+end
+
+Answer = N solve L
 Answer print

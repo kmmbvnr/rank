@@ -26,7 +26,7 @@ function compare(source: string, success = true) {
 }
 
 describe('private integer row-slice writes', () => {
-    it.each(['=', '+=', '-=', '*='])('compiles matrix slices with %s', op => {
+    it.each(['=', '+=', '-=', '*=', '//='])('compiles matrix slices with %s', op => {
         const result = compare(`A = array shape 2 6 fill 3
 B = array shape 3 5 fill 2
 for I in 0 to 1
@@ -44,6 +44,85 @@ end`);
         expect(result.diagnostics.numberLoops).toBe(1);
         expect(result.state.result).toBe('3');
         expect(result.state.variables).toContainEqual(['Alias', '3 3 3 3 3 3 3 3 3 3 3 3']);
+    });
+
+    it.each(['+', '-', '*', '//', 'mod'])('fuses a discarded slice transform with %s', operator => {
+        const result = compare(`A = array 2 4 6 8 10 12
+Alias = A
+for I in 1 to 2
+ Slots = 0 to 4 by 2
+ A Slots -= A Slots ${operator} (I + 2)
+ Done = I
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopSliceCopies).toBe(0);
+        expect(result.state.variables).toContainEqual(['Alias', '2 4 6 8 10 12']);
+    });
+
+    it('uses only later prefix statements as a discarded-result proof', () => {
+        for (const tail of ['', ' Done = 1\n']) {
+            const result = compare(`fun Count alter
+ A = array shape 6 fill 6
+ for I in 1 to Count
+  Slots = 0 to 4 by 2
+  A Slots -= A Slots // 2
+ end
+${tail} return A
+end
+Values = 2 alter`);
+            expect(result.diagnostics.numberLoops).toBe(tail ? 1 : 0);
+            if (tail) expect(result.diagnostics.numberLoopSliceDirectCells).toBe(6);
+        }
+    });
+
+    it('uses floor division on strided scalar and vector compound writes', () => {
+        const result = compare(`A = array -9 -8 -7 -6 -5 -4
+B = array 2 -3 4
+for I in 1 to 2
+ A (5 to 1 by -2) //= -2
+ A (0 to 4 by 2) //= B (0 to 2)
+ Done = I
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('snapshots overlapping transformed source values', () => {
+        const result = compare(`A = array 2 4 6 8 10 12
+for I in 1 to 2
+ A (1 to 5) = A (0 to 4) // 2
+ Done = I
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopSliceCopies).toBe(2);
+    });
+
+    it.each([
+        'A (0 to 3) //= B (0 to 3)',
+        'A (0 to 3) -= A (0 to 3) // (2 - I)',
+        'A (0 to 3) = A (0 to 3) mod (2 - I)',
+        'A (99 till 0) //= 0',
+        'A (99 till 0) -= A (99 till 0) // 0',
+        'A (99 till 0) -= A (99 till 0) // (1 // 0)',
+        'A (0 to 3) -= A (0 to 2) // 2',
+        'A (0 to 4) //= 0',
+    ])('preserves division errors, empty selections and preceding writes: %s', statement => {
+        compare(`A = array 10 20 30 40
+B = array 1 2 0 4
+Count = 0
+for I in 1 to 2
+ Count += 1
+ A 0 += 1
+ ${statement}
+ Done = I
+end`, false);
+    });
+
+    it('keeps an escaping transformed RHS fresh', () => {
+        const result = compare(`A = array 2 4 6 8 10 12
+for I in 1 to 2
+ A (0 to 4 by 2) -= A (0 to 4 by 2) // 2
+end`);
+        expect(result.diagnostics.numberLoops).toBe(0);
     });
 
     it('snapshots a scalar read from the destination before filling', () => {
@@ -101,7 +180,7 @@ end`);
         expect(result.diagnostics.numberLoops).toBe(1);
     });
 
-    it.each(['=', '+=', '-=', '*='])('retains publishing execution for an overlapping live result with %s', op => {
+    it.each(['=', '+=', '-=', '*=', '//='])('retains publishing execution for an overlapping live result with %s', op => {
         const result = compare(`A = array 1 2 3 4 5 6
 Alias = A
 for I in 0 to 1

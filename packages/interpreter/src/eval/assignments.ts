@@ -13,7 +13,7 @@ import { computedArrayUpdate } from '../computed-array-update.js';
 import { materializeTensorMap } from '../tensor-map.js';
 import { numericSortInPlace } from '../numeric-collections.js';
 import { materializeSequence } from '../sequence.js';
-import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection, writeRealSelection, accumulateIntegerSelection, reduceIntegerUpdates,
+import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection, prepareIntegerScalarDivision, writeRealSelection, accumulateIntegerSelection, reduceIntegerUpdates,
     hasWritableBooleanCells, fillBooleanSelection, writeArrayCell } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { expectPushCollection, pushCollection } from '../containers.js';
@@ -221,6 +221,14 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         let result = demandValue(evaluated
             ?? (yield* resume(host.evaluate(statement.value))));
         if (isRankSequence(result)) result = materializeSequence(result);
+        if (statement.operator === '//=' && typeof result === 'bigint' && !statement.accumulate
+            && selection.unique && selection.linear) {
+            const update = prepareIntegerScalarDivision(target, count, selection.linear, result);
+            if (update) {
+                host.checkArrayWrite(statement.name, target, [update.representative]);
+                if (update.write(ownedSelection() as typeof target)) return result;
+            }
+        }
         const operator = statement.operator === '='
             ? undefined : assignmentOperator(statement.operator);
         let operands: RankValue[] | undefined;

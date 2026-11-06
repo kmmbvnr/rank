@@ -1,5 +1,5 @@
 import { loopOperatorSignature, flattenApplication, isApplicationExpression, isNameExpression,
-    isParenthesizedExpression, isFunctionStatement, statementResultDiscarded, type ArrayAssignmentStatement, type Expression } from '@arrrank/language';
+    isParenthesizedExpression, isBinaryExpression, type ArrayAssignmentStatement, type Expression } from '@arrrank/language';
 import { isRankArray } from '../value.js';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
@@ -15,7 +15,7 @@ function unparenthesized(value: Expression): Expression {
  * a complete RHS snapshot when source and destination may overlap. */
 export function emitNumberSlice(state: LoopCompilationState, expressions: LoopExpressions,
     assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined {
-    if (!state.numberMode || !['=', '+=', '-=', '*='].includes(assignment.operator)) return undefined;
+    if (!state.numberMode || !['=', '+=', '-=', '*=', '//='].includes(assignment.operator)) return undefined;
     if (assignment.operator !== '=') {
         const signature = loopOperatorSignature(assignment.operator.slice(0, -1), ['integer', 'integer'], state.host.nativeCalls);
         if (!signature?.compound || signature.result !== 'integer') return undefined;
@@ -28,15 +28,20 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
     // A function prefix excludes its final return. Do not use that caller's
     // statement as a discard proof either; its last compiled statement is a
     // conservative boundary for the slice results we can eliminate.
-    const boundary = isFunctionStatement(state.statement) ? state.statement.statements.at(-2) : state.statement;
-    const discarded = !!boundary && statementResultDiscarded(assignment, boundary);
+    const discarded = state.resultDiscarded(assignment);
     const rhs = unparenthesized(assignment.value);
-    const parts = isApplicationExpression(rhs) ? flattenApplication(rhs) : [];
+    // A transformed RHS is a fresh value. Elide it only when discarded; an
+    // escaping result must never become a live view of its source instead.
+    const candidate = discarded && isBinaryExpression(rhs) && !rhs.step
+        && ['+', '-', '*', '//', 'mod'].includes(rhs.operator) ? rhs : undefined;
+    const selected = candidate ? unparenthesized(candidate.left) : rhs;
+    const parts = isApplicationExpression(selected) ? flattenApplication(selected) : [];
     const source = parts.shift();
     const inputRange = parts.length ? unparenthesized(parts.at(-1)!) : undefined;
     const slice = source && isNameExpression(source) && !source.name.includes('.')
         && inputRange && expressions.isRange(inputRange)
         ? { name: source.name, parts, range: inputRange } : undefined;
+    const transform = slice ? candidate : undefined;
     const { arrays, destinations, assigned, arrayInputs } = state;
     const previous = destinations.get(assignment.name), known = arrays.get(assignment.name);
     const rank = selectors.length;
@@ -108,7 +113,7 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
     if (operand && input) {
         lines.push(`if (${destination.count} !== ${operand.count}) throw overflow;
             const source${n} = cells${input.slot};
-            const direct${n} = disjointSlices(cells${target.slot}, ${destination.offset}, ${destination.stride}, source${n}, ${operand.offset}, ${operand.stride}, ${operand.count});
+            const direct${n} = disjointSlices(cells${target.slot}, ${destination.offset}, ${destination.stride}, source${n}, ${operand.offset}, ${operand.stride}, ${operand.count}${transform ? ", true" : ""});
             const ${snapshot} = direct${n} ? undefined : sliceArray(source${n}, ${operand.offset}, ${operand.count}, ${operand.stride});
             const operand${n} = direct${n} ? source${n} : ${snapshot}.cells;
             const start${n} = direct${n} ? ${operand.offset} : 0;
@@ -120,12 +125,31 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
         if (scalar?.type !== 'integer') return undefined;
         lines.push(`const ${snapshot} = ${scalar.code};`);
     }
-    const replacement = operand ? `operand${n}[cursor${n}]` : snapshot;
+    let replacement = operand ? `operand${n}[cursor${n}]` : snapshot;
+    const operations: string[] = [];
+    if (transform) {
+        const scalar = expressions.emit(transform.right, lines, 'integer');
+        if (scalar?.type !== 'integer') return undefined;
+        const right = `scalar${n}`;
+        lines.push(`const ${right} = ${scalar.code};`);
+        if (transform.operator === '//' || transform.operator === 'mod') operations.push(`if (${right} === 0) throw overflow;`);
+        const value = expressions.arithmetic(transform.operator, { code: replacement, type: 'integer' },
+            { code: right, type: 'integer' }, 'integer', operations);
+        if (!value) return undefined;
+        replacement = value;
+    }
+    if (assignment.operator === '//=') operations.push(`if (${replacement} === 0) throw overflow;`);
+    // Keep the existing simple updates' code and temporary budget unchanged.
+    const next = assignment.operator === '=' ? replacement
+        : assignment.operator === '//=' ? expressions.arithmetic('//', { code: `cells${target.slot}[${key}]`, type: 'integer' },
+            { code: replacement, type: 'integer' }, 'integer', operations)
+        : `safe(cells${target.slot}[${key}] ${assignment.operator[0]} ${replacement})`;
+    if (!next) return undefined;
     lines.push(`
         for (let ${index} = 0, ${key} = ${destination.offset}${operand ? `, cursor${n} = start${n}` : ''}; ${index} < ${destination.count}; ${index}++, ${key} += ${destination.stride}${operand ? `, cursor${n} += step${n}` : ''}) {
             ${state.checkpoint}
-            const next${n} = ${assignment.operator === '=' ? replacement
-                : `safe(cells${target.slot}[${key}] ${assignment.operator[0]} ${replacement})`};
+            ${operations.join('\n')}
+            const next${n} = ${next};
             if (cells${target.slot} instanceof Int32Array && next${n} !== (next${n} | 0)) {
                 cells${target.slot} = cells[${target.slot}] = new Float64Array(cells${target.slot});
                 ${state.arrayDefinitions.has(assignment.name) ? `r${target.slot}.cells = cells${target.slot};` : ''}
