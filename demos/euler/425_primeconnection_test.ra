@@ -16,3 +16,29 @@ test "union-find reference"
   run
   Answer equal 431
 end
+
+test "empty and single-digit graphs"
+  use "425_primeconnection"
+  N = 0
+  run
+  Answer equal 0
+  N = 1
+  run
+  Answer equal 0
+  N = 2
+  run
+  Answer equal 0
+end
+
+test "a path through a larger prime"
+  use "425_primeconnection"
+  N = 11
+  run
+  Answer equal 11
+  N = 13
+  run
+  Answer equal 11
+  N = 101
+  run
+  Answer equal 112
+end
