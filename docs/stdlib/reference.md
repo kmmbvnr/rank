@@ -445,7 +445,7 @@ Shapes, orderings, windows and lazy sources.
 | `Streams merge .descending` | sequence, lazy | unary all; binary all / all | Lazily merges sorted streams or matrix rows, ascending by default. |
 | `Values sort .descending` | array | unary 1; binary all / all | Stable sort into a new rank-1 array, ascending by default. |
 | `Matrix transpose` | array | unary all | Reverses the axes of an array. |
-| `Values unique` | array | unary 1 | Distinct values in first-appearance order. |
+| `Values unique [.counts]` | array / tuple | unary 1; modifier takes a whole vector | Distinct values in first-appearance order; `.counts` returns distinct values and frequencies as two arrays. |
 | `Values window Widths... | Values window unpack Shape` | array, lazy | binary all / all | Overlapping complete cells of that size, with optional stride, padding and padding value. |
 | `Values shift Count` | array, lazy | binary all / all | Moves items along an axis, keeping the shape; vacated positions read zero or a with value of the array element type. |
 

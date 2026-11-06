@@ -12,7 +12,7 @@ import { argsortStoredAxis } from '../axis-order.js';
 import { reshapeDimensions } from '../tensor-layout.js';
 import { sortValue, argsortValue, sortableKind, stableOrder } from './sequence-order.js';
 export { sortValue, argsortValue, sortByKeys } from './sequence-order.js';
-import { uniqueValue } from './sequence-distinct.js';
+import { uniqueCounts, uniqueValue } from './sequence-distinct.js';
 export { uniqueLength } from './sequence-distinct.js';
 import { densePrimePlan } from '../dense-prime-sieve.js';
 import { primePlan } from '../prime-sequence.js';
@@ -95,8 +95,17 @@ export const sequencesModule: RuntimeModule = {
     ),
     merge: () => native('merge', [1, 2], arguments_ => mergeSorted(arguments_, false)),
     transpose: () => native('transpose', 1, arguments_ => transposeValue(arguments_[0])),
-    unique: () => native('unique', 1, arguments_ => isRankSqliteTable(arguments_[0])
-        ? uniqueSqlite(arguments_[0]) : uniqueValue(arguments_[0])),
+    unique: () => native('unique', [1, 2], arguments_ => {
+        if (arguments_.length === 2) {
+            const mode = arguments_[1];
+            if (!isRankLabel(mode) || mode.name !== 'counts') {
+                throw new RankError('unique accepts only the .counts modifier', 'TypeError');
+            }
+            return uniqueCounts(arguments_[0]);
+        }
+        return isRankSqliteTable(arguments_[0])
+            ? uniqueSqlite(arguments_[0]) : uniqueValue(arguments_[0]);
+    }),
     window: () => native('window', 2, arguments_ => windowValue(arguments_[0], arguments_[1])),
     shift: () => native('shift', 2, arguments_ => shiftValue(arguments_[0], arguments_[1])),
     reshape: () => native('reshape', 1, () => {

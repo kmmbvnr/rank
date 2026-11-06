@@ -1059,6 +1059,26 @@ scalar type: numbers, text, booleans or symbols. Integers and real numbers form
 one numeric ordering. `unique` preserves the first occurrence. It also accepts
 queues, sets and lazy sequences; sequence filtering stays lazy.
 
+`Values unique .counts` eagerly returns a tuple of two arrays: distinct
+values in first-appearance order and their positive integer frequencies.
+The source is traversed once. Text produces an array of Unicode code-point
+strings rather than joined text. Empty input produces two empty arrays.
+
+```rank
+unpack Values Counts = (
+  (array 3 1 3 2 1 3) unique .counts
+)
+rem Values: 3 1 2; Counts: 3 2 1
+```
+
+The modifier accepts rank-1 arrays, text, queues, sets and finite sequences.
+Array-valued sequence items are compared structurally and stacked in the
+values result, preserving their cell shape; ragged distinct items cannot
+form a rectangular result. Counts remain a rank-1 array. For a tensor,
+select the intended vector before calling this form. Named tables preserve
+their header; SQLite inputs are materialized. Known-infinite sequences are
+rejected; sequences of unknown size are consumed until completion.
+
 `argsort` returns the stable, zero-based permutation that would sort each
 rank-1 cell. Text produces an integer vector. An array produces an integer
 array of the same shape:
