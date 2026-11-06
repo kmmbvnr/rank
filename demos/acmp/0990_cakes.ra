@@ -1,0 +1,141 @@
+rem ACMP 0990: Cakes
+rem Minimum dissatisfaction cake split
+use io
+use cli
+use sequences
+use numbers
+use text
+
+arg Input text = "30 5000
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+16 17 18 19 20 21 22 23 24 25 26 27 28
+29 30"
+
+Flat = Input split "\r" join " "
+Flat = Flat split "\n" join " "
+Tokens = Flat split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+M = (Tokens 1) integer
+G = (Tokens (2 till (2 + N))) integer
+
+Order = (G argsort) reverse
+SortedG = G Order
+Pref = concat (array 0) (
+  SortedG scan +
+)
+
+NPlus = N + 1
+GridI = (0 till NPlus) reshape NPlus 1
+GridNew = (0 till NPlus) reshape 1 NPlus
+Mask = GridI less GridNew
+Zeros2D = 0 * (GridI + GridNew)
+TI = (GridI + Zeros2D) Mask
+TNew = (GridNew + Zeros2D) Mask
+TKind = (0 * TI) + 1
+
+KI = 1 till NPlus
+KNew = 0 * KI
+KKind = 0 * KI
+
+AllI = concat KI TI
+AllNew = concat KNew TNew
+AllKind = concat KKind TKind
+Keys = (AllI * 100) + AllNew
+EvOrder = Keys argsort
+EvKind = AllKind EvOrder
+EvI = AllI EvOrder
+EvNew = AllNew EvOrder
+NumEvents = EvKind len
+
+INF = 1000000000000000
+MPlus = M + 1
+Cells = NPlus * MPlus
+Zeros = 0 * (0 till Cells)
+DP = (Zeros + INF) reshape NPlus MPlus
+DP 0 0 = 0
+
+for Step in (0 till NumEvents)
+  Kind = EvKind Step
+  I = EvI Step
+  if Kind equal 0
+    Rem = MPlus mod I
+    PadLen = (I - Rem) mod I
+    Pad = (0 till PadLen) * 0 + INF
+    Row = DP I
+    Padded = concat Row Pad
+    Rows = ((Padded len) / I) integer
+    Grid = Padded reshape Rows I
+    Scanned = Grid scan min axis 0
+    Tot = Rows * I
+    FlatSc = Scanned reshape Tot
+    DP I = FlatSc (0 till MPlus)
+  else
+    NewI = EvNew Step
+    Cost = I * (
+      (Pref NewI) - (Pref I)
+    )
+    Length = MPlus - NewI
+    Cand = (DP I (0 till Length)) + Cost
+    Target = DP NewI (NewI till MPlus)
+    Better = Cand less Target
+    DP NewI (NewI till MPlus) = (
+      Better choose Cand Target
+    )
+  end
+end
+
+MinCost = DP N M
+
+Cakes = (0 till N) * 0
+CurrI = N
+CurrJ = M
+
+MaxSteps = N + M + 2
+for Step in (0 till MaxSteps)
+  if (CurrI equal 0) and (
+    CurrJ equal 0
+  )
+    break
+  end
+  CanInc = false
+  if not (CurrJ less CurrI)
+    PrevVal = DP CurrI (CurrJ - CurrI)
+    CanInc = (
+      DP CurrI CurrJ
+    ) equal PrevVal
+  end
+  if CanInc
+    Cakes (0 till CurrI) = (
+      (Cakes (0 till CurrI)) + 1
+    )
+    CurrJ = CurrJ - CurrI
+  else
+    PrevJ = CurrJ - CurrI
+    PrevRange = 0 till CurrI
+    CostVec = PrevRange * (
+      (Pref CurrI) - (Pref PrevRange)
+    )
+    PrevRows = DP PrevRange
+    CandVec = (
+      PrevRows transpose PrevJ
+    ) + CostVec
+    Matches = CandVec equal (
+      DP CurrI CurrJ
+    )
+    PrevI = (PrevRange Matches) 0
+    Cakes (0 till CurrI) = (
+      (Cakes (0 till CurrI)) + 1
+    )
+    CurrJ = PrevJ
+    CurrI = PrevI
+  end
+end
+
+ResCakes = (0 till N) * 0
+ResCakes Order = Cakes
+CakesLine = ResCakes join " "
+Line1 = MinCost text
+Result = Line1 + "\n" + CakesLine
+Result print
