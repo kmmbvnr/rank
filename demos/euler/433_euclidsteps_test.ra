@@ -22,3 +22,16 @@ test "larger bounds"
   run
   Answer equal 782828208
 end
+
+test "empty and small squares"
+  use "433_euclidsteps"
+  N = 0
+  run
+  Answer equal 0
+  N = 2
+  run
+  Answer equal 5
+  N = 5
+  run
+  Answer equal 47
+end

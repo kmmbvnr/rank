@@ -101,7 +101,7 @@
   "euler/437_fibonacciprimitive.ra": "To fix later: the default input takes about 68 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/417_reciprocalcycles.ra": "The default N=100000000 reference run remains expensive; compiled runs take about 6 s on Mac. The small _test.ra fixture stays in audits. See benchmarks/euler417-followup.md.",
   "euler/424_kakuro.ra": "The full 200-puzzle answer is checked in test/euler424.test.ts after digit-set completion pruning and safe 53-bit Number bitwise compilation. Full reference search remains in the manual budget lane; the small _test.ra fixture stays in the audits. See benchmarks/euler424-followup.md.",
-  "euler/433_euclidsteps.ra": "To fix later: the default input takes about 22 s compiled; the small _test.ra fixture stays in the audits.",
+  "euler/433_euclidsteps.ra": "Euler 433 #447: the full default reference run still exceeds 300 s on Intel; compiled runs are about 1.8 s on Mac and 6.1 s on Intel. Full controls: benchmarks/euler433-followup.md. The small fixture stays in the audits.",
   "euler/438_integerpart.ra": "To fix later: the default input takes about 57 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/451_modularinverses.ra": "To fix later: the default input takes about 110 s (1.7 x 10^8 split candidates); the small _test.ra fixture stays in the audits.",
   "euler/452_longproducts.ra": "To fix later: the default input takes about 3 min and 4.7 GB (3 x 10^7 transitions over 29 layers); the small _test.ra fixture stays in the audits.",

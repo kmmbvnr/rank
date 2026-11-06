@@ -3146,3 +3146,18 @@ budgets and observable host polling keep ordinary execution.
 
 See [Euler 432 results](../../benchmarks/euler432-followup.md) for separate
 compiler/source/native effects and peak-memory measurements in both engines.
+
+## Bounded scalar-function integer division (Euler 433, #447)
+
+Number function kernels now use the same bounded quotient as Number loops:
+for safe integer operands and `abs(numerator) < 2^52`, `floor(a / b)` cannot
+round across an integer boundary. Zero divisors are checked first, integer
+zero is normalized, and wider numerators retain checked remainder-based floor
+division and ordinary replay. Real division and modulo compilation are unchanged.
+
+The change generates one kernel with a guarded branch; it adds neither an
+unpolled execution mode nor a second copy of the function. Cancellation, demand
+budgets, call-depth checks, binding guards and ownership rules are retained.
+
+See [Euler 433 controls](../../benchmarks/euler433-followup.md) for separate
+source/compiler effects, reference storage checks and rejected variants.

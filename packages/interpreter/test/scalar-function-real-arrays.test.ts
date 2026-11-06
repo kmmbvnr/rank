@@ -57,8 +57,9 @@ end`;
         const actual = invoke(source, [4000000000000000n, 3n]);
         expect(actual.value).toBe(expected.value);
         expect(actual.value).toBe(result === 'A' ? 1.0 : 12000000000000000n);
-        expect(actual.diagnostics.numberFunctions).toBe(1);
-        expect(actual.diagnostics.numberFunctionFallbacks).toBe(1);
+        // Returning the wide integer also replays the Number bridge.
+        expect(actual.diagnostics.numberFunctions).toBe(result === 'A' ? 1 : 3);
+        expect(actual.diagnostics.numberFunctionFallbacks).toBe(result === 'A' ? 1 : 2);
         expect(invoke(source, [2n, 3n]).diagnostics.numberFunctionFallbacks).toBe(0);
     }
 });
