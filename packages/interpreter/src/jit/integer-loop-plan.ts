@@ -131,6 +131,7 @@ export interface IntegerLoopPlan {
     containers: Map<string, { slot: number; kind: 'index' | 'deque' | 'set' | 'fenwick' | 'groups'; integers: boolean; mode?: RankDeque['mode']; array?: { rank: number; type: LoopTerm['type'] } }>;
     builtins: Map<string, string>;
     syntax: ReadonlySet<string>;
+    vectorReductions: boolean;
     calls: { numberArrayResult?: boolean; exactOutput?: Expression; privateStateSafe?: boolean; numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(work?: LoopWorkCounter): LoopCallable | undefined }[];
     vectorIterations: { slot: number; binding: IterationBinding }[];
     iterators: ((source: RankArray | RankDeque | RankSet | string) => Iterable<RankValue>)[];

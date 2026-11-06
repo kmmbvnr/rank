@@ -87,7 +87,6 @@
   "euler/411_uphillpaths.ra": "Full compiled answer verified after #447 optimization. Full default reference timing remains unverified; the bounded _test.ra fixture stays in the audits.",
   "euler/414_kaprekar.ra": "Full reference search remains outside corpus audits; the Euler 414 benchmark checks the full compiled answer, and 414_kaprekar_test.ra retains bounded cross-mode assertions.",
   "euler/415_titanicsets.ra": "The default input still requires a large compiled run and is impractical in reference mode; the small _test.ra fixture stays in the audits. See benchmarks/euler415-followup.md.",
-  "euler/421_primefactors.ra": "To fix later: the default input takes about 57 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/423_consecutive.ra": "To fix later: the default input takes about 12 s compiled and about 218 s in the reference interpreter; the small _test.ra fixture stays in the audits.",
   "euler/425_primeconnection.ra": "To fix later: the default input takes about 33 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/427_nsequences.ra": "To fix later: the default input takes about 56 s compiled; the small _test.ra fixture stays in the audits.",

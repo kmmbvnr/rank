@@ -47,7 +47,7 @@ export function render(run, previous) {
 <button id="refresh" type="button">Refresh</button><span id="feedback" role="status" aria-live="polite"></span>
 </div><div class="cards" id="cards"></div><div id="histogram">${histogram(run)}</div><div class="tools">
 <input id="query" aria-label="Filter demo path" placeholder="Filter demo path">
-<select id="status" aria-label="Filter status"><option value="">All statuses</option><option>ok</option><option>error</option><option>timeout</option><option>memory-limit</option><option>no-workload</option></select></div>
+<select id="status" aria-label="Filter status"><option value="">All statuses</option><option>ok</option><option>error</option><option>timeout</option><option>memory-limit</option><option>no-workload</option><option>no-data</option></select></div>
 <section><h2>Groups</h2><small>Change is the geometric mean of ratios for successful, matching workloads ≥100 ms in both runs. Positive means slower. Source/test changes are excluded; dependency or environment changes can still affect results.</small><table id="groups"></table></section>
 <section><h2>Individual demos</h2><small>Click a demo for output and recent history. Single samples are noisy; startup imports are excluded. Click column titles to sort.</small><table><thead><tr><th data-sort="path">Demo</th><th data-sort="kind">Workload</th><th data-sort="status">Status</th><th data-sort="ms">Time ↓</th><th>Baseline</th><th>Change</th></tr></thead><tbody id="rows"></tbody></table><div id="detail" hidden></div></section>
 <script>

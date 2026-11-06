@@ -1,0 +1,83 @@
+rem ACMP 0555: Complexity (76%)
+rem Nested loops execution count
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = (
+  "100 1 500 -1 500 -1 500 -2 500 " +
+  "-2 500 -3 500 -3 500 -4 500 -4 " +
+  "500 -5 500 -5 500 -6 500 -6 500 " +
+  "-7 500 -7 500 -8 500 -8 500 -9 " +
+  "500 -9 500 -10 500 -10 500 -11 " +
+  "500 -11 500 -12 500 -12 500 -13 " +
+  "500 -13 500 -14 500 -14 500 -15 " +
+  "500 -15 500 -16 500 -16 500 -17 " +
+  "500 -17 500 -18 500 -18 500 -19 " +
+  "500 -19 500 -20 500 -20 500 -21 " +
+  "500 -21 500 -22 500 -22 500 -23 " +
+  "500 -23 500 -24 500 -24 500 -25 " +
+  "500 -25 500 -26 500 -26 500 -27 " +
+  "500 -27 500 -28 500 -28 500 -29 " +
+  "500 -29 500 -30 500 -30 500 -31 " +
+  "500 -31 500 -32 500 -32 500 -33 " +
+  "500 -33 500 -34 500 -34 500 -35 " +
+  "500 -35 500 -36 500 -36 500 -37 " +
+  "500 -37 500 -38 500 -38 500 -39 " +
+  "500 -39 500 -40 500 -40 500 -41 " +
+  "500 -41 500 -42 500 -42 500 -43 " +
+  "500 -43 500 -44 500 -44 500 -45 " +
+  "500 -45 500 -46 500 -46 500 -47 " +
+  "500 -47 500 -48 500 -48 500 -49 " +
+  "500 -49 500 -50 500"
+)
+
+FlatText = Input split "
+" join " "
+Tokens = FlatText split " "
+Tokens = Tokens (Tokens not equal "")
+N = (Tokens 0) integer
+
+Ans = 0
+if N greater 0
+  Raw = (Tokens drop 1) integer
+  IdxN = 0 till N
+  L = Raw (IdxN * 2)
+  R = Raw ((IdxN * 2) + 1)
+
+  MaxR = R max
+  V = MaxR + 1
+  MOD = 4294967296
+
+  GridV = IdxN reshape N 1
+  GridCol = (0 till V) reshape 1 V
+  InitMask = not (GridCol greater (
+    R reshape N 1
+  ))
+  DP = InitMask integer
+
+  Ans = 1
+  RevIdx = (0 to (N - 1)) reverse
+  for W in RevIdx
+    RowW = DP W
+    SuffixW = (
+      (RowW reverse scan +) reverse
+    ) mod MOD
+
+    LW = L W
+    RW = R W
+    if LW less 0
+      P = (0 - LW) - 1
+      DP P = ((DP P) * SuffixW) mod MOD
+    else
+      RootSum = 0
+      if not (LW greater RW)
+        RootSum = SuffixW LW
+      end
+      Ans = (Ans * RootSum) mod MOD
+    end
+  end
+end
+
+Ans text

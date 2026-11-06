@@ -1,72 +1,79 @@
 rem Prime Factors of n^15+1
-rem https://projecteuler.net/problem=421
-
 use numbers
 use sequences
 use io
 use cli
-
 arg N integer = 100000000000
 arg M integer = 100000000
+rem Bound temporary arrays, not primes.
+Batch = 32768
 
-rem Sum over primes p <= M of p times
-rem the count of x <= N with
-rem x^15 = -1 mod p. With
-rem d = gcd(15, p - 1) the roots are
-rem -r^j for r of order d, found as
-rem a^((p - 1) / d) for small a.
-fun A E Pm vpow
-  Res = Pm * 0 + 1
-  Bs = Pm * 0 + A
-  for E max greater 0
-    Odd = E mod 2 equal 1
-    Mu = Res * Bs mod Pm
-    Res = Odd choose Mu Res
-    Bs = Bs * Bs mod Pm
-    E = E // 2
+rem The roots are negatives of powers
+rem of a primitive d-th root of unity,
+rem where d = gcd(15, p - 1).
+fun Primes unity_roots D
+  Roots = Primes * 0
+  Left = Primes copy
+  Count = Primes len
+  Slots = 0 till Count copy
+  Powers = (Left - 1) // D
+  Base = 2
+  for Left len greater 0
+    Candidate = Base Powers Left powmod
+    Good = Candidate greater 1
+    if D equal 15
+      Cubes = Candidate 3 Left powmod
+      Fifths = Candidate 5 Left powmod
+      Good = Good and (Cubes greater 1)
+      Good = Good and (Fifths greater 1)
+    end
+    Found = Good indices
+    Values = Candidate Found
+    Roots (Slots Found) = Values
+    Pending = Good equal false indices
+    Left = Left Pending
+    Slots = Slots Pending
+    Powers = Powers Pending
+    Base += 1
   end
-  return Res
+  return Roots
 end
 
-Pr = primes to M array
-Gd = 15 gcd (Pr - 1)
-Tot = 0
-rem d = 1: the single root is -1.
-Ones = Pr (Gd equal 1 indices)
-Tot += (Ones * ((N + 1) // Ones)) sum
-for D in (array 3 5 15)
-  Pu = Pr (Gd equal D indices)
-  Eu = (Pu - 1) // D
-  Pd = array shape 0 fill 0
-  Rd = array shape 0 fill 0
-  for A in 2 to 200
-    if Pu len equal 0
-      break
-    end
-    Cd = A Eu Pu vpow copy
-    Dv = Pu * 0 + D
-    Pw = Cd Dv Pu vpow
-    Hit = Pw equal 1 choose 1 0
-    Take = Hit
-    for Q in D factors unique array
-      Tq = Cd (Dv // Q) Pu vpow
-      Mis = Tq equal 1 choose 0 1
-      Take = Take * Mis
-    end
-    Ix = Take equal 1 indices
-    Pd = concat Pd (Pu Ix)
-    Rd = concat Rd (Cd Ix)
-    Lf = Take equal 0 indices
-    Pu = Pu Lf
-    Eu = Eu Lf
-  end
-  Rj = Pd * 0 + 1
+fun N Primes Roots root_sum D
+  Power = Primes * 0 + 1
+  Total = 0
   for J in 1 to D
-    Hh = (Pd - Rj) mod Pd
-    Ct = (N + Pd - Hh) // Pd
-    Tot += Pd * Ct sum
-    Rj = Rj * Rd mod Pd
+    Residue = Primes - Power
+    Shift = N + Primes - Residue
+    Count = Shift // Primes
+    Total += Primes * Count sum
+    Power = Power * Roots mod Primes
   end
+  return Total
 end
-Answer = Tot
+
+rem Count complete residue periods and
+rem the final partial period for each p.
+fun N group_sum Primes
+  Orders = 15 gcd (Primes - 1)
+  Ones = Primes (Orders equal 1 indices)
+  Counts = (N + 1) // Ones
+  Total = Ones * Counts sum
+  for D in array 3 5 15
+    Selected = Orders equal D indices
+    Group = Primes Selected
+    Roots = Group unity_roots D
+    Total += N Group Roots root_sum D
+  end
+  return Total
+end
+
+Primes = primes to M array
+Count = Primes len
+Answer = 0
+for Start in 0 till Count by Batch
+  End = (Start + Batch) min Count
+  Group = Primes (Start till End)
+  Answer += N group_sum Group
+end
 Answer print

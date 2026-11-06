@@ -64,6 +64,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0533** | [Треугольники - 3](0533_triangles_3.ra) | Computational Geometry (66%) | Count non-degenerate isosceles triangles among $N$ integer points via vector distance sorting, RLE grouping & canonical half-plane collinear cancellation |
 | **0537** | [Перестановки - 3](0537_permutations_3.ra) | Dynamic Programming / Bitmask (74%) | $M$-th lexicographical $K$-permutation with adjacent $\gcd \ge K$ via Hamiltonian path bitmask DP in $O(2^N \cdot N^2)$ |
 | **0538** | [Радио](0538_radio.ra) | Graph Theory / Binary Search (61%) | Maximize non-interfering transmitter radius via binary search and bipartite 2-coloring |
+| **0555** | [Вычисление сложности программы](0555_complexity.ra) | Dynamic Programming (76%) | Count nested loop operations mod ^{32}$ via reverse topological tree DP and suffix sum vectorization in a single flat loop |
 | **0558** | [Упаковка](0558_packing.ra) | Computational Geometry (65%) | Soddy gap count via Descartes circle theorem vectorized over $a$ for pairs $(b, c)$ |
 | **0560** | [Остановки](0560_bus_stops.ra) | Dynamic Programming (64%) | Minimum platform construction cost with gap intervals $[r, R]$ via prefix sum costs & range minimum segment tree queries |
 | **0563** | [Задача про XOR](0563_xor_problem.ra) | Bitwise / Combinatorics (69%) | All-pairs power-of-two difference XOR sum via vector residue partitioning, run-length compression & bit parity |

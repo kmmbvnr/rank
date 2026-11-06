@@ -40,7 +40,7 @@ import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract } from './return-contract.js';
 import { compiledEntryArgumentType, compiledScalarType, nativeDequeMethods } from './jit/compiled-argument-type.js';
-import { scalarCaptureKey, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
+import { scalarFunctionResult, privateScalarFunction, scalarCaptureKey, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
 import { compileScalarFunction } from './jit/scalar-function-kernel.js';
 import { compileMembershipFunction, type RankedMembership } from './membership-function.js';
 import { compileDistinctFunction } from './distinct-function.js';
@@ -166,6 +166,53 @@ export class FunctionInvocation {
      * belongs to the defining interpreter and revalidates every actual call. */
     scalarCallback(fn: NativeFunction): ((arguments_: RankValue[]) => RankValue) | undefined {
         return inspectionEnabled() ? undefined : scalarCallbacks.get(fn);
+    }
+
+    /** Prepare one integer ranked traversal without rediscovering captured
+     * domains or return specializations for every cell. Live entry guards and
+     * observable execution still use the ordinary call boundary. */
+    scalarBatch(fn: NativeFunction): ((arguments_: RankValue[]) => RankValue | undefined) | undefined {
+        const definition = functionDefinitions.get(fn);
+        if (!definition || inspectionEnabled() || !privateLoopPolling() || demandBudgetEnabled()) return undefined;
+        const { owner, statement, context } = definition;
+        if (!owner.compiler.scalars.entries || !owner.compiler.scalars.functions
+            || owner.compiler.hooks.onScalarFunctionExecuted) return undefined;
+        const captures = owner.scalarCaptureTypes(statement, context);
+        if (captures.size) return undefined;
+        const types = statement.parameters.map(() => 'integer' as const);
+        const proof = scalarFunctionResult(statement, true, types, true, [], captures);
+        if (!proof || proof.type !== 'integer' || !privateScalarFunction(proof, true)) return undefined;
+        const call = owner.prepareScalarCall(statement, context, types, true, captures);
+        if (!call?.numberDirect) return undefined;
+        let contract: ReturnContract | undefined;
+        let delay = 0, backoff = 0;
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.rankedBatches++;
+        return arguments_ => {
+            if (inspectionEnabled() || !privateLoopPolling() || demandBudgetEnabled()
+                || arguments_.length !== types.length || !arguments_.every(value => typeof value === 'bigint')
+                || proof.locals.some(name => context?.find(name))
+                || proof.nonnegative.some(index => (arguments_[index] as bigint) < 0n)
+                || call.available && !call.available()) return undefined;
+            if (!arguments_.every(value => Number.isSafeInteger(Number(value)))) return undefined;
+            if (delay > 0) { delay--; return undefined; }
+            let value: RankValue;
+            try { value = BigInt(call.numberDirect!(...arguments_.map(Number))); backoff = 0; }
+            catch (error) {
+                if (error !== numberOverflow) throw error;
+                backoff = Math.min(255, backoff * 2 + 1);
+                delay = backoff;
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) diagnostics.numberFunctionFallbacks++;
+                return undefined;
+            }
+            contract ??= definition.specialization(arguments_);
+            try { return contract.check(value); }
+            catch (error) {
+                if (error instanceof RankError) owner.frames.addCall(error, statement, arguments_);
+                throw owner.host.locate(error, statement);
+            }
+        };
     }
 
     arrayBatch(fn: NativeFunction, source: RankArray, axes: readonly number[]) {
@@ -733,61 +780,72 @@ export class FunctionInvocation {
             || kernel.userCalls.some(call => call.tail) && !this.compiler.scalars.tailCalls) return undefined;
         const resolve = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
         const numberUsers: LoopCallable[] = [];
-        const userBinders = kernel.userCalls.map((call, index) => () => {
-            const value = resolve(call.name);
-            const definition = value && isNativeFunction(value) ? this.definitionOf(value) : undefined;
-            if (!definition || definition.statement !== call.statement
-                || call.locals.some(name => definition.context?.find(name))) return undefined;
-            if (call.recursive) {
-                if (definition.owner !== this || definition.context !== context) return undefined;
-                if (call.tail) {
-                    return ((arguments_: RankValue[]) => {
+        const userBinders = kernel.userCalls.map((call, index) => {
+            let cached: { value: RankValue; compiled: PreparedScalarCall; bound: LoopCallable; plain: boolean } | undefined;
+            return () => {
+                const value = resolve(call.name);
+                const definition = value && isNativeFunction(value) ? this.definitionOf(value) : undefined;
+                if (!definition || definition.statement !== call.statement
+                    || call.locals.some(name => definition.context?.find(name))) return undefined;
+                if (call.recursive) {
+                    if (definition.owner !== this || definition.context !== context) return undefined;
+                    if (call.tail) {
+                        return ((arguments_: RankValue[]) => {
+                            checkpoint();
+                            throw new TailCallSignal(definition, arguments_, run);
+                        }) as LoopCallable;
+                    }
+                    return ((...arguments_: RankValue[]) => {
                         checkpoint();
-                        throw new TailCallSignal(definition, arguments_, run);
+                        if (this.scalarHostDepth >= 128) {
+                            this.scalarFallbackDepth++;
+                            try { return runExecution(this.callFunction(statement, arguments_, context)); }
+                            finally { this.scalarFallbackDepth--; }
+                        }
+                        return run.direct ? run.direct(...arguments_) : run(arguments_);
                     }) as LoopCallable;
                 }
-                return ((...arguments_: RankValue[]) => {
-                    checkpoint();
-                    if (this.scalarHostDepth >= 128) {
-                        this.scalarFallbackDepth++;
-                        try { return runExecution(this.callFunction(statement, arguments_, context)); }
-                        finally { this.scalarFallbackDepth--; }
-                    }
-                    return run.direct ? run.direct(...arguments_) : run(arguments_);
-                }) as LoopCallable;
-            }
-            const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures, work);
-            if (!compiled || compiled.available && !compiled.available()) return undefined;
-            // A linked private leaf cannot rebind its dependencies. Reuse its
-            // fixed-arity Number entry instead of allocating argument arrays
-            // on every nested call, retaining the live call-depth boundary.
-            const region = kernel.numberDirect ? compiled.numberRegion?.() : undefined;
-            const checkDepth = () => {
-                if (definition.owner.depth >= definition.owner.maxDepth)
-                    throw new RankError(`function call depth exceeds ${definition.owner.maxDepth}`, 'RecursionLimit');
-            };
-            const linked = !region ? undefined : call.types.length === 1 ? (a: NumberCallArgument) => { checkDepth(); return region(a); }
-                : call.types.length === 2 ? (a: NumberCallArgument, b: NumberCallArgument) => { checkDepth(); return region(a, b); }
-                : call.types.length === 3 ? (a: NumberCallArgument, b: NumberCallArgument, c: NumberCallArgument) => { checkDepth(); return region(a, b, c); }
-                : call.types.length === 4 ? (a: NumberCallArgument, b: NumberCallArgument, c: NumberCallArgument, d: NumberCallArgument) => { checkDepth(); return region(a, b, c, d); }
-                : undefined;
-            numberUsers[index] = (linked ?? compiled.numberDirect ?? (() => { throw numberOverflow; })) as unknown as LoopCallable;
-            if (call.tail) {
-                return ((arguments_: RankValue[]) => {
-                    if (definition.owner === this) throw new TailCallSignal(definition, arguments_, compiled);
-                    return compiled(arguments_, true);
-                }) as LoopCallable;
-            }
-            const direct = compiled.direct;
-            return ((...arguments_: RankValue[]) => {
-                const contract = definition.specialization(arguments_);
-                const value = direct ? direct(...arguments_) : compiled(arguments_);
-                try { return contract.check(value); }
-                catch (error) {
-                    if (error instanceof RankError) definition.owner.frames.addCall(error, call.statement, arguments_);
-                    throw definition.owner.host.locate(error, call.statement);
+                const privateEntry = !inspectionEnabled() && privateLoopPolling() && !demandBudgetEnabled();
+                if (cached && cached.value === value && cached.plain === privateEntry) {
+                    return !cached.compiled.available || cached.compiled.available() ? cached.bound : undefined;
                 }
-            }) as LoopCallable;
+                const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures, work);
+                if (!compiled || compiled.available && !compiled.available()) return undefined;
+                // A linked private leaf cannot rebind its dependencies. Reuse its
+                // fixed-arity Number entry instead of allocating argument arrays
+                // on every nested call, retaining the live call-depth boundary.
+                const region = kernel.numberDirect ? compiled.numberRegion?.() : undefined;
+                const checkDepth = () => {
+                    if (definition.owner.depth >= definition.owner.maxDepth)
+                        throw new RankError(`function call depth exceeds ${definition.owner.maxDepth}`, 'RecursionLimit');
+                };
+                const linked = !region ? undefined : call.types.length === 1 ? (a: NumberCallArgument) => { checkDepth(); return region(a); }
+                    : call.types.length === 2 ? (a: NumberCallArgument, b: NumberCallArgument) => { checkDepth(); return region(a, b); }
+                    : call.types.length === 3 ? (a: NumberCallArgument, b: NumberCallArgument, c: NumberCallArgument) => { checkDepth(); return region(a, b, c); }
+                    : call.types.length === 4 ? (a: NumberCallArgument, b: NumberCallArgument, c: NumberCallArgument, d: NumberCallArgument) => { checkDepth(); return region(a, b, c, d); }
+                    : undefined;
+                numberUsers[index] = (linked ?? compiled.numberDirect ?? (() => { throw numberOverflow; })) as unknown as LoopCallable;
+                if (call.tail) {
+                    const bound = ((arguments_: RankValue[]) => {
+                        if (definition.owner === this) throw new TailCallSignal(definition, arguments_, compiled);
+                        return compiled(arguments_, true);
+                    }) as LoopCallable;
+                    cached = { value: value!, compiled, bound, plain: privateEntry };
+                    return bound;
+                }
+                const direct = compiled.direct;
+                const bound = ((...arguments_: RankValue[]) => {
+                    const contract = definition.specialization(arguments_);
+                    const value = direct ? direct(...arguments_) : compiled(arguments_);
+                    try { return contract.check(value); }
+                    catch (error) {
+                        if (error instanceof RankError) definition.owner.frames.addCall(error, call.statement, arguments_);
+                        throw definition.owner.host.locate(error, call.statement);
+                    }
+                }) as LoopCallable;
+                cached = { value: value!, compiled, bound, plain: privateEntry };
+                return bound;
+            };
         });
         const rankedCalls = kernel.rankedCalls.map(call => () => {
             const value = resolve(call.name);
@@ -956,6 +1014,7 @@ export class FunctionInvocation {
                 };
                 directFn = (...arguments_) => directLeaf!(arguments_,false);
             } else {
+                let numberDelay = 0, numberBackoff = 0;
                 directFn = (...arguments_: RankValue[]) => {
                     if (this.depth >= this.maxDepth) {
                         throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
@@ -966,6 +1025,32 @@ export class FunctionInvocation {
                         for (;;) {
                             try {
                                 this.compiler.hooks.onScalarFunctionExecuted?.();
+                                // Private integer callees can replay their local
+                                // work exactly after an unsafe Number result.
+                                const probeNumber = numberDelay === 0;
+                                if (numberDelay > 0) {
+                                    numberDelay--;
+                                    const diagnostics = currentDiagnostics();
+                                    if (diagnostics) diagnostics.numberFunctionSkips++;
+                                }
+                                if (probeNumber && rawNumber && !this.compiler.hooks.onScalarFunctionExecuted
+                                    && kernel.returnType === 'integer' && !kernel.plans && !kernel.numberStorage
+                                    && !kernel.memberships.length && !kernel.scalarCaptures.length && privateLoopPolling() && !demandBudgetEnabled()
+                                    && arguments_.every(a => typeof a === 'bigint' && Number.isSafeInteger(Number(a)))) {
+                                    try {
+                                        const diagnostics = currentDiagnostics();
+                                        if (diagnostics) diagnostics.numberFunctions++;
+                                        const value = BigInt(rawNumber(...arguments_.map(Number) as never[]) as number);
+                                        numberBackoff = 0;
+                                        return value;
+                                    } catch (error) {
+                                        if (error !== numberOverflow) throw error;
+                                        const diagnostics = currentDiagnostics();
+                                        if (diagnostics) diagnostics.numberFunctionFallbacks++;
+                                        numberBackoff = Math.min(255, numberBackoff * 2 + 1);
+                                        numberDelay = numberBackoff;
+                                    }
+                                }
                                 return kernelDirect(...arguments_ as never[]);
                             } catch (error) {
                                 if (error instanceof FunctionPlanDemandError) throw error.error;

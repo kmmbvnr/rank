@@ -17,7 +17,7 @@ import type { RankedMembership } from './membership-function.js';
 import { completed, flatMapResult, mapExecution, type Evaluation } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
-import { checkpoint, checkInterrupt, InterruptedError, privateLoopPolling } from './interrupt.js';
+import { checkpoint, checkInterrupt, InterruptedError, privateLoopPolling, inspectionEnabled } from './interrupt.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
@@ -42,6 +42,7 @@ export class RankApplication {
         private readonly scalarCallback: (fn: NativeFunction) => ((arguments_: RankValue[]) => RankValue) | undefined,
         private readonly arrayBatch?: (fn: NativeFunction, source: RankArray, axes: readonly number[]) =>
             (RankedMembership & { available(): boolean }) | undefined,
+        private readonly scalarBatch?: (fn: NativeFunction) => ((arguments_: RankValue[]) => RankValue | undefined) | undefined,
     ) {}
 
     applyUnaryAtRank(
@@ -323,6 +324,17 @@ export class RankApplication {
             return scalar ? scalar(args) : fn.call(args);
         }, {
             shape: fn.dyadicResultShape?.(a.cellShape, b.cellShape),
+            prepare: shape => {
+                if (shape.length || a.cellShape.length || b.cellShape.length || inspectionEnabled()
+                    || !storedScalarOperand(left) || !storedScalarOperand(right)) return undefined;
+                const batch = this.scalarBatch?.(fn);
+                if (!batch) return undefined;
+                return index => {
+                    const args = [a.cellAt(operandIndex(a.frameShape, index)), b.cellAt(operandIndex(b.frameShape, index))];
+                    checkpoint('ranked callback');
+                    return batch(args) ?? (scalar ? scalar(args) : fn.call(args));
+                };
+            },
             ownFiles: this.ownFiles,
             mismatch: (before, after) => new RankError(
                 `ranked results must have the same shape: ${before.join(' ')} and ${after.join(' ')}`,

@@ -359,6 +359,27 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             substitute: source => {
                 const supplied = scalarInputs.get(source);
                 if (supplied) return { type: supplied.type, input: { term: supplied, lines: [] } };
+                // Collection extrema must precede scalar inference: treating
+                // a stored array as a scalar poisons subsequent local types.
+                if (numberMode && host.nativeCalls && host.extrema && isApplicationExpression(source)) {
+                    const parts = flattenApplication(source), last = parts.at(-1);
+                    if (parts.length === 2 && isNameExpression(last) && ['min', 'max'].includes(last.name)
+                        && !localTypes.has(last.name) && !arrays.has(last.name) && !containers.has(last.name)
+                        && arrayType(parts[0])?.element === 'integer') {
+                        const setup: string[] = [], vector = numberVector(parts[0], setup);
+                        if (vector) {
+                            const index = `extremeIndex${state.serial++}`, result = `extreme${state.serial++}`, body: string[] = [];
+                            const value = vector.cell(index, body);
+                            if (!value) return undefined;
+                            builtins.set(last.name, 'core');
+                            state.vectorReductions = true;
+                            setup.push(`if (${vector.size} === 0) throw overflow; let ${result} = 0;`,
+                                numberVectorLoop(vector.size, index, [...body,
+                                    `if (${index} === 0 || ${value.code} ${last.name === 'max' ? '>' : '<'} ${result}) ${result} = ${value.code};`]));
+                            return { type: 'integer', input: { term: { code: result, type: 'integer' }, lines: setup } };
+                        }
+                    }
+                }
                 // A proved small result can delimit an exact arithmetic island.
                 // Ordinary Number inputs keep the existing cheaper lowering.
                 if (numberMode && state.integerRanges.narrowing.has(source)

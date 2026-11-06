@@ -46,7 +46,7 @@ fun Value sumnored
   Total = 0.0
   if Value is .array or Value is .tuple
     for I in 0 till (Value len)
-      Total += Value I sumnored
+      Total += (Value I) sumnored
     end
   elif Value is .object
     for Item Key in Value

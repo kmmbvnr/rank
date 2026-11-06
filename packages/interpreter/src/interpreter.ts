@@ -152,6 +152,7 @@ export class Interpreter {
             value => this.resources.ownFiles(value), this.builtins.functions,
             fn => this.functions.scalarCallback(fn),
             (fn, source, axes) => this.functions.arrayBatch(fn, source, axes),
+            fn => this.functions.scalarBatch(fn),
         );
         this.fastPaths = new FastPaths({
             compiler: () => this.compiler,

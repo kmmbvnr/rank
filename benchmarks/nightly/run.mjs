@@ -51,6 +51,8 @@ function save() {
 let stopped = false, child;
 function stop() { stopped = true; if (child) { try { process.kill(-child.pid, 'SIGKILL'); } catch {} } }
 process.on('SIGTERM', stop); process.on('SIGINT', stop);
+// Datasets ignored by git (Kaggle, pgexercises) are absent from a clean checkout.
+const missingData = /ENOENT[^\n]*demos\/[^\n]*\/data\/|SQLite open failed[^\n]*does not exist/;
 async function measure(file, kind) {
   return await new Promise(resolveResult => {
     const start = performance.now();
@@ -95,7 +97,7 @@ async function measure(file, kind) {
         try { writeFileSync(cgroup + '/cgroup.kill', '1'); } catch {}
         try { rmdirSync(cgroup); } catch {}
       }
-      resolveResult({ms: expired || memoryKilled || stopped ? performance.now() - start : measured ?? performance.now() - start, wallMs: performance.now() - start, status: stopped ? 'interrupted' : expired ? 'timeout' : memoryKilled ? 'memory-limit' : code === 0 ? 'ok' : 'error', code, signal, log: error || log});
+      resolveResult({ms: expired || memoryKilled || stopped ? performance.now() - start : measured ?? performance.now() - start, wallMs: performance.now() - start, status: stopped ? 'interrupted' : code !== 0 && !expired && !memoryKilled && missingData.test(error || log) ? 'no-data' : expired ? 'timeout' : memoryKilled ? 'memory-limit' : code === 0 ? 'ok' : 'error', code, signal, log: error || log});
     });
   });
 }

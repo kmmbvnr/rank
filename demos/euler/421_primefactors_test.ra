@@ -27,3 +27,15 @@ test "two terms, small bound"
   run
   Answer equal 5
 end
+
+test "empty bounds"
+  use "421_primefactors"
+  N = 0
+  M = 20
+  run
+  Answer equal 0
+  N = 10
+  M = 1
+  run
+  Answer equal 0
+end

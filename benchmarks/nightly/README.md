@@ -10,7 +10,10 @@ Programs with required arguments or stdin use companion tests with fixtures.
 Files that declare
 functions without top-level expression/control-flow statements use their
 companion `_test.ra` file. Libraries without companion tests are reported as
-`no-workload`. The report records the selected workload for every file.
+`no-workload`. Demos whose git-ignored datasets are missing (Kaggle, which
+needs a login) are reported as `no-data`, not as errors; the nightly job
+rebuilds the pgexercises club database from the official dump first. The
+report records the selected workload for every file.
 This classification is structural; inspect it before treating an unfamiliar
 library or program as a meaningful performance measurement.
 
