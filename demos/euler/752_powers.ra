@@ -63,11 +63,9 @@ end
 Index' = 0 till Moduli len
 Parts' = Index candidates
 Empty = array shape 0 4 fill 0
-Rows = concat Empty unpack Parts
-Mod = Rows # 0
-Exp = Rows # 1
-Need = Rows # 2
-Factor = Rows # 3
+unpack Mod Exp Need Factor = (
+  concat Empty unpack Parts
+) axis 1
 Count = Mod len
 Mods = Mod reshape Count 1 1
 rem Matrices represent a + b sqrt(7).
