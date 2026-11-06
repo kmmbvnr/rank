@@ -1,0 +1,40 @@
+use testing
+
+test "24 decimal places"
+  use "751_concatenation"
+  run
+  Want = "2.223561019313554106173177"
+  Answer equal Want
+end
+
+test "round down, up and carry"
+  use "751_concatenation"
+  Digits = 3
+  run
+  Answer equal "2.224"
+  Digits = 4
+  run
+  Answer equal "2.2236"
+  Digits = 8
+  run
+  Answer equal "2.22356102"
+  Digits = 2
+  run
+  Answer equal "2.22"
+end
+
+test "integer rounding"
+  use "751_concatenation"
+  Digits = 0
+  run
+  Answer equal "2"
+end
+
+test "beyond the requested precision"
+  use "751_concatenation"
+  Digits = 30
+  run
+  Want = "2.223561019313554106173177"
+  Want += "195280"
+  Answer equal Want
+end

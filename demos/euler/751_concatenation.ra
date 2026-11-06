@@ -1,0 +1,38 @@
+rem Concatenation Coincidence
+rem https://projecteuler.net/problem=751
+
+use io
+use cli
+
+arg Digits integer = 24
+
+rem Curr / Scale follows the recurrence.
+rem Gain tracks changes in the seed.
+rem Append blocks and adjust in place.
+Scale = 1
+Curr = 2
+Gain = 1
+Prefix = 2
+Limit = 10 ** (Digits + 1)
+for Scale less Limit
+  Part = Curr // Scale
+  Curr = Part * (Curr mod Scale + Scale)
+  Gain *= Part
+  Block = Curr // Scale
+  Width = Block text len
+  Shift = 10 ** Width
+  Scale *= Shift
+  Curr = Curr * Shift + Gain * Block
+  Prefix = Prefix * Shift + Block
+end
+
+rem Round using the extra digit(s).
+Trim = Scale // 10 ** Digits
+Rounded = (Prefix + Trim // 2) // Trim
+Text = Rounded text
+Answer = Text
+if Digits greater 0
+  Answer = Text take 1 + "."
+  Answer += Text drop 1
+end
+Answer print
