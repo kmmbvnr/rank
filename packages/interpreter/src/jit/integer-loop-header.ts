@@ -1,6 +1,6 @@
-import { loopTraversal } from '../loop-traversal.js';
+import { loopTraversal, primeLoopBounds } from '../loop-traversal.js';
 import { type IterationBinding, type LoopContinuation } from './integer-loop-plan.js';
-import { forAxes, isBinaryExpression, isBoundClauseExpression, isNameExpression, isParenthesizedExpression, type Expression, type ForStatement } from '@arrrank/language';
+import { forAxes, isBinaryExpression, isNameExpression, type ForStatement } from '@arrrank/language';
 import { RankDeque } from '../containers.js';
 import { orderedSource } from '../ordered-source.js';
 import { isRankArray, isRankSet, type RankArray } from '../value.js';
@@ -111,7 +111,7 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
             let collection = textIteration || isNameExpression(range);
             let elementType: 'integer' | 'text' = textIteration ? 'text' : 'integer';
             if (numberMode && isNameExpression(range) && state.ranges.has(range.name)) return undefined;
-            const bounds = primeBounds(range);
+            const bounds = primeLoopBounds(range);
             if (textIteration) {
                 if (slice || reverse) return undefined;
                 const source = emit(range, tests, 'text');
@@ -172,7 +172,8 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                 if (!upper) return undefined;
                 const limit = (bound?: { code: string; inclusive: boolean }) => bound ? `${numberMode ? `BigInt(${bound.code})` : bound.code}, ${bound.inclusive}` : 'undefined, false';
                 builtins.set('primes', 'sequences');
-                setup = `${tests.join('\n')} const iterable = ${numberMode ? 'numberPrimes' : 'primeRange'}(${limit(lower)}, ${limit(upper)});
+                if (reverse) { builtins.set('reverse', 'sequences'); state.reversedPrimes = true; }
+                setup = `${tests.join('\n')} const iterable = ${numberMode ? 'numberPrimes' : 'primeRange'}(${limit(lower)}, ${limit(upper)}${reverse ? ", true" : ""});
                     ${indexed ? `let ordinal = ${zero};` : ''}`;
                 header = `for (const cursor of iterable) { location = ${location}; ${state.checkpoint}`;
                 collection = true;
@@ -236,22 +237,4 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
         return { setup, header, bindings, rangeInfo, inductionVariable, inductionSlot };
     }
     return loopParts;
-}
-
-/** `primes` with at most one lower (`from`, `after`) and one upper (`to`,
- * `till`) bound, listed innermost first: the order they are evaluated. */
-function primeBounds(range: Expression): { value: Expression; inclusive: boolean; upper: boolean }[] | undefined {
-    const bounds: { value: Expression; inclusive: boolean; upper: boolean }[] = [];
-    for (;;) {
-        while (isParenthesizedExpression(range)) range = range.value;
-        if (isNameExpression(range)) return range.name === 'primes' ? bounds.reverse() : undefined;
-        if (isBinaryExpression(range) && ['to', 'till'].includes(range.operator) && !range.step
-            && !bounds.some(bound => bound.upper)) {
-            bounds.push({ value: range.right, inclusive: range.operator === 'to', upper: true });
-            range = range.left;
-        } else if (isBoundClauseExpression(range) && !bounds.some(bound => !bound.upper)) {
-            bounds.push({ value: range.condition, inclusive: range.operator === 'from', upper: false });
-            range = range.source;
-        } else return undefined;
-    }
 }

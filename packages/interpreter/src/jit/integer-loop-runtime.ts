@@ -9,7 +9,7 @@ import { ResourceMap } from '../resource-summary.js';
 import { prepareIntegerView, prepareStoredScalarView } from '../integer-view.js';
 import { materializeTensorMap } from '../tensor-map.js';
 import { primeRange } from '../prime-sequence.js';
-import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, inspectionEnabled, privateLoopPolling, interruptsEnabled } from '../interrupt.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { completed, type Execution } from '../execution.js';
 import { argumentSelectionError, MissingValueError, RankError } from '../errors.js';
@@ -199,6 +199,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         return recordFallback(`loop:${reason}`);
     }
     return { run: (insideFinally = false, insideGenerator = false, tailCallsAllowed = true) => {
+        if (plan.reversedPrimes && interruptsEnabled()) return recordFallback('loop:observable-reversed-primes');
         if (hasControl && insideFinally) return recordFallback('loop:control-context');
         if (hasReturn && (insideGenerator || !host.canReturn())) return recordFallback('loop:control-context');
         // Suspension needs the invocation frame that owns every register:

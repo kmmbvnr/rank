@@ -141,6 +141,7 @@ export interface IntegerLoopPlan {
     calleeArrays: Set<string>;
     sliceReadSources: ReadonlySet<string>;
     indexedReads: Map<string, string | undefined>;
+    reversedPrimes?: boolean;
     hasControl: boolean;
     hasReturn: boolean;
     hasYield: boolean;

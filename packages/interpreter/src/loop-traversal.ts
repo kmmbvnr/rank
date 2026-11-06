@@ -1,4 +1,4 @@
-import { forAxes, flattenApplication, isCountClauseExpression, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
+import { forAxes, flattenApplication, isBinaryExpression, isBoundClauseExpression, isCountClauseExpression, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
 import type { IterationBinding } from './integer-loop-plan.js';
 
 /** Normalize traversal syntax independently of backend code generation. */
@@ -20,7 +20,8 @@ export function loopTraversal(binding: IterationBinding): LoopTraversal | undefi
     if (parts.length === 2 && isNameExpression(parts[1]) && parts[1].name === 'reverse') {
         let input = parts[0];
         while (isParenthesizedExpression(input)) input = input.value;
-        if (isNameExpression(input)) return { source: input, indexed, reverse: true };
+        if (isNameExpression(input) || primeLoopBounds(input)?.some(bound => bound.upper))
+            return { source: input, indexed, reverse: true };
     }
     if (isCountClauseExpression(source)) {
         const slice = { count: source.count, drop: source.operator === 'drop' };
@@ -32,4 +33,22 @@ export function loopTraversal(binding: IterationBinding): LoopTraversal | undefi
         return { source, indexed, slice };
     }
     return { source, indexed };
+}
+
+/** `primes` with at most one lower (`from`, `after`) and one upper (`to`,
+ * `till`) bound, listed innermost first: the order they are evaluated. */
+export function primeLoopBounds(range: Expression): { value: Expression; inclusive: boolean; upper: boolean }[] | undefined {
+    const bounds: { value: Expression; inclusive: boolean; upper: boolean }[] = [];
+    for (;;) {
+        while (isParenthesizedExpression(range)) range = range.value;
+        if (isNameExpression(range)) return range.name === 'primes' ? bounds.reverse() : undefined;
+        if (isBinaryExpression(range) && ['to', 'till'].includes(range.operator) && !range.step
+            && !bounds.some(bound => bound.upper)) {
+            bounds.push({ value: range.right, inclusive: range.operator === 'to', upper: true });
+            range = range.left;
+        } else if (isBoundClauseExpression(range) && !bounds.some(bound => !bound.upper)) {
+            bounds.push({ value: range.condition, inclusive: range.operator === 'from', upper: false });
+            range = range.source;
+        } else return undefined;
+    }
 }
