@@ -3087,3 +3087,34 @@ operations through a small numeric search helper. Observable native search
 checkpoints retain the publishing path. Euler 411 uses `upperindex` over sorted
 tails padded above the largest possible height, avoiding a sliced prefix or
 interpreted helper call per point. See [verification and measurements](../../benchmarks/euler411-followup.md).
+
+
+## Exact integer reductions across function arrays (Euler 428, #447)
+
+The numeric array-function tier now accepts completed tracked Int32 inputs,
+integer ranges, gathers, broadcast arithmetic, comparisons and numeric `choose`
+branches consumed by integer `sum`. Independent sums with the same frame share
+one generated traversal and reuse common element expressions. Returned scalar,
+small array and tuple results retain Rank integer values. Affine range sums
+use their exact closed form rather than traversing the range.
+
+This is a general function optimization: ordinary local `=` bindings still
+complete semantically, but proven pure intermediate arrays need no storage.
+Unused ordinary bindings, unsafe integer bounds, Boolean gather masks,
+unsupported layouts and dependent reductions retain ordinary execution.
+Boolean masks keep their filtering semantics; they are never integer selectors.
+
+Revision-checked input bounds prove exact element arithmetic. Reduction prefixes
+and final scalar arithmetic keep safe-integer guards; failure discards private
+results and replays the ordinary function. Native builtin identities, shapes,
+scalar kinds and custom readers remain guarded. Compilation observers trigger
+input revalidation before execution. Inspection, cancellation and demand budgets
+keep their ordinary path. The composed real-array call-loop ABI rejects integer
+buffers instead of publishing them as reals.
+
+Prepared shape/scalar plans and generated programs have separate bounded caches
+of 32 entries. Traversal lengths are invocation arguments, allowing changing
+quotient-table sizes to reuse code without retaining their data or results.
+
+See [Euler 428 measurements](../../benchmarks/euler428-followup.md) for separate
+compiler-only, source-only and combined measurements, memory and verification.

@@ -20,7 +20,7 @@ const evidence = new WeakMap<RankArray, Evidence>();
 const finite = (bounds: Bounds) => bounds.integer || Number.isFinite(bounds.low) && Number.isFinite(bounds.high);
 const safeInteger = (bounds: Bounds) => !bounds.integer || bounds.low >= SAFE_MIN && bounds.high <= SAFE_MAX;
 
-function inputBounds(array: RankArray, cells: Cells): Bounds | undefined {
+export function inputBounds(array: RankArray, cells: Cells): Bounds | undefined {
     const state = ownedStorage.get(array)!;
     const cached = evidence.get(array);
     if (cached?.revision === state.revision && cached.cells === cells) return cached.bounds;

@@ -3,6 +3,7 @@ rem https://projecteuler.net/problem=428
 
 use numbers
 use sequences
+use bits
 use io
 use cli
 
@@ -13,7 +14,8 @@ rem when a c = t b (a + b + c) with
 rem t = tan(pi / k)^2, rational only
 rem for k = 3, 4, 6. Counting divisor
 rem pairs gives tau(12 b^2) + tau(2 b^2)
-rem + (divisors of 4 b^2 = -b mod 3).
+rem + pairs d e = 4 b^2 with
+rem both d and e = -b mod 3.
 rem With b = 2^p 3^q m, m prime to 6,
 rem T(N) needs S1(x) = sum of tau(m^2)
 rem and S2(x) = sum of W(m), the same
@@ -23,139 +25,240 @@ rem over squarefree e of a count
 rem D(x // e), so tables of D and of
 rem squarefree counts at all N // t are
 rem built first.
-fun Z feval Mu
+fun Z statistics Mobius
   R = Z isqrt
-  Ks = 1 to R copy
-  Q = Z // Ks
-  Fl = (Ks mod 2) * (Ks mod 3) greater 0
-  F1 = Fl choose 1 0
-  Ng = 0 - 1
-  Ch = Ks mod 3 equal 1 choose 1 Ng
-  C6 = Q - Q // 2 - Q // 3 + Q // 6
-  Cx = (Q + 5) // 6 - ((Q + 1) // 6)
-  C6r = R - R // 2 - R // 3 + R // 6
-  Cxr = (R + 5) // 6 - ((R + 1) // 6)
-  Dd = 2 * (F1 * C6 sum) - C6r * C6r
-  K1 = F1 * Cx sum
-  Kc = K1 + (F1 * Ch * C6 sum)
-  Kc = Kc - C6r * Cxr
-  Mq = Z // (Ks * Ks)
-  M6 = Mq - Mq // 2 - Mq // 3 + Mq // 6
-  Mx = (Mq + 5) // 6 - ((Mq + 1) // 6)
-  Mk = Mu Ks * F1
-  S6 = Mk * M6 sum
-  Sx = Mk * Mx sum
-  return array Dd Kc S6 Sx
+  Keys = 1 to R copy
+  Q = Z // Keys
+  Parity = Keys mod 2
+  Residues = Keys mod 3
+  Allowed = Parity * Residues greater 0
+  Mask = Allowed choose 1 0
+  Minus = 0 - 1
+  Sign = Residues equal 1 choose 1 Minus
+  Counts = Q - Q // 2 - Q // 3 + Q // 6
+  High = (Q + 5) // 6
+  Low = (Q + 1) // 6
+  Bias = High - Low
+  Count = R - R // 2 - R // 3 + R // 6
+  Upper = (R + 5) // 6
+  Lower = (R + 1) // 6
+  Edge = Upper - Lower
+  Left = Mask * Counts sum
+  Divisor = 2 * Left - Count * Count
+  Right = Mask * Bias sum
+  Left = Mask * Sign * Counts sum
+  Mixed = Left + Right - Count * Edge
+  Q = Z // (Keys * Keys)
+  Counts = Q - Q // 2 - Q // 3 + Q // 6
+  High = (Q + 5) // 6
+  Low = (Q + 1) // 6
+  Bias = High - Low
+  Weights = Mobius Keys * Mask
+  Free = Weights * Counts sum
+  Signed = Weights * Bias sum
+  return array Divisor Mixed Free Signed
 end
 
-fun Tv Lt St Nr look
-  R = Lt len - 2
-  Vl = Lt (Tv min R)
-  Qv = Nr // Tv
-  Vs = St (Qv min R)
-  return Tv at most R choose Vl Vs
+fun Indices Large Small lookup
+  Bound = Large len - 2
+  Keys = Indices min Bound
+  Left = Large Keys
+  Q = N // Indices
+  Keys = Q min Bound
+  Right = Small Keys
+  Mask = Indices at most Bound
+  return Mask choose Left Right
+end
+
+fun Bound mobius
+  Size = Bound + 2
+  Last = Bound + 1
+  Mu = array shape Size fill 1
+  Removed = array shape Size fill 1
+  Root = Bound isqrt + 1
+  Primes = primes to Root copy
+  Count = Primes len
+  Index = 0
+  P = 2
+  if Count greater 0
+    P = Primes 0
+  end
+  Power = P
+  for Index less Count
+    Slots = Power to Last by Power
+    Removed Slots *= P
+    if Power equal P
+      Mu Slots *= -1
+    end
+    Power *= P
+    if Power greater Last
+      Square = P * P
+      Slots = Square to Last by Square
+      Mu Slots = 0
+      Index += 1
+      if Index less Count
+        P = Primes Index
+        Power = P
+      end
+    end
+  end
+  Keys = 0 till Size copy
+  Remaining = Keys // Removed greater 1
+  Negative = 0 - Mu
+  Mu = Remaining choose Negative Mu
+  Mu 0 = 0
+  return Mu
+end
+
+rem Coefficients at integers prime to 6.
+fun N coefficients rank 0
+  Factors = N factors unique .counts
+  unpack Primes Counts = Factors
+  Ways = Counts + 1
+  Divisor = Ways reduce * with 1
+  Flags = Counts mod 2 equal 0
+  Parity = Flags choose 1 0
+  Classes = Primes mod 3
+  Mask = Classes equal 1
+  Weights = Mask choose Ways Parity
+  Mixed = Weights reduce * with 1
+  return array Divisor Mixed
+end
+
+rem Prefix the divisor convolutions and
+rem squarefree character counts once.
+fun Mu small_tables
+  Bound = Mu len - 2
+  if Bound equal 0
+    Zero = array 0 0
+    return tuple Zero Zero Zero Zero
+  end
+  Keys = 1 to Bound copy
+  Odd = Keys mod 2
+  Residues = Keys mod 3
+  Allowed = Odd * Residues greater 0
+  Active = Keys Allowed
+  Pairs = Active coefficients
+  unpack Divisor Mixed = Pairs axis 1
+  Size = Bound + 1
+  Counts = array shape Size fill 0
+  Characters = array shape Size fill 0
+  Slots = Active - 1
+  Counts Slots = Divisor
+  Characters Slots = Mixed
+  Mask = Allowed choose 1 0
+  Values = Mu Keys
+  Free = Values * Values * Mask
+  Minus = 0 - 1
+  Positive = Residues equal 1
+  Sign = Positive choose 1 Minus
+  Signed = Free * Sign
+  Tail = array 0
+  Values = concat Free Tail
+  Free = Values scan + with 0
+  Values = concat Signed Tail
+  Signed = Values scan + with 0
+  Divisor = Counts scan + with 0
+  Mixed = Characters scan + with 0
+  return tuple Divisor Mixed Free Signed
+end
+
+fun N large_tables Mu
+  Root = N isqrt
+  Size = Root + 2
+  Divisor = array shape Size fill 0
+  Mixed = array shape Size fill 0
+  Free = array shape Size fill 0
+  Signed = array shape Size fill 0
+  for V in 1 to Root
+    Values = N // V statistics Mu
+    Divisor V = Values 0
+    Mixed V = Values 1
+    Free V = Values 2
+    Signed V = Values 3
+  end
+  return tuple Divisor Mixed Free Signed
 end
 
 R = N isqrt
-Rt = R isqrt + 1
-Mu = array shape (R + 2) fill 1
-Sm = array shape (R + 2) fill 1
-Ix = 0 to R + 1 copy
-for P in primes to Rt
-  Q = P
-  for Q at most R + 1
-    Sl = Q to R + 1 by Q
-    Sm Sl *= P
-    if Q equal P
-      Mu Sl *= -1
-    end
-    Q *= P
+Mu = R mobius
+Small = Mu small_tables
+unpack Dds Kcs S6s Sxs = Small
+Large = N large_tables Mu
+unpack DdL KcL S6L SxL = Large
+Minus = 0 - 1
+Total = 0
+Count = N binary len
+Exponents = 0 till Count copy
+Twos = 2 ** Exponents
+Threes = 3 ** Exponents
+Grid = Twos Threes outer *
+Bases = Grid reshape #
+Allowed = Bases at most N
+Places = Allowed indices
+Bases = Bases Places
+Rows = Places // Count
+Columns = Places mod Count
+for I in 0 till (Bases len)
+  A = Rows I
+  B = Columns I
+  Base = Bases I
+  X = N // Base
+  Root = X isqrt
+  Keys = 1 to Root copy
+  Parity = Keys mod 2
+  Residues = Keys mod 3
+  Allowed = Parity * Residues greater 0
+  Free = Allowed choose 1 0
+  Values = Mu Keys
+  Free = Free * Values * Values
+  Positive = Residues equal 1
+  Character = Positive choose 1 Minus
+  Terms = Base * Keys
+  Divisors = Terms DdL Dds lookup
+  Mixed = Terms KcL Kcs lookup
+  S1 = Free * Divisors sum
+  S2 = Free * Character * Mixed sum
+  Count = X // (Root + 1)
+  if Count greater 0
+    Quotients = 1 to Count copy
+    HighKeys = Base * Quotients
+    LowKeys = Base * (Quotients + 1)
+    HighFree = HighKeys S6L S6s lookup
+    HighChar = HighKeys SxL Sxs lookup
+    LowerBound = N // LowKeys
+    LowFree = LowKeys S6L S6s lookup
+    LowChar = LowKeys SxL Sxs lookup
+    Floor = S6s Root
+    Bias = Sxs Root
+    Above = LowerBound at least Root
+    LowFree = Above choose LowFree Floor
+    LowChar = Above choose LowChar Bias
+    SmallDivisors = Dds Quotients
+    SmallMixed = Kcs Quotients
+    Delta = HighFree - LowFree
+    S1 += SmallDivisors * Delta sum
+    Delta = HighChar - LowChar
+    S2 += SmallMixed * Delta sum
   end
-  Sl = P * P to R + 1 by (P * P)
-  Mu Sl = 0
-end
-Big = Ix // Sm greater 1
-Mu = (Big choose (0 - Mu) Mu) copy
-Mu 0 = 0
-Dds = array shape (R + 2) fill 0
-Kcs = array shape (R + 2) fill 0
-S6s = array shape (R + 2) fill 0
-Sxs = array shape (R + 2) fill 0
-DdL = array shape (R + 2) fill 0
-KcL = array shape (R + 2) fill 0
-S6L = array shape (R + 2) fill 0
-SxL = array shape (R + 2) fill 0
-for V in 1 to R
-  Rs = V feval Mu
-  Dds V = Rs 0
-  Kcs V = Rs 1
-  S6s V = Rs 2
-  Sxs V = Rs 3
-  Rl = N // V feval Mu
-  DdL V = Rl 0
-  KcL V = Rl 1
-  S6L V = Rl 2
-  SxL V = Rl 3
-end
-Ng = 0 - 1
-Tot = 0
-for A in 0 to 40
-  for B in 0 to 20
-    Bs = 2 ** A * 3 ** B
-    if Bs at most N
-      X = N // Bs
-      Rx = X isqrt
-      Es = 1 to Rx copy
-      P2 = Es mod 2
-      P3 = Es mod 3
-      Ft = P2 * P3 greater 0
-      Fe = Ft choose 1 0
-      Fe = Fe * (Mu Es) * (Mu Es)
-      Ch = P3 equal 1 choose 1 Ng
-      Te = Bs * Es
-      D1 = Te DdL Dds N look
-      D2 = Te KcL Kcs N look
-      S1 = Fe * D1 sum
-      S2 = Fe * Ch * D2 sum
-      Qm = X // (Rx + 1)
-      if Qm greater 0
-        Qs = 1 to Qm copy
-        Tq = Bs * Qs
-        Tp = Bs * (Qs + 1)
-        Hi6 = Tq S6L S6s N look
-        Hix = Tq SxL Sxs N look
-        Ap = N // Tp
-        Lo6 = Tp S6L S6s N look
-        Lox = Tp SxL Sxs N look
-        Rm6 = S6s Rx
-        Rmx = Sxs Rx
-        Ge = Ap at least Rx
-        Lo6 = Ge choose Lo6 Rm6
-        Lox = Ge choose Lox Rmx
-        Dq = Dds Qs
-        Kq = Kcs Qs
-        S1 += (Dq * (Hi6 - Lo6)) sum
-        S2 += (Kq * (Hix - Lox)) sum
-      end
-      Ca = (2 * A + 3) * (2 * B + 2)
-      Cb = (2 * A + 2) * (2 * B + 1)
-      C1 = 2 * (Ca + Cb)
-      if B greater 0
-        Cc = 2 * B - 1
-        C1 += 2 * Cc * (2 * A + 3)
-      else
-        C1 += 2 * A + 3
-      end
-      C2 = 0
-      if B equal 0
-        C2 = -1
-        if A mod 2 equal 1
-          C2 = 1
-        end
-      end
-      Tot += C1 * S1 + C2 * S2
+  Width = 2 * A + 3
+  Height = 2 * B + 2
+  First = Width * Height
+  Second = First - Width - Height + 1
+  Weight = 2 * (First + Second)
+  if B greater 0
+    Weight += 2 * (2 * B - 1) * Width
+  else
+    Weight += Width
+  end
+  Sign = 0
+  if B equal 0
+    Sign = -1
+    if A mod 2 equal 1
+      Sign = 1
     end
   end
+  Total += Weight * S1 + Sign * S2
 end
-Answer = Tot // 2
+Answer = Total // 2
 Answer print

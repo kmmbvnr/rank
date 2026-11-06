@@ -186,7 +186,7 @@ export function compileNumericCallLoop(statement: ForStatement, host: Host): Com
                 const value = host.read(name);
                 if (integer(value) || typeof value === 'number' && Number.isFinite(value)) values.set(name, value);
                 else {
-                    const buffer = borrowNumericBuffer(value); if (!buffer) return undefined;
+                    const buffer = borrowNumericBuffer(value); if (!buffer || buffer.integer) return undefined;
                     materialized.set(buffer, value as RankArray);
                     values.set(name, buffer);
                 }
@@ -207,6 +207,7 @@ export function compileNumericCallLoop(statement: ForStatement, host: Host): Com
                 } else {
                     const call = step.run(values); if (!call) return undefined;
                     const { output } = call;
+                    if (output.some(value => value.integer || !value.shape.length)) return undefined;
                     for (let j = 0; j < output.length; j++) if (output[j].shape.length !== ranks.get(step.targets[j])) return undefined;
                     if (i < 2) observations.push([step, call]);
                     output.forEach((value, j) => { values.set(step.targets[j], value); dirty.set(step.targets[j], step.statement); });

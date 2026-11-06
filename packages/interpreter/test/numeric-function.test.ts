@@ -157,10 +157,30 @@ end`;
         let generated = 0;
         const plan = compileNumericFunction(statement, { lookup: name => variables.get(name),
             builtin: () => true, compiled: () => generated++, executed: () => {} })!;
-        for (let i = 1; i <= 40; i++) { variables.set('Scale', i); expect(plan.run()).toBeDefined(); }
+        const diagnostics = new RuntimeDiagnostics();
+        const run = () => diagnostics.run(() => plan.run());
+        for (let i = 1; i <= 40; i++) { variables.set('Scale', i); expect(run()).toBeDefined(); }
+        expect(diagnostics.numericFunctionPreparations).toBe(40);
+        expect(generated).toBe(1);
+        expect(run()).toBeDefined(); expect(generated).toBe(1);
+        variables.set('Scale', 1.0); expect(run()).toBeDefined(); expect(generated).toBe(1);
+        expect(diagnostics.numericFunctionPreparations).toBe(41);
+    });
+    it('bounds generated layout code independently of scalar preparations', () => {
+        const statement = parse('use sequences\nfun X scaled Scale\n return (X reshape #) * Scale\nend').statements[1];
+        if (!isFunctionStatement(statement)) throw new Error('fixture');
+        const variables = new Map<string, RankValue>([['Scale', 1.0]]);
+        let generated = 0;
+        const plan = compileNumericFunction(statement, { lookup: name => variables.get(name),
+            builtin: () => true, compiled: () => generated++, executed: () => {} })!;
+        for (let n = 1; n <= 40; n++) {
+            variables.set('X', typedArray(vector(n)));
+            expect(plan.run()).toBeDefined();
+        }
         expect(generated).toBe(40);
-        expect(plan.run()).toBeDefined(); expect(generated).toBe(40);
-        variables.set('Scale', 1.0); expect(plan.run()).toBeDefined(); expect(generated).toBe(41);
+        variables.set('X', typedArray(vector(1)));
+        expect(plan.run()).toBeDefined();
+        expect(generated).toBe(41);
     });
     it.each(['+=', '-=', '*=', '/='])('retains compound assignment semantics for %s', operator => {
         const source = `use sequences
