@@ -45,8 +45,10 @@ export function constructDeferredTensor(expression: Expression, host: {
         if (isRankArray(a) || isRankArray(b)) {
             const left = kind(a), right = kind(b);
             if (!left || !right) return undefined;
-            const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(op, 2),
-                [[left as CompiledAtomType], [right as CompiledAtomType]]);
+            const matched = op === 'min' || op === 'max'
+                ? left === right && (left === 'integer' || left === 'real') ? { result: [left as CompiledAtomType] } : undefined
+                : matchCompiledOperatorDomains(tensorOperatorSignatures(op, 2),
+                    [[left as CompiledAtomType], [right as CompiledAtomType]]);
             if (!matched || matched.result.length !== 1) return undefined;
             const dimensions = broadcastShape(shape(a), shape(b));
             const result = registerTensorMap(array(e, dimensions, [a, b]), op, [a, b]);

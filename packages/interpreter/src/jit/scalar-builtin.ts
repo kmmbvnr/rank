@@ -12,7 +12,7 @@ const operations = new WeakMap<NativeFunction, {
     call: NativeFunction['call']; scalar(value: RankValue): RankValue;
     batch?: (source: RankArray) => RankArray | undefined;
     result?: 'real' | 'integer' | 'numeric';
-    intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log';
+    intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log' | 'isqrt' | 'integer';
 }>();
 
 const completions = new WeakMap<RankArray, { reader: RankArray['itemAt']; complete(): RankArray | undefined }>();
@@ -26,7 +26,7 @@ export function completeScalarBuiltin(value: RankValue): RankValue {
 }
 
 export function registerScalarBuiltin(fn: NativeFunction, operation: (value: RankValue) => RankValue,
-    batch?: (source: RankArray) => RankArray | undefined, result?: 'real' | 'integer' | 'numeric', intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log'): NativeFunction {
+    batch?: (source: RankArray) => RankArray | undefined, result?: 'real' | 'integer' | 'numeric', intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log' | 'isqrt' | 'integer'): NativeFunction {
     operations.set(fn, { call: fn.call, scalar: operation, batch, result, intrinsic });
     return fn;
 }

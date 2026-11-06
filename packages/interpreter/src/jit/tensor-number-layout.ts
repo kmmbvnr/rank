@@ -1,3 +1,4 @@
+import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import type { CompiledAtomType } from '@arrrank/language';
 import { booleanCells, filledArray, integer32Cells, typedArray } from '../array-storage.js';
 import { currentDiagnostics } from '../diagnostics.js';
@@ -79,7 +80,9 @@ export function prepareLayoutNumberTensor(root: TensorNode,
                     || shape.reduce((a, b) => safe(a * b), 1) !== items.length) return false;
                 slots.set(node, data.push(items) - 1);
             }
-        } else if (node.kind === 'unary' && ['+', '-', 'not'].includes(node.op) && bind(node.operand)) shape = shapes.get(node.operand);
+        } else if (node.kind === 'call' && (node.intrinsic === 'isqrt' || node.intrinsic === 'integer')
+            && (node.intrinsic !== 'isqrt' || domains.get(node.source)?.join() === 'integer') && bind(node.source)) shape = shapes.get(node.source);
+        else if (node.kind === 'unary' && ['+', '-', 'not'].includes(node.op) && bind(node.operand)) shape = shapes.get(node.operand);
         else if (node.kind === 'check' && bind(node.source)) {
             slots.set(node, checks.push(node.validate) - 1); shape = shapes.get(node.source);
         } else if (node.kind === 'view' && bind(node.source)) {
@@ -157,6 +160,11 @@ export function prepareLayoutNumberTensor(root: TensorNode,
             const index = `index${serial++}`;
             lines.push(`const ${index} = safe(${key}); if (${index} < 0 || ${index} >= limits[${sizes.get(node.source)}]) throw overflow;`);
             value = emit(node.source, index);
+        } else if (node.kind === 'call') {
+            const a = emit(node.source, at);
+            if (!a) return undefined;
+            value = node.intrinsic === 'isqrt' ? `isqrt(${a})`
+                : domains.get(node.source)?.join() === 'boolean' ? `(${a} ? 1 : 0)` : a;
         } else if (node.kind === 'unary') {
             const a = emit(node.operand, at);
             if (!a) return undefined;
@@ -219,9 +227,9 @@ export function prepareLayoutNumberTensor(root: TensorNode,
     if (!cache) caches.set(code, cache = new Map());
     let run = cache.get(source);
     if (!run) {
-        try { run = new Function('safe', 'divide', 'remainder', 'widen', 'overflow', source)(safe, divide,
+        try { run = new Function('safe', 'divide', 'remainder', 'widen', 'overflow', 'isqrt', source)(safe, divide,
             (a: number, b: number) => { if (!b) throw overflow; const r = a % b; return r && (r < 0) !== (b < 0) ? safe(r + b) : r; },
-            (cells: Int32Array) => { const wide = new BigInt64Array(cells.length); for (let i = 0; i < cells.length; i++) wide[i] = BigInt(cells[i]); return wide; }, overflow) as Run; } catch { return undefined; }
+            (cells: Int32Array) => { const wide = new BigInt64Array(cells.length); for (let i = 0; i < cells.length; i++) wide[i] = BigInt(cells[i]); return wide; }, overflow, (value: number) => { if (value < 0) throw overflow; return safeIntegerSquareRoot(value); }) as Run; } catch { return undefined; }
         if (cache.size >= 128) cache.delete(cache.keys().next().value!);
         cache.set(source, run);
         compiled?.(source);

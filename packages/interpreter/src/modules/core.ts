@@ -1,3 +1,4 @@
+import { registerScalarBuiltin } from '../scalar-builtin.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { isPresentAt, maskedNumericCells, ownedArray } from '../array-storage.js';
 import { sequenceMask } from '../sequence.js';
@@ -43,9 +44,9 @@ export const coreModule: RuntimeModule = {
         text: arguments_ => new ByteArray(encoder.encode(arguments_[0] as string)),
         bytes: arguments_ => arguments_[0],
     }),
-    integer: () => ({ ...native('integer', 1, ([value]) => isRankSqliteExpression(value)
+    integer: () => registerScalarBuiltin({ ...native('integer', 1, ([value]) => isRankSqliteExpression(value)
         ? numericConversionSqlite(value, 'integer') : integerArray(value) ?? mapValue(value, integerValue)),
-        monadicResultShape: shape => shape }),
+        monadicResultShape: shape => shape }, integerValue, integerArray, 'integer', 'integer'),
     real: () => ({ ...native('real', 1, ([value]) => isRankSqliteExpression(value)
         ? numericConversionSqlite(value, 'real') : realArray(value) ?? mapValue(value, realValue)),
         monadicResultShape: shape => shape }),

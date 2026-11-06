@@ -106,7 +106,7 @@ export const numbersModule: RuntimeModule = {
     }, source => mapStoredUnary(source, 'integer', value => {
         if (value < 0) throw new RankError('isqrt expects a nonnegative integer', 'DomainError');
         return safeIntegerSquareRoot(value);
-    }, 'integer'), 'integer'),
+    }, 'integer'), 'integer', 'isqrt'),
     log: () => unaryMath(
         'log',
         Math.log,
