@@ -1,0 +1,12 @@
+{"variant": "baseline", "run": 1, "operation": "product", "size": 1048576, "ms": 83.69379099999998, "cpuMs": 169.911, "maxRssMiB": 160.734375, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 1, "operation": "product", "size": 1048576, "ms": 80.36875000000003, "cpuMs": 159.915, "maxRssMiB": 148.015625, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 2, "operation": "product", "size": 1048576, "ms": 85.34045799999998, "cpuMs": 165.703, "maxRssMiB": 158.359375, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 2, "operation": "product", "size": 1048576, "ms": 79.04583400000001, "cpuMs": 159.075, "maxRssMiB": 148.703125, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 3, "operation": "product", "size": 1048576, "ms": 85.00716600000001, "cpuMs": 166.608, "maxRssMiB": 158.515625, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 3, "operation": "product", "size": 1048576, "ms": 79.055792, "cpuMs": 159.73, "maxRssMiB": 148.65625, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 1, "operation": "sum", "size": 1048576, "ms": 76.30045800000002, "cpuMs": 154.704, "maxRssMiB": 147.671875, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 1, "operation": "sum", "size": 1048576, "ms": 77.71604200000002, "cpuMs": 159.67, "maxRssMiB": 148.25, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 2, "operation": "sum", "size": 1048576, "ms": 76.89991699999999, "cpuMs": 157.099, "maxRssMiB": 148.203125, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 2, "operation": "sum", "size": 1048576, "ms": 75.72629199999997, "cpuMs": 156.271, "maxRssMiB": 148.171875, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 3, "operation": "sum", "size": 1048576, "ms": 75.38562499999998, "cpuMs": 155.724, "maxRssMiB": 147.796875, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 3, "operation": "sum", "size": 1048576, "ms": 75.59991600000001, "cpuMs": 155.36, "maxRssMiB": 148.125, "node": "v24.15.0", "arch": "arm64"}

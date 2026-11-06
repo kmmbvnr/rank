@@ -1,0 +1,12 @@
+{"variant": "baseline", "run": 1, "operation": "product", "size": 1048576, "parserWarmed": true, "ms": 16.79887500000001, "cpuMs": 20.932, "maxRssMiB": 158.4375, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 1, "operation": "product", "size": 1048576, "parserWarmed": true, "ms": 10.993707999999998, "cpuMs": 14.752, "maxRssMiB": 148.546875, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 2, "operation": "product", "size": 1048576, "parserWarmed": true, "ms": 16.432083000000006, "cpuMs": 20.528, "maxRssMiB": 158.734375, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 2, "operation": "product", "size": 1048576, "parserWarmed": true, "ms": 11.423583000000008, "cpuMs": 15.455, "maxRssMiB": 148.125, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 3, "operation": "product", "size": 1048576, "parserWarmed": true, "ms": 17.073917000000023, "cpuMs": 21.282, "maxRssMiB": 159.296875, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 3, "operation": "product", "size": 1048576, "parserWarmed": true, "ms": 11.275166999999982, "cpuMs": 15.015, "maxRssMiB": 148.875, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 1, "operation": "sum", "size": 1048576, "parserWarmed": true, "ms": 7.669084000000026, "cpuMs": 10.879, "maxRssMiB": 148.75, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 1, "operation": "sum", "size": 1048576, "parserWarmed": true, "ms": 7.717167000000018, "cpuMs": 10.959, "maxRssMiB": 148.4375, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 2, "operation": "sum", "size": 1048576, "parserWarmed": true, "ms": 7.918959000000029, "cpuMs": 11.188, "maxRssMiB": 148.484375, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 2, "operation": "sum", "size": 1048576, "parserWarmed": true, "ms": 7.6059999999999945, "cpuMs": 10.869, "maxRssMiB": 148.84375, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 3, "operation": "sum", "size": 1048576, "parserWarmed": true, "ms": 7.7247919999999795, "cpuMs": 10.899, "maxRssMiB": 148.671875, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 3, "operation": "sum", "size": 1048576, "parserWarmed": true, "ms": 7.767584000000028, "cpuMs": 10.953, "maxRssMiB": 148.25, "node": "v24.15.0", "arch": "arm64"}

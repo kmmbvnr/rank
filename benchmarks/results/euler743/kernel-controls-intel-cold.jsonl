@@ -1,0 +1,12 @@
+{"operation":"product","size":1048576,"ms":208.01063500000004,"cpuMs":384.464,"maxRssMiB":141.8046875,"node":"v24.15.0","arch":"x64"}
+{"operation":"product","size":1048576,"ms":192.553785,"cpuMs":354.485,"maxRssMiB":140.39453125,"node":"v24.15.0","arch":"x64"}
+{"operation":"product","size":1048576,"ms":211.55323100000004,"cpuMs":376.827,"maxRssMiB":141.2734375,"node":"v24.15.0","arch":"x64"}
+{"operation":"product","size":1048576,"ms":193.50521499999996,"cpuMs":355.609,"maxRssMiB":140.53515625,"node":"v24.15.0","arch":"x64"}
+{"operation":"product","size":1048576,"ms":212.29298700000004,"cpuMs":375.297,"maxRssMiB":143.078125,"node":"v24.15.0","arch":"x64"}
+{"operation":"product","size":1048576,"ms":208.03122199999996,"cpuMs":374.134,"maxRssMiB":139.7421875,"node":"v24.15.0","arch":"x64"}
+{"operation":"sum","size":1048576,"ms":181.006015,"cpuMs":337.316,"maxRssMiB":140.29296875,"node":"v24.15.0","arch":"x64"}
+{"operation":"sum","size":1048576,"ms":186.457625,"cpuMs":346.318,"maxRssMiB":140.75390625,"node":"v24.15.0","arch":"x64"}
+{"operation":"sum","size":1048576,"ms":184.16070200000001,"cpuMs":346.527,"maxRssMiB":140.56640625,"node":"v24.15.0","arch":"x64"}
+{"operation":"sum","size":1048576,"ms":182.67528099999998,"cpuMs":345.769,"maxRssMiB":140.7265625,"node":"v24.15.0","arch":"x64"}
+{"operation":"sum","size":1048576,"ms":187.91978000000006,"cpuMs":350.161,"maxRssMiB":140.421875,"node":"v24.15.0","arch":"x64"}
+{"operation":"sum","size":1048576,"ms":185.33693600000004,"cpuMs":348.854,"maxRssMiB":140.4296875,"node":"v24.15.0","arch":"x64"}
