@@ -52,11 +52,12 @@ for (const [file, expected] of [
     ['726_fallingbottles.ra', 578040951n],
     ['729_periodicrange.ra', '308896374.2502'],
     ['735_divisorsoftwo.ra', 174848216767932n],
+    ['737_coinloops.ra', 757794899n],
     ['738_orderedfactorisations.ra', 143091030n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
     const timeout = ['715_sextupletnorms.ra', '729_periodicrange.ra'].includes(file) ? 240_000
-        : ['275_balancedsculptures.ra', '714_duodigits.ra', '719_numbersplitting.ra', '735_divisorsoftwo.ra'].includes(file) ? 120_000 : 60_000;
+        : ['275_balancedsculptures.ra', '714_duodigits.ra', '719_numbersplitting.ra', '735_divisorsoftwo.ra', '737_coinloops.ra'].includes(file) ? 120_000 : 60_000;
     it(`checks the full compiled answer for ${file}`, () => {
         const url = new URL(`../../../demos/euler/${file}`, import.meta.url);
         const diagnostics = new RuntimeDiagnostics();
@@ -81,11 +82,15 @@ for (const [file, expected] of [
                 expect(diagnostics.integerKeyedFolds).toBeGreaterThan(0);
                 expect(diagnostics.numericUniqueSorts).toBe(18);
             }
+            if (file === '737_coinloops.ra') {
+                expect(diagnostics.tensorMapPreparations).toBeGreaterThan(0);
+                expect(diagnostics.compiledTensors).toBeGreaterThan(0);
+            }
             if (file === '738_orderedfactorisations.ra') {
                 expect(diagnostics.numberLoops).toBe(1);
                 expect(diagnostics.cowCopies).toBe(0);
             }
-            if (file !== '714_duodigits.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
+            if (file !== '714_duodigits.ra' && file !== '737_coinloops.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
                 expect(diagnostics.numberLoops).toBeGreaterThan(0);
             }
             expect(diagnostics.numberLoopOverflows).toBe(0);

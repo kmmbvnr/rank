@@ -42,31 +42,33 @@ if Found len greater 0
 end
 Carry = Total Before
 Start = Prefix + 1
-Chunk = 8388608
+Chunk = 1048576
 Last = Chunk - 1
 for Done equal 0
   Coins = (Start to Start + Last) * 1.0
-  Harm = Coins log + Euler + 0.5 / Coins
-  Harm = Harm - 1.0 / (12 * Coins ** 2)
-  Harm = Harm + 1.0 / (120 * Coins ** 4)
-  Harm = Harm - 1.0 / (252 * Coins ** 6)
-  Ratio = (Coins / Harm - 0.25) sqrt
-  Turn = (Ratio / (Coins + 0.5)) atan
-  Grid = Turn reshape 2048 4096
+  Estimate' = (Coins log + Euler +
+    0.5 / Coins)
+  rem Higher terms round away here.
+  Harm' = (Estimate -
+    1.0 / (12.0 * Coins * Coins))
+  Ratio' = (Coins / Harm - 0.25) sqrt
+  Angles' = Ratio / (Coins + 0.5)
+  Turn = Angles atan copy
+  Grid = Turn reshape 256 4096
   Rows = Grid sum axis 1
   Piece = Rows sum
   Upper = Carry + Piece + Pi / 2
   if Upper greater Target
     Total = Turn scan +
     Lead = concat Zero (Total take Last)
-    Angle = 4.0 * Coins / Harm - 1.0
+    FinalHarm = Harm copy
+    Angle = 4.0 * Coins / FinalHarm - 1.0
     Slope = Angle sqrt
     Reach = Slope atan + Carry + Lead
     Hit = Reach greater Target
-    Index = Start to Start + Last
-    Found = Index filter Hit
-    if Found len greater 0
-      Answer = Found 0 + 1
+    if Hit any
+      Offset = Hit find true
+      Answer = Start + Offset + 1
       Done = 1
     end
   end
