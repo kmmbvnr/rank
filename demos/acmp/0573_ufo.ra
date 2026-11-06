@@ -1,0 +1,85 @@
+rem ACMP 0573: UFO
+rem Min DAG path cover via maxflow
+use io
+use cli
+use sequences
+use numbers
+use text
+use graph
+
+arg Input text = "4 1
+12:00 0 0
+13:10 0 1
+14:00 1 0
+15:00 1 1"
+
+Clean = Input split ":" join " "
+Clean = Clean split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+V = (Tokens 1) integer
+
+Base = 2 + ((0 till N) * 4)
+HH = (Tokens Base) integer
+MM = (Tokens (Base + 1)) integer
+Xs = (Tokens (Base + 2)) integer
+Ys = (Tokens (Base + 3)) integer
+Times = (HH * 60) + MM
+
+T1 = Times reshape N 1
+T2 = Times reshape 1 N
+DT = T2 - T1
+TimeValid = DT greater 0
+
+X1 = Xs reshape N 1
+X2 = Xs reshape 1 N
+DX = X2 - X1
+
+Y1 = Ys reshape N 1
+Y2 = Ys reshape 1 N
+DY = Y2 - Y1
+
+DistSq = (DX * DX) + (DY * DY)
+MaxDistSq = (V * V) * (DT * DT)
+SpeedValid = not (
+  (3600 * DistSq) greater MaxDistSq
+)
+CanReach = TimeValid and SpeedValid
+
+SrcFrom = 0 * (0 till N)
+SrcTo = 1 till (N + 1)
+SrcCap = 1 + SrcFrom
+SrcCols = array SrcFrom SrcTo SrcCap
+SrcEdges = SrcCols transpose
+
+Sink = (2 * N) + 1
+DstFrom = (N + 1) till Sink
+DstTo = (0 * (0 till N)) + Sink
+DstCap = 1 + SrcFrom
+DstCols = array DstFrom DstTo DstCap
+DstEdges = DstCols transpose
+
+I_Grid = (1 till (N + 1)) reshape N 1
+J_Grid = ((N + 1) till Sink) reshape 1 N
+Zeros2D = 0 * (I_Grid + J_Grid)
+MatchFrom = (I_Grid + Zeros2D) CanReach
+MatchTo = (J_Grid + Zeros2D) CanReach
+MatchCap = 1 + (0 * MatchFrom)
+
+G = new graph .directed
+G add SrcEdges
+G add DstEdges
+if (MatchFrom len) greater 0
+  MCols = array MatchFrom (
+    MatchTo
+  ) MatchCap
+  MatchEdges = MCols transpose
+  G add MatchEdges
+end
+
+Res = G 0 Sink maxflow
+MinUFOs = N - (Res .value)
+(MinUFOs text) print
