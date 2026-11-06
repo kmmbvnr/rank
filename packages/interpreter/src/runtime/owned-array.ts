@@ -826,6 +826,31 @@ export class IntegerCells {
         }
     }
 
+    get length(): number { return this.packed?.length ?? this.exact!.length; }
+
+    /** A filtered tensor filled only this prefix of its private capacity. */
+    truncate(length: number): this {
+        if (!Number.isSafeInteger(length) || length < 0 || length > this.length) throw new RangeError('invalid integer buffer length');
+        if (this.packed) this.packed = length < this.packed.length / 2 ? this.packed.slice(0, length) : this.packed.subarray(0, length);
+        else this.exact!.length = length;
+        return this;
+    }
+
+    /** Append a filtered cell without reserving the whole source shape. */
+    append(index: number, value: bigint): void {
+        const packed = this.packed;
+        if (packed && index >= packed.length) {
+            const size = Math.max(index + 1, packed.length * 2);
+            const grown = packed instanceof Int32Array ? new Int32Array(size) : new BigInt64Array(size);
+            if (grown instanceof Int32Array) grown.set(packed as Int32Array);
+            else grown.set(packed as BigInt64Array);
+            this.packed = grown;
+        } else if (this.exact && index >= this.exact.length) {
+            this.exact.length = Math.max(index + 1, this.exact.length * 2);
+        }
+        this.set(index, value);
+    }
+
     reused(buffer: Int32Array | BigInt64Array): boolean {
         return this.packed === buffer;
     }

@@ -2,7 +2,7 @@ import { registerSequenceCompletion } from '../sequence-completion.js';
 import { storedMaskSelection } from '../array-mask-selection.js';
 import { materializeTensorMap, registerTensorConcat } from '../tensor-map.js';
 import { resolveAxis, resolveAxes } from '../tensor-index.js';
-import { copyArrayStorage } from '../array-copy.js';
+import { copyArrayStorage, materializeSelectedView } from '../array-copy.js';
 import { countPackedBooleans, materializePackedBooleans, packedTruePositions } from '../packed-booleans.js';
 import { permutedArray } from '../array-permutation.js';
 import { findValue, findAllValues } from './sequence-search.js';
@@ -323,7 +323,7 @@ export function copyArray(value: RankValue, shareStorage = true): RankArray {
     if (isRankSequence(value)) return materializeSequence(value);
     if (!isRankArray(value)) throw new RankError('copy expects an array or sequence');
     const type = semanticArrayType(value);
-    const planned = copyArrayStorage(value, shareStorage);
+    const planned = copyArrayStorage(value, shareStorage) ?? materializeSelectedView(value);
     if (planned) return planned;
     const numeric = privateLoopPolling() ? copyStoredNumericArray(value) : undefined;
     if (numeric) { inheritArrayDeclaration(value, numeric); return setSemanticArrayType(numeric, type); }

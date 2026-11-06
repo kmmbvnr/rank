@@ -350,6 +350,23 @@ interface DestinationTarget {
     kind: 'real' | 'boolean' | 'integer';
 }
 
+/** Keep cached runners outside bindRun's activation: its other closures capture
+ * input buffers, which a wrapper created there would retain in V8's context. */
+function speculativeTensorRun(exact: KernelRun, fast: KernelRun): KernelRun {
+    return (data, offsets, scalars, size, checks, routes, start, visit, dest) => {
+        // A destination may alias an input; never overwrite it before the exact run.
+        if (dest === undefined && !data.some(cells => cells instanceof BigInt64Array
+            && typeof SharedArrayBuffer !== 'undefined' && cells.buffer instanceof SharedArrayBuffer)) {
+            const numbers = scalars.map(scalar => typeof scalar === 'bigint' ? Number(scalar) : scalar);
+            if (scalars.every((scalar, at) => typeof scalar !== 'bigint' || BigInt(numbers[at] as number) === scalar && Number.isSafeInteger(numbers[at]))) {
+                try { return fast(data, offsets, numbers as RankValue[], size, checks, routes, start, visit, dest); }
+                catch (error) { if (error !== overflowSignal && error !== numberOverflow) throw error; }
+            }
+        }
+        return exact(data, offsets, scalars, size, checks, routes, start, visit, dest);
+    };
+}
+
 function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache, nativeGraph = false,
     scan?: bigint | null, visit?: (cell: RankValue, index: number) => void, axes?: readonly number[], destinationName?: string) {
@@ -898,8 +915,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             resolved.set(node, types);
             return types;
         }
-        const types = terminal === 'copy' && !compact ? outputTypes(root) : [];
-        const outputKind = terminal === 'copy' && !compact && types.length === 1 ? types[0] : undefined;
+        const types = terminal === 'copy' ? outputTypes(root) : [];
+        const outputKind = types.length === 1 && (!compact || types[0] === 'integer') ? types[0] : undefined;
         const interruptible = interruptsEnabled();
         const key = String(interruptible) + [...bound.values()].map(b => `${b.shape === undefined ? 's' : b.shape.join(',')}:${b.view ? backing(b.view.items) + ':' + b.view.kind : typeof b.scalar}:${b.boolean}:${b.filter ?? false}:${b.slot ?? ''}:${b.progression ? `${b.progression.start},${b.progression.step},${b.progression.divisor ?? ''}` : ''}`).join(';');
         let execute = cachedRun;
@@ -1199,12 +1216,12 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 seeded ? `accumulated += ${value};` : `accumulated = i === 0 ? ${value} : accumulated + ${value};`,
                 `answer.set(i + ${seeded ? 1 : 0}, accumulated);`);
             else if (visit) lines.push(`visit(${value}, i);`);
-            else if (terminal === 'copy') lines.push(outputKind === 'boolean' ? `answer.write(i, ${value});` : outputKind === 'integer' ? `answer.set(i, ${value});`
+            else if (terminal === 'copy') lines.push(outputKind === 'boolean' ? `answer.write(i, ${value});` : outputKind === 'integer' ? `answer.${compact ? 'append' : 'set'}(${compact ? 'length' : 'i'}, ${value});`
                 : compact ? `answer.push(${value});` : `answer[i] = ${value};`);
             lines.push(tensorReductionStep(terminal, 'answer', value, 'length', false, nativeGraph));
             lines.push('length++;');
             const initial = visit ? 'true' : scanning ? `new IntegerCells(size + ${seeded ? 1 : 0})`
-                : terminal === 'copy' ? outputKind === 'boolean' ? 'new BooleanCells(size)' : outputKind === 'integer' ? 'new IntegerCells(size)' : outputKind === 'real' ? 'new Float64Array(size)' : compact ? '[]' : 'new Array(size)' : terminal === 'reduce*' ? '1n' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
+                : terminal === 'copy' ? outputKind === 'boolean' ? 'new BooleanCells(size)' : outputKind === 'integer' ? compact ? 'new IntegerCells(Math.min(size, 4096))' : 'new IntegerCells(size)' : outputKind === 'real' ? 'new Float64Array(size)' : compact ? '[]' : 'new Array(size)' : terminal === 'reduce*' ? '1n' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
             // Distinct functions keep each input load on one physical backing type,
             // including callers that share the source-text code cache.
             const prefix = scanning ? `let accumulated = ${seeded ? `${scan}n` : '0n'}; ${seeded ? 'answer.set(0, accumulated);' : ''}` : '';
@@ -1304,7 +1321,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 const words = [...wordSlots].map(slot => `const words${slot} = new Int32Array(data[${slot}].buffer, data[${slot}].byteOffset, data[${slot}].length * 2);`).join('\n');
                 return `"use strict"; /* number ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { ${words} const answer = new IntegerCells(size); for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${body.join('\n')}\nanswer.setNumber(i, ${result}); } return answer; };`;
             }
-            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { ${uniformChecks ? 'const checked = [];' : ''} let answer = dest !== undefined ? dest : ${initial}, length = 0; ${preparations.join('\n')} ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max', 'reduce-'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { ${uniformChecks ? 'const checked = [];' : ''} let answer = dest !== undefined ? dest : ${initial}, length = 0; ${preparations.join('\n')} ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max', 'reduce-'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : compact && outputKind === 'integer' ? 'answer.truncate(length)' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
             if (!execute) {
@@ -1319,18 +1336,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 const exact = execute!;
                 try {
                     const fast = new Function('checkpoint', 'IntegerCells', 'safe', 'overflow', 'mulmod', numberBody)(checkpoint, IntegerCells, safeInteger, overflowSignal, checkedNumberModularMultiply) as KernelRun;
-                    execute = (data, offsets, scalars, size, checks, routes, start, visit, dest) => {
-                        // A destination may alias an input; never overwrite it before the exact run.
-                        if (dest === undefined && !data.some(cells => cells instanceof BigInt64Array
-                            && typeof SharedArrayBuffer !== 'undefined' && cells.buffer instanceof SharedArrayBuffer)) {
-                            const numbers = scalars.map(scalar => typeof scalar === 'bigint' ? Number(scalar) : scalar);
-                            if (scalars.every((scalar, at) => typeof scalar !== 'bigint' || BigInt(numbers[at] as number) === scalar && Number.isSafeInteger(numbers[at]))) {
-                                try { return fast(data, offsets, numbers as RankValue[], size, checks, routes, start, visit, dest); }
-                                catch (error) { if (error !== overflowSignal && error !== numberOverflow) throw error; }
-                            }
-                        }
-                        return exact(data, offsets, scalars, size, checks, routes, start, visit, dest);
-                    };
+                    execute = speculativeTensorRun(exact, fast);
                     if (code) code.set(generated, execute);
                 } catch { execute = exact; }
             }
@@ -1357,7 +1363,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
         const boundInputs = [...bound].flatMap(([node, info]) => node.kind === 'input' ? [{ name: node.name, shape: info.shape }] : []);
-        const target = findTarget(output.shape, size, outputKind, boundInputs);
+        const target = compact ? undefined : findTarget(output.shape, size, outputKind, boundInputs);
         const destArg: Float64Array | BooleanCells | IntegerCells | undefined = target
             ? target.kind === 'real' ? (target.buffer as Float64Array)
             : target.kind === 'boolean' ? (target.buffer as BooleanCells)

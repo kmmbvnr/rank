@@ -1,0 +1,7 @@
+use sequences
+use cli
+arg N integer = 10000000
+Values = 1 to N copy
+Half = N // 2
+Selected = Values (Values at most Half) copy
+Answer = Selected sum
