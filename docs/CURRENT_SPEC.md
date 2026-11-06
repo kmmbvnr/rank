@@ -6978,6 +6978,15 @@ gives all zeros. Other inputs retain exact power followed by elementwise
 `mod`, with the same results and errors. This includes real matrices, negative
 powers, nonpositive moduli and non-integer operands.
 
+Ranked calls such as `A matpow Powers rank 2 0 mod Mods` also keep modular
+products bounded for stored integer matrices, nonnegative integer powers and
+positive integer moduli that are constant within each result matrix. Ordinary
+broadcasting still applies: for `N` matrix results, use shape `N 1 1` for
+per-matrix moduli. Moduli varying within a matrix, real inputs and negative
+powers retain exact ranked powers followed by elementwise `mod`. Stored inputs
+are snapshotted before evaluating the modulus. Opaque cell readers retain the
+ordinary evaluator. Diagnostics count each fused result matrix.
+
 A separately assigned `P = A matpow N` stays exact; a later `P mod M` does
 not fuse across that binding. Runtime diagnostics count fused
 calls in `modularMatrixPowers`.

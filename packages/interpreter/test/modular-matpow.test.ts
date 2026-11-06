@@ -171,3 +171,55 @@ describe('modular matrix powers', () => {
     });
 
 });
+
+describe('ranked modular matrix powers', () => {
+    const head = matrix + 'Powers = array 0 1 2 5\n';
+    it('fuses a broadcast matrix and scalar modulus', () => {
+        const actual = evaluate(head + 'A matpow Powers rank 2 0 mod 11');
+        expect(actual.value).toEqual(evaluate(head + 'R = A matpow Powers rank 2 0\nR mod 11').value);
+        expect(actual.fused).toBe(4);
+    });
+    it('broadcasts matrices, exponents and per-matrix moduli', () => {
+        const input = `A = (array 1 7 1 1 1 1 1 0) reshape 2 1 2 2
+Powers = array 0 4 12
+Mods = (array 1 5 11) reshape 3 1 1
+`;
+        const actual = evaluate(input + 'A matpow Powers rank 2 0 mod Mods');
+        expect(actual.value).toEqual(evaluate(input + 'R = A matpow Powers rank 2 0\nR mod Mods').value);
+        expect(actual.fused).toBe(6);
+    });
+    it('handles very large exponents', () => {
+        const input = 'A = (array 1 1 0 1) reshape 2 2\nPowers = array 1000000000000000000 1000000000000000001\n';
+        expect(evaluate(input + 'A matpow Powers rank 2 0 mod 7')).toEqual({
+            fused: 2, value: { shape: [2, 2, 2], cells: [1n, 1n, 0n, 1n, 1n, 2n, 0n, 1n] },
+        });
+    });
+    it.each(['(array 3 5)', '(array 0 5 7 9) reshape 4 1 1', '7.5', '-7'])
+    ('retains elementwise semantics for unsupported modulus %s', modulus => {
+        expect(outcome(head + `A matpow Powers rank 2 0 mod ${modulus}`))
+            .toEqual(outcome(head + `R = A matpow Powers rank 2 0\nR mod ${modulus}`));
+    });
+    it('keeps real, negative-power and empty-frame behavior', () => {
+        for (const input of [
+            'A = (array 1.5 0.0 0.0 2.5) reshape 2 2\nPowers = array 1 2\n',
+            'A = (array 1 1 1 0) reshape 2 2\nPowers = array -1 2\n',
+            matrix + 'Powers = array shape 0 fill 0\n',
+        ]) expect(outcome(input + 'A matpow Powers rank 2 0 mod 5'))
+            .toEqual(outcome(input + 'R = A matpow Powers rank 2 0\nR mod 5'));
+    });
+    it('snapshots stored inputs before modulus side effects', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use sequences\nuse linalg\n' + head);
+            const source = runtime.variables.get('A')!;
+            runtime.variables.set('change', native('change', 1, () => {
+                if (isRankArray(source)) writeArrayCell(source, 0, 999n);
+                return 11n;
+            }));
+            const expected = evaluate(head + 'R = A matpow Powers rank 2 0\nR mod 11').value;
+            const result = diagnostics.run(() => runtime.execute('A matpow Powers rank 2 0 mod (0 change)'))!;
+            expect(isRankArray(result) ? { shape: result.shape, cells: [...arrayValues(result)] } : result).toEqual(expected);
+            expect(diagnostics.modularMatrixPowers).toBe(4);
+        } finally { runtime.dispose(); }
+    });
+});

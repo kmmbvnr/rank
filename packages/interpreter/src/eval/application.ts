@@ -82,6 +82,10 @@ export class ApplicationEvaluator {
 
     constructor(private readonly context: ApplicationContext) {}
 
+    applyDyadicAtRank(left: RankValue, right: RankValue, fn: NativeFunction, leftRank: number, rightRank?: number) {
+        return this.context.rankApplication.applyDyadicAtRank(left, right, fn, leftRank, rightRank);
+    }
+
     compileDeclaredCall(expression: DeclaredCallExpression, tail: boolean): () => Evaluation<RankValue> {
         const context = this.context;
         const lastUses = lastArrayUseProofs(expression, expression.arguments);
