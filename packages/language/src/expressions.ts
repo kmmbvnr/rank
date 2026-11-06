@@ -89,13 +89,25 @@ export function groupedExpression(value: Expression): Expression {
     return { $type: 'ParenthesizedExpression', value, $cstNode: value.$cstNode } as Expression;
 }
 
+/** Result modifiers add a label operand, not another data operand. */
+function unaryWithModifiers(name: string): boolean {
+    const operation = findOperation(name);
+    if (!operation?.modifiers?.length || !operation.arities.includes(1)) return false;
+    const extra = operation.signatures?.filter(signature => signature.inputs.length > 1);
+    return !!extra?.length && extra.every(signature => {
+        const modifier = signature.inputs[1];
+        return signature.inputs.length === 2 && typeof modifier === 'object'
+            && 'label' in modifier && operation.modifiers!.includes(modifier.label);
+    });
+}
+
 /** Preserve an unbound unary builtin result used as the left operand of a dyadic builtin. */
 export function groupedUnaryDyadicChain(expression: Expression, unbound: (name: string) => boolean): Expression | undefined {
     const parts = flattenApplication(expression);
     if (parts.length !== 4 || !isNameExpression(parts[1]) || !isNameExpression(parts[3])) return undefined;
     const unary = findOperation(parts[1].name);
     const dyadic = findOperation(parts[3].name);
-    if (!unary || unary.arities.join() !== '1' || !unbound(parts[1].name)
+    if (!unary || unary.arities.join() !== '1' && !unaryWithModifiers(unary.name) || !unbound(parts[1].name)
         || !dyadic?.arities.includes(2) || !unbound(parts[3].name)) return undefined;
     return applicationExpression([
         groupedExpression(applicationExpression(parts.slice(0, 2), expression)), parts[2], parts[3],
@@ -116,7 +128,7 @@ export function unaryApplicationHead(expression: Expression,
     const head = flattenApplication(expression.head);
     const headLast = head.at(-1);
     const completed = head.length >= 2 && isNameExpression(headLast) && standard(headLast.name)
-        && arities(headLast.name)?.join() === '1';
+        && (arities(headLast.name)?.join() === '1' || unaryWithModifiers(headLast.name));
     if (tail?.join() === '1' || completed && tail?.includes(1)) return expression.head;
     return undefined;
 }

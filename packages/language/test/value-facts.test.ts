@@ -18,6 +18,17 @@ function facts(source: string, bindings = new Map<string, ValueFacts>()): ValueF
     return expressionFacts(statement.value, name => bindings.get(name));
 }
 
+it('infers the tuple returned by unique .counts without changing ordinary unique', () => {
+    expect(facts('(array 2 2 3) unique .counts').types).toEqual(['tuple']);
+    expect(facts('"aba" unique .counts').types).toEqual(['tuple']);
+    expect(facts('(array 2 2 3) unique').types).toEqual(['array']);
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>(
+        'use sequences\nuse numbers\nunpack Primes Counts = (\n  360 factors unique .counts\n)\nPowers = Primes ** Counts',
+    );
+    expect(parsed.parserErrors).toEqual([]);
+    expect(analyzeValues(parsed.value).diagnostics).toEqual([]);
+});
+
 it('infers all powmod operand frames without claiming an unknown call is scalar', () => {
     const bindings = new Map<string, ValueFacts>([
         ['X', { types: ['array'], elements: ['integer'], rank: 2, shape: [2, 1] }],
