@@ -111,10 +111,13 @@ by a deep-DAG preparation regression test.
 
 ## Verification and reproduction
 
-TypeScript build passed. On both Mac and Intel, 228 focused tests passed, plus
-the full Euler 747 golden test (9.20 and 26.94 seconds under the test runner).
-The final preparation cap was checked in the focused suites after those golden
-runs. Full suites and exhaustive audits were not run.
+TypeScript build passed. On both Mac and Intel, 228 focused tests and the full
+Euler 747 golden test passed. After integrating main ca1e18af (scalar-function
+bounded division), the build, 252 focused tests and the full golden passed
+again on Mac; that golden took 9.28 seconds. Intel's golden took 26.94 seconds
+and predates the preparation-only cap; its final 228-test run includes the cap.
+The integration does not change the measured default tensor path. Full suites
+and exhaustive audits were not run.
 
 Small-case correctness uses an independent enumeration of x, y and z, comparing
 squared BigInts rather than computing roots, floors or ceilings. Both compilation
