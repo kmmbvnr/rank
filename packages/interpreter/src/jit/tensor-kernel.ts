@@ -911,6 +911,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             const preparations: string[] = [];
             let emitted = new Map<TensorNode, Map<string, string>>();
             let serial = 0;
+            let uniformChecks = false;
             // Physical input types are part of the variant key and rechecked by
             // the cached layout. Do not infer primitive types from domain hints:
             // boxed cells and callbacks still need their runtime guards.
@@ -1075,6 +1076,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                         // producers can also yield limits: check those on
                         // every occurrence until a finite/NaN cell settles
                         // the ordinary real domain, never the other way round.
+                        uniformChecks = true;
                         const slot = checkSlots.get(node)!;
                         const real = domains.get(node.source)![0] === 'real';
                         const normal = real ? `${source} !== Infinity && ${source} !== -Infinity` : 'true';
@@ -1286,7 +1288,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 if (!ok) return undefined;
                 return `"use strict"; /* number ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { const answer = new IntegerCells(size); for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${body.join('\n')}\nanswer.setNumber(i, ${result}); } return answer; };`;
             }
-            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { const checked = []; let answer = dest !== undefined ? dest : ${initial}, length = 0; ${preparations.join('\n')} ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max', 'reduce-'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { ${uniformChecks ? 'const checked = [];' : ''} let answer = dest !== undefined ? dest : ${initial}, length = 0; ${preparations.join('\n')} ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max', 'reduce-'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
             if (!execute) {
