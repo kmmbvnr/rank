@@ -1,0 +1,136 @@
+rem Integer Part of Polynomial Equation
+rem https://projecteuler.net/problem=438
+
+use numbers
+use linalg
+use sequences
+use io
+use cli
+
+arg N integer = 7
+Width = N + 2
+Keys = 0 to N + 1 array
+Facts = (1 to N + 1) scan * with 1
+Facts = Facts copy
+Row = Keys reshape Width 1
+Col = Keys reshape 1 Width
+Valid = Col at most Row
+Safe = Valid choose Col Row
+Binom = Row binomial Safe
+Binom = Valid choose Binom 0
+Falling = Binom * Facts
+Points = 1 to N + 1 array
+Powers = N to 1 by -1 array
+Values = Falling Points Powers
+ValueBasis = Values transpose
+Sign = (0 - 1) ** N
+Weights = (Facts Powers) * (0 - 1) ** Powers
+Positive = Points mod 2 equal (N + 1) mod 2
+Negative = not Positive
+
+fun Size derivatives
+  Values = array shape (Size + 1) fill 1
+  Slopes = array shape (Size + 1) fill 0
+  Table = array shape (Size + 1) Width fill 0
+  for Power in 1 to Size
+    Factor = Points - Power + 1
+    Slopes = Slopes * Factor + Values
+    Values *= Factor
+    Table # Power = Slopes
+  end
+  return Table
+end
+Slopes = N derivatives
+SlopeBasis = (Slopes # Powers) transpose
+
+fun Rows bounds Degree
+  Used = 0 till Degree array
+  At = 1 to Degree + 1 array
+  Left = Falling (N - Used) (N - Degree)
+  Right = Falling At (Degree - Used)
+  Basis = (Right * Left) transpose
+  Numerator = Rows matmul Basis
+  Denom = Facts (N - Degree)
+  Limits = (0 - Numerator) // Denom
+  Lower = At mod 2 not equal Degree mod 2
+  Upper = not Lower
+  Low = (Limits # Lower) max axis 1
+  High = (Limits # Upper) min axis 1
+  Count = Rows len
+  LowColumn = Low reshape Count 1
+  HighColumn = High reshape Count 1
+  return concat LowColumn HighColumn axis 1
+end
+
+rem Expand integer intervals with scans.
+fun Rows extend Degree
+  Ends = Rows bounds Degree
+  Low = Ends # 0
+  High = Ends # 1
+  Keep = High at least Low
+  Rows = (Rows Keep #) copy
+  Low = Low Keep
+  Counts = (High Keep) - Low + 1
+  Stop = Counts scan +
+  Start = Stop - Counts
+  Total = Counts sum
+  Mark = array shape Total fill 0
+  Mark Start = 1
+  Owner = (Mark scan +) - 1
+  Offset = (0 till Total) - Start Owner
+  Next = (Low Owner) + Offset
+  Prefix = Rows Owner #
+  Column = Next reshape Total 1
+  return concat Prefix Column axis 1
+end
+
+fun Size prefixes
+  Rows = array shape 1 1 fill 1
+  for Degree in 1 to Size - 2
+    Rows = Rows extend Degree
+  end
+  return Rows
+end
+
+rem At a zero endpoint, the derivative
+rem fixes the sign immediately to its
+rem left. Repeated roots are excluded.
+fun Rows score
+  Values = Rows matmul ValueBasis
+  Slopes = Rows matmul SlopeBasis
+  Signs = Positive choose 1 (0 - 1)
+  Inclusive = Slopes * Signs less 0
+  Edge = Inclusive choose 0 1
+  Lower = Edge - Values
+  Upper = 0 - Edge - Values
+  Low = (Lower # Positive) max axis 1
+  High = (Upper # Negative) min axis 1
+  Ways = (High - Low + 1) max 0
+  Constant = Rows matmul Weights
+  Ends = 2 * Constant + Low + High
+  Totals = Sign * Ends * Ways // 2
+  Count = Ways sum
+  Total = Totals sum
+  Score = Total - Count
+  return array Count Score
+end
+
+Rows = N prefixes
+Count = Rows len
+Cnt = 0
+Answer = 0
+if N equal 0
+  Cnt = 1
+else
+  for Start in 0 till Count by 4096
+    Stop = Count min (Start + 4096)
+    Batch = Rows (Start till Stop) #
+    if N greater 1
+      Batch = Batch extend (N - 1)
+    end
+    Result = Batch score
+    Cnt += Result 0
+    Answer += Result 1
+  end
+end
+Answer print

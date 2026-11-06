@@ -594,12 +594,27 @@ function denseMatmul(
     // hide an inexact intermediate. BigInt checks cannot round an unsafe bound.
     const a = boundedIntegerOperand(leftItems, leftCompact);
     const b = a && boundedIntegerOperand(rightItems, rightCompact);
-    if (a && b && a.max * b.max * BigInt(contracted) <= 9007199254740991n) {
+    const bound = a && b ? a.max * b.max * BigInt(contracted) : undefined;
+    if (a && b && bound !== undefined && bound <= 9007199254740991n) {
         const sparse = sparseIntegerMatmul(a.cells, b.cells, contracted, leftInner, rightInner,
             outputShape, outputStrides, leftRank);
         if (sparse) return typedArray(sparse, outputShape);
         const numbers = numberMatmul(a.cells, b.cells, size, contracted, leftInner, rightInner,
-            outputShape, outputStrides, leftRank);
+            outputShape, outputStrides, leftRank,
+            bound <= 2147483647n && privateLoopPolling() && !demandBudgetEnabled());
+        if (numbers instanceof Int32Array) return typedArray(numbers, outputShape);
+        // Compact exact outputs keep subsequent gathers and arithmetic on
+        // native integer cells. Check the actual sums: a conservative product
+        // bound can exceed Int32 even when cancellation makes every sum small.
+        // Observable/budgeted execution retains its existing store checkpoints.
+        if (privateLoopPolling() && !demandBudgetEnabled()) {
+            let compact = true;
+            for (let index = 0; index < size; index++) {
+                if ((index & 4095) === 0) checkpoint('storing integer matrix product');
+                if (numbers[index] !== (numbers[index] | 0)) { compact = false; break; }
+            }
+            if (compact) return typedArray(new Int32Array(numbers), outputShape);
+        }
         const integers = new BigInt64Array(size), words = new Int32Array(integers.buffer);
         // The absolute-product bound proves every sum is an exact safe integer.
         // Store its signed high word and low bits without boxing each cell.
@@ -741,15 +756,15 @@ function sparseIntegerMatmul(
 function numberMatmul(
     leftItems: Float64Array | Int32Array, rightItems: Float64Array | Int32Array, size: number, contracted: number,
     leftInner: number, rightInner: number, outputShape: readonly number[],
-    outputStrides: readonly number[], leftRank: number,
-): Float64Array {
+    outputStrides: readonly number[], leftRank: number, compact = false,
+): Float64Array | Int32Array {
     if (privateLoopPolling() && !demandBudgetEnabled() && outputShape.length === 2 && leftRank === 1
         && outputShape[0] >= 2 && outputShape[1] >= 4
         && leftInner === 1 && rightInner === outputShape[1]
         && outputStrides[0] === contracted && outputStrides[1] === 1) {
-        return contiguousNumberMatmul(leftItems, rightItems, outputShape[0], outputShape[1], contracted);
+        return contiguousNumberMatmul(leftItems, rightItems, outputShape[0], outputShape[1], contracted, compact);
     }
-    const out = new Float64Array(size);
+    const out = compact ? new Int32Array(size) : new Float64Array(size);
     const rank = outputShape.length;
     const coordinates = new Array<number>(rank).fill(0);
     let leftBase = 0;
@@ -781,9 +796,9 @@ function numberMatmul(
  * Observable polling/budgets retain the original per-output kernel. */
 function contiguousNumberMatmul(
     left: Float64Array | Int32Array, right: Float64Array | Int32Array,
-    rows: number, columns: number, inner: number,
-): Float64Array {
-    const transpose = new Float64Array(right.length);
+    rows: number, columns: number, inner: number, compact = false,
+): Float64Array | Int32Array {
+    const transpose = right instanceof Int32Array ? new Int32Array(right.length) : new Float64Array(right.length);
     for (let k = 0; k < inner; k++) {
         for (let j = 0; j < columns; j++) {
             const index = k * columns + j;
@@ -791,7 +806,7 @@ function contiguousNumberMatmul(
             transpose[j * inner + k] = right[index];
         }
     }
-    const result = new Float64Array(rows * columns);
+    const result = compact ? new Int32Array(rows * columns) : new Float64Array(rows * columns);
     const period = inner >= 256 ? 1 : 1024;
     for (let i = 0; i < rows; i++) {
         const offset = i * inner, row = i * columns;
