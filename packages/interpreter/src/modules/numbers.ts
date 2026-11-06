@@ -96,7 +96,7 @@ export const numbersModule: RuntimeModule = {
     }, source => mapStoredUnary(source, 'number', value => {
         if (value < 0) throw new RankError('sqrt expects a nonnegative value', 'DomainError');
         return Math.sqrt(value);
-    })),
+    }), 'real', 'sqrt'),
     isqrt: () => scalarNative('isqrt', argument => {
         const value = expectInteger(argument);
         if (value < 0n) {
@@ -217,7 +217,8 @@ function unaryMath(
         return operation(value);
     };
     return scalarNative(name, item => item === MISSING ? MISSING : checked(numericReal(item, name)),
-        source => mapStoredUnary(source, 'number', checked), 'real');
+        source => mapStoredUnary(source, 'number', checked), 'real',
+        name === 'atan' || name === 'log' ? name : undefined);
 }
 
 function mapBinaryValue(

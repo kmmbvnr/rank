@@ -338,6 +338,20 @@ Changing the copy does not change the source. Ordinary array binding already
 provides this independence: `Saved = Source` is enough. Use `Saved = Source copy`
 when explicitly naming the snapshot operation makes the code clearer.
 
+For native numeric arrays, deferred arithmetic and pure registered math calls
+such as `log`, `sqrt` and `atan` can fuse into one compiled pass when consumed
+by `copy` or a supported reduction. For example:
+
+```rank
+Logs' = Input log
+Roots' = (Logs + 0.5) sqrt
+Angles' = Roots atan
+Result = Angles copy
+```
+
+The compiler checks the captured builtin identities and input domains. An
+unsupported recipe retains ordinary evaluation and its demand-time errors.
+
 `copy` also consumes a finite sequence, using the same stacking rule as
 postfix `array`:
 

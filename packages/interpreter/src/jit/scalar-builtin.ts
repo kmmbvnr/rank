@@ -2,6 +2,7 @@ import { constructingTensorPlan, registerTensorScalarMap } from './tensor-map.js
 import { arrayValues, derivedArray, readArrayItem } from '../array-storage.js';
 import { prepareStoredScalarView } from '../integer-view.js';
 import { registerArrayCopy } from '../array-copy.js';
+import { setSemanticArrayType } from '../semantic-array-type.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { isRankArray, type NativeFunction, type RankArray, type RankValue } from '../value.js';
 
@@ -11,7 +12,7 @@ const operations = new WeakMap<NativeFunction, {
     call: NativeFunction['call']; scalar(value: RankValue): RankValue;
     batch?: (source: RankArray) => RankArray | undefined;
     result?: 'real' | 'integer' | 'numeric';
-    intrinsic?: 'abs';
+    intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log';
 }>();
 
 const completions = new WeakMap<RankArray, { reader: RankArray['itemAt']; complete(): RankArray | undefined }>();
@@ -25,7 +26,7 @@ export function completeScalarBuiltin(value: RankValue): RankValue {
 }
 
 export function registerScalarBuiltin(fn: NativeFunction, operation: (value: RankValue) => RankValue,
-    batch?: (source: RankArray) => RankArray | undefined, result?: 'real' | 'integer' | 'numeric', intrinsic?: 'abs'): NativeFunction {
+    batch?: (source: RankArray) => RankArray | undefined, result?: 'real' | 'integer' | 'numeric', intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log'): NativeFunction {
     operations.set(fn, { call: fn.call, scalar: operation, batch, result, intrinsic });
     return fn;
 }
@@ -61,6 +62,9 @@ export function scalarBuiltinArray(source: RankArray, fn: NativeFunction,
             } else yield read(index);
         }
     });
+    if (registered.result && registered.result !== 'numeric') {
+        setSemanticArrayType(result, { key: JSON.stringify([registered.result]), scalar: registered.result });
+    }
     if (registered.batch) {
         registerArrayCopy(result, () => registered.batch!(source));
         completions.set(result, { reader: result.itemAt, complete: () => registered.batch!(source) });

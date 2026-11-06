@@ -404,7 +404,7 @@ export class PlanConstruction {
         };
         registerDeferredTensorPlan(plan, () => !this.context.nativeTensorPlansEnabled() ? undefined
             : this.context.bindings.withFrame(snapshot, () => withinPlan(() => constructDeferredTensor(expression, {
-                read: name => dependencies.get(name),
+                read: name => dependencies.get(name) ?? this.context.builtinValue(name),
                 builtin: name => {
                     const value = this.context.builtinValue(name);
                     return this.context.operationOf(name) === findOperation(name)

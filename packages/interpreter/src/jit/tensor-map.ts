@@ -21,12 +21,12 @@ interface MapRecipe {
 }
 const maps = new WeakMap<RankArray, MapRecipe>();
 const scalarMaps = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[];
-    source: RankArray; call(cell: RankValue): RankValue; result: 'real' | 'integer' | 'numeric'; intrinsic?: 'abs'; valid(): boolean }>();
+    source: RankArray; call(cell: RankValue): RankValue; result: 'real' | 'integer' | 'numeric'; intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log'; valid(): boolean }>();
 
 /** Checked native scalar bodies are captured at construction, like their readers.
  * This records a recipe only; it neither reads cells nor retains results. */
 export function registerTensorScalarMap(value: RankArray, source: RankArray, call: (cell: RankValue) => RankValue,
-    result: 'real' | 'integer' | 'numeric', valid: () => boolean, intrinsic?: 'abs'): RankArray {
+    result: 'real' | 'integer' | 'numeric', valid: () => boolean, intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log'): RankArray {
     const scope = active ?? mapScope(source);
     if (scope?.enabled()) {
         scalarMaps.set(value, { reader: value.itemAt, shape: [...value.shape], source, call, result, valid, intrinsic });
@@ -312,7 +312,7 @@ function prepareNativeTensorGraph(value: RankArray, textDigits = false, integerB
                 const node = scalar.intrinsic === 'abs' && types.join() === 'integer'
                     ? typed({ kind: 'binary', op: 'max', native: 'max', left: source,
                         right: typed({ kind: 'unary', op: '-', operand: source }, ['integer']) }, ['integer'])
-                    : typed({ kind: 'call', source, validate: scalar.call }, types);
+                    : typed({ kind: 'call', source, validate: scalar.call, intrinsic: scalar.intrinsic }, types);
                 const validate = arrayCellValidator(value);
                 return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }),
                     !value.columnNames);

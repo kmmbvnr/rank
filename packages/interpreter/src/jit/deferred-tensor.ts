@@ -1,4 +1,5 @@
 import {
+    matchCompiledOperatorDomains, tensorOperatorSignatures, type CompiledAtomType,
     flattenApplication, isApplicationExpression, isBinaryExpression, isBooleanLiteral, isNameExpression,
     isNumberLiteral, isParenthesizedExpression, isUnaryExpression, type Expression,
 } from '@arrrank/language';
@@ -10,7 +11,8 @@ import { floorDivide, floorRemainder } from '../numeric-division.js';
 import { broadcastShape } from '../tensor.js';
 import { registerScalarView } from '../integer-view.js';
 import { registerTensorMap, registerTensorSelection, validateTensorIndices } from './tensor-map.js';
-import { isRankArray, type RankArray, type RankValue } from '../value.js';
+import { scalarBuiltinArray } from './scalar-builtin.js';
+import { isNativeFunction, isRankArray, type RankArray, type RankValue } from '../value.js';
 
 /** Construct pure native recipes from compiler-owned captures, without cells.
  * Actual demand/checking and the ordinary exact reader remain the fallback. */
@@ -25,7 +27,7 @@ export function constructDeferredTensor(expression: Expression, host: {
     const kinds = new Map<RankArray, string>();
     const remember = (value: RankArray, type: string) => { kinds.set(value, type); setSemanticArrayType(value, { key: JSON.stringify([type]), scalar: type }); };
     const kind = (value: RankValue): string | undefined => isRankArray(value)
-        ? kinds.get(value) ?? (storedScalarKinds(value)?.length === 1 ? storedScalarKinds(value)![0] : semanticArrayType(value).scalar) : typeof value === 'bigint' ? 'integer' : typeof value === 'boolean' ? 'boolean' : undefined;
+        ? kinds.get(value) ?? (storedScalarKinds(value)?.length === 1 ? storedScalarKinds(value)![0] : semanticArrayType(value).scalar) : typeof value === 'bigint' ? 'integer' : typeof value === 'number' && Number.isFinite(value) ? 'real' : typeof value === 'boolean' ? 'boolean' : undefined;
     const shape = (value: RankValue): readonly number[] => isRankArray(value) ? value.shape : [];
     function array(e: Expression, dimensions: readonly number[], sources: RankValue[]): RankArray {
         // Retain a native recipe per demand, never its computed cell results.
@@ -42,12 +44,13 @@ export function constructDeferredTensor(expression: Expression, host: {
     function binary(e: Expression, op: string, a: RankValue, b: RankValue): RankValue | undefined {
         if (isRankArray(a) || isRankArray(b)) {
             const left = kind(a), right = kind(b);
-            if (left !== right || !['integer', 'boolean'].includes(left ?? '')) return undefined;
-            if (left === 'boolean' && !['and', 'or', 'equal', 'notequal'].includes(op)
-                || left === 'integer' && ['and', 'or'].includes(op)) return undefined;
+            if (!left || !right) return undefined;
+            const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(op, 2),
+                [[left as CompiledAtomType], [right as CompiledAtomType]]);
+            if (!matched || matched.result.length !== 1) return undefined;
             const dimensions = broadcastShape(shape(a), shape(b));
             const result = registerTensorMap(array(e, dimensions, [a, b]), op, [a, b]);
-            remember(result, ['+', '-', '*', '//', 'mod', 'min', 'max'].includes(op) ? 'integer' : 'boolean');
+            remember(result, matched.result[0]);
             return result;
         }
         if (typeof a === 'bigint' && typeof b === 'bigint') {
@@ -80,23 +83,24 @@ export function constructDeferredTensor(expression: Expression, host: {
         if (previous !== undefined) return previous;
         let value: RankValue | undefined;
         if (isParenthesizedExpression(e)) value = lower(e.value);
-        else if (isNumberLiteral(e) && typeof e.value === 'bigint' || isBooleanLiteral(e)) value = e.value;
+        else if (isNumberLiteral(e) || isBooleanLiteral(e)) value = e.value;
         else if (isNameExpression(e)) {
             value = host.read(e.name);
             if (value !== undefined && isRankPlan(value)) value = prepareDeferredTensorPlan(value);
-            if (value !== undefined && typeof value !== 'bigint' && typeof value !== 'boolean'
+            if (value !== undefined && typeof value !== 'bigint' && typeof value !== 'boolean' && !(typeof value === 'number' && Number.isFinite(value))
                 && (!isRankArray(value) || arrayRevision(value) === undefined
-                    || !Object.getOwnPropertyDescriptor(value, 'shape')?.value || !['integer', 'boolean'].includes(kind(value) ?? ''))) return undefined;
+                    || !Object.getOwnPropertyDescriptor(value, 'shape')?.value || !['integer', 'real', 'boolean'].includes(kind(value) ?? ''))) return undefined;
         } else if (isUnaryExpression(e) && ['+', '-', 'not'].includes(e.operator)) {
             const source = lower(e.operand);
             if (source === undefined) return undefined;
-            if (isRankArray(source) && (e.operator === 'not' ? kind(source) === 'boolean' : kind(source) === 'integer')) {
+            if (isRankArray(source) && (e.operator === 'not' ? kind(source) === 'boolean' : ['integer', 'real'].includes(kind(source) ?? ''))) {
                 value = registerTensorMap(array(e, source.shape, [source]), e.operator, [source]); remember(value, kind(source)!);
             }
-            else if (typeof source === 'bigint' && e.operator !== 'not') value = e.operator === '-' ? -source : source;
+            else if ((typeof source === 'bigint' || typeof source === 'number') && e.operator !== 'not') value = e.operator === '-' ? -source : source;
             else if (typeof source === 'boolean' && e.operator === 'not') value = !source;
         } else if (isBinaryExpression(e) && !e.step
-            && ['+', '-', '*', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast', 'and', 'or'].includes(e.operator)) {
+            && ['+', '-', '*', '/', '**', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast', 'and', 'or'].includes(e.operator)) {
+            if (e.operator === '**' && isUnaryExpression(e.left)) return undefined;
             const a = lower(e.left);
             if (typeof a === 'boolean' && (e.operator === 'and' && !a || e.operator === 'or' && a)) return a;
             const b = lower(e.right);
@@ -117,6 +121,11 @@ export function constructDeferredTensor(expression: Expression, host: {
             } else if (parts.length === 2 && isNameExpression(word) && word.name === 'len' && host.builtin('len')) {
                 const source = lower(parts[0]);
                 if (source && isRankArray(source)) value = BigInt(source.shape[0] ?? 0);
+            } else if (parts.length === 2 && isNameExpression(word) && isNativeFunction(host.read(word.name) ?? false)) {
+                const source = lower(parts[0]), fn = host.read(word.name)!;
+                if (source && isRankArray(source) && isNativeFunction(fn)) {
+                    value = scalarBuiltinArray(source, fn, source.shape.map((_, axis) => axis));
+                }
             } else if (parts.length === 2) {
                 const source = lower(parts[0]), selector = lower(parts[1]);
                 if (source && selector && isRankArray(source) && source.shape.length === 1 && isRankArray(selector) && kind(selector) === 'integer') {
