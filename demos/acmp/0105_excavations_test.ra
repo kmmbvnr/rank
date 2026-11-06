@@ -1,0 +1,39 @@
+rem Tests for ACMP 0105: Excavations
+use testing
+use text
+
+test "ACMP 105: Maximal 10 numbers"
+  use "0105_excavations"
+  run
+  Result equal (
+    "3072=4+2*(3+1)*2*(5-1)*2*2*2*2"
+  )
+end
+
+test "ACMP 105: Sample 1"
+  use "0105_excavations"
+  Input = "18=7 (5 3) 2"
+  run
+  Result equal "18=7+(5-3)*2"
+end
+
+test "ACMP 105: Sample 2"
+  use "0105_excavations"
+  Input = "5= 3 3"
+  run
+  Result equal "-1"
+end
+
+test "ACMP 105: Single number match"
+  use "0105_excavations"
+  Input = "42=(42)"
+  run
+  Result equal "42=(42)"
+end
+
+test "ACMP 105: Nested parens"
+  use "0105_excavations"
+  Input = "10=((1 2) (3 4))"
+  run
+  Result not equal "-1"
+end

@@ -1,0 +1,159 @@
+rem ACMP 0105: Excavations (76%)
+rem Martian equation solver
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = (
+  "3072=4 2 (3 1) 2 (5 1) 2 2 2 2"
+)
+
+EqParts = Input split "="
+Target = (EqParts 0) integer
+Right = EqParts 1
+
+Chars = Right split ""
+Pad = (Chars equal "(") choose " ( " (
+  (Chars equal ")") choose " ) " Chars
+)
+Tokens = (Pad join "") split " "
+Tokens = Tokens (Tokens not equal "")
+TLen = Tokens len
+
+IsParenL = Tokens equal "("
+IsParenR = Tokens equal ")"
+IsVal = (not IsParenL) and (
+  not IsParenR
+)
+LeftCan = IsVal or IsParenR
+RightCan = IsVal or IsParenL
+
+SlotMask = (
+  LeftCan take (TLen - 1)
+) and (RightCan drop 1)
+NumSlots = (SlotMask integer) sum
+
+Result = "-1"
+if NumSlots equal 0
+  NumMask = (
+    Tokens not equal "("
+  ) and (Tokens not equal ")")
+  OnlyNum = (Tokens NumMask) 0
+  OnlyVal = OnlyNum integer
+  if OnlyVal equal Target
+    Result = (Target text) + "=" + (
+      Tokens join ""
+    )
+  end
+else
+  M = 3 ** NumSlots
+  Grid = (0 till M) reshape M 1
+  PowExp = (NumSlots - 1) - (
+    0 till NumSlots
+  )
+  PowRow = 3 ** PowExp
+  Powers = PowRow reshape 1 NumSlots
+  Ops = (Grid // Powers) mod 3
+
+  MAX_D = 25
+  Stacks = array shape MAX_D M fill 0
+  HasVal = array shape MAX_D fill false
+  LastOp = array shape MAX_D fill -1
+
+  Depth = 0
+  CurSlot = 0
+
+  for I in 0 till TLen
+    Tok = Tokens I
+    if Tok equal "("
+      Depth = Depth + 1
+      HasVal Depth = false
+    else
+      if Tok equal ")"
+        SubVal = Stacks Depth
+        Depth = Depth - 1
+        if not (HasVal Depth)
+          Stacks Depth = SubVal
+          HasVal Depth = true
+        else
+          Slot = LastOp Depth
+          OpCol = Ops (0 till M) Slot
+          Acc = Stacks Depth
+          Add = Acc + SubVal
+          Sub = Acc - SubVal
+          Mul = Acc * SubVal
+          IsOne = OpCol equal 1
+          SubMul = IsOne choose Sub Mul
+          IsZero = OpCol equal 0
+          NewAcc = (
+            IsZero choose Add SubMul
+          )
+          Stacks Depth = NewAcc
+        end
+      else
+        Num = Tok integer
+        if not (HasVal Depth)
+          Stacks Depth = (
+            (array shape M fill 0) + Num
+          )
+          HasVal Depth = true
+        else
+          Slot = LastOp Depth
+          OpCol = Ops (0 till M) Slot
+          Acc = Stacks Depth
+          Add = Acc + Num
+          Sub = Acc - Num
+          Mul = Acc * Num
+          IsOne = OpCol equal 1
+          SubMul = IsOne choose Sub Mul
+          IsZero = OpCol equal 0
+          NewAcc = (
+            IsZero choose Add SubMul
+          )
+          Stacks Depth = NewAcc
+        end
+      end
+    end
+
+    if I less (TLen - 1)
+      if SlotMask I
+        LastOp Depth = CurSlot
+        CurSlot = CurSlot + 1
+      end
+    end
+  end
+
+  FinalVals = Stacks 0
+  Matches = FinalVals equal Target
+  MatchCount = (Matches integer) sum
+
+  if MatchCount greater 0
+    MatchIdx = ((0 till M) Matches) 0
+    OpChars = array "+" "-" "*"
+
+    CumOps = concat (array 0) (
+      SlotMask integer scan +
+    )
+    TokPos = (0 till TLen) + CumOps
+    SlotIdxs = (
+      0 till (TLen - 1)
+    ) SlotMask
+    OpPos = (TokPos SlotIdxs) + 1
+    ChosenCodes = (
+      Ops MatchIdx (0 till NumSlots)
+    ) integer
+    ChosenOps = OpChars ChosenCodes
+
+    TotalLen = TLen + NumSlots
+    Res = array shape TotalLen fill ""
+    Res TokPos = Tokens
+    Res OpPos = ChosenOps
+
+    Result = (Target text) + "=" + (
+      Res join ""
+    )
+  end
+end
+
+Result text
