@@ -69,9 +69,7 @@ for (const [file, expected] of [
             expect(runtime.variables.get('Answer')).toBe(expected);
             if (file === '426_boxball.ra') {
                 expect(diagnostics.numberLoops).toBe(1);
-                // Euler 739 already replays one speculative Number loop for
-            // wide integer intermediates; the modular scans stay native.
-            expect(diagnostics.numberLoopOverflows).toBe(file === '739_summationofsummations.ra' ? 1 : 0);
+                expect(diagnostics.numberLoopOverflows).toBe(0);
                 expect(diagnostics.numberFunctionFallbacks).toBe(0);
             }
             if (file === '705_inversioncount.ra') expect(diagnostics.nativeSequenceCopies).toBeGreaterThan(0);
@@ -103,7 +101,9 @@ for (const [file, expected] of [
             if (file !== '714_duodigits.ra' && file !== '737_coinloops.ra' && file !== '739_summationofsummations.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
                 expect(diagnostics.numberLoops).toBeGreaterThan(0);
             }
-            expect(diagnostics.numberLoopOverflows).toBe(0);
+            // Euler 739 already replays one speculative Number loop for
+            // wide integer intermediates; the modular scans stay native.
+            expect(diagnostics.numberLoopOverflows).toBe(file === '739_summationofsummations.ra' ? 1 : 0);
         } finally { runtime.dispose(); }
     }, timeout);
 }
