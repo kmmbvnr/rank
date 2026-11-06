@@ -1,0 +1,57 @@
+rem Consecutive Die Throws
+rem https://projecteuler.net/problem=423
+
+use numbers
+use sequences
+use io
+use cli
+
+arg L integer = 50000000
+
+rem C(n) = 6 P(n-1, pi(n)) with
+rem P(m, t) = sum of C(m, k) 5^(m-k)
+rem for k <= t. Row step: P' = 6 P -
+rem Term, then each prime raises t.
+rem Term = C(m, t) 5^(m-t).
+Q = 1000000007
+rem Q is prime and Last must be < Q.
+fun Last inverses Q
+  Values = array shape (Last + 1) fill 1
+  for I in 2 to Last
+    Quotient = Q - Q // I
+    Previous = Values (Q mod I)
+    Values I = Quotient * Previous mod Q
+  end
+  return Values
+end
+Top = L max 6 + 1
+Inverses = Top inverses Q
+Primes = primes to L array
+Count = Primes len
+Next = 0
+Total = 0
+if L greater 0
+  Total = 6
+end
+Current = 1
+Term = 1
+Threshold = 0
+for N in 1 to L - 1
+  Current = (6 * Current - Term) mod Q
+  if Next less Count and Primes Next equal N + 1
+    rem Cancel the nonprime row factors.
+    Term = Term * N mod Q
+    Divisor = Inverses (Threshold + 1)
+    Term = Term * Divisor mod Q
+    Current = (Current + Term) mod Q
+    Threshold += 1
+    Next += 1
+  else
+    Term = 5 * Term mod Q * N mod Q
+    Divisor = Inverses (N - Threshold)
+    Term = Term * Divisor mod Q
+  end
+  Total = (Total + 6 * Current) mod Q
+end
+Answer = Total mod Q
+Answer print

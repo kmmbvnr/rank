@@ -26,3 +26,16 @@ test "wide prime gaps"
   run
   Answer equal 399105404
 end
+
+test "empty and initial sums"
+  use "423_consecutive"
+  L = 0
+  run
+  Answer equal 0
+  L = 1
+  run
+  Answer equal 6
+  L = 2
+  run
+  Answer equal 42
+end
