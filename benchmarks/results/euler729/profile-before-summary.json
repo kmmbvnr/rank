@@ -1,0 +1,210 @@
+{
+  "period": 20,
+  "samples": 3844,
+  "chooseDenseArraysSamples": 2135,
+  "fileSelfSamples": {
+    "tensor.js": 2190,
+    "": 450,
+    "owned-array.js": 356,
+    "integer-array-kernel.js": 268,
+    "boolean-cells.js": 165,
+    "unary-array-kernel.js": 63,
+    "all-star-lookahead.js": 40,
+    "tensor-bounds.js": 39,
+    "sequences.js": 36,
+    "tensor-kernel.js": 22,
+    "interpreter.js": 20,
+    "langium-parser.js": 20,
+    "cst-node-builder.js": 10,
+    "rest.js": 9,
+    "dfa.js": 9,
+    "stream.js": 8,
+    "lookahead.js": 8,
+    "array-element-types.js": 8,
+    "real-extreme-kernel.js": 6,
+    "execution.js": 5,
+    "frame.js": 5,
+    "integer-view.js": 5,
+    "array-binding-contract.js": 5,
+    "helpers.js": 4,
+    "tensor-region.js": 4,
+    "integer-loop-expressions.js": 3,
+    "materialize.js": 3,
+    "operators.js": 3,
+    "array-mask-selection.js": 3,
+    "array-copy.js": 3,
+    "application.js": 3,
+    "expressions.js": 3,
+    "axis-order.js": 3,
+    "json-serializer.js": 2,
+    "token-builder.js": 2,
+    "base-regexp-visitor.js": 2,
+    "lexer_public.js": 2,
+    "model.js": 2,
+    "visitor.js": 2,
+    "checks.js": 2,
+    "atn.js": 2,
+    "_arrayMap.js": 2,
+    "tokens.js": 2,
+    "syntax-tree.js": 2,
+    "ast-utils.js": 2,
+    "concat-array.js": 2,
+    "packed-booleans.js": 2,
+    "fast-paths.js": 2,
+    "tensor-layout.js": 2,
+    "value.js": 2,
+    "node:inspector": 1,
+    "regexp-parser.js": 1,
+    "parser.js": 1,
+    "gast_recorder.js": 1,
+    "error-lookahead.js": 1,
+    "map.js": 1,
+    "recognizer_engine.js": 1,
+    "types.js": 1,
+    "ast.js": 1,
+    "modifier-grouping.js": 1,
+    "bindings.js": 1,
+    "function-scopes.js": 1,
+    "generator-loop.js": 1,
+    "value-facts.js": 1,
+    "integer-loop-statements.js": 1,
+    "loops.js": 1,
+    "compiled-expression.js": 1,
+    "tensor-map.js": 1,
+    "mutation-guards.js": 1,
+    "writable": 1,
+    "compiled-operators.js": 1,
+    "array-ownership.js": 1,
+    "array-revision.js": 1,
+    "scalar-builtin.js": 1,
+    "binding-environment.js": 1,
+    "interrupt.js": 1,
+    "block-compiler.js": 1,
+    "integer-loop.js": 1,
+    "array-region.js": 1,
+    "scalar-compiler.js": 1,
+    "rank-application.js": 1
+  },
+  "topSelfSamples": [
+    {
+      "samples": 1332,
+      "function": "chooseDenseArrays",
+      "file": "tensor.js",
+      "line": 316
+    },
+    {
+      "samples": 597,
+      "function": "chooseDenseArrays",
+      "file": "tensor.js",
+      "line": 316
+    },
+    {
+      "samples": 206,
+      "function": "chooseDenseArrays",
+      "file": "tensor.js",
+      "line": 316
+    },
+    {
+      "samples": 171,
+      "function": "mapStoredInt32Binary",
+      "file": "integer-array-kernel.js",
+      "line": 173
+    },
+    {
+      "samples": 117,
+      "function": "",
+      "file": "",
+      "line": 3
+    },
+    {
+      "samples": 104,
+      "function": "get",
+      "file": "boolean-cells.js",
+      "line": 40
+    },
+    {
+      "samples": 78,
+      "function": "storedScalarKinds",
+      "file": "owned-array.js",
+      "line": 48
+    },
+    {
+      "samples": 75,
+      "function": "(program)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 72,
+      "function": "storedScalarKinds",
+      "file": "owned-array.js",
+      "line": 48
+    },
+    {
+      "samples": 70,
+      "function": "",
+      "file": "",
+      "line": 3
+    },
+    {
+      "samples": 53,
+      "function": "mapStoredUnary",
+      "file": "unary-array-kernel.js",
+      "line": 7
+    },
+    {
+      "samples": 52,
+      "function": "",
+      "file": "",
+      "line": 3
+    },
+    {
+      "samples": 40,
+      "function": "",
+      "file": "",
+      "line": 3
+    },
+    {
+      "samples": 39,
+      "function": "(garbage collector)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 39,
+      "function": "get",
+      "file": "boolean-cells.js",
+      "line": 40
+    },
+    {
+      "samples": 33,
+      "function": "compareStoredInt32",
+      "file": "integer-array-kernel.js",
+      "line": 576
+    },
+    {
+      "samples": 32,
+      "function": "mapStoredInt32Binary",
+      "file": "integer-array-kernel.js",
+      "line": 173
+    },
+    {
+      "samples": 31,
+      "function": "mapDenseArrays",
+      "file": "tensor.js",
+      "line": 64
+    },
+    {
+      "samples": 30,
+      "function": "inputBounds",
+      "file": "tensor-bounds.js",
+      "line": 15
+    },
+    {
+      "samples": 26,
+      "function": "storedScalarKinds",
+      "file": "owned-array.js",
+      "line": 48
+    }
+  ]
+}

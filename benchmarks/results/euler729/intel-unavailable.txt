@@ -1,0 +1,4 @@
+No Intel measurement was obtained for issue #538.
+root@jack.lan (192.168.1.68:22): Connection timed out during banner exchange.
+root@viewflow.io:22022: Operation timed out.
+A bounded retry of jack.lan after closing the stalled task SSH sessions failed in the same way.
