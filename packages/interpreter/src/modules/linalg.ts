@@ -532,6 +532,7 @@ function vectorDot(left: RankArray, right: RankArray, size: number): bigint | nu
 
 /** Below this many multiplications a lazy result costs less than it saves. */
 const DENSE_MATMUL_WORK = 1024;
+const LOW_WORD = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 
 /**
  * Contract two stored scalar arrays with plain offset arithmetic. Reads
@@ -594,12 +595,18 @@ function denseMatmul(
     const a = boundedIntegerOperand(leftItems, leftCompact);
     const b = a && boundedIntegerOperand(rightItems, rightCompact);
     if (a && b && a.max * b.max * BigInt(contracted) <= 9007199254740991n) {
+        const sparse = sparseIntegerMatmul(a.cells, b.cells, contracted, leftInner, rightInner,
+            outputShape, outputStrides, leftRank);
+        if (sparse) return typedArray(sparse, outputShape);
         const numbers = numberMatmul(a.cells, b.cells, size, contracted, leftInner, rightInner,
             outputShape, outputStrides, leftRank);
-        const integers = new BigInt64Array(size);
+        const integers = new BigInt64Array(size), words = new Int32Array(integers.buffer);
+        // The absolute-product bound proves every sum is an exact safe integer.
+        // Store its signed high word and low bits without boxing each cell.
         for (let index = 0; index < size; index++) {
             if ((index & 4095) === 0) checkpoint('storing integer matrix product');
-            integers[index] = BigInt(numbers[index]);
+            words[2 * index + LOW_WORD] = numbers[index] | 0;
+            words[2 * index + 1 - LOW_WORD] = Math.floor(numbers[index] / 4294967296);
         }
         return typedArray(integers, outputShape);
     }
@@ -681,6 +688,53 @@ function boundedIntegerOperand(items: ArrayLike<RankValue> | undefined, compact?
         cells[index] = Number(item);
     }
     return { cells, max };
+}
+
+/** A sparse left integer matrix combines contiguous right rows directly.
+ * The caller has bounded absolute products and all partial sums by 2^53-1.
+ * Real products retain their zero/NaN/rounding behavior in numberMatmul. */
+function sparseIntegerMatmul(
+    left: Float64Array | Int32Array, right: Float64Array | Int32Array,
+    inner: number, leftInner: number, rightInner: number,
+    shape: readonly number[], strides: readonly number[], leftRank: number,
+): BigInt64Array | undefined {
+    if (!privateLoopPolling() || demandBudgetEnabled() || shape.length !== 2 || leftRank !== 1
+        || shape[0] < 2 || shape[1] < 4 || shape[0] * inner > shape[1]
+        || leftInner !== 1 || rightInner !== shape[1]
+        || strides[0] !== inner || strides[1] !== 1) return undefined;
+    const rows = shape[0], columns = shape[1];
+    const entries: { offsets: number[]; values: number[] }[] = [];
+    let count = 0;
+    for (let row = 0; row < rows; row++) {
+        const offsets: number[] = [], values: number[] = [];
+        for (let k = 0; k < inner; k++) {
+            if ((k & 4095) === 0) checkpoint('preparing integer matrix product', Math.min(4096, inner - k));
+            const value = left[row * inner + k];
+            if (value !== 0) {
+                if (++count * 2 > rows * inner) return undefined;
+                offsets.push(k * columns); values.push(value);
+            }
+        }
+        entries.push({ offsets, values });
+    }
+    const result = new BigInt64Array(rows * columns), words = new Int32Array(result.buffer);
+    for (let row = 0; row < rows; row++) {
+        const { offsets, values } = entries[row], ones = values.every(value => value === 1);
+        for (let start = 0; start < columns; start += 4096) {
+            const end = Math.min(start + 4096, columns);
+            checkpoint('computing integer matrix product', end - start);
+            if (!offsets.length) continue;
+            for (let column = start; column < end; column++) {
+                let total = 0;
+                if (ones) for (let k = 0; k < offsets.length; k++) total += right[offsets[k] + column];
+                else for (let k = 0; k < offsets.length; k++) total += values[k] * right[offsets[k] + column];
+                const at = 2 * (row * columns + column);
+                words[at + LOW_WORD] = total | 0;
+                words[at + 1 - LOW_WORD] = Math.floor(total / 4294967296);
+            }
+        }
+    }
+    return result;
 }
 
 /** Number products over typed buffers, for reals or proved exact integers. */
