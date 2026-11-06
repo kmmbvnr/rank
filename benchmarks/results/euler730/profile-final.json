@@ -1,0 +1,181 @@
+{
+  "samples": 2014,
+  "durationMs": 1794.292,
+  "selfSamples": [
+    {
+      "function": "(generated)",
+      "file": "",
+      "samples": 528
+    },
+    {
+      "function": "compareStoredInt32",
+      "file": "integer-array-kernel.js",
+      "samples": 303
+    },
+    {
+      "function": "materializeMaskSelection",
+      "file": "array-mask-selection.js",
+      "samples": 145
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "samples": 87
+    },
+    {
+      "function": "compactBinary",
+      "file": "integer-array-kernel.js",
+      "samples": 74
+    },
+    {
+      "function": "mapStoredUnary",
+      "file": "unary-array-kernel.js",
+      "samples": 70
+    },
+    {
+      "function": "copyScalarConcat",
+      "file": "sequences.js",
+      "samples": 55
+    },
+    {
+      "function": "mapStoredInt32Binary",
+      "file": "integer-array-kernel.js",
+      "samples": 48
+    },
+    {
+      "function": "denseTruePositions",
+      "file": "packed-booleans.js",
+      "samples": 39
+    },
+    {
+      "function": "closure",
+      "file": "all-star-lookahead.js",
+      "samples": 32
+    },
+    {
+      "function": "run",
+      "file": "tensor-bounds.js",
+      "samples": 32
+    },
+    {
+      "function": "inputBounds",
+      "file": "tensor-bounds.js",
+      "samples": 31
+    },
+    {
+      "function": "packedTruePositions",
+      "file": "packed-booleans.js",
+      "samples": 27
+    },
+    {
+      "function": "copyStoredArrayBlocks",
+      "file": "array-copy.js",
+      "samples": 26
+    },
+    {
+      "function": "createOwned",
+      "file": "owned-array.js",
+      "samples": 25
+    },
+    {
+      "function": "bindRun",
+      "file": "tensor-kernel.js",
+      "samples": 14
+    },
+    {
+      "function": "advance",
+      "file": "execution.js",
+      "samples": 13
+    },
+    {
+      "function": "(generated)",
+      "file": "execution.js",
+      "samples": 13
+    },
+    {
+      "function": "execute",
+      "file": "tensor-kernel.js",
+      "samples": 12
+    },
+    {
+      "function": "maskSelection",
+      "file": "array-mask-selection.js",
+      "samples": 11
+    },
+    {
+      "function": "(program)",
+      "file": "",
+      "samples": 10
+    },
+    {
+      "function": "(generated)",
+      "file": "integer-array-kernel.js",
+      "samples": 9
+    },
+    {
+      "function": "derivedArray",
+      "file": "derived-array.js",
+      "samples": 9
+    },
+    {
+      "function": "getAlternativesForProd",
+      "file": "interpreter.js",
+      "samples": 8
+    },
+    {
+      "function": "run",
+      "file": "tensor-kernel.js",
+      "samples": 8
+    },
+    {
+      "function": "prepareStoredScalarView",
+      "file": "integer-view.js",
+      "samples": 8
+    },
+    {
+      "function": "possiblePathsFrom",
+      "file": "interpreter.js",
+      "samples": 7
+    },
+    {
+      "function": "remainingPathWith",
+      "file": "interpreter.js",
+      "samples": 7
+    },
+    {
+      "function": "IntegerCells",
+      "file": "owned-array.js",
+      "samples": 7
+    },
+    {
+      "function": "arrayValues",
+      "file": "array-read.js",
+      "samples": 7
+    },
+    {
+      "function": "evaluateArrayItem",
+      "file": "array-read.js",
+      "samples": 7
+    },
+    {
+      "function": "bindNode",
+      "file": "tensor-kernel.js",
+      "samples": 6
+    },
+    {
+      "function": "emit",
+      "file": "tensor-kernel.js",
+      "samples": 6
+    },
+    {
+      "function": "mapPackedBooleanArrays",
+      "file": "packed-booleans.js",
+      "samples": 6
+    },
+    {
+      "function": "readArrayItem",
+      "file": "array-read.js",
+      "samples": 6
+    }
+  ]
+}

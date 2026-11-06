@@ -1,0 +1,3 @@
+{"stage":"roots","ms":14070.15823,"rssMiB":1055.3203125,"heapMiB":32.95819854736328,"buffersMiB":878.4968137741089,"maxRssMiB":1055.3203125}
+{"stage":"walk","ms":32768.265879,"rssMiB":1425.09375,"heapMiB":118.96757507324219,"buffersMiB":769.3576917648315,"maxRssMiB":1992.78515625}
+{"shifts":100,"perimeter":10000000,"budget":4000000,"answer":"131597552","nodes":"263194783","ms":46840.117998,"maxRssMiB":1992.78515625,"node":"v24.15.0","arch":"x64","phases":[{"stage":"roots","ms":14070.15823,"rssMiB":1055.3203125,"heapMiB":32.95819854736328,"buffersMiB":878.4968137741089,"maxRssMiB":1055.3203125},{"stage":"walk","ms":32768.265879,"rssMiB":1425.09375,"heapMiB":118.96757507324219,"buffersMiB":769.3576917648315,"maxRssMiB":1992.78515625}]}
