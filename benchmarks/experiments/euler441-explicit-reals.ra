@@ -1,0 +1,133 @@
+rem The Inverse Summation
+rem https://projecteuler.net/problem=441
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 10000000
+arg Cut integer = 3000
+arg Digits integer = 4
+
+rem Farey gaps with p + q > M sum to
+rem 1/2. The equality boundary gives
+rem S(N) = (N-2)/2 + sum mu(d)/d^2
+rem times (H(N//d)^2 - H2(N//d))/2.
+rem Only odd d are stored: mu(2d) is
+rem -mu(d), and mu(4d) is zero.
+fun Bound odd_mobius
+  Size = (Bound + 1) // 2
+  Mu = array shape Size fill 1
+  Removed = array shape Size fill 1
+  Root = Bound isqrt
+  Primes = primes from 3 to Root copy
+  Count = Primes len
+  Index = 0
+  Prime = 3
+  Power = Prime
+  for Index less Count
+    Prime = Primes Index
+    Start = Power // 2
+    Slots = Start till Size by Power
+    Removed Slots *= Prime
+    if Power equal Prime
+      Mu Slots *= -1
+    end
+    Power *= Prime
+    if Power greater Bound
+      Square = Prime * Prime
+      Start = Square // 2
+      Slots = Start till Size by Square
+      Mu Slots = 0
+      Index += 1
+      if Index less Count
+        Power = Primes Index
+      end
+    end
+  end
+  Keys = 1 to Bound by 2
+  Large = Keys // Removed greater 1
+  Negative = 0 - Mu
+  Mu = Large choose Negative Mu
+  return Mu
+end
+
+Root = N isqrt
+Bound = N // 2
+Mu = Bound odd_mobius
+Direct = Cut max Root max 32 min N
+Keys = 1 to Direct copy
+Inverse = 1.0 / Keys
+First = Inverse scan + with 0.0
+Square = Inverse * Inverse
+Second = Square scan + with 0.0
+Gamma = 0.5772156649015329
+Zeta = 1.6449340668482264
+
+rem Small inputs use direct prefixes.
+rem Above Direct, the next terms bound
+rem the Euler-Maclaurin truncation error.
+fun Keys harmonic_pairs
+  Safe = Keys max 1
+  Values = Safe * 1.0
+  Log = Values log
+  Inverse = 1.0 / Values
+  Square = Inverse * Inverse
+  Tail = 1.0 / 120 - Square / 252
+  High = Square * Tail - 1.0 / 12
+  Left = Log + Gamma + Inverse / 2
+  Left += Square * High
+  Tail = 1.0 / 30 - Square / 42
+  High = Square * Tail - 1.0 / 6
+  Right = Zeta - Inverse + Square / 2
+  Right += Inverse * Square * High
+  Small = Keys min Direct
+  Exact = Keys at most Direct
+  Left = Exact choose (First Small) Left
+  Saved = Second Small
+  Right = Exact choose Saved Right
+  return (Left * Left - Right) / 2
+end
+
+SmallKeys = 0 to Root copy
+Small = SmallKeys harmonic_pairs
+LargeKeys = 1 to Root copy
+Quotients = N // LargeKeys
+Values = Quotients harmonic_pairs
+Large = concat (array 0.0) Values
+fun Divisors lookup
+  Quotients = N // Divisors
+  Low = Small (Quotients min Root)
+  High = Large (Divisors min Root)
+  Near = Quotients at most Root
+  return Near choose Low High
+end
+
+fun Indices contribution
+  Signs = Mu Indices
+  Active = Signs not equal 0
+  Slots = Indices Active
+  Divisors = 2 * Slots + 1
+  Weights = Signs Active
+  Values = Divisors lookup
+  Double = 2 * Divisors
+  Even = Double lookup
+  Real = Divisors * 1.0
+  Difference = Values - Even / 4
+  Terms = Weights * Difference / Real
+  Values = Terms / Real
+  return Values sum
+end
+
+Size = Mu len
+Correction = 0.0
+for Start in 0 till Size by 262144
+  End = Start + 262144 min Size
+  Indices = Start till End copy
+  Correction += Indices contribution
+end
+Base = N max 2
+Raw = Base / 2.0 - 1.0 + Correction
+Answer = Raw round Digits
+Answer print

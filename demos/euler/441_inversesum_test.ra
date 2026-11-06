@@ -13,7 +13,7 @@ test "statement values"
   Answer equal 58.2962
 end
 
-test "both ranges of d"
+test "short direct harmonic tables"
   use "441_inversesum"
   N = 2000
   run
@@ -22,4 +22,21 @@ test "both ranges of d"
   Cut = 20
   run
   Answer equal 2526.6219
+end
+
+test "empty and singleton bounds"
+  use "441_inversesum"
+  N = 0
+  run
+  Answer equal 0.0
+  N = 1
+  run
+  Answer equal 0.0
+end
+
+test "default bound"
+  use "441_inversesum"
+  N = 10000000
+  run
+  Answer equal 5000088.8395
 end
