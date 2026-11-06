@@ -1,0 +1,476 @@
+rem Kakuro
+rem https://projecteuler.net/problem=424
+
+use numbers
+use sequences
+use bits
+use text
+use io
+use cli
+
+arg Input path = (
+  "demos/euler/fixtures/"
+  + "0424_kakuro200.txt"
+)
+arg Count integer = 200
+
+rem Search the letters A-J in order of
+rem use, checking every run whose sum
+rem letters are known against the digit
+rem sets that can sum to it. A full
+rem letter map then fills the empty
+rem cells by backtracking. Each run
+rem keeps its sum, digit mask and
+rem count, so a digit try is O(1),
+rem and a letter only rechecks the
+rem runs that depend on it.
+Masks = 0 to 511 array
+Sizes = Masks popcount
+Digits = 1 to 9 array
+Powers = 2 ** (Digits - 1)
+Rows = Masks reshape 512 1
+Present = Rows band Powers greater 0
+Weights = Present integer * Digits
+Scores = Weights sum rank 1
+P2 = 2 ** (0 to 11 array)
+rem Digit sets that extend a required mask.
+Fits = array shape 5120 fill 0
+Subsets = 0 to 511 array
+for Mask in 0 to 511
+  Keep = Subsets band Mask equal Subsets
+  Keys = Sizes Mask * 512 + Subsets Keep
+  Flag = 2 ** Scores Mask
+  Fits Keys = Fits Keys bor Flag
+end
+rem Possible two-digit clues, -1 unknown.
+Clues = array shape 121 fill 0
+Sums = 10 to 45 array
+Tens = Sums // 10
+Units = Sums mod 10
+Flags = 2 ** Sums
+for Pair in 0 to 120
+  First = Pair // 11 - 1
+  Second = Pair mod 11 - 1
+  Match = Tens equal First or First less 0
+  Match = Match and (
+    Units equal Second or Second less 0
+  )
+  Clues Pair = Flags Match sum
+end
+rem Packed read-only lookup context:
+rem 5120 supports, 121 clues, 12 powers,
+rem then 12 cells per run: two clue IDs,
+rem length and nine cell-letter IDs.
+fun Map Context run_valid Run
+  ClueStart = 5120
+  PowerStart = ClueStart + 121
+  RunStart = PowerStart + 12
+  Base = RunStart + Run * 12
+  First = Map (Context Base)
+  SecondId = Context (Base + 1)
+  Length = Context (Base + 2)
+  Allowed = 1022
+  if SecondId less 0
+    if First at least 0
+      Allowed = Context (PowerStart + First)
+    end
+  else
+    Second = Map SecondId
+    Pair = (First + 1) * 11 + Second + 1
+    Allowed = Context (ClueStart + Pair)
+    if Context Base equal SecondId
+      Allowed = Allowed band 17600780175360
+    end
+  end
+  Mask = 0
+  for J in 0 till Length
+    Letter = Context (Base + 3 + J)
+    if Letter at least 0
+      Digit = Map Letter
+      if Digit at least 0
+        if Digit equal 0
+          return false
+        end
+        Flag = Context (PowerStart + Digit)
+        if Mask band Flag greater 0
+          return false
+        end
+        Mask += Flag
+      end
+    end
+  end
+  Key = Length * 512 + Mask // 2
+  return Context Key band Allowed greater 0
+end
+Lines = Input readlines
+Tot = 0
+for Ln in 0 to Count - 1
+  Chs = Lines Ln split ""
+  Nch = Chs len
+  Cp = array shape (Nch + 2) fill 0
+  for Ci in 0 to Nch - 1
+    Cp Ci = Chs Ci codepoint
+  end
+  Pos = 0
+  N = 0
+  for Cp Pos not equal 44
+    N = N * 10 + Cp Pos - 48
+    Pos += 1
+  end
+  Pos += 1
+  Nc = N * N
+  Lst = N - 1
+  Kd = array shape Nc fill 0
+  Lt = array shape Nc fill 0 - 1
+  H1 = array shape Nc fill 0 - 1
+  H2 = array shape Nc fill 0 - 1
+  V1 = array shape Nc fill 0 - 1
+  V2 = array shape Nc fill 0 - 1
+  for Cell in 0 to Nc - 1
+    Ch = Cp Pos
+    if Ch equal 88
+      Pos += 1
+    elif Ch equal 79
+      Kd Cell = 1
+      Pos += 1
+    elif Ch equal 40
+      Kd Cell = 2
+      Pos += 1
+      for Cp Pos not equal 41
+        Hv = Cp Pos
+        Pos += 1
+        Fa = Cp Pos - 65
+        Pos += 1
+        Fb = 0 - 1
+        if Cp Pos at least 65
+          Fb = Cp Pos - 65
+          Pos += 1
+        end
+        if Hv equal 104
+          H1 Cell = Fa
+          H2 Cell = Fb
+        else
+          V1 Cell = Fa
+          V2 Cell = Fb
+        end
+        if Cp Pos equal 44
+          Pos += 1
+        end
+      end
+      Pos += 1
+    else
+      Kd Cell = 1
+      Lt Cell = Ch - 65
+      Pos += 1
+    end
+    Pos += 1
+  end
+  rem Runs: cells, length, sum letters.
+  Rc = array shape 64 9 fill 0 - 1
+  Rn = array shape 64 fill 0
+  R1 = array shape 64 fill 0 - 1
+  R2 = array shape 64 fill 0 - 1
+  Ca = array shape Nc fill 0 - 1
+  Cb = array shape Nc fill 0 - 1
+  Nr = 0
+  for Cell in 0 to Nc - 1
+    if Kd Cell equal 2
+      Rw = Cell // N
+      Cl = Cell mod N
+      for Dir in 0 to 1
+        A1 = H1 Cell
+        A2 = H2 Cell
+        St = 1
+        if Dir equal 1
+          A1 = V1 Cell
+          A2 = V2 Cell
+          St = N
+        end
+        if A1 at least 0
+          R1 Nr = A1
+          R2 Nr = A2
+          Q = Cell + St
+          Ed = Cl - Lst
+          if Dir equal 0 and Ed equal 0
+            Q = Nc
+          end
+          Ln = 0
+          for Q less Nc
+            if Kd Q not equal 1
+              break
+            end
+            Rc Nr Ln = Q
+            if Ca Q less 0
+              Ca Q = Nr
+            else
+              Cb Q = Nr
+            end
+            Ln += 1
+            if Dir equal 0
+              if (Q + 1) mod N equal 0
+                break
+              end
+            end
+            Q += St
+          end
+          Rn Nr = Ln
+          Nr += 1
+        end
+      end
+    end
+  end
+  rem Letters each run depends on.
+  Dm = array shape 64 fill 0
+  for Rr in 0 to Nr - 1
+    Le = Rn Rr + 1
+    for J in 0 to Le
+      Lw = R1 Rr
+      if J equal 1
+        Lw = R2 Rr
+      end
+      if J greater 1
+        Lw = Lt (Rc Rr (J - 2))
+      end
+      if Lw at least 0
+        Pw = P2 Lw
+        Bt = Dm Rr // Pw mod 2
+        if Bt equal 0
+          Dm Rr += Pw
+        end
+      end
+    end
+  end
+  Info = array shape 64 12 fill -1
+  for Run in 0 till Nr
+    Info Run 0 = R1 Run
+    Info Run 1 = R2 Run
+    Info Run 2 = Rn Run
+    Length = Rn Run
+    Indices = 0 till Length
+    Cells = Rc Run Indices
+    Info Run (3 to Length + 2) = Lt Cells
+  end
+  Flat = Info reshape 768
+  Context = concat Fits Clues P2 Flat copy
+  rem Letters in order of use.
+  Fq = array shape 10 fill 0
+  for Rr in 0 to Nr - 1
+    Fq (R1 Rr) += 2
+    if R2 Rr at least 0
+      Fq (R2 Rr) += 2
+    end
+  end
+  for Cell in 0 to Nc - 1
+    if Lt Cell at least 0
+      Fq (Lt Cell) += 1
+    end
+  end
+  Idl = Fq greater 0 indices
+  Od = (0 - (Fq Idl)) argsort
+  Ordr = Idl Od
+  Nl = Ordr len
+  Mp = array shape 10 fill 0 - 1
+  Us = array shape 10 fill 0
+  Ptr = array shape 12 fill 0
+  Wh = Kd equal 1 indices
+  rem Backtracking over the letters.
+  K = 0
+  Fin = 0
+  for Fin equal 0
+    Back = 0
+    if K equal Nl
+      rem Letters known: fill the cells.
+      Rs = array shape 64 fill 0
+      for Rr in 0 to Nr - 1
+        Rs Rr = Mp (R1 Rr)
+        if R2 Rr at least 0
+          Q2 = R2 Rr
+          Rs Rr = Rs Rr * 10 + Mp Q2
+        end
+      end
+      Dg = array shape Nc fill 0
+      Labels = Lt Wh
+      Known = Wh (Labels at least 0)
+      Dg Known = Mp (Lt Known)
+      Whl = Wh (Labels less 0) copy
+      Nw = Whl len
+      rem Per run: sum, mask, count.
+      Sr = array shape 64 fill 0
+      Mr = array shape 64 fill 0
+      Cr = array shape 64 fill 0
+      for Rr in 0 to Nr - 1
+        Le = Rn Rr - 1
+        for J in 0 to Le
+          Dv = Dg (Rc Rr J)
+          if Dv greater 0
+            Sr Rr += Dv
+            Mr Rr += P2 Dv
+            Cr Rr += 1
+          end
+        end
+      end
+      Try = array shape 64 fill 0
+      Ix = 0
+      Good = 0
+      for Ix at least 0
+        if Ix equal Nw
+          Good = 1
+          for Rr in 0 to Nr - 1
+            Sm = 0
+            Mkr = 0
+            Le = Rn Rr - 1
+            for J in 0 to Le
+              Dv = Dg (Rc Rr J)
+              Sm += Dv
+              Pw = P2 Dv
+              Bt = Mkr // Pw mod 2
+              if Bt equal 1
+                Good = 0
+              end
+              Mkr += Pw
+            end
+            Rv = Rs Rr
+            if Sm not equal Rv
+              Good = 0
+            end
+          end
+          if Good equal 1
+            break
+          end
+          Ix -= 1
+        else
+          Cc = Whl Ix
+          Ra = Ca Cc
+          Rb = Cb Cc
+          Pd = Try Ix
+          if Pd greater 0
+            if Ra at least 0
+              Sr Ra -= Pd
+              Mr Ra -= P2 Pd
+              Cr Ra -= 1
+            end
+            if Rb at least 0
+              Sr Rb -= Pd
+              Mr Rb -= P2 Pd
+              Cr Rb -= 1
+            end
+            Dg Cc = 0
+          end
+          Placed = 0
+          if Pd less 9
+            for D in Pd + 1 to 9
+              Ok = 1
+              Pw = P2 D
+              for Tr in 0 to 1
+                Rr = Ra
+                if Tr equal 1
+                  Rr = Rb
+                end
+                if Rr at least 0
+                  Sn = Sr Rr + D
+                  Tg = Rs Rr
+                  Bt = Mr Rr // Pw mod 2
+                  if Bt equal 1
+                    Ok = 0
+                  end
+                  if Sn greater Tg
+                    Ok = 0
+                  end
+                  Required = Mr Rr bor Pw
+                  Lookup = Rn Rr * 512
+                  Lookup += Required // 2
+                  Options = Fits Lookup
+                  if Options band (2 ** Tg) equal 0
+                    Ok = 0
+                  end
+                end
+              end
+              if Ok equal 1
+                Dg Cc = D
+                if Ra at least 0
+                  Sr Ra += D
+                  Mr Ra += Pw
+                  Cr Ra += 1
+                end
+                if Rb at least 0
+                  Sr Rb += D
+                  Mr Rb += Pw
+                  Cr Rb += 1
+                end
+                Try Ix = D
+                Ix += 1
+                Try Ix = 0
+                Placed = 1
+                break
+              end
+            end
+          end
+          if Placed equal 0
+            Try Ix = 0
+            Ix -= 1
+          end
+        end
+      end
+      if Good equal 1
+        Fin = 1
+      else
+        Back = 1
+      end
+    else
+      Lc = Ordr K
+      Placed = 0
+      D0 = Ptr K
+      for D in D0 to 9
+        if Us D equal 0
+          Mp Lc = D
+          Ok = 1
+          for Rr in 0 to Nr - 1
+            Changed = Dm Rr band P2 Lc
+            if Changed greater 0
+              Valid = Mp Context run_valid Rr
+              if not Valid
+                Ok = 0
+                break
+              end
+            end
+          end
+          if Ok equal 1
+            Us D = 1
+            Ptr K = D + 1
+            K += 1
+            Ptr K = 0
+            Placed = 1
+            break
+          else
+            Mp Lc = 0 - 1
+          end
+        end
+      end
+      if Placed equal 0
+        Back = 1
+      end
+    end
+    if Back equal 1
+      if K equal 0
+        Fin = 2
+      else
+        K -= 1
+        Lb = Ordr K
+        Us (Mp Lb) = 0
+        Mp Lb = 0 - 1
+      end
+    end
+  end
+  Res = 0
+  Rem = Us equal 0 indices
+  for Lc in 0 to 9
+    Dv = Mp Lc
+    if Dv less 0
+      Dv = Rem 0
+    end
+    Res = Res * 10 + Dv
+  end
+  Tot += Res
+end
+Answer = Tot
+Answer print

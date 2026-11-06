@@ -389,6 +389,14 @@ Cells are read on demand. Rank-one sequences remain lazy, including sequences
 of unknown length; mixing rank-one arrays and sequences returns a sequence.
 Use `concat unpack Parts axis N` to spread a tensor's leading-axis cells or a
 tuple's items.
+`concat unpack Parts` also accepts a finite sequence of array blocks. It consumes
+that sequence once, retaining each block in order, then concatenates along the
+selected axis. Blocks may differ along that axis; all other dimensions must
+match. This does not change ordinary sequence completion, which stacks items.
+An empty stream alone produces an empty rank-1 array. Include an explicit empty
+array block to supply a higher-rank shape. Known infinite streams are rejected;
+unknown-length generators must terminate. Generator errors propagate normally.
+
 Repeated same-axis concatenation shares array parts without reading their cells.
 Deep concat chains can be read without recursion through every earlier concat;
 this also applies to nested sequence concatenation.

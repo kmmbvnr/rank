@@ -6,6 +6,7 @@ import { checkedArrayDimension, safeDimension } from '../tensor-index.js';
 import { integerLiteral } from './application.js';
 import { convolveExact, convolveModular } from '../convolution.js';
 import { prepareMatrixPower } from '../modules/linalg.js';
+import { prepareRankedMatrixPower } from '../ranked-matpow.js';
 import { hasNativeImplementation } from '../native-implementation.js';
 export { checkedArrayDimension } from '../tensor-index.js';
 import { ArrayBindingContract } from '../array-binding-contract.js';
@@ -762,7 +763,9 @@ export class ExpressionEvaluator {
     /** Integer matrix powers reduce after each product instead of growing
      * exact cells to a bit length proportional to the exponent. */
     private modularMatrixPower(left: Expression, expression: BinaryExpression): (() => Evaluation<RankValue>) | undefined {
-        const parts = flattenApplication(left);
+        const form = applicationForm(left, name => this.operationOf(name));
+        const ranked = form.kind === 'rank' && form.rank === 2n && form.rightRank === 0n && !form.axes;
+        const parts = ranked ? form.parts : flattenApplication(left);
         const word = parts[2];
         const operation = findOperation('matpow');
         if (parts.length !== 3 || !isNameExpression(word)) return undefined;
@@ -782,6 +785,20 @@ export class ExpressionEvaluator {
             }
             const source = yield* resume(expressions.evaluate(parts[0]));
             const exponent = yield* resume(expressions.evaluate(parts[1]));
+            if (ranked) {
+                const fn = yield* resume(expressions.evaluate(word));
+                if (!isNativeFunction(fn)) throw new RankError('rank requires a binary operation');
+                const power = builtin() ? prepareRankedMatrixPower(source, exponent) : undefined;
+                if (power) {
+                    expressions.context.requireModule('linalg', 'matpow');
+                    const modulus = yield* resume(expressions.evaluate(expression.right));
+                    const fused = power.run(modulus);
+                    return fused ?? expressions.context.operators.evaluateBinary('mod', power.run()!, modulus);
+                }
+                const exact = yield* resume(expressions.context.application.applyDyadicAtRank(source, exponent, fn, 2, 0));
+                const modulus = yield* resume(expressions.evaluate(expression.right));
+                return expressions.context.operators.evaluateBinary('mod', exact, modulus);
+            }
             // Operand effects may also replace the function before its call.
             if (!builtin()) {
                 const fn = yield* resume(expressions.evaluate(word));

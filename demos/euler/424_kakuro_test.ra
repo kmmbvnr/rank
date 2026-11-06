@@ -6,3 +6,13 @@ test "first puzzle"
   run
   Answer equal 8426039571
 end
+
+test "empty and two-puzzle batches"
+  use "424_kakuro"
+  Count = 0
+  run
+  Answer equal 0
+  Count = 2
+  run
+  Answer equal 16945686873
+end

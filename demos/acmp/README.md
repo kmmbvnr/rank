@@ -70,6 +70,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0563** | [Задача про XOR](0563_xor_problem.ra) | Bitwise / Combinatorics (69%) | All-pairs power-of-two difference XOR sum via vector residue partitioning, run-length compression & bit parity |
 | **0566** | [Халява](0566_freebie.ra) | Math / Branch & Bound (61%) | Maximize t-shirts from 1, 2, 3-star caps via closed forms for $K \le 3$, and DAG stack search with upper bound pruning for $K \ge 4$ |
 | **0572** | [Технология программирования](0572_programming_technology.ra) | Greedy / Sorting (60%) | Maximize persuaded friends via dual-group sorting: $b_i \ge 0$ by threshold $a_i$ ascending, $b_i < 0$ by potential $(a_i + b_i)$ descending |
+| **0573** | [НЛО](0573_ufo.ra) | Graph Theory / Maxflow (77%) | Minimum UFO patrol fleet via minimum path cover in DAG, exact integer distance inequality $3600(\Delta X^2 + \Delta Y^2) \le V^2 \Delta t^2$ and zero-loop bulk `maxflow` |
 | **0583** | [Рисование](0583_drawing.ra) | Computational Geometry (65%) | Orthogonally convex polygon test via turtle direction scan and perimeter equality to $2(\Delta X + \Delta Y)$ |
 | **0585** | [Египетские знаки](0585_egyptian_signs.ra) | Simple Math / Diophantine (72%) | Minimal $K \ge 1$ such that $2^K$ begins with $N \le 10^7$ via Baby-Step Giant-Step range queries on sorted fractional parts of $K \log_{10}(2)$ |
 | **0586** | [Законопроект](0586_bill.ra) | Game Theory (62%) | Sequential parliamentary voting simulation via backward induction & vectorized column comparison |

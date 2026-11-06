@@ -69,3 +69,14 @@ export function evaluateBinaryComparison(op: string, left: bigint | boolean, rig
         default: throw new Error(`unsupported operator ${op}`);
     }
 }
+
+/** Checked Number integers can carry 53 bits. Split their two's-complement
+ * representation into a signed high half and unsigned low half; plain JS
+ * bitwise operators alone would truncate to 32 bits. Operands are evaluated
+ * once and proved safe by the caller; the caller checks the result too. */
+export function numberBitwiseSource(operation: 'band' | 'bor' | 'bxor', left: string, right: string): string {
+    const token = { band: '&', bor: '|', bxor: '^' }[operation];
+    const low = `((${left} ${token} ${right}) >>> 0)`;
+    const high = `(Math.floor(${left} / 4294967296) ${token} Math.floor(${right} / 4294967296))`;
+    return `(${left} === (${left} | 0) && ${right} === (${right} | 0) ? (${left} ${token} ${right}) : (${high} * 4294967296 + ${low}))`;
+}

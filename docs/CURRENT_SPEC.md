@@ -3365,6 +3365,14 @@ Its cells are read from the chosen source on demand. With rank-one sequences, in
 ones of unknown length, the result is a lazy sequence; mixing rank-one arrays
 and sequences also returns a sequence. An array or tuple of arguments can be
 spread with `concat unpack Items axis N`.
+`concat unpack Parts` also accepts a finite sequence of array blocks. It consumes
+that sequence once, retaining each block in order, then concatenates along the
+selected axis. Blocks may differ along that axis; all other dimensions must
+match. This does not change ordinary sequence completion, which stacks items.
+An empty stream alone produces an empty rank-1 array. Include an explicit empty
+array block to supply a higher-rank shape. Known infinite streams are rejected;
+unknown-length generators must terminate. Generator errors propagate normally.
+
 Repeated same-axis concatenation shares array parts without reading their cells.
 Deep concat chains can be read without recursion through every earlier concat;
 this also applies to nested sequence concatenation.
@@ -6969,6 +6977,15 @@ cells use floored `mod`. The identity for `N = 0` is also reduced, so `M = 1`
 gives all zeros. Other inputs retain exact power followed by elementwise
 `mod`, with the same results and errors. This includes real matrices, negative
 powers, nonpositive moduli and non-integer operands.
+
+Ranked calls such as `A matpow Powers rank 2 0 mod Mods` also keep modular
+products bounded for stored integer matrices, nonnegative integer powers and
+positive integer moduli that are constant within each result matrix. Ordinary
+broadcasting still applies: for `N` matrix results, use shape `N 1 1` for
+per-matrix moduli. Moduli varying within a matrix, real inputs and negative
+powers retain exact ranked powers followed by elementwise `mod`. Stored inputs
+are snapshotted before evaluating the modulus. Opaque cell readers retain the
+ordinary evaluator. Diagnostics count each fused result matrix.
 
 A separately assigned `P = A matpow N` stays exact; a later `P mod M` does
 not fuse across that binding. Runtime diagnostics count fused
