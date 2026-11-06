@@ -56,6 +56,7 @@ for (const [file, expected] of [
     ['737_coinloops.ra', 757794899n],
     ['738_orderedfactorisations.ra', 143091030n],
     ['739_summationofsummations.ra', 711399016n],
+    ['740_secretsanta.ra', '0.0189581208'],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
     const timeout = ['715_sextupletnorms.ra', '729_periodicrange.ra'].includes(file) ? 240_000
@@ -93,12 +94,16 @@ for (const [file, expected] of [
                 expect(diagnostics.tensorMapPreparations).toBeGreaterThan(0);
                 expect(diagnostics.compiledTensors).toBeGreaterThan(0);
             }
+            if (file === '740_secretsanta.ra') {
+                expect(diagnostics.numberTensors).toBeGreaterThan(0);
+                expect(diagnostics.tensorMapPreparations).toBe(100);
+            }
             if (file === '739_summationofsummations.ra') expect(diagnostics.modularCallbackScans).toBe(48);
             if (file === '738_orderedfactorisations.ra') {
                 expect(diagnostics.numberLoops).toBe(1);
                 expect(diagnostics.cowCopies).toBe(0);
             }
-            if (file !== '714_duodigits.ra' && file !== '737_coinloops.ra' && file !== '739_summationofsummations.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
+            if (file !== '714_duodigits.ra' && file !== '737_coinloops.ra' && file !== '739_summationofsummations.ra' && file !== '740_secretsanta.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
                 expect(diagnostics.numberLoops).toBeGreaterThan(0);
             }
             // Euler 739 already replays one speculative Number loop for

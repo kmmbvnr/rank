@@ -215,7 +215,7 @@
   "euler/737_coinloops.ra": "Full default compiled answer covered by full-scale-demos.test.ts; reference execution remains expensive.",
   "euler/738_orderedfactorisations.ra": "Full compiled answer is covered by full-scale-demos.test.ts; the reference factor-descending knapsack takes about 2 min, so exclude it from repeated corpus audits.",
   "euler/739_summationofsummations.ra": "Full default compiled answer covered by full-scale-demos.test.ts; reference execution remains expensive.",
-  "euler/740_secretsanta.ra": "About 35 s: 16 pair tables over 9 x 10^4 states for 99 stages; run manually.",
+  "euler/740_secretsanta.ra": "Full default compiled answer covered by full-scale-demos.test.ts; reference execution remains expensive.",
   "euler/743_windowmatrix.ra": "About 40 s: 5 x 10^7 terms in chunks; run manually.",
   "euler/746_messydinner.ra": "About 30 s: 4042 transfer steps over 9 x 5 x 2022 tables; run manually.",
   "euler/747_triangularpizza.ra": "About 20 s: 10^8 pairs in vector rows; run manually.",
