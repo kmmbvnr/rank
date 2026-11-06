@@ -2867,7 +2867,7 @@ single-square board stays occupied. See the
 
 ## Fresh-array function prefixes (Euler 214, #447)
 
-A numeric function prefix with at least two top-level loops can now use one
+A numeric function prefix with one or more top-level loops can use one
 Number region, including its fresh local array allocation. The terminal return
 retains ordinary function dispatch, contracts and tail calls. This reuses loop
 lowering, guarded native operations, binding checks, private storage, exact
@@ -3118,3 +3118,31 @@ quotient-table sizes to reuse code without retaining their data or results.
 
 See [Euler 428 measurements](../../benchmarks/euler428-followup.md) for separate
 compiler-only, source-only and combined measurements, memory and verification.
+
+
+## Integer slice transforms and native scalar division (Euler 432, #447)
+
+Private Number regions now support `//=` on strided row slices. A discarded
+slice RHS followed by scalar integer `+`, `-`, `*`, `//` or `mod` can also feed
+its store directly. Identical source/destination selections are pointwise;
+other overlaps retain a complete source snapshot. Division/domain failures and
+unsafe arithmetic replay ordinary execution before speculative stores escape.
+A transformed RHS that escapes retains its fresh-array semantics and the
+ordinary path; it must not become a live source view.
+
+Discard proofs for function prefixes now recognize later statements within the
+prefix. The caller's terminal `return` remains excluded. This lets fresh local
+sieve buffers stay in one private region without an artificial wrapper loop or
+an increased copy-cost threshold. Loop, scatter and bulk-write consumers share
+the same proof.
+
+Reference execution gains a native positive scalar floor-division writer for
+owned Int32 arrays with unique linear selections. It avoids a boxed replacement
+vector and generates no code. Positive safe integer divisors cannot widen an
+Int32 quotient. Ownership/type checks, revisions, alias protection, selection
+validation and polling remain in place. Negative/zero/wide divisors, other
+storage, missing cells, custom headers, shared buffers, inspection, demand
+budgets and observable host polling keep ordinary execution.
+
+See [Euler 432 results](../../benchmarks/euler432-followup.md) for separate
+compiler/source/native effects and peak-memory measurements in both engines.

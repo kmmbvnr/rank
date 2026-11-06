@@ -1,4 +1,4 @@
-import { isParenthesizedExpression, isBinaryExpression, isFunctionStatement, isNameExpression, isNumberLiteral, isBooleanLiteral, statementResultDiscarded, type Expression, type ArrayAssignmentStatement } from '@arrrank/language';
+import { isParenthesizedExpression, isBinaryExpression, isNameExpression, isNumberLiteral, isBooleanLiteral, type Expression, type ArrayAssignmentStatement } from '@arrrank/language';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
 
@@ -14,8 +14,7 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     if (range && isBinaryExpression(range) && ['to', 'till'].includes(range.operator)) return undefined;
     if (!selector || assignment.indices[0].all || assignment.indices[0].sign
         || expressions.arrayType(selector)?.element !== 'integer') return undefined;
-    const boundary = isFunctionStatement(state.statement) ? state.statement.statements.at(-2) : state.statement;
-    const discarded = !!boundary && statementResultDiscarded(assignment, boundary);
+    const discarded = state.resultDiscarded(assignment);
     const { arrays, destinations, assigned, arrayInputs } = state;
     const old = destinations.get(assignment.name), known = arrays.get(assignment.name);
     const type = old?.type ?? known?.type ?? expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as Expression)?.element;

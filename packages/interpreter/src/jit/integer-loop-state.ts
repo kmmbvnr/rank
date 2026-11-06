@@ -1,10 +1,10 @@
 import { integerRangeFacts } from './integer-range-facts.js';
-import { AstUtils } from 'langium';
+import { AstUtils, type AstNode } from 'langium';
 import { INTERRUPT_POLL_INTERVAL } from '../interrupt.js';
 import { type LoopHost, type IntegerLoopPlan, type LoopTerm, type LoopPolling } from './integer-loop-plan.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    isFunctionStatement, isArrayAssignmentStatement, isAssignmentStatement, isParenthesizedExpression, isUnpackStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
+    isFunctionStatement, isReturnStatement, statementResultDiscarded, isArrayAssignmentStatement, isAssignmentStatement, isParenthesizedExpression, isUnpackStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
     type Expression, type Statement, type ForStatement, type FunctionStatement,
 } from '@arrrank/language';
 
@@ -82,6 +82,18 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
             }
         }
         return uses.length > 0 && uses.every(node => selectors.has(node));
+    }
+    /** The caller's terminal return is outside a numeric function prefix.
+     * Earlier prefix statements can still replace a nested store's result. */
+    function resultDiscarded(node: Statement): boolean {
+        if (!isFunctionStatement(statement)) return statementResultDiscarded(node, statement);
+        if (!isReturnStatement(statement.statements.at(-1))) return false;
+        let ancestor: AstNode | undefined = node;
+        for (let depth = 0; ancestor && ancestor.$container !== statement && depth < 128; depth++) ancestor = ancestor.$container;
+        if (!ancestor || ancestor.$container !== statement) return false;
+        const index = statement.statements.indexOf(ancestor as Statement);
+        const last = statement.statements.length - 2;
+        return index >= 0 && (index < last || index === last && statementResultDiscarded(node, ancestor));
     }
     const required = new Set<number>(), assigned = new Set<string>();
     const writers: IntegerLoopPlan['writers'] = [];
@@ -171,7 +183,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         set branchDepth(v: number) { branchDepth = v; },
         arrayRegions: [] as NonNullable<IntegerLoopPlan['arrayRegions']>,
         outlinedLoops: [] as { body: string; inputs: readonly string[] }[],
-        exactInputs, rangeNarrowing: false, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, reversedPrimes: false, selectorRange, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
+        exactInputs, rangeNarrowing: false, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, reversedPrimes: false, selectorRange, resultDiscarded, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
         loopScopes, rootSetupLines, pushScope, popScope, currentScope,
     };
 }

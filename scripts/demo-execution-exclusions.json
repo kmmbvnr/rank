@@ -90,7 +90,6 @@
   "euler/423_consecutive.ra": "The optimized full compiled answer is checked in test/euler423.test.ts. Full reference execution remains outside the corpus budget; the small _test.ra fixture retains boundary and statement checks. See benchmarks/euler423-followup.md.",
   "euler/425_primeconnection.ra": "The optimized full compiled answer is checked in test/euler425.test.ts. Full reference execution remains in the manual lane; the small _test.ra fixture stays in the audits. See benchmarks/euler425-followup.md.",
   "euler/427_nsequences.ra": "The optimized full compiled answer is checked in test/euler427.test.ts. Full reference remains manual; bounded cross-mode and boundary checks stay in 427_nsequences_test.ra. See benchmarks/euler427-followup.md.",
-  "euler/432_totientsum.ra": "To fix later: the default input takes about 43 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/439_sumofdivisors.ra": "To fix later: the default input takes about 48 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/440_gcdandtiling.ra": "To fix later: the default input takes about 34 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/443_gcdsequence.ra": "To fix later: the default input takes about 18 s compiled; the small _test.ra fixture stays in the audits.",
