@@ -1,3 +1,4 @@
+import { checkedNumberModularMultiply, numberOverflow } from './number-arithmetic.js';
 import { tensorReductionStep } from './tensor-reduction-codegen.js';
 import { tensorBufferedNodes, tensorChildren, tensorExpressionLowerer, type TensorNode } from './tensor-ir.js';
 export type { TensorNode } from './tensor-ir.js';
@@ -1262,6 +1263,16 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     } else if (node.kind === 'unary' && (node.op === '-' || node.op === '+')) {
                         const a = go(node.operand, at, info.shape ?? frame);
                         value = node.op === '-' ? `(-${a})` : a;
+                    } else if (node.kind === 'binary' && node.op === 'mod' && !node.native && !node.ranks
+                        && node.left.kind === 'binary' && node.left.op === '*' && !node.left.native && !node.left.ranks
+                        && same(bound.get(node.left)!.shape ?? [], info.shape ?? [])) {
+                        // Reduce the exact product before it needs a wide register.
+                        // Unsupported moduli replay through the ordinary BigInt kernel.
+                        const frame = info.shape ?? [];
+                        const a = go(node.left.left, at, frame), b = go(node.left.right, at, frame);
+                        const modulus = go(node.right, at, frame), name = `n${count++}`;
+                        body.push(`const ${name} = mulmod(${a}, ${b}, ${modulus});`);
+                        value = name;
                     } else if (node.kind === 'binary' && !node.native && ['+', '-', '*', 'mod', '//'].includes(node.op)) {
                         const a = go(node.left, at, info.shape ?? frame), b = go(node.right, at, info.shape ?? frame);
                         const name = `n${count++}`;
@@ -1302,14 +1313,14 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             if (compiled && numberBody) {
                 const exact = execute!;
                 try {
-                    const fast = new Function('checkpoint', 'IntegerCells', 'safe', 'overflow', numberBody)(checkpoint, IntegerCells, safeInteger, overflowSignal) as KernelRun;
+                    const fast = new Function('checkpoint', 'IntegerCells', 'safe', 'overflow', 'mulmod', numberBody)(checkpoint, IntegerCells, safeInteger, overflowSignal, checkedNumberModularMultiply) as KernelRun;
                     execute = (data, offsets, scalars, size, checks, routes, start, visit, dest) => {
                         // A destination may alias an input; never overwrite it before the exact run.
                         if (dest === undefined) {
                             const numbers = scalars.map(scalar => typeof scalar === 'bigint' ? Number(scalar) : scalar);
                             if (scalars.every((scalar, at) => typeof scalar !== 'bigint' || BigInt(numbers[at] as number) === scalar && Number.isSafeInteger(numbers[at]))) {
                                 try { return fast(data, offsets, numbers as RankValue[], size, checks, routes, start, visit, dest); }
-                                catch (error) { if (error !== overflowSignal) throw error; }
+                                catch (error) { if (error !== overflowSignal && error !== numberOverflow) throw error; }
                             }
                         }
                         return exact(data, offsets, scalars, size, checks, routes, start, visit, dest);
