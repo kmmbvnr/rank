@@ -8,7 +8,7 @@ use cli
 
 arg Limit integer = 10 ** 16
 arg Digits integer = 1000000000
-arg Rows integer = 500
+arg Rows integer = 128
 
 rem Every primitive solution is x = q r,
 rem y = p r, z = p q with p^2 + q^2 =
@@ -23,6 +23,7 @@ rem Pairs (m, n) go in blocks of rows.
 Square = 2 * Limit * Limit // 13
 Bound = Square isqrt isqrt
 Top = Bound isqrt
+Side = Top + 1
 Cols = 0 to Top
 Total = 0
 for Block in 0 to Top // Rows
@@ -31,16 +32,23 @@ for Block in 0 to Top // Rows
   Big = First to Last
   Count = Last - First + 1
   Lead = Big reshape Count 1
-  Low = Cols reshape 1 (Top + 1)
-  Radius = Lead * Lead + Low * Low
-  Inside = Radius at most Bound
-  Plain = (Low less Lead) and Inside
-  Odd = ((Lead - Low) mod 2) equal 1
+  Down = Cols reshape 1 Side
+  Radii = Lead * Lead + Down * Down
+  Inside = Radii at most Bound
+  Plain = (Down less Lead) and Inside
+  Odd = ((Lead - Down) mod 2) equal 1
   Plain = Plain and Odd
-  Coprime = (Lead gcd Low) equal 1
-  Plain = Plain and Coprime
-  Across = Lead * Lead - Low * Low
-  Along = 2 * Lead * Low
+  rem Reduce work before expensive gcd.
+  Cells = Count * Side
+  Places = (Plain reshape Cells) indices
+  Upper = Places // Side + First
+  Lower = Places mod Side
+  Coprime = (Upper gcd Lower) equal 1
+  High = Upper filter Coprime
+  Low = Lower filter Coprime
+  Radius = High * High + Low * Low
+  Across = High * High - Low * Low
+  Along = 2 * High * Low
   One = (3 * Across - 2 * Along) abs
   Two = (2 * Across + 3 * Along) abs
   Three = (3 * Across + 2 * Along) abs
@@ -49,10 +57,10 @@ for Block in 0 to Top // Rows
   Thin1 = One min Two
   Wide2 = Three max Four
   Thin2 = Three min Four
-  Good1 = Plain and (Thin1 greater 0)
+  Good1 = Thin1 greater 0
   Coprime1 = (Wide1 gcd Thin1) equal 1
   Good1 = Good1 and Coprime1
-  Good2 = Plain and (Thin2 greater 0)
+  Good2 = Thin2 greater 0
   Coprime2 = (Wide2 gcd Thin2) equal 1
   Good2 = Good2 and Coprime2
   Alike = Wide1 equal Wide2
