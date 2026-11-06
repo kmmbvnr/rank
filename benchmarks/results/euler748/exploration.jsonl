@@ -1,0 +1,7 @@
+{"file": "filter-mac-full.json", "result": {"limit": "10000000000000000", "rows": 500, "answer": "276402862", "ms": 8678.854625, "cpuMs": 10105.892, "maxRssMiB": 1192.96875, "node": "v24.15.0", "arch": "arm64"}}
+{"file": "filter128-mac-full.json", "result": {"limit": "10000000000000000", "rows": 128, "answer": "276402862", "ms": 10025.854583, "cpuMs": 11885.985, "maxRssMiB": 933.828125, "node": "v24.15.0", "arch": "arm64"}}
+{"file": "pushdown-mac-full.json", "result": {"limit": "10000000000000000", "rows": 500, "answer": "276402862", "ms": 9708.713667, "cpuMs": 11605.141, "maxRssMiB": 1219.5625, "node": "v24.15.0", "arch": "arm64"}}
+{"file": "pushdown128-mac-full.json", "result": {"limit": "10000000000000000", "rows": 128, "answer": "276402862", "ms": 8140.415917, "cpuMs": 9639.379, "maxRssMiB": 939.984375, "node": "v24.15.0", "arch": "arm64"}}
+{"file": "pushdown64-mac-full.json", "result": {"limit": "10000000000000000", "rows": 64, "answer": "276402862", "ms": 9459.812, "cpuMs": 11372.515, "maxRssMiB": 873.46875, "node": "v24.15.0", "arch": "arm64"}}
+{"file": "rows32-mac-full.json", "result": {"limit": "10000000000000000", "rows": 32, "answer": "276402862", "ms": 13266.979208, "cpuMs": 15246.895, "maxRssMiB": 864.3125, "node": "v24.15.0", "arch": "arm64"}}
+{"file": "rows64-mac-full.json", "result": {"limit": "10000000000000000", "rows": 64, "answer": "276402862", "ms": 9322.246249999998, "cpuMs": 11160.262, "maxRssMiB": 833.734375, "node": "v24.15.0", "arch": "arm64"}}
