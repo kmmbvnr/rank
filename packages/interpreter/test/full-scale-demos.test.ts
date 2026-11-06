@@ -59,6 +59,7 @@ for (const [file, expected] of [
     ['740_secretsanta.ra', '0.0189581208'],
     ['742_convexgridpolygon.ra', 18397727n],
     ['743_windowmatrix.ra', 259158998n],
+    ['746_messydinner.ra', 867150922n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
     const timeout = ['715_sextupletnorms.ra', '729_periodicrange.ra'].includes(file) ? 240_000
@@ -105,7 +106,7 @@ for (const [file, expected] of [
                 expect(diagnostics.numberLoops).toBe(1);
                 expect(diagnostics.cowCopies).toBe(0);
             }
-            if (file !== '743_windowmatrix.ra' && file !== '742_convexgridpolygon.ra' && file !== '714_duodigits.ra' && file !== '737_coinloops.ra' && file !== '739_summationofsummations.ra' && file !== '740_secretsanta.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
+            if (file !== '746_messydinner.ra' && file !== '743_windowmatrix.ra' && file !== '742_convexgridpolygon.ra' && file !== '714_duodigits.ra' && file !== '737_coinloops.ra' && file !== '739_summationofsummations.ra' && file !== '740_secretsanta.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
                 expect(diagnostics.numberLoops).toBeGreaterThan(0);
             }
             if (file === '742_convexgridpolygon.ra') {

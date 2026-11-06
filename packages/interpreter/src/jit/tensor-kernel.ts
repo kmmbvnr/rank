@@ -42,6 +42,7 @@ export interface TensorKernelHost {
 }
 type KernelResult = RankValue | RankValue[] | Float64Array | IntegerCells | BooleanCells | undefined;
 const overflowSignal = {};
+const lowWord = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 function safeInteger(value: number): number {
     if (!Number.isSafeInteger(value)) throw overflowSignal;
     return value;
@@ -1238,13 +1239,16 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             function numberKernelBody(): string | undefined {
                 const names = new Map<TensorNode, Map<string, string>>();
                 const body: string[] = [];
+                const wordSlots = new Set<number>();
                 let count = 0, ok = true;
                 const stored = (slot: number | undefined) => data[slot!] instanceof Int32Array || data[slot!] instanceof BigInt64Array;
                 const read = (slot: number, index: string) => {
                     const cell = `data[${slot}][offsets[${slot}] + (${index})]`;
                     if (data[slot] instanceof Int32Array) return cell;
                     const name = `n${count++}`;
-                    body.push(`const ${name}c = ${cell}; if (${name}c > 9007199254740991n || ${name}c < -9007199254740991n) throw overflow; const ${name} = Number(${name}c);`);
+                    wordSlots.add(slot);
+                    const at = `(2 * (offsets[${slot}] + (${index})))`;
+                    body.push(`const ${name} = safe(words${slot}[${at} + ${1 - lowWord}] * 4294967296 + (words${slot}[${at} + ${lowWord}] >>> 0));`);
                     return name;
                 };
                 const go = (node: TensorNode, index: string, frame: readonly number[]): string => {
@@ -1297,7 +1301,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 };
                 const result = go(root, 'i', output!.shape!);
                 if (!ok) return undefined;
-                return `"use strict"; /* number ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { const answer = new IntegerCells(size); for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${body.join('\n')}\nanswer.setNumber(i, ${result}); } return answer; };`;
+                const words = [...wordSlots].map(slot => `const words${slot} = new Int32Array(data[${slot}].buffer, data[${slot}].byteOffset, data[${slot}].length * 2);`).join('\n');
+                return `"use strict"; /* number ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { ${words} const answer = new IntegerCells(size); for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${body.join('\n')}\nanswer.setNumber(i, ${result}); } return answer; };`;
             }
             generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { ${uniformChecks ? 'const checked = [];' : ''} let answer = dest !== undefined ? dest : ${initial}, length = 0; ${preparations.join('\n')} ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max', 'reduce-'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
@@ -1316,7 +1321,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     const fast = new Function('checkpoint', 'IntegerCells', 'safe', 'overflow', 'mulmod', numberBody)(checkpoint, IntegerCells, safeInteger, overflowSignal, checkedNumberModularMultiply) as KernelRun;
                     execute = (data, offsets, scalars, size, checks, routes, start, visit, dest) => {
                         // A destination may alias an input; never overwrite it before the exact run.
-                        if (dest === undefined) {
+                        if (dest === undefined && !data.some(cells => cells instanceof BigInt64Array
+                            && typeof SharedArrayBuffer !== 'undefined' && cells.buffer instanceof SharedArrayBuffer)) {
                             const numbers = scalars.map(scalar => typeof scalar === 'bigint' ? Number(scalar) : scalar);
                             if (scalars.every((scalar, at) => typeof scalar !== 'bigint' || BigInt(numbers[at] as number) === scalar && Number.isSafeInteger(numbers[at]))) {
                                 try { return fast(data, offsets, numbers as RankValue[], size, checks, routes, start, visit, dest); }
