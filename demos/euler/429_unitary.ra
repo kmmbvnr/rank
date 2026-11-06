@@ -5,41 +5,29 @@ use numbers
 use sequences
 use io
 use cli
-
 arg N integer = 100000000
 
-rem A unitary divisor of n! takes
-rem each prime p to the power 0 or
-rem e = v_p(n!), so the sum of
-rem squares is the product of
-rem (1 + p^(2e)) over primes p <= n.
+rem Unitary divisors take each prime
+rem power of N! wholly or not at all.
+rem Only primes up to sqrt N need
+rem higher terms of Legendre's sum.
 Mod = 1000000009
-Pr = primes to N array
-Ex = Pr * 0
-Pk = Pr
-for Pk min at most N
-  Ex = Ex + N // Pk
-  Pk = Pk * Pr min (N + 1)
-end
-Bs = Pr
-Ep = 2 * Ex
-Res = Pr * 0 + 1
-for Ep max greater 0
-  Odd = Ep mod 2 equal 1
-  Mu = Res * Bs mod Mod
-  Res = Odd choose Mu Res
-  Bs = Bs * Bs mod Mod
-  Ep = Ep // 2
-end
-V = (Res + 1) mod Mod
-for V len greater 1
-  if V len mod 2 equal 1
-    V = concat V (array 1)
+Primes = primes to N copy
+Exponents = N // Primes
+Root = N isqrt
+Small = Primes at most Root indices
+Bases = Primes Small
+Powers = Bases * Bases
+Extra = Bases * 0
+if Small len greater 0
+  for Powers min at most N
+    Extra += N // Powers
+    Powers = Powers * Bases min (N + 1)
   end
-  H = V len // 2
-  Lo = V (0 to H - 1)
-  Hi = V (H to 2 * H - 1)
-  V = Lo * Hi mod Mod copy
 end
-Answer = V 0
+Exponents Small += Extra
+Powers = 2 * Exponents
+Values = Primes Powers Mod powmod
+Terms = Values + 1
+Answer = Terms reduce * with 1 mod Mod
 Answer print

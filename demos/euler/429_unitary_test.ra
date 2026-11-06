@@ -16,3 +16,13 @@ test "products of prime powers"
   run
   Answer equal 202476099
 end
+
+test "empty and unit factorial"
+  use "429_unitary"
+  N = 0
+  run
+  Answer equal 1
+  N = 1
+  run
+  Answer equal 1
+end
