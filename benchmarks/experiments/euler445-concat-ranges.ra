@@ -1,0 +1,8 @@
+use sequences
+use cli
+arg N integer = 2000000
+Head' = 1 to N
+Back' = N to 1 by -1
+Sparse' = 1 to N by 3
+Values = concat Head Back Sparse copy
+Answer = Values sum

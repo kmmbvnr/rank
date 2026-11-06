@@ -1,4 +1,4 @@
-import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { rankedAddressSelection } from '../ranked-address.js';
 import { unpackApplicationItems } from '../value-selection.js';
 import {
@@ -310,12 +310,13 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 (_, index) => readArrayItem(completed, index),
             );
         }
-        // Scalar integer replacement is an interpreter primitive as well as a
-        // compiled optimization. Keep compound/vector and observable host polling
-        // on their existing reference paths; no code is generated here.
-        if (count > 0 && (host.options().compilation !== false
-                || statement.operator === '=' && typeof result === 'bigint' && !statement.accumulate
-                    && selection.linear && privateLoopPolling()) && !inspectionEnabled()
+        // Trusted integer updates are interpreter primitives, not generated
+        // code. Observable polling and bounded demands retain their existing
+        // traversal; the established scalar replacement path also handles budgets.
+        const nativeIntegerUpdate = privateLoopPolling()
+            && (statement.operator === '=' && typeof result === 'bigint' && selection.linear !== undefined
+                || !demandBudgetEnabled() && (typeof result === 'bigint' || compactOperands !== undefined || wideOperands !== undefined));
+        if (count > 0 && (host.options().compilation !== false || nativeIntegerUpdate) && !inspectionEnabled()
             && (statement.operator === '=' || statement.operator === '+=' || statement.operator === '-=' || statement.operator === '*=')
             && (typeof result === 'bigint' || compactOperands || wideOperands || operands?.every(value => typeof value === 'bigint'))) {
             const cells = writableIntegerCells(target);

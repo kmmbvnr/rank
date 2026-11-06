@@ -1,3 +1,4 @@
+import { arithmeticRange } from '../range-plan.js';
 import { registerSequenceCompletion } from '../sequence-completion.js';
 import { storedMaskSelection } from '../array-mask-selection.js';
 import { materializeTensorMap, registerTensorConcat } from '../tensor-map.js';
@@ -25,7 +26,7 @@ import { collectionSize } from '../collection-size.js';
 import { elementSource } from '../element-source.js';
 import { inheritArrayDeclaration } from '../array-declaration.js';
 import { semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
-import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { prepareIntegerView, prepareStoredScalarView, registerScalarView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
 import { MAX_HELD_CELLS, ownedArray, derivedArray, copyStoredNumericArray, typedArray, copyMaterializedArrayItems, arrayValueTraversal, arrayValues, collectArrayCells, prepareArrayRead, readArrayItem, evaluateArrayItem, reshapeStoredArray } from '../array-storage.js';
@@ -459,10 +460,30 @@ function copyScalarConcat(sources: readonly (RankArray | RankSequence)[]): RankA
         if (nested && Object.getOwnPropertyDescriptor(plan, 'iterate')?.value === nested.iterate) pending.push(nested.sources[Symbol.iterator]());
         else leaves.push(source);
     }
-    const parts = [];
+    type Stored = { range?: undefined; view: NonNullable<ReturnType<typeof prepareStoredScalarView>>;
+        cells: Int32Array | BigInt64Array | Float64Array | RankValue[]; count: number; positions?: readonly number[] | Uint32Array };
+    type Progression = { range: NonNullable<ReturnType<typeof arithmeticRange>>; count: number };
+    const parts: (Stored | Progression)[] = [];
     let size = 0, wide = false;
     let kind: string | undefined;
     for (const leaf of leaves) {
+        const range = isRankSequence(leaf) ? arithmeticRange(leaf.plan, true) : undefined;
+        if (range) {
+            if (demandBudgetEnabled()) return undefined;
+            const count = Number(range.count);
+            if (!Number.isSafeInteger(count) || count < 0 || size + count > Number(MAX_HELD_CELLS)) return undefined;
+            if (count) {
+                if (kind && kind !== 'integer') return undefined;
+                const last = range.start + (range.count - 1n) * range.step;
+                if ([range.start, last].some(value => value < -(1n << 63n) || value >= 1n << 63n)) return undefined;
+                wide ||= [range.start, last].some(value => value < -2147483648n || value > 2147483647n);
+                kind = 'integer';
+            }
+            size += count;
+            parts.push({ range, count });
+            continue;
+        }
+
         const selection = isRankSequence(leaf) ? storedMaskSelection(leaf) : undefined;
         if (isRankSequence(leaf) && !selection) return undefined;
         const source = selection ? selection.source : leaf as RankArray;
@@ -490,7 +511,9 @@ function copyScalarConcat(sources: readonly (RankArray | RankSequence)[]): RankA
     if (!kind || !['integer', 'real'].includes(kind)) return undefined;
     // Small integer arrays are boxed. Prove their selected values fit before
     // choosing packed output; arbitrary precision retains normal stacking.
-    if (kind === 'integer') for (const { view, cells, count, positions } of parts) {
+    if (kind === 'integer') for (const part of parts) {
+        if (part.range) continue;
+        const { view, cells, count, positions } = part;
         if (!Array.isArray(cells)) continue;
         const { offset, stride } = view.linear!;
         for (let start = 0; start < count; start += 4096) {
@@ -505,7 +528,25 @@ function copyScalarConcat(sources: readonly (RankArray | RankSequence)[]): RankA
     }
     const out = kind === 'real' ? new Float64Array(size) : wide ? new BigInt64Array(size) : new Int32Array(size);
     let target = 0;
-    for (const { view, cells, count, positions } of parts) {
+    for (const part of parts) {
+        if (part.range) {
+            const { range, count } = part;
+            for (let start = 0; start < count; start += 4096) {
+                const end = Math.min(count, start + 4096);
+                checkpoint('materializing concatenation', end - start);
+                if (out instanceof Int32Array) {
+                    const step = count > 1 ? Number(range.step) : 0;
+                    let value = Number(range.start) + start * step;
+                    for (let i = start; i < end; i++, value += step) out[target + i] = value;
+                } else {
+                    let value = range.start + BigInt(start) * range.step;
+                    for (let i = start; i < end; i++, value += range.step) (out as BigInt64Array)[target + i] = value;
+                }
+            }
+            target += count;
+            continue;
+        }
+        const { view, cells, count, positions } = part;
         const { offset, stride } = view.linear!;
         if (count) {
             const first = offset + stride * (positions ? positions[0] : 0);
@@ -524,7 +565,7 @@ function copyScalarConcat(sources: readonly (RankArray | RankSequence)[]): RankA
                 for (let i = start; i < end; i++) out[target + i] = cells[offset + stride * (positions ? positions[i] : i)];
             } else for (let i = start; i < end; i++) {
                 const at = offset + stride * (positions ? positions[i] : i);
-                if (out instanceof BigInt64Array) out[target + i] = cells instanceof BigInt64Array ? cells[at] : BigInt(cells[at]);
+                if (out instanceof BigInt64Array) out[target + i] = cells instanceof BigInt64Array ? cells[at] : BigInt(cells[at] as bigint | number);
                 else out[target + i] = Number(cells[at]);
             }
         }

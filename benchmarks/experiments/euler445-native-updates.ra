@@ -1,0 +1,8 @@
+use sequences
+use cli
+arg N integer = 2000000
+Values = 1 to N copy
+A = array shape N fill 0
+A (1 till N) = Values (0 till N - 1)
+A (0 till N) += 3
+Answer = A sum

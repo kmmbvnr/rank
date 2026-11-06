@@ -162,14 +162,14 @@ end
     });
 });
 
-it('uses the integer bulk writer for duplicate accumulation and retains a reference path', () => {
+it('uses the integer bulk writer for duplicate accumulation in both engines', () => {
     for (const compilation of [false, true]) {
         const r = new Interpreter(undefined, { compilation });
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => r.execute('A = array 10\nA (array 0 0) += 2 .accumulate'));
             expect(r.execute('A 0')).toBe(14n);
-            expect(diagnostics.bulkArrayWrites).toBe(compilation ? 1 : 0);
+            expect(diagnostics.bulkArrayWrites).toBe(1);
         } finally { r.dispose(); }
     }
 });
