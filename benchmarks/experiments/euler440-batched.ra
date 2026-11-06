@@ -1,0 +1,67 @@
+rem GCD and Tiling
+rem https://projecteuler.net/problem=440
+
+use numbers
+use sequences
+use io
+use cli
+
+arg L integer = 2000
+
+rem T(n) = 10 T(n-1) + T(n-2) is a
+rem Lucas sequence, so gcd(T(c^a),
+rem T(c^b)) is T(c^d) when 2-adic
+rem valuations of a and b agree and
+rem d = gcd(a, b), else T(1) for odd
+rem c and T(0) for even c. Pairs with
+rem equal valuation and gcd d are odd
+rem coprime pairs up to L // d, built
+rem from phi. T has period Mod - 1.
+Mod = 987898789
+Pi = Mod - 1
+fun Bound totients
+  Phi = 0 to Bound copy
+  for P in primes to Bound
+    Slots = P to Bound by P
+    Phi Slots -= Phi Slots // P
+  end
+  return Phi
+end
+
+Keys = 0 to L copy
+Phi = L totients
+Values = Keys mod 2 * Phi
+Co = Values scan +
+Ds = 1 to L copy
+Cd = Co (L // Ds)
+Cdiff = L * L - (Cd sum)
+Bs = L + 9 * ((L + 1) // 2)
+rem Diagonalise T over the prime field.
+Root = 26 ((Mod + 3) // 8) Mod powmod
+if Root * Root mod Mod not equal 26
+  Twist = 2 ((Mod - 1) // 4) Mod powmod
+  Root = Root * Twist mod Mod
+end
+Alpha = 5 + Root mod Mod
+Beta = 5 - Root mod Mod
+Gap = 2 * Root mod Mod
+Inverse = Gap (Mod - 2) Mod powmod
+rem Bound scratch space by base blocks.
+Powers = Ds reshape L 1
+Weights = Cd reshape L 1
+Sm = 0
+for Start in 1 to L by 128
+  Last = Start + 127 min L
+  Columns = Start to Last copy
+  Count = Columns len
+  Bases = Columns reshape 1 Count
+  Ex = Bases Powers Pi powmod
+  Power = Ex + 1
+  Left = Alpha Power Mod powmod
+  Right = Beta Power Mod powmod
+  Tx = (Left - Right) * Inverse mod Mod
+  Total = Tx * Weights mod Mod sum
+  Sm += Total
+end
+Answer = (Bs * Cdiff + Sm) mod Mod
+Answer print

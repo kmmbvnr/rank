@@ -80,3 +80,22 @@ export function modularPowerQuad(bases: Int32Array, offset: number, stride: numb
     }
     out[at] = r0; out[at + 1] = r1; out[at + 2] = r2; out[at + 3] = r3;
 }
+
+/** Nonnegative Int32 exponents of one base. Independent accumulators overlap
+ * multiplication latencies while all four lanes share one squaring table. */
+export function modularExponentQuad(exponents: Int32Array, offset: number, stride: number,
+    squares: Int32Array, modulus: number, out: Int32Array, at: number): void {
+    let e0 = exponents[offset], e1 = exponents[offset + stride];
+    let e2 = exponents[offset + 2 * stride], e3 = exponents[offset + 3 * stride];
+    const one = modulus === 1 ? 0 : 1;
+    let r0 = one, r1 = one, r2 = one, r3 = one;
+    for (let bit = 0; (e0 | e1 | e2 | e3) !== 0; bit++) {
+        const factor = squares[bit];
+        if (e0 & 1) r0 = multiply(r0, factor, modulus);
+        if (e1 & 1) r1 = multiply(r1, factor, modulus);
+        if (e2 & 1) r2 = multiply(r2, factor, modulus);
+        if (e3 & 1) r3 = multiply(r3, factor, modulus);
+        e0 >>>= 1; e1 >>>= 1; e2 >>>= 1; e3 >>>= 1;
+    }
+    out[at] = r0; out[at + 1] = r1; out[at + 2] = r2; out[at + 3] = r3;
+}

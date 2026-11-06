@@ -19,3 +19,20 @@ test "six terms"
   run
   Answer equal 509791024
 end
+
+test "empty and singleton bounds"
+  use "440_gcdandtiling"
+  L = 0
+  run
+  Answer equal 0
+  L = 1
+  run
+  Answer equal 10
+end
+
+test "default bound"
+  use "440_gcdandtiling"
+  L = 2000
+  run
+  Answer equal 970746056
+end

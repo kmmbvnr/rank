@@ -91,7 +91,6 @@
   "euler/425_primeconnection.ra": "The optimized full compiled answer is checked in test/euler425.test.ts. Full reference execution remains in the manual lane; the small _test.ra fixture stays in the audits. See benchmarks/euler425-followup.md.",
   "euler/427_nsequences.ra": "The optimized full compiled answer is checked in test/euler427.test.ts. Full reference remains manual; bounded cross-mode and boundary checks stay in 427_nsequences_test.ra. See benchmarks/euler427-followup.md.",
   "euler/439_sumofdivisors.ra": "Default N=10^11 is a manual workload: about 11 s compiled / 26 s reference on Apple M5, with about 2.1 / 2.3 GiB process peak RSS; the small _test.ra fixture stays in the audits.",
-  "euler/440_gcdandtiling.ra": "To fix later: the default input takes about 34 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/443_gcdsequence.ra": "To fix later: the default input takes about 18 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/445_retractionsa.ra": "To fix later: the default input takes about 13 s compiled and about 179 s in the reference interpreter; the small _test.ra fixture stays in the audits.",
   "euler/446_retractionsb.ra": "To fix later: the default input takes about 46 s compiled; the small _test.ra fixture stays in the audits.",
