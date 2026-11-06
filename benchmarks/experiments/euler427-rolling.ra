@@ -1,0 +1,88 @@
+rem n-sequences
+rem https://projecteuler.net/problem=427
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 7500000
+Modulus = 1000000009
+
+fun N tables
+  Factorials = array shape N fill 1
+  Powers = array shape N fill 1
+  for I in 1 till N
+    Prior = I - 1
+    Left = Factorials Prior
+    Factorials I = Left * I mod Modulus
+    Left = Powers Prior
+    Powers I = Left * N mod Modulus
+  end
+  return tuple Factorials Powers
+end
+fun Factorials inverse
+  Last = Factorials len - 1
+  Inverses = array shape (Last + 1) fill 1
+  Value = Factorials Last
+  Inverses Last = Value (Modulus - 2) Modulus powmod
+  for I in Last to 1 by -1
+    Value = Inverses I
+    Inverses (I - 1) = Value * I mod Modulus
+  end
+  return Inverses
+end
+fun N solve
+  if N equal 0
+    return 0
+  end
+  unpack Factorials Powers = N tables
+  Inverses = Factorials inverse
+  Negative = Modulus - N + 1
+  Total = (N - 1) * Powers (N - 1)
+  Total = Total mod Modulus
+  P = 1
+  K = 1
+  Last = N // P - 1
+  Coefficient = N (Modulus - 2) Modulus powmod
+  Step = Negative
+  Factor = Negative * (N - P) - P
+  Factor = Factor mod Modulus
+  Sum = 0
+  for P * 2 at most N
+    if K greater Last
+      Total = (Total + Sum) mod Modulus
+      Sum = 0
+      P += 1
+      K = 1
+      Last = N // P - 1
+      if Last less 1
+        break
+      end
+      Left = Factorials (P - 1)
+      Right = Inverses P
+      Scale = Left * Right mod Modulus
+      Coefficient = Coefficient * Negative mod Modulus
+      Coefficient = Coefficient * Scale mod Modulus
+      Step = Negative * P mod Modulus
+      Factor = Negative * (N - P) - P
+      Factor = Factor mod Modulus
+      continue
+    end
+    Row = N - 1 - P * K
+    Length = Row - P + 1
+    Left = Factorials Row
+    Right = Inverses Length
+    Term = Left * Right mod Modulus
+    Term = Term * Powers Length mod Modulus
+    Term = Term * Coefficient mod Modulus
+    Term = Term * Factor mod Modulus
+    Sum += Term
+    Factor = (Factor - Step) mod Modulus
+    K += 1
+  end
+  Top = N (N + 1) Modulus powmod
+  return (Top - N * Total) mod Modulus
+end
+Answer = N solve
+Answer print
