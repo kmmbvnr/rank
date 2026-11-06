@@ -2,13 +2,14 @@ import {
     functionCallSignature, isBinaryExpression, isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isReturnStatement, type Expression, type FunctionStatement,
 } from '@arrrank/language';
-import { MAX_HELD_CELLS, typedArray } from '../array-storage.js';
+import { MAX_HELD_CELLS, hasNativeArrayHeader, typedArray } from '../array-storage.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import { demandBudgetEnabled, inspectionEnabled, privateLoopPolling, checkpoint } from '../interrupt.js';
 import { arithmeticRange } from '../range-plan.js';
 import { registerSequenceCompletion } from '../sequence-completion.js';
 import { stepOf } from '../modular-fold.js';
-import type { NativeFunction, RankValue, RankSequence } from '../value.js';
+import { prepareStoredScalarView } from '../integer-view.js';
+import type { NativeFunction, RankValue, RankSequence, RankArray } from '../value.js';
 
 interface Recipe {
     readonly operator: '+' | '*';
@@ -86,4 +87,43 @@ export function registerModularScanCompletion(result: RankSequence, source: Rank
         if (diagnostics) diagnostics.modularCallbackScans++;
         return typedArray(out);
     });
+}
+
+/** Complete a proved modular callback over borrowed compact scalar storage.
+ * Lazy/opaque readers and observable callbacks keep their ordinary traversal. */
+export function scanStoredModularCallback(source: RankArray, fn: NativeFunction,
+    seed: RankValue | undefined): RankArray | undefined {
+    const recipe = recipes.get(fn);
+    if (!recipe || !hasNativeArrayHeader(source) || !recipe.enabled() || fn.call !== recipe.call || source.shape.length !== 1
+        || !privateLoopPolling() || demandBudgetEnabled() || inspectionEnabled()) return undefined;
+    const count = source.shape[0], grow = seed === undefined ? 0 : 1;
+    if (count < 1024 || count + grow > MAX_HELD_CELLS
+        || seed !== undefined && (typeof seed !== 'bigint' || seed < -2147483648n || seed > 2147483647n)) return undefined;
+    const view = prepareStoredScalarView(source, true);
+    if (!view?.compact || !view.linear || view.kinds?.join() !== 'integer'
+        || view.validate && !view.validateUniform) return undefined;
+    const { offset, stride } = view.linear, cells = view.compact;
+    view.validateUniform?.(BigInt(cells[offset]));
+    const modulus = recipe.modulus();
+    if (typeof modulus !== 'bigint' || modulus < 1n || modulus > 1073741824n) return undefined;
+    const m = Number(modulus), step = stepOf(recipe.operator, m);
+    const normalize = (value: number) => { const r = value % m; return r < 0 ? r + m : r; };
+    const initial = seed === undefined ? cells[offset] : Number(seed);
+    let acc = normalize(initial);
+    const first = cells[offset + (grow ? 0 : stride)];
+    checkpoint('scanning', 0);
+    recipe.check(BigInt(initial), BigInt(first), BigInt(step(acc, normalize(first))));
+    const out = new Int32Array(count + grow);
+    out[0] = initial;
+    for (let from = 1; from < out.length; from += 4096) {
+        const end = Math.min(out.length, from + 4096);
+        checkpoint('scanning', end - from);
+        for (let at = from; at < end; at++) {
+            acc = step(acc, normalize(cells[offset + (at - grow) * stride]));
+            out[at] = acc;
+        }
+    }
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.modularCallbackScans++;
+    return typedArray(out);
 }

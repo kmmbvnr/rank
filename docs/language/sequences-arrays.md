@@ -1980,6 +1980,14 @@ at index zero without a separate allocation or mutation. Without `with`, the
 first result remains the first source value and an empty source returns an empty
 array for compatibility.
 
+For large compact integer arrays, a pure two-parameter function returning
+`(Left * Right) mod Modulus` or `(Left + Right) mod Modulus` can use a native
+modular scan when the modulus is a captured integer from 1 through 2^30.
+This also applies to completed reverse or offset views. It preserves the
+unreduced first value or seed; unsupported callbacks and observable execution
+retain ordinary scalar calls. Finite native ranges have the same optimization
+when their lazy scan is materialized.
+
 `scan` accepts a rank-1 array, queue, text or sequence. An array, queue or text
 produces a material rank-1 array. A sequence produces another lazy sequence, so
 an unbounded source is valid when a later operation requests only a finite

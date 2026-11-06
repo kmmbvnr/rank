@@ -1,4 +1,4 @@
-import { registerModularScanCompletion } from './jit/modular-callback-scan.js';
+import { registerModularScanCompletion, scanStoredModularCallback } from './jit/modular-callback-scan.js';
 import { expectNumeric } from './modules/shared.js';
 import { prepareKeyedTensorReader } from './tensor-map.js';
 import { keyedAggregate, keyedFold } from './keyed-fold.js';
@@ -221,6 +221,10 @@ export class ReductionEvaluator {
             return this.scanInputCells(value, rank ?? 0, axis, seed, (left, right) => this.invoke(operation, [left, right]));
         }
         if (axis !== undefined) return this.evaluateNamedScanAxis(operation, value, axis, seed);
+        if (isRankArray(value)) {
+            const compact = scanStoredModularCallback(value, operation, seed);
+            if (compact) return compact;
+        }
         if (isRankSequence(value)) operation = snapshotLazyFunction(operation);
         const scalar = this.scalarCallback(operation);
         const result = this.scanValues(value, operation.name, seed, (left, right) => {
