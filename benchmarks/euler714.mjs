@@ -21,10 +21,13 @@ try {
     const start = performance.now(), cpu = process.cpuUsage();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
     const answer = String(runtime.variables.get('Answer'));
+    const expected = new Map([[110, '1.104700000000e4'], [150, '5.331200000000e4'],
+        [500, '2.957098800000e7'], [50000, '2.452767775565e20']]);
+    if (expected.has(count)) assert.equal(answer, expected.get(count));
     if (process.env.EXPECTED) assert.equal(answer, process.env.EXPECTED);
     const used = process.cpuUsage(cpu);
     console.log(JSON.stringify({ count, longest, block, answer, total: String(runtime.variables.get('Together')),
-        pending: String(runtime.variables.get('Left')), bfsCells: String(runtime.variables.get('Cells')),
+        pending: String(runtime.variables.get('Left')),
         ms: performance.now() - start, cpuMs: (used.user + used.system) / 1000,
         maxRssMiB: process.resourceUsage().maxRSS / 1024, node: process.version, arch: process.arch,
         ...(diagnostics && { diagnostics }) }));

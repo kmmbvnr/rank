@@ -224,7 +224,7 @@
   "euler/750_cardstacking.ra": "About 40 s: interval DP with 1.5 x 10^8 split costs; run manually.",
   "euler/735_divisorsoftwo.ra": "Full compiled answer is covered by full-scale-demos.test.ts; the large reference ragged floor sums remain excluded from corpus audits.",
   "euler/742_convexgridpolygon.ra": "About 1 min: knapsack over 1000 edge directions on a 250 x 2400 table; run manually.",
-  "euler/714_duodigits.ra": "About 10-15 min: candidate blocks for 5 x 10^4 numbers; run manually (answer 2.452767775565e20).",
+  "euler/714_duodigits.ra": "Full compiled answer is covered by full-scale-demos.test.ts; exclude the expensive candidate-block and residue-BFS workload from repeated corpus audits.",
   "euler/730_shiftedtriples.ra": "Default visits 2631931476 ordered tree nodes; run manually with benchmarks/euler730.mjs (answer 1315965924).",
   "euler/644_squaresontheline.ra": "Full default remains a manual row-sweep workload (#447, #480); the small fixture stays in audits."
 }

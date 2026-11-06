@@ -31,8 +31,6 @@ Size = 0
 Row = Count
 Rows = 1
 Cand = array 0
-Seed = array 0
-Range = Seed reshape 1 1
 for Size less Longest + 1
   Total = Open len
   if Row at least Total
@@ -62,12 +60,9 @@ for Size less Longest + 1
       Basic = Base reshape 9 1 1
       Values = Basic + Lift
       All = Values reshape (90 * Free)
-      Sorted = All sort
-      Cand = Sorted unique
+      Cand = All sort unique
       Width = Cand len
       Rows = 1 max (Block // Width)
-      Down = (1 to Width) reverse
-      Range = Down reshape 1 Width
     end
   else
     Last = (Row + Rows) min Total
@@ -77,12 +72,17 @@ for Size less Longest + 1
     Wide = Cand reshape 1 Width
     Tall = Part reshape Count2 1
     Mat = Wide mod Tall
-    Hits = (Mat equal 0) integer
-    Best = (Hits * Range) max axis 1
-    Has = Best greater 0
-    Where = Width - Best
-    Which = (Where filter Has) max 0
-    Found (Part filter Has) = Cand Which
+    Cells = Count2 * Width
+    Flat = Mat reshape Cells
+    rem Keep only matching coordinates.
+    Hits = (Flat equal 0) indices
+    Owner = Hits // Width
+    Offsets = Hits mod Width
+    First = (Offsets reduce min by Owner
+      with Width)
+    Solved = Owner unique
+    Which = First Solved
+    Found (Part Solved) = Cand Which
     Row = Last
   end
 end

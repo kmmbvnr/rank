@@ -45,6 +45,7 @@ for (const [file, expected] of [
     ['310_nimsquare.ra', 2586528661783n],
     ['426_boxball.ra', 31591886008n],
     ['705_inversioncount.ra', 480440153n],
+    ['714_duodigits.ra', '2.452767775565e20'],
     ['715_sextupletnorms.ra', 883188017n],
     ['719_numbersplitting.ra', 128088830547982n],
     ['720_unpredictablepermutations.ra', 688081048n],
@@ -55,7 +56,7 @@ for (const [file, expected] of [
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
     const timeout = ['715_sextupletnorms.ra', '729_periodicrange.ra'].includes(file) ? 240_000
-        : ['275_balancedsculptures.ra', '719_numbersplitting.ra', '735_divisorsoftwo.ra'].includes(file) ? 120_000 : 60_000;
+        : ['275_balancedsculptures.ra', '714_duodigits.ra', '719_numbersplitting.ra', '735_divisorsoftwo.ra'].includes(file) ? 120_000 : 60_000;
     it(`checks the full compiled answer for ${file}`, () => {
         const url = new URL(`../../../demos/euler/${file}`, import.meta.url);
         const diagnostics = new RuntimeDiagnostics();
@@ -76,11 +77,15 @@ for (const [file, expected] of [
             }
             if (file === '729_periodicrange.ra') expect(diagnostics.compiledTensors).toBeGreaterThan(0);
             if (file === '735_divisorsoftwo.ra') expect(diagnostics.numberTensors).toBeGreaterThan(0);
+            if (file === '714_duodigits.ra') {
+                expect(diagnostics.integerKeyedFolds).toBeGreaterThan(0);
+                expect(diagnostics.numericUniqueSorts).toBe(18);
+            }
             if (file === '738_orderedfactorisations.ra') {
                 expect(diagnostics.numberLoops).toBe(1);
                 expect(diagnostics.cowCopies).toBe(0);
             }
-            if (file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
+            if (file !== '714_duodigits.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
                 expect(diagnostics.numberLoops).toBeGreaterThan(0);
             }
             expect(diagnostics.numberLoopOverflows).toBe(0);
