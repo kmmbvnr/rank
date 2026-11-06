@@ -1,0 +1,115 @@
+rem ACMP 0592: Skyscraper
+rem Vectorized upperindex + Dijkstra
+use io
+use cli
+use numbers
+use sequences
+use text
+use algo
+use graph
+
+arg Input text = "12
+3 1 2 5 8 12 15
+2 2 5 15 20
+3 1 1 5 6 20 25
+2 6 10 25 30
+3 1 3 10 14 30 35
+2 14 18 35 40
+2 4 6 40 45
+2 6 9 45 50
+3 2 4 9 12 50 55
+2 12 16 55 60
+1 60 100000
+2 10 20 500000 1000000"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+
+TokInts = Tokens integer
+M = TokInts 0
+K = ((TokInts len) - 1 - M) // 2
+Cols = 0 till M
+HeaderPos = 0 * Cols
+P = 1
+for C in Cols
+  HeaderPos C = P
+  P = P + 1 + (2 * (TokInts P))
+end
+
+ColCounts = TokInts HeaderPos
+ColStarts = (HeaderPos - 1 - Cols) // 2
+AllIdxs = 0 till K
+UIdx = ColStarts upperindex AllIdxs
+ColOf = UIdx - 1
+LocalJ = AllIdxs - (ColStarts ColOf)
+BotMask = LocalJ equal 0
+BaseTok = (HeaderPos ColOf) + 1
+L = TokInts (BaseTok + (2 * LocalJ))
+R = TokInts (
+  BaseTok + (2 * LocalJ) + 1
+)
+
+Stride = 10000000
+Keys = (ColOf * Stride) + L
+QRight = ((ColOf + 1) * Stride) + L
+IdxR = (Keys upperindex QRight) - 1
+SafeR = IdxR max 0
+ValidR = (IdxR greater (-1)) and (
+  (ColOf SafeR) equal (ColOf + 1)
+) and ((R SafeR) greater (L - 1))
+
+QLeft = ((ColOf - 1) * Stride) + L
+IdxL = (Keys upperindex QLeft) - 1
+SafeL = IdxL max 0
+ValidL = (IdxL greater (-1)) and (
+  (ColOf SafeL) equal (ColOf - 1)
+) and ((R SafeL) greater (L - 1))
+
+URFrom = AllIdxs ValidR
+URTo = SafeR ValidR
+ULFrom = AllIdxs ValidL
+ULTo = SafeL ValidL
+UFrom = concat URFrom ULFrom
+UTo = concat URTo ULTo
+
+UGraph = new graph AllIdxs .undirected
+if (UFrom len) greater 0
+  UEdges = (array UFrom UTo) transpose
+  UGraph add UEdges
+end
+URes = UGraph components
+CompFn = URes .component
+Comp = CompFn AllIdxs
+NumComps = URes .count
+
+PrevIdxs = (AllIdxs - 1) max 0
+ZeroK = 0 * AllIdxs
+FromComp = BotMask choose ZeroK (
+  Comp PrevIdxs
+)
+GapGnd = L - 1
+GapPrv = (L - (R PrevIdxs)) - 1
+Weights = BotMask choose GapGnd GapPrv
+
+AllComps = 0 to NumComps
+DAG = new graph AllComps .directed
+if K greater 0
+  DEdges = (
+    array FromComp Comp Weights
+  ) transpose
+  DAG add DEdges
+end
+DRes = DAG dijkstra 0
+DistFn = DRes .distance
+
+HasBlocks = ColCounts greater 0
+ColEnds = (ColStarts + ColCounts) - 1
+SafeTop = ColEnds max 0
+TopComp = Comp SafeTop
+TopDelta = DistFn TopComp
+TopAns = (R SafeTop) - TopDelta
+ZeroM = 0 * Cols
+FinalAns = HasBlocks choose TopAns ZeroM
+(FinalAns join "\n") print
