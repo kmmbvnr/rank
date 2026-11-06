@@ -1,0 +1,49 @@
+rem Triangular Pizza
+rem https://projecteuler.net/problem=747
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 8
+arg Prime integer = 1000000007
+
+rem A closed cubic plus a correction sum
+rem over pairs x <= y with 4xy <= n. For
+rem each pair z runs from zmin = 2xy +
+rem ceil(sqrt(4xy(x+1)(y+1))) to zmax =
+rem n - 1 - x - y and contributes
+rem weight (2 count - exact) with weight
+rem 1 for x = y and 2 otherwise; the
+rem whole sum is tripled.
+fun Small pieces Large rank 0 0
+  Area = Small * Large
+  Next = (Small + 1) * (Large + 1)
+  Both = 4 * Area * Next
+  Root = Both isqrt
+  Hit = Root * Root equal Both
+  Exact = Hit choose 1 0
+  Least = 2 * Area + Root + 1 - Exact
+  Most = Limit - 1 - Small - Large
+  Count = (Most - Least + 1) max 0
+  Differ = Large not equal Small
+  Apart = Differ choose 1 0
+  Heavy = 1 + Apart
+  Alive = (Count greater 0) choose 1 0
+  Fix = Exact * Alive
+  return Heavy * (2 * Count - Fix)
+end
+Cubic = (Limit + 18) * (Limit - 1)
+Cubic = Cubic * (Limit - 2) // 6
+Total = 0
+Top = (Limit // 4) isqrt
+for Small in 1 to Top
+  Upper = Limit // (4 * Small)
+  Large = (Small to Upper) array
+  Row = Small pieces Large
+  Added = Row sum
+  Total = (Total + Added) mod Prime
+end
+Answer = (Cubic + 3 * Total) mod Prime
+Answer print

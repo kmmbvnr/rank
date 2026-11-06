@@ -1,0 +1,44 @@
+diff --git a/packages/interpreter/src/jit/integer-loop-expressions.ts b/packages/interpreter/src/jit/integer-loop-expressions.ts
+index cb57f4e9..0411871c 100644
+--- a/packages/interpreter/src/jit/integer-loop-expressions.ts
++++ b/packages/interpreter/src/jit/integer-loop-expressions.ts
+@@ -844,7 +844,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
+                         ? types[0] === 'boolean' && types[1] === types[2] ? types[1] : undefined
+                         : point.name === 'min' || point.name === 'max'
+                         ? types.every(type => type === types[0]) && (types[0] === 'integer' || types[0] === 'real') ? types[0] : undefined
+-                        : point.module ? types.every(type => type === 'integer') ? point.name === 'bit' ? 'boolean' : 'integer' : undefined
++                        : point.module ? matchCompiledCallSignature(findOperation(point.name)!, types)?.result
+                         : loopOperatorSignature(point.name, types, host.nativeCalls === true)?.result;
+                     if (type === 'integer' || type === 'boolean' || type === 'real' && host.reals) {
+                         return { kind: 'array', element: type, rank: Math.max(...operands.map(type => type?.rank ?? 0)) };
+@@ -1017,6 +1017,16 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
+             e = groupedUnaryDyadicChain(e, name => !localTypes.has(name)
+                 && !arrays.has(name) && !containers.has(name)) ?? e;
+             const parts = flattenApplication(e), last = parts.at(-1);
++            if (parts.length === 2 && isNameExpression(last)
++                && !localTypes.has(last.name) && !arrays.has(last.name) && !containers.has(last.name)) {
++                const operation = findOperation(last.name);
++                if (operation && (operation.mapsScalarCells || operation.monadicRank === 0)
++                    && compiledCallSignatures(operation).some(signature =>
++                    signature.inputs.length === 1 && signature.callbacks === 'none' && !signature.hostFunction
++                    && ['integer', 'real', 'boolean'].includes(signature.result))) {
++                    return { name: operation.name, module: operation.module, operands: [unwrap(parts[0])] };
++                }
++            }
+             if (parts.length === 4 && isNameExpression(last)
+                 && (last.name === 'powmod' || host.booleanArrays && last.name === 'choose')
+                 && !localTypes.has(last.name) && !arrays.has(last.name) && !containers.has(last.name)) {
+@@ -1134,6 +1144,13 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
+                         return { type: values[0]!.type,
+                             code: scalarExtremeSource(point.name, values[0]!.code, values[1]!.code) };
+                     }
++                    if (point.module === 'core' && point.name === 'integer' && values.length === 1) {
++                        builtins.set('integer', 'core');
++                        const value = values[0]!;
++                        return { type: 'integer', code: value.type === 'boolean' ? `(${value.code} ? 1 : 0)`
++                            : value.type === 'integer' ? value.code : `safe(Math.trunc(${value.code}))` };
++                    }
++                    if (point.operands.length === 1 && inlineBuiltins.has(point.name)) return emit(e, body);
+                     if (point.module) {
+                         const operation = findOperation(point.name)!;
+                         const signature = matchCompiledCallSignature(operation, values.map(value => value!.type));

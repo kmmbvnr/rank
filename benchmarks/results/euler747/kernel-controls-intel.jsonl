@@ -1,0 +1,12 @@
+{"mode": "roots", "size": 65536, "ms": 194.078077, "cpuMs": 307.317, "maxRssMiB": 162.40625, "node": "v24.15.0", "arch": "x64", "variant": "baseline", "run": 1}
+{"mode": "roots", "size": 65536, "ms": 40.34588199999996, "cpuMs": 58.295, "maxRssMiB": 132.0234375, "node": "v24.15.0", "arch": "x64", "variant": "final", "run": 1}
+{"mode": "roots", "size": 65536, "ms": 191.04924999999992, "cpuMs": 300.198, "maxRssMiB": 164.296875, "node": "v24.15.0", "arch": "x64", "variant": "baseline", "run": 2}
+{"mode": "roots", "size": 65536, "ms": 39.49190999999996, "cpuMs": 57.79, "maxRssMiB": 131.79296875, "node": "v24.15.0", "arch": "x64", "variant": "final", "run": 2}
+{"mode": "roots", "size": 65536, "ms": 189.69463299999995, "cpuMs": 299.591, "maxRssMiB": 168.28515625, "node": "v24.15.0", "arch": "x64", "variant": "baseline", "run": 3}
+{"mode": "roots", "size": 65536, "ms": 38.80666599999995, "cpuMs": 57.307, "maxRssMiB": 132.15234375, "node": "v24.15.0", "arch": "x64", "variant": "final", "run": 3}
+{"mode": "control", "size": 65536, "ms": 19.729818000000023, "cpuMs": 25.844, "maxRssMiB": 131.953125, "node": "v24.15.0", "arch": "x64", "variant": "baseline", "run": 1}
+{"mode": "control", "size": 65536, "ms": 18.136326999999937, "cpuMs": 23.514, "maxRssMiB": 131.48828125, "node": "v24.15.0", "arch": "x64", "variant": "final", "run": 1}
+{"mode": "control", "size": 65536, "ms": 18.845945999999913, "cpuMs": 24.842, "maxRssMiB": 132.0625, "node": "v24.15.0", "arch": "x64", "variant": "baseline", "run": 2}
+{"mode": "control", "size": 65536, "ms": 18.328475000000026, "cpuMs": 23.71, "maxRssMiB": 132.35546875, "node": "v24.15.0", "arch": "x64", "variant": "final", "run": 2}
+{"mode": "control", "size": 65536, "ms": 18.466511000000082, "cpuMs": 24.146, "maxRssMiB": 131.2421875, "node": "v24.15.0", "arch": "x64", "variant": "baseline", "run": 3}
+{"mode": "control", "size": 65536, "ms": 18.001536999999985, "cpuMs": 23.178, "maxRssMiB": 129.31640625, "node": "v24.15.0", "arch": "x64", "variant": "final", "run": 3}

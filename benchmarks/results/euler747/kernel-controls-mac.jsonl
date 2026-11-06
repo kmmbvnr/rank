@@ -1,0 +1,12 @@
+{"variant": "baseline", "run": 1, "mode": "roots", "size": 65536, "ms": 72.79620799999998, "cpuMs": 137.639, "maxRssMiB": 175.8125, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 1, "mode": "roots", "size": 65536, "ms": 16.465249999999997, "cpuMs": 27.046, "maxRssMiB": 142.203125, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 2, "mode": "roots", "size": 65536, "ms": 72.68745799999999, "cpuMs": 137.477, "maxRssMiB": 175.546875, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 2, "mode": "roots", "size": 65536, "ms": 16.23837499999999, "cpuMs": 26.592, "maxRssMiB": 141.078125, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 3, "mode": "roots", "size": 65536, "ms": 72.94941699999998, "cpuMs": 137.91, "maxRssMiB": 175.4375, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 3, "mode": "roots", "size": 65536, "ms": 16.122084, "cpuMs": 26.597, "maxRssMiB": 141.71875, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 1, "mode": "control", "size": 65536, "ms": 7.589292, "cpuMs": 10.88, "maxRssMiB": 136.875, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 1, "mode": "control", "size": 65536, "ms": 7.482708000000002, "cpuMs": 10.581, "maxRssMiB": 136.703125, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 2, "mode": "control", "size": 65536, "ms": 7.712042000000025, "cpuMs": 11.062, "maxRssMiB": 137.140625, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 2, "mode": "control", "size": 65536, "ms": 7.4804160000000195, "cpuMs": 10.579, "maxRssMiB": 137.15625, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "baseline", "run": 3, "mode": "control", "size": 65536, "ms": 7.6400409999999965, "cpuMs": 10.896, "maxRssMiB": 138.78125, "node": "v24.15.0", "arch": "arm64"}
+{"variant": "final", "run": 3, "mode": "control", "size": 65536, "ms": 7.568874999999991, "cpuMs": 10.676, "maxRssMiB": 160.03125, "node": "v24.15.0", "arch": "arm64"}
