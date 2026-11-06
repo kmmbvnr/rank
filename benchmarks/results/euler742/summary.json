@@ -1,0 +1,106 @@
+{
+  "mac": {
+    "baseline": {
+      "vertices": 1000,
+      "reach": 40,
+      "width": 2400,
+      "answer": "18397727",
+      "ms": 71111.05162500001,
+      "cpuMs": 82497.882,
+      "maxRssMiB": 404.796875,
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    "final": [
+      {
+        "vertices": 1000,
+        "reach": 40,
+        "width": 2400,
+        "answer": "18397727",
+        "ms": 6129.440667,
+        "cpuMs": 9917.819,
+        "maxRssMiB": 293,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "vertices": 1000,
+        "reach": 40,
+        "width": 2400,
+        "answer": "18397727",
+        "ms": 5561.164207999999,
+        "cpuMs": 9032.948,
+        "maxRssMiB": 316.046875,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "vertices": 1000,
+        "reach": 40,
+        "width": 2400,
+        "answer": "18397727",
+        "ms": 5663.2315,
+        "cpuMs": 9333.728,
+        "maxRssMiB": 286.578125,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      }
+    ],
+    "medianMs": 5663.2315,
+    "speedup": 12.55662100781153,
+    "medianPeakMiB": 293,
+    "peakReductionPercent": 27.618018296213375
+  },
+  "intel": {
+    "baseline": {
+      "vertices": 1000,
+      "reach": 40,
+      "width": 2400,
+      "answer": "18397727",
+      "ms": 162333.29893299998,
+      "cpuMs": 187752.882,
+      "maxRssMiB": 395.1953125,
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    "final": [
+      {
+        "vertices": 1000,
+        "reach": 40,
+        "width": 2400,
+        "answer": "18397727",
+        "ms": 15399.590296,
+        "cpuMs": 24390.456,
+        "maxRssMiB": 280.60546875,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "vertices": 1000,
+        "reach": 40,
+        "width": 2400,
+        "answer": "18397727",
+        "ms": 15703.327714,
+        "cpuMs": 24865.765,
+        "maxRssMiB": 280.38671875,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "vertices": 1000,
+        "reach": 40,
+        "width": 2400,
+        "answer": "18397727",
+        "ms": 15279.323640999999,
+        "cpuMs": 23978.049,
+        "maxRssMiB": 280.34375,
+        "node": "v24.15.0",
+        "arch": "x64"
+      }
+    ],
+    "medianMs": 15399.590296,
+    "speedup": 10.541403752485909,
+    "medianPeakMiB": 280.38671875,
+    "peakReductionPercent": 29.0511021053672
+  }
+}

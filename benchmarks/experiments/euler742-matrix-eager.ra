@@ -1,0 +1,69 @@
+rem Minimum Area of a Convex Polygon
+rem https://projecteuler.net/problem=742
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Vertices integer = 1000
+arg Reach integer = 40
+arg Width integer = 2400
+
+rem The mirror axes pass through half
+rem integers, so a polygon with 4 Q
+rem vertices has a top and a side edge
+rem of length 1 and, in each quadrant,
+rem K = Q - 1 edges with distinct
+rem primitive directions (x, y), slope
+rem y / x rising. With X the sum of the
+rem x of the edges before it, an edge
+rem adds 4 X y + 2x + 2y + 2 x y to the
+rem area, which starts at 1. So a
+rem knapsack over the edges in slope
+rem order, indexed by count and X, keeps
+rem the least area. Vectors have
+rem coordinates up to Reach and X up to
+rem Width, both above the optimum.
+Quarter = Vertices // 4
+Edges = Quarter - 1
+Side = Width + 1
+Row = 1 to Reach
+Column1 = Row reshape Reach 1
+Common = Row gcd Column1
+Across = Row + Common * 0
+Down = Column1 + Common * 0
+Good = Common equal 1
+Xs = Across filter Good
+Ys = Down filter Good
+Slope = Ys * 1.0 / Xs
+Order = Slope argsort
+Xs = Xs Order
+Ys = Ys Order
+rem Bound every feasible prefix cost.
+Missing = 4000000000000000000
+Limit = (4 * Width * Reach + 4 * Reach
+  + 2 * Reach * Reach)
+Huge = (Edges * Limit + 1) min Missing
+Table = array shape Quarter Side fill Huge
+Table 0 0 = 0
+Column = 0 to Width
+for Step in 0 to Xs len - 1
+  Run = Xs Step
+  Rise = Ys Step
+  Cost = 2 * Run + 2 * Rise
+  Cost = Cost + 2 * Run * Rise
+  Grow = 4 * Column * Rise + Cost
+  Before = Table
+  Added = Before + Grow
+  Rows = Added shift 1 with Huge axis 0
+  Moved = Rows shift Run with Huge axis 1
+  Table = Before min Moved
+end
+Last = Table Edges
+Best = Last min
+Answer = 1 + Best
+if Best equal Huge
+  Answer = Missing + 1
+end
+Answer print

@@ -1,0 +1,65 @@
+diff --git a/packages/interpreter/src/jit/tensor-number-layout.ts b/packages/interpreter/src/jit/tensor-number-layout.ts
+index 9cc012bc..ebbad3f3 100644
+--- a/packages/interpreter/src/jit/tensor-number-layout.ts
++++ b/packages/interpreter/src/jit/tensor-number-layout.ts
+@@ -95,6 +95,12 @@ export function prepareLayoutNumberTensor(root: TensorNode,
+             }
+             shape = result;
+         }
++        else if (node.kind === 'shift' && bind(node.source) && bind(node.fill)) {
++            const source = shapes.get(node.source)!;
++            if (!Number.isSafeInteger(node.amount) || !Number.isInteger(node.axis) || node.axis < 0
++                || node.axis >= source.length || shapes.get(node.fill)!.length) return false;
++            shape = source;
++        }
+         else if (node.kind === 'select' && bind(node.source) && bind(node.selector)
+             && shapes.get(node.source)!.length === 1 && domains.get(node.selector)?.join() === 'integer') shape = shapes.get(node.selector);
+         if (!shape) return false;
+@@ -108,7 +114,8 @@ export function prepareLayoutNumberTensor(root: TensorNode,
+     if (wideInputs.reduce((a, b) => a + b, 0) * 4 > count) return undefined;
+     const uniformLines = new Set<number>();
+     const loads: { slot: number; at: string; name: string; line: number }[] = [];
+-    const lines: string[] = [], emitted = new Map<TensorNode, Map<string, string>>();
++    const lines: string[] = [];
++    let emitted = new Map<TensorNode, Map<string, string>>(), branches = false;
+     let serial = 0;
+     function offset(parent: TensorNode, child: TensorNode, at: string): string {
+         const a = shapes.get(parent)!, b = shapes.get(child)!;
+@@ -143,6 +150,26 @@ export function prepareLayoutNumberTensor(root: TensorNode,
+             const index = `index${serial++}`;
+             lines.push(`const ${index} = safe(${node.linear ? `${node.linear.offset} + (${at}) * ${node.linear.stride}` : `routes[${slots.get(node)}](${at})`});`);
+             value = emit(node.source, index);
++        } else if (node.kind === 'shift') {
++            branches = true;
++            const shape = shapes.get(node.source)!, width = shape[node.axis];
++            const stride = shape.slice(node.axis + 1).reduce((a, b) => a * b, 1);
++            const position = `position${serial++}`;
++            lines.push(`const ${position} = Math.floor((${at}) / ${stride}) % ${width} - (${node.amount});`,
++                `let ${name};`, `if (${position} < 0 || ${position} >= ${width}) {`);
++            const saved = emitted;
++            emitted = new Map();
++            const fill = emit(node.fill, '0');
++            if (!fill) return undefined;
++            lines.push(`${name} = ${fill};`, '} else {');
++            emitted = new Map();
++            const source = emit(node.source, `safe((${at}) - (${node.amount * stride}))`);
++            if (!source) return undefined;
++            lines.push(`${name} = ${source};`, '}');
++            emitted = saved;
++            if (!emitted.has(node)) emitted.set(node, new Map());
++            emitted.get(node)!.set(at, name);
++            return name;
+         } else if (node.kind === 'check') {
+             const source = emit(node.source, at);
+             if (!source) return undefined;
+@@ -205,7 +232,9 @@ export function prepareLayoutNumberTensor(root: TensorNode,
+     const step = (uniform: boolean) => `const i = indices ? safe(indices[at]) : at;
+         ${lines.filter((_, index) => uniform || !uniformLines.has(index)).join('\n')}
+         ${action}`;
+-    const peel = uniformLines.size > 0 && count >= 64;
++    // A shifted source may first run after the fill prefix. Keep its
++    // uniform check guarded until that actual first source read.
++    const peel = !branches && uniformLines.size > 0 && count >= 64;
+     const source = `return function(data, scalars, limits, routes, checks, count, indices, upper) {
+         const validated = [];
+         let result = ${operation === 'sum' || operation === 'indices' ? '0' : operation === 'positions' ? '[]' : type === 'boolean' ? 'new Uint32Array(Math.ceil(count / 32))' : 'new Int32Array(count)'};
