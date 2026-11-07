@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /tmp/rank551/final/packages/interpreter
+
+ ✓ test/full-scale-demos.test.ts (54 tests | 53 skipped) 12390ms
+   ✓ checks the full compiled answer for 750_cardstacking.ra  12388ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 53 skipped (54)
+   Start at  14:30:27
+   Duration  15.28s (transform 1.91s, setup 0ms, collect 2.69s, tests 12.39s, environment 0ms, prepare 54ms)

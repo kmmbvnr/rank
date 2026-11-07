@@ -15,12 +15,20 @@ rem Cost(l, r) = min over m of
 rem Cost(l, m) + Cost(m+1, r) +
 rem |pos(m) - pos(r)|. Intervals are
 rem filled by length, all at once.
+rem Weighted stores Cost plus the edge
+rem from the label before the interval.
+rem That edge is shared by all splits.
 Order = 1 to Cards
 Deck = 3 Order (Cards + 1) powmod
 Place = array shape (Cards + 1) fill 0
 Place Deck = Order
 Wide = Cards + 2
 Table = array shape (Wide * Wide) fill 0
+Weighted = Table copy
+Before = Place (Order - 1)
+After = Place Order
+Leaf = (Before - After) abs
+Weighted (Wide + Order) = Leaf
 for Size in 2 to Cards
   Count = Cards - Size + 1
   Left = (1 to Count) reshape Count 1
@@ -29,14 +37,17 @@ for Size in 2 to Cards
   First = Table (Cut * Wide + Left)
   Rest = Size - Cut
   Where = Rest * Wide + Left + Cut
-  Second = Table Where
-  Near = Place (Left + Cut - 1)
-  Far = Place (Left + Size - 1)
-  Dist = (Near - Far) abs
-  Cost = First + Second + Dist
+  Second = Weighted Where
+  Cost = First + Second
   Best = Cost min axis 1
-  Row = Size * Wide + (1 to Count)
+  Starts = 1 to Count
+  Row = Size * Wide + Starts
   Table Row = Best
+  Ends = Starts + Size - 1
+  Before = Place (Starts - 1)
+  After = Place Ends
+  Weight = (Before - After) abs
+  Weighted Row = Best + Weight
 end
 Answer = Table (Cards * Wide + 1)
 Answer print

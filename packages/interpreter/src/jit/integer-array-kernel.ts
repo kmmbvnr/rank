@@ -299,13 +299,18 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
 function compactBroadcastLanes(left: RankArray, right: RankArray,
     a: NonNullable<ReturnType<typeof prepareStoredScalarView>>,
     b: NonNullable<ReturnType<typeof prepareStoredScalarView>>, shape: readonly number[], code: number): Int32Array | undefined {
-    if (!a.compact && !b.compact) return undefined;
     const aShape = left.shape, bShape = right.shape;
     const aSize = aShape.reduce((n, d) => n * d, 1), bSize = bShape.reduce((n, d) => n * d, 1);
+    const outputSize = shape.reduce((n, d) => n * d, 1);
+    if (!a.compact && !b.compact && (!(a.items instanceof BigInt64Array)
+        || !(b.items instanceof BigInt64Array) || demandBudgetEnabled() || (aSize + bSize) * 4 > outputSize)) return undefined;
     const small = (view: typeof a, count: number) => {
-        if (count > 64) return undefined;
+        // Reused stored lanes amortize checked narrowing. Opaque/boxed
+        // constants keep the small-input limit and exact fallback.
+        if (count > 64 && (demandBudgetEnabled() || !(view.items instanceof BigInt64Array) || count * 4 > outputSize)) return undefined;
         const cells = new Int32Array(count), { offset, stride } = view.linear!;
         for (let i = 0; i < count; i++) {
+            if (count > 64 && (i & 4095) === 0) checkpoint('narrowing integer broadcast lanes', Math.min(4096, count - i));
             const value = view.items[offset + i * stride];
             if (typeof value !== 'bigint' || value < -2147483648n || value > 2147483647n) return undefined;
             cells[i] = Number(value);

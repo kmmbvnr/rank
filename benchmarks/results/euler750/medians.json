@@ -1,0 +1,90 @@
+{
+  "mac": {
+    "baseline": {
+      "cards": 976,
+      "answer": "160640",
+      "ms": 25786.616875,
+      "cpuMs": 33873.521,
+      "maxRssMiB": 387.296875,
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    "final": [
+      {
+        "cards": 976,
+        "answer": "160640",
+        "ms": 5216.318584,
+        "cpuMs": 9845.842,
+        "maxRssMiB": 295.390625,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "cards": 976,
+        "answer": "160640",
+        "ms": 4622.886125,
+        "cpuMs": 8683.829,
+        "maxRssMiB": 348.1875,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "cards": 976,
+        "answer": "160640",
+        "ms": 5204.04925,
+        "cpuMs": 9595.424,
+        "maxRssMiB": 333.984375,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      }
+    ],
+    "medianMs": 5204.04925,
+    "medianMaxRssMiB": 333.984375,
+    "speedup": 4.955106232901236,
+    "rssReductionPercent": 13.765280187194906
+  },
+  "intel": {
+    "baseline": {
+      "cards": 976,
+      "answer": "160640",
+      "ms": 44963.154367,
+      "cpuMs": 58996.927,
+      "maxRssMiB": 335.06640625,
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    "final": [
+      {
+        "cards": 976,
+        "answer": "160640",
+        "ms": 11854.902551,
+        "cpuMs": 19972.49,
+        "maxRssMiB": 278.49609375,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "cards": 976,
+        "answer": "160640",
+        "ms": 12092.292492,
+        "cpuMs": 20275.824,
+        "maxRssMiB": 267.20703125,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "cards": 976,
+        "answer": "160640",
+        "ms": 12210.910849,
+        "cpuMs": 20668.816,
+        "maxRssMiB": 277.50390625,
+        "node": "v24.15.0",
+        "arch": "x64"
+      }
+    ],
+    "medianMs": 12092.292492,
+    "medianMaxRssMiB": 277.50390625,
+    "speedup": 3.718331689110783,
+    "rssReductionPercent": 17.179430383436124
+  }
+}

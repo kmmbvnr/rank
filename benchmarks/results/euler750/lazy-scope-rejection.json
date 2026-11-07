@@ -1,0 +1,6 @@
+{
+  "source": "benchmarks/experiments/euler750-lazy.ra",
+  "result": "rejected before execution",
+  "kind": "Scope",
+  "message": "Table is read-only because plan First reads it; copy it before mutation."
+}

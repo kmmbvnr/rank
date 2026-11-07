@@ -1,0 +1,312 @@
+{
+  "baseline-Cards600": {
+    "samples": 4321,
+    "topSelfSamples": [
+      {
+        "samples": 507,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 466,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 396,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 222,
+        "function": "broadcastOffset",
+        "file": "tensor-layout.js",
+        "line": 78
+      },
+      {
+        "samples": 192,
+        "function": "broadcastOffset",
+        "file": "tensor-layout.js",
+        "line": 78
+      },
+      {
+        "samples": 186,
+        "function": "mapStoredIntegers",
+        "file": "integer-array-kernel.js",
+        "line": 20
+      },
+      {
+        "samples": 175,
+        "function": "",
+        "file": "tensor-kernel.js",
+        "line": 337
+      },
+      {
+        "samples": 149,
+        "function": "",
+        "file": "selectors.js",
+        "line": 92
+      },
+      {
+        "samples": 104,
+        "function": "(program)",
+        "file": "",
+        "line": 0
+      },
+      {
+        "samples": 101,
+        "function": "mapStoredIntegers",
+        "file": "integer-array-kernel.js",
+        "line": 20
+      },
+      {
+        "samples": 92,
+        "function": "broadcastOffset",
+        "file": "tensor-layout.js",
+        "line": 78
+      },
+      {
+        "samples": 90,
+        "function": "",
+        "file": "selectors.js",
+        "line": 92
+      },
+      {
+        "samples": 90,
+        "function": "mapStoredIntegers",
+        "file": "integer-array-kernel.js",
+        "line": 20
+      },
+      {
+        "samples": 70,
+        "function": "(garbage collector)",
+        "file": "",
+        "line": 0
+      },
+      {
+        "samples": 44,
+        "function": "inputBounds",
+        "file": "tensor-bounds.js",
+        "line": 15
+      },
+      {
+        "samples": 44,
+        "function": "compactBinary",
+        "file": "integer-array-kernel.js",
+        "line": 95
+      },
+      {
+        "samples": 42,
+        "function": "gather",
+        "file": "selectors.js",
+        "line": 482
+      },
+      {
+        "samples": 37,
+        "function": "applyToTensorCells",
+        "file": "rank-application.js",
+        "line": 313
+      },
+      {
+        "samples": 37,
+        "function": "mapStoredIntegers",
+        "file": "integer-array-kernel.js",
+        "line": 20
+      },
+      {
+        "samples": 37,
+        "function": "tensorSelection",
+        "file": "selectors.js",
+        "line": 88
+      },
+      {
+        "samples": 34,
+        "function": "tensorSelection",
+        "file": "selectors.js",
+        "line": 88
+      },
+      {
+        "samples": 22,
+        "function": "bindRun",
+        "file": "tensor-kernel.js",
+        "line": 615
+      },
+      {
+        "samples": 21,
+        "function": "gather",
+        "file": "selectors.js",
+        "line": 482
+      },
+      {
+        "samples": 21,
+        "function": "extremeIntegerAxis",
+        "file": "axis-order.js",
+        "line": 124
+      },
+      {
+        "samples": 20,
+        "function": "invoke",
+        "file": "tensor-kernel.js",
+        "line": 472
+      }
+    ]
+  },
+  "final-Cards600": {
+    "samples": 1410,
+    "topSelfSamples": [
+      {
+        "samples": 132,
+        "function": "",
+        "file": "tensor-kernel.js",
+        "line": 337
+      },
+      {
+        "samples": 56,
+        "function": "",
+        "file": "selectors.js",
+        "line": 92
+      },
+      {
+        "samples": 53,
+        "function": "",
+        "file": "selectors.js",
+        "line": 92
+      },
+      {
+        "samples": 40,
+        "function": "(program)",
+        "file": "",
+        "line": 0
+      },
+      {
+        "samples": 32,
+        "function": "bindRun",
+        "file": "tensor-kernel.js",
+        "line": 615
+      },
+      {
+        "samples": 26,
+        "function": "invoke",
+        "file": "tensor-kernel.js",
+        "line": 472
+      },
+      {
+        "samples": 20,
+        "function": "gather",
+        "file": "selectors.js",
+        "line": 482
+      },
+      {
+        "samples": 19,
+        "function": "(garbage collector)",
+        "file": "",
+        "line": 0
+      },
+      {
+        "samples": 19,
+        "function": "gather",
+        "file": "selectors.js",
+        "line": 482
+      },
+      {
+        "samples": 18,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 17,
+        "function": "compactBinary",
+        "file": "integer-array-kernel.js",
+        "line": 95
+      },
+      {
+        "samples": 17,
+        "function": "compactBroadcastLanes",
+        "file": "integer-array-kernel.js",
+        "line": 358
+      },
+      {
+        "samples": 15,
+        "function": "extremeIntegerAxis",
+        "file": "axis-order.js",
+        "line": 124
+      },
+      {
+        "samples": 15,
+        "function": "tensorSelection",
+        "file": "selectors.js",
+        "line": 88
+      },
+      {
+        "samples": 11,
+        "function": "compactBroadcastLanes",
+        "file": "integer-array-kernel.js",
+        "line": 358
+      },
+      {
+        "samples": 11,
+        "function": "compactBinary",
+        "file": "integer-array-kernel.js",
+        "line": 95
+      },
+      {
+        "samples": 10,
+        "function": "tensorSelection",
+        "file": "selectors.js",
+        "line": 88
+      },
+      {
+        "samples": 7,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 6,
+        "function": "reshapeItems",
+        "file": "sequences.js",
+        "line": 819
+      },
+      {
+        "samples": 4,
+        "function": "advance",
+        "file": "execution.js",
+        "line": 92
+      },
+      {
+        "samples": 4,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 4,
+        "function": "",
+        "file": "",
+        "line": 3
+      },
+      {
+        "samples": 3,
+        "function": "broadcastOffset",
+        "file": "tensor-layout.js",
+        "line": 78
+      },
+      {
+        "samples": 3,
+        "function": "iterate",
+        "file": "operators.js",
+        "line": 633
+      },
+      {
+        "samples": 3,
+        "function": "general",
+        "file": "assignments.js",
+        "line": 119
+      }
+    ]
+  }
+}

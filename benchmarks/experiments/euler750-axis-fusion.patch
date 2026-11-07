@@ -1,0 +1,66 @@
+--- a/packages/interpreter/src/jit/tensor-number-layout.ts
++++ b/packages/interpreter/src/jit/tensor-number-layout.ts
+@@ -36 +36 @@
+-    count: number, indices: ArrayLike<number> | undefined, upper: number) => Output;
++    count: number, indices: ArrayLike<number> | undefined, upper: number, inner: number) => Output;
+@@ -43,2 +43,2 @@
+-    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, operation: 'sum' | 'positions' | 'copy' | 'indices',
+-    code: TensorCodeCache, valid: () => boolean, indices?: ArrayLike<number>, upper = 0, compiled?: (source: string) => void):
++    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, operation: 'sum' | 'positions' | 'copy' | 'indices' | 'min' | 'max',
++    code: TensorCodeCache, valid: () => boolean, indices?: ArrayLike<number>, upper = 0, compiled?: (source: string) => void, axis?: number):
+@@ -46,0 +47 @@
++    const extreme = operation === 'min' || operation === 'max';
+@@ -48 +49 @@
+-        : operation === 'sum' || operation === 'indices' ? type !== 'integer' : type !== 'integer' && type !== 'boolean')) return undefined;
++        : operation === 'sum' || operation === 'indices' || extreme ? type !== 'integer' : type !== 'integer' && type !== 'boolean')) return undefined;
+@@ -108,0 +110,3 @@
++    const shape = shapes.get(root)!;
++    if (extreme && (axis !== shape.length - 1 || indices || shape[axis] === 0)) return undefined;
++    const inner = extreme ? shape[axis!] : 1;
+@@ -209 +213,5 @@
+-    const action = `${operation === 'indices' ? `if (${result} < 0 || ${result} >= upper) throw overflow;` : operation === 'sum' ? `result = safe(result + ${result});` : operation === 'positions' ? `if (${result}) result.push(i);`
++    const action = `${extreme ? `best = at % inner === 0 ? ${result} : Math.${operation}(best, ${result});
++        if ((at + 1) % inner === 0) {
++            if (result instanceof Int32Array && best !== (best | 0)) result = widen(result);
++            result[Math.floor(at / inner)] = result instanceof Int32Array ? best : BigInt(best);
++        }` : operation === 'indices' ? `if (${result} < 0 || ${result} >= upper) throw overflow;` : operation === 'sum' ? `result = safe(result + ${result});` : operation === 'positions' ? `if (${result}) result.push(i);`
+@@ -217,3 +225,3 @@
+-    const source = `return function(data, scalars, limits, routes, checks, count, indices, upper) {
+-        const validated = [];
+-        let result = ${operation === 'sum' || operation === 'indices' ? '0' : operation === 'positions' ? '[]' : type === 'boolean' ? 'new Uint32Array(Math.ceil(count / 32))' : 'new Int32Array(count)'};
++    const source = `return function(data, scalars, limits, routes, checks, count, indices, upper, inner) {
++        const validated = []; let best = 0;
++        let result = ${operation === 'sum' || operation === 'indices' ? '0' : operation === 'positions' ? '[]' : type === 'boolean' ? 'new Uint32Array(Math.ceil(count / 32))' : extreme ? 'new Int32Array(count / inner)' : 'new Int32Array(count)'};
+@@ -245 +253 @@
+-            const execute = () => run!(data, scalars, limits, routes, checks, indices?.length ?? size(root), indices, upper);
++            const execute = () => run!(data, scalars, limits, routes, checks, indices?.length ?? size(root), indices, upper, inner);
+@@ -250 +258,2 @@
+-            const shape = indices ? [indices.length] : [...shapes.get(root)!];
++            const shape = extreme ? shapes.get(root)!.slice(0, -1) : indices ? [indices.length] : [...shapes.get(root)!];
++            if (extreme && shape.length === 0) return BigInt((value as Int32Array | BigInt64Array)[0]);
+--- a/packages/interpreter/src/jit/tensor-map.ts
++++ b/packages/interpreter/src/jit/tensor-map.ts
+@@ -140,0 +141,15 @@
++}
++
++/** A private complete trailing-axis extreme shares the checked numeric layout
++ * emitter, but stores one value per frame instead of a full pointwise tensor. */
++export function reduceNumberTensorAxis(value: RankArray, operation: 'min' | 'max', axis: number): RankValue | undefined {
++    const graph = prepareTensorGraph(value);
++    if (!graph?.transformed || graph.nonReplayableChecks) return undefined;
++    const { root, domains, host, scope } = graph;
++    const result = prepareLayoutNumberTensor(root, domains, operation, scope.code, host.valid!,
++        undefined, 0, host.compiled, axis)?.();
++    if (result === undefined || typeof result !== 'bigint' && !isRankArray(result as RankValue)) return undefined;
++    scope.executed();
++    const diagnostics = currentDiagnostics();
++    if (diagnostics) diagnostics.numberTensors++;
++    return result as RankValue;
+--- a/packages/interpreter/src/reduction.ts
++++ b/packages/interpreter/src/reduction.ts
+@@ -27 +27 @@
+-import { materializeTensorMap, prepareTensorAxisReduction, prepareTensorBooleanRange, scanTensorMap } from './tensor-map.js';
++import { materializeTensorMap, reduceNumberTensorAxis, prepareTensorAxisReduction, prepareTensorBooleanRange, scanTensorMap } from './tensor-map.js';
+@@ -516,0 +517,2 @@
++            const fused = this.isTensorFusion() ? reduceNumberTensorAxis(value, operation, axes[0]) : undefined;
++            if (fused !== undefined) return fused;

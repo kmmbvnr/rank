@@ -1,0 +1,42 @@
+rem Optimal Card Stacking
+rem https://projecteuler.net/problem=750
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Cards integer = 976
+
+rem Cards are 3^i mod (n + 1). Merging
+rem the labels l..r last joins l..m and
+rem m+1..r at cost |pos(m) - pos(r)|, so
+rem Cost(l, r) = min over m of
+rem Cost(l, m) + Cost(m+1, r) +
+rem |pos(m) - pos(r)|. Intervals are
+rem filled by length, all at once.
+Order = 1 to Cards
+Deck = 3 Order (Cards + 1) powmod
+Place = array shape (Cards + 1) fill 0
+Place Deck = Order
+Wide = Cards + 2
+Table = array shape (Wide * Wide) fill 0
+for Size in 2 to Cards
+  Count = Cards - Size + 1
+  Left = (1 to Count) reshape Count 1
+  Splits = Size - 1
+  Cut = (1 to Splits) reshape 1 Splits
+  First = Table (Cut * Wide + Left)
+  Rest = Size - Cut
+  Where = Rest * Wide + Left + Cut
+  Second = Table Where
+  Near = Place (Left + Cut - 1)
+  Far = Place (Left + Size - 1)
+  Dist = (Near - Far) abs
+  Cost = First + Second + Dist
+  Best = Cost min axis 1
+  Row = Size * Wide + (1 to Count)
+  Table Row = Best
+end
+Answer = Table (Cards * Wide + 1)
+Answer print

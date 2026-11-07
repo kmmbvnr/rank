@@ -1,0 +1,104 @@
+
+ RUN  v3.2.7 /private/tmp/rank551-work/packages/interpreter
+
+ ❯ test/plan-tensor-reduction.test.ts (52 tests | 2 failed) 207ms
+   ✓ tensor reduction plan demand (compilation=false) > fuses a scalar plan only at demand, recomputes, and retains ordinary results 85ms
+   ✓ tensor reduction plan demand (compilation=false) > preserves exact arithmetic and broadcast shape in a captured expression 2ms
+   ✓ tensor reduction plan demand (compilation=false) > fuses named ranked text conversion and power plans without completing arrays 9ms
+   ✓ tensor reduction plan demand (compilation=false) > keeps binding checks on a named ranked conversion before its consumer 3ms
+   ✓ tensor reduction plan demand (compilation=false) > rebinds text lengths and preserves exact powers across prepared calls 5ms
+   ✓ tensor reduction plan demand (compilation=false) > retains invalid character errors for 12x 2ms
+   ✓ tensor reduction plan demand (compilation=false) > retains invalid character errors for -12 2ms
+   ✓ tensor reduction plan demand (compilation=false) > retains invalid character errors for 1 2 2ms
+   ✓ tensor reduction plan demand (compilation=false) > rechecks the native converter after a successful named-plan reduction 2ms
+   ✓ tensor reduction plan demand (compilation=false) > preserves the sum terminal 2ms
+   ✓ tensor reduction plan demand (compilation=false) > preserves the mean terminal 2ms
+   ✓ tensor reduction plan demand (compilation=false) > preserves the min terminal 1ms
+   ✓ tensor reduction plan demand (compilation=false) > preserves the max terminal 1ms
+   ✓ tensor reduction plan demand (compilation=false) > preserves the greater 4 count terminal 2ms
+   ✓ tensor reduction plan demand (compilation=false) > preserves the greater 4 any terminal 2ms
+   ✓ tensor reduction plan demand (compilation=false) > preserves the greater 4 all terminal 1ms
+   ✓ tensor reduction plan demand (compilation=false) > keeps immediate helper effects and local completion before the deferred reduction 6ms
+   ✓ tensor reduction plan demand (compilation=false) > retains user reduction dispatch 2ms
+   ✓ tensor reduction plan demand (compilation=false) > rechecks the reducer implementation after a successful kernel run 1ms
+   ✓ tensor reduction plan demand (compilation=false) > runs binding validation after each compiled result, including failed demands 3ms
+   ✓ tensor reduction plan demand (compilation=false) > does not inline through a captured plan and skip its binding check 1ms
+   ✓ tensor reduction plan demand (compilation=false) > declines unread host cells and repeats their observable traversal 1ms
+   ✓ tensor reduction plan demand (compilation=false) > keeps array plans lazy when only one cell is demanded 1ms
+   ✓ tensor reduction plan demand (compilation=false) > keeps error timing and retries after a failed scalar demand 2ms
+   ✓ tensor reduction plan demand (compilation=false) > uses call-time demand budgets after a cached unbounded kernel run 15ms
+   ✓ tensor reduction plan demand (compilation=false) > disables a previously prepared kernel during inspection 2ms
+   ✓ tensor reduction plan demand (compilation=true) > fuses a scalar plan only at demand, recomputes, and retains ordinary results 5ms
+   ✓ tensor reduction plan demand (compilation=true) > preserves exact arithmetic and broadcast shape in a captured expression 1ms
+   × tensor reduction plan demand (compilation=true) > fuses named ranked text conversion and power plans without completing arrays 8ms
+     → expected +0 to be 3 // Object.is equality
+   ✓ tensor reduction plan demand (compilation=true) > keeps binding checks on a named ranked conversion before its consumer 1ms
+   × tensor reduction plan demand (compilation=true) > rebinds text lengths and preserves exact powers across prepared calls 3ms
+     → expected +0 to be 3 // Object.is equality
+   ✓ tensor reduction plan demand (compilation=true) > retains invalid character errors for 12x 1ms
+   ✓ tensor reduction plan demand (compilation=true) > retains invalid character errors for -12 1ms
+   ✓ tensor reduction plan demand (compilation=true) > retains invalid character errors for 1 2 1ms
+   ✓ tensor reduction plan demand (compilation=true) > rechecks the native converter after a successful named-plan reduction 1ms
+   ✓ tensor reduction plan demand (compilation=true) > preserves the sum terminal 1ms
+   ✓ tensor reduction plan demand (compilation=true) > preserves the mean terminal 3ms
+   ✓ tensor reduction plan demand (compilation=true) > preserves the min terminal 1ms
+   ✓ tensor reduction plan demand (compilation=true) > preserves the max terminal 1ms
+   ✓ tensor reduction plan demand (compilation=true) > preserves the greater 4 count terminal 1ms
+   ✓ tensor reduction plan demand (compilation=true) > preserves the greater 4 any terminal 1ms
+   ✓ tensor reduction plan demand (compilation=true) > preserves the greater 4 all terminal 1ms
+   ✓ tensor reduction plan demand (compilation=true) > keeps immediate helper effects and local completion before the deferred reduction 3ms
+   ✓ tensor reduction plan demand (compilation=true) > retains user reduction dispatch 2ms
+   ✓ tensor reduction plan demand (compilation=true) > rechecks the reducer implementation after a successful kernel run 2ms
+   ✓ tensor reduction plan demand (compilation=true) > runs binding validation after each compiled result, including failed demands 1ms
+   ✓ tensor reduction plan demand (compilation=true) > does not inline through a captured plan and skip its binding check 1ms
+   ✓ tensor reduction plan demand (compilation=true) > declines unread host cells and repeats their observable traversal 1ms
+   ✓ tensor reduction plan demand (compilation=true) > keeps array plans lazy when only one cell is demanded 1ms
+   ✓ tensor reduction plan demand (compilation=true) > keeps error timing and retries after a failed scalar demand 2ms
+   ✓ tensor reduction plan demand (compilation=true) > uses call-time demand budgets after a cached unbounded kernel run 2ms
+   ✓ tensor reduction plan demand (compilation=true) > disables a previously prepared kernel during inspection 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/plan-tensor-reduction.test.ts > tensor reduction plan demand (compilation=true) > fuses named ranked text conversion and power plans without completing arrays
+AssertionError: expected +0 to be 3 // Object.is equality
+
+- Expected
++ Received
+
+- 3
++ 0
+
+ ❯ test/plan-tensor-reduction.test.ts:67:31
+     65|             expect(host.execute('Second')).toBe(4150n);
+     66|             expect(host.execute('First')).toBe(1634n);
+     67|             expect(entries()).toBe(compilation ? 3 : 0);
+       |                               ^
+     68|             if (compilation) {
+     69|                 expect(sources.length).toBeGreaterThan(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/plan-tensor-reduction.test.ts > tensor reduction plan demand (compilation=true) > rebinds text lengths and preserves exact powers across prepared calls
+AssertionError: expected +0 to be 3 // Object.is equality
+
+- Expected
++ Received
+
+- 3
++ 0
+
+ ❯ test/plan-tensor-reduction.test.ts:104:31
+    102|             expect(host.execute('"1" powers 3')).toBe(1n);
+    103|             expect(() => host.execute('"12" powers -2')).toThrowError(…
+    104|             expect(entries()).toBe(compilation ? 3 : 0);
+       |                               ^
+    105|         } finally { host.dispose(); }
+    106|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 50 passed (52)
+   Start at  14:34:44
+   Duration  1.64s (transform 896ms, setup 0ms, collect 1.33s, tests 207ms, environment 0ms, prepare 30ms)

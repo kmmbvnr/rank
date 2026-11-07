@@ -1,0 +1,19 @@
+
+ RUN  v3.2.7 /tmp/rank551/final/packages/interpreter
+
+ ✓ test/integer-axis-extreme.test.ts (9 tests) 398ms
+   ✓ packed integer extrema (false) > folds min on every axis without boxing cells  320ms
+ ✓ test/compact-gcd.test.ts (14 tests) 499ms
+   ✓ compact stored gcd kernels > handles high-rank broadcast lanes and preserves a reversed source view  301ms
+ ✓ test/plan-tensor-axis.test.ts (50 tests) 736ms
+   ✓ tensor axis plan demand (compilation=false) > reduces a broadcast histogram without collecting its comparison cells  348ms
+ ✓ test/amortized-broadcast-lanes.test.ts (30 tests) 1105ms
+   ✓ amortized stored integer broadcast lanes > preserves exact fallback for wide values 2147483647n  353ms
+ ✓ test/euler750.test.ts (26 tests) 1272ms
+ ✓ test/packed-column-broadcast.test.ts (23 tests) 2088ms
+   ✓ broadcasts 2 lanes through three axes: +, compilation=false  319ms
+
+ Test Files  6 passed (6)
+      Tests  152 passed (152)
+   Start at  14:30:20
+   Duration  6.54s (transform 2.09s, setup 0ms, collect 13.13s, tests 6.10s, environment 1ms, prepare 424ms)
