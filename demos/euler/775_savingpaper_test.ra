@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "775_savingpaper"
+  Limit = 18
+  run
+  Answer equal 530
+  Limit = 1000000
+  run
+  Answer equal 951640919
+end

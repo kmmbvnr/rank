@@ -1,0 +1,83 @@
+rem Saving Paper
+rem https://projecteuler.net/problem=775
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 16
+arg Mod integer = 1000000007
+
+rem The best polycube for m^3 <= n <
+rem (m+1)^3 is a near-cube box plus one
+rem partial layer, whose area t costs
+rem B(t) = 2 ceil(2 sqrt t) extra
+rem surface (B(0) = 0). Three phases per
+rem m grow the box from m x m x m to
+rem m x m x (m+1) to m x (m+1) x (m+1).
+rem g(n) = 6n - surface - B(layer), and
+rem prefix sums of B have a closed form.
+Guess = (Limit ** (1.0 / 3.0)) integer
+Tries = (Guess - 2) + (0 to 4)
+Good = (Tries ** 3) at most Limit
+Cube = Tries Good max
+Ms = 1 to Cube
+Base0 = Ms ** 3
+Base1 = Ms * Ms * (Ms + 1)
+Base2 = Ms * (Ms + 1) ** 2
+Base3 = (Ms + 1) ** 3
+Area0 = 6 * Ms * Ms
+Next = Ms + 1
+Area1 = 2 * (Ms * Ms + 2 * Ms * Next)
+Wall = 2 * Ms * Next
+Area2 = 2 * (Wall + Next * Next)
+Lows = concat Base0 (Base1 + 1)
+Lows = concat Lows (Base2 + 1)
+Highs = concat Base1 Base2
+Highs = concat Highs (Base3 - 1)
+Bases = concat Base0 Base1
+Bases = concat Bases Base2
+Areas = concat Area0 Area1
+Areas = concat Areas Area2
+Top = Highs min Limit
+Live = Lows at most Top
+Lo = Lows Live
+Hi = Top Live
+Bs = Bases Live
+Ar = Areas Live
+Count = Hi - Lo + 1
+rem Sum of n over the interval, exactly
+rem halved before reduction.
+Odd = Count mod 2 equal 1
+Pair = Lo + Hi
+Left = Odd choose (Pair // 2) Pair
+Right = Odd choose Count (Count // 2)
+Lm = Left mod Mod
+Rm = Right mod Mod
+Total = Lm * Rm mod Mod
+Cm = Count mod Mod
+Am = Ar mod Mod
+Fixed = Cm * Am mod Mod
+rem F(r) = sum of ceil(2 sqrt t).
+fun Reach prefix Unused
+  Root = (4 * Reach + 1) isqrt
+  Whole = (Root - 1) // 2
+  Used = Whole * (Whole + 1)
+  Extra = Reach - Used
+  Short = Extra min (Whole + 1)
+  Rest = Extra - Short
+  Mul = Whole * (Whole + 1)
+  Done = Mul * (8 * Whole + 7) // 6
+  Sum = Done + Short * (2 * Whole + 2)
+  Tail = Rest * (2 * Whole + 3)
+  return 2 * (Sum + Tail)
+end
+Up = (Hi - Bs) max 0
+Down = (Lo - 1 - Bs) max 0
+High = Up prefix 0
+Low = Down prefix 0
+Fix = (High - Low) mod Mod
+Part = (6 * Total - Fixed - Fix) mod Mod
+Answer = Part sum mod Mod
+Answer print
