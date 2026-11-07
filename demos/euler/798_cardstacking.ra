@@ -1,0 +1,88 @@
+rem Card Stacking Game
+rem https://projecteuler.net/problem=798
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Cards integer = 10000000
+arg Suits integer = 10000000
+arg Mod integer = 1000000007
+
+rem Suits are independent, so a position
+rem loses when the XOR of the Grundy
+rem values is 0. With a(g) the count of
+rem one-suit positions of value g
+rem (binomial closed forms), C is the
+rem XOR power: Walsh-Hadamard transform,
+rem pointwise power, inverse by 1 / P.
+fun Left mulp Right
+  return Left * Right mod Mod
+end
+Count = Cards // 2 + 1
+Ms = 0 to Count - 1
+Idx = 0 to Cards
+Fact = (Idx max 1) scan mulp
+Inv = Fact (Mod - 2) Mod powmod
+rem Binomial C(Top, Low), 0 if invalid.
+fun Top binom Low
+  Above = Low at least 0
+  Ok = Above and (Low at most Top)
+  Safe = (Top max 0) min Cards
+  Lo = (Low max 0) min Safe
+  Hi = Safe - Lo
+  Part = Fact Safe * Inv Lo mod Mod
+  Raw = Part * Inv Hi mod Mod
+  return Raw * (Ok integer)
+end
+Half = (Mod + 1) // 2
+Rest = Cards - Ms
+Be = (Rest - 2) binom Ms
+Al = (Rest - 2) binom (Ms - 1)
+Pi = (Rest - 1) binom Ms
+Chi = (Rest - 1) binom (Ms + 1)
+Pow2 = 2 Ms Mod powmod
+Tail = Ms greater 0
+Shift = Pow2 * Half mod Mod
+Both = Shift * Al mod Mod
+Both = (Both + Pow2 * Be) mod Mod
+Incr = Both * (Tail integer)
+Run = (Incr scan +) mod Mod
+InvPow = Half Ms Mod powmod
+Tau = (1 + Run) * InvPow mod Mod
+Base = 2 ((Rest - 2) max 0) Mod powmod
+Sum = Base + Pi + Be - Tau
+Even = (Sum + 2 * Mod) mod Mod
+Zero = Ms equal 0
+Fixed = (Base + 2) mod Mod
+Even = Zero choose Fixed Even
+Sum2 = Base + Chi - Tau
+Odd = (Sum2 + 2 * Mod) mod Mod
+Ecol = Even reshape Count 1
+Ocol = Odd reshape Count 1
+Rows = concat Ecol Ocol axis 1
+Flat = Rows reshape (Count * 2)
+Size = (Cards - 1) binary len
+Wide = 2 ** Size
+Pad = array shape (Wide - Cards) fill 0
+Vec = concat (Flat take Cards) Pad
+for Stage in 0 to Size - 1
+  Gap = 2 ** Stage
+  Cuts = Wide // (2 * Gap)
+  Cube = Vec reshape Cuts 2 Gap
+  Top0 = Cube # 0
+  Top1 = Cube # 1
+  Plus = (Top0 + Top1) mod Mod
+  Minus = (Top0 - Top1 + Mod) mod Mod
+  Pcub = Plus reshape Cuts 1 Gap
+  Mcub = Minus reshape Cuts 1 Gap
+  Next = concat Pcub Mcub axis 1
+  Vec = Next reshape Wide
+end
+Pows = Vec Suits Mod powmod
+Total = Pows sum mod Mod
+Scale = Wide (Mod - 2) Mod powmod
+Answer = Total * Scale mod Mod
+Answer print

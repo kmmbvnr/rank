@@ -1,0 +1,13 @@
+use testing
+
+test "statement values"
+  use "798_cardstacking"
+  Cards = 3
+  Suits = 2
+  run
+  Answer equal 26
+  Cards = 13
+  Suits = 4
+  run
+  Answer equal 540318329
+end
