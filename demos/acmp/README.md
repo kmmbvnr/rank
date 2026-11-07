@@ -13,7 +13,8 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0100** | [Счастливые билеты](0100_lucky_tickets.ra) | Combinatorics (68%) | Polynomial convolution via `DP scan + with 0 array` & vectorized index slicing `DP = C Hi - C Lo` |
 | **0101** | [Магараджа](0101_maharaja.ra) | Backtracking / Bitmask (60%) | Non-attacking Maharajas (queen + knight) placement via row-by-row bitmask search |
 | **0104** | [Шаблон](0104_pattern.ra) | 2D DP (65%) | Wildcard pattern matching with `*` and `?` over 2D state matrix |
-| **0105** | [Раскопки](0105_excavations.ra) | Recursion / Exhaustive Search (76%) | Martian left-to-right arithmetic equation solver via single-pass vectorized parallel stack evaluation over ^{K-1}$ combinations with  and loop-free scatter reconstruction |
+| **0105** | [Раскопки](0105_excavations.ra) | Recursion / Exhaustive Search (76%) | Martian left-to-right arithmetic equation solver via single-pass vectorized parallel stack evaluation over $3^{K-1}$ combinations with `choose` and loop-free scatter reconstruction |
+| **0110** | [Красивые числа](0110_beautiful_numbers.ra) | Simple Math / Fractions (78%) | Minimal sum of $\{0, k\}$-digit periodic fractions via carry-free $n/k$ decimal period slicing and vectorized `choose` digit thresholding |
 | **0116** | [Фермер](0116_farmer.ra) | Geometry / Monotonic Stack (60%) | Maximal 1-rectangle via histogram heights `(Heights + 1) * Row` & monotonic stack |
 | **0137** | [Существование пути](0137_path_existence.ra) | Graph Theory (65%) | Floyd-Warshall with negative cycles using vector outer additions `(Col Row outer +)` |
 | **0139** | [Лабиринт знаний](0139_knowledge_maze.ra) | Graph Theory (63%) | Longest path from 1 to $N$ & positive cycle detection via vector reachability & Bellman-Ford |

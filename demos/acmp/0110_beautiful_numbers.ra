@@ -1,0 +1,169 @@
+rem ACMP 0110: Beautiful Numbers
+rem Exact decimal + period decomposition
+use io
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = "987654321 7"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+TokInts = Tokens integer
+
+N = TokInts 0
+K = TokInts 1
+
+Q = N // K
+R = N mod K
+QChars = (Q text) split ""
+IntD = QChars integer
+
+PreD = array shape 0 fill 0
+PerD = array shape 0 fill 0
+
+IsTerm = (K equal 1) or (K equal 2) or (
+  K equal 4
+) or (K equal 5) or (K equal 8)
+
+if R greater 0
+  if IsTerm
+    D1 = (R * 10) // K
+    R1 = (R * 10) mod K
+    D2 = (R1 * 10) // K
+    R2 = (R1 * 10) mod K
+    D3 = (R2 * 10) // K
+    if R1 equal 0
+      PreD = array D1
+    elif R2 equal 0
+      PreD = array D1 D2
+    else
+      PreD = array D1 D2 D3
+    end
+  elif (K equal 3) or (K equal 9)
+    P1 = (R * 10) // K
+    PerD = array P1
+  elif K equal 6
+    if R equal 3
+      PreD = array 5
+    elif (R equal 2) or (R equal 4)
+      P1 = (R * 10) // 6
+      PerD = array P1
+    else
+      D1 = (R * 10) // 6
+      R1 = (R * 10) mod 6
+      P1 = (R1 * 10) // 6
+      PreD = array D1
+      PerD = array P1
+    end
+  else
+    P1 = (R * 10) // 7
+    R1 = (R * 10) mod 7
+    P2 = (R1 * 10) // 7
+    R2 = (R1 * 10) mod 7
+    P3 = (R2 * 10) // 7
+    R3 = (R2 * 10) mod 7
+    P4 = (R3 * 10) // 7
+    R4 = (R3 * 10) mod 7
+    P5 = (R4 * 10) // 7
+    R5 = (R4 * 10) mod 7
+    P6 = (R5 * 10) // 7
+    PerD = array P1 P2 P3 P4 P5 P6
+  end
+end
+
+AllD = concat IntD PreD PerD
+M = AllD max
+Parts = array shape M fill ""
+
+for Step in (0 till M)
+  J = M - Step
+  IMask = IntD greater (J - 1)
+  IntJ = IMask choose K (0 * IntD)
+  IntStr = "0"
+  if IMask any
+    PosIdx = IMask indices
+    FirstP = PosIdx 0
+    ILen = IntJ len
+    TailI = IntJ (FirstP till ILen)
+    IntStr = TailI join ""
+  end
+
+  PreLen = PreD len
+  PreJ = array shape 0 fill 0
+  if PreLen greater 0
+    PrMask = PreD greater (J - 1)
+    PreJ = PrMask choose K (0 * PreD)
+  end
+
+  PerLen = PerD len
+  PerJ = array shape 0 fill 0
+  if PerLen greater 0
+    PeMask = PerD greater (J - 1)
+    CandP = PeMask choose K (0 * PerD)
+    if PeMask any
+      PerJ = CandP
+    end
+  end
+
+  PjLen = PerJ len
+  if PjLen equal 6
+    S05 = PerJ (0 till 5)
+    S16 = PerJ (1 till 6)
+    S04 = PerJ (0 till 4)
+    S26 = PerJ (2 till 6)
+    S03 = PerJ (0 till 3)
+    S36 = PerJ (3 till 6)
+    if (S05 equal S16) all
+      PerJ = PerJ (0 till 1)
+    elif (S04 equal S26) all
+      PerJ = PerJ (0 till 2)
+    elif (S03 equal S36) all
+      PerJ = PerJ (0 till 3)
+    end
+  end
+
+  PjLen = PerJ len
+  PrjLen = PreJ len
+  if PjLen greater 0
+    if PrjLen equal 1
+      if (PreJ 0) equal (PerJ 0)
+        PreJ = array shape 0 fill 0
+      end
+    end
+  else
+    if PrjLen greater 0
+      NZ = PreJ greater 0
+      if NZ any
+        NZIdx = NZ indices
+        NZLen = NZIdx len
+        LastNZ = NZIdx (NZLen - 1)
+        PreJ = PreJ (0 to LastNZ)
+      else
+        PreJ = array shape 0 fill 0
+      end
+    end
+  end
+
+  PjLen = PerJ len
+  PrjLen = PreJ len
+  Term = IntStr
+  if PjLen greater 0
+    PreS = PreJ join ""
+    PerS = PerJ join ""
+    Term = IntStr + "." + PreS + (
+      "(" + PerS + ")"
+    )
+  elif PrjLen greater 0
+    PreS = PreJ join ""
+    Term = IntStr + "." + PreS
+  end
+  Parts Step = Term
+end
+
+Rhs = Parts join "+"
+Result = (N text) + "=" + Rhs
+Result print
