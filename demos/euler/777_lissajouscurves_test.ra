@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "777_lissajouscurves"
+  Limit = 10
+  run
+  Answer equal "1.602500000e3"
+  Limit = 100
+  run
+  Answer equal "2.425650500e7"
+end

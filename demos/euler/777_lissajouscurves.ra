@@ -1,0 +1,118 @@
+rem Lissajous Curves
+rem https://projecteuler.net/problem=777
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 1000000
+
+rem For coprime a, b >= 2 the crossings
+rem give d = 2ab - 3 (a + b) / 2, except
+rem when gcd(a, 10) gcd(b, 10) = 10,
+rem where d = (2ab - 3a - 3b + 4) / 4.
+rem Sums over coprime pairs use Moebius
+rem inversion; the exceptional pairs are
+rem classes of gcd with 10: (1, 10) and
+rem (2, 5), counted by multiples of
+rem lcm(d, 2), lcm(d, 5), lcm(d, 10).
+Primes = primes to (Limit isqrt) copy
+Idx = 1 to Limit
+Squares = Primes * Primes
+Count = Limit // Primes
+Ends = Count scan +
+Starts = Ends - Count
+Total = Count sum
+Marks = array shape Total fill 0
+Marks Starts = 1
+Owner = (Marks scan +) - 1
+Run = 0 to Total - 1
+Step = Run - Starts Owner + 1
+Spot = Step * Primes Owner - 1
+Prod = array shape Limit fill 1
+Sign = array shape Limit fill 1
+Prod Spot *= Primes Owner .accumulate
+Flip = Primes Owner * 0 - 1
+Sign Spot *= Flip .accumulate
+SCount = Limit // Squares
+SEnds = SCount scan +
+SStarts = SEnds - SCount
+STotal = SCount sum
+SMarks = array shape STotal fill 0
+SMarks SStarts = 1
+SOwner = (SMarks scan +) - 1
+SRun = 0 to STotal - 1
+SStep = SRun - SStarts SOwner + 1
+SSpot = SStep * Squares SOwner - 1
+Flat = array shape Limit fill 1
+Flat SSpot = 0
+Big = (Idx // Prod) greater 1
+Free = Big choose (0 - 1) 1
+Mu = Sign * Free * Flat
+Keep = Mu not equal 0
+Dint = Idx Keep
+Ms = (Mu Keep) * 1.0
+Lim = Limit * 1.0
+Ds = Dint * 1.0
+Qs = (Limit // Dint) * 1.0
+Tri = Qs * (Qs + 1.0) / 2.0
+Mid = Ms * Ds * Ds * Tri * Tri
+Sab0 = Mid sum
+Lin = Ms * Ds * Tri * Qs
+Sa0 = Lin sum
+TriN = Lim * (Lim + 1.0) / 2.0
+Sab = Sab0 - 2.0 * TriN + 1.0
+Sa = Sa0 - Lim - TriN + 1.0
+rem Multiples of m up to the limit.
+fun Mult cnt Unused
+  return (Limit // Mult) * 1.0
+end
+fun Mult tot Unused
+  Part = (Limit // Mult) * 1.0
+  Pair = Part * (Part + 1.0) / 2.0
+  return Mult * Pair
+end
+L2 = Dint * 2 // (Dint gcd 2)
+L5 = Dint * 5 // (Dint gcd 5)
+L10 = Dint * 10 // (Dint gcd 10)
+C10 = L10 cnt 0
+S10 = L10 tot 0
+C2 = (L2 cnt 0) - C10
+S2 = (L2 tot 0) - S10
+C5 = (L5 cnt 0) - C10
+S5 = (L5 tot 0) - S10
+All = Dint cnt 0
+Sall = Dint tot 0
+C1 = All - (L2 cnt 0) - (L5 cnt 0) + C10
+S2all = L2 tot 0
+S5all = L5 tot 0
+S1 = Sall - S2all - S5all + S10
+Wn = C1 * C10 + C2 * C5
+Wa = S1 * C10 + S2 * C5
+Wb = C1 * S10 + C2 * S5
+Wab = S1 * S10 + S2 * S5
+Wn = Ms * Wn
+Wa = Ms * Wa
+Wb = Ms * Wb
+Wab = Ms * Wab
+N12 = Wn sum
+Sa12 = Wa sum
+Sb12 = Wb sum
+Sab12 = Wab sum
+Tens = (Limit // 10) * 1.0
+TriT = Tens * (Tens + 1.0) / 2.0
+N12 = N12 - Tens
+Sa12 = Sa12 - Tens
+Sb12 = Sb12 - 10.0 * TriT
+Sab12 = Sab12 - 10.0 * TriT
+Four = 8.0 * Sab - 12.0 * Sa
+Four = Four + 6.0 * (Sa12 + Sb12)
+Four = Four + 8.0 * N12 - 12.0 * Sab12
+Top = Four / 4.0
+Ten = 10.0 log
+Exponent = Top log / Ten floor
+Mantissa = Top / 10.0 ** Exponent
+Answer = (Mantissa text ".9f") + "e"
+Answer += Exponent text
+Answer print
