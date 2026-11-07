@@ -1,0 +1,15 @@
+use testing
+
+test "statement values"
+  use "790_clockgrid"
+  Steps = 0
+  run
+  Answer equal 30621295449583788
+  Steps = 1
+  run
+  Answer equal 30613048345941659
+  Steps = 10
+  Chunk = 4
+  run
+  Answer equal 21808930308198471
+end

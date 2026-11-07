@@ -1,0 +1,116 @@
+rem Clock Grid
+rem https://projecteuler.net/problem=790
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Steps integer = 100000
+arg Side integer = 50515093
+arg Chunk integer = 512
+
+rem Sweep along x. The y axis is cut
+rem into elementary intervals, grouped
+rem in blocks. A block keeps the counts
+rem of its intervals mod 12, one shift
+rem for whole-block updates, and the
+rem weighted hour sum for each of the 12
+rem shifts. A partial update rebuilds
+rem one block table; full blocks only
+rem shift.
+rem S_i = 290797^(2^i) mod p, with the
+rem exponent taken mod 25250294.
+Cycle = 25250294
+Idx = 0 to 4 * Steps - 1
+Exps = 2 Idx Cycle powmod
+Seq = 290797 Exps Side powmod
+Rect = Seq reshape Steps 4
+Xa = Rect # 0
+Xb = Rect # 1
+Ya = Rect # 2
+Yb = Rect # 3
+X1 = Xa min Xb
+X2 = Xa max Xb
+Y1 = Ya min Yb
+Y2 = Ya max Yb
+Cuts = concat (array 0 Side) Y1
+Cuts = concat Cuts (Y2 + 1)
+Sorted = Cuts sort
+Ys = Sorted unique
+Count = Ys len - 1
+Blocks = (Count + Chunk - 1) // Chunk
+Pad = Blocks * Chunk - Count
+Nxt = Ys drop 1
+Cur0 = Ys take Count
+Zero = array shape Pad fill 0
+Lens = concat (Nxt - Cur0) Zero
+Cells = Blocks * Chunk
+Cnts = array shape Cells fill 0
+Hours = array 12 1 2 3 4 5 6 7 8 9 10 11
+Shift = array shape Blocks fill 0
+Spin = (0 to 11) reshape 1 12
+Lcol = Lens reshape Blocks Chunk 1
+Weigh = (Hours Spin) * Lcol
+Sums = Weigh sum axis 1
+Tab = Sums reshape (Blocks * 12)
+Lo = Ys find Y1
+Hi = (Ys find (Y2 + 1)) - 1
+Pos = concat X1 (X2 + 1)
+Ones = array shape Steps fill 1
+Elev = array shape Steps fill 11
+Dir = concat Ones Elev
+From = concat Lo Lo
+To = concat Hi Hi
+Order = Pos argsort
+Pos = Pos Order
+Dir = Dir Order
+From = From Order
+To = To Order
+Rows = 0 to Blocks - 1
+Lane = 0 to Chunk - 1
+Cur = 12 * Side
+Prev = 0
+Answer = 0
+for Event in 0 to 2 * Steps - 1
+  Where = Pos Event
+  Answer += Cur * (Where - Prev)
+  Prev = Where
+  Turn = Dir Event
+  Left = From Event
+  Right = To Event
+  BL = Left // Chunk
+  BR = Right // Chunk
+  Above = Rows greater BL
+  Mid = Above and (Rows less BR)
+  Bump = Turn * (Mid integer)
+  Shift = (Shift + Bump) mod 12
+  IdxA = BL * Chunk + Lane
+  Lft = IdxA at least Left
+  InA = Lft and (IdxA at most Right)
+  Add = Turn * (InA integer)
+  Cnts IdxA = (Cnts IdxA + Add) mod 12
+  IdxB = BR * Chunk + Lane
+  Far = BR greater BL
+  InB = (IdxB at most Right) and Far
+  Add2 = Turn * (InB integer)
+  Cnts IdxB = (Cnts IdxB + Add2) mod 12
+  Mods = array BL BR
+  Both = Mods unique
+  Many = Both len
+  Starts = (Both * Chunk) reshape Many 1
+  Pick = Starts + Lane
+  Got = Cnts Pick
+  Cnt2 = Got reshape Many Chunk 1
+  Wid = Lens Pick
+  Len2 = Wid reshape Many Chunk 1
+  Rot = Hours ((Cnt2 + Spin) mod 12)
+  Fresh = (Rot * Len2) sum axis 1
+  Rowb = Both reshape Many 1
+  Slots = Rowb * 12 + Spin
+  Tab Slots = Fresh
+  Mine = Tab (Rows * 12 + Shift)
+  Cur = Mine sum
+end
+Answer += Cur * (Side - Prev)
+Answer print
