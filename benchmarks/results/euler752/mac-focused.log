@@ -1,0 +1,13 @@
+
+ RUN  v3.2.7 /private/tmp/rank554-work/packages/interpreter
+
+ ✓ test/native-modular-matrix-batch.test.ts (25 tests) 162ms
+ ✓ test/linalg.test.ts (37 tests) 358ms
+ ✓ test/modular-matpow.test.ts (32 tests) 640ms
+   ✓ modular matrix powers > matches exact powers over small matrices (parenthesized=false)  302ms
+ ✓ test/euler752.test.ts (20 tests) 706ms
+
+ Test Files  4 passed (4)
+      Tests  114 passed (114)
+   Start at  15:10:48
+   Duration  3.23s (transform 1.69s, setup 0ms, collect 6.76s, tests 1.87s, environment 0ms, prepare 141ms)

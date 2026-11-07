@@ -1,0 +1,18 @@
+
+ RUN  v3.2.7 /tmp/rank554/final/packages/interpreter
+
+ ✓ test/native-modular-matrix-batch.test.ts (25 tests) 456ms
+   ✓ native modular matrix batches, compilation=false > matches BigInt powers across exponent bits, modulus=1n  313ms
+ ✓ test/linalg.test.ts (37 tests) 1086ms
+   ✓ Rank linear algebra > constructs and extracts diagonals  395ms
+ ✓ test/modular-matpow.test.ts (32 tests) 1954ms
+   ✓ modular matrix powers > matches exact powers over small matrices (parenthesized=false)  903ms
+   ✓ modular matrix powers > matches exact powers over small matrices (parenthesized=true)  421ms
+ ✓ test/euler752.test.ts (20 tests) 2128ms
+   ✓ Euler 752, compilation=false > matches independent stripping and lifting at Limit=2  368ms
+   ✓ Euler 752, compilation=false > matches independent stripping and lifting at Limit=1000  317ms
+
+ Test Files  4 passed (4)
+      Tests  114 passed (114)
+   Start at  15:20:03
+   Duration  7.15s (transform 3.49s, setup 0ms, collect 13.54s, tests 5.62s, environment 1ms, prepare 272ms)

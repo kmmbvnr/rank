@@ -1,0 +1,749 @@
+{
+  "cpuSamples": 155575,
+  "cpuTop": [
+    {
+      "samples": 61277,
+      "function": "(garbage collector)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 14569,
+      "function": "derivedArray",
+      "file": "derived-array.js",
+      "line": 16
+    },
+    {
+      "samples": 10725,
+      "function": "resultAt",
+      "file": "linalg.js",
+      "line": 389
+    },
+    {
+      "samples": 9897,
+      "function": "createOwned",
+      "file": "owned-array.js",
+      "line": 1200
+    },
+    {
+      "samples": 6401,
+      "function": "settle",
+      "file": "linalg.js",
+      "line": 796
+    },
+    {
+      "samples": 4086,
+      "function": "matmulValues",
+      "file": "linalg.js",
+      "line": 365
+    },
+    {
+      "samples": 3970,
+      "function": "coordinatesAt",
+      "file": "linalg.js",
+      "line": 906
+    },
+    {
+      "samples": 2203,
+      "function": "ownedArray",
+      "file": "owned-array.js",
+      "line": 752
+    },
+    {
+      "samples": 2156,
+      "function": "checkCell",
+      "file": "derived-array.js",
+      "line": 23
+    },
+    {
+      "samples": 1989,
+      "function": "readArrayItem",
+      "file": "array-read.js",
+      "line": 367
+    },
+    {
+      "samples": 1976,
+      "function": "itemAt",
+      "file": "derived-array.js",
+      "line": 56
+    },
+    {
+      "samples": 1779,
+      "function": "run",
+      "file": "linalg.js",
+      "line": 813
+    },
+    {
+      "samples": 1347,
+      "function": "readArrayItem",
+      "file": "array-read.js",
+      "line": 367
+    },
+    {
+      "samples": 1285,
+      "function": "(program)",
+      "file": "",
+      "line": 0
+    },
+    {
+      "samples": 1268,
+      "function": "remainingAxes",
+      "file": "linalg.js",
+      "line": 903
+    },
+    {
+      "samples": 1265,
+      "function": "readArrayShape",
+      "file": "array-read.js",
+      "line": 384
+    },
+    {
+      "samples": 918,
+      "function": "createOwned",
+      "file": "owned-array.js",
+      "line": 1200
+    },
+    {
+      "samples": 753,
+      "function": "",
+      "file": "linalg.js",
+      "line": 798
+    },
+    {
+      "samples": 745,
+      "function": "arrayItem",
+      "file": "linalg.js",
+      "line": 895
+    },
+    {
+      "samples": 723,
+      "function": "semanticArrayType",
+      "file": "semantic-array-type.js",
+      "line": 18
+    }
+  ],
+  "sampledAllocationBytes": 186736635064,
+  "allocationTopSelf": [
+    {
+      "function": "resultAt",
+      "file": "linalg.js",
+      "line": 389,
+      "selfBytes": 32290139336,
+      "inclusiveBytes": 37763756424,
+      "path": [
+        "",
+        "run",
+        "settle",
+        "from",
+        "",
+        "itemAt",
+        "resultAt"
+      ]
+    },
+    {
+      "function": "matmulValues",
+      "file": "linalg.js",
+      "line": 365,
+      "selfBytes": 29216020296,
+      "inclusiveBytes": 63379659152,
+      "path": [
+        "runExecution",
+        "next",
+        "advance",
+        "next",
+        "",
+        "run",
+        "matmulValues"
+      ]
+    },
+    {
+      "function": "derivedArray",
+      "file": "derived-array.js",
+      "line": 16,
+      "selfBytes": 26208226176,
+      "inclusiveBytes": 30342869664,
+      "path": [
+        "next",
+        "advance",
+        "next",
+        "",
+        "run",
+        "matmulValues",
+        "derivedArray"
+      ]
+    },
+    {
+      "function": "itemAt",
+      "file": "derived-array.js",
+      "line": 56,
+      "selfBytes": 11997958816,
+      "inclusiveBytes": 53694986376,
+      "path": [
+        "next",
+        "",
+        "run",
+        "settle",
+        "from",
+        "",
+        "itemAt"
+      ]
+    },
+    {
+      "function": "createOwned",
+      "file": "owned-array.js",
+      "line": 1200,
+      "selfBytes": 8687160280,
+      "inclusiveBytes": 10164297208,
+      "path": [
+        "advance",
+        "next",
+        "",
+        "run",
+        "settle",
+        "ownedArray",
+        "createOwned"
+      ]
+    },
+    {
+      "function": "coordinatesAt",
+      "file": "linalg.js",
+      "line": 906,
+      "selfBytes": 5473617088,
+      "inclusiveBytes": 5473617088,
+      "path": [
+        "run",
+        "settle",
+        "from",
+        "",
+        "itemAt",
+        "resultAt",
+        "coordinatesAt"
+      ]
+    },
+    {
+      "function": "Map",
+      "file": "",
+      "line": 0,
+      "selfBytes": 4777487664,
+      "inclusiveBytes": 4777487664,
+      "path": [
+        "advance",
+        "next",
+        "",
+        "run",
+        "settle",
+        "ownedArray",
+        "Map"
+      ]
+    },
+    {
+      "function": "settle",
+      "file": "linalg.js",
+      "line": 796,
+      "selfBytes": 4439689368,
+      "inclusiveBytes": 82315987400,
+      "path": [
+        "runExecution",
+        "next",
+        "advance",
+        "next",
+        "",
+        "run",
+        "settle"
+      ]
+    },
+    {
+      "function": "Map",
+      "file": "",
+      "line": 0,
+      "selfBytes": 3974997000,
+      "inclusiveBytes": 3974997000,
+      "path": [
+        "advance",
+        "next",
+        "",
+        "run",
+        "matmulValues",
+        "derivedArray",
+        "Map"
+      ]
+    },
+    {
+      "function": "Map",
+      "file": "",
+      "line": 0,
+      "selfBytes": 3933271136,
+      "inclusiveBytes": 3933271136,
+      "path": [
+        "",
+        "run",
+        "settle",
+        "from",
+        "",
+        "itemAt",
+        "Map"
+      ]
+    },
+    {
+      "function": "ownedArray",
+      "file": "owned-array.js",
+      "line": 752,
+      "selfBytes": 3579551720,
+      "inclusiveBytes": 18521407952,
+      "path": [
+        "next",
+        "advance",
+        "next",
+        "",
+        "run",
+        "settle",
+        "ownedArray"
+      ]
+    },
+    {
+      "function": "",
+      "file": "linalg.js",
+      "line": 798,
+      "selfBytes": 3547430416,
+      "inclusiveBytes": 57582764000,
+      "path": [
+        "advance",
+        "next",
+        "",
+        "run",
+        "settle",
+        "from",
+        ""
+      ]
+    },
+    {
+      "function": "map",
+      "file": "",
+      "line": 0,
+      "selfBytes": 2760788032,
+      "inclusiveBytes": 2760788032,
+      "path": [
+        "next",
+        "advance",
+        "next",
+        "",
+        "run",
+        "matmulValues",
+        "map"
+      ]
+    },
+    {
+      "function": "from",
+      "file": "",
+      "line": 0,
+      "selfBytes": 1772126080,
+      "inclusiveBytes": 59354890080,
+      "path": [
+        "next",
+        "advance",
+        "next",
+        "",
+        "run",
+        "settle",
+        "from"
+      ]
+    },
+    {
+      "function": "Proxy",
+      "file": "",
+      "line": 0,
+      "selfBytes": 1410028024,
+      "inclusiveBytes": 1410028024,
+      "path": [
+        "next",
+        "",
+        "run",
+        "settle",
+        "ownedArray",
+        "createOwned",
+        "Proxy"
+      ]
+    },
+    {
+      "function": "denseMatmul",
+      "file": "linalg.js",
+      "line": 444,
+      "selfBytes": 1049485872,
+      "inclusiveBytes": 1049485872,
+      "path": [
+        "next",
+        "advance",
+        "next",
+        "",
+        "run",
+        "matmulValues",
+        "denseMatmul"
+      ]
+    },
+    {
+      "function": "bindRun",
+      "file": "tensor-kernel.js",
+      "line": 615,
+      "selfBytes": 972993024,
+      "inclusiveBytes": 4745288792,
+      "path": [
+        "iterate",
+        "call",
+        "advance",
+        "next",
+        "continueCompiledBlock",
+        "run",
+        "bindRun"
+      ]
+    },
+    {
+      "function": "run",
+      "file": "ranked-matpow.js",
+      "line": 44,
+      "selfBytes": 918438680,
+      "inclusiveBytes": 147988580088,
+      "path": [
+        "run",
+        "runExecution",
+        "next",
+        "advance",
+        "next",
+        "",
+        "run"
+      ]
+    },
+    {
+      "function": "check",
+      "file": "array-binding-contract.js",
+      "line": 157,
+      "selfBytes": 686480104,
+      "inclusiveBytes": 1512924360,
+      "path": [
+        "call",
+        "advance",
+        "next",
+        "stream",
+        "assign",
+        "define",
+        "check"
+      ]
+    },
+    {
+      "function": "next",
+      "file": "",
+      "line": 0,
+      "selfBytes": 507178008,
+      "inclusiveBytes": 507178008,
+      "path": [
+        "call",
+        "advance",
+        "next",
+        "continueCompiledBlock",
+        "run",
+        "bindRun",
+        "next"
+      ]
+    }
+  ],
+  "allocationTopInclusive": [
+    {
+      "function": "(root)",
+      "file": "",
+      "line": 0,
+      "selfBytes": 0,
+      "inclusiveBytes": 186736635064,
+      "path": [
+        "(root)"
+      ]
+    },
+    {
+      "function": "",
+      "file": "euler752.mjs",
+      "line": 1,
+      "selfBytes": 4008960,
+      "inclusiveBytes": 186720009528,
+      "path": [
+        "(root)",
+        "",
+        ""
+      ]
+    },
+    {
+      "function": "",
+      "file": "",
+      "line": 0,
+      "selfBytes": 0,
+      "inclusiveBytes": 186720009528,
+      "path": [
+        "(root)",
+        ""
+      ]
+    },
+    {
+      "function": "executeSource",
+      "file": "interpreter.js",
+      "line": 373,
+      "selfBytes": 0,
+      "inclusiveBytes": 186704715552,
+      "path": [
+        "",
+        "execute",
+        "inEnvironment",
+        "withoutAmbientTensorPlan",
+        "",
+        "",
+        "executeSource"
+      ]
+    },
+    {
+      "function": "",
+      "file": "interpreter.js",
+      "line": 240,
+      "selfBytes": 0,
+      "inclusiveBytes": 186704715552,
+      "path": [
+        "run",
+        "",
+        "execute",
+        "inEnvironment",
+        "withoutAmbientTensorPlan",
+        "",
+        ""
+      ]
+    },
+    {
+      "function": "",
+      "file": "interpreter.js",
+      "line": 314,
+      "selfBytes": 0,
+      "inclusiveBytes": 186704715552,
+      "path": [
+        "",
+        "run",
+        "",
+        "execute",
+        "inEnvironment",
+        "withoutAmbientTensorPlan",
+        ""
+      ]
+    },
+    {
+      "function": "withoutAmbientTensorPlan",
+      "file": "tensor-map.js",
+      "line": 44,
+      "selfBytes": 0,
+      "inclusiveBytes": 186704715552,
+      "path": [
+        "",
+        "",
+        "run",
+        "",
+        "execute",
+        "inEnvironment",
+        "withoutAmbientTensorPlan"
+      ]
+    },
+    {
+      "function": "inEnvironment",
+      "file": "interpreter.js",
+      "line": 313,
+      "selfBytes": 0,
+      "inclusiveBytes": 186704715552,
+      "path": [
+        "(root)",
+        "",
+        "",
+        "run",
+        "",
+        "execute",
+        "inEnvironment"
+      ]
+    },
+    {
+      "function": "execute",
+      "file": "interpreter.js",
+      "line": 236,
+      "selfBytes": 0,
+      "inclusiveBytes": 186704715552,
+      "path": [
+        "(root)",
+        "",
+        "",
+        "run",
+        "",
+        "execute"
+      ]
+    },
+    {
+      "function": "",
+      "file": "euler752.mjs",
+      "line": 48,
+      "selfBytes": 0,
+      "inclusiveBytes": 186704715552,
+      "path": [
+        "(root)",
+        "",
+        "",
+        "run",
+        ""
+      ]
+    },
+    {
+      "function": "run",
+      "file": "diagnostics.js",
+      "line": 132,
+      "selfBytes": 0,
+      "inclusiveBytes": 186704715552,
+      "path": [
+        "(root)",
+        "",
+        "",
+        "run"
+      ]
+    },
+    {
+      "function": "executeProgramBody",
+      "file": "interpreter.js",
+      "line": 262,
+      "selfBytes": 0,
+      "inclusiveBytes": 186575209000,
+      "path": [
+        "measure",
+        "",
+        "inEnvironment",
+        "withoutAmbientTensorPlan",
+        "",
+        "run",
+        "executeProgramBody"
+      ]
+    },
+    {
+      "function": "run",
+      "file": "interpreter.js",
+      "line": 256,
+      "selfBytes": 0,
+      "inclusiveBytes": 186575209000,
+      "path": [
+        "executeProgram",
+        "measure",
+        "",
+        "inEnvironment",
+        "withoutAmbientTensorPlan",
+        "",
+        "run"
+      ]
+    },
+    {
+      "function": "",
+      "file": "interpreter.js",
+      "line": 314,
+      "selfBytes": 0,
+      "inclusiveBytes": 186575209000,
+      "path": [
+        "",
+        "executeProgram",
+        "measure",
+        "",
+        "inEnvironment",
+        "withoutAmbientTensorPlan",
+        ""
+      ]
+    },
+    {
+      "function": "withoutAmbientTensorPlan",
+      "file": "tensor-map.js",
+      "line": 44,
+      "selfBytes": 0,
+      "inclusiveBytes": 186575209000,
+      "path": [
+        "withResourceScope",
+        "",
+        "executeProgram",
+        "measure",
+        "",
+        "inEnvironment",
+        "withoutAmbientTensorPlan"
+      ]
+    },
+    {
+      "function": "inEnvironment",
+      "file": "interpreter.js",
+      "line": 313,
+      "selfBytes": 0,
+      "inclusiveBytes": 186575209000,
+      "path": [
+        "executeSource",
+        "withResourceScope",
+        "",
+        "executeProgram",
+        "measure",
+        "",
+        "inEnvironment"
+      ]
+    },
+    {
+      "function": "",
+      "file": "interpreter.js",
+      "line": 259,
+      "selfBytes": 0,
+      "inclusiveBytes": 186575209000,
+      "path": [
+        "",
+        "executeSource",
+        "withResourceScope",
+        "",
+        "executeProgram",
+        "measure",
+        ""
+      ]
+    },
+    {
+      "function": "measure",
+      "file": "diagnostics.js",
+      "line": 121,
+      "selfBytes": 0,
+      "inclusiveBytes": 186575209000,
+      "path": [
+        "",
+        "",
+        "executeSource",
+        "withResourceScope",
+        "",
+        "executeProgram",
+        "measure"
+      ]
+    },
+    {
+      "function": "executeProgram",
+      "file": "interpreter.js",
+      "line": 255,
+      "selfBytes": 0,
+      "inclusiveBytes": 186575209000,
+      "path": [
+        "withoutAmbientTensorPlan",
+        "",
+        "",
+        "executeSource",
+        "withResourceScope",
+        "",
+        "executeProgram"
+      ]
+    },
+    {
+      "function": "",
+      "file": "interpreter.js",
+      "line": 386,
+      "selfBytes": 0,
+      "inclusiveBytes": 186575209000,
+      "path": [
+        "inEnvironment",
+        "withoutAmbientTensorPlan",
+        "",
+        "",
+        "executeSource",
+        "withResourceScope",
+        ""
+      ]
+    }
+  ]
+}

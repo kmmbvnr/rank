@@ -1,6 +1,8 @@
-import { ownedArray, arrayValues } from './array-storage.js';
+import { currentDiagnostics } from './diagnostics.js';
+import { modularMatrixPower2, SMALL_MATRIX_MODULUS } from './jit/modular-matrix-power.js';
+import { ownedArray, arrayValues, typedArray } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
-import { checkpoint } from './interrupt.js';
+import { checkpoint, privateLoopPolling, demandBudgetEnabled, inspectionEnabled } from './interrupt.js';
 import { prepareMatrixPower } from './modules/linalg.js';
 import { arrayStrides, broadcastOffset, broadcastShape } from './tensor-layout.js';
 import { isRankArray, type RankValue } from './value.js';
@@ -58,6 +60,37 @@ export function prepareRankedMatrixPower(source: RankValue, powers: RankValue) {
             if (modulus !== undefined && !moduli) return undefined;
             const modShape = modulus !== undefined && isRankArray(modulus) ? modulus.shape : [];
             const modStrides = arrayStrides(modShape);
+            if (moduli && width === 4 && privateLoopPolling() && !demandBudgetEnabled() && !inspectionEnabled()) {
+                const bounded = (items: readonly bigint[], maximum: bigint) => {
+                    for (let i = 0; i < items.length; i++) {
+                        if ((i & 4095) === 0) checkpoint('checking modular matrix batch', Math.min(4096, items.length - i));
+                        if (items[i] > maximum) return false;
+                    }
+                    return true;
+                };
+                if (bounded(moduli, SMALL_MATRIX_MODULUS) && bounded(values, 9007199254740991n)) {
+                    const output = new Int32Array(count * width), base = new Int32Array(width);
+                    const diagnostics = currentDiagnostics();
+                    let last = -1, lastModulus = 0n;
+                    for (let i = 0; i < count; i++) {
+                        if ((i & 63) === 0) checkpoint('computing modular matrix batch', 1024);
+                        const offset = broadcastOffset(i, frame, matrixFrame, matrixStrides) * width;
+                        const mod = moduli[broadcastOffset(i * width, shape, modShape, modStrides)];
+                        if (offset !== last || mod !== lastModulus) {
+                            for (let cell = 0; cell < width; cell++) {
+                                const residue = cells[offset + cell] % mod;
+                                base[cell] = Number(residue < 0n ? residue + mod : residue);
+                            }
+                            last = offset; lastModulus = mod;
+                        }
+                        const exponent = values[broadcastOffset(i, frame, exponentFrame, exponentStrides)];
+                        modularMatrixPower2(base, Number(exponent), Number(mod), output, i * width);
+                        if (diagnostics) { diagnostics.modularMatrixPowers++; diagnostics.nativeModularMatrixPowers++; }
+                    }
+                    if (diagnostics) diagnostics.nativeModularMatrixBatches++;
+                    return typedArray(output, shape);
+                }
+            }
             const output: RankValue[] = [];
             let last = -1, matrix = ownedArray([], matrixShape);
             for (let i = 0; i < count; i++) {

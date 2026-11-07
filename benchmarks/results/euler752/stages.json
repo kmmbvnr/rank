@@ -1,0 +1,104 @@
+{
+  "baseline": {
+    "ms": 234429.830666,
+    "maxRssMiB": 3287.953125,
+    "stages": [
+      {
+        "stage": "prime-powers",
+        "ms": 202.7800410000002,
+        "rssMiB": 200.5,
+        "heapMiB": 55.821617126464844,
+        "externalMiB": 15.26151180267334,
+        "arrayBuffersMiB": 13.398741722106934,
+        "elapsedMs": 202.7800410000002
+      },
+      {
+        "stage": "candidates",
+        "ms": 17163.694165999997,
+        "rssMiB": 1871.78125,
+        "heapMiB": 1488.4217147827148,
+        "externalMiB": 25.24210834503174,
+        "arrayBuffersMiB": 23.38266658782959,
+        "elapsedMs": 16960.914124999996
+      },
+      {
+        "stage": "matrix-powers",
+        "ms": 212055.093625,
+        "rssMiB": 3138.015625,
+        "heapMiB": 1123.3560256958008,
+        "externalMiB": 51.48595142364502,
+        "arrayBuffersMiB": 49.62650966644287,
+        "elapsedMs": 194891.399459
+      },
+      {
+        "stage": "orders",
+        "ms": 212282.707291,
+        "rssMiB": 3196.5,
+        "heapMiB": 1172.2931213378906,
+        "externalMiB": 82.922287940979,
+        "arrayBuffersMiB": 81.06284618377686,
+        "elapsedMs": 227.6136659999902
+      },
+      {
+        "stage": "period-sum",
+        "ms": 234427.296,
+        "rssMiB": 2227.453125,
+        "heapMiB": 1890.2473526000977,
+        "externalMiB": 77.4974718093872,
+        "arrayBuffersMiB": 75.63803005218506,
+        "elapsedMs": 22144.588709000003
+      }
+    ]
+  },
+  "native": {
+    "ms": 33705.366833,
+    "maxRssMiB": 2857.265625,
+    "stages": [
+      {
+        "stage": "prime-powers",
+        "ms": 159.51224999999977,
+        "rssMiB": 200.09375,
+        "heapMiB": 49.031211853027344,
+        "externalMiB": 15.26151180267334,
+        "arrayBuffersMiB": 13.398741722106934,
+        "elapsedMs": 159.51224999999977
+      },
+      {
+        "stage": "candidates",
+        "ms": 15423.94525,
+        "rssMiB": 1699.640625,
+        "heapMiB": 1471.2500686645508,
+        "externalMiB": 25.240300178527832,
+        "arrayBuffersMiB": 23.380858421325684,
+        "elapsedMs": 15264.433
+      },
+      {
+        "stage": "matrix-powers",
+        "ms": 17500.62875,
+        "rssMiB": 1474.75,
+        "heapMiB": 1509.6413269042969,
+        "externalMiB": 38.465481758117676,
+        "arrayBuffersMiB": 36.60604000091553,
+        "elapsedMs": 2076.683499999999
+      },
+      {
+        "stage": "orders",
+        "ms": 17677.969624999998,
+        "rssMiB": 1563.875,
+        "heapMiB": 1515.1735229492188,
+        "externalMiB": 69.90181827545166,
+        "arrayBuffersMiB": 68.04237651824951,
+        "elapsedMs": 177.34087499999805
+      },
+      {
+        "stage": "period-sum",
+        "ms": 33704.972875,
+        "rssMiB": 2807.6875,
+        "heapMiB": 1753.8940124511719,
+        "externalMiB": 64.27229022979736,
+        "arrayBuffersMiB": 62.412848472595215,
+        "elapsedMs": 16027.003250000002
+      }
+    ]
+  }
+}

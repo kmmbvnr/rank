@@ -3,9 +3,10 @@
 // instead tests every candidate independently in one matrix batch.
 import fs from 'node:fs';
 import { performance } from 'node:perf_hooks';
+import { pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
 import { runProgram } from '@arrrank/common';
 
-const limit = Number(process.argv[2] ?? 1000);
 function powerIsOne(exponent, modulus) {
     let real = 1, root = 0, baseReal = 1, baseRoot = 1;
     while (exponent > 0) {
@@ -22,7 +23,7 @@ function powerIsOne(exponent, modulus) {
     return real === 1 && root === 0;
 }
 function gcd(a, b) { while (b) [a, b] = [b, a % b]; return a; }
-function reference(limit) {
+export function reference(limit) {
     const sieve = Int32Array.from({ length: limit + 2 }, (_, i) => i);
     for (let p = 2; p * p <= limit + 1; p++) if (sieve[p] === p) {
         for (let n = p * p; n <= limit + 1; n += p) if (sieve[n] === n) sieve[n] = p;
@@ -60,18 +61,21 @@ function reference(limit) {
     }
     return String(answer);
 }
-if (!Number.isInteger(limit) || limit < 2 || limit > 1000000) {
-    throw new Error('Oracle is validated for integer limits from 2 through 1000000');
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+    const limit = Number(process.argv[2] ?? 1000);
+    if (!Number.isInteger(limit) || limit < 2 || limit > 1000000) {
+        throw new Error('Oracle is validated for integer limits from 2 through 1000000');
+    }
+    const expected = reference(limit);
+    const result = { limit, expected, node: process.version, arch: process.arch };
+    if (!process.argv.includes('--reference-only')) {
+        const source = fs.readFileSync(new URL('../demos/euler/752_powers.ra', import.meta.url), 'utf8');
+        const output = [], start = performance.now();
+        runProgram(source, value => output.push(value), { args: ['--limit', String(limit)] });
+        result.rankMs = performance.now() - start;
+        result.actual = output.at(-1);
+        result.peakRssBytes = process.resourceUsage().maxRSS * 1024;
+        if (result.actual !== expected) throw new Error(JSON.stringify(result));
+    }
+    console.log(JSON.stringify(result, null, 2));
 }
-const expected = reference(limit);
-const result = { limit, expected, node: process.version, arch: process.arch };
-if (!process.argv.includes('--reference-only')) {
-    const source = fs.readFileSync(new URL('../demos/euler/752_powers.ra', import.meta.url), 'utf8');
-    const output = [], start = performance.now();
-    runProgram(source, value => output.push(value), { args: ['--limit', String(limit)] });
-    result.rankMs = performance.now() - start;
-    result.actual = output.at(-1);
-    result.peakRssBytes = process.resourceUsage().maxRSS * 1024;
-    if (result.actual !== expected) throw new Error(JSON.stringify(result));
-}
-console.log(JSON.stringify(result, null, 2));
