@@ -29,6 +29,8 @@ export class RuntimeDiagnostics {
     loopElementScans = 0;
     nativeSequenceCopies = 0;
     compiledLoops = 0;
+    weightedAxisSums = 0;
+    weightedAxisSumCells = 0;
     fusedArrayRegions = 0;
     fusedArrayRegionCells = 0;
     compiledGeneratorLoops = 0;

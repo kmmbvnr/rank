@@ -60,12 +60,32 @@ Room = Plain choose 60 Room
 Found = array shape 0 fill 0
 Places = 10 ** (0 to 15) reshape 1 16
 Last = Length - 1
-for Exponent in 1 to 53
+Width = 9
+rem Odd powers keep the digit sum mod 3,
+rem so their difference cannot be +-1.
+for Exponent in 2 to 52 by 2
   Safe = Room min Exponent
   Power = Numbers ** Safe
   Short = Room less Exponent
   Power = Short choose Cap Power
   Power = Plain choose 1 Power
+  Allowed = Power at most Limit
+  Narrow = Allowed count
+  if Narrow less Width
+    rem Sums = Limit can yield Limit-1.
+    rem Larger powers need zero counts.
+    Reject = (not Allowed) integer
+    Beyond = Reject reshape 9 1
+    Hits = (Matrix * Beyond) sum axis 0
+    Pick = (Hits equal 0) indices
+    Counts = Counts Pick
+    Matrix = Counts transpose
+    Ids = Ids Pick
+    Mod9 = Mod9 Pick
+    Wide = concat Ids Ids
+    Wide9 = concat Mod9 Mod9
+    Width = Narrow
+  end
   Column = Power reshape 9 1
   Sums = (Matrix * Column) sum axis 0
   Near = concat (Sums - 1) (Sums + 1)

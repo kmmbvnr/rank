@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /tmp/rank550/final/packages/interpreter
+
+ ✓ test/full-scale-demos.test.ts (54 tests | 53 skipped) 181272ms
+   ✓ checks the full compiled answer for 749_nearpowersums.ra  181270ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 53 skipped (54)
+   Start at  12:11:09
+   Duration  184.20s (transform 1.94s, setup 0ms, collect 2.72s, tests 181.27s, environment 0ms, prepare 55ms)

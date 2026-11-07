@@ -1,0 +1,76 @@
+
+ RUN  v3.2.7 /tmp/rank550/final/packages/interpreter
+
+ ❯ test/full-scale-demos.test.ts (54 tests | 1 failed | 53 skipped) 178639ms
+   ↓ checks the full 314_mousemoon.ra answer with borrowed real tables
+   ↓ checks the full 311_biclinic.ra answer in private Number helpers
+   ↓ checks the full compiled answer for 257_angularbisectors.ra
+   ↓ checks the full compiled answer for 258_laggedfibonacci.ra
+   ↓ checks the full compiled answer for 259_reachablenumbers.ra
+   ↓ checks the full compiled answer for 275_balancedsculptures.ra
+   ↓ checks the full compiled answer for 287_quadtree.ra
+   ↓ checks the full compiled answer for 296_angularbisector.ra
+   ↓ checks the full compiled answer for 299_threesimilar.ra
+   ↓ checks the full compiled answer for 308_automaton.ra
+   ↓ checks the full compiled answer for 309_ladders.ra
+   ↓ checks the full compiled answer for 310_nimsquare.ra
+   ↓ checks the full compiled answer for 426_boxball.ra
+   ↓ checks the full compiled answer for 705_inversioncount.ra
+   ↓ checks the full compiled answer for 714_duodigits.ra
+   ↓ checks the full compiled answer for 715_sextupletnorms.ra
+   ↓ checks the full compiled answer for 719_numbersplitting.ra
+   ↓ checks the full compiled answer for 720_unpredictablepermutations.ra
+   ↓ checks the full compiled answer for 726_fallingbottles.ra
+   ↓ checks the full compiled answer for 729_periodicrange.ra
+   ↓ checks the full compiled answer for 735_divisorsoftwo.ra
+   ↓ checks the full compiled answer for 737_coinloops.ra
+   ↓ checks the full compiled answer for 738_orderedfactorisations.ra
+   ↓ checks the full compiled answer for 739_summationofsummations.ra
+   ↓ checks the full compiled answer for 740_secretsanta.ra
+   ↓ checks the full compiled answer for 742_convexgridpolygon.ra
+   ↓ checks the full compiled answer for 743_windowmatrix.ra
+   ↓ checks the full compiled answer for 746_messydinner.ra
+   ↓ checks the full compiled answer for 747_triangularpizza.ra
+   ↓ checks the full compiled answer for 748_upsidedown.ra
+   × checks the full compiled answer for 749_nearpowersums.ra 178638ms
+     → Test timed out in 120000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+   ↓ compiles the full Euler 255 interval traversal and preserves the exact total
+   ↓ checks the full compiled Euler 288 tail without Number overflow
+   ↓ checks the full compiled Euler 289 with private integer index stores
+   ↓ compiles Euler 290 row slices and keeps its large final answer exact
+   ↓ checks the full Euler 291 polynomial sieve and compiled root preparation
+   ↓ checks full Euler 292 with disjoint slices and no operand snapshots
+   ↓ cross-checks the full box-ball answer with a per-ball reference
+   ↓ checks the full Euler 260 exact-bitset answer
+   ↓ compiles the full Euler 261 squarefree-table search
+   ↓ compiles the full Euler 262 contour and preserves the sampled route
+   ↓ checks the full compiled answer for Euler 272
+   ↓ compiles the full Euler 283 reduced-divisor search with an exact wide total
+   ↓ checks the full Euler 300 maximum-contact reduction
+   ↓ checks the full Euler 302 search with recursive owned-array helpers
+   ↓ checks Euler 303 with private Number state and exact wide reconstruction
+   ↓ checks Euler 304 with the full prime range and array Fibonacci suffix
+   ↓ checks Euler 305 with the full reflexive-position sum
+   ↓ checks the full Euler 378 total with a private numeric Fenwick tree
+   ↓ checks the full Euler 386 antichain sum with linked vector recursion
+   ↓ checks the full Euler 388 wide sum with bounded tables (Cut=4641589)
+   ↓ checks the full Euler 388 wide sum with bounded tables (Cut=1)
+   ↓ checks the full Euler 707 polynomial calculation (compilation=true)
+   ↓ checks the full Euler 707 polynomial calculation (compilation=false)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/full-scale-demos.test.ts > checks the full compiled answer for 749_nearpowersums.ra
+Error: Test timed out in 120000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/full-scale-demos.test.ts:70:5
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 53 skipped (54)
+   Start at  12:07:22
+   Duration  181.52s (transform 1.88s, setup 0ms, collect 2.64s, tests 178.64s, environment 0ms, prepare 54ms)
