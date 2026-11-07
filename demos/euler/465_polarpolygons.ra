@@ -7,6 +7,8 @@ use io
 use cli
 
 arg N integer = 96889010407
+rem Positive Limit sets the prefix size.
+arg Limit integer = 0
 
 rem A primitive ray of level k (its
 rem max |coordinate|) holds N // k
@@ -18,82 +20,123 @@ rem H = prod (1 + u)^c(u). Choices in
 rem a closed half-plane number
 rem 1 + 2 H A1 - A2 for the moments
 rem A1 = sum c u, A2 = sum c u^2.
-Md = 1000000007
-L = ((N * 1.0) ** (2.0 / 3.0)) floor
-L += 10
-rem phi by small primes; the cofactor
-rem left in Rs is one large prime.
-Ph = 0 to L copy
-Rs = 0 to L copy
-Lr = L isqrt
-for P in primes to Lr
-  Sl = P to L by P
-  Ph Sl -= Ph Sl // P
-  Pe = P
-  for Pe at most L
-    Rs (Pe to L by Pe) //= P
-    Pe *= P
+fun Bound totients
+  Size = Bound + 1
+  Phi = 0 to Bound copy
+  Removed = array shape Size fill 1
+  Top = Bound isqrt
+  Primes = primes to Top copy
+  Count = Primes len
+  Index = 0
+  Power = 2
+  for Index less Count
+    Prime = Primes Index
+    Slots = Power to Bound by Power
+    Removed Slots *= Prime
+    if Power equal Prime
+      Phi Slots -= Phi Slots // Prime
+    end
+    Power *= Prime
+    if Power greater Bound
+      Index += 1
+      if Index less Count
+        Power = Primes Index
+      end
+    end
   end
+  Keys = 0 to Bound copy
+  Rest = Keys // Removed max 1
+  Large = Rest greater 1
+  Delta = Phi // Rest
+  Phi = Large choose (Phi - Delta) Phi
+  return Phi
 end
-Rm = Rs max 1
-Pr = Ph // Rm * (Rm - 1)
-Ph = Rs greater 1 choose Pr Ph
-Fs = Ph scan +
-rem Phi(N // k) for k <= K from
-rem Phi(x) = x (x + 1) / 2 minus the
-rem sum of Phi(x // d) over d >= 2.
-K = N // (L + 1)
-Bg = array shape (K + 2) fill 0
-for Kk in K to 1 by -1
-  X = N // Kk
-  Sx = X isqrt
-  D1 = X // (L + 1)
-  V = X * (X + 1) // 2
-  if D1 at least 2
-    Ds = 2 to D1 copy
-    V -= (Bg (Kk * Ds)) sum
+
+rem Only residues of Phi(x) are needed.
+rem Reduce the even numerator modulo 2M
+rem before dividing, even for even M.
+fun N totals Prefix Mod
+  Bound = Prefix len - 1
+  Count = N // (Bound + 1)
+  Size = Count + 2
+  Cached = array shape Size fill 0
+  Twice = 2 * Mod
+  for I in Count to 1 by -1
+    X = N // I
+    Root = X isqrt
+    Last = X // (Bound + 1)
+    Left = X mod Twice
+    Right = (X + 1) mod Twice
+    Total = Left * Right mod Twice
+    Total //= 2
+    if Last at least 2
+      Divisors = 2 to Last copy
+      Values = Cached (I * Divisors)
+      Total -= Values sum
+    end
+    Divisors = Last + 1 to Root copy
+    Values = Prefix (X // Divisors)
+    Total -= Values sum
+    Groups = 1 to X // (Root + 1) copy
+    High = X // Groups
+    Low = X // (Groups + 1)
+    Span = High - Low
+    Terms = Prefix Groups * Span mod Mod
+    Total -= Terms sum
+    Cached I = Total mod Mod
   end
-  Dd = D1 + 1 to Sx copy
-  V -= (Fs (X // Dd)) sum
-  Qs = (1 to X // (Sx + 1)) copy
-  Ct = X // Qs - X // (Qs + 1)
-  V -= Fs Qs * Ct sum
-  Bg Kk = V
+  return Cached
 end
-rem Every distinct u = N // k and its
-rem c(u) = 4 (Phi(N // u) - Phi(N //
-rem (u + 1))).
-Sn = N isqrt
-U0 = N // (Sn + 1)
-Kb = N // (U0 + 1)
-Us = concat (1 to U0) (N // (1 to Kb))
-Us = Us copy
-U1 = Us + 1
-Fa = Bg (Us min (K + 1))
-Ga = Fs (N // Us min L)
-Fa = Us at most K choose Fa Ga
-Fb = Bg (U1 min (K + 1))
-Gb = Fs (N // U1 min L)
-Fb = U1 at most K choose Fb Gb
-Cm = 4 * (Fa - Fb)
-rem c > 0, so a positive exponent
-rem keeps (1 + u) = 0 mod Md exact.
-Ex = (Cm - 1) mod (Md - 1) + 1
-Hp = (U1 mod Md) Ex Md powmod
-for Hp len greater 1
-  if Hp len mod 2 equal 1
-    Hp = concat Hp (array 1)
-  end
-  Hh = Hp len // 2
-  Lh = Hp (0 till Hh)
-  Hp = Lh * Hp (Hh till 2 * Hh) mod Md
+fun N rays Phi Mod
+  Prefix = Phi scan + mod Mod
+  Cached = N totals Prefix Mod
+  Count = Cached len - 2
+  Bound = Prefix len - 1
+  Root = N isqrt
+  Last = N // (Root + 1)
+  CountRays = N // (Last + 1)
+  Low = 1 to Last
+  High = N // (1 to CountRays)
+  Values = concat Low High copy
+  Next = Values + 1
+  Left = Cached (Values min (Count + 1))
+  Small = Prefix (N // Values min Bound)
+  Mask = Values at most Count
+  Left = Mask choose Left Small
+  Right = Cached (Next min (Count + 1))
+  Small = Prefix (N // Next min Bound)
+  Mask = Next at most Count
+  Right = Mask choose Right Small
+  Counts = 4 * (Left - Right) mod Mod
+  return tuple Values Counts
 end
-H = Hp 0
-Cr = Cm mod Md
-Ur = Us mod Md
-A1 = Cr * Ur mod Md sum mod Md
-Tw = Cr * (Ur * Ur mod Md) mod Md
-A2 = Tw sum mod Md
-Answer = H * H - 1 - 2 * H * A1 + A2
-Answer = Answer mod Md
+Mod = 1000000007
+rem Any cutoff above sqrt(N) is valid.
+rem Use half the usual n^(2/3) table.
+Bound = N ** (2 / 3) floor
+Bound = Bound // 2 + 10
+Minimum = N isqrt + 1
+Bound = Bound max Minimum min N max 1
+if Limit greater 0
+  Bound = Limit max Minimum min N max 1
+end
+Phi = Bound totients
+unpack Weights Counts = N rays Phi Mod
+Rays = Weights mod Mod
+First = Counts * Rays mod Mod
+Second = First * Rays mod Mod
+Moment1 = First sum mod Mod
+Moment2 = Second sum mod Mod
+rem Exponents use the multiplicative
+rem group order; moments use Mod.
+Order = Mod - 1
+unpack Weights Counts = N rays Phi Order
+Exponents = (Counts - 1) mod Order + 1
+Bases = (Weights + 1) mod Mod
+Powers = Bases Exponents Mod powmod
+Product = Powers reduce * with 1 mod Mod
+Square = Product * Product
+Moment = 2 * Product * Moment1
+Bad = 1 + Moment - Moment2
+Answer = (Square - Bad) mod Mod
 Answer print
