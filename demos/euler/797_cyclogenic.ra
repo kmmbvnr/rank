@@ -1,0 +1,77 @@
+rem Cyclogenic Polynomials
+rem https://projecteuler.net/problem=797
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 7
+arg Mod integer = 1000000007
+
+rem Polynomials of exact order n are
+rem the products of cyclotomic factors
+rem with lcm n, so with
+rem F(m) = prod over d | m of
+rem (1 + Phi_d(2)), P_n(2) is the sum
+rem over m | n of mu(n/m) F(m).
+rem Phi_n(2) is prod over d | n of
+rem (2^d - 1)^mu(n/d), kept as numerator
+rem and denominator and sieved prime by
+rem prime. F is a zeta transform, one
+rem prime and doubling step at a time.
+Idx = 1 to Limit
+Num = (2 Idx Mod powmod) - 1
+Den = Idx * 0 + 1
+Primes = primes to Limit copy
+for Index in 0 to Primes len - 1
+  Prime = Primes Index
+  Src = 0 to Limit // Prime - 1
+  Dst = (Src + 1) * Prime - 1
+  Up = Num Dst * (Den Src) mod Mod
+  Down = Den Dst * (Num Src) mod Mod
+  Num Dst = Up
+  Den Dst = Down
+end
+Inv = Den (Mod - 2) Mod powmod
+Phi = Num * Inv mod Mod
+Gain = (1 + Phi) mod Mod
+Zeta = Gain * 1
+rem Shifts p^(2^t) <= N, by prime.
+Shifts = Primes * 1
+Keys = Primes * 8
+Root = Limit isqrt
+Pw = Primes filter (Primes at most Root)
+Shifts = concat Shifts (Pw * Pw)
+Keys = concat Keys (Pw * 8 + 1)
+Quad = Root isqrt
+P4 = Primes filter (Primes at most Quad)
+Shifts = concat Shifts (P4 ** 4)
+Keys = concat Keys (P4 * 8 + 2)
+P8 = Primes filter (Primes at most 7)
+Shifts = concat Shifts (P8 ** 8)
+Keys = concat Keys (P8 * 8 + 3)
+P16 = Primes filter (Primes at most 2)
+Shifts = concat Shifts (P16 ** 16)
+Keys = concat Keys (P16 * 8 + 4)
+Order = Keys argsort
+Steps = Shifts Order
+for Index in 0 to Steps len - 1
+  Shift = Steps Index
+  Src = 0 to Limit // Shift - 1
+  Dst = (Src + 1) * Shift - 1
+  Fresh = Zeta Dst * (Zeta Src) mod Mod
+  Zeta Dst = Fresh
+end
+rem Exact lcm n: sum over m | n of
+rem mu(n / m) F(m), one prime at a time.
+for Index in 0 to Primes len - 1
+  Prime = Primes Index
+  Src = 0 to Limit // Prime - 1
+  Dst = (Src + 1) * Prime - 1
+  Diff = Zeta Dst - Zeta Src
+  Less = (Diff + Mod) mod Mod
+  Zeta Dst = Less
+end
+Answer = Zeta sum mod Mod
+Answer print

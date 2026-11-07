@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "797_cyclogenic"
+  Limit = 10
+  run
+  Answer equal 5598
+end
