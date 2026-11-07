@@ -1,0 +1,139 @@
+rem Seventeen Points
+rem https://projecteuler.net/problem=794
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Target integer = 17
+
+rem On the grid of 1 / d, d = lcm(1..T),
+rem a state is the sorted set of
+rem admissible intervals, one per placed
+rem point. Stage m = n + 1 matches each
+rem interval injectively to a bin of
+rem [0, 1) cut in m, cuts it to the bin
+rem and gives the free bin to the new
+rem point. States are merged by a hash.
+rem Each level is a run of partial
+rem matchings, one interval at a time,
+rem then a merge; one loop does both.
+Pr = primes to Target copy
+Col = Pr reshape (Pr len) 1
+Fit = (Col ** (1 to 6)) at most Target
+Flags = Fit integer
+Pcount = Flags sum axis 1
+Scale = Pr ** Pcount
+Prods = Scale scan *
+Grid = Prods (Prods len - 1)
+Lm = (array 0) reshape 1 1
+Um = (array Grid) reshape 1 1
+Level = 1
+Turn = 0
+Pst = array 0
+Pmask = array 0
+Pb = array 0
+Idx = 1 to Target
+Pa = 1073741789
+Pb2 = 1073741783
+Wa = (Idx * 2654435761) mod Pa
+Wb = (Idx * 40503) mod Pb2
+Half = Target * (Target - 1) // 2
+Steps = Half + Target - 1
+for Iter in 1 to Steps
+  Many = Level + 1
+  if Turn less Level
+    Lo = ((Lm # Turn) * Many) // Grid
+    Up = (Um # Turn) * Many + Grid - 1
+    Hi = Up // Grid - 1
+    Cnt = Hi - Lo + 1
+    Cp = Cnt Pst
+    Ends = Cp scan +
+    Starts = Ends - Cp
+    Total = Cp sum
+    Marks = array shape Total fill 0
+    Marks Starts = 1
+    Owner = (Marks scan +) - 1
+    Run = 0 to Total - 1
+    Base = (Lo Pst) Owner
+    Bin = Base + Run - Starts Owner
+    Got = (Pmask Owner) shr Bin
+    Used = (Got band 1) equal 0
+    Real = (Cp Owner) greater 0
+    Keep = Used and Real
+    Ids = (0 till Total) Keep
+    Par = Owner Ids
+    Bk = Bin Ids
+    Pst = Pst Par
+    Pmask = (Pmask Par) bor (1 shl Bk)
+    Old = Pb len // Level
+    Prev = Pb reshape Old Level
+    Rows = Prev Par
+    Newn = Par len
+    Flat = Rows reshape (Newn * Level)
+    Where = (0 till Newn) * Level + Turn
+    Flat Where = Bk
+    Pb = Flat
+    Turn += 1
+  else
+    Whole = Pst len
+    Bits = (1 shl Many) - 1
+    Free = Bits - Pmask
+    Fr = Free * 1.0
+    Lg2 = Fr log
+    Two = 2.0 log
+    Kf = (Lg2 / Two + 0.5) integer
+    Pm = Pb reshape Whole Level
+    Lg = Lm Pst
+    Ug = Um Pst
+    Blo = (Pm * Grid) // Many
+    Bhi = ((Pm + 1) * Grid) // Many
+    Nl = Lg max Blo
+    Nu = Ug min Bhi
+    Cv = (Kf * Grid) // Many
+    Cl = Cv reshape Whole 1
+    Dv = ((Kf + 1) * Grid) // Many
+    Cu = Dv reshape Whole 1
+    Al = concat Nl Cl axis 1
+    Au = concat Nu Cu axis 1
+    Cells = Whole * Many
+    Fl = Al reshape Cells
+    Fu = Au reshape Cells
+    Rid = (0 till Cells) // Many
+    Skey = Rid * 33554432 + Fl
+    Perm = Skey argsort
+    Pl = Fl Perm
+    Pu = Fu Perm
+    Sl = Pl reshape Whole Many
+    Su = Pu reshape Whole Many
+    Wt = Wa take Many
+    Xt = Wb take Many
+    Wcol = Wt reshape 1 Many
+    Xcol = Xt reshape 1 Many
+    M1 = Sl * Wcol + Su * Xcol
+    M2 = Sl * Xcol + Su * Wcol
+    H1 = M1 sum axis 1
+    H2 = M2 sum axis 1
+    Hm = H1 mod Pa
+    Hn = H2 mod Pb2
+    Key = Hm * Pb2 + Hn
+    Uniq = Key unique
+    Rep = Key find Uniq
+    Lm = Sl Rep
+    Um = Su Rep
+    Level += 1
+    Turn = 0
+    Size = Lm # 0 len
+    Pst = 0 till Size
+    Pmask = Pst * 0
+    Cells = Size * Level
+    Pb = array shape Cells fill 0
+  end
+end
+Sums = Lm sum axis 1
+Best = Sums min
+Ratio = Best / Grid
+Answer = Ratio round 12
+Answer print
