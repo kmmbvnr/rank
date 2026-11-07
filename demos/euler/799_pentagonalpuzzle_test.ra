@@ -1,0 +1,10 @@
+use testing
+
+test "two representations"
+  use "799_pentagonalpuzzle"
+  Limit = 60
+  Least = 1
+  Floor = 1
+  run
+  Answer equal 3577
+end
