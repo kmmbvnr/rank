@@ -1,0 +1,15 @@
+use testing
+
+test "statement values"
+  use "757_stealthynumbers"
+  Limit = 1000000
+  run
+  Answer equal 2851
+end
+
+test "small values"
+  use "757_stealthynumbers"
+  Limit = 36
+  run
+  Answer equal 4
+end

@@ -1,0 +1,55 @@
+rem Stealthy Numbers
+rem https://projecteuler.net/problem=757
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 14
+arg Parts integer = 8
+
+rem Write a = pq, b = rs, c = pr,
+rem d = qs.
+rem Then a + b - c - d = (p-s)(q-r) = 1,
+rem so N = x(x+1) y(y+1) with x <= y.
+rem Distinct values are counted in value
+rem bands, each with ragged y ranges.
+Cuts = (0 to Parts) ** 2
+Edge = Limit * Cuts // Parts ** 2
+Big = ((Limit isqrt) + 1) isqrt
+Xs = 1 to Big
+Base = Xs * (Xs + 1)
+Fits = Base * Base at most Limit
+Xs = Xs filter Fits
+Base = Xs * (Xs + 1)
+Answer = 0
+for Part in 0 to Parts - 1
+  Low = Edge Part
+  High = Edge (Part + 1)
+  Hi = High // Base
+  Lo = Low // Base
+  Top = ((4 * Hi + 1) isqrt - 1) // 2
+  Skip = ((4 * Lo + 1) isqrt - 1) // 2
+  First = (Skip + 1) max Xs
+  Count = (Top - First + 1) max 0
+  Live = Count greater 0
+  Pk = Count Live
+  Fk = First Live
+  Bk = Base Live
+  Ends = Pk scan +
+  Starts = Ends - Pk
+  Total = Pk sum
+  Marks = array shape Total fill 0
+  Marks Starts = 1
+  Owner = (Marks scan +) - 1
+  Run = 0 to Total - 1
+  Step = Run - Starts Owner
+  Rise = Fk Owner + Step
+  Vals = Bk Owner * Rise * (Rise + 1)
+  Sorted = Vals sort
+  Shift = Sorted shift 1 with 0
+  Fresh = Sorted not equal Shift
+  Answer += Fresh count
+end
+Answer print
