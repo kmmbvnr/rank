@@ -1,6 +1,7 @@
 rem Triangles Containing the Origin II
 rem https://projecteuler.net/problem=456
 
+use algo
 use numbers
 use sequences
 use io
@@ -18,7 +19,7 @@ rem and those with an opposite pair.
 Is = 1 to N copy
 X = 1248 Is 32323 powmod - 16161
 Y = 8421 Is 30103 powmod - 15051
-G = X abs gcd (Y abs)
+G = X gcd Y
 Nz = G greater 0 indices
 Dx = X Nz // G Nz
 Dy = Y Nz // G Nz
@@ -32,41 +33,33 @@ St = Nw indices
 Sn = St (1 till St len)
 Ed = concat Sn (array Nk)
 W = Ed - St
-Cx = (Dx Od) St * 1.0
-Cy = (Dy Od) St * 1.0
-An = Cy atan2 Cx
-Ao = An argsort
-An = An Ao
-W = W Ao
-Cx = Cx Ao
-Cy = Cy Ao
+RayX = (Dx Od) St * 1.0
+RayY = (Dy Od) St * 1.0
+Angles = RayY atan2 RayX
+AngleOrder = Angles argsort
+Angles = Angles AngleOrder
+W = W AngleOrder
+RayX = RayX AngleOrder
+RayY = RayY AngleOrder
 M = W len
 rem Opposite ray of each class, in
 rem the doubled circle after it.
-Tp = 8 * (1.0 atan)
-Qa = 0 - Cy atan2 (0 - Cx)
-Qa = Qa less An choose (Qa + Tp) Qa
-K2 = concat An (An + Tp)
+Turn = 8 * (1.0 atan)
+Back = 0 - RayY atan2 (0 - RayX)
+Add = Back less Angles
+Opposite = Add choose (Back + Turn) Back
+Circle = concat Angles (Angles + Turn)
 Ws = concat W W
-rem Keys below each query: queries
-rem go first, so ties sort before.
-Mg = concat Qa K2
-Mo = Mg argsort
-Ik = Mo at least M choose 1 0
-Cb = Ik scan + with 0
-Ps = Mo less M indices
-Qi = Mo Ps
-J = array shape M fill 0
-J Qi = Cb Ps
+Bounds = Circle lowerindex Opposite
 P1 = Ws scan + with 0
 P2 = Ws * Ws scan + with 0
 I1 = (0 till M) + 1
-A = P1 J - P1 I1
-Q = P2 J - P2 I1
+A = P1 Bounds - P1 I1
+Q = P2 Bounds - P2 I1
 O = (W * (A * A - Q) // 2) sum
-Jc = J min (2 * M - 1)
-Hit = K2 Jc equal Qa
-Wo = Hit choose (Ws Jc) 0
+Probe = Bounds min (2 * M - 1)
+Hit = Circle Probe equal Opposite
+Wo = Hit choose (Ws Probe) 0
 Tw = W sum
 B = (W * Wo * (Tw - W - Wo)) sum // 2
 S2 = W * W sum

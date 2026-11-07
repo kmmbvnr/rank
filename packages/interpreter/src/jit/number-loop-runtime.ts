@@ -30,10 +30,12 @@ const overflow = numberOverflow;
 // Only prepared numeric buffers reach this helper; raw packed inputs are
 // admitted solely for direct indexed loads. Observable searches stay native.
 function numberSortedIndex(cells: ArrayLike<number>, target: number, upper: boolean): number {
+    if (Number.isNaN(target)) throw overflow;
     let low = 0, high = cells.length;
     while (low < high) {
         const middle = Math.floor((low + high) / 2), value = cells[middle];
-        if (value < target || upper && value === target) low = middle + 1;
+        if (Number.isNaN(value)) throw overflow;
+        if (upper ? value <= target : value < target) low = middle + 1;
         else high = middle;
     }
     return low;

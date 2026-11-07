@@ -1851,9 +1851,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 && ['lowerindex', 'upperindex'].includes(op.name)
                 && !localTypes.has(op.name) && !arrays.has(op.name) && !containers.has(op.name)) {
                 const type = arrayType(parts[0]);
-                if (type?.rank === 1 && type.element === 'integer') {
-                    const source = emitArrayValue(parts[0], lines), target = emit(parts[1], lines, 'integer');
-                    if (!source || target?.type !== 'integer') return undefined;
+                if (type?.rank === 1 && (type.element === 'integer' || type.element === 'real' && host.reals)) {
+                    const source = emitArrayValue(parts[0], lines), target = emit(parts[1], lines);
+                    if (!source || target?.type !== 'integer' && target?.type !== 'real') return undefined;
                     const info = arrays.get(parts[0].name)!;
                     const result = `searchIndex${state.serial++}`;
                     builtins.set(op.name, 'algo');

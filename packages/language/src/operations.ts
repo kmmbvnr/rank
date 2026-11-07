@@ -28,8 +28,8 @@ export type ResultKind =
 
 // Common compiler vocabulary. Backend profiles declare the supported subset.
 export type CompiledAtomType = 'integer' | 'real' | 'boolean' | 'text' | 'bytes';
-/** Types of loop registers and direct native calls. Reals stay in the exact
- * loop backend; the Number fast path is integer-only. */
+/** Types of loop registers and direct native calls. Backend profiles choose
+ * their supported subset; Number integers require exactness proofs. */
 export type CompiledLoopType = CompiledAtomType;
 
 /** A verified compiler-supported subset, not the operation's full language signature.
@@ -421,18 +421,18 @@ export const operations: readonly Operation[] = [
         summary: 'First position whose monotone prefix aggregate reaches the target.' },
     { name: 'lowerindex', grouping: { optionalRightOperand: true }, module: 'algo', arities: [2], form: 'Values lowerindex Target',
         compiledCall: { inputs: ['integer-array', 'integer'], result: 'integer', callbacks: 'read-cells', cost: 'input-dependent' },
-        signatures: [{ inputs: [{ collection: 'array', element: 'integer' }, 'integer'],
+        signatures: [{ inputs: [{ collection: 'array', element: 'number' }, 'number'],
             result: 'integer', ranks: ['all', 0] }],
         result: 'integer', shape: [{ args: [[null], []], result: [] }],
         dyadicRanks: ['all', 0],
-        summary: 'Insertion index of the first integer at least the target in an ascending vector.' },
+        summary: 'Insertion index of the first number at least the target in an ascending vector.' },
     { name: 'upperindex', grouping: { optionalRightOperand: true }, module: 'algo', arities: [2], form: 'Values upperindex Target',
         compiledCall: { inputs: ['integer-array', 'integer'], result: 'integer', callbacks: 'read-cells', cost: 'input-dependent' },
-        signatures: [{ inputs: [{ collection: 'array', element: 'integer' }, 'integer'],
+        signatures: [{ inputs: [{ collection: 'array', element: 'number' }, 'number'],
             result: 'integer', ranks: ['all', 0] }],
         result: 'integer', shape: [{ args: [[null], []], result: [] }],
         dyadicRanks: ['all', 0],
-        summary: 'Insertion index of the first integer greater than the target in an ascending vector.' },
+        summary: 'Insertion index of the first number greater than the target in an ascending vector.' },
     { name: 'lowerbound', grouping: { optionalRightOperand: true }, module: 'algo', arities: [2], form: 'Bag lowerbound Value',
         signatures: orderedQuerySignatures,
         result: 'element',

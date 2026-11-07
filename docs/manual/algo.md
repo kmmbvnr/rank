@@ -406,12 +406,12 @@ ceiling, upperbound
 ## lowerindex
 
 Find the insertion index in a sorted
-integer vector.
+numeric vector.
 
 ```rank
 use algo
-A = array 1 3 3 7
-A lowerindex 3
+A = array 0.5 1.5 1.5 4.5
+A lowerindex 1.5
 ```
 
 ```result
@@ -431,12 +431,16 @@ at least Target, or len if none. Indices
 start at zero. Empty vectors return
 zero. Queries take O(log n).
 
-Values must contain integers in
-ascending order. Sortedness is a caller
-precondition; it is not checked. Only
-cells on the search path are read and
-checked as integers. The target must be
-an integer.
+Values must contain numbers in
+ascending order. Integers and reals may
+mix; integer comparisons remain exact.
+NaN is rejected when queried or read.
+Infinities are supported.
+
+Sortedness is a caller precondition; it
+is not checked. Only cells on the
+search path are read and checked.
+Array targets preserve their shape.
 
 ### See also
 
@@ -980,12 +984,12 @@ ceiling, lowerbound
 ## upperindex
 
 Find the insertion index in a sorted
-integer vector.
+numeric vector.
 
 ```rank
 use algo
-A = array 1 3 3 7
-A upperindex 3
+A = array 0.5 1.5 1.5 4.5
+A upperindex 1.5
 ```
 
 ```result
@@ -1005,12 +1009,16 @@ greater than Target, or len if none.
 Indices start at zero. Empty vectors
 return zero. Queries take O(log n).
 
-Values must contain integers in
-ascending order. Sortedness is a caller
-precondition; it is not checked. Only
-cells on the search path are read and
-checked as integers. The target must be
-an integer.
+Values must contain numbers in
+ascending order. Integers and reals may
+mix; integer comparisons remain exact.
+NaN is rejected when queried or read.
+Infinities are supported.
+
+Sortedness is a caller precondition; it
+is not checked. Only cells on the
+search path are read and checked.
+Array targets preserve their shape.
 
 ### See also
 

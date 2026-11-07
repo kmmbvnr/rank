@@ -419,7 +419,7 @@ Largest = Seen max
 Each distinct value contributes once. An empty set sums to zero; `min` and
 `max` reject it as an empty reduction.
 
-### Sorted integer insertion indices
+### Sorted numeric insertion indices
 
 With `use algo`, `Values lowerindex Target` returns the first index whose value
 is at least `Target`; `Values upperindex Target` returns the first index whose
@@ -427,8 +427,10 @@ value is greater than `Target`. Both return `Values len` if no value qualifies,
 and zero for an empty vector. Indices are zero-based; duplicate values are
 supported, and integer comparisons retain arbitrary precision.
 
-The input must be an ascending rank-1 integer array, and the target must be an
-integer. Sortedness is a caller precondition and is not checked. Each query
+The input must be an ascending rank-1 numeric array; integer and real values
+and targets may mix. Integer comparisons retain arbitrary precision. NaN is
+rejected when queried or read on the search path; infinities are supported.
+Sortedness is a caller precondition and is not checked. Each scalar query
 reads and checks only O(log n) cells; it does not materialize the vector or
 linearly rescan it. Scalar targets return an integer; array targets follow the
 default ranks `all 0`. For an inclusive interval `[Low, High]`, its count is

@@ -89,11 +89,11 @@ describe('sorted integer insertion indices', () => {
         } finally { runtime.dispose(); }
     });
 
-    it('rejects non-vectors, noninteger targets and visited noninteger cells', () => {
-        for (const source of [1n, ownedArray([1n, 2n], [1, 2]), ownedArray([1.5])]) {
-            expect(() => sortedIndex(source, 1n, false)).toThrow('sorted integer vector');
+    it('rejects non-vectors, nonnumeric targets and visited nonnumeric cells', () => {
+        for (const source of [1n, ownedArray([1n, 2n], [1, 2]), ownedArray(['text'])]) {
+            expect(() => sortedIndex(source, 1n, false)).toThrow('sorted numeric vector');
         }
-        expect(() => sortedIndex(ownedArray([1n]), 1, true)).toThrow('integer target');
+        expect(() => sortedIndex(ownedArray([1n]), 'text', true)).toThrow('numeric target');
     });
 
     it('propagates cell errors and supports cancellation', () => {

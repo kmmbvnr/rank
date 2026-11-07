@@ -119,8 +119,8 @@ Algorithmic collections, range structures and combinatorial generators.
 | `Size groups` | structure | unary all | Compact integer groups under keys from zero up to Size, excluding Size. |
 | `Groups Key Value insert` | collection, mutates | 3 operands: whole | Appends an integer to a keyed group, preserving insertion order. |
 | `Tree firstatleast Target` | integer | binary all / 0 | First position whose monotone prefix aggregate reaches the target. |
-| `Values lowerindex Target` | integer | binary all / 0 | Insertion index of the first integer at least the target in an ascending vector. |
-| `Values upperindex Target` | integer | binary all / 0 | Insertion index of the first integer greater than the target in an ascending vector. |
+| `Values lowerindex Target` | integer | binary all / 0 | Insertion index of the first number at least the target in an ascending vector. |
+| `Values upperindex Target` | integer | binary all / 0 | Insertion index of the first number greater than the target in an ascending vector. |
 | `Bag lowerbound Value` | element | binary all / 0 | Smallest stored value at least the query, an alias for ceiling. |
 | `Values segment maxsum` | record | special form | Prefix and subarray sum profile: query returns sum, prefix, suffix and best. |
 | `Data missing Bounds` | integer | binary all / 1 | Smallest subset sum a wavelet position range cannot make. |
