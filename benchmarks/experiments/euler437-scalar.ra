@@ -1,0 +1,142 @@
+rem Fibonacci Primitive Root
+rem https://projecteuler.net/problem=437
+
+use numbers
+use bits
+use sequences
+use io
+use cli
+
+arg N integer = 100000000
+
+fun Value square_order Prime
+  Power = 1
+  for Value not equal 1
+    Value = Value * Value mod Prime
+    Power *= 2
+  end
+  return Power
+end
+
+fun Prime nonresidue
+  Candidate = 3
+  Power = (Prime - 1) // 2
+  Test = Candidate Power Prime powmod
+  for Test not equal Prime - 1
+    Candidate += 2
+    if Candidate equal 5
+      Candidate += 2
+    end
+    Test = Candidate Power Prime powmod
+  end
+  return Candidate
+end
+
+rem Only p = 1 mod 8 needs Tonelli.
+fun Prime sqrt_five
+  Order = Prime - 1
+  Twos = Order band (0 - Order)
+  Odd = Order // Twos
+  Seed = Prime nonresidue
+  Turn = Seed Odd Prime powmod
+  Power = (Odd + 1) // 2
+  Root = 5 Power Prime powmod
+  Test = 5 Odd Prime powmod
+  for Test not equal 1
+    Order = Test square_order Prime
+    Power = Twos // (2 * Order)
+    Step = Turn Power Prime powmod
+    Root = Root * Step mod Prime
+    Turn = Step * Step mod Prime
+    Test = Test * Turn mod Prime
+    Twos = Order
+  end
+  return Root
+end
+
+rem Only odd factors of p - 1 need
+rem storage, and they are below N / 2.
+fun Limit odd_factors
+  Half = Limit // 4
+  Table = array shape (Half + 1) fill 0
+  Largest = Limit // 2
+  Bound = Largest isqrt
+  Primes = primes to Bound array
+  for I in Primes len - 1 to 1 by -1
+    Prime = Primes I
+    Start = Prime * Prime // 2
+    Slots = Start to Half by Prime
+    Table Slots = Prime
+  end
+  return Table
+end
+
+rem The roots multiply to -1. Odd
+rem factors of p - 1 reject both roots
+rem together; for p = 3 mod 4 exactly
+rem one root passes the factor 2.
+fun Prime has_primitive Table
+  Square = 0
+  if Prime mod 4 equal 3
+    Power = (Prime + 1) // 4
+    Square = 5 Power Prime powmod
+  else
+    if Prime mod 8 equal 5
+      Power = (Prime + 3) // 8
+      Square = 5 Power Prime powmod
+      Test = Square * Square mod Prime
+      if Test not equal 5
+        Power = (Prime - 1) // 4
+        Turn = 2 Power Prime powmod
+        Square = Square * Turn mod Prime
+      end
+    else
+      Square = Prime sqrt_five
+    end
+  end
+  if Square mod 2 equal 0
+    Square = Prime - Square
+  end
+  Root = (Square + 1) // 2
+  Order = Prime - 1
+  if Prime mod 4 equal 1
+    Power = Order // 2
+    Test = Root Power Prime powmod
+    if Test equal 1
+      return false
+    end
+  end
+  Twos = Order band (0 - Order)
+  Rest = Order // Twos
+  Last = 0
+  Good = true
+  for Good and Rest greater 1
+    Factor = Table (Rest // 2)
+    if Factor equal 0
+      Factor = Rest
+    end
+    if Factor not equal Last
+      Power = Order // Factor
+      Test = Root Power Prime powmod
+      Good = Test not equal 1
+    end
+    Rest //= Factor
+    Last = Factor
+  end
+  return Good
+end
+
+Factors = N odd_factors
+Answer = 0
+if N at least 5
+  Answer = 5
+end
+for Prime in primes to N
+  Class = Prime mod 5
+  if Class equal 1 or Class equal 4
+    if Prime has_primitive Factors
+      Answer += Prime
+    end
+  end
+end
+Answer print

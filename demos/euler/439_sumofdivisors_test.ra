@@ -28,3 +28,13 @@ test "short tables use the recursion"
   run
   Answer equal 576517282
 end
+
+test "empty and singleton bounds"
+  use "439_sumofdivisors"
+  N = 0
+  run
+  Answer equal 0
+  N = 1
+  run
+  Answer equal 1
+end

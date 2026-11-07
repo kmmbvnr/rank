@@ -1,6 +1,6 @@
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { collectArrayCells } from './array-read.js';
-import { multiply } from './modular-power.js';
+import { multiply, multiplyWide } from './modular-power.js';
 import { integer32Cells, typedArray } from './owned-array.js';
 import type { RankArray } from './value.js';
 
@@ -9,11 +9,11 @@ const MAX_MODULUS = 2 ** 31;
 
 type Step = (acc: number, x: number) => number;
 
-/** `+` and `*` on residues below `m`; the wide product is split in 16-bit halves. */
+/** `+` and `*` on residues below `m`, with exact low-word multiplication. */
 export function stepOf(op: '+' | '*', m: number): Step {
     if (op === '+') return (a, x) => { const s = a + x; return s >= m ? s - m : s; };
     if (m <= 2 ** 30) return (a, x) => multiply(a, x, m);
-    return (a, x) => ((a * (x >>> 16)) % m * 65536 + a * (x & 65535)) % m;
+    return (a, x) => multiplyWide(a, x, m);
 }
 
 /** Cells reduced into [0, m), with their shape. */
@@ -112,15 +112,73 @@ export function modularReduce(op: '+' | '*', source: Residues, seed: bigint | un
     return BigInt(acc);
 }
 
-/** `A * B mod M` for equal-shape integer arrays and M up to 2^30: each product is
+/** `A * B mod M` for equal-shape integer arrays and M up to 2^31: each product is
  * reduced as it forms, so no cell leaves the Int32 range. */
 export function modularProduct(a: RankArray, b: RankArray, modulus: bigint): RankArray | undefined {
     const m = modulusOf(modulus);
-    if (m === undefined || m > 2 ** 30 || a.shape.length !== b.shape.length || a.shape.some((n, i) => n !== b.shape[i])) return undefined;
+    if (m === undefined || a.shape.length !== b.shape.length || a.shape.some((n, i) => n !== b.shape[i])) return undefined;
+    const product = m <= 2 ** 30 ? multiply : multiplyWide;
+    // Stable Int32 inputs need only the result buffer. Reduce cells in place
+    // in the arithmetic expression, rather than allocating two residue copies.
+    const left = integer32Cells(a), right = integer32Cells(b);
+    if (left && right && !a.columnNames && !b.columnNames && privateLoopPolling() && !demandBudgetEnabled()) {
+        checkpoint('computing integer array', left.length);
+        const out = new Int32Array(left.length);
+        for (let i = 0; i < out.length; i++) {
+            const x = left[i] % m, y = right[i] % m;
+            out[i] = product(x < 0 ? x + m : x, y < 0 ? y + m : y, m);
+        }
+        return typedArray(out, a.shape);
+    }
     const x = arrayResidues(a, modulus), y = arrayResidues(b, modulus);
     if (!x || !y) return undefined;
     checkpoint('computing integer array', x.cells.length);
     const out = new Int32Array(x.cells.length);
-    for (let i = 0; i < out.length; i++) out[i] = multiply(x.cells[i], y.cells[i], m);
+    for (let i = 0; i < out.length; i++) out[i] = product(x.cells[i], y.cells[i], m);
     return typedArray(out, x.shape);
+}
+
+/** Dense modular keyed folds over trusted Int32 cells. Scratch space stays
+ * proportional to the input; sparse key domains retain the ordinary fold. */
+export function modularKeyed(kind: 'reduce' | 'scan', op: '+' | '*', source: RankArray,
+    keys: RankArray, seed: bigint | undefined, size: bigint | undefined, modulus: bigint): RankArray | undefined {
+    if (!privateLoopPolling() || demandBudgetEnabled() || inspectionEnabled()) return undefined;
+    const m = modulusOf(modulus);
+    const values = integer32Cells(source), indices = integer32Cells(keys);
+    if (m === undefined || m > 2 ** 30 || !values || !indices
+        || source.shape.length !== keys.shape.length || source.shape.some((n, i) => n !== keys.shape[i])
+        || source.columnNames || source.tableScopes || source.sortKeys
+        || keys.columnNames || keys.tableScopes || keys.sortKeys) return undefined;
+    if (typeof SharedArrayBuffer !== 'undefined'
+        && (values.buffer instanceof SharedArrayBuffer || indices.buffer instanceof SharedArrayBuffer)) return undefined;
+    const count = values.length;
+    let length = size === undefined ? 0 : Number(size);
+    if (!Number.isSafeInteger(length) || length < 0 || length >= 0xffffffff) return undefined;
+    for (let start = 0; start < count; start += 4096) {
+        const end = Math.min(count, start + 4096);
+        checkpoint('modular keyed fold', end - start);
+        for (let i = start; i < end; i++) {
+            const key = indices[i];
+            if (key < 0 || size !== undefined && key >= length) return undefined;
+            if (size === undefined) length = Math.max(length, key + 1);
+        }
+    }
+    // In particular a sparse scan need not allocate every intervening group.
+    if (length > 2 * count + 4096) return undefined;
+    const initial = seed === undefined ? op === '+' ? 0 : 1 % m : seedOf(seed, m);
+    checkpoint('modular keyed fold', length);
+    const states = new Int32Array(length).fill(initial);
+    const out = kind === 'scan' ? new Int32Array(count) : states;
+    const step = stepOf(op, m);
+    for (let start = 0; start < count; start += 4096) {
+        const end = Math.min(count, start + 4096);
+        checkpoint('modular keyed fold', end - start);
+        for (let i = start; i < end; i++) {
+            const key = indices[i], residue = values[i] % m;
+            const next = step(states[key], residue < 0 ? residue + m : residue);
+            states[key] = next;
+            if (kind === 'scan') out[i] = next;
+        }
+    }
+    return typedArray(out, kind === 'scan' ? source.shape : [length]);
 }

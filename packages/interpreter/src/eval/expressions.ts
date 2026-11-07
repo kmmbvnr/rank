@@ -1,4 +1,7 @@
 import { AstUtils } from 'langium';
+import { integer32Cells } from '../array-storage.js';
+import { modularProduct } from '../modular-fold.js';
+import { demandBudgetEnabled, privateLoopPolling } from '../interrupt.js';
 import { PlanConstruction } from './plan-construction.js';
 import { demand, demandValue } from '../plan.js';
 import { materializeValue } from '../materialize.js';
@@ -276,6 +279,17 @@ export class ExpressionEvaluator {
                 const exponent = this.compileDirect(expression.right);
                 return base && exponent ? () => this.context.operators.evaluateUnary(operator,
                     this.context.operators.evaluateBinary('**', base(), exponent())) : undefined;
+            }
+            const product = this.modularProductOperands(expression);
+            if (product) {
+                const a = this.compileDirect(product.left), b = this.compileDirect(product.right);
+                const modulus = this.compileDirect(expression.right);
+                if (a && b && modulus) return () => {
+                    const x = a(), y = b();
+                    return this.tryModularProduct(x, y, expression.right)
+                        ?? this.context.operators.evaluateBinary('mod',
+                            this.context.operators.evaluateBinary('*', x, y), modulus());
+                };
             }
             const left = this.compileDirect(expression.left);
             const right = isAllAxisExpression(expression.right) && ['to', 'till'].includes(expression.operator)
@@ -666,6 +680,15 @@ export class ExpressionEvaluator {
             }
             const fold = expression.operator === 'mod' && !expression.step ? this.modularFold(expression) : undefined;
             if (fold) return fold;
+            const product = this.modularProductOperands(expression);
+            if (product) return () => flatMapResult(mapPair(expressions.evaluate(product.left),
+                () => expressions.evaluate(product.right), (a, b) => [a, b] as const), ([a, b]) => {
+                    const fused = expressions.tryModularProduct(a, b, expression.right);
+                    if (fused !== undefined) return completed(fused);
+                    const value = expressions.context.operators.evaluateBinary('*', a, b);
+                    return mapResult(expressions.evaluate(expression.right), m =>
+                        expressions.context.operators.evaluateBinary('mod', value, m));
+                });
             if (!expression.step) {
                 const right = () => expressions.evaluate(expression.right);
                 const operation = (left: RankValue, right: RankValue) =>
@@ -686,6 +709,25 @@ export class ExpressionEvaluator {
             return function* (): Execution<RankValue> { throw new RankError('# is only valid inside tensor addressing'); };
         }
         return function* (): Execution<RankValue> { throw new RankError(`cannot evaluate ${expression.$type}`); };
+    }
+
+    private modularProductOperands(expression: BinaryExpression): BinaryExpression | undefined {
+        if (expression.operator !== 'mod' || expression.step) return undefined;
+        let left = expression.left;
+        while (isParenthesizedExpression(left)) left = left.value;
+        return isBinaryExpression(left) && left.operator === '*' && !left.step ? left : undefined;
+    }
+
+    private tryModularProduct(a: RankValue, b: RankValue, modulus: Expression): RankValue | undefined {
+        // Only stable integer storage can skip multiplication before reading M.
+        // Effectful modulus expressions and observable checkpoints stay ordinary.
+        if (!privateLoopPolling() || demandBudgetEnabled()) return undefined;
+        const plain = (value: RankValue): value is RankArray => isRankArray(value)
+            && !value.columnNames && !value.tableScopes && !value.sortKeys && !!integer32Cells(value);
+        if (!plain(a) || !plain(b)) return undefined;
+        const m = isNumberLiteral(modulus) ? modulus.value
+            : isNameExpression(modulus) ? this.context.findVariable(modulus.name) : undefined;
+        return typeof m === 'bigint' ? modularProduct(a, b, m) : undefined;
     }
 
     /** `(X scan * [with S]) mod M`, also `+` and `reduce`: each step is reduced as it goes,

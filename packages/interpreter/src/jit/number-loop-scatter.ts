@@ -1,4 +1,4 @@
-import { isParenthesizedExpression, isBinaryExpression, isNameExpression, isNumberLiteral, isBooleanLiteral, type Expression, type ArrayAssignmentStatement } from '@arrrank/language';
+import { loopOperatorSignature, isParenthesizedExpression, isBinaryExpression, isNameExpression, isNumberLiteral, isBooleanLiteral, type Expression, type ArrayAssignmentStatement } from '@arrrank/language';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
 
@@ -7,7 +7,8 @@ import type { LoopExpressions } from './integer-loop-expressions.js';
  * remain pinned until their loop result is replaced or published. */
 export function emitNumberScatter(state: LoopCompilationState, expressions: LoopExpressions,
     assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined {
-    if (!state.numberMode || assignment.operator !== '=' || assignment.indices.length !== 1) return undefined;
+    if (!state.numberMode || !['=', '+=', '-=', '*='].includes(assignment.operator) || assignment.indices.length !== 1) return undefined;
+    const compound = assignment.operator !== '=';
     const selector = assignment.indices[0].value;
     let range = selector;
     while (range && isParenthesizedExpression(range)) range = range.value;
@@ -19,7 +20,11 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     const old = destinations.get(assignment.name), known = arrays.get(assignment.name);
     const type = old?.type ?? known?.type ?? expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as Expression)?.element;
     if (old && old.rank !== 1 || known && known.rank !== 1 || type !== 'integer' && type !== 'real' && type !== 'boolean') return undefined;
-    const target = old ?? { slot: expressions.slot(assignment.name), rank: 1, compound: false, type };
+    if (compound) {
+        const signature = loopOperatorSignature(assignment.operator.slice(0, -1), [type, type], state.host.nativeCalls);
+        if (type === 'boolean' || !signature?.compound || signature.result !== type) return undefined;
+    }
+    const target = old ?? { slot: expressions.slot(assignment.name), rank: 1, compound, type };
     destinations.set(assignment.name, target);
     state.currentScope()?.assigned.add(assignment.name);
     if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
@@ -31,7 +36,7 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
         : isNameExpression(e) || isNumberLiteral(e) || isBinaryExpression(e)
             && ['+', '-', '*', '//', 'mod'].includes(e.operator) && pure(e.left) && pure(e.right);
     const streamed: string[] = [];
-    if (type === 'boolean' && isBooleanLiteral(assignment.value) && pure(selector)) {
+    if (!compound && type === 'boolean' && isBooleanLiteral(assignment.value) && pure(selector)) {
         const setup: string[] = [];
         const vector = expressions.numberVector(selector, setup);
         if (vector?.type === 'integer') {
@@ -51,7 +56,11 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
             }
         }
     }
-    const lines: string[] = [], calls = state.calls.length;
+    const lines: string[] = compound ? [
+        // A demand budget or observer must retain the native read/compute/write
+        // boundaries, including on calls after this region has warmed up.
+        'if (!streamScatterEnabled()) throw overflow;',
+    ] : [], calls = state.calls.length;
     const selected = expressions.emitValue(selector, lines);
     if (!selected || typeof selected.type === 'string') return undefined;
     const n = state.serial++, keys = `keys${n}`, index = `scatter${n}`, key = `key${n}`;
@@ -67,7 +76,10 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     if (!rhs || (typeof rhs.type === 'string' ? rhs.type : rhs.type.element) !== type || state.calls.length !== calls) return undefined;
     // Assignments return their original RHS. A scalar has no live selection
     // to retain; fresh array results can be pinned by iterationResult.
-    if (typeof rhs.type !== 'string' && !discarded && !rhs.fresh) return undefined;
+    // An escaping compound array RHS may remain a lazy selection of the
+    // updated destination. Preserve native publication until that contract
+    // can be represented here; scalar RHS values have no live selection.
+    if (typeof rhs.type !== 'string' && !discarded && (compound || !rhs.fresh)) return undefined;
     lines.push('vectorLive.pop();');
     const operand = `operand${n}`;
     let value: string;
@@ -81,6 +93,22 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
                 ? sliceArray(${source}, 0, ${source}.length, 1).cells : ${source};`);
         value = type === 'boolean' ? `Boolean(${operand}[${index}])`
             : type === 'real' ? `Number(${operand}[${index}])` : `safe(Number(${operand}[${index}]))`;
+    }
+    if (compound) {
+        // Repeated keys read the same old value. Compute the full selection
+        // before committing stores, so the last occurrence wins rather than
+        // accumulating earlier writes. Keep the original RHS as the result.
+        const updates = `updates${n}`, operations: string[] = [];
+        const next = expressions.arithmetic(assignment.operator.slice(0, -1),
+            { code: `${cells}[${key}]`, type }, { code: value, type }, type, operations);
+        if (!next) return undefined;
+        lines.push(`const ${updates} = vectorArray(${selected.code}.shape, ${type === 'real'}, vectorPool, vectorLive,
+            [result, iterationResult, ${keys}, ${operand}, ${cells}]);`,
+            expressions.numberVectorLoop(`${keys}.length`, index, [
+                `const ${key} = Number(${keys}[${index}]);`, ...operations,
+                `${updates}.store(${index}, ${next});`,
+            ]));
+        value = `${updates}.cells[${index}]`;
     }
     const ordinary = [`location = ${location};`, ...lines, expressions.numberVectorLoop(`${keys}.length`, index, [
         `const ${key} = Number(${keys}[${index}]), value${n} = ${value};`,

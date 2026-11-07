@@ -2,6 +2,9 @@ use testing
 
 test "statement values"
   use "446_retractionsb"
+  N = 0
+  run
+  Answer equal 0
   N = 1
   run
   Answer equal 1

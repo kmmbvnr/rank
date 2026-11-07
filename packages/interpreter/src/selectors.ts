@@ -11,7 +11,7 @@ import { inheritSemanticArrayType, semanticArrayType } from './semantic-array-ty
 import { registerScalarView, deferSelectionCopy, prepareIntegerRange, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
 import { materializeTensorMap } from './tensor-map.js';
-import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, sliceStoredArray, storedScalarKinds, knownStoredScalarKind, typedArray, typedElementKind } from './array-storage.js';
+import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, booleanCells, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, sliceStoredArray, storedScalarKinds, knownStoredScalarKind, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { sequenceValues } from './sequence.js';
@@ -586,6 +586,32 @@ function selectorIndices(selector: RankValue, size: number, axis: number): numbe
     }
     const length = count ?? values!.length;
     if (length === 0) return [];
+    // Proven packed selectors have no cell callbacks or missing values. Read
+    // their storage directly rather than boxing every item through its facade.
+    const mask = isRankArray(selector) ? booleanCells(selector) : undefined;
+    if (mask && mask.length === length && isRankArray(selector)) {
+        if (selector.shape.length !== 1) throw new RankError('axis selector must have rank 1');
+        if (length !== size) throw new RankError(`mask length ${length} does not match axis ${axis} size ${size}`);
+        const result: number[] = [];
+        for (let block = 0; block < mask.words.length; block++) {
+            let word = mask.words[block];
+            while (word) {
+                result.push(block * 32 + 31 - Math.clz32(word & -word));
+                word = (word & (word - 1)) >>> 0;
+            }
+        }
+        return result;
+    }
+    const compact = isRankArray(selector) ? integer32Cells(selector) : undefined;
+    if (compact && compact.length === length) {
+        const result: number[] = [];
+        for (const value of compact) {
+            if (value < 0) throw new RankError(`array index must be nonnegative on axis ${axis}`);
+            if (value >= size) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${value}`);
+            result.push(value);
+        }
+        return result;
+    }
     const stored = isRankArray(selector) ? denseScalarItems(selector) : undefined;
     const at = stored ? (index: number) => stored[index] : isRankArray(selector)
         ? (index: number) => readCellOrMissing(selector, index)

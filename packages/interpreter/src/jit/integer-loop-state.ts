@@ -177,7 +177,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         statement, ownershipChecks, integerRanges: integerRangeFacts(statement),
         host, numberMode, wideScalars, workCounting, checkpoint, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, reboundNames, writers, binders, writerNames, binderNames,
-        vectorReductions: false, containers, builtins, syntax, calls, arrays, calleeArrays, sliceReadSources, sliceResultSources, indexedReads, arrayInputs, arrayDefinitions, ranges, aliases, localAliases, arrayTransfers, dequeArrays,
+        vectorReductions: false, primeCopies: false, containers, builtins, syntax, calls, arrays, calleeArrays, sliceReadSources, sliceResultSources, indexedReads, arrayInputs, arrayDefinitions, ranges, aliases, localAliases, arrayTransfers, dequeArrays,
         vectorIterations, iterators, destinations, locations, callouts, canCallout,
         get branchDepth() { return branchDepth; },
         set branchDepth(v: number) { branchDepth = v; },

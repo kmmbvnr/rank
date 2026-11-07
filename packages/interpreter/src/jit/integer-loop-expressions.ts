@@ -1,3 +1,4 @@
+import { primeLoopBounds } from '../loop-traversal.js';
 import { fitsIntegerRepresentation } from './integer-representation.js';
 import { integerRange, safeIntegerRange, type IntegerRange } from './integer-range-facts.js';
 import { positionalDeclaredCall } from './declared-scalar-call.js';
@@ -806,12 +807,77 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (type?.rank !== 1 || type.element !== 'integer' || form.seed && knownType(form.seed) !== 'integer') return undefined;
         return { form, type };
     }
+    function numericPrimeCopy(expression: Expression) {
+        if (!numberMode || !host.nativeCalls || !host.arrayLocals || !host.arrayReads
+            || ['copy', 'primes'].some(name => localTypes.has(name) || arrays.has(name)
+                || containers.has(name))) return undefined;
+        while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (!isApplicationExpression(expression) || expression.arguments.length !== 1
+            || !isNameExpression(expression.arguments[0]) || expression.arguments[0].name !== 'copy') return undefined;
+        const bounds = primeLoopBounds(expression.head);
+        return bounds?.some(bound => bound.upper) ? bounds : undefined;
+    }
+    // A finite range is a sequence until explicitly completed. Array typing
+    // also describes vectorizable ranges, so it alone cannot admit indices.
+    function completedIndicesMask(expression: Expression): boolean {
+        while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (isMaterializeExpression(expression)) return true;
+        if (isBinaryExpression(expression)) return !['to', 'till'].includes(expression.operator)
+            && completedIndicesMask(expression.left) && completedIndicesMask(expression.right);
+        if (isUnaryExpression(expression)) return completedIndicesMask(expression.operand);
+        if (isApplicationExpression(expression)) {
+            if (expression.arguments.length === 1 && isNameExpression(expression.arguments[0])
+                && expression.arguments[0].name === 'copy') return true;
+            return completedIndicesMask(expression.head) && expression.arguments.every(completedIndicesMask);
+        }
+        return !AstUtils.streamAllContents(expression).some(node => isBinaryExpression(node)
+            && ['to', 'till'].includes(node.operator));
+    }
+    // Completed external Boolean arrays already have a word-wise indices
+    // kernel. Private stages and numeric predicates benefit from this region.
+    function privateIndicesMask(expression: Expression, seen = new Set<string>()): boolean {
+        while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (isNameExpression(expression)) {
+            const type = arrays.get(expression.name)?.type
+                ?? (seen.size === 0 ? arrayType(expression)?.element : undefined);
+            if (type === 'integer' || type === 'real') return true;
+            if (type !== 'boolean' || !state.arrayDefinitions.has(expression.name) || seen.has(expression.name)) return false;
+            const definitions = [...AstUtils.streamAllContents(state.statement)].filter(node =>
+                isAssignmentStatement(node) && node.name === expression.name);
+            const nested = new Set(seen).add(expression.name);
+            return definitions.length > 0 && definitions.every(node => isAssignmentStatement(node)
+                && node.operator === '=' && privateIndicesMask(node.value, nested));
+        }
+        if (isMaterializeExpression(expression)) return privateIndicesMask(expression.source, seen);
+        if (isBinaryExpression(expression)) return ['to', 'till'].includes(expression.operator)
+            || privateIndicesMask(expression.left, seen) || privateIndicesMask(expression.right, seen);
+        if (isUnaryExpression(expression)) return privateIndicesMask(expression.operand, seen);
+        if (isApplicationExpression(expression)) {
+            if (expression.arguments.length === 1 && isNameExpression(expression.arguments[0])
+                && ['sum', 'len', 'product', 'count', 'min', 'max', 'indices'].includes(expression.arguments[0].name)) return false;
+            return privateIndicesMask(expression.head, seen)
+                || expression.arguments.some(operand => privateIndicesMask(operand, seen));
+        }
+        return false;
+    }
+    function numericIndices(expression: Expression): Expression | undefined {
+        if (!numberMode || !host.nativeCalls || !host.arrayLocals || !host.arrayReads
+            || !host.booleanArrays || localTypes.has('indices') || arrays.has('indices')
+            || containers.has('indices')) return undefined;
+        while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (!isApplicationExpression(expression)) return undefined;
+        const parts = flattenApplication(expression);
+        if (parts.length !== 2 || !isNameExpression(parts[1]) || parts[1].name !== 'indices') return undefined;
+        const type = arrayType(parts[0]);
+        return type?.rank === 1 && type.element === 'boolean' && completedIndicesMask(parts[0]) && privateIndicesMask(parts[0]) ? parts[0] : undefined;
+    }
     // Array operands use the same concrete range/selection operations as the
     // evaluator, without re-entering expression evaluation on every iteration.
     function arrayType(e: Expression): CompiledArrayType | undefined {
         while (isParenthesizedExpression(e)) e = e.value;
         if (scalarInputs.has(e) || isNameExpression(e) && state.ranges.has(e.name)) return undefined;
         if (numberMode && isMaterializeExpression(e)) return arrayType(e.source);
+        if (numericPrimeCopy(e) || numericIndices(e)) return { kind: 'array', element: 'integer', rank: 1 };
         const scan = numericScan(e);
         if (scan) return scan.type;
         const concat = numericConcatCopy(e);
@@ -1214,6 +1280,41 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         return { start, end, step, inclusive: source.operator === 'to' };
     }
     function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {
+        const indexedMask = numericIndices(source);
+        if (indexedMask) {
+            state.numberVectors = true;
+            const mask = numberVector(indexedMask, lines);
+            if (!mask || mask.type !== 'boolean') return undefined;
+            const result = `positions${state.serial++}`, index = `cell${state.serial++}`;
+            const count = `count${state.serial++}`, body: string[] = [];
+            const selected = mask.cell(index, body);
+            if (!selected) return undefined;
+            builtins.set('indices', 'sequences');
+            const position = `position${state.serial++}`;
+            lines.push(`let ${count} = 0;
+                ${numberVectorLoop(mask.size, index, [...body, `if (${selected.code}) ${count}++;`])}
+                const ${result} = vectorArray([${count}], false, vectorPool, vectorLive, [result, iterationResult, ${mask.sources.join(',')}]); let ${position} = 0;
+                ${numberVectorLoop(mask.size, index, [...body, `if (${selected.code}) ${result}.store(${position}++, ${index});`])}`);
+            return { code: result, cells: `${result}.cells`, type: { kind: 'array', element: 'integer', rank: 1 }, fresh: true };
+        }
+        const primeBounds = numericPrimeCopy(source);
+        if (primeBounds) {
+            let lower: { code: string; inclusive: boolean } | undefined;
+            let upper: { code: string; inclusive: boolean } | undefined;
+            for (const bound of primeBounds) {
+                const value = emit(bound.value, lines, 'integer');
+                if (value?.type !== 'integer') return undefined;
+                const code = `primeLimit${state.serial++}`;
+                lines.push(`const ${code} = ${value.code};`);
+                if (bound.upper) upper = { code, inclusive: bound.inclusive };
+                else lower = { code, inclusive: bound.inclusive };
+            }
+            state.primeCopies = true;
+            builtins.set('copy', 'sequences'); builtins.set('primes', 'sequences');
+            const result = `primeArray${state.serial++}`;
+            lines.push(`const ${result} = primeArray(${lower?.code ?? 'undefined'}, ${lower?.inclusive ?? false}, ${upper!.code}, ${upper!.inclusive});`);
+            return { code: result, cells: `${result}.cells`, type: { kind: 'array', element: 'integer', rank: 1 }, fresh: true };
+        }
         let copied = source;
         while (isParenthesizedExpression(copied)) copied = copied.value;
         if (host.nativeCalls && isApplicationExpression(copied) && copied.arguments.length === 1

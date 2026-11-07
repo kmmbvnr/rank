@@ -5,7 +5,7 @@ import { createOwned } from '../owned-array.js';
 import { booleanCells, IntegerCells, ownedScalarArray, typedArray } from '../array-storage.js';
 import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
 import { RankError } from '../errors.js';
-import { modularPowerQuad, safeIntegerModularPower } from '../modular-power.js';
+import { modularExponentQuad, modularPowerQuad, multiply, safeIntegerModularPower } from '../modular-power.js';
 import { prepareIntegerView, prepareStoredScalarView } from '../integer-view.js';
 import { storedOperand } from '../array-copy.js';
 import { checkpoint, demandBudgetEnabled, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
@@ -184,7 +184,9 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         ? compactBinary(code, ac ?? Int32Array.of(x), a ? ao : 0, a ? as : 0,
             bc ?? Int32Array.of(y), b ? bo : 0, b ? bs : 0, size) : undefined;
     if (fast) return typedArray(fast, shape);
-    if (a && b && size >= DENSE_MIN_CELLS && shape.at(-1)! >= 4 && (ai || bi)
+    // Two-column rows already avoid per-cell broadcast mapping and a double
+    // temporary. Mac/Intel measurements: benchmarks/packed-column-arrays.md.
+    if (a && b && size >= DENSE_MIN_CELLS && shape.at(-1)! >= 2 && (ai || bi)
         && (code <= 1 || code === 5 || code === 6 || code === 7 || code === 2 && (!ac || !bc))) {
         const lanes = compactBroadcastLanes(left as RankArray, right as RankArray, a, b, shape, code);
         if (lanes) return typedArray(lanes, shape);
@@ -732,9 +734,12 @@ export function mapStoredIntegerTernary(args: readonly RankValue[],
     return cells.array(shape);
 }
 
-/** powmod of packed Int32 bases with one scalar exponent and modulus. Four
- * bases run in lockstep; anything else returns to the general mapper. */
+/** powmod with a scalar modulus and packed Int32 bases or exponents.
+ * Four independent powers run in lockstep; other shapes use the general mapper. */
 export function powerStoredInt32(base: RankValue, exponent: RankValue, modulus: RankValue): RankArray | undefined {
+    if (typeof base === 'bigint' && isRankArray(exponent)) {
+        return powerStoredExponents(base, exponent, modulus);
+    }
     if (inspectionEnabled() || !privateLoopPolling() || !isRankArray(base)
         || typeof exponent !== 'bigint' || typeof modulus !== 'bigint'
         || exponent < 0n || exponent > 4294967295n || modulus < 1n || modulus > 1073741824n) return undefined;
@@ -767,6 +772,47 @@ export function powerStoredInt32(base: RankValue, exponent: RankValue, modulus: 
         throw error;
     }
     return typedArray(cells, base.shape);
+}
+
+/** One base/modulus with varying packed exponents shares its squaring table.
+ * Avoid generic broadcast readers and repeated scalar-domain checks per cell. */
+function powerStoredExponents(base: bigint, exponent: RankArray, modulus: RankValue): RankArray | undefined {
+    if (inspectionEnabled() || !privateLoopPolling() || !Number.isSafeInteger(Number(base))
+        || typeof modulus !== 'bigint' || modulus < 1n || modulus > 1073741824n) return undefined;
+    const view = prepareStoredScalarView(exponent, true);
+    if (!view?.linear || !view.compact || !view.validateUniform
+        || !view.kinds?.every(kind => kind === 'integer')) return undefined;
+    const { offset, stride } = view.linear;
+    const b = Number(base), m = Number(modulus);
+    const squares = new Int32Array(31);
+    squares[0] = ((b % m) + m) % m;
+    for (let bit = 1; bit < squares.length; bit++) squares[bit] = multiply(squares[bit - 1], squares[bit - 1], m);
+    const size = exponent.shape.reduce((n, dimension) => n * dimension, 1);
+    const cells = new Int32Array(size);
+    view.validateUniform(view.items[offset]);
+    const compact = view.compact;
+    try {
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('computing integer array', end - start);
+            let i = start;
+            for (; i + 4 <= end; i += 4) {
+                const at = offset + i * stride;
+                if (compact[at] < 0 || compact[at + stride] < 0 || compact[at + 2 * stride] < 0 || compact[at + 3 * stride] < 0) return undefined;
+                modularExponentQuad(compact, at, stride, squares, m, cells, i);
+            }
+            for (; i < end; i++) {
+                const e = compact[offset + i * stride];
+                if (e < 0) return undefined;
+                cells[i] = safeIntegerModularPower(b, e, m);
+            }
+        }
+    } catch (error) {
+        if (error instanceof InterruptedError) throw error;
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
+    return typedArray(cells, exponent.shape);
 }
 
 /** Borrow Number cells only from proven integer storage, and publish a packed

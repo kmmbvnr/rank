@@ -18,48 +18,55 @@ rem equal valuation and gcd d are odd
 rem coprime pairs up to L // d, built
 rem from phi. T has period Mod - 1.
 Mod = 987898789
-Pi = Mod - 1
-Ph = 0 to L copy
-for P in primes to L
-  Sl = P to L by P
-  Ph Sl -= Ph Sl // P
-end
-Co = array shape (L + 1) fill 0
-Co 1 = 1
-for M in 2 to L
-  Co M = Co (M - 1)
-  if M mod 2 equal 1
-    Co M += Ph M
+Period = Mod - 1
+fun Bound totients
+  Phi = 0 to Bound copy
+  for P in primes to Bound
+    Slots = P to Bound by P
+    Phi Slots -= Phi Slots // P
   end
+  return Phi
 end
-Ds = 1 to L copy
-Cd = Co (L // Ds)
-Cdiff = L * L - (Cd sum)
-Cs = 1 to L copy
-Odd = Cs mod 2 equal 1
-Bs = Odd choose 10 1 sum
-Cur = Cs mod Pi
-Ex = array shape (L * L) fill 0
-for D in 1 to L
-  Ex ((D - 1) * L to (D * L - 1)) = Cur
-  Cur = Cur * Cs mod Pi
+
+Keys = 0 to L copy
+Phi = L totients
+Values = Keys mod 2 * Phi
+Coprime = Values scan +
+Degrees = 1 to L copy
+Counts = Coprime (L // Degrees)
+Different = L * L - (Counts sum)
+Baseline = L + 9 * ((L + 1) // 2)
+rem T(k) = (alpha^(k+1) - beta^(k+1))
+rem / (2 sqrt(26)) in the prime field.
+rem Mod = 5 mod 8 gives the square root.
+Root = 26 ((Mod + 3) // 8) Mod powmod
+if Root * Root mod Mod not equal 26
+  Twist = 2 ((Mod - 1) // 4) Mod powmod
+  Root = Root * Twist mod Mod
 end
-rem Doubling on (T(k), T(k-1)).
-Tx = array shape (L * L) fill 1
-Ty = array shape (L * L) fill 0
-for Bit in 29 to 0 by -1
-  Dx = (Tx * Tx + Ty * Ty) mod Mod
-  Mid = (Mod - 10) * Ty mod Mod
-  Dy = Ty * (2 * Tx + Mid) mod Mod
-  Up = Ex // 2 ** Bit mod 2 equal 1
-  Nx = (10 * Dx + Dy) mod Mod
-  Tx = Up choose Nx Dx
-  Ty = Up choose Dx Dy
+Alpha = 5 + Root mod Mod
+Beta = 5 - Root mod Mod
+Gap = 2 * Root mod Mod
+Inverse = Gap (Mod - 2) Mod powmod
+rem Bound scratch space by base blocks.
+Powers = Degrees reshape L 1
+Weights = Counts reshape L 1
+Sum = 0
+for Start in 1 to L by 128
+  Last = Start + 127 min L
+  Columns = Start to Last copy
+  Count = Columns len
+  Bases = Columns reshape 1 Count
+  Exponents = Bases Powers Period powmod
+  Power = Exponents + 1
+  Left = Alpha Power Mod powmod
+  Right = Beta Power Mod powmod
+  Difference = Left - Right
+  Tilings = Difference * Inverse mod Mod
+  Terms = Tilings * Weights mod Mod
+  Part = Terms sum
+  Sum += Part
 end
-Wt = Cd mod Mod
-Rw = Tx reshape L L
-Wc = Wt reshape L 1
-Pr = Rw * Wc mod Mod
-Sm = Pr sum mod Mod
-Answer = (Bs * Cdiff + Sm) mod Mod
+Fixed = Baseline * Different
+Answer = (Fixed + Sum) mod Mod
 Answer print

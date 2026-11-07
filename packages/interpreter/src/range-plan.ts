@@ -6,16 +6,23 @@ interface ArithmeticRange {
     readonly step: bigint;
     readonly count: bigint;
 }
-const ranges = new WeakMap<SequencePlan, { range: ArithmeticRange; iterate: SequencePlan['iterate']; at: SequencePlan['at'] }>();
+const ranges = new WeakMap<SequencePlan, { range: ArithmeticRange; iterate: SequencePlan['iterate']; at: SequencePlan['at']; size?: SequencePlan['size'] }>();
 
 /** Only the range constructor registers this proof; names and host at() hooks
  * cannot establish that a sequence is a pure arithmetic progression. */
 export function registerRangePlan(plan: SequencePlan, range: ArithmeticRange): void {
-    ranges.set(plan, { range, iterate: plan.iterate, at: plan.at });
+    ranges.set(plan, { range, iterate: plan.iterate, at: plan.at, size: Object.getOwnPropertyDescriptor(plan, 'size')?.value });
 }
 
-export function arithmeticRange(plan: SequencePlan): ArithmeticRange | undefined {
+export function arithmeticRange(plan: SequencePlan, dataHeaders = false): ArithmeticRange | undefined {
     const entry = ranges.get(plan);
+    if (entry && dataHeaders) {
+        const size = Object.getOwnPropertyDescriptor(plan, 'size')?.value;
+        return Object.getOwnPropertyDescriptor(plan, 'iterate')?.value === entry.iterate
+            && Object.getOwnPropertyDescriptor(plan, 'at')?.value === entry.at
+            && size && size === entry.size && Object.getOwnPropertyDescriptor(size, 'kind')?.value === 'exact'
+            && Object.getOwnPropertyDescriptor(size, 'value')?.value === entry.range.count ? entry.range : undefined;
+    }
     return entry && plan.iterate === entry.iterate && plan.at === entry.at
         && plan.size.kind === 'exact' && plan.size.value === entry.range.count ? entry.range : undefined;
 }

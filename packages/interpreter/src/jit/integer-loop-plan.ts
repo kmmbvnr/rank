@@ -132,6 +132,7 @@ export interface IntegerLoopPlan {
     builtins: Map<string, string>;
     syntax: ReadonlySet<string>;
     vectorReductions: boolean;
+    primeCopies?: boolean;
     calls: { numberArrayResult?: boolean; exactOutput?: Expression; privateStateSafe?: boolean; numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(work?: LoopWorkCounter): LoopCallable | undefined }[];
     vectorIterations: { slot: number; binding: IterationBinding }[];
     iterators: ((source: RankArray | RankDeque | RankSet | string) => Iterable<RankValue>)[];

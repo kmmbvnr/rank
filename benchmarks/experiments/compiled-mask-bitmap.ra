@@ -1,0 +1,11 @@
+use sequences
+use cli
+arg N integer = 1000000
+Mask = array shape N fill false
+Mask (0 till N by 10000) = true
+Total = 0
+for Turn in 1 to 20
+  Slots = Mask indices
+  Total += Slots sum
+end
+Answer = Total

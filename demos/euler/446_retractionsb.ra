@@ -5,146 +5,125 @@ use numbers
 use sequences
 use io
 use cli
-
 arg N integer = 10000000
 
-rem R(m) = s(m) - m with s the sum of
-rem unitary divisors. n^4 + 4 =
-rem ((n-1)^2 + 1)((n+1)^2 + 1), so
-rem s = Q(n-1) Q(n+1) for odd n and
-rem 5/9 of that for even n, where
-rem Q(m) = s(m^2 + 1). A sieve gives
-rem Q: for each prime p = 1 mod 4 the
-rem m with p | m^2 + 1 are r and -r
-rem mod p, r^2 = -1. What is left of
-rem m^2 + 1 is one big prime.
+rem R(m) is its unitary-divisor sum - m.
+rem n^4 + 4 splits into (n-1)^2 + 1
+rem and (n+1)^2 + 1. Their only shared
+rem prime is 2, corrected by 5/9.
 Mod = 1000000007
 Top = N + 1
-Ms = 0 to Top copy
-Rem = Ms * Ms + 1 copy
-Acc = array shape (Top + 1) fill 1
-Od = Ms mod 2 equal 1
-Acc = Od choose 3 1 copy
-Rem = (Od choose (Rem // 2) Rem) copy
-Ap = primes to Top array
-P4 = Ap (Ap mod 4 equal 1 indices)
-Eq = (P4 - 1) // 4
-Pu = P4
-Eu = Eq
-Pr = array shape 0 fill 0
-Rt = array shape 0 fill 0
-for A in 2 to 100
-  if Pu len equal 0
-    break
+
+fun Primes roots
+  Count = Primes len
+  Result = array shape Count fill 0
+  Slots = 0 till Count copy
+  Powers = (Primes - 1) // 4
+  Seed = 2
+  for Primes len greater 0
+    Values = Seed Powers Primes powmod
+    Squared = Values * Values mod Primes
+    Good = Squared equal Primes - 1
+    Result (Slots Good) = Values Good
+    Pending = Good equal false
+    Primes = Primes Pending
+    Powers = Powers Pending
+    Slots = Slots Pending
+    Seed += 1
   end
-  Res = Pu * 0 + 1
-  Bs = Pu * 0 + A
-  Ex = Eu
-  for Ex max greater 0
-    Bit = Ex mod 2 equal 1
-    Mu = Res * Bs mod Pu
-    Res = Bit choose Mu Res
-    Bs = Bs * Bs mod Pu
-    Ex = Ex // 2
-  end
-  Sq = Res * Res mod Pu
-  Hit = Sq equal (Pu - 1)
-  Ix = Hit indices
-  Pr = concat Pr (Pu Ix)
-  Rt = concat Rt (Res Ix)
-  Lf = Hit equal false indices
-  Pu = Pu Lf
-  Eu = Eu Lf
+  return Result
 end
-Bc = Top isqrt
-Sm = Pr at most Bc
-rem Small primes: strided slices.
-Ps = Pr (Sm indices)
-Rs = Rt (Sm indices)
-for I in 0 to Ps len - 1
-  P = Ps I
-  for Sg in 0 to 1
-    R0 = Rs I
-    if Sg equal 1
-      R0 = P - R0
-    end
-    if R0 at most Top
-      Sl = R0 to Top by P
-      Cur = (Rem Sl) // P
-      Pe = Cur * 0 + P copy
-      for I2 in 1 to 80
-        Dv = Cur mod P equal 0
-        if Dv choose 1 0 sum equal 0
-          break
-        end
-        Cur = Dv choose (Cur // P) Cur
-        Pe = Dv choose (Pe * P) Pe
-      end
-      Rem Sl = Cur
-      Acc Sl = (Acc Sl) * (Pe + 1)
-    end
-  end
+
+Small = primes to Top copy
+Small = Small (Small mod 4 equal 1)
+Roots = Small roots
+Primes = concat Small Small copy
+Other = Small - Roots
+Roots = concat Roots Other copy
+Inverse = 9 (Mod - 2) Mod powmod
+Correction = 5 * Inverse mod Mod
+
+rem Expand runs without scalar callbacks.
+fun Counts expand
+  Ends = Counts scan +
+  Starts = Ends - Counts
+  Total = Counts sum
+  Mark = array shape Total fill 0
+  Mark Starts = 1
+  Owner = (Mark scan +) - 1
+  Offset = (0 till Total) - Starts Owner
+  return tuple Owner Offset
 end
-rem Large primes: step j for all.
-rem Equal m share a prime in turn, by
-rem rank among equal m.
-Lg = Sm equal false indices
-P0 = Pr Lg
-R0 = Rt Lg
-Pp = concat P0 P0
-Rr = concat R0 (P0 - R0)
-for J in 0 to Top // Bc + 1
-  Mp = Rr + J * Pp
-  Ix = Mp at most Top indices
-  if Ix len equal 0
-    break
+
+rem Continue only the repeated factors.
+fun Factors powers Slots
+  Rest = (Slots * Slots + 1) // Factors
+  Powers = Factors copy
+  Pending = Rest mod Factors equal 0
+  Active = Pending indices
+  Rest = Rest Active
+  Dividers = Factors Active
+  for Active len greater 0
+    Current = Powers Active
+    Powers Active = Current * Dividers
+    Rest = Rest // Dividers
+    Pending = Rest mod Dividers equal 0
+    Active = Active Pending
+    Rest = Rest Pending
+    Dividers = Dividers Pending
   end
-  Pp = Pp Ix
-  Rr = Rr Ix
-  Mp = Mp Ix
-  Oq = Mp argsort
-  Mx = Mp Oq
-  Pv = Pp Oq
-  Nn = Mx len
-  Ps2 = 0 to Nn - 1 copy
-  Kp = concat (array -1) Mx
-  Pm = Kp (0 to Nn - 1)
-  St = Mx not equal Pm
-  Gs = St choose Ps2 0 scan max with 0
-  Rk = Ps2 - Gs (1 to Nn)
-  Mrk = Rk max
-  for Rd in 0 to Mrk
-    Sel = Rk equal Rd indices
-    Mq = Mx Sel
-    Pq = Pv Sel
-    Cur = (Rem Mq) // Pq
-    Pe = Pq
-    for I2 in 1 to 80
-      Dv = Cur mod Pq equal 0
-      if Dv choose 1 0 sum equal 0
-        break
-      end
-      Cur = Dv choose (Cur // Pq) Cur
-      Pe = Dv choose (Pe * Pq) Pe
-    end
-    Rem Mq = Cur
-    Acc Mq = (Acc Mq) * (Pe + 1)
-  end
+  return Powers
 end
-Big = Rem greater 1
-Ac2 = Acc * (Rem + 1)
-Acc = Big choose Ac2 Acc copy
-Acc0 = Acc mod Mod
-Qa = Acc0 (0 to N - 1)
-Qb = Acc0 (2 to Top)
-Ns = 1 to N copy
-Sa = Qa * Qb mod Mod
-Ev = Ns mod 2 equal 0
-Inv9 = 9 (Mod - 2) Mod powmod
-Sb = Sa * 5 mod Mod * Inv9 mod Mod
-Ss = Ev choose Sb Sa
-N2 = Ns * Ns mod Mod
-N4 = N2 * N2 mod Mod
-Tot = (Ss - N4 - 4) mod Mod
-Answer = Tot sum mod Mod
+
+rem Combine prime powers by position;
+rem the unsieved remainder is prime.
+fun Start block Stop
+  Low = Start - 1
+  High = Stop + 1
+  Size = High - Low + 1
+  First = Low + ((Roots - Low) mod Primes)
+  Keep = First at most High
+  Steps = Primes Keep
+  First = First Keep
+  Counts = (High - First) // Steps + 1
+  unpack Owner Offset = Counts expand
+  Factors = Steps Owner
+  Slots = First Owner + Offset * Factors
+  Keys = Slots - Low
+  Powers = Factors powers Slots
+  Divisors = Powers reduce * by Keys with 1 size Size
+  Values = (Powers + 1) mod Mod
+  Products = (Values reduce * by Keys with 1 size Size) mod Mod
+  Range = Low to High copy
+  Odd = Range mod 2 equal 1
+  Twos = Odd choose 2 1
+  Rest = (Range * Range + 1) // Twos
+  Rest = Rest // Divisors
+  Big = Rest greater 1
+  Scale = Big choose (Rest + 1) 1
+  Products = Products * Scale mod Mod
+  Scale = Odd choose 3 1
+  Products = Products * Scale mod Mod
+  Length = Stop - Start + 1
+  Left = Products (0 till Length)
+  Right = Products (2 to Length + 1)
+  Range = Start to Stop copy
+  Pair = Left * Right mod Mod
+  Even = Range mod 2 equal 0
+  Scaled = Pair * Correction mod Mod
+  Terms = Even choose Scaled Pair
+  Square = Range * Range mod Mod
+  Fourth = Square * Square mod Mod
+  Total = (Terms - Fourth - 4) mod Mod
+  return Total sum mod Mod
+end
+
+rem Bound temporary event storage.
+Block = 131072
+Answer = 0
+for Start in 1 to N by Block
+  Stop = N min (Start + Block - 1)
+  Answer += Start block Stop
+end
+Answer = Answer mod Mod
 Answer print

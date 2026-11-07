@@ -1,0 +1,8 @@
+use sequences
+use cli
+arg N integer = 2000000
+Cells = 1 to N copy
+Left = Cells reshape N 1
+Right = Left * 3
+Joined = concat Left Right Left axis 1
+Answer = Joined sum

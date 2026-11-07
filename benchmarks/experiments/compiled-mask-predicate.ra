@@ -1,0 +1,11 @@
+use sequences
+use cli
+arg N integer = 1000000
+Values = 0 till N copy
+Total = 0
+for Turn in 1 to 20
+  Mask = Values mod 10000 equal 0
+  Slots = Mask indices
+  Total += Slots sum
+end
+Answer = Total

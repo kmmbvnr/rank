@@ -21,116 +21,162 @@ rem for angle powers rr and RR - rr is
 rem reduced by a common factor, and
 rem every multiple that fits adds its
 rem coordinates.
-Sq = N isqrt
-Ans = 0
-Va = array shape 0 fill 0
-Vb = array shape 0 fill 0
-Vc = array shape 0 fill 0
-for U in 1 to Sq
-  for V in 1 to U
-    C = U * U + V * V
-    Gu = U gcd V
-    Pr = (U + V) mod 2
-    Ok = Gu equal 1 and Pr equal 1
-    if C at most Sq and Ok
-      A = U * U - V * V
-      B = 2 * U * V
-      Na = 0 - A
-      Nb = 0 - B
-      Va = concat Va (array A Na B Nb)
-      Vb = concat Vb (array B B A A)
-      Vc = concat Vc (array C C C C)
+Root = N isqrt
+Side = Root isqrt
+Values = 1 to Side copy
+U = Values reshape Side 1
+V = Values reshape 1 Side
+SquaredU = U * U
+SquaredV = V * V
+Hyp = SquaredU + SquaredV
+Common = U gcd V
+Coprime = Common equal 1
+Valid = V less U
+Within = Hyp at most Root
+Valid and= Within
+Valid and= Coprime
+Parity = (U + V) mod 2
+Odd = Parity equal 1
+Valid and= Odd
+Cells = Side * Side
+FlatValid = Valid reshape Cells
+Real = SquaredU - SquaredV
+Imag = 2 * U * V
+FlatReal = Real reshape Cells
+FlatImag = Imag reshape Cells
+FlatHyp = Hyp reshape Cells
+A = FlatReal FlatValid
+B = FlatImag FlatValid
+C = FlatHyp FlatValid
+Count = A len
+Triples = 4 * Count
+RealParts = concat A (0 - A) B (0 - B)
+ImagParts = concat B B A A
+Bases = concat C C C C
+Data = concat RealParts ImagParts Bases
+Matrix = Data reshape 3 Triples
+Points = Matrix transpose
+Limit = N * N // 2
+
+fun Point power Count
+  Real = Point 0
+  Imag = Point 1
+  Base = Point 2
+  X = 1
+  Y = 0
+  Scale = 1
+  for I in 1 to Count
+    Next = X * Real - Y * Imag
+    Y = X * Imag + Y * Real
+    X = Next
+    Scale *= Base
+  end
+  return array X Y Scale
+end
+
+fun Point order_sum Order
+  Total = 0
+  Last = (Order - 1) // 2
+  for First in 1 to Last
+    Common = Order gcd First
+    if Common equal 1
+      Second = Order - First
+      Left = Point power First
+      Right = Point power Second
+      Ratio = Right 2 // Left 2
+      X = Second * Left 0 * Ratio
+      X += First * Right 0
+      Y = Second * Left 1 * Ratio
+      Y -= First * Right 1
+      Common = X gcd Y
+      Common = Right 2 gcd Common
+      Scale = Right 2 // Common
+      Size = X abs
+      Size += Y abs
+      Size //= Common
+      Fits = N // (Scale * Order)
+      Total += Size * Fits * (Fits + 1)
     end
   end
+  return Total
 end
-for Vi in 0 to Va len - 1
-  Pa = Va Vi
-  Pb = Vb Vi
-  C = Vc Vi
-  Rr = 3
-  Cp = C ** Rr
-  for Cp at most N * N // 2
-    Hr = (Rr - 1) // 2
-    for Ra in 1 to Hr
-      Gc = Rr gcd Ra
-      Rb = Rr - Ra
-      X1 = 1
-      Y1 = 0
-      Z1 = 1
-      for I in 1 to Ra
-        Xt = X1 * Pa - Y1 * Pb
-        Y1 = X1 * Pb + Y1 * Pa
-        X1 = Xt
-        Z1 *= C
-      end
-      X2 = 1
-      Y2 = 0
-      Z2 = 1
-      for I in 1 to Rb
-        Xt = X2 * Pa - Y2 * Pb
-        Y2 = X2 * Pb + Y2 * Pa
-        X2 = Xt
-        Z2 *= C
-      end
-      Q2 = Z2 // Z1
-      Xu = Rb * X1 * Q2 + Ra * X2
-      Yu = Rb * Y1 * Q2 - Ra * Y2
-      Gx = Xu gcd Yu
-      Gg = Z2 gcd Gx
-      Gr = Z2 // Gg
-      Sa = Xu abs + (Yu abs)
-      Sa = Sa // Gg
-      Mm = N // (Gr * Rr)
-      if Gc equal 1
-        Ans += Sa * Mm * (Mm + 1)
-      end
-    end
-    Rr += 1
-    Cp = C ** Rr
+
+fun Point point_sum
+  Base = Point 2
+  Order = 3
+  Power = Base ** Order
+  Total = 0
+  for Power at most Limit
+    Total += Point order_sum Order
+    Order += 1
+    Power *= Base
   end
+  return Total
 end
-rem Trivial points.
-for R in 1 to N
-  K = (R - 1) // 2
-  Ans += 4 * R * K - K * (K + 1)
-end
-Lm = N + 1
-Mu = array shape (Lm + 1) fill 1
-Sm = array shape (Lm + 1) fill 1
-Ix = 0 to Lm copy
-Rt = Lm isqrt + 1
-for P in primes to Rt
-  Q = P
-  for Q at most Lm
-    Sl = Q to Lm by Q
-    Sm Sl *= P
-    if Q equal P
-      Mu Sl *= -1
+
+Contributions = Points point_sum rank 1
+Nontrivial = Contributions sum
+rem Pair odd and twice-odd Mobius terms.
+rem For m > 1, even m uses m phi(m);
+rem odd m uses
+rem -(m phi(m) + product(1-p)) / 2.
+rem Use distinct primes of m.
+fun Bound correction_weights
+  Size = Bound + 1
+  Phi = 0 to Bound copy
+  Product = array shape Size fill 1
+  Removed = array shape Size fill 1
+  Top = Bound isqrt
+  Primes = primes to Top copy
+  Count = Primes len
+  Index = 0
+  Power = 2
+  for Index less Count
+    Prime = Primes Index
+    Slots = Power to Bound by Power
+    Removed Slots *= Prime
+    if Power equal Prime
+      Phi Slots -= Phi Slots // Prime
+      Product Slots *= 1 - Prime
     end
-    Q *= P
-  end
-  Sl = P * P to Lm by (P * P)
-  Mu Sl = 0
-end
-Bg = Ix // Sm greater 1
-Mu = (Bg choose (0 - Mu) Mu) copy
-Mu 0 = 0
-Xc = array 1 0 (0 - 1) 0
-D2 = 0
-for D in 1 to N
-  Md = Mu D
-  if Md not equal 0
-    for R in D to N by D
-      if R at least 3
-        Mq = N // R
-        H = R // 2 // D
-        Tq = Mq * (Mq + 1) // 2
-        Cx = Xc (R mod 4)
-        Hh = H * (H + 1)
-        D2 += Cx * Tq * Md * Hh * D
+    Power *= Prime
+    if Power greater Bound
+      Index += 1
+      if Index less Count
+        Power = Primes Index
       end
     end
   end
+  Keys = 0 to Bound copy
+  Rest = Keys // Removed max 1
+  Large = Rest greater 1
+  Phi = Large choose (Phi - Phi // Rest) Phi
+  Product = Large choose (Product * (1 - Rest)) Product
+  Weight = Keys * Phi
+  Half = (Weight + Product) // 2
+  Odd = Keys mod 2 equal 1
+  Weight = Odd choose (0 - Half) Weight
+  if Bound at least 1
+    Weight 1 = 0
+  end
+  return Weight
 end
-Answer = Ans + D2
+
+Bound = N // 2
+Weights = Bound correction_weights
+Keys = 2 to Bound copy
+Counts = N // (2 * Keys)
+Triangle = Counts * (Counts + 1) // 2
+Coefficients = Weights Keys
+Terms = Coefficients * Triangle
+Correction = Terms sum
+
+Half = N // 2
+Polynomial = Half * (7 * Half - 3) - 4
+Trivial = 2 * Half * Polynomial // 3
+if N mod 2 equal 1
+  Trivial += 7 * Half * Half + 3 * Half
+end
+Total = Nontrivial + Trivial
+Answer = Total + Correction
 Answer print

@@ -1,0 +1,8 @@
+use sequences
+use cli
+arg N integer = 2000000
+Values = (1 to N) mod 1009 copy
+Values = Values + 1
+Keys = (0 till N) mod 4096 copy
+Groups = (Values reduce * by Keys with 1 size 4096) mod 1000000007
+Answer = Groups sum

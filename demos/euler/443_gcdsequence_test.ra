@@ -32,3 +32,32 @@ test "jump method checkpoints"
   run
   Answer equal 2624152
 end
+
+test "initial scan and anchor boundaries"
+  use "443_gcdsequence"
+  N = 5
+  run
+  Answer equal 14
+  N = 6
+  run
+  Answer equal 16
+  N = 8
+  run
+  Answer equal 18
+  N = 16
+  run
+  Answer equal 34
+  N = 17
+  run
+  Answer equal 51
+  N = 18
+  run
+  Answer equal 54
+end
+
+test "default bound"
+  use "443_gcdsequence"
+  N = 1000000000000000
+  run
+  Answer equal 2744233049300770
+end

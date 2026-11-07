@@ -1,7 +1,7 @@
 import { arrayDeclaration, declareArray } from './array-declaration.js';
 import { float64Cells, integer32Cells, integer64Cells, MAX_HELD_CELLS, sliceStoredArray, typedArray, typedElementKind } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
-import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
@@ -91,7 +91,7 @@ export function materializeSelectedView(value: RankArray): RankArray | undefined
 
 /** Copy homogeneous typed blocks without boxed cells or a recursive binding
  * traversal. Source views must prove contiguous storage and uniform contracts. */
-export function copyStoredArrayBlocks(shape: readonly number[], inputs: readonly RankArray[], blocks: () => Iterable<Block>): RankArray | undefined {
+export function copyStoredArrayBlocks(shape: readonly number[], inputs: readonly RankArray[], blocks: () => Iterable<Block>, rows?: { count: number; widths: readonly number[] }): RankArray | undefined {
     const size = shape.reduce((n, dimension) => n * dimension, 1);
     if (size > MAX_HELD_CELLS || !inputs.length) return undefined;
     const sources = new Map<RankArray, { cells: NumericCells; offset: number; validate?: (cell: RankValue) => void }>();
@@ -158,21 +158,44 @@ export function copyStoredArrayBlocks(shape: readonly number[], inputs: readonly
     }
     const out: NumericCells = prototype instanceof Int32Array ? new Int32Array(size)
         : prototype instanceof BigInt64Array ? new BigInt64Array(size) : new Float64Array(size);
-    for (const block of blocks()) {
-        const view = sources.get(block.source)!;
-        if (block.length && view.validate) {
-            const cell = view.cells[view.offset + block.offset];
-            view.validate(view.cells instanceof Int32Array ? BigInt(cell) : cell);
-            view.validate = undefined;
+    // Column concatenation otherwise allocates a block and a typed-array
+    // view for every cell. Trusted numeric storage can interleave directly.
+    // Budgets and observable polling retain their original traversal/checkpoints.
+    if (rows && privateLoopPolling() && !inspectionEnabled() && !demandBudgetEnabled() && !(out instanceof BigInt64Array)
+        && rows.widths.every(width => width === 1)) {
+        const views = inputs.map(source => sources.get(source)!);
+        const width = views.length;
+        for (let row = 0; row < rows.count; row++) {
+            const offset = row * width;
+            for (let column = 0; column < width; column++) {
+                const target = offset + column;
+                if ((target & 4095) === 0) checkpoint('copying array blocks', Math.min(4096, size - target));
+                const view = views[column];
+                const cell = (view.cells as Int32Array | Float64Array)[view.offset + row];
+                if (view.validate) {
+                    view.validate(view.cells instanceof Int32Array ? BigInt(cell) : cell);
+                    view.validate = undefined;
+                }
+                out[target] = cell;
+            }
         }
-        for (let start = 0; start < block.length; start += 65536) {
-            const length = Math.min(65536, block.length - start);
-            checkpoint('copying array blocks', length);
-            const cells = view.cells.subarray(view.offset + block.offset + start, view.offset + block.offset + start + length);
-            // Constructors were matched above; TypeScript cannot express the
-            // corresponding number/BigInt overloads on a union of typed arrays.
-            if (out instanceof BigInt64Array) out.set(cells as BigInt64Array, block.target + start);
-            else out.set(cells as Int32Array | Float64Array, block.target + start);
+    } else {
+        for (const block of blocks()) {
+            const view = sources.get(block.source)!;
+            if (block.length && view.validate) {
+                const cell = view.cells[view.offset + block.offset];
+                view.validate(view.cells instanceof Int32Array ? BigInt(cell) : cell);
+                view.validate = undefined;
+            }
+            for (let start = 0; start < block.length; start += 65536) {
+                const length = Math.min(65536, block.length - start);
+                checkpoint('copying array blocks', length);
+                const cells = view.cells.subarray(view.offset + block.offset + start, view.offset + block.offset + start + length);
+                // Constructors were matched above; TypeScript cannot express the
+                // corresponding number/BigInt overloads on a union of typed arrays.
+                if (out instanceof BigInt64Array) out.set(cells as BigInt64Array, block.target + start);
+                else out.set(cells as Int32Array | Float64Array, block.target + start);
+            }
         }
     }
     const kinds = [...prepared.values()].map(view => view.kinds?.length === 1 ? view.kinds[0] : undefined);

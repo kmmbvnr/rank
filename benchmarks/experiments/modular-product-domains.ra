@@ -1,0 +1,12 @@
+use sequences
+use cli
+arg N integer = 1000000
+arg Mod integer = 1999998034
+Slots = 0 till N copy
+Left = (Slots * 7919 + 2147483647) mod Mod
+Right = (Left * 17 + 104729) mod Mod
+Result = Left
+for Turn in 1 to 20
+  Result = Left * Right mod Mod
+end
+Answer = Result sum

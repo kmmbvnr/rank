@@ -2,100 +2,169 @@ rem Fibonacci Primitive Root
 rem https://projecteuler.net/problem=437
 
 use numbers
+use bits
 use sequences
 use io
 use cli
 
 arg N integer = 100000000
 
-rem g^2 = g + 1 mod p has roots
-rem (1 +- s) / 2 with s^2 = 5, which
-rem exist for p = 1, 4 mod 5. Take s
-rem by Tonelli-Shanks, and test each
-rem root as a primitive root against
-rem the prime factors of p - 1 found
-rem from a smallest-factor table.
-Sp = 0 to N copy
-Rt = N isqrt
-Ps = primes to Rt array
-for I in Ps len - 1 to 0 by -1
-  P = Ps I
-  Sl = P * P to N by P
-  Sp Sl = P
-end
-Sp = Sp copy
-Tot = 5
-for P in primes to N
-  if P mod 5 equal 1 or P mod 5 equal 4
-    Q = P - 1
-    Sh = 0
-    for Q mod 2 equal 0
-      Q //= 2
-      Sh += 1
-    end
-    S = 0
-    if P mod 4 equal 3
-      E4 = (P + 1) // 4
-      S = 5 E4 P powmod
-    else
-      Z = 2
-      Hp = (P - 1) // 2
-      Nr = Z Hp P powmod
-      for Nr not equal P - 1
-        Z += 1
-        Nr = Z Hp P powmod
-      end
-      Cc = Z Q P powmod
-      E5 = (Q + 1) // 2
-      Rr = 5 E5 P powmod
-      Tt = 5 Q P powmod
-      Mm = Sh
-      for Tt not equal 1
-        I2 = 0
-        Tz = Tt
-        for Tz not equal 1
-          Tz = Tz * Tz mod P
-          I2 += 1
-        end
-        E6 = 2 ** (Mm - I2 - 1)
-        Bb = Cc E6 P powmod
-        Rr = Rr * Bb mod P
-        Cc = Bb * Bb mod P
-        Tt = Tt * Cc mod P
-        Mm = I2
-      end
-      S = Rr
-    end
-    Inv2 = (P + 1) // 2
-    G1 = (1 + S) * Inv2 mod P
-    G2 = (P + 1 - S) * Inv2 mod P
-    Ok1 = true
-    Ok2 = true
-    X = P - 1
-    for X mod 2 equal 0
-      X //= 2
-    end
-    F = 2
-    for F greater 0
-      Ef = (P - 1) // F
-      if G1 Ef P powmod equal 1
-        Ok1 = false
-      end
-      if G2 Ef P powmod equal 1
-        Ok2 = false
-      end
-      for X mod F equal 0
-        X //= F
-      end
-      F = 0
-      if X greater 1
-        F = Sp X
-      end
-    end
-    if Ok1 or Ok2
-      Tot += P
-    end
+rem Only odd factors of p - 1 need
+rem storage, and they are below N / 2.
+fun Limit odd_factors
+  Half = Limit // 4
+  Table = array shape (Half + 1) fill 0
+  Largest = Limit // 2
+  Bound = Largest isqrt
+  Primes = primes to Bound array
+  for I in Primes len - 1 to 1 by -1
+    Prime = Primes I
+    Start = Prime * Prime // 2
+    Slots = Start to Half by Prime
+    Table Slots = Prime
   end
+  return Table
 end
-Answer = Tot
+
+fun Primes nonresidues
+  Count = Primes len
+  Seeds = array shape Count fill 3
+  Power = (Primes - 1) // 2
+  Test = Seeds Power Primes powmod
+  Pending = Test not equal Primes - 1
+  for Pending any
+    Seeds Pending += 2
+    Seeds (Seeds equal 5) = 7
+    Base = Seeds Pending
+    Expo = Power Pending
+    Mod = Primes Pending
+    Test Pending = Base Expo Mod powmod
+    Pending = Test not equal Primes - 1
+  end
+  return Seeds
+end
+
+fun Values square_orders Primes
+  Test = Values copy
+  Count = Primes len
+  Power = array shape Count fill 1
+  Pending = Test not equal 1
+  for Pending any
+    Value = Test Pending
+    Mod = Primes Pending
+    Test Pending = Value * Value mod Mod
+    Power Pending *= 2
+    Pending = Test not equal 1
+  end
+  return Power
+end
+
+fun Primes tonelli
+  Degree = Primes - 1
+  Twos = Degree band (0 - Degree)
+  Odd = Degree // Twos
+  Seeds = Primes nonresidues
+  Turn = Seeds Odd Primes powmod
+  Power = (Odd + 1) // 2
+  Roots = 5 Power Primes powmod
+  Test = 5 Odd Primes powmod
+  Pending = Test not equal 1
+  for Pending any
+    Mod = Primes Pending
+    Value = Test Pending
+    Order = Value square_orders Mod
+    Scale = Twos Pending
+    Power = Scale // (2 * Order)
+    Base = Turn Pending
+    Step = Base Power Mod powmod
+    Value = Roots Pending
+    Roots Pending = Value * Step mod Mod
+    Turn Pending = Step * Step mod Mod
+    Base = Test Pending
+    Value = Turn Pending
+    Test Pending = Base * Value mod Mod
+    Twos Pending = Order
+    Pending = Test not equal 1
+  end
+  return Roots
+end
+
+fun Primes square_roots
+  Count = Primes len
+  Roots = array shape Count fill 0
+  Fast = Primes mod 4 equal 3
+  Mod = Primes Fast
+  Power = (Mod + 1) // 4
+  Roots Fast = 5 Power Mod powmod
+  Fast = Primes mod 8 equal 5
+  Mod = Primes Fast
+  Power = (Mod + 3) // 8
+  Values = 5 Power Mod powmod
+  Squared = Values * Values mod Mod
+  Fix = Squared not equal 5
+  Selected = Mod Fix
+  Power = (Selected - 1) // 4
+  Turn = 2 Power Selected powmod
+  Base = Values Fix
+  Values Fix = Base * Turn mod Selected
+  Roots Fast = Values
+  Hard = Primes mod 8 equal 1
+  Roots Hard = (Primes Hard) tonelli
+  Even = Roots mod 2 equal 0
+  Base = Primes Even
+  Roots Even = Base - Roots Even
+  return (Roots + 1) // 2
+end
+
+rem Odd factors reject both roots alike.
+rem At factor 2, p = 3 mod 4 guarantees
+rem that one of the two roots passes.
+fun Primes primitive Roots Table
+  Degree = Primes - 1
+  Count = Primes len
+  Good = array shape Count fill true
+  Check = Primes mod 4 equal 1
+  Base = Roots Check
+  Power = (Degree Check) // 2
+  Mod = Primes Check
+  Test = Base Power Mod powmod
+  Good Check = Test not equal 1
+  Twos = Degree band (0 - Degree)
+  Rest = Degree // Twos
+  Pending = Good and Rest greater 1
+  for Pending any
+    Value = Rest Pending
+    Factor = Table (Value // 2)
+    Prime = Factor equal 0
+    Factor Prime = Value Prime
+    Base = Roots Pending
+    Power = (Degree Pending) // Factor
+    Mod = Primes Pending
+    Test = Base Power Mod powmod
+    Good Pending = Test not equal 1
+    Rest Pending = Value // Factor
+    Pending = Good and Rest greater 1
+  end
+  return Good
+end
+
+Factors = N odd_factors
+Primes = primes to N array
+Class = Primes mod 5
+Allowed = Class equal 1 or Class equal 4
+Primes = Primes Allowed copy
+Count = Primes len
+Answer = 0
+if N at least 5
+  Answer = 5
+end
+Block = 65536
+for Start in 0 till Count by Block
+  Stop = Count min (Start + Block)
+  Batch = Primes (Start till Stop)
+  Roots = Batch square_roots
+  Good = Batch primitive Roots Factors
+  Selected = Batch Good
+  Answer += Selected sum
+end
 Answer print

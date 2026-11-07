@@ -30,7 +30,7 @@ describe('exact modular products in scalar Number functions', () => {
         let checks = 0;
         try {
             diagnostics.run(() => {
-                for (const a of edge) for (const b of edge) for (const m of [1n, 100000007n, 1073741824n]) {
+                for (const a of edge) for (const b of edge) for (const m of [1n, 100000007n, 1073741824n, 1999998034n, 2147483648n]) {
                     expect(runtime.execute(`${literal(a)} ${literal(b)} ${m} residue`)).toBe(mod(a * b, m));
                     checks++;
                 }
@@ -49,7 +49,7 @@ describe('exact modular products in scalar Number functions', () => {
         } finally { runtime.dispose(); }
     });
 
-    it.each(['1073741825', '-100000007'])('replays unsupported modulus %s exactly', modulus => {
+    it.each(['2147483649', '-100000007'])('replays unsupported modulus %s exactly', modulus => {
         const result = compare(definition + `100000006 100000006 ${modulus.startsWith('-') ? `(${modulus})` : modulus} residue`);
         expect(result.value).toBe(String(mod(100000006n ** 2n, BigInt(modulus))));
         expect(result.diagnostics.numberFunctionFallbacks).toBeGreaterThan(0);
@@ -95,10 +95,10 @@ Alias = A
 Total = 0
 for I in 1 to 3
   A 0 += I
-  Total += 100000006 100000006 1073741825 residue
+  Total += 100000006 100000006 2147483649 residue
 end
 Total + A 0 + Alias 0`);
-        expect(result.value).toBe(String(3n * mod(100000006n ** 2n, 1073741825n) + 6n));
+        expect(result.value).toBe(String(3n * mod(100000006n ** 2n, 2147483649n) + 6n));
         expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
     });
 

@@ -11,6 +11,17 @@ export function multiply(a: number, b: number, modulus: number): number {
     return remainder < 0 ? remainder + modulus : remainder >= modulus ? remainder - modulus : remainder;
 }
 
+/** Exact modular multiplication for 0 <= a,b < modulus <= 2^31.
+ * Rounding a*b/modulus gives a centered difference of at most roughly
+ * modulus/2. Floating quotient error is below 2^-20 in this domain, so
+ * the difference stays strictly within signed Int32. imul recovers its
+ * exact low bits; adding the modulus once gives the nonnegative residue. */
+export function multiplyWide(a: number, b: number, modulus: number): number {
+    const quotient = Math.round(a * b / modulus);
+    const remainder = (Math.imul(a, b) - Math.imul(quotient, modulus)) | 0;
+    return remainder < 0 ? remainder + modulus : remainder;
+}
+
 let lastBase = -1;
 let lastModulus = -1;
 let squares: Float64Array | undefined;
@@ -77,6 +88,25 @@ export function modularPowerQuad(bases: Int32Array, offset: number, stride: numb
             f0 = multiply(f0, f0, modulus); f1 = multiply(f1, f1, modulus);
             f2 = multiply(f2, f2, modulus); f3 = multiply(f3, f3, modulus);
         }
+    }
+    out[at] = r0; out[at + 1] = r1; out[at + 2] = r2; out[at + 3] = r3;
+}
+
+/** Nonnegative Int32 exponents of one base. Independent accumulators overlap
+ * multiplication latencies while all four lanes share one squaring table. */
+export function modularExponentQuad(exponents: Int32Array, offset: number, stride: number,
+    squares: Int32Array, modulus: number, out: Int32Array, at: number): void {
+    let e0 = exponents[offset], e1 = exponents[offset + stride];
+    let e2 = exponents[offset + 2 * stride], e3 = exponents[offset + 3 * stride];
+    const one = modulus === 1 ? 0 : 1;
+    let r0 = one, r1 = one, r2 = one, r3 = one;
+    for (let bit = 0; (e0 | e1 | e2 | e3) !== 0; bit++) {
+        const factor = squares[bit];
+        if (e0 & 1) r0 = multiply(r0, factor, modulus);
+        if (e1 & 1) r1 = multiply(r1, factor, modulus);
+        if (e2 & 1) r2 = multiply(r2, factor, modulus);
+        if (e3 & 1) r3 = multiply(r3, factor, modulus);
+        e0 >>>= 1; e1 >>>= 1; e2 >>>= 1; e3 >>>= 1;
     }
     out[at] = r0; out[at + 1] = r1; out[at + 2] = r2; out[at + 3] = r3;
 }

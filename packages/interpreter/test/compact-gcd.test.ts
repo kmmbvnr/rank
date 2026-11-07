@@ -49,6 +49,14 @@ describe('compact stored gcd kernels', () => {
             expect(cells(reversed)).toEqual([...values].reverse().map(x => gcd(x, 126n)));
         } finally { r.dispose(); }
     });
+    it('combines GCD with the new two-column broadcast path', () => {
+        const values = Int32Array.from({ length: 1024 }, (_, i) => i - 512);
+        const left = typedArray(values, [1024, 1]);
+        const right = typedArray(new Int32Array([-6, 35]), [1, 2]);
+        const result = mapStoredIntegers(left, right, 'gcd')!;
+        expect(result.shape).toEqual([1024, 2]);
+        expect(cells(result)).toEqual(Array.from(values).flatMap(x => [gcd(BigInt(x), -6n), gcd(BigInt(x), 35n)]));
+    });
     it('retains arbitrary precision outside compact storage', () => {
         const a = ownedArray([1n << 100n, -(1n << 80n), 0n]);
         const result = mapStoredIntegers(a, 1n << 70n, 'gcd')!;

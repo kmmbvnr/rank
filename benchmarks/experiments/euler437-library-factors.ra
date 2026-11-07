@@ -1,0 +1,127 @@
+rem Fibonacci Primitive Root
+rem https://projecteuler.net/problem=437
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 100000000
+
+fun Value valuation_two
+  Count = 0
+  for Value mod 2 equal 0
+    Value //= 2
+    Count += 1
+  end
+  return Count
+end
+
+fun Value remove_factor Factor
+  for Value mod Factor equal 0
+    Value //= Factor
+  end
+  return Value
+end
+
+fun Value square_order Prime
+  Count = 0
+  for Value not equal 1
+    Value = Value * Value mod Prime
+    Count += 1
+  end
+  return Count
+end
+
+fun Prime nonresidue
+  Candidate = 3
+  Power = (Prime - 1) // 2
+  Test = Candidate Power Prime powmod
+  for Test not equal Prime - 1
+    Candidate += 2
+    if Candidate equal 5
+      Candidate += 2
+    end
+    Test = Candidate Power Prime powmod
+  end
+  return Candidate
+end
+
+rem Only p = 1 mod 8 needs Tonelli.
+fun Prime sqrt_five
+  if Prime mod 4 equal 3
+    Power = (Prime + 1) // 4
+    return 5 Power Prime powmod
+  end
+  if Prime mod 8 equal 5
+    Power = (Prime + 3) // 8
+    Root = 5 Power Prime powmod
+    if Root * Root mod Prime not equal 5
+      Power = (Prime - 1) // 4
+      Turn = 2 Power Prime powmod
+      Root = Root * Turn mod Prime
+    end
+    return Root
+  end
+  Shifts = (Prime - 1) valuation_two
+  Odd = (Prime - 1) remove_factor 2
+  Seed = Prime nonresidue
+  Turn = Seed Odd Prime powmod
+  Power = (Odd + 1) // 2
+  Root = 5 Power Prime powmod
+  Test = 5 Odd Prime powmod
+  for Test not equal 1
+    Order = Test square_order Prime
+    Exponent = Shifts - Order - 1
+    Power = 2 Exponent Prime powmod
+    Step = Turn Power Prime powmod
+    Root = Root * Step mod Prime
+    Turn = Step * Step mod Prime
+    Test = Test * Turn mod Prime
+    Shifts = Order
+  end
+  return Root
+end
+
+rem The roots multiply to -1. Odd
+rem factors of p - 1 reject both roots
+rem together; for p = 3 mod 4 exactly
+rem one root passes the factor 2.
+fun Prime has_primitive
+  Square = Prime sqrt_five
+  if Square mod 2 equal 0
+    Square = Prime - Square
+  end
+  Root = (Square + 1) // 2
+  if Prime mod 4 equal 1
+    Power = (Prime - 1) // 2
+    Test = Root Power Prime powmod
+    if Test equal 1
+      return false
+    end
+  end
+  Odd = (Prime - 1) remove_factor 2
+  Factors = Odd factors unique
+  for Factor in Factors
+    Power = (Prime - 1) // Factor
+    Test = Root Power Prime powmod
+    if Test equal 1
+      return false
+    end
+  end
+  return true
+end
+
+Answer = 0
+if N at least 5
+  Answer = 5
+end
+for Prime in primes to N
+  Class = Prime mod 5
+  if Class equal 1 or Class equal 4
+    if Prime has_primitive
+      Answer += Prime
+    end
+  end
+end
+Answer print

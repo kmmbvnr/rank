@@ -1,0 +1,361 @@
+{
+  "baselineCommit": "aa1e931f659880dbf5c5ba7a27c4537b5f7c8aae",
+  "platform": "Mac arm64",
+  "scope": "Alternating serial fresh-process samples, compiled filtered copy over ten million native integer cells; exact sum checked.",
+  "records": [
+    {
+      "mode": "compiled",
+      "limit": "10000000",
+      "file": "benchmarks/experiments/euler445-filter-copy.ra",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+      "ms": 334.481625,
+      "rssMiB": 512.671875,
+      "heapMiB": 248.13662719726562,
+      "externalMiB": 78.27510643005371,
+      "arrayBuffersMiB": 76.32990169525146,
+      "answer": "12500002500000",
+      "diagnostics": {
+        "compiledTensors": 1,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "tensorRangeScans": 0,
+        "fallbacks": {
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1
+        }
+      },
+      "version": "before",
+      "sample": 1
+    },
+    {
+      "mode": "compiled",
+      "limit": "10000000",
+      "file": "benchmarks/experiments/euler445-filter-copy.ra",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+      "ms": 149.76595799999998,
+      "rssMiB": 257.03125,
+      "heapMiB": 49.39795684814453,
+      "externalMiB": 88.13039588928223,
+      "arrayBuffersMiB": 86.18292903900146,
+      "answer": "12500002500000",
+      "diagnostics": {
+        "compiledTensors": 1,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "tensorRangeScans": 0,
+        "fallbacks": {
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1
+        }
+      },
+      "version": "after",
+      "sample": 1
+    },
+    {
+      "mode": "compiled",
+      "limit": "10000000",
+      "file": "benchmarks/experiments/euler445-filter-copy.ra",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+      "ms": 155.733459,
+      "rssMiB": 257.171875,
+      "heapMiB": 49.458740234375,
+      "externalMiB": 88.13039588928223,
+      "arrayBuffersMiB": 86.18292903900146,
+      "answer": "12500002500000",
+      "diagnostics": {
+        "compiledTensors": 1,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "tensorRangeScans": 0,
+        "fallbacks": {
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1
+        }
+      },
+      "version": "after",
+      "sample": 2
+    },
+    {
+      "mode": "compiled",
+      "limit": "10000000",
+      "file": "benchmarks/experiments/euler445-filter-copy.ra",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+      "ms": 343.439333,
+      "rssMiB": 512.515625,
+      "heapMiB": 248.16978454589844,
+      "externalMiB": 78.27510643005371,
+      "arrayBuffersMiB": 76.32990169525146,
+      "answer": "12500002500000",
+      "diagnostics": {
+        "compiledTensors": 1,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "tensorRangeScans": 0,
+        "fallbacks": {
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1
+        }
+      },
+      "version": "before",
+      "sample": 2
+    },
+    {
+      "mode": "compiled",
+      "limit": "10000000",
+      "file": "benchmarks/experiments/euler445-filter-copy.ra",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+      "ms": 342.386458,
+      "rssMiB": 513.109375,
+      "heapMiB": 248.30036163330078,
+      "externalMiB": 78.27510643005371,
+      "arrayBuffersMiB": 76.32990169525146,
+      "answer": "12500002500000",
+      "diagnostics": {
+        "compiledTensors": 1,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "tensorRangeScans": 0,
+        "fallbacks": {
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1
+        }
+      },
+      "version": "before",
+      "sample": 3
+    },
+    {
+      "mode": "compiled",
+      "limit": "10000000",
+      "file": "benchmarks/experiments/euler445-filter-copy.ra",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+      "ms": 155.06525,
+      "rssMiB": 257.234375,
+      "heapMiB": 49.385009765625,
+      "externalMiB": 88.13039588928223,
+      "arrayBuffersMiB": 86.18292903900146,
+      "answer": "12500002500000",
+      "diagnostics": {
+        "compiledTensors": 1,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "tensorRangeScans": 0,
+        "fallbacks": {
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 1
+        }
+      },
+      "version": "after",
+      "sample": 3
+    }
+  ],
+  "intel": {
+    "platform": "Intel x86_64",
+    "records": [
+      {
+        "mode": "compiled",
+        "limit": "10000000",
+        "file": "benchmarks/experiments/euler445-filter-copy.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+        "ms": 889.982886,
+        "rssMiB": 492.30078125,
+        "heapMiB": 246.9422607421875,
+        "externalMiB": 78.27510643005371,
+        "arrayBuffersMiB": 76.32990169525146,
+        "answer": "12500002500000",
+        "diagnostics": {
+          "compiledTensors": 1,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "tensorRangeScans": 0,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 1
+          }
+        },
+        "version": "before",
+        "sample": 1
+      },
+      {
+        "mode": "compiled",
+        "limit": "10000000",
+        "file": "benchmarks/experiments/euler445-filter-copy.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+        "ms": 398.55193599999996,
+        "rssMiB": 230.41015625,
+        "heapMiB": 49.22608184814453,
+        "externalMiB": 88.13039588928223,
+        "arrayBuffersMiB": 86.18292903900146,
+        "answer": "12500002500000",
+        "diagnostics": {
+          "compiledTensors": 1,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "tensorRangeScans": 0,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 1
+          }
+        },
+        "version": "after",
+        "sample": 1
+      },
+      {
+        "mode": "compiled",
+        "limit": "10000000",
+        "file": "benchmarks/experiments/euler445-filter-copy.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+        "ms": 396.210278,
+        "rssMiB": 233.26953125,
+        "heapMiB": 50.21881866455078,
+        "externalMiB": 88.13039588928223,
+        "arrayBuffersMiB": 86.18292903900146,
+        "answer": "12500002500000",
+        "diagnostics": {
+          "compiledTensors": 1,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "tensorRangeScans": 0,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 1
+          }
+        },
+        "version": "after",
+        "sample": 2
+      },
+      {
+        "mode": "compiled",
+        "limit": "10000000",
+        "file": "benchmarks/experiments/euler445-filter-copy.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+        "ms": 902.0076410000001,
+        "rssMiB": 492.16796875,
+        "heapMiB": 246.4606475830078,
+        "externalMiB": 78.27510643005371,
+        "arrayBuffersMiB": 76.32990169525146,
+        "answer": "12500002500000",
+        "diagnostics": {
+          "compiledTensors": 1,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "tensorRangeScans": 0,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 1
+          }
+        },
+        "version": "before",
+        "sample": 2
+      },
+      {
+        "mode": "compiled",
+        "limit": "10000000",
+        "file": "benchmarks/experiments/euler445-filter-copy.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+        "ms": 921.7613779999999,
+        "rssMiB": 476.03125,
+        "heapMiB": 234.45064544677734,
+        "externalMiB": 78.27510643005371,
+        "arrayBuffersMiB": 76.32990169525146,
+        "answer": "12500002500000",
+        "diagnostics": {
+          "compiledTensors": 1,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "tensorRangeScans": 0,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 1
+          }
+        },
+        "version": "before",
+        "sample": 3
+      },
+      {
+        "mode": "compiled",
+        "limit": "10000000",
+        "file": "benchmarks/experiments/euler445-filter-copy.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "8863fc6b90f375db341c13043a342606fb36b0fa2836e600c66c22b9b884fdff",
+        "ms": 410.32018200000005,
+        "rssMiB": 231.3984375,
+        "heapMiB": 49.064720153808594,
+        "externalMiB": 88.13039588928223,
+        "arrayBuffersMiB": 86.18292903900146,
+        "answer": "12500002500000",
+        "diagnostics": {
+          "compiledTensors": 1,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "tensorRangeScans": 0,
+          "fallbacks": {
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:too-small": 1
+          }
+        },
+        "version": "after",
+        "sample": 3
+      }
+    ]
+  },
+  "reproduce": "node benchmarks/packed-filter-copy.mjs; set RANK_BENCH_RUNTIME to a baseline interpreter out/index.js file URL"
+}

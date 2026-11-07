@@ -126,6 +126,17 @@ const adapters = {
             *iterate() { yield* values; } }),
         end: back => {
             if (!back) return atSequence(value, 0n);
+            // Counting an unindexed stream and then selecting its last item
+            // repeats callbacks and consumes single-pass sources twice.
+            if (value.plan.size.kind === 'unknown' && !('length' in value.plan) && !('at' in value.plan)) {
+                let last: RankValue | undefined;
+                for (const item of value.plan.iterate()) {
+                    checkpoint('reading sequence');
+                    last = item;
+                }
+                if (last === undefined) throw new MissingValueError('sequence is empty');
+                return last;
+            }
             const length = collectionSize(value)!.length();
             if (!length) throw new MissingValueError('sequence is empty');
             return atSequence(value, length - 1n);

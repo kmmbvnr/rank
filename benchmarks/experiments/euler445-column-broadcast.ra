@@ -1,0 +1,8 @@
+use sequences
+use cli
+arg N integer = 2000000
+Rows = 1 to N copy
+Column = Rows reshape N 1
+Offsets = array 1 3
+Result = Column + Offsets
+Answer = Result sum

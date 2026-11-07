@@ -157,10 +157,10 @@ end`);
         ['shl', '2147483647', '23'], ['shl', '1', '-1'],
         ['bit', '2147483648', '31'], ['bit', '1', '32'],
         ['bit', '-1', '0'], ['bit', '1', '-1'],
-    ])('retries %s for %s and %s without publishing private writes', (operation, left, right) => {
+    ])('keeps checked %s exact for %s and %s with private writes', (operation, left, right) => {
         const diagnostics = compare(`use bits\nA = array 0 0 0\nAlias = A\nLeft = ${left}\nRight = ${right}\nfor I in 0 to 2\n A I += 1\n R = Left ${operation} Right\nend`);
         expect(diagnostics.numberLoops).toBe(operation === 'bit' ? 2 : 1);
-        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(operation === 'bor' ? 0 : 1);
     });
 
     it('uses direct exact stores for repeatedly entered condition loops', () => {
@@ -193,16 +193,16 @@ end`);
     it.each([
         ['2147483648', '-1'], ['-2147483649', '-1'],
         ['-1', '4294967296'], ['-1', '9007199254740991'],
-    ])('replays band without truncating %s and %s or leaking private writes', (left, right) => {
+    ])('inlines signed 53-bit band for %s and %s with private writes', (left, right) => {
         const diagnostics = compare(`use bits\nA = array shape 4096 fill 0\nB = A\nLeft = ${left}\nRight = ${right}\nfor I in 0 to 2\n A I += 1\n R = Left band Right\nend`);
         expect(diagnostics.numberLoops).toBe(1);
-        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
     });
 
-    it('discards earlier iterations when a band operand grows past Int32', () => {
+    it('keeps earlier iterations when a band operand grows past Int32', () => {
         const diagnostics = compare('use bits\nA = array 0 0 0\nB = A\nX = 2147483646\nfor I in 0 to 2\n A I += 1\n X += 1\n R = X band -1\nend');
         expect(diagnostics.numberLoops).toBe(1);
-        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
     });
 
     it.each([
@@ -214,16 +214,17 @@ end`);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     });
 
-    it.each(['2147483648', '-2147483649', '4294967296', '9007199254740991'])('replays wide bxor operands exactly: %s', wide => {
+    it.each(['2147483648', '-2147483649', '4294967296', '9007199254740991'])('checks signed 53-bit bxor operands and result: %s', wide => {
         const diagnostics = compare(`use bits\nA = array shape 4096 fill 0\nB = A\nWide = ${wide}\nfor I in 0 to 2\n A I += 1\n R = Wide bxor -1\nend`);
         expect(diagnostics.numberLoops).toBe(1);
-        expect(diagnostics.numberLoopOverflows).toBe(1);
+        // Complementing MAX_SAFE_INTEGER produces -2^53, requiring exact replay.
+        expect(diagnostics.numberLoopOverflows).toBe(wide === '9007199254740991' ? 1 : 0);
     });
 
-    it('discards private cells if a bxor operand becomes too wide after earlier iterations', () => {
+    it('keeps private cells when a bxor operand grows past Int32', () => {
         const diagnostics = compare('use bits\nA = array 0 0 0\nB = A\nX = 2147483646\nfor I in 0 to 2\n A I += 1\n X += 1\n R = -1 bxor X\nend');
         expect(diagnostics.numberLoops).toBe(1);
-        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
     });
 
     it('preserves bxor operand errors after preceding array mutations', () => {

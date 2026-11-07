@@ -1,0 +1,13 @@
+use sequences
+use cli
+arg N integer = 100000
+fun Count update
+  Values = 0 till Count copy
+  Keys = 0 till Count by 2 copy
+  for Turn in 1 to 100
+    Values Keys += 3
+  end
+  return Values
+end
+Values = N update
+Answer = Values sum
