@@ -1,0 +1,51 @@
+rem A Grand Shuffle
+rem https://projecteuler.net/problem=796
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Decks integer = 10
+arg Suits integer = 4
+arg Ranks integer = 13
+arg Jokers integer = 2
+arg Need integer = 1
+
+rem E[max of first times] by
+rem inclusion-exclusion: for a set A of
+rem s suits, r ranks and d decks the
+rem first hit among H = N - G cards
+rem comes at (N + 1) / (H + 1), where
+rem G = (Decks - d) ((Suits - s)
+rem (Ranks - r) + Jokers). Need = 0
+rem skips suits and decks, leaving
+rem only the ranks.
+Cards = Decks * (Suits * Ranks + Jokers)
+Sn = Suits * Need
+Dn = Decks * Need
+Sv = (0 to Sn) reshape (Sn + 1) 1 1
+Rn = Ranks + 1
+Rv = (0 to Ranks) reshape 1 Rn 1
+Dv = (0 to Dn) reshape 1 1 (Dn + 1)
+Size = Suits max Ranks max Decks
+Fact = (1 to Size) scan * with 1.0
+Fs = Fact Sv * Fact (Suits - Sv)
+Fr = Fact Rv * Fact (Ranks - Rv)
+Fd = Fact Dv * Fact (Dn - Dv)
+Cs = (Fact Suits) / Fs
+Cr = (Fact Ranks) / Fr
+Cd = (Fact Dn) / Fd
+Free = (Suits - Sv) * (Ranks - Rv)
+Free = Free + Jokers
+Good = (Decks - Dv) * Free
+Hit = Cards - Good
+Odd = (Sv + Rv + Dv + 1) mod 2
+Sign = 1.0 - 2.0 * Odd
+Base = Sign * Cs * Cr * Cd
+Next = Cards + 1.0
+Term = Base * Next / (Hit + 1.0)
+Empty = Term sum
+Total = Empty + Cards + 1.0
+Answer = Total round 8
+Answer print
