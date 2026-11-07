@@ -1,0 +1,75 @@
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "100000 1000000 800000"
+
+fun Theta get_h Alpha2 L Pi
+  D1 = 0.0 max (Theta - Alpha2)
+  D2 = 0.0 max (Pi - Theta - Alpha2)
+  C1 = D1 cos
+  C2 = D2 cos
+  M1 = L * (0.0 max C1)
+  M2 = L * (0.0 max C2)
+  return M1 + M2
+end
+
+fun solve_packing Inp
+  Tokens = Inp split " "
+  TokM = Tokens not equal ""
+  Tokens = Tokens TokM
+  R = (Tokens 0) real
+  L = (Tokens 1) real
+  D = (Tokens 2) real
+
+  Pi = -1.0 acos
+  HalfPi = Pi / 2.0
+  Alpha = 2.0 * Pi * R / L
+  Alpha2 = Alpha / 2.0
+
+  N = 20000
+  Mask = array shape N fill true
+  Steps = Mask indices
+  StepsR = Steps real
+  Div = (N - 1) real
+  Grid = HalfPi * StepsR / Div
+
+  HGrid = Grid get_h Alpha2 L Pi
+  PsiGrid = HalfPi - Grid
+  WGrid = PsiGrid get_h Alpha2 L Pi
+
+  FeasMask = HGrid at most (D + 1e-9)
+  FeasW = WGrid FeasMask
+  BestW = FeasW min
+
+  Nm1 = N - 1
+  H0 = HGrid take Nm1
+  H1 = HGrid drop 1
+  G0 = Grid take Nm1
+  G1 = Grid drop 1
+
+  C0 = H0 at most D
+  C1 = H1 at most D
+  Cross = C0 not equal C1
+  HasCross = Cross any
+  if HasCross
+    HLeft = H0 Cross
+    HRight = H1 Cross
+    GLeft = G0 Cross
+    GRight = G1 Cross
+    DiffH = HRight - HLeft
+    Frac = (D - HLeft) / DiffH
+    DiffG = GRight - GLeft
+    TRoot = GLeft + Frac * DiffG
+    PsiRoot = HalfPi - TRoot
+    WRoot = PsiRoot get_h Alpha2 L Pi
+    RootMin = WRoot min
+    BestW = BestW min RootMin
+  end
+  return BestW round 6
+end
+
+Ans = solve_packing Input
+Ans print
