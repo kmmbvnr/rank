@@ -1,0 +1,17 @@
+use testing
+
+test "statement value"
+  use "756_approximatingsum"
+  Size = 10000
+  Picks = 100
+  run
+  Answer equal 5842.849907
+end
+
+test "brute force value"
+  use "756_approximatingsum"
+  Size = 4
+  Picks = 2
+  run
+  Answer equal 0.666667
+end

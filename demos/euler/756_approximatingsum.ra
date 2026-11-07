@@ -1,0 +1,45 @@
+rem Approximating a Sum
+rem https://projecteuler.net/problem=756
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Size integer = 12345678
+arg Picks integer = 12345
+
+rem Point k adds f(k) times the gap
+rem before it, so its expected share is
+rem 1 - C(n-k, m) / C(n, m). Hence
+rem E = sum of f(k) C(n-k, m) / C(n, m),
+rem a prefix product of (n-m-i)/(n-i).
+rem The ratio is below e^(-k m / n), so
+rem a bounded prefix is enough.
+Spread = Size // Picks
+Reach = (Size - Picks) min (90 * Spread)
+Idx = 1 to Reach
+Down = Size - Picks - Idx + 1
+Up = Size - Idx + 1
+Ratio = Down / Up scan * with 1.0
+Primes = primes to Reach copy
+rem Totients by ragged prime multiples.
+Count = Reach // Primes
+Ends = Count scan +
+Starts = Ends - Count
+Total = Count sum
+Marks = array shape Total fill 0
+Marks Starts = 1
+Owner = (Marks scan +) - 1
+Run = 0 to Total - 1
+Step = Run - Starts Owner + 1
+Prime = Primes Owner
+Spot = Step * Prime - 1
+Top = array shape Reach fill 1
+Bot = array shape Reach fill 1
+Top Spot *= Prime - 1 .accumulate
+Bot Spot *= Prime .accumulate
+Phi = Idx // Bot * Top
+Terms = Phi * (Ratio drop 1)
+Answer = (Terms sum) round 6
+Answer print
