@@ -1,0 +1,114 @@
+rem Symmetric Diophantine Equation
+rem https://projecteuler.net/problem=785
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 9
+arg Block integer = 4000000
+
+rem All solutions with x <= y <= z come
+rem from coprime (u, v) with
+rem 5/3 < u / v <= (103 - 4 sqrt 19)
+rem / 45
+rem as (x0, y0, z0) / G, where
+rem x0 = ab, a = 5u - 3v, b = 3u - 5v,
+rem and G = 4^min(nu2 a, nu2 b, 3) times
+rem 19 if 19 divides a. G depends on
+rem u and v modulo 152 only. Per class,
+rem u runs over residue classes below
+rem the bounds z0 <= N G and the cone;
+rem x0 + y0 + z0 = 152u^2 - 656uv
+rem + 728v^2.
+Period = 152
+Cell = 0 to Period * Period - 1
+Um = Cell mod Period
+Vm = Cell // Period
+Ta = (5 * Um - 3 * Vm) mod 8
+Tb = (3 * Um - 5 * Vm) mod 8
+Ea = Ta mod 2 equal 0
+Eb = Tb mod 2 equal 0
+Pa = Ea and Eb
+Fa = Ta mod 4 equal 0
+Fb = Tb mod 4 equal 0
+Pb = Fa and Fb
+Pc = (Ta equal 0) and (Tb equal 0)
+Ia = Pa integer
+Ib = Pb integer
+Ic = Pc integer
+Level = Ia + Ib + Ic
+Mod19 = (5 * Um - 3 * Vm) mod 19
+Nine = (Mod19 equal 0) integer
+Gs = 4 ** Level * 19 ** Nine
+rem Heads: one per cell and value of v.
+Top = (Limit * Gs // 20) isqrt + 2
+Zero = Vm equal 0
+Bump = Zero integer
+First = Vm + Bump * Period
+Room1 = (Top - First) // Period
+Cnt1 = (Room1 + 1) max 0
+Live1 = Cnt1 greater 0
+Cm = Cell Live1
+Ck = Cnt1 Live1
+Fk = First Live1
+Ends1 = Ck scan +
+Starts1 = Ends1 - Ck
+Total1 = Ck sum
+Marks1 = array shape Total1 fill 0
+Marks1 Starts1 = 1
+Owner1 = (Marks1 scan +) - 1
+Run1 = 0 to Total1 - 1
+Step1 = Run1 - Starts1 Owner1
+Hv = Fk Owner1 + Step1 * Period
+Hu = Um (Cm Owner1)
+Hg = Gs (Cm Owner1)
+rem u range per head.
+Money = Limit * Hg
+Half = (2 * Hv * Hv + Money) // 2
+Root = Half isqrt
+Low = -((Root - 11 * Hv) // 4)
+Low = Low max (5 * Hv // 3 + 1)
+Wide = (304 * Hv * Hv - 1) isqrt + 1
+High = (103 * Hv - Wide) // 45
+Start = Low + ((Hu - Low) mod Period)
+Room2 = (High - Start) // Period
+Cnt2 = (Room2 + 1) max 0
+Live2 = Cnt2 greater 0
+Kv = Hv Live2
+Ku = Start Live2
+Kg = Hg Live2
+Kc = Cnt2 Live2
+Ends = Kc scan +
+Pairs = Ends (Ends len - 1)
+Blocks = (Pairs + Block - 1) // Block
+Answer = 0
+for Piece in 0 to Blocks - 1
+  From = Piece * Block
+  Upto = (From + Block) min Pairs
+  Width = Upto - From
+  Past = Ends at most From
+  Head = Past integer sum
+  Close = Ends at most (Upto - 1)
+  Last = Close integer sum + 1
+  Cuts = (Ends take Last) drop Head
+  Edges = Cuts - From
+  Early = Edges less Width
+  Inner = Edges filter Early
+  Flags = array shape Width fill 0
+  Flags Inner = 1
+  Who = Head + (Flags scan +)
+  Origin = (Ends - Kc) Who
+  Pos = From + (0 to Width - 1)
+  U = Ku Who + Period * (Pos - Origin)
+  V = Kv Who
+  Good = (U gcd V) equal 1
+  Mixed = 152 * U * U - 656 * U * V
+  Tail = Mixed + 728 * V * V
+  Value = Tail // Kg Who
+  Used = Value Good
+  Piece2 = Used sum
+  Answer += Piece2
+end
+Answer print

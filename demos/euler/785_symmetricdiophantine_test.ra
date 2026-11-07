@@ -1,0 +1,12 @@
+use testing
+
+test "statement value and brute force"
+  use "785_symmetricdiophantine"
+  Limit = 100
+  Block = 50
+  run
+  Answer equal 184
+  Limit = 400
+  run
+  Answer equal 4488
+end
