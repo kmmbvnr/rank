@@ -1,0 +1,50 @@
+rem Not Zeckendorf
+rem https://projecteuler.net/problem=755
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 13
+
+rem S(n) counts subsets of the Fibonacci
+rem numbers 1, 2, 3, 5, ... with sum at
+rem most n. If all of the first Count
+rem numbers fit, there are 2^Count
+rem subsets; else skip or take the top.
+rem Fibonacci numbers with F(1) = F(2)
+rem = 1 as a memo; the sum of the first
+rem Count numbers is F(Count + 3) - 2.
+memo Index fib Unused
+  if Index less 3
+    return 1
+  end
+  Prev = Index - 1
+  Back = Index - 2
+  Left = Prev fib 0
+  Right = Back fib 0
+  return Left + Right
+end
+memo Count cnt Room
+  if Room less 0
+    return 0
+  end
+  Past = Count + 3
+  Sum = Past fib 0
+  Whole = Sum - 2
+  if Whole at most Room
+    return 2 ** Count
+  end
+  Less = Count - 1
+  Skip = Less cnt Room
+  Next = Count + 1
+  Top = Next fib 0
+  Gap = Room - Top
+  Take = Less cnt Gap
+  return Skip + Take
+end
+Fibs = fibonacci to Limit copy
+Last = Fibs len
+Answer = Last cnt Limit
+Answer print

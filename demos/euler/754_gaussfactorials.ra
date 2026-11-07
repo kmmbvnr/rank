@@ -1,0 +1,172 @@
+rem Product of Gauss Factorials
+rem https://projecteuler.net/problem=754
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 100000000
+arg Chunk integer = 4194304
+arg Prime integer = 1000000007
+
+rem G(N) = prod over k of k^c(k), where
+rem c(k) counts i in k..N coprime to k.
+rem With mu, G = prod over d of
+rem (d^T(M) P(M))^mu(d), M = N // d,
+rem T(M) = M(M+1)/2, P(M) = prod j!.
+rem Small d are handled one by one. Big
+rem d have M <= N // (S + 1), so each M
+rem gets the product of d^mu(d) over its
+rem block and the Mertens increment.
+rem One pass of chunks yields mu by a
+rem ragged sieve, and prefix products of
+rem d^mu(d), j! and P(j) at the
+rem needed points.
+fun Left mulp Right
+  return Left * Right mod Prime
+end
+Root = Limit isqrt
+Over = Limit // (Root + 1)
+Fold = Limit // (1 to Over + 1)
+Cuts = Fold max Root
+Heads = Cuts take Over
+Tails = Cuts drop 1
+Wide = Limit // (1 to Root)
+Goals = concat (1 to Over) Wide
+Small = primes to Root copy
+Squares = Small * Small
+Fits = Squares at most Limit
+Squares = Squares filter Fits
+Chunks = (Limit + Chunk - 1) // Chunk
+MuSmall = array shape Root fill 0
+Walks = array shape (Over + 1) fill 0
+Ups = Walks copy
+Downs = Walks copy
+Fact = Goals * 0
+Carry = 1
+Super = 1
+Chain = 1
+Dens = 1
+Sum = 0
+for Piece in 0 to Chunks - 1
+  Low = 1 + Piece * Chunk
+  High = (Low + Chunk) min (Limit + 1)
+  Width = High - Low
+  Idx = Low to High - 1
+  rem Multiples of small primes.
+  Ahead = (Low + Small - 1) // Small
+  First = Ahead * Small
+  Room = (High - 1 - First) // Small
+  Count = (Room + 1) max 0
+  Live = Count greater 0
+  Pk = Small Live
+  Fk = First Live
+  Ck = Count Live
+  Ends = Ck scan +
+  Starts = Ends - Ck
+  Total = Ck sum
+  Marks = array shape Total fill 0
+  Marks Starts = 1
+  Owner = (Marks scan +) - 1
+  Run = 0 to Total - 1
+  Step = Run - Starts Owner
+  Jump = Step * Pk Owner
+  Spot = Fk Owner + Jump - Low
+  Prod = array shape Width fill 1
+  Sign = array shape Width fill 1
+  Prod Spot *= Pk Owner .accumulate
+  Flip = Pk Owner * 0 - 1
+  Sign Spot *= Flip .accumulate
+  rem Multiples of squares.
+  SPlus = Low + Squares - 1
+  SAhead = SPlus // Squares
+  SFirst = SAhead * Squares
+  SRoom = (High - 1 - SFirst) // Squares
+  SCount = (SRoom + 1) max 0
+  SLive = SCount greater 0
+  Qk = Squares SLive
+  Gk = SFirst SLive
+  Dk = SCount SLive
+  SEnds = Dk scan +
+  SStarts = SEnds - Dk
+  STotal = Dk sum
+  SMarks = array shape STotal fill 0
+  SMarks SStarts = 1
+  SOwner = (SMarks scan +) - 1
+  SRun = 0 to STotal - 1
+  SStep = SRun - SStarts SOwner
+  SJump = SStep * Qk SOwner
+  SSpot = Gk SOwner + SJump - Low
+  Flat = array shape Width fill 1
+  Flat SSpot = 0
+  Big = (Idx // Prod) greater 1
+  Free = Big choose (0 - 1) 1
+  Mu = Sign * Free * Flat
+  if Piece equal 0
+    MuSmall = Mu take Root
+  end
+  Walk = Mu scan +
+  Local = Sum + Walk
+  Sum = Local (Width - 1)
+  Plus = (Mu equal 1) choose Idx 1
+  Minus = (Mu equal 0 - 1) choose Idx 1
+  Up = Plus scan mulp
+  Down = Minus scan mulp
+  Up = Up * Chain mod Prime
+  Down = Down * Dens mod Prime
+  Chain = Up (Width - 1)
+  Dens = Down (Width - 1)
+  Fl = Idx scan mulp
+  Fl = Fl * Carry mod Prime
+  Pf = Fl scan mulp
+  Pf = Pf * Super mod Prime
+  Carry = Fl (Width - 1)
+  Super = Pf (Width - 1)
+  rem Collect the needed points.
+  Near = Cuts at least Low
+  Early = Cuts less High
+  Hit = Near and Early
+  Slots = (0 till Cuts len) Hit
+  Where = Cuts Hit - Low
+  Walks Slots = Local Where
+  Ups Slots = Up Where
+  Downs Slots = Down Where
+  Want = Goals at least Low
+  Soon = Goals less High
+  Take = Want and Soon
+  Cells = (0 till Goals len) Take
+  Fact Cells = Pf (Goals Take - Low)
+end
+Mod = Prime - 1
+rem Blocks of d above the square root.
+Numer = Ups take Over
+Numer = Numer * (Downs drop 1) mod Prime
+Denom = Downs take Over
+Denom = Denom * (Ups drop 1) mod Prime
+Inv = Denom (Prime - 2) Prime powmod
+Ratio = Numer * Inv mod Prime
+Ms = 1 to Over
+Tri = Ms * (Ms + 1) // 2 mod Mod
+Hi = Walks take Over
+Diff = Hi - (Walks drop 1)
+Diff = (Diff + Mod) mod Mod
+Left = Ratio Tri Prime powmod
+Facts = Fact take Over
+Right = Facts Diff Prime powmod
+Blocks = Left * Right mod Prime
+rem Individual d up to the square root.
+Ds = 1 to Root
+Quot = Limit // Ds
+Tri = Quot * (Quot + 1) // 2 mod Mod
+Pow = Ds Tri Prime powmod
+Base = Pow * (Fact drop Over) mod Prime
+Plain = MuSmall equal 1
+Inverse = MuSmall equal 0 - 1
+Back = Inverse choose (Prime - 2) 0
+Exp = Plain choose 1 Back
+Items = Base Exp Prime powmod
+Everything = concat Blocks Items
+Chainp = Everything scan mulp
+Answer = Chainp (Chainp len - 1)
+Answer print

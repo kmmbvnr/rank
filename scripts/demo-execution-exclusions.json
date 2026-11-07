@@ -209,6 +209,7 @@
   "euler/749_nearpowersums.ra": "About 2.2 min and 2.6 GB: 2 x 10^6 count vectors for 53 exponents; run manually.",
   "euler/750_cardstacking.ra": "About 40 s: interval DP with 1.5 x 10^8 split costs; run manually.",
   "euler/752_powers.ra": "Full input remains manual: about 32 s and 2.8 GiB RSS on arm64 after native batching; see benchmarks/euler752-results.md and node benchmarks/euler752.mjs 1000000.",
+  "euler/754_gaussfactorials.ra": "Full default run takes about 40 s (1e8 chunked sieve and prefix products); small values are covered by the test.",
   "euler/735_divisorsoftwo.ra": "Full compiled answer is covered by full-scale-demos.test.ts; the large reference ragged floor sums remain excluded from corpus audits.",
   "euler/742_convexgridpolygon.ra": "About 1 min: knapsack over 1000 edge directions on a 250 x 2400 table; run manually.",
   "euler/714_duodigits.ra": "Full compiled answer is covered by full-scale-demos.test.ts; exclude the expensive candidate-block and residue-BFS workload from repeated corpus audits.",
