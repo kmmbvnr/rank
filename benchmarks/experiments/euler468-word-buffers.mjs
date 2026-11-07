@@ -1,0 +1,13 @@
+import { resolve } from 'node:path';
+const [build,nText='5000000']=process.argv.slice(2),n=Number(nText);
+if (!build || !global.gc) throw Error('Usage: node --expose-gc SCRIPT BUILD_ROOT [CELLS]');
+const root=resolve(build);
+const {typedArray,readArrayItem}=await import(root+'/packages/interpreter/out/array-storage.js');
+const {mapStoredIntegers}=await import(root+'/packages/interpreter/out/integer-array-kernel.js');
+const warm=typedArray(Int32Array.from({length:10000},(_,i)=>i*1000));
+for(let i=0;i<10;i++)mapStoredIntegers(warm,100000n,'*');
+const source=typedArray(Int32Array.from({length:n},(_,i)=>(i%2?-1:1)*i));
+global.gc();const initial=process.memoryUsage(),start=performance.now();
+const output=mapStoredIntegers(source,100000n,'*'),ms=performance.now()-start,memory=process.memoryUsage();
+for(const i of [0,1,21474,21475,n-1])if(readArrayItem(output,i)!==BigInt((i%2?-1:1)*i)*100000n)throw Error('Wrong result');
+console.log(JSON.stringify({n,ms,rssMiB:process.resourceUsage().maxRSS/1024,arrayBuffersMiB:memory.arrayBuffers/1048576,initialArrayBuffersMiB:initial.arrayBuffers/1048576}));

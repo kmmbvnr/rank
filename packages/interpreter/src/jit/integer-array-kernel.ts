@@ -315,16 +315,20 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         return ownedScalarArray(size ? [BigInt(cells![0])] : [], 'integer', shape);
     }
     // Keep computed numeric cells, including short results from boxed inputs.
-    if (wide) {
-        const out = new BigInt64Array(size), pair = new Int32Array(out.buffer);
-        for (let i = 0; i < size; i++) {
-            const high = Math.floor(cells![i] / 4294967296);
-            pair[2 * i + lowWord] = cells![i] - high * 4294967296 | 0;
-            pair[2 * i + 1 - lowWord] = high;
-        }
-        return typedArray(out, shape);
-    }
+    if (wide) return typedArray(safeIntegerWords(cells as Float64Array), shape);
     return typedArray(cells as Int32Array ?? new Int32Array(0), shape);
+}
+
+/** Each safe-integer double dies after its read. The private scratch can
+ * become the integer result without allocating a second wide buffer. */
+function safeIntegerWords(cells: Float64Array): BigInt64Array {
+    const out = new BigInt64Array(cells.buffer), words = new Int32Array(out.buffer);
+    for (let i = 0; i < cells.length; i++) {
+        const value = cells[i], high = Math.floor(value / 4294967296);
+        words[2 * i + lowWord] = value - high * 4294967296 | 0;
+        words[2 * i + 1 - lowWord] = high;
+    }
+    return out;
 }
 
 /** Contiguous broadcast rows with compact results. Tiny completed boxed

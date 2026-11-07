@@ -65,3 +65,10 @@ test('new full-scale exclusions retain their small test fixtures unless they tim
     assert.ok(!files.has('euler/341_golomb_default_test.ra'), 'the millionth-term recurrence stays eligible');
     assert.ok(!files.has('euler/301_nim.ra'), 'small default programs remain eligible');
 });
+
+test('Euler 468 retains explicit full-scale and ordinary fixture lanes', () => {
+    assert.match(exclusions['euler/468_smoothbinomial.ra'], /Full-scale lane/);
+    assert.ok(!files.has('euler/468_smoothbinomial_test.ra'));
+    const full = readFileSync(new URL('../packages/interpreter/test/full-scale-demos.test.ts', import.meta.url), 'utf8');
+    assert.ok(full.includes("['468_smoothbinomial.ra', 852950321n]"));
+});
