@@ -1,3 +1,4 @@
+import { primeLoopBounds } from '../loop-traversal.js';
 import { fitsIntegerRepresentation } from './integer-representation.js';
 import { integerRange, safeIntegerRange, type IntegerRange } from './integer-range-facts.js';
 import { positionalDeclaredCall } from './declared-scalar-call.js';
@@ -806,12 +807,23 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (type?.rank !== 1 || type.element !== 'integer' || form.seed && knownType(form.seed) !== 'integer') return undefined;
         return { form, type };
     }
+    function numericPrimeCopy(expression: Expression) {
+        if (!numberMode || !host.nativeCalls || !host.arrayLocals || !host.arrayReads
+            || ['copy', 'primes'].some(name => localTypes.has(name) || arrays.has(name)
+                || containers.has(name))) return undefined;
+        while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (!isApplicationExpression(expression) || expression.arguments.length !== 1
+            || !isNameExpression(expression.arguments[0]) || expression.arguments[0].name !== 'copy') return undefined;
+        const bounds = primeLoopBounds(expression.head);
+        return bounds?.some(bound => bound.upper) ? bounds : undefined;
+    }
     // Array operands use the same concrete range/selection operations as the
     // evaluator, without re-entering expression evaluation on every iteration.
     function arrayType(e: Expression): CompiledArrayType | undefined {
         while (isParenthesizedExpression(e)) e = e.value;
         if (scalarInputs.has(e) || isNameExpression(e) && state.ranges.has(e.name)) return undefined;
         if (numberMode && isMaterializeExpression(e)) return arrayType(e.source);
+        if (numericPrimeCopy(e)) return { kind: 'array', element: 'integer', rank: 1 };
         const scan = numericScan(e);
         if (scan) return scan.type;
         const concat = numericConcatCopy(e);
@@ -1214,6 +1226,24 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         return { start, end, step, inclusive: source.operator === 'to' };
     }
     function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {
+        const primeBounds = numericPrimeCopy(source);
+        if (primeBounds) {
+            let lower: { code: string; inclusive: boolean } | undefined;
+            let upper: { code: string; inclusive: boolean } | undefined;
+            for (const bound of primeBounds) {
+                const value = emit(bound.value, lines, 'integer');
+                if (value?.type !== 'integer') return undefined;
+                const code = `primeLimit${state.serial++}`;
+                lines.push(`const ${code} = ${value.code};`);
+                if (bound.upper) upper = { code, inclusive: bound.inclusive };
+                else lower = { code, inclusive: bound.inclusive };
+            }
+            state.primeCopies = true;
+            builtins.set('copy', 'sequences'); builtins.set('primes', 'sequences');
+            const result = `primeArray${state.serial++}`;
+            lines.push(`const ${result} = primeArray(${lower?.code ?? 'undefined'}, ${lower?.inclusive ?? false}, ${upper!.code}, ${upper!.inclusive});`);
+            return { code: result, cells: `${result}.cells`, type: { kind: 'array', element: 'integer', rank: 1 }, fresh: true };
+        }
         let copied = source;
         while (isParenthesizedExpression(copied)) copied = copied.value;
         if (host.nativeCalls && isApplicationExpression(copied) && copied.arguments.length === 1

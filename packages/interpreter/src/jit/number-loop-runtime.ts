@@ -120,6 +120,17 @@ export class PrivateNumericArray {
             })(), this.shape);
     }
 }
+/** Complete only the private numeric buffer; entry owns builtin and budget guards. */
+function copyPrimes(start: number | undefined, from: boolean, end: number, to: boolean): PrivateNumericArray {
+    const values: number[] = [];
+    for (const prime of primeRange(start === undefined ? undefined : BigInt(start), from, BigInt(end), to)) {
+        if (values.length >= 0xffffffff) throw overflow;
+        values.push(safe(Number(prime)));
+    }
+    const cells = end <= 2147483647 ? Int32Array.from(values) : Float64Array.from(values);
+    return new PrivateNumericArray([cells.length], 0, undefined, { cells });
+}
+
 /** Numeric concat followed by copy: copy in bounded chunks, preserving the
  * source kind and allocating a fresh buffer even for repeated operands. */
 function concatArrays(sources: NumberCells[], real: boolean): PrivateNumericArray {
@@ -436,7 +447,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'recordWideFold', 'createRange', readers + '\n' + code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', readers + '\n' + code)(
             modularMultiply, safe, numberSortedIndex, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -496,7 +507,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 return next;
             }, function* (start: bigint | undefined, from: boolean, end: bigint | undefined, to: boolean, reverse = false) {
                 for (const value of primeRange(start, from, end, to, reverse)) yield safe(Number(value));
-            }, (cells: number, exact: number) => {
+            }, copyPrimes, (cells: number, exact: number) => {
                 const cost = currentDiagnostics()?.cost('number-loop.wide-vector');
                 if (cost) { cost.calls++; cost.unboxedCells += cells - exact; cost.boxedCells += exact; }
             }, (start: number, end: number, step: number, inclusive: boolean) => {
@@ -533,6 +544,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         if (reboundInputs && demandBudgetEnabled()) return recordFallback('number-loop:observable-rebinding-budget', 'effects');
         if (plan.rangeNarrowing && demandBudgetEnabled()) return recordFallback('number-loop:observable-narrowing-budget', 'effects');
         for (const name of plan.syntax) if (host.read(name) !== undefined) return recordFallback('number-loop:syntax-binding', 'proof');
+        // Prime-plan completion has its own demand traversal; do not charge
+        // a speculative constructor and then replay it under a budget.
+        if (plan.primeCopies && demandBudgetEnabled()) return recordFallback('number-loop:observable-prime-copy', 'effects');
         if (plan.vectorReductions && interruptsEnabled()) return recordFallback('number-loop:observable-extrema', 'effects');
         if (plan.syntax.has('scan') && interruptsEnabled()) return recordFallback('number-loop:observable-scan', 'effects');
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return recordFallback('number-loop:builtin-binding', 'proof');
