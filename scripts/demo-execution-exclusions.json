@@ -92,7 +92,6 @@
   "euler/427_nsequences.ra": "The optimized full compiled answer is checked in test/euler427.test.ts. Full reference remains manual; bounded cross-mode and boundary checks stay in 427_nsequences_test.ra. See benchmarks/euler427-followup.md.",
   "euler/439_sumofdivisors.ra": "Default N=10^11 is a manual workload: about 11 s compiled / 26 s reference on Apple M5, with about 2.1 / 2.3 GiB process peak RSS; the small _test.ra fixture stays in the audits.",
   "euler/445_retractionsa.ra": "The optimized full compiled answer is checked in test/euler445.test.ts (about 0.87 s on Mac / 2.55 s on Intel). Full reference execution remains manual (about 118 s on Mac); the bounded _test.ra fixture stays in the audits. See benchmarks/euler445.md.",
-  "euler/447_retractions.ra": "To fix later: the default input takes about 37 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/448_averagelcm.ra": "To fix later: the default input takes about 68 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/417_reciprocalcycles.ra": "The default N=100000000 reference run remains expensive; compiled runs take about 6 s on Mac. The small _test.ra fixture stays in audits. See benchmarks/euler417-followup.md.",
   "euler/424_kakuro.ra": "The full 200-puzzle answer is checked in test/euler424.test.ts after digit-set completion pruning and safe 53-bit Number bitwise compilation. Full reference search remains in the manual budget lane; the small _test.ra fixture stays in the audits. See benchmarks/euler424-followup.md.",

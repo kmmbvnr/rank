@@ -34,7 +34,7 @@ describe('compiled function array stages', () => {
             expect(formatValue(value!)).toBe('6 2 2 2 0 0');
             // One score body and five calls each to the rank and suit helpers.
             expect(calls).toBe(11);
-            expect(diagnostics.compiledTensors).toBe(4);
+            expect(diagnostics.compiledTensors).toBe(5);
         } finally { runtime.dispose(); }
     });
 
@@ -205,7 +205,8 @@ end
 end
 Input transform`)).toBe(15n);
             expect(readArrayItem(input, 0)).toBe(99n);
-            expect(consumers).toBe(2);
+            // Two ordinary array completions and the final sum each notify.
+            expect(consumers).toBe(3);
             expect(calls).toBe(1);
         } finally { runtime.dispose(); }
     });
