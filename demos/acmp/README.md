@@ -148,6 +148,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0853** | [Игра с числами](0853_number_game.ra) | Dynamic Programming / Game Theory (77%) | Congruence class GCD parity game DP over canonical $(G, A_i \bmod G)$ states with vectorized `gcd` frontier closure and `lowerindex` |
 | **0860** | [Паркет](0860_parquet.ra) | Dynamic Programming (68%) | Tiling with squares of any size via broken profile DP over column heights, grid transposition, and matrix subregion slicing |
 | **0864** | [Шары и коробки - 2](0864_balls_and_boxes_2.ra) | Greedy / Dynamic Programming (68%) | Min moves to distribute $\le N$ balls in circular boxes: $O(N)$ median for $S=N$, candidate cut prefix DP for $S < N$ |
+| **0866** | [Берляндия в опасности](0866_berland_in_danger.ra) | Graph Theory / Bipolar $st$-Numbering (82%) | Dual fault-tolerant biconnected graph traversal plans via single-loop Tarjan-Even $st$-numbering DFS and linked list insertion |
 | **0879** | [Графы](0879_graphs.ra) | Graph Theory (70%) | Strong connectivity augmentation on hieroglyph transition digraph via Tarjan's SCC and source/sink condensation counting with `choose` |
 | **0880** | [Покрытие](0880_covering.ra) | Dynamic Programming / Set Cover (74%) | Min fixed 6-cell planks to cover  	imes H$ floor via dominating mask reduction, conflict graph independent set lower bound, and IDA* search |
 | **0885** | [Звезды за кормой](0885_stars.ra) | Search / BFS (65%) | Deterministic naval combat simulation: broadside cannons, enemy movement and debris creation via BFS |

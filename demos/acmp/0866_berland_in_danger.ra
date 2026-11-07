@@ -1,0 +1,189 @@
+rem ACMP 0866: Berland in Danger
+rem Bipolar st-numbering via Tarjan DFS
+use io
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = "8 14
+1 2
+2 3
+3 4
+4 5
+5 6
+6 7
+7 8
+8 1
+1 5
+2 6
+3 7
+4 8
+1 3
+5 7"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+N = Nums 0
+M = Nums 1
+EdgeNums = Nums (2 till (2 + (2 * M)))
+Edges = EdgeNums reshape M 2
+EdgesT = Edges transpose
+EU = EdgesT 0
+EV = EdgesT 1
+
+Head = array shape (N + 1) fill -1
+To = array shape (2 * M) fill 0
+Nxt = array shape (2 * M) fill -1
+
+Vis = array shape (N + 1) fill 0
+Par = array shape (N + 1) fill 0
+Pre = array shape (N + 1) fill 0
+LowV = array shape (N + 1) fill 0
+Order = array shape N fill 0
+Stk = array shape (N + 2) fill 0
+
+Prv = array shape (N + 1) fill 0
+NxtL = array shape (N + 1) fill 0
+Sgn = array shape (N + 1) fill 0
+
+Phase = 0
+EIdx = 0
+Top = 0
+Stk 0 = 1
+NVis = 0
+T = 2
+Step = 1
+Cur = 1
+Ans1 = array shape N fill 0
+
+for Phase less 4
+  if Phase equal 0
+    if EIdx less M
+      U0 = EU EIdx
+      V0 = EV EIdx
+      H0 = 2 * EIdx
+      H1 = H0 + 1
+      To H0 = V0
+      Nxt H0 = Head U0
+      Head U0 = H0
+      To H1 = U0
+      Nxt H1 = Head V0
+      Head V0 = H1
+      EIdx = EIdx + 1
+    else
+      Vis 1 = 1
+      Pre 1 = 0
+      LowV 1 = 1
+      Order 0 = 1
+      HRoot = Head 1
+      T = To HRoot
+      Head 1 = Nxt HRoot
+      Vis T = 1
+      Par T = 1
+      Pre T = 1
+      LowV T = T
+      Order 1 = T
+      Top = 1
+      Stk 1 = T
+      NVis = 2
+      Phase = 1
+    end
+  elif Phase equal 1
+    if Top greater -1
+      V = Stk Top
+      H = Head V
+      if H greater -1
+        Head V = Nxt H
+        W = To H
+        if (Vis W) equal 0
+          Vis W = 1
+          Par W = V
+          Pre W = NVis
+          LowV W = W
+          Order NVis = W
+          NVis = NVis + 1
+          Top = Top + 1
+          Stk Top = W
+        else
+          if W not equal (Par V)
+            LV = LowV V
+            if (Pre W) less (Pre LV)
+              LowV V = W
+            end
+          end
+        end
+      else
+        Top = Top - 1
+        if Top greater -1
+          P = Stk Top
+          LV = LowV V
+          LP = LowV P
+          if (Pre LV) less (Pre LP)
+            LowV P = LV
+          end
+        end
+      end
+    else
+      NxtL 1 = T
+      Prv T = 1
+      Sgn 1 = -1
+      Step = 2
+      Phase = 2
+    end
+  elif Phase equal 2
+    if Step less N
+      V = Order Step
+      P = Par V
+      LV = LowV V
+      if (Sgn LV) less 0
+        PrevP = Prv P
+        Prv V = PrevP
+        NxtL V = P
+        if PrevP greater 0
+          NxtL PrevP = V
+        end
+        Prv P = V
+        Sgn P = 1
+      else
+        NextP = NxtL P
+        Prv V = P
+        NxtL V = NextP
+        if NextP greater 0
+          Prv NextP = V
+        end
+        NxtL P = V
+        Sgn P = -1
+      end
+      Step = Step + 1
+    else
+      Cur = 1
+      Step = 0
+      Phase = 3
+    end
+  elif Phase equal 3
+    if Step less N
+      Ans1 Step = Cur
+      Cur = NxtL Cur
+      Step = Step + 1
+    else
+      Phase = 4
+    end
+  end
+end
+
+Tail = Ans1 drop 1
+RevIdx = (N - 2) to 0 by -1
+RevTail = Tail RevIdx
+HeadArr = array 1
+Ans2 = concat HeadArr RevTail
+
+Line1 = Ans1 join " "
+Line2 = Ans2 join " "
+Lines = array Line1 Line2
+Result = Lines join "\n"
+Result print
