@@ -151,6 +151,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0898** | [Ленточка](0898_ribbon.ra) | Mathematical Modeling / Divide & Conquer (60%) | Determine fold crease orientations ('K' or 'O') on a folded paper ribbon ($N \le 60$) in $O(K \cdot N)$ via iterative binary reflection |
 | **0901** | [Бессмыслица](0901_nonsense.ra) | Dynamic Programming / Number Theory (67%) | Landau's function $g(N)$ (max permutation order in $S_N$) via prime-power knapsack DP using `N primesieve` and `choose` |
 | **0902** | [Ленточка - 2](0902_ribbon_2.ra) | Mathematical Modeling / Divide & Conquer (65%) | Invert folded ribbon crease pattern via binary reflection and `choose` in $O(2^N)$ |
+| **0914** | [Пересечение](0914_intersection.ra) | Computational Geometry / 3D SAT (79%) | 3D oriented bounding box (OBB) intersection via zero-loop 15-axis Separating Axis Theorem and $15 \times 8 \times 3$ tensor projections |
 | **0917** | [Забор - 3](0917_fence_3.ra) | Computational Geometry (72%) | Max polygon area from given side lengths via cyclic polygon circumradius binary search and zero-loop vectorized Heron chord triangles |
 | **0919** | [Отель](0919_hotel.ra) | Math / Diophantine (65%) | Rectangle brick tiling test via Klarner's theorem and Frobenius Diophantine representation using `choose` |
 | **0920** | [Игуана](0920_iguana.ra) | Bitmask / Inclusion-Exclusion (62%) | Chromatic number $N \le 18$: independent sets by doubling, zeta transform, $\sum (-1)^{N-|S|} I(S)^k$ over vectors |

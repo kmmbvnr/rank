@@ -1,0 +1,95 @@
+rem ACMP 0914: Intersection
+rem Zero-loop 3D Separating Axis Theorem
+use io
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = "0 0 0
+200 200 0 -200 200 0 0 0 200
+0 400 0 200 200 200 -200 200 200
+0 400 200
+100 100 100
+300 100 100 100 300 100 100 100 300
+300 300 100 300 100 300 100 300 300
+300 300 300"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+Vals = Tokens integer
+
+rem Reshape 48 integers into two 8x3
+RawA = Vals take 24
+RawB = Vals drop 24
+VertsA = RawA reshape 8 3
+VertsB = RawB reshape 8 3
+
+rem Extract 3 orthogonal edge vectors
+rem from V0 to V1, V2, V3 (rows 1..3)
+V0A = (VertsA 0) reshape 1 3
+V0B = (VertsB 0) reshape 1 3
+Idx123 = array 1 2 3
+EdgesA = (VertsA Idx123) - V0A
+EdgesB = (VertsB Idx123) - V0B
+
+rem Cross products of 3x3 edge pairs
+IdxI = array 0 0 0 1 1 1 2 2 2
+IdxJ = array 0 1 2 0 1 2 0 1 2
+EA9 = EdgesA IdxI
+EB9 = EdgesB IdxJ
+EA9T = EA9 transpose
+EB9T = EB9 transpose
+
+AX = EA9T 0
+AY = EA9T 1
+AZ = EA9T 2
+BX = EB9T 0
+BY = EB9T 1
+BZ = EB9T 2
+
+CX = (AY * BZ) - (AZ * BY)
+CY = (AZ * BX) - (AX * BZ)
+CZ = (AX * BY) - (AY * BX)
+CrossT = array CX CY CZ
+Cross9 = CrossT transpose
+
+rem All 15 candidate SAT axes (15 x 3)
+Axes6 = concat EdgesA EdgesB
+Axes15 = concat Axes6 Cross9
+
+rem Project 8 vertices onto 15 axes
+rem using 15 x 8 x 3 tensor product
+Ax3D = Axes15 reshape 15 1 3
+VA3D = VertsA reshape 1 8 3
+VB3D = VertsB reshape 1 8 3
+
+ProdA = Ax3D * VA3D
+ProdB = Ax3D * VB3D
+ProjA = ProdA sum axis 2
+ProjB = ProdB sum axis 2
+
+MinA = ProjA min axis 1
+MaxA = ProjA max axis 1
+MinB = ProjB min axis 1
+MaxB = ProjB max axis 1
+
+rem Ignore zero-length cross axes
+SqAxes = Axes15 * Axes15
+NormSq = SqAxes sum axis 1
+NonZero = NormSq greater 0
+
+rem Separated on an axis if
+rem MaxA < MinB or MaxB < MinA
+SepAB = MinB greater MaxA
+SepBA = MinA greater MaxB
+SepAxis = NonZero and (SepAB or SepBA)
+IsSep = SepAxis any
+
+Result = "YES"
+if IsSep
+  Result = "NO"
+end
+Result print

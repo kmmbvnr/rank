@@ -1,0 +1,78 @@
+rem ACMP 0914: Intersection tests
+use testing
+
+test "ACMP 914: Overlapping cubes"
+  use "0914_intersection"
+  Input = "0 0 0
+2 0 0 0 2 0 0 0 2
+2 2 0 2 0 2 0 2 2
+2 2 2
+1 1 1
+3 1 1 1 3 1 1 1 3
+3 3 1 3 1 3 1 3 3
+3 3 3"
+  run
+  Result equal "YES"
+end
+
+test "ACMP 914: Disjoint cubes"
+  use "0914_intersection"
+  Input = "0 0 0
+1 0 0 0 1 0 0 0 1
+1 1 0 1 0 1 0 1 1
+1 1 1
+2 0 0
+3 0 0 2 1 0 2 0 1
+3 1 0 3 0 1 2 1 1
+3 1 1"
+  run
+  Result equal "NO"
+end
+
+test "ACMP 914: Touching at corner"
+  use "0914_intersection"
+  Input = "0 0 0
+1 0 0 0 1 0 0 0 1
+1 1 0 1 0 1 0 1 1
+1 1 1
+1 1 1
+2 1 1 1 2 1 1 1 2
+2 2 1 2 1 2 1 2 2
+2 2 2"
+  run
+  Result equal "YES"
+end
+
+test "ACMP 914: Rotated OBBs separated"
+  use "0914_intersection"
+  Input = "0 0 0
+2 2 0 -2 2 0 0 0 2
+0 4 0 2 2 2 -2 2 2
+0 4 2
+2 0 0
+3 0 0 2 1 0 2 0 2
+3 1 0 3 0 2 2 1 2
+3 1 2"
+  run
+  Result equal "NO"
+end
+
+test "ACMP 914: Edge-cross separated"
+  use "0914_intersection"
+  Input = "0 0 0
+10 10 0 -1 1 0 0 0 1
+9 11 0 10 10 1 -1 1 1
+9 11 1
+10 0 2
+0 10 2 11 1 2 10 0 12
+1 11 2 0 10 12 11 1 12
+1 11 12"
+  run
+  Result equal "NO"
+end
+
+test "ACMP 914: Default rotated stress"
+  use "0914_intersection"
+  run
+  Result equal "YES"
+end
