@@ -1,0 +1,209 @@
+rem ACMP 0980: Ear Cutting
+rem Construct ear decomposition via DFS
+rem back-edge cover + reverse postorder
+use io
+use cli
+use numbers
+use sequences
+use text
+use graph
+
+arg Input text = "8 14
+1 2
+2 3
+3 4
+4 5
+5 6
+6 7
+7 8
+8 1
+1 5
+2 6
+3 7
+4 8
+1 3
+5 7"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+TokInts = Tokens integer
+
+N = TokInts 0
+M = TokInts 1
+Result = "-1"
+
+if M greater (N - 1)
+  Raw = TokInts (2 till (2 + (2 * M)))
+  Edges = Raw reshape M 2
+  rem Custom iterative DFS from 1
+  rem to get a valid DFS spanning tree
+  Head = array shape (N + 1) fill -1
+  To = array shape (2 * M) fill 0
+  Nxt = array shape (2 * M) fill -1
+  Vis = array shape (N + 1) fill 0
+  Par = array shape (N + 1) fill 0
+  Pos = array shape (N + 1) fill 0
+  Order = array shape N fill 0
+  StkV = array shape (M + N + 2) fill 0
+  Cov = array shape (N + 1) fill 0
+  Mark = array shape (N + 1) fill 0
+  Mark 1 = 1
+
+  MaxBack = (M - N) + 2
+  BackTop = array shape MaxBack fill 0
+  BackBot = array shape MaxBack fill 0
+  EarStrs = array shape MaxBack fill ""
+
+  EdgesT = Edges transpose
+  EU = EdgesT 0
+  EV = EdgesT 1
+
+  Phase = 0
+  EIdx = 0
+  Top = 0
+  StkV 0 = 1
+  NVis = 0
+  BackLen = 0
+  Step = 0
+  RemE = 0
+  J = 0
+  Cur = 1
+  U = 1
+  Len = 1
+  Line = ""
+  AllCov = false
+
+  for Phase less 5
+    if Phase equal 0
+      rem Build 2*M half-edge list
+      if EIdx less M
+        U0 = EU EIdx
+        V0 = EV EIdx
+        H0 = 2 * EIdx
+        H1 = H0 + 1
+        To H0 = V0
+        Nxt H0 = Head U0
+        Head U0 = H0
+        To H1 = U0
+        Nxt H1 = Head V0
+        Head V0 = H1
+        EIdx = EIdx + 1
+      else
+        Phase = 1
+      end
+    elif Phase equal 1
+      rem Iterative DFS with current-arc Head
+      if Top greater -1
+        V = StkV Top
+        if (Vis V) equal 0
+          Vis V = 1
+          Pos V = NVis
+          Order NVis = V
+          NVis = NVis + 1
+        end
+        H = Head V
+        if H greater -1
+          Head V = Nxt H
+          W = To H
+          if (Vis W) equal 0
+            Par W = V
+            Top = Top + 1
+            StkV Top = W
+          else
+            if (W not equal (Par V)) and (
+              (Pos W) less (Pos V)
+            )
+              BackTop BackLen = W
+              BackBot BackLen = V
+              Cov W = (Cov W) - 1
+              Cov V = (Cov V) + 1
+              BackLen = BackLen + 1
+            end
+          end
+        else
+          Top = Top - 1
+        end
+      else
+        if (NVis equal N) and (
+          BackLen equal ((M - N) + 1)
+        )
+          UsedTop = BackTop take BackLen
+          UsedBot = BackBot take BackLen
+          Keys = (
+            ((Pos UsedTop) * (N + 1)) + (
+              Pos UsedBot
+            )
+          )
+          SOrd = Keys argsort
+          BackTop = UsedTop SOrd
+          BackBot = UsedBot SOrd
+          Step = N - 1
+          Phase = 2
+        else
+          Phase = 5
+        end
+      end
+    elif Phase equal 2
+      rem Sum back-edge coverage up tree
+      if Step greater 0
+        V = Order Step
+        P = Par V
+        Cov P = (Cov P) + (Cov V)
+        Step = Step - 1
+      else
+        SubCov = Cov (2 to N)
+        AllCov = (SubCov greater 0) all
+        if AllCov
+          EarStrs = (
+            array shape BackLen fill ""
+          )
+          RemE = BackLen - 1
+          J = 0
+          Cur = BackBot 0
+          U = 1
+          Len = 1
+          Line = "1 " + (Cur text)
+          Phase = 3
+        else
+          Phase = 5
+        end
+      end
+    elif Phase equal 3
+      rem Trace ear paths bottom-up to Mark
+      if ((Mark Cur) equal 0) and (
+        Cur not equal U
+      )
+        Mark Cur = 1
+        P = Par Cur
+        Line = Line + " " + (P text)
+        Len = Len + 1
+        Cur = P
+      else
+        EarLine = (Len text) + " " + Line
+        EarStrs RemE = EarLine
+        RemE = RemE - 1
+        J = J + 1
+        if J less BackLen
+          U = BackTop J
+          Cur = BackBot J
+          Len = 1
+          Line = (
+            (U text) + " " + (Cur text)
+          )
+        else
+          Phase = 5
+        end
+      end
+    end
+  end
+
+  if AllCov
+    HeadStr = BackLen text
+    Body = EarStrs join "\n"
+    Result = HeadStr + "\n" + Body
+  end
+end
+
+Result print

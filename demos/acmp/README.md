@@ -169,6 +169,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0976** | [Сумма или произведение](0976_sum_or_product.ra) | Combinatorics / Number Theory (74%) | Count multisets where product equals sum via =2$ divisor factorization and flat 1D BFS state queue for  \ge 3$ |
 | **0977** | [Поезда](0977_trains.ra) | Combinatorics (70%) | Graphs without isolated vertices via inclusion-exclusion $\sum (-1)^k \binom{N}{k} 2^{\binom{N-k}{2}}$ in zero loops |
 | **0978** | [Последовательность - 5](0978_sequence_5.ra) | Number Theory (79%) | Legendre's formula for maximal $k$ with $n^k \mid n!$ using `N factors unique` |
+| **0980** | [Отрезание ушей](0980_ear_cutting.ra) | Graph Theory / Ear Decomposition (80%) | 2-edge-connected ear removal decomposition via single-loop DFS back-edge coverage, `argsort` by ancestor preorder, and bottom-up tree path tracing |
 | **0989** | [Окопы](0989_trenches.ra) | Geometry / SAT (64%) | Strict separating line via Separating Axis Theorem (SAT) over difference vectors |
 | **0990** | [Пирожные](0990_cakes.ra) | Dynamic Programming / Partition (76%) | Minimum dissatisfaction cake distribution via flat topological event DP, vectorized column knapsack `scan min axis 0` and backwards reconstruction |
 | **0993** | [Симпатичные последовательности](0993_pretty_sequences.ra) | Data Structures / Segment Tree (61%) | Maximal $k$-pretty prefix via point increment updates and range prefix minimum segment tree queries `Tree 0 (V - 1) query` |
