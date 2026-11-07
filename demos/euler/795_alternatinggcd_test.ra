@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "795_alternatinggcd"
+  Limit = 1234
+  run
+  Answer equal 2194708
+end

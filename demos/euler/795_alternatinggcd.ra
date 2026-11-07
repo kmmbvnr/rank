@@ -1,0 +1,95 @@
+rem Alternating GCD Sum
+rem https://projecteuler.net/problem=795
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 12345678
+
+rem P(m) = sum of gcd(m, i^2) over a
+rem period is multiplicative. For odd n
+rem g(n) = -n; for n = 2^a m, m odd,
+rem g(n) = P(m) (2 A(a-1) - P(2^a)),
+rem A(b) the same sum over j mod 2^b of
+rem gcd(2^(b+1), 4 j^2). With
+rem P(p^k) = p^k + sum over v < k of
+rem p^min(k, 2v) phi(p^(k-v)), P is
+rem built for m <= N / 2 from the
+rem smallest prime factor, a layer per
+rem prime factor.
+Half = Limit // 2
+Ms = 1 to Half
+Roots = primes to (Half isqrt) copy
+Rev = Roots reverse
+Count = Half // Rev
+Ends = Count scan +
+Starts = Ends - Count
+Total = Count sum
+Marks = array shape Total fill 0
+Marks Starts = 1
+Owner = (Marks scan +) - 1
+Run = 0 to Total - 1
+Step = Run - Starts Owner + 1
+Spot = Step * Rev Owner - 1
+Spf = Ms * 1
+Spf Spot = Rev Owner
+rem Strip the smallest prime from m.
+Cur = Ms * 1
+Pk = Ms * 0 + 1
+Kc = Ms * 0
+for Round in 1 to 23
+  Even = Cur mod Spf equal 0
+  Div = Even and (Spf greater 1)
+  Cur = Div choose (Cur // Spf) Cur
+  Pk = Div choose (Pk * Spf) Pk
+  Kc = Div choose (Kc + 1) Kc
+end
+rem Prime power values.
+Pp = Pk * 1
+for Level in 0 to 22
+  Live = Level less Kc
+  Hi = (Kc - Level) max 0
+  Low = Spf ** ((2 * Level) min Kc)
+  Dec = (Hi - 1) max 0
+  Phi = Spf ** Hi - Spf ** Dec
+  Term = Low * Phi
+  Pp = Live choose (Pp + Term) Pp
+end
+Pm = Ms * 0
+Pm 0 = 1
+Where = Cur - 1
+for Layer in 1 to 9
+  Prev = Pm Where
+  Pm = Prev * Pp
+end
+rem Odd m prefix sums of P.
+Oddf = Ms mod 2
+Pod = Pm * Oddf
+Cum = Pod scan +
+rem Powers of two: P(2^a) and A(a-1).
+As = 1 to 24
+Vs = (0 to 24) reshape 1 25
+Ar = As reshape 24 1
+Under = (Vs less Ar) integer
+Lowp = 2 ** ((2 * Vs) min Ar)
+Phip = 2 ** ((Ar - Vs - 1) max 0)
+Mix = Lowp * Phip * Under
+Pa = 2 ** As + (Mix sum axis 1)
+Br = (As - 1) reshape 24 1
+Under2 = (Vs less Br) integer
+Lowa = 2 ** ((2 + 2 * Vs) min (Br + 1))
+Phia = 2 ** ((Br - Vs - 1) max 0)
+Mix2 = Lowa * Phia * Under2
+Aa = 2 ** As + (Mix2 sum axis 1)
+Coef = 2 * Aa - Pa
+Reach = Limit // (2 ** As)
+Used = Reach at least 1
+Part = Cum ((Reach max 1) - 1)
+Flag = Used integer
+Evens = Coef * Part * Flag
+Odds = (Limit + 1) // 2
+Gain = Evens sum
+Answer = Gain - Odds * Odds
+Answer print
