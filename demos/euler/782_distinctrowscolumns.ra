@@ -1,0 +1,122 @@
+rem Distinct Rows and Columns
+rem https://projecteuler.net/problem=782
+
+use numbers
+use sequences
+use bits
+use linalg
+use io
+use cli
+
+arg Size integer = 10000
+
+rem Block matrices with row and column
+rem groups of sizes a, b, c have
+rem complexity <= 3 when a 3 x 3
+rem template has distinct rows,
+rem distinct columns and equal row and
+rem column sets. Its ones count is a
+rem quadratic form in a, b, c.
+rem Complexity 1: k = 0, n^2. Others
+rem come from forms of two or three
+rem groups plus rectangles a b. All
+rem other k are taken as complexity 4:
+rem C = 3 T - 4 - N2 + N4, T = n^2 + 1.
+Area = Size * Size
+Cells = array shape (Area + 1) fill 0
+Pair = array shape (Area + 1) fill 0
+rem Templates: bits of a 3 x 3 matrix.
+Code = (0 to 511) reshape 512 1
+Bits = (Code shr (0 to 8)) band 1
+Weight = array 4 2 1
+Rowmat = Bits reshape 512 3 3
+Order = array 0 3 6 1 4 7 2 5 8
+Turned = Bits # Order
+Colmat = Turned reshape 512 3 3
+Rs = Rowmat matmul Weight
+Cs = Colmat matmul Weight
+Rsum = Rs sum axis 1
+Csum = Cs sum axis 1
+Rsq = (Rs * Rs) sum axis 1
+Csq = (Cs * Cs) sum axis 1
+Rcu = (Rs * Rs * Rs) sum axis 1
+Ccu = (Cs * Cs * Cs) sum axis 1
+Plain = Rsum equal Csum
+Square = Rsq equal Csq
+Same = Plain and Square
+Same = Same and (Rcu equal Ccu)
+Rs0 = Rs # 0
+Rs1 = Rs # 1
+Rs2 = Rs # 2
+Rdist = Rs0 not equal Rs1
+Rdist = Rdist and (Rs0 not equal Rs2)
+Rdist = Rdist and (Rs1 not equal Rs2)
+Cs0 = Cs # 0
+Cs1 = Cs # 1
+Cs2 = Cs # 2
+Cdist = Cs0 not equal Cs1
+Cdist = Cdist and (Cs0 not equal Cs2)
+Cdist = Cdist and (Cs1 not equal Cs2)
+Good = Same and Rdist and Cdist
+E12 = (Bits # 1) + (Bits # 3)
+E13 = (Bits # 2) + (Bits # 6)
+E23 = (Bits # 5) + (Bits # 7)
+Key = Bits # 0
+Key = Key * 2 + Bits # 4
+Key = Key * 2 + Bits # 8
+Key = Key * 3 + E12
+Key = Key * 3 + E13
+Key = Key * 3 + E23
+Forms = (Key Good) unique
+Many = Forms len
+F23 = (Forms mod 3) reshape 1 Many
+F13 = (Forms // 3 mod 3) reshape 1 Many
+F12 = (Forms // 9 mod 3) reshape 1 Many
+F3 = (Forms // 27 mod 2) reshape 1 Many
+F2 = (Forms // 54 mod 2) reshape 1 Many
+F1 = (Forms // 108) reshape 1 Many
+rem Rectangles a b and, for each first
+rem group size a, the three-group forms.
+for Lead in 0 to Size
+  Prod = Lead * (0 to Size)
+  Cells Prod = 1
+  Cells (Area - Prod) = 1
+  Small = 3 * Lead at most Size
+  if Lead at least 1 and Small
+    Half = (Size - Lead) // 2
+    Count = Half - Lead + 1
+    Seq = Lead to Lead + Count - 1
+    Mid = Seq reshape Count 1
+    End = Size - Lead - Mid
+    Cross = F12 * Lead * Mid
+    Cross = Cross + F13 * Lead * End
+    Cross = Cross + F23 * Mid * End
+    Vals = F1 * Lead * Lead
+    Vals = Vals + F2 * Mid * Mid
+    Vals = Vals + F3 * End * End + Cross
+    Cells3 = Count * Many
+    Flat = Vals reshape Cells3
+    Cells Flat = 1
+  end
+end
+rem Two groups: nonempty subset sums.
+As = 1 to Size - 1
+Bs = Size - As
+Xs = As * As
+Ys = Bs * Bs
+Zs = 2 * As * Bs
+Subsets = concat Xs Ys
+Subsets = concat Subsets Zs
+Subsets = concat Subsets (Xs + Ys)
+Subsets = concat Subsets (Xs + Zs)
+Subsets = concat Subsets (Ys + Zs)
+Inner = Subsets not equal Area
+Interior = Subsets filter Inner
+Pair Interior = 1
+Marked = Cells bor Pair
+Total = Area + 1
+Twos = Pair sum
+Seen = Marked sum
+Fours = Total - Seen
+Answer = 3 * Total - 4 - Twos + Fours
+Answer print

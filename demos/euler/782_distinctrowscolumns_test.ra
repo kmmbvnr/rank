@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "782_distinctrowscolumns"
+  Size = 2
+  run
+  Answer equal 8
+  Size = 5
+  run
+  Answer equal 64
+  Size = 10
+  run
+  Answer equal 274
+  Size = 20
+  run
+  Answer equal 1150
+end
