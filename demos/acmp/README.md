@@ -51,6 +51,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0434** | [Стеклянный забор](0434_glass_fence.ra) | Computational Geometry (72%) | Orthogonal convex hull with minimal perimeter & area via `TopY scan max axis 0` & `BotY scan min axis 0` |
 | **0435** | [Несчастливые номера](0435_unlucky_numbers.ra) | Combinatorics / DP (88%) | Count unpartitionable $N$-digit numbers via polynomial parity convolution & bitset subset sum |
 | **0436** | [Счастливые цифры](0436_lucky_digits.ra) | Number Theory (60%) | Base $D$ maximizing trailing digits $K$ up to $N = 10^{11}$ via divisor analysis & base testing |
+| **0437** | [Тапкодер](0437_tapcoder.ra) | Mathematical Modeling / Trees (78%) | Compressed $K$-level single-elimination bracket tree ($K \le 60$) with vectorized `lowerindex` fixed-match filtering and top-down reachability propagation |
 | **0441** | [Карточки - 2](0441_cards_2.ra) | Data Structures / Sorting (73%) | Minimal adjacent swaps via `A argsort`, vector scatter assignment `P OrderB = OrderA` & `((P P outer greater) and (Indices Indices outer less)) count` |
 | **0451** | [Арифметическое выражение](0451_expression.ra) | Parsing / Recursion (71%) | Evaluate Delphi arithmetic expressions with `sin`/`cos`, scientific notation, and operator precedence |
 | **0455** | [Умножение дроби](0455_fraction_multiplication.ra) | Math / Strings (64%) | Periodic fraction multiplication by $N$ via BigInt arithmetic, period divisor reduction & cyclic shift |
