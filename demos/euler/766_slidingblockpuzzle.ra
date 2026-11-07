@@ -1,0 +1,91 @@
+rem Sliding Block Puzzle
+rem https://projecteuler.net/problem=766
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+rem The 5 x 6 board has two red L, two
+rem green L, a blue square, a yellow S,
+rem a cyan domino and six pink squares.
+rem Equal colours are interchangeable.
+rem Pieces are 13 slots with anchors
+rem row * 6 + col. A level slides every
+rem piece one cell, drops collisions
+rem by bit masks, and a canonical key
+rem removes equal-colour swaps.
+Shapes = array 67 67 194 194 195 4290 3
+Pinks = array 1 1 1 1 1 1
+Shapes = concat Shapes Pinks
+Wide = array 2 2 2 2 2 2 2 1 1 1 1 1 1
+High = array 2 2 2 2 2 3 1 1 1 1 1 1 1
+Start = array 1 4 2 22 14 10 26 12 13
+Start = concat Start (array 18 19 24 25)
+Mask = Shapes reshape 1 13
+Mask3 = Shapes reshape 1 13 1
+Wid = Wide reshape 1 13 1
+Hig = High reshape 1 13 1
+Dr = (array 0 0 1 -1) reshape 1 1 4
+Dc = (array 1 -1 0 0) reshape 1 1 4
+Pink = 7 to 12
+Frontier = Start reshape 1 13
+Seen = array shape 0 fill 0
+for Level in 1 to 1000
+  Count = Frontier # 0 len
+  Cells = Mask shl Frontier
+  Occ = Cells sum axis 1
+  Used = Occ reshape Count 1 1
+  Anchor = Frontier reshape Count 13 1
+  Row = Anchor // 6 + Dr
+  Col = Anchor mod 6 + Dc
+  Reach = 6 - Wid
+  Drop = 5 - Hig
+  Okcol = Col at most Reach
+  Inside = (Col at least 0) and Okcol
+  Inside = Inside and (Row at least 0)
+  Inside = Inside and (Row at most Drop)
+  Next = (Row * 6 + Col) max 0
+  Fresh = Mask3 shl Next
+  Own = Mask3 shl Anchor
+  Hit = (Used - Own) band Fresh
+  Free = Inside and (Hit equal 0)
+  Total = Count * 52
+  Flag = Free reshape Total
+  Pick = (0 till Total) Flag
+  Parent = Pick // 52
+  Slot = (Pick // 4) mod 13
+  Moved = (Next reshape Total) Pick
+  Size = Pick len
+  Base = Frontier Parent
+  Flat = Base reshape (Size * 13)
+  Spot = (0 till Size) * 13 + Slot
+  Flat Spot = Moved
+  Grid = Flat reshape Size 13
+  Ids = (Grid // 6) * 5 + Grid mod 6
+  Redlo = (Ids # 0) min (Ids # 1)
+  Redhi = (Ids # 0) max (Ids # 1)
+  Grnlo = (Ids # 2) min (Ids # 3)
+  Grnhi = (Ids # 2) max (Ids # 3)
+  Key = Redlo * 25 + Redhi
+  Key = Key * 25 + Grnlo
+  Key = Key * 25 + Grnhi
+  Key = Key * 25 + Ids # 4
+  Key = Key * 25 + Ids # 5
+  Key = Key * 25 + Ids # 6
+  Sing = Grid # Pink
+  Bits = (1 shl Sing) sum axis 1
+  Key = Key * 2 ** 30 + Bits
+  Fine = Key unique
+  Before = Seen len
+  Both = concat Seen Fine
+  Seen = Both unique
+  Brand = Seen drop Before
+  if Brand len equal 0
+    break
+  end
+  Frontier = Grid (Key find Brand)
+end
+Answer = Seen len
+Answer print
