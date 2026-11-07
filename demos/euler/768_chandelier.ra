@@ -1,0 +1,77 @@
+rem Chandelier
+rem https://projecteuler.net/problem=768
+
+use numbers
+use sequences
+use bits
+use linalg
+use io
+use cli
+
+arg Sides integer = 360
+arg Candles integer = 20
+
+rem Only n with radical 30 are handled.
+rem The n-th roots split into G = n / 30
+rem blocks of 30th roots, independent
+rem over Q(zeta30), so balance needs
+rem each block to sum to zero. Let c_k
+rem count zero-sum k-subsets of the
+rem 30th roots, found by meeting in
+rem the middle on
+rem vectors modulo Phi30 (degree 8).
+rem Then f = [t^m] (sum c_k t^k)^G.
+Cyc = array -1 -1 0 1 1 1 0 -1
+Vec = array 1 0 0 0 0 0 0 0
+Basis = Vec reshape 1 8
+Pad = array 0
+Spots = 0 to 28
+Cur = Vec
+for Step in Spots
+  Top = Cur 7
+  Shift = concat Pad (Cur take 7)
+  Cur = Shift + Top * Cyc
+  Next = Cur reshape 1 8
+  Basis = concat Basis Next axis 0
+end
+Half = 2 ** 15
+Subset = 0 to Half - 1
+Column = Subset reshape Half 1
+Shifted = Column shr (0 to 14)
+Pick = Shifted band 1
+Left = Pick matmul (Basis take 15)
+Right = Pick matmul (Basis drop 15)
+Size = Pick sum axis 1
+Place = 32 ** (0 to 7)
+Lkey = (Left + 16) matmul Place
+Rkey = (16 - Right) matmul Place
+Keys = concat Lkey Rkey
+Uniq = Keys unique
+Lid = Uniq find Lkey
+Rid = Uniq find Rkey
+Count = Uniq len
+Table = array shape (Count * 16) fill 0
+Table (Rid * 16 + Size) += 1 .accumulate
+Grid = Table reshape Count 16
+Rows = Grid Lid
+Part = Size reshape Half 1
+Where = Part + (0 to 15)
+Zero = array shape 31 fill 0
+Zero Where += Rows .accumulate
+Poly = Zero take (Candles + 1)
+Order = Candles + 1
+Line = 0 to Candles
+Sum = (Line reshape Order 1) + Line
+Fits = Sum at most Candles
+Total = Sides // 30
+Ways = array shape Order fill 0
+Ways 0 = 1
+for Round in 1 to Total
+  Outer = (Ways reshape Order 1) * Poly
+  Next = array shape Order fill 0
+  Used = Sum Fits
+  Next Used += (Outer Fits) .accumulate
+  Ways = Next
+end
+Answer = Ways Candles
+Answer print
