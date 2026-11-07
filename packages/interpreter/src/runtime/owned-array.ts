@@ -1086,21 +1086,28 @@ const ownedValueHandler: ProxyHandler<RankArray> = {
 
 /** Rank-facing reads preserve integer values. Numeric kernels borrow the raw
  * buffer separately; public items still materialize an ordinary tracked array. */
-function integer32Items(cells: Int32Array): ArrayLike<bigint> & Iterable<bigint> {
-    return new Proxy({ length: cells.length,
-        *[Symbol.iterator]() { for (const cell of cells) yield BigInt(cell); },
-        slice(start: number, end: number) { return BigInt64Array.from(cells.subarray(start, end), BigInt); },
-    }, {
-        get(target, key, receiver) {
-            if (typeof key === 'string') {
-                const index = Number(key);
-                if (Number.isInteger(index) && index >= 0 && String(index) === key) {
-                    return index < cells.length ? BigInt(cells[index]) : undefined;
-                }
+class Integer32Items implements ArrayLike<bigint>, Iterable<bigint> {
+    readonly length: number;
+    [index: number]: bigint;
+    constructor(readonly cells: Int32Array) { this.length = cells.length; }
+    *[Symbol.iterator]() { for (const cell of this.cells) yield BigInt(cell); }
+    slice(start: number, end: number) { return BigInt64Array.from(this.cells.subarray(start, end), BigInt); }
+}
+// Numeric temporaries share methods and their proxy handler instead of
+// allocating three closures and a handler for every short-lived buffer.
+const integer32ItemsHandler: ProxyHandler<Integer32Items> = {
+    get(target, key, receiver) {
+        if (typeof key === 'string') {
+            const index = Number(key);
+            if (Number.isInteger(index) && index >= 0 && String(index) === key) {
+                return index < target.cells.length ? BigInt(target.cells[index]) : undefined;
             }
-            return Reflect.get(target, key, receiver);
-        },
-    }) as unknown as ArrayLike<bigint> & Iterable<bigint>;
+        }
+        return Reflect.get(target, key, receiver);
+    },
+};
+function integer32Items(cells: Int32Array): ArrayLike<bigint> & Iterable<bigint> {
+    return new Proxy(new Integer32Items(cells), integer32ItemsHandler);
 }
 
 /** Stored 64-bit integer cells, read in place. */
@@ -1140,6 +1147,13 @@ export function writeInteger32Cells(value: RankArray, cells: ArrayLike<number | 
     return true;
 }
 
+// All typed arrays use the same public accessor; only explicit items access
+// materializes cells. Numeric temporaries need no per-array getter closure.
+function materializeOwnedItems(this: RankArray): RankValue[] {
+    ownedStorage.get(this)!.convert!();
+    return this.items;
+}
+
 export function createOwned(
     cells: RankValue[] | Float64Array | BigInt64Array | Int32Array | BooleanCells, shape: readonly number[], scalarOnly: boolean,
     columnNames?: readonly string[], validity?: Uint32Array, metadata?: ArrayMetadata,
@@ -1166,7 +1180,7 @@ export function createOwned(
         ...metadata,
         ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) };
     if (typed || booleans) {
-        Object.defineProperty(raw, 'items', { configurable: true, enumerable: true, get: () => { state.convert!(); return raw.items; } });
+        Object.defineProperty(raw, 'items', { configurable: true, enumerable: true, get: materializeOwnedItems });
         state.convert = () => {
             const diagnostics = currentDiagnostics();
             if (diagnostics) {

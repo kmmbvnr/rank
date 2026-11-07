@@ -11,7 +11,7 @@ import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } f
 import { prepareIntegerView } from '../integer-view.js';
 import { arrayStrides, broadcastOffset, broadcastShape } from '../tensor-layout.js';
 import { elementSource, type ElementSource } from '../element-source.js';
-import { derivedArray, IntegerCells, ownedArray, typedArray } from '../array-storage.js';
+import { derivedArray, integer32Cells, integer64Cells, IntegerCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { modularPower, probablePrime } from '../primality.js';
 import { safeIntegerModularPower } from '../modular-power.js';
@@ -698,6 +698,12 @@ function predicateFunction(name: string, test: (value: RankValue) => boolean) {
 export function sumValue(value: RankValue): RankValue {
     value = numericSource(value, 'sum');
     if (isRankSqliteExpression(value)) return sumSqlite(value);
+    // Host polling can replace public storage. Read after each checkpoint
+    // rather than retaining a buffer borrowed before the callback.
+    if (!privateLoopPolling() && isRankArray(value)
+        && (integer32Cells(value) || integer64Cells(value))) {
+        return sumIndexed(value.shape.reduce((n, size) => n * size, 1), index => readArrayItem(value, index));
+    }
     const source = elementSource(value, 'sum');
     if (!source) return sumStream([value]);
     return sumElements(source);
