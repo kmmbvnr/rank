@@ -169,6 +169,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0962** | [Развлечение с квадратиками](0962_squares.ra) | Computational Geometry (75%) | Count 4-tuples of squares with equal difference figures under translation via canonical signature grouping and (M)$ inclusion-exclusion |
 | **0963** | [Морфизм](0963_morphism.ra) | Dynamic Programming (63%) | Binary lifting over 20-character substitution prefix table |
 | **0972** | [Задачка по геометрии](0972_geometry.ra) | Computational Geometry (66%) | Circle intersecting two segments once via 4-pair vectorized endpoint midpoint margin optimization |
+| **0973** | [Главные дороги](0973_main_roads.ra) | Graph Theory / Shortest-Path Bridges (82%) | Critical shortest-path edges via dual `G dijkstra` from $1$ and $N$ and single-loop topological cut interval difference sweep |
 | **0974** | [Странный Ним](0974_strange_nim.ra) | Game Theory (65%) | 3-coin Welter's Game via Conway's Frieze rule in $O(1)$ without loops |
 | **0975** | [Числа - 4](0975_numbers_4.ra) | Integer Arithmetic (71%) | Lexicographically minimal multiple of $K \le N \le 10^{18}$ via greedy digit search and zero-loop vectorized prefix interval checks across all powers of 10 |
 | **0976** | [Сумма или произведение](0976_sum_or_product.ra) | Combinatorics / Number Theory (74%) | Count multisets where product equals sum via =2$ divisor factorization and flat 1D BFS state queue for  \ge 3$ |

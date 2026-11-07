@@ -1,0 +1,155 @@
+rem ACMP 0973: Main Roads
+rem Critical shortest-path edges via
+rem Dijkstra + DAG prefix-count cut
+use algo
+use cli
+use graph
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "7 9
+1 2 2
+2 3 2
+1 3 4
+3 4 3
+4 5 1
+4 6 2
+5 6 1
+6 7 5
+3 7 11"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+N = Nums 0
+M = Nums 1
+EdgeNums = Nums (2 till (2 + (3 * M)))
+Edges = EdgeNums reshape M 3
+
+G = new graph .undirected
+VIdx = 1 to N
+G add VIdx
+G add Edges
+
+Res1 = G dijkstra 1
+Dist1Idx = Res1 .distance
+Ord1 = Res1 .order
+
+ResN = G dijkstra N
+DistNIdx = ResN .distance
+
+Inf = 1000000000000000
+D1 = array shape (N + 1) fill Inf
+DN = array shape (N + 1) fill Inf
+R1 = array shape (N + 1) fill Inf
+
+N1 = Ord1 len
+OrdN = ResN .order
+NN = OrdN len
+
+EdgesT = Edges transpose
+EU = EdgesT 0
+EV = EdgesT 1
+EW = EdgesT 2
+
+Head = array shape (N + 1) fill -1
+To = array shape (2 * M) fill 0
+Hid = array shape (2 * M) fill 0
+Nxt = array shape (2 * M) fill -1
+Diff = array shape (N + 2) fill 0
+Crit = array shape M fill 0
+CritCnt = 0
+
+Phase = 0
+Step = 0
+TotalD = 0
+Active = 0
+
+for Phase less 4
+  if Phase equal 0
+    if Step less N1
+      V = Ord1 Step
+      D1 V = Dist1Idx V
+      R1 V = Step
+      Step = Step + 1
+    else
+      TotalD = D1 N
+      Step = 0
+      Phase = 1
+    end
+  elif Phase equal 1
+    if Step less NN
+      V = OrdN Step
+      DN V = DistNIdx V
+      Step = Step + 1
+    else
+      Step = 0
+      Phase = 2
+    end
+  elif Phase equal 2
+    if Step less M
+      U0 = EU Step
+      V0 = EV Step
+      W0 = EW Step
+      S1 = ((D1 U0) + W0) + (DN V0)
+      S2 = ((D1 V0) + W0) + (DN U0)
+      if S1 equal TotalD
+        RU = R1 U0
+        RV = R1 V0
+        Diff RU = (Diff RU) + 1
+        Diff RV = (Diff RV) - 1
+        H = 2 * Step
+        To H = V0
+        Hid H = Step + 1
+        Nxt H = Head U0
+        Head U0 = H
+      elif S2 equal TotalD
+        RV = R1 V0
+        RU = R1 U0
+        Diff RV = (Diff RV) + 1
+        Diff RU = (Diff RU) - 1
+        H = (2 * Step) + 1
+        To H = U0
+        Hid H = Step + 1
+        Nxt H = Head V0
+        Head V0 = H
+      end
+      Step = Step + 1
+    else
+      Step = 0
+      Active = 0
+      Phase = 3
+    end
+  elif Phase equal 3
+    if Step less (N1 - 1)
+      Active = Active + (Diff Step)
+      if Active equal 1
+        U0 = Ord1 Step
+        H = Head U0
+        if H greater -1
+          Crit CritCnt = Hid H
+          CritCnt = CritCnt + 1
+        end
+      end
+      Step = Step + 1
+    else
+      Phase = 4
+    end
+  end
+end
+
+CntStr = CritCnt text
+Result = CntStr
+if CritCnt greater 0
+  UsedCrit = Crit take CritCnt
+  SortedCrit = UsedCrit sort
+  ListStr = SortedCrit join " "
+  Lines = array CntStr ListStr
+  Result = Lines join "\n"
+end
+Result print
