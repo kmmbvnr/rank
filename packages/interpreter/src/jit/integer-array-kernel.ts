@@ -134,6 +134,28 @@ function compactBinary(code: number, a: Int32Array, ao: number, as: number,
     return out;
 }
 
+/** A safe scalar numerator can divide compact denominators without a wide
+ * scratch buffer. Below 2^52, division rounding is less than half the distance
+ * to an adjacent integer quotient, so floor is exact. A widening result or a
+ * zero divisor retains the existing general path. */
+function compactScalarQuotients(numerator: number, cells: Int32Array, offset: number, stride: number, size: number): Int32Array | undefined {
+    if (size) {
+        const first = Math.floor(numerator / cells[offset]);
+        if (first !== (first | 0)) return undefined;
+    }
+    const out = new Int32Array(size);
+    for (let start = 0; start < size; start += 4096) {
+        const end = Math.min(size, start + 4096);
+        checkpoint('computing integer array', end - start);
+        for (let i = start; i < end; i++) {
+            const quotient = Math.floor(numerator / cells[offset + i * stride]);
+            if (quotient !== (quotient | 0)) return undefined;
+            out[i] = quotient;
+        }
+    }
+    return out;
+}
+
 /** Prove a compact broadcast result before allocating its output. Inspect
  * only the logical view, which may be a tiny slice of a large buffer. */
 function compactMaximum(cells: Int32Array, offset: number, stride: number, size: number): number {
@@ -184,6 +206,12 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         ? compactBinary(code, ac ?? Int32Array.of(x), a ? ao : 0, a ? as : 0,
             bc ?? Int32Array.of(y), b ? bo : 0, b ? bs : 0, size) : undefined;
     if (fast) return typedArray(fast, shape);
+    // Scalar // compact is common in quotient sums. Keep native demand work
+    // unchanged: a failed speculative narrow pass would otherwise charge twice.
+    if (!a && bc && code === 4 && x !== (x | 0) && Math.abs(x) < 2 ** 52 && !demandBudgetEnabled()) {
+        const divided = compactScalarQuotients(x, bc, bo, bs, size);
+        if (divided) return typedArray(divided, shape);
+    }
     // Two-column rows already avoid per-cell broadcast mapping and a double
     // temporary. Mac/Intel measurements: benchmarks/packed-column-arrays.md.
     if (a && b && size >= DENSE_MIN_CELLS && shape.at(-1)! >= 2 && (ai || bi)
