@@ -1,0 +1,51 @@
+rem ACMP 0589: Physics tests
+use testing
+
+test "ACMP 589: 2D off-center collision"
+  use "0589_physics"
+  Inp = "2 5
+1 1 -5 1 0 1 0 0
+1 1 0 0 0 0 0 0"
+  Res = solve_physics Inp
+  L = Res split "\n"
+  Exp0 = "-1.299 1.75 0 0.25 0.433 0"
+  Exp1 = "1.299 -0.75 0 0.75 -0.433 0"
+  (L 0) equal Exp0
+  (L 1) equal Exp1
+end
+
+test "ACMP 589: 1D head-on (T on last)"
+  use "0589_physics"
+  Inp = "2
+1 1 0 0 0 1 0 0
+1 1 5 0 0 -1 0 0
+3"
+  Res = solve_physics Inp
+  L = Res split "\n"
+  (L 0) equal "0 0 0 -1 0 0"
+  (L 1) equal "5 0 0 1 0 0"
+end
+
+test "ACMP 589: Single ball (N=1)"
+  use "0589_physics"
+  Inp = "1 10
+1 1 2 3 4 1 -1 2"
+  Res = solve_physics Inp
+  Res equal "12 -7 24 1 -1 2"
+end
+
+test "ACMP 589: 3-sphere 1D chain"
+  use "0589_physics"
+  Inp = "3 20
+2 1 -10 0 0 2 0 0
+1 1 0 0 0 0 0 0
+3 2 15 0 0 -1 0 0"
+  Res = solve_physics Inp
+  L = Res split "\n"
+  (L 0) equal (
+    "-20.6667 0 0 -1.6667 0 0")
+  (L 1) equal (
+    "13.3333 0 0 0.3333 0 0")
+  (L 2) equal (
+    "24.3333 0 0 1.3333 0 0")
+end

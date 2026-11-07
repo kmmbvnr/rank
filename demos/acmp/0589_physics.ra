@@ -1,0 +1,211 @@
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "2 5
+1 1 -5 1 0 1 0 0
+1 1 0 0 0 0 0 0"
+
+fun solve_physics Inp
+  Clean = Inp split "\r" join " "
+  Clean = Clean split "\n" join " "
+  Tokens = Clean split " "
+  TokM = Tokens not equal ""
+  Tokens = Tokens TokM
+
+  N = (Tokens 0) integer
+  FirstLine = (Inp split "\n") 0
+  FirstLineTok = FirstLine split " "
+  FLM = FirstLineTok not equal ""
+  FirstLineTok = FirstLineTok FLM
+  FLCount = FirstLineTok len
+
+  T = 0.0
+  SphTok = Tokens
+  HasTFirst = FLCount greater 1
+  if HasTFirst
+    T = (Tokens 1) real
+    SphTok = Tokens drop 2
+  else
+    TIdx = 1 + (8 * N)
+    T = (Tokens TIdx) real
+    SphTok = Tokens drop 1 take (8 * N)
+  end
+
+  IdxN = 0 till N
+  Idx8 = IdxN * 8
+  TokMass = SphTok (Idx8 + 0)
+  Mass = TokMass real
+  TokRad = SphTok (Idx8 + 1)
+  Rad = TokRad real
+  TokX = SphTok (Idx8 + 2)
+  X = TokX real
+  TokY = SphTok (Idx8 + 3)
+  Y = TokY real
+  TokZ = SphTok (Idx8 + 4)
+  Z = TokZ real
+  TokVX = SphTok (Idx8 + 5)
+  VX = TokVX real
+  TokVY = SphTok (Idx8 + 6)
+  VY = TokVY real
+  TokVZ = SphTok (Idx8 + 7)
+  VZ = TokVZ real
+
+  if N greater 1
+    AllI = IdxN reshape N 1
+    AllJ = IdxN reshape 1 N
+    ZeroM = (array shape (N * N) fill 0)
+    ZeroMat = ZeroM reshape N N
+    MatI = AllI + ZeroMat
+    MatJ = AllJ + ZeroMat
+    IsPair = MatI less MatJ
+    FlatI = MatI reshape (N * N)
+    FlatJ = MatJ reshape (N * N)
+    FlatP = IsPair reshape (N * N)
+    PairI = FlatI FlatP
+    PairJ = FlatJ FlatP
+
+    CurT = 0.0
+    Steps = 0 till 2000
+    for Step in Steps
+      if CurT at least (T - 1e-9)
+        break
+      end
+      DX = (X PairJ) - (X PairI)
+      DY = (Y PairJ) - (Y PairI)
+      DZ = (Z PairJ) - (Z PairI)
+      DVX = (VX PairJ) - (VX PairI)
+      DVY = (VY PairJ) - (VY PairI)
+      DVZ = (VZ PairJ) - (VZ PairI)
+      A = (DVX * DVX) + (DVY * DVY)
+      A = A + (DVZ * DVZ)
+      B = (DX * DVX) + (DY * DVY)
+      B = B + (DZ * DVZ)
+      RSum = (Rad PairI) + (Rad PairJ)
+      DistSq = (DX * DX) + (DY * DY)
+      DistSq = DistSq + (DZ * DZ)
+      C = DistSq - (RSum * RSum)
+      Disc = (B * B) - (A * C)
+      V1 = A greater 1e-12
+      V2 = B less -1e-12
+      V3 = Disc greater 0.0
+      Valid = V1 and V2 and V3
+      HasValid = Valid any
+      if not HasValid
+        DT = T - CurT
+        X = X + (VX * DT)
+        Y = Y + (VY * DT)
+        Z = Z + (VZ * DT)
+        CurT = T
+        break
+      end
+      DiscPos = 0.0 max Disc
+      SqrtDisc = DiscPos sqrt
+      SafeA = Valid choose A 1.0
+      Num = 0.0 - B - SqrtDisc
+      TauAll = Num / SafeA
+      TauOk = TauAll at least -1e-9
+      ValidTau = Valid and TauOk
+      HasTau = ValidTau any
+      if not HasTau
+        DT = T - CurT
+        X = X + (VX * DT)
+        Y = Y + (VY * DT)
+        Z = Z + (VZ * DT)
+        CurT = T
+        break
+      end
+      InfTau = 1e18
+      TauClamp = 0.0 max TauAll
+      TauFiltered = (
+        ValidTau choose TauClamp InfTau)
+      MinTau = TauFiltered min
+      if (CurT + MinTau) greater T
+        DT = T - CurT
+        X = X + (VX * DT)
+        Y = Y + (VY * DT)
+        Z = Z + (VZ * DT)
+        CurT = T
+        break
+      end
+      X = X + (VX * MinTau)
+      Y = Y + (VY * MinTau)
+      Z = Z + (VZ * MinTau)
+      CurT = CurT + MinTau
+
+      IsMin = TauFiltered equal MinTau
+      MinIdxs = IsMin indices
+      BestPairIdx = MinIdxs 0
+      PI = PairI BestPairIdx
+      PJ = PairJ BestPairIdx
+
+      NX = (X PJ) - (X PI)
+      NY = (Y PJ) - (Y PI)
+      NZ = (Z PJ) - (Z PI)
+      NSq = (NX * NX) + (NY * NY)
+      NSq = NSq + (NZ * NZ)
+      NormDist = NSq sqrt
+      NX = NX / NormDist
+      NY = NY / NormDist
+      NZ = NZ / NormDist
+
+      DVX0 = (VX PI) - (VX PJ)
+      DVY0 = (VY PI) - (VY PJ)
+      DVZ0 = (VZ PI) - (VZ PJ)
+      RelVN = (DVX0 * NX) + (DVY0 * NY)
+      RelVN = RelVN + (DVZ0 * NZ)
+      if RelVN greater 0.0
+        MI = Mass PI
+        MJ = Mass PJ
+        SumM = MI + MJ
+        Impulse = 2.0 * MI * MJ / SumM
+        Impulse = Impulse * RelVN
+        X1 = (Impulse / MI) * NX
+        Y1 = (Impulse / MI) * NY
+        Z1 = (Impulse / MI) * NZ
+        X2 = (Impulse / MJ) * NX
+        Y2 = (Impulse / MJ) * NY
+        Z2 = (Impulse / MJ) * NZ
+        VX PI = (VX PI) - X1
+        VY PI = (VY PI) - Y1
+        VZ PI = (VZ PI) - Z1
+        VX PJ = (VX PJ) + X2
+        VY PJ = (VY PJ) + Y2
+        VZ PJ = (VZ PJ) + Z2
+      end
+    end
+
+    if CurT less T
+      DT = T - CurT
+      X = X + (VX * DT)
+      Y = Y + (VY * DT)
+      Z = Z + (VZ * DT)
+    end
+  else
+    X = X + (VX * T)
+    Y = Y + (VY * T)
+    Z = Z + (VZ * T)
+  end
+
+  OutLines = array shape N fill ""
+  for I in 0 till N
+    Xi = (X I) round 4
+    Yi = (Y I) round 4
+    Zi = (Z I) round 4
+    VXi = (VX I) round 4
+    VYi = (VY I) round 4
+    VZi = (VZ I) round 4
+    Row = (Xi text) + " " + (Yi text)
+    Row = Row + " " + (Zi text)
+    Row = Row + " " + (VXi text)
+    Row = Row + " " + (VYi text)
+    Row = Row + " " + (VZi text)
+    OutLines I = Row
+  end
+  return OutLines join "\n"
+end
+
+Ans = solve_physics Input
+Ans print
