@@ -1,0 +1,12 @@
+use numbers
+use testing
+
+test "statement value"
+  use "783_urns"
+  Turns = 2
+  Blacks = 2
+  run
+  Close = Mass round 6
+  Close equal 9.6
+  Answer equal 10
+end

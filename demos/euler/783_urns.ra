@@ -1,0 +1,52 @@
+rem Urns
+rem https://projecteuler.net/problem=783
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Turns integer = 1000000
+arg Blacks integer = 10
+
+rem Before turn t the urn holds
+rem N(t) = k (n - t + 2) balls. A ball
+rem added at turn s survives turns
+rem s..t-1 with probability PA, a pair
+rem of balls with PB; at turn t a pair
+rem leaves with 2k (2k - 1) over
+rem N (N - 1).
+rem PA(m) = (n - m)(n - m + 1) /
+rem (n (n + 1)) and PB(m) = PA(m) times
+rem (kj - 1) over j = n - m, n - m + 1
+rem telescoped. E sum B^2 = sum E B
+rem + sum of ordered pairs of black
+rem balls, by prefix sums over s.
+Num = Turns * 1.0
+Size = Blacks * 1.0
+Done = (0 to Turns - 1) * 1.0
+Left = Num - Done
+Above = Left * (Left + 1.0)
+Chance = Above / (Num * (Num + 1.0))
+Cum = (1.0 / Chance) scan +
+Plain = Size * (Size - 1.0)
+Excess = Chance * Cum - 1.0
+Extra = 2.0 * Size * Size * Excess
+Weight = Plain + Extra
+Low = Size * Left - 1.0
+High = Size * (Left + 1.0) - 1.0
+Shape = Low * High
+Top = Size * Num - 1.0
+Top2 = Size * (Num + 1.0) - 1.0
+Scale = Top * Top2
+Pair = Chance * Shape / Scale
+Run = (Weight / Pair) scan +
+Count = Size * (Left + 1.0)
+Mean = 2.0 * Size * Size / Count
+Mean = Mean * Chance * Cum
+Pairs = 2.0 * Size * (2.0 * Size - 1.0)
+Rate = Pairs / (Count * (Count - 1.0))
+Total = Mean + Rate * Pair * Run
+Mass = Total sum
+Answer = Mass round 0
+Answer print
