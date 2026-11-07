@@ -567,7 +567,6 @@ function mapStoredBitwise(left: RankValue, right: RankValue, name: 'band' | 'bor
     const xh = a ? 0 : scalarHigh(left), xl = a ? 0 : scalarLow(left);
     const yh = b ? 0 : scalarHigh(right), yl = b ? 0 : scalarLow(right);
     const code = name === 'band' ? 0 : name === 'bor' ? 1 : name === 'bxor' ? 2 : name === 'shl' ? 3 : name === 'shr' ? 4 : 5;
-    const out = new BigInt64Array(size), ow = new Int32Array(out.buffer);
     const sameShape = (value: RankValue) => !isRankArray(value) || same(value.shape, shape);
     const ai = sameShape(left) ? undefined : broadcastIndex(isRankArray(left) ? left.shape : undefined, shape);
     const bi = sameShape(right) ? undefined : broadcastIndex(isRankArray(right) ? right.shape : undefined, shape);
@@ -576,6 +575,22 @@ function mapStoredBitwise(left: RankValue, right: RankValue, name: 'band' | 'bor
         ? new Int32Array(items.buffer, items.byteOffset, items.length * 2) : undefined;
     const aw = words(a?.items), bw = words(b?.items);
     const ao = a?.linear!.offset ?? 0, as = a?.linear!.stride ?? 0, bo = b?.linear!.offset ?? 0, bs = b?.linear!.stride ?? 0;
+    // Logical operations are closed over signed Int32. Avoid an Int64 scratch
+    // result and a second narrowing pass when both domains already prove it.
+    if (code < 3 && (a ? ac : xh === xl >> 31) && (b ? bc : yh === yl >> 31)) {
+        const out = new Int32Array(size);
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('computing integer array', end - start);
+            for (let i = start; i < end; i++) {
+                const x = ac ? ac[ao + (ai ? ai(i) : i) * as] : xl;
+                const y = bc ? bc[bo + (bi ? bi(i) : i) * bs] : yl;
+                out[i] = code === 0 ? x & y : code === 1 ? x | y : x ^ y;
+            }
+        }
+        return typedArray(out, shape);
+    }
+    const out = new BigInt64Array(size), ow = new Int32Array(out.buffer);
     const hi = 1 - lowWord;
     let wide = false;
     for (let start = 0; start < size; start += 4096) {

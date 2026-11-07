@@ -44,7 +44,7 @@ import { mergeSorted } from '../modules/sorted-merge.js';
 import { materializeArray } from '../modules/sequences.js';
 import { tableAlias } from '../modules/tables.js';
 import type { ReductionEvaluator } from '../reduction.js';
-import { expectInteger, type Operators } from '../operators.js';
+import { expectInteger, Operators } from '../operators.js';
 import { recordContract } from '../record-contract.js';
 import { assignRecordField } from '../record-write.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
@@ -60,6 +60,8 @@ import {
 } from '../value.js';
 import type { ApplicationEvaluator } from './application.js';
 import { isNamed } from './application.js';
+
+const standardBinary = Operators.prototype.evaluateBinary;
 
 /** What evaluating expressions needs beyond the expression itself. */
 export interface ExpressionContext {
@@ -955,6 +957,12 @@ export class ExpressionEvaluator {
     clauseContext(): ClauseExpressionContext {
         const expressions = this;
         return {
+            get storedIntegerComparisons() {
+                const operators = expressions.context.operators;
+                const own = Object.getOwnPropertyDescriptor(operators, 'evaluateBinary');
+                return own ? own.value === standardBinary : Object.getPrototypeOf(operators) === Operators.prototype
+                    && Object.getOwnPropertyDescriptor(Operators.prototype, 'evaluateBinary')?.value === standardBinary;
+            },
             isBuiltin: (name, operation) => {
                 const op = expressions.operationOf(name);
                 if (!op || op.name !== operation) return false;

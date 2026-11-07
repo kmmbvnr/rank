@@ -1,12 +1,14 @@
 import {
     flattenApplication, isApplicationExpression, isBinaryExpression, isBoundClauseExpression,
     isCountClauseExpression, isNumberLiteral, isFirstIndexWhereExpression, isFirstWhereExpression, isNameExpression,
-    isSubjectComparisonExpression, isTakeWhileExpression, isUnaryExpression, type Expression,
+    isSubjectComparisonExpression, isTakeWhileExpression, isUnaryExpression, isParenthesizedExpression, type Expression,
 } from '@arrrank/language';
 import { numericSmallest } from './numeric-collections.js';
 import { resume, type Evaluation, type Execution } from './execution.js';
-import { ownedArray, readArrayItem } from './array-storage.js';
-import { RankError } from './errors.js';
+import { integer32Cells, ownedArray, readArrayItem } from './array-storage.js';
+import { MissingValueError, RankError } from './errors.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from './interrupt.js';
+import { currentDiagnostics } from './diagnostics.js';
 import { LocalFrame } from './frame.js';
 import { TABLE_INPUT, collectionExpression } from './table-expression.js';
 import { boundSequence, boundValue, firstWhereValue, isPositionalMask, lowerBoundSequence, takeDropValue,
@@ -15,6 +17,7 @@ import { isNativeFunction, isRankArray, isRankSequence, isRankSequenceMask, type
 
 export interface ClauseExpressionContext {
     localFrame: LocalFrame | undefined;
+    readonly storedIntegerComparisons?: boolean;
     isBuiltin?(name: string, operation: string): boolean;
     evaluate(expression: Expression): Evaluation<RankValue>;
     binary(operator: string, left: RankValue, right: RankValue): RankValue;
@@ -81,12 +84,59 @@ export function compileClauseExpression(
         const context = makeContext();
         return function* (): Execution<RankValue> {
             const source = yield* resume(context.evaluate(expression.source));
+            const stored = firstStoredCondition(context, source, expression.source, expression.mask, isFirstIndexWhereExpression(expression));
+            if (stored !== undefined) return stored;
             const mask = yield* resume(conditionMask(context, source, expression.mask));
             if (!isMask(mask)) throw new RankError('first where needs a condition or a boolean mask');
             return firstWhereValue(source, mask, isFirstIndexWhereExpression(expression));
         };
     }
     return undefined;
+}
+
+/** Ready integer comparisons need no array mask or predicate capture. Keep
+ * lazy operands, foreign readers and observable demand on the ordinary path. */
+function firstStoredCondition(context: ClauseExpressionContext, source: RankValue, sourceExpression: Expression,
+    condition: Expression, returnIndex: boolean): RankValue | undefined {
+    if (!privateLoopPolling() || demandBudgetEnabled() || inspectionEnabled() || !context.storedIntegerComparisons || !isRankArray(source)) return undefined;
+    const cells = integer32Cells(source);
+    if (!cells || !(cells.buffer instanceof ArrayBuffer) || Object.getPrototypeOf(source) !== Object.prototype) return undefined;
+    const reader = Object.getOwnPropertyDescriptor(source, 'itemAt'), shape = Object.getOwnPropertyDescriptor(source, 'shape');
+    if (reader && (!('value' in reader) || reader.value !== undefined) || Object.getOwnPropertyDescriptor(Object.prototype, 'itemAt')
+        || !shape || !('value' in shape) || !Array.isArray(shape.value) || shape.value.length !== 1 || shape.value[0] !== cells.length) return undefined;
+    while (isParenthesizedExpression(condition)) condition = condition.value;
+    while (isParenthesizedExpression(sourceExpression)) sourceExpression = sourceExpression.value;
+    let right: Expression, operation: string;
+    if (isSubjectComparisonExpression(condition) && !condition.stepOperator) {
+        right = condition.right; operation = condition.operator;
+    } else if (isBinaryExpression(condition) && isNameExpression(sourceExpression) && isNameExpression(condition.left)
+        && sourceExpression.name === condition.left.name && context.findVariable(condition.left.name) === source) {
+        right = condition.right; operation = condition.operator;
+    } else return undefined;
+    if (!['equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(operation)) return undefined;
+    while (isParenthesizedExpression(right)) right = right.value;
+    const target = isNumberLiteral(right) ? right.value : isNameExpression(right) ? context.findVariable(right.name) : undefined;
+    if (typeof target !== 'bigint') return undefined;
+    // Clamping outside Int32 preserves every comparison without rounding a
+    // wide integer target to Number or boxing each stored cell as BigInt.
+    const wanted = target > 2147483647n ? 2147483648 : target < -2147483648n ? -2147483649 : Number(target);
+    const test = operation === 'equal' ? (value: number) => value === wanted
+        : operation === 'notequal' ? (value: number) => value !== wanted
+        : operation === 'less' ? (value: number) => value < wanted
+        : operation === 'greater' ? (value: number) => value > wanted
+        : operation === 'atmost' ? (value: number) => value <= wanted : (value: number) => value >= wanted;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.nativeFirstSearches++;
+    checkpoint('searching stored integers');
+    for (let index = 0; index < cells.length; index++) {
+        if (index && (index & 1023) === 0) checkpoint('searching stored integers', 1024);
+        if (test(cells[index])) {
+            if (diagnostics) diagnostics.nativeFirstSearchCells += index + 1;
+            return BigInt(returnIndex ? index : cells[index]);
+        }
+    }
+    if (diagnostics) diagnostics.nativeFirstSearchCells += cells.length;
+    throw new MissingValueError(`first${returnIndex ? ' index' : ''} where found no matching value`);
 }
 
 function compileBound(

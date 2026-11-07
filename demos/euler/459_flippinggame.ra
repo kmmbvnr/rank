@@ -1,6 +1,7 @@
 rem Flipping Game
 rem https://projecteuler.net/problem=459
 
+use algo
 use numbers
 use sequences
 use bits
@@ -18,71 +19,68 @@ rem and a move has nimber x_i xor
 rem x_(i-l). Winning moves pair row
 rem nimber a with column nimber b, a
 rem times b equal to the board nimber.
-Kv = 512
-Hc = array shape 2 Kv fill 0
-Xt = array shape 2 fill 0
-Rq = 2 * N isqrt + 1
-Ks = 1 to Rq copy
-for Ax in 0 to 1
-  Ls = Ks * Ks
-  if Ax equal 0
-    Ls = Ks * (Ks + 1) // 2
-  end
-  Ls = Ls (Ls at most N indices)
-  Nl = Ls len
-  X = array shape (N + 1) fill 0
-  Sn = array shape Kv fill 0
-  H = array shape Kv fill 0
-  Cn = 0
+fun N Lengths flips
+  Prefix = array shape (N + 1) fill 0
+  rem Mex is at most the move count;
+  rem prefix xors need at most twice it.
+  Size = Lengths len
+  Capacity = 2 * Size + 2
+  Seen = array shape Capacity fill 0
+  Hits = array shape Capacity fill 0
   for I in 1 to N
-    if Cn less Nl
-      if Ls Cn equal I
-        Cn += 1
-      end
-    end
-    Xp = X (I - 1)
-    for J in 0 to Cn - 1
-      Sn (Xp bxor (X (I - Ls J))) = I
-    end
-    M = 0
-    for Sn M equal I
-      M += 1
-    end
-    Xi = Xp bxor M
-    X I = Xi
-    for K in 0 to Cn - 1
-      H (Xi bxor (X (I - Ls K))) += 1
-    end
+    Count = Lengths upperindex I
+    Old = Prefix (
+      I - Lengths (0 till Count)) copy
+    Last = Prefix (I - 1)
+    Seen (Last bxor Old) = I
+    Mex = Seen first index where (
+      Seen not equal I)
+    Now = Last bxor Mex
+    Prefix I = Now
+    Hits (Now bxor Old) += 1 .accumulate
   end
-  Hc Ax = H
-  Xt Ax = X N
+  return tuple Hits (Prefix N)
 end
-rem Nim products below 512: from size
-rem K to K^2 with H = K, H^2 = 3H/2.
-T = array 0 0 0 1
-K = 2
-for K less Kv
-  Kn = K * K min Kv
-  Fi = 0 till Kn * Kn copy
-  Ra = Fi // Kn
-  Cb = Fi mod Kn
-  A1 = Ra // K
-  A0 = Ra mod K
-  B1 = Cb // K
-  B0 = Cb mod K
-  P11 = T (A1 * K + B1)
-  P10 = T (A1 * K + B0)
-  P01 = T (A0 * K + B1)
-  P00 = T (A0 * K + B0)
-  Ph = T (P11 * K + K // 2)
-  Up = P11 bxor P10 bxor P01
-  T = (Up * K + (P00 bxor Ph)) copy
-  K = Kn
+
+Root = 2 * N isqrt + 1
+Steps = 1 to Root copy
+Triangles = Steps * (Steps + 1) // 2
+Squares = Steps * Steps
+unpack Rows Row = N flips Triangles
+unpack Cols Col = N flips Squares
+RowKeys = Rows greater 0 indices
+ColKeys = Cols greater 0 indices
+Ends = array 1 Row Col
+Used = concat Ends RowKeys ColKeys
+Last = Used max
+Size = Last + 1
+Rows = Rows (0 till Size)
+Cols = Cols (0 till Size)
+rem Grow nim products from Base to
+rem Base^2, using H^2 = 3H/2.
+Table = array 0 0 0 1
+Base = 2
+for Base less Size
+  Width = Base * Base min Size
+  Flat = 0 till Width * Width copy
+  RowIndex = Flat // Width
+  ColIndex = Flat mod Width
+  HighRow = RowIndex // Base
+  LowRow = RowIndex mod Base
+  HighCol = ColIndex // Base
+  LowCol = ColIndex mod Base
+  Top = Table (HighRow * Base + HighCol)
+  Left = Table (HighRow * Base + LowCol)
+  Side = Table (LowRow * Base + HighCol)
+  Low = Table (LowRow * Base + LowCol)
+  Twist = Table (Top * Base + Base // 2)
+  Upper = Top bxor Left bxor Side
+  Lower = Low bxor Twist
+  Table = (Upper * Base + Lower) copy
+  Base = Width
 end
-Nm = T reshape Kv Kv
-G = T (Xt 0 * Kv + Xt 1)
-Ct = Hc 0
-Cs = Hc 1
-Pr = Ct Cs outer *
-Answer = (Nm equal G choose Pr 0) sum
+Nim = Table reshape Size Size
+Goal = Table (Row * Size + Col)
+Counts = Rows Cols outer *
+Answer = Counts (Nim equal Goal) sum
 Answer print

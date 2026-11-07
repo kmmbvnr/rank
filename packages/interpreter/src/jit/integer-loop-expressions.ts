@@ -673,13 +673,16 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         if (numberMode && operation.module === 'bits' && ['band', 'bor', 'bxor', 'bit', 'shl'].includes(operation.name)) {
             const arguments_: string[] = [];
+            const compact: boolean[] = [];
             for (const operand of operands) {
                 const value = emit(operand, lines, 'integer');
                 if (value?.type !== 'integer') return undefined;
                 const name = `v${state.serial++}`;
                 // Shift/test domains retain the existing Int32 guard. Logical
                 // bitwise operations can combine both halves of a safe integer.
-                lines.push(`const ${name} = ${['band', 'bor', 'bxor'].includes(operation.name) ? 'safe' : 'int32'}(${value.code});`);
+                const bounded = !!value.bounds && fitsIntegerRepresentation(value.bounds, 'int32');
+                compact.push(bounded);
+                lines.push(`const ${name} = ${bounded ? value.code : `${['band', 'bor', 'bxor'].includes(operation.name) ? 'safe' : 'int32'}(${value.code})`};`);
                 arguments_.push(name);
             }
             builtins.set(operation.name, operation.module);
@@ -692,6 +695,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 lines.push(`const ${name} = ${operation.name === 'bit'
                     ? `((${left} & (1 << ${right})) !== 0)` : `safe(${left} * (2 ** ${right}))`};`);
             } else {
+                if (compact.every(Boolean)) {
+                    const token = ({ band: '&', bor: '|', bxor: '^' } as const)[operation.name as 'band' | 'bor' | 'bxor'];
+                    lines.push(`const ${name} = ${left} ${token} ${right};`);
+                    return { code: name, type: 'integer', bounds: [-2147483648, 2147483647] };
+                }
                 lines.push(`const ${name} = safe(${numberBitwiseSource(operation.name as 'band' | 'bor' | 'bxor', left, right)});`);
             }
             return { code: name, type: operation.name === 'bit' ? 'boolean' : 'integer' };
@@ -1125,10 +1133,15 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (!scalar || scalar.type !== 'integer' && scalar.type !== 'boolean' && scalar.type !== 'real') return undefined;
             const captured = `scalar${state.serial++}`;
             lines.push(`const ${captured} = ${scalar.code};`);
-            return { size: '1', shape: '[]', rank: 0, type: scalar.type, sources: [], compactGuards: [], cell: () => ({ code: captured, type: scalar.type, bounds: scalar.bounds }) };
+            return { size: '1', shape: '[]', rank: 0, type: scalar.type, sources: [],
+                compactGuards: scalar.type === 'integer' ? [`typeof ${captured} === 'number' && ${captured} === (${captured} | 0)`] : [],
+                cell: (_index, _body, frame) => ({ code: captured, type: scalar.type,
+                    bounds: frame?.compact && scalar.type === 'integer' ? [-2147483648, 2147483647] : scalar.bounds }) };
         }
         if (type.element !== 'integer' && type.element !== 'boolean' && type.element !== 'real') return undefined;
         if (inlineRanges && isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
+            const zeroOrigin = isNumberLiteral(e.left) && e.left.value === 0n
+                && (!e.step || isNumberLiteral(e.step) && e.step.value === 1n);
             const first = emit(e.left, lines, 'integer'), last = emit(e.right, lines, 'integer');
             const stride = e.step ? emit(e.step, lines, 'integer') : { code: '1', type: 'integer' };
             if (first?.type !== 'integer' || last?.type !== 'integer' || stride?.type !== 'integer') return undefined;
@@ -1141,11 +1154,16 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const ${distance} = safe(${step} > 0 ? ${end} - ${start} : ${start} - ${end});
                 const ${size} = ${distance} < 0 || (${e.operator === 'till'} && ${distance} === 0) ? 0
                     : safe(divide(${e.operator === 'to' ? distance : `safe(${distance} - 1)`}, Math.abs(${step})) + 1);`);
-            return { size, shape: `[${size}]`, rank: 1, type: 'integer', sources: [], compactGuards: [], cell: (index, body, frame) => {
+            return { size, shape: `[${size}]`, rank: 1, type: 'integer', sources: [],
+                compactGuards: zeroOrigin ? [`${size} <= 2147483648`] : [], cell: (index, body, frame) => {
                 // Multidimensional trailing-axis addressing retains the
                 // existing backend until a progression has an axis layout.
                 if (frame && frame.rank > 1) return undefined;
                 const position = frame ? `(${size} === 1 ? 0 : ${index})` : index;
+                // An admitted 0..count-1 progression is its own coordinate;
+                // no per-cell multiply/add or safe-integer checks are needed.
+                if (zeroOrigin) return { code: position, type: 'integer',
+                    bounds: frame?.compact ? [0, 2147483647] : undefined };
                 const value = `rangeCell${state.serial++}`;
                 body.push(`const ${value} = safe(${start} + safe(${position} * ${step}));`);
                 return { code: value, type: 'integer' };
@@ -1233,6 +1251,34 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     point.operands.forEach((operand, i) => previous[i] ? scalarInputs.set(operand, previous[i]!) : scalarInputs.delete(operand));
                 }
             } };
+        }
+        if (isApplicationExpression(e)) {
+            const parts = flattenApplication(e);
+            if (parts.length === 2 && arrayType(parts[0])?.rank === 1 && arrayType(parts[1])?.element === 'integer') {
+                // Inline gathers are recipe leaves for a surrounding map.
+                // A named gather still completes through emitNumberArray.
+                const source = emitNumberArray(parts[0], lines);
+                if (!source || typeof source.type === 'string') return undefined;
+                const cells = source.cells ?? `${source.code}.cells`;
+                lines.push(`vectorLive.push(${cells});`);
+                const keys = numberVector(parts[1], lines, true);
+                if (!keys || keys.type !== 'integer') return undefined;
+                lines.push('vectorLive.pop();');
+                return { size: keys.size, shape: keys.shape, rank: keys.rank, type: type.element,
+                    sources: [...new Set([cells, ...keys.sources])],
+                    compactGuards: [`compactVector(${cells}, ${source.code}.shape)`, ...keys.compactGuards],
+                    cell: (index, body, frame) => {
+                        const key = keys.cell(index, body, frame);
+                        if (key?.type !== 'integer') return undefined;
+                        body.push(`if (${key.code} < 0 || ${key.code} >= ${cells}.length) throw overflow;`);
+                        const value = `gathered${state.serial++}`;
+                        body.push(`const ${value} = ${type.element === 'boolean' ? `${cells}[${key.code}] !== 0`
+                            : frame?.compact ? `${cells}[${key.code}]` : type.element === 'real'
+                                ? `Number(${cells}[${key.code}])` : `safe(Number(${cells}[${key.code}]))`};`);
+                        return { code: value, type: type.element,
+                            bounds: frame?.compact && type.element === 'integer' ? [-2147483648, 2147483647] : undefined };
+                    } };
+            }
         }
         let cells: string, shape: string;
         if (isNameExpression(e)) {
@@ -1452,6 +1498,33 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const source = emitNumberArray(parts[0], lines);
             if (!source || typeof source.type === 'string') return undefined;
             lines.push(`vectorLive.push(${source.cells ?? `${source.code}.cells`});`);
+            if (vectorOperation(parts[1]) || isRange(parts[1])) {
+                // A pure selector stage belongs to this gather's consumer.
+                // The result still completes before its ordinary binding;
+                // private failures replay the original operand boundaries.
+                const selectors = numberVector(parts[1], lines, true);
+                if (!selectors || selectors.type !== 'integer') return undefined;
+                lines.push('vectorLive.pop();');
+                const cells = source.cells ?? `${source.code}.cells`, index = `cell${state.serial++}`;
+                const gather = (compact: boolean): string | undefined => {
+                    const body: string[] = [];
+                    const key = selectors.cell(index, body, { shape: selectors.shape, rank: selectors.rank,
+                        compact, offsets: new Map(), values: new Map() });
+                    if (!key) return undefined;
+                    return numberVectorLoop(selectors.size, index, [...body,
+                        `if (${key.code} < 0 || ${key.code} >= ${cells}.length) throw overflow;`,
+                        compact ? `${result}.cells[${index}] = ${cells}[${key.code}];`
+                            : `${result}.store(${index}, ${type.element === 'real' ? `Number(${cells}[${key.code}])` : `safe(Number(${cells}[${key.code}]))`});`,
+                    ]);
+                };
+                const checked = gather(false), compact = gather(true);
+                if (!checked || !compact) return undefined;
+                lines.push(`const ${result} = vectorArray(${selectors.shape}, ${type.element === 'real'}, vectorPool, vectorLive,
+                    [result, iterationResult, ${cells}, ${selectors.sources.join(',')}], ${type.element === 'boolean'});
+                    if (${cells} instanceof Int32Array${selectors.compactGuards.map(guard => ` && (${guard})`).join('')}) { ${compact} }
+                    else { ${checked} }`);
+                return { code: result, cells: `${result}.cells`, type, fresh: true };
+            }
             const selectors = emitNumberArray(parts[1], lines);
             if (!selectors || typeof selectors.type === 'string') return undefined;
             lines.push('vectorLive.pop();');

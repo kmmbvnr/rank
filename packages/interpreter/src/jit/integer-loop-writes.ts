@@ -14,7 +14,12 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
     const { slot, emit, arithmetic } = expressions;
     return (assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined => {
         // Accumulation has its own numeric-only validation and reduction contract.
-        if (assignment.accumulate) return reject(assignment);
+        // Only the private Number scatter below implements that contract.
+        if (assignment.accumulate) {
+            return numberMode && host.arrayWrites && host.compoundWrites
+                && !assignment.name.includes('.') && emitNumberScatter(state, expressions, assignment, body, location)
+                || reject(assignment);
+        }
         if (host.arrayWrites && !assignment.name.includes('.') && !arrays.has(assignment.name)
             && !destinations.has(assignment.name) && hasNativeFenwick(host.read(assignment.name))) {
             if (assignment.indices.length !== 1 || assignment.indices[0].all || assignment.indices[0].sign || !assignment.indices[0].value) return reject(assignment);

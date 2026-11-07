@@ -28,6 +28,8 @@ export class RuntimeDiagnostics {
     hoistedReaders = 0;
     loopElementScans = 0;
     nativeSequenceCopies = 0;
+    nativeFirstSearches = 0;
+    nativeFirstSearchCells = 0;
     compiledLoops = 0;
     nativeIntegerSums = 0;
     nativeIntegerSumCells = 0;
