@@ -1,0 +1,49 @@
+rem Dominating Numbers
+rem https://projecteuler.net/problem=788
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Digits integer = 2022
+arg Mod integer = 1000000007
+
+rem For a length L and a majority count
+rem k > L / 2 of digit d: for d = 0 the
+rem zeros sit in the L - 1 trailing
+rem places and 9^(L-k) fill the rest;
+rem for d > 0 the first digit is d, or
+rem one of 8 others. Sum over L and k.
+fun Left mulp Right
+  return Left * Right mod Mod
+end
+Index = 0 to Digits
+Fact = (Index max 1) scan mulp
+Inv = Fact (Mod - 2) Mod powmod
+Nines = 9 Index Mod powmod
+Answer = 0
+for Len in 1 to Digits
+  Pick = Len // 2 + 1 to Len
+  Rest = Len - Pick
+  Flag = Pick less Len
+  Below = Flag integer
+  Safe = (Rest - 1) max 0
+  Head = Fact (Len - 1)
+  Same = Head * Inv (Pick - 1) mod Mod
+  Same = Same * Inv Rest mod Mod
+  Other = Head * Inv Pick mod Mod
+  Other = Other * Inv Safe mod Mod
+  Other = Other * Below mod Mod
+  Wide = Nines Rest
+  Narrow = Nines Safe
+  Plain = Same * Wide mod Mod
+  Ways = Other * Narrow mod Mod
+  Four = Ways * 8 mod Mod
+  Digit = (Plain + Four) * 9 mod Mod
+  Zero = Other * Wide mod Mod
+  Add = (Digit + Zero) mod Mod
+  Total = Add sum
+  Answer = (Answer + Total) mod Mod
+end
+Answer print
