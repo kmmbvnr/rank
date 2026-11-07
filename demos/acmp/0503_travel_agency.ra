@@ -1,0 +1,146 @@
+rem ACMP 0503: Travel Agency
+rem Vectorized subset-mask DP over 2^N
+use io
+use cli
+use numbers
+use sequences
+use text
+use bits
+
+arg Input text = "14
+C 3 4 5 2
+P 2 5 1 4
+C 4 1 2 6
+P 6 2 3 1
+C 1 7 4 3
+P 5 3 2 5
+C 2 6 6 1
+P 4 4 1 7
+C 7 2 3 4
+P 3 5 5 2
+C 1 3 7 6
+P 6 1 2 3
+C 5 5 4 2
+P 2 4 6 5"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+
+N = (Tokens 0) integer
+Step5 = (0 till N) * 5
+Types = Tokens (Step5 + 1)
+CTo = (Tokens (Step5 + 2)) integer
+PTo = (Tokens (Step5 + 3)) integer
+CFrom = (Tokens (Step5 + 4)) integer
+PFrom = (Tokens (Step5 + 5)) integer
+
+IsP = Types equal "P"
+TotCTo = CTo sum
+TotPTo = PTo sum
+DelC = CFrom - CTo
+DelP = PFrom - PTo
+
+NumM = 1 shl N
+Inf = 1000000000000
+DP = array shape NumM fill Inf
+Choice = array shape NumM fill 0
+SumC = array shape 1 fill TotCTo
+SumP = array shape 1 fill TotPTo
+Masks = 0 till NumM
+Pops = Masks popcount
+Keys = ((N - Pops) * NumM) + Masks
+Order = Keys argsort
+
+Starts = array shape (N + 2) fill 0
+Tour = array shape N fill 0
+
+Phase = 0
+I = 0
+K = N - 1
+CurM = 0
+Pos = 0
+L = 0
+R = 1
+LayMasks = array 0
+LayC = array 0
+LayP = array 0
+BestDP = array 0
+BestCh = array 0
+
+for Phase less 4
+  if Phase equal 0
+    if I less N
+      NextC = SumC + (DelC I)
+      NextP = SumP + (DelP I)
+      SumC = concat SumC NextC
+      SumP = concat SumP NextP
+      CntK = N binomial (N - I)
+      Starts (I + 1) = (Starts I) + CntK
+      I = I + 1
+    else
+      Starts (N + 1) = NumM
+      DP (NumM - 1) = 0
+      K = N - 1
+      I = 0
+      Phase = 1
+    end
+  elif Phase equal 1
+    if K greater -1
+      if I equal 0
+        L = Starts (N - K)
+        R = Starts ((N - K) + 1)
+        LayMasks = Order (L till R)
+        LayC = SumC LayMasks
+        LayP = SumP LayMasks
+        BestDP = (LayMasks * 0) + Inf
+        BestCh = LayMasks * 0
+      end
+      if I less N
+        Bit = 1 shl I
+        HasI = (LayMasks band Bit) greater 0
+        NxtM = LayMasks bor Bit
+        BaseCost = LayP - (PTo I)
+        if IsP I
+          BaseCost = LayC - (CTo I)
+        end
+        CandDP = (DP NxtM) + BaseCost
+        Better = (not HasI) and (
+          CandDP less BestDP
+        )
+        BestDP = Better choose CandDP BestDP
+        CandCh = (BestCh * 0) + (I + 1)
+        BestCh = Better choose CandCh BestCh
+        I = I + 1
+      else
+        DP LayMasks = BestDP
+        Choice LayMasks = BestCh
+        K = K - 1
+        I = 0
+      end
+    else
+      CurM = 0
+      Pos = 0
+      Phase = 2
+    end
+  elif Phase equal 2
+    if Pos less N
+      Pick = Choice CurM
+      Tour Pos = Pick
+      Bit = 1 shl (Pick - 1)
+      CurM = CurM bor Bit
+      Pos = Pos + 1
+    else
+      Phase = 4
+    end
+  end
+end
+
+MinTsak = DP 0
+Z0 = array 0
+FullTour = concat Z0 Tour
+FullTour = concat FullTour Z0
+AnsArr = concat (array MinTsak) FullTour
+Result = AnsArr join " "
+Result print

@@ -58,6 +58,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0468** | [Числовая последовательность - 2](0468_sequence_2.ra) | Combinatorics / Binary Search (62%) | Find $N$-th integer with exactly 3 set bits via combinatorial number system & binary search |
 | **0479** | [Муравей и дерево](0479_ant_and_tree.ra) | Computational Geometry (63%) | Shortest path avoiding circular obstacle via vector dot products, projections & tangent arc angles |
 | **0484** | [Трубопровод](0484_pipeline.ra) | Trees / Fibonacci Morphism (60%) | Find sequence of open valves in a 40-layer pipeline tree via iterative Fibonacci Lindenmayer morphism |
+| **0503** | [Бюро путешествий](0503_travel_agency.ra) | Dynamic Programming / Bitmask (80%) | Optimal interplanetary route minimizing transit tsak wears via $O(N \cdot 2^N)$ subset-only DP, `popcount` layer grouping, and vectorized `choose` updates |
 | **0510** | [Шоколадка](0510_chocolate_bar.ra) | Dynamic Programming (60%) | Domino tilings of $3 \times N$ rectangle via second-order linear recurrence $F_k = 4 F_{k-1} - F_{k-2}$ |
 | **0512** | [Выпускной](0512_graduation.ra) | Dynamic Programming / Bitmask (75%) | Count matchings of size $K$ in bipartite graph via subsets DP & vectorized popcount filter |
 | **0523** | [Роман в томах](0523_book_volumes.ra) | Binary Search / Greedy (60%) | Optimal chapter partitioning into $K$ volumes via binary search on answer |
