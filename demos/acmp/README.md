@@ -129,6 +129,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0741** | [Замечательные дороги](0741_wonderful_roads.ra) | Graph Theory (62%) | Colors = largest biconnected block; iterative Tarjan with edge stack over CSR from `argsort` + `lowerindex` |
 | **0746** | [Гонки](0746_races.ra) | Graph Theory (64%) | 4-cycles via `(Adj matpow 2)` common neighbors and `sum` |
 | **0747** | [Декомпозиция строки](0747_string_decomposition.ra) | Dynamic Programming / Strings (65%) | Min-weight string decomposition $S_1^{d_1} \dots S_k^{d_k}$ via DP with LCP period expansion |
+| **0748** | [Собери сам](0748_do_it_yourself.ra) | Data Structures / Tree Automorphisms (79%) | Minimum colors and constructive vertex coloring to break all rooted tree automorphisms via AHU canonical strings, capacity DP, and flat combinatorial unranking |
 | **0749** | [Неправильный RSA](0749_incorrect_rsa.ra) | Number Theory / Combinatorics (64%) | Count non-trivial factorizations of $n = p^k \cdot q^k$ ($1 \le k \le 23$) via $O(1)$ relative tolerance float64 $k$-th power detection and precomputed 2D vector partitions of $(k, k)$ |
 | **0750** | [Игра на графе](0750_graph_game.ra) | Graph Theory / Matching Game (81%) | Bipartite vertex-deletion game (Gallai-Edmonds essential matching vertices) in zero loops via Dinic `maxflow` residual `.cut` and `choose` |
 | **0752** | [2-3 Дерево](0752_two_three_tree.ra) | Combinatorics (61%) | Level-by-level counting `C(M, N - 2M)` with a rolling Pascal row and slice updates mod $R$ |
