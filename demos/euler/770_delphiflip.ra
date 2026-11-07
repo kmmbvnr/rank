@@ -1,0 +1,37 @@
+rem Delphi Flip
+rem https://projecteuler.net/problem=770
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Target real = 1.9999
+
+rem With n TAKE and n GIVE moves A can
+rem guarantee 2 / (1 + r_n) grams, where
+rem r_n = C(2n, n) / 4^n decreases. So
+rem g is the first n with
+rem r_n <= 2/x - 1. r_n is
+rem 1 / sqrt(pi n) times the series
+rem 1 - 1/8n + 1/128n^2 + 5/1024n^3
+rem - 21/32768n^4, checked in a
+rem window around the leading guess.
+Back = 0 - 1
+Pi = Back acos
+Cap = 2 / Target - 1
+Guess = 1 / (Pi * Cap * Cap)
+Start = ((Guess integer) - 1000) max 1
+Near = Start + (0 to 2000)
+Inv = 1 / Near
+Series = 1 - Inv / 8 + Inv * Inv / 128
+Cube = Inv * Inv * Inv
+Quart = Cube * Inv
+Series = Series + 5 * Cube / 1024
+Series = Series - 21 * Quart / 32768
+Root = (Pi * Near) sqrt
+Ratio = Series / Root
+Above = Ratio greater Cap
+Count = Above integer sum
+Answer = Start + Count
+Answer print
