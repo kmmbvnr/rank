@@ -1,0 +1,24 @@
+use testing
+
+test "statement values"
+  use "759_squaredrecurrence"
+  Limit = 10
+  run
+  Answer equal 1530
+  Limit = 100
+  run
+  Answer equal 4798445
+end
+
+test "brute force values"
+  use "759_squaredrecurrence"
+  Limit = 1
+  run
+  Answer equal 1
+  Limit = 1000
+  run
+  Answer equal 98467357
+  Limit = 12345
+  run
+  Answer equal 392740582
+end

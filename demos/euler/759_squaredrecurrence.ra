@@ -1,0 +1,71 @@
+rem A Squared Recurrence Relation
+rem https://projecteuler.net/problem=759
+
+use numbers
+use sequences
+use bits
+use linalg
+use io
+use cli
+
+arg Limit integer = 10 ** 16
+arg Prime integer = 1000000007
+
+rem f(n) = n * popcount(n), so we sum
+rem n^2 s(n)^2. Numbers below X = N + 1
+rem split into blocks: a set bit t of X,
+rem the bits above it as a fixed prefix
+rem P with c ones, and t free low
+rem bits L.
+rem Moments Sum(L^i s^j) over the free
+rem bits grow by one bit at a time.
+Whole = Limit + 1
+Bits = Whole binary len
+Spots = 0 to Bits - 1
+Mask = (Whole shr Spots) band 1
+Above = Whole shr (Spots + 1)
+Fixed = Above shl (Spots + 1)
+Prefix = Fixed mod Prime
+Suffix = (Mask reverse scan +) reverse
+Ones = Suffix - Mask
+rem Row t holds the nine moments.
+Table = array shape (Bits * 9) fill 0
+Start = array 1 0 0 0 0 0 0 0 0
+Moment = Start reshape 3 3
+Pick = array 1 1 1 0 1 2 0 0 1
+Cols = Pick reshape 3 3
+for Bit in 0 to Bits - 1
+  Flat = Moment reshape 9
+  Table (Bit * 9 + (0 to 8)) = Flat
+  Half = 2 Bit Prime powmod
+  Twice = 2 * Half mod Prime
+  Square = Half * Half mod Prime
+  Top = array 1 0 0 Half 1 0
+  Low = array Square Twice 1
+  Rows = concat Top Low
+  Grow = Rows reshape 3 3
+  Left = (Grow matmul Moment) mod Prime
+  Right = (Left matmul Cols) mod Prime
+  Moment = (Moment + Right) mod Prime
+end
+Level = Spots reshape Bits 1
+Slot = (0 to 8) reshape 1 9
+Alpha = Level * 0 + Slot // 3
+Beta = Level * 0 + Slot mod 3
+Pref = Prefix reshape Bits 1
+Cnt = Ones reshape Bits 1
+Pair = Pref * Pref mod Prime
+Coef = (Alpha equal 0) choose Pair 1
+Twin = 2 * Pref mod Prime
+Coef = (Alpha equal 1) choose Twin Coef
+Same = Cnt * Cnt
+Mult = (Beta equal 0) choose Same 1
+Dub = 2 * Cnt
+Mult = (Beta equal 1) choose Dub Mult
+Part = Coef * Mult mod Prime
+Moms = Table reshape Bits 9
+Cell = Part * Moms mod Prime
+Block = Cell sum axis 1
+Used = Mask * Block
+Answer = Used sum mod Prime
+Answer print
