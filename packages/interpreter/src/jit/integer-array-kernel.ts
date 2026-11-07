@@ -250,11 +250,10 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         }
     }
 
-    // Allocate wide scratch only after the compact path declines. Most stored
-    // Int32 operations finish above and would discard this buffer unused.
-    // Results beyond Int32 stay exact while they are safe integers; any other
-    // result is left to the BigInt path.
-    const cells = new Float64Array(size);
+    // Start with the first result's width. Narrow results need no double
+    // scratch or final narrowing copy; a later wide cell preserves the prefix.
+    // Unsafe values retain the ordinary exact fallback.
+    let cells: Int32Array | Float64Array | undefined;
     let wide = false;
     for (let start = 0; start < size; start += 4096) {
         const end = Math.min(size, start + 4096);
@@ -297,29 +296,34 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
             }
             if (result !== (result | 0)) {
                 if (!(result >= -MAX_SAFE_NUMBER && result <= MAX_SAFE_NUMBER)) return undefined;
+                if (cells instanceof Int32Array) {
+                    const expanded = new Float64Array(size);
+                    expanded.set(cells.subarray(0, i));
+                    cells = expanded;
+                }
                 wide = true;
             }
+            cells ??= wide ? new Float64Array(size) : new Int32Array(size);
             cells[i] = result;
         }
     }
-    // One typed operand makes typed cells; only all-boxed operands keep boxed cells.
-    const typed = (view: typeof a) => !!view && (!!view.compact || view.items instanceof BigInt64Array);
-    const packed = typed(a) || typed(b);
-    if (wide) {
-        if (packed) {
-            const out = new BigInt64Array(size), pair = new Int32Array(out.buffer);
-            for (let i = 0; i < size; i++) {
-                const high = Math.floor(cells[i] / 4294967296);
-                pair[2 * i + lowWord] = cells[i] - high * 4294967296 | 0;
-                pair[2 * i + 1 - lowWord] = high;
-            }
-            return typedArray(out, shape);
-        }
-        return ownedScalarArray(Array.from(cells, BigInt), 'integer', shape);
+    // A boxed scalar-sized result is cheaper than a typed value facade.
+    // Mac controls: boxing one cell avoids ~7% time / ~12% RSS overhead;
+    // retaining 31 numeric cells saves ~15% time (benchmarks/euler454.md).
+    if (size <= 1 && !ac && !bc && !(ab instanceof BigInt64Array) && !(bb instanceof BigInt64Array)) {
+        return ownedScalarArray(size ? [BigInt(cells![0])] : [], 'integer', shape);
     }
-    const narrow = Int32Array.from(cells);
-    return packed ? typedArray(narrow, shape)
-        : ownedScalarArray(Array.from(narrow, BigInt), 'integer', shape);
+    // Keep computed numeric cells, including short results from boxed inputs.
+    if (wide) {
+        const out = new BigInt64Array(size), pair = new Int32Array(out.buffer);
+        for (let i = 0; i < size; i++) {
+            const high = Math.floor(cells![i] / 4294967296);
+            pair[2 * i + lowWord] = cells![i] - high * 4294967296 | 0;
+            pair[2 * i + 1 - lowWord] = high;
+        }
+        return typedArray(out, shape);
+    }
+    return typedArray(cells as Int32Array ?? new Int32Array(0), shape);
 }
 
 /** Contiguous broadcast rows with compact results. Tiny completed boxed
