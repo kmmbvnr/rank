@@ -1,0 +1,13 @@
+use testing
+
+test "statement values"
+  use "778_freshmansproduct"
+  Runs = 2
+  Bound = 7
+  run
+  Answer equal 204
+  Runs = 23
+  Bound = 76
+  run
+  Answer equal 5870548
+end

@@ -1,0 +1,55 @@
+rem Freshman's Product
+rem https://projecteuler.net/problem=778
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+arg Runs integer = 234567
+arg Bound integer = 765432
+arg Mod integer = 1000000009
+
+rem Digit i of the product only depends
+rem on digit i of each factor, so the
+rem sum is split by digit. For one digit
+rem position, the running product mod 10
+rem is a state vector; one factor moves
+rem state r to r d mod 10 with weight
+rem cnt_i(d), the number of x in 0..M
+rem having digit d at position i. The
+rem matrix power gives the end states.
+Size = Bound text len
+Spots = 0 to Size - 1
+Unit = 10 ** Spots
+Wide = Unit * 10
+Rows = (Bound + 1) // Wide
+Rest = (Bound + 1) mod Wide
+Digit = (0 to 9) reshape 1 10
+Top = Unit reshape Size 1
+Left = Rest reshape Size 1
+Edge = Left - Digit * Top
+Part = (Edge min Top) max 0
+Base = (Rows * Unit) reshape Size 1
+Cnt = (Base + Part) mod Mod
+Line = 0 to 9
+Dgrid = Line reshape 1 10 1
+Rgrid = Line reshape 1 1 10
+Mapped = (Dgrid * Rgrid) mod 10
+Place = (Spots reshape Size 1 1) * 100
+Slots = Place + Mapped * 10 + Rgrid
+Cube = Cnt reshape Size 10 1
+Vals = Cube + Slots * 0
+Cells = array shape (Size * 100) fill 0
+Cells Slots += Vals .accumulate
+Mats = Cells reshape Size 10 10
+Jump = Mats matpow Runs rank 2 0 mod Mod
+Power = Jump
+Ends = Power # # 1
+Weights = (0 to 9) reshape 1 10
+Sums = (Ends * Weights) sum axis 1
+Plain = Unit mod Mod
+Mixed = Sums * Plain mod Mod
+Answer = Mixed sum mod Mod
+Answer print
