@@ -1,0 +1,147 @@
+rem ACMP 0884: Road
+rem Min alphabet subset hitting every
+rem window of length K along road S
+use algo
+use bits
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "4
+ABRACADABRAABRACADABRA"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+K = (Tokens 0) integer
+Road = Tokens 1
+
+Alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+AlphaArr = Alpha split ""
+RoadArr = Road split ""
+S = RoadArr len
+
+SortedRoad = RoadArr sort
+UsedAlpha = SortedRoad unique
+D = UsedAlpha len
+
+CharBit = array shape S fill 0
+ZerosS = CharBit
+
+rem Build 1D window masks of length K
+rem via two-way block prefix/suffix OR
+NumWin = (S - K) + 1
+WinMasks = array shape NumWin fill 0
+Pref = array shape S fill 0
+Suff = array shape S fill 0
+
+Full = 1 shl D
+Sets = 0 till Full
+Cov = array shape Full fill 0
+
+Phase = 0
+Step = 0
+Bit = 0
+BestPop = D + 1
+BestMask = Full - 1
+OutLet = array shape D fill ""
+OutCnt = 0
+
+for Phase less 5
+  if Phase equal 0
+    if Bit less D
+      CurCh = UsedAlpha Bit
+      IsCh = RoadArr equal CurCh
+      BValArr = ZerosS + (1 shl Bit)
+      AddBits = IsCh choose BValArr ZerosS
+      CharBit = CharBit + AddBits
+      Bit = Bit + 1
+    else
+      Step = 0
+      Phase = 1
+    end
+  elif Phase equal 1
+    if Step less S
+      Rem = Step mod K
+      if Rem equal 0
+        Pref Step = CharBit Step
+      else
+        Prv = Pref (Step - 1)
+        Pref Step = Prv bor (
+          CharBit Step
+        )
+      end
+      Step = Step + 1
+    else
+      Step = S - 1
+      Phase = 2
+    end
+  elif Phase equal 2
+    if Step greater -1
+      NxtStep = Step + 1
+      if (NxtStep equal S) or (
+        (NxtStep mod K) equal 0
+      )
+        Suff Step = CharBit Step
+      else
+        NxtV = Suff NxtStep
+        Suff Step = NxtV bor (
+          CharBit Step
+        )
+      end
+      Step = Step - 1
+    else
+      WinStarts = 0 till NumWin
+      WinEnds = WinStarts + (K - 1)
+      LeftM = Suff WinStarts
+      RightM = Pref WinEnds
+      WinMasks = LeftM bor RightM
+      UWin = (WinMasks sort) unique
+      Cov UWin = 1
+      Bit = 0
+      Phase = 3
+    end
+  elif Phase equal 3
+    if Bit less D
+      BVal = 1 shl Bit
+      Has = (Sets shr Bit) band 1
+      SubC = Cov (Sets bxor BVal)
+      Cov = Cov + (SubC * Has)
+      Bit = Bit + 1
+    else
+      CompIdx = (Full - 1) - Sets
+      BadSub = Cov CompIdx
+      Valid = BadSub equal 0
+      Pops = Sets popcount
+      Big = (Sets * 0) + 99
+      CandPops = Valid choose Pops Big
+      BestPop = CandPops min
+      IsBest = CandPops equal BestPop
+      BestMasks = Sets IsBest
+      BestMask = BestMasks 0
+      Bit = 0
+      Phase = 4
+    end
+  elif Phase equal 4
+    if Bit less D
+      HasB = (BestMask shr Bit) band 1
+      if HasB equal 1
+        OutLet OutCnt = UsedAlpha Bit
+        OutCnt = OutCnt + 1
+      end
+      Bit = Bit + 1
+    else
+      Phase = 5
+    end
+  end
+end
+
+CntStr = BestPop text
+UsedLet = OutLet take OutCnt
+HeadArr = array CntStr
+AllLines = concat HeadArr UsedLet
+Result = AllLines join "\n"
+Result print
