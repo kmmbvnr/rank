@@ -1,0 +1,12 @@
+use testing
+
+test "two rounds"
+  use "765_trillionaire"
+  Rounds = 2
+  Target = 2
+  run
+  Answer equal 0.6
+  Target = 4
+  run
+  Answer equal 0.36
+end

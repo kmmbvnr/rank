@@ -1,0 +1,50 @@
+rem Trillionaire
+rem https://projecteuler.net/problem=765
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Rounds integer = 1000
+arg Target integer = 10 ** 12
+arg Odds real = 0.6
+
+rem Under the fair coin a strategy needs
+rem E[final gold] = 1, so the event of
+rem reaching Target has fair probability
+rem at most 1 / Target. The best event
+rem takes win-count layers from the top,
+rem plus a fraction of the last layer.
+rem Layer w has fair mass q and real
+rem mass p = q (2 Odds)^w
+rem (2 (1 - Odds))^(N-w), found
+rem through logarithms.
+Ws = 0 to Rounds
+Steps = 0 to Rounds - 1
+Ratio = (Rounds - Steps) / (Steps + 1)
+Logs = Ratio log
+Rise = Logs scan + with 0.0
+Two = 2.0
+Half = Two log
+Mass = Rise - Rounds * Half
+Fair = Mass exp
+Rate = 2 * Odds
+Up = Rate log
+Lose = 2 * (1 - Odds)
+Down = Lose log
+Edge = Ws * Up + (Rounds - Ws) * Down
+Real = (Mass + Edge) exp
+Fair = Fair reverse
+Real = Real reverse
+Fair = concat Fair (array 1.0)
+Real = concat Real (array 0.0)
+Budget = 1.0 / Target
+Before = Fair scan + with 0.0
+Paid = Before drop 1
+Full = (Paid at most Budget) integer sum
+Gain = Real scan + with 0.0
+Cut = (Budget - Before Full) / Fair Full
+Extra = Cut * Real Full
+Answer = (Gain Full + Extra) round 10
+Answer print

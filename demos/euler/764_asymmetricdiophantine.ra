@@ -1,0 +1,64 @@
+rem Asymmetric Diophantine Equation
+rem https://projecteuler.net/problem=764
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 16
+arg Block integer = 400
+arg Mod integer = 1000000000
+
+rem (4x, y^2, z) is a Pythagorean triple.
+rem Odd y: x = (p^4-q^4)/8, y = pq,
+rem z = (p^4+q^4)/2, p > q odd, coprime.
+rem Even y = 4pq with gcd(p, q) = 1:
+rem  A (p odd): x = p^4-4q^4,
+rem   z = 4 (p^4 + 4q^4);
+rem  B (q odd): x = 4p^4-q^4,
+rem   z = 4 (4p^4 + q^4).
+rem One batch holds the three families
+rem on axis 0 and a block of p rows.
+Top = ((2 * Limit) isqrt) isqrt + 1
+Fam = (0 to 2) reshape 3 1 1
+Cols = (1 to Top) reshape 1 1 Top
+Px = array 1 1 4
+Qx = array 1 4 1
+Dx = array 8 1 1
+Pz = array 1 4 16
+Qz = array 1 16 4
+Dz = array 2 1 1
+Ym = array 1 4 4
+Pneed = array 1 1 0
+Qneed = array 1 0 1
+Order = array 1 0 0
+Blocks = (Top + Block - 1) // Block
+Answer = 0
+for Piece in 0 to Blocks - 1
+  First = 1 + Piece * Block
+  Last = (First + Block - 1) min Top
+  Seq = First to Last
+  Rows = Seq reshape 1 (Seq len) 1
+  Cop = Rows gcd Cols
+  P4 = Rows ** 4
+  Q4 = Cols ** 4
+  Num = Px Fam * P4 - Qx Fam * Q4
+  Num = Num + Cols * 0
+  Xv = Num // Dx Fam
+  Yv = Ym Fam * Rows * Cols
+  Zv = (Pz Fam * P4 + Qz Fam * Q4) // Dz Fam
+  Podd = Rows mod 2
+  Qodd = Cols mod 2
+  Bad = Pneed Fam * (1 - Podd) + Qneed Fam * (1 - Qodd)
+  Wrong = (Rows at most Cols) integer
+  Bad = Bad + Order Fam * Wrong
+  Good = (Bad equal 0) and (Cop equal 1)
+  Good = Good and (Num greater 0)
+  Fits = Zv at most Limit
+  Fine = Good and Fits
+  Terms = (Xv + Yv + Zv) mod Mod
+  Used = Terms Fine
+  Answer = (Answer + Used sum) mod Mod
+end
+Answer print
