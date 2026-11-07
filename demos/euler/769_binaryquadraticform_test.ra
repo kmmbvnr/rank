@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "769_binaryquadraticform"
+  Limit = 1000
+  Chunk = 64
+  Block = 200
+  run
+  Answer equal 142
+  Limit = 1000000
+  Block = 1000
+  run
+  Answer equal 142463
+end

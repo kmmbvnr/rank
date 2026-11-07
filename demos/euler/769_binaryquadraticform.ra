@@ -1,0 +1,152 @@
+rem Binary Quadratic Form II
+rem https://projecteuler.net/problem=769
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 14
+arg Chunk integer = 4194304
+arg Block integer = 6000000
+
+rem Primitive solutions of z^2 = f(x, y)
+rem are pairs (p, q), gcd 1, |p| > q,
+rem with z = |3p^2 - 7pq + 3q^2| <= N,
+rem p^2 - 6pq + 6q^2 > 0 and 13 not
+rem dividing z. Writing p = q + k or
+rem p = -q - k gives three regions A, C,
+rem D with k counted by interval ends.
+rem Coprimality is removed by Moebius:
+rem C(N) = 1 + sum_d mu(d) W(N // d^2),
+rem d squarefree and prime to 13,
+rem where W counts all (q, k) of the
+rem regions and skips k = -2q (A, D)
+rem or k = 0 (C) modulo 13. W costs
+rem sqrt(M) steps.
+Root = Limit isqrt
+Small = primes to (Root isqrt) copy
+Squares = Small * Small
+Chunks = (Root + Chunk - 1) // Chunk
+Ds = array shape 0 fill 0
+Mus = array shape 0 fill 0
+rem Moebius by a segmented sieve.
+for Piece in 0 to Chunks - 1
+  Low = 1 + Piece * Chunk
+  High = (Low + Chunk) min (Root + 1)
+  Width = High - Low
+  Idx = Low to High - 1
+  Ahead = (Low + Small - 1) // Small
+  First = Ahead * Small
+  Room = (High - 1 - First) // Small
+  Count = (Room + 1) max 0
+  Live = Count greater 0
+  Pk = Small Live
+  Fk = First Live
+  Ck = Count Live
+  Ends = Ck scan +
+  Starts = Ends - Ck
+  Total = Ck sum
+  Marks = array shape Total fill 0
+  Marks Starts = 1
+  Owner = (Marks scan +) - 1
+  Run = 0 to Total - 1
+  Step = Run - Starts Owner
+  Jump = Step * Pk Owner
+  Spot = Fk Owner + Jump - Low
+  Prod = array shape Width fill 1
+  Sign = array shape Width fill 1
+  Prod Spot *= Pk Owner .accumulate
+  Flip = Pk Owner * 0 - 1
+  Sign Spot *= Flip .accumulate
+  SPlus = Low + Squares - 1
+  SAhead = SPlus // Squares
+  SFirst = SAhead * Squares
+  SRoom = (High - 1 - SFirst) // Squares
+  SCount = (SRoom + 1) max 0
+  SLive = SCount greater 0
+  Qk = Squares SLive
+  Gk = SFirst SLive
+  Dk = SCount SLive
+  SEnds = Dk scan +
+  SStarts = SEnds - Dk
+  STotal = Dk sum
+  SMarks = array shape STotal fill 0
+  SMarks SStarts = 1
+  SOwner = (SMarks scan +) - 1
+  SRun = 0 to STotal - 1
+  SStep = SRun - SStarts SOwner
+  SJump = SStep * Qk SOwner
+  SSpot = Gk SOwner + SJump - Low
+  Flat = array shape Width fill 1
+  Flat SSpot = 0
+  Big = (Idx // Prod) greater 1
+  Free = Big choose (0 - 1) 1
+  Mu = Sign * Free * Flat
+  Plain = Idx mod 13 not equal 0
+  Used = (Mu not equal 0) and Plain
+  Ds = concat Ds (Idx Used)
+  Mus = concat Mus (Mu Used)
+end
+rem Pairs (d, q), q <= sqrt(N / d^2).
+Tops = Limit // (Ds * Ds)
+Reach = Tops isqrt
+Last = Reach scan +
+Pairs = Last (Last len - 1)
+Answer = 1
+Part = 0
+Blocks = (Pairs + Block - 1) // Block
+for Piece in 0 to Blocks - 1
+  Low = Piece * Block
+  High = (Low + Block) min Pairs
+  First = (Last at most Low) integer sum
+  Done = Last at most (High - 1)
+  After = Done integer sum
+  Stop = After + 1
+  Cuts = (Last take Stop) drop First
+  Edges = Cuts - Low
+  Size = High - Low
+  Inner = Edges filter (Edges less Size)
+  Marks = array shape Size fill 0
+  Marks Inner = 1
+  Owner = First + (Marks scan +)
+  Start = (Last - Reach) Owner
+  Pos = Low + (0 to Size - 1)
+  Q = Pos - Start + 1
+  M = Tops Owner
+  Sign = Mus Owner
+  Q2 = Q * Q
+  Ceil = (3 * Q2) isqrt
+  Res = ((11 * Q + 12) mod 13) + 1
+  Edge = 2 * Q - Ceil - 1
+  Edge = Edge max 0
+  Dd = 13 * Q2 - 12 * M
+  Rt = ((Dd - 1) max 0) isqrt
+  Lo = ((Q - Rt + 5) // 6) max 1
+  Hi = ((Q + Rt) // 6) min Edge
+  Real = Dd at least 1
+  Cut = Real and (Hi at least Lo)
+  Gone = Cut choose (Hi - Lo + 1) 0
+  Rhi = ((Hi + 13 - Res) // 13) max 0
+  Rlo = ((Lo + 12 - Res) // 13) max 0
+  Back = Cut choose (Rhi - Rlo) 0
+  Rall = (Edge + 13 - Res) // 13
+  Redge = Rall max 0
+  CountA = Edge - Redge - Gone + Back
+  Sq = (13 * Q2 + 12 * M) isqrt
+  Dlow = 2 * Q + Ceil + 1
+  Dtop = (Q + Sq) // 6
+  Dgap = (Dtop - Dlow + 1) max 0
+  Rd = ((Dtop + 13 - Res) // 13) max 0
+  Rb = ((Dlow + 12 - Res) // 13) max 0
+  Some = Dgap greater 0
+  Drop = Some choose (Rd - Rb) 0
+  CountD = Dgap - Drop
+  Cdeg = ((Sq - 13 * Q) // 6) max 0
+  CountC = Cdeg - Cdeg // 13
+  Count = CountA + CountD + CountC
+  Mixed = Sign * Count
+  Part = Mixed sum
+  Answer += Part
+end
+Answer print
