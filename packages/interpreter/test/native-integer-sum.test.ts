@@ -160,3 +160,20 @@ it('retains ordinary snapshots for externally shared numeric buffers', () => {
     expect(result.result).toBe(36n);
     expect(result.diagnostics.nativeIntegerSums).toBe(0);
 });
+
+it('refreshes input shape, representation and numeric kind on a warmed expression', () => {
+    const runtime = new Interpreter(() => {}, { compilation: false });
+    const statement = parse('Result = (A * 2 + 1) sum').statements[0];
+    if (statement.$type !== 'AssignmentStatement') throw Error('assignment');
+    const compact = typedArray(Int32Array.of(1, 2));
+    try {
+        runtime.variables.set('A', compact);
+        expect(runtime.evaluate(statement.value)).toBe(8n);
+        compact.items[0] = 99n;
+        expect(runtime.evaluate(statement.value)).toBe(204n);
+        runtime.variables.set('A', typedArray(BigInt64Array.of(3000000000n, 4n, 5n), [3, 1]));
+        expect(runtime.evaluate(statement.value)).toBe(6000000021n);
+        runtime.variables.set('A', ownedArray([1.25, 2.5]));
+        expect(runtime.evaluate(statement.value)).toBe(9.5);
+    } finally { runtime.dispose(); }
+});

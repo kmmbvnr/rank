@@ -8,11 +8,12 @@ const source = readFileSync(file, 'utf8');
 const runtime = new Interpreter(() => {}, {
     compilation: mode !== 'reference', args: [`--l=${limit}`, ...process.argv.slice(5)],
 });
-const diagnostics = new RuntimeDiagnostics();
+const diagnostics = process.env.RANK454_DIAGNOSTICS === 'false' ? undefined : new RuntimeDiagnostics();
 try {
     const cpuStart = process.cpuUsage();
     const start = performance.now();
-    diagnostics.run(() => runtime.execute(source));
+    if (diagnostics) diagnostics.run(() => runtime.execute(source));
+    else runtime.execute(source);
     const ms = performance.now() - start;
     const cpu = process.cpuUsage(cpuStart);
     const memory = process.memoryUsage();
