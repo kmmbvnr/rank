@@ -544,8 +544,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         if (reboundInputs && demandBudgetEnabled()) return recordFallback('number-loop:observable-rebinding-budget', 'effects');
         if (plan.rangeNarrowing && demandBudgetEnabled()) return recordFallback('number-loop:observable-narrowing-budget', 'effects');
         for (const name of plan.syntax) if (host.read(name) !== undefined) return recordFallback('number-loop:syntax-binding', 'proof');
-        // Packed native indices have a different traversal budget.
+        // Packed native consumers have a different traversal budget.
         if (plan.builtins.get('indices') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-indices', 'effects');
+        if (plan.builtins.get('count') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-count', 'effects');
         // Prime-plan completion has its own demand traversal; do not charge
         // a speculative constructor and then replay it under a budget.
         if (plan.primeCopies && demandBudgetEnabled()) return recordFallback('number-loop:observable-prime-copy', 'effects');

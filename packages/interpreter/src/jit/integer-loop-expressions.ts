@@ -866,10 +866,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             || containers.has('indices')) return undefined;
         while (isParenthesizedExpression(expression)) expression = expression.value;
         if (!isApplicationExpression(expression)) return undefined;
-        const parts = flattenApplication(expression);
-        if (parts.length !== 2 || !isNameExpression(parts[1]) || parts[1].name !== 'indices') return undefined;
-        const type = arrayType(parts[0]);
-        return type?.rank === 1 && type.element === 'boolean' && completedIndicesMask(parts[0]) && privateIndicesMask(parts[0]) ? parts[0] : undefined;
+        if (expression.arguments.length !== 1 || !isNameExpression(expression.arguments[0])
+            || expression.arguments[0].name !== 'indices') return undefined;
+        const source = expression.head, type = arrayType(source);
+        return type?.rank === 1 && type.element === 'boolean' && completedIndicesMask(source) && privateIndicesMask(source) ? source : undefined;
     }
     // Array operands use the same concrete range/selection operations as the
     // evaluator, without re-entering expression evaluation on every iteration.
@@ -905,7 +905,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const operands = point.operands.map(arrayType);
                 if (operands.some(Boolean)) {
                     const types = operands.map((type, i) => type?.element ?? knownType(point.operands[i]) ?? 'integer');
-                    const type = point.fusedProduct ? types.every(type => type === 'integer') ? 'integer' : undefined
+                    const type = point.parity ? types[0] === 'integer' ? 'boolean' : undefined
+                        : point.fusedProduct ? types.every(type => type === 'integer') ? 'integer' : undefined
                         : point.name === 'choose'
                         ? types[0] === 'boolean' && types[1] === types[2] ? types[1] : undefined
                         : point.name === 'min' || point.name === 'max'
@@ -1063,7 +1064,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             for (let ${index} = ${block}; ${index} < ${end}; ${index}++) { ${body.join('\n')} }
         } })();`;
     }
-    function vectorOperation(e: Expression): { name: string; operands: Expression[]; module?: string; fusedProduct?: boolean } | undefined {
+    function vectorOperation(e: Expression): { name: string; operands: Expression[]; module?: string; fusedProduct?: boolean; parity?: boolean } | undefined {
         const unwrap = (value: Expression) => { while (isParenthesizedExpression(value)) value = value.value; return value; };
         if (isBinaryExpression(e) && e.operator === 'mod' && !e.step) {
             const product = unwrap(e.left);
@@ -1080,6 +1081,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return { name: e.operator, operands: [e.left, e.right].map(unwrap) };
         }
         if (host.nativeCalls && isApplicationExpression(e)) {
+            const tail = e.arguments.length === 1 ? e.arguments[0] : undefined;
+            if (tail && isNameExpression(tail) && ['odd', 'even'].includes(tail.name)
+                && !localTypes.has(tail.name) && !arrays.has(tail.name) && !containers.has(tail.name)) {
+                return { name: tail.name, module: 'numbers', operands: [unwrap(e.head)], parity: true };
+            }
             e = groupedUnaryDyadicChain(e, name => !localTypes.has(name)
                 && !arrays.has(name) && !containers.has(name)) ?? e;
             const parts = flattenApplication(e), last = parts.at(-1);
@@ -1170,7 +1176,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     lines.push(`const ${layout} = vectorLayout(${shape}, ${input.shape});`);
                     shape = `${layout}.shape`;
                 }
-                lines.push(`const ${size} = ${layout}.size;`);
+                lines.push(`const ${size} = ${layout ? `${layout}.size` : inputs[0].size};`);
             }
             return { size, shape, rank: type.rank, type: type.element, sources: [...new Set(inputs.flatMap(input => input.sources))],
                 compactGuards: [...new Set(inputs.flatMap(input => input.compactGuards))], cell: (index, body, frame) => {
@@ -1191,6 +1197,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         return { type: values[1]!.type,
                             code: `(${values[0]!.code} ? ${values[1]!.code} : ${values[2]!.code})` };
                     }
+                    if (point.parity) return { type: 'boolean',
+                        code: parity(point.name === 'even').code(values[0]!.code, 'integer', true) };
                     if (point.name === 'powmod') {
                         // Domain failures must replay the ordinary array call,
                         // including its operand/error attribution.
@@ -1469,6 +1477,26 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             lines.push(`const ${result} = vectorArray(${input.shape}, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${input.sources.join(',')}], ${type.element === 'boolean'}); ${loop}`);
         } else return undefined;
         return { code: result, cells: `${result}.cells`, type, fresh: true };
+    }
+    /** Count private byte masks without publishing a packed array first.
+     * Completed external masks retain their native word-wise popcount. */
+    function emitBooleanCount(source: Expression, lines: string[]): LoopTerm | undefined {
+        if (!numberMode || wide || !host.nativeCalls || !host.arrayReads || !host.booleanArrays) return undefined;
+        let input = source;
+        while (isParenthesizedExpression(input)) input = input.value;
+        const type = arrayType(input);
+        const mutable = isNameExpression(input) && state.arrayDefinitions.has(input.name) && destinations.has(input.name);
+        if (type?.element !== 'boolean' || !completedIndicesMask(input) || !mutable && !privateIndicesMask(input)) return undefined;
+        const setup: string[] = [];
+        const vector = numberVector(input, setup);
+        if (!vector || vector.type !== 'boolean') return undefined;
+        const result = `count${state.serial++}`, index = `cell${state.serial++}`, body: string[] = [];
+        const value = vector.cell(index, body);
+        if (!value) return undefined;
+        builtins.set('count', 'sequences');
+        lines.push(...setup, `let ${result} = 0;`, numberVectorLoop(vector.size, index,
+            [...body, `if (${value.code}) ${result}++;`]));
+        return { type: 'integer', code: result, bounds: [0, 4294967295] };
     }
     /** Scalar inputs retain evaluation order. Number-vector divisions replay
      * the ordinary region on failure, preserving array error order; the exact
@@ -1843,6 +1871,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;
+            if (op === 'count' && !localTypes.has(op) && !arrays.has(op) && !containers.has(op)) {
+                const result = emitBooleanCount(e.head, lines);
+                if (result) return result;
+            }
             if (op === 'sum' && !localTypes.has(op) && !arrays.has(op) && !containers.has(op)) {
                 const result = emitIntegerSum(e.head, lines);
                 if (result) return result;

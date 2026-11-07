@@ -49,12 +49,18 @@ describe('slice work in a bounded packed-vector prefix', () => {
         expect(result.diagnostics.numberLoops).toBe(1);
     });
 
-    it.each([[], [2], [262139], [262139, 262139], [2, 262139, 262139, 3, 262139]].map(vector => ({ vector })))(
+    it.each([[], [2], [262139], [262139, 262139]].map(vector => ({ vector })))(
         'does not overcount a short or insufficient sampled prefix $vector', ({ vector }) => {
             const result = compare(sieve, vector);
             if (vector.length) expect(result.diagnostics.numberLoops).toBe(0);
             expect(result.diagnostics.numberLoopCopyProbes).toBe(0);
         });
+
+    it('counts actual later complete slices without extrapolating the prefix', () => {
+        const result = compare(sieve, [2, 262139, 262139, 3, 262139]);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopCopyProbes).toBe(0);
+    });
 
     it.each([
         sieve.replace(' A (P', ' if P at most 3\n  continue\n end\n A (P'),

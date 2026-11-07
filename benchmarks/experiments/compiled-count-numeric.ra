@@ -1,0 +1,8 @@
+use sequences
+Values = 0 till 128 copy
+Total = 0
+for Turn in 1 to 100000
+  Mask = Values mod 7 equal Turn mod 7
+  Total += Mask count
+end
+Answer = Total

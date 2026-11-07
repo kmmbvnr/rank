@@ -1,0 +1,9 @@
+use sequences
+Values = 0 till 1000000 copy
+Source = Values mod 10000 equal 0
+Total = 0
+for Turn in 1 to 20
+  Mask = Source or false
+  Total += Mask count
+end
+Answer = Total
