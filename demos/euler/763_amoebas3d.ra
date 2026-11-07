@@ -1,0 +1,128 @@
+rem Amoebas in a 3D Grid
+rem https://projecteuler.net/problem=763
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Count integer = 10000
+arg Mod integer = 1000000000
+
+rem D(n) = Q(n - 1), with
+rem Q(m) = 3 Q(m-1) + 3 P(m-2) and
+rem P(m) = Q(m-1) + 4 P(m-2)
+rem + 2 A(1,1; m-3) + B(1,1; m-3).
+rem A(n,k; m) and B(n,k; m) are layer
+rem profiles with six lagged terms each
+rem (offsets n+1, n+2, n+3), live for
+rem m >= (n+1)(n+2)/2. The recurrence
+rem was checked against the statement
+rem values D(10), D(20), D(32), D(100)
+rem and runs on a ring of rows, one per
+rem lag, with all (n, k) at once.
+Last = Count - 1
+Top = ((8 * Last + 1) isqrt - 3) // 2
+Many = Top + 1
+Ns = 1 to Many
+Cnt = Ns
+Ends = Cnt scan +
+Starts = Ends - Cnt
+Total = Cnt sum
+Marks = array shape Total fill 0
+Marks Starts = 1
+Owner = (Marks scan +) - 1
+Run = 0 to Total - 1
+Nv = Ns Owner
+Kv = Run - Starts Owner + 1
+Width = Total + 2
+Dummy = Total + 1
+rem Column of (n, k), or the dummy.
+fun Nn col Kk
+  Kw = Kk + Nn * 0
+  Lo = Kw at least 1
+  Good = Lo and (Kw at most Nn)
+  Fine = Good and (Nn at most Many)
+  Id = Nn * (Nn - 1) // 2 + Kw
+  return Fine choose Id Dummy
+end
+Same = (Kv equal Nv) integer
+Rk = Kv - Same
+Lam = 1 + Same
+C1 = Nv col Kv
+C2 = (Nv + 1) col 1
+C3 = (Nv + 1) col (Kv + 1)
+Low = (Nv - 1) col Rk
+One = Nv equal 1
+C4 = One choose (Nv * 0) Low
+C5 = Nv col 1
+C6 = Nv col (Rk + 1)
+Live = (Nv + 1) * (Nv + 2) // 2
+Ring = Many + 6
+Abuf = array shape (Ring * Width) fill 0
+Bbuf = array shape (Ring * Width) fill 0
+Parr = array shape (Count + 1) fill 0
+Qarr = array shape (Count + 1) fill 0
+Qarr 0 = 1
+Cols = 0 to Width - 1
+O1 = Nv + 2
+O2 = Nv + 3
+O4 = Nv + 1
+for Step in 1 to Last
+  Old = (Step - 3) mod Ring
+  Got = (Step at least 3) integer
+  A11 = (Abuf (Old * Width + 1)) * Got
+  B11 = (Bbuf (Old * Width + 1)) * Got
+  Late = (Step at least 2) integer
+  Two = (Parr ((Step - 2) max 0)) * Late
+  Prev = Qarr (Step - 1)
+  Sum = Prev + 4 * Two + 2 * A11
+  Pm = (Sum + B11) mod Mod
+  Qm = (3 * Prev + 3 * Two) mod Mod
+  Parr Step = Pm
+  Qarr Step = Qm
+  Act = (Step at least Live) integer
+  R1 = (Step - O1) mod Ring
+  R2 = (Step - O2) mod Ring
+  R4 = (Step - O4) mod Ring
+  K1 = ((Step - O1) at least 0) integer
+  K2 = ((Step - O2) at least 0) integer
+  K4 = ((Step - O4) at least 0) integer
+  P1 = R1 * Width + C1
+  P2 = R2 * Width + C2
+  P3 = R2 * Width + C3
+  P4 = R4 * Width + C4
+  P5 = R1 * Width + C5
+  P6 = R1 * Width + C6
+  Ga1 = Abuf P1
+  Gb1 = Bbuf P1
+  Ga2 = Abuf P2
+  Gb2 = Bbuf P2
+  Ga3 = Abuf P3
+  Gb3 = Bbuf P3
+  Ga4 = Abuf P4
+  Gb4 = Bbuf P4
+  Ga5 = Abuf P5
+  Gb5 = Bbuf P5
+  Ga6 = Abuf P6
+  Gb6 = Bbuf P6
+  Sa = Ga1 * K1 + Gb2 * K2
+  Sa = Sa + Ga3 * K2 + Ga4 * K4
+  Sa = Sa + Gb5 * K1 + Ga6 * K1
+  Sb = Gb1 * K1 + Lam * Ga2 * K2
+  Sb = Sb + Gb3 * K2 + Gb4 * K4
+  Sb = Sb + Lam * Ga5 * K1
+  Sb = Sb + Gb6 * K1
+  Na = (Sa * Act) mod Mod
+  Nb = (Sb * Act) mod Mod
+  Edge = array Pm
+  Zero = array 0
+  RowA = concat (concat Edge Na) Zero
+  RowB = concat (concat Edge Nb) Zero
+  Where = (Step mod Ring) * Width + Cols
+  Abuf Where = RowA
+  Bbuf Where = RowB
+end
+Answer = Qarr Last
+Answer print
