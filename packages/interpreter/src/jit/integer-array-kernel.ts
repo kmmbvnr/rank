@@ -179,7 +179,9 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         ? compactBinary(code, ac ?? Int32Array.of(x), a ? ao : 0, a ? as : 0,
             bc ?? Int32Array.of(y), b ? bo : 0, b ? bs : 0, size) : undefined;
     if (fast) return typedArray(fast, shape);
-    if (a && b && size >= DENSE_MIN_CELLS && shape.at(-1)! >= 4 && (ai || bi)
+    // Two-column rows already avoid per-cell broadcast mapping and a double
+    // temporary. Mac/Intel measurements: benchmarks/packed-column-arrays.md.
+    if (a && b && size >= DENSE_MIN_CELLS && shape.at(-1)! >= 2 && (ai || bi)
         && (code <= 1 || code === 5 || code === 6 || code === 2 && (!ac || !bc))) {
         const lanes = compactBroadcastLanes(left as RankArray, right as RankArray, a, b, shape, code);
         if (lanes) return typedArray(lanes, shape);

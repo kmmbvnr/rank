@@ -157,7 +157,7 @@ export function concatArrays(arrays: readonly RankArray[], shape: readonly numbe
                     target += length;
                 }
             }
-        });
+        }, { count: outer, widths: inputs.map(source => source.shape[axis] * inner) });
     };
     registerArrayCopy(value, () => {
         const leaves = leavesOf(root);
