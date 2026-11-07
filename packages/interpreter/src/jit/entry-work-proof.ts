@@ -234,11 +234,15 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
                 };
             }
             if (isArrayAssignmentStatement(statement)) {
+                // A successful native Fenwick store writes a value and at
+                // least one tree node. Count one store unit conservatively;
+                // the enclosing range also charges its iteration checkpoint.
+                const fenwick = plan.containers.get(statement.name)?.kind === 'fenwick';
                 let source = statement.indices.at(-1)?.value;
                 while (source && isParenthesizedExpression(source)) source = source.value;
-                hasWork ||= !!source && (isNameExpression(source) || isBinaryExpression(source) && ['to', 'till'].includes(source.operator));
+                hasWork ||= fenwick || !!source && (isNameExpression(source) || isBinaryExpression(source) && ['to', 'till'].includes(source.operator));
                 const count = range(source);
-                return (values: Values, target: number): Work => next(Math.min(count(values), target));
+                return (values: Values, target: number): Work => next(Math.min(fenwick ? 1 : count(values), target));
             }
             if (isBreakStatement(statement) || isContinueStatement(statement)
                 || isReturnStatement(statement) || isYieldStatement(statement)) {

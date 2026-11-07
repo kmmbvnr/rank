@@ -380,3 +380,23 @@ end`);
     });
 
 });
+
+it('counts unconditional Fenwick stores as invariant range work without raising the copy cap', () => {
+    const result = compare(`use algo
+Tree = 131073 fenwick
+for I in 0 till 131074
+ Tree 0 += 1
+end`);
+    expect(result.observation.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(1);
+    expect(result.diagnostics.numberLoopCopyProbes).toBe(0);
+}, 30000);
+it.each(['for I in 0 till 8', 'for I in 0 till 131074\n if I equal 0\n  break\n end'])('keeps short or interrupted Fenwick ranges conservative: %s', header => {
+    const result = compare(`use algo
+Tree = 131073 fenwick
+${header}
+ Tree 0 += 1
+end`);
+    expect(result.observation.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(0);
+});

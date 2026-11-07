@@ -161,3 +161,33 @@ describe('complete nested passes in packed vector loops',()=>{
     });
 
 });
+
+describe('bounded native prime-prefix work', () => {
+    const sieve = `use sequences
+N = ${n}
+A = array shape (N + 1) fill 0
+B = array shape (N + 1) fill 0
+for P in primes to 23
+ A (P to N by P) += 1
+ B (P to N by P) += 1
+end`;
+    it.each([false, true])('proves complete strided work without materializing the prime plan (reverse=%s)', reverse => {
+        const text = reverse ? sieve.replace('primes to 23', '(primes to 23) reverse') : sieve;
+        const result = execute(text);
+        expect(result.values).toEqual(execute(text, false).values);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopCopyProbes).toBe(0);
+        expect(result.diagnostics.fallbacks['number-loop:condition-write-budget']).toBeUndefined();
+    });
+    it('does not extrapolate across an early prime-loop exit', () => {
+        const text = sieve.replace(' A (P', ' if P greater 2\n  break\n end\n A (P');
+        const result = execute(text);
+        expect(result.values).toEqual(execute(text, false).values);
+        expect(result.diagnostics.numberLoops).toBe(0);
+    });
+    it('retains conservative admission outside the known prime prefix', () => {
+        const result = execute(sieve.replace('primes to 23', 'primes from 1000 to 1031'));
+        expect(result.values).toEqual(execute(sieve.replace('primes to 23', 'primes from 1000 to 1031'), false).values);
+        expect(result.diagnostics.numberLoops).toBe(0);
+    });
+});

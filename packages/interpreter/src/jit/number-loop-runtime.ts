@@ -9,7 +9,7 @@ import { AstUtils, type AstNode } from 'langium';
 import { expressionFacts, flattenApplication, isApplicationExpression, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
 import { prepareLoopEntryWork } from './loop-entry-work.js';
 import { prepareVectorEntryWork } from './vector-entry-work.js';
-import { loopTraversal } from '../loop-traversal.js';
+import { loopTraversal, primeLoopBounds } from '../loop-traversal.js';
 import { argumentSelectionError, MissingValueError, RankError } from '../errors.js';
 import { completed } from '../execution.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
@@ -639,6 +639,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         // Range bounds use already guarded scalar inputs, never callbacks or
         // array cells. A full range pass amortizes copying just like a vector.
         if (conditionWriteCells && !plan.hasControl && traversal && !traversal.slice
+            && !primeLoopBounds(traversal.source)
             && isBinaryExpression(traversal.source) && ['to', 'till'].includes(traversal.source.operator)) {
             const count = expressionFacts(traversal.source, name => {
                 const slot = names.indexOf(name), value = input[slot];
