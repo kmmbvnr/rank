@@ -1,0 +1,44 @@
+rem Fermat Last Theorem Modulo p
+rem https://projecteuler.net/problem=753
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 6000000
+
+rem If p mod 3 is not 1, cubing is a
+rem bijection: a + b = c has (p-1)(p-2)
+rem nonzero solutions. Otherwise
+rem 4p = L^2 + 27 M^2 with L = 1 mod 3
+rem gives F = (p-1)(p-8+L).
+Primes = primes to Limit copy
+Flag = array shape (Limit + 1) fill 0
+Flag Primes = 1
+Class = Primes mod 3
+Rest = Primes filter (Class not equal 1)
+Plain = (Rest - 1) * (Rest - 2)
+Top = (4 * Limit) isqrt
+Span = Top // 3 + 1
+Step = (0 - Span) to Span
+Edge = 1 + 3 * Step
+Side = Edge reshape (Edge len) 1
+Max = (4 * Limit // 27) isqrt
+Mid = (1 to Max) reshape 1 Max
+Grid = Side + Mid * 0
+Four = Grid * Grid + 27 * Mid * Mid
+Small = Four at most (4 * Limit)
+Even = Four mod 4 equal 0
+Good = Small and Even
+Pick = Four Good
+Prime = Pick // 4
+Corner = Grid Good
+Hit = Flag Prime equal 1
+Prime = Prime Hit
+Corner = Corner Hit
+Cube = Prime - 8 + Corner
+Fermat = (Prime - 1) * Cube
+Sums = concat Plain Fermat
+Total = Sums sum
+Total print

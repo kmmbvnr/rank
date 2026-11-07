@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "753_fermatcubic"
+  Limit = 6
+  run
+  Total equal 14
+  Limit = 100
+  run
+  Total equal 59762
+  Limit = 200
+  run
+  Total equal 535298
+end
