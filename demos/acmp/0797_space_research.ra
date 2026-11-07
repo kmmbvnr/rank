@@ -1,0 +1,565 @@
+rem ACMP 0797: Space Research
+rem Min days to photograph N points
+rem by K x K camera without South moves
+use io
+use cli
+use sequences
+use numbers
+use text
+
+arg Input text = "4 1
+1 1
+10 2
+1 3
+10 4"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+N = Nums 0
+K = Nums 1
+
+Coords = Nums drop 2
+XCoords = Coords (0 till N * 2 by 2)
+YCoords = Coords (1 till N * 2 by 2)
+
+AllCov = (
+  (XCoords at most K) and (
+    YCoords at most K
+  )
+) all
+
+Ans = 0
+
+HasPoint = array shape 52 52 fill 0
+MinPt = array shape 52 fill 0
+MaxPt = array shape 52 fill 0
+
+fun P unpackmn
+  return P mod 64
+end
+
+fun P unpackmx
+  Q = P / 64
+  return Q integer
+end
+
+fun Mn pack Mx
+  return Mn + (Mx * 64)
+end
+
+fun P update CovPacked
+  Mn = P unpackmn
+  Mx = P unpackmx
+  if (Mn equal 0) and (Mx equal 0)
+    return 0
+  end
+  CovMin = CovPacked unpackmn
+  Q1 = CovPacked / 64
+  CovMax = (Q1 integer) mod 64
+  Q2 = CovPacked / 4096
+  Y = Q2 integer
+
+  if (CovMin at most Mn) and (
+    CovMax at least Mx
+  )
+    return 0
+  end
+
+  if CovMin at most Mn
+    NewMn = 0
+    for X in (CovMax + 1) till (Mx + 1)
+      if (HasPoint Y X) equal 1
+        NewMn = X
+        break
+      end
+    end
+    if NewMn equal 0
+      return 0
+    end
+    return NewMn pack Mx
+  end
+
+  if CovMax at least Mx
+    NewMx = 0
+    for RevX in 0 till (CovMin - Mn)
+      X = (CovMin - 1) - RevX
+      if (HasPoint Y X) equal 1
+        NewMx = X
+        break
+      end
+    end
+    if NewMx equal 0
+      return 0
+    end
+    return Mn pack NewMx
+  end
+
+  return Mn pack Mx
+end
+
+if AllCov
+  Ans = 0
+else
+  MaxCamX = 51 - K
+  MaxCamY = 51 - K
+  MaxY = YCoords max
+
+  for PtIdx in 0 till N
+    Px = XCoords PtIdx
+    Py = YCoords PtIdx
+    HasPoint Py Px = 1
+    if (MinPt Py equal 0) or (
+      Px less (MinPt Py)
+    )
+      MinPt Py = Px
+    end
+    if Px greater (MaxPt Py)
+      MaxPt Py = Px
+    end
+  end
+
+  Pows = array 1 4096 16777216 (
+    68719476736
+  ) 281474976710656
+
+  InitRem = array shape K fill 0
+  for D in 0 till K
+    Y = 1 + D
+    if Y at most 50
+      CovP = 1 + (K * 64) + (Y * 4096)
+      InitP = (
+        MinPt Y
+      ) pack (
+        MaxPt Y
+      )
+      InitRem D = InitP update CovP
+    end
+  end
+
+  InitRemKey = 0
+  for D in 0 till K
+    InitRemKey = (
+      InitRemKey + (
+        (InitRem D) * (Pows D)
+      )
+    )
+  end
+
+  CurKeys = array 1
+  CurVals = array 0
+  CurRemKeys = array InitRemKey
+  CurLen = 1
+
+  MinTotalAns = 1000000
+
+  for Y in 1 till (MaxCamY + 1)
+    if CurLen greater 0
+      NextKeys = (
+        array shape 4000 fill 0
+      )
+      NextVals = (
+        array shape 4000 fill 0
+      )
+      NextRemKeys = (
+        array shape 4000 fill 0
+      )
+      NextLen = 0
+
+      for SIdx in 0 till CurLen
+        Xin = CurKeys SIdx
+        Cost = CurVals SIdx
+        RemKey = CurRemKeys SIdx
+
+        if Cost less MinTotalAns
+          Rem0 = RemKey mod 4096
+          Rem1 = 0
+          Rem2 = 0
+          Rem3 = 0
+          Rem4 = 0
+          if K greater 1
+            QRem = RemKey / 4096
+            Rem1 = (
+              QRem integer
+            ) mod 4096
+          end
+          if K greater 2
+            QRem = RemKey / 16777216
+            Rem2 = (
+              QRem integer
+            ) mod 4096
+          end
+          if K greater 3
+            QRem = (
+              RemKey / 68719476736
+            )
+            Rem3 = (
+              QRem integer
+            ) mod 4096
+          end
+          if K greater 4
+            QRem = (
+              RemKey / 281474976710656
+            )
+            Rem4 = (
+              QRem integer
+            ) mod 4096
+          end
+
+          ReqL = Xin
+          ReqR = Xin
+          if Rem0 not equal 0
+            ReqL = Rem0 unpackmn
+            ReqR = (
+              Rem0 unpackmx
+            ) - K + 1
+            if ReqR less 1
+              ReqR = 1
+            end
+          end
+
+          MinL = Xin min ReqL
+          MaxR = Xin max ReqR
+
+          CandL = array MinL
+          CandR = array MaxR
+
+          if Rem1 not equal 0
+            FxMn = Rem1 unpackmn
+            FxMx = (
+              Rem1 unpackmx
+            ) - K + 1
+            if FxMx less 1
+              FxMx = 1
+            end
+            if FxMn less MinL
+              CandL = concat CandL (
+                array FxMn
+              )
+            end
+            if FxMx greater MaxR
+              CandR = concat CandR (
+                array FxMx
+              )
+            end
+          end
+
+          if Rem2 not equal 0
+            FxMn = Rem2 unpackmn
+            FxMx = (
+              Rem2 unpackmx
+            ) - K + 1
+            if FxMx less 1
+              FxMx = 1
+            end
+            if FxMn less MinL
+              CandL = concat CandL (
+                array FxMn
+              )
+            end
+            if FxMx greater MaxR
+              CandR = concat CandR (
+                array FxMx
+              )
+            end
+          end
+
+          if Rem3 not equal 0
+            FxMn = Rem3 unpackmn
+            FxMx = (
+              Rem3 unpackmx
+            ) - K + 1
+            if FxMx less 1
+              FxMx = 1
+            end
+            if FxMn less MinL
+              CandL = concat CandL (
+                array FxMn
+              )
+            end
+            if FxMx greater MaxR
+              CandR = concat CandR (
+                array FxMx
+              )
+            end
+          end
+
+          if Rem4 not equal 0
+            FxMn = Rem4 unpackmn
+            FxMx = (
+              Rem4 unpackmx
+            ) - K + 1
+            if FxMx less 1
+              FxMx = 1
+            end
+            if FxMn less MinL
+              CandL = concat CandL (
+                array FxMn
+              )
+            end
+            if FxMx greater MaxR
+              CandR = concat CandR (
+                array FxMx
+              )
+            end
+          end
+
+          UniqL = CandL unique
+          UniqR = CandR unique
+          LenL = UniqL len
+          LenR = UniqR len
+
+          for LIdx in 0 till LenL
+            L = UniqL LIdx
+            if L less 1
+              L = 1
+            end
+            if L greater MaxCamX
+              L = MaxCamX
+            end
+
+            for RIdx in 0 till LenR
+              R = UniqR RIdx
+              if R less 1
+                R = 1
+              end
+              if R greater MaxCamX
+                R = MaxCamX
+              end
+
+              if L at most R
+                CovMin = L
+                CovMax = R + K - 1
+
+                NRem0 = 0
+                NRem1 = 0
+                NRem2 = 0
+                NRem3 = 0
+                NRem4 = 0
+
+                if K greater 1
+                  CP1 = CovMin + (
+                    CovMax * 64
+                  ) + (
+                    (Y + 1) * 4096
+                  )
+                  NRem0 = (
+                    Rem1 update CP1
+                  )
+                end
+                if K greater 2
+                  CP2 = CovMin + (
+                    CovMax * 64
+                  ) + (
+                    (Y + 2) * 4096
+                  )
+                  NRem1 = (
+                    Rem2 update CP2
+                  )
+                end
+                if K greater 3
+                  CP3 = CovMin + (
+                    CovMax * 64
+                  ) + (
+                    (Y + 3) * 4096
+                  )
+                  NRem2 = (
+                    Rem3 update CP3
+                  )
+                end
+                if K greater 4
+                  CP4 = CovMin + (
+                    CovMax * 64
+                  ) + (
+                    (Y + 4) * 4096
+                  )
+                  NRem3 = (
+                    Rem4 update CP4
+                  )
+                end
+
+                YNew = Y + K
+                if YNew at most 50
+                  NRemLast = (
+                    MinPt YNew
+                  ) pack (
+                    MaxPt YNew
+                  )
+                  if K equal 1
+                    NRem0 = NRemLast
+                  end
+                  if K equal 2
+                    NRem1 = NRemLast
+                  end
+                  if K equal 3
+                    NRem2 = NRemLast
+                  end
+                  if K equal 4
+                    NRem3 = NRemLast
+                  end
+                  if K equal 5
+                    NRem4 = NRemLast
+                  end
+                end
+
+                NextRemKVal = NRem0 + (
+                  NRem1 * 4096
+                ) + (
+                  NRem2 * 16777216
+                ) + (
+                  NRem3 * 68719476736
+                ) + (
+                  NRem4 * (
+                    281474976710656
+                  )
+                )
+
+                AbsXR = (Xin - R) abs
+                AbsXL = (Xin - L) abs
+                DistToL = (
+                  (R - L) + AbsXR
+                )
+                DistToR = (
+                  (R - L) + AbsXL
+                )
+
+                AllEmpty = 1
+                if (
+                  NextRemKVal not
+                  equal 0
+                )
+                  AllEmpty = 0
+                end
+                if (
+                  Y + K + 1
+                ) at most MaxY
+                  for RemY in (
+                    Y + K + 1
+                  ) till (MaxY + 1)
+                    if (
+                      MinPt RemY
+                    ) greater 0
+                      AllEmpty = 0
+                    end
+                  end
+                end
+
+                if AllEmpty equal 1
+                  SpanDist = (
+                    DistToL min DistToR
+                  )
+                  if L equal R
+                    SpanDist = (
+                      (Xin - L) abs
+                    )
+                  end
+                  FinCost = (
+                    Cost + SpanDist
+                  )
+                  if FinCost less (
+                    MinTotalAns
+                  )
+                    MinTotalAns = (
+                      FinCost
+                    )
+                  end
+                end
+
+                if (
+                  Y less MaxCamY
+                ) and (
+                  NextLen less 3990
+                )
+                  C1 = (
+                    Cost + DistToL + 1
+                  )
+                  NextKeys NextLen = L
+                  NextVals NextLen = C1
+                  NextRemKeys (
+                    NextLen
+                  ) = NextRemKVal
+                  NextLen = NextLen + 1
+
+                  C2 = (
+                    Cost + DistToR + 1
+                  )
+                  NextKeys NextLen = R
+                  NextVals NextLen = C2
+                  NextRemKeys (
+                    NextLen
+                  ) = NextRemKVal
+                  NextLen = NextLen + 1
+                end
+              end
+            end
+          end
+        end
+      end
+
+      if NextLen equal 0
+        CurLen = 0
+      else
+        CombinedKeys = (
+          NextKeys take NextLen
+        ) + (
+          (
+            NextRemKeys take NextLen
+          ) * 64
+        )
+        Ord = CombinedKeys argsort
+        SK = CombinedKeys Ord
+        SV = (
+          NextVals take NextLen
+        ) Ord
+        SRK = (
+          NextRemKeys take NextLen
+        ) Ord
+        SOrigK = (
+          NextKeys take NextLen
+        ) Ord
+
+        Diff = (
+          SK drop 1
+        ) not equal (
+          SK take (NextLen - 1)
+        )
+        GStarts = concat (array 0) (
+          (Diff indices) + 1
+        )
+        GEnds = concat (
+          Diff indices
+        ) (array (NextLen - 1))
+        NumG = GStarts len
+
+        CurKeys = (
+          array shape NumG fill 0
+        )
+        CurVals = (
+          array shape NumG fill 0
+        )
+        CurRemKeys = (
+          array shape NumG fill 0
+        )
+        CurLen = NumG
+
+        for G in 0 till NumG
+          S = GStarts G
+          E = GEnds G
+          CurKeys G = SOrigK S
+          CurRemKeys G = SRK S
+          SliceV = SV (
+            S till (E + 1)
+          )
+          CurVals G = SliceV min
+        end
+      end
+    end
+  end
+
+  Ans = MinTotalAns
+end
+
+Ans print
