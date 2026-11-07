@@ -1,0 +1,100 @@
+rem ACMP 0750: Graph Game
+rem Bipartite vertex deletion game
+use algo
+use cli
+use graph
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "8 8 15
+1 1
+1 2
+2 2
+2 3
+3 3
+3 4
+4 4
+4 5
+5 5
+5 6
+6 6
+6 7
+7 7
+7 8
+8 8"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+N1 = Nums 0
+N2 = Nums 1
+M = Nums 2
+Sink = N1 + N2 + 1
+
+G1 = new graph .directed
+G2 = new graph .directed
+LIdx = 1 to N1
+RIdx = (N1 + 1) to (N1 + N2)
+
+OnesL = (LIdx * 0) + 1
+ZerosL = LIdx * 0
+SinksL = OnesL * Sink
+
+Src1T = array ZerosL LIdx OnesL
+Src1 = Src1T transpose
+G1 add Src1
+Snk2T = array LIdx SinksL OnesL
+Snk2 = Snk2T transpose
+G2 add Snk2
+
+OnesR = (RIdx * 0) + 1
+ZerosR = RIdx * 0
+SinksR = OnesR * Sink
+
+Snk1T = array RIdx SinksR OnesR
+Snk1 = Snk1T transpose
+G1 add Snk1
+Src2T = array ZerosR RIdx OnesR
+Src2 = Src2T transpose
+G2 add Src2
+
+if M greater 0
+  EdgeNums = Nums drop 3
+  RawE = EdgeNums reshape M 2
+  RawET = RawE transpose
+  EU = RawET 0
+  EV = (RawET 1) + N1
+  OnesE = (EU * 0) + 1
+  E1T = array EU EV OnesE
+  E1 = E1T transpose
+  G1 add E1
+  E2T = array EV EU OnesE
+  E2 = E2T transpose
+  G2 add E2
+end
+
+Res1 = G1 0 Sink maxflow
+Cut1 = Res1 .cut
+LInCut = LIdx in Cut1
+
+Res2 = G2 0 Sink maxflow
+Cut2 = Res2 .cut
+RInCut = RIdx in Cut2
+
+PN = array "P" "N"
+Idx1 = LInCut choose ZerosL OnesL
+Ans1Arr = PN Idx1
+
+Idx2 = RInCut choose ZerosR OnesR
+Ans2Arr = PN Idx2
+
+Line1 = Ans1Arr join ""
+Line2 = Ans2Arr join ""
+Lines = array Line1 Line2
+Result = Lines join "\n"
+Result print

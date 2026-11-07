@@ -1,0 +1,78 @@
+rem ACMP 0750: Graph Game tests
+use testing
+
+test "ACMP 750: Perfect matching P6"
+  use "0750_graph_game"
+  Input = "3 3 5
+1 1
+1 2
+2 2
+2 3
+3 3"
+  run
+  Exp = "NNN\nNNN"
+  Result equal Exp
+end
+
+test "ACMP 750: Star graph (1 vs 3)"
+  use "0750_graph_game"
+  Input = "1 3 3
+1 1
+1 2
+1 3"
+  run
+  Exp = "N\nPPP"
+  Result equal Exp
+end
+
+test "ACMP 750: Empty graph (M=0)"
+  use "0750_graph_game"
+  Input = "2 3 0"
+  run
+  Exp = "PP\nPPP"
+  Result equal Exp
+end
+
+test "ACMP 750: Path P3 + isolated"
+  use "0750_graph_game"
+  Input = "2 2 2
+1 1
+2 1"
+  run
+  Exp = "PP\nNP"
+  Result equal Exp
+end
+
+test "ACMP 750: Asymmetric components"
+  use "0750_graph_game"
+  Input = "3 2 3
+1 1
+2 1
+2 2"
+  run
+  Exp = "NNP\nNN"
+  Result equal Exp
+end
+
+test "ACMP 750: Even path P16"
+  use "0750_graph_game"
+  Input = "8 8 15
+1 1
+1 2
+2 2
+2 3
+3 3
+3 4
+4 4
+4 5
+5 5
+5 6
+6 6
+6 7
+7 7
+7 8
+8 8"
+  run
+  Exp = "NNNNNNNN\nNNNNNNNN"
+  Result equal Exp
+end
