@@ -23,3 +23,19 @@ test "exact factorization references"
   run
   Answer equal 853246560
 end
+
+test "empty rows and odd symmetry"
+  use "445_retractionsa"
+  N = 0
+  run
+  Answer equal 0
+  N = 1
+  run
+  Answer equal 0
+  N = 2
+  run
+  Answer equal 1
+  N = 3
+  run
+  Answer equal 2
+end
