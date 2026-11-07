@@ -1,0 +1,126 @@
+rem Bezout's Game
+rem https://projecteuler.net/problem=787
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 9
+arg Cut integer = 1000000
+
+rem Losing positions are (2x, 2y + 1)
+rem and the mirror, x <= y, coprime, so
+rem W(n) = sum of phi(s), s = 2..n
+rem  - 2 sum over odd d of mu(d) A(n/d),
+rem A(q) = p^2 (k odd) or p (p - 1)
+rem (k even), k = ceil(q / 2),
+rem p = k / 2.
+rem Needs Mertens M at all floor(n / k):
+rem a sieve up to Cut, then the
+rem recursion
+rem M(v) = 1 - sum of M(v / l), l >= 2,
+rem for the few large v, smallest first.
+Top = Limit min Cut
+Primes = primes to (Top isqrt) copy
+Squares = Primes * Primes
+Idx = 1 to Top
+Count = Top // Primes
+Ends = Count scan +
+Starts = Ends - Count
+Total = Count sum
+Marks = array shape Total fill 0
+Marks Starts = 1
+Owner = (Marks scan +) - 1
+Run = 0 to Total - 1
+Step = Run - Starts Owner + 1
+Spot = Step * Primes Owner - 1
+Prod = array shape Top fill 1
+Sign = array shape Top fill 1
+Prod Spot *= Primes Owner .accumulate
+Flip = Primes Owner * 0 - 1
+Sign Spot *= Flip .accumulate
+SCount = Top // Squares
+SEnds = SCount scan +
+SStarts = SEnds - SCount
+STotal = SCount sum
+SMarks = array shape STotal fill 0
+SMarks SStarts = 1
+SOwner = (SMarks scan +) - 1
+SRun = 0 to STotal - 1
+SStep = SRun - SStarts SOwner + 1
+SSpot = SStep * Squares SOwner - 1
+Flat = array shape Top fill 1
+Flat SSpot = 0
+Cof = (Idx // Prod) greater 1
+Free = Cof choose (0 - 1) 1
+Mu = Sign * Free * Flat
+Mt = concat (array 0) (Mu scan +)
+Mu0 = concat (array 0) Mu
+Big = Limit // Top
+Large = array shape (Big + 1) fill 0
+Root = Limit isqrt
+rem Mertens at n / k from the tables.
+fun Kix mval Unused
+  Val = Limit // Kix
+  Near = Val at most Top
+  Table = Mt (Val min Top)
+  Place = (Kix min (Big + 1)) - 1
+  Far = Large Place
+  return Near choose Table Far
+end
+for Round in 0 to Big - 1
+  Kk = Big - Round
+  Val = Limit // Kk
+  Cap = Val isqrt
+  Ls = 2 to Cap
+  Head = (Kk * Ls) mval 0
+  Qs = 1 to Val // (Cap + 1)
+  Low = (Val // (Qs + 1)) max Cap
+  Mult = Val // Qs - Low
+  Tail = Mt Qs * Mult
+  Piece = Head sum
+  Rest = Tail sum
+  Large (Kk - 1) = 1 - Piece - Rest
+end
+Small = 1 to Root
+Quot = Limit // Small
+Q = 1 to Limit // (Root + 1)
+Lower = Limit // (Q + 1)
+Clip = Lower greater Root
+RootM = Mt Root
+Mhi = Q mval 0
+Mnext = (Q + 1) mval 0
+Mlo = Clip choose Mnext RootM
+Sq = Mu0 Small * Quot * Quot
+Blk = (Mhi - Mlo) * Q * Q
+Sum1 = Sq sum
+Sum2 = Blk sum
+Phis = (Sum1 + Sum2 + 1) // 2 - 1
+rem Odd d: G(x) = sum of M(x / 2^j).
+Pows = (2 ** (0 to 30)) reshape 1 31
+Cnt = Q len
+Col = Q reshape Cnt 1
+Gq = (Col * Pows) mval 0
+Hi = Gq sum axis 1
+Col2 = (Q + 1) reshape Cnt 1
+Gn = (Col2 * Pows) mval 0
+Nx = Gn sum axis 1
+Down = (Root // Pows) reshape 31
+Rt = (Mt Down) sum
+Lo = Clip choose Nx Rt
+Odd = Mu0 Small * (Small mod 2)
+fun Arg area Unused
+  Kc = (Arg + 1) // 2
+  Pc = Kc // 2
+  Even = Kc mod 2 equal 0
+  Sqr = Pc * Pc
+  Dif = Pc * (Pc - 1)
+  return Even choose Dif Sqr
+end
+Left = Odd * ((Limit // Small) area 0)
+Right = (Hi - Lo) * (Q area 0)
+Sum3 = Left sum
+Sum4 = Right sum
+Answer = Phis - 2 * (Sum3 + Sum4)
+Answer print
