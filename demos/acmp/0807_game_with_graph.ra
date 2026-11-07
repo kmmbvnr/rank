@@ -1,0 +1,43 @@
+rem ACMP 0807: Game with Graph
+rem Count labeled DAGs on N vertices
+rem via Robinson's BigInt DP
+use io
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = "100"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+N = Nums 0
+
+DP = array shape (N + 1) fill 0
+DP 0 = 1
+
+Comb = array 1
+Zeros1 = array 0
+
+for M in 1 to N
+  Left = concat Comb Zeros1
+  Right = concat Zeros1 Comb
+  Comb = Left + Right
+
+  Ks = 1 to M
+  Rem = M - Ks
+  PrevDP = DP Rem
+  PowExp = Ks * Rem
+  Pow2 = 2 ** PowExp
+  Sign = (-1) ** (Ks - 1)
+  Binom = Comb Ks
+  Terms = ((Sign * Binom) * Pow2) * PrevDP
+  DP M = Terms sum
+end
+
+Ans = DP N
+Result = Ans text
+Result print

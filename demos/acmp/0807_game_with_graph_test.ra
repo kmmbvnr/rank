@@ -1,0 +1,67 @@
+rem ACMP 0807: Game with Graph tests
+use testing
+
+test "ACMP 807: N = 1"
+  use "0807_game_with_graph"
+  Input = "1"
+  run
+  Result equal "1"
+end
+
+test "ACMP 807: N = 2"
+  use "0807_game_with_graph"
+  Input = "2"
+  run
+  Result equal "3"
+end
+
+test "ACMP 807: N = 3 (Sample)"
+  use "0807_game_with_graph"
+  Input = "3"
+  run
+  Result equal "25"
+end
+
+test "ACMP 807: N = 4"
+  use "0807_game_with_graph"
+  Input = "4"
+  run
+  Result equal "543"
+end
+
+test "ACMP 807: N = 5"
+  use "0807_game_with_graph"
+  Input = "5"
+  run
+  Result equal "29281"
+end
+
+test "ACMP 807: N = 6"
+  use "0807_game_with_graph"
+  Input = "6"
+  run
+  Result equal "3781503"
+end
+
+test "ACMP 807: N = 7"
+  use "0807_game_with_graph"
+  Input = "7"
+  run
+  Result equal "1138779265"
+end
+
+test "ACMP 807: N = 12 (BigInt)"
+  use "0807_game_with_graph"
+  Input = "12"
+  run
+  Exp = "521939651343829405020504063"
+  Result equal Exp
+end
+
+test "ACMP 807: N = 100 (max constraint)"
+  use "0807_game_with_graph"
+  Input = "100"
+  run
+  Len = Result len
+  (Len greater 1500) equal true
+end
