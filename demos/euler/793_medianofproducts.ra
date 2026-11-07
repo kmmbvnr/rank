@@ -1,0 +1,52 @@
+rem Median of Products
+rem https://projecteuler.net/problem=793
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Count integer = 1000003
+arg Modulus integer = 50515093
+
+rem S_i = 290797^(2^i) mod p, p =
+rem 5807 * 8699, so the exponent is
+rem taken mod lcm(5806, 8698). The
+rem median product t is the
+rem least one with at least K of the
+rem pairs i < j below it; pairs below t
+rem are (sum of #{a_j <= t / a_i} minus
+rem the squares) / 2, ranks by sorting.
+Steps = 0 to Count - 1
+Cycle = 25250294
+Exps = 2 Steps Cycle powmod
+Vals = 290797 Exps Modulus powmod
+Sorted = Vals sort
+Pairs = Count * (Count - 1) // 2
+Want = (Pairs + 1) // 2
+Low = 0
+High = (Sorted (Count - 1)) ** 2
+for Round in 1 to 60
+  Mid = (Low + High) // 2
+  Limits = Mid // Sorted
+  Both = concat Sorted Limits
+  Perm = Both argsort
+  Place = Perm argsort
+  Flag = (Perm less Count) integer
+  Seen = Flag scan +
+  Rank = Seen (Place drop Count)
+  Self = Sorted * Sorted
+  Below = (Self at most Mid) integer
+  Total = Rank sum
+  Diag = Below sum
+  Ordered = Total - Diag
+  Half = Ordered // 2
+  Enough = Half at least Want
+  if Enough
+    High = Mid
+  else
+    Low = Mid
+  end
+end
+Answer = High
+Answer print

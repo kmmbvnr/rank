@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "793_medianofproducts"
+  Count = 3
+  run
+  Answer equal 3878983057768
+  Count = 103
+  run
+  Answer equal 492700616748525
+end
