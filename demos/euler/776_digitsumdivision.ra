@@ -1,0 +1,63 @@
+rem Digit Sum Division
+rem https://projecteuler.net/problem=776
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 1234567890123456789
+
+rem Numbers below X = N + 1 split into
+rem blocks: a prefix value P with digit
+rem sum c followed by t free digits. If
+rem W(t, j) counts digit strings with
+rem sum j, their values add up to
+rem W j (10^t - 1) / (9 t). So
+rem F = sum of (P W + that) / (c + j).
+Whole = Limit + 1
+Wide = Whole text len
+Spots = 0 to Wide - 1
+Pows = 10 ** Spots
+Digits = (Whole // Pows) mod 10
+Above = Whole // (Pows * 10)
+Cum = (Digits reverse scan +) reverse
+Sums = Cum - Digits
+Width = 9 * Wide + 1
+Row = array shape Width fill 0
+Row 0 = 1
+Cells = Wide * Width
+Table = array shape Cells fill 0
+for Spot in 0 to Wide - 1
+  Cols = 0 to Width - 1
+  Slots = Spot * Width + Cols
+  Table Slots = Row
+  Pre = Row scan +
+  Back = Pre shift 10 with 0
+  Row = Pre - Back
+end
+Counts = Table reshape Wide Width
+Tens = (0 to 9) reshape 1 10
+Col = Spots reshape Wide 1
+Head = Above reshape Wide 1
+Unit = Pows reshape Wide 1
+Pref = (Head * 10 + Tens) * Unit
+Live = Tens less (Digits reshape Wide 1)
+Total = (Sums reshape Wide 1) + Tens
+Js = (0 to Width - 1) reshape 1 1 Width
+Size = Total reshape Wide 10 1 + Js
+Rep = ((Pows - 1) // 9) / (Spots max 1)
+Mean = Rep reshape Wide 1 1
+Prefix = Pref reshape Wide 10 1
+Cnt = Counts reshape Wide 1 Width
+Mass = Cnt * (Prefix + Js * Mean)
+Safe = Size max 1
+Mask = (Live reshape Wide 10 1) integer
+Terms = (Mass / Safe) * Mask
+Top = (Terms sum) * 1.0
+Ten = 10.0 log
+Exponent = Top log / Ten floor
+Mantissa = Top / 10.0 ** Exponent
+Answer = (Mantissa text ".12f") + "e"
+Answer += Exponent text
+Answer print

@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "776_digitsumdivision"
+  Limit = 10
+  run
+  Answer equal "1.900000000000e1"
+  Limit = 123
+  run
+  Answer equal "1.187764610390e3"
+  Limit = 12345
+  run
+  Answer equal "4.855801996238e6"
+end
