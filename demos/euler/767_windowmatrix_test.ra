@@ -1,0 +1,25 @@
+use testing
+
+test "statement values"
+  use "767_windowmatrix"
+  Width = 2
+  Length = 4
+  run
+  Answer equal 65550
+  Width = 3
+  Length = 9
+  run
+  Answer equal 87273560
+end
+
+test "larger widths against direct sums"
+  use "767_windowmatrix"
+  Width = 300
+  Length = 100000
+  run
+  Answer equal 98747919
+  Width = 1000
+  Length = 10 ** 12
+  run
+  Answer equal 309214136
+end

@@ -1,0 +1,116 @@
+rem Window into a Matrix II
+rem https://projecteuler.net/problem=767
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Width integer = 100000
+arg Length integer = 10 ** 16
+arg Mod integer = 1000000007
+
+rem Every 2 x k window sums to k, so the
+rem columns repeat with period k and
+rem B(k, n) = sum_s C(k, s) a_s
+rem mu^(k-s), with mu = 2^(n // k) - 2
+rem and a_s = sum_i C(s, i)^16. Then
+rem a_s / (s!)^16 is the
+rem self-convolution of
+rem c_i = (1 / i!)^16. It is done
+rem exactly by a number theoretic
+rem transform over three primes and
+rem Garner's recombination.
+fun Left mulp Right
+  return Left * Right mod Mod
+end
+Primes = array 998244353 1004535809
+Primes = concat Primes (array 469762049)
+Pcol = Primes reshape 3 1
+Pm = Primes reshape 3 1 1
+Logs = (2 * Width + 1) binary len
+Size = 2 ** Logs
+Index = 0 to Width
+Fact = (Index max 1) scan mulp
+Inv = Fact (Mod - 2) Mod powmod
+Part = Inv 16 Mod powmod
+Gap = Size - Width - 1
+Zeros = array shape Gap fill 0
+Padded = concat Part Zeros
+Slots = 0 to Size - 1
+Digits = 0 to Logs - 1
+Column = Slots reshape Size 1
+Shifted = Column shr Digits
+Weights = 2 ** (Logs - 1 - Digits)
+Bitval = (Shifted band 1) * Weights
+Perm = Bitval sum axis 1
+
+rem Iterative transform of three rows,
+rem one per prime; Back inverts it.
+fun Data ntt Back
+  Rows = Data # Perm
+  for Stage in 1 to Logs
+    Len = 2 ** Stage
+    Half = Len // 2
+    Cuts = Size // Len
+    Cube = Rows reshape 3 Cuts Len
+    Low = Cube # # (0 to Half - 1)
+    High = Cube # # (Half to Len - 1)
+    Turn = (Pm - 1) // Len
+    Flip = (Pm - 1) - Turn
+    Inverse = Back equal 1
+    Spin = Inverse choose Flip Turn
+    Base = Pm * 0 + 3
+    Gen = Base Spin Pm powmod
+    Run = 0 to Half - 1
+    Steps = Run reshape 1 1 Half
+    Twist = Gen Steps Pm powmod
+    Scaled = High * Twist mod Pm
+    Sum = (Low + Scaled) mod Pm
+    Diff = (Low - Scaled + Pm) mod Pm
+    Both = concat Sum Diff axis 2
+    Rows = Both reshape 3 Size
+  end
+  return Rows
+end
+Base = Padded reshape 1 Size
+Wide = Base + Pcol * 0
+Spec = Wide ntt 0
+Square = Spec * Spec mod Pcol
+Back = Square ntt 1
+Scale = Size (Pcol - 2) Pcol powmod
+Conv = Back * Scale mod Pcol
+Keep = Width + 1
+R1 = (Conv 0) take Keep
+R2 = (Conv 1) take Keep
+R3 = (Conv 2) take Keep
+P1 = Primes 0
+P2 = Primes 1
+P3 = Primes 2
+Inv12 = (P1 mod P2) (P2 - 2) P2 powmod
+Gap1 = (R2 - R1 + P2) mod P2
+Step1 = Gap1 * Inv12 mod P2
+Low = R1 + P1 * Step1
+P12 = P1 * P2
+Inv123 = (P12 mod P3) (P3 - 2) P3 powmod
+Rest = Low mod P3
+Gap2 = (R3 - Rest + P3) mod P3
+Step2 = Gap2 * Inv123 mod P3
+Head = Low mod Mod
+Jump = (P12 mod Mod) * Step2
+Exact = (Head + Jump) mod Mod
+Power = Fact 16 Mod powmod
+Alpha = Exact * Power mod Mod
+Cycle = Length // Width
+Mu = (2 Cycle Mod powmod) - 2
+Mu = (Mu + Mod) mod Mod
+Rise = Mu (Width - Index) Mod powmod
+Top = Fact Width
+Mirror = Inv reverse
+Half1 = Top * Inv mod Mod
+Chose = Half1 * Mirror mod Mod
+Half2 = Chose * Alpha mod Mod
+Terms = Half2 * Rise mod Mod
+Answer = Terms sum mod Mod
+Answer print
