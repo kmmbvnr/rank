@@ -1,0 +1,30 @@
+rem ACMP 0610: Pipe Laying tests
+use testing
+
+test "ACMP 610: Sample 1 (4x4 => 6)"
+  use "0610_pipes"
+  Input = "4 4"
+  run
+  Ans equal 6
+end
+
+test "ACMP 610: Sample 2 (5x7 => 0)"
+  use "0610_pipes"
+  Input = "5 7"
+  run
+  Ans equal 0
+end
+
+test "ACMP 610: Sample 3 (2x8 => 1)"
+  use "0610_pipes"
+  Input = "2 8"
+  run
+  Ans equal 1
+end
+
+test "ACMP 610: Sample 4 (12x8 => 102283239429)"
+  use "0610_pipes"
+  Input = "12 8"
+  run
+  Ans equal 102283239429
+end
