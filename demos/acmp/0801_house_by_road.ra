@@ -1,0 +1,273 @@
+rem ACMP 0801: House by the Road
+rem Exact 3D LP active-set vertex solver
+use io
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = "8
+0 0 0 100
+0 0 100 0
+1000 1000 2000 1000
+1000 1000 1000 2000
+-500 200 500 1200
+-300 800 700 -200
+100 -400 300 600
+-600 -100 400 200"
+
+fun I0 solveBasis I1 I2 A B C
+  A0 = A I0
+  B0 = B I0
+  C0 = C I0
+
+  A1 = A I1
+  B1 = B I1
+  C1 = C I1
+
+  A2 = A I2
+  B2 = B I2
+  C2 = C I2
+
+  S1s = array 1.0 1.0 -1.0 -1.0
+  S2s = array 1.0 -1.0 1.0 -1.0
+
+  P1s = S1s * A1 - A0
+  Q1s = S1s * B1 - B0
+  R1s = C0 - S1s * C1
+
+  P2s = S2s * A2 - A0
+  Q2s = S2s * B2 - B0
+  R2s = C0 - S2s * C2
+
+  Dets = P1s * Q2s - Q1s * P2s
+  AbsD = Dets abs
+  ValidD = AbsD greater 0.000000000001
+  Ones4 = array 1.0 1.0 1.0 1.0
+  SafeD = ValidD choose Dets Ones4
+
+  Xs = (R1s * Q2s - Q1s * R2s) / SafeD
+  Ys = (P1s * R2s - R1s * P2s) / SafeD
+
+  rem Check 0 in convex hull of normals
+  V0s = A0 * Xs + B0 * Ys + C0
+  Ds = V0s abs
+  Sign0 = V0s greater 0.0
+  S0s = Sign0 choose Ones4 (0.0 - Ones4)
+  RealS1 = S0s * S1s
+  RealS2 = S0s * S2s
+
+  U0x = S0s * A0
+  U0y = S0s * B0
+  U1x = RealS1 * A1
+  U1y = RealS1 * B1
+  U2x = RealS2 * A2
+  U2y = RealS2 * B2
+
+  Cr01 = U0x * U1y - U0y * U1x
+  Cr12 = U1x * U2y - U1y * U2x
+  Cr20 = U2x * U0y - U2y * U0x
+
+  EPS = 0.0000000001
+  NegEps = 0.0 - EPS
+  PosHull = (Cr01 greater NegEps) and (
+    Cr12 greater NegEps
+  ) and (Cr20 greater NegEps)
+  NegHull = (Cr01 less EPS) and (
+    Cr12 less EPS
+  ) and (Cr20 less EPS)
+  InHull = ValidD and (
+    PosHull or NegHull
+  )
+
+  CandD = InHull choose Ds (0.0 - Ones4)
+  BestIdx = 0
+  MaxC = CandD max
+  if (CandD 1) equal MaxC
+    BestIdx = 1
+  elif (CandD 2) equal MaxC
+    BestIdx = 2
+  elif (CandD 3) equal MaxC
+    BestIdx = 3
+  end
+
+  ResX = Xs BestIdx
+  ResY = Ys BestIdx
+  ResD = CandD BestIdx
+  return (array ResX ResY ResD)
+end
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+TokInts = Tokens integer
+
+N = TokInts 0
+Raw = TokInts (1 till (1 + 4 * N))
+Rows = Raw reshape N 4
+Cols = Rows transpose
+
+X1 = (Cols 0) real
+Y1 = (Cols 1) real
+X2 = (Cols 2) real
+Y2 = (Cols 3) real
+
+RawA = Y1 - Y2
+RawB = X2 - X1
+RawC = X1 * Y2 - X2 * Y1
+SqLen = RawA * RawA + RawB * RawB
+Norm = SqLen sqrt
+
+A = RawA / Norm
+B = RawB / Norm
+C = RawC / Norm
+
+A0 = A 0
+B0 = B 0
+C0 = C 0
+BestX = (0.0 - A0) * C0
+BestY = (0.0 - B0) * C0
+Vals0 = A * BestX + B * BestY + C
+Abs0 = Vals0 abs
+BestD = Abs0 max
+
+Det0 = A0 * B - B0 * A
+AbsDet = Det0 abs
+MaxDet = AbsDet max
+EPS = 0.0000000001
+
+if MaxDet less EPS
+  rem All lines are parallel!
+  Signs = (A0 * A + B0 * B) greater 0.0
+  AdjC = Signs choose C (0.0 - C)
+  MinC = AdjC min
+  MaxC = AdjC max
+  MidC = 0.5 * (MinC + MaxC)
+  BestX = (0.0 - A0) * MidC
+  BestY = (0.0 - B0) * MidC
+  BestD = 0.5 * (MaxC - MinC)
+else
+  MaskP = AbsDet greater (0.5 * MaxDet)
+  IdxP = MaskP indices
+  I1 = IdxP 0
+  A1 = A I1
+  B1 = B I1
+  C1 = C I1
+
+  rem Parallel bands in dir 0 and I1
+  Cross0 = (A0 * B - B0 * A) abs
+  Par0M = Cross0 less EPS
+  Sgn0 = (A0 * A + B0 * B) greater 0.0
+  C0Val = Sgn0 choose C (0.0 - C)
+  FillC0 = C0 + 0.0 * C
+  C0Par = Par0M choose C0Val FillC0
+  MinC0 = C0Par min
+  MaxC0 = C0Par max
+  MidC0 = 0.5 * (MinC0 + MaxC0)
+  Span0 = 0.5 * (MaxC0 - MinC0)
+  Low0M = (C0Par - MinC0) less EPS
+  High0M = (MaxC0 - C0Par) less EPS
+  Low0Idx = Low0M indices
+  High0Idx = High0M indices
+  Low0I = Low0Idx 0
+  High0I = High0Idx 0
+
+  Cross1 = (A1 * B - B1 * A) abs
+  Par1M = Cross1 less EPS
+  Sgn1 = (A1 * A + B1 * B) greater 0.0
+  C1Val = Sgn1 choose C (0.0 - C)
+  FillC1 = C1 + 0.0 * C
+  C1Par = Par1M choose C1Val FillC1
+  MinC1 = C1Par min
+  MaxC1 = C1Par max
+  MidC1 = 0.5 * (MinC1 + MaxC1)
+  Span1 = 0.5 * (MaxC1 - MinC1)
+  Low1M = (C1Par - MinC1) less EPS
+  High1M = (MaxC1 - C1Par) less EPS
+  Low1Idx = Low1M indices
+  High1Idx = High1M indices
+  Low1I = Low1Idx 0
+  High1I = High1Idx 0
+
+  D01 = A0 * B1 - B0 * A1
+  NumX = B0 * MidC1 - B1 * MidC0
+  NumY = MidC0 * A1 - MidC1 * A0
+  BestX = NumX / D01
+  BestY = NumY / D01
+  Vals1 = A * BestX + B * BestY + C
+  Abs1 = Vals1 abs
+  BestD = Abs1 max
+
+  rem Check if a 3rd direction exists
+  RemM = (not Par0M) and (not Par1M)
+  if (RemM any) and (BestD greater EPS)
+    I0 = Low0I
+    I1 = Low1I
+    I2Idx = RemM indices
+    I2 = I2Idx 0
+    if Span0 greater (Span1 + EPS)
+      if Span0 greater EPS
+        I0 = Low0I
+        I1 = High0I
+      end
+    elif Span1 greater EPS
+      I0 = Low1I
+      I1 = High1I
+    end
+    NegEps = 0.0 - EPS
+    Diff1 = Abs1 - BestD
+    HitM = Diff1 greater NegEps
+    HitRem = HitM and RemM
+    if HitRem any
+      HRIdx = HitRem indices
+      I2 = HRIdx 0
+    end
+
+    for Step in (0 till 40)
+      Sol = I0 solveBasis I1 I2 A B C
+      CurX = Sol 0
+      CurY = Sol 1
+      CurD = Sol 2
+      if CurD greater -0.5
+        Vals = A * CurX + B * CurY + C
+        AbsV = Vals abs
+        MaxV = AbsV max
+        if MaxV less BestD
+          BestX = CurX
+          BestY = CurY
+          BestD = MaxV
+        end
+        if MaxV greater (CurD + EPS)
+          DiffV = AbsV - MaxV
+          WorstM = DiffV greater NegEps
+          WorstI = WorstM indices
+          W = WorstI 0
+
+          S0 = I0 solveBasis I1 W A B C
+          S1 = I0 solveBasis W I2 A B C
+          S2 = W solveBasis I1 I2 A B C
+
+          D0 = S0 2
+          D1 = S1 2
+          D2 = S2 2
+
+          if (D0 greater D1) and (
+            D0 greater D2
+          )
+            I2 = W
+          elif D1 greater D2
+            I1 = W
+          else
+            I0 = W
+          end
+        end
+      end
+    end
+  end
+end
+
+StrX = BestX text
+StrY = BestY text
+Result = StrX + " " + StrY
+Result print

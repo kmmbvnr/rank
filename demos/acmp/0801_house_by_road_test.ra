@@ -1,0 +1,53 @@
+rem ACMP 0801: House by the Road tests
+use testing
+use numbers
+
+test "ACMP 801: Sample 1"
+  use "0801_house_by_road"
+  Input = "4
+0 0 0 1
+0 0 1 0
+1 1 2 1
+1 1 1 2"
+  run
+  ((BestX - 0.5) abs) less 0.000001
+  ((BestY - 0.5) abs) less 0.000001
+  ((BestD - 0.5) abs) less 0.000001
+end
+
+test "ACMP 801: Single line"
+  use "0801_house_by_road"
+  Input = "1
+0 2 5 2"
+  run
+  BestD less 0.000001
+end
+
+test "ACMP 801: Parallel lines"
+  use "0801_house_by_road"
+  Input = "3
+0 0 10 0
+0 4 10 4
+0 10 10 10"
+  run
+  ((BestY - 5.0) abs) less 0.000001
+  ((BestD - 5.0) abs) less 0.000001
+end
+
+test "ACMP 801: Triangle incenter"
+  use "0801_house_by_road"
+  Input = "3
+0 0 4 0
+0 0 0 3
+4 0 0 3"
+  run
+  ((BestX - 1.0) abs) less 0.000001
+  ((BestY - 1.0) abs) less 0.000001
+  ((BestD - 1.0) abs) less 0.000001
+end
+
+test "ACMP 801: Default 8-line stress"
+  use "0801_house_by_road"
+  run
+  BestD greater 0.0
+end
