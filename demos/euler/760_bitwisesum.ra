@@ -1,0 +1,51 @@
+rem Sum over Bitwise Operators
+rem https://projecteuler.net/problem=760
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Limit integer = 10 ** 18
+arg Prime integer = 1000000007
+
+rem xor + or + and = 2 (m or n), and
+rem every n and k <= n give an ordered
+rem pair m + n <= N. Bits go from the
+rem low end with states (carry, sum so
+rem far above N) holding the number of
+rem pairs and the sum of m or n.
+rem 16 moves: state 4 times bit pair.
+Move = 0 to 15
+Carry = Move // 8
+Over = Move // 4 mod 2
+Left = Move // 2 mod 2
+Right = Move mod 2
+Either = Left bor Right
+Total = Carry + Left + Right
+Bit = Total mod 2
+Next = Total // 2
+From = Carry * 2 + Over
+Count = array 1 0 0 0
+Sum = array 0 0 0 0
+for Spot in 0 to 61
+  Mark = (Limit shr Spot) band 1
+  Rise = Bit greater Mark
+  Tie = Bit equal Mark
+  Keep = Tie and (Over equal 1)
+  Gain = Rise or Keep
+  To = Next * 2 + (Gain integer)
+  Power = 2 Spot Prime powmod
+  Weight = Either * Power
+  Here = Count From
+  Part = Sum From + Here * Weight
+  Fresh = array shape 4 fill 0
+  Added = array shape 4 fill 0
+  Fresh To += Here .accumulate
+  Added To += Part mod Prime .accumulate
+  Count = Fresh mod Prime
+  Sum = Added mod Prime
+end
+Answer = 2 * (Sum 0) mod Prime
+Answer print
