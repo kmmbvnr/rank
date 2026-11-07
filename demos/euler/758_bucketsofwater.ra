@@ -1,0 +1,66 @@
+rem Buckets of Water
+rem https://projecteuler.net/problem=758
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Top integer = 1000
+arg Power integer = 5
+arg Prime integer = 1000000007
+
+rem P(a, b) = 2 (x + y - 1), where
+rem a x - b y = +-1 is the smallest
+rem Bezout pair: x + y is the sum of the
+rem last-but-one convergent of b / a.
+rem For a = 2^u - 1, b = 2^v - 1, Euclid
+rem follows the exponents: with
+rem A = q B + r, M(A) = Q M(B) + M(r),
+rem Q = 2^r (1 + 2^B + ... + 2^(qB-B)).
+rem All pairs advance together.
+Primes = primes to (Top - 1) copy
+Exps = Primes ** Power
+Count = Exps len
+Rows = (0 till Count) reshape Count 1
+Cols = (0 till Count) reshape 1 Count
+Left = Rows + Cols * 0
+Right = Cols + Rows * 0
+Keep = Left less Right
+Big = Exps (Right Keep)
+Small = Exps (Left Keep)
+Num = Big * 0 + 1
+Prev = Big * 0
+Den = Big * 0
+Back = Big * 0 + 1
+Last = Big * 0
+for Round in 1 to 90
+  Live = Small greater 0
+  Safe = Small max 1
+  Quot = Big // Safe
+  Rest = Big mod Safe
+  Step = 2 Safe Prime powmod
+  High = Step Quot Prime powmod
+  Gap = Step - 1
+  Zero = Gap mod Prime equal 0
+  Mod = Gap mod Prime
+  Inv = Mod (Prime - 2) Prime powmod
+  Raw = High + Prime - 1
+  Geo = Raw * Inv mod Prime
+  Sum = Zero choose (Quot mod Prime) Geo
+  Mult = 2 Rest Prime powmod
+  Part = Mult * Sum mod Prime
+  Nnew = (Part * Num + Prev) mod Prime
+  Dnew = (Part * Den + Back) mod Prime
+  Final = Live and (Rest equal 0)
+  Last = Final choose (Num + Den) Last
+  Prev = Live choose Num Prev
+  Back = Live choose Den Back
+  Num = Live choose Nnew Num
+  Den = Live choose Dnew Den
+  Big = Live choose Safe Big
+  Small = Live choose Rest Small
+end
+Moves = 2 * (Last - 1) mod Prime
+Answer = Moves sum mod Prime
+Answer print
