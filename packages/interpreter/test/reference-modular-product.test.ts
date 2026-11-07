@@ -14,7 +14,7 @@ function array(value: ReturnType<Interpreter['execute']>) {
 }
 
 for (const compilation of [false, true]) describe(`ordinary modular products, compilation=${compilation}`, () => {
-    for (const shape of [[6], [2, 3], [1, 2, 3]]) for (const m of [1n, 17n, 1000000007n, 1073741824n]) {
+    for (const shape of [[6], [2, 3], [1, 2, 3]]) for (const m of [1n, 17n, 1000000007n, 1073741824n, 1073741825n, 1999998034n, 2147483648n]) {
         it(`reduces exact wide products in shape ${shape}, modulus ${m}`, () => {
             const runtime = new Interpreter(() => {}, { compilation });
             try {

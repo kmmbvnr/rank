@@ -11,6 +11,17 @@ export function multiply(a: number, b: number, modulus: number): number {
     return remainder < 0 ? remainder + modulus : remainder >= modulus ? remainder - modulus : remainder;
 }
 
+/** Exact modular multiplication for 0 <= a,b < modulus <= 2^31.
+ * Rounding a*b/modulus gives a centered difference of at most roughly
+ * modulus/2. Floating quotient error is below 2^-20 in this domain, so
+ * the difference stays strictly within signed Int32. imul recovers its
+ * exact low bits; adding the modulus once gives the nonnegative residue. */
+export function multiplyWide(a: number, b: number, modulus: number): number {
+    const quotient = Math.round(a * b / modulus);
+    const remainder = (Math.imul(a, b) - Math.imul(quotient, modulus)) | 0;
+    return remainder < 0 ? remainder + modulus : remainder;
+}
+
 let lastBase = -1;
 let lastModulus = -1;
 let squares: Float64Array | undefined;

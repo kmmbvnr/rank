@@ -1,14 +1,15 @@
-import { multiply } from '../runtime/modular-power.js';
+import { multiply, multiplyWide } from '../runtime/modular-power.js';
 
 // Internal replay signal, never a Rank error or a numeric value.
 export const numberOverflow = {};
 
-/** Safe integer operands; unsupported moduli replay with exact arithmetic. */
+/** Safe integer operands. Up to 2^31, all residues fit signed Int32 cells;
+ * larger moduli retain exact replay. The <=2^30 multiplier stays unchanged. */
 export function checkedNumberModularMultiply(a: number, b: number, modulus: number): number {
-    if (!(modulus > 0 && modulus <= 2 ** 30)) throw numberOverflow;
+    if (!(modulus > 0 && modulus <= 2 ** 31)) throw numberOverflow;
     const x = a >= 0 && a < modulus ? a : ((a % modulus) + modulus) % modulus;
     const y = b >= 0 && b < modulus ? b : ((b % modulus) + modulus) % modulus;
-    return multiply(x, y, modulus);
+    return modulus <= 2 ** 30 ? multiply(x, y, modulus) : multiplyWide(x, y, modulus);
 }
 
 /** Repeated squaring uses only checked integer products. JS ** can round a

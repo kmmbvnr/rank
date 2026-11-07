@@ -29,7 +29,7 @@ describe('exact modular products in numeric vectors', () => {
         expect(result.diagnostics.numberLoops).toBe(1);
         expect(result.diagnostics.numberLoopOverflows).toBe(0);
     });
-    it.each([2, 17, 94906266, 94906267, 1000000007, 1073741824])('keeps exact residues for modulus %s', modulus => {
+    it.each([2, 17, 94906266, 94906267, 1000000007, 1073741824, 1999998034, 2147483648])('keeps exact residues for modulus %s', modulus => {
         const result = compare(loop(`A * B mod ${modulus}`));
         expect(result.observation.error).toBeUndefined();
         expect(result.diagnostics.numberLoopOverflows).toBe(0);
@@ -67,7 +67,7 @@ C = (array 17 1000000007) reshape 1 1 2`));
         expect(result.observation.error).toBeUndefined();
         expect(result.diagnostics.numberLoops).toBe(1);
     });
-    it.each([0, -17, 1073741825, 9007199254740991])('replays unsupported/invalid modulus %s', modulus => {
+    it.each([0, -17, 2147483649, 9007199254740991])('replays unsupported/invalid modulus %s', modulus => {
         compare(loop(`A * B mod ${modulus}`));
     });
     it('retains literal and named BigInt moduli beyond safe Number range', () => {

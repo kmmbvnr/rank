@@ -1,6 +1,6 @@
 import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { collectArrayCells } from './array-read.js';
-import { multiply } from './modular-power.js';
+import { multiply, multiplyWide } from './modular-power.js';
 import { integer32Cells, typedArray } from './owned-array.js';
 import type { RankArray } from './value.js';
 
@@ -9,11 +9,11 @@ const MAX_MODULUS = 2 ** 31;
 
 type Step = (acc: number, x: number) => number;
 
-/** `+` and `*` on residues below `m`; the wide product is split in 16-bit halves. */
+/** `+` and `*` on residues below `m`, with exact low-word multiplication. */
 export function stepOf(op: '+' | '*', m: number): Step {
     if (op === '+') return (a, x) => { const s = a + x; return s >= m ? s - m : s; };
     if (m <= 2 ** 30) return (a, x) => multiply(a, x, m);
-    return (a, x) => ((a * (x >>> 16)) % m * 65536 + a * (x & 65535)) % m;
+    return (a, x) => multiplyWide(a, x, m);
 }
 
 /** Cells reduced into [0, m), with their shape. */
@@ -112,11 +112,12 @@ export function modularReduce(op: '+' | '*', source: Residues, seed: bigint | un
     return BigInt(acc);
 }
 
-/** `A * B mod M` for equal-shape integer arrays and M up to 2^30: each product is
+/** `A * B mod M` for equal-shape integer arrays and M up to 2^31: each product is
  * reduced as it forms, so no cell leaves the Int32 range. */
 export function modularProduct(a: RankArray, b: RankArray, modulus: bigint): RankArray | undefined {
     const m = modulusOf(modulus);
-    if (m === undefined || m > 2 ** 30 || a.shape.length !== b.shape.length || a.shape.some((n, i) => n !== b.shape[i])) return undefined;
+    if (m === undefined || a.shape.length !== b.shape.length || a.shape.some((n, i) => n !== b.shape[i])) return undefined;
+    const product = m <= 2 ** 30 ? multiply : multiplyWide;
     // Stable Int32 inputs need only the result buffer. Reduce cells in place
     // in the arithmetic expression, rather than allocating two residue copies.
     const left = integer32Cells(a), right = integer32Cells(b);
@@ -125,7 +126,7 @@ export function modularProduct(a: RankArray, b: RankArray, modulus: bigint): Ran
         const out = new Int32Array(left.length);
         for (let i = 0; i < out.length; i++) {
             const x = left[i] % m, y = right[i] % m;
-            out[i] = multiply(x < 0 ? x + m : x, y < 0 ? y + m : y, m);
+            out[i] = product(x < 0 ? x + m : x, y < 0 ? y + m : y, m);
         }
         return typedArray(out, a.shape);
     }
@@ -133,7 +134,7 @@ export function modularProduct(a: RankArray, b: RankArray, modulus: bigint): Ran
     if (!x || !y) return undefined;
     checkpoint('computing integer array', x.cells.length);
     const out = new Int32Array(x.cells.length);
-    for (let i = 0; i < out.length; i++) out[i] = multiply(x.cells[i], y.cells[i], m);
+    for (let i = 0; i < out.length; i++) out[i] = product(x.cells[i], y.cells[i], m);
     return typedArray(out, x.shape);
 }
 

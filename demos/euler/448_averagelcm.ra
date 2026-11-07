@@ -18,80 +18,109 @@ rem x = N // i above L it follows
 rem from F(x) = x(x+1)(2x+1)/6 -
 rem sum over k >= 2 of k F(x // k).
 Mod = 999999017
-Rn = N isqrt + 2
-Lm = L max Rn min N
-Inv2 = (Mod + 1) // 2
-Ph = 0 to Lm copy
-Sm = array shape (Lm + 1) fill 1
-Rt = Lm isqrt
-for P in primes to Rt
-  Q = P
-  for Q at most Lm
-    Sl = Q to Lm by Q
-    Sm Sl *= P
-    if Q equal P
-      Ph Sl -= Ph Sl // P
+Minimum = N isqrt + 2
+Bound = L max Minimum min N max 1
+Inverse2 = (Mod + 1) // 2
+Inverse6 = (Mod + 1) // 6
+TwiceMod = 2 * Mod
+
+rem Remove small prime powers together.
+fun Bound weighted_phi
+  Size = Bound + 1
+  Phi = 0 to Bound copy
+  Removed = array shape Size fill 1
+  Top = Bound isqrt
+  Primes = primes to Top copy
+  Count = Primes len
+  Index = 0
+  Power = 2
+  for Index less Count
+    Prime = Primes Index
+    Slots = Power to Bound by Power
+    Removed Slots *= Prime
+    if Power equal Prime
+      Phi Slots -= Phi Slots // Prime
     end
-    Q *= P
+    Power *= Prime
+    if Power greater Bound
+      Index += 1
+      if Index less Count
+        Power = Primes Index
+      end
+    end
   end
+  Keys = 0 to Bound copy
+  Rest = Keys // Removed max 1
+  Large = Rest greater 1
+  Phi = Large choose (Phi - Phi // Rest) Phi
+  return Keys * Phi mod Mod
 end
-Ix = 0 to Lm copy
-Rs = Ix // Sm
-Big = Rs greater 1
-Pv = Ph
-Pc' = Pv - Pv // Rs
-Ph = Big choose Pc Pv copy
-Ph 0 = 0
-Fk = Ix mod Mod * Ph mod Mod
-Cs = Fk scan + with 0
-C1 = (Cs (1 to Lm + 1)) mod Mod
-Nq = N // Lm
-Lt = array shape (Nq + 2) fill 0
-for I in Nq to 1 by -1
+
+Weights = Bound weighted_phi
+Prefix = (Weights scan +) mod Mod
+Count = N // Bound
+Sums = array shape (Count + 2) fill 0
+for I in Count to 1 by -1
   X = N // I
-  if X greater Lm
-    R = X isqrt
-    Ks = 2 to R copy
-    Ys = X // Ks
-    Sv = C1 (Ys min Lm)
-    Lv = Lt (I * Ks min Nq)
-    Va = Ys at most Lm choose Sv Lv
-    Pa = Ks * Va mod Mod sum
-    Qs = (1 to X // (R + 1)) copy
-    Hi = X // Qs
-    Lo = X // (Qs + 1) max R
-    Eh = Hi mod 2 equal 0
-    Ah = Eh choose (Hi // 2) Hi
-    H1 = Hi + 1
-    Bh = Eh choose H1 (H1 // 2)
-    Sh = Ah mod Mod * (Bh mod Mod)
-    Sh = Sh mod Mod
-    El = Lo mod 2 equal 0
-    Al = El choose (Lo // 2) Lo
-    L1 = Lo + 1
-    Bl = El choose L1 (L1 // 2)
-    Sl = Al mod Mod * (Bl mod Mod)
-    Sl = Sl mod Mod
-    Dk = (Sh - Sl) mod Mod
-    Pb = Dk * C1 Qs mod Mod sum
-    T6 = X * (X + 1) * (2 * X + 1) // 6
-    Lt I = (T6 - Pa - Pb) mod Mod
+  if X greater Bound
+    Root = X isqrt
+    Divisors = 2 to Root copy
+    Quotients = X // Divisors
+    Small = Prefix (Quotients min Bound)
+    Keys = I * Divisors min Count
+    Cached = Sums Keys
+    Mask = Quotients at most Bound
+    Values = Mask choose Small Cached
+    Terms = Divisors * Values mod Mod
+    Direct = Terms sum
+    Groups = (1 to X // (Root + 1)) copy
+    HighBound = X // Groups
+    NextGroups = Groups + 1
+    LowBound = X // NextGroups max Root
+    rem n(n+1) mod 2M stays even.
+    High = HighBound mod TwiceMod
+    HighNext = (High + 1) mod TwiceMod
+    HighSum = High * HighNext mod TwiceMod
+    HighSum = HighSum // 2
+    Low = LowBound mod TwiceMod
+    LowNext = (Low + 1) mod TwiceMod
+    LowSum = Low * LowNext mod TwiceMod
+    LowSum = LowSum // 2
+    Span = (HighSum - LowSum) mod Mod
+    Terms = Span * Prefix Groups mod Mod
+    Grouped = Terms sum
+    Reduced = X mod Mod
+    Next = (Reduced + 1) mod Mod
+    Twice = (2 * Reduced + 1) mod Mod
+    Product = Reduced * Next mod Mod
+    Product = Product * Twice mod Mod
+    Squares = Product * Inverse6 mod Mod
+    Part = Squares - Direct - Grouped
+    Sums I = Part mod Mod
   end
 end
-R2 = N isqrt
-Dd = 1 to R2 copy
-Pd = Fk Dd * (N // Dd mod Mod) mod Mod
-Qq = (1 to N // (R2 + 1)) copy
-Xq = N // Qq
-Sx = C1 (Xq min Lm)
-Qm = Qq min Nq
-Fx = Xq at most Lm choose Sx (Lt Qm)
-Lw = N // (Qq + 1) max R2
-Sw = C1 (Lw min Lm)
-Qn = Qq + 1 min Nq
-Fl = Lw at most Lm choose Sw (Lt Qn)
-Dq = (Fx - Fl) mod Mod
-Pq = Qq * Dq mod Mod sum
-Rr = (Pd sum) + Pq
-Answer = (N + Rr) mod Mod * Inv2 mod Mod
+fun Values lookup Keys
+  Small = Prefix (Values min Bound)
+  Cached = Sums (Keys min Count)
+  Mask = Values at most Bound
+  return Mask choose Small Cached
+end
+
+Root = N isqrt
+Divisors = 1 to Root copy
+Factors = N // Divisors mod Mod
+SmallWeights = Weights Divisors
+DirectTerms = SmallWeights * Factors mod Mod
+Groups = (1 to N // (Root + 1)) copy
+HighBounds = N // Groups
+HighValues = HighBounds lookup Groups
+LowBounds = N // (Groups + 1) max Root
+LowKeys = Groups + 1
+LowValues = LowBounds lookup LowKeys
+Delta = (HighValues - LowValues) mod Mod
+GroupTerms = Groups * Delta mod Mod
+GroupedTotal = GroupTerms sum
+Total = (DirectTerms sum) + GroupedTotal
+Reduced = (N + Total) mod Mod
+Answer = Reduced * Inverse2 mod Mod
 Answer print

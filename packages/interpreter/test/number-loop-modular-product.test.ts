@@ -24,7 +24,7 @@ describe('exact modular products in Number loops', () => {
     it('checks signed products, zero and the modulus admission boundaries against BigInt', () => {
         const max = 9007199254740991n;
         const operands = [-max, -1073741825n, -104060401n, -1n, 0n, 1n, 104060400n, 1073741823n, max];
-        const moduli = [-104060401n, 0n, 1n, 2n, 101n, 94906265n, 94906266n, 94906267n, 104060401n, 1073741823n, 1073741824n, 1073741825n];
+        const moduli = [-104060401n, 0n, 1n, 2n, 101n, 94906265n, 94906266n, 94906267n, 104060401n, 1073741823n, 1073741824n, 1073741825n, 1999998034n, 2147483647n, 2147483648n, 2147483649n];
         const runtime = new Interpreter(() => {}, { scalarFunctionCompilation: false, scalarEntryCompilation: false });
         let entries = 0;
         try {
@@ -39,14 +39,14 @@ describe('exact modular products in Number loops', () => {
                     if (expected !== 0n && (product < 0n) !== (m < 0n)) expected += m;
                     expect(run(), `${a},${b},${m}`).toBe(expected);
                 }
-                if (m > 0n && m <= 1073741824n) expect(diagnostics.numberLoopOverflows).toBe(0);
+                if (m > 0n && m <= 2147483648n) expect(diagnostics.numberLoopOverflows).toBe(0);
                 entries += diagnostics.numberLoops;
             }
             expect(entries).toBeGreaterThan(0);
         } finally { runtime.dispose(); }
     }, 15_000);
 
-    it.each(['0', '1073741825', '-104060401'])('replays private writes exactly for modulus %s', modulus => {
+    it.each(['0', '2147483649', '-104060401'])('replays private writes exactly for modulus %s', modulus => {
         compare(`A = array shape 4 fill 0
 Saved = A
 M = ${modulus}
@@ -82,7 +82,7 @@ end`);
         const runtime = new Interpreter(() => {}, { scalarFunctionCompilation: false, scalarEntryCompilation: false });
         const source = 'for I in 0 to 100\n R = (A + I) * B mod M\nend\nR';
         try {
-            for (const m of [101n, 94906266n, 94906267n, 982451653n, 1073741824n, 1073741825n, -7n, 0n]) {
+            for (const m of [101n, 94906266n, 94906267n, 982451653n, 1073741824n, 1073741825n, 1999998034n, 2147483648n, 2147483649n, -7n, 0n]) {
                 const a = -999999937n, b = 999999929n, product = (a + 100n) * b;
                 runtime.execute(`A = ${a}\nB = ${b}\nM = ${m}\nR = 0`);
                 if (m === 0n) expect(() => runtime.execute(source)).toThrow('division by zero');
@@ -125,10 +125,10 @@ end`);
         expect(traces[0]).toEqual(['A0', 'B0', 'M0', 'A1', 'B1', 'M1', 'A2', 'B2', 'M2']);
     });
 
-    it('retains demand budgets in a warmed large-modulus loop', () => {
+    it.each([982451653, 1999998034, 2147483648])('retains demand budgets after warming with modulus %s', modulus => {
         const runtime = new Interpreter(() => {}, { scalarFunctionCompilation: false, scalarEntryCompilation: false });
         const diagnostics = new RuntimeDiagnostics();
-        const source = 'R = 1\nfor I in 1 to N\n R = R * 999999937 mod 982451653\nend\nR';
+        const source = `R = 1\nfor I in 1 to N\n R = R * 999999937 mod ${modulus}\nend\nR`;
         try {
             runtime.execute('N = 10');
             runtime.execute(source);
@@ -141,14 +141,14 @@ end`);
         } finally { runtime.dispose(); }
     });
 
-    it('polls a modular loop and leaves aliases intact after cancellation', () => {
+    it.each([104060401, 1999998034, 2147483648])('polls modular writes and retains aliases with modulus %s', modulus => {
         const runtime = new Interpreter(() => {}, { scalarFunctionCompilation: false, scalarEntryCompilation: false });
         const diagnostics = new RuntimeDiagnostics();
         try {
             runtime.execute('use sequences\nA = array shape 16 fill 0\nSaved = A\nDone = 0');
             expect(() => withInterrupt(new Int32Array([1]), () => diagnostics.run(() => runtime.execute(`try
  for I in 0 to 1000000
-  A (I mod 16) = (999999937 + I) * 999999929 mod 104060401
+  A (I mod 16) = (999999937 + I) * 999999929 mod ${modulus}
  end
 finally
  Done = 1
