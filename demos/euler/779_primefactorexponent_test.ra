@@ -1,0 +1,8 @@
+use testing
+
+test "mean for K = 1"
+  use "779_primefactorexponent"
+  Depth = 1
+  run
+  Answer equal 0.282419756159
+end

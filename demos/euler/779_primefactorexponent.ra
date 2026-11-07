@@ -1,0 +1,31 @@
+rem Prime Factor and Exponent
+rem https://projecteuler.net/problem=779
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Depth integer = 1000
+arg Reach integer = 4000000
+
+rem Smallest prime p with p^a exactly
+rem dividing n has density
+rem D(p) (1 - 1/p) / p^a, where D(p) is
+rem the product of 1 - 1/q over q < p.
+rem With x = 1 / p the sum over a of
+rem (a - 1) x^a is x^2 / (1 - x)^2, and
+rem K = 1..Depth gives x (1 - x^Depth) /
+rem (1 - x), so each prime adds
+rem D(p) x^3 (1 - x^Depth) / (1 - x)^2.
+Primes = primes to Reach copy
+Inv = 1.0 / Primes
+Before = (1.0 - Inv) scan * with 1.0
+Dens = Before take (Primes len)
+Rate = Inv ** Depth
+Tail = Inv * Inv * Inv * (1.0 - Rate)
+Gap = (1.0 - Inv) * (1.0 - Inv)
+Terms = Dens * Tail / Gap
+Total = Terms sum
+Answer = Total round 12
+Answer print
