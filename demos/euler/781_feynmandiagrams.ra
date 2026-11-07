@@ -1,0 +1,34 @@
+rem Feynman Diagrams
+rem https://projecteuler.net/problem=781
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Count integer = 50000
+arg Mod integer = 1000000007
+
+rem Odd n gives no diagram. With
+rem n = 2m, a profile A(j), j = 1..2m,
+rem evolves by
+rem A'(j) = sum_{t >= j} A(t)
+rem          + (j - 1) A(j - 2).
+rem F(2m) is the profile sum.
+Pairs = Count // 2
+Profile = array 0 1
+for Layer in 2 to Pairs
+  Size = Profile len
+  Suffix = Profile reverse scan +
+  Suffix = Suffix reverse
+  Zero = array 0 0
+  Plain = concat Suffix Zero
+  Spots = 1 to Size
+  Weight = (Spots + 1) * Profile
+  Shift = concat Zero (Weight mod Mod)
+  Profile = (Plain + Shift) mod Mod
+end
+Total = Profile sum mod Mod
+Even = Count mod 2 equal 0
+Answer = Even choose Total 0
+Answer print

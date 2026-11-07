@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "781_feynmandiagrams"
+  Count = 4
+  run
+  Answer equal 5
+  Count = 8
+  run
+  Answer equal 319
+end
+
+test "odd counts have no diagram"
+  use "781_feynmandiagrams"
+  Count = 7
+  run
+  Answer equal 0
+end
