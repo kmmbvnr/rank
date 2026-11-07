@@ -1,0 +1,57 @@
+rem ACMP 0604: Cacti tests
+use testing
+
+test "ACMP 604: Sample 1"
+  use "0604_cacti"
+  Input = "6
+1 3
+2 3
+3 4
+4 5
+4 6"
+  run
+  Result equal 12
+end
+
+test "ACMP 604: Single vertex"
+  use "0604_cacti"
+  Input = "1"
+  run
+  Result equal 1
+end
+
+test "ACMP 604: Path of 3"
+  use "0604_cacti"
+  Input = "3
+1 2
+2 3"
+  run
+  Result equal 2
+end
+
+test "ACMP 604: Star of 4 leaves"
+  use "0604_cacti"
+  Input = "5
+1 2
+1 3
+1 4
+1 5"
+  run
+  Result equal 7
+end
+
+test "ACMP 604: Path of 4"
+  use "0604_cacti"
+  Input = "4
+1 2
+2 3
+3 4"
+  run
+  Result equal 4
+end
+
+test "ACMP 604: 60-node stress test"
+  use "0604_cacti"
+  run
+  Result greater 1000000
+end
