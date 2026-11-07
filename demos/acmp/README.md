@@ -70,6 +70,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0555** | [Вычисление сложности программы](0555_complexity.ra) | Dynamic Programming (76%) | Count nested loop operations mod ^{32}$ via reverse topological tree DP and suffix sum vectorization in a single flat loop |
 | **0558** | [Упаковка](0558_packing.ra) | Computational Geometry (65%) | Soddy gap count via Descartes circle theorem vectorized over $a$ for pairs $(b, c)$ |
 | **0560** | [Остановки](0560_bus_stops.ra) | Dynamic Programming (64%) | Minimum platform construction cost with gap intervals $[r, R]$ via prefix sum costs & range minimum segment tree queries |
+| **0561** | [Башни](0561_towers.ra) | Sorting / Tetration Normalization (95%) | Sort power towers $a_0^{a_1^{\dots^{a_k}}}$ ($k \le 9, a_i \le 99$) via canonical iterated-exp normalization $(L, x) \in \mathbb{Z}_{\ge 0} \times [0, 1)$ and `Keys argsort` |
 | **0563** | [Задача про XOR](0563_xor_problem.ra) | Bitwise / Combinatorics (69%) | All-pairs power-of-two difference XOR sum via vector residue partitioning, run-length compression & bit parity |
 | **0566** | [Халява](0566_freebie.ra) | Math / Branch & Bound (61%) | Maximize t-shirts from 1, 2, 3-star caps via closed forms for $K \le 3$, and DAG stack search with upper bound pruning for $K \ge 4$ |
 | **0572** | [Технология программирования](0572_programming_technology.ra) | Greedy / Sorting (60%) | Maximize persuaded friends via dual-group sorting: $b_i \ge 0$ by threshold $a_i$ ascending, $b_i < 0$ by potential $(a_i + b_i)$ descending |
