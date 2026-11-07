@@ -1,0 +1,34 @@
+rem ACMP 0861: Shards (Pillai's sum)
+rem Zero-loop sum_{m=1}^N gcd(m, N)
+use algo
+use io
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = "999999999999999999"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+N = Nums 0
+
+Result = "1"
+if N greater 1
+  Facs = N factors array
+  Primes = Facs unique array
+  Lo = Facs lowerindex Primes
+  Hi = Facs upperindex Primes
+  Exps = Hi - Lo
+  PK = Primes ** Exps
+  PK1 = PK // Primes
+  Diff = PK - PK1
+  TermA = Exps * Diff
+  Terms = PK + TermA
+  Ans = Terms reduce *
+  Result = Ans text
+end
+Result print
