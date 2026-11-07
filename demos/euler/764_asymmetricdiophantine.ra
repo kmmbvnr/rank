@@ -7,22 +7,26 @@ use io
 use cli
 
 arg Limit integer = 10 ** 16
-arg Block integer = 400
+arg Block integer = 256
 arg Mod integer = 1000000000
 
-rem (4x, y^2, z) is a Pythagorean triple.
-rem Odd y: x = (p^4-q^4)/8, y = pq,
-rem z = (p^4+q^4)/2, p > q odd, coprime.
-rem Even y = 4pq with gcd(p, q) = 1:
-rem  A (p odd): x = p^4-4q^4,
-rem   z = 4 (p^4 + 4q^4);
-rem  B (q odd): x = 4p^4-q^4,
-rem   z = 4 (4p^4 + q^4).
-rem One batch holds the three families
-rem on axis 0 and a block of p rows.
-Top = ((2 * Limit) isqrt) isqrt + 1
-Fam = (0 to 2) reshape 3 1 1
-Cols = (1 to Top) reshape 1 1 Top
+rem (4x, y^2, z) is a Pythagorean
+rem triple.
+rem Odd y: x = (p^4 - q^4) / 8, y = pq,
+rem z = (p^4 + q^4) / 2, p > q, both
+rem odd and coprime. Even y = 4pq with
+rem gcd(p, q) = 1:
+rem  A (p odd): x = p^4 - 4 q^4,
+rem   z = 4 (p^4 + 4 q^4);
+rem  B (q odd): x = 4 p^4 - q^4,
+rem   z = 4 (4 p^4 + q^4).
+rem Each family has a rectangle of
+rem (p, q) = (Pa i + Pb, Qa j + Qb);
+rem blocks of rows are the jobs.
+Pa = array 2 2 1
+Pb = array 1 1 1
+Qa = array 2 1 2
+Qb = array 1 1 1
 Px = array 1 1 4
 Qx = array 1 4 1
 Dx = array 8 1 1
@@ -30,35 +34,48 @@ Pz = array 1 4 16
 Qz = array 1 16 4
 Dz = array 2 1 1
 Ym = array 1 4 4
-Pneed = array 1 1 0
-Qneed = array 1 0 1
 Order = array 1 0 0
-Blocks = (Top + Block - 1) // Block
+Quart = Limit // 4
+Small = Limit // 16
+Lim = array (2 * Limit) Quart Small
+Lim2 = array (2 * Limit) Small Quart
+Pmax = (Lim isqrt) isqrt + 1
+Qmax = (Lim2 isqrt) isqrt + 1
+Rows = (Pmax - Pb) // Pa + 1
+Cols = (Qmax - Qb) // Qa + 1
+Parts = (Rows + Block - 1) // Block
+Bound = Parts scan + with 0
+Jobs = Parts sum
 Answer = 0
-for Piece in 0 to Blocks - 1
-  First = 1 + Piece * Block
-  Last = (First + Block - 1) min Top
-  Seq = First to Last
-  Rows = Seq reshape 1 (Seq len) 1
-  Cop = Rows gcd Cols
-  P4 = Rows ** 4
-  Q4 = Cols ** 4
+for Job in 0 to Jobs - 1
+  Done = Bound drop 1 at most Job
+  Fam = Done integer sum
+  Piece = Job - Bound Fam
+  Seq = Piece * Block + (0 to Block - 1)
+  Live = Seq less Rows Fam
+  Ps = Pa Fam * Seq + Pb Fam
+  Cnt = Cols Fam
+  Qs = Qa Fam * (0 to Cnt - 1) + Qb Fam
+  Pcol = Ps reshape Block 1
+  Qrow = Qs reshape 1 (Qs len)
+  P4 = Pcol ** 4
+  Q4 = Qrow ** 4
   Num = Px Fam * P4 - Qx Fam * Q4
-  Num = Num + Cols * 0
   Xv = Num // Dx Fam
-  Yv = Ym Fam * Rows * Cols
-  Zv = (Pz Fam * P4 + Qz Fam * Q4) // Dz Fam
-  Podd = Rows mod 2
-  Qodd = Cols mod 2
-  Bad = Pneed Fam * (1 - Podd) + Qneed Fam * (1 - Qodd)
-  Wrong = (Rows at most Cols) integer
-  Bad = Bad + Order Fam * Wrong
+  Yv = Ym Fam * Pcol * Qrow
+  Zn = Pz Fam * P4 + Qz Fam * Q4
+  Zv = Zn // Dz Fam
+  Cop = Pcol gcd Qrow
+  Wrong = (Pcol at most Qrow) integer
+  Bad = Order Fam * Wrong
+  Rowok = Live reshape Block 1
   Good = (Bad equal 0) and (Cop equal 1)
   Good = Good and (Num greater 0)
-  Fits = Zv at most Limit
-  Fine = Good and Fits
+  Good = Good and (Zv at most Limit)
+  Good = Good and Rowok
   Terms = (Xv + Yv + Zv) mod Mod
-  Used = Terms Fine
-  Answer = (Answer + Used sum) mod Mod
+  Used = Terms Good
+  Part = Used sum
+  Answer = (Answer + Part) mod Mod
 end
 Answer print
