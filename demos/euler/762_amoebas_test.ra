@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "762_amoebas"
+  Count = 2
+  run
+  Answer equal 2
+  Count = 10
+  run
+  Answer equal 1301
+  Count = 20
+  run
+  Answer equal 5895236
+  Count = 100
+  run
+  Answer equal 125923036
+end

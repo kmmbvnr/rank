@@ -1,0 +1,32 @@
+rem Amoebas in a 2D Grid
+rem https://projecteuler.net/problem=762
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+arg Count integer = 100000
+arg Mod integer = 1000000000
+
+rem C(n) satisfies an order-8 linear
+rem recurrence (checked against C(2),
+rem C(10), C(20), C(100) of the
+rem statement). Its companion matrix
+rem advances the window C(n-7)..C(n).
+Seed = array 1 2 4 9 20 46 105 243
+Coef = array 4 -2 4 -5 -3 -1 2 2
+Cells = array shape 64 fill 0
+Diag = 0 to 6
+Cells (Diag * 9 + 1) = 1
+Cells (56 to 63) = (Coef + Mod) mod Mod
+Step = Cells reshape 8 8
+Power = (Count - 8) max 0
+Jump = Step matpow Power mod Mod
+Window = Jump matmul Seed mod Mod
+Early = array 1 1 2 4 9 20 46 105 243
+Known = Early (Count min 8)
+Small = Count less 9
+Answer = Small choose Known (Window 7)
+Answer print
