@@ -1,78 +1,85 @@
 rem Diophantine Reciprocals III
 rem https://projecteuler.net/problem=454
-
 use numbers
 use sequences
 use io
 use cli
-
 arg L integer = 1000000000000
 
-rem x = t u (u+v), y = t v (u+v) with
-rem u < v coprime. With a = v and
-rem s = u + v: F = sum over coprime
-rem a < s < 2a of L // (a s). Moebius
-rem on the gcd: F = sum mu(d) G(L //
-rem d^2), G the same sum without the
-rem gcd condition. Blocks of d with
-rem equal L // d^2 share one G.
-Dm = L // 6 isqrt + 1
-Mu = array shape (Dm + 1) fill 1
-Mu 0 = 0
-for P in primes to Dm
-  Sl = P to Dm by P
-  Mu Sl *= -1
-  if P * P at most Dm
-    Sq = P * P to Dm by (P * P)
-    Mu Sq = 0
+fun Bound mobius
+  Signs = array shape (Bound + 1) fill 1
+  Signs 0 = 0
+  for Prime in primes to Bound
+    Slots = Prime to Bound by Prime
+    Signs Slots *= -1
+    Square = Prime * Prime
+    if Square at most Bound
+      Slots = Square to Bound by Square
+      Signs Slots = 0
+    end
   end
+  return Signs
 end
-Mc = Mu scan + copy
-Tot = 0
-D = 1
-for D at most Dm
-  X = L // (D * D)
-  D2 = (L // X isqrt) min Dm
-  Cf = Mc D2 - Mc (D - 1)
-  if Cf not equal 0 and X at least 6
-    rem a up to the cube root: every
-    rem s, as a loop over u = s - a.
-    A0 = (X ** (1 / 3)) floor
-    for (A0 + 1) ** 3 at most X
-      A0 += 1
-    end
-    for A0 ** 3 greater X
-      A0 -= 1
-    end
-    G = 0
-    for U in 1 to A0 - 1
-      As = U + 1 to A0 copy
-      G += (X // (As * (As + U))) sum
-    end
-    rem Larger a: t with all a - 1
-    rem values of s, then the rest of
-    rem t as a loop over t.
-    Am = (4 * X + 1 isqrt - 1) // 2
-    Ab = A0 + 1 to Am copy
-    Fl = X // (Ab * (2 * Ab - 1))
-    G += ((Ab - 1) * Fl) sum
-    Tm = X // ((A0 + 1) * (A0 + 2))
-    for T in 1 to Tm
-      Y = X // T
-      Hi = (4 * Y + 1 isqrt - 1) // 2
-      Lo = (1 + (8 * Y + 9) isqrt) // 4
-      for Lo * (2 * Lo - 1) at most Y
-        Lo += 1
-      end
-      Lo = Lo max (A0 + 1)
-      if Lo at most Hi
-        As = Lo to Hi copy
-        G += (X // (As * T) - As) sum
+
+rem Sum N // (a*b), a < b < 2a.
+fun N pair_count
+  rem This cutoff need not be exact.
+  Cube = N ** (1 / 3) floor
+  Factor = (Cube + 1) * (2 * Cube + 1)
+  Last = N // Factor
+  rem Sum full rows by their multiplier.
+  Levels = 1 to Last copy
+  Roots = 8 * (N // Levels) + 1 isqrt
+  Ends = (Roots + 1) // 4
+  Base = Cube * (Cube - 1)
+  Sum = Ends * (Ends - 1) - Base sum
+  Sum //= 2
+  Tail = N // ((Cube + 1) * (Cube + 2))
+  Last = Cube - 1 + Tail
+  for I in 1 to Last
+    if I less Cube
+      Rows = I + 1 to Cube copy
+      Sum += N // (Rows * (Rows + I)) sum
+    else
+      Scale = I - Cube + 1
+      Quotient = N // Scale
+      Root = 4 * Quotient + 1 isqrt
+      End = (Root - 1) // 2
+      Root = 8 * Quotient + 1 isqrt
+      Start = (Root + 1) // 4 + 1
+      Start = Start max (Cube + 1)
+      if Start at most End
+        Rows = Start to End copy
+        Sum += (
+          N // (Rows * Scale) - Rows
+        ) sum
       end
     end
-    Tot += Cf * G
   end
-  D = D2 + 1
+  return Sum
 end
-Answer = Tot
+
+rem Mobius inversion enforces gcd = 1.
+Bound = L // 6 isqrt
+Mu = Bound mobius
+Prefix = Mu scan + copy
+rem Split quotients near the cube root.
+Split = L ** (1 / 3) floor
+Split = Split min Bound
+Keys = 1 to Split copy
+Large = L // (Keys * Keys)
+End = L // ((Split + 1) * (Split + 1))
+Small = 6 to End copy
+Limits = concat Large Small copy
+High = L // Limits isqrt
+Low = L // (Limits + 1) isqrt
+Weights = Prefix High - Prefix Low
+Keep = Weights not equal 0 indices
+Limits = Limits Keep
+Weights = Weights Keep
+Answer = 0
+if Limits len greater 0
+  Counts = Limits pair_count rank 0
+  Answer = (Weights * Counts) sum
+end
 Answer print

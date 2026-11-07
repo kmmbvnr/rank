@@ -1,3 +1,4 @@
+import { prepareNativeIntegerSum } from './native-integer-sum.js';
 import { compileIntegerArrayFunction } from './jit/integer-array-function.js';
 import { interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { borrowIntegerBuffer } from './jit/borrowed-integer-buffer.js';
@@ -26,7 +27,7 @@ import type { Operators } from './operators.js';
 import { compileScalarExpression, compileResumableScalarExpression } from './jit/scalar-compiler.js';
 import { scalarFunctionResult, privateScalarFunction, scalarFunctionEffects, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
-import { completed, runExecution, type Evaluation, type Execution } from './execution.js';
+import { completed, flatMapResult, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './jit/call-specializations.js';
 import type { ExecutionContext, PreparedStatement, TensorStep } from './statement-control.js';
 import { compileTensorKernel, compileTensorReduction, type TensorCodeCache, type TensorKernelHost } from './jit/tensor-kernel.js';
@@ -532,7 +533,19 @@ export class FastPaths {
                     }
                     return reference.apply([value, fn]);
                 });
-                return fused;
+                const native = prepareNativeIntegerSum(parts[0], name => this.context.bindings.find(name));
+                if (!native) return fused;
+                return () => {
+                    const fn = this.context.bindings.find(operation.name) ?? this.context.builtins.lookup(operation.name);
+                    if (fn !== undefined && fn === this.context.builtins.standard('core', 'sum')
+                        && Object.getOwnPropertyDescriptor(fn, 'call')?.value !== undefined
+                        && hasNativeImplementation(fn as NativeFunction)) {
+                        const value = native();
+                        if (value !== undefined) return completed(value);
+                    }
+                    return fused ? fused() : flatMapResult(this.context.evaluate(parts[0]), value =>
+                        reference.apply([value, this.context.resolve(operation.name)]));
+                };
             }
             default: return undefined;
         }
