@@ -1,0 +1,467 @@
+{
+  "baseline-Length12": {
+    "samples": 15060,
+    "topSelfSamples": [
+      {
+        "samples": 1801,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 869,
+        "function": "mapStoredIntegers",
+        "file": "integer-array-kernel.js",
+        "line": 20
+      },
+      {
+        "samples": 865,
+        "function": "mapStoredIntegers",
+        "file": "integer-array-kernel.js",
+        "line": 20
+      },
+      {
+        "samples": 805,
+        "function": "(garbage collector)",
+        "file": "",
+        "line": 0
+      },
+      {
+        "samples": 591,
+        "function": "mapDenseArrays",
+        "file": "tensor.js",
+        "line": 65
+      },
+      {
+        "samples": 587,
+        "function": "readArrayItem",
+        "file": "array-read.js",
+        "line": 367
+      },
+      {
+        "samples": 585,
+        "function": "reduceAt",
+        "file": "reduction.js",
+        "line": 579
+      },
+      {
+        "samples": 445,
+        "function": "expandOperand",
+        "file": "tensor.js",
+        "line": 504
+      },
+      {
+        "samples": 332,
+        "function": "",
+        "file": "reduction.js",
+        "line": 610
+      },
+      {
+        "samples": 280,
+        "function": "evaluateBinaryValue",
+        "file": "operators.js",
+        "line": 230
+      },
+      {
+        "samples": 224,
+        "function": "",
+        "file": "derived-array.js",
+        "line": 91
+      },
+      {
+        "samples": 219,
+        "function": "",
+        "file": "integer-array-kernel.js",
+        "line": 1104
+      },
+      {
+        "samples": 207,
+        "function": "sumIntegerAxis",
+        "file": "reduction.js",
+        "line": 712
+      },
+      {
+        "samples": 205,
+        "function": "mapStoredWords",
+        "file": "integer-array-kernel.js",
+        "line": 436
+      },
+      {
+        "samples": 196,
+        "function": "(program)",
+        "file": "",
+        "line": 0
+      },
+      {
+        "samples": 195,
+        "function": "",
+        "file": "integer-array-kernel.js",
+        "line": 1104
+      },
+      {
+        "samples": 180,
+        "function": "evaluateBinaryValue",
+        "file": "operators.js",
+        "line": 230
+      },
+      {
+        "samples": 178,
+        "function": "itemAt",
+        "file": "derived-array.js",
+        "line": 56
+      },
+      {
+        "samples": 166,
+        "function": "broadcastOffset",
+        "file": "tensor-layout.js",
+        "line": 78
+      },
+      {
+        "samples": 153,
+        "function": "ownedArray",
+        "file": "owned-array.js",
+        "line": 752
+      },
+      {
+        "samples": 150,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 146,
+        "function": "",
+        "file": "",
+        "line": 3
+      },
+      {
+        "samples": 141,
+        "function": "compareStoredInt32",
+        "file": "integer-array-kernel.js",
+        "line": 781
+      },
+      {
+        "samples": 132,
+        "function": "arrayValues",
+        "file": "array-read.js",
+        "line": 125
+      },
+      {
+        "samples": 131,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      }
+    ]
+  },
+  "fusion-Length10": {
+    "samples": 4125,
+    "topSelfSamples": [
+      {
+        "samples": 377,
+        "function": "mapDenseArrays",
+        "file": "tensor.js",
+        "line": 65
+      },
+      {
+        "samples": 353,
+        "function": "weightedAxisSum",
+        "file": "weighted-axis-sum.js",
+        "line": 11
+      },
+      {
+        "samples": 158,
+        "function": "readArrayItem",
+        "file": "array-read.js",
+        "line": 367
+      },
+      {
+        "samples": 149,
+        "function": "evaluateBinaryValue",
+        "file": "operators.js",
+        "line": 230
+      },
+      {
+        "samples": 135,
+        "function": "mapDenseArrays",
+        "file": "tensor.js",
+        "line": 65
+      },
+      {
+        "samples": 113,
+        "function": "expandOperand",
+        "file": "tensor.js",
+        "line": 504
+      },
+      {
+        "samples": 101,
+        "function": "(garbage collector)",
+        "file": "",
+        "line": 0
+      },
+      {
+        "samples": 92,
+        "function": "mapDenseArrays",
+        "file": "tensor.js",
+        "line": 65
+      },
+      {
+        "samples": 88,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 75,
+        "function": "",
+        "file": "derived-array.js",
+        "line": 91
+      },
+      {
+        "samples": 73,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 70,
+        "function": "compareStoredInt32",
+        "file": "integer-array-kernel.js",
+        "line": 781
+      },
+      {
+        "samples": 70,
+        "function": "evaluateBinaryValue",
+        "file": "operators.js",
+        "line": 230
+      },
+      {
+        "samples": 69,
+        "function": "mapStoredWords",
+        "file": "integer-array-kernel.js",
+        "line": 436
+      },
+      {
+        "samples": 60,
+        "function": "ownedArray",
+        "file": "owned-array.js",
+        "line": 752
+      },
+      {
+        "samples": 59,
+        "function": "evaluateBinaryValue",
+        "file": "operators.js",
+        "line": 230
+      },
+      {
+        "samples": 58,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 57,
+        "function": "mapStoredWords",
+        "file": "integer-array-kernel.js",
+        "line": 436
+      },
+      {
+        "samples": 51,
+        "function": "compactBinary",
+        "file": "integer-array-kernel.js",
+        "line": 95
+      },
+      {
+        "samples": 49,
+        "function": "copyStoredArrayBlocks",
+        "file": "array-copy.js",
+        "line": 102
+      },
+      {
+        "samples": 46,
+        "function": "ownedArray",
+        "file": "owned-array.js",
+        "line": 752
+      },
+      {
+        "samples": 45,
+        "function": "(program)",
+        "file": "",
+        "line": 0
+      },
+      {
+        "samples": 45,
+        "function": "",
+        "file": "",
+        "line": 3
+      },
+      {
+        "samples": 38,
+        "function": "coordinatesAt",
+        "file": "tensor-index.js",
+        "line": 9
+      },
+      {
+        "samples": 34,
+        "function": "arrayValues",
+        "file": "array-read.js",
+        "line": 125
+      }
+    ]
+  },
+  "final-Length12": {
+    "samples": 5247,
+    "topSelfSamples": [
+      {
+        "samples": 504,
+        "function": "readArrayItem",
+        "file": "array-read.js",
+        "line": 367
+      },
+      {
+        "samples": 244,
+        "function": "expandOperand",
+        "file": "tensor.js",
+        "line": 504
+      },
+      {
+        "samples": 209,
+        "function": "(garbage collector)",
+        "file": "",
+        "line": 0
+      },
+      {
+        "samples": 187,
+        "function": "weightedAxisSum",
+        "file": "weighted-axis-sum.js",
+        "line": 12
+      },
+      {
+        "samples": 178,
+        "function": "",
+        "file": "derived-array.js",
+        "line": 91
+      },
+      {
+        "samples": 168,
+        "function": "evaluateBinaryValue",
+        "file": "operators.js",
+        "line": 230
+      },
+      {
+        "samples": 152,
+        "function": "mapDenseArrays",
+        "file": "tensor.js",
+        "line": 65
+      },
+      {
+        "samples": 137,
+        "function": "compareStoredInt32",
+        "file": "integer-array-kernel.js",
+        "line": 781
+      },
+      {
+        "samples": 114,
+        "function": "",
+        "file": "",
+        "line": 3
+      },
+      {
+        "samples": 105,
+        "function": "arrayValues",
+        "file": "array-read.js",
+        "line": 125
+      },
+      {
+        "samples": 98,
+        "function": "compareStoredInt32",
+        "file": "integer-array-kernel.js",
+        "line": 781
+      },
+      {
+        "samples": 84,
+        "function": "mapStoredInt32Binary",
+        "file": "integer-array-kernel.js",
+        "line": 181
+      },
+      {
+        "samples": 80,
+        "function": "widenInt32",
+        "file": "owned-array.js",
+        "line": 173
+      },
+      {
+        "samples": 72,
+        "function": "compactBinary",
+        "file": "integer-array-kernel.js",
+        "line": 95
+      },
+      {
+        "samples": 66,
+        "function": "readArrayItem",
+        "file": "array-read.js",
+        "line": 367
+      },
+      {
+        "samples": 65,
+        "function": "(program)",
+        "file": "",
+        "line": 0
+      },
+      {
+        "samples": 64,
+        "function": "",
+        "file": "",
+        "line": 3
+      },
+      {
+        "samples": 62,
+        "function": "get",
+        "file": "boolean-cells.js",
+        "line": 40
+      },
+      {
+        "samples": 59,
+        "function": "collectArrayValues",
+        "file": "array-read.js",
+        "line": 155
+      },
+      {
+        "samples": 59,
+        "function": "evaluateArrayItem",
+        "file": "array-read.js",
+        "line": 394
+      },
+      {
+        "samples": 58,
+        "function": "materializeSelectedView",
+        "file": "array-copy.js",
+        "line": 68
+      },
+      {
+        "samples": 58,
+        "function": "evaluateBinaryValue",
+        "file": "operators.js",
+        "line": 230
+      },
+      {
+        "samples": 57,
+        "function": "copyStoredArrayBlocks",
+        "file": "array-copy.js",
+        "line": 102
+      },
+      {
+        "samples": 57,
+        "function": "evaluateArrayItem",
+        "file": "array-read.js",
+        "line": 394
+      },
+      {
+        "samples": 55,
+        "function": "mapDenseArrays",
+        "file": "tensor.js",
+        "line": 65
+      }
+    ]
+  }
+}

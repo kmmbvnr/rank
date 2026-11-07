@@ -267,6 +267,10 @@ export class FastPaths {
         };
     }
 
+    weightedAxisSumsEnabled(): boolean {
+        return this.compiler.tensors.fusion && this.compiler.tensors.cells && this.nativeBuiltin('sum');
+    }
+
     nativeTensorPlansEnabled(): boolean {
         return this.compiler.tensors.fusion && this.compiler.tensors.cells && privateLoopPolling() && !interruptsEnabled();
     }

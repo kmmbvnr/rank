@@ -1,0 +1,24 @@
+
+ RUN  v3.2.7 /tmp/rank550/final/packages/interpreter
+
+ ✓ test/demand-work-budget.test.ts (8 tests) 398ms
+   ✓ bounded planned function work (compilation=false) > stops a producing loop and leaves ordinary demand unaffected  345ms
+ ✓ test/interrupt.test.ts (16 tests) 556ms
+   ✓ interactive host cancellation > steps through a host signal without replaying or losing variables  304ms
+ ✓ test/integer-axis-reduction.test.ts (18 tests) 687ms
+ ✓ test/packed-column-broadcast.test.ts (23 tests) 2578ms
+   ✓ broadcasts 2 lanes through three axes: +, compilation=false  390ms
+ ✓ test/negative-axis.test.ts (86 tests) 1310ms
+ ✓ test/euler749.test.ts (12 tests) 2844ms
+   ✓ Euler 749, compilation=false > matches direct enumeration at Length=+0  565ms
+   ✓ Euler 749, compilation=false > retains the six-digit statement example  415ms
+   ✓ Euler 749, compilation=true > retains the six-digit statement example  386ms
+ ✓ test/sum-axis-stored.test.ts (25 tests) 433ms
+ ✓ test/weighted-axis-sum.test.ts (12 tests) 360ms
+ ✓ test/application-role-cache.test.ts (4 tests) 352ms
+ ✓ test/compact-integer-matmul.test.ts (10 tests) 236ms
+
+ Test Files  10 passed (10)
+      Tests  214 passed (214)
+   Start at  12:14:42
+   Duration  7.36s (transform 2.15s, setup 0ms, collect 16.64s, tests 9.75s, environment 2ms, prepare 595ms)

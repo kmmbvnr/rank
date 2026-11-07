@@ -1,0 +1,18 @@
+
+ RUN  v3.2.7 /private/tmp/rank550-work/packages/interpreter
+
+ ✓ test/integer-axis-reduction.test.ts (18 tests) 272ms
+ ✓ test/negative-axis.test.ts (86 tests) 513ms
+ ✓ test/interrupt.test.ts (16 tests) 265ms
+ ✓ test/packed-column-broadcast.test.ts (23 tests) 1108ms
+ ✓ test/euler749.test.ts (12 tests) 1116ms
+ ✓ test/sum-axis-stored.test.ts (25 tests) 218ms
+ ✓ test/application-role-cache.test.ts (4 tests) 199ms
+ ✓ test/demand-work-budget.test.ts (8 tests) 183ms
+ ✓ test/weighted-axis-sum.test.ts (12 tests) 172ms
+ ✓ test/compact-integer-matmul.test.ts (10 tests) 144ms
+
+ Test Files  10 passed (10)
+      Tests  214 passed (214)
+   Start at  12:14:25
+   Duration  3.57s (transform 962ms, setup 0ms, collect 8.41s, tests 4.19s, environment 1ms, prepare 313ms)

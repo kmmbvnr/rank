@@ -1,3 +1,4 @@
+import { weightedAxisSum } from '../jit/weighted-axis-sum.js';
 import { functionReference } from './function-reference.js';
 import { rankedAddress } from '../ranked-address.js';
 import { compileNumericApplication } from './application-numeric.js';
@@ -14,7 +15,7 @@ import {
     type KnownShape, type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem,
     type Expression, type Operation,
 } from '@arrrank/language';
-import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, inspectionEnabled, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
 import { arithmeticRange } from '../range-plan.js';
 import { MAX_HELD_CELLS } from '../array-storage.js';
 import { currentDiagnostics } from '../diagnostics.js';
@@ -387,8 +388,21 @@ export class ApplicationEvaluator {
                 const axes = axisReduction.axes.map(axis =>
                     safeDimension(integerLiteral(axis, `${axisReduction.operation.name} axis`),
                         `${axisReduction.operation.name} axis`));
+                let product = axisReduction.source;
+                while (isParenthesizedExpression(product)) product = product.value;
+                const multiply = isBinaryExpression(product) && product.operator === '*' ? product : undefined;
                 return function* (): Execution<RankValue> {
                     context.requireModule(axisReduction.operation.module, axisReduction.operation.name);
+                    if (multiply && axisReduction.operation.name === 'sum' && axes.length === 1
+                        && context.fastPaths.weightedAxisSumsEnabled() && privateLoopPolling() && !inspectionEnabled() && !demandBudgetEnabled()) {
+                        const left = yield* resume(context.evaluate(multiply.left));
+                        const right = yield* resume(context.evaluate(multiply.right));
+                        const fused = context.fastPaths.weightedAxisSumsEnabled()
+                            ? weightedAxisSum(left, right, axes[0]) : undefined;
+                        if (fused !== undefined) return fused;
+                        return context.reductions.evaluateAxisReduction('sum',
+                            context.operators.evaluateBinary('*', left, right), axes);
+                    }
                     return context.reductions.evaluateAxisReduction(
                         axisReduction.operation.name,
                         (yield* resume(context.evaluate(axisReduction.source))),
