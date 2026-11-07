@@ -1,0 +1,46 @@
+rem ACMP 0853: Number Game tests
+use testing
+
+test "ACMP 853: Sample 1"
+  use "0853_number_game"
+  Input = "4
+2 3 5 7"
+  run
+  WinCount equal 1
+  Exp = array 3
+  (Winners equal Exp) all
+end
+
+test "ACMP 853: Sample 2"
+  use "0853_number_game"
+  Input = "2
+2 4"
+  run
+  WinCount equal 0
+end
+
+test "ACMP 853: Single chip"
+  use "0853_number_game"
+  Input = "1
+42"
+  run
+  WinCount equal 1
+  Exp = array 42
+  (Winners equal Exp) all
+end
+
+test "ACMP 853: Adjacent pair"
+  use "0853_number_game"
+  Input = "2
+10 11"
+  run
+  WinCount equal 2
+  Exp = array 10 11
+  (Winners equal Exp) all
+end
+
+test "ACMP 853: 40 primes stress test"
+  use "0853_number_game"
+  run
+  WinCount greater 0
+end
