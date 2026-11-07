@@ -88,6 +88,7 @@ Solutions are written in the direct procedural style of Project Euler 1–15, av
 | **0613** | [Поле чудес - 2](0613_field_of_wonders.ra) | Dynamic Programming / Probability (76%) | Probability of friend winning in wheel-of-fortune game via 4-channel mixed-radix multiplicity DP and vectorized cyclic player transitions |
 | **0614** | [Скобки - 3](0614_brackets_3.ra) | Dynamic Programming / Strings (61%) | Count distinct regular bracket subsequences via DFA state transitions on greedy next-occurrence jumps |
 | **0615** | [Новый год](0615_new_year.ra) | Graph Theory / Matching (62%) | Minimum weight edge cover in bipartite graph via reduction to maximum savings matching and Hungarian/MCMF augmentation |
+| **0617** | [Ладьи](0617_rooks.ra) | Combinatorics / DP (80%) | Non-attacking white/black rook placements via zero-loop 3D tensor inclusion-exclusion and `binomial` matrix contractions |
 | **0618** | [Диаграммы Юнга](0618_young_diagrams.ra) | Dynamic Programming / Partitions (74%) | Max subdiagrams in Young diagram for $N \le 100$ via suffix sum DP with `scan +` and `reduce +` over precomputed optimal partitions |
 | **0620** | [Бассейн реки](0620_river_basin.ra) | Computational Geometry (67%) | Max river basin area via tributary reachability, Andrew's monotone chain convex hull and vectorized Shoelace formula |
 | **0622** | [Прямоугольное деление](0622_rectangular_division.ra) | Computational Geometry / Graph (66%) | Planar face count formed by $N \le 100$ rectangles via dual compressed grid and `new dsu` |

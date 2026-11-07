@@ -1,0 +1,91 @@
+rem ACMP 0617: Rooks
+rem Zero-loop 3D inclusion-exclusion
+use io
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = "10 10 25 25"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+TokInts = Tokens integer
+
+M = TokInts 0
+N = TokInts 1
+W = TokInts 2
+B = TokInts 3
+
+Rows = (1 to M) + (array shape M fill 0)
+Cols = (1 to N) + (array shape N fill 0)
+
+Cells = Rows Cols outer *
+ZerosMN = Cells * 0
+MaskW = Cells greater (W - 1)
+SafeCW = MaskW choose Cells (
+  ZerosMN + W
+)
+RawWW = SafeCW binomial W
+WaysW = MaskW choose RawWW ZerosMN
+
+RemR = M - Rows
+RemC = N - Cols
+RemCells = RemR RemC outer *
+MaskB = RemCells greater (B - 1)
+SafeCB = MaskB choose RemCells (
+  ZerosMN + B
+)
+RawWB = SafeCB binomial B
+WaysB = MaskB choose RawWB ZerosMN
+
+DiffR = Rows Rows outer -
+ValidR = DiffR greater -1
+ZerosR = DiffR * 0
+SafeDR = ValidR choose DiffR ZerosR
+ColR = Rows reshape M 1
+RowMat = ColR + ZerosR
+BinRR = RowMat binomial SafeDR
+ParR = (SafeDR mod 2) equal 1
+OnesR = ZerosR + 1
+SgnR = ParR choose (0 - OnesR) OnesR
+SignedR = BinRR * SgnR
+MatR = ValidR choose SignedR ZerosR
+ChooseM = M binomial Rows
+ColChM = ChooseM reshape M 1
+WeightR = ColChM * MatR
+
+DiffC = Cols Cols outer -
+ValidC = DiffC greater -1
+ZerosC = DiffC * 0
+SafeDC = ValidC choose DiffC ZerosC
+ColC = Cols reshape N 1
+ColMat = ColC + ZerosC
+BinCC = ColMat binomial SafeDC
+ParC = (SafeDC mod 2) equal 1
+OnesC = ZerosC + 1
+SgnC = ParC choose (0 - OnesC) OnesC
+SignedC = BinCC * SgnC
+MatC = ValidC choose SignedC ZerosC
+ChooseN = N binomial Cols
+ColChN = ChooseN reshape N 1
+WeightC = ColChN * MatC
+
+rem H[R, r1, c1] = WeightR * WaysW
+WR3 = WeightR reshape M M 1
+WW3 = WaysW reshape 1 M N
+H3 = WR3 * WW3
+H = H3 sum axis 1
+
+rem G[R, C, c1] = H * WeightC
+H3B = H reshape M 1 N
+WC3 = WeightC reshape 1 N N
+G3 = H3B * WC3
+G = G3 sum axis 2
+
+TotalMat = G * WaysB
+FlatTot = TotalMat reshape (M * N)
+Result = FlatTot sum
+Result print
