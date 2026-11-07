@@ -1,0 +1,8 @@
+use testing
+
+test "square value from the statement"
+  use "761_runnerswimmer"
+  Sides = 4
+  run
+  Answer equal 5.78859314
+end

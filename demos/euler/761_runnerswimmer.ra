@@ -1,0 +1,41 @@
+rem Runner and Swimmer
+rem https://projecteuler.net/problem=761
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Sides integer = 6
+
+rem Regular polygon, runner at an edge
+rem midpoint. With a = pi / n the branch
+rem K is the last k with
+rem sin(k a) < (k + n) tan(a) cos(k a).
+rem Then cos(2 b - K a) = A_K, where
+rem A_K = 2 sin(K a) / ((K + n) tan a)
+rem - cos(K a), and V = 1 / cos(b).
+Back = 0 - 1
+Pi = Back acos
+Angle = Pi / Sides
+Slope = Angle tan
+Ks = 0 to Sides
+Turn = Ks * Angle
+Sine = Turn sin
+Cosine = Turn cos
+Reach = (Ks + Sides) * Slope * Cosine
+Gap = Sine - Reach
+Low = Gap less 0
+Count = Low integer sum
+Branch = Count - 1
+Arc = Branch * Angle
+Run = (Branch + Sides) * Slope
+Top = Arc sin
+Ratio = 2 * Top / Run
+Base = Arc cos
+Value = Ratio - Base
+Wide = Value acos
+Half = (Arc + Wide) / 2
+Drop = Half cos
+Answer = (1 / Drop) round 8
+Answer print
