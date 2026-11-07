@@ -1,0 +1,15 @@
+use testing
+
+test "small primes by brute force"
+  use "789_minimalpairing"
+  Prime = 13
+  Budget = 30
+  run
+  Answer equal 12
+  Prime = 17
+  run
+  Answer equal 16
+  Prime = 19
+  run
+  Answer equal 18
+end

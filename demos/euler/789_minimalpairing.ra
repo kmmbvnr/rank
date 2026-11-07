@@ -1,0 +1,107 @@
+rem Minimal Pairing Modulo p
+rem https://projecteuler.net/problem=789
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Prime integer = 2000000011
+arg Budget integer = 245
+
+rem Pair residues multiply to -1 mod p
+rem (Wilson); the excess over 1 per pair
+rem is minimal using prime residues
+rem only: choose W = prod q^e = -1
+rem mod p with least sum e (q - 1).
+rem Meet in the middle: all exponent
+rem vectors of 2, 3, 5, 7 against
+rem those of the other primes, both
+rem within the budget, exponents
+rem packed 8 bits to a word.
+Ps = primes to (Budget + 1) copy
+Ps = Ps filter (Ps less Prime)
+Count = Ps len
+fun Lo enum Hi
+  Res = array 1
+  Cost = array 0
+  W0 = array 0
+  W1 = array 0
+  W2 = array 0
+  W3 = array 0
+  W4 = array 0
+  W5 = array 0
+  W6 = array 0
+  for Gi in Lo to Hi - 1
+    Pq = Ps Gi
+    Cst = Pq - 1
+    Mx = (Budget - Cost) // Cst + 1
+    Ends = Mx scan +
+    Starts = Ends - Mx
+    Total = Mx sum
+    Marks = array shape Total fill 0
+    Marks Starts = 1
+    Owner = (Marks scan +) - 1
+    Run = 0 to Total - 1
+    Exp = Run - Starts Owner
+    Pw = Pq Exp Prime powmod
+    Res = Res Owner * Pw mod Prime
+    Cost = Cost Owner + Exp * Cst
+    Unit = 256 ** (Gi mod 8)
+    Word = Gi // 8
+    Add = Exp * Unit
+    On0 = Word equal 0
+    W0 = W0 Owner + Add * (On0 integer)
+    On1 = Word equal 1
+    W1 = W1 Owner + Add * (On1 integer)
+    On2 = Word equal 2
+    W2 = W2 Owner + Add * (On2 integer)
+    On3 = Word equal 3
+    W3 = W3 Owner + Add * (On3 integer)
+    On4 = Word equal 4
+    W4 = W4 Owner + Add * (On4 integer)
+    On5 = Word equal 5
+    W5 = W5 Owner + Add * (On5 integer)
+    On6 = Word equal 6
+    W6 = W6 Owner + Add * (On6 integer)
+  end
+  Head = array Res Cost W0 W1 W2
+  Rest = array W3 W4 W5 W6
+  return concat Head Rest
+end
+Left = 0 enum 4
+Right = 4 enum Count
+LRes = Left 0
+LCost = Left 1
+RRes = Right 0
+RCost = Right 1
+Inv = LRes (Prime - 2) Prime powmod
+Need = (Prime - Inv) mod Prime
+Both = concat RRes Need
+Uniq = Both unique
+IdR = Uniq find RRes
+IdN = Uniq find Need
+Order = RCost argsort .descending
+Tab = array shape (Uniq len) fill 999999
+Slot = array shape (Uniq len) fill 0
+Tab (IdR Order) = RCost Order
+Slot (IdR Order) = Order
+Totals = LCost + Tab IdN
+Best = Totals min
+Pick = Totals find Best
+Mate = Slot (IdN Pick)
+rem Rebuild W from the packed words.
+Answer = 1
+for Gi in 0 to Count - 1
+  Word = Gi // 8
+  Unit = 256 ** (Gi mod 8)
+  Side = Gi less 4
+  RowL = Left (2 + Word)
+  RowR = Right (2 + Word)
+  GotL = RowL Pick
+  GotR = RowR Mate
+  Got = Side choose GotL GotR
+  Exp = (Got // Unit) mod 256
+  Answer = Answer * (Ps Gi) ** Exp
+end
+Answer print
