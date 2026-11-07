@@ -1,0 +1,49 @@
+rem ACMP 0830: Strange Table
+rem Zero-loop bitwise XOR table sum
+use io
+use cli
+use numbers
+use sequences
+use text
+use bits
+
+arg Input text = "1000000000 1000000000"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+N = Nums 0
+M = Nums 1
+
+CntN = N + 1
+CntM = M + 1
+
+Bits = 0 to 30
+H = 2 ** Bits
+P = H * 2
+
+FullN = (CntN // P) * H
+RemN = (CntN mod P) - H
+Zeros = Bits * 0
+PosN = RemN greater 0
+TailN = PosN choose RemN Zeros
+OnesN = FullN + TailN
+ZerosN = CntN - OnesN
+
+FullM = (CntM // P) * H
+RemM = (CntM mod P) - H
+PosM = RemM greater 0
+TailM = PosM choose RemM Zeros
+OnesM = FullM + TailM
+ZerosM = CntM - OnesM
+
+PairsA = OnesN * ZerosM
+PairsB = ZerosN * OnesM
+Pairs = PairsA + PairsB
+Terms = H * Pairs
+Total = Terms sum
+Result = Total text
+Result print
