@@ -1,0 +1,38 @@
+rem Balanceable k-bounded Partitions
+rem https://projecteuler.net/problem=772
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Bound integer = 10 ** 8
+arg Mod integer = 1000000007
+
+rem f(k) = 2 lcm(1..k): the lower bound
+rem comes from partitions into equal
+rem parts j, the upper bound from
+rem zero-sum sequences in Z / lcm. Each
+rem prime p contributes p^e, p^e <= k.
+fun Left mulp Right
+  return Left * Right mod Mod
+end
+Primes = primes to Bound copy
+Root = Bound isqrt
+Depth = Bound binary len
+Low = Primes at most Root
+Small = Primes filter Low
+Column = Small reshape (Small len) 1
+Grid = Column ** (1 to Depth)
+Fits = Grid at most Bound
+Flags = Fits integer
+Count = Flags sum axis 1
+Tops = Small ** Count
+High = Primes greater Root
+Large = Primes filter High
+Parts = concat Tops Large
+Chain = Parts scan mulp
+Lcm = Chain (Chain len - 1)
+Answer = 2 * Lcm mod Mod
+Answer print
