@@ -1066,6 +1066,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     }
     function vectorOperation(e: Expression): { name: string; operands: Expression[]; module?: string; fusedProduct?: boolean; unary?: InlineBuiltin } | undefined {
         const unwrap = (value: Expression) => { while (isParenthesizedExpression(value)) value = value.value; return value; };
+        if (isUnaryExpression(e) && e.operator === 'not') return { name: 'not', operands: [unwrap(e.operand)] };
         if (isBinaryExpression(e) && e.operator === 'mod' && !e.step) {
             const product = unwrap(e.left);
             if (isBinaryExpression(product) && product.operator === '*') {
@@ -1490,6 +1491,29 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         } else return undefined;
         return { code: result, cells: `${result}.cells`, type, fresh: true };
     }
+    /** Consume array predicates without publishing a temporary mask. Later
+     * cells may fail after any/all already has its answer: speculate privately
+     * and replay on failure to retain the ordinary consumer's demand order. */
+    function emitBooleanReduction(source: Expression, operation: 'any' | 'all', lines: string[]): LoopTerm | undefined {
+        if (!numberMode || wide || !host.nativeCalls || !host.arrayReads || !host.booleanArrays
+            || arrayType(source)?.element !== 'boolean' || !completedIndicesMask(source)) return undefined;
+        let input = source;
+        while (isParenthesizedExpression(input)) input = input.value;
+        const mutable = isNameExpression(input) && state.arrayDefinitions.has(input.name) && destinations.has(input.name);
+        // External completed bitmaps retain their cheaper population-count
+        // reduction instead of scanning an unpacked vector on every iteration.
+        if (!mutable && !privateIndicesMask(input)) return undefined;
+        const setup: string[] = [], vector = numberVector(source, setup);
+        if (!vector || vector.type !== 'boolean') return undefined;
+        const result = `boolean${state.serial++}`, index = `cell${state.serial++}`, body: string[] = [];
+        const value = vector.cell(index, body);
+        if (!value) return undefined;
+        const cell = `booleanCell${state.serial++}`;
+        builtins.set(operation, 'sequences');
+        lines.push(...setup, `let ${result} = ${operation === 'all'};`, numberVectorLoop(vector.size, index,
+            [...body, `const ${cell} = ${value.code};`, `${result} = ${result} ${operation === 'all' ? '&&' : '||'} ${cell};`]));
+        return { type: 'boolean', code: result };
+    }
     /** Count private byte masks without publishing a packed array first.
      * Completed external masks retain their native word-wise popcount. */
     function emitBooleanCount(source: Expression, lines: string[]): LoopTerm | undefined {
@@ -1883,6 +1907,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;
+            if ((op === 'any' || op === 'all') && !localTypes.has(op) && !arrays.has(op) && !containers.has(op)) {
+                const result = emitBooleanReduction(e.head, op, lines);
+                if (result) return result;
+            }
             if (op === 'count' && !localTypes.has(op) && !arrays.has(op) && !containers.has(op)) {
                 const result = emitBooleanCount(e.head, lines);
                 if (result) return result;
