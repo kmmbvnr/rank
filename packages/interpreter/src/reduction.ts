@@ -1,3 +1,4 @@
+import { currentDiagnostics } from './diagnostics.js';
 import { registerModularScanCompletion, scanStoredModularCallback } from './jit/modular-callback-scan.js';
 import { expectNumeric } from './modules/shared.js';
 import { prepareKeyedTensorReader } from './tensor-map.js';
@@ -13,7 +14,7 @@ import { arrayCells, arrayValues, arrayValueTraversal, IntegerCells, denseScalar
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
 import { arithmeticRange } from './range-plan.js';
-import { arrayResidues, modularReduce, modularScan, rangeResidues } from './modular-fold.js';
+import { arrayResidues, modularKeyed, modularReduce, modularScan, rangeResidues } from './modular-fold.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { sumIndexed } from './modules/numbers.js';
@@ -102,6 +103,14 @@ export class ReductionEvaluator {
             || seed !== undefined && typeof seed !== 'bigint' || !isRankArray(source)) return undefined;
         const stored = denseScalarItems(source);
         if (!stored || !isRankArray(keys) || !denseScalarItems(keys)) return undefined;
+        if (size === undefined || typeof size === 'bigint') {
+            const native = modularKeyed(kind, operator, source, keys, seed, size, modulus);
+            if (native) {
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) diagnostics.integerKeyedFolds++;
+                return native;
+            }
+        }
         const count = arraySize(source.shape);
         for (let at = 0; at < count; at++) {
             checkpoint('modular keyed fold');
