@@ -1,0 +1,295 @@
+rem ACMP 0438: Sochi-2014
+rem Preemptive schedule Q|pmtn|Cmax
+use algo
+use cli
+use io
+use numbers
+use sequences
+use text
+
+arg Input text = "50
+990 980 970 960 950 940 930 920 910
+900 890 880 870 860 850 840 830 820
+810 800 790 780 770 760 750 740 730
+720 710 700 690 680 670 660 650 640
+630 620 610 600 590 580 570 560 550
+540 530 520 510 500
+50
+990 980 970 960 950 940 930 920 910
+900 890 880 870 860 850 840 830 820
+810 800 790 780 770 760 750 740 730
+720 710 700 690 680 670 660 650 640
+630 620 610 600 590 580 570 560 550
+540 530 520 510 500"
+
+fun Target fill_w Diff N M VPad
+  CurW = Target
+  CurDiff = Diff
+  if CurDiff greater 0.000000001
+    for I in N to (M - 1)
+      Cap = VPad I
+      Take = CurDiff min Cap
+      CurW I = (CurW I) + Take
+      CurDiff -= Take
+    end
+  end
+  if CurDiff greater 0.000000001
+    for I in 0 to (M - 1)
+      Cap = (VPad I) - (CurW I)
+      Take = CurDiff min Cap
+      CurW I = (CurW I) + Take
+      CurDiff -= Take
+    end
+  end
+  return CurW
+end
+
+fun InP compute_p InV W M
+  CurP = InP
+  CurV = InV
+  AllIdx = 0 to (M - 1)
+  Limit = M * 2
+  for Step in 0 to Limit
+    Diff = CurV - W
+    MaskPos = Diff greater 0.000000001
+    PosIdx = AllIdx MaskPos
+    PosLen = PosIdx len
+    if PosLen equal 0
+      break
+    end
+    K = PosIdx 0
+    MaskL = AllIdx greater K
+    MaskNeg = (0.0 - Diff) greater (
+      0.000000001)
+    Both = MaskL and MaskNeg
+    CandsL = AllIdx Both
+    LLen = CandsL len
+    if LLen equal 0
+      break
+    end
+    L = CandsL 0
+    DiffK = (CurV K) - (W K)
+    DiffL = (W L) - (CurV L)
+    Delta = DiffK min DiffL
+    Denom = (CurV K) - (CurV L)
+    Alpha = 1.0 - (Delta / Denom)
+    OneMinus = 1.0 - Alpha
+    VK = CurV K
+    VL = CurV L
+    CurV K = (Alpha * VK) + (
+      OneMinus * VL)
+    CurV L = (OneMinus * VK) + (
+      Alpha * VL)
+    RowK = CurP K
+    RowL = CurP L
+    CurP K = (RowK * Alpha) + (
+      RowL * OneMinus)
+    CurP L = (RowK * OneMinus) + (
+      RowL * Alpha)
+  end
+  return CurP
+end
+
+fun MatX augment_one StartU MatL MatR
+  M = (MatX shape) 0
+  Q = new queue
+  Q push StartU
+  FromL = array shape M fill -1
+  AllIdx = 0 to (M - 1)
+  FoundV = -1
+  Limit = M * M
+  for Step in 0 to Limit
+    QLen = Q len
+    if QLen equal 0
+      break
+    end
+    if FoundV greater -1
+      break
+    end
+    U = Q pop
+    RowU = MatX U
+    Pos = RowU greater 0.0000001
+    Unvis = FromL equal -1
+    Mask = Pos and Unvis
+    Cands = AllIdx Mask
+    CLen = Cands len
+    if CLen greater 0
+      FromL Cands = U
+      RSub = MatR Cands
+      Unmatched = Cands (RSub equal -1)
+      ULen = Unmatched len
+      if ULen greater 0
+        FoundV = Unmatched 0
+        break
+      else
+        NextNodes = MatR Cands
+        for Node in NextNodes
+          Q push Node
+        end
+      end
+    end
+  end
+  CurL = MatL
+  CurR = MatR
+  if FoundV greater -1
+    CurrV = FoundV
+    for Step in 0 to M
+      if CurrV equal -1
+        break
+      end
+      U = FromL CurrV
+      PrevV = CurL U
+      CurL U = CurrV
+      CurR CurrV = U
+      CurrV = PrevV
+    end
+  end
+  return record
+    .match_l = CurL
+    .match_r = CurR
+  end
+end
+
+fun MatX bfs_matching
+  M = (MatX shape) 0
+  CurL = array shape M fill -1
+  CurR = array shape M fill -1
+  for StartU in 0 to (M - 1)
+    if (CurL StartU) equal -1
+      Aug = MatX augment_one StartU (
+        CurL) CurR
+      CurL = Aug .match_l
+      CurR = Aug .match_r
+    end
+  end
+  return CurL
+end
+
+fun InS solve_sochi InV
+  N = InS len
+  K = InV len
+  NegS = 0.0 - InS
+  SOrder = NegS argsort
+  NegV = 0.0 - InV
+  VOrder = NegV argsort
+  SSorted = InS SOrder
+  VSorted = InV VOrder
+
+  MMin = N min K
+  MMax = N max K
+  M = MMax
+
+  SPref = SSorted scan +
+  VPref = VSorted scan +
+  TOpt = 0.0
+  if MMin greater 1
+    Count = MMin - 1
+    SLim = SPref take Count
+    VLim = VPref take Count
+    Ratios = SLim / VLim
+    TOpt = Ratios max
+  end
+  TotS = SPref (N - 1)
+  TotV = VPref (MMin - 1)
+  FullRatio = TotS / TotV
+  TOpt = TOpt max FullRatio
+
+  W = array shape M fill 0.0
+  W (0 to (N - 1)) = SSorted / TOpt
+  VPad = array shape M fill 0.0
+  VPad (0 to (K - 1)) = VSorted
+
+  SumV = VPad sum
+  SumW = W sum
+  Diff = SumV - SumW
+  W = W fill_w Diff N M VPad
+
+  InitP = array shape M M fill 0.0
+  for I in 0 to (M - 1)
+    InitP I I = 1.0
+  end
+  P = InitP compute_p VPad W M
+  X = P * TOpt
+
+  CurTime = 0.0
+  EvTime = new queue
+  EvObj = new queue
+  EvFirm = new queue
+  PrevFirm = array shape K fill -1
+  AllRow = 0 to (M - 1)
+  StepLim = M * 4
+
+  for Step in 0 to StepLim
+    Remain = TOpt - CurTime
+    if Remain less 0.0000001
+      break
+    end
+    ML = X bfs_matching
+    FlatIdx = (AllRow * M) + ML
+    XFlat = X reshape (M * M)
+    Diag = XFlat FlatIdx
+    Delta = Diag min
+    XFlat FlatIdx = Diag - Delta
+    X = XFlat reshape M M
+
+    CurObj = array shape K fill -1
+    for U in 0 to (M - 1)
+      V = ML U
+      if (U less N) and (V less K)
+        OrigO = SOrder U
+        OrigF = VOrder V
+        CurObj OrigF = OrigO
+      end
+    end
+
+    for F in 0 to (K - 1)
+      NewO = CurObj F
+      OldO = PrevFirm F
+      if not (NewO equal OldO)
+        if NewO greater -1
+          EvTime push CurTime
+          EvObj push (NewO + 1)
+          EvFirm push (F + 1)
+        end
+        PrevFirm F = NewO
+      end
+    end
+    CurTime += Delta
+  end
+
+  return record
+    .t_opt = TOpt
+    .ev_time = EvTime
+    .ev_obj = EvObj
+    .ev_firm = EvFirm
+  end
+end
+
+Raw = (Input split "\r") join " "
+Clean = (Raw split "\n") join " "
+Parts = Clean split " "
+Tokens = Parts (Parts not equal "")
+Nums = Tokens real
+
+N = (Nums 0) integer
+S = Nums (1 to N)
+K = (Nums (N + 1)) integer
+V = Nums ((N + 2) to (N + 1 + K))
+
+Res = S solve_sochi V
+Ans = Res .t_opt
+Ans print
+
+ET = Res .ev_time
+EO = Res .ev_obj
+EF = Res .ev_firm
+EvLen = ET len
+
+for Idx in 0 to (EvLen - 1)
+  TVal = ET pop
+  OVal = EO pop
+  FVal = EF pop
+  Line = (TVal text) + " " + (
+    OVal text) + " " + (FVal text)
+  Line print
+end
