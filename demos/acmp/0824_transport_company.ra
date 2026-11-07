@@ -1,0 +1,104 @@
+rem ACMP 0824: Transport Company
+rem Count spanning trees in multigraph
+rem via incidence B*B^T and Bareiss det
+use io
+use cli
+use sequences
+use text
+use linalg
+
+arg Input text = "20 38
+1 2
+2 3
+3 4
+4 5
+5 6
+6 7
+7 8
+8 9
+9 10
+10 11
+11 12
+12 13
+13 14
+14 15
+15 16
+16 17
+17 18
+18 19
+19 20
+20 1
+1 11
+2 12
+3 13
+4 14
+5 15
+6 16
+7 17
+8 18
+9 19
+10 20
+1 6
+2 7
+3 8
+4 9
+5 10
+11 16
+12 17
+13 18"
+
+Clean = Input split "\r" join " "
+Clean = Clean split "\n" join " "
+Tokens = Clean split " "
+Tokens = Tokens (Tokens not equal "")
+Nums = Tokens integer
+
+N = Nums 0
+M = Nums 1
+Ans = 0
+
+if N less 2
+  Ans = 1
+else
+  S = N - 1
+  if M greater 0
+    Rest = Nums drop 2
+    Pairs = Rest reshape M 2
+    PT = Pairs transpose
+    U = (PT 0) - 1
+    V = (PT 1) - 1
+    Rows = 0 till S
+    MU0 = Rows U outer equal
+    MV0 = Rows V outer equal
+    MU = MU0 integer
+    MV = MV0 integer
+    B = MU - MV
+    BT = B transpose
+    A = B matmul BT
+    PrevPiv = 1
+    ZeroDet = 0
+    for K in 0 till S
+      if ZeroDet equal 0
+        Piv = A K K
+        if Piv equal 0
+          ZeroDet = 1
+        elif K less (S - 1)
+          Idx = (K + 1) till S
+          Sub = A Idx Idx
+          ColK = A Idx K
+          RowK = A K Idx
+          Cross = ColK RowK outer *
+          Num = (Sub * Piv) - Cross
+          A Idx Idx = Num // PrevPiv
+          PrevPiv = Piv
+        end
+      end
+    end
+    LastIdx = S - 1
+    FinalAns = A LastIdx LastIdx
+    Cands = array FinalAns 0
+    Ans = Cands ZeroDet
+  end
+end
+
+Ans print
