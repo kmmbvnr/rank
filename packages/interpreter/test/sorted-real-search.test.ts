@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, formatValue } from '../src/index.js';
-import { ownedArray, typedArray } from '../src/array-storage.js';
+import { ownedArray, typedArray, writeRealSelection } from '../src/array-storage.js';
 import { sortedIndex, sortedIndexBatch } from '../src/sorted-search.js';
 import { checkpoint, INTERRUPT_POLL_INTERVAL, withDemandBudget, withInterrupt } from '../src/interrupt.js';
 import type { RankArray } from '../src/value.js';
@@ -109,4 +109,21 @@ it('declines NaN source proofs without forcing a lazy batch error', () => {
         runtime.execute("use algo\nResult' = A upperindex Q");
         expect(() => runtime.execute('Result 0')).toThrow('NaN');
     } finally { runtime.dispose(); }
+});
+
+it('amortizes repeated small real batches and invalidates the proof after writes', () => {
+    const source = typedArray(Float64Array.from({ length: 1000 }, (_, i) => i / 2));
+    const targets = typedArray(Float64Array.of(0.5, 5.5, 9.5, 1000));
+    expect(sortedIndexBatch(source, targets, false)).toBeUndefined();
+    let result: RankArray | undefined;
+    for (let i = 0; i < 32; i++) result = sortedIndexBatch(source, targets, false);
+    expect(result!.items).toEqual([1n, 11n, 19n, 1000n]);
+    // A cached proof admits the next tiny batch without another full scan.
+    expect(sortedIndexBatch(source, typedArray(Float64Array.of(5.5)), true)!.items).toEqual([12n]);
+    expect(writeRealSelection(source, 1, () => 999, Float64Array.of(NaN))).toBe(true);
+    expect(sortedIndexBatch(source, targets, false)).toBeUndefined();
+    for (let i = 0; i < 32; i++) expect(sortedIndexBatch(source, targets, false)).toBeUndefined();
+    expect(writeRealSelection(source, 1, () => 999, Float64Array.of(500.5))).toBe(true);
+    for (let i = 0; i < 32; i++) result = sortedIndexBatch(source, targets, false);
+    expect(result!.items).toEqual([1n, 11n, 19n, 1000n]);
 });

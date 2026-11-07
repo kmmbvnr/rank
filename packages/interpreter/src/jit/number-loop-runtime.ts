@@ -41,6 +41,42 @@ function numberSortedIndex(cells: ArrayLike<number>, target: number, upper: bool
     return low;
 }
 
+function numberSortedIndexBatch(cells: ArrayLike<number>, target: number, upper: boolean,
+    hint: { previous?: number; answer: number }): number {
+    if (Number.isNaN(target)) throw overflow;
+    let low = 0, high = cells.length;
+    const below = (index: number): boolean => {
+        const value = cells[index];
+        if (Number.isNaN(value)) throw overflow;
+        return upper ? value <= target : value < target;
+    };
+    // A vector recipe visits nearby targets together. Gallop from its last
+    // answer in either direction instead of repeating full binary searches.
+    if (hint.previous !== undefined) {
+        if (target >= hint.previous) {
+            low = hint.answer;
+            for (let reach = 1; low + reach < high; reach *= 2) {
+                if (below(low + reach)) low += reach;
+                else { high = low + reach; break; }
+            }
+        } else {
+            high = hint.answer;
+            for (let reach = 1; reach <= high; reach *= 2) {
+                const probe = high - reach;
+                if (below(probe)) { low = probe + 1; break; }
+                high = probe;
+            }
+        }
+    }
+    while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+        if (below(middle)) low = middle + 1;
+        else high = middle;
+    }
+    hint.previous = target; hint.answer = low;
+    return low;
+}
+
 const SMALL_COPY_CELLS = 64;
 const COPY_PROBE_CAP = 262144;
 
@@ -449,8 +485,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', readers + '\n' + code)(
-            modularMultiply, safe, numberSortedIndex, int32, overflow, () => new RankError('division by zero'),
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'sortedIndexBatch', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', readers + '\n' + code)(
+            modularMultiply, safe, numberSortedIndex, numberSortedIndexBatch, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
             (name: string) => new RankError(`${name} expects a nonnegative integer count`),

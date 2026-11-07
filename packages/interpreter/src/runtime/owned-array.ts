@@ -126,14 +126,23 @@ export function copyStoredNumericArray(value: RankArray): RankArray | undefined 
 
 /** The caller has proved that this binding is replaced by its sorted result.
  * Retained readers must be ruled out separately with isSharedArray. Native
- * sort cannot poll, and integer buffers need no value-dependent validation. */
+ * sort cannot poll. Real buffers first prove native ordering is equivalent. */
 export function sortStoredIntegerArray(value: RankArray, descending: boolean): RankArray | undefined {
     const state = ownedStorage.get(value);
     if (interruptsEnabled() || !privateLoopPolling() || !state?.stable || !state.scalarOnly || (state.owners ?? 0) + (state.bindings ?? 0) !== 1
         || state.readOnlyCells || state.validity || value.itemAt !== undefined || value.shape.length !== 1
         || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
     const cells = state.typed;
-    if (!(cells instanceof BigInt64Array || cells instanceof Int32Array)) return undefined;
+    if (!(cells instanceof BigInt64Array || cells instanceof Int32Array || cells instanceof Float64Array)) return undefined;
+    if (cells instanceof Float64Array) {
+        if (!(cells.buffer instanceof ArrayBuffer)) return undefined;
+        // Generic ordering keeps signed-zero ties stable and handles NaN
+        // differently. Decline before touching any cell in either case.
+        for (let index = 0; index < cells.length; index++) {
+            if ((index & 4095) === 0) checkpoint('preparing numeric sort', Math.min(4096, cells.length - index));
+            if (Number.isNaN(cells[index]) || Object.is(cells[index], -0)) return undefined;
+        }
+    }
     // Allocate the new value facade before touching the binding's old cells.
     const result = typedArray(cells, value.shape);
     state.revision = noteMutation(state.birth);

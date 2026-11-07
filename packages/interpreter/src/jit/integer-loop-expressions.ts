@@ -879,6 +879,16 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const source = expression.head, type = arrayType(source);
         return type?.rank === 1 && type.element === 'boolean' && completedIndicesMask(source) && privateIndicesMask(source) ? source : undefined;
     }
+    function sortedSearch(source: Expression) {
+        while (isParenthesizedExpression(source)) source = source.value;
+        if (!numberMode || !host.nativeCalls || !host.arrayReads || !host.module('algo') || !isApplicationExpression(source)) return undefined;
+        const parts = flattenApplication(source), word = parts.at(-1);
+        if (parts.length !== 3 || !word || !isNameExpression(word) || !['lowerindex', 'upperindex'].includes(word.name)
+            || localTypes.has(word.name) || arrays.has(word.name) || containers.has(word.name)) return undefined;
+        const input = arrayType(parts[0]), targets = arrayType(parts[1]);
+        if (input?.rank !== 1 || !targets || ![input.element, targets.element].every(type => type === 'integer' || type === 'real' && host.reals)) return undefined;
+        return { source: parts[0], targets: parts[1], type: targets, name: word.name };
+    }
     // Array operands use the same concrete range/selection operations as the
     // evaluator, without re-entering expression evaluation on every iteration.
     function arrayType(e: Expression): CompiledArrayType | undefined {
@@ -892,6 +902,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (concat) return concat.type;
         const reshape = numericReshape(e);
         if (reshape) return { ...reshape.type, rank: reshape.form.dimensions.length };
+        const search = sortedSearch(e);
+        if (search) return { kind: 'array', element: 'integer', rank: search.type.rank };
         if (numberMode && isTableFilterExpression(e) && e.condition && !e.conditions.length && !e.sourceFields.length) {
             const source = arrayType(e.source), mask = arrayType(e.condition);
             if (source && source.rank > 0 && ['integer', 'real', 'boolean'].includes(source.element)
@@ -1139,6 +1151,28 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     bounds: frame?.compact && scalar.type === 'integer' ? [-2147483648, 2147483647] : scalar.bounds }) };
         }
         if (type.element !== 'integer' && type.element !== 'boolean' && type.element !== 'real') return undefined;
+        const search = sortedSearch(e);
+        if (search) {
+            const input = emitNumberArray(search.source, lines);
+            if (!input || typeof input.type === 'string') return undefined;
+            const cells = input.cells ?? `${input.code}.cells`, hint = `searchHint${state.serial++}`;
+            lines.push(`vectorLive.push(${cells});`);
+            const targets = numberVector(search.targets, lines, inlineRanges);
+            if (!targets) return undefined;
+            lines.push(`vectorLive.pop(); const ${hint} = { answer: 0 };`);
+            builtins.set(search.name, 'algo');
+            return { size: targets.size, shape: targets.shape, rank: targets.rank, type: 'integer',
+                sources: [...new Set([cells, ...targets.sources])],
+                compactGuards: [`${cells}.length <= 2147483647`, ...targets.compactGuards],
+                cell: (index, body, frame) => {
+                    const target = targets.cell(index, body, frame);
+                    if (!target) return undefined;
+                    const result = `searchCell${state.serial++}`;
+                    if (state.workCounting) body.push(`work += Math.ceil(Math.log2(${cells}.length + 1));`);
+                    body.push(`const ${result} = sortedIndexBatch(${cells}, ${target.code}, ${search.name === 'upperindex'}, ${hint});`);
+                    return { code: result, type: 'integer', bounds: frame?.compact ? [0, 2147483647] : undefined };
+                } };
+        }
         if (inlineRanges && isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
             const zeroOrigin = isNumberLiteral(e.left) && e.left.value === 0n
                 && (!e.step || isNumberLiteral(e.step) && e.step.value === 1n);
@@ -1498,7 +1532,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const source = emitNumberArray(parts[0], lines);
             if (!source || typeof source.type === 'string') return undefined;
             lines.push(`vectorLive.push(${source.cells ?? `${source.code}.cells`});`);
-            if (vectorOperation(parts[1]) || isRange(parts[1])) {
+            if (vectorOperation(parts[1]) || sortedSearch(parts[1]) || isRange(parts[1])) {
                 // A pure selector stage belongs to this gather's consumer.
                 // The result still completes before its ordinary binding;
                 // private failures replay the original operand boundaries.
@@ -1541,7 +1575,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             lines.push(`const ${result} = vectorArray(${selectors.code}.shape, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${cells}, ${keys}], ${type.element === 'boolean'});
                 if (${cells} instanceof Int32Array && ${keys} instanceof Int32Array) { ${gather(true)} }
                 else { ${gather(false)} }`);
-        } else if (vectorOperation(e)) {
+        } else if (vectorOperation(e) || sortedSearch(e)) {
             const input = numberVector(e, lines);
             if (!input) return undefined;
             const index = `cell${state.serial++}`, body: string[] = [];

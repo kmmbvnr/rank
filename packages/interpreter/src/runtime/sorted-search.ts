@@ -10,7 +10,7 @@ import { isRankArray, type RankArray, type RankValue } from './value.js';
 type StoredView = ReturnType<typeof prepareStoredScalarView>;
 
 // Vector targets search one source many times: prepare its view once.
-const prepared = new WeakMap<object, { revision: number; view: StoredView }>();
+const prepared = new WeakMap<object, { revision: number; view: StoredView; searchWork?: number; withoutNaN?: boolean }>();
 
 function storedView(source: RankValue & object): StoredView {
     const revision = isRankArray(source) ? arrayRevision(source) : undefined;
@@ -106,10 +106,25 @@ export function sortedIndexBatch(source: RankValue, targets: RankValue, upper: b
     if (cells instanceof Float64Array || real) {
         // Prove NaN-free ready inputs only when the scan can amortize over
         // the batch. Tiny batches retain scalar logarithmic searches.
-        const proofCells = (cells instanceof Float64Array ? size : 0) + (real ? count : 0);
-        if (proofCells > count * Math.ceil(Math.log2(size + 1))) return undefined;
-        if (cells instanceof Float64Array && !withoutNaN(cells, sview.linear, size)
-            || real && !withoutNaN(real, tview.linear, count)) return undefined;
+        const record = prepared.get(source);
+        const known = record?.view === sview && record.withoutNaN;
+        const sourceProof = cells instanceof Float64Array && !known ? size : 0;
+        const targetProof = real ? count : 0;
+        const work = count * Math.ceil(Math.log2(size + 1));
+        // Repeated small batches can amortize one source proof together.
+        // Both the credit and proof expire with the owned source revision.
+        if (targetProof > work) return undefined;
+        const credit = record ? Math.min(size, (record.searchWork ?? 0) + work - targetProof) : work - targetProof;
+        if (record) record.searchWork = credit;
+        if (sourceProof > credit) return undefined;
+        if (cells instanceof Float64Array && !known) {
+            if (!withoutNaN(cells, sview.linear, size)) return undefined;
+            if (record) {
+                if (arrayRevision(source) !== record.revision) return undefined;
+                record.withoutNaN = true;
+            }
+        }
+        if (real && !withoutNaN(real, tview.linear, count)) return undefined;
         search<number | bigint>(cells, sview.linear, size, found, upper, at => real ? real[offset + at * stride]
             : narrow ? narrow[offset + at * stride] : wide![offset + at * stride]);
     } else if (cells instanceof Int32Array) {
