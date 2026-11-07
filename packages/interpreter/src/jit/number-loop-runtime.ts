@@ -295,7 +295,7 @@ function rankValue(value: unknown, type: string | undefined): RankValue | undefi
         : typeof value === 'number' && type === 'integer' ? BigInt(value) : value as RankValue | undefined;
 }
 
-function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[], publish: string, workCounting = false): string {
+function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[], publish: (success: boolean) => string, workCounting = false): string {
     const { root, body } = plan;
     // Persistent traversal functions keep their host-JIT identity across runs
     // and GC. Frames carry private registers only for the duration of a call.
@@ -341,10 +341,10 @@ function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[
             ${plan.polling === 'batched' ? 'checkpoint(undefined, pollWork);' : ''}
         } catch (error) {
             if (error === overflow) return undefined;
-            ${publish}
+            ${publish(false)}
             throw locate(error, location);
         }
-        ${publish}
+        ${publish(true)}
         return { value: result, type: resultType${workCounting ? ', work' : ''} };
     };`;
 }
@@ -435,7 +435,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         }
     }
     for (const info of plan.destinations.values()) registers.push(`changed${info.slot} = changes[${info.slot}]`);
-    const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
+    const publish = (success: boolean) => `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}], ${success});`;
     // Only borrowed slots need actual-load guards. One borrowed source must
     // not add conversion calls to every already validated array in the region.
     const readers = [...arrays].map(([name, info]) =>
@@ -443,7 +443,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             ? '(value) => value' : 'integerCell'};`).join('\n');
     const integerCell = (value: number | bigint) => safe(Number(value));
     const source = emitNumberLoopSource(plan, registers, publish, false);
-    type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
+    type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][], success: boolean) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
@@ -816,7 +816,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         }
         const started = diagnostics ? performance.now() : 0;
         let result: ReturnType<Run>;
-        try { result = execute(input, buffers, changes, calls, (entered, values) => {
+        try { result = execute(input, buffers, changes, calls, (entered, values, success) => {
             // Overflow never enters publication. Ordinary errors and cancellation
             // commit exactly the preceding stores; no polling/callback may split
             // this publication from the scalar bindings below.
@@ -847,7 +847,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (diagnostics) diagnostics.compiledLoops++;
             // First-write order preserves binding insertion order as well as the
             // final values; contracts were proved total before executing anything.
-            for (const [, slot, value] of values.filter(([order]) => order > 0).sort((a, b) => a[0] - b[0])) {
+            for (const [, slot, value] of values.filter(([order, slot]) => order > 0
+                && (!success || !plan.prefixBindings || plan.prefixBindings.has(names[slot]))).sort((a, b) => a[0] - b[0])) {
                 host.writer(names[slot])(rankValue(value, localTypes.get(names[slot]))!);
             }
         }); } finally {

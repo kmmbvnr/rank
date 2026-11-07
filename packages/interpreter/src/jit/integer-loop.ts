@@ -11,7 +11,7 @@ import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
     isIfStatement, isForStatement, isParenthesizedExpression, isNameExpression, isAssignmentStatement, isArrayAssignmentStatement, statementResultDiscarded, type ForStatement,
-    type Statement, type FunctionStatement, isFunctionStatement,
+    type Statement, type FunctionStatement, isFunctionStatement, isReturnStatement,
 } from '@arrrank/language';
 import { isRankArray } from '../value.js';
 import { denseScalarItems, materializedArrayItems, arrayRevision } from '../array-storage.js';
@@ -75,14 +75,29 @@ function prepareIntegerRegion(statement: ForStatement, host: LoopHost, iteration
  * leave the frame untouched, so the original statements can execute instead. */
 export function compileIntegerFunctionPrefix(statement: FunctionStatement, host: LoopHost): CompiledLoop | undefined {
     const plan = lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true);
-    // Only fresh-array regions justify joining independent loops. External
-    // stores retain their ordinary per-loop transactions and copy-cost feedback.
-    if (!plan?.arrayDefinitions.size || plan.destinations.size === 0
+    // Fresh-array writes and numeric vector reductions can share a private
+    // region. External stores keep per-loop transactions and copy feedback.
+    const reduction = plan && !plan.destinations.size && !plan.containers.size
+        && !plan.callouts?.length && plan.calls.every(call => call.privateStateSafe) && plan.numberVectors
+        && plan.builtins.get('sum') === 'core' && plan.locations.some(isForStatement);
+    if (!plan || !reduction && (!plan.arrayDefinitions.size || !plan.destinations.size)
         || [...plan.destinations.keys()].some(name => !plan.arrayDefinitions.has(name))) return undefined;
+    const terminal = statement.statements.at(-1);
+    const returned = isReturnStatement(terminal) && isNameExpression(terminal.value) ? terminal.value.name : undefined;
+    if (reduction && returned && ['integer', 'real'].includes(plan.localTypes.get(returned) ?? '')
+        && statement.statements.some(node => isAssignmentStatement(node) && node.operator === '='
+            && !node.deferred && node.name === returned)) {
+        // The terminal name is initialized on every successful path. Other
+        // private locals cannot escape through this return; still compute and
+        // validate their values, but avoid boxing/publishing discarded arrays.
+        plan.prefixBindings = new Set([returned, ...statement.parameters, ...(plan.rangeDefinitions ?? [])]);
+    }
     const fast = prepareNumberLoop(plan, host, undefined, undefined,
         polling => lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, new Set(), false, polling));
     let mixed: CompiledLoop | undefined, preparedMixed = false;
     return fast && { run: (...context) => {
+        // Ordinary completion and native reductions retain their work units.
+        if (reduction && demandBudgetEnabled()) return recordFallback('number-loop:observable-prefix-budget', 'effects');
         const result = fast.run(...context);
         if (result) return result;
         if (!preparedMixed) {

@@ -156,6 +156,8 @@ export interface IntegerLoopPlan {
     ownedAliases?: ReadonlySet<string>;
     arrayRegions?: { region: ArrayRegion; location: number }[];
     numberVectors?: boolean;
+    /** Locals needed by an immediate named numeric return; errors publish all. */
+    prefixBindings?: ReadonlySet<string>;
     writable: Set<string>;
     iteration: IterationBinding | undefined;
     workCounting?: boolean;

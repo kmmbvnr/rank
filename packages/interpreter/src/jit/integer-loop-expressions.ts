@@ -905,7 +905,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const operands = point.operands.map(arrayType);
                 if (operands.some(Boolean)) {
                     const types = operands.map((type, i) => type?.element ?? knownType(point.operands[i]) ?? 'integer');
-                    const type = point.parity ? types[0] === 'integer' ? 'boolean' : undefined
+                    const type = point.unary ? point.unary.types[types[0]]
                         : point.fusedProduct ? types.every(type => type === 'integer') ? 'integer' : undefined
                         : point.name === 'choose'
                         ? types[0] === 'boolean' && types[1] === types[2] ? types[1] : undefined
@@ -1064,7 +1064,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             for (let ${index} = ${block}; ${index} < ${end}; ${index}++) { ${body.join('\n')} }
         } })();`;
     }
-    function vectorOperation(e: Expression): { name: string; operands: Expression[]; module?: string; fusedProduct?: boolean; parity?: boolean } | undefined {
+    function vectorOperation(e: Expression): { name: string; operands: Expression[]; module?: string; fusedProduct?: boolean; unary?: InlineBuiltin } | undefined {
         const unwrap = (value: Expression) => { while (isParenthesizedExpression(value)) value = value.value; return value; };
         if (isBinaryExpression(e) && e.operator === 'mod' && !e.step) {
             const product = unwrap(e.left);
@@ -1082,9 +1082,12 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         if (host.nativeCalls && isApplicationExpression(e)) {
             const tail = e.arguments.length === 1 ? e.arguments[0] : undefined;
-            if (tail && isNameExpression(tail) && ['odd', 'even'].includes(tail.name)
+            if (tail && isNameExpression(tail)
                 && !localTypes.has(tail.name) && !arrays.has(tail.name) && !containers.has(tail.name)) {
-                return { name: tail.name, module: 'numbers', operands: [unwrap(e.head)], parity: true };
+                const builtin = inlineBuiltins.get(tail.name);
+                if (builtin && (builtin.enabled?.(host) ?? true)) {
+                    return { name: tail.name, module: builtin.module, operands: [unwrap(e.head)], unary: builtin };
+                }
             }
             e = groupedUnaryDyadicChain(e, name => !localTypes.has(name)
                 && !arrays.has(name) && !containers.has(name)) ?? e;
@@ -1197,8 +1200,17 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         return { type: values[1]!.type,
                             code: `(${values[0]!.code} ? ${values[1]!.code} : ${values[2]!.code})` };
                     }
-                    if (point.parity) return { type: 'boolean',
-                        code: parity(point.name === 'even').code(values[0]!.code, 'integer', true) };
+                    if (point.unary) {
+                        const value = values[0]!, type = point.unary.types[value.type];
+                        if (!type) return undefined;
+                        // Replay a vector domain failure through the ordinary
+                        // mapper to retain its argument/error attribution.
+                        const test = point.unary.domain?.test(value.code, value.type);
+                        if (test) body.push(`if (${test}) throw overflow;`);
+                        const result = `unary${state.serial++}`;
+                        body.push(`const ${result} = ${point.unary.code(value.code, value.type, true)};`);
+                        return { type, code: result };
+                    }
                     if (point.name === 'powmod') {
                         // Domain failures must replay the ordinary array call,
                         // including its operand/error attribution.

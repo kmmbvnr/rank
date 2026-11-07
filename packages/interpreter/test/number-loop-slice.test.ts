@@ -59,7 +59,7 @@ end`);
         expect(result.state.variables).toContainEqual(['Alias', '2 4 6 8 10 12']);
     });
 
-    it('uses only later prefix statements as a discarded-result proof', () => {
+    it('uses a later statement or explicit return as a discarded-result proof', () => {
         for (const tail of ['', ' Done = 1\n']) {
             const result = compare(`fun Count alter
  A = array shape 6 fill 6
@@ -70,8 +70,8 @@ end`);
 ${tail} return A
 end
 Values = 2 alter`);
-            expect(result.diagnostics.numberLoops).toBe(tail ? 1 : 0);
-            if (tail) expect(result.diagnostics.numberLoopSliceDirectCells).toBe(6);
+            expect(result.diagnostics.numberLoops).toBe(1);
+            expect(result.diagnostics.numberLoopSliceDirectCells).toBe(6);
         }
     });
 
