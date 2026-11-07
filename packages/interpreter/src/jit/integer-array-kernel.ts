@@ -3,7 +3,7 @@ import { DENSE_MIN_CELLS } from './tensor-operands.js';
 import { BooleanCells } from '../boolean-cells.js';
 import { createOwned } from '../owned-array.js';
 import { booleanCells, IntegerCells, ownedScalarArray, typedArray } from '../array-storage.js';
-import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
+import { greatestCommonDivisor, leastCommonMultiple, safeIntegerGcd } from '../integer-gcd.js';
 import { RankError } from '../errors.js';
 import { modularExponentQuad, modularPowerQuad, multiply, safeIntegerModularPower } from '../modular-power.js';
 import { prepareIntegerView, prepareStoredScalarView } from '../integer-view.js';
@@ -29,6 +29,7 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
         : name === 'min' ? (a: bigint, b: bigint) => b < a ? b : a
         : name === 'max' ? (a: bigint, b: bigint) => b > a ? b : a
         : name === 'gcd' ? greatestCommonDivisor
+        : name === 'lcm' ? leastCommonMultiple
         : name === '**' ? (a: bigint, b: bigint) => a ** b
         : name === 'abs' ? (a: bigint) => a < 0n ? -a : a : undefined;
     if (name === 'band' || name === 'bor' || name === 'bxor' || name === 'shl' || name === 'shr') {

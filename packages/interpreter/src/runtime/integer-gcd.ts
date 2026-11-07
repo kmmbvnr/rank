@@ -25,3 +25,10 @@ export function safeIntegerGcd(left: number, right: number): number {
     }
     return a;
 }
+
+/** Divide before multiplying; both scalar and stored-array LCM stay exact. */
+export function leastCommonMultiple(left: bigint, right: bigint): bigint {
+    if (left === 0n || right === 0n) return 0n;
+    const result = left / greatestCommonDivisor(left, right) * right;
+    return result < 0n ? -result : result;
+}

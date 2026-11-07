@@ -1,53 +1,64 @@
-rem Distinct terms in a Multiplication
-rem Table
+rem Distinct multiplication-table terms
 rem https://projecteuler.net/problem=466
-
 use numbers
 use sequences
+use bits
 use io
 use cli
-
 arg M integer = 64
 arg N integer = 10000000000000000
 
-rem Give each product to its largest
-rem row d <= M. Row e > d takes d c
-rem when e / gcd(e, d) divides c, so
-rem row d keeps the c <= N divisible
-rem by none of the minimal such q:
-rem inclusion-exclusion over their
-rem lcms, adding one q at a time and
-rem merging equal lcms.
-Answer = 0
-for D in 1 to M
-  Es = D + 1 to M copy
-  Qv = Es // (Es gcd D)
-  Qv = Qv unique sort
-  Qv = Qv (Qv at most N indices)
-  rem Drop q with a smaller divisor.
-  Ms = Qv (Qv * 0 + 1) outer *
-  Pm = (Qv Qv outer //) * Qv
-  Dv = Pm equal Ms count rank 1
-  Qs = Qv (Dv equal 1 indices)
-  Ls = array 1
-  Cs = array 1
-  for Q in Qs
-    Lc = Ls * Q // (Ls gcd Q)
-    Ok = Lc at most N indices
-    Ky = concat Ls (Lc Ok)
-    Cf = concat Cs (0 - Cs Ok)
-    Od = Ky argsort
-    Ky = Ky Od
-    Cf = Cf Od
-    rem Sum the runs of equal lcm.
-    Nx = Ky shift -1 with -1
-    Ei = Ky not equal Nx indices
-    Gs = (Cf scan +) Ei
-    Gs = Gs - (Gs shift 1)
-    Nz = Gs not equal 0 indices
-    Ls = (Ky Ei) Nz
-    Cs = Gs Nz
+rem Give products to their largest row.
+rem Row e takes d*c if e/gcd(e,d)
+rem divides c. Keep minimal blockers.
+fun Row blockers Rows
+  Later = Row + 1 to Rows copy
+  Values = Later // (Later gcd Row)
+  Values = Values unique sort
+  Remainders = Values Values outer mod
+  Divides = Remainders equal 0
+  Counts = Divides count rank 1
+  return Values (Counts equal 1)
+end
+
+rem Equal obstruction sets share work.
+rem A scalar bitset is a memo key.
+memo Limit avoiding Mask
+  Text = Mask binary
+  Width = Text len
+  Positions = 0 till Width
+  Flags = Mask bit Positions
+  Factors = Flags indices + 1
+  Keys = array 1
+  Weights = array 1
+  for Factor in Factors
+    Next = Keys lcm Factor
+    Valid = Next at most Limit indices
+    Joined = concat Keys (Next Valid)
+    Negative = 0 - Weights Valid
+    Signed = concat Weights Negative
+    Order = Joined argsort
+    Joined = Joined Order
+    Signed = Signed Order
+    Next = Joined shift -1 with -1
+    Ends = Joined not equal Next indices
+    Totals = (Signed scan +) Ends
+    Totals -= Totals shift 1
+    Keep = Totals not equal 0 indices
+    Keys = (Joined Ends) Keep
+    Weights = Totals Keep
   end
-  Answer += (Cs * (N // Ls)) sum
+  Terms = Weights * (Limit // Keys)
+  return Terms sum
+end
+
+Rows = M min N
+Limit = M max N
+Answer = 0
+for Row in 1 to Rows
+  Factors = Row blockers Rows
+  Bits = 1 shl (Factors - 1)
+  Mask = Bits sum
+  Answer += Limit avoiding Mask
 end
 Answer print

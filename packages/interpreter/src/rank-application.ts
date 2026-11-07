@@ -179,6 +179,7 @@ export class RankApplication {
         }
         const operation = leftRank === 0 && rightRank === 0 && hasNativeImplementation(fn)
             ? fn === this.standardFunctions.get(standardModules.numbers.gcd) ? 'gcd'
+                : fn === this.standardFunctions.get(standardModules.numbers.lcm) ? 'lcm'
                 : fn === this.standardFunctions.get(standardModules.core.min) ? 'min'
                 : fn === this.standardFunctions.get(standardModules.core.max) ? 'max'
                 : bitwiseOperations.find(name => fn === this.standardFunctions.get(standardModules.bits[name]))

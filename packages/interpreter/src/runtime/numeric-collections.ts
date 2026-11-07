@@ -106,7 +106,13 @@ export function numericSort(value: RankValue, descending: boolean, mode: 'values
 /** Stable three-pass radix permutation for signed Int32 keys. Wider integers
  * continue through the Int64 path; keys never truncate to fit this one. */
 function radixOrder(values: NumericBuffer, descending: boolean): Uint32Array | undefined {
-    // Decide before allocating keys: wide integers usually fail at the first cell.
+    // A sorted wide prefix often starts at a small value. A native witness
+    // can decline Int32 admission before scanning that entire prefix. These
+    // probes never read lazy/host cells; a successful probe is not a proof.
+    if (values instanceof BigInt64Array && values.length) {
+        const middle = Number(values[values.length >>> 1]), last = Number(values[values.length - 1]);
+        if (middle < -2147483648 || middle > 2147483647 || last < -2147483648 || last > 2147483647) return undefined;
+    }
     for (let index = 0; index < values.length; index++) {
         const cell = Number(values[index]);
         if (!Number.isInteger(cell) || cell < -2147483648 || cell > 2147483647) return undefined;
@@ -150,9 +156,9 @@ const lowWord = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 
 /** Stable signed Int64 permutation, including values beyond Number precision.
  * Read the two words directly; conversion through Number would merge nearby
- * large integers. Four stable 16-bit counting passes move each key beside its
- * index, so every pass reads memory in order; the high word is gathered once
- * after the low word is sorted, which lets both passes share two key buffers. */
+ * large integers. Cache-sized digits avoid scanning 65536 buckets for short
+ * inputs; large inputs retain four 16-bit passes. Each pass moves the key
+ * beside its index, and the high word is gathered after sorting the low word. */
 function wideIntegerOrder(values: NumericBuffer, descending: boolean): Uint32Array | undefined {
     if (!(values instanceof BigInt64Array)) return undefined;
     const words = new Uint32Array(values.buffer, values.byteOffset, values.length * 2);
@@ -166,24 +172,29 @@ function wideIntegerOrder(values: NumericBuffer, descending: boolean): Uint32Arr
         order[index] = index;
         keys[index] = (words[2 * index + lowWord] ^ lowFlip) >>> 0;
     }
-    const counts = new Uint32Array(65536);
-    for (let pass = 0; pass < 4; pass++) {
-        if (pass === 2) {
+    // Measured 8/11/16-bit variants on arm64 and Intel; small inputs pay
+    // mostly for bucket scans, while large inputs benefit from fewer passes.
+    // The cutoff control is retained in benchmarks/euler466.md.
+    const bits = size < 1024 ? 8 : size < 65536 ? 11 : 16;
+    const wordPasses = Math.ceil(32 / bits), mask = (1 << bits) - 1;
+    const counts = new Uint32Array(1 << bits);
+    for (let pass = 0; pass < 2 * wordPasses; pass++) {
+        if (pass === wordPasses) {
             for (let index = 0; index < size; index++) {
                 if ((index & 4095) === 0) checkpoint('gathering sort keys', 4096);
                 keys[index] = (words[2 * order[index] + 1 - lowWord] ^ highFlip) >>> 0;
             }
         }
-        const shift = (pass & 1) * 16;
+        const shift = (pass % wordPasses) * bits;
         counts.fill(0);
-        for (let index = 0; index < size; index++) counts[(keys[index] >>> shift) & 65535]++;
+        for (let index = 0; index < size; index++) counts[(keys[index] >>> shift) & mask]++;
         let offset = 0;
         for (let bucket = 0; bucket < counts.length; bucket++) {
             const count = counts[bucket]; counts[bucket] = offset; offset += count;
         }
         for (let index = 0; index < size; index++) {
             if ((index & 4095) === 0) checkpoint('sorting wide integers', 4096);
-            const target = counts[(keys[index] >>> shift) & 65535]++;
+            const target = counts[(keys[index] >>> shift) & mask]++;
             other[target] = order[index];
             moved[target] = keys[index];
         }

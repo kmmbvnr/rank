@@ -1,7 +1,7 @@
 import { registerScalarBuiltin } from '../scalar-builtin.js';
 import { Factorizer, maxFactorTableInteger } from '../factorization.js';
 import { withNumberCalls } from '../typed-native.js';
-import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
+import { greatestCommonDivisor, leastCommonMultiple, safeIntegerGcd } from '../integer-gcd.js';
 import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
 import { mapStoredUnary } from '../unary-array-kernel.js';
 import { mapScalarArrays } from '../scalar-array-map.js';
@@ -450,11 +450,6 @@ function add(left: bigint | number, right: bigint | number): bigint | number {
     return typeof left === 'bigint' && typeof right === 'bigint'
         ? left + right
         : Number(left) + Number(right);
-}
-
-function leastCommonMultiple(left: bigint, right: bigint): bigint {
-    if (left === 0n || right === 0n) return 0n;
-    return absolute(left / greatestCommonDivisor(left, right) * right);
 }
 
 function checkedModularPower(base: bigint, exponent: bigint, modulus: bigint): bigint {
