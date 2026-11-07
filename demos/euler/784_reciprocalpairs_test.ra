@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "784_reciprocalpairs"
+  Limit = 5
+  run
+  Answer equal 59
+  Limit = 100
+  run
+  Answer equal 697317
+  Limit = 3001
+  run
+  Answer equal 19668302221
+end

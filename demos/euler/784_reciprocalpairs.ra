@@ -1,0 +1,111 @@
+rem Reciprocal Pairs
+rem https://projecteuler.net/problem=784
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Limit integer = 2000000
+
+rem (p, q, r) is reciprocal when
+rem d e = r^2 - 1, p = r + d, q = r + e,
+rem d = p - r <= min(r - 1, n - r).
+rem Write
+rem d = 2^v a b with odd coprime a, b,
+rem a | r - 1 and b | r + 1: r = r0 mod
+rem a b by CRT, odd r for v >= 1, and
+rem r = +-1 mod 2^(v-1) for v >= 4. Each
+rem class is an arithmetic progression
+rem summed in closed form.
+Half = Limit // 2
+Seq = 1 to Half
+Odd = Seq filter (Seq mod 2 equal 1)
+Count = (Half // Odd + 1) // 2
+Ends = Count scan +
+Starts = Ends - Count
+Total = Count sum
+Marks = array shape Total fill 0
+Marks Starts = 1
+Owner = (Marks scan +) - 1
+Run = 0 to Total - 1
+Pa = Odd Owner
+Pb = 1 + 2 * (Run - Starts Owner)
+Coprime = (Pa gcd Pb) equal 1
+Pa = Pa Coprime
+Pb = Pb Coprime
+Ab = Pa * Pb
+rem Inverse of a mod b by Euclid.
+Big = Pb max 2
+R0 = Big * 1
+R1 = Pa mod Big
+S0 = Pa * 0
+S1 = Pa * 0 + 1
+for Round in 1 to 40
+  Live = R1 greater 0
+  Safe = R1 max 1
+  Quot = R0 // Safe
+  Next = R0 - Quot * R1
+  Sn = S0 - Quot * S1
+  R0 = Live choose R1 R0
+  R1 = Live choose Next R1
+  S0 = Live choose S1 S0
+  S1 = Live choose Sn S1
+end
+Wide = (Pb greater 1) integer
+Inv = (S0 mod Big) * Wide
+Tt = ((0 - 2) * Inv) mod Pb
+Base = (1 + Pa * Tt) mod Ab
+Hi = 0
+Lo = 0
+Depth = Half binary len
+for Vee in 0 to Depth
+  Cap = Half // (2 ** Vee)
+  Keep = Ab at most Cap
+  Ka = Ab Keep
+  Kb = Base Keep
+  Deep = Vee at least 4
+  Kappa = Deep choose (Vee - 1) 1
+  Mod2 = 2 ** Kappa
+  Inv2 = Ka (Mod2 // 2 - 1) Mod2 powmod
+  Rho1 = Kb * 0 + 1
+  Rho2 = Kb * 0 + Mod2 - 1
+  Step1 = ((Rho1 - Kb) * Inv2) mod Mod2
+  Step2 = ((Rho2 - Kb) * Inv2) mod Mod2
+  Mods = Ka * Mod2
+  First1 = Kb + Ka * Step1
+  First2 = Kb + Ka * Step2
+  Many = (Vee at least 4) integer
+  Second = (Kb * 0 + 1) * Many
+  Zero = Vee equal 0
+  Res = Zero choose Kb First1
+  Mod = Zero choose Ka Mods
+  Res = concat Res First2
+  Mod = concat Mod Mods
+  Used = concat (Kb * 0 + 1) Second
+  Dd = (2 ** Vee) * (concat Ka Ka)
+  Res = Res mod Mod
+  Floor = Dd + 1
+  Gap = (Floor - Res) max 0
+  Skip = (Gap + Mod - 1) // Mod
+  Frst = Res + Mod * Skip
+  Top = Limit - Dd
+  Fits = (Frst at most Top) integer
+  Room = (Top - Frst) // Mod + 1
+  Cnt = Room * Fits * Used
+  Cnt = Cnt max 0
+  C1 = Cnt * (Cnt - 1) // 2
+  Prev = Cnt - 1
+  C2 = Prev * Cnt * (2 * Cnt - 1) // 6
+  S1 = Cnt * Frst + Mod * C1
+  S2 = Cnt * Frst * Frst
+  S2 = S2 + 2 * Frst * Mod * C1
+  S2 = S2 + Mod * Mod * C2
+  Quot = (S2 - Cnt) // Dd
+  Term = 2 * S1 + Cnt * Dd + Quot
+  Hi += (Term // 1073741824) sum
+  Lo += (Term mod 1073741824) sum
+end
+Answer = Hi * 1073741824 + Lo
+Answer print
