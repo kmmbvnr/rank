@@ -1,0 +1,226 @@
+rem ACMP 0981: Median
+rem Express monotone self-dual Boolean
+rem formula over <=5 vars via <xyz>
+use io
+use cli
+use numbers
+use sequences
+use text
+
+arg Input text = "(a&b&c)|(a&b&d)|
+(a&b&e)|(a&c&d)|(a&c&e)|
+(a&d&e)|(b&c&d)|(b&c&e)|
+(b&d&e)|(c&d&e)"
+
+Chars = Input split ""
+Valid = (Chars not equal " ") and (
+  (Chars not equal "\r") and (
+    Chars not equal "\n"
+  )
+)
+Toks = Chars Valid
+NTok = Toks len
+
+rem Identify up to 5 distinct variables
+IsVar = (Toks not equal "!") and (
+  (Toks not equal "&") and (
+    (Toks not equal "|") and (
+      (Toks not equal "(") and (
+        Toks not equal ")"
+      )
+    )
+  )
+)
+VarToks = Toks IsVar
+SortedVars = VarToks sort
+Vars = SortedVars unique
+K = Vars len
+
+rem Precomputed 32-bit truth masks
+VarMasks = array 2863311530 3435973836
+VarMasks2 = array 4042322160 4278255360
+VarMasks3 = array 4294901760
+Masks12 = concat VarMasks VarMasks2
+AllMasks = concat Masks12 VarMasks3
+AllOnes = 4294967295
+Rows = 0 to 31
+Weights = 2 ** Rows
+
+ValStk = array shape (NTok + 2) fill 0
+OpStk = array shape (NTok + 2) fill ""
+VTop = -1
+OTop = -1
+
+Exprs = array shape 16 fill ""
+HalfN = 2 ** (K - 1)
+V0 = Vars 0
+
+Phase = 0
+Pos = 0
+CurTok = ""
+PopOp = false
+Mask = 0
+CurL = K - 1
+Count = HalfN
+
+for Phase less 3
+  if Phase equal 0
+    if Pos less NTok
+      CurTok = Toks Pos
+      if CurTok equal "("
+        OTop = OTop + 1
+        OpStk OTop = "("
+        Pos = Pos + 1
+      elif CurTok equal "!"
+        OTop = OTop + 1
+        OpStk OTop = "!"
+        Pos = Pos + 1
+      elif CurTok equal ")"
+        if (OpStk OTop) equal "("
+          OTop = OTop - 1
+          Pos = Pos + 1
+        else
+          PopOp = true
+        end
+      elif CurTok equal "&"
+        if OTop greater -1
+          TopOp = OpStk OTop
+          if (TopOp equal "!") or (
+            TopOp equal "&"
+          )
+            PopOp = true
+          else
+            OTop = OTop + 1
+            OpStk OTop = "&"
+            Pos = Pos + 1
+          end
+        else
+          OTop = OTop + 1
+          OpStk OTop = "&"
+          Pos = Pos + 1
+        end
+      elif CurTok equal "|"
+        if OTop greater -1
+          TopOp = OpStk OTop
+          if TopOp not equal "("
+            PopOp = true
+          else
+            OTop = OTop + 1
+            OpStk OTop = "|"
+            Pos = Pos + 1
+          end
+        else
+          OTop = OTop + 1
+          OpStk OTop = "|"
+          Pos = Pos + 1
+        end
+      else
+        Match = Vars equal CurTok
+        IdxArr = (0 till K) Match
+        VIdx = IdxArr 0
+        VTop = VTop + 1
+        ValStk VTop = AllMasks VIdx
+        Pos = Pos + 1
+      end
+    else
+      if OTop greater -1
+        PopOp = true
+      else
+        Mask = 0
+        Phase = 1
+      end
+    end
+    if PopOp
+      PopOp = false
+      Op = OpStk OTop
+      OTop = OTop - 1
+      if Op equal "!"
+        A = ValStk VTop
+        ValStk VTop = AllOnes - A
+      elif Op equal "&"
+        B = ValStk VTop
+        VTop = VTop - 1
+        A = ValStk VTop
+        B1 = (A // Weights) mod 2
+        B2 = (B // Weights) mod 2
+        AndTerms = (B1 * B2) * Weights
+        ValStk VTop = AndTerms sum
+      elif Op equal "|"
+        B = ValStk VTop
+        VTop = VTop - 1
+        A = ValStk VTop
+        B1 = (A // Weights) mod 2
+        B2 = (B // Weights) mod 2
+        OrBits = (B1 + B2) - (B1 * B2)
+        OrTerms = OrBits * Weights
+        ValStk VTop = OrTerms sum
+      end
+    end
+  elif Phase equal 1
+    if Mask less HalfN
+      Truth = ValStk 0
+      Row0 = 2 * Mask
+      Row1 = Row0 + 1
+      Bit0 = (Truth // (2 ** Row0)) mod 2
+      Bit1 = (Truth // (2 ** Row1)) mod 2
+      if (Bit0 equal 0) and (
+        Bit1 equal 0
+      )
+        Exprs Mask = "0"
+      elif (Bit0 equal 1) and (
+        Bit1 equal 1
+      )
+        Exprs Mask = "1"
+      else
+        Exprs Mask = V0
+      end
+      Mask = Mask + 1
+    else
+      CurL = 1
+      Count = 0
+      if K greater 1
+        Count = 2 ** (K - 2)
+      end
+      Mask = 0
+      Phase = 2
+    end
+  elif Phase equal 2
+    if CurL less K
+      if Mask less Count
+        VarL = Vars CurL
+        M0 = 2 * Mask
+        M1 = M0 + 1
+        F0 = Exprs M0
+        F1 = Exprs M1
+        if F0 equal F1
+          Exprs Mask = F0
+        elif F0 equal "0"
+          if F1 equal "1"
+            Exprs Mask = VarL
+          else
+            Parts = array "<" VarL VarL F1 ">"
+            Exprs Mask = Parts join ""
+          end
+        elif F1 equal "1"
+          Parts = array "<" VarL F0 VarL ">"
+          Exprs Mask = Parts join ""
+        else
+          Parts = array "<" VarL F0 F1 ">"
+          Exprs Mask = Parts join ""
+        end
+        Mask = Mask + 1
+      else
+        CurL = CurL + 1
+        if CurL less K
+          Count = 2 ** ((K - 1) - CurL)
+        end
+        Mask = 0
+      end
+    else
+      Phase = 3
+    end
+  end
+end
+
+Result = Exprs 0
+Result print

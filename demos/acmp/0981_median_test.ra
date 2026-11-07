@@ -1,0 +1,43 @@
+rem ACMP 0981: Median tests
+use testing
+use text
+use sequences
+use numbers
+
+test "ACMP 981: Sample (x&y|y&z|x&z)"
+  use "0981_median"
+  Input = "x&y|y&z|x&z"
+  run
+  Result equal "<z<yyx><yxy>>"
+end
+
+test "ACMP 981: Single variable a"
+  use "0981_median"
+  Input = "a"
+  run
+  Result equal "a"
+end
+
+test "ACMP 981: Double negation !!x"
+  use "0981_median"
+  Input = "!!x"
+  run
+  Result equal "x"
+end
+
+test "ACMP 981: Parenthesized majority"
+  use "0981_median"
+  Input = "(a|b)&(b|c)&(c|a)"
+  run
+  Result equal "<c<bba><bab>>"
+end
+
+test "ACMP 981: 5-variable majority"
+  use "0981_median"
+  Input = "(a&b&c)|(a&b&d)|(a&b&e)|
+(a&c&d)|(a&c&e)|(a&d&e)|
+(b&c&d)|(b&c&e)|(b&d&e)|(c&d&e)"
+  run
+  Exp = "<e<d<cc<bba>><c<bba><bab>>>"
+  Result startswith Exp
+end
