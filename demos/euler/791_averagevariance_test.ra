@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "791_averagevariance"
+  Limit = 5
+  run
+  Answer equal 48
+  Limit = 1000
+  run
+  Answer equal 37048340
+end

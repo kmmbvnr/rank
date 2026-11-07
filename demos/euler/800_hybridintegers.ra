@@ -1,0 +1,39 @@
+rem Hybrid Integers
+rem https://projecteuler.net/problem=800
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Base integer = 800800
+arg Power integer = 800800
+
+rem p^q q^p <= B^P is q ln p + p ln q
+rem <= P ln B. For each prime p the
+rem largest allowed prime q is found by
+rem bisection on the integers, then the
+rem prime counts are subtracted.
+Base2 = Base * 1.0
+Goal = Power * (Base2 log)
+Wide = Goal / 0.6931471805599453
+Top = (Wide + 2.0) integer
+Primes = primes to Top copy
+Below = (Primes at most Goal) integer
+Ps = Primes take (Below sum)
+Flags = array shape (Top + 1) fill 0
+Flags Primes = 1
+Prefix = Flags scan +
+Lp = Ps log
+Lo = Ps + 0
+Hi = Lo * 0 + Top
+for Round in 1 to 40
+  Mid = (Lo + Hi + 1) // 2
+  Cost = Mid * Lp + Ps * (Mid log)
+  Fits = Cost at most Goal
+  Lo = Fits choose Mid Lo
+  Hi = Fits choose Hi (Mid - 1)
+end
+Gain = (Prefix Lo - Prefix Ps) max 0
+Answer = Gain sum
+Answer print

@@ -1,0 +1,12 @@
+use testing
+
+test "statement values"
+  use "800_hybridintegers"
+  Base = 800
+  Power = 1
+  run
+  Answer equal 2
+  Power = 800
+  run
+  Answer equal 10790
+end
