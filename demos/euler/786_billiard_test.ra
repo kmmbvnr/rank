@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "786_billiard"
+  Bounces = 10
+  Cut = 40
+  run
+  Answer equal 6
+  Bounces = 100
+  Cut = 320
+  run
+  Answer equal 478
+  Bounces = 1000
+  Cut = 400
+  run
+  Answer equal 45790
+end

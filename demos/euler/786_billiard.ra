@@ -1,0 +1,133 @@
+rem Billiard
+rem https://projecteuler.net/problem=786
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Bounces integer = 10 ** 9
+arg Cut integer = 2500000
+
+rem Unfolding gives, with n = 3N + 6,
+rem F = 4 z + 2 and
+rem z = sum over d not divisible by 3
+rem of mu(d) q(n / d), where q(g)
+rem counts positive (x, y) with
+rem 18x + 10y <= g < 18x + 30y, that
+rem is L(18, 10; g) - L(18, 30; g),
+rem L(a, b; c) = #{ax + by <= c}.
+rem Each L is a floor sum of period 5.
+rem Mertens M at every n / k comes from
+rem a sieve plus a recursion, and the
+rem 3-free prefix is sum of M(x / 3^j).
+Limit = 3 * Bounces + 6
+Top = Limit min Cut
+Primes = primes to (Top isqrt) copy
+Squares = Primes * Primes
+Idx = 1 to Top
+Count = Top // Primes
+Ends = Count scan +
+Starts = Ends - Count
+Total = Count sum
+Marks = array shape Total fill 0
+Marks Starts = 1
+Owner = (Marks scan +) - 1
+Run = 0 to Total - 1
+Step = Run - Starts Owner + 1
+Spot = Step * Primes Owner - 1
+Prod = array shape Top fill 1
+Sign = array shape Top fill 1
+Prod Spot *= Primes Owner .accumulate
+Flip = Primes Owner * 0 - 1
+Sign Spot *= Flip .accumulate
+SCount = Top // Squares
+SEnds = SCount scan +
+SStarts = SEnds - SCount
+STotal = SCount sum
+SMarks = array shape STotal fill 0
+SMarks SStarts = 1
+SOwner = (SMarks scan +) - 1
+SRun = 0 to STotal - 1
+SStep = SRun - SStarts SOwner + 1
+SSpot = SStep * Squares SOwner - 1
+Flat = array shape Top fill 1
+Flat SSpot = 0
+Cof = (Idx // Prod) greater 1
+Free = Cof choose (0 - 1) 1
+Mu = Sign * Free * Flat
+Mt = concat (array 0) (Mu scan +)
+Mu0 = concat (array 0) Mu
+Big = Limit // Top
+Large = array shape (Big + 1) fill 0
+Root = Limit isqrt
+rem Mertens at n / k from the tables.
+fun Kix mval Unused
+  Val = Limit // Kix
+  Near = Val at most Top
+  Table = Mt (Val min Top)
+  Place = (Kix min (Big + 1)) - 1
+  Far = Large Place
+  return Near choose Table Far
+end
+for Round in 0 to Big - 1
+  Kk = Big - Round
+  Val = Limit // Kk
+  Cap = Val isqrt
+  Ls = 2 to Cap
+  Head = (Kk * Ls) mval 0
+  Qs = 1 to Val // (Cap + 1)
+  Low = (Val // (Qs + 1)) max Cap
+  Mult = Val // Qs - Low
+  Tail = Mt Qs * Mult
+  Piece = Head sum
+  Rest = Tail sum
+  Large (Kk - 1) = 1 - Piece - Rest
+end
+Small = 1 to Root
+Quot = Limit // Small
+Q = 1 to Limit // (Root + 1)
+Lower = Limit // (Q + 1)
+Clip = Lower greater Root
+Pows = (3 ** (0 to 20)) reshape 1 21
+Cnt = Q len
+Col = Q reshape Cnt 1
+Gq = (Col * Pows) mval 0
+Hi = Gq sum axis 1
+Col2 = (Q + 1) reshape Cnt 1
+Gn = (Col2 * Pows) mval 0
+Nx = Gn sum axis 1
+Down = (Root // Pows) reshape 21
+Rt = (Mt Down) sum
+Lo = Clip choose Nx Rt
+Rem3 = Small mod 3
+Free3 = (Rem3 not equal 0) integer
+Plain = Mu0 Small * Free3
+rem Floor sums of period 5 in x.
+fun Arg floors Slope
+  Wide = Slope // 18
+  Span = Arg - Slope
+  Rows = Span // 18 max 0
+  Steps = (1 to 5) reshape 1 5
+  Rowcol = Rows reshape (Rows len) 1
+  Hits = (Rowcol - Steps + 5) // 5
+  Hits = Hits max 0
+  Argcol = Arg reshape (Arg len) 1
+  Base = (Argcol - 18 * Steps) // Slope
+  Dec = 18 * 5 // Slope
+  Pair = Hits * (Hits - 1) // 2
+  Each = Base * Hits - Dec * Pair
+  Mask = (Steps at most Rowcol) integer
+  return (Each * Mask) sum axis 1
+end
+fun Arg area Unused
+  First = Arg floors 10
+  Second = Arg floors 30
+  return First - Second
+end
+Left = Plain * ((Limit // Small) area 0)
+Right = (Hi - Lo) * (Q area 0)
+Sum1 = Left sum
+Sum2 = Right sum
+Answer = 4 * (Sum1 + Sum2) + 2
+Answer print
