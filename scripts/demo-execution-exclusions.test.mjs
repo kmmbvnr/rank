@@ -23,6 +23,7 @@ test('execution exclusions name existing workloads and explain the resource cost
     assert.ok(!files.has('euler/429_unitary.ra'), 'native modular arrays keep the full factorial bound eligible');
     assert.ok(!files.has('euler/432_totientsum.ra'), 'private sieve and modular prefixes keep the full totient sum eligible');
     assert.ok(!files.has('euler/451_modularinverses.ra'), 'private array stages keep the full modular root search eligible');
+    assert.ok(!files.has('euler/452_longproducts.ra'), 'multiplicative factor counts keep the full long-product sum eligible');
     assert.ok(files.has('euler/331_crossflips.ra'));
     assert.ok(!files.has('euler/393_ants.ra'), 'compiled sparse profiles keep the default 10x10 board eligible');
     assert.ok(!files.has('euler/332_sphericaltriangles.ra'), 'array geometry and sphere symmetries keep all 50 radii eligible');

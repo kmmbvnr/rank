@@ -83,17 +83,17 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         }
         return uses.length > 0 && uses.every(node => selectors.has(node));
     }
-    /** The caller's terminal return is outside a numeric function prefix.
-     * Earlier prefix statements can still replace a nested store's result. */
+    /** An explicit terminal return replaces every prefix statement result,
+     * including the last loop's live compound-assignment RHS. */
     function resultDiscarded(node: Statement): boolean {
         if (!isFunctionStatement(statement)) return statementResultDiscarded(node, statement);
-        if (!isReturnStatement(statement.statements.at(-1))) return false;
+        const terminal = statement.statements.at(-1);
+        if (!isReturnStatement(terminal) || !terminal.value) return false;
         let ancestor: AstNode | undefined = node;
         for (let depth = 0; ancestor && ancestor.$container !== statement && depth < 128; depth++) ancestor = ancestor.$container;
         if (!ancestor || ancestor.$container !== statement) return false;
         const index = statement.statements.indexOf(ancestor as Statement);
-        const last = statement.statements.length - 2;
-        return index >= 0 && (index < last || index === last && statementResultDiscarded(node, ancestor));
+        return index >= 0 && index < statement.statements.length - 1;
     }
     const required = new Set<number>(), assigned = new Set<string>();
     const writers: IntegerLoopPlan['writers'] = [];
