@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 1 2 3 4 -> YES"
   use "0813_game_24"
+  Input = "1 2 3 4"
   run
 
   Ans equal "YES"

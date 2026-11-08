@@ -1,7 +1,7 @@
-rem Strings - 3 (Строки - 3)
-rem https://acmp.ru/index.asp?main=task&id_task=829
-rem Count substrings of A that are cyclic shifts of B.
-rem Solved in O(|A| + |B|) via double polynomial rolling hash (MOD 10^9+7 and 10^9+9) with a hash set.
+rem Strings 3
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=829
+rem Count substrings cyclic shifts of B
 
 use io
 use numbers
@@ -10,7 +10,12 @@ use sequences
 use text
 use algo
 
-arg Input text = "abcabc\nabc"
+arg Input text = (
+  "abcdefghabcdefghabcdefghabcdefgh" +
+  "abcdefghabcdefghabcdefghabcdefgh" +
+  "abcdefghabcdefghabcdefghabcdefgh\n" +
+  "efghabcd"
+)
 
 RawLines = Input split "\n"
 Lines = RawLines (RawLines not equal "")
@@ -44,28 +49,45 @@ if not (M greater N)
   CurH2 = 0
   for I in 0 till M
     Code = BytesBB I
-    CurH1 = ((CurH1 * BASE) + Code) mod MOD1
-    CurH2 = ((CurH2 * BASE) + Code) mod MOD2
+    H1_Next = (CurH1 * BASE) + Code
+    CurH1 = H1_Next mod MOD1
+    H2_Next = (CurH2 * BASE) + Code
+    CurH2 = H2_Next mod MOD2
   end
-  ShiftSet add ((CurH1 * 2000000000) + CurH2)
+  KeyBase = CurH1 * 2000000000
+  ShiftSet add (KeyBase + CurH2)
 
-  for I in M till ((2 * M) - 1)
+  LimitBB = (2 * M) - 1
+  for I in M till LimitBB
     OutCode = BytesBB (I - M)
     InCode = BytesBB I
-    CurH1 = ((((CurH1 + MOD1) - (OutCode * P1 mod MOD1)) * BASE) + InCode) mod MOD1
-    CurH2 = ((((CurH2 + MOD2) - (OutCode * P2 mod MOD2)) * BASE) + InCode) mod MOD2
-    ShiftSet add ((CurH1 * 2000000000) + CurH2)
+
+    Sub1 = OutCode * P1 mod MOD1
+    H1_diff = (CurH1 + MOD1) - Sub1
+    H1_next = (H1_diff * BASE) + InCode
+    CurH1 = H1_next mod MOD1
+
+    Sub2 = OutCode * P2 mod MOD2
+    H2_diff = (CurH2 + MOD2) - Sub2
+    H2_next = (H2_diff * BASE) + InCode
+    CurH2 = H2_next mod MOD2
+
+    KBase = CurH1 * 2000000000
+    ShiftSet add (KBase + CurH2)
   end
 
   AH1 = 0
   AH2 = 0
   for I in 0 till M
     Code = BytesA I
-    AH1 = ((AH1 * BASE) + Code) mod MOD1
-    AH2 = ((AH2 * BASE) + Code) mod MOD2
+    H1_next = (AH1 * BASE) + Code
+    AH1 = H1_next mod MOD1
+    H2_next = (AH2 * BASE) + Code
+    AH2 = H2_next mod MOD2
   end
 
-  InitKey = (AH1 * 2000000000) + AH2
+  InitBase = AH1 * 2000000000
+  InitKey = InitBase + AH2
   if InitKey in ShiftSet
     Matches = Matches + 1
   end
@@ -73,9 +95,19 @@ if not (M greater N)
   for I in M till N
     OutCode = BytesA (I - M)
     InCode = BytesA I
-    AH1 = ((((AH1 + MOD1) - (OutCode * P1 mod MOD1)) * BASE) + InCode) mod MOD1
-    AH2 = ((((AH2 + MOD2) - (OutCode * P2 mod MOD2)) * BASE) + InCode) mod MOD2
-    Key = (AH1 * 2000000000) + AH2
+
+    Sub1 = OutCode * P1 mod MOD1
+    H1_diff = (AH1 + MOD1) - Sub1
+    H1_next = (H1_diff * BASE) + InCode
+    AH1 = H1_next mod MOD1
+
+    Sub2 = OutCode * P2 mod MOD2
+    H2_diff = (AH2 + MOD2) - Sub2
+    H2_next = (H2_diff * BASE) + InCode
+    AH2 = H2_next mod MOD2
+
+    KBase = AH1 * 2000000000
+    Key = KBase + AH2
     if Key in ShiftSet
       Matches = Matches + 1
     end

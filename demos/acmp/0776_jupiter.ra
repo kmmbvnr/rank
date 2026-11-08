@@ -1,9 +1,7 @@
-rem Jupiter (Юпитер)
-rem https://acmp.ru/index.asp?main=task&id_task=776
-rem BFS over (flights used, cell).
-rem A flight along one line is a slice:
-rem cost = distance + climb to the
-rem highest cell passed, then descent.
+rem Jupiter
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=776
+rem BFS over flights and cells
 
 use io
 use numbers
@@ -12,13 +10,21 @@ use cli
 use algo
 use sequences
 
-arg Input text = "5 4
-5 3
-1 6
-2 1 4 2 1
-1 2 4 2 1
-4 4 6 2 1
-2 2 2 2 1"
+arg Input text = (
+  "10 10\n" +
+  "10 10\n" +
+  "5 20\n" +
+  "1 2 3 4 5 6 7 8 9 10\n" +
+  "2 3 4 5 6 7 8 9 10 1\n" +
+  "3 4 5 6 7 8 9 10 1 2\n" +
+  "4 5 6 7 8 9 10 1 2 3\n" +
+  "5 6 7 8 9 10 1 2 3 4\n" +
+  "6 7 8 9 10 1 2 3 4 5\n" +
+  "7 8 9 10 1 2 3 4 5 6\n" +
+  "8 9 10 1 2 3 4 5 6 7\n" +
+  "9 10 1 2 3 4 5 6 7 8\n" +
+  "10 1 2 3 4 5 6 7 8 9"
+)
 
 Txt = Input split "\r" join " "
 Txt = Txt split "\n" join " "
@@ -35,18 +41,18 @@ Size = N * M
 Hs = (Tok (6 till (6 + Size))) integer
 Goal = (Y - 1) * N + X - 1
 
-Dist = array shape ((K + 1) * Size) fill -1
+K1 = K + 1
+TotalState = K1 * Size
+Dist = array shape TotalState fill -1
 Dist 0 = 0
-rem Fewest flights used per cell: a
-rem later state with more flights
-rem is never better, so skip it.
-Best = array shape Size fill (K + 1)
+
+Best = array shape Size fill K1
 Best 0 = 0
 Q = new queue
 Q push 0
 Dirs = array 1 -1 N (0 - N)
 
-for Q len greater 0
+for (Q len) greater 0
   if (Best Goal) at most K
     break
   end
@@ -56,7 +62,9 @@ for Q len greater 0
   P = S - Base
   R = P // N
   C = P mod N
-  Raw = array (N - 1 - C) C (M - 1 - R) R
+  R_right = N - 1 - C
+  R_down = M - 1 - R
+  Raw = array R_right C R_down R
   Lim = Raw min D
   for I in 0 till 4
     V = Dirs I
@@ -65,14 +73,18 @@ for Q len greater 0
       Dh = ((Hs W) - (Hs P)) abs
       Go = (Hs W) greater 0
       Go = Go and (Dh at most 1)
-      if Go and (Best W) greater Used
+      if Go and ((Best W) greater Used)
         Best W = Used
-        Dist (Base + W) = (Dist S) + 1
-        Q push (Base + W)
+        NextW = Base + W
+        Dist NextW = (Dist S) + 1
+        Q push NextW
       end
     end
     L = Lim I
-    if Used less K and L greater 0
+    CanFly = (Used less K) and (
+      L greater 0
+    )
+    if CanFly
       Ds = 1 till (L + 1)
       Cells = P + (V * Ds)
       Hc = Hs Cells
@@ -82,10 +94,12 @@ for Q len greater 0
       Dz = (2 * Mx) - (Hs P) - Hc
       Near = (Ds + Dz) at most D
       Land = Hc greater 0
-      Free = (Best Cells) greater (Used + 1)
+      NextUsed = Used + 1
+      BestC = Best Cells
+      Free = BestC greater NextUsed
       Ok = Near and Land and Free
-      for W2 in Cells Ok
-        Best W2 = Used + 1
+      for W2 in (Cells Ok)
+        Best W2 = NextUsed
         Id = Base + Size + W2
         Dist Id = (Dist S) + 1
         Q push Id
@@ -94,11 +108,12 @@ for Q len greater 0
   end
 end
 
-
-Ends = Dist (((0 till (K + 1)) * Size) + Goal)
+GoalIdxs = ((0 till K1) * Size) + Goal
+Ends = Dist GoalIdxs
 Ends = Ends (Ends at least 0)
 Ans = "IMPOSSIBLE"
-if Ends len greater 0
-  Ans = Ends min text
+if (Ends len) greater 0
+  MinE = Ends min
+  Ans = MinE text
 end
 Ans print

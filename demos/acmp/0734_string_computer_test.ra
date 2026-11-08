@@ -11,6 +11,7 @@ end
 
 test "sample 2: N=3 K=2"
   use "0734_string_computer"
+  Input = "3 2"
   run
 
   MaxStrings equal 12
