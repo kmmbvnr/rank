@@ -36,7 +36,7 @@ test "ACMP 861: Power of two N = 64"
   Result equal "256"
 end
 
-test "ACMP 861: Max constraint N = 10^18"
+test "Max constraint N = 10^18"
   use "0861_shards"
   Input = "1000000000000000000"
   run
@@ -44,7 +44,7 @@ test "ACMP 861: Max constraint N = 10^18"
   Result equal Exp
 end
 
-test "ACMP 861: Large N = 999999999999999999"
+test "Large N = 999999999999999999"
   use "0861_shards"
   run
   Exp = "384206296931793861525"

@@ -11,7 +11,7 @@ test "ACMP 932: Sample 1 (star 4, d=2)"
   Result equal "1"
 end
 
-test "ACMP 932: Sample 2 (two stars, d=2)"
+test "Sample 2 (two stars, d=2)"
   use "0932_capitals"
   Input = "7 2
 1 2

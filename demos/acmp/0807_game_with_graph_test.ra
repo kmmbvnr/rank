@@ -58,7 +58,7 @@ test "ACMP 807: N = 12 (BigInt)"
   Result equal Exp
 end
 
-test "ACMP 807: N = 100 (max constraint)"
+test "N = 100 max constraint"
   use "0807_game_with_graph"
   Input = "100"
   run

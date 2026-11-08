@@ -1,6 +1,6 @@
-rem Sequence 5 (Max Prime Power in Factorial)
-rem https://acmp.ru/index.asp?main=task&id_task=978
-rem Find maximal k such that n^k divides n!
+rem Sequence 5
+rem ACMP 978
+rem Max k such that n^k divides n!
 
 use numbers
 use sequences
@@ -10,20 +10,27 @@ use cli
 
 arg N integer = 1000000000
 
+fun N legendreSum P
+  Leg = 0
+  X = N // P
+  for X greater 0
+    Leg += X
+    X //= P
+  end
+  return Leg
+end
+
 Factors = N factors array
 Primes = Factors unique array
 
 Ks = new queue
 for P in Primes
-  E = Factors equal P count
-  Legendre = 0
-  X = N // P
-  for X greater 0
-    Legendre += X
-    X //= P
-  end
-  Ks push (Legendre // E)
+  EqP = Factors equal P
+  E = EqP count
+  Leg = N legendreSum P
+  Ks push (Leg // E)
 end
 
-Answer = Ks array min
+AnsArr = Ks array
+Answer = AnsArr min
 Answer print

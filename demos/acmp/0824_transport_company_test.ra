@@ -2,7 +2,7 @@ rem ACMP 0824: Transport Company tests
 use testing
 use text
 
-test "ACMP 824: Triangle graph (3 trees)"
+test "Triangle graph (3 trees)"
   use "0824_transport_company"
   Input = "3 3
 1 2
@@ -25,7 +25,7 @@ test "ACMP 824: Complete graph K4 (16)"
   Ans equal 16
 end
 
-test "ACMP 824: Multigraph with parallel"
+test "Multigraph with parallel edges"
   use "0824_transport_company"
   Input = "3 4
 1 2
@@ -55,7 +55,10 @@ end
 test "ACMP 824: BigInt > 2^53"
   use "0824_transport_company"
   use text
-  Row = "1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10"
+  Row = (
+    "1 2 2 3 3 4 4 5 5 " +
+    "6 6 7 7 8 8 9 9 10"
+  )
   R10 = array shape 100 fill Row
   Body = R10 join " "
   Input = "10 900 " + Body

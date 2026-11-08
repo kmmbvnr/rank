@@ -56,7 +56,9 @@ for Phase less 5
       CurCh = UsedAlpha Bit
       IsCh = RoadArr equal CurCh
       BValArr = ZerosS + (1 shl Bit)
-      AddBits = IsCh choose BValArr ZerosS
+      AddBits = (
+        IsCh choose BValArr ZerosS
+      )
       CharBit = CharBit + AddBits
       Bit = Bit + 1
     else

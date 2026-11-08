@@ -9,19 +9,30 @@ test "sample 1: vertical separation"
 0 0 0 0"
   run
 
-  ValP1 = (AnsA * X1) + (AnsB * Y1) + AnsC
-  ValP2 = (AnsA * X2) + (AnsB * Y2) + AnsC
-  ValQ1 = (AnsA * U1) + (AnsB * V1) + AnsC
-  ValQ2 = (AnsA * U2) + (AnsB * V2) + AnsC
-  Ppos = (ValP1 greater 0) and (ValP2 greater 0)
-  Pneg = (ValP1 less 0) and (ValP2 less 0)
-  Qpos = (ValQ1 greater 0) and (ValQ2 greater 0)
-  Qneg = (ValQ1 less 0) and (ValQ2 less 0)
-  Sep = (Ppos and Qneg) or (Pneg and Qpos)
+  XAll = array X1 X2 U1 U2
+  YAll = array Y1 Y2 V1 V2
+  AX = AnsA * XAll
+  BY = AnsB * YAll
+  Vals = AX + BY + AnsC
+  P1G = Vals 0 greater 0
+  P2G = Vals 1 greater 0
+  Ppos = P1G and P2G
+  P1L = Vals 0 less 0
+  P2L = Vals 1 less 0
+  Pneg = P1L and P2L
+  Q1G = Vals 2 greater 0
+  Q2G = Vals 3 greater 0
+  Qpos = Q1G and Q2G
+  Q1L = Vals 2 less 0
+  Q2L = Vals 3 less 0
+  Qneg = Q1L and Q2L
+  Sep1 = Ppos and Qneg
+  Sep2 = Pneg and Qpos
+  Sep = Sep1 or Sep2
   Sep equal true
 end
 
-test "sample 2: separating crossed segments"
+test "sample 2: separating crossed"
   use "0989_trenches"
   Input = "0 1 -1 2
 0 -1 -1 0
@@ -30,15 +41,26 @@ test "sample 2: separating crossed segments"
 0 0 0 0"
   run
 
-  ValP1 = (AnsA * X1) + (AnsB * Y1) + AnsC
-  ValP2 = (AnsA * X2) + (AnsB * Y2) + AnsC
-  ValQ1 = (AnsA * U1) + (AnsB * V1) + AnsC
-  ValQ2 = (AnsA * U2) + (AnsB * V2) + AnsC
-  Ppos = (ValP1 greater 0) and (ValP2 greater 0)
-  Pneg = (ValP1 less 0) and (ValP2 less 0)
-  Qpos = (ValQ1 greater 0) and (ValQ2 greater 0)
-  Qneg = (ValQ1 less 0) and (ValQ2 less 0)
-  Sep = (Ppos and Qneg) or (Pneg and Qpos)
+  XAll = array X1 X2 U1 U2
+  YAll = array Y1 Y2 V1 V2
+  AX = AnsA * XAll
+  BY = AnsB * YAll
+  Vals = AX + BY + AnsC
+  P1G = Vals 0 greater 0
+  P2G = Vals 1 greater 0
+  Ppos = P1G and P2G
+  P1L = Vals 0 less 0
+  P2L = Vals 1 less 0
+  Pneg = P1L and P2L
+  Q1G = Vals 2 greater 0
+  Q2G = Vals 3 greater 0
+  Qpos = Q1G and Q2G
+  Q1L = Vals 2 less 0
+  Q2L = Vals 3 less 0
+  Qneg = Q1L and Q2L
+  Sep1 = Ppos and Qneg
+  Sep2 = Pneg and Qpos
+  Sep = Sep1 or Sep2
   Sep equal true
 end
 
@@ -51,15 +73,26 @@ test "parallel segments along x axis"
 0 0 0 0"
   run
 
-  ValP1 = (AnsA * X1) + (AnsB * Y1) + AnsC
-  ValP2 = (AnsA * X2) + (AnsB * Y2) + AnsC
-  ValQ1 = (AnsA * U1) + (AnsB * V1) + AnsC
-  ValQ2 = (AnsA * U2) + (AnsB * V2) + AnsC
-  Ppos = (ValP1 greater 0) and (ValP2 greater 0)
-  Pneg = (ValP1 less 0) and (ValP2 less 0)
-  Qpos = (ValQ1 greater 0) and (ValQ2 greater 0)
-  Qneg = (ValQ1 less 0) and (ValQ2 less 0)
-  Sep = (Ppos and Qneg) or (Pneg and Qpos)
+  XAll = array X1 X2 U1 U2
+  YAll = array Y1 Y2 V1 V2
+  AX = AnsA * XAll
+  BY = AnsB * YAll
+  Vals = AX + BY + AnsC
+  P1G = Vals 0 greater 0
+  P2G = Vals 1 greater 0
+  Ppos = P1G and P2G
+  P1L = Vals 0 less 0
+  P2L = Vals 1 less 0
+  Pneg = P1L and P2L
+  Q1G = Vals 2 greater 0
+  Q2G = Vals 3 greater 0
+  Qpos = Q1G and Q2G
+  Q1L = Vals 2 less 0
+  Q2L = Vals 3 less 0
+  Qneg = Q1L and Q2L
+  Sep1 = Ppos and Qneg
+  Sep2 = Pneg and Qpos
+  Sep = Sep1 or Sep2
   Sep equal true
 end
 
@@ -72,14 +105,25 @@ test "collinear separated segments"
 0 0 0 0"
   run
 
-  ValP1 = (AnsA * X1) + (AnsB * Y1) + AnsC
-  ValP2 = (AnsA * X2) + (AnsB * Y2) + AnsC
-  ValQ1 = (AnsA * U1) + (AnsB * V1) + AnsC
-  ValQ2 = (AnsA * U2) + (AnsB * V2) + AnsC
-  Ppos = (ValP1 greater 0) and (ValP2 greater 0)
-  Pneg = (ValP1 less 0) and (ValP2 less 0)
-  Qpos = (ValQ1 greater 0) and (ValQ2 greater 0)
-  Qneg = (ValQ1 less 0) and (ValQ2 less 0)
-  Sep = (Ppos and Qneg) or (Pneg and Qpos)
+  XAll = array X1 X2 U1 U2
+  YAll = array Y1 Y2 V1 V2
+  AX = AnsA * XAll
+  BY = AnsB * YAll
+  Vals = AX + BY + AnsC
+  P1G = Vals 0 greater 0
+  P2G = Vals 1 greater 0
+  Ppos = P1G and P2G
+  P1L = Vals 0 less 0
+  P2L = Vals 1 less 0
+  Pneg = P1L and P2L
+  Q1G = Vals 2 greater 0
+  Q2G = Vals 3 greater 0
+  Qpos = Q1G and Q2G
+  Q1L = Vals 2 less 0
+  Q2L = Vals 3 less 0
+  Qneg = Q1L and Q2L
+  Sep1 = Ppos and Qneg
+  Sep2 = Pneg and Qpos
+  Sep = Sep1 or Sep2
   Sep equal true
 end

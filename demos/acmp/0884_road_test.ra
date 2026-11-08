@@ -1,7 +1,7 @@
 rem ACMP 0884: Road tests
 use testing
 
-test "ACMP 884: Single letter AAAAA (K=2)"
+test "Single letter AAAAA (K=2)"
   use "0884_road"
   Input = "2
 AAAAA"
@@ -19,7 +19,7 @@ ABABA"
   Result equal Exp
 end
 
-test "ACMP 884: Disjoint blocks AAABBB (K=2)"
+test "Disjoint blocks AAABBB (K=2)"
   use "0884_road"
   Input = "2
 AAABBB"
@@ -37,7 +37,7 @@ ABCA"
   Result equal Exp
 end
 
-test "ACMP 884: Default ABRACADABRA (K=4)"
+test "Default ABRACADABRA (K=4)"
   use "0884_road"
   run
   Exp = "1\nA"

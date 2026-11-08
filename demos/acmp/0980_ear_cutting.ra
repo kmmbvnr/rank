@@ -94,7 +94,7 @@ if M greater (N - 1)
         Phase = 1
       end
     elif Phase equal 1
-      rem Iterative DFS with current-arc Head
+      rem Iterative DFS with Head
       if Top greater -1
         V = StkV Top
         if (Vis V) equal 0
@@ -112,7 +112,8 @@ if M greater (N - 1)
             Top = Top + 1
             StkV Top = W
           else
-            if (W not equal (Par V)) and (
+            ParV = Par V
+            if (W not equal ParV) and (
               (Pos W) less (Pos V)
             )
               BackTop BackLen = W
@@ -131,11 +132,8 @@ if M greater (N - 1)
         )
           UsedTop = BackTop take BackLen
           UsedBot = BackBot take BackLen
-          Keys = (
-            ((Pos UsedTop) * (N + 1)) + (
-              Pos UsedBot
-            )
-          )
+          TopP = (Pos UsedTop) * (N + 1)
+          Keys = TopP + (Pos UsedBot)
           SOrd = Keys argsort
           BackTop = UsedTop SOrd
           BackBot = UsedBot SOrd
@@ -171,7 +169,7 @@ if M greater (N - 1)
         end
       end
     elif Phase equal 3
-      rem Trace ear paths bottom-up to Mark
+      rem Trace ear paths to Mark
       if ((Mark Cur) equal 0) and (
         Cur not equal U
       )
@@ -181,7 +179,8 @@ if M greater (N - 1)
         Len = Len + 1
         Cur = P
       else
-        EarLine = (Len text) + " " + Line
+        LenStr = Len text
+        EarLine = LenStr + " " + Line
         EarStrs RemE = EarLine
         RemE = RemE - 1
         J = J + 1

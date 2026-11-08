@@ -1,7 +1,6 @@
 rem Tournament 2 (Турнир - 2)
-rem https://acmp.ru/index.asp?main=task&id_task=921
-rem Find minimum number of chess matches c (1 <= c < K) minimizing difference in expected tournament scores.
-rem Solved via vectorized arithmetic over the candidate match range 1 till K.
+rem ACMP 921
+rem Min chess matches c minimizing score
 
 use io
 use numbers
@@ -11,7 +10,9 @@ use text
 
 arg Input text = "60000 60 40 10"
 
-Tokens = Input split "\n" join " " split " "
+Lines = Input split "\n"
+Line = Lines join " "
+Tokens = Line split " "
 Tokens = Tokens (Tokens not equal "")
 
 K = Tokens 0 integer
@@ -19,15 +20,13 @@ P1 = Tokens 1 integer
 P2 = Tokens 2 integer
 P3 = Tokens 3 integer
 
-rem Expected score diff per match scaled by 100:
-rem A = 2 * P1 + P3 - 100 (chess)
-rem B = 100 - 2 * P2 (volleyball)
+rem Score diff per match scaled by 100
 A = (2 * P1) + P3 - 100
 B = 100 - (2 * P2)
 
-rem Vector of candidate chess match counts:
 C = 1 till K
-Diffs = ((C * (A - B)) + (K * B)) abs
+DiffTerm = (C * (A - B)) + (K * B)
+Diffs = DiffTerm abs
 MinDiff = Diffs min
 BestC = (C (Diffs equal MinDiff)) 0
 

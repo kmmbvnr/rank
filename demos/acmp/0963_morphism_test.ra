@@ -42,7 +42,7 @@ BC"
   Ans equal "B"
 end
 
-test "huge k with a length-preserving swap"
+test "huge k length-preserving swap"
   use "0963_morphism"
   Input = "2 1000000000 1
 A
@@ -53,7 +53,7 @@ A"
   Ans equal "A"
 end
 
-test "huge k with growth: prefix is full"
+test "huge k with growth: full prefix"
   use "0963_morphism"
   Input = "2 1000000000 20
 A

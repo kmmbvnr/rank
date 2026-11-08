@@ -34,7 +34,8 @@ for M in 1 to N
   Pow2 = 2 ** PowExp
   Sign = (-1) ** (Ks - 1)
   Binom = Comb Ks
-  Terms = ((Sign * Binom) * Pow2) * PrevDP
+  SB = Sign * Binom
+  Terms = (SB * Pow2) * PrevDP
   DP M = Terms sum
 end
 

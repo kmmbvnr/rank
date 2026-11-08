@@ -58,7 +58,7 @@ test "ACMP 973: Dead-end branch at D1=1"
   Result equal Exp
 end
 
-test "ACMP 973: Default 7-vertex network"
+test "Default 7-vertex network"
   use "0973_main_roads"
   run
   Exp = "2\n4 8"

@@ -16,7 +16,7 @@ test "sample 2: 4 0 0 100 -> 3"
   BestC equal 3
 end
 
-test "K = 2 minimal tournament: exactly 1 chess match"
+test "K = 2 minimal: exactly 1 match"
   use "0921_tournament_2"
   Input = "2 40 40 20"
   run

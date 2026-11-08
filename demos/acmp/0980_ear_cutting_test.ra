@@ -4,7 +4,7 @@ use text
 use numbers
 use sequences
 
-test "ACMP 980: Sample 1 (5 nodes, 8 edges)"
+test "Sample 1 (5 nodes, 8 edges)"
   use "0980_ear_cutting"
   Input = "5 8
 1 2
@@ -22,7 +22,7 @@ test "ACMP 980: Sample 1 (5 nodes, 8 edges)"
   (D equal 4) and (NLines equal 5)
 end
 
-test "ACMP 980: Sample 2 (tree has bridges)"
+test "Sample 2 (tree has bridges)"
   use "0980_ear_cutting"
   Input = "3 2
 1 2
@@ -41,7 +41,7 @@ test "ACMP 980: Simple 3-cycle"
   Result equal "1\n3 1 2 3 1"
 end
 
-test "ACMP 980: Two triangles with bridge"
+test "Two triangles with bridge"
   use "0980_ear_cutting"
   Input = "6 7
 1 2
@@ -55,7 +55,7 @@ test "ACMP 980: Two triangles with bridge"
   Result equal "-1"
 end
 
-test "ACMP 980: Two triangles sharing node"
+test "Two triangles sharing node"
   use "0980_ear_cutting"
   Input = "5 6
 1 2

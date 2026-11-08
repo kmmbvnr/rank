@@ -1,15 +1,15 @@
-rem Strange Nim (Welter's Game on 3 Piles)
-rem https://acmp.ru/index.asp?main=task&id_task=974
-rem Determine winner in 3-coin Welter's game via Conway's frieze rule
+rem Strange Nim (Welter's Game)
+rem ACMP 974
+rem 3-coin Welter's game via frieze rule
 
 use bits
 use sequences
 use io
 use cli
 
-arg A integer = 100
-arg B integer = 200
-arg C integer = 500
+arg A integer = 100000000
+arg B integer = 200000000
+arg C integer = 500000000
 
 Piles = (array A B C) sort
 P0 = Piles 0
@@ -18,7 +18,8 @@ P2 = Piles 2
 
 Left = (P0 bxor P1) - 1
 Right = (P1 bxor P2) - 1
-Grundy = P1 bxor ((Left bxor Right) - 1)
+LR = (Left bxor Right) - 1
+Grundy = P1 bxor LR
 
 Answer = "Bob wins the game."
 if Grundy not equal 0

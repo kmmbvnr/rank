@@ -161,8 +161,10 @@ for Phase less 3
       Truth = ValStk 0
       Row0 = 2 * Mask
       Row1 = Row0 + 1
-      Bit0 = (Truth // (2 ** Row0)) mod 2
-      Bit1 = (Truth // (2 ** Row1)) mod 2
+      P20 = 2 ** Row0
+      P21 = 2 ** Row1
+      Bit0 = (Truth // P20) mod 2
+      Bit1 = (Truth // P21) mod 2
       if (Bit0 equal 0) and (
         Bit1 equal 0
       )
@@ -198,15 +200,21 @@ for Phase less 3
           if F1 equal "1"
             Exprs Mask = VarL
           else
-            Parts = array "<" VarL VarL F1 ">"
-            Exprs Mask = Parts join ""
+            P1 = array "<" VarL VarL
+            P2 = array F1 ">"
+            Cat = concat P1 P2
+            Exprs Mask = Cat join ""
           end
         elif F1 equal "1"
-          Parts = array "<" VarL F0 VarL ">"
-          Exprs Mask = Parts join ""
+          P1 = array "<" VarL F0
+          P2 = array VarL ">"
+          Cat = concat P1 P2
+          Exprs Mask = Cat join ""
         else
-          Parts = array "<" VarL F0 F1 ">"
-          Exprs Mask = Parts join ""
+          P1 = array "<" VarL F0
+          P2 = array F1 ">"
+          Cat = concat P1 P2
+          Exprs Mask = Cat join ""
         end
         Mask = Mask + 1
       else
