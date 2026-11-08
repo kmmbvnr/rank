@@ -1,0 +1,218 @@
+rem Toriangulations
+rem https://projecteuler.net/problem=780
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 1000000000
+arg Mod integer = 1000000007
+arg Block integer = 4000000
+
+rem G(N) = 2 D(m) + 4 (A - B) - 4 C with
+rem m = N // 2, L = m / sqrt 3 floored,
+rem x = N // 4, D(t) = sum of t // k,
+rem A = sum over u v <= L of
+rem N // (2 gcd), B the same with
+rem floor(sqrt 3 u v / gcd), and
+rem C = D(x) + 2 sum of D(x // Q) over
+rem coprime u > v, u != v mod 3, with
+rem Q = u^2 + u v + v^2 <= x.
+rem Pairs with g = gcd are grouped by
+rem Moebius over h = g d <= sqrt L;
+rem floor sums with sqrt 3 use a
+rem continued fraction walk in exact
+rem big integers.
+Half = Limit // 2
+Lam = ((Half * Half // 3) isqrt)
+Quart = Limit // 4
+Hmax = Lam isqrt
+Tab = Limit // 100 + 10
+rem Divisor counts up to Tab by the
+rem smallest prime factor.
+Ms = 1 to Tab
+Roots = primes to (Tab isqrt) copy
+Rev = Roots reverse
+Cnt = Tab // Rev
+Ends = Cnt scan +
+Starts = Ends - Cnt
+Total = Cnt sum
+Marks = array shape Total fill 0
+Marks Starts = 1
+Owner = (Marks scan +) - 1
+Run = 0 to Total - 1
+Step = Run - Starts Owner + 1
+Spot = Step * Rev Owner - 1
+Spf = Ms * 1
+Spf Spot = Rev Owner
+Cur = Ms * 1
+Kc = Ms * 0
+for Round in 1 to 24
+  Ev = Cur mod Spf equal 0
+  Dv = Ev and (Spf greater 1)
+  Cur = Dv choose (Cur // Spf) Cur
+  Kc = Dv choose (Kc + 1) Kc
+end
+Where = Cur - 1
+Tau = Ms * 0
+Tau 0 = 1
+Pp = Kc + 1
+for Layer in 1 to 12
+  Prev = Tau Where
+  Tau = Prev * Pp
+end
+Dtab = concat (array 0) (Tau scan +)
+rem D for a vector: table when small,
+rem direct hyperbola when large.
+fun Ts dvec Unused
+  Small = Ts at most Tab
+  Safe = Small choose Ts (Ts * 0 + 1)
+  Got = Dtab (Safe min Tab)
+  Big = Ts filter (Ts greater Tab)
+  Out = Small choose Got (Ts * 0)
+  if Big len greater 0
+    Smax = (Big max) isqrt
+    Ks = (1 to Smax) reshape 1 Smax
+    Bs = Big reshape (Big len) 1
+    Sq = Big isqrt
+    Sc = Sq reshape (Big len) 1
+    Inside = (Ks at most Sc) integer
+    Part = (Bs // Ks) * Inside
+    Tot = Part sum axis 1
+    Rows = 2 * Tot - Sq * Sq
+    Seq = 0 till Ts len
+    Ids = Seq filter (Ts greater Tab)
+    Out Ids = Rows
+  end
+  return Out
+end
+Neg = Ms * 0 - 1
+Mf = (Kc equal 1) choose Neg (Ms * 0)
+Mf 0 = 1
+Mu = Ms * 0
+Mu 0 = 1
+for Layer in 1 to 12
+  Prev = Mu Where
+  Mu = Prev * Mf
+end
+rem Pairs (g, d), d squarefree,
+rem g d <= H.
+Cand = 1 to Hmax
+Free = (Mu take Hmax) not equal 0
+Ds = Cand filter Free
+Per = Hmax // Ds
+Ends = Per scan +
+Starts = Ends - Per
+Total = Per sum
+Marks = array shape Total fill 0
+Marks Starts = 1
+Owner = (Marks scan +) - 1
+Run = 0 to Total - 1
+Dd = Ds Owner
+Gg = Run - Starts Owner + 1
+Hh = Gg * Dd
+Sgn = Mu (Dd - 1)
+Xs = Lam // (Hh * Hh)
+Dxs = Xs dvec 0
+Wt = Limit // (2 * Gg)
+Aval = (Sgn * Wt * Dxs) sum
+rem F(q, B) = sum over b <= B of
+rem floor(sqrt 3 q b): peel the integer
+rem part, then B m - F(1 / frac, m).
+fun Qs beatty Bs
+  Dl = 3 * Qs * Qs
+  Rt = Dl isqrt
+  Pn = Qs * 0
+  Qd = Qs * 0 + 1
+  Bn = Bs * 1
+  Id = 0 till Qs len
+  Sg = Qs * 0 + 1
+  Res = Qs * 0
+  for Round in 1 to 200
+    if Bn len equal 0
+      break
+    end
+    Fl = (Pn + Rt) // Qd
+    Pm = Fl * Qd - Pn
+    Root = (Bn * Bn * Dl) isqrt
+    Mm = (Root - Pm * Bn) // Qd
+    Tri = Fl * Bn * (Bn + 1) // 2
+    Term = Tri + Bn * Mm
+    Res Id = Res Id + Sg * Term
+    Qn = (Dl - Pm * Pm) // Qd
+    Live = Mm greater 0
+    Pn = Pm Live
+    Qd = Qn Live
+    Dl = Dl Live
+    Rt = Rt Live
+    Bn = Mm Live
+    Id = Id Live
+    Sg = (0 - Sg) Live
+  end
+  return Res
+end
+Roof = Xs isqrt
+Per2 = Roof * 1
+Ends2 = Per2 scan +
+Starts2 = Ends2 - Per2
+Tot2 = Per2 sum
+Marks2 = array shape Tot2 fill 0
+Marks2 Starts2 = 1
+Own2 = (Marks2 scan +) - 1
+Run2 = 0 till Tot2
+Aa = Run2 - Starts2 Own2 + 1
+Gq = Gg Own2
+Dq = Dd Own2
+Xq = Xs Own2
+Qv = Gq * Dq * Dq * Aa
+Sq = Roof Own2
+F1 = Qv beatty (Xq // Aa)
+F2 = Qv beatty Sq
+Bval = ((Sgn Own2) * (2 * F1 - F2)) sum
+rem C: coprime u > v, u != v mod 3.
+Vmax = (Quart // 3) isqrt + 1
+Vs = 1 to Vmax
+Disc = 4 * Quart - 3 * Vs * Vs
+Um = (((Disc max 0) isqrt) - Vs) // 2
+Cnt3 = (Um - Vs) max 0
+Ends3 = Cnt3 scan +
+Pairs = Ends3 (Ends3 len - 1)
+Blocks = (Pairs + Block - 1) // Block
+Csum = 0
+for Piece in 0 to Blocks - 1
+  From = Piece * Block
+  Upto = (From + Block) min Pairs
+  Width = Upto - From
+  Past = Ends3 at most From
+  Head = Past integer sum
+  Close = Ends3 at most (Upto - 1)
+  Last = Close integer sum + 1
+  Cuts = (Ends3 take Last) drop Head
+  Edges = Cuts - From
+  Early = Edges less Width
+  Inner = Edges filter Early
+  Flags = array shape Width fill 0
+  Flags Inner = 1
+  Who = Head + (Flags scan +)
+  Origin = (Ends3 - Cnt3) Who
+  Pos = From + (0 to Width - 1)
+  Vq = Vs Who
+  Uq = Vq + 1 + Pos - Origin
+  Cop = (Uq gcd Vq) equal 1
+  Diff = (Uq - Vq) mod 3 not equal 0
+  Good = Cop and Diff
+  Qq = Uq * Uq + Uq * Vq + Vq * Vq
+  Ts = Quart // Qq
+  Dt = Ts dvec 0
+  Used = Dt Good
+  Part = Used sum
+  Csum += Part
+end
+Dx = (array Quart) dvec 0
+Cval = Dx 0 + 2 * Csum
+Dm = (array Half) dvec 0
+Ab = 4 * (Aval - Bval)
+Whole = 2 * (Dm 0) + Ab - 4 * Cval
+Answer = Whole mod Mod
+Answer print
