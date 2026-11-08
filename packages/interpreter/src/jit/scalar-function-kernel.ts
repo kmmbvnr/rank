@@ -657,7 +657,7 @@ function compileScalarNumberKernel(
             (base: number, exponent: number, modulus: number) => {
                 // Replay through the ordinary native call for domain errors,
                 // wider moduli, and observable budget/cancellation boundaries.
-                if (!privateLoopPolling() || demandBudgetEnabled() || exponent < 0 || !(modulus > 0 && modulus <= 2 ** 30)) throw numberOverflow;
+                if (!privateLoopPolling() || demandBudgetEnabled() || exponent < 0 || !(modulus > 0 && modulus <= 2 ** 31)) throw numberOverflow;
                 return safeIntegerModularPower(base, exponent, modulus);
             }) as Kernel['numberDirect'];
     } catch {
