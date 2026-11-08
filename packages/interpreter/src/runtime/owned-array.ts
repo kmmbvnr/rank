@@ -67,11 +67,27 @@ export function storedScalarKinds(value: RankArray, numericLimits = false): read
             diagnostics.elementTypeScans++;
             diagnostics.elementTypeScannedCells += state.items.length;
         }
-        for (let index = 0; index < state.items.length; index++) {
-            if ((index & 4095) === 0) checkpoint('checking scalar storage');
-            const kind = scalarKind(state.items[index]);
-            if (kind === undefined) return undefined;
-            kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
+        if (state.typed instanceof Float64Array && privateLoopPolling() && !inspectionEnabled() && !demandBudgetEnabled()) {
+            // Most real arrays contain no infinities. Native searches prove
+            // that for a bounded block without a Map update for every cell.
+            // NaN is a real cell; only signed infinities are numeric limits.
+            const cells = state.typed;
+            let limits = 0;
+            for (let start = 0; start < cells.length; start += 4096) {
+                checkpoint('checking scalar storage');
+                const block = cells.subarray(start, Math.min(start + 4096, cells.length));
+                if (!block.includes(Infinity) && !block.includes(-Infinity)) continue;
+                for (const value of block) if (value === Infinity || value === -Infinity) limits++;
+            }
+            if (cells.length > limits) kinds.set('real', cells.length - limits);
+            if (limits) kinds.set('numeric-limit', limits);
+        } else {
+            for (let index = 0; index < state.items.length; index++) {
+                if ((index & 4095) === 0) checkpoint('checking scalar storage');
+                const kind = scalarKind(state.items[index]);
+                if (kind === undefined) return undefined;
+                kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
+            }
         }
         state.elementKinds = kinds;
     }

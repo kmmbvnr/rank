@@ -1,4 +1,5 @@
 import { prepareNativeIntegerSum } from './native-integer-sum.js';
+import { compileRealArrayFunction, type RealArrayArgument } from './jit/real-array-function.js';
 import { compileIntegerArrayFunction } from './jit/integer-array-function.js';
 import { interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { borrowIntegerBuffer } from './jit/borrowed-integer-buffer.js';
@@ -603,9 +604,13 @@ export class FastPaths {
             const stableReads = privateScalarFunction(proof, consumed) || typeof proof.type === 'string'
                 && !proof.containers && !proof.arrayWrites.size && !proof.observableCaptures;
             const numberArrays = types.some(type => typeof type !== 'string');
-            const arrayKernel = this.compiler.scalars.functions && !captures && typeof proof.type !== 'string'
+            const integerArrayKernel = this.compiler.scalars.functions && !captures && typeof proof.type !== 'string'
                 && Object.getOwnPropertyDescriptor(value!, 'call')?.value === definition.call
                 ? compileIntegerArrayFunction(statement, types) : undefined;
+            const realArrayKernel = !integerArrayKernel && this.compiler.scalars.functions && !captures && typeof proof.type !== 'string'
+                && Object.getOwnPropertyDescriptor(value!, 'call')?.value === definition.call
+                ? compileRealArrayFunction(statement, types) : undefined;
+            const arrayKernel = integerArrayKernel ?? realArrayKernel;
             const numberSafe = !!arrayKernel || stableReads && isScalarType(proof.type) && types.every(type => isScalarType(type)
                 || !isCompiledContainer(type) && typeof type !== 'string' && type.rank === 1 && type.element === 'integer');
             return {
@@ -624,6 +629,7 @@ export class FastPaths {
                 type: proof.type,
                 numberSafe,
                 numberArrayResult: !!arrayKernel,
+                numberArrayPool: !!realArrayKernel,
                 locals: [...(captures ? proof.locals : []), ...proof.nativeReads, ...proof.dependencies],
                 bind: work => {
                     const current = this.context.bindings.find(name);
@@ -659,11 +665,16 @@ export class FastPaths {
                         || proof.locals.some(local => active.context?.find(local))) return undefined;
                     if (arrayKernel) {
                         if (Object.getOwnPropertyDescriptor(current, 'call')?.value !== active.call) return undefined;
+                        if (proof.nativeReads.length || proof.dependencies.length) {
+                            const guarded = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes);
+                            if (!guarded || guarded.available && !guarded.available()) return undefined;
+                        }
                         // A new private consumer must not move observable
                         // demand or cancellation boundaries into the callee.
                         if (interruptsEnabled()) return undefined;
-                        return ((...args: (number | ArrayLike<number | bigint>)[]) => {
-                            const result = arrayKernel(...args);
+                        return ((...args: unknown[]) => {
+                            const result = realArrayKernel ? realArrayKernel(...args as RealArrayArgument[])
+                                : integerArrayKernel!(...args as (number | ArrayLike<number | bigint>)[]);
                             if (work) work.value += result.cells.length;
                             return result;
                         }) as unknown as LoopCallable;

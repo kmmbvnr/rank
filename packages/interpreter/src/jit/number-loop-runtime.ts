@@ -14,7 +14,7 @@ import { argumentSelectionError, MissingValueError, RankError } from '../errors.
 import { completed } from '../execution.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { checkpoint, privateLoopPolling, demandBudgetEnabled, interruptsEnabled } from '../interrupt.js';
-import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, filledArray, booleanCells, typedArray, realCells, storedOperandItems } from '../array-storage.js';
+import { arrayRevision, reshapeStoredArray, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, filledArray, booleanCells, typedArray, realCells, storedOperandItems } from '../array-storage.js';
 import { tuple, isRankArray, type RankArray, type RankValue } from '../value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, LoopWorkFeedback, LoopPolling } from './integer-loop-plan.js';
 
@@ -88,7 +88,7 @@ export class PrivateNumericArray {
     private pool?: VectorBuffer;
     // Count register owners; accepted regions cannot expose an earlier result.
     // Shared publication preserves ordinary COW after the private region ends.
-    private owners: { count: number; cells?: PrivateCells; published?: RankArray } = { count: 1 };
+    private owners: { count: number; cells?: PrivateCells; published?: RankArray; reshaped?: Map<string, RankArray> } = { count: 1 };
     cells: PrivateCells;
     constructor(readonly shape: number[], fill: number, source?: NumberCells, owned?: VectorBuffer, private readonly real = false, private readonly logical = false) {
         const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
@@ -104,6 +104,13 @@ export class PrivateNumericArray {
     }
     fork(): PrivateNumericArray {
         const copy = new PrivateNumericArray(this.shape, 0, undefined, { cells: this.cells }, this.real, this.logical);
+        copy.owners = this.owners;
+        this.owners.count++;
+        return copy;
+    }
+    /** A shape-only private value shares cells until either alias is written. */
+    reshape(shape: readonly number[]): PrivateNumericArray {
+        const copy = new PrivateNumericArray([...shape], 0, undefined, { cells: this.cells }, this.real, this.logical);
         copy.owners = this.owners;
         this.owners.count++;
         return copy;
@@ -136,19 +143,30 @@ export class PrivateNumericArray {
         this.cells[index] = value;
     }
     value(): RankArray {
+        const prior = this.owners.published;
+        if (!prior) return this.owners.published = this.publish();
+        if (prior.shape.length === this.shape.length && prior.shape.every((size, axis) => size === this.shape[axis])) return prior;
+        const key = this.shape.join(',');
+        const cached = this.owners.reshaped?.get(key);
+        if (cached) return cached;
+        const value = reshapeStoredArray(prior, this.shape) ?? this.publish();
+        (this.owners.reshaped ??= new Map()).set(key, value);
+        return value;
+    }
+    private publish(): RankArray {
         // No polling during publication: errors/cancellation publish all the
         // completed stores and scalar bindings as one uninterrupted operation.
         // TypedArray.from takes the iterable path for typed-array inputs and
         // collects their values first. Index the numeric buffer directly so a
         // large publication needs only its destination, not that temporary list.
-        if (this.logical) return this.owners.published ??= (() => {
+        if (this.logical) return (() => {
             const result = filledArray(false, this.shape), bits = booleanCells(result)!;
             for (let index = 0; index < this.cells.length; index++) {
                 if (this.cells[index] !== 0) bits.words[index >>> 5] |= 1 << (index & 31);
             }
             return result;
         })();
-        return this.owners.published ??= typedArray(this.real ? new Float64Array(this.cells) : this.cells instanceof Int32Array
+        return typedArray(this.real ? new Float64Array(this.cells) : this.cells instanceof Int32Array
             ? this.cells : (() => {
                 const result = new BigInt64Array(this.cells.length);
                 for (let index = 0; index < result.length; index++) {
@@ -499,7 +517,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, integerSquareRoot, divide, checkedNumberPower, widePower,
             (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number, real = false, logical = false) => new PrivateNumericArray(shape, fill, undefined, undefined, real, logical),
             (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
-            (shape: number[], cells: NumberCells, real = false, logical = false) => new PrivateNumericArray([...shape], 0, cells, undefined, real, logical), concatArrays, textLength, indexKey,
+            (shape: number[], cells: NumberCells, real = false, logical = false, source?: unknown) => source instanceof PrivateNumericArray && source.cells === cells
+                ? source.reshape(shape) : new PrivateNumericArray([...shape], 0, cells, undefined, real, logical), concatArrays, textLength, indexKey,
             (cells: NumberCells, first: number, count: number, stride: number) => {
                 const diagnostics = currentDiagnostics();
                 if (diagnostics) { diagnostics.numberLoopSliceCopies++; diagnostics.numberLoopSliceCopyCells += count; }

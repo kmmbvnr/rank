@@ -138,3 +138,34 @@ end
         } finally { runtime.dispose(); }
     });
 });
+
+it('compiles shared integer matrix broadcast stages', () => {
+    const fill = '2';
+    const source = `use sequences
+fun A total B
+ P' = A + B
+ Q' = -P + P * B
+ Rows' = Q sum rank 1
+ Result = Rows sum
+ return Result
+end
+A = array shape 4 1 fill ${fill}
+B = array shape 7 fill ${fill}
+A total B`;
+    const compiled = run(source, true), reference = run(source, false);
+    expect({ ...compiled, calls: 0 }).toEqual(reference);
+    expect(compiled.calls).toBeGreaterThan(0);
+});
+it('retains shape failure locations inside matrix function plans', () => {
+    const source = `fun A total B
+ P' = A + B
+ Rows' = P sum rank 1
+ return Rows sum
+end
+A = array shape 4 3 fill 2
+B = array shape 2 fill 3
+A total B`;
+    const compiled = run(source, true), reference = run(source, false);
+    expect(reference).toHaveProperty('error');
+    expect({ ...compiled, calls: 0 }).toEqual(reference);
+});

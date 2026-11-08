@@ -1,3 +1,4 @@
+import { scalarExtremeSource } from './operator-codegen.js';
 import { tensorReductionStep } from './tensor-reduction-codegen.js';
 import { findCompiledOperator, type CompiledOperator, type CompiledScalarType } from '@arrrank/language';
 import type { TensorNode } from './tensor-ir.js';
@@ -101,25 +102,47 @@ export function inlineTensorEmitter(lines: string[], host: InlineTensorHost): (n
                 body.push(`const ${result} = ${host.check ? host.check(code, host.element(node)) : code};`);
                 return result;
             };
-            if (operand.size) return { size: operand.size, read };
+            if (operand.size) return { ...operand, value: undefined, read };
             const value = read('0', lines);
             return { read: () => value };
         }
         if (node.kind !== 'binary') throw Error('unsupported inline tensor node');
         const left = prepare(node.left), right = prepare(node.right);
         let size = left.size ?? right.size;
-        if (left.size && right.size && left.size !== right.size) {
+        let shape: string | undefined, rows: string | undefined, columns: string | undefined;
+        if (left.rows || right.rows) {
+            shape = host.variable(); rows = host.variable(); columns = host.variable(); size = host.variable();
+            const dimensions = (input: PreparedTensor) => input.shape ?? (input.size ? `[${input.size}]` : '[]');
+            (host.locateShape ?? host.locate)(node, lines);
+            lines.push(`const ${shape} = broadcastShape(${dimensions(left)}, ${dimensions(right)});`,
+                `const ${rows} = ${shape}[0], ${columns} = ${shape}[1], ${size} = ${rows} * ${columns};`);
+        } else if (left.size && right.size && left.size !== right.size) {
             size = host.variable();
             (host.locateShape ?? host.locate)(node, lines);
             lines.push(`const ${size} = broadcastShape([${left.size}], [${right.size}])[0];`);
         }
+        const offset = (input: PreparedTensor, index: string) => {
+            if (!input.size) return '0';
+            if (columns) {
+                const column = `((${index}) % ${columns})`;
+                return input.rows ? `((${input.rows} === 1 ? 0 : Math.floor((${index}) / ${columns}) * ${input.columns}) + (${input.columns} === 1 ? 0 : ${column}))`
+                    : `(${input.size} === 1 ? 0 : ${column})`;
+            }
+            return left.size && right.size && left.size !== right.size
+                ? `(${input.size} === 1 ? 0 : ${index})` : index;
+        };
         const read = (index: string, body: string[]) => {
-            const a = left.read(left.size && right.size && left.size !== right.size ? `(${left.size} === 1 ? 0 : ${index})` : index, body);
-            const b = right.read(left.size && right.size && left.size !== right.size ? `(${right.size} === 1 ? 0 : ${index})` : index, body);
+            const a = left.read(offset(left, index), body);
+            const b = right.read(offset(right, index), body);
             host.locate(node, body);
+            if (node.native === 'min' || node.native === 'max') {
+                const result = host.variable();
+                body.push(`const ${result} = ${scalarExtremeSource(node.native, a, b)};`);
+                return result;
+            }
             return host.binary(findCompiledOperator(node.op)!, a, b, body, host.element(node), [host.element(node.left), host.element(node.right)]);
         };
-        if (size) return { size, read };
+        if (size) return { size, shape, rows, columns, read };
         const scalar = read('0', lines);
         return { read: () => scalar };
     }

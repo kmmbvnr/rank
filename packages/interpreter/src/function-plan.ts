@@ -2,7 +2,7 @@ import { tensorReductionStep } from './tensor-reduction-codegen.js';
 import { tensorBufferedNodes, tensorChildren, tensorExpressionLowerer, type TensorNode } from './tensor-ir.js';
 import { inlineTensorEmitter, type PreparedTensor } from './tensor-inline.js';
 import {
-    inferCompiledExpression, flattenApplication, isNameExpression, isNumberLiteral, isBinaryExpression, isUnaryExpression, isArrayExpression, findCompiledOperator, applicationForm, findOperation,
+    inferCompiledExpression, scalarExtremeParts, flattenApplication, isNameExpression, isNumberLiteral, isBinaryExpression, isUnaryExpression, isArrayExpression, findCompiledOperator, applicationForm, findOperation,
     matchCompiledOperatorSignature, orderedApplicationForm, typeConversionForm,
     type Expression, type CompiledExpression, type CompiledScalarType, type CompiledFunctionType,
     type CompiledOperator, type ApplicationExpression,
@@ -82,6 +82,7 @@ export function proveFunctionPlan(expression: Expression, host: {
     readonly budget: { remaining: number };
 }): FunctionPlan | undefined {
     const parse = (source: Expression): FunctionPlan | undefined => {
+        const extreme = scalarExtremeParts(source, name => !host.input(name) && !host.stage(name));
         const result = inferCompiledExpression<FunctionPlanDomain, PlanInput>(source, {
             atom: type => ['integer', 'real', 'boolean', 'text'].includes(type)
                 ? { element: type as CompiledScalarType, rank: 0 } : undefined,
@@ -182,12 +183,17 @@ export function proveFunctionPlan(expression: Expression, host: {
             operator: (operation, inputs) => {
                 // Short-circuit scalar plans and broader tensor domains retain
                 // their ordinary demand path until their control flow is lowered.
-                if (!['+', '-', '*', '/', '//', 'mod', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal'].includes(operation.name)) return undefined;
-                if (inputs.some(input => input.rank === 2)) return undefined;
+                if (!['+', '-', '*', '/', '//', 'mod', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal'].includes(operation.name)) return undefined;
                 const signature = matchCompiledOperatorSignature(operation.scalarFunction, inputs.map(input => input.element));
                 return signature ? { inputs, result: { element: signature.result,
-                    rank: inputs.some(input => input.rank) ? 1 : 0 } } : undefined;
+                    rank: Math.max(...inputs.map(input => input.rank)) as 0 | 1 | 2 } } : undefined;
             },
+            extreme: extreme?.right ? (name, inputs) => {
+                if (!host.builtin(name) || inputs.length !== 2
+                    || !['integer', 'real'].includes(inputs[0].element)
+                    || inputs.some(input => input.element !== inputs[0].element)) return undefined;
+                return { element: inputs[0].element, rank: Math.max(...inputs.map(input => input.rank)) as 0 | 1 | 2 };
+            } : undefined,
             call: () => undefined,
             budget: host.budget,
         });
@@ -255,7 +261,8 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
         const input = origin.input;
         return [input.operand, ...input.power ?? [], ...input.vector ?? [], input.map?.operand,
             input.native?.operand, input.length, input.gather?.source, input.gather?.indices].filter((n): n is FunctionPlan => !!n).map(n => lower(n)!);
-    });
+    }, node => ['outer', 'view', 'shift', 'concat'].includes(node.kind)
+        || node.kind === 'binary' && origins.get(node)?.type.rank === 2);
     const emit = inlineTensorEmitter(lines, {
         buffered, number: host.number, check: host.check,
         variable: () => host.variable(),
