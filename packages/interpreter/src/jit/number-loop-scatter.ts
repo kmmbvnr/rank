@@ -48,43 +48,55 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     if ((!compound && type === 'boolean' && isBooleanLiteral(assignment.value)
         || type === 'integer' && (!compound || assignment.accumulate)
             && (isNumberLiteral(assignment.value) || isNameExpression(assignment.value)
-                && !expressions.arrayType(assignment.value) && expressions.knownType(assignment.value) === type)) && pure(selector)) {
+                && !expressions.arrayType(assignment.value) && expressions.knownType(assignment.value) === type
+                || assignment.accumulate && discarded && !!expressions.arrayType(assignment.value))) && pure(selector)) {
         const setup: string[] = [];
         const calls = state.calls.length, callouts = state.callouts.length;
         const vector = expressions.numberVector(selector, setup);
         if (vector?.type === 'integer') {
-            const cells = `cells${target.slot}`, rhs = expressions.emit(assignment.value, setup, type);
-            if (!rhs || rhs.type !== type) return undefined;
-            const operand = `fill${state.serial++}`;
-            const store = (compact: boolean): string | undefined => {
-                const index = `stream${state.serial++}`, stores: string[] = [];
-                const key = vector.cell(index, stores, { shape: vector.shape, rank: vector.rank,
-                    compact, offsets: new Map(), values: new Map() });
-                if (key?.type !== 'integer') return undefined;
-                const operations: string[] = [];
-                const value = compound ? expressions.arithmetic(assignment.operator.slice(0, -1),
-                    { code: `${cells}[${key.code}]`, type, bounds: compact ? [-2147483648, 2147483647] : undefined },
-                    { code: operand, type, bounds: compact ? [-2147483648, 2147483647] : rhs.bounds }, type, operations) : operand;
-                if (!value) return undefined;
-                const next = `next${state.serial++}`;
-                return expressions.numberVectorLoop(vector.size, index, [...stores,
-                    `if (${key.code} < 0 || ${key.code} >= ${cells}.length) throw overflow;`, ...operations,
-                    `const ${next} = ${value};`,
-                    ...(type === 'integer' ? [`if (${compact ? 'true' : `${cells} instanceof Int32Array`} && ${next} !== (${next} | 0)) throw overflow;`] : []),
-                    `${cells}[${key.code}] = ${next}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key.code}] = 1;`}`,
-                ]);
-            };
-            const checked = store(false), compact = type === 'integer' ? store(true) : undefined;
-            if (checked && state.calls.length === calls && state.callouts.length === callouts) {
-                const loop = compact ? `if (${cells} instanceof Int32Array && ${operand} === (${operand} | 0)
-                    ${vector.compactGuards.map(guard => ` && (${guard})`).join('')}) { ${compact} } else { ${checked} }` : checked;
-                streamed.push(...setup, ...vector.sources.map(source =>
-                    `if (${source} === ${cells} || (${source}.buffer && ${source}.buffer === ${cells}.buffer)) throw overflow;`),
-                    `const ${operand} = ${rhs.code};`,
-                    // With no observer, an address failure can discard all
-                    // private stores and replay selector validation exactly.
-                    `try { ${loop} } catch { throw overflow; }`,
-                    `iterationResult = ${operand}; iterationType = '${type}';`);
+            const cells = `cells${target.slot}`;
+            const arrayRhs = !!expressions.arrayType(assignment.value);
+            const rhsVector = arrayRhs ? expressions.numberVector(assignment.value, setup) : undefined;
+            const rhs = arrayRhs ? undefined : expressions.emit(assignment.value, setup, type);
+            if (arrayRhs ? rhsVector?.type === type : rhs?.type === type) {
+                const operand = `fill${state.serial++}`;
+                const store = (compact: boolean): string | undefined => {
+                    const index = `stream${state.serial++}`, stores: string[] = [];
+                    const key = vector.cell(index, stores, { shape: vector.shape, rank: vector.rank,
+                        compact, offsets: new Map(), values: new Map() });
+                    if (key?.type !== 'integer') return undefined;
+                    const rhsCell = rhsVector?.cell(index, stores, { shape: vector.shape, rank: vector.rank,
+                        compact, offsets: new Map(), values: new Map() });
+                    if (rhsVector && rhsCell?.type !== type) return undefined;
+                    const operations: string[] = [];
+                    const value = compound ? expressions.arithmetic(assignment.operator.slice(0, -1),
+                        { code: `${cells}[${key.code}]`, type, bounds: compact ? [-2147483648, 2147483647] : undefined },
+                        rhsCell ?? { code: operand, type, bounds: compact ? [-2147483648, 2147483647] : rhs!.bounds }, type, operations) : operand;
+                    if (!value) return undefined;
+                    const next = `next${state.serial++}`;
+                    return expressions.numberVectorLoop(vector.size, index, [...stores,
+                        `if (${key.code} < 0 || ${key.code} >= ${cells}.length) throw overflow;`, ...operations,
+                        `const ${next} = ${value};`,
+                        ...(type === 'integer' ? [`if (${compact ? 'true' : `${cells} instanceof Int32Array`} && ${next} !== (${next} | 0)) throw overflow;`] : []),
+                        `${cells}[${key.code}] = ${next}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key.code}] = 1;`}`,
+                    ]);
+                };
+                const checked = store(false), compact = type === 'integer' ? store(true) : undefined;
+                if (checked && state.calls.length === calls && state.callouts.length === callouts) {
+                    const guards = [...vector.compactGuards, ...rhsVector?.compactGuards ?? []];
+                    const loop = compact ? `if (${cells} instanceof Int32Array ${rhsVector ? '' : `&& ${operand} === (${operand} | 0)`}
+                        ${guards.map(guard => ` && (${guard})`).join('')}) { ${compact} } else { ${checked} }` : checked;
+                    streamed.push('try {', ...setup,
+                        ...(rhsVector ? [`if (${rhsVector.shape}.length !== ${vector.shape}.length || ${rhsVector.shape}.some((size, axis) => size !== ${vector.shape}[axis])) throw overflow;`] : []),
+                        ...[...vector.sources, ...rhsVector?.sources ?? []].map(source =>
+                        `if (${source} === ${cells} || (${source}.buffer && ${source}.buffer === ${cells}.buffer)) throw overflow;`),
+                        ...(rhs ? [`const ${operand} = ${rhs.code};`] : []),
+                        // With no observer, a preparation or cell failure discards all
+                        // private stores and replays selector validation exactly.
+                        loop,
+                        `iterationResult = ${rhsVector ? 'undefined' : operand}; iterationType = '${type}';`,
+                        '} catch { throw overflow; }');
+                }
             }
         }
     }

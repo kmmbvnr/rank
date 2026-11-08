@@ -131,7 +131,7 @@ export function prepareRegionArrayWrite(statement: ArrayAssignmentStatement, hos
 
 /** `Name Selectors = Value` and `op=`: a write into what a name holds. */
 export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host: AssignmentContext): PreparedStatement {
-    const recipe = !statement.accumulate && statementResultDiscarded(statement) ? numericUpdateExpression(statement.value) : undefined;
+    const recipe = statementResultDiscarded(statement) ? numericUpdateExpression(statement.value) : undefined;
     const fused = recipe && computedArrayUpdate(recipe, statement.operator);
     let ranks: readonly (number | '#')[] | undefined;
     try { ranks = rankedAddressAssignmentForm(statement)?.ranks; }
@@ -209,7 +209,8 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             const last = linear.offset + (count - 1) * linear.stride;
             return owned(target, Math.min(linear.offset, last), Math.max(linear.offset, last) + 1);
         };
-        if (fused && evaluated === undefined && host.options().compilation !== false) {
+        if (fused && evaluated === undefined && host.options().compilation !== false
+            && (!statement.accumulate || !demandBudgetEnabled())) {
             const update = fused(target, selection, host);
             if (update) {
                 host.checkArrayWrite(statement.name, target, [update.representative]);

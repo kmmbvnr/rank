@@ -142,3 +142,63 @@ end`);
     expect(result.observation.error).toContain('bounds');
     expect(result.observation.calls).toBe(0n);
 });
+
+it.each(['+=', '-=', '*='])('streams arithmetic RHS for accumulating %s', operator => {
+    const result = compare(`Values = array 2 3 4
+Saved = Values
+Keys = array 1 1 2 1
+Weights = array 2 3 4 5
+for I in 1 to 3
+ Values Keys ${operator} (Weights * 3 + 1) mod 7 .accumulate
+ Done = I
+end
+tuple Values Saved`);
+    expect(result.observation.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(1);
+});
+it.each(['Values Keys * 2', 'Values + 1', '(Values * Values) mod 7'])('snapshots streamed RHS aliases: %s', rhs => {
+    const result = compare(`Values = array 1 2 3
+Keys = array 0 0 1
+for I in 1 to 2
+ Values Keys += ${rhs} .accumulate
+ Done = I
+end
+Values`);
+    expect(result.observation.error).toBeUndefined();
+});
+it.each(['(Weights * 9007199254740991) mod 7', 'Weights // 0', 'Weights + (1 // 0)', 'Weights + (array 1 2)'])('replays streamed arithmetic errors or overflow: %s', rhs => {
+    compare(`Values = array 2 3 4
+Keys = array 0 0 2
+Weights = array 2 3 4
+for I in 1 to 2
+ Values Keys += ${rhs} .accumulate
+ Done = I
+end
+Values`);
+});
+it('validates all selectors before a scalar error inside a vector RHS', () => {
+    const result = compare(`Values = array 2 3 4
+Keys = array 0 0 9
+Weights = array 2 3 4
+for I in 1 to 2
+ Values Keys += Weights + (1 // 0) .accumulate
+ Done = I
+end
+Values`);
+    expect(result.observation.error).toContain('bounds');
+});
+
+it.each(['Weights * 3 - 1', 'Weights // 2', 'Weights min 3', 'Weights max 3', 'Weights band 3', 'Weights isqrt'])('retains vector-expression optimizations for %s', rhs => {
+    const result = compare(`use numbers
+use bits
+Values = array 2 3 4
+Keys = array 0 0 2
+Weights = array 2 3 4
+for I in 1 to 2
+ Values Keys += ${rhs} .accumulate
+ Done = I
+end
+Values`);
+    expect(result.observation.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(1);
+});

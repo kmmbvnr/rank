@@ -29,6 +29,18 @@ Done = true`);
         } finally { r.dispose(); }
     });
 
+    it('keeps affine fusion when accumulation has unique indices', () => {
+        const { r, d } = fixture(`A = array shape 10000 fill 1
+K = 2 to 100 array
+At' = 2 * K
+A At += 2 * K + 3 .accumulate
+Done = true`);
+        try {
+            expect(r.execute('A sum')).toBe(20395n);
+            expect(d.fusedArrayUpdates).toBe(compilation ? 1 : 0);
+        } finally { r.dispose(); }
+    });
+
     it('reads aligned original cells for a totient update', () => {
         const a = Int32Array.from({ length: 256 }, (_, i) => i);
         const { r, d } = fixture('I = 2 to 254 by 2 array\nA I -= A I // 2\nDone = true', { A: a });
