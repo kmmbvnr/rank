@@ -533,6 +533,10 @@ export class FastPaths {
                     }
                     return reference.apply([value, fn]);
                 });
+                // Keep supported arithmetic on the compiled tensor path.
+                // The native interpreter is for reference execution and trees
+                // (notably floor division) that this compiler cannot lower.
+                if (fused && this.compiler.tensors.fusion) return fused;
                 const native = prepareNativeIntegerSum(parts[0], name => this.context.bindings.find(name));
                 if (!native) return fused;
                 return () => {

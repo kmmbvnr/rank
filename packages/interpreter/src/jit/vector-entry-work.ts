@@ -29,12 +29,15 @@ export function prepareVectorEntryWork(plan: IntegerLoopPlan, host: LoopHost):
     const proof = prepareEntryWorkProof(plan, host), body = proof.block(root.statements);
     if (!body.hasWork || name && (body.writes.has(name) || binding.names.includes(name) || plan.destinations.has(name))) return undefined;
     const changed = new Set([...body.writes, ...binding.names]);
+    const rangeCount = range && proof.range(range), rangeStart = range && proof.integer(range.left);
+    const rangeStep = range?.step ? proof.integer(range.step) : () => 1n;
+    const primeBounds = primes?.map(bound => ({ ...bound, read: proof.integer(bound.value) }));
     return (input, target) => {
         const base = entryWorkValues(plan, input, changed);
         if (primes) {
             let lower = 2n, upper: bigint | undefined;
-            for (const bound of primes) {
-                const value = proof.integer(bound.value)(base);
+            for (const bound of primeBounds!) {
+                const value = bound.read(base);
                 if (value === undefined) return 0;
                 if (bound.upper) upper = value - (bound.inclusive ? 0n : 1n);
                 else lower = value + (bound.inclusive ? 0n : 1n);
@@ -57,8 +60,8 @@ export function prepareVectorEntryWork(plan: IntegerLoopPlan, host: LoopHost):
             return work;
         }
         if (range) {
-            const count = proof.range(range)(base), first = proof.integer(range.left)(base);
-            const step = range.step ? proof.integer(range.step)(base) : 1n;
+            const count = rangeCount!(base), first = rangeStart!(base);
+            const step = rangeStep(base);
             if (!count || first === undefined || step === undefined || step === 0n) return 0;
             let work = 0;
             // With every back-edge write and induction name removed, a

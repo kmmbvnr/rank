@@ -177,3 +177,12 @@ it('refreshes input shape, representation and numeric kind on a warmed expressio
         expect(runtime.evaluate(statement.value)).toBe(9.5);
     } finally { runtime.dispose(); }
 });
+
+it.each([false, true])('keeps large products on the compiled tensor path when enabled (%s)', compilation => {
+    const a = Int32Array.from({length: 8192}, (_, i) => i - 4000);
+    const b = BigInt64Array.from(a, value => BigInt(value) * 1000n);
+    const result = run('(A * B) sum', typedArray(a), compilation, typedArray(b));
+    expect(result.result).toBe(a.reduce((sum, value, i) => sum + BigInt(value) * b[i], 0n));
+    expect(result.diagnostics.nativeIntegerSums).toBe(compilation ? 0 : 1);
+    if (compilation) expect(result.diagnostics.compiledTensors).toBeGreaterThan(0);
+});

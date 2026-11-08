@@ -2,7 +2,7 @@ import { arrayPermutation } from './array-transfer.js';
 import {
     expressionFacts, flattenApplication, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement,
     isBinaryExpression, isBooleanLiteral, isBreakStatement, isContinueStatement, isForStatement, isIfStatement,
-    isNameExpression, isParenthesizedExpression, isReturnStatement, isUnaryExpression, isYieldStatement, isUnpackStatement,
+    isNameExpression, isNumberLiteral, isMaterializeExpression, isArrayExpression, isParenthesizedExpression, isReturnStatement, isUnaryExpression, isYieldStatement, isUnpackStatement,
     type Expression, type Statement,
 } from '@arrrank/language';
 import { hasNativeArrayHeader, integer32Cells, integer64Cells } from '../array-storage.js';
@@ -49,6 +49,21 @@ export function entryWorkValues(plan: IntegerLoopPlan, input: unknown[], exclude
  * Indexed facts may read only guarded immutable entry cells, disjoint from writes. */
 export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
     function integer(expression: Expression): Integer {
+        if (isMaterializeExpression(expression) || isArrayExpression(expression)) return () => undefined;
+        // These leaves are revisited during every admission attempt. Their
+        // entry facts are already guarded; do not rerun language analysis.
+        if (isNumberLiteral(expression)) return () => typeof expression.value === 'bigint' ? expression.value : undefined;
+        if (isNameExpression(expression)) return values => {
+            const value = values.get(expression.name);
+            return typeof value === 'bigint' ? value : undefined;
+        };
+        if (isUnaryExpression(expression) && ['+', '-'].includes(expression.operator)) {
+            const operand = integer(expression.operand);
+            return values => {
+                const value = operand(values);
+                return value === undefined ? undefined : expression.operator === '-' ? -value : value;
+            };
+        }
         if (isParenthesizedExpression(expression)) return integer(expression.value);
         if (isBinaryExpression(expression) && ['+', '-', '*', '//', 'mod', '**'].includes(expression.operator)) {
             const left = integer(expression.left), right = integer(expression.right), op = expression.operator;
@@ -67,6 +82,19 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
             };
         }
         const selected = isApplicationExpression(expression) ? flattenApplication(expression) : undefined;
+        if (selected?.length === 2 && isNameExpression(selected[1]) && selected[1].name === 'integer'
+            && plan.builtins.get('integer') === 'core' && !plan.localTypes.has('integer')
+            && !plan.arrays.has('integer') && !plan.containers.has('integer')) {
+            let operand = selected[0];
+            while (isParenthesizedExpression(operand)) operand = operand.value;
+            if (isBooleanLiteral(operand) || isBinaryExpression(operand)
+                && ['less', 'greater', 'atmost', 'atleast', 'equal', 'notequal'].includes(operand.operator)
+                || isNameExpression(operand) && plan.localTypes.get(operand.name) === 'boolean'
+                || isUnaryExpression(operand) && operand.operator === 'not') {
+                const read = truth(operand);
+                return values => { const value = read(values); return value === undefined ? undefined : value ? 1n : 0n; };
+            }
+        }
         if (selected?.length === 2 && isNameExpression(selected[0])) {
             const name = selected[0].name, index = integer(selected[1]);
             if (plan.arrayInputs.has(name) && !plan.arrayDefinitions.has(name) && !plan.writable.has(name)) {
@@ -156,14 +184,21 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
                 return 0;
             };
         }
-        return (values: Values): number => {
-            if (source && isNameExpression(source)) {
-                const count = values.get(rangeKey(source.name));
-                return typeof count === 'bigint' ? Number(count) : 0;
-            }
-            if (!source || !isBinaryExpression(source) || !['to', 'till'].includes(source.operator)) return 0;
-            const count = expressionFacts(source, facts(values)).shape?.[0];
-            return count !== undefined && count !== null && Number.isSafeInteger(count) && count >= 0 ? count : 0;
+        if (source && isNameExpression(source)) return values => {
+            const count = values.get(rangeKey(source.name));
+            return typeof count === 'bigint' ? Number(count) : 0;
+        };
+        if (!source || !isBinaryExpression(source) || !['to', 'till'].includes(source.operator)) return () => 0;
+        const left = integer(source.left), right = integer(source.right);
+        const stride = source.step ? integer(source.step) : () => 1n;
+        return values => {
+            const start = left(values), end = right(values), step = stride(values);
+            if (start === undefined || end === undefined || step === undefined || step === 0n) return 0;
+            const span = step > 0n ? end - start : start - end;
+            const distance = source.operator === 'to' ? span : span - 1n;
+            if (distance < 0n) return 0;
+            const count = distance / (step > 0n ? step : -step) + 1n;
+            return count <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(count) : 0;
         };
     }
     function block(statements: readonly Statement[]): Block {

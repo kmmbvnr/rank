@@ -563,6 +563,11 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     // invalidate them after a store; weak keys do not retain earlier inputs.
     const readBuffers = new WeakMap<RankArray, { revision: number; type: LoopTerm['type']; cells: Int32Array | Float64Array }>();
     const traversal = plan.iteration && loopTraversal(plan.iteration);
+    // Range facts depend only on the guarded scalar input slots below. A
+    // repeatedly rejected short loop must not reanalyse unchanged bounds.
+    const rangeSlots = traversal ? [...AstUtils.streamAst(traversal.source)]
+        .filter(isNameExpression).map(node => names.indexOf(node.name)) : [];
+    let rangeInputs: unknown[] | undefined, rangeCount: number | null | undefined;
     const entryWork = prepareLoopEntryWork(plan, host);
     const vectorEntryWork = prepareVectorEntryWork(plan, host);
     // A nested region can do much more work than its root range length (for
@@ -641,12 +646,17 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         if (conditionWriteCells && !plan.hasControl && traversal && !traversal.slice
             && !primeLoopBounds(traversal.source)
             && isBinaryExpression(traversal.source) && ['to', 'till'].includes(traversal.source.operator)) {
-            const count = expressionFacts(traversal.source, name => {
-                const slot = names.indexOf(name), value = input[slot];
-                if (!required.has(slot) || localTypes.get(name) !== 'integer') return recordFallback('number-loop:range-input-proof', 'proof');
-                return typeof value === 'bigint' || typeof value === 'number'
-                    ? { types: ['integer'], rank: 0, shape: [], integer: String(value) } : undefined;
-            }).shape?.[0];
+            const values = rangeSlots.map(slot => input[slot]);
+            if (!rangeInputs || values.some((value, index) => value !== rangeInputs![index])) {
+                rangeCount = expressionFacts(traversal.source, name => {
+                    const slot = names.indexOf(name), value = input[slot];
+                    if (!required.has(slot) || localTypes.get(name) !== 'integer') return recordFallback('number-loop:range-input-proof', 'proof');
+                    return typeof value === 'bigint' || typeof value === 'number'
+                        ? { types: ['integer'], rank: 0, shape: [], integer: String(value) } : undefined;
+                }).shape?.[0];
+                rangeInputs = values;
+            }
+            const count = rangeCount;
             // Above the probe cap, a few sentinel cells must not turn an
             // otherwise complete pass into an exact-only loop (Euler 319).
             // Reuse the small-copy allowance: at most 64 extra cells for

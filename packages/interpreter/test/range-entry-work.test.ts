@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RuntimeDiagnostics, RankError } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, RankError, parse } from '../src/index.js';
 import { withDemandBudget } from '../src/interrupt.js';
 
 const source = `use sequences
@@ -41,6 +41,14 @@ describe('range entry work without changing copy thresholds', () => {
         expect(result.values).toEqual(execute(text, false).values);
         expect(result.diagnostics.numberLoops).toBe(0);
         expect(result.diagnostics.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
+    });
+    it.each(['P less 5', 'true', 'Flag'])('counts selector work through Boolean conversion: %s', predicate => {
+        const text = source.replace('Count =', 'Flag = true\nCount =')
+            .replace(' Slots =', ` Active = ${predicate} integer\n Stride = P * Active\n Slots =`)
+            .replace('(P to N by P)', '(P to N by Stride)');
+        const result = execute(text);
+        expect(result.values).toEqual(execute(text, false).values);
+        expect(result.diagnostics.numberLoops).toBe(1);
     });
     it('keeps the completed range length after its scalar bound changes', () => {
         const text = source.replace(' Slots =', ' End = N // P\n Slots =')
@@ -96,4 +104,24 @@ describe('range entry work without changing copy thresholds', () => {
             expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
         } else expect(result.diagnostics.numberLoops).toBe(0);
     });
+});
+
+it('rechecks changing bounds and stride on a reused range admission plan', () => {
+    const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+    const size = 300000;
+    try {
+        runtime.execute(`use sequences\nA = array shape ${size + 1} fill 0`);
+        const program = parse('for I in Start to End by Step\n A I = I\nend');
+        for (const [start, end, step] of [[1, size, 1], [1, 1, 1], [size, 1, -1]]) {
+            runtime.variables.set('Start', BigInt(start));
+            runtime.variables.set('End', BigInt(end));
+            runtime.variables.set('Step', BigInt(step));
+            diagnostics.run(() => runtime.executeProgram(program));
+        }
+        expect(runtime.execute('A 1')).toBe(1n);
+        expect(runtime.execute(`A ${size}`)).toBe(BigInt(size));
+        expect(diagnostics.numberLoops).toBe(2);
+        runtime.variables.set('Step', 0n);
+        expect(() => runtime.executeProgram(program)).toThrow(/step/);
+    } finally { runtime.dispose(); }
 });
