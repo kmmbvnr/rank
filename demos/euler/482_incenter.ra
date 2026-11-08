@@ -2,140 +2,184 @@ rem The incenter of a triangle
 rem https://projecteuler.net/problem=482
 
 use numbers
+use algo
 use sequences
 use io
 use cli
 
 arg P integer = 10000000
 
-rem With x, y, z = s - a, s - b, s - c
-rem the inradius has r^2 = xyz / (x +
-rem y + z), and IA^2 = r^2 + x^2: x,
-rem y and z are legs of right
-rem triangles with leg r. Two of them
-rem fix z = r^2 (x + y) / (xy - r^2).
-rem With x <= y <= z, r^2 < xy <= 3r^2.
-rem r is at most P sqrt 3 / 18.
-H = P // 2
-R = (P * (3.0 sqrt) / 18) floor
-rem Legs from primitive triples (m^2 -
-rem n^2, 2mn, m^2 + n^2) times k.
-Mx = R + H isqrt + 2
-Ig = 0 till Mx * Mx copy
-Mg = Ig // Mx
-Ng = Ig mod Mx
-Ok = Ng at least 1 and (Mg greater Ng)
-Ok = Ok and ((Mg - Ng) mod 2 equal 1)
-Ix = Ok indices
-Mg = Mg Ix
-Ng = Ng Ix
-Ix = (Mg gcd Ng equal 1) indices
-Mg = Mg Ix
-Ng = Ng Ix
-A0 = Mg * Mg - Ng * Ng
-B0 = 2 * Mg * Ng
-C0 = Mg * Mg + Ng * Ng
-R0 = concat A0 B0
-X0 = concat B0 A0
-H0 = concat C0 C0
-Kc = R // R0 min (H // X0)
-Ix = Kc greater 0 indices
-R0 = R0 Ix
-X0 = X0 Ix
-H0 = H0 Ix
-Kc = Kc Ix
-rem Replicate each primitive Kc times.
-Tl = Kc sum
-Of = Kc scan + with 0
-Ow = array shape Tl fill 0
-Nk = Kc len
-Ow (Of (0 till Nk)) = 0 till Nk copy
-Ow = Ow scan max
-Kk = (0 till Tl) - Of Ow + 1
-Rr = Kk * R0 Ow
-Xx = Kk * X0 Ow
-Tt = Kk * H0 Ow
-H1 = H + 1
-Ky = Rr * H1 + Xx
-Od = Ky argsort
-Rr = Rr Od
-Xx = Xx Od
-Tt = Tt Od
-Ne = Rr len
-rem Windows r^2/x < y <= 3 r^2/x as
-rem positions in the sorted legs: one
-rem sort of legs and bounds.
-R2 = Rr * Rr
-Qi = Xx * Xx at most 3 * R2 indices
-V1 = R2 Qi // Xx Qi min H
-V2 = 3 * R2 Qi // Xx Qi min H
-Nq = Qi len
-Rq = Rr Qi * H1
-Kq = concat (Rr * H1 + Xx) (Rq + V1)
-Kq = concat Kq (Rq + V2)
-Q1 = Qi * 0 + 1
-Tq = concat (Rr * 0) Q1 Q1
-Oq = Kq * 2 + Tq argsort
-Ce = Tq Oq equal 0 choose 1 0
-Ce = Ce scan +
-Qp = (Tq Oq equal 1) indices
-Src = Oq Qp - Ne
-Cv = Ce Qp
-Lo = array shape Nq fill 0
-Hi = Lo
-Ls = Src less Nq indices
-Lo (Src Ls) = Cv Ls
-Hs = Src at least Nq indices
-Hi (Src Hs - Nq) = Cv Hs
-Lo = Lo max Qi
-Cn = Hi - Lo max 0
-rem Pairs (i, j) chunk by chunk; keep
-rem integer z >= y with z^2 + r^2 a
-rem square.
-Cs = Cn scan + with 0
-Answer = 0
-Ch = 4000000
-St = 0
-for St less Nq
-  Cb = Cs St
-  rem Next chunk: up to Ch pairs.
-  Cm = Cb + Ch
-  En = Cs at most Cm count - 1
-  En = (En max (St + 1)) min Nq
-  Np = Cs En - Cb
-  if Np greater 0
-    Of = Cs (St till En) - Cb
-    Cc = Cn (St till En)
-    Ix = Cc greater 0 indices
-    Ow = array shape Np fill 0
-    Ow (Of Ix) = Ix + St
-    Ow = Ow scan max
-    Jj = (0 till Np) + Cb - Cs Ow
-    Jj += Lo Ow
-    Ii = Qi Ow
-    X = Xx Ii
-    Y = Xx Jj
-    Q2 = (Rr Ii) * (Rr Ii)
-    Dn = X * Y - Q2
-    Nm = Q2 * (X + Y)
-    G1 = Nm mod Dn equal 0 indices
-    Z = Nm G1 // Dn G1
-    X = X G1
-    Y = Y G1
-    Q2 = Q2 G1
-    Ii = Ii G1
-    Jj = Jj G1
-    Gb = X + Y + Z at most H
-    Gb = Gb and (Z at least Y)
-    G2 = Gb indices
-    Z = Z G2
-    W2 = Z * Z + Q2 G2
-    Sq = W2 isqrt
-    G3 = Sq * Sq equal W2 indices
-    Lt = 2 * (X G2 + Y G2 + Z) + Sq
-    Lt += Tt (Ii G2) + Tt (Jj G2)
-    Answer += Lt G3 sum
-  end
-  St = En
+rem Label each nonempty ragged row.
+fun Counts expand
+  Prefix = Counts scan + with 0
+  Size = Prefix last
+  Owner = array shape Size fill 0
+  Mask = Counts greater 0
+  Keep = Mask indices
+  Owner (Prefix Keep) = Keep
+  Owner = Owner scan max
+  return tuple Owner Prefix
 end
+
+rem x = s-a, y = s-b, z = s-c and r
+rem are integer legs of right triangles.
+rem With leg x and hypotenuse h, the
+rem least semiperimeter is (r+h)^2/x.
+fun Limit triples
+  Half = Limit // 2
+  Square = Limit * Limit // 108
+  Radius = Square isqrt
+  Width = Half isqrt + 1
+  Grid = 0 till Width * Width copy
+  M = Grid // Width
+  N = Grid mod Width
+  Mask = N at least 1 and (M greater N)
+  Odd = (M - N) mod 2 equal 1
+  Mask = Mask and Odd
+  Keep = Mask indices
+  M = M Keep
+  N = N Keep
+  Mask = M gcd N equal 1
+  Keep = Mask indices
+  M = M Keep
+  N = N Keep
+  First = M * M - N * N
+  Second = 2 * M * N
+  Distance = M * M + N * N
+  Radii = concat First Second
+  Legs = concat Second First
+  Distances = concat Distance Distance
+  Base = Radii + Distances
+  Copies = Half * Legs // (Base * Base)
+  Copies = Copies min (Radius // Radii)
+  Mask = Copies greater 0
+  Keep = Mask indices
+  Radii = Radii Keep
+  Legs = Legs Keep
+  Distances = Distances Keep
+  Copies = Copies Keep
+  unpack Owner Prefix = Copies expand
+  Size = Owner len
+  Scale = (1 to Size) - Prefix Owner
+  Radii = Scale * Radii Owner
+  Legs = Scale * Legs Owner
+  Distances = Scale * Distances Owner
+  Keys = Radii * (Half + 1) + Legs
+  Order = Keys argsort
+  Radii = Radii Order
+  Legs = Legs Order
+  Distances = Distances Order
+  return tuple Radii Legs Distances
+end
+
+rem Perimeter bounds (2y-(H-x))^2 by
+rem (H-x)^2 - 4H r^2/x. For z >= y,
+rem y <= (r^2+r h)/x. Search the sorted
+rem (radius, leg) keys within both.
+fun Half windows Triples
+  unpack Radii Legs Distances = Triples
+  Keys = Radii * (Half + 1) + Legs
+  Squares = Radii * Radii
+  Mask = Legs * Legs at most 3 * Squares
+  Query = Mask indices
+  X = Legs Query
+  Square = Squares Query
+  Floor = Square // X
+  Mask = Floor at most Half // 4
+  Keep = Mask indices
+  Query = Query Keep
+  X = X Keep
+  Square = Square Keep
+  Floor = Floor Keep
+  Left = Half - X
+  Rest = Square mod X
+  Carry = 4 * Half * Rest + X - 1
+  Disc = Left * Left - 4 * Half * Floor
+  Disc -= Carry // X
+  Mask = Disc at least 0
+  Keep = Mask indices
+  Query = Query Keep
+  X = X Keep
+  Square = Square Keep
+  Floor = Floor Keep
+  Left = Left Keep
+  Disc = Disc Keep
+  Disc = Disc isqrt
+  Lower = (Left - Disc + 1) // 2 - 1
+  Floor = Floor max Lower
+  Bound = Radii Query * Distances Query
+  Top = (Square + Bound) // X
+  Top = Top min (Left // 2)
+  Start = Radii Query * (Half + 1)
+  Low = Keys upperindex (Start + Floor)
+  High = Keys upperindex (Start + Top)
+  Low = Low max Query
+  Counts = High - Low max 0
+  Prefix = Counts scan + with 0
+  return tuple Query Low Counts Prefix
+end
+
+rem Limit storage for candidate pairs.
+fun Half total Triples Windows
+  unpack Radii Legs Distances = Triples
+  unpack Query Low Counts Sums = Windows
+  Count = Query len
+  Answer = 0
+  Chunk = 4000000
+  Start = 0
+  for Start less Count
+    Base = Sums Start
+    Limit = Base + Chunk
+    Stop = Sums upperindex Limit
+    Stop = Stop - 1 max (Start + 1)
+    Stop = Stop min Count
+    Size = Sums Stop - Base
+    if Size greater 0
+      Copies = Counts (Start till Stop)
+      unpack Rows Bases = Copies expand
+      Right = (0 till Size) - Bases Rows
+      Rows += Start
+      Right += Low Rows
+      Left = Query Rows
+      X = Legs Left
+      Y = Legs Right
+      Square = Radii Left * Radii Left
+      Divisor = X * Y - Square
+      Product = Square * (X + Y)
+      Mask = Product mod Divisor equal 0
+      Keep = Mask indices
+      Z = Product Keep // Divisor Keep
+      X = X Keep
+      Y = Y Keep
+      Square = Square Keep
+      Left = Left Keep
+      Right = Right Keep
+      Fits = X + Y + Z at most Half
+      Fits = Fits and (Z at least Y)
+      Keep = Fits indices
+      Z = Z Keep
+      X = X Keep
+      Y = Y Keep
+      Square = Square Keep
+      Left = Left Keep
+      Right = Right Keep
+      Squared = Z * Z + Square
+      Root = Squared isqrt
+      Mask = Root * Root equal Squared
+      Keep = Mask indices
+      Values = 2 * (X + Y + Z) + Root
+      Values += Distances Left
+      Values += Distances Right
+      Selected = Values Keep
+      Answer += Selected sum
+    end
+    Start = Stop
+  end
+  return Answer
+end
+
+Half = P // 2
+Triples = P triples
+Windows = Half windows Triples
+Answer = Half total Triples Windows
 Answer print

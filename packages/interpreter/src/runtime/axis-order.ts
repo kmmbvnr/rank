@@ -299,7 +299,7 @@ export function scanInt32Axis(op: '+' | '*' | 'max' | 'min', value: RankArray, s
         }
         if (fits) return typedArray(compact, [...shape]);
     }
-    const out = new Float64Array(cells.length);
+    const out = op === 'max' || op === 'min' ? new Int32Array(cells.length) : new Float64Array(cells.length);
     const block = length * inner;
     let wide = false;
     for (let start = 0; start < out.length && length > 0; start += block) {
@@ -329,8 +329,8 @@ export function scanInt32Axis(op: '+' | '*' | 'max' | 'min', value: RankArray, s
         const x = out[i];
         if (x > INT32_MAX || x < -INT32_MAX - 1) { wide = true; break; }
     }
-    if (!wide) return typedArray(Int32Array.from(out), [...shape]);
-    return typedArray(consumeSafeIntegerBuffer(out), [...shape]);
+    if (!wide) return typedArray(out instanceof Int32Array ? out : Int32Array.from(out), [...shape]);
+    return typedArray(consumeSafeIntegerBuffer(out as Float64Array), [...shape]);
 }
 
 /** `sum` along one axis of stored real cells, adding in axis order from 0 as
