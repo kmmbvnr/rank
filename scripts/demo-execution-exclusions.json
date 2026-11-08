@@ -206,7 +206,7 @@
   "euler/752_powers.ra": "Full input remains manual: about 32 s and 2.8 GiB RSS on arm64 after native batching; see benchmarks/euler752-results.md and node benchmarks/euler752.mjs 1000000.",
   "euler/754_gaussfactorials.ra": "Full default run takes about 24 s on Mac and 50 s on Intel (1e8 chunked sieve and prefix products); direct coprime-product tests cover small values.",
   "euler/764_asymmetricdiophantine.ra": "Full default run takes about 19 s on Mac and 45 s on Intel (7e7 parameter pairs); direct equation tests cover small values.",
-  "euler/781_feynmandiagrams.ra": "Full default run takes about 47 s (25000 layers of length up to 50000); small values are covered by the test.",
+  "euler/781_feynmandiagrams.ra": "Full default run takes about 25 s on Mac and 45 s on Intel (25000 layers up to 50000 cells); exact small recurrences are covered by tests.",
   "euler/782_distinctrowscolumns.ra": "Full default run takes about 36 s (8e6 triples times 46 forms scattered into 1e8 cells); small values are covered by the test.",
   "euler/791_averagevariance.ra": "Full default run takes about 70 s (14000 odd u rows of up to 14000 closed-form interval sums); small values are covered by the test.",
   "euler/769_binaryquadraticform.ra": "Full default run takes about 30-37 s (1e8 divisor-weighted pairs); small values are covered by the test.",
