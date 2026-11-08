@@ -1,0 +1,266 @@
+rem Conjunctive Sequences
+rem https://projecteuler.net/problem=774
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Length integer = 123
+arg Bound integer = 123456789
+arg Mod integer = 998244353
+
+rem F(n; lc, rc) is the vector in L of
+rem counts of length L sequences in 0..n
+rem with a & a' != 0 and conditions on
+rem the first (lc) and last (rc) term:
+rem none (Gen) or a & v != 0. Odd n
+rem peels the low bit: pairs of ones are
+rem free, so the bit string splits into
+rem segments of high parts below n // 2,
+rem weighted by strings without two
+rem adjacent ones. Even n splits at the
+rem occurrences of the value n. States
+rem are found level by level, then
+rem filled in order of n; series
+rem 1 / (1 - P) come from a product of
+rem (1 + P^(2^k)).
+Gen = 536870912
+Big = 1073741824
+Size = Length + 1
+fun Left hd Right
+  return Left * Big + Right
+end
+Zero = array shape Size fill 0
+One = Zero * 1
+One 0 = 1
+fun Bit upb Code
+  Fine = Code equal Gen
+  Ev = Code mod 2 equal 1
+  Odd = Ev and (Bit equal 1)
+  Keep = Fine or Odd
+  Half = Code // 2
+  return Keep choose Gen Half
+end
+rem No two adjacent ones, first Fst and
+rem last Lst bit, by length.
+fun Fst nstr Lst
+  Out = Zero * 1
+  Z = 1 - Fst
+  O = Fst * 1
+  for Pos in 1 to Length
+    Pick = (Lst equal 0) choose Z O
+    Out Pos = Pick
+    Nz = (Z + O) mod Mod
+    O = Z
+    Z = Nz
+  end
+  return Out
+end
+fun Left conv Right
+  Cells = Size * Size
+  Col = Left reshape Size 1
+  Mul = Col * Right mod Mod
+  Prod = Mul reshape Cells
+  Rows = (0 to Length) reshape Size 1
+  Sum = Rows + (0 to Length)
+  Spot = Sum reshape Cells
+  Keep = Spot less Size
+  Acc = array shape Size fill 0
+  Pos = Spot Keep
+  Acc Pos += Prod Keep .accumulate
+  return Acc mod Mod
+end
+rem 1 / (1 - P), P without constant.
+fun Poly inv1 Unused
+  Sum = One + Poly
+  Pw = Poly conv Poly
+  Sum = (Sum + (Sum conv Pw)) mod Mod
+  Pw = Pw conv Pw
+  Sum = (Sum + (Sum conv Pw)) mod Mod
+  Pw = Pw conv Pw
+  Sum = (Sum + (Sum conv Pw)) mod Mod
+  Pw = Pw conv Pw
+  Sum = (Sum + (Sum conv Pw)) mod Mod
+  Pw = Pw conv Pw
+  Sum = (Sum + (Sum conv Pw)) mod Mod
+  Pw = Pw conv Pw
+  Sum = (Sum + (Sum conv Pw)) mod Mod
+  return Sum
+end
+fun Code sat Value
+  Both = (Value band Code) not equal 0
+  Free = Code equal Gen
+  Ok = Free or Both
+  return Ok integer
+end
+N00 = 0 nstr 0
+N01 = 0 nstr 1
+N10 = 1 nstr 0
+N11 = 1 nstr 1
+rem State keys: (n, lc, rc).
+Root = (Bound hd Gen) hd Gen
+Seen = array Root
+Front = array Root
+for Level in 1 to 200
+  if Front len equal 0
+    break
+  end
+  Rc = Front mod Big
+  Lc = (Front // Big) mod Big
+  Nn = (Front // Big) // Big
+  Pos = Nn greater 0
+  Live = Pos and (Lc greater 0)
+  Live = Live and (Rc greater 0)
+  Nl = Nn Live
+  Ll = Lc Live
+  Rl = Rc Live
+  Ks = array shape 0 fill 0
+  Ok0 = Nl at least 0
+  Sub0 = Nl // 2
+  Ua0 = 0 upb Ll
+  Ub0 = 0 upb Rl
+  Kz = (Sub0 hd Ua0) hd Ub0
+  Ks = concat Ks Kz
+  Ok1 = Nl at least 1
+  Sub1 = (Nl - 1) // 2
+  Ua1 = 1 upb Ll
+  Ub1 = 1 upb Rl
+  Ko = (Sub1 hd Ua1) hd Ub1
+  Ks = concat Ks (Ko Ok1)
+  Ev = Nl mod 2 equal 0
+  En = Nl Ev
+  El = Ll Ev
+  Er = Rl Ev
+  Pm = En - 1
+  Ks = concat Ks ((Pm hd El) hd Er)
+  Ks = concat Ks ((Pm hd El) hd En)
+  Ks = concat Ks ((Pm hd En) hd En)
+  Ks = concat Ks ((Pm hd En) hd Er)
+  Od = not Ev
+  On = Nl Od
+  Ol = Ll Od
+  Or = Rl Od
+  Md = (On - 1) // 2
+  A0 = 0 upb Ol
+  A1 = 1 upb Ol
+  B0 = 0 upb Or
+  B1 = 1 upb Or
+  Ks = concat Ks ((Md hd A0) hd B0)
+  Ks = concat Ks ((Md hd A0) hd B1)
+  Ks = concat Ks ((Md hd A1) hd B0)
+  Ks = concat Ks ((Md hd A1) hd B1)
+  Ks = concat Ks ((Md hd A0) hd Gen)
+  Ks = concat Ks ((Md hd A1) hd Gen)
+  Ks = concat Ks ((Md hd Gen) hd B0)
+  Ks = concat Ks ((Md hd Gen) hd B1)
+  Ks = concat Ks ((Md hd Gen) hd Gen)
+  Uni = Ks unique
+  Before = Seen len
+  Both = concat Seen Uni
+  Seen = Both unique
+  Front = Seen drop Before
+end
+Keys = Seen sort
+Count = Keys len
+Cells = (Count + 1) * Size
+Tab = array shape Cells fill 0
+fun Key row Unused
+  Pos = Keys find Key
+  Cols = 0 to Length
+  return Tab (Pos * Size + Cols)
+end
+for Index in 0 to Count - 1
+  Key = Keys Index
+  Rc = Key mod Big
+  Lc = (Key // Big) mod Big
+  Nn = (Key // Big) // Big
+  Out = Zero * 1
+  Gg = (Lc equal Gen) and (Rc equal Gen)
+  Dead = (Lc equal 0) or (Rc equal 0)
+  if Dead
+    Out = Zero * 1
+  else
+    if Nn equal 0
+      Out 1 = Gg integer
+    else
+      Single = 0
+      if Gg
+        Single = (Nn + 1) mod Mod
+      else
+        Half = Nn // 2
+        Ua = 0 upb Lc
+        Ub = 0 upb Rc
+        Kz = (Half hd Ua) hd Ub
+        Rowz = Kz row 0
+        Single = Rowz 1
+        if Nn at least 1
+          Hf = (Nn - 1) // 2
+          Va1 = 1 upb Lc
+          Vb1 = 1 upb Rc
+          Ko = (Hf hd Va1) hd Vb1
+          Rowo = Ko row 0
+          Next = Rowo 1
+          Plus = Single + Next
+          Single = Plus mod Mod
+        end
+      end
+      Pm = Nn - 1
+      if Nn mod 2 equal 0
+        Ba = Pm hd Lc
+        Bn = Pm hd Nn
+        Base = (Ba hd Rc) row 0
+        Va = (Ba hd Nn) row 0
+        Vb = (Bn hd Nn) row 0
+        Vc = (Bn hd Rc) row 0
+        Sl = Lc sat Nn
+        Sr = Rc sat Nn
+        Vs = Va take Length
+        Pre = concat (array 0) Vs
+        Pre 1 = Sl
+        Wp = Vb + One
+        Ws = Wp take Length
+        Tt = concat (array 0) Ws
+        Ways = Pre conv (Tt inv1 0)
+        Sv = Vc * 1
+        Sv 0 = Sr
+        Fin2 = Ways conv Sv
+        Out = (Base + Fin2) mod Mod
+      else
+        Mid = (Nn - 1) // 2
+        L0 = 0 upb Lc
+        L1 = 1 upb Lc
+        R0 = 0 upb Rc
+        R1 = 1 upb Rc
+        A00 = ((Mid hd L0) hd R0) row 0
+        A01 = ((Mid hd L0) hd R1) row 0
+        A10 = ((Mid hd L1) hd R0) row 0
+        A11 = ((Mid hd L1) hd R1) row 0
+        Tot = N00 * A00 + N01 * A01
+        Tot = Tot + N10 * A10
+        Tot = (Tot + N11 * A11) mod Mod
+        Fa = ((Mid hd L0) hd Gen) row 0
+        Fb = ((Mid hd L1) hd Gen) row 0
+        Ga = ((Mid hd Gen) hd R0) row 0
+        Gb = ((Mid hd Gen) hd R1) row 0
+        Gc = ((Mid hd Gen) hd Gen) row 0
+        First = N01 * Fa + N11 * Fb
+        First = First mod Mod
+        Midv = N11 * Gc mod Mod
+        Last = N10 * Ga + N11 * Gb
+        Last = Last mod Mod
+        Acc = First conv (Midv inv1 0)
+        Fin2 = Acc conv Last
+        Out = (Tot + Fin2) mod Mod
+      end
+      Out 0 = 0
+      Out 1 = Single
+    end
+  end
+  Where = Index * Size + (0 to Length)
+  Tab Where = Out
+end
+Fin = Root row 0
+Answer = Fin Length
+Answer print
