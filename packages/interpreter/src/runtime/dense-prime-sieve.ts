@@ -156,7 +156,12 @@ function sievePlan(sieve: DensePrimeSieve, upper: Boundary, lower?: Boundary): S
             return typedArray(cells);
         });
     }
-    registerSequenceMembership(plan);
+    // Bounds can be arbitrary BigInts, so clamp before conversion. Compiled
+    // Number keys are safe integers and need no per-cell BigInt round trip.
+    const limit = BigInt(sieve.limit);
+    const firstNumber = before < 1n ? 1 : before >= limit ? sieve.limit : Number(before);
+    const lastNumber = last < 2n ? 1 : last > limit ? sieve.limit : Number(last);
+    registerSequenceMembership(plan, integer => integer > firstNumber && integer <= lastNumber && sieve.contains(integer));
     registerMetadataBounds(plan, (limit, inclusive) => {
         const end = limit - (inclusive ? 0n : 1n);
         return countBetween(sieve, end < last ? end : last, before);

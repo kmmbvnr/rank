@@ -1,0 +1,59 @@
+rem Prime triples, geometric sequences
+rem https://projecteuler.net/problem=518
+use numbers
+use sequences
+use io
+use cli
+arg N integer = 100000000
+
+rem Coprime Left < Right give
+rem First+1 = Scale * Left^2,
+rem Middle+1 = Scale * Left * Right,
+rem Last+1 = Scale * Right^2.
+rem An odd Scale only permits First=2.
+Primes = N - 1 primesieve
+Root = N // 3 isqrt
+Even = 2 to Root by 2 copy
+Middle = 3 * Even - 1
+Last = 3 * Even * Even - 1
+Mask = Middle in Primes
+Mask = Mask and (Last in Primes)
+Totals = 2 + Middle + Last
+Selected = Totals (Mask indices)
+Answer = Selected sum
+
+Upper = N // 2 isqrt
+for Right in 2 to Upper
+  Square = Right * Right
+  Scale = 2 to N // Square by 2 copy
+  Last = Scale * Square - 1
+  Keep = (Last in Primes) indices
+  Count = Keep len
+  if Count greater 0
+    Scale = Scale Keep
+    Last = Last Keep
+    Left = 1 till Right copy
+    Divisor = Left gcd Right
+    Coprime = Divisor equal 1 indices
+    Left = Left Coprime
+    Width = Left len
+    Cells = 0 till Width * Count copy
+    Left = Left (Cells // Count)
+    Group = Cells mod Count
+    Scale = Scale Group
+    First = Scale * Left * Left - 1
+    Keep = (First in Primes) indices
+    Left = Left Keep
+    Group = Group Keep
+    First = First Keep
+    Selected = Scale Keep
+    Middle = Selected * Left * Right - 1
+    Keep = (Middle in Primes) indices
+    First = First Keep
+    Middle = Middle Keep
+    Totals = First + Middle
+    Totals += Last (Group Keep)
+    Answer += Totals sum
+  end
+end
+Answer print

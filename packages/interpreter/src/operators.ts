@@ -1,3 +1,7 @@
+import { compiledNumberSequenceMembership } from './sequence-membership.js';
+import { prepareStoredScalarView } from './integer-view.js';
+import { BooleanCells } from './boolean-cells.js';
+import { createOwned } from './owned-array.js';
 import { mapPackedBooleanArrays } from './packed-booleans.js';
 import type { ArrayCellRead } from './array-cell-read.js';
 import { demandValue } from './plan.js';
@@ -11,12 +15,12 @@ import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } fro
 import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
-import { arrayValues, collectArrayCells, denseScalarItems, evaluateArrayItem, derivedArray, ownedArray, readArrayItem, registerArrayReadPlan, shouldStream, streamCells } from './array-storage.js';
+import { arrayValues, collectArrayCells, hasNativeArrayHeader, denseScalarItems, evaluateArrayItem, derivedArray, ownedArray, readArrayItem, registerArrayReadPlan, shouldStream, streamCells } from './array-storage.js';
 import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexHas, indexKey } from './index-storage.js';
 import { ALL_AXIS } from './selectors.js';
-import { checkpoint, privateLoopPolling } from './interrupt.js';
+import { checkpoint, privateLoopPolling, inspectionEnabled, demandBudgetEnabled } from './interrupt.js';
 import { missingBinary } from './missing.js';
 import { mapMaskedArrays, mapMaskedIntegers } from './masked-kernels.js';
 import { binarySqlite, inSqlite } from './modules/sqlite.js';
@@ -665,6 +669,20 @@ function absolute(value: bigint): bigint {
 
 /** Compute the final mask directly; `not in` needs no intermediate positive mask. */
 function arrayMembership(source: RankArray, right: RankValue, invert: boolean): RankArray {
+    // Completed compact integers and certified sequence readers need neither
+    // boxed keys nor an intermediate JavaScript boolean array. Observable
+    // budgets, host polling and checked views keep ordinary per-cell reads.
+    if (!inspectionEnabled() && !demandBudgetEnabled() && privateLoopPolling() && hasNativeArrayHeader(source)) {
+        const contains = compiledNumberSequenceMembership(right, 'testing membership');
+        const view = contains && prepareStoredScalarView(source);
+        if (contains && view?.compact && !view.validate) {
+            const count = arraySize(source.shape), cells = new BooleanCells(count);
+            for (let index = 0; index < count; index++) {
+                if (contains(view.compact[view.position(index)]) !== invert) cells.write(index, true);
+            }
+            return createOwned(cells, source.shape, true);
+        }
+    }
     const contains = membershipTest(right, true);
     const items: RankValue[] = [];
     for (let index = 0; index < arraySize(source.shape); index++) {

@@ -7,6 +7,7 @@ import { numericBoundSource } from './numeric-bound-codegen.js';
 import { AstUtils } from 'langium';
 import { loopValueType, type LoopHost, type LoopTerm } from './integer-loop-plan.js';
 import { compiledIntegerMembership } from '../integer-membership.js';
+import { compiledNumberSequenceMembership } from '../sequence-membership.js';
 import { type CompiledCalleeType } from './compiled-callee-type.js';
 import { ResourceMap } from '../resource-summary.js';
 import { IntegerEntries } from '../integer-entries.js';
@@ -884,6 +885,20 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         return false;
     }
+    function numericMembership(expression: Expression): { name: string; key: Expression; negate: boolean } | undefined {
+        if (!numberMode || !host.sequenceMembership || !isBinaryExpression(expression) || expression.step
+            || !['in', 'notin'].includes(expression.operator) || !isNameExpression(expression.right)) return undefined;
+        const name = expression.right.name;
+        if (localTypes.has(name) || arrays.has(name) || containers.has(name) || assigned.has(name)
+            || !compiledNumberSequenceMembership(host.read(name))) return undefined;
+        return { name, key: expression.left, negate: expression.operator === 'notin' };
+    }
+    function numberMembershipCall(name: string): number {
+        const index = calls.length;
+        calls.push({ name, locals: [], stableArrayReads: true, numberSafe: true, privateStateSafe: true,
+            bind: () => compiledNumberSequenceMembership(host.read(name)) });
+        return index;
+    }
     function numericIndices(expression: Expression): Expression | undefined {
         if (!numberMode || !host.nativeCalls || !host.arrayLocals || !host.arrayReads
             || !host.booleanArrays || localTypes.has('indices') || arrays.has('indices')
@@ -912,6 +927,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (scalarInputs.has(e) || isNameExpression(e) && state.ranges.has(e.name)) return undefined;
         if (numberMode && isMaterializeExpression(e)) return arrayType(e.source);
         if (numericPrimeCopy(e) || numericIndices(e)) return { kind: 'array', element: 'integer', rank: 1 };
+        const membership = numericMembership(e);
+        if (membership) {
+            const input = arrayType(membership.key);
+            if (input?.element === 'integer') return { ...input, element: 'boolean' };
+        }
         const scan = numericScan(e);
         if (scan) return scan.type;
         const concat = numericConcatCopy(e);
@@ -1219,6 +1239,17 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const value = `rangeCell${state.serial++}`;
                 body.push(`const ${value} = safe(${start} + safe(${position} * ${step}));`);
                 return { code: value, type: 'integer' };
+            } };
+        }
+        const membership = numericMembership(e);
+        if (membership) {
+            const input = numberVector(membership.key, lines, inlineRanges);
+            if (!input || input.type !== 'integer') return undefined;
+            const call = numberMembershipCall(membership.name);
+            return { ...input, type: 'boolean', cell: (index, body, frame) => {
+                const key = input.cell(index, body, frame);
+                if (!key) return undefined;
+                return { code: `${membership.negate ? '!' : ''}calls[${call}](${key.code})`, type: 'boolean' };
             } };
         }
         const point = vectorOperation(e);
@@ -1657,7 +1688,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             lines.push(`const ${result} = vectorArray(${selectors.code}.shape, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${cells}, ${keys}], ${type.element === 'boolean'});
                 if (${cells} instanceof Int32Array && ${keys} instanceof Int32Array) { ${gather(true)} }
                 else { ${gather(false)} }`);
-        } else if (vectorOperation(e) || sortedSearch(e)) {
+        } else if (vectorOperation(e) || sortedSearch(e) || numericMembership(e)) {
             const input = numberVector(e, lines);
             if (!input) return undefined;
             const index = `cell${state.serial++}`, body: string[] = [];
@@ -2391,6 +2422,13 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return { code: name, type, selection: true };
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
+        const membership = numericMembership(e);
+        if (membership) {
+            const key = emit(membership.key, lines);
+            if (key?.type !== 'integer') return undefined;
+            const call = numberMembershipCall(membership.name);
+            return { code: `${membership.negate ? '!' : ''}calls[${call}](${key.code})`, type: 'boolean' };
+        }
         if (['in', 'notin'].includes(e.operator) && isNameExpression(e.right)
             && (!numberMode || isRankIndex(host.read(e.right.name)!))) {
             const name = e.right.name;
