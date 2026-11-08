@@ -70,6 +70,22 @@ describe('compact update boundaries', () => {
             .toEqual(initial.map(x => combine(BigInt(x), 2n)));
     });
 
+    it.each(['=', '+=', '-=', '*='] as const)('keeps scalar %s exact through affine widening', operator => {
+        for (const stride of [2, -2, 0]) for (const scalar of [2n, -3n, 2147483648n, 9007199254740993n]) {
+            const initial = [3n, 7n, 2147483647n, 11n, -2147483648n];
+            const target = typedArray(Int32Array.from(initial, Number));
+            const expected = [...initial], count = 3, offset = stride < 0 ? 4 : 0;
+            const at = (i: number) => offset + i * stride;
+            for (let i = 0; i < count; i++) {
+                const old = expected[at(i)];
+                expected[at(i)] = operator === '=' ? scalar : operator === '+=' ? old + scalar
+                    : operator === '-=' ? old - scalar : old * scalar;
+            }
+            writeIntegerSelection(target, count, at, scalar, operator, { offset, stride });
+            expect(initial.map((_, i) => readArrayItem(target, i))).toEqual(expected);
+        }
+    });
+
     it('invalidates a mapped progression when its native source or reader changes', () => {
         const r = new Interpreter();
         try {

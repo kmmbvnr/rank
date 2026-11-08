@@ -885,7 +885,8 @@ export function powerStoredInt32(base: RankValue, exponent: RankValue, modulus: 
     }
     if (inspectionEnabled() || !privateLoopPolling() || !isRankArray(base)
         || typeof exponent !== 'bigint' || typeof modulus !== 'bigint'
-        || exponent < 0n || exponent > 4294967295n || modulus < 1n || modulus > 1073741824n) return undefined;
+        || exponent < 0n || exponent > 4294967295n || modulus < 1n || modulus > 2147483648n
+        || modulus > 1073741824n && demandBudgetEnabled()) return undefined;
     const view = prepareStoredScalarView(base, true);
     if (!view?.linear || !view.compact || !view.validateUniform
         || !view.kinds?.every(kind => kind === 'integer')) return undefined;

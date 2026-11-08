@@ -100,15 +100,21 @@ describe.each([false, true])('slice writes (compilation=%s)', compilation => {
     });
 });
 
-it('executes the guarded bulk path and preserves a reference path', () => {
-    for (const compilation of [false, true]) {
+it('uses native batches in both execution modes and retains observable polling', () => {
+    for (const compilation of [false, true]) for (const observable of [false, true]) {
         const r = new Interpreter(undefined, { compilation });
         const d = new RuntimeDiagnostics();
+        let polls = 0;
         try {
-            d.run(() => r.execute('A = array shape 100 fill 0\nA (0 to 99) += 1\nA (array 0 0) += 2'));
-            expect(d.bulkArrayWrites).toBe(compilation ? 2 : 0);
-            expect(d.bulkArrayWriteCells).toBe(compilation ? 102 : 0);
-            expect(r.execute('A sum')).toBe(102n);
+            const run = () => d.run(() => r.execute('A = array shape 10000 fill 0\nA (0 to 9999) += 1\nA (array 0 0) += 2'));
+            if (observable) withInterrupt({ length: 1, load: () => 0, store() {}, exchange: () => { polls++; return 0; }, wait() {} }, run);
+            else run();
+            // Compiled requests retain this diagnostic even when their writer polls per cell.
+            const native = compilation || !observable;
+            expect(d.bulkArrayWrites).toBe(native ? 2 : 0);
+            expect(d.bulkArrayWriteCells).toBe(native ? 10002 : 0);
+            if (observable) expect(polls).toBeGreaterThan(0);
+            expect(r.execute('A sum')).toBe(10002n);
         } finally { r.dispose(); }
     }
 });

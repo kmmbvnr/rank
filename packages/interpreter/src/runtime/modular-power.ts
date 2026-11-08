@@ -26,9 +26,10 @@ let lastBase = -1;
 let lastModulus = -1;
 let squares: Float64Array | undefined;
 
-/** Safe integer inputs, a nonnegative exponent and 0 < modulus <= 2^30.
+/** Safe integer inputs, a nonnegative exponent and 0 < modulus <= 2^31.
  * Larger domains retain the arbitrary-precision modularPower implementation. */
 export function safeIntegerModularPower(base: number, exponent: number, modulus: number): number {
+    if (modulus > 2 ** 30) return wideIntegerModularPower(base, exponent, modulus);
     if (exponent <= 4294967295) {
         const reduced = base >= 0 && base < modulus ? base : ((base % modulus) + modulus) % modulus;
         // A run of calls with one base and modulus shares its squarings.
@@ -69,11 +70,33 @@ export function safeIntegerModularPower(base: number, exponent: number, modulus:
     return result;
 }
 
+/** Keep the established <=2^30 cache and four-lane kernels unchanged.
+ * The wider domain uses the already-proved centered low-word multiplier. */
+function wideIntegerModularPower(base: number, exponent: number, modulus: number): number {
+    let factor = base >= 0 && base < modulus ? base : ((base % modulus) + modulus) % modulus;
+    let power = exponent, result = 1;
+    while (power > 4294967295) {
+        checkpoint('computing numbers', 1024);
+        if (power % 2 === 1) result = multiplyWide(result, factor, modulus);
+        power = Math.floor(power / 2);
+        factor = multiplyWide(factor, factor, modulus);
+    }
+    let remaining = power >>> 0;
+    while (remaining > 0) {
+        checkpoint('computing numbers', 1024);
+        if (remaining & 1) result = multiplyWide(result, factor, modulus);
+        remaining >>>= 1;
+        if (remaining > 0) factor = multiplyWide(factor, factor, modulus);
+    }
+    return result;
+}
+
 /** Powers of four bases with one shared exponent in lockstep. The squaring
  * chains are independent, so the processor overlaps their latencies.
- * Each base is a residue and 0 < modulus <= 2^30. */
+ * Each base is a residue and 0 < modulus <= 2^31. */
 export function modularPowerQuad(bases: Int32Array, offset: number, stride: number,
     exponent: number, modulus: number, out: Int32Array, at: number): void {
+    if (modulus > 2 ** 30) return modularPowerWideQuad(bases, offset, stride, exponent, modulus, out, at);
     let f0 = bases[offset], f1 = bases[offset + stride];
     let f2 = bases[offset + 2 * stride], f3 = bases[offset + 3 * stride];
     const one = modulus === 1 ? 0 : 1;
@@ -91,6 +114,27 @@ export function modularPowerQuad(bases: Int32Array, offset: number, stride: numb
     }
     out[at] = r0; out[at + 1] = r1; out[at + 2] = r2; out[at + 3] = r3;
 }
+
+function modularPowerWideQuad(bases: Int32Array, offset: number, stride: number,
+    exponent: number, modulus: number, out: Int32Array, at: number): void {
+    let f0 = bases[offset], f1 = bases[offset + stride];
+    let f2 = bases[offset + 2 * stride], f3 = bases[offset + 3 * stride];
+    const one = modulus === 1 ? 0 : 1;
+    let r0 = one, r1 = one, r2 = one, r3 = one;
+    for (let power = exponent >>> 0; power > 0;) {
+        if (power & 1) {
+            r0 = multiplyWide(r0, f0, modulus); r1 = multiplyWide(r1, f1, modulus);
+            r2 = multiplyWide(r2, f2, modulus); r3 = multiplyWide(r3, f3, modulus);
+        }
+        power >>>= 1;
+        if (power > 0) {
+            f0 = multiplyWide(f0, f0, modulus); f1 = multiplyWide(f1, f1, modulus);
+            f2 = multiplyWide(f2, f2, modulus); f3 = multiplyWide(f3, f3, modulus);
+        }
+    }
+    out[at] = r0; out[at + 1] = r1; out[at + 2] = r2; out[at + 3] = r3;
+}
+
 
 /** Nonnegative Int32 exponents of one base. Independent accumulators overlap
  * multiplication latencies while all four lanes share one squaring table. */

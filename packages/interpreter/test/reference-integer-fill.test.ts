@@ -65,14 +65,14 @@ ${statement}`);
     });
 
     it.each([
-        'A (0 to 5) += 2',
-        'A (0 to 5) = A (5 to 0 by -1)',
-        'A (array 0 0 2) = 2',
-        'A (array 0 0 2) += 2 .accumulate',
-    ])('retains ordinary compound, vector and indirect paths: %s', statement => {
+        ['A (0 to 5) += 2', 1],
+        ['A (0 to 5) = A (5 to 0 by -1)', 0],
+        ['A (array 0 0 2) = 2', 1],
+        ['A (array 0 0 2) += 2 .accumulate', 1],
+    ] as const)('matches the per-cell oracle for compound, vector and indirect writes: %s', (statement, batches) => {
         const result = compare(`A = array 1 2 3 4 5 6
 ${statement}`);
-        expect(result.diagnostics.bulkArrayWrites).toBe(0);
+        expect(result.diagnostics.bulkArrayWrites).toBe(batches);
     });
 
     it('cooperatively cancels a long fill and runs finally', () => {

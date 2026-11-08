@@ -7,7 +7,7 @@ import { mapStoredUnary } from '../unary-array-kernel.js';
 import { mapScalarArrays } from '../scalar-array-map.js';
 import { mapStoredIntegerTernary, powerStoredInt32 } from '../integer-array-kernel.js';
 import { expectMultiset } from '../multiset.js';
-import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
 import { arrayStrides, broadcastOffset, broadcastShape } from '../tensor-layout.js';
 import { elementSource, type ElementSource } from '../element-source.js';
@@ -56,7 +56,7 @@ function factorizer(context: RuntimeContext): Factorizer {
 // so the same kernel is safe at cooperative native boundaries.
 const modularPowerCalls = {
     'integer,integer,integer': (base: number, exponent: number, modulus: number): number =>
-        exponent >= 0 && modulus > 0 && modulus <= 1073741824
+        exponent >= 0 && modulus > 0 && modulus <= 2147483648
             ? safeIntegerModularPower(base, exponent, modulus)
             : Number(checkedModularPower(BigInt(base), BigInt(exponent), BigInt(modulus))),
 };
@@ -132,7 +132,8 @@ export const numbersModule: RuntimeModule = {
         },
     }),
     powmod: () => withNumberCalls(native('powmod', 3, args => powerStoredInt32(args[0], args[1], args[2]) ?? mapStoredIntegerTernary(args, checkedModularPower,
-        (base, exponent, modulus) => exponent >= 0 && modulus > 0 && modulus <= 1073741824
+        (base, exponent, modulus) => exponent >= 0 && modulus > 0 && modulus <= 2147483648
+            && (modulus <= 1073741824 || !demandBudgetEnabled())
             ? safeIntegerModularPower(base, exponent, modulus) : undefined)
         ?? mapScalarArrays(args, arguments_ => checkedModularPower(
         expectInteger(arguments_[0]),
@@ -456,7 +457,7 @@ function checkedModularPower(base: bigint, exponent: bigint, modulus: bigint): b
     if (exponent < 0n) throw new RankError('powmod exponent must be nonnegative');
     if (modulus <= 0n) throw new RankError('powmod modulus must be positive');
     const b = Number(base), e = Number(exponent), m = Number(modulus);
-    if (Number.isSafeInteger(b) && Number.isSafeInteger(e) && m <= 1073741824) {
+    if (Number.isSafeInteger(b) && Number.isSafeInteger(e) && m <= 2147483648) {
         return BigInt(safeIntegerModularPower(b, e, m));
     }
     return modularPower(base, exponent, modulus);

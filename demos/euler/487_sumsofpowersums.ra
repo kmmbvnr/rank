@@ -11,60 +11,63 @@ arg N integer = 1000000000000
 arg Lo integer = 2000000000
 arg Wd integer = 2000
 
-rem S_k(n) = (n + 1) F_k(n) - F_(k+1)(n)
-rem and F_e is a polynomial of degree
-rem e + 1: Lagrange interpolation mod
-rem p from its values at nodes 0 .. K
-rem + 2. Rows are nodes, columns the
-rem primes; products mod p down the
-rem rows by doubling: P = P (P shifted
-rem by d rows).
-P = primes from Lo to Lo + Wd array
-M = K + 2
-I = 0 to M reshape (M + 1) 1
-X = N mod P
-Z = I * 0 + P * 0
-rem i^K mod p by squaring.
-Pw = Z + 1
-B = Z + I
-E = K
-for E greater 0
-  if E mod 2 equal 1
-    Pw = Pw * B mod P
+rem S_k is a polynomial of degree K+2.
+rem Its samples are two prefix sums.
+Degree = K + 2
+Nodes = 0 to Degree copy
+Factors = 1 to Degree copy
+
+fun Mod small
+  Rest = N mod Mod
+  Items = 1 to Mod copy
+  Powers = Items K Mod powmod
+  Terms = (Rest + 1 - Items) * Powers
+  Cycle = Terms sum mod Mod
+  Tail = Items at most Rest
+  Values = Tail choose Terms 0
+  Last = Values sum mod Mod
+  Blocks = N // Mod mod Mod
+  return (Blocks * Cycle + Last) mod Mod
+end
+
+fun Mod subtotal
+  if Mod at most Degree
+    return Mod small
   end
-  B = B * B mod P
-  E //= 2
+  Powers = Nodes K Mod powmod
+  Powers 0 = 0
+  Prefix = Powers scan + mod Mod
+  Values = Prefix scan + mod Mod
+  Point = N mod Mod
+  if Point at most Degree
+    return Values Point
+  end
+  Facts = Factors scan * with 1 mod Mod
+  Top = Facts Degree
+  Exponent = Mod - 2
+  Seed = Top Exponent Mod powmod
+  Back = Factors reverse
+  Down = Back scan * with Seed mod Mod
+  InvFacts = Down reverse
+  Diff = Point - Nodes
+  Before = Diff scan * with 1 mod Mod
+  Ahead = Before (0 till Degree + 1)
+  Behind = Diff reverse
+  After = Behind scan * with 1 mod Mod
+  Suffix = After reverse
+  End = Degree + 2
+  Tail = Suffix (1 till End)
+  Weight = Ahead * Tail mod Mod
+  Weight = Weight * InvFacts mod Mod
+  Reverse = InvFacts reverse
+  Weight = Weight * Reverse mod Mod
+  Odd = (Degree - Nodes) mod 2 equal 1
+  Opposite = Mod - Weight
+  Weight = Odd choose Opposite Weight
+  Terms = Weight * Values mod Mod
+  return Terms sum mod Mod
 end
-rem i!, prod (x - j) for j < i and for
-rem j > i, and (i+1) .. M by suffix.
-Fc = Z + (I max 1)
-Pf = (X - I + 1) mod P
-Pf 0 = Z 0 + 1
-Sf = ((X - I - 1) mod P) reverse
-Sf 0 = Z 0 + 1
-Rv = Z + I + 1 reverse
-Rv 0 = Z 0 + 1
-D = 1
-for D at most M
-  Fc = Fc * (Fc shift D with 1) mod P
-  Pf = Pf * (Pf shift D with 1) mod P
-  Sf = Sf * (Sf shift D with 1) mod P
-  Rv = Rv * (Rv shift D with 1) mod P
-  D *= 2
-end
-Sf = Sf reverse
-rem 1/i! = (1/M!) (i+1) .. M.
-Iv = (Fc M) (P - 2) P powmod
-Fi = (Rv reverse) * Iv mod P
-Wt = Pf * Sf mod P * Fi mod P
-Wt = Wt * (Fi reverse) mod P
-Od = (M - I) mod 2 equal 1
-Wt = Od choose ((P - Wt) mod P) Wt
-Y = Pw scan + axis 0 mod P
-F0 = Y * Wt mod P sum axis 0 mod P
-Pw = Pw * I mod P
-Y = Pw scan + axis 0 mod P
-F1 = Y * Wt mod P sum axis 0 mod P
-Sk = ((N + 1) mod P * F0 - F1) mod P
-Answer = Sk sum
+
+Primes = primes from Lo to Lo + Wd copy
+Answer = Primes subtotal rank 0 sum
 Answer print
