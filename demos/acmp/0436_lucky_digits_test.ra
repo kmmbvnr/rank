@@ -2,6 +2,8 @@ use testing
 
 test "sample 1: 49 1 gives base 3 with 2 ones"
   use "0436_lucky_digits"
+  N = 49
+  K = 1
   run
 
   BestD equal 3

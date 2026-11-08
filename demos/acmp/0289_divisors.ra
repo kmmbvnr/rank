@@ -16,7 +16,7 @@ use sequences
 use numbers
 use algo
 
-arg D integer = 12
+arg D integer = 60
 
 Limit = 1000000000000000
 Best = Limit + 1

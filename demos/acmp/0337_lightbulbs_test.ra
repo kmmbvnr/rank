@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 20 bulbs, boys 2 3 8"
   use "0337_lightbulbs"
+  Input = "20 3\n2 3 8"
   run
 
   Answer equal 8

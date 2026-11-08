@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 3 50 50 50 -> 1"
   use "0921_tournament_2"
+  Input = "3 50 50 50"
   run
 
   BestC equal 1

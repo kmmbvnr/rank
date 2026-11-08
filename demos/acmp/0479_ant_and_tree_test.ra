@@ -3,6 +3,7 @@ use numbers
 
 test "sample 1: ant detours around tree"
   use "0479_ant_and_tree"
+  Input = "0 0 4 4 2 2 1"
   run
 
   (Answer - 6.014 abs) less 0.001

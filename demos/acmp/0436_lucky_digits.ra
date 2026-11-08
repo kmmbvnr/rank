@@ -7,8 +7,8 @@ use cli
 use sequences
 use text
 
-arg N integer = 49
-arg K integer = 1
+arg N integer = 100000000000
+arg K integer = 0
 
 BestL = 0
 BestD = 2

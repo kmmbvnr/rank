@@ -10,7 +10,7 @@ use sequences
 use text
 use bits
 
-arg Input text = "1 1"
+arg Input text = "2000000000 2000000000"
 
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")

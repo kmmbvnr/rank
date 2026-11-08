@@ -2,6 +2,7 @@ use testing
 
 test "example 17 -> 4"
   use "0146_long_sqrt"
+  S = "17"
   run
 
   Answer equal 4

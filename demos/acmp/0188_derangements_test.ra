@@ -18,6 +18,7 @@ end
 
 test "five guests"
   use "0188_derangements"
+  N = 5
   run
 
   Answer equal 44

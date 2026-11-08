@@ -2,6 +2,10 @@ use testing
 
 test "sample 1: 3 boys and 4 girls with K=3 complete matching yields 24 ways"
   use "0512_graduation"
+  Input = "3 4 3
+YYYY
+YYYY
+YYYY"
   run
 
   Ways equal 24

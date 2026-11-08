@@ -5,8 +5,14 @@ rem Match word against wildcard pattern with * and ?
 use io
 use cli
 
-arg First text = "ABBCDA"
-arg Second text = "A*CDA"
+arg First text = (
+  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
+  "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+)
+arg Second text = (
+  "A*A*A*A*A*A*A*A*A*A*A*A*A*A*A*" +
+  "B?B?B?B?B?B?B?B?B?B?B?B?B?B?B*"
+)
 
 Pattern = First
 Word = Second
@@ -29,7 +35,9 @@ end
 M = Pattern len
 N = Word len
 
-DP = array shape (M + 1) (N + 1) fill false
+M1 = M + 1
+N1 = N + 1
+DP = array shape M1 N1 fill false
 DP 0 0 = true
 
 for I in 1 to M
@@ -44,7 +52,9 @@ for I in 1 to M
   for J in 1 to N
     W = Word (J - 1)
     if P equal "*"
-      DP I J = (DP (I - 1) J) or (DP I (J - 1))
+      PrevRow = DP (I - 1) J
+      PrevCol = DP I (J - 1)
+      DP I J = PrevRow or PrevCol
     elif P equal "?"
       DP I J = DP (I - 1) (J - 1)
     elif P equal W

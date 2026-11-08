@@ -10,8 +10,8 @@ use io
 use cli
 use numbers
 
-arg X integer = 15
-arg K integer = 2
+arg X integer = 500
+arg K integer = 100
 
 Banknotes = X // 5
 Answer = Banknotes + K binomial K

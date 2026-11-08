@@ -8,7 +8,7 @@ use cli
 use sequences
 use text
 
-arg Input text = "8"
+arg Input text = "40"
 
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")

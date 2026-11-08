@@ -2,6 +2,7 @@ use testing
 
 test "default input 4"
   use "0100_lucky_tickets"
+  N = 4
   run
 
   Answer equal 670

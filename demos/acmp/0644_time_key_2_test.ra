@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: N = 1, K = 1 -> 2"
   use "0644_time_key_2"
+  Input = "1 1"
   run
 
   Ans equal 2

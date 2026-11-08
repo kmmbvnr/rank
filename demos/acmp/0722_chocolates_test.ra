@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 2x3 box yields 8 combinations"
   use "0722_chocolates"
+  Input = "2 3"
   run
 
   Combinations equal 8

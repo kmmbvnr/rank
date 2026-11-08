@@ -8,7 +8,7 @@ use algo
 use io
 use cli
 
-arg N integer = 12
+arg N integer = 1000000000
 
 Factors = N factors array
 Primes = Factors unique array

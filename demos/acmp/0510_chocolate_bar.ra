@@ -5,7 +5,7 @@ rem Count domino tilings of 3 x N rectangle using second-order linear recurrence
 use io
 use cli
 
-arg N integer = 4
+arg N integer = 30
 
 Answer = 0
 if N mod 2 equal 0

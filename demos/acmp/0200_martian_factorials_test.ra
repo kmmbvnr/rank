@@ -2,6 +2,8 @@ use testing
 
 test "sample 1: 5! in base 10"
   use "0200_martian_factorials"
+  N = 5
+  K = 10
   run
 
   Answer equal 1

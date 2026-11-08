@@ -8,8 +8,8 @@ use algo
 use io
 use cli
 
-arg N integer = 5
-arg K integer = 10
+arg N integer = 1000000000
+arg K integer = 1000
 
 Factors = K factors array
 Primes = Factors unique array

@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-arg N integer = 3
-arg K integer = 2
+arg N integer = 37
+arg K integer = 23
 
 Opens = 0 to N array
 Prefix = array 0
