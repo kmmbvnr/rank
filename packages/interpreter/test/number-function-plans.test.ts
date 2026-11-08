@@ -25,6 +25,12 @@ Value`));
 }
 
 it.each([
+    ["Values' = Input min 2\n return Values sum", '(array -3 1 7)'],
+    ["Values' = Input max 2\n return Values sum", '(array -3 1 7)'],
+    ["Low' = Input max 0\n Values' = Low min 5\n return Values sum", '(array -3 1 7)'],
+    ["Values' = (Input + 1) min (Input * 2)\n return Values sum", '(array -3 1 7)'],
+    ["Values' = Input max (array 2)\n return Values sum", '(array -3 1 7)'],
+    ["Store = array shape 3 fill 1\n Alias = Store\n Values' = Store max 0\n Alias 0 = 99\n Value = Values sum\n return Value + Alias 0", '(array 1)'],
     ["Store = array shape 3 fill 1\n Alias = Store\n Values' = Store * 2\n Alias 0 = 99\n Value = Values sum\n return Value + Alias 0", '(array 1)'],
     ["Values' = Input * 2\n Value = Values sum\n return Value", '(array 1 2 3)'],
     ["Values' = -Input\n Value = Values sum\n return Value", '(array -1 2 3)'],
@@ -42,6 +48,8 @@ it.each([
 });
 
 it.each([
+    ["Values' = (Input * Input) min 0\n return Values sum", '(array 9007199254740991 1)'],
+    ["Values' = Input max 0\n return Values sum", '(array 9007199254740991 1)'],
     ["Values' = Input * 2\n Value = Values sum\n return Value", '(array 9007199254740991 1)'],
     ["Values' = Input + 0\n Value = Values sum\n return Value", '(array 9007199254740991 1 -1)'],
     ["Values' = -Input\n Value = Values sum\n return Value", '(array -9007199254740992)'],
@@ -53,6 +61,8 @@ it.each([
 });
 
 it.each([
+    ["Values' = (Input // 0) min 0\n return Values sum", '(array 1 2)'],
+    ["Values' = Input max (array 1 2)\n return Values sum", '(array 1 2 3)'],
     ["Values' = Input // 0\n Value = Values sum\n return Value", '(array 1 2)'],
     ["Values' = Input + (array 1 2)\n Value = Values sum\n return Value", '(array 1 2 3)'],
     ["Values' = Input + (1 // 0)\n Value = Values sum\n return Value", '(array shape 0 fill 1)'],

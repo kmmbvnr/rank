@@ -431,6 +431,7 @@ function compileScalarNumberKernel(
             if (node.kind === 'literal') return typeof node.value !== 'bigint' || Number.isSafeInteger(Number(node.value));
             if (node.kind === 'group' || node.kind === 'unary') return supported(node.operand);
             if (node.kind === 'binary') return supported(node.left) && supported(node.right);
+            if (node.kind === 'extreme') return !!node.right && supported(node.left) && supported(node.right);
             if (node.kind !== 'input') return false;
             const input = node.input;
             if (input.map || input.native || input.conversion || input.power) return false;
