@@ -609,7 +609,7 @@ export function reduceIntegerUpdates(size: number, count: number, offsetAt: (ind
  * opaque polling retain the ordinary cancellable writer. */
 export function accumulateIntegerSelection(
     value: RankArray, count: number, offsetAt: (index: number) => number,
-    operand: bigint | readonly bigint[], operator: '+=' | '-=' | '*=',
+    operand: bigint | readonly bigint[] | Int32Array | BigInt64Array, operator: '+=' | '-=' | '*=',
 ): void {
     const size = ownedStorage.get(value)!.items.length;
     if (typeof operand !== 'bigint' || count < 4 * size || !privateLoopPolling()) {

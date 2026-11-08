@@ -71,3 +71,13 @@ it('declines speculative scanning during observable host polling or inspection',
     const shared = new Int32Array(new SharedArrayBuffer(12));
     expect(withInterrupt(shared, () => scanInt32Axis('+', input, [3], 0), () => {})).toBeUndefined();
 });
+
+it('widens after a long compact prefix and resets each row', () => {
+    const width = 4099, cells = new Int32Array(width * 2).fill(1);
+    cells[width - 2] = 2147483647;
+    const result = scanInt32Axis('+', typedArray(cells, [2, width]), [2, width], 1)!;
+    expect(readArrayItem(result, width - 3)).toBe(BigInt(width - 2));
+    expect(readArrayItem(result, width - 1)).toBe(2147483647n + BigInt(width - 1));
+    expect(readArrayItem(result, width)).toBe(1n);
+    expect(readArrayItem(result, width * 2 - 1)).toBe(BigInt(width));
+});

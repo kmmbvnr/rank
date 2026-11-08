@@ -268,8 +268,8 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 // contract once. Still snapshot the RHS before any mutation.
                 const { offset, stride } = view.linear;
                 view.validateUniform?.(view.compact ? BigInt(view.compact[offset]) : view.items[offset]);
-                if (view.compact && !statement.accumulate) compactOperands = new Int32Array(count);
-                else if (view.items instanceof BigInt64Array && !statement.accumulate) wideOperands = new BigInt64Array(count);
+                if (view.compact) compactOperands = new Int32Array(count);
+                else if (view.items instanceof BigInt64Array) wideOperands = new BigInt64Array(count);
                 else if (view.items instanceof Float64Array && view.kinds[0] === 'real' && !statement.accumulate) realOperands = new Float64Array(count);
                 else operands = new Array<RankValue>(count);
                 if (compactOperands && view.compact && stride === 1) {
@@ -342,7 +342,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 }
                 const destination = ownedSelection() as typeof target;
                 if (statement.accumulate) {
-                    accumulateIntegerSelection(destination, count, selection.offsetAt, values as bigint | readonly bigint[], operation as '+=' | '-=' | '*=');
+                    accumulateIntegerSelection(destination, count, selection.offsetAt, values, operation as '+=' | '-=' | '*=');
                 } else writeIntegerSelection(destination, count, selection.offsetAt, values, operation as '=' | '+=' | '-=' | '*=', selection.linear);
                 return result;
             }

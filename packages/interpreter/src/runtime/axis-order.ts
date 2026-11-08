@@ -1,4 +1,4 @@
-import { checkpoint, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, privateLoopPolling } from '../interrupt.js';
 import { collectArrayCells } from './array-read.js';
 import { float64Cells, integer32Cells, integer64Cells, typedArray, typedElementKind } from './owned-array.js';
 import type { RankArray } from './value.js';
@@ -279,6 +279,26 @@ export function scanInt32Axis(op: '+' | '*' | 'max' | 'min', value: RankArray, s
     if (!cells || value.columnNames || !privateLoopPolling()) return undefined;
     let inner = 1;
     for (let d = axis + 1; d < shape.length; d++) inner *= shape[d];
+    // Most prefix counters stay in Int32. Build them directly, avoiding a
+    // double scratch array, a width pass and a final narrowing copy. A private
+    // failed attempt may replay, so bounded demand keeps the ordinary path.
+    if (op === '+' && inner === 1 && length > 0 && !demandBudgetEnabled()) {
+        const compact = new Int32Array(cells.length);
+        let fits = true;
+        outer: for (let row = 0; row < cells.length; row += length) {
+            let sum = 0;
+            for (let start = row; start < row + length; start += 4096) {
+                const end = Math.min(row + length, start + 4096);
+                checkpoint('scanning', end - start);
+                for (let i = start; i < end; i++) {
+                    sum += cells[i];
+                    if (sum !== (sum | 0)) { fits = false; break outer; }
+                    compact[i] = sum;
+                }
+            }
+        }
+        if (fits) return typedArray(compact, [...shape]);
+    }
     const out = new Float64Array(cells.length);
     const block = length * inner;
     let wide = false;

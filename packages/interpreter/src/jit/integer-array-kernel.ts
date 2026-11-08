@@ -730,6 +730,46 @@ export function chooseStoredIntegers(
     if (inspectionEnabled() || !privateLoopPolling()) return undefined;
     const mask = isRankArray(condition) ? booleanCells(condition) : undefined;
     if (isRankArray(condition) ? !mask : typeof condition !== 'boolean') return undefined;
+    // Borrow compact branches without boxing each selected cell. Validate a
+    // branch only when first selected; an unread branch keeps its contract.
+    const compactYes = isRankArray(whenTrue) ? prepareStoredScalarView(whenTrue, true) : undefined;
+    const compactNo = isRankArray(whenFalse) ? prepareStoredScalarView(whenFalse, true) : undefined;
+    const compactBranch = (value: RankValue, view: typeof compactYes) => isRankArray(value)
+        ? same(value.shape, shape) && view?.compact && view.linear
+            && view.kinds?.join() === 'integer' && (!view.validate || view.validateUniform)
+        : typeof value === 'bigint' && value >= -2147483648n && value <= 2147483647n;
+    if ((!isRankArray(condition) || same(condition.shape, shape))
+        && compactBranch(whenTrue, compactYes) && compactBranch(whenFalse, compactNo)) {
+        const size = shape.reduce((n, dimension) => n * dimension, 1);
+        const cells = new Int32Array(size);
+        const yes = compactYes?.compact, no = compactNo?.compact;
+        const yOffset = compactYes?.linear?.offset ?? 0, yStride = compactYes?.linear?.stride ?? 0;
+        const nOffset = compactNo?.linear?.offset ?? 0, nStride = compactNo?.linear?.stride ?? 0;
+        const yScalar = yes ? 0 : Number(whenTrue), nScalar = no ? 0 : Number(whenFalse);
+        let checkedYes = false, checkedNo = false;
+        try {
+            for (let start = 0; start < size; start += 4096) {
+                const end = Math.min(size, start + 4096);
+                checkpoint('selecting integer array', end - start);
+                for (let i = start; i < end; i++) {
+                    if (mask ? mask.read(i) : condition) {
+                        const cell = yes ? yes[yOffset + i * yStride] : yScalar;
+                        if (!checkedYes) { compactYes?.validateUniform?.(BigInt(cell)); checkedYes = true; }
+                        cells[i] = cell;
+                    } else {
+                        const cell = no ? no[nOffset + i * nStride] : nScalar;
+                        if (!checkedNo) { compactNo?.validateUniform?.(BigInt(cell)); checkedNo = true; }
+                        cells[i] = cell;
+                    }
+                }
+            }
+            return typedArray(cells, shape);
+        } catch (error) {
+            if (error instanceof InterruptedError) throw error;
+            if (!(error instanceof RankError)) throw error;
+            return undefined;
+        }
+    }
     const yes = isRankArray(whenTrue) ? prepareIntegerView(whenTrue, true) : undefined;
     const no = isRankArray(whenFalse) ? prepareIntegerView(whenFalse, true) : undefined;
     if (isRankArray(whenTrue) ? !yes?.regular : typeof whenTrue !== 'bigint') return undefined;

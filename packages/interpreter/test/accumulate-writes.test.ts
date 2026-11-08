@@ -233,3 +233,17 @@ it.each(['+=', '-=', '*='] as const)('reduces dense weighted %s exactly across N
         }
     }
 });
+
+it.each([false, true])('widens repeated packed products exactly (compiled=%s)', compilation => {
+    for (const wide of [false, true]) {
+        const r = new Interpreter(undefined, { compilation });
+        try {
+            r.variables.set('A', typedArray(Int32Array.of(2147483647, 3, 5)));
+            r.variables.set('Weights', wide ? typedArray(BigInt64Array.of(2147483647n, 3n, 5n))
+                : typedArray(Int32Array.of(2147483647, 3, 5)));
+            r.execute('A (array 0 0 0) *= Weights .accumulate');
+            expect(r.execute('A 0')).toBe(2147483647n ** 2n * 15n);
+            expect(r.execute('Weights 0')).toBe(2147483647n);
+        } finally { r.dispose(); }
+    }
+});
