@@ -1,0 +1,156 @@
+rem Pseudo Geometric Sequences
+rem https://projecteuler.net/problem=771
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10 ** 18
+arg Mod integer = 1000000007
+
+rem Sequences are runs of consecutive
+rem integers, geometric progressions,
+rem and mixed ones. Mixed ones are
+rem windows of chains 1, m, ...: for
+rem m >= 7 only a_k+1 = m a_k -+ a_k-1
+rem survive; m = 2..6 branch in a small
+rem tree, summed over its distinct
+rem pairs by depth. All of this was
+rem checked against brute force counts
+rem up to 20000. Terms are exact big
+rem integers.
+Runs = (Limit - 4) * (Limit - 3) // 2
+rem Geometric u^e c, e >= 4, phi(u)
+rem choices of q.
+Roof = (Limit isqrt) isqrt
+Us = 2 to Roof + 1
+Phi = Us * 1
+Ps = primes to (Roof + 1) copy
+for Index in 0 to Ps len - 1
+  Pr = Ps Index
+  Hit = Us mod Pr equal 0
+  Flag = Hit integer
+  Phi = Phi - Flag * (Phi // Pr)
+end
+Geo = 0
+for Expo in 4 to 63
+  Pw = Us ** Expo
+  Part = (Limit // Pw) * Phi
+  Geo += Part sum
+end
+rem Chains from (1, m), m >= 7.
+Ms = 7 to Roof + 3
+Ms2 = concat Ms Ms
+Dirs = concat (Ms * 0 - 1) (Ms * 0 + 1)
+Pa = Ms2 * 0 + 1
+Pb = Ms2 * 1
+Len = Ms2 * 0 + 2
+Alive = Ms2 * 0 + 1
+for Step in 1 to 64
+  Nxt = Ms2 * Pb + Dirs * Pa
+  Fits = (Nxt at most Limit) integer
+  Ok = Fits * Alive
+  Alive = Ok
+  Len = Len + Ok
+  Pa = (Ok equal 1) choose Pb Pa
+  Pb = (Ok equal 1) choose Nxt Pb
+end
+Cut = Len at least 5
+Wins = (Len - 4) * (Len - 3) // 2
+Big = (Wins * (Cut integer)) sum
+rem Small trees from (1, m), m = 2..6.
+Mx = Limit + 1
+Fa = array 1 1 1 1 1
+Fb = array 2 3 4 5 6
+Aa = Fa * 1
+Ab = Fb * 1
+for Level in 1 to 140
+  if Fa len equal 0
+    break
+  end
+  Ka = array shape 0 fill 0
+  Kb = array shape 0 fill 0
+  for Dl in -2 to 2
+    Tt = Fb * Fb + Dl
+    Div = Tt mod Fa equal 0
+    Cc = Tt // Fa
+    Up = Cc greater Fb
+    Low = Cc at most Limit
+    Fine = Div and Up and Low
+    S1 = (Cc - Fb) equal 1
+    S2 = (Fb - Fa) equal 1
+    S3 = Fa at least 7
+    Run = S1 and S2 and S3
+    NotRun = not Run
+    Use = Fine and NotRun
+    Ka = concat Ka (Fb Use)
+    Kb = concat Kb (Cc Use)
+  end
+  Key = Ka * Mx + Kb
+  Uniq = Key unique
+  Fa = Uniq // Mx
+  Fb = Uniq mod Mx
+  Aa = concat Aa Fa
+  Ab = concat Ab Fb
+end
+Total = Aa * Mx + Ab
+Pairs = Total unique
+Xa = Pairs // Mx
+Xb = Pairs mod Mx
+Count = Pairs len
+Cells = Count * 5
+Child = array shape Cells fill Count
+Dummy = Count
+Runc = array shape Count fill Count
+Gpc = array shape Count fill Count
+for Dl in -2 to 2
+  Tt = Xb * Xb + Dl
+  Div = Tt mod Xa equal 0
+  Cc = Tt // Xa
+  Up = Cc greater Xb
+  Low = Cc at most Limit
+  Fine = Div and Up and Low
+  S1 = (Cc - Xb) equal 1
+  S2 = (Xb - Xa) equal 1
+  S3 = Xa at least 7
+  Run = S1 and S2 and S3
+  NotRun = not Run
+  Use = Fine and NotRun
+  Keys = Xb * Mx + Cc
+  Want = Keys Use
+  Ids = Pairs find Want
+  Rows = (0 till Count) Use
+  Child (Rows * 5 + (Dl + 2)) = Ids
+  RunHit = Use and S1 and S2
+  Zero = Dl equal 0
+  GpHit = Use and Zero
+  Rr = (0 till Count) RunHit
+  RunKeys = Keys RunHit
+  Runc Rr = Pairs find RunKeys
+  Gg = (0 till Count) GpHit
+  GpKeys = Keys GpHit
+  Gpc Gg = Pairs find GpKeys
+end
+Tv = array shape (Count + 1) fill 1
+Rv = array shape (Count + 1) fill 1
+Gv = array shape (Count + 1) fill 1
+Tv Dummy = 0
+Rv Dummy = 0
+Gv Dummy = 0
+Mixed = 0
+Table = Child reshape Count 5
+for Depth in 1 to 140
+  Tn = (Tv Table) sum axis 1
+  Rn = Rv Runc
+  Gn = Gv Gpc
+  Tv = concat Tn (array 0)
+  Rv = concat Rn (array 0)
+  Gv = concat Gn (array 0)
+  if Depth at least 3
+    Mixed += (Tn - Rn - Gn) sum
+  end
+end
+Whole = Runs + Geo + Big + Mixed
+Answer = Whole mod Mod
+Answer print
