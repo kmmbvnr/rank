@@ -1,0 +1,13 @@
+[
+  {
+    "artifact": "euler764-baseline-mac.json",
+    "limit": "10000000000000000",
+    "block": 256,
+    "answer": "255228881",
+    "ms": 43266.598750000005,
+    "cpuMs": 48898.226,
+    "maxRssMiB": 623.078125,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]

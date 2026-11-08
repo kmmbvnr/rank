@@ -1,0 +1,35 @@
+[
+  {
+    "artifact": "euler764-final-intel-1.json",
+    "limit": "10000000000000000",
+    "block": 64,
+    "answer": "255228881",
+    "ms": 44993.825776,
+    "cpuMs": 51194.067,
+    "maxRssMiB": 416.046875,
+    "node": "v24.15.0",
+    "arch": "x64"
+  },
+  {
+    "artifact": "euler764-final-intel-2.json",
+    "limit": "10000000000000000",
+    "block": 64,
+    "answer": "255228881",
+    "ms": 45816.974987,
+    "cpuMs": 52075.869,
+    "maxRssMiB": 418.1484375,
+    "node": "v24.15.0",
+    "arch": "x64"
+  },
+  {
+    "artifact": "euler764-final-intel-3.json",
+    "limit": "10000000000000000",
+    "block": 64,
+    "answer": "255228881",
+    "ms": 45241.975199,
+    "cpuMs": 51442.014,
+    "maxRssMiB": 416.15625,
+    "node": "v24.15.0",
+    "arch": "x64"
+  }
+]

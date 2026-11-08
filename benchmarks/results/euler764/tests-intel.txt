@@ -1,0 +1,22 @@
+
+ RUN  v3.2.7 /tmp/rank-nightly-1108/fixed/packages/interpreter
+
+ ✓ test/selector-type-checks.test.ts (22 tests) 36ms
+ ✓ test/packed-boolean-compare.test.ts (30 tests) 527ms
+ ✓ test/native-boolean-axis.test.ts (20 tests) 1008ms
+   ✓ reusable native boolean axis folds > prepares one graph for all all cells and repeated mask reads  373ms
+ ✓ test/packed-selector-indices.test.ts (10 tests) 390ms
+ ✓ test/packed-booleans.test.ts (60 tests) 1892ms
+   ✓ packed boolean storage > preserves aliasing and addressing (compiled=false)  307ms
+   ✓ packed column broadcasts > combines column masks across 4097 columns  311ms
+ ✓ test/boolean-masks.test.ts (8 tests) 340ms
+ ✓ test/packed-boolean-gather.test.ts (5 tests) 1024ms
+   ✓ stored boolean gathers > gathers repeated irregular indices directly into a bitmap  960ms
+ ✓ test/euler764.test.ts (20 tests) 2974ms
+   ✓ Euler 764 (compiled=false) > matches primitive equation solutions at 1  500ms
+
+ Test Files  8 passed (8)
+      Tests  175 passed (175)
+   Start at  09:33:16
+   Duration  8.60s (transform 2.19s, setup 0ms, collect 15.17s, tests 8.19s, environment 1ms, prepare 522ms)
+

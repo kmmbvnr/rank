@@ -1,0 +1,13 @@
+[
+  {
+    "artifact": "euler764-baseline-intel.json",
+    "limit": "10000000000000000",
+    "block": 256,
+    "answer": "255228881",
+    "ms": 117455.68309800001,
+    "cpuMs": 133007.395,
+    "maxRssMiB": 641.62890625,
+    "node": "v24.15.0",
+    "arch": "x64"
+  }
+]

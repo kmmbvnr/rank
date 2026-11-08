@@ -1,0 +1,13 @@
+[
+  {
+    "artifact": "euler764-column-intel.json",
+    "limit": "10000000000000000",
+    "block": 256,
+    "answer": "255228881",
+    "ms": 47006.245181,
+    "cpuMs": 55522.366,
+    "maxRssMiB": 622.640625,
+    "node": "v24.15.0",
+    "arch": "x64"
+  }
+]

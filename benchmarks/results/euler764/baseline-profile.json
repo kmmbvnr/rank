@@ -1,0 +1,102 @@
+[
+  {
+    "function": "expandOperand",
+    "url": "file://packages/interpreter/out/runtime/tensor.js",
+    "samples": 481
+  },
+  {
+    "function": "readArrayItem",
+    "url": "file://packages/interpreter/out/runtime/array-read.js",
+    "samples": 411
+  },
+  {
+    "function": "readArrayItem",
+    "url": "file://packages/interpreter/out/runtime/array-read.js",
+    "samples": 357
+  },
+  {
+    "function": "compareStoredInt32",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 311
+  },
+  {
+    "function": "mapStoredInt32Binary",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 228
+  },
+  {
+    "function": "mapStoredInt32Binary",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 218
+  },
+  {
+    "function": "",
+    "url": "file://packages/interpreter/out/runtime/derived-array.js",
+    "samples": 173
+  },
+  {
+    "function": "mapDenseArrays",
+    "url": "file://packages/interpreter/out/runtime/tensor.js",
+    "samples": 168
+  },
+  {
+    "function": "compactBroadcastLanes",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 146
+  },
+  {
+    "function": "evaluateBinaryValue",
+    "url": "file://packages/interpreter/out/operators.js",
+    "samples": 145
+  },
+  {
+    "function": "(garbage collector)",
+    "url": "",
+    "samples": 118
+  },
+  {
+    "function": "compactBinary",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 113
+  },
+  {
+    "function": "reduce",
+    "url": "file://packages/interpreter/out/runtime/element-source.js",
+    "samples": 97
+  },
+  {
+    "function": "arrayValues",
+    "url": "file://packages/interpreter/out/runtime/array-read.js",
+    "samples": 94
+  },
+  {
+    "function": "mapDenseArrays",
+    "url": "file://packages/interpreter/out/runtime/tensor.js",
+    "samples": 91
+  },
+  {
+    "function": "evaluateBinaryValue",
+    "url": "file://packages/interpreter/out/operators.js",
+    "samples": 89
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 76
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 76
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 66
+  },
+  {
+    "function": "(program)",
+    "url": "",
+    "samples": 65
+  }
+]

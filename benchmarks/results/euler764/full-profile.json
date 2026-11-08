@@ -1,0 +1,102 @@
+[
+  {
+    "function": "readArrayItem",
+    "url": "file://packages/interpreter/out/runtime/array-read.js",
+    "samples": 3634
+  },
+  {
+    "function": "readArrayItem",
+    "url": "file://packages/interpreter/out/runtime/array-read.js",
+    "samples": 3497
+  },
+  {
+    "function": "reduce",
+    "url": "file://packages/interpreter/out/runtime/element-source.js",
+    "samples": 2129
+  },
+  {
+    "function": "(garbage collector)",
+    "url": "",
+    "samples": 1808
+  },
+  {
+    "function": "expandOperand",
+    "url": "file://packages/interpreter/out/runtime/tensor.js",
+    "samples": 1585
+  },
+  {
+    "function": "expandOperand",
+    "url": "file://packages/interpreter/out/runtime/tensor.js",
+    "samples": 1355
+  },
+  {
+    "function": "",
+    "url": "file://packages/interpreter/out/runtime/derived-array.js",
+    "samples": 1354
+  },
+  {
+    "function": "evaluateBinaryValue",
+    "url": "file://packages/interpreter/out/operators.js",
+    "samples": 1348
+  },
+  {
+    "function": "compactBroadcastLanes",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 967
+  },
+  {
+    "function": "evaluateBinaryValue",
+    "url": "file://packages/interpreter/out/operators.js",
+    "samples": 931
+  },
+  {
+    "function": "mapDenseArrays",
+    "url": "file://packages/interpreter/out/runtime/tensor.js",
+    "samples": 770
+  },
+  {
+    "function": "arrayValues",
+    "url": "file://packages/interpreter/out/runtime/array-read.js",
+    "samples": 725
+  },
+  {
+    "function": "compactBroadcastLanes",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 723
+  },
+  {
+    "function": "expandOperand",
+    "url": "file://packages/interpreter/out/runtime/tensor.js",
+    "samples": 654
+  },
+  {
+    "function": "(program)",
+    "url": "",
+    "samples": 600
+  },
+  {
+    "function": "ownedArray",
+    "url": "file://packages/interpreter/out/runtime/owned-array.js",
+    "samples": 586
+  },
+  {
+    "function": "materializeMaskSelection",
+    "url": "file://packages/interpreter/out/array-mask-selection.js",
+    "samples": 585
+  },
+  {
+    "function": "evaluateArrayItem",
+    "url": "file://packages/interpreter/out/runtime/array-read.js",
+    "samples": 511
+  },
+  {
+    "function": "materializeValue",
+    "url": "file://packages/interpreter/out/materialize.js",
+    "samples": 482
+  },
+  {
+    "function": "evaluateArrayItem",
+    "url": "file://packages/interpreter/out/runtime/array-read.js",
+    "samples": 433
+  }
+]

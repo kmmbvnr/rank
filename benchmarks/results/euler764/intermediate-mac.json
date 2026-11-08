@@ -1,0 +1,24 @@
+[
+  {
+    "artifact": "euler764-column-small.json",
+    "limit": "100000000000000",
+    "block": 256,
+    "answer": "752517912",
+    "ms": 2639.0107080000002,
+    "cpuMs": 3358.156,
+    "maxRssMiB": 450.4375,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler764-column-mac.json",
+    "limit": "10000000000000000",
+    "block": 256,
+    "answer": "255228881",
+    "ms": 19543.760666,
+    "cpuMs": 23298.491,
+    "maxRssMiB": 647.515625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]
