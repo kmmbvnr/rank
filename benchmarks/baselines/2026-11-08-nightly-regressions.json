@@ -1,0 +1,1321 @@
+{
+  "baseRuntime": "d29bf10e",
+  "previousNightly": "7963a7e5",
+  "reportedNightly": "2cdb203c",
+  "runtimeFix": "27c49b3a",
+  "integrated": "83e3bf0e",
+  "note": "Primary final comparisons use three alternating fresh-process pairs. Triage and diagnostic/control runs are separate; no samples discarded.",
+  "intelTriage": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/150_subtriangle.ra",
+      "ms": 1439.583103,
+      "answer": "-271248680"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/150_subtriangle.ra",
+      "ms": 1457.094336,
+      "answer": "-271248680"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/201_subsetsums.ra",
+      "ms": 842.634889,
+      "answer": "115039000"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/201_subsetsums.ra",
+      "ms": 944.612249,
+      "answer": "115039000"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/026_reciprocal.ra",
+      "ms": 538.4090649999999,
+      "answer": "983"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/026_reciprocal.ra",
+      "ms": 563.3668279999999,
+      "answer": "983"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/547_hollowsquarelaminae.ra",
+      "ms": 8328.344349,
+      "answer": "11730879.0023"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/547_hollowsquarelaminae.ra",
+      "ms": 5134.713852,
+      "answer": "11730879.0023"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/543_primesums.ra",
+      "ms": 4480.976758000001,
+      "answer": "199007746081234640"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/543_primesums.ra",
+      "ms": 4522.578767000001,
+      "answer": "199007746081234640"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/238_infinitestring.ra",
+      "ms": 16182.781563999999,
+      "answer": "9922545104535661"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/238_infinitestring.ra",
+      "ms": 16997.418938,
+      "answer": "9922545104535661"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "ms": 34755.900462,
+      "answer": "2327213148095366"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "ms": 42531.629406,
+      "answer": "2327213148095366"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "ms": 75502.458882,
+      "answer": "563917241"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "ms": 75404.60981200001,
+      "answer": "563917241"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/150_subtriangle.ra",
+      "ms": 1525.805896,
+      "answer": "-271248680"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/150_subtriangle.ra",
+      "ms": 1532.526224,
+      "answer": "-271248680"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/201_subsetsums.ra",
+      "ms": 1118.3311119999998,
+      "answer": "115039000"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/201_subsetsums.ra",
+      "ms": 1163.112372,
+      "answer": "115039000"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/026_reciprocal.ra",
+      "ms": 450.802208,
+      "answer": "983"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/026_reciprocal.ra",
+      "ms": 435.22549699999996,
+      "answer": "983"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/547_hollowsquarelaminae.ra",
+      "ms": 4768.259242,
+      "answer": "11730879.0023"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/547_hollowsquarelaminae.ra",
+      "ms": 6016.611051000001,
+      "answer": "11730879.0023"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/543_primesums.ra",
+      "ms": 4337.201831,
+      "answer": "199007746081234640"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/543_primesums.ra",
+      "ms": 4445.083397,
+      "answer": "199007746081234640"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/238_infinitestring.ra",
+      "ms": 13009.112908,
+      "answer": "9922545104535661"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/238_infinitestring.ra",
+      "ms": 13033.969072999998,
+      "answer": "9922545104535661"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "ms": 41088.245847,
+      "answer": "2327213148095366"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "ms": 29614.074585000002,
+      "answer": "2327213148095366"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "ms": 75391.241078,
+      "answer": "563917241"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "ms": 75998.607276,
+      "answer": "563917241"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/150_subtriangle.ra",
+      "ms": 1530.177902,
+      "answer": "-271248680"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/150_subtriangle.ra",
+      "ms": 1526.713083,
+      "answer": "-271248680"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/201_subsetsums.ra",
+      "ms": 821.7875869999999,
+      "answer": "115039000"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/201_subsetsums.ra",
+      "ms": 1106.490029,
+      "answer": "115039000"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/026_reciprocal.ra",
+      "ms": 443.977105,
+      "answer": "983"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/026_reciprocal.ra",
+      "ms": 432.98718,
+      "answer": "983"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/547_hollowsquarelaminae.ra",
+      "ms": 5527.791926,
+      "answer": "11730879.0023"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/547_hollowsquarelaminae.ra",
+      "ms": 5442.435964,
+      "answer": "11730879.0023"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/543_primesums.ra",
+      "ms": 4335.6588360000005,
+      "answer": "199007746081234640"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/543_primesums.ra",
+      "ms": 4341.605533999999,
+      "answer": "199007746081234640"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/238_infinitestring.ra",
+      "ms": 13280.184008999999,
+      "answer": "9922545104535661"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/238_infinitestring.ra",
+      "ms": 13223.129606,
+      "answer": "9922545104535661"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "ms": 29471.012057,
+      "answer": "2327213148095366"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "ms": 41773.072606,
+      "answer": "2327213148095366"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "ms": 76106.907009,
+      "answer": "563917241"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "ms": 74485.42418900001,
+      "answer": "563917241"
+    }
+  ],
+  "macTriage": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/150_subtriangle.ra",
+      "ms": 3537.440208,
+      "answer": "-271248680"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/150_subtriangle.ra",
+      "ms": 1870.5007500000002,
+      "answer": "-271248680"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/201_subsetsums.ra",
+      "ms": 655.012792,
+      "answer": "115039000"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/201_subsetsums.ra",
+      "ms": 524.9275,
+      "answer": "115039000"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/026_reciprocal.ra",
+      "ms": 146.91487500000002,
+      "answer": "983"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/026_reciprocal.ra",
+      "ms": 132.886875,
+      "answer": "983"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/547_hollowsquarelaminae.ra",
+      "ms": 1671.0825419999999,
+      "answer": "11730879.0023"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/547_hollowsquarelaminae.ra",
+      "ms": 1657.150791,
+      "answer": "11730879.0023"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/543_primesums.ra",
+      "ms": 1415.10575,
+      "answer": "199007746081234640"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/543_primesums.ra",
+      "ms": 1650.597375,
+      "answer": "199007746081234640"
+    }
+  ],
+  "macLongTriage": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "ms": 14218.590292,
+      "answer": "2327213148095366"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "ms": 15604.062083,
+      "answer": "2327213148095366"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "ms": 28063.177125,
+      "answer": "563917241"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "ms": 29035.712458,
+      "answer": "563917241"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/238_infinitestring.ra",
+      "ms": 5262.643749999999,
+      "answer": "9922545104535661"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/238_infinitestring.ra",
+      "ms": 6897.1653750000005,
+      "answer": "9922545104535661"
+    }
+  ],
+  "intel715Control": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/715_sextupletnorms.ra",
+      "sourceHash": "d121d54517234c4cd982a46f3bdbcc25eae842de6587c9e986065b8a481d5aa1",
+      "ms": 153325.788917,
+      "cpuMs": 153115.523,
+      "peakRssMiB": 722.67578125,
+      "answer": "883188017",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/715_sextupletnorms.ra",
+      "sourceHash": "d121d54517234c4cd982a46f3bdbcc25eae842de6587c9e986065b8a481d5aa1",
+      "ms": 153799.037671,
+      "cpuMs": 153592.914,
+      "peakRssMiB": 654.16015625,
+      "answer": "883188017",
+      "node": "v24.15.0",
+      "arch": "x64"
+    }
+  ],
+  "mac715Control": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/715_sextupletnorms.ra",
+      "ms": 78266.873125,
+      "answer": "883188017"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/715_sextupletnorms.ra",
+      "ms": 91791.386166,
+      "answer": "883188017"
+    }
+  ],
+  "intelNativeDisabled": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 28995.000539999997,
+      "cpuMs": 28961.673,
+      "peakRssMiB": 497.04296875,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 39649.223267,
+      "cpuMs": 39585.442,
+      "peakRssMiB": 526.9296875,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    }
+  ],
+  "intelIntermediateRevision": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 28481.999813,
+      "cpuMs": 28450.668,
+      "peakRssMiB": 494.77734375,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 38666.65474,
+      "cpuMs": 38632.296,
+      "peakRssMiB": 544.55859375,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    }
+  ],
+  "macWidthReversion": [
+    {
+      "round": 0,
+      "variant": 0,
+      "ms": 5669.091125,
+      "answer": "800568803"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "ms": 4149.067333000001,
+      "answer": "800568803"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "ms": 3921.7170830000014,
+      "answer": "800568803"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "ms": 6734.3075420000005,
+      "answer": "800568803"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "ms": 5247.4284579999985,
+      "answer": "800568803"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "ms": 4492.351041999998,
+      "answer": "800568803"
+    }
+  ],
+  "macGcdReversion": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 13108.385542,
+      "cpuMs": 17191.541,
+      "peakRssMiB": 541.21875,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 17597.381875,
+      "cpuMs": 22548.356,
+      "peakRssMiB": 554.40625,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    }
+  ],
+  "intelNativeOnlyTrial": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 41617.771461,
+      "cpuMs": 41555.661,
+      "peakRssMiB": 533.75,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 40633.157268,
+      "cpuMs": 40575.751,
+      "peakRssMiB": 523.734375,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 39730.1895,
+      "cpuMs": 39669.247,
+      "peakRssMiB": 540.01171875,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 41541.255747999996,
+      "cpuMs": 41480.936,
+      "peakRssMiB": 544.15625,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 41990.333351,
+      "cpuMs": 41957.086,
+      "peakRssMiB": 540.7109375,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 40132.477005999994,
+      "cpuMs": 40070.108,
+      "peakRssMiB": 538.171875,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    }
+  ],
+  "macFinal": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 1446.9658339999999,
+      "cpuMs": 1602.195,
+      "peakRssMiB": 239.25,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 524.2932920000001,
+      "cpuMs": 680.38,
+      "peakRssMiB": 239.34375,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 424.177,
+      "cpuMs": 609.929,
+      "peakRssMiB": 325.671875,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 424.9192079999999,
+      "cpuMs": 616.974,
+      "peakRssMiB": 321.25,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 12358.309208,
+      "cpuMs": 16470.235,
+      "peakRssMiB": 544.328125,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 9308.084042,
+      "cpuMs": 12895.712,
+      "peakRssMiB": 546.34375,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 1524.2534580000001,
+      "cpuMs": 1675.048,
+      "peakRssMiB": 240.5625,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 1513.582417,
+      "cpuMs": 1667.039,
+      "peakRssMiB": 240.6875,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 473.62254100000007,
+      "cpuMs": 661.722,
+      "peakRssMiB": 329.171875,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 528.3659590000001,
+      "cpuMs": 777.204,
+      "peakRssMiB": 323,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 11676.910041000001,
+      "cpuMs": 15753.963,
+      "peakRssMiB": 563.25,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 12757.224833,
+      "cpuMs": 16943.827,
+      "peakRssMiB": 545.515625,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 1563.184292,
+      "cpuMs": 1747.325,
+      "peakRssMiB": 238.4375,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 559.056791,
+      "cpuMs": 708.941,
+      "peakRssMiB": 238.875,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 437.8020829999999,
+      "cpuMs": 616.481,
+      "peakRssMiB": 323.28125,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 448.716541,
+      "cpuMs": 635.434,
+      "peakRssMiB": 325.734375,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 12707.597124999998,
+      "cpuMs": 16856.757,
+      "peakRssMiB": 549.953125,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 9420.906541,
+      "cpuMs": 13072.729,
+      "peakRssMiB": 545.09375,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    }
+  ],
+  "intelFinal": [
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 1480.557226,
+      "cpuMs": 1480.418,
+      "peakRssMiB": 226.4921875,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 1489.2216709999998,
+      "cpuMs": 1489.11,
+      "peakRssMiB": 226.6015625,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 896.7184850000001,
+      "cpuMs": 896.493,
+      "peakRssMiB": 304.37109375,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 976.2775159999999,
+      "cpuMs": 976.136,
+      "peakRssMiB": 304.375,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 41143.888387,
+      "cpuMs": 41084.106,
+      "peakRssMiB": 536.5625,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 30714.321560999997,
+      "cpuMs": 30682.355,
+      "peakRssMiB": 497.515625,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 1526.310148,
+      "cpuMs": 1526.327,
+      "peakRssMiB": 228.046875,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 1528.3476500000002,
+      "cpuMs": 1528.459,
+      "peakRssMiB": 230.46875,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 806.8767460000001,
+      "cpuMs": 806.454,
+      "peakRssMiB": 305.52734375,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 805.63493,
+      "cpuMs": 805.331,
+      "peakRssMiB": 303.73046875,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 1,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 39774.796674,
+      "cpuMs": 39738.572,
+      "peakRssMiB": 495.9453125,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 1,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 44904.348163,
+      "cpuMs": 44842.464,
+      "peakRssMiB": 543.41796875,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 1579.4340730000001,
+      "cpuMs": 1551.383,
+      "peakRssMiB": 226.6875,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/150_subtriangle.ra",
+      "sourceHash": "4e14149c3ec5be442d97c416e8ff4c8c8cda4c9fd37da0c28e7e5a954b1fa049",
+      "ms": 1540.5455229999998,
+      "cpuMs": 1540.766,
+      "peakRssMiB": 225.703125,
+      "answer": "-271248680",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 1160.297539,
+      "cpuMs": 1160.412,
+      "peakRssMiB": 304.2421875,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/201_subsetsums.ra",
+      "sourceHash": "ceafd4c6b76a222d136e6f5e54b5c160197bb9cbd6a98c0c815b944389e4ecfc",
+      "ms": 1102.625586,
+      "cpuMs": 1102.621,
+      "peakRssMiB": 304.140625,
+      "answer": "115039000",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 2,
+      "variant": 0,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 41683.560725999996,
+      "cpuMs": 41627.716,
+      "peakRssMiB": 542.328125,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 2,
+      "variant": 1,
+      "path": "demos/euler/580_squarefreehilbert.ra",
+      "sourceHash": "f5c2b81cff2f028704c8a0d03ae5c7e5d87d65dbfdc21ecb6e201a1980a8905f",
+      "ms": 31084.406039999998,
+      "cpuMs": 31053.573,
+      "peakRssMiB": 500.640625,
+      "answer": "2327213148095366",
+      "node": "v24.15.0",
+      "arch": "x64"
+    }
+  ],
+  "diagnostics": {
+    "before": {
+      "ms": 16098.7435,
+      "answer": "2327213148095366",
+      "counts": {
+        "nativeIntegerSums": 25,
+        "nativeIntegerSumCells": 50000000,
+        "compiledTensors": 125,
+        "tensorRangeScans": 125,
+        "tensorRangeScannedCells": 250000000,
+        "bulkArrayWrites": 131106,
+        "bulkArrayWriteCells": 340394946,
+        "fusedArrayUpdates": 32650,
+        "fusedArrayUpdateCells": 119286257,
+        "reusedTensorBuffers": 50,
+        "reusedTensorBufferCells": 100000000,
+        "cowCopies": 25,
+        "cowCopiedCells": 50000000,
+        "typedArrayPublications": 174033,
+        "typedArrayPublishedCells": 1140354158
+      },
+      "costs": {
+        "program.parse": {
+          "calls": 1,
+          "milliseconds": 148.63654200000002,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 15946.173583,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.14483300000000554,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "loop.prepare": {
+          "calls": 3,
+          "milliseconds": 16.072623999999962,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 30725,
+          "milliseconds": 3817.7665639998554,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 200000000,
+          "copiedBytes": 200000000,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "note": "Before admission fixes; exploratory single-operation native-sum shortcut was present. Attempt costs exclude summation."
+    },
+    "after": {
+      "ms": 9062.342166999999,
+      "answer": "2327213148095366",
+      "counts": {
+        "compiledTensors": 150,
+        "tensorRangeScans": 125,
+        "tensorRangeScannedCells": 250000000,
+        "numberTensors": 25,
+        "tensorMapPreparations": 25,
+        "bulkArrayWrites": 131106,
+        "bulkArrayWriteCells": 340394946,
+        "fusedArrayUpdates": 32650,
+        "fusedArrayUpdateCells": 119286257,
+        "reusedTensorBuffers": 50,
+        "reusedTensorBufferCells": 100000000,
+        "cowCopies": 25,
+        "cowCopiedCells": 50000000,
+        "typedArrayPublications": 174033,
+        "typedArrayPublishedCells": 1140354158
+      },
+      "costs": {
+        "program.parse": {
+          "calls": 1,
+          "milliseconds": 129.33062500000003,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 8932.827083,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.1476669999999558,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "loop.prepare": {
+          "calls": 3,
+          "milliseconds": 14.49595800000003,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "number-loop.attempt": {
+          "calls": 30725,
+          "milliseconds": 297.58447199996385,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "array.cow": {
+          "calls": 0,
+          "milliseconds": 0,
+          "allocatedBytes": 200000000,
+          "copiedBytes": 200000000,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      }
+    }
+  },
+  "proofAnalysisSamples": {
+    "(S0 to Ln - 1 by Q) array": {
+      "calls": 135600,
+      "ms": 670.8747070000497
+    },
+    "P mod 4 equal 3 integer": {
+      "calls": 135600,
+      "ms": 2144.6788259999985
+    }
+  },
+  "integrationMac": {
+    "ms": 9361.151334,
+    "cpuMs": 13086.031,
+    "peakRssMiB": 548.65625,
+    "answer": "2327213148095366"
+  },
+  "integrationIntel": {
+    "ms": 30435.874748000002,
+    "cpuMs": 30405.831,
+    "peakRssMiB": 496.55859375,
+    "answer": "2327213148095366"
+  }
+}
