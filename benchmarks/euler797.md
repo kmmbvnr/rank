@@ -67,7 +67,8 @@ for the before run.
   exits, observers, demand budgets, entry-work proofs and vector arithmetic.
 - After integration with the concurrent Euler 495 compiler changes, another
   165 focused tests passed, including both Euler solutions and modular axis
-  scans, inferred reshapes and private function returns.
+  scans, inferred reshapes and private function returns. The integrated full
+  Mac run also returned `47722272` with three numeric loops: 6.84 s, 670.0 MiB.
 - 90 focused tests on Intel: scatter results, vector entry work and Euler 797.
 - An independent exact BigInt oracle constructs cyclotomic factors by division
   over all divisors, then computes the primitive divisor products. It agrees
