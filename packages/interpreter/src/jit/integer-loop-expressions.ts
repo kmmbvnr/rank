@@ -18,7 +18,7 @@ import { compiledArgumentType, compiledStoredArgumentType, hasNativeDeque } from
 import {
     symbolicApplicationForm, groupedUnaryDyadicChain, compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
-    isAssignmentStatement, isArrayAssignmentStatement, isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isBooleanLiteral, isNumberLiteral, isNameExpression, isArrayExpression, isAllAxisExpression, applicationForm, type Expression, type CompiledLoopType,
+    isAssignmentStatement, isArrayAssignmentStatement, isFirstIndexWhereExpression, isCountClauseExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isBooleanLiteral, isNumberLiteral, isNameExpression, isArrayExpression, isAllAxisExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType, type CompiledCallSignature,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex, isRankSet } from '../value.js';
@@ -910,6 +910,13 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const source = expression.head, type = arrayType(source);
         return type?.rank === 1 && type.element === 'boolean' && completedIndicesMask(source) && privateIndicesMask(source) ? source : undefined;
     }
+    function numericCountSlice(expression: Expression) {
+        if (!numberMode || !host.arrayLocals || !host.arrayReads || !isCountClauseExpression(expression)
+            || !completedIndicesMask(expression.source)) return undefined;
+        const type = arrayType(expression.source);
+        return type && type.rank > 0 && (type.element === 'integer' || type.element === 'boolean' || type.element === 'real' && host.reals)
+            ? { form: expression, type } : undefined;
+    }
     function sortedSearch(source: Expression) {
         while (isParenthesizedExpression(source)) source = source.value;
         if (!numberMode || !host.nativeCalls || !host.arrayReads || !host.module('algo') || !isApplicationExpression(source)) return undefined;
@@ -927,6 +934,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (scalarInputs.has(e) || isNameExpression(e) && state.ranges.has(e.name)) return undefined;
         if (numberMode && isMaterializeExpression(e)) return arrayType(e.source);
         if (numericPrimeCopy(e) || numericIndices(e)) return { kind: 'array', element: 'integer', rank: 1 };
+        const countSlice = numericCountSlice(e);
+        if (countSlice) return countSlice.type;
         const membership = numericMembership(e);
         if (membership) {
             const input = arrayType(membership.key);
@@ -1430,6 +1439,31 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         return { start, end, step, inclusive: source.operator === 'to' };
     }
     function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {
+        let countSource = source;
+        while (isParenthesizedExpression(countSource)) countSource = countSource.value;
+        const countSlice = numericCountSlice(countSource);
+        if (countSlice) {
+            state.numberVectors = true;
+            const input = emitNumberArray(countSlice.form.source, lines);
+            if (!input || typeof input.type === 'string') return undefined;
+            const cells = input.cells ?? `${input.code}.cells`;
+            lines.push(`vectorLive.push(${cells});`);
+            const count = emit(countSlice.form.count, lines, 'integer');
+            if (count?.type !== 'integer') return undefined;
+            lines.push('vectorLive.pop();');
+            state.syntax.add(countSlice.form.operator);
+            const result = `countSlice${state.serial++}`, shape = `sliceShape${state.serial++}`;
+            const bound = `sliceCount${state.serial++}`, skip = `sliceSkip${state.serial++}`, size = `sliceSize${state.serial++}`;
+            const index = `sliceCell${state.serial++}`, width = `sliceWidth${state.serial++}`;
+            lines.push(`const ${bound} = ${count.code}; if (${bound} < 0) throw overflow;
+                const ${shape} = [...${input.code}.shape]; const ${width} = Math.min(${bound}, ${shape}[0]);
+                const ${skip} = ${countSlice.form.operator === 'drop' ? `safe(${width} * ${shape}.slice(1).reduce((a,b) => safe(a*b), 1))` : '0'};
+                ${shape}[0] = ${countSlice.form.operator === 'drop' ? `${shape}[0] - ${width}` : `${width}`};
+                const ${size} = ${shape}.reduce((a,b) => safe(a*b), 1);
+                const ${result} = vectorArray(${shape}, ${input.type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${cells}], ${input.type.element === 'boolean'});
+                ${numberVectorLoop(size, index, [`${result}.store(${index}, ${cells}[${skip} + ${index}]);`])}`);
+            return { code: result, cells: `${result}.cells`, type: input.type, fresh: true };
+        }
         const indexedMask = numericIndices(source);
         if (indexedMask) {
             state.numberVectors = true;

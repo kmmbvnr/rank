@@ -1,105 +1,70 @@
 rem Tricoloured Coin Fountains
 rem https://projecteuler.net/problem=519
-
 use numbers
 use sequences
-use linalg
+use bits
 use io
 use cli
-
 arg N integer = 20000
 
-rem F = Nu / De with the q-series
-rem Nu = sum (-1)^m x^(m(m+2))/(x;x)_m
-rem and De with x^(m(m+1)); then
-rem t = x A / (1 - 2 x A), A = 2F - 1,
-rem is x P / (De - 2 x P), P = 2 Nu -
-rem De, and T(n) = 3 [x^n] t.
-M = 1000000000
-B = 500
-Nb = N // B + 1
-Np = Nb * B
-Z = array shape (Np + B) fill 0
-R = Z copy
-R 0 = 1
-Nu = Z copy
-De = Z copy
-G = 1
-J = 0
-W = Np + B
-for J * (J + 1) at most N
-  E1 = J * (J + 2)
-  E2 = J * (J + 1)
-  R1 = R (0 till W - E1)
-  Nu (E1 till W) += G * R1
-  R2 = R (0 till W - E2)
-  De (E2 till W) += G * R2
-  rem Divide R by 1 - x^(J+1): a
-  rem prefix sum along stride J + 1.
-  K = J + 1
-  Nr = W // K + 1
-  Rk = concat R (Z (0 till Nr * K - W))
-  Rm = Rk reshape Nr K scan + axis 0
-  Rf = Rm reshape (Nr * K)
-  R = (Rf (0 till W)) mod M
-  G = -G
-  J += 1
-end
-P = (2 * Nu - De) mod M
-Xp = concat (array 0) (P (0 till W - 1))
-Q = (De - 2 * Xp) mod M
-rem Solve t Q = x P by blocks of B.
-rem Kt row j holds q(j+1) .. q(j+B),
-rem so the coefficients before block
-rem s add (t reversed) Kt (0 till s).
-I = 0 till Np * B copy
-Ix = I // B + I mod B + 1
-Ix = Ix min (W - 1)
-Kt = (Q Ix) reshape Np B
-rem Halves below 2^15 keep each sum
-rem of products below 2^53.
-Kl = Kt mod 32768
-Kh = Kt // 32768
-rem Ei is 1 / Q to B terms, and Zt the
-rem transposed Toeplitz of Ei solves
-rem each block by one product.
-Ei = array shape B fill 0
-Ei 0 = 1
-for K in 1 till B
-  Qs = Q (1 to K)
-  Es = (Ei (0 till K)) reverse
-  S = (Qs * (Es mod 32768)) sum
-  Sh = (Qs * (Es // 32768)) sum mod M
-  Ei K = (0 - S - Sh * 32768) mod M
-end
-I = 0 till B * B copy
-Iz = I mod B - I // B + B
-Ez = concat (array shape B fill 0) Ei
-Zt = (Ez Iz) reshape B B
-T = array shape 0 fill 0
-for A in 0 till Nb
-  S = A * B
-  V = Xp (S till S + B)
-  if A greater 0
-    Tr = T reverse
-    Lo = Tr mod 32768
-    Hi = Tr // 32768
-    Tm = stack Lo Hi
-    Ka = (Kl (0 till S)) copy
-    Kb = (Kh (0 till S)) copy
-    Ca = Tm matmul Ka
-    Cb = Tm matmul Kb
-    Md = (Ca 1 + Cb 0) mod M
-    Hh = Cb 1 mod M
-    Cs = Ca 0 + Md * 32768
-    Cs = (Cs + Hh * 1073741824) mod M
-    V = (V - Cs) mod M
+rem Upper/Lower use q-series shifts
+rem j(j+2) and j(j+1), respectively.
+rem P=2*Upper-Lower, Q=Lower-2*x*P.
+rem The fountain series is 3*x*P/Q.
+Mod = 1000000000
+Length = N + 1
+Zeros = array shape Length fill 0
+Rows = Zeros copy
+Rows 0 = 1
+Upper = Zeros copy
+Lower = Zeros copy
+Sign = 1
+Order = 0
+for Order * (Order + 1) at most N
+  First = Order * (Order + 2)
+  Last = Order * (Order + 1)
+  if First at most N
+    Part = Rows (0 till Length - First)
+    Terms = Sign * Part
+    Upper (First till Length) += Terms
   end
-  Vm = stack (V mod 32768) (V // 32768)
-  C = Vm matmul Zt
-  Ct = C 0 + (C 1 mod M) * 32768
-  Tb = Ct mod M
-  T = concat T Tb copy
+  Part = Rows (0 till Length - Last)
+  Terms = Sign * Part
+  Lower (Last till Length) += Terms
+  rem Divide by 1-x^Step via prefixes.
+  Step = Order + 1
+  Height = (Length - 1) // Step + 1
+  Size = Height * Step
+  Extra = Size - Length
+  Pad = array shape Extra fill 0
+  Padded = concat Rows Pad copy
+  Grid = Padded reshape Height Step
+  Grid = (Grid scan + axis 0) mod Mod
+  Flat = Grid reshape Size
+  Rows = Flat take Length
+  Sign = -Sign
+  Order += 1
 end
-Answer = 3 * T N mod M
+Numerator = (2 * Upper - Lower) mod Mod
+Shifted = Numerator shift 1
+Poly = (Lower - 2 * Shifted) mod Mod
+
+rem Newton doubling works modulo a
+rem composite too: the constant is 1.
+fun Series grow
+  Count = Series len
+  Width = Count * 2 min Length
+  Part = Poly take Width
+  Full = Part convolve Series mod Mod
+  Product = Full take Width
+  Minus = (0 - Product) mod Mod
+  Minus 0 = (2 - Product 0) mod Mod
+  Next = Series convolve Minus mod Mod
+  return Next take Width
+end
+Seed = array 1
+Steps = N binary len
+Inverse = Seed grow repeat Steps
+Whole = Shifted convolve Inverse mod Mod
+Answer = 3 * Whole N mod Mod
 Answer print

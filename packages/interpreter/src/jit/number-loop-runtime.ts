@@ -619,6 +619,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         if (plan.rangeNarrowing && demandBudgetEnabled()) return recordFallback('number-loop:observable-narrowing-budget', 'effects');
         for (const name of plan.syntax) if (host.read(name) !== undefined) return recordFallback('number-loop:syntax-binding', 'proof');
         // Packed native consumers have a different traversal budget.
+        if ((plan.syntax.has('take') || plan.syntax.has('drop')) && demandBudgetEnabled()) return recordFallback('number-loop:observable-count-slice', 'effects');
         if (plan.builtins.get('indices') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-indices', 'effects');
         if (plan.builtins.get('count') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-count', 'effects');
         // Prime-plan completion has its own demand traversal; do not charge
@@ -763,6 +764,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (plan.calls.some(call => call.numberArrayResult)
                 && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
                 return recordFallback('number-loop:array-call-metadata', 'proof');
+            if ((plan.syntax.has('take') || plan.syntax.has('drop'))
+                && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
+                return recordFallback('number-loop:count-slice-metadata', 'proof');
             // Named table rows can return positional products rather than
             // plain arrays. Keep their selection/result contract in the evaluator.
             if (plan.sliceReadSources.has(name) && value.columnNames) return recordFallback('number-loop:named-selection', 'proof');
