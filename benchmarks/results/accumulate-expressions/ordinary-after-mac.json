@@ -1,0 +1,35 @@
+[
+  {
+    "size": 1048576,
+    "repeats": 24,
+    "accumulate": false,
+    "answer": "4813624",
+    "ms": 230.261792,
+    "cpuMs": 242.069,
+    "maxRssMiB": 166.359375,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "size": 1048576,
+    "repeats": 24,
+    "accumulate": false,
+    "answer": "4813624",
+    "ms": 225.10079100000002,
+    "cpuMs": 236.17,
+    "maxRssMiB": 166.703125,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "size": 1048576,
+    "repeats": 24,
+    "accumulate": false,
+    "answer": "4813624",
+    "ms": 225.93979099999999,
+    "cpuMs": 237.126,
+    "maxRssMiB": 166.03125,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]

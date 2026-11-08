@@ -1,0 +1,22 @@
+
+ RUN  v3.2.7 /tmp/rank-accumulate-561/after/packages/interpreter
+
+ ✓ test/array-binding-contracts.test.ts (54 tests) 836ms
+   ✓ array binding contracts (compiled true) > checks every lazy scalar read after establishing the type: 1n  304ms
+ ✓ test/boolean-scatter.test.ts (24 tests) 951ms
+   ✓ boolean scatter and numeric mask selections > snapshots boolean RHS true with duplicate selectors  388ms
+ ✓ test/accumulate-writes.test.ts (98 tests) 1247ms
+   ✓ accumulating writes (compilation=false) > broadcast addition  305ms
+ ✓ test/compiled-accumulate-scatter.test.ts (41 tests) 1296ms
+   ✓ compiles duplicate accumulating += with scalar and vector operands  415ms
+ ✓ test/computed-array-update.test.ts (24 tests) 510ms
+ ✓ test/scalar-boolean-writes.test.ts (12 tests) 369ms
+   ✓ scalar boolean writes (false) > preserves aliases, duplicate indices and errors without generated code  306ms
+ ✓ test/compiled-compound-scatter.test.ts (28 tests) 790ms
+   ✓ snapshots duplicate numeric destinations for +=  317ms
+
+ Test Files  7 passed (7)
+      Tests  281 passed (281)
+   Start at  15:46:52
+   Duration  5.92s (transform 2.25s, setup 0ms, collect 14.49s, tests 6.00s, environment 1ms, prepare 441ms)
+

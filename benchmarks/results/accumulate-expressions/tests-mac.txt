@@ -1,0 +1,16 @@
+
+ RUN  v3.2.7 /private/tmp/rank-accumulate/packages/interpreter
+
+ ✓ test/array-binding-contracts.test.ts (54 tests) 293ms
+ ✓ test/compiled-compound-scatter.test.ts (28 tests) 353ms
+ ✓ test/accumulate-writes.test.ts (98 tests) 431ms
+ ✓ test/compiled-accumulate-scatter.test.ts (41 tests) 472ms
+ ✓ test/computed-array-update.test.ts (24 tests) 169ms
+ ✓ test/scalar-boolean-writes.test.ts (12 tests) 129ms
+ ✓ test/boolean-scatter.test.ts (24 tests) 267ms
+
+ Test Files  7 passed (7)
+      Tests  281 passed (281)
+   Start at  15:44:58
+   Duration  2.56s (transform 1.03s, setup 0ms, collect 6.79s, tests 2.11s, environment 0ms, prepare 207ms)
+
