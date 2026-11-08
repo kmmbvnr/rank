@@ -5,79 +5,116 @@ use numbers
 use sequences
 use io
 use cli
+use bits
 
 arg N integer = 350
 
-rem g(n) sums lcm^2 / prod c^m m! over
-rem cycle types. States (t cells used,
-rem lcm) weigh n! / (t0! prod c^m m!),
-rem an integer. Lengths go by largest
-rem prime p, descending: after the p
-rem block no factor p comes back, so
-rem p^a leaves the lcm and p^(2a)
-rem joins the weight.
-Fc = 1 to N scan * with 1
-Lp = array shape (N + 1) fill 0
-for P in primes to N
-  Lp (P to N by P) = P
+rem Cycle types weigh n! / prod c^m m!.
+rem Process largest prime factors first.
+rem After each block, its prime power
+rem leaves the order and its square
+rem joins the weight. Sums stay exact.
+
+rem Keep only distinct (used, order).
+rem A fresh radix keeps state keys small.
+fun Used coalesce Orders Weights
+  Base = Orders max + 1
+  Keys = Used * Base + Orders
+  Order = Keys argsort
+  Keys = Keys Order
+  Previous = Keys shift 1 with -1
+  Change = Keys not equal Previous
+  Marks = Change integer
+  Prefix = Marks scan +
+  Group = Prefix - 1
+  Sorted = Weights Order
+  Weights = Sorted sum by Group
+  Keys = Keys Change
+  Used = Keys // Base
+  Orders = Keys mod Base
+  return tuple Used Orders Weights
 end
-T = 0 to N copy
-Lk = T * 0 + 1
-Wt = Fc N // Fc
-Kb = 10000000000000
-Ps = primes to N array reverse
-for P in Ps
-  for C in (Lp equal P) indices
-    Ct = T
-    Cl = Lk
-    Cw = Wt
-    Cm = 1
-    for M in 1 to N // C
-      Cm *= C * M
-      Sl = T + M * C at most N indices
-      Ct = concat Ct (T Sl + M * C)
-      Ls = Lk Sl
-      Ln = Ls * C // (Ls gcd C)
-      Cl = concat Cl Ln
-      Cw = concat Cw (Wt Sl // Cm)
-    end
-    rem Merge equal (t, lcm).
-    Ky = Ct * Kb + Cl
-    Od = Ky argsort
-    Ky = Ky Od
-    Cs = Cw Od scan +
-    Nk = Ky shift -1 with -1
-    Ei = Ky not equal Nk indices
-    Gs = Cs Ei
-    Wt = Gs - (Gs shift 1)
-    T = Ky Ei // Kb
-    Lk = Ky Ei mod Kb
-  end
-  rem Move p^a out of the lcm.
-  for Lk mod P equal 0 any
-    Dv = Lk mod P equal 0
-    Lk = Dv choose (Lk // P) Lk
-    Wt = Dv choose (Wt * P * P) Wt
-  end
-  Ky = T * Kb + Lk
-  Od = Ky argsort
-  Ky = Ky Od
-  Cs = Wt Od scan +
-  Nk = Ky shift -1 with -1
-  Ei = Ky not equal Nk indices
-  Gs = Cs Ei
-  Wt = Gs - (Gs shift 1)
-  T = Ky Ei // Kb
-  Lk = Ky Ei mod Kb
+
+rem Enumerate admissible cycle counts.
+fun Bound include_cycles Length State
+  unpack Used Orders Weights = State
+  Counts = (Bound - Used) // Length + 1
+  Prefix = Counts scan + with 0
+  Size = Prefix last
+  Rows = array shape Size fill 0
+  Count = Counts len
+  Slots = 0 till Count
+  Rows (Prefix Slots) = Slots
+  Rows = Rows scan max
+  Copies = (0 till Size) - Prefix Rows
+  Multiples = 1 to Bound // Length
+  Denom = Multiples * Length
+  Denom = Denom scan * with 1
+  Used = Used Rows + Copies * Length
+  Next = Orders lcm Length
+  Previous = Orders Rows
+  Orders = Next Rows
+  Active = Copies greater 0
+  Orders = Active choose Orders Previous
+  Weights = Weights Rows // Denom Copies
+  return Used coalesce Orders Weights
 end
-Fn = T equal N indices
-G = Lk Fn * Lk Fn * Wt Fn sum
-rem Ten significant digits, exactly.
-E = G // Fc N text len - 1
-Dn = Fc N * 10 ** E
-Rd = (G * 10 ** 10 // Dn + 5) // 10
-Ld = Rd text
-Answer = Ld (0 till 1) + "."
-Answer += Ld (1 till 10) + "e"
-Answer += E text
+
+rem Extract all powers of Prime at once.
+fun Bound remove_prime Prime State
+  unpack Used Orders Weights = State
+  Count = Bound binary len
+  Steps = 1 to Count
+  Powers = Prime ** Steps
+  Mask = Powers at most Bound
+  Powers = Powers Mask
+  Power = Powers last
+  Divisors = Orders gcd Power
+  Orders = Orders // Divisors
+  Weights = Weights * Divisors ** 2
+  return Used coalesce Orders Weights
+end
+
+fun Length largest_prime
+  Factors = Length factors
+  return Factors last
+end
+
+Factorial = 1 to N scan * with 1
+Lengths = 2 to N copy
+Largest = Lengths largest_prime rank 0
+Keys = (N - Largest) * (N + 1) + Lengths
+Order = Keys argsort
+Lengths = Lengths Order
+Largest = Largest Order
+Next = Largest shift -1 with 0
+Last = Largest not equal Next
+Used = 0 to N copy
+Orders = Used * 0 + 1
+Weights = Factorial N // Factorial
+State = tuple Used Orders Weights
+Count = Lengths len
+for I in 0 till Count
+  Length = Lengths I
+  State = N include_cycles Length State
+  if Last I
+    Prime = Largest I
+    State = N remove_prime Prime State
+  end
+end
+unpack Used Orders Weights = State
+Mask = Used equal N
+Keep = Mask indices
+Terms = Orders Keep ** 2 * Weights Keep
+Total = Terms sum
+rem Round to ten significant digits.
+Exponent = Total // Factorial N text len
+Exponent -= 1
+Divisor = Factorial N * 10 ** Exponent
+Rounded = Total * 10 ** 10 // Divisor
+Rounded = (Rounded + 5) // 10
+Digits = Rounded text
+Answer = Digits (0 till 1) + "."
+Answer += Digits (1 till 10) + "e"
+Answer += Exponent text
 Answer print

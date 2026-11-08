@@ -28,8 +28,9 @@ export function floorDivideReal(left: number, right: number, remainder = left % 
 
 export function floorDivide(left: bigint, right: bigint): bigint {
     const quotient = left / right;
-    const remainder = left % right;
-    return remainder !== 0n && (left < 0n) !== (right < 0n)
+    // Same-sign truncation is already floor division. Do not perform a
+    // second large-integer division just to discard its remainder.
+    return (left < 0n) !== (right < 0n) && left % right !== 0n
         ? quotient - 1n
         : quotient;
 }
