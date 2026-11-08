@@ -1,6 +1,6 @@
 rem Pipeline
-rem https://acmp.ru/index.asp?main=task&id_task=484
-rem Find sequence of open valves to drain waste in a 40-layer Fibonacci pipeline tree
+rem ACMP 484
+rem Open valves in Fibonacci tree
 
 use io
 use numbers
@@ -8,9 +8,34 @@ use cli
 use sequences
 use text
 
-arg Input text = "40"
+arg Input text = "433494435"
 
-Tokens = Input split "\n" join " " split " "
+fun Curr stepParent
+  Cond = F3 less (Curr + 1)
+  L = Cond count
+  StartL = (F (L + 2)) - 1
+  StartPrev = (F (L + 1)) - 1
+  K = Curr - StartL
+
+  CurL = L
+  CurK = K
+  Offset = 0
+  for CurL greater 2
+    FL = F CurL
+    if CurK less FL
+      CurL = CurL - 1
+    else
+      Offset = Offset + (F (CurL - 1))
+      CurK = CurK - FL
+      CurL = CurL - 2
+    end
+  end
+  return StartPrev + Offset
+end
+
+Lines = Input split "\n"
+Line = Lines join " "
+Tokens = Line split " "
 Tokens = Tokens (Tokens not equal "")
 S = Tokens 0 integer
 
@@ -21,46 +46,14 @@ for I in 3 till 45
   F I = (F (I - 1)) + (F (I - 2))
 end
 
+F3 = (F drop 3) - 1
+
 Path = array S
 Curr = S
 
-for true
-  if Curr equal 1
-    break
-  end
-
-  L = 1
-  for true
-    if (F (L + 3)) - 1 greater Curr
-      break
-    end
-    L = L + 1
-  end
-
-  StartL = (F (L + 2)) - 1
-  StartPrev = (F (L + 1)) - 1
-  K = Curr - StartL
-
-  CurL = L
-  CurK = K
-  Offset = 0
-
-  for true
-    if CurL less 3
-      break
-    end
-    if CurK less (F CurL)
-      CurL = CurL - 1
-    else
-      Offset = Offset + (F (CurL - 1))
-      CurK = CurK - (F CurL)
-      CurL = CurL - 2
-    end
-  end
-
-  Parent = StartPrev + Offset
-  Path = concat Path (array Parent)
-  Curr = Parent
+for Curr greater 1
+  Curr = Curr stepParent
+  Path = concat Path (array Curr)
 end
 
 Answer = Path join " "

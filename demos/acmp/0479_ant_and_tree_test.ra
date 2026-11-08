@@ -17,7 +17,7 @@ test "straight unobstructed path"
   (Answer - 4.0 abs) less 0.001
 end
 
-test "segment tangent to obstacle does not detour"
+test "tangent segment does not detour"
   use "0479_ant_and_tree"
   Input = "0 1 4 1 2 0 1"
   run

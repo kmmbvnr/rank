@@ -39,7 +39,7 @@ P 5 5 5 5"
   Result equal "20 0 1 3 2 0"
 end
 
-test "ACMP 503: Default 14-planet stress"
+test "14-planet stress"
   use "0503_travel_agency"
   run
   Result not equal ""

@@ -8,7 +8,7 @@ test "sample 1: consecutive 1 2 3"
   Answer equal 1
 end
 
-test "sample 2: pair of equal elements 1 1"
+test "sample 2: pair of equal elements"
   use "0563_xor_problem"
   Input = "2\n1\n1"
   run

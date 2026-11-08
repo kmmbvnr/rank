@@ -1,6 +1,6 @@
 use testing
 
-test "sample 1: 2 ones, 2 twos, 2 threes with K=4 gives 3 shirts"
+test "sample 1: K=4 gives 3 shirts"
   use "0566_freebie"
   Input = "2 2 2 4"
   run
@@ -8,7 +8,7 @@ test "sample 1: 2 ones, 2 twos, 2 threes with K=4 gives 3 shirts"
   Answer equal 3
 end
 
-test "sample 2: 4 threes with K=4 gives 2 shirts"
+test "sample 2: 4 threes K=4 gives 2"
   use "0566_freebie"
   Input = "0 0 4 4"
   run
@@ -18,7 +18,7 @@ end
 
 test "all cap combinations with K=5"
   use "0566_freebie"
-  rem 15 twos and 6 ones can form 7 shirts: 1 shirt of 3 twos and 6 shirts of 2 twos + 1 one
+  rem 15 twos and 6 ones form 7 shirts
   Input = "6 15 0 5"
   run
 
@@ -27,7 +27,7 @@ end
 
 test "non-mixed bundles avoid overshoot"
   use "0566_freebie"
-  rem 3 twos and 6 threes with K=6: three pairs of 3s + one triplet of 2s = 4 shirts
+  rem 3 twos and 6 threes K=6
   Input = "0 3 6 6"
   run
 
@@ -42,7 +42,7 @@ test "small K closed form cases"
   run
   Answer equal 23
 
-  rem K = 2: each 3 and 2 gives 1 shirt alone, 1s are paired
+  rem K = 2: 3 and 2 give 1 shirt each
   Input = "7 4 3 2"
   run
   Answer equal (3 + 4 + (7 // 2))
@@ -53,7 +53,7 @@ test "small K closed form cases"
   Answer equal (2 + 3 + ((5 - 3) // 3))
 end
 
-test "insufficient stars gives zero shirts"
+test "insufficient stars gives 0 shirts"
   use "0566_freebie"
   Input = "1 1 1 10"
   run

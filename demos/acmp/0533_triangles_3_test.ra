@@ -1,6 +1,6 @@
 use testing
 
-test "sample 1: 3 points forming 1 isosceles triangle"
+test "sample 1: 3 points 1 triangle"
   use "0533_triangles_3"
   Input = "3\n0 0\n2 2\n-2 2"
   run
@@ -8,7 +8,7 @@ test "sample 1: 3 points forming 1 isosceles triangle"
   TotalTriangles equal 1
 end
 
-test "sample 2: 4 vertices of a square"
+test "sample 2: 4 square vertices"
   use "0533_triangles_3"
   Input = "4\n0 0\n1 1\n1 0\n0 1"
   run
@@ -16,7 +16,7 @@ test "sample 2: 4 vertices of a square"
   TotalTriangles equal 4
 end
 
-test "3 collinear points form 0 triangles"
+test "3 collinear points form 0"
   use "0533_triangles_3"
   Input = "3\n0 0\n1 1\n2 2"
   run
@@ -34,7 +34,11 @@ end
 
 test "large coordinates"
   use "0533_triangles_3"
-  Input = "3\n0 0\n1000000000 0\n500000000 866025403"
+  Input = (
+    "3\n0 0\n" +
+    "1000000000 0\n" +
+    "500000000 866025403"
+  )
   run
 
   TotalTriangles equal 1

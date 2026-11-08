@@ -1,6 +1,6 @@
 use testing
 
-test "sample 1: 1st 2-permutation of 4 elements"
+test "sample 1: 1st 2-permutation"
   use "0537_permutations_3"
   Input = "4 1 2\n6 8 3 9"
   run
@@ -8,7 +8,7 @@ test "sample 1: 1st 2-permutation of 4 elements"
   Answer equal "3 9 6 8"
 end
 
-test "sample 2: 4th 2-permutation of 4 elements"
+test "sample 2: 4th 2-permutation"
   use "0537_permutations_3"
   Input = "4 4 2\n6 8 3 9"
   run
@@ -16,7 +16,7 @@ test "sample 2: 4th 2-permutation of 4 elements"
   Answer equal "9 3 6 8"
 end
 
-test "sample 3: M exceeds number of valid permutations yields -1"
+test "sample 3: M exceeds valid"
   use "0537_permutations_3"
   Input = "4 5 2\n6 8 3 9"
   run
@@ -32,7 +32,7 @@ test "single element permutation"
   Answer equal "5"
 end
 
-test "single element with M=2 yields -1"
+test "single element with M=2 gives -1"
   use "0537_permutations_3"
   Input = "1 2 1\n5"
   run
@@ -40,7 +40,7 @@ test "single element with M=2 yields -1"
   Answer equal "-1"
 end
 
-test "coprime elements cannot be adjacent under K=10 yields -1"
+test "coprime elements K=10 gives -1"
   use "0537_permutations_3"
   Input = "2 1 10\n3 5"
   run
@@ -50,8 +50,13 @@ end
 
 test "12 elements with common factor 2"
   use "0537_permutations_3"
-  Input = "12 100 2\n2 4 6 8 10 12 14 16 18 20 22 24"
+  Input = (
+    "12 100 2\n" +
+    "2 4 6 8 10 12 14 16 18 20 22 24"
+  )
   run
 
-  Answer equal "2 4 6 8 10 12 14 24 16 20 22 18"
+  Answer equal (
+    "2 4 6 8 10 12 14 24 16 20 22 18"
+  )
 end

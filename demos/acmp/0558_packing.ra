@@ -2,18 +2,24 @@ rem Packing (Упаковка)
 rem acmp.ru: 558
 rem Count 4-tuples r_i > r_j > r_k > r_l
 rem where r_l fits inside Soddy gap.
-rem Descartes circle theorem: max radius
-rem r_s = abc / (denom).
-rem Vectorized over a for each (b, c).
+rem Descartes circle theorem.
 
 use io
 use text
 use cli
 use numbers
 use sequences
+use algo
 
-arg Input text = "60
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60"
+arg Input text = (
+  "60\n" +
+  "1 2 3 4 5 6 7 8 9 10 " +
+  "11 12 13 14 15 16 17 18 19 20 " +
+  "21 22 23 24 25 26 27 28 29 30 " +
+  "31 32 33 34 35 36 37 38 39 40 " +
+  "41 42 43 44 45 46 47 48 49 50 " +
+  "51 52 53 54 55 56 57 58 59 60"
+)
 
 Txt = Input split "\r" join " "
 Txt = Txt split "\n" join " "
@@ -23,15 +29,15 @@ Nums = (Tok (Tok not equal "")) integer
 N = Nums 0
 R = (Nums (1 till (N + 1))) sort
 
-CountLe = array shape 251 fill 0
-for M in 0 till 251
-  CountLe M = (R at most M) count
-end
+CountLe = R upperindex (0 till 251)
 
 Ans = 0
-for I in 2 till N
-  C = R I
-  for J in 1 till I
+if N greater 2
+  TotalPairs = (N - 1) * (N - 2) // 2
+  I = 2
+  J = 1
+  for Step in 0 till TotalPairs
+    C = R I
     B = R J
     A = R (0 till J)
     BC = B * C
@@ -40,12 +46,20 @@ for I in 2 till N
     Sum = A + BplusC
     Pairs = (A * BplusC) + BC
     Disc = Prod * Sum
-    Root = 2 * (Disc sqrt)
+    Sq = Disc sqrt
+    Root = 2 * Sq
     Denom = Pairs + Root
     Rs = (Prod / Denom) + 0.000000001
     FloorRs = Rs integer
     Counts = CountLe FloorRs
-    Ans = Ans + (Counts sum)
+    CountsSum = Counts sum
+    Ans = Ans + CountsSum
+
+    J = J + 1
+    if J equal I
+      I = I + 1
+      J = 1
+    end
   end
 end
 

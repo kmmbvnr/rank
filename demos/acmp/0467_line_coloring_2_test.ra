@@ -7,7 +7,7 @@ test "sample 1: 4 operations"
   Answer equal 15
 end
 
-test "two identical operations cancel out"
+test "two identical operations cancel"
   use "0467_line_coloring_2"
   Input = "2\n10 20\n10 20"
   run

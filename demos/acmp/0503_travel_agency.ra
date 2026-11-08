@@ -99,7 +99,8 @@ for Phase less 4
       end
       if I less N
         Bit = 1 shl I
-        HasI = (LayMasks band Bit) greater 0
+        BitM = LayMasks band Bit
+        HasI = BitM greater 0
         NxtM = LayMasks bor Bit
         BaseCost = LayP - (PTo I)
         if IsP I
@@ -109,9 +110,13 @@ for Phase less 4
         Better = (not HasI) and (
           CandDP less BestDP
         )
-        BestDP = Better choose CandDP BestDP
+        BestDP = (
+          Better choose CandDP BestDP
+        )
         CandCh = (BestCh * 0) + (I + 1)
-        BestCh = Better choose CandCh BestCh
+        BestCh = (
+          Better choose CandCh BestCh
+        )
         I = I + 1
       else
         DP LayMasks = BestDP

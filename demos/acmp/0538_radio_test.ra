@@ -1,12 +1,12 @@
 use testing
 use numbers
 
-test "sample 1: unit square towers give sqrt(2)/2"
+test "sample 1: unit square towers"
   use "0538_radio"
   Input = "4\n0 0\n0 1\n1 0\n1 1"
   run
 
-  rem Expected R = 1 / sqrt(2) approx 0.70710678
+  rem Expected R = 1 / sqrt(2)
   (R - 0.70710678 abs) less 0.00001
   FinalColors equal array 1 2 2 1
 end
@@ -23,16 +23,16 @@ end
 
 test "equilateral triangle of side 10"
   use "0538_radio"
-  rem All 3 pairwise distances are 10. Odd cycle, so R <= 10 / 2 = 5.0
+  rem Pairwise dist 10: R <= 5.0
   Input = "3\n0 0\n10 0\n5 8.6602540378"
   run
 
   (R - 5.0 abs) less 0.00001
 end
 
-test "two close pairs separated by large distance"
+test "two close pairs separated"
   use "0538_radio"
-  rem Diagonal distance is sqrt(100^2 + 2^2) = 100.02, so R = 50.01
+  rem Diagonal dist is 100.02
   Input = "4\n0 0\n0 2\n100 0\n100 2"
   run
 
