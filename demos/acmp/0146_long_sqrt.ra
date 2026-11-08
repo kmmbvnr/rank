@@ -1,6 +1,6 @@
-rem Integer Square Root of Arbitrary-Precision Number
-rem https://acmp.ru/index.asp?main=task&id_task=146
-rem Exact floor(sqrt(A)) for large integer A up to 10^3000 via Newton-Raphson iteration
+rem Long Square Root
+rem acmp.ru: task 146
+rem Exact floor(sqrt(A)) for large A
 
 use text
 use io

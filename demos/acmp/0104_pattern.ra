@@ -1,6 +1,6 @@
 rem Wildcard Pattern Matching
-rem https://acmp.ru/index.asp?main=task&id_task=104
-rem Match word against wildcard pattern with * and ?
+rem acmp.ru: task 104
+rem Match pattern with * and ?
 
 use io
 use cli

@@ -1,5 +1,5 @@
 rem Farmer 2
-rem https://acmp.ru/index.asp?main=task&id_task=116
+rem acmp.ru: task 116
 rem Largest rectangle of free cells
 
 use sequences
@@ -7,7 +7,10 @@ use text
 use io
 use cli
 
-arg Grid text = "1011011111 0111111110 1111111111 1011111111 1101110111"
+arg Grid text = (
+  "1011011111 0111111110 1111111111 " +
+  "1011111111 1101110111"
+)
 
 Rows = Grid split " "
 M = Rows first len

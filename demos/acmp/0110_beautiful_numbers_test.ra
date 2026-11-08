@@ -26,9 +26,9 @@ test "ACMP 110: K=6 mixed period"
   use "0110_beautiful_numbers"
   Input = "1 6"
   run
-  Expected = "1=0.0(6)+0.0(6)+0.0(6)+" + (
-    "0.0(6)+0.0(6)+0.(6)"
-  )
+  Part1 = "1=0.0(6)+0.0(6)+0.0(6)+"
+  Part2 = "0.0(6)+0.0(6)+0.(6)"
+  Expected = Part1 + Part2
   Result equal Expected
 end
 

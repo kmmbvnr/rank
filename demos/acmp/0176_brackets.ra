@@ -1,6 +1,7 @@
-rem Regular Bracket Sequences of Depth K
-rem https://acmp.ru/index.asp?main=task&id_task=176
-rem Count balanced bracket sequences of length 2N with maximum nesting depth K
+rem Bracket Sequences of Depth K
+rem acmp.ru: task 176
+rem Count balanced sequences of
+rem length 2N and depth K
 
 use sequences
 use io
@@ -11,6 +12,7 @@ arg K integer = 23
 
 Opens = 0 to N array
 Prefix = array 0
+PrevIdxs = 0 till N array
 
 DMax = K
 DPrev = K - 1
@@ -25,14 +27,23 @@ for Step in 1 to (2 * N)
   Balance = 2 * Opens - Step
   NonNeg = not (Balance less 0)
 
-  ShiftedMax = concat Prefix (DPMax (0 till N array))
-  MaskMax = (NonNeg and (not (Balance greater DMax))) integer
-  DPMax = (DPMax + ShiftedMax) * MaskMax
+  DPMaxVal = DPMax PrevIdxs
+  ShiftMax = concat Prefix DPMaxVal
+  BelowMax = not (Balance greater DMax)
+  MaskMaxBool = NonNeg and BelowMax
+  MaskMax = MaskMaxBool integer
+  SumMax = DPMax + ShiftMax
+  DPMax = SumMax * MaskMax
 
   if DPrev greater 0
-    ShiftedPrev = concat Prefix (DPPrev (0 till N array))
-    MaskPrev = (NonNeg and (not (Balance greater DPrev))) integer
-    DPPrev = (DPPrev + ShiftedPrev) * MaskPrev
+    DPPrevVal = DPPrev PrevIdxs
+    ShiftPrev = concat Prefix DPPrevVal
+    OverPrev = Balance greater DPrev
+    BelowPrev = not OverPrev
+    MaskPrevBool = NonNeg and BelowPrev
+    MaskPrev = MaskPrevBool integer
+    SumPrev = DPPrev + ShiftPrev
+    DPPrev = SumPrev * MaskPrev
   end
 end
 

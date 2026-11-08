@@ -1,6 +1,6 @@
 rem Pretty Patterns
-rem https://acmp.ru/index.asp?main=task&id_task=83
-rem Count M x N monochromatic-free 2x2 patterns
+rem acmp.ru: task 83
+rem Monochromatic-free 2x2 patterns
 
 use bits
 use io

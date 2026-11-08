@@ -1,5 +1,5 @@
 rem Maharaja
-rem https://acmp.ru/index.asp?main=task&id_task=101
+rem acmp.ru: task 101
 rem Count non-attacking maharajas
 
 use io

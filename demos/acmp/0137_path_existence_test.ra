@@ -10,7 +10,7 @@ test "example 1 with negative cycle"
   (Answer 3 4) equal 2
 end
 
-test "simple DAG without negative cycles"
+test "simple DAG without neg cycles"
   use "0137_path_existence"
   MatrixText = "0 5 0 0 0 2 0 0 0"
   N = 3

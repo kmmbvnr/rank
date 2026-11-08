@@ -1,10 +1,12 @@
 rem ACMP 158 - The Grand Combinator
-rem Solved in Euler 1-15 style with direct combinatorial arithmetic.
+rem Solved in Euler 1-15 style.
 rem
-rem Ostap Bender and K children of lieutenant Schmidt (K + 1 people in total)
-rem divide X rubles in 5-ruble banknotes without tearing them.
-rem With N = X // 5 banknotes and M = K + 1 people, the number of non-negative
-rem integer distributions is given by stars and bars: C(N + M - 1, M - 1) = C(N + K, K).
+rem Bender and K children of Schmidt
+rem (K + 1 people) divide X rubles
+rem in 5-ruble banknotes.
+rem N = X // 5 banknotes.
+rem Stars and bars:
+rem C(N + M - 1, M - 1) = C(N + K, K).
 
 use io
 use cli

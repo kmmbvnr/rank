@@ -1,5 +1,5 @@
 rem Zeros
-rem https://acmp.ru/index.asp?main=task&id_task=77
+rem acmp.ru: task 77
 rem Count numbers with K binary zeros
 
 use io
@@ -26,10 +26,12 @@ Valid = Tail equal 1
 Valid and= Need at least 0
 Valid and= Need at most Rest
 
-Same = Rest Valid binomial Need Valid sum
+Terms = Rest Valid binomial Need Valid
+Same = Terms sum
 
 Answer = Shorter + Same
-if 1 - Bits sum equal K
+ZerosCount = 1 - Bits sum
+if ZerosCount equal K
   Answer += 1
 end
 

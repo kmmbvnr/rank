@@ -1,6 +1,7 @@
 use testing
+use text
 
-test "ACMP 158: sample case 15 rubles, 2 children"
+test "sample 15 rubles, 2 children"
   use "0158_combinator"
   X = 15
   K = 2
@@ -18,7 +19,7 @@ test "ACMP 158: 0 rubles, 0 children"
   Answer equal 1
 end
 
-test "ACMP 158: 1 banknote, 1 child (2 people)"
+test "1 banknote, 1 child (2 people)"
   use "0158_combinator"
   X = 5
   K = 1
@@ -27,12 +28,15 @@ test "ACMP 158: 1 banknote, 1 child (2 people)"
   Answer equal 2
 end
 
-test "ACMP 158: maximum inputs X=500, K=100"
+test "maximum inputs X=500, K=100"
   use "0158_combinator"
   X = 500
   K = 100
   run
 
-  Expected = 90548514656103281165404177077484163874504589675413336841320
+  P1 = "905485146561032811654041770774"
+  P2 = "84163874504589675413336841320"
+  ExpText = P1 + P2
+  Expected = ExpText integer
   Answer equal Expected
 end

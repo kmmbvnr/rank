@@ -1,11 +1,7 @@
-rem ACMP 191 - Smooth Numbers (Гладкие числа)
-rem Solved in Euler 1-15 style with array-oriented combinatorial ranking.
-rem
-rem A smooth number has decimal digits in non-decreasing order:
-rem   1 <= d_1 <= d_2 <= ... <= d_L <= 9 (digits cannot contain 0).
-rem For length L, the number of such sequences is C(L + 8, 8).
-rem We find length L via vector scan + boolean count, then determine each digit
-rem position-by-position using prefix sums of combination counts without nested loops.
+rem ACMP 191 - Smooth Numbers
+rem Combinatorial ranking of digits.
+rem Digits ordered: 1 <= d_i <= 9.
+rem For length L, count is C(L + 8, 8).
 
 use io
 use cli
@@ -14,13 +10,16 @@ use sequences
 
 arg N integer = 2147483647
 
-rem Cumulative count of smooth numbers of each length up to 70
+rem Counts of each length up to 70
 Lengths = 1 to 70
 Counts = Lengths + 8 binomial 8
-PrefixCounts = Counts scan + with 0 array
+PrefixSeq = Counts scan + with 0
+PrefixCounts = PrefixSeq array
 
-L = PrefixCounts less N count
-RemN = N - (PrefixCounts (L - 1))
+LessN = PrefixCounts less N
+L = LessN count
+PrevL = PrefixCounts (L - 1)
+RemN = N - PrevL
 
 AnswerText = ""
 D = 1
@@ -28,12 +27,17 @@ D = 1
 for Pos in 1 to L
   RemLen = L - Pos
   Candidates = D to 9
-  Ways = RemLen + 9 - Candidates binomial RemLen
-  CumWays = Ways scan + with 0 array
-  Skip = CumWays less RemN count
+  DiffCand = RemLen + 9 - Candidates
+  Ways = DiffCand binomial RemLen
+  WaysSeq = Ways scan + with 0
+  CumWays = WaysSeq array
+  LessRemN = CumWays less RemN
+  Skip = LessRemN count
   Chosen = Candidates (Skip - 1)
-  AnswerText = AnswerText + (Chosen text)
-  RemN = RemN - (CumWays (Skip - 1))
+  ChosenText = Chosen text
+  AnswerText = AnswerText + ChosenText
+  PrevSkip = CumWays (Skip - 1)
+  RemN = RemN - PrevSkip
   D = Chosen
 end
 

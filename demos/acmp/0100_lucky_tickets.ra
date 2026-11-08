@@ -1,6 +1,7 @@
 rem Lucky Tickets
-rem https://acmp.ru/index.asp?main=task&id_task=100
-rem Number of N-digit tickets where sum of first N/2 digits equals sum of last N/2 digits
+rem acmp.ru: task 100
+rem Number of N-digit tickets where
+rem first N/2 sum equals last N/2 sum
 
 use io
 use cli
@@ -12,10 +13,11 @@ DP = array 1
 
 for Step in 1 to K
   C = DP scan + with 0 array
-  NextLen = DP len + 9
-  Indices = 0 till NextLen array
-  HiLimit = array shape NextLen fill (DP len)
-  LoLimit = array shape NextLen fill 0
+  L2 = DP len + 9
+  Indices = 0 till L2 array
+  DpLen = DP len
+  HiLimit = array shape L2 fill DpLen
+  LoLimit = array shape L2 fill 0
   Hi = Indices + 1 min HiLimit
   Lo = Indices - 9 max LoLimit
   DP = C Hi - C Lo
