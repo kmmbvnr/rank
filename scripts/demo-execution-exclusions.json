@@ -206,7 +206,7 @@
   "euler/764_asymmetricdiophantine.ra": "Full default run takes about 19 s on Mac and 45 s on Intel (7e7 parameter pairs); direct equation tests cover small values.",
   "euler/781_feynmandiagrams.ra": "Full default run takes about 25 s on Mac and 45 s on Intel (25000 layers up to 50000 cells); exact small recurrences are covered by tests.",
   "euler/782_distinctrowscolumns.ra": "Full default run takes about 11 s on Mac and 43 s on Intel (8e6 triples and 46 forms); exhaustive small matrices are covered by tests.",
-  "euler/791_averagevariance.ra": "Full default run takes about 70 s (14000 odd u rows of up to 14000 closed-form interval sums); small values are covered by the test.",
+  "euler/791_averagevariance.ra": "Full default run takes about 17 s on Mac and 47 s on Intel (14000 odd u rows); exhaustive small quadruples and statement values are covered by tests.",
   "euler/769_binaryquadraticform.ra": "Full default run takes about 30-37 s (1e8 divisor-weighted pairs); small values are covered by the test.",
   "euler/793_medianofproducts.ra": "Full default run takes about 22-25 s (60 bisection rounds, each sorting 2e6 values); small values are covered by the test.",
   "euler/799_pentagonalpuzzle.ra": "Full default run takes about 8 min (trial division of 2.8e7 values by 40 primes); the small value is covered by the test.",

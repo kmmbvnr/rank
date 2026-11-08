@@ -18,15 +18,21 @@ rem + 3) / 2. For each odd u and v the
 rem odd w form one interval, or two when
 rem a central gap is cut out; interval
 rem sums come in closed form.
-fun Low sums High
-  Cnt = ((High - Low) // 2 + 1) max 0
-  Lin = Cnt * Low + Cnt * (Cnt - 1)
-  Mid = Cnt * (Cnt - 1) // 2
-  Prev = Cnt - 1
-  Cube = Prev * Cnt * (2 * Cnt - 1) // 6
-  Sq = Cnt * Low * Low + 4 * Low * Mid
-  Sq = Sq + 4 * Cube
-  return array Cnt Lin Sq
+fun Low sums High Weight Mod
+  Count' = ((High - Low) // 2 + 1) max 0
+  Linear' = Count * Low + Count * (Count - 1)
+  Pairs' = Count * (Count - 1) // 2
+  Previous' = Count - 1
+  Product' = Previous * Count
+  Cube' = Product * (2 * Count - 1) // 6
+  Leading' = Count * Low * Low
+  Square' = Leading + 4 * Low * Pairs
+  Squares' = Square + 4 * Cube
+  Base' = Count * Weight + Squares
+  Total' = Base + 2 * Linear
+  rem Each odd-w contribution is even.
+  Terms' = (Total // 2) mod Mod
+  return Terms sum
 end
 Reach = 8 * Limit
 Last = ((Reach + 3) isqrt) - 2
@@ -37,36 +43,28 @@ for Index in 0 to (Last - 1) // 2
   Edge = (Flat - 1) max 0
   Top = U min ((Edge isqrt) - 2)
   Count = (Top + 1) // 2 + 1
-  Vs = (0 to Count - 1) * 2 - 1
+  rem Top keeps every Rest nonnegative.
+  Odds = (0 to Count - 1) * 2 - 1
   Used = U * U + 4 * U + 5
-  Rest = Reach - Used - Vs * Vs - 4 * Vs
-  Valid = Rest at least 0
-  Wm = (Rest max 0) isqrt
-  Lo = (0 - Wm) max (0 - Vs - 2)
-  Hi = Wm min Vs
-  Lo = Lo + (Lo + 1) mod 2
-  Hi = Hi - (Hi + 1) mod 2
-  Gap = 11 - U * U - Vs * Vs
+  Rest = Reach - Used - Odds * Odds
+  Rest = Rest - 4 * Odds
+  Radius = (Rest max 0) isqrt
+  Lower = (0 - Radius) max (0 - Odds - 2)
+  Upper = Radius min Odds
+  Low = Lower + (Lower + 1) mod 2
+  High = Upper - (Upper + 1) mod 2
+  Gap = 11 - U * U - Odds * Odds
   On = Gap greater 0
   Cut = ((Gap - 1) max 0) isqrt + 1
-  End1 = On choose (Hi min (0 - Cut)) Hi
-  End1 = End1 - (End1 + 1) mod 2
-  Beg2 = On choose (Lo max Cut) (Hi + 2)
-  Beg2 = Beg2 + (Beg2 + 1) mod 2
-  Kk = U * U + Vs * Vs + 2 * U
-  Kk = Kk + 2 * Vs + 3
-  First = Lo sums End1
-  Second = Beg2 sums Hi
-  Num1 = (First 0) * Kk
-  Lin1 = First 1
-  Part1 = Num1 + (First 2) + 2 * Lin1
-  Num2 = (Second 0) * Kk
-  Lin2 = Second 1
-  Part2 = Num2 + (Second 2) + 2 * Lin2
-  Mask = Valid integer
-  Half = (Part1 + Part2) // 2
-  Both = (Half mod Mod) * Mask
-  Part = Both sum
+  End = On choose (High min (0 - Cut)) High
+  LastLeft = End - (End + 1) mod 2
+  Begin = On choose (Low max Cut) (High + 2)
+  FirstRight = Begin + (Begin + 1) mod 2
+  Base = U * U + Odds * Odds + 2 * U
+  Weight = Base + 2 * Odds + 3
+  Part1 = Low sums LastLeft Weight Mod
+  Part2 = FirstRight sums High Weight Mod
+  Part = Part1 + Part2
   Answer = (Answer + Part) mod Mod
 end
 Answer print
