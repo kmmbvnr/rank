@@ -1,7 +1,7 @@
-rem Time Key 2 (Временной ключ - 2)
-rem https://acmp.ru/index.asp?main=task&id_task=644
-rem Given key N and K minutes, find key value after K steps where each step N <- N + popcount(N).
-rem Solved via binary lifting over bit blocks: precomputing step counts and boundary overflows across powers of 2.
+rem Time Key 2
+rem ACMP 644
+rem N <- N + popcount(N) for K steps
+rem Binary lifting over bit blocks
 
 use io
 use numbers
@@ -12,7 +12,9 @@ use bits
 
 arg Input text = "2000000000 2000000000"
 
-Tokens = Input split "\n" join " " split " "
+Lines = Input split "\n"
+Line = Lines join " "
+Tokens = Line split " "
 Tokens = Tokens (Tokens not equal "")
 N = Tokens 0 integer
 K = Tokens 1 integer
@@ -20,73 +22,78 @@ K = Tokens 1 integer
 MaxB = 36
 MaxP = 42
 MaxRem = 64
-TotalSize = (MaxB + 1) * (MaxP + 1) * MaxRem
+NPR = (MaxP + 1) * MaxRem
+TotalSize = (MaxB + 1) * NPR
 
-CrossSteps = array shape TotalSize fill 0
-CrossOver = array shape TotalSize fill 0
+Sz = TotalSize
+CrossSteps = array shape Sz fill 0
+CrossOver = array shape Sz fill 0
 
-for P in 0 till (MaxP + 1)
-  for Rem in 0 till MaxRem
-    if not (P equal 0 and (Rem equal 0))
-      Cur = Rem
-      S = 0
-      for Step in 0 till 64
-        if not (Cur less 64)
-          break
-        end
-        Cur = Cur + P + (Cur popcount)
-        S = S + 1
-      end
-      Id = ((6 * (MaxP + 1)) + P) * MaxRem + Rem
-      CrossSteps Id = S
-      CrossOver Id = Cur - 64
-    end
-  end
+Idx = 0 till NPR
+P = Idx // MaxRem
+Rem = Idx mod MaxRem
+
+Cur = Rem
+S = array shape NPR fill 0
+
+for Step in 0 till 64
+  Active = Cur less 64
+  PCount = Cur popcount
+  Delta = P + PCount
+  NextCur = Cur + Delta
+  NextS = S + 1
+  Cur = Active choose NextCur Cur
+  S = Active choose NextS S
 end
 
-for B in 7 till (MaxB + 1)
-  for P in 0 till (MaxP + 1)
-    for Rem in 0 till MaxRem
-      if not (P equal 0 and (Rem equal 0))
-        Id1 = (((B - 1) * (MaxP + 1)) + P) * MaxRem + Rem
-        S1 = CrossSteps Id1
-        R1 = CrossOver Id1
-        P2 = P + 1 min MaxP
-        Id2 = (((B - 1) * (MaxP + 1)) + P2) * MaxRem + R1
-        S2 = CrossSteps Id2
-        R2 = CrossOver Id2
-        Id = ((B * (MaxP + 1)) + P) * MaxRem + Rem
-        CrossSteps Id = S1 + S2
-        CrossOver Id = R2
-      end
-    end
-  end
+IdBase = (6 * NPR) + Idx
+CrossSteps IdBase = S
+CrossOver IdBase = Cur - 64
+
+for B in 7 to MaxB
+  BasePrev = (B - 1) * NPR
+  BaseCur = B * NPR
+  Id1 = BasePrev + Idx
+  S1 = CrossSteps Id1
+  R1 = CrossOver Id1
+  P2 = (P + 1) min MaxP
+  Id2 = BasePrev + (P2 * MaxRem) + R1
+  S2 = CrossSteps Id2
+  R2 = CrossOver Id2
+  IdCur = BaseCur + Idx
+  CrossSteps IdCur = S1 + S2
+  CrossOver IdCur = R2
 end
+
+AllB = (6 to MaxB) reverse
+AllMask = (1 shl AllB) - 1
 
 for Iter in 0 till 2000000000
   if K equal 0
     break
   end
-  Rem = N band 63
-  Base = N - Rem
-  Jumped = 0
-  for B in ((6 till (MaxB + 1)) reverse)
-    Mask = (1 shl B) - 1
-    if Base band Mask equal 0
-      U = N shr B
-      P = U popcount min MaxP
-      Id = ((B * (MaxP + 1)) + P) * MaxRem + Rem
-      S = CrossSteps Id
-      if not (K less S)
-        N = (U + 1 shl B) + (CrossOver Id)
-        K = K - S
-        Jumped = 1
-        break
-      end
-    end
-  end
-  if Jumped equal 0
-    N = N + (N popcount)
+  RemN = N band 63
+  Base = N - RemN
+  IsZero = (Base band AllMask) equal 0
+  CandB = AllB IsZero
+  U = N shr CandB
+  PPop = (U popcount) min MaxP
+  Id = (CandB * NPR) + (PPop * MaxRem)
+  Id = Id + RemN
+  S = CrossSteps Id
+  CanJump = S at most K
+  JumpB = CandB CanJump
+  if JumpB len greater 0
+    BestB = JumpB 0
+    BestU = (U CanJump) 0
+    BestId = (Id CanJump) 0
+    BestS = (S CanJump) 0
+    Over = CrossOver BestId
+    N = (BestU + 1 shl BestB) + Over
+    K = K - BestS
+  else
+    PopN = N popcount
+    N = N + PopN
     K = K - 1
   end
 end

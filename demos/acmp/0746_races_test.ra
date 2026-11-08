@@ -82,7 +82,7 @@ test "tree has none"
   Ans equal 0
 end
 
-test "n = 300: complete bipartite K150,150"
+test "n = 300: complete bipartite"
   use text
   use "0746_races"
   E = 0 till 22500

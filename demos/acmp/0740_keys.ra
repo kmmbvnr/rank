@@ -1,10 +1,6 @@
 rem Keys (Ключи)
-rem https://acmp.ru/index.asp?main=task&id_task=740
-rem Difficulty: 61%
-rem Find maximum overlapping rectangular holes between two keys under translation.
-rem Solved via 2D open rectangle intersection coverage:
-rem Project shift bounds into closed integer intervals [2*Xmin + 1, 2*Xmax - 1],
-rem compress Y coordinates, and sweep-line with iterative range-add segment tree.
+rem ACMP 740
+rem Overlapping holes under translation
 
 use io
 use text
@@ -19,56 +15,55 @@ arg Input text = "10 10
 1
 1 1 3 3"
 
-Tokens = Input split "\r" join " " split "\n" join " " split " "
-Tokens = Tokens (Tokens not equal "")
+Txt = Input split "\r" join " "
+Txt = Txt split "\n" join " "
+Tok = Txt split " "
+Tokens = Tok (Tok not equal "")
 
 N = Tokens 0 integer
 M = Tokens 1 integer
 K1 = Tokens 2 integer
 
-Idx = 3
-Ax1 = array shape K1 fill 0
-Ay1 = array shape K1 fill 0
-Ax2 = array shape K1 fill 0
-Ay2 = array shape K1 fill 0
+Raw1 = (Tokens drop 3 take (4 * K1))
+Raw1Int = Raw1 integer
+Idx1 = 0 till K1
+Ax1 = Raw1Int (Idx1 * 4)
+Ay1 = Raw1Int (Idx1 * 4 + 1)
+Ax2 = Raw1Int (Idx1 * 4 + 2)
+Ay2 = Raw1Int (Idx1 * 4 + 3)
 
-for I in 0 till K1
-  Ax1 I = Tokens Idx integer
-  Ay1 I = (Tokens (Idx + 1)) integer
-  Ax2 I = (Tokens (Idx + 2)) integer
-  Ay2 I = (Tokens (Idx + 3)) integer
-  Idx = Idx + 4
-end
+PosK2 = 3 + (4 * K1)
+K2 = Tokens PosK2 integer
 
-K2 = Tokens Idx integer
-Idx = Idx + 1
-
-Bu1 = array shape K2 fill 0
-Bv1 = array shape K2 fill 0
-Bu2 = array shape K2 fill 0
-Bv2 = array shape K2 fill 0
-
-for J in 0 till K2
-  Bu1 J = Tokens Idx integer
-  Bv1 J = (Tokens (Idx + 1)) integer
-  Bu2 J = (Tokens (Idx + 2)) integer
-  Bv2 J = (Tokens (Idx + 3)) integer
-  Idx = Idx + 4
-end
+Len2 = 4 * K2
+Drop2 = PosK2 + 1
+Raw2 = (Tokens drop Drop2 take Len2)
+Raw2Int = Raw2 integer
+Idx2 = 0 till K2
+Bu1 = Raw2Int (Idx2 * 4)
+Bv1 = Raw2Int (Idx2 * 4 + 1)
+Bu2 = Raw2Int (Idx2 * 4 + 2)
+Bv2 = Raw2Int (Idx2 * 4 + 3)
 
 TotalPairs = K1 * K2
 
-DiffX1 = Ax1 Bu2 outer - reshape TotalPairs
-DiffX2 = Ax2 Bu1 outer - reshape TotalPairs
-DiffY1 = Ay1 Bv2 outer - reshape TotalPairs
-DiffY2 = Ay2 Bv1 outer - reshape TotalPairs
+DX1 = Ax1 Bu2 outer -
+DiffX1 = DX1 reshape TotalPairs
+DX2 = Ax2 Bu1 outer -
+DiffX2 = DX2 reshape TotalPairs
+DY1 = Ay1 Bv2 outer -
+DiffY1 = DY1 reshape TotalPairs
+DY2 = Ay2 Bv1 outer -
+DiffY2 = DY2 reshape TotalPairs
 
 LX = (DiffX1 * 2) + 1
 RX = (DiffX2 * 2) - 1
 LY = (DiffY1 * 2) + 1
 RY = (DiffY2 * 2) - 1
 
-Valid = LX at most RX and (LY at most RY)
+Valid = (LX at most RX) and (
+  LY at most RY
+)
 LX = LX Valid
 RX = RX Valid
 LY = LY Valid
@@ -86,7 +81,9 @@ if NumRects greater 0
   QR = SortedY lowerindex RY
 
   EventX = concat LX (RX + 1)
-  EventType = concat (array shape NumRects fill 1) (array shape NumRects fill -1)
+  O1 = array shape NumRects fill 1
+  Om1 = array shape NumRects fill -1
+  EventType = concat O1 Om1
   EventQL = concat QL QL
   EventQR = concat QR QR
   NumEvents = EventX len
@@ -97,7 +94,9 @@ if NumRects greater 0
     XOffset = 0 - XMin
   end
 
-  EventKey = (((EventX + XOffset) * 2) + ((1 - EventType) // 2))
+  OffX = EventX + XOffset
+  EvSign = (1 - EventType) // 2
+  EventKey = (OffX * 2) + EvSign
   Order = EventKey argsort
   EventX = EventX Order
   EventType = EventType Order
@@ -116,66 +115,59 @@ if NumRects greater 0
   Cover = array shape TreeSize fill 0
   MaxVal = array shape TreeSize fill 0
 
-  EvIdx = 0
-  for Step in 0 till (NumEvents + 1)
-    if EvIdx at least NumEvents
-      break
-    end
-    CurX = EventX EvIdx
-    for Inner in 0 till (NumEvents + 1)
-      if EvIdx at least NumEvents
+  for EvIdx in 0 till NumEvents
+    Val = EventType EvIdx
+    L = P + (EventQL EvIdx)
+    R = P + (EventQR EvIdx)
+    L0 = L
+    R0 = R
+    for Up in 0 till 35
+      if L greater R
         break
       end
-      if EventX EvIdx not equal CurX
+      if L mod 2 equal 1
+        Cover L = (Cover L) + Val
+        MaxVal L = (MaxVal L) + Val
+        L = L + 1
+      end
+      if R mod 2 equal 0
+        Cover R = (Cover R) + Val
+        MaxVal R = (MaxVal R) + Val
+        R = R - 1
+      end
+      L = L // 2
+      R = R // 2
+    end
+
+    CurrL = L0 // 2
+    for Up in 0 till 35
+      if CurrL less 1
         break
       end
-      Val = EventType EvIdx
-      L = P + (EventQL EvIdx)
-      R = P + (EventQR EvIdx)
-      L0 = L
-      R0 = R
-      for Up in 0 till 35
-        if L greater R
-          break
-        end
-        if L mod 2 equal 1
-          Cover L = (Cover L) + Val
-          MaxVal L = (MaxVal L) + Val
-          L = L + 1
-        end
-        if R mod 2 equal 0
-          Cover R = (Cover R) + Val
-          MaxVal R = (MaxVal R) + Val
-          R = R - 1
-        end
-        L = L // 2
-        R = R // 2
-      end
-
-      Curr = L0 // 2
-      for Up in 0 till 35
-        if Curr less 1
-          break
-        end
-        ChildMax = (MaxVal (2 * Curr)) max (MaxVal ((2 * Curr) + 1))
-        MaxVal Curr = (Cover Curr) + ChildMax
-        Curr = Curr // 2
-      end
-
-      Curr = R0 // 2
-      for Up in 0 till 35
-        if Curr less 1
-          break
-        end
-        ChildMax = (MaxVal (2 * Curr)) max (MaxVal ((2 * Curr) + 1))
-        MaxVal Curr = (Cover Curr) + ChildMax
-        Curr = Curr // 2
-      end
-
-      EvIdx = EvIdx + 1
+      C2 = 2 * CurrL
+      MC2 = MaxVal C2
+      MC21 = MaxVal (C2 + 1)
+      CM = MC2 max MC21
+      MaxVal CurrL = (Cover CurrL) + CM
+      CurrL = CurrL // 2
     end
-    if MaxVal 1 greater MaxHoles
-      MaxHoles = MaxVal 1
+
+    CurrR = R0 // 2
+    for Up in 0 till 35
+      if CurrR less 1
+        break
+      end
+      C2 = 2 * CurrR
+      MC2 = MaxVal C2
+      MC21 = MaxVal (C2 + 1)
+      CM = MC2 max MC21
+      MaxVal CurrR = (Cover CurrR) + CM
+      CurrR = CurrR // 2
+    end
+
+    CurAns = MaxVal 1
+    if CurAns greater MaxHoles
+      MaxHoles = CurAns
     end
   end
 end

@@ -21,7 +21,7 @@ test "single company"
   Assign equal (array 0)
 end
 
-test "result is a Nash equilibrium (ties, 5x5)"
+test "Nash equilibrium (ties, 5x5)"
   use "0727_plot_distribution"
   Input = "5
 3 3 3 3 3
@@ -34,17 +34,25 @@ test "result is a Nash equilibrium (ties, 5x5)"
   Ok = 1
   for I in 0 till N
     Now = 0
-    if ((Assign equal (Assign I)) count) equal 1
+    EqI = Assign equal (Assign I)
+    if (EqI count) equal 1
       Now = (Vals (I * N + (Assign I)))
     end
-    rem Winner of plot J when I claims J.
+    rem Winner of plot J
     for J in 0 till N
       Best = Vals (I * N + J)
       Wins = 1
       for K in 0 till N
-        if K not equal I and (Assign K) equal J
+        DiffK = K not equal I
+        ClaimJ = (Assign K) equal J
+        if DiffK and ClaimJ
           Other = Vals (K * N + J)
-          if Other greater Best or (Other equal Best and K less I)
+          DiffVal = Other greater Best
+          EqVal = Other equal Best
+          LessVal = K less I
+          TieVal = EqVal and LessVal
+          Beats = DiffVal or TieVal
+          if Beats
             Wins = 0
           end
         end
@@ -59,10 +67,12 @@ test "result is a Nash equilibrium (ties, 5x5)"
   Ok equal 1
 end
 
-test "maximum n = 400 is a perfect matching"
+test "max n = 400 perfect matching"
   use text
   use "0727_plot_distribution"
-  Cells = (((0 till 160000) * 7919) mod 1000003) + 1
+  Idx400 = 0 till 160000
+  P400 = (Idx400 * 7919) mod 1000003
+  Cells = P400 + 1
   Input = "400 " + (Cells join " ")
   run
 

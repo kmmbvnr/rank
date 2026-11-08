@@ -1,12 +1,6 @@
-rem ACMP 0655 - Data Encoding (Кодирование данных)
-rem Decode natural number N from code(N) = N + cyclic(N, K).
-rem
-rem Mathematical relation:
-rem N * (10^K + 1) = code(N) + A * (10^L - 1)
-rem where L is the number of digits of N, and A is the integer formed by the first K digits.
-rem Taking modulo (10^K + 1) yields a linear congruence:
-rem A * (10^L - 1) = -code(N)  (mod 10^K + 1)
-rem solved via the extended Euclidean algorithm with verification of cyclic sum.
+rem ACMP 0655 - Data Encoding
+rem Decode N from code = N + cyclic(N,K)
+rem N*(10^K+1) = code + A*(10^L-1)
 
 use io
 use cli
@@ -16,7 +10,26 @@ use text
 
 arg Input text = "512\n1"
 
-Tokens = (Input split "\n" join " ") split " "
+fun Coeff extGcd Mod
+  G0 = Coeff
+  G1 = Mod
+  X0 = 1
+  X1 = 0
+  for G1 not equal 0
+    Q = G0 // G1
+    G2 = G0 mod G1
+    G0 = G1
+    G1 = G2
+    X2 = X0 - Q * X1
+    X0 = X1
+    X1 = X2
+  end
+  return array G0 X0
+end
+
+Lines = Input split "\n"
+Line = Lines join " "
+Tokens = Line split " "
 Tokens = Tokens (Tokens not equal "")
 CodeText = Tokens 0
 K = Tokens 1 integer
@@ -24,9 +37,14 @@ K = Tokens 1 integer
 Code = CodeText integer
 LenCode = CodeText len
 
-TenK = ("1" + ((array shape K fill "0") join "")) integer
+TenKArr = array shape K fill "0"
+TenKStr = "1" + (TenKArr join "")
+TenK = TenKStr integer
 Mod = TenK + 1
-MinA = ("1" + ((array shape (K - 1) fill "0") join "")) integer
+
+MinAArr = array shape (K - 1) fill "0"
+MinAStr = "1" + (MinAArr join "")
+MinA = MinAStr integer
 
 Answer = ""
 Found = false
@@ -36,35 +54,29 @@ if LenCode - 1 greater MinL
   MinL = LenCode - 1
 end
 
-for L in MinL to LenCode array reverse
+for L in (MinL to LenCode array reverse)
   if not Found
-    TenL = ("1" + ((array shape L fill "0") join "")) integer
+    TenLArr = array shape L fill "0"
+    TenLStr = "1" + (TenLArr join "")
+    TenL = TenLStr integer
     M = L - K
-    TenM = ("1" + ((array shape M fill "0") join "")) integer
+    TenMArr = array shape M fill "0"
+    TenMStr = "1" + (TenMArr join "")
+    TenM = TenMStr integer
 
     Coeff = (TenL - 1) mod Mod
-    Target = ((0 - Code) mod Mod + Mod) mod Mod
+    NegCode = 0 - Code
+    NegMod = NegCode mod Mod + Mod
+    Target = NegMod mod Mod
 
-    rem Extended GCD of Coeff and Mod
-    G0 = Coeff
-    G1 = Mod
-    X0 = 1
-    X1 = 0
-    for G1 not equal 0
-      Q = G0 // G1
-      G2 = G0 mod G1
-      G0 = G1
-      G1 = G2
-      X2 = X0 - Q * X1
-      X0 = X1
-      X1 = X2
-    end
-    G = G0
-    X = X0
+    T = Coeff extGcd Mod
+    G = T 0
+    X = T 1
 
     if Target mod G equal 0
       Step = Mod // G
-      BaseA = (X * (Target // G)) mod Step
+      Prod = X * (Target // G)
+      BaseA = Prod mod Step
       if BaseA less 0
         BaseA = BaseA + Step
       end
@@ -74,7 +86,8 @@ for L in MinL to LenCode array reverse
           SumAB = Code // Mod
           MaxB = TenK - 1
           ChosenA = MinA
-          if SumAB - ChosenA greater MaxB
+          DiffAB = SumAB - ChosenA
+          if DiffAB greater MaxB
             ChosenA = SumAB - MaxB
           end
           BaseA = ChosenA

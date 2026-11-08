@@ -32,7 +32,7 @@ test "boundary: N = 6, K = 1 -> 8"
   Ans equal 8
 end
 
-test "stress test: N = 1, K = 2000000000 -> 34179892637"
+test "stress test: N = 1, K = 2*10^9"
   use "0644_time_key_2"
   Input = "1 2000000000"
   run
@@ -40,7 +40,7 @@ test "stress test: N = 1, K = 2000000000 -> 34179892637"
   Ans equal 34179892637
 end
 
-test "stress test: N = 2000000000, K = 2000000000 -> 36359345582"
+test "stress: N = 2*10^9, K = 2*10^9"
   use "0644_time_key_2"
   Input = "2000000000 2000000000"
   run

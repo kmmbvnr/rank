@@ -33,7 +33,7 @@ end
 
 test "K=3 with 6-digit cyclic shift"
   use "0655_data_encoding"
-  rem N = 100200, cyclic(N, 3) = 200100 -> code = 300300
+  rem N = 100200, cyclic 3 -> 300300
   Input = "300300\n3"
   run
 

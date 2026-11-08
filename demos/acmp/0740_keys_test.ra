@@ -1,6 +1,6 @@
 use testing
 
-test "sample 1: identical single holes -> 1"
+test "sample 1: identical single holes"
   use "0740_keys"
   Input = "10 10
 1
@@ -12,7 +12,7 @@ test "sample 1: identical single holes -> 1"
   MaxHoles equal 1
 end
 
-test "sample 2: two non-adjacent holes vs one small hole -> 1"
+test "sample 2: two non-adjacent holes"
   use "0740_keys"
   Input = "10 10
 2
@@ -25,7 +25,7 @@ test "sample 2: two non-adjacent holes vs one small hole -> 1"
   MaxHoles equal 1
 end
 
-test "sample 3: two holes vs one spanning hole with half-integer translation -> 2"
+test "sample 3: half-integer shift"
   use "0740_keys"
   Input = "10 10
 2
@@ -38,7 +38,7 @@ test "sample 3: two holes vs one spanning hole with half-integer translation -> 
   MaxHoles equal 2
 end
 
-test "multiple holes alignment with offset"
+test "multiple holes alignment"
   use "0740_keys"
   Input = "20 20
 3

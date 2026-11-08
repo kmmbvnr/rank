@@ -1,6 +1,6 @@
 use testing
 
-test "sample 1: n = 6 (k=1) has 1 non-trivial factorization"
+test "sample 1: n = 6 (k=1) has 1"
   use "0749_incorrect_rsa"
   Input = "6"
   run
@@ -9,7 +9,7 @@ test "sample 1: n = 6 (k=1) has 1 non-trivial factorization"
   FoundK equal 1
 end
 
-test "sample 2: n = 100 (k=2) has 8 non-trivial factorizations"
+test "sample 2: n = 100 (k=2) has 8"
   use "0749_incorrect_rsa"
   Input = "100"
   run

@@ -1,6 +1,6 @@
 use testing
 
-test "sample 1: N = 6 requires 5 candies"
+test "sample 1: N = 6 gives 5"
   use "0631_guess_number"
   Input = "6"
   run
@@ -8,7 +8,7 @@ test "sample 1: N = 6 requires 5 candies"
   Candies equal 5
 end
 
-test "sample 2: N = 2 requires 2 candies"
+test "sample 2: N = 2 gives 2"
   use "0631_guess_number"
   Input = "2"
   run
@@ -24,7 +24,7 @@ test "N = 1 requires 0 candies"
   Candies equal 0
 end
 
-test "Fibonacci boundary: N = 5 requires 4 candies"
+test "boundary: N = 5 gives 4"
   use "0631_guess_number"
   Input = "5"
   run
@@ -32,7 +32,7 @@ test "Fibonacci boundary: N = 5 requires 4 candies"
   Candies equal 4
 end
 
-test "Fibonacci boundary: N = 8 requires 5 candies"
+test "boundary: N = 8 gives 5"
   use "0631_guess_number"
   Input = "8"
   run
@@ -40,7 +40,7 @@ test "Fibonacci boundary: N = 8 requires 5 candies"
   Candies equal 5
 end
 
-test "Fibonacci boundary: N = 9 requires 6 candies"
+test "boundary: N = 9 gives 6"
   use "0631_guess_number"
   Input = "9"
   run
@@ -48,7 +48,7 @@ test "Fibonacci boundary: N = 9 requires 6 candies"
   Candies equal 6
 end
 
-test "large N: N = 100000 requires 25 candies"
+test "large N = 100000 gives 25"
   use "0631_guess_number"
   Input = "100000"
   run

@@ -167,11 +167,19 @@ end
 fun Tgts format_grid
   Q = new queue
   for C in 0 till K
-    D = (Tgts C) - C
-    Opt1 = (D equal M) choose "D" "U"
-    Opt2 = (D equal (-1)) choose "L" Opt1
-    Ch = (D equal 1) choose "R" Opt2
-    Arrow = (IsArr C) choose Ch "."
+    Arrow = "."
+    if IsArr C
+      D = (Tgts C) - C
+      if D equal 1
+        Arrow = "R"
+      elif D equal (-1)
+        Arrow = "L"
+      elif D equal M
+        Arrow = "D"
+      else
+        Arrow = "U"
+      end
+    end
     Q push Arrow
   end
   All = (Q reverse) reverse
