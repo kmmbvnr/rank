@@ -1,13 +1,14 @@
 use testing
 
-test "sample 1: 4x3 grid with 3 painted cells -> 22"
+test "sample 1: 4x3 grid K=3 -> 22"
   use "0660_test_work"
+  Input = "4 3 3\n1 2\n4 3\n3 1"
   run
 
   Total equal 22
 end
 
-test "empty 2x3 grid: 0 painted cells -> 18"
+test "empty 2x3 grid K=0 -> 18"
   use "0660_test_work"
   Input = "2 3 0"
   run
@@ -31,7 +32,7 @@ test "empty 1x1 grid -> 1"
   Total equal 1
 end
 
-test "transposed: 3x4 grid with 3 painted cells -> 22"
+test "transposed: 3x4 grid K=3 -> 22"
   use "0660_test_work"
   Input = "3 4 3\n2 1\n3 4\n1 3"
   run

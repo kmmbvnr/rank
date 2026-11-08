@@ -1,6 +1,7 @@
 rem Zuma
-rem https://acmp.ru/index.asp?main=task&id_task=707
-rem Minimum shots to clear a Zuma row of balls via BFS with state pruning and chain-reaction simulation.
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=707
+rem Min shots to clear Zuma row via BFS
 
 use io
 use numbers
@@ -9,43 +10,61 @@ use sequences
 use text
 use algo
 
-arg Input text = "ABBBAA"
+arg Input text = "AABBCCAABBAA"
 
 fun S C Pos simulate_shot
   LeftPart = S (0 till Pos)
   RightPart = S (Pos till (S len))
-  TextChars = (array LeftPart C RightPart) join ""
+  Parts = array LeftPart C RightPart
+  TextChars = Parts join ""
   Chars = TextChars split ""
   N = Chars len
   L = Pos
   R = Pos
 
   for Step in 0 till N
-    if L equal 0 or ((Chars (L - 1)) not equal C)
+    LeftEnd = L equal 0
+    PrevChar = ""
+    if not LeftEnd
+      PrevChar = Chars (L - 1)
+    end
+    DiffL = PrevChar not equal C
+    if LeftEnd or DiffL
       break
     end
     L = L - 1
   end
 
   for Step in 0 till N
-    if (R equal (N - 1)) or ((Chars (R + 1)) not equal C)
+    RightEnd = R equal (N - 1)
+    NextChar = ""
+    if not RightEnd
+      NextChar = Chars (R + 1)
+    end
+    DiffR = NextChar not equal C
+    if RightEnd or DiffR
       break
     end
     R = R + 1
   end
 
-  if R - L + 1 less 3
+  Span1 = R - L + 1
+  if Span1 less 3
     return TextChars
   end
 
   for Chain in 0 till 20
     OldN = N
     LeftSlice = Chars (0 till L)
-    RightSlice = Chars (R + 1 till N)
+    NextR = R + 1
+    RightSlice = Chars (NextR till N)
     Chars = concat LeftSlice RightSlice
     N = Chars len
 
-    if L equal 0 or (R equal (OldN - 1)) or (N equal 0)
+    L0 = L equal 0
+    ROld = R equal (OldN - 1)
+    N0 = N equal 0
+    if L0 or ROld or N0
       break
     end
 
@@ -60,20 +79,33 @@ fun S C Pos simulate_shot
     NewR = L
 
     for Step in 0 till N
-      if NewL equal 0 or ((Chars (NewL - 1)) not equal C2)
+      LeftEnd = NewL equal 0
+      PrevC2 = ""
+      if not LeftEnd
+        PrevC2 = Chars (NewL - 1)
+      end
+      DiffC = PrevC2 not equal C2
+      if LeftEnd or DiffC
         break
       end
       NewL = NewL - 1
     end
 
     for Step in 0 till N
-      if (NewR equal (N - 1)) or ((Chars (NewR + 1)) not equal C2)
+      RightEnd = NewR equal (N - 1)
+      NextC2 = ""
+      if not RightEnd
+        NextC2 = Chars (NewR + 1)
+      end
+      DiffC = NextC2 not equal C2
+      if RightEnd or DiffC
         break
       end
       NewR = NewR + 1
     end
 
-    if NewR - NewL + 1 less 3
+    Span2 = NewR - NewL + 1
+    if Span2 less 3
       break
     end
 
@@ -90,10 +122,16 @@ fun Initial solve_zuma
   end
 
   MaxStates = 15000
-  NodeStr = array shape MaxStates fill ""
-  NodeParent = array shape MaxStates fill -1
-  NodeMove = array shape MaxStates fill ""
-  
+  NodeStr = (
+    array shape MaxStates fill ""
+  )
+  NodeParent = (
+    array shape MaxStates fill -1
+  )
+  NodeMove = (
+    array shape MaxStates fill ""
+  )
+
   NodeStr 0 = Initial
   NodeParent 0 = -1
   NodeMove 0 = ""
@@ -109,7 +147,7 @@ fun Initial solve_zuma
   Found = 0
 
   for Step in 0 till MaxStates
-    if Q len equal 0
+    if (Q len) equal 0
       break
     end
 
@@ -133,18 +171,30 @@ fun Initial solve_zuma
       J = I
       CurChar = Chars I
       for ForwardStep in 0 till CurLen
-        if J equal CurLen or (Chars J not equal CurChar)
+        EndJ = J equal CurLen
+        DiffChar = false
+        if not EndJ
+          CharsJ = Chars J
+          DiffChar = (
+            CharsJ not equal CurChar
+          )
+        end
+        if EndJ or DiffChar
           break
         end
         J = J + 1
       end
 
-      NextS = CurS CurChar I simulate_shot
+      NextS = (
+        CurS CurChar I simulate_shot
+      )
       if not (NextS in Visited)
         Visited add NextS
         NodeStr NodeCount = NextS
         NodeParent NodeCount = CurId
-        NodeMove NodeCount = CurChar + (I text)
+        ITxt = I text
+        MoveTxt = CurChar + ITxt
+        NodeMove NodeCount = MoveTxt
         Q push NodeCount
         if NextS equal ""
           TargetNode = NodeCount
@@ -169,7 +219,8 @@ fun Initial solve_zuma
     if Curr equal 0
       break
     end
-    Moves = concat (array (NodeMove Curr)) Moves
+    CurMove = array (NodeMove Curr)
+    Moves = concat CurMove Moves
     Curr = NodeParent Curr
   end
 
@@ -177,11 +228,18 @@ fun Initial solve_zuma
   if NumMoves equal 0
     return "0"
   end
-  return (NumMoves text) + " " + (Moves join " ")
+  NM_Txt = NumMoves text
+  M_Txt = Moves join " "
+  return NM_Txt + " " + M_Txt
 end
 
-RawTokens = Input split "\n" join " " split " "
-Tokens = RawTokens (RawTokens not equal "")
+RawTokens = (
+  (Input split "\n" join " ")
+  split " "
+)
+Tokens = (
+  RawTokens (RawTokens not equal "")
+)
 StartStr = Tokens 0
 
 Ans = StartStr solve_zuma

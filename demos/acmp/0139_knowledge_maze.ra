@@ -1,15 +1,46 @@
 rem Maze of Knowledge
-rem https://acmp.ru/index.asp?main=task&id_task=139
-rem Maximum knowledge path from 1 to N with positive cycle detection using Bellman-Ford
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=139
+rem Max knowledge path with Bellman-Ford
 
 use io
 use cli
 use sequences
 use text
 
-arg Input text = "2 2\n1 2 5\n1 2 -5"
+arg Input text = (
+  "20 25\n" +
+  "1 2 10\n" +
+  "2 3 15\n" +
+  "3 4 20\n" +
+  "4 5 25\n" +
+  "5 6 30\n" +
+  "6 7 35\n" +
+  "7 8 40\n" +
+  "8 9 45\n" +
+  "9 10 50\n" +
+  "10 11 55\n" +
+  "11 12 60\n" +
+  "12 13 65\n" +
+  "13 14 70\n" +
+  "14 15 75\n" +
+  "15 16 80\n" +
+  "16 17 85\n" +
+  "17 18 90\n" +
+  "18 19 95\n" +
+  "19 20 100\n" +
+  "1 5 120\n" +
+  "5 10 230\n" +
+  "10 15 340\n" +
+  "15 20 450\n" +
+  "2 8 180\n" +
+  "8 14 260"
+)
 
-Tokens = Input split "\n" join " " split " "
+Tokens = (
+  (Input split "\n" join " ")
+  split " "
+)
 Tokens = Tokens (Tokens not equal "")
 
 N = Tokens 0 integer
@@ -18,44 +49,56 @@ M = Tokens 1 integer
 Answer = ":("
 
 if M greater 0
-  EdgeCoords = (Tokens drop 2 take (3 * M)) integer
+  NumNums = 3 * M
+  EdgeCoords = (
+    Tokens drop 2 take NumNums
+  ) integer
   EIdx = 0 till M array
   U = EdgeCoords (EIdx * 3)
   V = EdgeCoords (EIdx * 3 + 1)
   W = EdgeCoords (EIdx * 3 + 2)
 
-  rem Reachability from 1
-  Reach1 = array shape (N + 1) fill false
+  N1 = N + 1
+  Reach1 = array shape N1 fill false
   Reach1 1 = true
   for Step in 1 to N
     Active = Reach1 U
-    if Active count greater 0
+    ActCnt = Active count
+    if ActCnt greater 0
       Reach1 (V Active) = true
     end
   end
 
-  rem Reachability to N
-  ReachN = array shape (N + 1) fill false
+  ReachN = array shape N1 fill false
   ReachN N = true
   for Step in 1 to N
     Active = ReachN V
-    if Active count greater 0
+    ActCnt = Active count
+    if ActCnt greater 0
       ReachN (U Active) = true
     end
   end
 
   if Reach1 N
-    ValidMask = Reach1 U and (ReachN U and (Reach1 V and (ReachN V)))
+    V1 = Reach1 U
+    VN = ReachN U
+    U_ok = V1 and VN
+    V2 = Reach1 V
+    VN2 = ReachN V
+    V_ok = V2 and VN2
+    ValidMask = U_ok and V_ok
     ValidU = U ValidMask
     ValidV = V ValidMask
     ValidW = W ValidMask
 
     NumEdges = ValidU len
-    Dist = array shape (N + 1) fill (0 - 1000000000000000)
+    NegINF = 0 - 1000000000000000
+    Dist = array shape N1 fill NegINF
     Dist 1 = 0
 
     HasPosCycle = false
     Stop = false
+    Threshold = 0 - 500000000000000
     for Step in 1 to N
       if not Stop
         Changed = false
@@ -64,7 +107,7 @@ if M greater 0
           EV = ValidV E
           EW = ValidW E
           DU = Dist EU
-          if DU greater (0 - 500000000000000)
+          if DU greater Threshold
             Cand = DU + EW
             if Cand greater (Dist EV)
               Dist EV = Cand
@@ -86,7 +129,8 @@ if M greater 0
     if HasPosCycle
       Answer = ":)"
     else
-      Answer = Dist N text
+      DistN = Dist N
+      Answer = DistN text
     end
   end
 end

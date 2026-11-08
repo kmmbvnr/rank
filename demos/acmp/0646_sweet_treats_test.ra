@@ -1,13 +1,14 @@
 use testing
 
-test "sample 1: 4 boxes with K=3 yields 8 partitions"
+test "sample 1: 4 boxes K=3 -> 8"
   use "0646_sweet_treats"
+  Input = "4 3\n1 2 3 2"
   run
 
   Ways equal 8
 end
 
-test "sample 2: 5 boxes with K=67 yields 6 partitions"
+test "sample 2: 5 boxes K=67 -> 6"
   use "0646_sweet_treats"
   Input = "5 67\n10 22 30 41 50"
   run
@@ -15,7 +16,7 @@ test "sample 2: 5 boxes with K=67 yields 6 partitions"
   Ways equal 6
 end
 
-test "sample 3: insufficient candies yields 0 partitions"
+test "sample 3: insufficient candies"
   use "0646_sweet_treats"
   Input = "3 6\n4 1 5"
   run
@@ -23,7 +24,7 @@ test "sample 3: insufficient candies yields 0 partitions"
   Ways equal 0
 end
 
-test "exact boundary: total sum equals 2*K"
+test "exact boundary: sum = 2*K"
   use "0646_sweet_treats"
   Input = "2 5\n5 5"
   run
@@ -39,7 +40,7 @@ test "all boxes exceed K individually"
   Ways equal 6
 end
 
-test "single box cannot satisfy both children"
+test "single box cannot satisfy both"
   use "0646_sweet_treats"
   Input = "1 5\n10"
   run
@@ -47,7 +48,7 @@ test "single box cannot satisfy both children"
   Ways equal 0
 end
 
-test "uniform boxes combinatorial subset sums"
+test "uniform boxes combinatorial"
   use "0646_sweet_treats"
   Input = "6 3\n1 1 1 1 1 1"
   run
