@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
-import { booleanCells, ownedArray, typedArray } from '../src/array-storage.js';
+import { booleanCells, ownedArray, typedArray, readArrayItem } from '../src/array-storage.js';
 import { compareStoredInt32 } from '../src/integer-array-kernel.js';
 import { packedTruePositions } from '../src/packed-booleans.js';
 import { DemandBudgetExhausted, withDemandBudget, withInterrupt } from '../src/interrupt.js';
@@ -41,9 +41,11 @@ describe('compact integer comparison masks', () => {
         expect(packedTruePositions(compareStoredInt32(a, 2147483647n, 'equal')!)).toHaveLength(512);
     });
 
-    it('declines wide, real, missing, small and opaque inputs without invoking readers', () => {
+    it('admits Int64 scalars and declines real, missing, small and opaque inputs without readers', () => {
         const input = typedArray(new Int32Array(1024), [1024]);
-        expect(compareStoredInt32(input, 9007199254740993n, 'equal')).toBeUndefined();
+        const wide = compareStoredInt32(input, 9007199254740993n, 'equal');
+        expect(wide).toBeDefined();
+        expect(readArrayItem(wide!, 0)).toBe(false);
         expect(compareStoredInt32(input, 0, 'equal')).toBeUndefined();
         expect(compareStoredInt32(ownedArray([9007199254740993n], [1]), 1n, 'less')).toBeUndefined();
         expect(compareStoredInt32(ownedArray(Array.from({ length: 1024 }, () => undefined as never), [1024]), 1n, 'equal')).toBeUndefined();

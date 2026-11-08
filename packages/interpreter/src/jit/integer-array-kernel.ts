@@ -662,7 +662,8 @@ export function compareStoredInt32(left: RankValue, right: RankValue, name?: str
     const eligible = (value: RankValue, view: typeof a) => isRankArray(value)
         ? view?.compact && view.regular && view.linear && (!view.validate || view.validateUniform)
         : typeof value === 'bigint' && value >= -2147483648n && value <= 2147483647n;
-    if (!eligible(left, a) || !eligible(right, b) || !a && !b) return undefined;
+    if (!eligible(left, a) || !eligible(right, b)) return compareStoredWords(left, right, code, a, b);
+    if (!a && !b) return undefined;
     const shape = broadcastShape(isRankArray(left) ? left.shape : [], isRankArray(right) ? right.shape : []);
     const size = shape.reduce((n, dimension) => n * dimension, 1);
     if (size < DENSE_MIN_CELLS) return undefined;
@@ -700,6 +701,63 @@ export function compareStoredInt32(left: RankValue, right: RankValue, name?: str
             checkpoint('comparing integer array', end - start);
             for (let i = start; i < end; i++) {
                 if (compare(readA(i), readB(i))) cells.words[i >>> 5] |= 1 << (i & 31);
+            }
+        }
+        return createOwned(cells, shape, true);
+    } catch (error) {
+        if (error instanceof InterruptedError) throw error;
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
+}
+
+/** Compare signed Int64 pairs lexicographically, without allocating a BigInt
+ * or losing low bits above Number's range. Shared wide buffers stay ordinary. */
+function compareStoredWords(left: RankValue, right: RankValue, code: number,
+    a: ReturnType<typeof prepareStoredScalarView>, b: ReturnType<typeof prepareStoredScalarView>): RankArray | undefined {
+    if (code < 0 || demandBudgetEnabled() || !a && !b) return undefined;
+    const eligible = (value: RankValue, view: typeof a) => isRankArray(value)
+        ? view?.regular && view.linear && view.kinds?.join() === 'integer'
+            && (!view.validate || view.validateUniform)
+            && (view.compact || view.items instanceof BigInt64Array && view.items.buffer instanceof ArrayBuffer)
+        : typeof value === 'bigint' && value >= -(1n << 63n) && value < 1n << 63n;
+    if (!eligible(left, a) || !eligible(right, b)) return undefined;
+    const shape = broadcastShape(isRankArray(left) ? left.shape : [], isRankArray(right) ? right.shape : []);
+    const size = shape.reduce((n, axis) => n * axis, 1);
+    if (size < DENSE_MIN_CELLS) return undefined;
+    const storage = (value: RankValue, view: typeof a) => {
+        const compact = view?.compact;
+        const items = view?.items as BigInt64Array | undefined;
+        const scalar = new Int32Array(2);
+        if (!view) { scalar[lowWord] = Number(BigInt.asIntN(32, value as bigint)); scalar[1 - lowWord] = Number((value as bigint) >> 32n); }
+        return {
+            data: compact ?? (view ? new Int32Array(items!.buffer, items!.byteOffset, items!.length * 2) : scalar),
+            wide: !compact,
+            offset: view ? view.linear!.offset : 0,
+            stride: view ? view.linear!.stride : 0,
+            index: !isRankArray(value) || same(value.shape, shape) ? undefined : broadcastIndex(value.shape, shape),
+        };
+    };
+    try {
+        if (size) {
+            if (a) a.validateUniform?.(a.compact ? BigInt(a.compact[a.linear!.offset]) : a.items[a.linear!.offset]);
+            if (b) b.validateUniform?.(b.compact ? BigInt(b.compact[b.linear!.offset]) : b.items[b.linear!.offset]);
+        }
+        const x = storage(left, a), y = storage(right, b), cells = new BooleanCells(size);
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('comparing integer words', end - start);
+            for (let i = start; i < end; i++) {
+                const at = (x.offset + (x.index ? x.index(i) : i) * x.stride) * (x.wide ? 2 : 1);
+                const bt = (y.offset + (y.index ? y.index(i) : i) * y.stride) * (y.wide ? 2 : 1);
+                const al = x.data[at + (x.wide ? lowWord : 0)] >>> 0;
+                const bl = y.data[bt + (y.wide ? lowWord : 0)] >>> 0;
+                const ah = x.wide ? x.data[at + 1 - lowWord] : x.data[at] < 0 ? -1 : 0;
+                const bh = y.wide ? y.data[bt + 1 - lowWord] : y.data[bt] < 0 ? -1 : 0;
+                const order = ah < bh ? -1 : ah > bh ? 1 : al < bl ? -1 : al > bl ? 1 : 0;
+                const hit = code === 0 ? order === 0 : code === 1 ? order !== 0 : code === 2 ? order < 0
+                    : code === 3 ? order > 0 : code === 4 ? order <= 0 : order >= 0;
+                if (hit) cells.words[i >>> 5] |= 1 << (i & 31);
             }
         }
         return createOwned(cells, shape, true);

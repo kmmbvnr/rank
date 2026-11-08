@@ -1,3 +1,4 @@
+import { checkedIntegerSumStep } from './tensor-reduction-codegen.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import type { CompiledAtomType } from '@arrrank/language';
 import { booleanCells, filledArray, integer32Cells, typedArray } from '../array-storage.js';
@@ -9,6 +10,7 @@ import { isRankArray, type RankArray, type RankValue } from '../value.js';
 import type { TensorCodeCache, TensorNode } from './tensor-kernel.js';
 
 const overflow = {};
+const LOW = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 const safe = (value: number): number => {
     if (!Number.isSafeInteger(value)) throw overflow;
     return value;
@@ -30,7 +32,7 @@ const divide = (a: number, b: number): number => {
     const remainder = a % b;
     return safe(safe(safe(a - remainder) / b) - ((a < 0) !== (b < 0) && remainder !== 0 ? 1 : 0));
 };
-type Output = number | number[] | Int32Array | BigInt64Array | Uint32Array;
+type Output = bigint | number | number[] | Int32Array | BigInt64Array | Uint32Array;
 type Run = (data: ArrayLike<RankValue>[], scalars: (number | boolean)[], limits: number[],
     routes: ((index: number) => number)[], checks: ((cell: RankValue, index: number) => RankValue)[],
     count: number, indices: ArrayLike<number> | undefined, upper: number) => Output;
@@ -73,7 +75,7 @@ export function prepareLayoutNumberTensor(root: TensorNode,
                 if (!cells && (!stored || stored.validate || stored.linear?.offset !== 0 || stored.linear.stride !== 1
                     || stored.kinds?.join() !== domains.get(node)?.join())) return false;
                 const items = cells ?? stored!.compact ?? stored!.items;
-                if (operation === 'sum' && !cells && items.length > 64
+                if (operation === 'sum' && !cells && !(items instanceof BigInt64Array && items.buffer instanceof ArrayBuffer) && items.length > 64
                     && domains.get(node)?.join() === 'integer') wideInputs.push(items.length);
                 shape = [...node.value.shape];
                 if (shape.some(n => !Number.isSafeInteger(n) || n < 0)
@@ -193,11 +195,19 @@ export function prepareLayoutNumberTensor(root: TensorNode,
     // A completed input can be unboxed once when the emitted traversal has
     // at least as many loads as input cells. Sparse reads keep their direct
     // exact loads. The numeric copy belongs only to this demand.
-    const fast = new Set<number>();
+    const fast = new Set<number>(), words = new Set<number>();
     const conversions: { input: ArrayLike<RankValue>; output: Float64Array }[] = [];
     for (let slot = 0; slot < data.length; slot++) {
         const cells = data[slot];
         if (cells instanceof Int32Array) { fast.add(slot); continue; }
+        if (cells instanceof BigInt64Array && cells.buffer instanceof ArrayBuffer
+            && loads.some(load => load.slot === slot)) {
+            // Native words need no eager conversion buffer, so their loads do
+            // not carry the wide-input copy admission cost above.
+            data[slot] = new Int32Array(cells.buffer, cells.byteOffset, cells.length * 2);
+            words.add(slot);
+            continue;
+        }
         const uses = loads.filter(load => load.slot === slot).length;
         if (!uses || count * uses < cells.length || typeof SharedArrayBuffer !== 'undefined'
             && ArrayBuffer.isView(cells) && cells.buffer instanceof SharedArrayBuffer) continue;
@@ -205,8 +215,11 @@ export function prepareLayoutNumberTensor(root: TensorNode,
         conversions.push({ input: cells, output: numeric });
         data[slot] = numeric; fast.add(slot);
     }
-    for (const load of loads) if (fast.has(load.slot)) lines[load.line] = `const ${load.name} = data[${load.slot}][${load.at}];`;
-    const action = `${operation === 'indices' ? `if (${result} < 0 || ${result} >= upper) throw overflow;` : operation === 'sum' ? `result = safe(result + ${result});` : operation === 'positions' ? `if (${result}) result.push(i);`
+    for (const load of loads) {
+        if (fast.has(load.slot)) lines[load.line] = `const ${load.name} = data[${load.slot}][${load.at}];`;
+        else if (words.has(load.slot)) lines[load.line] = `const ${load.name} = safe(data[${load.slot}][(${load.at}) * 2 + ${1 - LOW}] * 4294967296 + (data[${load.slot}][(${load.at}) * 2 + ${LOW}] >>> 0));`;
+    }
+    const action = `${operation === 'indices' ? `if (${result} < 0 || ${result} >= upper) throw overflow;` : operation === 'sum' ? checkedIntegerSumStep(result) : operation === 'positions' ? `if (${result}) result.push(i);`
                 : type === 'boolean' ? `if (${result}) result[at >>> 5] |= 1 << (at & 31);`
                 : `if (result instanceof Int32Array && ${result} !== (${result} | 0)) result = widen(result);
                     result[at] = result instanceof Int32Array ? ${result} : BigInt(${result});`}`;
@@ -216,12 +229,13 @@ export function prepareLayoutNumberTensor(root: TensorNode,
     const peel = uniformLines.size > 0 && count >= 64;
     const source = `return function(data, scalars, limits, routes, checks, count, indices, upper) {
         const validated = [];
+        ${operation === 'sum' ? 'let total = 0n;' : ''}
         let result = ${operation === 'sum' || operation === 'indices' ? '0' : operation === 'positions' ? '[]' : type === 'boolean' ? 'new Uint32Array(Math.ceil(count / 32))' : 'new Int32Array(count)'};
         ${peel ? `if (count) { const at = 0; ${step(true)} }` : ''}
         for (let at = ${peel ? 1 : 0}; at < count; at++) {
             ${step(!peel)}
         }
-        return result;
+        return ${operation === 'sum' ? 'total + BigInt(result)' : 'result'};
     }`;
     let cache = caches.get(code);
     if (!cache) caches.set(code, cache = new Map());
@@ -245,7 +259,7 @@ export function prepareLayoutNumberTensor(root: TensorNode,
             const execute = () => run!(data, scalars, limits, routes, checks, indices?.length ?? size(root), indices, upper);
             const diagnostics = currentDiagnostics();
             const value = diagnostics ? diagnostics.measure(`number-tensor.${operation}`, execute) : execute();
-            if (operation === 'sum' || operation === 'indices') return BigInt(value as number);
+            if (operation === 'sum' || operation === 'indices') return typeof value === 'bigint' ? value : BigInt(value as number);
             if (operation === 'positions') return value as number[];
             const shape = indices ? [indices.length] : [...shapes.get(root)!];
             if (type === 'integer') return typedArray(value as Int32Array | BigInt64Array, shape);

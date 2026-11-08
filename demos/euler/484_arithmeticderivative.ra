@@ -3,92 +3,180 @@ rem https://projecteuler.net/problem=484
 
 use numbers
 use sequences
+use algo
+use bits
 use io
 use cli
 
 arg N integer = 5000000000000000
 
-rem g(n) = gcd(n, n') is multiplicative
-rem with g(p) = 1 and g(p^e) = p^e if p
-rem divides e, else p^(e-1). So g = 1
-rem * h with h on powerful numbers:
-rem sum g = sum h(u) (N // u). Walk
-rem the u by increasing primes: a
-rem state (first prime, N // u, h(u))
-rem adds c_e (L // p^e) for every
-rem later p^e and recurses only when
-rem L // p^e > p^2.
-Lm = N isqrt
-Pr = primes to Lm array
-Np = Pr len
-Answer = N - 1
-Si = array 0
-Sl = array N
-Sc = array 1
-Ch = 4000000
-for Si len greater 0
-  rem Primes up to sqrt L per state.
-  Rt = Sl isqrt
-  Nq = Rt len
-  Ky = concat (Pr * 2) (Rt * 2 + 1)
-  Od = Ky argsort
-  Ip = (Od less Np choose 1 0) scan +
-  Hi = array shape Nq fill 0
-  Qp = Od at least Np indices
-  Hi (Od Qp - Np) = Ip Qp
-  Cn = Hi - Si max 0
-  Cs = Cn scan + with 0
-  Ni = array shape 0 fill 0
-  Nl = Ni
-  Nc = Ni
-  St = 0
-  for St less Nq
-    Cb = Cs St
-    Cm = Cb + Ch
-    En = Cs at most Cm count - 1
-    En = (En max (St + 1)) min Nq
-    Tl = Cs En - Cb
-    if Tl greater 0
-      Of = Cs (St till En) - Cb
-      Cr = Cn (St till En)
-      Ix = Cr greater 0 indices
-      Ow = array shape Tl fill 0
-      Ow (Of Ix) = Ix + St
-      Ow = Ow scan max
-      Pi = (0 till Tl) + Cb - Cs Ow
-      Pi += Si Ow
-      P = Pr Pi
-      L0 = Sl Ow
-      C0 = Sc Ow
-      Pe = P * P
-      Gp = P * 0 + 1
-      E = 2
-      for Pe len greater 0
-        L = L0 // Pe
-        Dv = E mod P equal 0
-        Ge = Dv choose Pe (Pe // P)
-        Cc = C0 * (Ge - Gp)
-        Answer += Cc * L sum
-        Kd = L greater P * P indices
-        Ni = concat Ni (Pi Kd + 1)
-        Nl = concat Nl (L Kd)
-        Nc = concat Nc (Cc Kd)
-        Gp = Ge
-        E += 1
-        Kb = Pe at most L0 // P
-        Ka = Kb indices
-        P = P Ka
-        Pe = Pe Ka * P
-        Gp = Gp Ka
-        L0 = L0 Ka
-        C0 = C0 Ka
-        Pi = Pi Ka
-      end
-    end
-    St = En
-  end
-  Si = Ni
-  Sl = Nl
-  Sc = Nc
+rem g(n) = gcd(n,n') = 1 * h. Nonzero h
+rem is supported on powerful numbers.
+rem A state fixes earlier prime powers
+rem and adds h(u) * floor(N/u).
+
+fun Counts expand
+  Prefix = Counts scan + with 0
+  Size = Prefix last
+  Rows = array shape Size fill 0
+  Mask = Counts greater 0
+  Keep = Mask indices
+  Rows (Prefix Keep) = Keep
+  Rows = Rows scan max
+  Offset = (0 till Size) - Prefix Rows
+  return tuple Rows Offset
 end
+
+rem Bit lengths bound exponents exactly.
+fun Prime counts Bits
+  Width = Prime binary len - 1
+  return Bits // Width - 2 max 0
+end
+
+rem h(p^e) is p^(e-2)(p-1), times p+1
+rem when p divides e, zero if p divides
+rem e-1. Store nonzero powers once.
+fun Limit stages
+  Root = Limit isqrt
+  Primes = primes to Root copy
+  Square = Primes * Primes
+  Rate = Primes - 1
+  Count = Primes len
+  if Count greater 0
+    Rate 0 = 3
+  end
+  Slots = 0 till Count copy
+  Bits = Limit binary len
+  Bound = 2 ** ((Bits + 2) // 3)
+  Small = primes to Bound copy
+  Counts = Small counts Bits rank 0 0
+  unpack Rows Offset = Counts expand
+  Factors = Small Rows
+  Exponents = Offset + 3
+  Power = Factors ** Exponents
+  Mask = Power at most Limit
+  Keep = Mask indices
+  Power = Power Keep
+  Factors = Factors Keep
+  Exponents = Exponents Keep
+  Rows = Rows Keep
+  Base = Power // Factors // Factors
+  Scale = Factors - 1
+  Exact = Exponents mod Factors equal 0
+  Scale *= Exact choose (Factors + 1) 1
+  Prior = Exponents - 1
+  Previous = Prior mod Factors equal 0
+  Scale = Previous choose 0 Scale
+  Values = Base * Scale
+  Mask = Values greater 0
+  Keep = Mask indices
+  Power = concat Square (Power Keep)
+  Slots = concat Slots (Rows Keep)
+  Rate = concat Rate (Values Keep)
+  Order = Power argsort
+  Power = Power Order
+  Slots = Slots Order
+  Rate = Rate Order
+  return tuple Power Slots Rate Square
+end
+
+fun State windows Table
+  First = State 0
+  Rest = State 1
+  Power = Table 0
+  Square = Table 3
+  Lower = Square First - 1
+  Low = Power upperindex Lower
+  High = Power upperindex Rest
+  Counts = High - Low max 0
+  Prefix = Counts scan + with 0
+  return tuple Low Prefix
+end
+
+fun State batch Table Selection
+  unpack First Rest Weight = State
+  unpack Rows Positions = Selection
+  unpack Power Slots Rate Square = Table
+  Prime = Slots Positions
+  Mask = Prime at least First Rows
+  Keep = Mask indices
+  Prime = Prime Keep
+  Rows = Rows Keep
+  Positions = Positions Keep
+  Rest = Rest Rows // Power Positions
+  Weight = Weight Rows * Rate Positions
+  Terms = Weight * Rest
+  Total = Terms sum
+  Count = Square len
+  Next = Prime + 1
+  Bound = Next min (Count - 1)
+  Mask = Next less Count
+  Fits = Rest at least Square Bound
+  Mask = Mask and Fits
+  Keep = Mask indices
+  First = Next Keep
+  Rest = Rest Keep
+  Weight = Weight Keep
+  Children = tuple First Rest Weight
+  return tuple Total Children
+end
+
+fun Pending join_states Added
+  unpack First Rest Weight = Pending
+  unpack Ahead Bound Scale = Added
+  First = concat First Ahead
+  Rest = concat Rest Bound
+  Weight = concat Weight Scale
+  return tuple First Rest Weight
+end
+
+fun Limit total
+  if Limit at least 0 and (Limit less 4)
+    return Limit - 1 max 0
+  end
+  Table = Limit stages
+  First = array 0
+  Rest = array Limit
+  Weight = array 1
+  State = tuple First Rest Weight
+  Empty = array shape 0 fill 0
+  Pending = tuple Empty Empty Empty
+  Window = State windows Table
+  unpack Low Prefix = Window
+  Count = Prefix last
+  Start = 0
+  Answer = Limit - 1
+  Chunk = 1000000
+  for Start less Count
+    Stop = Start + Chunk min Count
+    FirstRow = Prefix upperindex Start
+    FirstRow -= 1
+    Last = Prefix upperindex (Stop - 1)
+    Slots = FirstRow till Last
+    Ends = Prefix (Slots + 1) min Stop
+    Begins = Prefix Slots max Start
+    Copies = Ends - Begins
+    unpack Rows Offset = Copies expand
+    Rows += FirstRow
+    Skip = Start - Prefix Rows max 0
+    Positions = Low Rows + Offset + Skip
+    Selection = tuple Rows Positions
+    Result = State batch Table Selection
+    unpack Part Added = Result
+    Answer += Part
+    Pending = Pending join_states Added
+    Start = Stop
+    if Start equal Count
+      State = Pending
+      Pending = tuple Empty Empty Empty
+      Window = State windows Table
+      unpack Low Prefix = Window
+      Count = Prefix last
+      Start = 0
+    end
+  end
+  return Answer
+end
+
+Answer = N total
 Answer print

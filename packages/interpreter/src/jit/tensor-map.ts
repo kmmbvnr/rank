@@ -99,6 +99,9 @@ export function registerTensorResult(value: RankValue): RankValue {
 export function registerTensorMap<T extends RankValue>(value: T, operator: string, operands: readonly RankValue[],
     layout: 'broadcast' | 'outer' = 'broadcast'): T {
     if (!isRankArray(value) || !mapOperators.has(operator)) return value;
+    // Ranked text conversion has a more precise source than its generic
+    // scalar-builtin recipe: retain the text for checked digit lowering.
+    if (operator === 'integer0') scalarMaps.delete(value);
     if (layout === 'broadcast' && operands.length === 2) registerMappedArrayRange(value, operator, operands[0], operands[1]);
     if (layout === 'broadcast') registerPackedBooleanMap(value, operator, operands);
     let scope = active;

@@ -19,3 +19,11 @@ export function tensorReductionStep(operation: string, answer: string, value: st
     }
     return '';
 }
+
+/** Each term is a proved safe integer. Flush before a Number prefix rounds;
+ * the private BigInt total is exact even after large signed cancellation. */
+export function checkedIntegerSumStep(value: string): string {
+    return `const next = result + ${value};
+        if (Number.isSafeInteger(next)) result = next;
+        else { total += BigInt(result); result = ${value}; }`;
+}
