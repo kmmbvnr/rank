@@ -1,6 +1,6 @@
 use testing
 
-test "sample 1: 49 1 gives base 3 with 2 ones"
+test "sample 1: 49 1 -> base 3, 2 ones"
   use "0436_lucky_digits"
   N = 49
   K = 1
@@ -28,7 +28,7 @@ test "exact two zeros: 100 0"
   BestL equal 2
 end
 
-test "large N: 10^11 with zeros gives base 2 with 11 zeros"
+test "large N: 10^11 zeros -> base 2"
   use "0436_lucky_digits"
   N = 100000000000
   K = 0

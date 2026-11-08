@@ -24,7 +24,7 @@ test "boundary: 2 stones is LOSE"
   Answer equal "LOSE"
 end
 
-test "small P-position: 8 stones is LOSE"
+test "small P-position: 8 stones LOSE"
   use "0404_stone_game"
   N = 8
   run
@@ -40,7 +40,7 @@ test "large 10^12 is WIN"
   Answer equal "WIN"
 end
 
-test "large P-position close to 10^12 is LOSE"
+test "large P-position close to 10^12"
   use "0404_stone_game"
   N = 1000000951425
   run

@@ -10,7 +10,9 @@ end
 
 test "sample 2: 172 bulbs, 10 boys"
   use "0337_lightbulbs"
-  Input = "172 10\n19 2 7 13 40 23 16 1 45 9"
+  I1 = "172 10\n19 2 7 13 40 "
+  I2 = "23 16 1 45 9"
+  Input = I1 + I2
   run
 
   Answer equal 99

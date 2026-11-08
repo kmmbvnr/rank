@@ -25,7 +25,7 @@ test "already divisible: N = 0, M = 8"
   Answer equal "0"
 end
 
-test "power of 10 solution: N = 2, M = 7"
+test "power of 10: N = 2, M = 7"
   use "0410_digital_sorcery"
   N = 2
   M = 7
@@ -34,7 +34,7 @@ test "power of 10 solution: N = 2, M = 7"
   Answer equal "100000"
 end
 
-test "single digit solution: N = 7, M = 10"
+test "single digit: N = 7, M = 10"
   use "0410_digital_sorcery"
   N = 7
   M = 10

@@ -11,6 +11,8 @@ end
 
 test "sample 2: N = 4, K = 3"
   use "0435_unlucky_numbers"
+  N = 4
+  K = 3
   run
 
   Answer equal 164
@@ -31,6 +33,6 @@ test "boundary: N = 2, K = 1"
   K = 1
   run
 
-  rem Numbers: 00 (lucky), 01 (unlucky), 10 (unlucky), 11 (lucky 1=1)
+  rem 00, 11 (lucky); 01, 10 (unlucky)
   Answer equal 2
 end

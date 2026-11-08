@@ -1,6 +1,6 @@
 use testing
 
-test "sample 1: [990, 1000] has 9 valid rates"
+test "sample 1: [990, 1000] has 9 valid"
   use "0403_currency_exchange"
   Input = "990 1000"
   run

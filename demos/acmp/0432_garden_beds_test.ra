@@ -15,7 +15,10 @@ end
 
 test "sample 2: 5x10 grid with 5 beds"
   use "0432_garden_beds"
-  Input = "5 10\n##..#####.\n.#.#.#....\n###..##.#.\n..##.....#\n.###.#####"
+  I1 = "5 10\n##..#####.\n.#.#.#....\n"
+  I2 = "###..##.#.\n..##.....#\n"
+  I3 = ".###.#####"
+  Input = I1 + I2 + I3
   run
 
   Answer equal 5

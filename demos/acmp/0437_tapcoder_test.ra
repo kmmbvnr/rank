@@ -1,7 +1,7 @@
 rem ACMP 0437: Tapcoder tests
 use testing
 
-test "ACMP 437: Sample (3 rounds, 3 fixed)"
+test "sample: 3 rounds, 3 fixed"
   use "0437_tapcoder"
   Input = "3 3 4
 1 2

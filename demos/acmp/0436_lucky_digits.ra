@@ -1,6 +1,6 @@
 rem Lucky Digits
-rem https://acmp.ru/index.asp?main=task&id_task=436
-rem Find base D (D >= 2, D <= 10^12) maximizing trailing digits K in base D representation of N
+rem acmp.ru: task 436
+rem Maximize trailing digits K.
 
 use io
 use cli
@@ -21,32 +21,39 @@ if K greater 1
   StartD = K + 1
 end
 
-rem 1. Check small bases up to 5000
-CheckLimit = 5000
-for D in StartD to CheckLimit
+fun D countTrailing
   Temp = N
   CurL = 0
-  for Temp greater 0 and (Temp mod D equal K)
+  for Temp greater 0
+    if not (Temp mod D equal K)
+      break
+    end
     CurL += 1
     Temp //= D
   end
+  return CurL
+end
+
+rem 1. Check small bases up to 5000
+CheckLimit = 5000
+for D in StartD to CheckLimit
+  CurL = D countTrailing
   if CurL greater BestL
     BestL = CurL
     BestD = D
   end
 end
 
-rem 2. Check Q = 0 for L = 2: N = K * D + K => D = (N - K) / K
-if K greater 0 and (N greater K)
-  if ((N - K) mod K) equal 0
-    D = (N - K) // K
-    if D greater K and (not (D less 2))
-      Temp = N
-      CurL = 0
-      for Temp greater 0 and (Temp mod D equal K)
-        CurL += 1
-        Temp //= D
-      end
+rem 2. Check Q = 0 for L = 2
+if (K greater 0) and (N greater K)
+  DiffK = N - K
+  if (DiffK mod K) equal 0
+    D = DiffK // K
+    AboveK = D greater K
+    AtLeast2 = not (D less 2)
+    ValidD = AboveK and AtLeast2
+    if ValidD
+      CurL = D countTrailing
       if CurL greater BestL
         BestL = CurL
         BestD = D
@@ -55,33 +62,24 @@ if K greater 0 and (N greater K)
   end
 end
 
-rem 3. Check divisors of N - K up to sqrt(N - K)
+rem 3. Check divisors of N - K
 if N greater K
   Diff = N - K
   Limit = Diff ** 0.5 integer
   for D in StartD to Limit
     if Diff mod D equal 0
-      rem Check D
-      Temp = N
-      CurL = 0
-      for Temp greater 0 and (Temp mod D equal K)
-        CurL += 1
-        Temp //= D
-      end
+      CurL = D countTrailing
       if CurL greater BestL
         BestL = CurL
         BestD = D
       end
 
-      rem Check paired divisor D2 = Diff / D
       D2 = Diff // D
-      if D2 greater K and (not (D2 less 2))
-        Temp2 = N
-        CurL2 = 0
-        for Temp2 greater 0 and (Temp2 mod D2 equal K)
-          CurL2 += 1
-          Temp2 //= D2
-        end
+      AboveK2 = D2 greater K
+      AtLeast2_2 = not (D2 less 2)
+      ValidD2 = AboveK2 and AtLeast2_2
+      if ValidD2
+        CurL2 = D2 countTrailing
         if CurL2 greater BestL
           BestL = CurL2
           BestD = D2
@@ -95,7 +93,10 @@ rem 4. Check L = 1
 if BestL equal 0
   if N greater K
     D = N - K
-    if D greater K and (not (D less 2))
+    AboveK = D greater K
+    AtLeast2 = not (D less 2)
+    ValidD = AboveK and AtLeast2
+    if ValidD
       BestL = 1
       BestD = D
     end

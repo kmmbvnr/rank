@@ -1,6 +1,6 @@
 use testing
 
-test "sample: OMSCMNWQTTARTERPDEINAL with length 20"
+test "sample: OMSCMNWQTTARTERPDEINAL"
   use "0428_sms"
   S = "OMSCMNWQTTARTERPDEINAL"
   N = 20
@@ -9,7 +9,7 @@ test "sample: OMSCMNWQTTARTERPDEINAL with length 20"
   Answer equal 760
 end
 
-test "split letter: C with length 2 gives AB and BA"
+test "split: C with len 2 -> AB, BA"
   use "0428_sms"
   S = "C"
   N = 2
@@ -18,7 +18,7 @@ test "split letter: C with length 2 gives AB and BA"
   Answer equal 2
 end
 
-test "merged letter: AA with length 1 gives B"
+test "merged: AA with len 1 gives B"
   use "0428_sms"
   S = "AA"
   N = 1
@@ -36,7 +36,7 @@ test "exact word: SMS with length 3"
   Answer equal 1
 end
 
-test "impossible length: A with length 10"
+test "impossible length: A with len 10"
   use "0428_sms"
   S = "A"
   N = 10

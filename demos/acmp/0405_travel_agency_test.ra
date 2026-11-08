@@ -1,6 +1,6 @@
 use testing
 
-test "sample 1: 7 planets star of triangles"
+test "sample 1: 7 planets star"
   use "0405_travel_agency"
   Input = "7 9
 1 2
@@ -27,7 +27,9 @@ end
 
 test "complete graph K4"
   use "0405_travel_agency"
-  Input = "4 6\n1 2\n1 3\n1 4\n2 3\n2 4\n3 4"
+  I1 = "4 6\n1 2\n1 3\n1 4\n"
+  I2 = "2 3\n2 4\n3 4"
+  Input = I1 + I2
   run
 
   Answer equal (array 3 3 3 3)
@@ -43,7 +45,9 @@ end
 
 test "two triangles connected by bridge"
   use "0405_travel_agency"
-  Input = "6 7\n1 2\n2 3\n3 1\n3 4\n4 5\n5 6\n6 4"
+  I1 = "6 7\n1 2\n2 3\n3 1\n"
+  I2 = "3 4\n4 5\n5 6\n6 4"
+  Input = I1 + I2
   run
 
   Answer equal (array 5 5 11 11 5 5)

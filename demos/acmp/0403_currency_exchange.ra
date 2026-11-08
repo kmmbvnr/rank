@@ -1,6 +1,6 @@
 rem Currency Exchange
-rem https://acmp.ru/index.asp?main=task&id_task=403
-rem Count integers in [L, R] where each digit appears at most 2 times via digit DP
+rem acmp.ru: task 403
+rem Digits appear at most 2 times.
 
 use io
 use cli
@@ -9,7 +9,9 @@ use text
 
 arg Input text = "1 1000000000000000000"
 
-Tokens = Input split "\n" join " " split " "
+Lines = Input split "\n"
+Joined = Lines join " "
+Tokens = Joined split " "
 Tokens = Tokens (Tokens not equal "")
 
 Val1 = Tokens 0 integer
@@ -17,95 +19,119 @@ Val2 = Tokens 1 integer
 L = Val1 min Val2
 R = Val1 max Val2
 
+Ones11 = array shape 11 fill 1
+AllC0 = (0 to 10) Ones11 outer *
+AllC1 = Ones11 (0 to 10) outer *
+SumC = AllC0 + AllC1
+Valid = SumC at most 10
+C0List = AllC0 Valid
+C1List = AllC1 Valid
+
 Ways = array shape (19 * 11 * 11) fill 0
 
-for C0 in 0 to 10
-  for C1 in 0 to (10 - C0)
-    Idx = C0 * 11 + C1
-    Ways Idx = 1
-  end
+for Pair in 0 till 66
+  C0 = C0List Pair
+  C1 = C1List Pair
+  Idx = C0 * 11 + C1
+  Ways Idx = 1
 end
 
-for Rem in 1 to 18
+for Step in 0 till (18 * 66)
+  Rem = (Step // 66) + 1
   PrevRem = Rem - 1
-  for C0 in 0 to 10
-    for C1 in 0 to (10 - C0)
-      W = 0
-      if C0 greater 0
-        PrevIdx1 = (PrevRem * 11 + (C0 - 1)) * 11 + (C1 + 1)
-        W += C0 * (Ways PrevIdx1)
-      end
-      if C1 greater 0
-        PrevIdx2 = (PrevRem * 11 + C0) * 11 + (C1 - 1)
-        W += C1 * (Ways PrevIdx2)
-      end
-      CurIdx = (Rem * 11 + C0) * 11 + C1
-      Ways CurIdx = W
-    end
+  Pair = Step mod 66
+  C0 = C0List Pair
+  C1 = C1List Pair
+
+  W = 0
+  if C0 greater 0
+    P0 = C0 - 1
+    P1 = C1 + 1
+    Idx1 = (PrevRem * 11 + P0) * 11 + P1
+    W += C0 * (Ways Idx1)
   end
+  if C1 greater 0
+    P1 = C1 - 1
+    Idx2 = (PrevRem * 11 + C0) * 11 + P1
+    W += C1 * (Ways Idx2)
+  end
+  CurIdx = (Rem * 11 + C0) * 11 + C1
+  Ways CurIdx = W
 end
 
-Bounds = array (L - 1) R
-Results = array shape 2 fill 0
-
-for BIdx in 0 to 1
-  X = Bounds BIdx
+fun X countUpTo
+  if X at most 0
+    return 0
+  end
+  S = X text
+  DigitsTok = S split ""
+  Digits = DigitsTok integer
+  NumD = Digits len
   Total = 0
 
-  if X greater 0
-    S = X text
-    Digits = (S split "") integer
-    NumDigits = Digits len
+  if NumD greater 1
+    Lens = 1 to (NumD - 1)
+    StepL = (Lens - 1) * 11 + 9
+    Idxs = StepL * 11 + 1
+    Terms = 9 * (Ways Idxs)
+    Total = Terms sum
+  end
 
-    rem Lengths < NumDigits
-    if NumDigits greater 1
-      for Len in 1 to (NumDigits - 1)
-        Idx = ((Len - 1) * 11 + 9) * 11 + 1
-        Total += 9 * (Ways Idx)
-      end
-    end
+  Counts = array shape 10 fill 0
+  CanMatch = true
 
-    rem Length == NumDigits
-    Counts = array shape 10 fill 0
-    CanMatch = true
-
-    for I in 0 to (NumDigits - 1)
-      if CanMatch
-        Digit = Digits I
-        StartD = 0
-        if I equal 0
-          StartD = 1
-        end
-
-        RemLen = NumDigits - 1 - I
-        if StartD less Digit
-          for D in StartD to (Digit - 1)
-            if Counts D less 2
-              Counts D = (Counts D) + 1
-              C0 = Counts equal 0 count
-              C1 = Counts equal 1 count
-              WIdx = (RemLen * 11 + C0) * 11 + C1
-              Total += Ways WIdx
-              Counts D = (Counts D) - 1
-            end
-          end
-        end
-
-        if Counts Digit greater 1
-          CanMatch = false
-        else
-          Counts Digit = (Counts Digit) + 1
-        end
-      end
-    end
-
+  for I in 0 to (NumD - 1)
     if CanMatch
-      Total += 1
+      Digit = Digits I
+      StartD = 0
+      if I equal 0
+        StartD = 1
+      end
+      RemLen = NumD - 1 - I
+      if StartD less Digit
+        Cands = StartD to (Digit - 1)
+        CandCounts = Counts Cands
+        Eq0 = CandCounts equal 0
+        Eq1 = CandCounts equal 1
+        K0 = Eq0 count
+        K1 = Eq1 count
+        Count0 = Counts equal 0
+        Count1 = Counts equal 1
+        C0 = Count0 count
+        C1 = Count1 count
+        W0 = 0
+        if C0 greater 0
+          T0 = C0 - 1
+          T1 = C1 + 1
+          Step0 = RemLen * 11 + T0
+          W0Idx = Step0 * 11 + T1
+          W0 = Ways W0Idx
+        end
+        W1 = 0
+        if C1 greater 0
+          T1 = C1 - 1
+          Step1 = RemLen * 11 + C0
+          W1Idx = Step1 * 11 + T1
+          W1 = Ways W1Idx
+        end
+        Total += K0 * W0 + K1 * W1
+      end
+      if Counts Digit greater 1
+        CanMatch = false
+      else
+        OldC = Counts Digit
+        Counts Digit = OldC + 1
+      end
     end
   end
 
-  Results BIdx = Total
+  if CanMatch
+    Total += 1
+  end
+  return Total
 end
 
-Answer = (Results 1) - (Results 0)
+AnsR = R countUpTo
+AnsL = (L - 1) countUpTo
+Answer = AnsR - AnsL
 Answer print

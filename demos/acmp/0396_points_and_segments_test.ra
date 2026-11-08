@@ -16,7 +16,7 @@ test "sample 2: 1 segment, 3 points"
   Answer equal (array 0 0 1)
 end
 
-test "reversed segment and boundary points"
+test "reversed segment & boundary pts"
   use "0396_points_and_segments"
   Input = "1 2\n5 0\n0 5"
   run
@@ -24,7 +24,7 @@ test "reversed segment and boundary points"
   Answer equal (array 1 1)
 end
 
-test "multiple overlapping identical segments"
+test "overlapping identical segments"
   use "0396_points_and_segments"
   Input = "3 1\n1 3\n1 3\n1 3\n1"
   run

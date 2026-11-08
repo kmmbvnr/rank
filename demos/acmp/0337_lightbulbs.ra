@@ -1,6 +1,6 @@
 rem Lightbulbs
-rem https://acmp.ru/index.asp?main=task&id_task=337
-rem Count bulbs that are ON after K boys toggle multiples of their periods Pi up to N
+rem acmp.ru: task 337
+rem Bulbs ON after K boys.
 
 use io
 use cli
@@ -11,20 +11,22 @@ use text
 arg Input text = "1000000000 10
 19 2 7 13 40 23 16 3 45 9"
 
-Tokens = Input split "\n" join " " split " "
+Lines = Input split "\n"
+Joined = Lines join " "
+Tokens = Joined split " "
 Tokens = Tokens (Tokens not equal "")
 N = Tokens 0 integer
 K = Tokens 1 integer
 P = Tokens drop 2 take K integer
 
-rem Count frequencies of periods 1..50
 Counts = array shape 51 fill 0
 for Period in P
   Counts Period = Counts Period + 1
 end
 
 OddP = 1 to 50 array
-OddP = OddP (Counts OddP mod 2 equal 1)
+OddCounts = Counts OddP mod 2 equal 1
+OddP = OddP OddCounts
 
 TermsV = array shape 0 fill 0
 TermsC = array shape 0 fill 0
@@ -39,50 +41,40 @@ for PVal in OddP
     NewV = NewV Valid
     NewC = (0 - 2) * (TermsC Valid)
 
-    AllV = concat TermsV NewV (array PVal)
+    PValArr = array PVal
+    AllV = concat TermsV NewV PValArr
     AllC = concat TermsC NewC (array 1)
 
     Idx = AllV argsort
     SortedV = AllV Idx
     SortedC = AllC Idx
 
-    OutV = array shape (SortedV len) fill 0
-    OutC = array shape (SortedC len) fill 0
-    OutCount = 0
+    M = SortedV len
+    V1 = SortedV (1 till M)
+    V0 = SortedV (0 till M - 1)
+    VDiff = V1 not equal V0
+    TrueArr = array true
+    Diffs = concat TrueArr VDiff
+    OutV = SortedV Diffs
 
-    LastV = 0 - 1
-    LastC = 0
+    C_sums = SortedC scan +
+    GroupEnds = concat VDiff TrueArr
+    EndPositions = (0 till M) GroupEnds
+    EndSums = C_sums EndPositions
+    EndLen = EndSums len
+    ZeroArr = array 0
+    PrevCount = EndLen - 1
+    EndPrev = EndSums (0 till PrevCount)
+    PrevSums = concat ZeroArr EndPrev
+    OutC = EndSums - PrevSums
 
-    for I in 0 to (SortedV len - 1)
-      CurV = SortedV I
-      CurC = SortedC I
-      if CurV equal LastV
-        LastC += CurC
-      else
-        if LastV greater 0 and (LastC not equal 0)
-          OutV OutCount = LastV
-          OutC OutCount = LastC
-          OutCount += 1
-        end
-        LastV = CurV
-        LastC = CurC
-      end
-    end
-
-    if LastV greater 0 and (LastC not equal 0)
-      OutV OutCount = LastV
-      OutC OutCount = LastC
-      OutCount += 1
-    end
-
-    TermsV = OutV take OutCount
-    TermsC = OutC take OutCount
+    NonZero = OutC not equal 0
+    TermsV = OutV NonZero
+    TermsC = OutC NonZero
   end
 end
 
-Answer = 0
-if TermsV len greater 0
-  Answer = (TermsC * (N // TermsV)) sum
-end
-
+TermsCount = N // TermsV
+Contributions = TermsCount * TermsC
+Answer = Contributions sum
 Answer print

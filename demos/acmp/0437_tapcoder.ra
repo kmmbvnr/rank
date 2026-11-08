@@ -33,7 +33,8 @@ N = TokInts 1
 M = TokInts 2
 
 QBase = 3 + (2 * N)
-QSlice = TokInts (QBase till (QBase + M))
+QEnd = QBase + M
+QSlice = TokInts (QBase till QEnd)
 Queries = QSlice - 1
 
 Win = array 0
@@ -77,12 +78,12 @@ LayEnd = array shape (K + 2) fill 0
 LayStart 0 = 0
 LayEnd 0 = S
 
-LoseKeys = array -1
+LKeys = array -1
 if N greater 0
   WinLeaf = UPlayers lowerindex Win
   LoseLeaf = UPlayers lowerindex Lose
   LoseRaw = (LoseLeaf * S) + WinLeaf
-  LoseKeys = LoseRaw sort
+  LKeys = LoseRaw sort
 end
 
 MaxRound = array shape S fill 1
@@ -125,17 +126,17 @@ for Phase less 2
           E2 = EndV U2
           Len1 = E1 - S1
           Len2 = E2 - S2
-          LenBoth = (Len1 greater 0) and (
-            Len2 greater 0
-          )
+          Has1 = Len1 greater 0
+          Has2 = Len2 greater 0
+          LenBoth = Has1 and Has2
           if LenBoth
             P1 = ItemP (S1 till E1)
             P2 = ItemP (S2 till E2)
 
             P1S = P1 * S
             Q12 = P1S P2 outer +
-            L12 = LoseKeys lowerindex Q12
-            U12 = LoseKeys upperindex Q12
+            L12 = LKeys lowerindex Q12
+            U12 = LKeys upperindex Q12
             H12 = U12 - L12
             C1 = H12 sum axis 1
             Pass1 = P1 (C1 less Len2)
@@ -149,8 +150,8 @@ for Phase less 2
 
             P2S = P2 * S
             Q21 = P2S P1 outer +
-            L21 = LoseKeys lowerindex Q21
-            U21 = LoseKeys upperindex Q21
+            L21 = LKeys lowerindex Q21
+            U21 = LKeys upperindex Q21
             H21 = U21 - L21
             C2 = H21 sum axis 1
             Pass2 = P2 (C2 less Len1)
@@ -186,8 +187,9 @@ for Phase less 2
         end
       else
         LayEnd (Step + 1) = NumNodes
+        OldStep = Step
         Step = Step + 1
-        LayStart Step = LayEnd (Step - 1)
+        LayStart Step = LayEnd OldStep
         I = LayStart Step
         R0 = LayEnd Step
       end
@@ -209,7 +211,9 @@ for Phase less 2
       U1 = LeftCh CurV
       U2 = RightCh CurV
 
-      if (U1 greater -1) and (U2 greater -1)
+      HasU1 = U1 greater -1
+      HasU2 = U2 greater -1
+      if HasU1 and HasU2
         S1 = StartV U1
         E1 = EndV U1
         S2 = StartV U2
@@ -223,54 +227,60 @@ for Phase less 2
           P1 = ItemP (S1 till E1)
           P2 = ItemP (S2 till E2)
 
+          HasAct = false
+          ActP = 0 till 0
           if EV greater SV
             PV = ItemP (SV till EV)
             OkSub = OkV (SV till EV)
             ActP = PV (OkSub equal 1)
-            NAct = ActP len
-            if NAct greater 0
-              rem Split ActP into U1 and U2
-              MaxP1 = P1 (Len1 - 1)
-              In1 = ActP less (MaxP1 + 1)
-              Act1 = ActP In1
-              Act2 = ActP (not In1)
-              NAct1 = Act1 len
-              NAct2 = Act2 len
+            HasAct = ActP len greater 0
+          end
 
-              if NAct1 greater 0
-                Pos1 = P1 lowerindex Act1
-                OkV (S1 + Pos1) = 1
-                rem Mark valid opponents in P2
-                A1S = Act1 * S
-                Q12 = A1S P2 outer +
-                L12 = LoseKeys lowerindex Q12
-                U12 = LoseKeys upperindex Q12
-                H12 = U12 - L12
-                Cnt12 = H12 sum axis 0
-                Can2 = Cnt12 less NAct1
-                Idx2 = (0 till Len2) Can2
-                NIdx2 = Idx2 len
-                if NIdx2 greater 0
-                  OkV (S2 + Idx2) = 1
-                end
+          if HasAct
+            rem Split ActP into U1, U2
+            MaxP1 = P1 (Len1 - 1)
+            MaxP1_1 = MaxP1 + 1
+            In1 = ActP less MaxP1_1
+            Act1 = ActP In1
+            Act2 = ActP (not In1)
+            NAct1 = Act1 len
+            NAct2 = Act2 len
+
+            if NAct1 greater 0
+              Pos1 = P1 lowerindex Act1
+              OkV (S1 + Pos1) = 1
+              rem Valid opponents in P2
+              A1S = Act1 * S
+              Q12 = A1S P2 outer +
+              L12 = LKeys lowerindex Q12
+              U12 = LKeys upperindex Q12
+              H12 = U12 - L12
+              Cnt12 = H12 sum axis 0
+              Can2 = Cnt12 less NAct1
+              All2 = 0 till Len2
+              Idx2 = All2 Can2
+              NIdx2 = Idx2 len
+              if NIdx2 greater 0
+                OkV (S2 + Idx2) = 1
               end
+            end
 
-              if NAct2 greater 0
-                Pos2 = P2 lowerindex Act2
-                OkV (S2 + Pos2) = 1
-                rem Mark valid opponents in P1
-                A2S = Act2 * S
-                Q21 = A2S P1 outer +
-                L21 = LoseKeys lowerindex Q21
-                U21 = LoseKeys upperindex Q21
-                H21 = U21 - L21
-                Cnt21 = H21 sum axis 0
-                Can1 = Cnt21 less NAct2
-                Idx1 = (0 till Len1) Can1
-                NIdx1 = Idx1 len
-                if NIdx1 greater 0
-                  OkV (S1 + Idx1) = 1
-                end
+            if NAct2 greater 0
+              Pos2 = P2 lowerindex Act2
+              OkV (S2 + Pos2) = 1
+              rem Valid opponents in P1
+              A2S = Act2 * S
+              Q21 = A2S P1 outer +
+              L21 = LKeys lowerindex Q21
+              U21 = LKeys upperindex Q21
+              H21 = U21 - L21
+              Cnt21 = H21 sum axis 0
+              Can1 = Cnt21 less NAct2
+              All1 = 0 till Len1
+              Idx1 = All1 Can1
+              NIdx1 = Idx1 len
+              if NIdx1 greater 0
+                OkV (S1 + Idx1) = 1
               end
             end
           end
@@ -281,8 +291,7 @@ for Phase less 2
           if NGood1 greater 0
             Cur1 = MaxRound Good1
             Cand1 = (Cur1 * 0) + Stp
-            Better1 = Cand1 greater Cur1
-            Upd1 = Better1 choose Cand1 Cur1
+            Upd1 = Cand1 max Cur1
             MaxRound Good1 = Upd1
           end
 
@@ -292,8 +301,7 @@ for Phase less 2
           if NGood2 greater 0
             Cur2 = MaxRound Good2
             Cand2 = (Cur2 * 0) + Stp
-            Better2 = Cand2 greater Cur2
-            Upd2 = Better2 choose Cand2 Cur2
+            Upd2 = Cand2 max Cur2
             MaxRound Good2 = Upd2
           end
         end
@@ -305,7 +313,8 @@ for Phase less 2
         if LenO greater 0
           PO = ItemP (SO till EO)
           if EV greater SV
-            OkV (SO till EO) = OkV (SV till EV)
+            OkSV = OkV (SV till EV)
+            OkV (SO till EO) = OkSV
           end
           OkO = OkV (SO till EO)
           GoodO = PO (OkO equal 1)
@@ -313,8 +322,7 @@ for Phase less 2
           if NGoodO greater 0
             CurO = MaxRound GoodO
             CandO = (CurO * 0) + Stp
-            BetterO = CandO greater CurO
-            UpdO = BetterO choose CandO CurO
+            UpdO = CandO max CurO
             MaxRound GoodO = UpdO
           end
         end
