@@ -19,7 +19,7 @@ import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { sumIndexed } from './modules/numbers.js';
 import { statisticsCell } from './modules/stats.js';
-import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from './interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling, interruptsEnabled } from './interrupt.js';
 import { numericKernel } from './numeric-kernels.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { dyadicCells, tensorCells } from './rank-application.js';
@@ -233,6 +233,14 @@ export class ReductionEvaluator {
         if (isRankArray(value)) {
             const compact = scanStoredModularCallback(value, operation, seed);
             if (compact) return compact;
+            // The unranked vector spelling can use the same native integer
+            // prefix as axis 0, without widening or boxing each input cell.
+            if (seed === undefined && value.shape.length === 1 && !interruptsEnabled() && hasNativeImplementation(operation)) {
+                const extreme = operation === this.standardFunctions.get(standardModules.core.max) ? 'max'
+                    : operation === this.standardFunctions.get(standardModules.core.min) ? 'min' : undefined;
+                const scanned = extreme && scanInt32Axis(extreme, value, value.shape, 0);
+                if (scanned) return scanned;
+            }
         }
         if (isRankSequence(value)) operation = snapshotLazyFunction(operation);
         const scalar = this.scalarCallback(operation);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { floorDivide } from '../src/runtime/numeric-division.js';
 
 const large = (1n << 100n) + 7n;
 const inputs = [0n, 7n, -7n, 9n, -9n, large, -large];
@@ -32,4 +33,17 @@ for (const tier of ['expression', 'function', 'loop'] as const) describe(`floor 
     it.each([0n, 7n, -large])('retains division by zero for %s', a => {
         expect(() => run(a, 0n)).toThrow('division by zero');
     });
+});
+
+// A floor quotient is uniquely characterized by these interval bounds;
+// no duplicate implementation of its sign/remainder correction is used.
+const wide = (1n << 2500n) + (1n << 127n) + 7n;
+for (const a of [0n, wide, -wide, wide * 3n, -wide * 3n]) {
+    it.each([1n, -1n, 3n, -3n, wide, -wide])(`bounds wide quotient ${a < 0n ? 'negative' : 'nonnegative'} // %s`, b => {
+        const quotient = floorDivide(a, b), start = quotient * b, end = (quotient + 1n) * b;
+        expect(b > 0n ? start <= a && a < end : end < a && a <= start).toBe(true);
+    });
+}
+it('retains the direct BigInt zero-divisor error', () => {
+    expect(() => floorDivide(wide, 0n)).toThrow(RangeError);
 });
