@@ -1,6 +1,7 @@
 rem Garden Beds
-rem https://acmp.ru/index.asp?main=task&id_task=432
-rem Count 4-connected components of garden beds on an N x M grid using DSU
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=432
+rem Count 4-connected components
 
 use io
 use cli
@@ -8,7 +9,29 @@ use graph
 use sequences
 use text
 
-arg Input text = "5 10\n##......#.\n.#..#...#.\n.###....#.\n..##....#.\n........#."
+arg Input text = (
+  "20 20\n" +
+  "#.#.#.#.#.#.#.#.#.#.\n" +
+  "....................\n" +
+  "#.#.#.#.#.#.#.#.#.#.\n" +
+  "....................\n" +
+  "#.#.#.#.#.#.#.#.#.#.\n" +
+  "....................\n" +
+  "#.#.#.#.#.#.#.#.#.#.\n" +
+  "....................\n" +
+  "#.#.#.#.#.#.#.#.#.#.\n" +
+  "....................\n" +
+  "#.#.#.#.#.#.#.#.#.#.\n" +
+  "....................\n" +
+  "#.#.#.#.#.#.#.#.#.#.\n" +
+  "....................\n" +
+  "#.#.#.#.#.#.#.#.#.#.\n" +
+  "....................\n" +
+  "#.#.#.#.#.#.#.#.#.#.\n" +
+  "....................\n" +
+  "#.#.#.#.#.#.#.#.#.#.\n" +
+  "...................."
+)
 
 Lines = Input split "\n"
 Lines = Lines (Lines not equal "")
@@ -17,9 +40,13 @@ Header = Header (Header not equal "")
 N = Header 0 integer
 M = Header 1 integer
 
-AllRows = (Lines drop 1 take N) join ""
+AllRows = (
+  Lines drop 1 take N
+) join ""
 GridChars = AllRows split ""
-GridChars = GridChars (GridChars not equal "")
+GridChars = (
+  GridChars (GridChars not equal "")
+)
 
 IsBed = GridChars equal "#"
 Indices = (0 till (N * M)) array
@@ -28,27 +55,47 @@ BedCells = Indices IsBed
 Answer = 0
 if BedCells len greater 0
   Union = new dsu BedCells
-  IsBedPadded = concat IsBed (array shape (M + 1) fill false)
+  PadFalse = (
+    array shape (M + 1) fill false
+  )
+  IsBedPadded = concat IsBed PadFalse
 
   rem Horizontal edges: c < M - 1
-  CanRight = (Indices mod M less (M - 1)) and IsBed
+  RightCol = Indices mod M
+  CanRight = (
+    (RightCol less (M - 1)) and IsBed
+  )
   RightNeighbor = Indices + 1
-  HasRightEdge = CanRight and (IsBedPadded RightNeighbor)
+  RightIsBed = (
+    IsBedPadded RightNeighbor
+  )
+  HasRightEdge = (
+    CanRight and RightIsBed
+  )
   EdgesH_U = Indices HasRightEdge
   EdgesH_V = RightNeighbor HasRightEdge
 
   rem Vertical edges: r < N - 1
-  CanDown = (Indices less ((N - 1) * M)) and IsBed
+  MaxRowIdx = (N - 1) * M
+  CanDown = (
+    (Indices less MaxRowIdx) and IsBed
+  )
   DownNeighbor = Indices + M
-  HasDownEdge = CanDown and (IsBedPadded DownNeighbor)
+  DownIsBed = (
+    IsBedPadded DownNeighbor
+  )
+  HasDownEdge = (
+    CanDown and DownIsBed
+  )
   EdgesV_U = Indices HasDownEdge
   EdgesV_V = DownNeighbor HasDownEdge
 
   EdgesU = concat EdgesH_U EdgesV_U
   EdgesV = concat EdgesH_V EdgesV_V
 
-  if EdgesU len greater 0
-    for K in 0 to (EdgesU len - 1)
+  NumEdges = EdgesU len
+  if NumEdges greater 0
+    for K in 0 to (NumEdges - 1)
       Union merge (EdgesU K) (EdgesV K)
     end
   end
