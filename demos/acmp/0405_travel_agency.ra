@@ -1,6 +1,7 @@
 rem Travel Agency
-rem https://acmp.ru/index.asp?main=task&id_task=405
-rem Count pairs of planets whose paths all pass through planet A
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=405
+rem Planet paths through A
 
 use io
 use cli
@@ -8,15 +9,26 @@ use graph
 use sequences
 use text
 
-arg Input text = "7 9\n1 2\n1 3\n1 4\n1 5\n1 6\n1 7\n2 3\n4 5\n6 7"
+arg Input text = (
+  "25 24\n" +
+  "1 2\n2 3\n3 4\n4 5\n" +
+  "5 6\n6 7\n7 8\n8 9\n" +
+  "9 10\n10 11\n11 12\n12 13\n" +
+  "13 14\n14 15\n15 16\n16 17\n" +
+  "17 18\n18 19\n19 20\n20 21\n" +
+  "21 22\n22 23\n23 24\n24 25"
+)
 
-Tokens = Input split "\n" join " " split " "
+Tokens = (
+  Input split "\n" join " " split " "
+)
 Tokens = Tokens (Tokens not equal "")
 
 N = Tokens 0 integer
 M = Tokens 1 integer
 
-EdgeNums = (Tokens drop 2) take (2 * M) integer
+Drop2 = Tokens drop 2
+EdgeNums = Drop2 take (2 * M) integer
 EdgesU = EdgeNums (0 till (2 * M) by 2)
 EdgesV = EdgeNums (1 till (2 * M) by 2)
 
@@ -24,7 +36,9 @@ Nodes = 1 to N
 Answer = array shape N fill 0
 
 for A in 1 to N
-  Mask = (EdgesU not equal A) and (EdgesV not equal A)
+  MaskU = EdgesU not equal A
+  MaskV = EdgesV not equal A
+  Mask = MaskU and MaskV
   ActiveU = EdgesU Mask
   ActiveV = EdgesV Mask
 
@@ -38,7 +52,8 @@ for A in 1 to N
 
   Roots = D findroot RemNodes
   U = Roots unique
-  Counts = (Roots U outer equal integer) sum axis 0
+  EqRoots = Roots U outer equal integer
+  Counts = EqRoots sum axis 0
   SumSq = (Counts ** 2) sum
 
   RemCount = N - 1

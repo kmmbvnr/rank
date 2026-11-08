@@ -1,19 +1,28 @@
 rem Glass Fence
-rem https://acmp.ru/index.asp?main=task&id_task=434
-rem Construct minimal-perimeter, minimal-area orthogonal enclosing fence for swamp polygon
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=434
+rem Enclosing orthogonal fence
 
 use io
 use cli
 use sequences
 use text
 
-arg Input text = "6\n0 0\n2 0\n2 1\n1 1\n1 2\n0 2"
+arg Input text = (
+  "12\n" +
+  "0 0\n5 0\n5 1\n4 1\n" +
+  "4 2\n3 2\n3 3\n2 3\n" +
+  "2 4\n1 4\n1 5\n0 5"
+)
 
-Tokens = Input split "\n" join " " split " "
+Tokens = (
+  Input split "\n" join " " split " "
+)
 Tokens = Tokens (Tokens not equal "")
 
 N = Tokens 0 integer
-Coords = Tokens drop 1 take (2 * N) integer
+DropT = Tokens drop 1
+Coords = DropT take (2 * N) integer
 X = Coords (0 till 2 * N by 2)
 Y = Coords (1 till 2 * N by 2)
 
@@ -34,45 +43,65 @@ TopY = array shape NumIntervals fill 0
 BotY = array shape NumIntervals fill 0
 
 for I in 0 till NumIntervals
-  Covering = (HX1 at most (LeftX I)) and (HX2 at least (RightX I))
+  CovL = HX1 at most (LeftX I)
+  CovR = HX2 at least (RightX I)
+  Covering = CovL and CovR
   TopY I = HY Covering max
   BotY I = HY Covering min
 end
 
 PrefMax = TopY scan max axis 0
-SuffMax = (((TopY reverse) scan max axis 0) reverse)
+RevTop = TopY reverse
+RevScanMax = RevTop scan max axis 0
+SuffMax = RevScanMax reverse
 FenceTop = PrefMax min SuffMax
 
 PrefMin = BotY scan min axis 0
-SuffMin = (((BotY reverse) scan min axis 0) reverse)
+RevBot = BotY reverse
+RevScanMin = RevBot scan min axis 0
+SuffMin = RevScanMin reverse
 FenceBot = PrefMin max SuffMin
 
 PolyX = array (SortedX 0)
 PolyY = array (FenceBot 0)
 
 for I in 0 till NumIntervals
-  PolyX = concat PolyX (array (SortedX (I + 1)))
-  PolyY = concat PolyY (array (FenceBot I))
+  NextXVal = SortedX (I + 1)
+  PolyX = concat PolyX (array NextXVal)
+  CurBotVal = FenceBot I
+  PolyY = concat PolyY (array CurBotVal)
   if I + 1 less NumIntervals
-    if (FenceBot (I + 1)) not equal (FenceBot I)
-      PolyX = concat PolyX (array (SortedX (I + 1)))
-      PolyY = concat PolyY (array (FenceBot (I + 1)))
+    CurBot = FenceBot I
+    NextBot = FenceBot (I + 1)
+    if NextBot not equal CurBot
+      NextXArr = array NextXVal
+      PolyX = concat PolyX NextXArr
+      NextBArr = array NextBot
+      PolyY = concat PolyY NextBArr
     end
   end
 end
 
-PolyX = concat PolyX (array (SortedX NumIntervals))
-PolyY = concat PolyY (array (FenceTop (NumIntervals - 1)))
+LastXVal = SortedX NumIntervals
+PolyX = concat PolyX (array LastXVal)
+LastTop = FenceTop (NumIntervals - 1)
+PolyY = concat PolyY (array LastTop)
 
 RevIndices = 0 till NumIntervals reverse
 for Step in 0 till NumIntervals
   I = RevIndices Step
-  PolyX = concat PolyX (array (SortedX I))
-  PolyY = concat PolyY (array (FenceTop I))
+  CurXVal = SortedX I
+  PolyX = concat PolyX (array CurXVal)
+  CurTopVal = FenceTop I
+  PolyY = concat PolyY (array CurTopVal)
   if I greater 0
-    if (FenceTop (I - 1)) not equal (FenceTop I)
-      PolyX = concat PolyX (array (SortedX I))
-      PolyY = concat PolyY (array (FenceTop (I - 1)))
+    CurTop = FenceTop I
+    PrevTop = FenceTop (I - 1)
+    if PrevTop not equal CurTop
+      CurXArr = array CurXVal
+      PolyX = concat PolyX CurXArr
+      PrevTArr = array PrevTop
+      PolyY = concat PolyY PrevTArr
     end
   end
 end
@@ -84,22 +113,32 @@ SimpY = array shape 0 fill 0
 for I in 0 till P
   Prev = (I - 1 + P) mod P
   Next = (I + 1) mod P
-  IsDup = (PolyX I equal (PolyX Next)) and (PolyY I equal (PolyY Next))
+  DupX = PolyX I equal (PolyX Next)
+  DupY = PolyY I equal (PolyY Next)
+  IsDup = DupX and DupY
   if not IsDup
     DX1 = (PolyX I) - (PolyX Prev)
     DY1 = (PolyY I) - (PolyY Prev)
     DX2 = (PolyX Next) - (PolyX I)
     DY2 = (PolyY Next) - (PolyY I)
-    IsCollinear = DX1 * DY2 equal (DX2 * DY1)
+    Prod1 = DX1 * DY2
+    Prod2 = DX2 * DY1
+    IsCollinear = Prod1 equal Prod2
     if not IsCollinear
-      SimpX = concat SimpX (array (PolyX I))
-      SimpY = concat SimpY (array (PolyY I))
+      CurPX = array (PolyX I)
+      SimpX = concat SimpX CurPX
+      CurPY = array (PolyY I)
+      SimpY = concat SimpY CurPY
     end
   end
 end
 
 AnswerCount = SimpX len
-AnswerVertices = (array shape (AnswerCount * 2) fill 0) reshape AnswerCount 2
+VertCount2 = AnswerCount * 2
+ZeroV = array shape VertCount2 fill 0
+AnswerVertices = (
+  ZeroV reshape AnswerCount 2
+)
 for I in 0 till AnswerCount
   AnswerVertices I 0 = SimpX I
   AnswerVertices I 1 = SimpY I

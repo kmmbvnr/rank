@@ -1,10 +1,7 @@
-rem ACMP 0479 - Ant and Tree (Муравей и дерево)
-rem Shortest path around a circular obstacle using 2D vector geometry and tangents.
-rem
-rem If the segment connecting start and goal does not intersect the disk interior,
-rem the path is simply the straight Euclidean segment.
-rem Otherwise, the shortest detour consists of two straight segments tangent to the circle
-rem connected by an arc along the circle boundary.
+rem Ant and Tree
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=479
+rem Shortest path around circle obstacle
 
 use io
 use cli
@@ -12,9 +9,12 @@ use sequences
 use numbers
 use text
 
-arg Input text = "0 0 4 4 2 2 1"
+arg Input text = (
+  "-10000 -10000 10000 10000 0 0 5000"
+)
 
-Tokens = (Input split "\n" join " ") split " "
+Lines = Input split "\n"
+Tokens = (Lines join " ") split " "
 Tokens = Tokens (Tokens not equal "")
 Nums = Tokens real
 
@@ -35,13 +35,14 @@ SegLen2 = V * V sum
 Intersects = false
 
 if SegLen2 greater 0.0
-  rem Projection parameter t of circle center (origin) onto line segment A -> B
-  rem t = - (A . V) / |V|^2
-  T = (0.0 - (A * V sum)) / SegLen2
+  rem Projection t onto segment A -> B
+  DotAV = A * V sum
+  T = (0.0 - DotAV) / SegLen2
   if T greater 0.0 and (T less 1.0)
     P = A + V * T
     H2 = P * P sum
-    if H2 less (R * R - 1e-9)
+    R2 = R * R - 1e-9
+    if H2 less R2
       Intersects = true
     end
   end
@@ -54,15 +55,26 @@ if not Intersects
   Answer = Dist round 3
   Answer print
 else
-  DA = A * A sum sqrt
-  DB = B * B sum sqrt
-  LA = DA * DA - R * R sqrt
-  LB = DB * DB - R * R sqrt
-  AlphaA = (1.0 min (R / DA)) acos
-  AlphaB = (1.0 min (R / DB)) acos
-  CosTheta = -1.0 max (1.0 min ((A * B sum) / (DA * DB)))
+  SqA = A * A sum
+  DA = SqA sqrt
+  SqB = B * B sum
+  DB = SqB sqrt
+  DiffA = (DA * DA) - (R * R)
+  LA = DiffA sqrt
+  DiffB = (DB * DB) - (R * R)
+  LB = DiffB sqrt
+  RatioA = 1.0 min (R / DA)
+  AlphaA = RatioA acos
+  RatioB = 1.0 min (R / DB)
+  AlphaB = RatioB acos
+  DotAB = A * B sum
+  NormAB = DA * DB
+  CosVal = 1.0 min (DotAB / NormAB)
+  CosTheta = -1.0 max CosVal
   Theta = CosTheta acos
-  Delta = 0.0 max (Theta - AlphaA - AlphaB)
+  AngleSum = AlphaA + AlphaB
+  DeltaDiff = Theta - AngleSum
+  Delta = 0.0 max DeltaDiff
   Dist = LA + LB + R * Delta
   Answer = Dist round 3
   Answer print

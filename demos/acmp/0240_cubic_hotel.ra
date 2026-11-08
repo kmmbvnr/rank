@@ -1,15 +1,24 @@
-rem Cubic Hotel (Image Is Everything)
-rem https://acmp.ru/index.asp?main=task&id_task=240
-rem Reconstruct 3D N x N x N cube from 6 orthogonal projections using iterative carving
+rem Cubic Hotel
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=240
+rem Reconstruct 3D cube from projections
 
 use io
 use cli
 use sequences
 use text
 
-arg Input text = "3\n.R. YYR .Y. RYY .Y. .R.\nGRB YGR BYG RBY GYB GRB\n.R. YRR .Y. RRY .R. .Y."
+arg Input text = (
+  "4\n" +
+  "RRRR RRRR RRRR RRRR RRRR RRRR\n" +
+  "RRRR RRRR RRRR RRRR RRRR RRRR\n" +
+  "RRRR RRRR RRRR RRRR RRRR RRRR\n" +
+  "RRRR RRRR RRRR RRRR RRRR RRRR"
+)
 
-Tokens = Input split "\n" join " " split " "
+Tokens = (
+  Input split "\n" join " " split " "
+)
 Tokens = Tokens (Tokens not equal "")
 
 N = Tokens 0 integer
@@ -120,7 +129,8 @@ for Running
                   end
                 end
               end
-              CellIdx = (X * N + Y) * N + Z
+              XY = X * N + Y
+              CellIdx = XY * N + Z
               CellVal = Pos CellIdx
               if CellVal not equal "."
                 if CellVal equal "#"
