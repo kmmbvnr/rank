@@ -1,0 +1,38 @@
+
+ RUN  v3.2.7 /tmp/rank-nightly-1108/fixed/packages/interpreter
+
+ ✓ test/number-function-private-state.test.ts (22 tests) 1015ms
+   ✓ checked Number functions with private integer state > iterates a live queue with ordinals and keeps all storage private  440ms
+ ✓ test/number-function-plans.test.ts (42 tests) 1382ms
+   ✓ lowers an integer plan with the shared Number emitter: Values' = Input min 2
+ return Values sum  397ms
+ ✓ test/function-plan.test.ts (22 tests) 1682ms
+   ✓ function-local plan lowering > represents stages separately and emits one loop at their sum consumer  308ms
+   ✓ function-local plan lowering > compiles the unchanged full Euler 30 entrypoint  830ms
+ ✓ test/scalar-function-kernel.test.ts (30 tests) 2227ms
+   ✓ compiled scalar function bodies > compiles integer and real abs with their exact result domains  382ms
+   ✓ compiled scalar function bodies > compiles text take/drop with code-point bounds and ordinary errors  378ms
+   ✓ scalar function speculative number mode and BigInt overflow fallback > backs off repeated overflow and recovers after the input scale changes  861ms
+ ✓ test/scalar-function-proof.test.ts (56 tests) 522ms
+ ✓ test/function-plan-inputs.test.ts (16 tests) 662ms
+ ✓ test/deferred-bindings.test.ts (26 tests) 484ms
+ ✓ test/scalar-function-bounded-division.test.ts (2 tests) 267ms
+ ✓ test/euler791.test.ts (32 tests) 10172ms
+   ✓ Euler 791 (compiled=false) > matches exhaustive quadruples at Limit=0  345ms
+   ✓ Euler 791 (compiled=false) > matches the published S(1000)  397ms
+   ✓ Euler 791 (compiled=false) > preserves interval sums with Mod=1  1033ms
+   ✓ Euler 791 (compiled=false) > preserves interval sums with Mod=2  855ms
+   ✓ Euler 791 (compiled=false) > preserves interval sums with Mod=7  956ms
+   ✓ Euler 791 (compiled=false) > preserves interval sums with Mod=-7  938ms
+   ✓ Euler 791 (compiled=false) > preserves interval sums with Mod=433494437  1028ms
+   ✓ Euler 791 (compiled=true) > preserves interval sums with Mod=1  783ms
+   ✓ Euler 791 (compiled=true) > preserves interval sums with Mod=2  930ms
+   ✓ Euler 791 (compiled=true) > preserves interval sums with Mod=7  576ms
+   ✓ Euler 791 (compiled=true) > preserves interval sums with Mod=-7  568ms
+   ✓ Euler 791 (compiled=true) > preserves interval sums with Mod=433494437  680ms
+
+ Test Files  9 passed (9)
+      Tests  248 passed (248)
+   Start at  12:28:19
+   Duration  16.86s (transform 2.41s, setup 0ms, collect 15.63s, tests 18.41s, environment 2ms, prepare 568ms)
+
