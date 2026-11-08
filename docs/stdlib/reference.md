@@ -363,6 +363,7 @@ Matrix products, solvers and decompositions.
 | `Matrix eigh` | tuple | unary 2 | Ascending eigenvalues and their eigenvector columns of a symmetric matrix. |
 | `Matrix inverse` | array, lazy | unary 2 | Inverse of a square matrix, one trailing cell at a time. |
 | `A matmul B` | array, lazy | binary all / all | Contracts the last axis of the left array with the first axis of the right. |
+| `Matrix matpow Power` | array | binary all / all | Integer power of a square matrix by repeated squaring; a negative power inverts first. |
 | `A solve B` | array | binary all / all | Solves A * X = B for a square coefficient matrix. |
 
 ## numbers
@@ -386,6 +387,7 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `N divisors` | sequence, lazy | unary 0 | Lazy ascending sequence of the positive divisors. |
 | `Value even` | boolean | unary all | True for an even integer. |
 | `Value exp` | real | unary 0 | Natural exponential. |
+| `Value expm1` | real | unary 0 | Natural exponential minus one, accurate near zero. |
 | `N factors` | sequence, lazy | unary all | Lazy ascending sequence of the prime factors, repeated factors included. |
 | `Limit factorsieve` | array | unary all | Smallest prime factors from 0 through Limit (at most 1048575); entries 0 and 1 are zero. |
 | `A gcd B` | integer | binary 0 / 0 | Greatest common divisor, always nonnegative. |
@@ -401,6 +403,7 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `Value ceil` | integer | unary 0 | Least integer at least a finite number. |
 | `Values digits Bases` | array | binary all / all | Nonnegative integers as mixed-base digits, with the digit axis leading. |
 | `Digits fromDigits Bases` | value | binary all / all | Packs the leading mixed-base digit axis into integers. |
+| `A convolve B` | array | binary all / all | Polynomial product of two integer vectors; with mod M, a fast exact modular product. |
 | `Value round Places` | number | binary 0 / 0 | Rounds to a signed number of decimal places, halfway values to even. |
 | `Angle sin` | real | unary 0 | Sine of an angle in radians. |
 | `Value sinh` | real | unary 0 | Hyperbolic sine. |
@@ -435,7 +438,11 @@ Shapes, orderings, windows and lazy sources.
 | `Values flat` | array | unary all; binary all / all | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | source/value | Unbounded lazy Fibonacci numbers; bound with to, till, from or after. |
 | `Mask indices` | array | unary all | Zero-based true positions in boolean vectors, or coordinate rows in boolean tensors. |
-| `Values reverse` | value | unary all | Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array. |
+| `Values rope` | sequence | unary all | An indexed persistent sequence with logarithmic splitting, joining and reversal; arithmetic ranges stay compressed. |
+| `Rope chunks` | sequence | unary all | Finite sequence of the rope storage chunks, in logical order. |
+| `Rope runs` | array | unary all | Integer rope chunks as rows of first value, step and count; rejects non-integer elements. |
+| `Values reverse` | value | unary all; 3 operands: whole | Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array. Ropes stay ropes and accept inclusive Left Right bounds. |
+| `Values rotate Count` | array | binary all / all | Cyclic shift along the leading axis; positive counts move items right, as np.roll. |
 | `Values first` | element | unary all | First item of text, an array, a queue or a sequence; missing when empty. |
 | `Values last` | element | unary all | Last item of text, an array, a queue or a finite sequence; missing when empty. |
 | `Limit primesieve` | sequence | unary all | Primes through an inclusive finite bound, with an eager odd-only bitmap and constant-time membership. |
@@ -445,7 +452,7 @@ Shapes, orderings, windows and lazy sources.
 | `Streams merge .descending` | sequence, lazy | unary all; binary all / all | Lazily merges sorted streams or matrix rows, ascending by default. |
 | `Values sort .descending` | array | unary 1; binary all / all | Stable sort into a new rank-1 array, ascending by default. |
 | `Matrix transpose` | array | unary all | Reverses the axes of an array. |
-| `Values unique [.counts]` | array / tuple | unary 1; modifier takes a whole vector | Distinct values in first-appearance order; `.counts` returns distinct values and frequencies as two arrays. |
+| `Values unique [.counts]` | array | unary 1; binary all / all | Distinct values in first-appearance order; .counts returns values and frequencies as two arrays. |
 | `Values window Widths... | Values window unpack Shape` | array, lazy | binary all / all | Overlapping complete cells of that size, with optional stride, padding and padding value. |
 | `Values shift Count` | array, lazy | binary all / all | Moves items along an axis, keeping the shape; vacated positions read zero or a with value of the array element type. |
 

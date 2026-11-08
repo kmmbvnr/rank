@@ -482,6 +482,34 @@ an array. The result is real.
 
 log
 
+## expm1
+
+Natural exponential minus one, computed
+accurately for inputs close to zero.
+
+```rank
+use numbers
+0.0 expm1
+```
+
+```result
+0
+```
+
+### Usage
+
+```text
+Number expm1
+```
+
+Works on numbers, arrays and sequences.
+The result is real. Near zero, it keeps
+small values that `exp` minus one loses.
+
+### See also
+
+exp
+
 ## factors
 
 Break N into primes. A prime that

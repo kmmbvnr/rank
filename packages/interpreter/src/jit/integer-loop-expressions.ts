@@ -65,6 +65,8 @@ const inlineBuiltins = new Map<string, InlineBuiltin>([
     ['log', { module: 'numbers', types: { integer: 'real', real: 'real' }, enabled: host => host.reals,
         domain: { test: value => `!Number.isFinite(Number(${value})) || !(${value} > 0)`, message: 'log input is outside its domain' },
         code: value => `Math.log(Number(${value}))` }],
+    ['expm1', { module: 'numbers', types: { integer: 'real', real: 'real' }, enabled: host => host.reals,
+        code: value => `Math.expm1(Number(${value}))` }],
     ['floor', bound('floor')],
     ['ceil', bound('ceil')],
 ]);

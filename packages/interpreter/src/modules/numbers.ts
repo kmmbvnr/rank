@@ -113,6 +113,7 @@ export const numbersModule: RuntimeModule = {
         value => Number.isFinite(value) && value > 0,
     ),
     exp: () => unaryMath('exp', Math.exp),
+    expm1: () => unaryMath('expm1', Math.expm1),
     floor: () => integerBound('floor', Math.floor),
     ceil: () => integerBound('ceil', Math.ceil),
     digits: () => native('digits', 2, args => radixDigits(args[0], args[1])),
@@ -219,7 +220,7 @@ function unaryMath(
     };
     return scalarNative(name, item => item === MISSING ? MISSING : checked(numericReal(item, name)),
         source => mapStoredUnary(source, 'number', checked), 'real',
-        name === 'atan' || name === 'log' ? name : undefined);
+        name === 'atan' || name === 'log' || name === 'expm1' ? name : undefined);
 }
 
 function mapBinaryValue(

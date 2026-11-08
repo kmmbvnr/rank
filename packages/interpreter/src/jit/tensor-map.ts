@@ -21,12 +21,12 @@ interface MapRecipe {
 }
 const maps = new WeakMap<RankArray, MapRecipe>();
 const scalarMaps = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[];
-    source: RankArray; call(cell: RankValue): RankValue; result: 'real' | 'integer' | 'numeric'; intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log' | 'isqrt' | 'integer'; valid(): boolean }>();
+    source: RankArray; call(cell: RankValue): RankValue; result: 'real' | 'integer' | 'numeric'; intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log' | 'expm1' | 'isqrt' | 'integer'; valid(): boolean }>();
 
 /** Checked native scalar bodies are captured at construction, like their readers.
  * This records a recipe only; it neither reads cells nor retains results. */
 export function registerTensorScalarMap(value: RankArray, source: RankArray, call: (cell: RankValue) => RankValue,
-    result: 'real' | 'integer' | 'numeric', valid: () => boolean, intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log' | 'isqrt' | 'integer'): RankArray {
+    result: 'real' | 'integer' | 'numeric', valid: () => boolean, intrinsic?: 'abs' | 'atan' | 'sqrt' | 'log' | 'expm1' | 'isqrt' | 'integer'): RankArray {
     const scope = active ?? mapScope(source);
     if (scope?.enabled()) {
         scalarMaps.set(value, { reader: value.itemAt, shape: [...value.shape], source, call, result, valid, intrinsic });

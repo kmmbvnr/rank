@@ -1,89 +1,154 @@
 rem St. Petersburg Lottery
 rem https://projecteuler.net/problem=499
-
 use numbers
+use bits
 use sequences
 use linalg
 use io
 use cli
-
 arg T integer = 15
 arg B integer = 1000000000
 
-rem A round costs T and pays 2^n with
-rem chance 2^-(n+1) (n < 50 is enough
-rem for 7 digits). With d = T - 1 and
-rem capital c = k d + r + 1 above the
-rem threshold, the ruin chances obey
-rem u_(k+1) = X u_k: X is a fixed
-rem point, row r mixing rows of X^j
-rem for the layer j each payout
-rem reaches. The lowest layer solves
-rem (I - C) u_0 = q.
-H = 50
-D = T - 1
-Ey = (0 till D) copy
-fun Ro J X rowpow
-  rem Rows Ro of X^J, all at once.
-  Nr = Ro len
-  Oh = (Ro reshape Nr 1) equal Ey
-  V = Oh choose 1.0 0.0
-  Xp = X
-  Jr = J
-  for (Jr max) greater 0
-    Bm = (Jr mod 2) * 1.0
-    Vx = V matmul Xp
-    V = V + (Bm reshape Nr 1) * (Vx - V)
-    Xp = Xp matmul Xp
-    Jr = Jr // 2
+rem Evaluate selected rows of powers.
+fun State square
+  unpack Values Power Exponents = State
+  Count = Exponents len
+  Bits = Exponents mod 2
+  Mask = Bits reshape Count 1
+  Next = Values matmul Power
+  Values += Mask * (Next - Values)
+  Power = Power matmul Power
+  Exponents = Exponents // 2
+  return tuple Values Power Exponents
+end
+
+fun Rows Exponents Matrix rowpow
+  Size = Matrix shape 0
+  Columns = 0 till Size copy
+  Mask = Rows Columns outer equal
+  Values = Mask choose 1.0 0.0
+  Largest = Exponents max
+  if Largest equal 0
+    return Values
   end
-  return V
+  Bits = Largest binary len
+  Seed = tuple Values Matrix Exponents
+  State = Seed square repeat Bits
+  return State 0
 end
-Nq = D * H
-Rq = (0 till Nq) // H
-Nn = (0 till Nq) mod H
-Pq = 0.5 ** (Nn + 1)
-Pc = Pq reshape Nq 1
-Gq = Rq + 2 ** Nn - 1
-Gr = Gq mod D
-Gj = Gq // D
-rem Iterate until the change stops
-rem shrinking: X^k for k ~ 10^8 needs
-rem X to the last bits.
-X = array shape D D fill 0.0
-Bd = 1.0
-St = 0
-for St less 30
-  Wv = Gr Gj X rowpow * Pc
-  Xn = (Wv reshape D H D) sum axis 1
-  Df = ((Xn - X) abs) max
-  X = Xn
-  St += 1
-  if Df less Bd
-    Bd = Df
-    St = 0
+
+rem Use layers for uncertain rounding.
+fun Ticket matrix_chance Capital
+  Size = Ticket - 1
+  Count = Size * 50
+  Cells = 0 till Count copy
+  Rows = Cells // 50
+  Levels = Cells mod 50
+  Prob = 0.5 ** (Levels + 1)
+  Weights = Prob reshape Count 1
+  Payout = 2 ** Levels
+  Reach = Rows + Payout - 1
+  Targets = Reach mod Size
+  Layers = Reach // Size
+  Grid = array shape Size Size fill 0.0
+  Best = 1.0
+  Stale = 0
+  for Stale less 30
+    Product = Targets Layers Grid rowpow
+    Weighted = Product * Weights
+    Next = Weighted reshape Size 50 Size
+    Current = Next sum axis 1
+    Change = Current - Grid
+    Delta = Change abs max
+    Grid = Current
+    Stale += 1
+    if Delta less Best
+      Best = Delta
+      Stale = 0
+    end
   end
+  Lower = Rows + Payout - Size
+  Alive = Lower greater 0
+  Failed = Alive choose 0.0 Prob
+  Table = Failed reshape Size 50
+  Ruin = Table sum axis 1
+  Floor = (Lower max 1) - 1
+  Starts = Floor mod Size
+  Powers = Floor // Size
+  Product = Starts Powers Grid rowpow
+  Mass = Alive choose Prob 0.0
+  Scale = Mass reshape Count 1
+  Weighted = Product * Scale
+  Next = Weighted reshape Size 50 Size
+  Kernel = Next sum axis 1
+  Ones = array shape Size fill 1.0
+  Identity = Ones diag
+  Base = (Identity - Kernel) solve Ruin
+  Relative = Capital - Size - 1
+  Target = array (Relative mod Size)
+  Power = array (Relative // Size)
+  Product = Target Power Grid rowpow
+  Terms = Product 0 * Base
+  Chance = Terms sum
+  return 1.0 - Chance
 end
-rem Lowest layer: c = r + 1.
-Cq = Rq + 2 ** Nn - D
-Lv = Cq greater 0
-Qr = Lv choose 0.0 Pq
-Q = (Qr reshape D H) sum axis 1
-Cp = (Cq max 1) - 1
-Wb = (Cp mod D) (Cp // D) X rowpow
-Pl = Lv choose Pq 0.0
-Wb = Wb * (Pl reshape Nq 1)
-Cm = (Wb reshape D H D) sum axis 1
-I1 = (Ey * 0 + 1.0) diag
-U0 = (I1 - Cm) solve Q
-Answer = 0.0
-C0 = B - D
-if C0 greater 0
-  Ra = array ((C0 - 1) mod D)
-  Ka = array ((C0 - 1) // D)
-  Rw = Ra Ka X rowpow
-  Ru = (Rw 0 * U0) sum
-  Answer = 1.0 - Ru
+
+rem At ruin, capital is in 1..Ticket-1.
+rem The exponential martingale bounds
+rem ruin without its overshoot law.
+fun Ticket chance Capital
+  if Ticket less 1
+    return Ticket matrix_chance Capital
+  end
+  if Capital less Ticket
+    return 0.0
+  end
+  if Ticket equal 1
+    return 1.0
+  end
+  Count = 100
+  Levels = 0 till Count copy
+  Payouts = 2.0 ** Levels
+  Weights = 0.5 / Payouts
+  Tail = 0.5 ** Count
+  rem Guard rounded sums and expm1.
+  Error = 8 * (Count + 1) * 2.0 ** -52
+  fun Bounds bisect
+    Low = Bounds 0
+    High = Bounds 1
+    Middle = (Low + High) / 2.0
+    Arguments = 0.0 - Middle * Payouts
+    Terms = Weights * (Arguments expm1)
+    Total = Terms sum
+    Loss = 0.0 - Total
+    Step = 0.0 - Middle * Ticket
+    Target = Step expm1
+    Limit = 0.0 - Target
+    Guard = (Loss + Limit) * Error
+    if Loss - Guard greater Limit
+      return array Middle High
+    end
+    if Loss + Tail + Guard less Limit
+      return array Low Middle
+    end
+    return Bounds
+  end
+  Ceiling = 2.0 log / (Ticket - 1)
+  Start = array 0.0 Ceiling
+  Bracket = Start bisect repeat 80
+  Lower = Capital - Ticket + 1
+  Upper = Capital - 1
+  Limits = array Lower Upper
+  Scaled = 0.0 - Bracket * Limits
+  Transforms = Scaled expm1
+  Bounds = 0.0 - Transforms
+  Rounded = Bounds round 7
+  if Rounded 0 equal Rounded 1
+    return Rounded 0
+  end
+  return Ticket matrix_chance Capital
 end
+
+Answer = T chance B
 Answer = Answer round 7
 Answer print

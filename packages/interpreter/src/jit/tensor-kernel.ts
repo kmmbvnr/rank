@@ -1094,7 +1094,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 else if (node.kind === 'check' || node.kind === 'call') {
                     const source = child(node.source);
                     const intrinsic = node.kind === 'call' ? node.intrinsic : undefined;
-                    if (intrinsic === 'atan' || intrinsic === 'sqrt' || intrinsic === 'log') {
+                    if (intrinsic === 'atan' || intrinsic === 'sqrt' || intrinsic === 'log' || intrinsic === 'expm1') {
                         const number = `Number(${source})`;
                         if (intrinsic === 'sqrt') lines.push(`if (${number} < 0) return decline('tensor:scalar-domain');`);
                         if (intrinsic === 'log') lines.push(`if (!Number.isFinite(${number}) || !(${number} > 0)) return decline('tensor:scalar-domain');`);

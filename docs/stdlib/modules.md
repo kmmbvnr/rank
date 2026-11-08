@@ -81,6 +81,7 @@ sqrt
 isqrt
 log
 exp
+expm1
 round
 sin
 cos
