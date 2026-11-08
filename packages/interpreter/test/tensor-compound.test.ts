@@ -3,7 +3,9 @@ import { Interpreter, formatValue, RuntimeDiagnostics } from '../src/index.js';
 import { withInterrupt } from '../src/interrupt.js';
 
 function run(source: string, tensorFusion: boolean) {
-    const diagnostics = new RuntimeDiagnostics(), runtime = new Interpreter(() => {}, { tensorFusion });
+    // Exercise tensor kernels instead of letting the numeric loop tier
+    // consume the compound assignment first.
+    const diagnostics = new RuntimeDiagnostics(), runtime = new Interpreter(() => {}, { tensorFusion, integerLoopCompilation: false });
     try {
         const result = diagnostics.run(() => runtime.execute(source));
         return { value: result === undefined ? undefined : formatValue(result), kernels: diagnostics.compiledTensors };

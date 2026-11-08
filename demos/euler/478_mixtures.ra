@@ -8,80 +8,116 @@ use cli
 
 arg N integer = 10000000
 
+rem Small prime powers leave at most
+rem one prime cofactor in each entry.
+fun Bound sieve
+  Size = Bound + 1
+  Signs = array shape Size fill 1
+  Signs 0 = 0
+  Phi = 0 to Bound copy
+  Rest = 0 to Bound copy
+  Root = Bound isqrt
+  Primes = primes to Root copy
+  Count = Primes len
+  Index = 0
+  Power = 2
+  for Index less Count
+    Prime = Primes Index
+    Slots = Power to Bound by Power
+    Rest Slots //= Prime
+    if Power equal Prime
+      Signs Slots *= -1
+      Phi Slots -= Phi Slots // Prime
+      Square = Prime * Prime
+      Slots = Square to Bound by Square
+      Signs Slots = 0
+    end
+    Power *= Prime
+    if Power greater Bound
+      Index += 1
+      if Index less Count
+        Power = Primes Index
+      end
+    end
+  end
+  Large = Rest greater 1
+  Signs = Large choose (0 - Signs) Signs
+  Divisors = Rest max 1
+  Delta = Phi // Divisors
+  Phi = Large choose (Phi - Delta) Phi
+  Prefix = Signs scan +
+  return tuple Prefix Phi
+end
+
+rem H(L) = 1 + coprime x, y > 0 with
+rem x + L y <= Bound. Group Mobius
+rem inversion by m = Bound // d.
+fun Bound counts Quotients Weights
+  Size = Bound + 1
+  Counts = array shape Size fill 1
+  Count = Quotients len
+  for I in 0 till Count
+    Weight = Weights I
+    if Weight not equal 0
+      Top = Quotients I
+      Slopes = 1 to Top
+      Rows = Top // Slopes
+      Pairs = (
+        Rows * Top -
+        Slopes * Rows * (Rows + 1) // 2
+      )
+      Counts Slopes += Weight * Pairs
+    end
+  end
+  return Counts
+end
+
+unpack Prefix Phi = N sieve
+Root = N isqrt
+Divisors = 1 to Root copy
+Small = N // (Root + 1) to 1 by -1
+Quotients = concat (N // Divisors) Small
+Quotients = Quotients unique
+High = N // Quotients
+Low = N // (Quotients + 1)
+Weights = Prefix High - Prefix Low
 rem P counts primitive triples in
-rem 0..N^3, H(L) = 1 + coprime x, y > 0
-rem with x + L y <= N, and E = 2^P - 1
-rem - 2^h B + sum 6 phi(L) 2^(h -
-rem H(L)), h = (P - 1) / 2, B = 6 sum
-rem phi. Powers of 2 mod 11^8 reduce
-rem their exponent mod phi(11^8).
-Md = 214358881
-Fh = 194871710
-rem mu and phi by small primes; the
-rem cofactor in Rs is one big prime.
-Mu = array shape (N + 1) fill 1
-Mu 0 = 0
-Ph = 0 to N copy
-Rs = 0 to N copy
-Rt = N isqrt
-for P in primes to Rt
-  Sl = P to N by P
-  Mu Sl *= -1
-  Ph Sl -= Ph Sl // P
-  Mu (P * P to N by P * P) = 0
-  Pe = P
-  for Pe at most N
-    Rs (Pe to N by Pe) //= P
-    Pe *= P
-  end
-end
-Bp = Rs greater 1
-Mu = Bp choose (0 - Mu) Mu
-Rm = Rs max 1
-Ph = Bp choose (Ph // Rm * (Rm - 1)) Ph
-Mt = Mu scan +
-rem Moebius sums group by m = N // d:
-rem Cm is the sum of mu over those d.
-Sn = N isqrt
-D1 = 1 to Sn copy
-Ms = (N // (Sn + 1)) to 1 by -1
-Ms = concat (N // D1) Ms
-Ms = Ms unique
-Cm = Mt (N // Ms) - Mt (N // (Ms + 1))
-P3 = Cm * ((Ms + 1) ** 3 - 1)
-Pt = P3 sum
-rem H(L) - 1 = sum over m of Cm G(m,
-rem L), G the pairs a, b > 0 with a +
-rem L b <= m: q m - L q (q + 1) / 2.
-Hs = array shape (N + 1) fill 0
-Ls = 0 to N copy
-for I in 0 till Ms len
-  C = Cm I
-  if C not equal 0
-    M = Ms I
-    Lr = Ls (1 to M)
-    Q = M // Lr
-    G = Q * M - Lr * Q * (Q + 1) // 2
-    Hs (1 to M) += C * G
-  end
-end
-Hs += 1
-rem 2^e mod Md from two tables.
-Hf = (Pt - 1) // 2
-Ex = (Hf - Hs (1 to N)) mod Fh
-E0 = 0 till 16384 copy
-T0 = 2 E0 Md powmod
-Tb = 2 16384 Md powmod
-E1 = 0 to Fh // 16384 copy
-T1 = Tb E1 Md powmod
-Pw = T0 (Ex mod 16384)
-Pw = Pw * (T1 (Ex // 16384)) mod Md
-P1 = Ph (1 to N)
-Tw = (6 * P1 mod Md) * Pw mod Md
-Tt = Tw sum mod Md
-Bn = 6 * (P1 sum) mod Md
-F = 2 (Hf mod Fh) Md powmod
-F = (1 + F * Bn - Tt) mod Md
-Answer = 2 (Pt mod Fh) Md powmod
-Answer = (Answer - F) mod Md
+rem 0..N^3, excluding the origin.
+Cubes = (Quotients + 1) ** 3 - 1
+Terms = Weights * Cubes
+Primitive = Terms sum
+Counts = N counts Quotients Weights
+
+rem E = 2^P - 1 - 2^h B + T, where
+rem h = (P - 1) / 2, B = 6 sum phi,
+rem T = sum 6 phi(L) 2^(h - H(L)).
+rem Only exponent residues are needed.
+Modulus = 214358881
+Period = 194871710
+Half = (Primitive - 1) // 2 mod Period
+Keys = 1 to N
+Shifts = (Half - Counts Keys) mod Period
+rem Two small tables give 2^e mod M.
+Stride = 16384
+LowIndex = 0 till Stride copy
+Lower = 2 LowIndex Modulus powmod
+Step = 2 Stride Modulus powmod
+Top = Period // Stride
+HighIndex = 0 to Top copy
+Upper = Step HighIndex Modulus powmod
+Powers = (
+  Lower (Shifts mod Stride) *
+  Upper (Shifts // Stride)
+) mod Modulus
+Values = Phi Keys
+Terms = 6 * Values * Powers mod Modulus
+Total = Terms sum mod Modulus
+Sum = Values sum
+Rays = 6 * Sum mod Modulus
+HalfPower = 2 Half Modulus powmod
+Excluded = 1 + HalfPower * Rays - Total
+Bad = Excluded mod Modulus
+Residue = Primitive mod Period
+Leading = 2 Residue Modulus powmod
+Answer = (Leading - Bad) mod Modulus
 Answer print
