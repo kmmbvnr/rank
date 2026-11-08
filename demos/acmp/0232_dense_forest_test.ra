@@ -1,6 +1,6 @@
 use testing
 
-test "ACMP 232: sample 1 open forest -> NO"
+test "sample 1: open forest -> NO"
   use "0232_dense_forest"
   N = 3
   TreesText = "0 10 2 5 11 2 12.04 7 2"
@@ -9,16 +9,18 @@ test "ACMP 232: sample 1 open forest -> NO"
   Answer equal "NO"
 end
 
-test "ACMP 232: sample 2 dense forest triangle -> YES"
+test "sample 2: dense triangle -> YES"
   use "0232_dense_forest"
   N = 3
-  TreesText = "0 0 1 2.05 0 1 1.02 -1.9 1"
+  T1 = "0 0 1 2.05 0 1 "
+  T2 = "1.02 -1.9 1"
+  TreesText = T1 + T2
   run
 
   Answer equal "YES"
 end
 
-test "ACMP 232: single tree cannot have trees on both sides -> YES"
+test "single tree -> YES"
   use "0232_dense_forest"
   N = 1
   TreesText = "0 0 1"
@@ -27,7 +29,7 @@ test "ACMP 232: single tree cannot have trees on both sides -> YES"
   Answer equal "YES"
 end
 
-test "ACMP 232: two disjoint trees always separable -> NO"
+test "two disjoint trees -> NO"
   use "0232_dense_forest"
   N = 2
   TreesText = "0 0 1 10 10 1"

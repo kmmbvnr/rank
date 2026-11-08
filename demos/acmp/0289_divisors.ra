@@ -1,14 +1,6 @@
-rem ACMP 289 - Divisors (Делители)
-rem Solved in Euler 1-15 style with prime factor exponent partitioning and branch-and-bound search.
-rem
-rem Given the target divisor count D, find the minimum positive integer N with d(N) = D.
-rem Writing the prime factorization N = 2^(d1 - 1) * 3^(d2 - 1) * ... * p_k^(dk - 1),
-rem we have D = d1 * d2 * ... * dk. To minimize N, the exponents must satisfy
-rem d1 >= d2 >= ... >= dk >= 2.
-rem
-rem Since N <= 10^15, at most 13 primes can be used (2 * 3 * ... * 41 < 10^15).
-rem We explore all valid divisor partitions using a branch-and-bound stack search,
-rem pruning any branch where N exceeds the current best.
+rem ACMP 289 - Divisors
+rem Prime factor exponent partition.
+rem Branch-and-bound search.
 
 use io
 use cli
@@ -21,17 +13,20 @@ arg D integer = 60
 Limit = 1000000000000000
 Best = Limit + 1
 
-Primes = array 2 3 5 7 11 13 17 19 23 29 31 37 41
+P1 = array 2 3 5 7 11 13 17
+P2 = array 19 23 29 31 37 41
+Primes = concat P1 P2
 
 S = new stack
-S push (array D 0 D 1)
+S push (array D 0 2 D 1)
 
 for S len greater 0
   State = S pop
   RemD = State 0
   PIdx = State 1
-  MaxD = State 2
-  CurN = State 3
+  CurD = State 2
+  MaxD = State 3
+  CurN = State 4
 
   if RemD equal 1
     Best = Best min CurN
@@ -39,16 +34,25 @@ for S len greater 0
     if PIdx less 13
       P = Primes PIdx
       HiD = MaxD min RemD
-      if not (HiD less 2)
-        for d in 2 to HiD
-          if RemD mod d equal 0
-            PPow = P ** (d - 1)
-            NextN = CurN * PPow
-            if NextN less Best
-              NextRemD = RemD // d
-              S push (array NextRemD (PIdx + 1) d NextN)
-            end
-          end
+      if CurD less HiD
+        NextSibling = CurD + 1
+        Item1 = array RemD PIdx
+        Item2 = array NextSibling
+        Item3 = array MaxD CurN
+        Item23 = concat Item2 Item3
+        S push (concat Item1 Item23)
+      end
+      Divides = RemD mod CurD equal 0
+      InBound = not (CurD greater HiD)
+      if InBound and Divides
+        PPow = P ** (CurD - 1)
+        NextN = CurN * PPow
+        if NextN less Best
+          NextRemD = RemD // CurD
+          NextP = PIdx + 1
+          C1 = array NextRemD NextP
+          C2 = array 2 CurD NextN
+          S push (concat C1 C2)
         end
       end
     end
@@ -56,8 +60,7 @@ for S len greater 0
 end
 
 Answer = 0
-if Best less (Limit + 1)
+if not (Best greater Limit)
   Answer = Best
 end
-
 Answer print

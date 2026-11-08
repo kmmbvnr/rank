@@ -1,6 +1,6 @@
 use testing
 
-test "sample 1: 3x3x3 colored cube with holes"
+test "sample 1: 3x3x3 colored cube"
   use "0240_cubic_hotel"
   Input = "3
 .R. YYR .Y. RYY .Y. .R.
@@ -13,7 +13,9 @@ end
 
 test "sample 2: solid 2x2x2 cube"
   use "0240_cubic_hotel"
-  Input = "2\nZZ ZZ ZZ ZZ ZZ ZZ\nZZ ZZ ZZ ZZ ZZ ZZ"
+  I1 = "2\nZZ ZZ ZZ ZZ ZZ ZZ\n"
+  I2 = "ZZ ZZ ZZ ZZ ZZ ZZ"
+  Input = I1 + I2
   run
 
   Answer equal 8

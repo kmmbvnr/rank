@@ -1,6 +1,6 @@
 use testing
 
-test "ACMP 219: sample 1 (2x2 table, max sum 3)"
+test "sample 1: 2x2 table, max sum 3"
   use "0219_cute_tables"
   N = 2
   M = 2
@@ -12,7 +12,7 @@ test "ACMP 219: sample 1 (2x2 table, max sum 3)"
   Answer equal 3
 end
 
-test "ACMP 219: impossible configuration returns -1"
+test "impossible config returns -1"
   use "0219_cute_tables"
   N = 2
   M = 2
@@ -36,7 +36,7 @@ test "ACMP 219: fully prefilled table"
   Answer equal 5
 end
 
-test "ACMP 219: all empty 3x3 table with symmetric limits"
+test "all empty 3x3 symmetric limits"
   use "0219_cute_tables"
   N = 3
   M = 3

@@ -1,6 +1,6 @@
 use testing
 
-test "ACMP 243: sample 1 (2 shops, 14 meters -> 88)"
+test "sample 1: 2 shops -> 88"
   use "0243_masquerade"
   N = 2
   L = 14
@@ -10,7 +10,7 @@ test "ACMP 243: sample 1 (2 shops, 14 meters -> 88)"
   Answer equal 88
 end
 
-test "ACMP 243: sample 2 (insufficient stock -> -1)"
+test "sample 2: no stock -> -1"
   use "0243_masquerade"
   N = 1
   L = 20
@@ -20,7 +20,7 @@ test "ACMP 243: sample 2 (insufficient stock -> -1)"
   Answer equal -1
 end
 
-test "ACMP 243: discount overbuy (need 8 meters, buying 9 is cheaper)"
+test "discount overbuy: need 8, buy 9"
   use "0243_masquerade"
   N = 1
   L = 8

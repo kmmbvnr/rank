@@ -32,7 +32,7 @@ test "ACMP 289: sample 4 (D=60 -> 5040)"
   Answer equal 5040
 end
 
-test "ACMP 289: sample 5 (D=4911 exceeds 10^15 -> 0)"
+test "sample 5: D=4911 -> 0"
   use "0289_divisors"
   D = 4911
   run
