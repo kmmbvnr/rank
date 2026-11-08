@@ -10,9 +10,9 @@ cd "$BASE/repo"
 LOG="$BASE/logs/$(date -u +%Y-%m-%dT%H-%M-%S).log"
 exec >>"$LOG" 2>&1
 publish() {
-  timeout 90 rsync -az --delay-updates --timeout=60 -e 'ssh -o BatchMode=yes -o ControlPath=none -o ConnectTimeout=10' --exclude '*.tmp' --exclude /index.html "$BASE/public/" root@viewflow.io:/srv/rank-bench/public/
+  timeout 90 rsync -az --no-owner --no-group --delay-updates --timeout=60 -e 'ssh -i /root/.ssh/rank_bench_publish -o IdentitiesOnly=yes -o BatchMode=yes -o ControlPath=none -o ConnectTimeout=10' --exclude '*.tmp' --exclude /index.html "$BASE/public/" rank-bench-publish@viewflow.io:./
   [ -f "$BASE/public/index.html" ] || return 0
-  timeout 30 rsync -az --timeout=20 -e 'ssh -o BatchMode=yes -o ControlPath=none -o ConnectTimeout=10' "$BASE/public/index.html" root@viewflow.io:/srv/rank-bench/public/index.html
+  timeout 30 rsync -az --no-owner --no-group --timeout=20 -e 'ssh -i /root/.ssh/rank_bench_publish -o IdentitiesOnly=yes -o BatchMode=yes -o ControlPath=none -o ConnectTimeout=10' "$BASE/public/index.html" rank-bench-publish@viewflow.io:./index.html
 }
 heartbeat() {
   exec 9>&-

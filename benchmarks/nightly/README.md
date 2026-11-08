@@ -54,10 +54,25 @@ every minute and at completion. Historical result files are retained.
 An interrupted process leaves the most recent completed measurements on disk;
 a later run starts a new pass. It does not resume an interrupted workload list.
 
-Publishing uses SSH from jack to `root@viewflow.io` and `rsync` with delayed
+Publishing uses SSH from jack to `rank-bench-publish@viewflow.io` and `rsync` with delayed
 updates, with the HTML snapshot transferred last. The nginx alias points to
 `/srv/rank-bench/public`, outside the web application's deployment directory,
 so normal site deployments do not erase benchmark history.
+
+The publisher uses `/root/.ssh/rank_bench_publish` on jack with
+`IdentitiesOnly=yes`. This key is separate from the reverse-tunnel key.
+Its public key has these options in the publishing account's `authorized_keys`:
+
+```text
+restrict,command="/usr/bin/rrsync -wo /srv/rank-bench/public"
+```
+
+The account owns the public report files and has no administrative privileges.
+The forced command permits rsync uploads only; shell commands, downloads and
+forwarding are denied. Remote destinations are relative to the restricted
+report directory (`./`, `./index.html`, `./dashboard.html`). Keep the private
+key on jack; only its public key belongs on the web server. When rotating it,
+replace the publishing key entry separately from the tunnel key.
 
 The controller's `run.mjs`, `worker.mjs` and `report.mjs` update from the checkout when those
 files exist on `origin/main`; until these changes are merged/pushed, the
