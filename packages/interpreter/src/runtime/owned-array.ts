@@ -278,6 +278,24 @@ export function fillBooleanSelection(
     const diagnostics = currentDiagnostics();
     if (diagnostics) { diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count; }
     state.revision = noteMutation(state.birth);
+    // Validated selectors have no user reads. Private polling can borrow the
+    // bitmap for a batch; observable polling and exact budgets keep cell order.
+    if (state.booleans && privateLoopPolling() && !inspectionEnabled() && !demandBudgetEnabled()) {
+        const words = state.booleans.words;
+        for (let start = 0; start < count; start += 4096) {
+            const end = Math.min(count, start + 4096);
+            checkpoint('writing array', end - start);
+            if (operand) for (let i = start; i < end; i++) {
+                const offset = offsetAt(i);
+                words[offset >>> 5] |= 1 << (offset & 31);
+            }
+            else for (let i = start; i < end; i++) {
+                const offset = offsetAt(i);
+                words[offset >>> 5] &= ~(1 << (offset & 31));
+            }
+        }
+        return;
+    }
     for (let i = 0; i < count; i++) {
         checkpoint('writing array');
         if (state.booleans) state.booleans.write(offsetAt(i), operand);

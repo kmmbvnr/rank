@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type RankArray } from '../src/index.js';
 import { fillBooleanSelection, filledArray, readArrayItem, writeArrayCell } from '../src/array-storage.js';
-import { DemandBudgetExhausted, withDemandBudget, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
+import { InterruptedError, DemandBudgetExhausted, withDemandBudget, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
 
 for (const compilation of [false, true]) describe(`scalar boolean writes (${compilation})`, () => {
     it('preserves aliases, duplicate indices and errors without generated code', () => {
@@ -76,4 +76,21 @@ it.each([0, 1, 1023, 1024, 1025])('commits exactly %s cells under a demand budge
         .toThrow(DemandBudgetExhausted);
     if (budget) expect(readArrayItem(array, budget - 1)).toBe(true);
     expect(readArrayItem(array, budget)).toBe(false);
+});
+
+it.each([true, false])('fills duplicate packed addresses with %s across word and poll boundaries', operand => {
+    const size = 8195, array = filledArray(!operand, [size]);
+    const offsets = Array.from({ length: 10003 }, (_, i) => (i * 37 + (i >> 3)) % size);
+    const expected = Array(size).fill(!operand);
+    for (const offset of offsets) expected[offset] = operand;
+    fillBooleanSelection(array, offsets.length, i => offsets[i], operand);
+    expect(Array.from({ length: size }, (_, i) => readArrayItem(array, i))).toEqual(expected);
+});
+
+it('cancels private bitmap writes before publishing the first batch', () => {
+    const array = filledArray(false, [8195]), signal = new Int32Array(new SharedArrayBuffer(4));
+    Atomics.store(signal, 0, 1);
+    expect(() => withInterrupt(signal, () => fillBooleanSelection(array, 8195, i => i, true))).toThrow(InterruptedError);
+    expect(readArrayItem(array, 0)).toBe(false);
+    expect(readArrayItem(array, 8194)).toBe(false);
 });
