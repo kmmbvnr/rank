@@ -612,6 +612,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         if (plan.rangeDefinitions?.size && interruptsEnabled()) return recordFallback('number-loop:observable-range-completion', 'effects');
         if ((plan.builtins.has('lowerindex') || plan.builtins.has('upperindex')) && (demandBudgetEnabled() || interruptsEnabled()))
             return recordFallback('number-loop:observable-sorted-search', 'effects');
+        // Retained local vectors must keep the existing exact tier's demand
+        // charges and publication boundaries; decline before private execution.
+        if (plan.retainedLocalArrayResult && demandBudgetEnabled()) return recordFallback('number-loop:observable-local-result-budget', 'effects');
         if (reboundInputs && demandBudgetEnabled()) return recordFallback('number-loop:observable-rebinding-budget', 'effects');
         if (plan.rangeNarrowing && demandBudgetEnabled()) return recordFallback('number-loop:observable-narrowing-budget', 'effects');
         for (const name of plan.syntax) if (host.read(name) !== undefined) return recordFallback('number-loop:syntax-binding', 'proof');

@@ -66,6 +66,7 @@ for (const [file, expected] of [
     ['749_nearpowersums.ra', 13459471903176422n],
     ['750_cardstacking.ra', 160640n],
     ['790_clockgrid.ra', 16585056588495119n],
+    ['797_cyclogenic.ra', 47722272n],
     ['799_pentagonalpuzzle.ra', 1096910149053902n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
@@ -117,6 +118,7 @@ for (const [file, expected] of [
             }
             if (file === '749_nearpowersums.ra') expect(diagnostics.weightedAxisSums).toBeGreaterThan(0);
             if (file === '790_clockgrid.ra') expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
+            if (file === '797_cyclogenic.ra') expect(diagnostics.numberLoops).toBe(3);
             if (file === '799_pentagonalpuzzle.ra') {
                 expect(diagnostics.compiledTensors).toBeGreaterThan(0);
                 expect(diagnostics.typedUnpacks).toBe(0);

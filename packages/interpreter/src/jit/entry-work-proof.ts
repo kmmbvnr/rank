@@ -48,6 +48,13 @@ export function entryWorkValues(plan: IntegerLoopPlan, input: unknown[], exclude
  * No loops are executed here: invariant nested work composes by multiplication.
  * Indexed facts may read only guarded immutable entry cells, disjoint from writes. */
 export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
+    function entryVectorLength(name: string): number | undefined {
+        if (!plan.arrayInputs.has(name) || plan.arrayDefinitions.has(name) || plan.writable.has(name)) return undefined;
+        const value = host.read(name);
+        if (!value || !hasNativeArrayHeader(value) || value.shape.length !== 1) return undefined;
+        const cells = integer32Cells(value) ?? integer64Cells(value);
+        return cells && cells.length === value.shape[0] ? cells.length : undefined;
+    }
     function integer(expression: Expression): Integer {
         if (isMaterializeExpression(expression) || isArrayExpression(expression)) return () => undefined;
         // These leaves are revisited during every admission attempt. Their
@@ -94,6 +101,15 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
                 const read = truth(operand);
                 return values => { const value = read(values); return value === undefined ? undefined : value ? 1n : 0n; };
             }
+        }
+        if (selected?.length === 2 && isNameExpression(selected[0]) && isNameExpression(selected[1])
+            && selected[1].name === 'len' && plan.builtins.get('len') === 'core'
+            && !plan.localTypes.has('len') && !plan.arrays.has('len') && !plan.containers.has('len')) {
+            const name = selected[0].name;
+            return () => {
+                const length = entryVectorLength(name);
+                return length === undefined ? undefined : BigInt(length);
+            };
         }
         if (selected?.length === 2 && isNameExpression(selected[0])) {
             const name = selected[0].name, index = integer(selected[1]);
@@ -189,12 +205,7 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
             if (typeof count === 'bigint') return Number(count);
             // Immutable entry vectors retain their length across the loop.
             // Inspect native metadata only, never selector cells or callbacks.
-            const name = source.name;
-            if (!plan.arrayInputs.has(name) || plan.arrayDefinitions.has(name) || plan.writable.has(name)) return 0;
-            const value = host.read(name);
-            if (!value || !hasNativeArrayHeader(value) || value.shape.length !== 1) return 0;
-            const cells = integer32Cells(value) ?? integer64Cells(value);
-            return cells && cells.length === value.shape[0] ? cells.length : 0;
+            return entryVectorLength(source.name) ?? 0;
         };
         if (!source || !isBinaryExpression(source) || !['to', 'till'].includes(source.operator)) return () => 0;
         const left = integer(source.left), right = integer(source.right);

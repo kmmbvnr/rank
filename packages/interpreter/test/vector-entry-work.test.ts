@@ -209,3 +209,33 @@ A 511`;
     expect(result.diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
     expect(result.diagnostics.fallbacks['number-loop:condition-write-budget'] ?? 0).toBe(0);
 });
+
+it('uses immutable vector lengths in counted sieve bounds', () => {
+    const program = `use sequences
+N = ${n}
+A = array shape (N + 1) fill 0
+B = array shape (N + 1) fill 0
+Primes = primes to 1000 copy
+for I in 0 till Primes len
+ P = Primes I
+ A (P to N by P) += 1
+ B (P to N by P) += 1
+end`;
+    const result = execute(program);
+    expect(result.values).toEqual(execute(program, false).values);
+    expect(result.diagnostics.numberLoops).toBe(1);
+    expect(result.diagnostics.numberLoopCopyProbes).toBe(0);
+});
+it('does not use a rebound vector length to admit a short loop', () => {
+    const program = `use sequences
+A = array shape (2 * ${n}) fill 0
+B = array shape (2 * ${n}) fill 0
+Primes = (1 to 1000) copy
+for I in 0 till Primes len
+ Primes = array shape 1 fill 0
+ A I += 1
+end`;
+    const result = execute(program);
+    expect(result.values).toEqual(execute(program, false).values);
+    expect(result.diagnostics.numberLoops).toBe(0);
+});

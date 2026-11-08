@@ -91,3 +91,56 @@ end`);
         expect(() => withDemandBudget(1, () => runtime.execute('(array 1 2) update'))).toThrow('demand budget exhausted');
     } finally { runtime.dispose(); }
 });
+
+const localScatter = `use sequences
+A = array 2 3 4
+Saved = A
+Keys = array 2 0 2
+for I in 1 to 3
+ Values = (1 to 3) * I
+ A Keys = Values
+end`;
+it('returns a completed named local array from a compiled scatter', () => {
+    const result = compare(localScatter);
+    expect(result.observation.error).toBeUndefined();
+    expect(result.observation.result).toBe('3 6 9');
+    expect(result.diagnostics.numberLoops).toBe(1);
+});
+it.each(['0', '1', '5'])('retains named results across %s iterations and buffer reuse', last => {
+    compare(localScatter.replace('1 to 3\n Values', `1 to ${last}\n Values`));
+});
+it.each([
+    ' Values 0 = I',
+    ' Alias = Values\n Alias 0 = I',
+    ' Alias = Values\n Alias 0 = 9007199254740992',
+])('preserves mutable local results: %s', update => {
+    compare(localScatter.replace(' A Keys = Values', update + '\n A Keys = Values'));
+});
+it('preserves source/result aliases after a named result escapes', () => {
+    const result = compare(localScatter.replace('for I in', 'Values = array 0 0 0\nfor I in') + '\nRetained = Values\nA 0 = 99\nValues 1 = 77\ntuple A Retained Values Saved');
+    expect(result.observation.error).toBeUndefined();
+});
+it.each([
+    ' (1 to 3) * 9007199254740991',
+    ' A Keys',
+    ' A',
+    ' Keys',
+])('retains exact replay and source aliases for%s', rhs => {
+    compare(localScatter.replace(' (1 to 3) * I', rhs));
+});
+it('retains a prior iteration result when a later iteration breaks', () => {
+    compare(localScatter.replace(' Values =', ' if I equal 3\n  break\n end\n Values ='));
+});
+it('retains earlier writes and located failures', () => {
+    compare(localScatter.replace(' A Keys = Values', ' A (Keys + I - 1) = Values'));
+});
+it.each([1, 20, 50, 100, 1000])('retains named scatter demand budget %s', budget => {
+    // Existing vector expressions charge demand differently from the fully
+    // interpreted path. Keep the exact compiled path's publication boundaries.
+    const result = execute(localScatter, true, true, budget);
+    expect(result.observation).toEqual(execute(localScatter, true, false, budget).observation);
+    expect(result.diagnostics.numberLoops).toBe(0);
+});
+it('retains named scatter observer boundaries', () => {
+    compare(localScatter, undefined, true);
+});

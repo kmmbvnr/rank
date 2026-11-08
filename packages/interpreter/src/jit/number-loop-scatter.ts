@@ -145,7 +145,20 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     // An escaping compound array RHS may remain a lazy selection of the
     // updated destination. Preserve native publication until that contract
     // can be represented here; scalar RHS values have no live selection.
-    if (typeof rhs.type !== 'string' && !discarded && (compound || !rhs.fresh)) return undefined;
+    if (typeof rhs.type !== 'string' && !discarded) {
+        if (compound) return undefined;
+        if (!rhs.fresh) {
+            let value = assignment.value;
+            while (isParenthesizedExpression(value)) value = value.value;
+            if (!isNameExpression(value) || !state.arrayDefinitions.has(value.name)
+                || state.arrayInputs.has(value.name)) return undefined;
+            // A completed local array can escape by identity just like a fresh
+            // expression. The final region proof rejects any writes/aliases
+            // that could make this retained result observe private mutation.
+            state.sliceResultSources.add(value.name);
+            state.retainedLocalArrayResult = true;
+        }
+    }
     lines.push('vectorLive.pop();');
     const operand = `operand${n}`;
     let value: string;
