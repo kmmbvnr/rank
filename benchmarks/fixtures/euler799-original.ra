@@ -1,0 +1,63 @@
+rem Pentagonal Puzzle
+rem https://projecteuler.net/problem=799
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 28000000
+arg Least integer = 100
+arg Floor integer = 240
+
+rem P(a) + P(b) = P(n) is
+rem x^2 + y^2 = (6n - 1)^2 + 1 = N with
+rem x = 6a - 1, y = 6b - 1. N / 2 must
+rem split into primes 1 mod 4, and the
+rem count of pairs is at most the
+rem divisor count of N / 2 over 8 or so.
+rem Smooth N (primes up to 400) with
+rem enough divisors are collected by
+rem trial division of all n at once,
+rem then counted exactly.
+Ns = 1 to Limit
+Side = 6 * Ns - 1
+Rest = (Side * Side + 1) // 2
+Divs = Ns * 0 + 1
+Cand = primes to 400 copy
+Cand = Cand filter (Cand mod 4 equal 1)
+for Index in 0 to Cand len - 1
+  Prime = Cand Index
+  Hit = Rest mod Prime equal 0
+  Ids = (0 till Limit) Hit
+  Sub = Rest Ids
+  Part = Sub gcd (Prime ** 22)
+  Count = (Part log) / (Prime log) + 0.5
+  Pow = Count integer
+  Rest Ids = Sub // Part
+  Divs Ids = Divs Ids * (Pow + 1)
+end
+Rich = Divs at least Floor
+Smooth = (Rest equal 1) and Rich
+Picks = (0 till Limit) Smooth
+Found = array shape 0 fill 0
+for Pick in Picks
+  Num = Pick + 1
+  Edge = 6 * Num - 1
+  Big = Edge * Edge + 1
+  Top = ((Big // 2) isqrt) // 6 + 1
+  Ys = 5 + 6 * (0 to Top)
+  Left = (Big - Ys * Ys) max 0
+  Xs = Left isqrt
+  Exact = Xs * Xs equal Left
+  Same = Exact and (Xs at least Ys)
+  Sixes = Xs mod 6 equal 5
+  Total = (Same and Sixes) integer sum
+  Good = Total greater Least
+  if Good
+    Found = concat Found (array Num)
+  end
+end
+First = Found min
+Answer = First * (3 * First - 1) // 2
+Answer print

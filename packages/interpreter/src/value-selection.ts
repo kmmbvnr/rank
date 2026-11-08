@@ -1,4 +1,4 @@
-import { maskSelection } from './array-mask-selection.js';
+import { maskSelection, rangeMaskSelection } from './array-mask-selection.js';
 export { maskSelection };
 import { indexedSource } from './indexed-source.js';
 import { textAt } from './text-storage.js';
@@ -384,6 +384,8 @@ function sequenceMaskSelection(source: RankSequence, selector: RankArray): RankS
     if (selector.shape.length !== 1) {
         throw new RankError(`sequence mask must be rank 1, got rank ${selector.shape.length}`, 'DimensionMismatch');
     }
+    const range = rangeMaskSelection(source, selector);
+    if (range) return range;
     if (!selector.items.every(item => typeof item === 'boolean' || item === MISSING)) {
         throw new RankError('array selector must be a boolean mask');
     }

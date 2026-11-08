@@ -1,8 +1,9 @@
-import { noteArrayBinding, ownedArray, ownedScalarArray, readArrayItem, typedArray } from './array-storage.js';
+import { IntegerCells, noteArrayBinding, ownedArray, ownedScalarArray, readArrayItem, typedArray } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { RankError } from './errors.js';
 import { prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
-import { checkpoint } from './interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from './interrupt.js';
+import { arithmeticRange } from './range-plan.js';
 import { packedTruePositions } from './packed-booleans.js';
 import { tensorMaskPositions, sumTensorPositions, materializeTensorPositions } from './tensor-map.js';
 import { sameShape } from './tensor-index.js';
@@ -10,6 +11,61 @@ import { MISSING, type RankArray, type RankSequence, type RankValue } from './va
 
 interface Selection { source: RankArray; positions: readonly number[] | Uint32Array; iterate: RankSequence['plan']['iterate'] }
 const selections = new WeakMap<RankSequence['plan'], Selection>();
+
+interface RangeSelection {
+    range: NonNullable<ReturnType<typeof arithmeticRange>>;
+    positions: readonly number[] | Uint32Array;
+    iterate: RankSequence['plan']['iterate'];
+}
+const rangeSelections = new WeakMap<RankSequence['plan'], RangeSelection>();
+
+/** A constructor-owned range and packed mask need no per-element iterator or
+ * boxed Boolean array. Observable demands retain the ordinary traversal. */
+export function rangeMaskSelection(source: RankSequence, selector: RankArray): RankSequence | undefined {
+    if (demandBudgetEnabled() || inspectionEnabled() || !privateLoopPolling()) return undefined;
+    const range = arithmeticRange(source.plan, true);
+    if (!range || selector.shape.length !== 1) return undefined;
+    const positions = packedTruePositions(selector);
+    if (!positions) return undefined;
+    if (BigInt(selector.shape[0]) !== range.count) {
+        throw new RankError(`mask shape [${selector.shape[0]}] does not match sequence size ${range.count}`, 'DimensionMismatch');
+    }
+    const selected: RankSequence = { kind: 'sequence', plan: {
+        name: 'range mask selection', size: { kind: 'exact', value: BigInt(positions.length) },
+        *iterate() {
+            for (const position of positions) {
+                checkpoint('reading range selection');
+                yield range.start + BigInt(position) * range.step;
+            }
+        },
+    } };
+    rangeSelections.set(selected.plan, { range, positions, iterate: selected.plan.iterate });
+    return selected;
+}
+
+function materializeRangeSelection(selected: RankSequence): RankArray | undefined {
+    if (demandBudgetEnabled() || inspectionEnabled() || !privateLoopPolling()) return undefined;
+    const saved = rangeSelections.get(selected.plan);
+    if (!saved || selected.plan.iterate !== saved.iterate) return undefined;
+    const { range, positions } = saved;
+    const last = range.start + (range.count - 1n) * range.step;
+    const compact = range.start >= -2147483648n && range.start <= 2147483647n
+        && last >= -2147483648n && last <= 2147483647n
+        && range.step >= -2147483648n && range.step <= 2147483647n;
+    const cells = compact ? new Int32Array(positions.length) : new IntegerCells(positions.length);
+    const first = Number(range.start), step = Number(range.step);
+    for (let start = 0; start < positions.length; start += 4096) {
+        const end = Math.min(start + 4096, positions.length);
+        checkpoint('materializing range selection', end - start);
+        for (let index = start; index < end; index++) {
+            if (cells instanceof Int32Array) cells[index] = first + positions[index] * step;
+            else cells.set(index, range.start + BigInt(positions[index]) * range.step);
+        }
+    }
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) { diagnostics.maskMaterializations++; diagnostics.maskMaterializedCells += positions.length; }
+    return cells instanceof Int32Array ? typedArray(cells) : cells.array([positions.length]);
+}
 
 /** Snapshot mask positions without demanding source cells. */
 export function maskSelection(source: RankArray, selector: RankArray): RankSequence {
@@ -84,6 +140,8 @@ function invalidMaskElement(item: RankValue): never {
 /** Explicit materialization can compact stored scalar cells directly. Lazy,
  * missing, nested and host sources keep ordinary iterator/read semantics. */
 export function materializeMaskSelection(selected: RankSequence): RankArray | undefined {
+    const range = materializeRangeSelection(selected);
+    if (range) return range;
     const selection = selections.get(selected.plan);
     if (!selection || selected.plan.iterate !== selection.iterate) return undefined;
     const { source, positions } = selection;

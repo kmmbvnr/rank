@@ -65,6 +65,7 @@ for (const [file, expected] of [
     ['748_upsidedown.ra', 276402862n],
     ['749_nearpowersums.ra', 13459471903176422n],
     ['750_cardstacking.ra', 160640n],
+    ['799_pentagonalpuzzle.ra', 1096910149053902n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
     // Euler 468 source-level verification takes about five minutes on Intel.
@@ -114,7 +115,11 @@ for (const [file, expected] of [
                 expect(diagnostics.cowCopies).toBe(0);
             }
             if (file === '749_nearpowersums.ra') expect(diagnostics.weightedAxisSums).toBeGreaterThan(0);
-            if (file !== '750_cardstacking.ra' && file !== '749_nearpowersums.ra' && file !== '748_upsidedown.ra' && file !== '747_triangularpizza.ra' && file !== '746_messydinner.ra' && file !== '743_windowmatrix.ra' && file !== '742_convexgridpolygon.ra' && file !== '714_duodigits.ra' && file !== '737_coinloops.ra' && file !== '739_summationofsummations.ra' && file !== '740_secretsanta.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
+            if (file === '799_pentagonalpuzzle.ra') {
+                expect(diagnostics.compiledTensors).toBeGreaterThan(0);
+                expect(diagnostics.typedUnpacks).toBe(0);
+            }
+            if (file !== '799_pentagonalpuzzle.ra' && file !== '750_cardstacking.ra' && file !== '749_nearpowersums.ra' && file !== '748_upsidedown.ra' && file !== '747_triangularpizza.ra' && file !== '746_messydinner.ra' && file !== '743_windowmatrix.ra' && file !== '742_convexgridpolygon.ra' && file !== '714_duodigits.ra' && file !== '737_coinloops.ra' && file !== '739_summationofsummations.ra' && file !== '740_secretsanta.ra' && file !== '719_numbersplitting.ra' && file !== '729_periodicrange.ra' && file !== '735_divisorsoftwo.ra' && !nativeScan) {
                 expect(diagnostics.numberLoops).toBeGreaterThan(0);
             }
             if (file === '742_convexgridpolygon.ra') {

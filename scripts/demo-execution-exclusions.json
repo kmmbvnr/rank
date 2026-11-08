@@ -206,7 +206,7 @@
   "euler/791_averagevariance.ra": "Full default run takes about 17 s on Mac and 47 s on Intel (14000 odd u rows); exhaustive small quadruples and statement values are covered by tests.",
   "euler/769_binaryquadraticform.ra": "Full default run takes about 30-37 s (1e8 divisor-weighted pairs); small values are covered by the test.",
   "euler/793_medianofproducts.ra": "Full default run takes about 22-25 s (60 bisection rounds, each sorting 2e6 values); small values are covered by the test.",
-  "euler/799_pentagonalpuzzle.ra": "Full default run takes about 8 min (trial division of 2.8e7 values by 40 primes); the small value is covered by the test.",
+  "euler/799_pentagonalpuzzle.ra": "Full compiled answer is covered by full-scale-demos.test.ts; retain the large reference run outside repeated corpus audits. See benchmarks/euler799.md.",
   "euler/790_clockgrid.ra": "Full default run takes about 7.5 min (2e5 sweep events, each rebuilding two block tables); small values are covered by the test.",
   "euler/797_cyclogenic.ra": "Full default run takes about 70 s (two loops over 664579 primes with small scatter updates); small values are covered by the test.",
   "euler/735_divisorsoftwo.ra": "Full compiled answer is covered by full-scale-demos.test.ts; the large reference ragged floor sums remain excluded from corpus audits.",
