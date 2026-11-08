@@ -1,0 +1,67 @@
+rem Too Many Twos
+rem https://projecteuler.net/problem=792
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Count integer = 10000
+arg Power integer = 3
+arg Terms integer = 200
+
+rem 2-adically sum of (-2)^k C(2k, k)
+rem over all k >= 0 is -1/3, so
+rem 3 S(m) + 4 is -3 T with the tail
+rem T = sum over k > m. Terms go
+rem t(k+1) = t(k) rho_k with
+rem rho_k = -4 (2k + 1) / (k + 1), so
+rem T = t(m + 1) U, U = 1 + rho + ...
+rem and nu2(t(k)) = k + popcount k. The
+rem odd parts and exponents of the
+rem partial products are kept mod 2^300
+rem and summed on a common exponent.
+Ns = 1 to Count
+Ms = Ns ** Power
+Kk = Ms + 1
+Col = Kk reshape Count 1
+Bits = (Col shr (0 to 45)) band 1
+Pop = Bits sum axis 1
+Lead = Kk + Pop
+Mod = 2 ** 300
+Two = 2.0 log
+Odd = Ns * 0 + 1
+Ex = Ns * 0
+Rows = Odd reshape 1 Count
+Exs = Ex reshape 1 Count
+Cur = Kk * 1
+for Step in 1 to Terms - 1
+  Nxt = Cur + 1
+  Low = Nxt band (0 - Nxt)
+  Lg = (Low * 1.0) log
+  Vv = (Lg / Two + 0.5) integer
+  Bb = Nxt // Low
+  Inv = Ns * 0 + 1
+  for Round in 1 to 9
+    Inv = (Inv * (2 - Bb * Inv)) mod Mod
+  end
+  Num = 0 - (2 * Cur + 1)
+  Odd = (Odd * Num * Inv) mod Mod
+  Ex = Ex + 2 - Vv
+  Orow = Odd reshape 1 Count
+  Erow = Ex reshape 1 Count
+  Rows = concat Rows Orow axis 0
+  Exs = concat Exs Erow axis 0
+  Cur = Nxt
+end
+Emin = Exs min axis 0
+Shift = Exs - Emin
+Wide = Rows * (2 ** Shift)
+Sum = (Wide sum axis 0) mod Mod
+Lb = Sum band (0 - Sum)
+Lg2 = (Lb * 1.0) log
+Tz = (Lg2 / Two + 0.5) integer
+Total = (Lead + Emin + Tz) sum
+Answer = Total
+Answer print

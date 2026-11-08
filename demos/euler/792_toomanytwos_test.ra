@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "792_toomanytwos"
+  Count = 5
+  run
+  Answer equal 241
+end
