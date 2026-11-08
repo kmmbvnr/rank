@@ -18,7 +18,9 @@ rem for whole-block updates, and the
 rem weighted hour sum for each of the 12
 rem shifts. A partial update rebuilds
 rem one block table; full blocks only
-rem shift.
+rem shift. Rebuild through 12 weighted
+rem residue bins, so each interval is
+rem counted once rather than 12 times.
 rem S_i = 290797^(2^i) mod p, with the
 rem exponent taken mod 25250294.
 Cycle = 25250294
@@ -50,6 +52,8 @@ Cnts = array shape Cells fill 0
 Hours = array 12 1 2 3 4 5 6 7 8 9 10 11
 Shift = array shape Blocks fill 0
 Spin = (0 to 11) reshape 1 12
+Residues = (0 to 11) reshape 12 1
+Clock = Hours ((Residues + Spin) mod 12)
 Lcol = Lens reshape Blocks Chunk 1
 Weigh = (Hours Spin) * Lcol
 Sums = Weigh sum axis 1
@@ -95,17 +99,19 @@ for Event in 0 to 2 * Steps - 1
   InB = (IdxB at most Right) and Far
   Add2 = Turn * (InB integer)
   Cnts IdxB = (Cnts IdxB + Add2) mod 12
-  Mods = array BL BR
-  Both = Mods unique
+  Gap = (BR - BL) max 1
+  Both = BL to BR by Gap
   Many = Both len
   Starts = (Both * Chunk) reshape Many 1
   Pick = Starts + Lane
   Got = Cnts Pick
-  Cnt2 = Got reshape Many Chunk 1
   Wid = Lens Pick
-  Len2 = Wid reshape Many Chunk 1
-  Rot = Hours ((Cnt2 + Spin) mod 12)
-  Fresh = (Rot * Len2) sum axis 1
+  Group = (0 till Many) reshape Many 1
+  Keys = Group * 12 + Got
+  Bins = array shape (Many * 12) fill 0
+  Bins Keys += Wid .accumulate
+  Hist = Bins reshape Many 12 1
+  Fresh = (Hist * Clock) sum axis 1
   Rowb = Both reshape Many 1
   Slots = Rowb * 12 + Spin
   Tab Slots = Fresh

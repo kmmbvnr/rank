@@ -751,7 +751,9 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     } else result = { shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
                 } else if (b.shape && b.boolean && a.shape.length === 1 && same(a.shape, b.shape)) {
                     result = { shape: a.shape, boolean: a.boolean, filter: true };
-                } else if (b.shape?.length === 1 && !b.boolean && a.shape.length === 1) {
+                } else if (b.shape && !b.boolean && a.shape.length === 1) {
+                    // Integer selectors preserve their entire frame, including
+                    // matrix and tensor indices into a vector source.
                     // A filter's bound shape is its input domain, not its compact
                     // result length. Keep nested filtered gathers on the lazy path.
                     const seen = new Set<TensorNode>();

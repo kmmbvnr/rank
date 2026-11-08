@@ -1105,7 +1105,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const tail = e.arguments.length === 1 ? e.arguments[0] : undefined;
             if (tail && isNameExpression(tail)
                 && !localTypes.has(tail.name) && !arrays.has(tail.name) && !containers.has(tail.name)) {
-                const builtin = inlineBuiltins.get(tail.name);
+                const builtin: InlineBuiltin | undefined = inlineBuiltins.get(tail.name)
+                    ?? (tail.name === 'integer' ? { module: 'core', types: { boolean: 'integer', integer: 'integer' },
+                        code: (value, type) => type === 'boolean' ? `(${value} ? 1 : 0)` : value } : undefined);
                 if (builtin && (builtin.enabled?.(host) ?? true)) {
                     return { name: tail.name, module: builtin.module, operands: [unwrap(e.head)], unary: builtin };
                 }
@@ -1460,7 +1462,33 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 ? { source: selection[0], mask: selection[1] } : undefined;
         const scan = numericScan(e);
         const reshape = numericReshape(e);
-        if (scan) {
+        const reduction = axisReduction(e);
+        if (reduction && reduction.form.operation.name === 'sum') {
+            state.numberVectors = true;
+            const input = numberVector(reduction.form.source, lines);
+            if (!input || input.type !== 'integer') return undefined;
+            builtins.set('sum', reduction.form.operation.module);
+            const axes = new Set(resolveAxes(reduction.axes, input.rank, 'sum'));
+            const shape = `shape${state.serial++}`, output = `shape${state.serial++}`;
+            const index = `cell${state.serial++}`, target = `target${state.serial++}`;
+            const strides = Array.from({ length: input.rank }, (_, axis) =>
+                Array.from({ length: input.rank - axis - 1 }, (_, i) => `${shape}[${axis + i + 1}]`).join(' * ') || '1');
+            let offset = '0';
+            for (let axis = 0; axis < input.rank; axis++) if (!axes.has(axis)) {
+                offset = `(${offset} * ${shape}[${axis}] + Math.floor(${index} / (${strides[axis]})) % ${shape}[${axis}])`;
+            }
+            const body: string[] = [];
+            const value = input.cell(index, body);
+            if (!value) return undefined;
+            lines.push(`const ${shape} = ${input.shape};
+                const ${output} = [${Array.from({ length: input.rank }, (_, axis) => axis).filter(axis => !axes.has(axis)).map(axis => `${shape}[${axis}]`).join(',')}];
+                const ${result} = vectorArray(${output}, false, vectorPool, vectorLive, [result, iterationResult, ${input.sources.join(',')}]);
+                ${result}.cells.fill(0);
+                ${numberVectorLoop(input.size, index, [...body,
+                    `const ${target} = ${offset};`,
+                    `${result}.store(${target}, safe(Number(${result}.cells[${target}]) + ${value.code}));`,
+                ])}`);
+        } else if (scan) {
             const input = emitNumberArray(scan.form.source, lines);
             if (!input || typeof input.type === 'string') return undefined;
             const cells = input.cells ?? `${input.code}.cells`;

@@ -371,3 +371,31 @@ Slots = ${slots}
 Cipher Key Slots score`;
     expect(compare(source)).toMatchObject({ value: expected, kernels: 1 });
 });
+
+describe('integer gather frames', () => {
+    it.each(['2 3', '1 2 3', '2 0 3'])('preserves a %s selector frame and broadcasting', shape => {
+        const source = `use sequences
+Table = array 3 5 7
+Indices = array shape ${shape} fill 1
+Result = Table ((Indices + 1) mod 3) * 2
+Result`;
+        const actual = compare(source);
+        expect(actual).not.toHaveProperty('error');
+        if (!shape.includes('0')) expect(actual.kernels).toBeGreaterThan(0);
+    });
+    it.each(['-1', '3', '9007199254740993', '.NA', '1.5'])('replays invalid framed index %s', bad => {
+        expect(compare(`use sequences
+Table = array 3 5 7
+Indices = (array 0 1 2 ${bad}) reshape 2 2
+Result = Table Indices + 1
+Result`)).toHaveProperty('error');
+    });
+    it('keeps framed results independent of later source writes', () => {
+        expect(compare(`use sequences
+Table = array 3 5 7
+Indices = (array 0 1 2 0) reshape 2 2
+Result = Table Indices + 1
+Table 0 = 99
+Result`)).not.toHaveProperty('error');
+    });
+});

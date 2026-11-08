@@ -95,3 +95,16 @@ it('rechecks a rebound builtin in a cached vector loop', () => {
         expect(seen).toEqual([0n, 1n, 4n, 9n, 0n, 1n, 4n, 9n]);
     } finally { runtime.dispose(); }
 });
+
+it.each(['false true true false', '0 1 2 3'])('converts private vector integer cells: %s', values => {
+    const result = compare(`use sequences
+A = (array ${values}) reshape 2 2
+Total = 0
+for I in 1 to 3
+ B = A integer
+ C = B + I
+ Total += C sum
+end`);
+    expect(result.observation.error).toBeUndefined();
+    expect(result.diagnostics.numberLoops).toBe(1);
+});

@@ -12,4 +12,7 @@ test "statement values"
   Chunk = 4
   run
   Answer equal 21808930308198471
+  Steps = 100
+  run
+  Answer equal 16190667393984172
 end

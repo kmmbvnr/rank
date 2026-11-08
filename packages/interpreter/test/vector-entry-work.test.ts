@@ -191,3 +191,21 @@ end`;
         expect(result.diagnostics.numberLoops).toBe(0);
     });
 });
+
+it('proves immutable vector passes before replaying a wide accumulator', () => {
+    const program = `use sequences
+Lane = (0 till 512) copy
+A = array shape 300000 fill 0
+B = array shape 300000 fill 0
+Total = 0
+for I in 0 till 600
+ Indices = Lane + I
+ A Indices += 1
+ Total += 9007199254740991
+end
+A 511`;
+    const result = execute(program);
+    expect(result.values).toEqual(execute(program, false).values);
+    expect(result.diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
+    expect(result.diagnostics.fallbacks['number-loop:condition-write-budget'] ?? 0).toBe(0);
+});

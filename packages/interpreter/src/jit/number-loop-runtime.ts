@@ -235,13 +235,14 @@ function vectorArray(shape: readonly number[], real: boolean, pool: VectorBuffer
     const held = new Set<ArrayBufferLike>();
     // Region-generated readers follow rebinding even when it precedes the
     // first vector expression. Temporary operands are pinned directly below.
-    const retain = (value: unknown): void => {
-        if (typeof value === 'function') retain(value());
-        else if (value instanceof PrivateSliceResult) retain(value.source);
-        else if (value instanceof PrivateNumericArray) held.add(value.cells.buffer);
+    for (let index = 0; index < live.length + operands.length; index++) {
+        let value = index < live.length ? live[index] : operands[index - live.length];
+        while (typeof value === 'function' || value instanceof PrivateSliceResult) {
+            value = typeof value === 'function' ? value() : value.source;
+        }
+        if (value instanceof PrivateNumericArray) held.add(value.cells.buffer);
         else if (ArrayBuffer.isView(value)) held.add(value.buffer);
-    };
-    live.forEach(retain); operands.forEach(retain);
+    }
     let replace = -1;
     for (let i = 0; i < pool.length; i++) {
         if (held.has(pool[i].cells.buffer)) continue;
@@ -381,13 +382,18 @@ function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[
         ...(plan.ownershipChecks ? [...new Map<string, { slot: number }>([...plan.arrays, ...plan.destinations])] : []).map(([name, info]) => `const owned${info.slot} = ${plan.ownedAliases?.has(name) ?? false};`),
         ...[...plan.destinations].map(([name, info]) => `const rebound${info.slot} = ${!plan.arrayDefinitions.has(name) ? 0 : plan.arrayInputs.has(name) ? 2 : 1};`),
     ].join('\n');
+    // Immutable entry bindings cannot refer to buffers allocated by this
+    // invocation's pool. Keep rebound locals, aliases and iteration binders.
+    const vectorBindings = [...new Set([...plan.arrays, ...plan.destinations]
+        .filter(([name]) => !plan.arrayInputs.has(name) || plan.arrayDefinitions.has(name) || plan.binderNames.includes(name))
+        .map(([, info]) => info.slot))].map(slot => `() => r${slot}`).join(',');
     return `"use strict"; ${traversals ? modes : ''}
         ${traversals} return function(input, cells, changes, calls, publish) {
         let ${registers.length ? `${registers.join(',')}, ` : ''}result, resultType = 'integer', location = -1, order = 0${workCounting ? ', work = 0' : ''}${plan.polling === 'batched' ? ', pollWork = 0' : ''};
         const entered = [];
         ${traversals ? '' : modes}
         ${plan.calls.map((_, index) => `const call${index} = calls[${index}];`).join('\n')}
-        ${plan.numberVectors ? `\n        const vectorPool = [], vectorLive = [${[...new Set([...plan.arrays.values(), ...plan.destinations.values()].map(info => info.slot))].map(slot => `() => r${slot}`).join(',')}], vectorStep = vectorBlockSize();` : ''}
+        ${plan.numberVectors ? `\n        const vectorPool = [], vectorLive = [${vectorBindings}], vectorStep = vectorBlockSize();` : ''}
         try {
             ${root.setup} ${root.header}
                 let iterationResult, iterationType = 'integer';
@@ -693,10 +699,13 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (count >= conditionWriteCells || conditionWriteCells > COPY_PROBE_CAP
                 && count > 0 && conditionWriteCells - count <= SMALL_COPY_CELLS) conditionWriteCells = 0;
         }
-        // A short prime/table vector may contain complete nested passes that
-        // pay for the destination snapshots. Unknown work retains the cap.
-        if (conditionWriteCells > COPY_PROBE_CAP && vectorEntryWork && !demandBudgetEnabled()) {
-            const target = conditionWriteCells - SMALL_COPY_CELLS;
+        // Complete passes through immutable entry vectors can pay for
+        // destination snapshots before an overflow requests a mixed tier.
+        // Unknown work retains the bounded probe and its feedback.
+        if ((conditionWriteCells > COPY_PROBE_CAP || plan.numberVectors && conditionWriteCells > SMALL_COPY_CELLS)
+            && vectorEntryWork && !demandBudgetEnabled()) {
+            const target = conditionWriteCells > COPY_PROBE_CAP
+                ? conditionWriteCells - SMALL_COPY_CELLS : conditionWriteCells;
             if (vectorEntryWork(input, target) >= target) conditionWriteCells = 0;
         }
         // Copy-cost heuristic, not a Number precision limit: <=64 cells keep

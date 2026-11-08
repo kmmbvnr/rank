@@ -65,13 +65,14 @@ for (const [file, expected] of [
     ['748_upsidedown.ra', 276402862n],
     ['749_nearpowersums.ra', 13459471903176422n],
     ['750_cardstacking.ra', 160640n],
+    ['790_clockgrid.ra', 16585056588495119n],
     ['799_pentagonalpuzzle.ra', 1096910149053902n],
 ] as const) {
     // Euler 275 can take about a minute on a busy host.
     // Euler 468 source-level verification takes about five minutes on Intel.
     const timeout = file === '468_smoothbinomial.ra' ? 360_000
         : ['715_sextupletnorms.ra', '729_periodicrange.ra', '749_nearpowersums.ra'].includes(file) ? 240_000
-        : ['275_balancedsculptures.ra', '714_duodigits.ra', '719_numbersplitting.ra', '735_divisorsoftwo.ra', '737_coinloops.ra', '739_summationofsummations.ra'].includes(file) ? 120_000 : 60_000;
+        : ['275_balancedsculptures.ra', '714_duodigits.ra', '719_numbersplitting.ra', '735_divisorsoftwo.ra', '737_coinloops.ra', '739_summationofsummations.ra', '790_clockgrid.ra'].includes(file) ? 120_000 : 60_000;
     it(`checks the full compiled answer for ${file}`, () => {
         const url = new URL(`../../../demos/euler/${file}`, import.meta.url);
         const diagnostics = new RuntimeDiagnostics();
@@ -115,6 +116,7 @@ for (const [file, expected] of [
                 expect(diagnostics.cowCopies).toBe(0);
             }
             if (file === '749_nearpowersums.ra') expect(diagnostics.weightedAxisSums).toBeGreaterThan(0);
+            if (file === '790_clockgrid.ra') expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
             if (file === '799_pentagonalpuzzle.ra') {
                 expect(diagnostics.compiledTensors).toBeGreaterThan(0);
                 expect(diagnostics.typedUnpacks).toBe(0);
@@ -134,9 +136,9 @@ for (const [file, expected] of [
                 expect(diagnostics.numberTensors).toBe(5000);
                 expect(diagnostics.cellsComputed).toBe(0);
             }
-            // Euler 739 already replays one speculative Number loop for
-            // wide integer intermediates; the modular scans stay native.
-            expect(diagnostics.numberLoopOverflows).toBe(file === '739_summationofsummations.ra' ? 1 : 0);
+            // These programs replay one speculative Number loop before
+            // retaining exact wide scalar intermediates/accumulators.
+            expect(diagnostics.numberLoopOverflows).toBe(['739_summationofsummations.ra', '790_clockgrid.ra'].includes(file) ? 1 : 0);
         } finally { runtime.dispose(); }
     }, timeout);
 }

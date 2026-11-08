@@ -171,7 +171,7 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
             }
         }
         const source = expression;
-        if (source && isBinaryExpression(source) && ['+', '-', '*', '//', 'mod'].includes(source.operator)) {
+        if (source && isBinaryExpression(source) && ['+', '-', '*', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast', 'and', 'or'].includes(source.operator)) {
             const leftSize = range(source.left), rightSize = range(source.right);
             const leftScalar = integer(source.left), rightScalar = integer(source.right);
             return values => {
@@ -186,7 +186,15 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
         }
         if (source && isNameExpression(source)) return values => {
             const count = values.get(rangeKey(source.name));
-            return typeof count === 'bigint' ? Number(count) : 0;
+            if (typeof count === 'bigint') return Number(count);
+            // Immutable entry vectors retain their length across the loop.
+            // Inspect native metadata only, never selector cells or callbacks.
+            const name = source.name;
+            if (!plan.arrayInputs.has(name) || plan.arrayDefinitions.has(name) || plan.writable.has(name)) return 0;
+            const value = host.read(name);
+            if (!value || !hasNativeArrayHeader(value) || value.shape.length !== 1) return 0;
+            const cells = integer32Cells(value) ?? integer64Cells(value);
+            return cells && cells.length === value.shape[0] ? cells.length : 0;
         };
         if (!source || !isBinaryExpression(source) || !['to', 'till'].includes(source.operator)) return () => 0;
         const left = integer(source.left), right = integer(source.right);
@@ -216,6 +224,13 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
             if (isAssignmentStatement(statement)) {
                 writes.add(statement.name);
                 const value = integer(statement.value), boolean = truth(statement.value), count = range(statement.value);
+                let expression = statement.value;
+                while (isParenthesizedExpression(expression)) expression = expression.value;
+                // A completed pointwise vector writes every output cell. Alias
+                // bindings and reshape metadata are not counted as traversals.
+                const vector = plan.numberVectors && plan.arrayDefinitions.has(statement.name)
+                    && isBinaryExpression(expression) && !['to', 'till'].includes(expression.operator);
+                hasWork ||= !!vector;
                 return (values: Values): Work => {
                     const cells = statement.operator === '=' ? count(values) : 0;
                     values.delete(rangeKey(statement.name));
@@ -224,7 +239,7 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
                     const result = statement.operator === '=' ? value(values) ?? boolean(values) : undefined;
                     if (result === undefined) values.delete(statement.name);
                     else values.set(statement.name, result);
-                    return next();
+                    return next(vector ? cells : 0);
                 };
             }
             if (isIfStatement(statement)) {
