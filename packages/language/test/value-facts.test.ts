@@ -1954,3 +1954,23 @@ it('recognizes the primesieve sequence constructor', () => {
     const program = services.Rank.parser.LangiumParser.parse<Program>('use sequences\nSv = (100 primesieve)\nAlias = Sv').value;
     for (const name of ['Sv', 'Alias']) expect(analyzeValues(program).bindings.get(name)).toMatchObject({ types: ['sequence'] });
 });
+
+it('keeps matrix powers integer only for proven nonnegative exponents', () => {
+    const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [2, 2],
+        elements: ['integer'], eagerScalarCells: true };
+    const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
+    const power = (exponent: ValueFacts, input = matrix) => facts('Matrix matpow Exponent',
+        new Map([['Matrix', input], ['Exponent', exponent]]));
+    for (const exponent of ['0', '1', '8']) {
+        expect(power({ ...integer, integer: exponent })).toMatchObject({
+            types: ['array'], rank: 2, shape: [2, 2], elements: ['integer'], callbackFreeScalarCells: true });
+    }
+    expect(power({ ...integer, integer: '-1' }).elements).toEqual(['real']);
+    expect(power({ ...integer, interval: [0, null] }).elements).toEqual(['integer']);
+    expect(power({ ...integer, interval: [null, -1] }).elements).toEqual(['real']);
+    expect(power(integer).elements).toEqual(['integer', 'real']);
+    expect(power({ ...integer, interval: [-1, 1] }).elements).toEqual(['integer', 'real']);
+    expect(power({ ...integer, integer: '2' }, { ...matrix, elements: ['real'] }).elements).toEqual(['real']);
+    expect(power({ ...integer, integer: '2' }, { ...matrix, eagerScalarCells: undefined })
+        .callbackFreeScalarCells).not.toBe(true);
+});

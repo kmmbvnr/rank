@@ -374,6 +374,20 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 if (calls.hasPureRecursiveProbe(node.name)) continue;
                 let site: AstNode = node;
                 while (isApplicationExpression(site.$container)) site = site.$container;
+                // A postfix unary operation consumes a completed call. Analyze
+                // the inner call's own operands, not the whole outer pipeline.
+                while (isApplicationExpression(site) && flattenApplication(site).at(-1) !== node) {
+                    const head = unaryApplicationHead(site, name => {
+                        if (!env.has(name)) return findOperation(name)?.arities;
+                        if (!env.get(name)?.types.includes('function')) return undefined;
+                        const external = imported.get(name);
+                        const arity = functions.get(name)?.parameters.length
+                            ?? external?.functions.get(external.name)?.parameters.length;
+                        return arity === undefined ? undefined : [arity];
+                    }, name => !env.has(name));
+                    if (!head) break;
+                    site = head;
+                }
                 const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
                 const external = imported.get(node.name);
                 const arity = functions.get(node.name)?.parameters.length

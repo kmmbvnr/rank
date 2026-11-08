@@ -1163,6 +1163,19 @@ function transferApplicationFacts(
                     ...(hasNumericArrayNoCallbackProof(operation, operands)
                         ? { callbackFreeScalarCells: true as const } : {}),
                 };
+                if (operation === findOperation('matpow') && shaped
+                    && hasNumericArrayNoCallbackProof(operation, operands)) {
+                    const exponent = right.integer === undefined ? undefined : BigInt(right.integer);
+                    const nonnegative = exponent !== undefined ? exponent >= 0n
+                        : right.interval?.[0] !== undefined && right.interval[0] !== null && right.interval[0] >= 0;
+                    const negative = exponent !== undefined ? exponent < 0n
+                        : right.interval?.[1] !== undefined && right.interval[1] !== null && right.interval[1] < 0;
+                    // Nonnegative powers use exact products; inverse powers
+                    // convert to real cells, even for an integer input matrix.
+                    const elements: Types = negative || source.elements?.join() === 'real' ? ['real']
+                        : nonnegative && source.elements?.join() === 'integer' ? ['integer'] : ['integer', 'real'];
+                    return { ...shaped, elements, callbackFreeScalarCells: true };
+                }
                 if (operation === findOperation('matmul')) {
                     // Numeric, callback-free inputs do not imply an array result:
                     // vector contraction is scalar, and unknown rank stays unknown.

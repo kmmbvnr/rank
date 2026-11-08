@@ -963,3 +963,10 @@ it('proves explicit scalar and ranked numeric conversions only for known callbac
         expect(analyze(ranked, 'helper', [operation], [array]).unknown).toBe(true);
     }
 });
+
+it('recognizes overloaded unary tails without trusting an unproved input or shadowed operation', () => {
+    const source = 'use numbers\nuse sequences\nfun N helper\n return N factors unique\nend';
+    expect(analyze(source, 'helper', [], [{ types: ['integer'], rank: 0, shape: [] }]).unknown).toBe(false);
+    expect(analyze(source, 'helper', [], [{ types: [] }]).unknown).toBe(true);
+    expect(analyze(source, 'helper', ['unique'], [{ types: ['integer'], rank: 0, shape: [] }]).unknown).toBe(true);
+});

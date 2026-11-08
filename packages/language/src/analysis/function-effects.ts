@@ -9,7 +9,7 @@ import {
     isStringLiteral, isTextBlockExpression, isTryStatement, isUnaryExpression, isUnpackStatement, isYieldStatement,
     type ArrayAssignmentStatement, type Expression, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
-import { applicationExpression, flattenApplication, forIteration, groupedUnaryDyadicChain } from '../expressions.js';
+import { applicationExpression, flattenApplication, forIteration, groupedUnaryDyadicChain, unaryApplicationHead } from '../expressions.js';
 import { applicationForm } from '../application-forms.js';
 import { findOperation } from '../operations.js';
 import { expressionFacts } from './value-facts.js';
@@ -511,6 +511,9 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 const grouped = groupedUnaryDyadicChain(value, name => !isBound(name)
                     && !locals.has(name) && !isFunction(name));
                 if (grouped) return expression(grouped);
+                const unaryHead = unaryApplicationHead(value,
+                    name => !isBound(name) && !locals.has(name) && !isFunction(name) ? findOperation(name)?.arities : undefined);
+                if (unaryHead && isNameExpression(value.arguments[0])) return propagate(value.arguments[0].name, [unaryHead]);
                 const parts = flattenApplication(value);
                 const form = applicationForm(value, name => isBound(name) || locals.has(name) ? false : findOperation(name));
                 if (form.kind === 'axis-matmul') return propagate('matmul', [form.left, form.right]);

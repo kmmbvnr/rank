@@ -2552,8 +2552,10 @@ it('infers circuit signals through a read-only helper and a caught retry loop', 
     expect(helperFacts.map(fact => fact.types)).toEqual([['integer'], ['integer']]);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults
         .every(fact => !fact.types.length || fact.types.join() === 'integer')).toBe(true);
+    const call = 'Expression eval_expr Index';
+    expect(source).toContain(call);
     const unknownHelper = services.Rank.parser.LangiumParser.parse<Program>(source.replace(
-        'Expression index eval_expr', 'Expression index Unproved'));
+        call, 'Expression Unproved Index'));
     expect(analyzeValues(unknownHelper.value, new Map(), new Map(), examples).functionResults
         .every(fact => !fact.types.length)).toBe(true);
     const indexWriter = services.Rank.parser.LangiumParser.parse<Program>(source.replace(

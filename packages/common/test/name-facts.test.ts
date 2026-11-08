@@ -208,7 +208,8 @@ describe('function signatures in the type footer', () => {
     it('shows unique with the container family and preserves a known element type', () => {
         const source = 'use sequences\nunique';
         const found = factsAt(source, source.lastIndexOf('unique'))!;
-        expect(found.signature).toBe('text → text ; c<a> → c<a> ; c → c');
+        expect(found.signature).toBe('text → text ; (c | c<a>) .counts → tuple(c<a>, c<i>) ; '
+            + 'text .counts → tuple(c<text>, c<i>) ; c<a> → c<a> ; c → c');
         const call = 'use sequences\nS unique';
         expect(factsAt(call, call.lastIndexOf('unique'), [['S', { types: ['stack'], elements: ['integer'] }]])?.signature)
             .toBe("c<i> → c<i>");
