@@ -1,0 +1,13 @@
+[
+  {
+    "artifact": "euler754-base-intel.json",
+    "limit": 100000000,
+    "chunk": 4194304,
+    "answer": "785845900",
+    "ms": 88802.35792000001,
+    "cpuMs": 109621.191,
+    "maxRssMiB": 1913.17578125,
+    "node": "v24.15.0",
+    "arch": "x64"
+  }
+]

@@ -1,0 +1,79 @@
+[
+  {
+    "artifact": "euler754-smallchunk-mac.json",
+    "limit": 100000000,
+    "chunk": 262144,
+    "answer": "785845900",
+    "ms": 40968.7385,
+    "cpuMs": 60376.563,
+    "maxRssMiB": 412.765625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler754-scatter10m.json",
+    "limit": 10000000,
+    "chunk": 4194304,
+    "answer": "623561178",
+    "ms": 2991.586,
+    "cpuMs": 4223.661,
+    "maxRssMiB": 1441.15625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler754-compact10m.json",
+    "limit": 10000000,
+    "chunk": 4194304,
+    "answer": "623561178",
+    "ms": 2735.366125,
+    "cpuMs": 3856.953,
+    "maxRssMiB": 1438.796875,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler754-runtime-mac.json",
+    "limit": 100000000,
+    "chunk": 262144,
+    "answer": "785845900",
+    "ms": 32491.926417,
+    "cpuMs": 51058.272,
+    "maxRssMiB": 428.859375,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler754-scalar-mac.json",
+    "limit": 100000000,
+    "chunk": 1048576,
+    "answer": "785845900",
+    "ms": 26564.677625,
+    "cpuMs": 38091.618,
+    "maxRssMiB": 693.125,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler754-final-mac-2.json",
+    "limit": 100000000,
+    "chunk": 1048576,
+    "answer": "785845900",
+    "ms": 25325.277667000002,
+    "cpuMs": 36170.769,
+    "maxRssMiB": 666.546875,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler754-final-mac-3.json",
+    "limit": 100000000,
+    "chunk": 1048576,
+    "answer": "785845900",
+    "ms": 25526.254875000002,
+    "cpuMs": 36334.715,
+    "maxRssMiB": 674.40625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]

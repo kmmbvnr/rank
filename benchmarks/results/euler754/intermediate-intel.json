@@ -1,0 +1,46 @@
+[
+  {
+    "artifact": "euler754-runtime-intel.json",
+    "limit": 100000000,
+    "chunk": 262144,
+    "answer": "785845900",
+    "ms": 66620.732749,
+    "cpuMs": 103390.004,
+    "maxRssMiB": 448.3984375,
+    "node": "v24.15.0",
+    "arch": "x64"
+  },
+  {
+    "artifact": "euler754-scalar-intel.json",
+    "limit": 100000000,
+    "chunk": 1048576,
+    "answer": "785845900",
+    "ms": 53716.736302,
+    "cpuMs": 78122.285,
+    "maxRssMiB": 668.140625,
+    "node": "v24.15.0",
+    "arch": "x64"
+  },
+  {
+    "artifact": "euler754-final-intel-2.json",
+    "limit": 100000000,
+    "chunk": 1048576,
+    "answer": "785845900",
+    "ms": 53719.501584,
+    "cpuMs": 78858.947,
+    "maxRssMiB": 671.9140625,
+    "node": "v24.15.0",
+    "arch": "x64"
+  },
+  {
+    "artifact": "euler754-final-intel-3.json",
+    "limit": 100000000,
+    "chunk": 1048576,
+    "answer": "785845900",
+    "ms": 54163.945509000005,
+    "cpuMs": 78439.469,
+    "maxRssMiB": 691.7421875,
+    "node": "v24.15.0",
+    "arch": "x64"
+  }
+]

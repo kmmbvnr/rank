@@ -1,0 +1,32 @@
+
+ RUN  v3.2.7 /tmp/rank-nightly-1108/fixed/packages/interpreter
+
+ ✓ test/packed-choose.test.ts (22 tests) 871ms
+ ✓ test/choose.test.ts (30 tests) 995ms
+   ✓ choose boolean comparisons (compilation=false) > preserves boolean branches at 1023 cells  348ms
+ ✓ test/modular-callback-scan.test.ts (32 tests) 1014ms
+   ✓ compiled modular callback scan completion > matches ordinary prefix values: (-20 to 1000) scan combine  343ms
+ ✓ test/accumulate-writes.test.ts (98 tests) 1194ms
+ ✓ test/modular-array-callback-scan.test.ts (17 tests) 869ms
+   ✓ compact modular callback + scan > matches every BigInt prefix for modulus 1n  352ms
+ ✓ test/compact-integer-choose.test.ts (9 tests) 28ms
+ ✓ test/int32-product-scan.test.ts (11 tests) 381ms
+ ✓ test/compiled-accumulate-scatter.test.ts (24 tests) 844ms
+   ✓ compiles duplicate accumulating += with scalar and vector operands  370ms
+ ✓ test/compact-integer-scan.test.ts (8 tests) 2685ms
+   ✓ compact integer scan (compilation=true) > keeps long small prefixes packed and respects a seed  367ms
+   ✓ compact integer scan (compilation=true) > falls back to exact integers above Number range without changing the input  773ms
+   ✓ compact integer scan (compilation=false) > falls back to exact integers above Number range without changing the input  671ms
+   ✓ widens safe positive and negative prefixes to integers and rejects unsafe ones  841ms
+ ✓ test/euler754.test.ts (12 tests) 3782ms
+   ✓ Euler 754 (compiled=false) > matches the direct coprime product at 1  657ms
+   ✓ Euler 754 (compiled=false) > matches the direct coprime product at 64  362ms
+   ✓ Euler 754 (compiled=false) > matches the direct coprime product at 127  314ms
+   ✓ Euler 754 (compiled=true) > matches the direct coprime product at 31  364ms
+   ✓ Euler 754 (compiled=true) > matches the direct coprime product at 127  302ms
+
+ Test Files  10 passed (10)
+      Tests  263 passed (263)
+   Start at  09:04:36
+   Duration  10.21s (transform 2.51s, setup 0ms, collect 14.93s, tests 12.66s, environment 2ms, prepare 638ms)
+

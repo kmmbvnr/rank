@@ -1,0 +1,102 @@
+[
+  {
+    "function": "mapStoredInt32Binary",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 218
+  },
+  {
+    "function": "chooseStoredIntegers",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 171
+  },
+  {
+    "function": "compactBinary",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 169
+  },
+  {
+    "function": "compareStoredInt32",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 109
+  },
+  {
+    "function": "scanStoredModularCallback",
+    "url": "file://packages/interpreter/out/jit/modular-callback-scan.js",
+    "samples": 82
+  },
+  {
+    "function": "general",
+    "url": "file://packages/interpreter/out/eval/assignments.js",
+    "samples": 46
+  },
+  {
+    "function": "writeIntegerSelection",
+    "url": "file://packages/interpreter/out/runtime/owned-array.js",
+    "samples": 38
+  },
+  {
+    "function": "scanInt32Axis",
+    "url": "file://packages/interpreter/out/runtime/axis-order.js",
+    "samples": 30
+  },
+  {
+    "function": "(garbage collector)",
+    "url": "",
+    "samples": 29
+  },
+  {
+    "function": "gather",
+    "url": "file://packages/interpreter/out/selectors.js",
+    "samples": 20
+  },
+  {
+    "function": "materializeSequence",
+    "url": "file://packages/interpreter/out/sequence.js",
+    "samples": 16
+  },
+  {
+    "function": "",
+    "url": "file://packages/interpreter/out/selectors.js",
+    "samples": 16
+  },
+  {
+    "function": "compareStoredInt32",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 15
+  },
+  {
+    "function": "",
+    "url": "file://packages/interpreter/out/selectors.js",
+    "samples": 13
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 13
+  },
+  {
+    "function": "materializeSequence",
+    "url": "file://packages/interpreter/out/sequence.js",
+    "samples": 12
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 10
+  },
+  {
+    "function": "inputBounds",
+    "url": "file://packages/interpreter/out/jit/tensor-bounds.js",
+    "samples": 8
+  },
+  {
+    "function": "accumulateIntegerSelection",
+    "url": "file://packages/interpreter/out/runtime/owned-array.js",
+    "samples": 8
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 8
+  }
+]

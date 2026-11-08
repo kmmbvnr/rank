@@ -1,0 +1,102 @@
+[
+  {
+    "function": "(garbage collector)",
+    "url": "",
+    "samples": 732
+  },
+  {
+    "function": "chooseStoredIntegers",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 402
+  },
+  {
+    "function": "scanStoredModularCallback",
+    "url": "file://packages/interpreter/out/jit/modular-callback-scan.js",
+    "samples": 384
+  },
+  {
+    "function": "mapStoredInt32Binary",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 336
+  },
+  {
+    "function": "scanInt32Axis",
+    "url": "file://packages/interpreter/out/runtime/axis-order.js",
+    "samples": 334
+  },
+  {
+    "function": "writeIntegerSelection",
+    "url": "file://packages/interpreter/out/runtime/owned-array.js",
+    "samples": 289
+  },
+  {
+    "function": "general",
+    "url": "file://packages/interpreter/out/eval/assignments.js",
+    "samples": 261
+  },
+  {
+    "function": "compactBinary",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 167
+  },
+  {
+    "function": "compareStoredInt32",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 136
+  },
+  {
+    "function": "gather",
+    "url": "file://packages/interpreter/out/selectors.js",
+    "samples": 129
+  },
+  {
+    "function": "",
+    "url": "file://packages/interpreter/out/selectors.js",
+    "samples": 69
+  },
+  {
+    "function": "",
+    "url": "file://packages/interpreter/out/selectors.js",
+    "samples": 66
+  },
+  {
+    "function": "(program)",
+    "url": "",
+    "samples": 62
+  },
+  {
+    "function": "gather",
+    "url": "file://packages/interpreter/out/selectors.js",
+    "samples": 58
+  },
+  {
+    "function": "materializeSequence",
+    "url": "file://packages/interpreter/out/sequence.js",
+    "samples": 54
+  },
+  {
+    "function": "compareStoredInt32",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 45
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 43
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 42
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 41
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 41
+  }
+]

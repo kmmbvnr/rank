@@ -1,0 +1,23 @@
+
+ RUN  v3.2.7 /private/tmp/rank-euler754/packages/interpreter
+
+ ✓ test/choose.test.ts (30 tests) 516ms
+ ✓ test/accumulate-writes.test.ts (98 tests) 595ms
+ ✓ test/compact-integer-scan.test.ts (8 tests) 1379ms
+   ✓ compact integer scan (compilation=true) > falls back to exact integers above Number range without changing the input  417ms
+   ✓ compact integer scan (compilation=false) > falls back to exact integers above Number range without changing the input  355ms
+   ✓ widens safe positive and negative prefixes to integers and rejects unsafe ones  382ms
+ ✓ test/compiled-accumulate-scatter.test.ts (24 tests) 433ms
+ ✓ test/modular-callback-scan.test.ts (32 tests) 445ms
+ ✓ test/euler754.test.ts (12 tests) 1933ms
+   ✓ Euler 754 (compiled=false) > matches the direct coprime product at 1  404ms
+ ✓ test/packed-choose.test.ts (22 tests) 319ms
+ ✓ test/compact-integer-choose.test.ts (9 tests) 12ms
+ ✓ test/int32-product-scan.test.ts (11 tests) 140ms
+ ✓ test/modular-array-callback-scan.test.ts (17 tests) 324ms
+
+ Test Files  10 passed (10)
+      Tests  263 passed (263)
+   Start at  09:02:21
+   Duration  4.12s (transform 1.01s, setup 0ms, collect 8.55s, tests 6.10s, environment 1ms, prepare 284ms)
+

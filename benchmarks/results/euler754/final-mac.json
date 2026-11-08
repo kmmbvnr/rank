@@ -1,0 +1,35 @@
+[
+  {
+    "artifact": "euler754-scan-mac.json",
+    "limit": 100000000,
+    "chunk": 1048576,
+    "answer": "785845900",
+    "ms": 23810.08075,
+    "cpuMs": 33809.806,
+    "maxRssMiB": 661.28125,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler754-final-scan-mac-2.json",
+    "limit": 100000000,
+    "chunk": 1048576,
+    "answer": "785845900",
+    "ms": 23500.076833000003,
+    "cpuMs": 33456.458,
+    "maxRssMiB": 677.625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler754-final-scan-mac-3.json",
+    "limit": 100000000,
+    "chunk": 1048576,
+    "answer": "785845900",
+    "ms": 24241.722125,
+    "cpuMs": 34090.057,
+    "maxRssMiB": 668.03125,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]

@@ -1,0 +1,13 @@
+[
+  {
+    "artifact": "euler754-base-mac.json",
+    "limit": 100000000,
+    "chunk": 4194304,
+    "answer": "785845900",
+    "ms": 41804.102292,
+    "cpuMs": 53282.827,
+    "maxRssMiB": 2107.0625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]
