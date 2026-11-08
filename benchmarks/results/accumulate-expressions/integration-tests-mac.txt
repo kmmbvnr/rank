@@ -1,0 +1,19 @@
+
+ RUN  v3.2.7 /private/tmp/rank-accumulate/packages/interpreter
+
+ ✓ test/computed-array-update.test.ts (24 tests) 247ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 280ms
+ ✓ test/accumulate-writes.test.ts (98 tests) 405ms
+ ✓ test/compiled-accumulate-scatter.test.ts (41 tests) 435ms
+ ✓ test/affine-integer-updates.test.ts (18 tests) 144ms
+ ✓ test/compiled-compound-scatter.test.ts (28 tests) 316ms
+ ✓ test/powmod-wide.test.ts (7 tests) 227ms
+ ✓ test/boolean-scatter.test.ts (24 tests) 285ms
+ ✓ test/affine-selection-copy.test.ts (3 tests) 117ms
+ ✓ test/scalar-boolean-writes.test.ts (12 tests) 119ms
+
+ Test Files  10 passed (10)
+      Tests  309 passed (309)
+   Start at  15:48:28
+   Duration  2.90s (transform 988ms, setup 0ms, collect 7.47s, tests 2.58s, environment 1ms, prepare 262ms)
+

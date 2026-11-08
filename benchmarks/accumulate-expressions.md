@@ -62,6 +62,10 @@ real accumulation, assignment results, cancellation and Boolean scatter tests
 also passed. The build, application forms and semantic-boundary checks passed.
 Full suites and exhaustive corpus audits were not run.
 
+After integration with main at `6466c953`, the build and 309 focused tests
+passed on Mac. A separate integration run retained the expected answer in
+96.23 ms with 172.55 MiB peak RSS. It is not pooled with the measurements above.
+
 The new stream remains disabled under observable demand. Investigation also
 confirmed a pre-existing difference between compiled/reference demand-budget
 prefixes for computed RHS expressions; this change does not establish equality
