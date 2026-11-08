@@ -199,3 +199,24 @@ Pool unique`))!)).toBe('3 1 2');
         expect(readArrayItem(source, 8191)).toBe(8191n);
     });
 });
+
+// Each set varies in selected radix digits; duplicate keys must stay stable.
+it.each([
+    [7, 7, 7, 7],
+    [2049, 2048, 2049, 2050, 2048],
+    [4194304, 0, 4194304, 8388608, 0],
+    [-2147483648, -2147483647, -2147483648],
+    [2147483647, 2147483646, 2147483647],
+    [-1, 0, -1, 0, -2147483648, 2147483647],
+    [],
+].map(values => ({ values })))('keeps stable radix order when constant digits are omitted: $values', ({ values }) => {
+    for (const descending of [false, true]) {
+        const source = typedArray(Int32Array.from(values));
+        const expected = values.map((_, i) => i).sort((a, b) =>
+            (descending ? values[b] - values[a] : values[a] - values[b]) || a - b);
+        const result = numericSort(source, descending, 'indexed')!;
+        expect(cells(result.indexes!)).toEqual(expected.map(BigInt));
+        expect(cells(result.values!)).toEqual(expected.map(i => BigInt(values[i])));
+        expect(cells(source)).toEqual(values.map(BigInt));
+    }
+});

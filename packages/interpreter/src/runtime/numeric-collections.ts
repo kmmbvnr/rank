@@ -103,7 +103,8 @@ export function numericSort(value: RankValue, descending: boolean, mode: 'values
     return { indexes: typedArray(indexes), values: mode === 'indexed' ? resultValues(values, order) : undefined };
 }
 
-/** Stable three-pass radix permutation for signed Int32 keys. Wider integers
+/** Stable radix permutation for signed Int32 keys. Constant digits need no
+ * scatter pass. Wider integers
  * continue through the Int64 path; keys never truncate to fit this one. */
 function radixOrder(values: NumericBuffer, descending: boolean): Uint32Array | undefined {
     // A sorted wide prefix often starts at a small value. A native witness
@@ -128,6 +129,9 @@ function radixOrder(values: NumericBuffer, descending: boolean): Uint32Array | u
     for (let shift = 0; shift < 32; shift += 11) {
         counts.fill(0);
         for (let index = 0; index < order.length; index++) counts[(keys[order[index]] >>> shift) & 2047]++;
+        // One occupied bucket already has the required stable order.
+        const first = (keys[order[0]] >>> shift) & 2047;
+        if (counts[first] === order.length) continue;
         let offset = 0;
         for (let bucket = 0; bucket < counts.length; bucket++) {
             const count = counts[bucket]; counts[bucket] = offset; offset += count;

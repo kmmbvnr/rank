@@ -27,6 +27,7 @@ test('execution exclusions name existing workloads and explain the resource cost
     assert.ok(!files.has('euler/454_diophantinereciprocals.ra'), 'quotient groups and private reducers keep the full reciprocal count eligible');
     assert.ok(!files.has('euler/465_polarpolygons.ra'), 'modular totient tables keep the full polar-polygon input eligible');
     assert.ok(!files.has('euler/466_distinctproducts.ra'), 'memoized blocker sets keep the full multiplication table eligible');
+    assert.ok(!files.has('euler/470_superramvok.ra'), 'subset-mask statistics keep the full Super Ramvok input eligible');
     assert.ok(files.has('euler/331_crossflips.ra'));
     assert.ok(!files.has('euler/393_ants.ra'), 'compiled sparse profiles keep the default 10x10 board eligible');
     assert.ok(!files.has('euler/332_sphericaltriangles.ra'), 'array geometry and sphere symmetries keep all 50 radii eligible');
