@@ -103,6 +103,8 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
     const containers: IntegerLoopPlan['containers'] = new Map();
     const builtins = new Map<string, string>();
     const syntax = new Set<string>();
+    const ownedScatterWrites = new Set<Statement>();
+    const scatterMarks: { name: string; slot: number; key: string }[] = [];
     const calls: IntegerLoopPlan['calls'] = [];
     const arrays: IntegerLoopPlan['arrays'] = new Map();
     const calleeArrays = new Set<string>();
@@ -183,7 +185,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         set branchDepth(v: number) { branchDepth = v; },
         arrayRegions: [] as NonNullable<IntegerLoopPlan['arrayRegions']>,
         outlinedLoops: [] as { body: string; inputs: readonly string[] }[],
-        exactInputs, rangeNarrowing: false, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, reversedPrimes: false, selectorRange, resultDiscarded, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
+        exactInputs, rangeNarrowing: false, numberVectors: false, serial: 0, sliceView: false, viewResult: '', hasArrayCall: false, reversedPrimes: false, selectorRange, resultDiscarded, ownedScatterWrites, scatterMarks, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
         loopScopes, rootSetupLines, pushScope, popScope, currentScope,
     };
 }

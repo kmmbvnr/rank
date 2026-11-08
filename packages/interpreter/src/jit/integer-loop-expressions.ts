@@ -1131,13 +1131,13 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             || isBinaryExpression(source) && !source.step && ['+', '-', '*'].includes(source.operator)
                 && existingIntegerArrayArithmetic(source.left) && existingIntegerArrayArithmetic(source.right);
     }
-    function numberVectorLoop(size: string, index: string, body: readonly string[], exitLabel?: string): string {
+    function numberVectorLoop(size: string, index: string, body: readonly string[], exitLabel?: string, start = '0'): string {
         state.numberVectors = true;
         const block = `block${state.serial++}`, end = `end${state.serial++}`;
         // Keep the hot vector traversal separate from the surrounding binding
         // transaction. V8 can optimize it without exiting an OSR inner loop
         // into scalar moves and exact accumulator updates on every vector.
-        return `(() => { ${exitLabel ? `${exitLabel}:` : ''} for (let ${block} = 0; ${block} < ${size}; ${block} += vectorStep) {
+        return `(() => { ${exitLabel ? `${exitLabel}:` : ''} for (let ${block} = ${start}; ${block} < ${size}; ${block} += vectorStep) {
             const ${end} = Math.min(${size}, ${block} + vectorStep);
             ${state.workCounting ? `work += ${end} - ${block};` : ''}
             checkpoint(undefined, ${end} - ${block});

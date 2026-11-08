@@ -176,6 +176,11 @@ export class PrivateNumericArray {
             })(), this.shape);
     }
 }
+/** Cold promotion keeps pool/owner bookkeeping outside generated hot stores. */
+function promoteIntegerCells(array: PrivateNumericArray | undefined, cells: Int32Array, index: number, value: number): PrivateCells {
+    if (array) { array.store(index, value); return array.cells; }
+    return new Float64Array(cells);
+}
 /** Complete only the private numeric buffer; entry owns builtin and budget guards. */
 function copyPrimes(start: number | undefined, from: boolean, end: number, to: boolean): PrivateNumericArray {
     const values: number[] = [];
@@ -526,7 +531,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'sortedIndexBatch', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', 'inferShape', readers + '\n' + code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'sortedIndexBatch', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'promoteIntegerCells', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', 'inferShape', readers + '\n' + code)(
             modularMultiply, safe, numberSortedIndex, numberSortedIndexBatch, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -585,7 +590,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 const next = alias ? value.fork() : value;
                 previous?.release();
                 return next;
-            }, function* (start: bigint | undefined, from: boolean, end: bigint | undefined, to: boolean, reverse = false) {
+            }, promoteIntegerCells, function* (start: bigint | undefined, from: boolean, end: bigint | undefined, to: boolean, reverse = false) {
                 for (const value of primeRange(start, from, end, to, reverse)) yield safe(Number(value));
             }, copyPrimes, (cells: number, exact: number) => {
                 const cost = currentDiagnostics()?.cost('number-loop.wide-vector');
@@ -639,6 +644,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         if ((plan.syntax.has('take') || plan.syntax.has('drop')) && demandBudgetEnabled()) return recordFallback('number-loop:observable-count-slice', 'effects');
         if (plan.syntax.has('reverse') && demandBudgetEnabled()) return recordFallback('number-loop:observable-reverse', 'effects');
         if (plan.syntax.has('scalar-row-selection') && demandBudgetEnabled()) return recordFallback('number-loop:observable-row-selection', 'effects');
+        if (plan.syntax.has('owned-scatter') && plan.ownedAliases?.size && (demandBudgetEnabled() || interruptsEnabled())) return recordFallback('number-loop:observable-owned-scatter', 'effects');
         if (plan.syntax.has('filtered-scatter') && (demandBudgetEnabled() || interruptsEnabled())) return recordFallback('number-loop:observable-filtered-scatter', 'effects');
         if (plan.builtins.get('indices') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-indices', 'effects');
         if (plan.builtins.get('count') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-count', 'effects');
@@ -796,6 +802,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (plan.syntax.has('scalar-row-selection')
                 && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
                 return recordFallback('number-loop:row-selection-metadata', 'proof');
+            if (plan.syntax.has('owned-scatter') && plan.ownedAliases?.size
+                && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
+                return recordFallback('number-loop:owned-scatter-metadata', 'proof');
             if (plan.syntax.has('filtered-scatter')
                 && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
                 return recordFallback('number-loop:filtered-scatter-metadata', 'proof');

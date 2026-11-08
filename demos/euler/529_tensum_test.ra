@@ -10,3 +10,14 @@ test "digit sum 4, brute force and dp"
   run
   Answer equal 603612384
 end
+
+test "official examples"
+  use "529_tensum"
+  Sd = 10
+  N = 2
+  run
+  Answer equal 9
+  N = 5
+  run
+  Answer equal 3492
+end

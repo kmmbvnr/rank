@@ -318,10 +318,11 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     if (numberMode && locations.some(location => isAssignmentStatement(location)
         && arrayDefinitions.has(location.name) && arrayInputs.has(location.name) && destinations.has(location.name)
         && !ownedAliases.has(location.name) && !(boundary && statementResultDiscarded(location, boundary)))) return reject(statement, 'escaping-rebound-array');
-    // This ownership path supports scalar cell stores. Slices/scatters need
-    // separate dirty/result tracking across replacement and stay on fallback.
+    // Managed integer accumulations detach prepared aliases and track dirty
+    // rebindings. Other slices/scatters still need their own ownership proof.
     if (numberMode && locations.some(location => isArrayAssignmentStatement(location)
         && arrayDefinitions.has(location.name) && (arrayInputs.has(location.name) || ownedAliases.has(location.name))
+        && !(ownedAliases.has(location.name) && state.ownedScatterWrites.has(location))
         && (location.indices.length !== (arrayTransfers.has(location.name) || ownedAliases.has(location.name) ? arrays.get(location.name)?.rank : 1) || location.indices.some(index => index.all || index.sign
             || !index.value || expressions.knownType(index.value) !== 'integer')))) return reject(statement, 'rebound-array-selection');
     if (aliases.some(([target, source]) => numberMode ? !ownedAliases.has(target) && (writable.has(target) || writable.has(source))
@@ -333,8 +334,12 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     // stop at this region: callers may retain a loop result even when its source
     // program has later statements. Keep live mutable results on the exact path.
     if (numberMode && [...state.sliceResultSources].some(name => writable.has(name))) return reject(statement, 'mutable-slice-result');
+    const marks = (source: string) => source.replace(/\0scatterMark(\d+)\0/g, (_, index) => {
+        const { name, slot, key } = state.scatterMarks[Number(index)];
+        return arrayDefinitions.has(name) ? arrayInputs.has(name) ? state.dirty(slot) : '' : `changed${slot}[${key}] = 1;`;
+    });
     return {
-        statement, names, wideScalars, integerRanges: state.integerRanges, rangeNarrowing: state.rangeNarrowing, exactInputs: state.exactInputs, arrays, destinations, root, body, outlinedLoops: state.outlinedLoops, locations, required, localTypes, containers,
+        statement, names, wideScalars, integerRanges: state.integerRanges, rangeNarrowing: state.rangeNarrowing, exactInputs: state.exactInputs, arrays, destinations, root, body: body.map(marks), outlinedLoops: state.outlinedLoops.map(loop => ({ ...loop, body: marks(loop.body) })), locations, required, localTypes, containers,
         retainedLocalArrayResult: state.retainedLocalArrayResult, vectorReductions: state.vectorReductions, primeCopies: state.primeCopies, builtins, syntax, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, reversedPrimes: state.reversedPrimes, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         ownershipChecks: state.ownershipChecks, ownedAliases, arrayTransfers, arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, rangeDefinitions: new Set(state.ranges.keys()), writable, iteration, workCounting, polling, callouts: state.callouts,

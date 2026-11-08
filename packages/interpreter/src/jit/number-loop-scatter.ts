@@ -52,6 +52,24 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     state.currentScope()?.assigned.add(assignment.name);
     if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
     state.numberVectors = true;
+    // Managed aliases detach only after selectors, RHS and modulus complete.
+    // The same registers/dirty modes are used by scalar stores and rebindings.
+    const detach = (size: string) => state.ownershipChecks
+        ? `if (${size} && owned${target.slot} && r${target.slot}?.shared) cells${target.slot} = cells[${target.slot}] = r${target.slot}.writable();` : '';
+    // Resolve dirty modes after the complete region's alias/rebinding proof.
+    // This keeps already-dirty local allocations free of per-cell branches.
+    const mark = (key: string) => {
+        const index = state.scatterMarks.length;
+        state.scatterMarks.push({ name: assignment.name, slot: target.slot, key });
+        return `\0scatterMark${index}\0`;
+    };
+    const widen = (key: string, value: string) => type === 'integer'
+        ? `if (${value} !== (${value} | 0)) {
+            if (!Number.isSafeInteger(${value})) throw overflow;
+            if (cells${target.slot} instanceof Int32Array) cells${target.slot} = cells[${target.slot}] =
+                promoteIntegerCells(rebound${target.slot} ? r${target.slot} : undefined, cells${target.slot}, ${key}, ${value});
+        }` : '';
+
     // A pure integer selector can feed private writes directly. Source
     // buffers remain private and disjoint from the destination.
     // Observable polling retains the original preparation/work boundaries.
@@ -91,7 +109,9 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
             const rhs = arrayRhs ? undefined : expressions.emit(assignment.value, setup, type);
             if ((arrayRhs ? rhsVector?.type === type : rhs?.type === type) && prepareModulus(setup)) {
                 const operand = `fill${state.serial++}`;
-                const store = (compact: boolean): string | undefined => {
+                const store = (compact: boolean, mode?: { cells: string; start?: string; wide?: boolean;
+                    stop?: { position: string; key: string; value: string } }): string | undefined => {
+                    const destination = mode?.cells ?? cells;
                     const index = `stream${state.serial++}`, stores: string[] = [];
                     const key = vector.cell(index, stores, { shape: vector.shape, rank: vector.rank,
                         compact, offsets: new Map(), values: new Map() });
@@ -104,28 +124,47 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
                     if (rhsVector && rhsCell?.type !== type) return undefined;
                     const operations: string[] = [];
                     const value = compound ? combine(
-                        { code: `${cells}[${key.code}]`, type, bounds: compact ? [-2147483648, 2147483647] : undefined },
+                        { code: `${destination}[${key.code}]`, type, bounds: compact && !mode?.wide ? [-2147483648, 2147483647] : undefined },
                         rhsCell ?? { code: operand, type, bounds: compact ? [-2147483648, 2147483647] : rhs!.bounds }, operations) : operand;
                     if (!value) return undefined;
                     const next = `next${state.serial++}`;
                     return expressions.numberVectorLoop(vector.size, index, [...stores,
                         ...(selected ? [`if (${selected.code}) {`] : []),
-                        `if (${key.code} < 0 || ${key.code} >= ${cells}.length) throw overflow;`, ...operations,
+                        `if (${key.code} < 0 || ${key.code} >= ${destination}.length) throw overflow;`, ...operations,
                         `const ${next} = ${value};`,
-                        ...(type === 'integer' ? [`if (${compact ? 'true' : `${cells} instanceof Int32Array`} && ${next} !== (${next} | 0)) throw overflow;`] : []),
-                        `${cells}[${key.code}] = ${next}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key.code}] = 1;`}`,
+                        ...(mode?.stop ? [`if (${next} !== (${next} | 0)) {
+                            ${mode.stop.position} = ${index}; ${mode.stop.key} = ${key.code}; ${mode.stop.value} = ${next}; return;
+                        }`] : mode?.wide ? [] : [widen(key.code, next)]),
+                        `${destination}[${key.code}] = ${next}; ${mark(key.code)}`,
                         ...(selected ? ['}'] : []),
-                    ]);
+                    ], undefined, mode?.start);
                 };
-                const checked = store(false), compact = type === 'integer' ? store(true) : undefined;
+                // Keep the compact destination invariant throughout the hot
+                // loop. On its first wide result, retain completed stores,
+                // promote once, then resume checked arithmetic at the next cell.
+                const position = `wideAt${state.serial++}`, key = `wideKey${state.serial++}`, value = `wideValue${state.serial++}`;
+                const narrow = `narrowCells${state.serial++}`, wide = `wideCells${state.serial++}`;
+                const checked = store(false), compact = type === 'integer'
+                    ? store(true, { cells: narrow, stop: { position, key, value } }) : undefined;
+                const resumed = compact ? store(true, { cells: wide, start: `${position} + 1`, wide: true }) : undefined;
                 if (checked && state.calls.length === calls && state.callouts.length === callouts) {
                     if (filtered) state.syntax.add('filtered-scatter');
                     const guards = [...vector.compactGuards, ...mask?.compactGuards ?? [], ...rhsVector?.compactGuards ?? []];
-                    const loop = compact ? `if (${cells} instanceof Int32Array ${rhsVector ? '' : `&& ${operand} === (${operand} | 0)`}
-                        ${guards.map(guard => ` && (${guard})`).join('')}) { ${compact} } else { ${checked} }` : checked;
+                    const loop = compact && resumed ? `if (${cells} instanceof Int32Array ${rhsVector ? '' : `&& ${operand} === (${operand} | 0)`}
+                        ${guards.map(guard => ` && (${guard})`).join('')}) {
+                            const ${narrow} = ${cells}; let ${position} = ${vector.size}, ${key} = 0, ${value} = 0;
+                            ${compact}
+                            if (${position} < ${vector.size}) {
+                                if (!Number.isSafeInteger(${value})) throw overflow;
+                                ${cells} = cells[${target.slot}] = promoteIntegerCells(rebound${target.slot} ? r${target.slot} : undefined, ${cells}, ${key}, ${value});
+                                ${cells}[${key}] = ${value}; ${mark(key)}
+                                const ${wide} = ${cells}; ${resumed}
+                            }
+                        } else { ${checked} }` : checked;
                     streamed.push('try {', ...setup,
                         ...(mask ? [`if (${mask.shape}.length !== ${vector.shape}.length || ${mask.shape}.some((size, axis) => size !== ${vector.shape}[axis])) throw overflow;`] : []),
                         ...(rhsVector ? [`if (${rhsVector.shape}.length !== ${vector.shape}.length || ${rhsVector.shape}.some((size, axis) => size !== ${vector.shape}[axis])) throw overflow;`] : []),
+                        detach(vector.size),
                         ...[...vector.sources, ...mask?.sources ?? [], ...rhsVector?.sources ?? []].map(source =>
                         `if (${source} === ${cells} || (${source}.buffer && ${source}.buffer === ${cells}.buffer)) throw overflow;`),
                         ...(rhs ? [`const ${operand} = ${rhs.code};`] : []),
@@ -190,6 +229,7 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
             : type === 'real' ? `Number(${operand}[${index}])` : `safe(Number(${operand}[${index}]))`;
     }
     if (!prepareModulus(lines)) return undefined;
+    lines.push(detach(`${keys}.length`));
     if (assignment.accumulate && type === 'real') {
         // Real accumulation reduces the updates per key first, then applies
         // one operation to the old cell. Sequential -= or *= changes rounding.
@@ -204,7 +244,7 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
                 `const ${key} = Number(${keys}[${index}]), operand = ${value}, ${prior} = ${groups}.get(${key});`,
                 `${groups}.set(${key}, ${prior} === undefined ? operand : ${prior} ${operation} operand);`,
             ]), `for (const [${key}, ${reduced}] of ${groups}) { checkpoint(); ${arithmetic.join('\n')}
-                ${cells}[${key}] = ${next}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key}] = 1;`}
+                ${cells}[${key}] = ${next}; ${mark(key)}
             }`, `iterationResult = ${typeof rhs.type === 'string' ? operand : 'undefined'}; iterationType = '${typeof rhs.type === 'string' ? rhs.type : 'integer'}';`);
         return true;
     }
@@ -233,12 +273,13 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     }
     const ordinary = [`location = ${location};`, ...lines, expressions.numberVectorLoop(`${keys}.length`, index, [
         `const ${key} = Number(${keys}[${index}]);`, ...accumulation, `const value${n} = ${value};`,
-        ...(type === 'integer' ? [`if (${cells} instanceof Int32Array && value${n} !== (value${n} | 0)) {
-            ${cells} = cells[${target.slot}] = new Float64Array(${cells});
-            ${state.arrayDefinitions.has(assignment.name) ? `r${target.slot}.cells = ${cells};` : ''}
-        }`] : []),
-        `${cells}[${key}] = value${n}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key}] = 1;`}`,
+        widen(key, `value${n}`),
+        `${cells}[${key}] = value${n}; ${mark(key)}`,
     ]), `iterationResult = ${typeof rhs.type === 'string' ? operand : discarded ? 'undefined' : rhs.code}; iterationType = '${typeof rhs.type === 'string' ? rhs.type : discarded ? 'integer' : 'array'}';`];
+    if (assignment.accumulate && type === 'integer' && discarded) {
+        state.ownedScatterWrites.add(assignment);
+        state.syntax.add('owned-scatter');
+    }
     body.push(...(streamed.length ? [`if (streamScatterEnabled()) { location = ${location}; ${streamed.join('\n')} } else { ${ordinary.join('\n')} }`] : ordinary));
     return true;
 }

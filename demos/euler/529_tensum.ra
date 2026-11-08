@@ -5,232 +5,279 @@ use numbers
 use sequences
 use bits
 use algo
-use linalg
 use io
 use cli
 
 arg N integer = 1000000000000000000
 arg Sd integer = 10
 
-rem Scan left to right keeping H, the
-rem offsets back to earlier cuts that
-rem can still start a sum-Sd block,
-rem and S, the cut offsets inside the
-rem uncovered tail (bit sets, sum Sd
-rem at most). A digit closes the tail
-rem when Sd - sum is in H. The counts
-rem form a linear recurrence: build
-rem the automaton, minimise it, find
-rem the recurrence by Berlekamp-Massey
-rem and raise x^N mod its polynomial.
-P = 1000000007
-Bw = Sd + 1
-Fm = (1 shl Bw) - 1
-rem Next keys H * 2^Bw + S for digit X,
-rem -1 where the tail sum passes Sd.
-fun Ks nxt X
-  H = Ks shr Bw
-  Sm = Ks band Fm
-  Dm = Sm * 0
-  for B in 1 to Sd
-    Dm = (Sm bit B) choose B Dm
-  end
-  Dp = Dm + X
-  Dc = Dp min Sd
-  Bd1 = 1 shl Dc
-  S2 = Sm bor Bd1
-  Sc = Sd - Dc
-  Cl = H bit Sc
-  Hn = H shl Dc band Fm
-  for B in 0 to Sd
-    Sb = Dc - B max 0
-    Sh = 1 shl Sb
-    Up = S2 bit B and (B at most Dc)
-    Ad = Up choose Sh 0
-    Hn = Hn bor Ad
-  end
-  Kc = (Hn shl Bw) + 1
-  Ko = (H shl Bw) + S2
-  Kn = Cl choose Kc Ko
-  Ok = Dp at most Sd
-  return Ok choose Kn (0 - 1)
+Prime = 1000000007
+Fermat = Prime - 2
+Width = Sd + 1
+Full = (1 shl Width) - 1
+Digits = 0 till 10 copy
+
+rem Small lookup tables replace scans
+rem of every bit for each transition.
+Masks = 0 to Full copy
+Bases = array shape Width fill 2
+Binary = Masks digits Bases
+Positions = Sd - (0 till Width)
+PositionGrid = Positions reshape Width 1
+Set = Binary not equal 0
+Weighted = Set choose PositionGrid 0
+TailSums = Weighted max axis 0
+Reverse = Binary reverse
+Reversed = Reverse fromDigits Bases
+
+rem Head records potential block starts;
+rem Tail records the uncovered suffix.
+fun Keys transition Digit
+  Head = Keys shr Width
+  Tail = Keys band Full
+  Sum = TailSums Tail
+  Total = Sum + Digit
+  Capped = Total min Sd
+  Mark = 1 shl Capped
+  Added = Tail bor Mark
+  Needed = Sd - Capped
+  Closed = Head bit Needed
+  Shifted = Head shl Capped band Full
+  Reflected = Reversed Added shr Needed
+  Covered = Shifted bor Reflected
+  CloseKey = (Covered shl Width) + 1
+  OpenKey = (Head shl Width) + Added
+  Next = Closed choose CloseKey OpenKey
+  Valid = Total at most Sd
+  Missing = -1
+  return Valid choose Next Missing
 end
-rem Reachable states, breadth first.
-K0 = (1 shl Bw) + 1
-Al = array K0
-Fr = array K0
-for Fr len greater 0
-  Nx = Fr nxt 0
-  for X in 1 to 9
-    Nx = concat Nx (Fr nxt X)
-  end
-  Nx = Nx (Nx at least 0 indices)
-  Nx = Nx unique
-  Nm = (Nx in Al) equal false
-  Nw = Nx (Nm indices)
-  Al = concat Al Nw copy
-  Fr = Nw
+
+rem Breadth-first closure batches all
+rem ten digits across the frontier.
+fun Work grow
+  unpack All Frontier = Work
+  Count = Frontier len
+  Grid = Frontier reshape Count 1
+  Next = Grid transition Digits
+  Cells = Count * 10
+  Flat = Next reshape Cells
+  Valid = Flat at least 0
+  Unique = Flat Valid unique
+  Fresh = Unique not in All
+  Added = Unique Fresh
+  All = concat All Added copy
+  return tuple All Added
 end
-Ks = Al sort
-Ns = Ks len
-Ny = Ns + 1
-rem Transitions, state Ns the sink.
-Tf = array shape (Ny * 10) fill Ns
-for X in 0 to 9
-  Kx = Ks nxt X
-  Ix = Ks lowerindex Kx
-  Ix = Kx at least 0 choose Ix Ns
-  Tf (X till Ns * 10 by 10) = Ix
+fun Before exhausted After
+  Frontier = After 1
+  return Frontier len equal 0
 end
-Ac = Ks band Fm equal 1
-Ac = concat Ac (array false)
-rem Moore refinement: split classes by
-rem the classes of the ten successors.
-Cl = Ac integer
-Nc = 2
-for Rd in 1 to Ny
-  Kq = Cl
-  for X in 0 to 9
-    Sx = Cl (Tf (X till Ny * 10 by 10))
-    V = Kq * Ny + Sx
-    Uq = V unique sort
-    Kq = Uq lowerindex V
-  end
-  Nn = (Kq max) + 1
-  if Nn equal Nc
-    break
-  end
-  Cl = Kq
-  Nc = Nn
+Start = (1 shl Width) + 1
+Initial = array Start
+Reach = tuple Initial Initial
+Bits = 2 * Width
+Maximum = 1 shl Bits
+Closure = (
+  Reach grow repeat Maximum
+  till exhausted
+)
+Keys = Closure 0 sort
+States = Keys len
+StateCount = States + 1
+Cells = States * 10
+Grid = Keys reshape States 1
+Next = Grid transition Digits
+Targets = Keys lowerindex Next
+Valid = Next at least 0
+Targets = Valid choose Targets States
+Flat = Targets reshape Cells
+DeadRow = array shape 10 fill States
+Transitions = concat Flat DeadRow copy
+RawAccept = Keys band Full equal 1
+RawAccept = (
+  concat RawAccept (array false)
+)
+
+rem Refine by the ten successor classes.
+fun Work split
+  unpack Classes Labels Digit = Work
+  End = StateCount * 10
+  Picks = Digit till End by 10
+  Successors = Transitions Picks
+  Following = Classes Successors
+  Combined = Labels * StateCount
+  Combined = Combined + Following
+  Ordered = Combined unique sort
+  Labels = Ordered lowerindex Combined
+  Digit += 1
+  return tuple Classes Labels Digit
 end
-Rp = array shape Nc fill 0
-Rp Cl = 0 till Ny copy
-Mt = array shape (Nc * 10) fill 0
-for X in 0 to 9
-  Ct = Cl (Tf (Rp * 10 + X))
-  Mt (X till Nc * 10 by 10) = Ct
+fun Work refine
+  Classes = Work 0
+  Columns = tuple Classes Classes 0
+  Result = Columns split repeat 10
+  Labels = Result 1
+  Count = (Labels max) + 1
+  return tuple Labels Count
 end
-Dk = Cl Ns
-Sr = (0 till Nc * 10) // 10
-Kp = Mt equal Dk or (Sr equal Dk)
-Kp = Kp equal false
-Src = Sr (Kp indices)
-Dst = Mt (Kp indices)
-Am = Ac Rp integer
-rem T(L) for L < Nt by stepping counts.
-C0 = Cl (Ks lowerindex K0)
-Vv = array shape Nc fill 0
-Ds = Mt (C0 * 10 + (1 to 9))
-Vv Ds += 1 .accumulate
-Vv Dk = 0
-Nt = 2 * Nc + 10
-Ts = array shape Nt fill 0
-T = 0
-for L in 1 till Nt
-  Ta = Vv * Am sum
-  T = (T + Ta) mod P
-  Ts L = T
-  Nv = Vv * 0
-  Vs = Vv Src
-  Nv Dst += Vs .accumulate
-  Vv = Nv mod P
+fun Before stable After
+  return Before 1 equal After 1
 end
-rem Berlekamp-Massey: the shortest C
-rem with sum C(j) T(i - j) = 0.
-C = array 1
-Bb = array 1
-Lr = 0
-Mm = 1
-Bd = 1
-for I in 0 till Nt
-  D = Ts I
-  if Lr greater 0
-    Cs = C (1 to Lr)
-    Sv = (Ts (I - Lr till I)) reverse
-    Dt = Cs * Sv mod P sum
-    D = (D + Dt) mod P
+Initial = RawAccept integer
+Groups = tuple Initial 2
+Partition = (
+  Groups refine repeat StateCount
+  till stable
+)
+Classes = Partition 0
+ClassCount = Partition 1
+Rows = array shape ClassCount fill 0
+Rows Classes = 0 till StateCount copy
+Grid = Rows reshape ClassCount 1
+Places = Grid * 10 + Digits
+Targets = Classes (Transitions Places)
+Cells = ClassCount * 10
+Table = Targets reshape Cells
+Sink = Classes States
+Sources = (0 till Cells) // 10
+Active = Table not equal Sink
+Alive = Sources not equal Sink
+Active = Active and Alive
+From = Sources Active copy
+Into = Table Active copy
+Accept = RawAccept Rows integer
+StartIndex = Keys lowerindex Start
+StartClass = Classes StartIndex
+FirstPlaces = StartClass * 10 + (1 to 9)
+First = Table FirstPlaces
+Needed = 2 * ClassCount + 10
+TermCount = Needed min (N + 1)
+
+rem Modular histograms keep counts
+rem bounded throughout every DP step.
+fun Count terms
+  Values = array shape ClassCount fill 0
+  Values First += 1 .accumulate
+  Values Sink = 0
+  Terms = array shape Count fill 0
+  Total = 0
+  for Length in 1 till Count
+    Accepted = Values * Accept sum
+    Total = (Total + Accepted) mod Prime
+    Terms Length = Total
+    Next = array shape ClassCount fill 0
+    Counts = Values From
+    Next Into += Counts .accumulate
+    Values = Next mod Prime
   end
-  if D equal 0
-    Mm += 1
-    continue
+  return Terms
+end
+Terms = TermCount terms
+
+rem Berlekamp-Massey identifies the
+rem shortest exact modular recurrence.
+fun Work identify
+  Place = Work 0
+  Current = Work 1
+  Saved = Work 2
+  Order = Work 3
+  Gap = Work 4
+  Last = Work 5
+  Difference = Terms Place
+  if Order greater 0
+    Head = Current (1 to Order)
+    Window = Place - Order till Place
+    History = Terms Window reverse
+    Dot = Head * History mod Prime sum
+    Difference += Dot mod Prime
   end
-  Cf = D * (Bd (P - 2) P powmod) mod P
-  Tc = C
-  Nb = (Bb len) + Mm
-  Cn = C len
-  if Cn less Nb
-    Zp = array shape (Nb - Cn) fill 0
-    C = concat C Zp copy
+  Next = Place + 1
+  if Difference equal 0
+    Gap += 1
+    return (
+      tuple Next Current Saved
+      Order Gap Last
+    )
   end
-  Sg = C (Mm till Nb)
-  C (Mm till Nb) = (Sg - Cf * Bb) mod P
-  if 2 * Lr at most I
-    Lr = I + 1 - Lr
-    Bb = Tc
-    Bd = D
-    Mm = 1
+  Inverse = Last Fermat Prime powmod
+  Scale = Difference * Inverse mod Prime
+  Previous = Current
+  End = (Saved len) + Gap
+  Size = Current len
+  if Size less End
+    Padding = End - Size
+    Zero = array shape Padding fill 0
+    Current = concat Current Zero copy
+  end
+  Change = Scale * Saved mod Prime
+  Span = Gap till End
+  Current Span -= Change mod Prime
+  if 2 * Order at most Place
+    Order = Place + 1 - Order
+    Saved = Previous
+    Last = Difference
+    Gap = 1
   else
-    Mm += 1
+    Gap += 1
   end
+  return (
+    tuple Next Current Saved
+    Order Gap Last
+  )
 end
-rem x^N mod x^R - sum Q(j) x^(R - j),
-rem Q = -C. Row k of Rm is x^(R + k)
-rem reduced; a square folds its top
-rem half through Rm.
-R = Lr
-V0 = (0 - C (R - (0 till R))) mod P
-Rm = array shape (R - 1) R fill 0
-Vk = V0
-for K in 0 till R - 1
-  Rm K = Vk
-  Tp = Vk (R - 1)
-  Vs = Vk (0 till R - 1)
-  Vs = concat (array 0) Vs
-  Vk = (Vs + Tp * V0) mod P
+rem Bostan-Mori halves the exponent
+rem with exact polynomial convolutions.
+fun Work halve
+  unpack Top Bottom Power = Work
+  Length = Bottom len
+  Places = 0 till Length copy
+  Signs = 1 - 2 * (Places mod 2)
+  Flip = Bottom * Signs mod Prime
+  Product = Top convolve Flip mod Prime
+  Even = Bottom convolve Flip mod Prime
+  Length = Product len
+  Parity = Power mod 2
+  Picks = Parity till Length by 2
+  Top = Product Picks
+  Length = Even len
+  Picks = 0 till Length by 2
+  Bottom = Even Picks
+  return tuple Top Bottom (Power // 2)
 end
-Rl = (Rm mod 32768) * 1.0
-Rh = (Rm // 32768) * 1.0
-W = 2 * R - 1
-rem A square sums a(i) a(j) at i + j:
-rem the pairs i < j twice, then the
-rem squares, by indexed accumulation.
-Iq = 0 till R * R copy
-Ia = Iq // R
-Ja = Iq mod R
-Up = Ia less Ja indices
-Ia = Ia Up
-Ja = Ja Up
-Kd = Ia + Ja
-Dg = 2 * (0 till R)
-Cv = array shape W fill 0
-Xc = array shape R fill 0
-Xc 0 = 1
-Nb = N binary len
-for J in Nb - 1 to 0 by -1
-  Pr = (Xc Ia) * Xc Ja mod P
-  Cv = array shape W fill 0
-  Cv Kd += Pr .accumulate
-  Cv = 2 * Cv
-  Cv Dg += (Xc * Xc mod P)
-  Cv = Cv mod P
-  Hg = Cv (R till W)
-  Hl = Hg mod 32768
-  Hh = Hg // 32768
-  Hm = (stack Hl Hh) * 1.0
-  Ca = Hm matmul Rl integer
-  Cb = Hm matmul Rh integer
-  Md = (Ca 1 + Cb 0) mod P
-  Rd = Ca 0 + Md * 32768
-  Rd = Rd + (Cb 1 mod P) * 1073741824
-  Xc = (Cv (0 till R) + Rd) mod P
-  if N bit J
-    Tp = Xc (R - 1)
-    Vs = Xc (0 till R - 1)
-    Vs = concat (array 0) Vs
-    Xc = (Vs + Tp * V0) mod P
+fun Exponent evaluate
+  Count = Terms len
+  if Exponent less Count
+    return Terms Exponent
   end
+  One = array 1
+  Guess = tuple 0 One One 0 1 1
+  Fit = Guess identify repeat Count
+  Coefficients = Fit 1
+  Degree = Fit 3
+  if Degree equal 0
+    return 0
+  end
+  Order = Degree + 1
+  Lower = Coefficients take Order
+  Upper = Terms take Degree
+  Upper = Upper convolve Lower mod Prime
+  Upper = Upper take Degree
+  Fraction = tuple Upper Lower Exponent
+  Iterations = Exponent binary len
+  Result = (
+    Fraction halve repeat Iterations
+  )
+  Top = Result 0
+  Bottom = Result 1
+  Value = Bottom 0
+  Inverse = Value Fermat Prime powmod
+  return Top 0 * Inverse mod Prime
 end
-Tr = Ts (0 till R)
-Answer = Xc * Tr mod P sum
-Answer = Answer mod P
+Answer = N evaluate
+rem Include the endpoint 10^N when
+rem its digit sum is the target too.
+if Sd equal 1
+  Answer = (Answer + 1) mod Prime
+end
 Answer print
