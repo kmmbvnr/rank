@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 2 PP 1 1 -> K"
   use "0898_ribbon"
+  Input = "2\nPP\n1 1"
   run
 
   Ans equal "K"
@@ -31,7 +32,7 @@ test "single fold Z: 1 Z 1 1 -> K"
   Ans equal "K"
 end
 
-test "three folds PZP: all middle creases -> OOK"
+test "three folds PZP: middle creases"
   use "0898_ribbon"
   Input = "3\nPZP\n3 2 4 6"
   run

@@ -1,10 +1,7 @@
-rem Wonderful Roads (Замечательные дороги)
-rem https://acmp.ru/index.asp?main=task&id_task=741
-rem Two roads lie on a common simple cycle exactly when they
-rem belong to the same biconnected block, so every block needs
-rem all-different colors: the answer is the largest block.
-rem Blocks come from an iterative Tarjan DFS with an edge stack
-rem over a CSR adjacency built by argsort + lowerindex.
+rem Wonderful Roads
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=741
+rem Largest biconnected block via Tarjan
 
 use io
 use text
@@ -12,34 +9,59 @@ use cli
 use algo
 use sequences
 
-arg Input text = "3 3
-1 2
-2 3
-3 1"
+arg Input text = (
+  "12 18\n" +
+  "1 2\n" +
+  "2 3\n" +
+  "3 4\n" +
+  "4 5\n" +
+  "5 6\n" +
+  "6 1\n" +
+  "7 8\n" +
+  "8 9\n" +
+  "9 10\n" +
+  "10 11\n" +
+  "11 12\n" +
+  "12 7\n" +
+  "1 7\n" +
+  "2 8\n" +
+  "3 9\n" +
+  "4 10\n" +
+  "5 11\n" +
+  "6 12"
+)
 
-Tokens = Input split "\r" join " " split "\n" join " " split " "
-Tokens = Tokens (Tokens not equal "")
+Raw = (
+  (Input split "\r" join " ")
+  split "\n" join " "
+)
+Parts = Raw split " "
+Tokens = Parts (Parts not equal "")
 
 N = (Tokens 0) integer
-M = (Tokens 1) integer
-Ends = (Tokens (2 till (2 * M + 2))) integer - 1
-Us = Ends ((0 till M) * 2)
-Vs = Ends (((0 till M) * 2) + 1)
+M = (Tokens 1 integer)
+EndTokens = (
+  Tokens (2 till (2 * M + 2))
+) integer
+Ends = EndTokens - 1
+IdxM = 0 till M
+Us = Ends (IdxM * 2)
+Vs = Ends ((IdxM * 2) + 1)
 
-rem CSR adjacency: half-edges grouped by source vertex.
 Src = concat Us Vs
 Dst = concat Vs Us
-Eid = concat (0 till M) (0 till M)
+Eid = concat IdxM IdxM
 Ord = Src argsort
 Dst = Dst Ord
 Eid = Eid Ord
-Start = (Src Ord) lowerindex (0 till (N + 1))
+N1 = N + 1
+Start = (Src Ord) lowerindex (0 till N1)
 
 Disc = array shape N fill -1
 Low = array shape N fill 0
 Ptr = Start (0 till N)
 Pe = array shape N fill -1
-Calls = array shape (N + 1) fill 0
+Calls = array shape N1 fill 0
 Estack = array shape (M + 1) fill 0
 Comp = array shape M fill 0
 
@@ -64,7 +86,8 @@ for Root in 0 till N
     Sp = Sp + 1
     for Sp greater 0
       V = Calls (Sp - 1)
-      if (Ptr V) less (Start (V + 1))
+      V1 = V + 1
+      if (Ptr V) less (Start V1)
         H = Ptr V
         Ptr V = H + 1
         E = Eid H
@@ -82,14 +105,16 @@ for Root in 0 till N
           elif (Disc W) less (Disc V)
             Estack Ep = E
             Ep = Ep + 1
-            Low V = (Low V) min (Disc W)
+            MinDW = (Low V) min (Disc W)
+            Low V = MinDW
           end
         end
       else
         Sp = Sp - 1
         if Sp greater 0
           P = Calls (Sp - 1)
-          Low P = (Low P) min (Low V)
+          MinLV = (Low P) min (Low V)
+          Low P = MinLV
           if (Low V) at least (Disc P)
             Cont = 1
             for Cont equal 1
@@ -108,15 +133,24 @@ for Root in 0 till N
   end
 end
 
-rem Rank each edge inside its block: colors 1..block size.
 EOrd = Comp argsort
 Sorted = Comp EOrd
 First = Sorted lowerindex Sorted
 Color = array shape M fill 0
-Color EOrd = ((0 till M) - First) + 1
+IdxDiff = (0 till M) - First
+Color EOrd = IdxDiff + 1
 K = Color max
 
 K print
 for I in 0 till M
-  (((Us I) + 1) text + " " + (((Vs I) + 1) text) + " " + ((Color I) text)) print
+  U1 = (Us I) + 1
+  V1 = (Vs I) + 1
+  C1 = Color I
+  U_txt = U1 text
+  V_txt = V1 text
+  C_txt = C1 text
+  Line = (
+    U_txt + " " + V_txt + " " + C_txt
+  )
+  Line print
 end

@@ -1,7 +1,7 @@
-rem Ribbon (Ленточка)
-rem https://acmp.ru/index.asp?main=task&id_task=898
-rem Determine fold crease orientations ('K' convex to us / 'O' convex away) on a folded paper ribbon.
-rem Solved in O(K * N) via iterative divide-and-conquer binary reflection.
+rem Ribbon
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=898
+rem Fold crease orientations via D&C
 
 use io
 use numbers
@@ -10,16 +10,29 @@ use sequences
 use text
 use bits
 
-arg Input text = "2\nPP\n1 1"
+arg Input text = (
+  "20\n" +
+  "PZPZPZPZPZPZPZPZPZPZ\n" +
+  "10 " +
+  "1 2 524288 100 200 1000 50000 " +
+  "1048575 500000 750000"
+)
 
-Tokens = Input split "\n" join " " split "\r" join " " split " "
-Tokens = Tokens (Tokens not equal "")
+Raw = (
+  (Input split "\n" join " ")
+  split "\r" join " "
+)
+Tok = Raw split " "
+Tokens = Tok (Tok not equal "")
 
 N = Tokens 0 integer
 S = Tokens 1
 KCount = Tokens 2 integer
 
-Queries = (Tokens (3 till (3 + KCount))) integer
+QEnd = 3 + KCount
+Queries = (
+  Tokens (3 till QEnd)
+) integer
 
 SChars = S split ""
 SRev = SChars reverse
@@ -36,13 +49,14 @@ for QIdx in 0 till KCount
 
   for Step in 0 till N
     CurN = N - Step
-    Mid = 1 shl (CurN - 1)
+    Shift = CurN - 1
+    Mid = 1 shl Shift
     if X equal Mid
       Base = "O"
-      if (SRev (CurN - 1)) equal "Z"
+      if (SRev Shift) equal "Z"
         Base = "K"
       end
-      if Inv mod 2 equal 1
+      if (Inv mod 2) equal 1
         if Base equal "K"
           Base = "O"
         else
