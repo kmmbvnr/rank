@@ -77,6 +77,12 @@ Both compiled and reference execution are covered. All full-input runs retained
 The TypeScript build, application-form checks, 65 semantic-owner checks and
 13 policy tests passed. Full suites and exhaustive corpus audits were not run.
 
+After merging concurrent main changes at `06fbf90a` (Euler 484 tensor work),
+the build, five exclusion-policy checks and 298 focused tests passed on Mac.
+A separate full-input integration run retained `404890862` in 17.59 s
+with 275 MiB peak RSS. It is not pooled with the timing series above.
+Implementation commits: `6fe2caa6` (compiler) and `056f189f` (solution and oracle).
+
 ## Reproduction
 
 Build each checkout before timing. Use the base checkout for the original
