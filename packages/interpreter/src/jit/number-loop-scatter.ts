@@ -58,7 +58,7 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     const pure = (e: Expression): boolean => {
         if (isParenthesizedExpression(e)) return pure(e.value);
         if (isNameExpression(e) || isNumberLiteral(e)) return true;
-        if (isBinaryExpression(e)) return ['+', '-', '*', '//', 'mod'].includes(e.operator) && pure(e.left) && pure(e.right);
+        if (isBinaryExpression(e)) return ['+', '-', '*', '//', 'mod', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or'].includes(e.operator) && pure(e.left) && pure(e.right);
         if (isApplicationExpression(e)) {
             const parts = flattenApplication(e), last = parts.at(-1);
             return parts.length === 3 && !!last && isNameExpression(last) && ['band', 'bor', 'bxor'].includes(last.name)
@@ -66,16 +66,25 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
         }
         return false;
     };
+    const parts = range && isApplicationExpression(range) ? flattenApplication(range) : [];
+    const filtered = parts.length === 2 && expressions.arrayType(parts[0])?.element === 'integer'
+        && expressions.arrayType(parts[1])?.element === 'boolean'
+        && expressions.arrayType(parts[0])?.rank === expressions.arrayType(parts[1])?.rank
+        ? { source: parts[0], mask: parts[1] } : undefined;
     const streamed: string[] = [];
     if ((!compound && type === 'boolean' && isBooleanLiteral(assignment.value)
         || type === 'integer' && (!compound || assignment.accumulate)
             && (isNumberLiteral(assignment.value) || isNameExpression(assignment.value)
                 && !expressions.arrayType(assignment.value) && expressions.knownType(assignment.value) === type
-                || assignment.accumulate && discarded && !!expressions.arrayType(assignment.value))) && pure(selector)) {
+                || assignment.accumulate && discarded && !!expressions.arrayType(assignment.value)))
+        && (filtered ? !compound && !expressions.arrayType(assignment.value) && pure(filtered.source) && pure(filtered.mask) : pure(selector))) {
         const setup: string[] = [];
         const calls = state.calls.length, callouts = state.callouts.length;
-        const vector = expressions.numberVector(selector, setup);
-        if (vector?.type === 'integer') {
+        const vector = expressions.numberVector(filtered?.source ?? selector, setup);
+        if (filtered && vector?.sources.length) setup.push(`vectorLive.push(${vector.sources.join(',')});`);
+        const mask = filtered ? expressions.numberVector(filtered.mask, setup) : undefined;
+        if (filtered && vector?.sources.length) setup.push(`vectorLive.length -= ${vector.sources.length};`);
+        if (vector?.type === 'integer' && (!filtered || mask?.type === 'boolean')) {
             const cells = `cells${target.slot}`;
             const arrayRhs = !!expressions.arrayType(assignment.value);
             const rhsVector = arrayRhs ? expressions.numberVector(assignment.value, setup) : undefined;
@@ -87,6 +96,9 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
                     const key = vector.cell(index, stores, { shape: vector.shape, rank: vector.rank,
                         compact, offsets: new Map(), values: new Map() });
                     if (key?.type !== 'integer') return undefined;
+                    const selected = mask?.cell(index, stores, { shape: vector.shape, rank: vector.rank,
+                        compact, offsets: new Map(), values: new Map() });
+                    if (mask && selected?.type !== 'boolean') return undefined;
                     const rhsCell = rhsVector?.cell(index, stores, { shape: vector.shape, rank: vector.rank,
                         compact, offsets: new Map(), values: new Map() });
                     if (rhsVector && rhsCell?.type !== type) return undefined;
@@ -97,20 +109,24 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
                     if (!value) return undefined;
                     const next = `next${state.serial++}`;
                     return expressions.numberVectorLoop(vector.size, index, [...stores,
+                        ...(selected ? [`if (${selected.code}) {`] : []),
                         `if (${key.code} < 0 || ${key.code} >= ${cells}.length) throw overflow;`, ...operations,
                         `const ${next} = ${value};`,
                         ...(type === 'integer' ? [`if (${compact ? 'true' : `${cells} instanceof Int32Array`} && ${next} !== (${next} | 0)) throw overflow;`] : []),
                         `${cells}[${key.code}] = ${next}; ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key.code}] = 1;`}`,
+                        ...(selected ? ['}'] : []),
                     ]);
                 };
                 const checked = store(false), compact = type === 'integer' ? store(true) : undefined;
                 if (checked && state.calls.length === calls && state.callouts.length === callouts) {
-                    const guards = [...vector.compactGuards, ...rhsVector?.compactGuards ?? []];
+                    if (filtered) state.syntax.add('filtered-scatter');
+                    const guards = [...vector.compactGuards, ...mask?.compactGuards ?? [], ...rhsVector?.compactGuards ?? []];
                     const loop = compact ? `if (${cells} instanceof Int32Array ${rhsVector ? '' : `&& ${operand} === (${operand} | 0)`}
                         ${guards.map(guard => ` && (${guard})`).join('')}) { ${compact} } else { ${checked} }` : checked;
                     streamed.push('try {', ...setup,
+                        ...(mask ? [`if (${mask.shape}.length !== ${vector.shape}.length || ${mask.shape}.some((size, axis) => size !== ${vector.shape}[axis])) throw overflow;`] : []),
                         ...(rhsVector ? [`if (${rhsVector.shape}.length !== ${vector.shape}.length || ${rhsVector.shape}.some((size, axis) => size !== ${vector.shape}[axis])) throw overflow;`] : []),
-                        ...[...vector.sources, ...rhsVector?.sources ?? []].map(source =>
+                        ...[...vector.sources, ...mask?.sources ?? [], ...rhsVector?.sources ?? []].map(source =>
                         `if (${source} === ${cells} || (${source}.buffer && ${source}.buffer === ${cells}.buffer)) throw overflow;`),
                         ...(rhs ? [`const ${operand} = ${rhs.code};`] : []),
                         // With no observer, a preparation or cell failure discards all

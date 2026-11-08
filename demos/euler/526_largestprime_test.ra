@@ -1,8 +1,18 @@
 use testing
 
-test "smaller limits"
+test "official examples"
+  use "526_largestprime"
+  L = 100
+  run
+  Answer equal 417
+  L = 1000000000
+  run
+  Answer equal 4896292593
+end
+
+test "exact smaller maximum"
   use "526_largestprime"
   L = 100000000000
   run
-  Answer equal 455559334569
+  Answer equal 491010576113
 end

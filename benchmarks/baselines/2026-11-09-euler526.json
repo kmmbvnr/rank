@@ -1,0 +1,740 @@
+{
+  "baselineCommit": "f3edaa5282dbfece2182228cc60136c7f1b2d22c",
+  "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+  "method": "Three alternating fresh-process compiled pairs per host; both sources on new runtime. New source on frozen baseline runtime is a separate compiler control. Reference records are single runs. No own benchmark/test workloads overlap on a host.",
+  "mac": {
+    "compiledPairs": [
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "c70b62a59a95a4fd84a5cd8492b551ec2e792627d787d77e913abcf13d1cafde",
+        "ms": 5921.9465,
+        "cpu": {
+          "user": 7135324,
+          "system": 69758
+        },
+        "rssMiB": 523.09375,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "old",
+        "pair": 0
+      },
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+        "ms": 3971.409084,
+        "cpu": {
+          "user": 4378607,
+          "system": 30127
+        },
+        "rssMiB": 358.25,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "new",
+        "pair": 0
+      },
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+        "ms": 3966.8772080000003,
+        "cpu": {
+          "user": 4374984,
+          "system": 30009
+        },
+        "rssMiB": 358.390625,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "new",
+        "pair": 1
+      },
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "c70b62a59a95a4fd84a5cd8492b551ec2e792627d787d77e913abcf13d1cafde",
+        "ms": 5942.663417,
+        "cpu": {
+          "user": 7169126,
+          "system": 72076
+        },
+        "rssMiB": 521.640625,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "old",
+        "pair": 1
+      },
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "c70b62a59a95a4fd84a5cd8492b551ec2e792627d787d77e913abcf13d1cafde",
+        "ms": 5987.478167,
+        "cpu": {
+          "user": 7220700,
+          "system": 74392
+        },
+        "rssMiB": 522.359375,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "old",
+        "pair": 2
+      },
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+        "ms": 3973.267709,
+        "cpu": {
+          "user": 4382398,
+          "system": 30522
+        },
+        "rssMiB": 358.03125,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "new",
+        "pair": 2
+      }
+    ],
+    "oldReference": {
+      "mode": "reference",
+      "l": "10000000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "c70b62a59a95a4fd84a5cd8492b551ec2e792627d787d77e913abcf13d1cafde",
+      "ms": 7886.651458,
+      "cpu": {
+        "user": 9420358,
+        "system": 96466
+      },
+      "rssMiB": 661.046875,
+      "answer": "49601160286750947",
+      "diagnosticMode": false
+    },
+    "newReference": {
+      "mode": "reference",
+      "l": "10000000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+      "ms": 6706.754833,
+      "cpu": {
+        "user": 9778159,
+        "system": 92379
+      },
+      "rssMiB": 590.40625,
+      "answer": "49601160286750947",
+      "diagnosticMode": false
+    },
+    "newSourceOldRuntime": {
+      "mode": "compiled",
+      "l": "10000000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+      "ms": 10964.258375,
+      "cpu": {
+        "user": 11861061,
+        "system": 52184
+      },
+      "rssMiB": 558.71875,
+      "answer": "49601160286750947",
+      "diagnosticMode": false
+    },
+    "diagnostics": {
+      "mode": "compiled",
+      "l": "10000000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+      "ms": 3941.2577499999998,
+      "cpu": {
+        "user": 4345451,
+        "system": 30485
+      },
+      "rssMiB": 358.359375,
+      "answer": "49601160286750947",
+      "diagnosticMode": true,
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 66198,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "nativeFirstSearches": 0,
+        "nativeFirstSearchCells": 0,
+        "compiledLoops": 15,
+        "compiledFunctionFolds": 0,
+        "nativeIntegerSums": 0,
+        "nativeIntegerSumCells": 0,
+        "weightedAxisSums": 0,
+        "weightedAxisSumCells": 0,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "sortedIndexBatches": 0,
+        "sortedIndexBatchQueries": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 15,
+        "numberLoopUnpolled": 15,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 1,
+        "numberLoopReadBufferCells": 162,
+        "numberLoopReadBufferHits": 14,
+        "numberLoopBorrowedIntegerBuffers": 0,
+        "numberLoopBorrowedIntegerCells": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "nativeModularMatrixPowers": 0,
+        "nativeModularMatrixBatches": 0,
+        "modularCallbackScans": 0,
+        "compiledTensors": 31,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 30,
+        "tensorRangeScannedCells": 24002,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 32,
+        "maskMaterializedCells": 732722,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 200,
+        "typedArrayPublishedCells": 7667729,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-function:unsupported-op:factors": 1,
+          "scalar-function:unsupported-op:to": 4,
+          "scalar-function:application-form:BinaryExpression": 1,
+          "tensor:unsupported-op:till": 2,
+          "scalar-expression:unsupported-op:till": 4,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:too-small": 31,
+          "scalar-function:unsupported-op:small": 1,
+          "scalar-function:callee-binding:ApplicationExpression": 3,
+          "tensor:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:+": 4,
+          "tensor:application-form:BinaryExpression": 1,
+          "scalar-expression:unsupported-op:Rows": 2,
+          "scalar-expression:unsupported-op:-": 2,
+          "tensor:output-shape": 19,
+          "scalar-function:unsupported-node:TupleExpression": 1,
+          "tensor:dyadic-terminal:AssignmentStatement": 5,
+          "scalar-expression:unsupported-op:Owners": 2,
+          "scalar-expression:unsupported-op:and": 1,
+          "scalar-expression:unsupported-op:len": 4,
+          "scalar-expression:unsupported-op:greater": 4,
+          "scalar-expression:unsupported-op:in": 1,
+          "tensor:unsupported-op:in": 1,
+          "tensor:unsupported-node:TupleExpression": 1
+        },
+        "fallbackCategories": {
+          "effects": {
+            "scalar-function:unsupported-op:factors": 1,
+            "scalar-function:unsupported-op:to": 4,
+            "tensor:unsupported-op:till": 2,
+            "scalar-expression:unsupported-op:till": 4,
+            "tensor:unsupported-node:MaterializeExpression": 1,
+            "scalar-function:unsupported-op:small": 1,
+            "tensor:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:to": 1,
+            "scalar-expression:unsupported-op:+": 4,
+            "scalar-expression:unsupported-op:Rows": 2,
+            "scalar-expression:unsupported-op:-": 2,
+            "scalar-function:unsupported-node:TupleExpression": 1,
+            "scalar-expression:unsupported-op:Owners": 2,
+            "scalar-expression:unsupported-op:and": 1,
+            "scalar-expression:unsupported-op:len": 4,
+            "scalar-expression:unsupported-op:greater": 4,
+            "scalar-expression:unsupported-op:in": 1,
+            "tensor:unsupported-op:in": 1,
+            "tensor:unsupported-node:TupleExpression": 1
+          },
+          "representation": {},
+          "aliasing": {},
+          "proof": {},
+          "cost": {},
+          "unclassified": {
+            "scalar-function:application-form:BinaryExpression": 1,
+            "scalar-expression:too-small": 31,
+            "scalar-function:callee-binding:ApplicationExpression": 3,
+            "tensor:application-form:BinaryExpression": 1,
+            "tensor:output-shape": 19,
+            "tensor:dyadic-terminal:AssignmentStatement": 5
+          }
+        },
+        "costs": {
+          "program.parse": {
+            "calls": 1,
+            "milliseconds": 180.244417,
+            "allocatedBytes": 0,
+            "copiedBytes": 0,
+            "boxedCells": 0,
+            "unboxedCells": 0,
+            "discardedAttempts": 0,
+            "discardedMilliseconds": 0
+          },
+          "program.execute": {
+            "calls": 1,
+            "milliseconds": 3760.6657080000004,
+            "allocatedBytes": 0,
+            "copiedBytes": 0,
+            "boxedCells": 0,
+            "unboxedCells": 0,
+            "discardedAttempts": 0,
+            "discardedMilliseconds": 0
+          },
+          "input.prepare": {
+            "calls": 1,
+            "milliseconds": 0.41079100000001745,
+            "allocatedBytes": 0,
+            "copiedBytes": 0,
+            "boxedCells": 0,
+            "unboxedCells": 0,
+            "discardedAttempts": 0,
+            "discardedMilliseconds": 0
+          },
+          "number-loop.attempt": {
+            "calls": 15,
+            "milliseconds": 2870.0561679999996,
+            "allocatedBytes": 0,
+            "copiedBytes": 0,
+            "boxedCells": 0,
+            "unboxedCells": 0,
+            "discardedAttempts": 0,
+            "discardedMilliseconds": 0
+          },
+          "number-loop.snapshot": {
+            "calls": 0,
+            "milliseconds": 0,
+            "allocatedBytes": 648,
+            "copiedBytes": 0,
+            "boxedCells": 0,
+            "unboxedCells": 162,
+            "discardedAttempts": 0,
+            "discardedMilliseconds": 0
+          },
+          "number-loop.vector-buffer": {
+            "calls": 69,
+            "milliseconds": 0,
+            "allocatedBytes": 4819704,
+            "copiedBytes": 0,
+            "boxedCells": 0,
+            "unboxedCells": 0,
+            "discardedAttempts": 0,
+            "discardedMilliseconds": 0
+          },
+          "number-loop.execute": {
+            "calls": 15,
+            "milliseconds": 2867.9655430000003,
+            "allocatedBytes": 0,
+            "copiedBytes": 0,
+            "boxedCells": 0,
+            "unboxedCells": 0,
+            "discardedAttempts": 0,
+            "discardedMilliseconds": 0
+          }
+        },
+        "compilerRejections": [
+          {
+            "reason": "scalar-function:unsupported-op:factors",
+            "node": "ApplicationExpression",
+            "function": "largest",
+            "expression": "Value factors",
+            "line": 22,
+            "column": 13
+          },
+          {
+            "reason": "scalar-function:unsupported-op:to",
+            "node": "BinaryExpression",
+            "function": "small",
+            "expression": "2 to Limit + 8 copy",
+            "line": 27,
+            "column": 12
+          },
+          {
+            "reason": "scalar-function:application-form:BinaryExpression",
+            "node": "BinaryExpression",
+            "function": "expand",
+            "expression": "Counts scan +",
+            "line": 55,
+            "column": 10
+          },
+          {
+            "reason": "scalar-function:unsupported-op:small",
+            "node": "ApplicationExpression",
+            "function": "solve",
+            "expression": "Limit small",
+            "line": 111,
+            "column": 12
+          },
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "done",
+            "expression": "Next 0",
+            "line": 349,
+            "column": 18
+          },
+          {
+            "reason": "scalar-function:unsupported-op:to",
+            "node": "BinaryExpression",
+            "function": "weights",
+            "expression": "0 to Mod + 7 copy",
+            "line": 44,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:unsupported-node:TupleExpression",
+            "node": "TupleExpression",
+            "function": "initial",
+            "expression": "tuple Best 0",
+            "line": 142,
+            "column": 14
+          },
+          {
+            "reason": "scalar-function:callee-binding:ApplicationExpression",
+            "node": "ApplicationExpression",
+            "function": "sieve",
+            "expression": "Starts 0",
+            "line": 68,
+            "column": 11
+          }
+        ]
+      }
+    }
+  },
+  "intel": {
+    "compiledPairs": [
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "c70b62a59a95a4fd84a5cd8492b551ec2e792627d787d77e913abcf13d1cafde",
+        "ms": 17862.421698000002,
+        "cpu": {
+          "user": 21423956,
+          "system": 182818
+        },
+        "rssMiB": 481.00390625,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "old",
+        "pair": 0,
+        "loadBefore": "0.74 0.77 0.45 1/650 3486328"
+      },
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+        "ms": 9995.828454,
+        "cpu": {
+          "user": 10866215,
+          "system": 84496
+        },
+        "rssMiB": 352.7890625,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "new",
+        "pair": 0,
+        "loadBefore": "0.87 0.80 0.46 1/650 3486420"
+      },
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+        "ms": 10248.925038,
+        "cpu": {
+          "user": 11144967,
+          "system": 99553
+        },
+        "rssMiB": 352.078125,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "new",
+        "pair": 1,
+        "loadBefore": "0.90 0.81 0.47 1/650 3486455"
+      },
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "c70b62a59a95a4fd84a5cd8492b551ec2e792627d787d77e913abcf13d1cafde",
+        "ms": 18077.271394,
+        "cpu": {
+          "user": 21564952,
+          "system": 200221
+        },
+        "rssMiB": 485.50390625,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "old",
+        "pair": 1,
+        "loadBefore": "0.92 0.81 0.47 3/650 3486510"
+      },
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "c70b62a59a95a4fd84a5cd8492b551ec2e792627d787d77e913abcf13d1cafde",
+        "ms": 17858.509312000002,
+        "cpu": {
+          "user": 21329998,
+          "system": 189104
+        },
+        "rssMiB": 481.17578125,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "old",
+        "pair": 2,
+        "loadBefore": "0.93 0.82 0.48 2/650 3486580"
+      },
+      {
+        "mode": "compiled",
+        "l": "10000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+        "ms": 10256.836412,
+        "cpu": {
+          "user": 11077061,
+          "system": 132785
+        },
+        "rssMiB": 351.5234375,
+        "answer": "49601160286750947",
+        "diagnosticMode": false,
+        "variant": "new",
+        "pair": 2,
+        "loadBefore": "0.95 0.83 0.50 1/657 3486673"
+      }
+    ],
+    "oldReference": {
+      "mode": "reference",
+      "l": "10000000000000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "c70b62a59a95a4fd84a5cd8492b551ec2e792627d787d77e913abcf13d1cafde",
+      "ms": 24823.551390999997,
+      "cpu": {
+        "user": 29481383,
+        "system": 204301
+      },
+      "rssMiB": 475.6328125,
+      "answer": "49601160286750947",
+      "diagnosticMode": false
+    },
+    "newReference": {
+      "mode": "reference",
+      "l": "10000000000000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+      "ms": 21807.581944999998,
+      "cpu": {
+        "user": 29524736,
+        "system": 197359
+      },
+      "rssMiB": 378.359375,
+      "answer": "49601160286750947",
+      "diagnosticMode": false
+    },
+    "newSourceOldRuntime": {
+      "mode": "compiled",
+      "l": "10000000000000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "83ad890122f1989bfbd8651a2456974d94499271f8f1e38c033afc84df0835f7",
+      "ms": 30625.096638000003,
+      "cpu": {
+        "user": 32447485,
+        "system": 187498
+      },
+      "rssMiB": 519.1328125,
+      "answer": "49601160286750947",
+      "diagnosticMode": false
+    }
+  },
+  "independentOracle": {
+    "limit": "100000000000",
+    "answer": "491010576113",
+    "witness": "99862006961",
+    "tested": 367597,
+    "factored": 67,
+    "ms": 400.891
+  },
+  "witnessCheck": {
+    "method": "Independent scalar trial division by a complete small prime sieve; all intermediate integers below 2^53",
+    "n": 99994514441,
+    "limit": 100000000000,
+    "values": [
+      99994514441,
+      99994514442,
+      99994514443,
+      99994514444,
+      99994514445,
+      99994514446,
+      99994514447,
+      99994514448,
+      99994514449
+    ],
+    "factors": [
+      [
+        99994514441
+      ],
+      [
+        2,
+        3,
+        16665752407
+      ],
+      [
+        99994514443
+      ],
+      [
+        2,
+        2,
+        11,
+        139,
+        1381,
+        11839
+      ],
+      [
+        3,
+        3,
+        3,
+        5,
+        7,
+        29,
+        3648769
+      ],
+      [
+        2,
+        49997257223
+      ],
+      [
+        99994514447
+      ],
+      [
+        2,
+        2,
+        2,
+        2,
+        3,
+        36721,
+        56731
+      ],
+      [
+        99994514449
+      ]
+    ],
+    "largest": [
+      99994514441,
+      16665752407,
+      99994514443,
+      11839,
+      3648769,
+      49997257223,
+      99994514447,
+      56731,
+      99994514449
+    ],
+    "score": 466644784749,
+    "oldFixtureAnswer": 455559334569
+  },
+  "verification": {
+    "typescriptBuild": "passed interpreter and test project builds",
+    "macSelectedCompilerTests": {
+      "passed": 619,
+      "failed": 1,
+      "inheritedFailure": "number-loop-slice: fuses a discarded slice transform with mod; expected Number entries 1, observed 0. Value/error comparisons pass; reproduced before task 519."
+    },
+    "macDemoTests": 10,
+    "intelFocusedTests": 77,
+    "macDifferential": {
+      "selectedFiles": 2,
+      "passed": 2,
+      "embeddedBlocks": 2
+    },
+    "intelDifferential": {
+      "selectedFiles": 2,
+      "passed": 2,
+      "embeddedBlocks": 2
+    }
+  }
+}

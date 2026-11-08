@@ -13,7 +13,7 @@ import { isCompiledContainer, type CompiledCalleeType } from './jit/compiled-cal
 import type { CompiledCallee } from './jit/compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
-    findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement,
+    findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement, isArrayAssignmentStatement,
     type ApplicationForm, type Operation, type ArrayAssignmentStatement, isAssignmentStatement,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
@@ -178,10 +178,10 @@ export class FastPaths {
                 compiled: this.compiler.hooks.onFunctionBodyCompiled,
                 executed: this.compiler.hooks.onFunctionBodyExecuted,
             }) ?? null : null;
-            // A single outer loop can contain all the work (including nested
-            // loops). Join its fresh allocations too: compiling it separately
-            // would treat the local arrays as external speculative copies.
-            if (body && commands.slice(0, -1).some(isForStatement)) {
+            // Join fresh allocations and writes in one private prefix, also
+            // for straight-line helpers such as a ragged expansion. A wrapper
+            // loop should not be needed to retain the same array ownership.
+            if (body && commands.slice(0, -1).some(command => isForStatement(command) || isArrayAssignmentStatement(command))) {
                 const prefix = this.compileLoop(statement, undefined);
                 if (prefix) {
                     const ordinary = body;

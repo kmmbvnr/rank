@@ -1032,6 +1032,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (parts.length === 2) {
                 const source = arrayType(parts[0]), selector = arrayType(last);
                 if (source && selector?.element === 'integer') return { ...source, rank: source.rank + selector.rank - 1 };
+                if (numberMode && source && source.rank > 1 && knownType(last) === 'integer') return { ...source, rank: source.rank - 1 };
                 if (numberMode && source?.rank === 1 && isRange(last)) return source;
                 if (host.booleanArrays && source && source.rank > 0 && selector?.rank === source.rank
                     && selector.element === 'boolean') return { ...source, rank: 1 };
@@ -1275,7 +1276,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 return { code: `${membership.negate ? '!' : ''}calls[${call}](${key.code})`, type: 'boolean' };
             } };
         }
-        const point = vectorOperation(e);
+        // A scan is encoded with its operator token in a binary AST, but
+        // owns a completed prefix. It is not pointwise arithmetic on `scan`.
+        const point = numericScan(e) ? undefined : vectorOperation(e);
         if (point) {
             const inputs: NumberVector[] = [];
             for (const operand of point.operands) {
@@ -1420,7 +1423,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         return `(${stride} === 0 ? 0 : (Math.floor(${index} / ${layout}.strides[${aligned}]) % ${frame.shape}[${aligned}]) * ${stride})`;
                     });
                     position = `offset${state.serial++}`;
-                    body.push(`const ${position} = ${layout}.rightLinear ? ${index} : ${terms.join(' + ')};`);
+                    const block = `(${layout}.rightBlock === 1 ? ${index} : Math.floor(${index} / ${layout}.rightBlock))`;
+                    body.push(`const ${position} = ${layout}.rightLinear ? ${index} : ${layout}.rightBlock
+                        ? (${layout}.rightPeriod === 1 ? 0 : ${layout}.rightPeriod ? ${block} % ${layout}.rightPeriod : ${block})
+                        : ${terms.join(' + ')};`);
                     frame.offsets.set(key, position);
                 }
             }
@@ -1456,6 +1462,27 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {
         let countSource = source;
         while (isParenthesizedExpression(countSource)) countSource = countSource.value;
+        if (isApplicationExpression(countSource)) {
+            const parts = flattenApplication(countSource), type = parts.length === 2 ? arrayType(parts[0]) : undefined;
+            if (type && type.rank > 1 && knownType(parts[1]) === 'integer' && !arrayType(parts[1])) {
+                state.numberVectors = true;
+                const input = emitNumberArray(parts[0], lines);
+                if (!input || typeof input.type === 'string') return undefined;
+                const cells = input.cells ?? `${input.code}.cells`;
+                lines.push(`vectorLive.push(${cells});`);
+                const index = emit(parts[1], lines, 'integer');
+                if (index?.type !== 'integer') return undefined;
+                lines.push('vectorLive.pop();');
+                state.syntax.add('scalar-row-selection');
+                const row = `row${state.serial++}`, shape = `rowShape${state.serial++}`;
+                const size = `rowSize${state.serial++}`, result = `rowResult${state.serial++}`, cell = `rowCell${state.serial++}`;
+                lines.push(`const ${row} = ${index.code}; if (${row} < 0 || ${row} >= ${input.code}.shape[0]) throw overflow;
+                    const ${shape} = ${input.code}.shape.slice(1), ${size} = ${shape}.reduce((a,b) => safe(a*b), 1);
+                    const ${result} = vectorArray(${shape}, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${cells}], ${type.element === 'boolean'});
+                    ${numberVectorLoop(size, cell, [`${result}.store(${cell}, ${cells}[${row} * ${size} + ${cell}]);`])}`);
+                return { code: result, cells: `${result}.cells`, type: { ...type, rank: type.rank - 1 }, fresh: true };
+            }
+        }
         const reverse = numericReverse(countSource);
         if (reverse) {
             state.numberVectors = true;

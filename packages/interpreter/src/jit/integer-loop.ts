@@ -98,9 +98,10 @@ export function compileIntegerFunctionPrefix(statement: FunctionStatement, host:
     const fast = prepareNumberLoop(plan, host, undefined, undefined,
         polling => lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, new Set(), false, polling));
     let mixed: CompiledLoop | undefined, preparedMixed = false;
+    const straightLine = !plan.locations.some(isForStatement);
     return fast && { run: (...context) => {
         // Ordinary completion and native reductions retain their work units.
-        if ((reduction || plan.prefixBindings) && demandBudgetEnabled()) return recordFallback('number-loop:observable-prefix-budget', 'effects');
+        if ((straightLine || reduction || plan.prefixBindings) && demandBudgetEnabled()) return recordFallback('number-loop:observable-prefix-budget', 'effects');
         const result = fast.run(...context);
         if (result) return result;
         if (!preparedMixed) {

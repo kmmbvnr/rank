@@ -6,7 +6,7 @@ import { numberOverflow, checkedNumberModularMultiply as modularMultiply, checke
 import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
 import { textLength } from '../text-storage.js';
 import { AstUtils, type AstNode } from 'langium';
-import { expressionFacts, flattenApplication, isApplicationExpression, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
+import { expressionFacts, flattenApplication, isApplicationExpression, isBinaryExpression, isForStatement, isFunctionStatement, isNameExpression } from '@arrrank/language';
 import { prepareLoopEntryWork } from './loop-entry-work.js';
 import { prepareVectorEntryWork } from './vector-entry-work.js';
 import { loopTraversal, primeLoopBounds } from '../loop-traversal.js';
@@ -288,8 +288,25 @@ function vectorLayout(left: readonly number[], right: readonly number[]) {
     };
     const linear = (source: readonly number[]) => source.length === shape.length && source.every((size, axis) => size === shape[axis]);
     const size = safe(Number(shape.reduce((a, b) => a * BigInt(b), 1n)));
+    // A contiguous group of non-broadcast axes is a repeated linear block.
+    // Address it with one division/modulo instead of decoding every axis.
+    const repeated = (source: readonly number[]) => {
+        if (!size) return { block: 0, period: 0 };
+        const leading = shape.length - source.length;
+        const dimensions = shape.map((_, axis) => axis < leading ? 1 : source[axis - leading]);
+        const first = dimensions.findIndex(dimension => dimension !== 1);
+        if (first < 0) return { block: 1, period: 1 };
+        let last = dimensions.length - 1;
+        while (dimensions[last] === 1) last--;
+        if (dimensions.slice(first, last + 1).some((dimension, axis) => dimension !== shape[first + axis])) return { block: 0, period: 0 };
+        const block = shape.slice(last + 1).reduce((a,b) => a*b, 1);
+        const leadingCopies = shape.slice(0, first).reduce((a,b) => a*b, 1);
+        return { block, period: leadingCopies === 1 ? 0 : dimensions.reduce((a,b) => a*b, 1) };
+    };
+    const rightBlock = repeated(right);
     return { shape, size, strides: arrayStrides(shape),
-        left: aligned(left), right: aligned(right), leftLinear: linear(left), rightLinear: linear(right) };
+        left: aligned(left), right: aligned(right), leftLinear: linear(left), rightLinear: linear(right),
+        rightBlock: rightBlock.block, rightPeriod: rightBlock.period };
 }
 /** All selected cells were validated before this test. Distinct buffers or
  * disjoint arithmetic selections can be read directly, even after destination
@@ -621,6 +638,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         // Packed native consumers have a different traversal budget.
         if ((plan.syntax.has('take') || plan.syntax.has('drop')) && demandBudgetEnabled()) return recordFallback('number-loop:observable-count-slice', 'effects');
         if (plan.syntax.has('reverse') && demandBudgetEnabled()) return recordFallback('number-loop:observable-reverse', 'effects');
+        if (plan.syntax.has('scalar-row-selection') && demandBudgetEnabled()) return recordFallback('number-loop:observable-row-selection', 'effects');
+        if (plan.syntax.has('filtered-scatter') && (demandBudgetEnabled() || interruptsEnabled())) return recordFallback('number-loop:observable-filtered-scatter', 'effects');
         if (plan.builtins.get('indices') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-indices', 'effects');
         if (plan.builtins.get('count') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-count', 'effects');
         // Prime-plan completion has its own demand traversal; do not charge
@@ -762,6 +781,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== info.rank) return recordFallback('number-loop:array-storage', 'representation');
             // The fresh array-call ABI carries numeric buffers, not table
             // labels or ordering metadata, including through local aliases.
+            if (isFunctionStatement(statement) && !locations.some(isForStatement)
+                && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
+                return recordFallback('number-loop:prefix-metadata', 'proof');
             if (plan.calls.some(call => call.numberArrayResult)
                 && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
                 return recordFallback('number-loop:array-call-metadata', 'proof');
@@ -771,6 +793,12 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (plan.syntax.has('reverse')
                 && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
                 return recordFallback('number-loop:reverse-metadata', 'proof');
+            if (plan.syntax.has('scalar-row-selection')
+                && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
+                return recordFallback('number-loop:row-selection-metadata', 'proof');
+            if (plan.syntax.has('filtered-scatter')
+                && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
+                return recordFallback('number-loop:filtered-scatter-metadata', 'proof');
             if (plan.rangeDefinitions?.size
                 && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
                 return recordFallback('number-loop:range-selection-metadata', 'proof');

@@ -9,82 +9,355 @@ use cli
 
 arg L integer = 10000000000000000
 
-rem Force small factors on n .. n + 8:
-rem n = 5 mod 9, 1 mod 5, 3 mod 7 puts
-rem 315 in n + 4, n = 1 or 7 mod 16
-rem shares 2^6 3^2 among the odd
-rem offsets, and n mod 11 in 1..2, n
-rem mod 13 in 1..4 keep 11 and 13 out.
-rem Then each n + j over its 7-smooth
-rem part should be prime. Scan n = N0 +
-rem r - M k by growing k in blocks: the
-rem first hits are the largest.
-M = 720720
-R = 0 till M copy
-Ok = (R mod 9 equal 5)
-Ok = Ok and (R mod 5 equal 1)
-Ok = Ok and (R mod 7 equal 3)
-R16 = R mod 16
-O16 = R16 equal 1 or (R16 equal 7)
-Ok = Ok and O16
-R11 = R mod 11
-Ok = Ok and (R11 at least 1)
-Ok = Ok and (R11 at most 2)
-R13 = R mod 13
-Ok = Ok and (R13 at least 1)
-Ok = Ok and (R13 at most 4)
-Rs = R (Ok indices)
-N0 = L // M * M
-rem Sieve k with 17 <= p < 1000: p
-rem divides n + j when M k = N0 + r +
-rem j mod p.
-Ps = primes from 17 till 1000 array
-Iv = M (Ps - 2) Ps powmod
-Bk = 1000000
-Km = N0 // M
-Answer = 0
-Hit = 0 - 1
-for K0 in 0 till Km by Bk
-  Kn = Bk min (Km - K0)
-  for Rr in Rs
-    Mk = array shape Kn fill true
-    for T in 0 till Ps len
-      P = Ps T
-      Ip = Iv T
-      C = (N0 + Rr) mod P * Ip - K0
-      for J in 0 till 9
-        S0 = (C + J * Ip) mod P
-        Mk (S0 till Kn by P) = false
-      end
-    end
-    Kk = K0 + (Mk indices)
-    N = N0 + Rr - M * Kk
-    N = N (N at most L indices)
-    Sm = N * 0
-    Gd = N greater 0
-    for J in 0 till 9
-      X = N + J
-      for Q in array 2 3 5 7
-        for I in 1 to 54
-          Dv = X mod Q equal 0
-          X = Dv choose (X // Q) X
-        end
-      end
-      Gd = Gd and (X in primes)
-      Sm += X
-    end
-    if Gd any
-      Sg = (Sm (Gd indices)) max
-      Answer = Answer max Sg
-      if Hit less 0
-        Hit = K0
-      end
-    end
-  end
-  Dn = Hit at least 0
-  Dn = Dn and (K0 greater Hit)
-  if Dn
-    break
-  end
+Mod = 720720
+Offsets = 0 till 9 copy
+Primes = primes from 17 till 1000 array
+Inverse = Mod (Primes - 2) Primes powmod
+PrimeSize = Primes len
+PrimeGrid = Primes reshape 1 PrimeSize 1
+Scales = Inverse reshape 1 PrimeSize 1
+Batch = 1048576
+
+fun Value largest
+  Factors = Value factors
+  return Factors max
 end
+
+fun Limit small
+  Values = 2 to Limit + 8 copy
+  Factors = Values largest rank 0
+  Prefix = Factors scan + with 0
+  Ahead = Prefix (9 to Limit + 7)
+  Before = Prefix (0 to Limit - 2)
+  Scores = Ahead - Before
+  return Scores max
+end
+
+rem A gcd removes only primes up to 13.
+rem Sum (n+j)/gcd(n+j,Mod) + 13 instead
+rem of factoring every possible n.
+fun N bound Weight
+  return (N + 8) * Weight // Mod + 117
+end
+
+fun Rows weights
+  Extended = 0 to Mod + 7 copy
+  Divisors = Extended gcd Mod
+  Parts = Mod // Divisors
+  Prefix = Parts scan + with 0
+  Ahead = Prefix (Rows + 9)
+  return Ahead - Prefix Rows
+end
+
+rem Positive lengths expand to row and
+rem within-row positions using scans.
+fun Counts expand
+  Ends = Counts scan +
+  Starts = Ends - Counts
+  Total = Counts sum
+  Mark = array shape Total fill 0
+  Mark Starts = 1
+  Owner = (Mark scan +) - 1
+  Offset = (0 till Total) - Starts Owner
+  return tuple Owner Offset
+end
+
+rem Batch the nine progressions while
+rem retaining a single prime loop.
+fun Starts sieve Span
+  First = Starts 0
+  Count = First len
+  Cells = Count * Span
+  Mask = array shape Cells fill true
+  Tasks = PrimeSize * Count * 9
+  Flat = Starts reshape Tasks
+  for Index in 0 till Tasks
+    Prime = Primes (Index // (Count * 9))
+    Row = Index // 9 mod Count
+    Point = Flat Index
+    Keys = Point till Span by Prime copy
+    Keys = Row * Span + Keys
+    Mask Keys = false
+  end
+  return Mask
+end
+
+fun Limit sample
+  Top = Limit - (Limit - 11) mod 30
+  Available = (Top - 2) // 30 + 1
+  Count = 666667 min Available
+  Steps = 0 till Count copy
+  Values = Top - 30 * Steps
+  Values = Values (Values in primes)
+  Values = Values (Values + 2 in primes)
+  Values = Values (Values + 6 in primes)
+  Values = Values (Values + 8 in primes)
+  if Values len equal 0
+    return 0
+  end
+  Count = Values len
+  Grid = Values reshape Count 1
+  Matrix = Grid + Offsets
+  Factors = Matrix largest rank 0
+  Scores = Factors sum axis 1
+  return Scores max
+end
+
+fun Limit solve
+  if Limit less 2
+    return 0
+  end
+  if Limit at most 10000
+    return Limit small
+  end
+  AllRows = 0 till Mod copy
+  Weights = AllRows weights
+  BestWeight = Weights max
+  Base = Limit // Mod * Mod
+  Remainders = Base mod Primes
+  Residues = (
+    Remainders reshape 1 PrimeSize 1
+  )
+
+  Maximal = Weights equal BestWeight
+  Seeds = AllRows Maximal
+  SeedCount = Seeds len
+  SeedGrid = Seeds reshape 1 SeedCount 1
+  BaseAxis = (
+    Remainders reshape PrimeSize 1 1
+  )
+  ScaleAxis = (
+    Inverse reshape PrimeSize 1 1
+  )
+  PrimeAxis = (
+    Primes reshape PrimeSize 1 1
+  )
+  Origins = BaseAxis + SeedGrid
+  Origins = Origins + Offsets
+  Origins = Origins * ScaleAxis
+  Origins = Origins mod PrimeAxis
+  fun Start initial Best
+    Size = Base // Mod + 1
+    if Start at least Size
+      return tuple Best 0
+    end
+    Width = 262144 min (Size - Start)
+    Starts = Origins - Start
+    Starts = Starts mod PrimeAxis
+    Mask = Starts sieve Width
+    Slots = Mask indices
+    Owners = Slots // Width
+    Columns = Start + Slots mod Width
+    Values = Base + Seeds Owners
+    Values = Values - Mod * Columns
+    Keep = Values at least 2
+    Inside = Values at most Limit
+    Keep = Keep and Inside
+    Values = Values Keep
+    Next = Start + Width
+    if Values len greater 0
+      Count = Values len
+      Matrix = Values reshape Count 1
+      Matrix = Matrix + Offsets
+      Divisors = Matrix gcd Mod
+      Factors = Matrix // Divisors
+      Good = Factors in primes
+      GoodRows = Good all axis 1
+      Scores = Factors sum axis 1
+      Scores = Scores GoodRows
+      if Scores len greater 0
+        Score = Scores max
+        Best = Best max Score
+        Highest = Base + Seeds max
+        NextTop = Highest - Mod * Next
+        Bound = NextTop bound BestWeight
+        if NextTop less 2
+          Bound = 0
+        end
+        return tuple Best Bound
+      end
+    end
+    return Next initial Best
+  end
+
+  rem Exact bounds discard classes and
+  rem blocks which cannot improve Best.
+  fun Work advance
+    unpack Rows Rest Start Best = Work
+    if Rows len equal 0
+      if Rest len equal 0
+        return Work
+      end
+      Rows = Rest take 16
+      Rest = Rest drop 16
+      Start = 0
+    end
+    Bases = Base + Rows
+    Outside = Bases greater Limit
+    Shift = Outside choose 1 0
+    Bases = Bases - Mod * Shift
+    Tops = Bases - Mod * Start
+    RowWeights = Weights Rows
+    Bounds = Tops bound RowWeights
+    Keep = Tops at least 2
+    Better = Bounds greater Best
+    Keep = Keep and Better
+    Rows = Rows Keep
+    if Rows len equal 0
+      return tuple Rows Rest 0 Best
+    end
+    Tops = Tops Keep
+    Bases = Bases Keep
+    Shift = Shift Keep
+    Bounds = Bounds Keep
+    RowWeights = RowWeights Keep
+    Count = Rows len
+    Width = 1 max (Batch // Count)
+    Scaled = (Best - 117) * Mod
+    Minimums = Scaled // RowWeights - 8
+    Reach = (Tops - Minimums) // Mod + 1
+    Available = Reach max
+    Width = Width min Available
+    RowGrid = Rows reshape Count 1 1
+    Divisors = Rows reshape Count 1
+    Divisors = Divisors + Offsets
+    Divisors = Divisors gcd Mod
+    Upper = Bounds reshape Count 1
+    ValueGrid = Tops reshape Count 1
+    Numerators = ValueGrid + Offsets
+    Denominators = 2 * Divisors
+    Loss = Numerators // Denominators
+    Upper = Upper + 13 - Loss
+    Required = Upper at most Best
+    AllPrime = Required all
+    Bottom = Tops - Mod * (Width - 1)
+    BottomGrid = Bottom reshape Count 1
+    SmallLimit = 1000 * Divisors
+    BottomValues = BottomGrid + Offsets
+    Safe = (
+      BottomValues greater SmallLimit
+    )
+    Critical = Required and Safe
+    CriticalGrid = (
+      Critical reshape Count 1 9
+    )
+    First = Residues + RowGrid
+    First = First + Offsets
+    First = First * Scales
+    First = First mod PrimeGrid
+    Skips = Start + Shift
+    SkipGrid = Skips reshape Count 1 1
+    First = First - SkipGrid
+    First = First mod PrimeGrid
+    Lengths = Width - 1 - First
+    Lengths = Lengths // PrimeGrid + 1
+    Lengths = (
+      CriticalGrid choose Lengths 0
+    )
+    Size = Count * PrimeSize * 9
+    FlatLengths = Lengths reshape Size
+    FlatFirst = First reshape Size
+    Keys = 0 till Size copy
+    Keys = Keys (FlatLengths greater 0)
+    Counts = FlatLengths Keys
+    Starts = FlatFirst Keys
+    PrimeKeys = Keys // 9 mod PrimeSize
+    Steps = Primes PrimeKeys
+    RowKeys = Keys // (PrimeSize * 9)
+    unpack Owner Offset = Counts expand
+    Jumps = Offset * Steps Owner
+    Columns = Starts Owner + Jumps
+    Holes = RowKeys Owner * Width
+    Holes = Holes + Columns
+    Cells = Count * Width
+    Mask = array shape Cells fill true
+    Mask Holes = false
+    Slots = Mask indices
+    RowKeys = Slots // Width
+    Columns = Start + Slots mod Width
+    Values = Bases RowKeys
+    Values = Values - Mod * Columns
+    SlotWeights = RowWeights RowKeys
+    Bounds = Values bound SlotWeights
+    Keep = Values at least 2
+    Inside = Values at most Limit
+    Keep = Keep and Inside
+    Better = Bounds greater Best
+    Keep = Keep and Better
+    Values = Values Keep
+    if Values len greater 0
+      Count = Values len
+      Grid = Values reshape Count 1
+      Matrix = Grid + Offsets
+      if AllPrime
+        Divisors = Matrix gcd Mod
+        Factors = Matrix // Divisors
+        Good = Factors in primes
+        GoodRows = Good all axis 1
+        Scores = Factors sum axis 1
+        Scores = Scores GoodRows
+        if Scores len greater 0
+          Score = Scores max
+          Best = Best max Score
+        end
+      else
+        Factors = Matrix largest rank 0
+        Scores = Factors sum axis 1
+        Score = Scores max
+        Best = Best max Score
+      end
+    end
+    Next = Start + Width
+    return tuple Rows Rest Next Best
+  end
+  Seed = 0
+  if Limit at most 1000000000000
+    Seed = Limit sample
+  end
+  Initial = 0 initial Seed
+  unpack Found Unsearched = Initial
+  Other = Weights less BestWeight
+  OtherWeights = Weights Other
+  OtherWeight = OtherWeights max
+  Excluded = Limit bound OtherWeight
+  TopGrid = Seeds reshape SeedCount 1
+  TopDivisors = TopGrid + Offsets
+  TopDivisors = TopDivisors gcd Mod
+  MaxDivisor = TopDivisors max
+  Composite = Limit bound BestWeight
+  Composite += 13
+  Composite -= Limit // (2 * MaxDivisor)
+  SmallBound = 9 * (13 * MaxDivisor + 8)
+  Certificate = SmallBound max Unsearched
+  Certificate = Certificate max Excluded
+  Certificate = Certificate max Composite
+  Certified = Found at least Certificate
+  if Certified
+    return Found
+  end
+  SearchBounds = Limit bound Weights
+  Eligible = SearchBounds greater Found
+  EligibleRows = AllRows Eligible
+  EligibleWeights = Weights EligibleRows
+  Order = (
+    EligibleWeights argsort .descending
+  )
+  SearchRows = EligibleRows Order
+  Empty = array shape 0 fill 0
+  Work = tuple Empty SearchRows 0 Found
+  fun Previous done Next
+    ActiveRows = Next 0
+    PendingRows = Next 1
+    EmptyActive = ActiveRows len equal 0
+    EmptyRest = PendingRows len equal 0
+    return EmptyActive and EmptyRest
+  end
+  Cycles = (Base // Mod + 2) * (Mod + 1)
+  Result = (
+    Work advance repeat Cycles till done
+  )
+  return Result 3
+end
+
+Answer = L solve
 Answer print
