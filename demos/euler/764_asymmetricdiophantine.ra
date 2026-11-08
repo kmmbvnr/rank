@@ -7,7 +7,7 @@ use io
 use cli
 
 arg Limit integer = 10 ** 16
-arg Block integer = 256
+arg Block integer = 64
 arg Mod integer = 1000000000
 
 rem (4x, y^2, z) is a Pythagorean
