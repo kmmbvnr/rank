@@ -42,7 +42,7 @@ function save() {
   const html = render(run, previous);
   atomic(resolve(output, 'index.html'), html);
   atomic(resolve(output, 'runs', id + '.html'), html.replace('<meta charset', '<base href="../"><meta charset'));
-  atomic(resolve(output, 'metrics', id + '.json'), JSON.stringify(run.results.map(({path, ms, status, workloadHash}) => ({path, ms, status, workloadHash}))));
+  atomic(resolve(output, 'metrics', id + '.json'), JSON.stringify(run.results.map(({path, ms, cpuMs, peakRssMiB, status, workloadHash}) => ({path, ms, cpuMs, peakRssMiB, status, workloadHash}))));
   const history = [...past, run].map(({id, status, commit, started, method, node, cpu}) => ({id, status, commit, started, method, node, cpu})).sort((a,b) => a.id.localeCompare(b.id));
   atomic(resolve(output, 'history.json'), JSON.stringify(history));
   atomic(resolve(output, 'runs/index.html'), '<!doctype html><meta charset="utf-8"><title>Rank benchmark archive</title><h1>Run archive</h1>' + history.toReversed().map(x => `<p><a href="${x.id}.html">${x.id}</a> · ${x.status} · <a href="${x.id}.json">JSON</a></p>`).join(''));
@@ -87,8 +87,12 @@ async function measure(file, kind) {
     }, 250);
     const append = data => { log = (log + data.toString()).slice(-16000); };
     child.stdout.on('data', append); child.stderr.on('data', append);
-    let error, measured;
-    child.on('message', value => { if (Number.isFinite(value.ms) && value.ms >= 0) measured = value.ms; });
+    let error, measured, cpuMs, peakRssMiB;
+    child.on('message', value => {
+      if (Number.isFinite(value.ms) && value.ms >= 0) measured = value.ms;
+      if (Number.isFinite(value.cpuMs) && value.cpuMs >= 0) cpuMs = value.cpuMs;
+      if (Number.isFinite(value.peakRssMiB) && value.peakRssMiB >= 0) peakRssMiB = value.peakRssMiB;
+    });
     child.on('error', e => { error = e.message; });
     child.on('close', (code, signal) => {
       clearTimeout(timer); clearInterval(memory); child = undefined;
@@ -97,7 +101,7 @@ async function measure(file, kind) {
         try { writeFileSync(cgroup + '/cgroup.kill', '1'); } catch {}
         try { rmdirSync(cgroup); } catch {}
       }
-      resolveResult({ms: expired || memoryKilled || stopped ? performance.now() - start : measured ?? performance.now() - start, wallMs: performance.now() - start, status: stopped ? 'interrupted' : code !== 0 && !expired && !memoryKilled && missingData.test(error || log) ? 'no-data' : expired ? 'timeout' : memoryKilled ? 'memory-limit' : code === 0 ? 'ok' : 'error', code, signal, log: error || log});
+      resolveResult({ms: expired || memoryKilled || stopped ? performance.now() - start : measured ?? performance.now() - start, wallMs: performance.now() - start, cpuMs, peakRssMiB, status: stopped ? 'interrupted' : code !== 0 && !expired && !memoryKilled && missingData.test(error || log) ? 'no-data' : expired ? 'timeout' : memoryKilled ? 'memory-limit' : code === 0 ? 'ok' : 'error', code, signal, log: error || log});
     });
   });
 }

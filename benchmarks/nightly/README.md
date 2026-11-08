@@ -26,7 +26,11 @@ thread limits; other activity on the host can still introduce noise.
 
 The measured time includes parsing and execution after CLI imports.
 `wallMs` also records startup overhead; the ten-minute deadline includes it. There is no
-warmup and one sample per night. Group changes use geometric means over
+warmup and one sample per night. Each completed worker also records process CPU
+time over the measured interval and peak process RSS (including CLI imports).
+These appear in demo details and JSON; older runs omit them. CPU time includes
+worker threads and can exceed elapsed time. It helps identify waiting but does
+not rule out frequency, cache or memory contention. Group changes use geometric means over
 successful, matching workloads that take at least 100 ms in both runs.
 The source/test hash excludes imported dependencies, so changes in dependencies
 or the environment can affect comparisons. Inspect commit links and individual

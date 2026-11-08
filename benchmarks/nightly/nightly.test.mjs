@@ -32,6 +32,8 @@ test('continues after failure, selects library tests and preserves history',t=>{
  const dir=fixture(t,'process.exitCode=process.argv[2]==="test"?0:1');
  const a=run(dir,3000);
  assert.equal(a.status,'complete');
+ assert.ok(a.results.every(row=>Number.isFinite(row.cpuMs)&&row.cpuMs>=0));
+ assert.ok(a.results.every(row=>row.peakRssMiB>0));
  assert.deepEqual(a.results.map(x=>x.status),['error','ok']);
  assert.deepEqual(a.results.map(x=>x.kind),['program','tests']);
  run(dir,3000);
