@@ -1,0 +1,32 @@
+[
+  {
+    "artifact": "euler782-lazy-mac.json",
+    "size": 10000,
+    "answer": "318313204",
+    "ms": 10851.889125,
+    "cpuMs": 14028.958,
+    "maxRssMiB": 471.765625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler782-final-mac-2.json",
+    "size": 10000,
+    "answer": "318313204",
+    "ms": 11062.617750000001,
+    "cpuMs": 14192.519,
+    "maxRssMiB": 467.75,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler782-final-mac-3.json",
+    "size": 10000,
+    "answer": "318313204",
+    "ms": 10758.082541,
+    "cpuMs": 13735.645,
+    "maxRssMiB": 484.53125,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]

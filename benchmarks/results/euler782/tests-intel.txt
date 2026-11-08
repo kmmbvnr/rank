@@ -1,0 +1,25 @@
+
+ RUN  v3.2.7 /tmp/rank-nightly-1108/fixed/packages/interpreter
+
+ ✓ test/scalar-boolean-writes.test.ts (12 tests) 402ms
+   ✓ scalar boolean writes (false) > preserves aliases, duplicate indices and errors without generated code  335ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 826ms
+   ✓ array binding contracts (compiled true) > checks every lazy scalar read after establishing the type: 1n  310ms
+ ✓ test/boolean-scatter.test.ts (24 tests) 925ms
+   ✓ boolean scatter and numeric mask selections > snapshots boolean RHS true with duplicate selectors  392ms
+ ✓ test/packed-selector-indices.test.ts (10 tests) 397ms
+   ✓ packed selectors at ordinary axis boundaries > selects and writes across bitmap word boundaries of length 1  307ms
+ ✓ test/packed-booleans.test.ts (60 tests) 1929ms
+   ✓ packed boolean storage > preserves aliasing and addressing (compiled=false)  358ms
+ ✓ test/packed-column-broadcast.test.ts (23 tests) 2164ms
+   ✓ broadcasts 2 lanes through three axes: +, compilation=false  365ms
+ ✓ test/euler782.test.ts (20 tests) 3343ms
+   ✓ Euler 782 (compiled=false) > matches all binary matrices at Size=1  477ms
+   ✓ Euler 782 (compiled=false) > matches original integer flags at Size=64  328ms
+   ✓ Euler 782 (compiled=false) > matches original integer flags at Size=101  534ms
+
+ Test Files  7 passed (7)
+      Tests  203 passed (203)
+   Start at  11:49:20
+   Duration  8.58s (transform 2.24s, setup 0ms, collect 14.72s, tests 9.99s, environment 1ms, prepare 458ms)
+

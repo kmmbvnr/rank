@@ -1,0 +1,12 @@
+[
+  {
+    "artifact": "euler782-baseline-intel.json",
+    "size": 10000,
+    "answer": "318313204",
+    "ms": 118214.031735,
+    "cpuMs": 180472.066,
+    "maxRssMiB": 1466.1875,
+    "node": "v24.15.0",
+    "arch": "x64"
+  }
+]

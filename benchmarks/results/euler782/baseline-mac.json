@@ -1,0 +1,12 @@
+[
+  {
+    "artifact": "euler782-baseline-mac.json",
+    "size": 10000,
+    "answer": "318313204",
+    "ms": 37478.12625,
+    "cpuMs": 59669.207,
+    "maxRssMiB": 1532.3125,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]

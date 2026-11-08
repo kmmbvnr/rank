@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /private/tmp/rank-euler782/packages/interpreter
+
+ ✓ test/scalar-boolean-writes.test.ts (12 tests) 107ms
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  11:46:07
+   Duration  1.41s (transform 839ms, setup 0ms, collect 1.21s, tests 107ms, environment 0ms, prepare 23ms)
+

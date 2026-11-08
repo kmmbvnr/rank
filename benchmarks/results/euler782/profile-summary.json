@@ -1,0 +1,102 @@
+[
+  {
+    "function": "",
+    "url": "file://packages/interpreter/out/jit/tensor-kernel.js",
+    "samples": 439
+  },
+  {
+    "function": "invoke",
+    "url": "file://packages/interpreter/out/jit/tensor-kernel.js",
+    "samples": 165
+  },
+  {
+    "function": "bindRun",
+    "url": "file://packages/interpreter/out/jit/tensor-kernel.js",
+    "samples": 83
+  },
+  {
+    "function": "(program)",
+    "url": "",
+    "samples": 72
+  },
+  {
+    "function": "fillBooleanSelection",
+    "url": "file://packages/interpreter/out/runtime/owned-array.js",
+    "samples": 58
+  },
+  {
+    "function": "(garbage collector)",
+    "url": "",
+    "samples": 35
+  },
+  {
+    "function": "inputBounds",
+    "url": "file://packages/interpreter/out/jit/tensor-bounds.js",
+    "samples": 31
+  },
+  {
+    "function": "",
+    "url": "file://packages/interpreter/out/selectors.js",
+    "samples": 29
+  },
+  {
+    "function": "general",
+    "url": "file://packages/interpreter/out/eval/assignments.js",
+    "samples": 26
+  },
+  {
+    "function": "indexAt",
+    "url": "file://packages/interpreter/out/selectors.js",
+    "samples": 12
+  },
+  {
+    "function": "indexAt",
+    "url": "file://packages/interpreter/out/selectors.js",
+    "samples": 11
+  },
+  {
+    "function": "set",
+    "url": "file://packages/interpreter/out/runtime/owned-array.js",
+    "samples": 10
+  },
+  {
+    "function": "collectArrayValues",
+    "url": "file://packages/interpreter/out/runtime/array-read.js",
+    "samples": 9
+  },
+  {
+    "function": "ownedArray",
+    "url": "file://packages/interpreter/out/runtime/owned-array.js",
+    "samples": 9
+  },
+  {
+    "function": "createOwned",
+    "url": "file://packages/interpreter/out/runtime/owned-array.js",
+    "samples": 7
+  },
+  {
+    "function": "emit",
+    "url": "file://packages/interpreter/out/jit/tensor-kernel.js",
+    "samples": 7
+  },
+  {
+    "function": "set",
+    "url": "file://packages/interpreter/out/runtime/owned-array.js",
+    "samples": 6
+  },
+  {
+    "function": "advance",
+    "url": "file://packages/interpreter/out/execution.js",
+    "samples": 5
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 4
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 4
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "artifact": "euler782-scatter-after-1.json",
+    "size": 1048576,
+    "rounds": 8,
+    "ms": 17.082083999999995,
+    "cpuMs": 23.005,
+    "maxRssMiB": 84.75,
+    "arch": "arm64",
+    "node": "v24.15.0"
+  },
+  {
+    "artifact": "euler782-scatter-after-2.json",
+    "size": 1048576,
+    "rounds": 8,
+    "ms": 15.543166,
+    "cpuMs": 20.694,
+    "maxRssMiB": 84.4375,
+    "arch": "arm64",
+    "node": "v24.15.0"
+  },
+  {
+    "artifact": "euler782-scatter-after-3.json",
+    "size": 1048576,
+    "rounds": 8,
+    "ms": 15.958459000000005,
+    "cpuMs": 21.697,
+    "maxRssMiB": 84.890625,
+    "arch": "arm64",
+    "node": "v24.15.0"
+  }
+]

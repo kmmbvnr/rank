@@ -1,0 +1,16 @@
+
+ RUN  v3.2.7 /private/tmp/rank-euler782/packages/interpreter
+
+ ✓ test/scalar-boolean-writes.test.ts (12 tests) 163ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 295ms
+ ✓ test/boolean-scatter.test.ts (24 tests) 330ms
+ ✓ test/packed-booleans.test.ts (60 tests) 690ms
+ ✓ test/packed-selector-indices.test.ts (10 tests) 152ms
+ ✓ test/packed-column-broadcast.test.ts (23 tests) 790ms
+ ✓ test/euler782.test.ts (20 tests) 1176ms
+
+ Test Files  7 passed (7)
+      Tests  203 passed (203)
+   Start at  11:45:24
+   Duration  3.38s (transform 933ms, setup 0ms, collect 6.34s, tests 3.60s, environment 0ms, prepare 172ms)
+

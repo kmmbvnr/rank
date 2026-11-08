@@ -1,0 +1,22 @@
+[
+  {
+    "artifact": "euler782-bitmap-mac.json",
+    "size": 10000,
+    "answer": "318313204",
+    "ms": 40618.247542000005,
+    "cpuMs": 62709.049,
+    "maxRssMiB": 472.109375,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler782-bulk-mac.json",
+    "size": 10000,
+    "answer": "318313204",
+    "ms": 39752.325291,
+    "cpuMs": 62511.69,
+    "maxRssMiB": 425.40625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]
