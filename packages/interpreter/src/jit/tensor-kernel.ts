@@ -1,3 +1,4 @@
+import { floorDivide, floorRemainder } from '../runtime/numeric-division.js';
 import { checkedNumberModularMultiply, numberOverflow } from './number-arithmetic.js';
 import { tensorReductionStep } from './tensor-reduction-codegen.js';
 import { tensorBufferedNodes, tensorChildren, tensorExpressionLowerer, type TensorNode } from './tensor-ir.js';
@@ -772,6 +773,14 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     if (numeric(a) && numeric(b)) {
                         if (typeof a === 'bigint' && typeof b === 'bigint') scalar = node.op === '+' ? a+b : node.op === '-' ? a-b : a*b;
                         else scalar = node.op === '+' ? Number(a)+Number(b) : node.op === '-' ? Number(a)-Number(b) : Number(a)*Number(b);
+                    }
+                } else if (node.kind === 'binary' && ['//', 'mod'].includes(node.op)) {
+                    const a = bound.get(node.left)?.scalar, b = bound.get(node.right)?.scalar;
+                    // Known nonzero integer divisors cannot fail or hide an
+                    // empty-domain error. Zero and broader domains retain the
+                    // reference path below, including their evaluation order.
+                    if (typeof a === 'bigint' && typeof b === 'bigint' && b !== 0n) {
+                        scalar = node.op === '//' ? floorDivide(a, b) : floorRemainder(a, b);
                     }
                 } else if (node.kind === 'unary' && ['+', '-'].includes(node.op)) {
                     const a = bound.get(node.operand)?.scalar;
