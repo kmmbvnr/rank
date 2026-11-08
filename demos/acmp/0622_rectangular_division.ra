@@ -1,6 +1,7 @@
-rem Rect Division (Деление)
-rem https://acmp.ru/task.asp?id=622
-rem Planar faces count via DSU.
+rem Rect Division
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=622
+rem Planar faces count via DSU
 
 use cli
 use graph
@@ -9,15 +10,21 @@ use numbers
 use sequences
 use text
 
-arg Input text = "8
-10 20 50 30
-40 10 50 25
-40 25 80 30
-5 5 25 35
-60 15 90 40
-15 45 70 60
-30 50 85 70
-20 22 45 28"
+arg Input text = (
+  "12\n" +
+  "10 20 50 30\n" +
+  "40 10 50 25\n" +
+  "40 25 80 30\n" +
+  "5 5 25 35\n" +
+  "60 15 90 40\n" +
+  "15 45 70 60\n" +
+  "30 50 85 70\n" +
+  "20 22 45 28\n" +
+  "35 15 65 55\n" +
+  "25 30 75 45\n" +
+  "12 12 55 58\n" +
+  "45 20 85 65"
+)
 
 Raw = Input split "\n" join " "
 Raw = Raw split "\r" join " "
@@ -67,7 +74,10 @@ for I in 0 till LenX
     My1 = SubY1 at most Ylow
     My2 = SubY2 at least Yhigh
     Hit = (My1 and My2) any
-    Blocked = HasM choose Hit false
+    Blocked = false
+    if HasM
+      Blocked = Hit
+    end
     if not Blocked
       C1 = J * W + I
       C2 = C1 + 1
@@ -99,7 +109,10 @@ for J in 0 till LenY
     Mx1 = SubX1 at most Xlow
     Mx2 = SubX2 at least Xhigh
     Hit = (Mx1 and Mx2) any
-    Blocked = HasM choose Hit false
+    Blocked = false
+    if HasM
+      Blocked = Hit
+    end
     if not Blocked
       C1 = J * W + I
       C2 = (J + 1) * W + I

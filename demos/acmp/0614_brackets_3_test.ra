@@ -1,7 +1,8 @@
 use testing
 
-test "sample 1: complex 9-character string has 8 distinct regular subsequences"
+test "sample 1: 9-char string -> 8"
   use "0614_brackets_3"
+  S = "((())())("
   run
 
   Answer equal 8
@@ -33,7 +34,7 @@ test "nested pair"
   Answer equal 3
 end
 
-test "only open brackets yields only empty sequence"
+test "only open brackets yields empty"
   use "0614_brackets_3"
   S = "((((("
   run
@@ -41,7 +42,7 @@ test "only open brackets yields only empty sequence"
   Answer equal 1
 end
 
-test "only close brackets yields only empty sequence"
+test "only close brackets yields empty"
   use "0614_brackets_3"
   S = "))))"
   run
@@ -49,7 +50,7 @@ test "only close brackets yields only empty sequence"
   Answer equal 1
 end
 
-test "inverted pair yields only empty sequence"
+test "inverted pair yields only empty"
   use "0614_brackets_3"
   S = ")("
   run
@@ -57,7 +58,7 @@ test "inverted pair yields only empty sequence"
   Answer equal 1
 end
 
-test "three identical pairs form 5 distinct sequences"
+test "three pairs form 5 sequences"
   use "0614_brackets_3"
   S = "()()()"
   run

@@ -2,6 +2,20 @@ use testing
 
 test "sample 1: L-step shape is TRUE"
   use "0583_drawing"
+  Input = (
+    "11\n" +
+    "f 1\n" +
+    "r\n" +
+    "f 2\n" +
+    "r\n" +
+    "f 2\n" +
+    "r\n" +
+    "f 1\n" +
+    "r\n" +
+    "f 1\n" +
+    "l\n" +
+    "f 1"
+  )
   run
 
   Ans equal "TRUE"

@@ -8,10 +8,16 @@ use numbers
 use sequences
 use text
 
-arg Input text = "2 0
--2 0
-1
--1 -2 1 2"
+arg Input text = (
+  "10 0\n" +
+  "-10 0\n" +
+  "5\n" +
+  "-2 -8 2 -2\n" +
+  "-2 2 2 8\n" +
+  "-6 -2 -3 2\n" +
+  "3 -2 6 2\n" +
+  "-1 -1 1 1"
+)
 
 Seps = array " " "\n" "\r"
 Raw = Input split Seps
@@ -311,7 +317,10 @@ else
   end
 end
 
-Ans = Found choose "YES" "NO"
+Ans = "NO"
+if Found
+  Ans = "YES"
+end
 Ans print
 if Found
   TxtX = AnsX text

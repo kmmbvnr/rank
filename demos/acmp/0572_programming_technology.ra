@@ -1,11 +1,7 @@
-rem ACMP 0572 - Programming Technology (Технология программирования)
-rem Maximize persuaded friends with required authority threshold a_i and authority change b_i.
-rem
-rem Greedy approach with dual-group sorting:
-rem 1. Friends with b_i >= 0 (positive or neutral impact) are processed first,
-rem    sorted by required threshold a_i ascending to accumulate authority as fast as possible.
-rem 2. Friends with b_i < 0 (negative impact) are processed last,
-rem    sorted by potential (a_i + b_i) descending with tie-breaker a_i descending.
+rem Programming Technology
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=572
+rem Maximize persuaded friends
 
 use io
 use cli
@@ -13,9 +9,34 @@ use sequences
 use numbers
 use text
 
-arg Input text = "5 1\n1 3\n6 -5\n6 -4\n2 2\n2 -1"
+arg Input text = (
+  "20 10\n" +
+  "5 15\n" +
+  "10 20\n" +
+  "15 25\n" +
+  "20 30\n" +
+  "25 35\n" +
+  "30 40\n" +
+  "35 45\n" +
+  "40 50\n" +
+  "45 55\n" +
+  "50 60\n" +
+  "100 -20\n" +
+  "120 -25\n" +
+  "140 -30\n" +
+  "160 -35\n" +
+  "180 -40\n" +
+  "200 -45\n" +
+  "220 -50\n" +
+  "240 -55\n" +
+  "260 -60\n" +
+  "280 -65"
+)
 
-Tokens = (Input split "\n" join " ") split " "
+Tokens = (
+  (Input split "\n" join " ")
+  split " "
+)
 Tokens = Tokens (Tokens not equal "")
 Nums = Tokens integer
 
@@ -23,8 +44,9 @@ N = Nums 0
 P = Nums 1
 
 Idxs = 0 till N array
-A = Nums (Idxs * 2 + 2)
-B = Nums (Idxs * 2 + 3)
+Idx2 = Idxs * 2
+A = Nums (Idx2 + 2)
+B = Nums (Idx2 + 3)
 
 PosMask = B greater -1
 NegMask = B less 0
@@ -33,15 +55,22 @@ PosIdx = Idxs PosMask
 NegIdx = Idxs NegMask
 
 SortedPos = array shape 0 fill 0
-if PosIdx len greater 0
-  PosOrder = A PosIdx argsort
+PosLen = PosIdx len
+if PosLen greater 0
+  PosA = A PosIdx
+  PosOrder = PosA argsort
   SortedPos = PosIdx PosOrder
 end
 
 SortedNeg = array shape 0 fill 0
-if NegIdx len greater 0
-  Key = (A NegIdx + B NegIdx) * 10000000 + (A NegIdx)
-  NegOrder = 0 - Key argsort
+NegLen = NegIdx len
+if NegLen greater 0
+  NegA = A NegIdx
+  NegB = B NegIdx
+  SumAB = NegA + NegB
+  Key = SumAB * 10000000 + NegA
+  InvKey = 0 - Key
+  NegOrder = InvKey argsort
   SortedNeg = NegIdx NegOrder
 end
 
@@ -55,16 +84,17 @@ for Idx in Order
   Delta = B Idx
   if CurrentP greater (Req - 1)
     CurrentP = CurrentP + Delta
-    Chosen = concat Chosen (array (Idx + 1))
+    NextCh = array (Idx + 1)
+    Chosen = concat Chosen NextCh
   end
 end
 
 Count = Chosen len
-Answer = ""
-if Count equal 0
-  Answer = "0"
-else
-  Answer = (Count text) + "\n" + (Chosen join " ")
+Answer = "0"
+if Count greater 0
+  CntTxt = Count text
+  ChTxt = Chosen join " "
+  Answer = CntTxt + "\n" + ChTxt
 end
 
 Answer print

@@ -22,7 +22,7 @@ test "ACMP 610: Sample 3 (2x8 => 1)"
   Ans equal 1
 end
 
-test "ACMP 610: Sample 4 (12x8 => 102283239429)"
+test "ACMP 610: Sample 4 (12x8)"
   use "0610_pipes"
   Input = "12 8"
   run

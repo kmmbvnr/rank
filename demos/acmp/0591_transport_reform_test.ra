@@ -4,6 +4,24 @@ use testing
 
 test "default: 10 vertices -> 9 edges"
   use "0591_transport_reform"
+  Input = (
+    "10 15\n" +
+    "1 2 2\n" +
+    "2 3 2\n" +
+    "3 4 2\n" +
+    "4 5 2\n" +
+    "5 6 2\n" +
+    "6 7 2\n" +
+    "7 8 2\n" +
+    "8 9 2\n" +
+    "9 10 2\n" +
+    "1 4 1\n" +
+    "2 5 1\n" +
+    "3 7 1\n" +
+    "6 9 1\n" +
+    "7 10 1\n" +
+    "1 10 2"
+  )
   run
 
   AnsArr shape 0 equal 9

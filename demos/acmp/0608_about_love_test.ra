@@ -4,6 +4,12 @@ use testing
 
 test "sample 1: single obstacle -> YES"
   use "0608_about_love"
+  Input = (
+    "2 0\n" +
+    "-2 0\n" +
+    "1\n" +
+    "-1 -2 1 2"
+  )
   run
 
   Ans equal "YES"

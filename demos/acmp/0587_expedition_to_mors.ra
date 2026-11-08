@@ -1,4 +1,6 @@
-rem ACMP 0587 Expedition to Mors
+rem Expedition to Mors
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=587
 rem Max thrust via 2-pointer half-plane
 
 use cli
@@ -7,17 +9,29 @@ use numbers
 use sequences
 use text
 
-arg Input text = "10
-10000.00 0.00
-8500.50 35.20
-9200.00 70.15
-7400.00 110.00
-9900.00 160.40
-8800.00 200.50
-9100.00 250.00
-6500.00 290.30
-8700.00 320.00
-9500.00 350.10"
+arg Input text = (
+  "20\n" +
+  "10000.00 0.00\n" +
+  "9500.00 15.00\n" +
+  "9200.00 35.00\n" +
+  "8800.00 55.00\n" +
+  "9100.00 75.00\n" +
+  "8500.00 95.00\n" +
+  "9900.00 115.00\n" +
+  "8700.00 135.00\n" +
+  "7400.00 155.00\n" +
+  "6500.00 175.00\n" +
+  "9600.00 195.00\n" +
+  "9300.00 215.00\n" +
+  "8900.00 235.00\n" +
+  "9400.00 255.00\n" +
+  "8200.00 275.00\n" +
+  "7800.00 295.00\n" +
+  "9000.00 315.00\n" +
+  "8600.00 335.00\n" +
+  "9100.00 345.00\n" +
+  "9800.00 355.00"
+)
 
 Seps = array " " "\n" "\r"
 Raw = Input split Seps
@@ -54,7 +68,8 @@ BestJ = 0
 
 I = 0
 J = 0
-for Step in 0 till (3 * N)
+LimitStep = 3 * N
+for Step in 0 till LimitStep
   EndI = I equal N
   EndJ = J equal (2 * N)
   Stop = EndI or EndJ
@@ -67,35 +82,30 @@ for Step in 0 till (3 * N)
   InSpan = J less (I + N)
   CanAdv = InSpan and AdvCond
 
-  J_adv = J + 1
-  I_step = I + 1
-  J_gt = J greater I_step
-  J_sync = J_gt choose J I_step
-
-  I = CanAdv choose I I_step
-  J = CanAdv choose J_adv J_sync
+  if CanAdv
+    J = J + 1
+  else
+    I = I + 1
+    if not (J greater I)
+      J = I
+    end
+  end
 
   DX = (PrefX J) - (PrefX I)
   DY = (PrefY J) - (PrefY I)
   MagSq = (DX * DX) + (DY * DY)
 
-  Better = MagSq greater BestMag
-  BestMag = Better choose MagSq BestMag
-  BestI = Better choose I BestI
-  BestJ = Better choose J BestJ
+  if MagSq greater BestMag
+    BestMag = MagSq
+    BestI = I
+    BestJ = J
+  end
 end
 
 Chosen = Id2 (BestI till BestJ)
 ChosenSort = Chosen sort
 AnsK = ChosenSort shape 0
-
-AnsStr = ""
-for C in ChosenSort
-  CTxt = C text
-  Sep = AnsStr + " " + CTxt
-  Emp = AnsStr equal ""
-  AnsStr = Emp choose CTxt Sep
-end
+AnsStr = ChosenSort join " "
 
 Ans = array (AnsK text) AnsStr
 AnsK print

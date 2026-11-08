@@ -1,6 +1,6 @@
 rem ACMP 0610: Pipe Laying
 rem Count Hamiltonian cycles in R x C
-rem via profile plug DP with bracket state
+rem Plug DP with bracket profile
 use io
 use cli
 use sequences
@@ -38,7 +38,8 @@ else
   CurVals 0 = 1
   ThreeP = array shape 12 fill 1
   for PIdx in 1 till 12
-    ThreeP PIdx = (ThreeP (PIdx - 1)) * 3
+    PrevP = ThreeP (PIdx - 1)
+    ThreeP PIdx = PrevP * 3
   end
   for Col in 0 till C
     NextLen = 0
@@ -47,7 +48,9 @@ else
       V0 = CurVals SIdx
       PBottom = (K0 // (ThreeP R)) mod 3
       if PBottom equal 0
-        KShift = (K0 mod (ThreeP R)) * 3
+        KShift = (
+          (K0 mod (ThreeP R)) * 3
+        )
         NextKeys NextLen = KShift
         NextVals NextLen = V0
         NextLen = NextLen + 1
@@ -60,9 +63,9 @@ else
     end
     for Row in 0 till R
       NextLen = 0
-      IsLast = ((Col equal (C - 1)) and (
-        Row equal (R - 1)
-      )) integer
+      EndC = Col equal (C - 1)
+      EndR = Row equal (R - 1)
+      IsLast = (EndC and EndR) integer
       P3L = ThreeP Row
       P3U = ThreeP (Row + 1)
       for SIdx in 0 till CurLen
@@ -73,7 +76,13 @@ else
         KBase = K0 - ((Left * P3L) + (
           Up * P3U
         ))
-        if (Left equal 0) and (Up equal 0)
+        L0 = Left equal 0
+        U0 = Up equal 0
+        L1 = Left equal 1
+        U1 = Up equal 1
+        L2 = Left equal 2
+        U2 = Up equal 2
+        if L0 and U0
           if IsLast equal 0
             NextKeys NextLen = KBase + (
               P3L + (2 * P3U)
@@ -81,9 +90,7 @@ else
             NextVals NextLen = V0
             NextLen = NextLen + 1
           end
-        elif (Left greater 0) and (
-          Up equal 0
-        )
+        elif (Left greater 0) and U0
           NextKeys NextLen = KBase + (
             Left * P3U
           )
@@ -94,9 +101,7 @@ else
           )
           NextVals NextLen = V0
           NextLen = NextLen + 1
-        elif (Left equal 0) and (
-          Up greater 0
-        )
+        elif L0 and (Up greater 0)
           NextKeys NextLen = KBase + (
             Up * P3U
           )
@@ -107,13 +112,15 @@ else
           )
           NextVals NextLen = V0
           NextLen = NextLen + 1
-        elif (Left equal 1) and (Up equal 1)
+        elif L1 and U1
           Depth = 1
           Targ = Row + 2
           ScanK = K0
           for KStep in (Row + 2) till R1
             if Depth greater 0
-              Plug = (ScanK // (ThreeP Targ)) mod 3
+              PTarg = ThreeP Targ
+              DivK = ScanK // PTarg
+              Plug = DivK mod 3
               if Plug equal 1
                 Depth = Depth + 1
               elif Plug equal 2
@@ -130,13 +137,18 @@ else
           NextKeys NextLen = KNew
           NextVals NextLen = V0
           NextLen = NextLen + 1
-        elif (Left equal 2) and (Up equal 2)
+        elif L2 and U2
           Depth = 1
           Targ = Row - 1
           ScanK = K0
-          for KStep in (Row - 1) till -1 by -1
+          StepRange = (
+            (Row - 1) till -1 by -1
+          )
+          for KStep in StepRange
             if Depth greater 0
-              Plug = (ScanK // (ThreeP Targ)) mod 3
+              PTarg = ThreeP Targ
+              DivK = ScanK // PTarg
+              Plug = DivK mod 3
               if Plug equal 2
                 Depth = Depth + 1
               elif Plug equal 1
@@ -153,11 +165,11 @@ else
           NextKeys NextLen = KNew
           NextVals NextLen = V0
           NextLen = NextLen + 1
-        elif (Left equal 2) and (Up equal 1)
+        elif L2 and U1
           NextKeys NextLen = KBase
           NextVals NextLen = V0
           NextLen = NextLen + 1
-        elif (Left equal 1) and (Up equal 2)
+        elif L1 and U2
           if (IsLast equal 1) and (
             KBase equal 0
           )
@@ -168,22 +180,30 @@ else
         end
       end
       if NextLen greater 1
-        Ord = (NextKeys take NextLen) argsort
-        SortedK = (NextKeys take NextLen) Ord
-        SortedV = (NextVals take NextLen) Ord
+        CurNextK = NextKeys take NextLen
+        CurNextV = NextVals take NextLen
+        Ord = CurNextK argsort
+        SortedK = CurNextK Ord
+        SortedV = CurNextV Ord
         SortedK1 = SortedK drop 1
-        SortedK0 = SortedK take (NextLen - 1)
-        Diff = SortedK1 not equal SortedK0
+        LenM1 = NextLen - 1
+        SortedK0 = SortedK take LenM1
+        Diff = (
+          SortedK1 not equal SortedK0
+        )
         DiffIdx = Diff indices
         GroupEnds = DiffIdx + 1
-        GroupStarts = concat (array 0) GroupEnds
+        GroupStarts = concat (
+          array 0
+        ) GroupEnds
         GroupCount = GroupStarts len
         for GIdx in 0 till GroupCount
           StartI = GroupStarts GIdx
           CurK = SortedK StartI
           EndI = NextLen
           if GIdx less (GroupCount - 1)
-            EndI = GroupStarts (GIdx + 1)
+            NextG = GIdx + 1
+            EndI = GroupStarts NextG
           end
           SumV = 0
           for SumI in StartI till EndI

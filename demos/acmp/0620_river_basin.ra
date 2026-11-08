@@ -1,6 +1,7 @@
-rem River Basin (Бассейн реки)
-rem https://acmp.ru/task.asp?id=620
-rem Transitive basin convex hull area.
+rem River Basin
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=620
+rem Transitive basin convex hull area
 
 use algo
 use cli
@@ -9,24 +10,36 @@ use numbers
 use sequences
 use text
 
-arg Input text = "3
-5
-6 9
-5 11
-3 12
-2 10
-1 7
-3
-7 9
-5 7
-5 5.5
-6
-3 10
-5 8
-4 6
-5 5.5
-6 5
-3 5"
+arg Input text = (
+  "6\n" +
+  "4\n" +
+  "10 50\n" +
+  "20 70\n" +
+  "30 80\n" +
+  "40 60\n" +
+  "3\n" +
+  "40 60\n" +
+  "50 40\n" +
+  "60 30\n" +
+  "4\n" +
+  "15 20\n" +
+  "25 25\n" +
+  "45 35\n" +
+  "60 30\n" +
+  "3\n" +
+  "60 30\n" +
+  "70 20\n" +
+  "80 10\n" +
+  "4\n" +
+  "5 5\n" +
+  "30 10\n" +
+  "60 15\n" +
+  "80 10\n" +
+  "3\n" +
+  "80 10\n" +
+  "90 5\n" +
+  "100 0"
+)
 
 fun X solve_hull Y
   M = ((X shape) 0) integer
@@ -34,7 +47,7 @@ fun X solve_hull Y
     return 0.0
   end
 
-  Key = ((X + 2000.0) * 10000.0)
+  Key = (X + 2000.0) * 10000.0
   FullKey = Key + (Y + 2000.0)
   Order = FullKey argsort
   SX = X Order
@@ -122,10 +135,11 @@ fun V format_2
   C = ((V * 100.0) + 0.5) integer
   W = (C / 100) integer
   Frac = C mod 100
-  Pad = Frac less 10
   FracTxt = Frac text
-  Zero = "0" + FracTxt
-  FracStr = Pad choose Zero FracTxt
+  FracStr = FracTxt
+  if Frac less 10
+    FracStr = "0" + FracTxt
+  end
   return (W text) + "." + FracStr
 end
 
@@ -160,18 +174,18 @@ for I in 0 to (N - 1)
   LastX = (RivX I) (K - 1)
   LastY = (RivY I) (K - 1)
   for J in 0 to (N - 1)
-    Cand = I not equal J
-    JX = RivX J
-    JY = RivY J
-    DistX = (JX - LastX) abs
-    DistY = (JY - LastY) abs
-    CloseX = DistX less 0.0001
-    CloseY = DistY less 0.0001
-    Close = CloseX and CloseY
-    OrMatch = Close reduce or
-    Matches = Cand choose OrMatch false
-    if Matches
-      Parent I = J
+    if I not equal J
+      JX = RivX J
+      JY = RivY J
+      DistX = (JX - LastX) abs
+      DistY = (JY - LastY) abs
+      CloseX = DistX less 0.0001
+      CloseY = DistY less 0.0001
+      Close = CloseX and CloseY
+      OrMatch = Close reduce or
+      if OrMatch
+        Parent I = J
+      end
     end
   end
 end
@@ -212,8 +226,9 @@ for R in 0 to (N - 1)
   PtsX = (AllX reverse) reverse
   PtsY = (AllY reverse) reverse
   AreaR = PtsX solve_hull PtsY
-  NewMax = AreaR greater MaxArea
-  MaxArea = NewMax choose AreaR MaxArea
+  if AreaR greater MaxArea
+    MaxArea = AreaR
+  end
 end
 
 Ans = MaxArea format_2

@@ -1,13 +1,7 @@
-rem ACMP 0614 - Brackets 3 (Скобки - 3)
-rem Count distinct regular bracket subsequences of a parenthesis string.
-rem
-rem Distinct subsequences of any alphabet correspond to unique leftmost embeddings
-rem in a Deterministic Finite Automaton (DFA) where each transition on character c
-rem jumps to the first occurrence of c at or after the current position.
-rem Tracking the parenthesis balance ensures that only valid regular bracket sequences
-rem (prefix balance >= 0, final balance = 0) are counted.
-rem
-rem DP state: DP[pos][bal] = number of distinct valid completions from index pos with prefix balance bal.
+rem Brackets 3
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=614
+rem Distinct regular bracket subseqs
 
 use io
 use cli
@@ -15,21 +9,25 @@ use sequences
 use numbers
 use text
 
-arg S text = "((())())("
+arg S text = (
+  "((())())(()())(())((()))" +
+  "((())())(()())(())((()))"
+)
 
 N = S len
 Chars = S split ""
 
-rem Precompute nextOpen, nextClose, and remaining close bracket counts
-NextOpen = array shape (N + 1) fill -1
-NextClose = array shape (N + 1) fill -1
-RemClose = array shape (N + 1) fill 0
+N1 = N + 1
+NextOpen = array shape N1 fill -1
+NextClose = array shape N1 fill -1
+RemClose = array shape N1 fill 0
 
 LastOpen = -1
 LastClose = -1
 CloseCount = 0
 
-for I in (0 till N array) reverse
+RevN = (0 till N array) reverse
+for I in RevN
   Ch = Chars I
   if Ch equal ")"
     CloseCount = CloseCount + 1
@@ -43,9 +41,11 @@ for I in (0 till N array) reverse
 end
 
 MaxBal = (N // 2) + 1
-DP = array shape (N + 1) (MaxBal + 1) fill 0
+BalDim = MaxBal + 1
+DP = array shape N1 BalDim fill 0
 
-for Pos in (0 to N array) reverse
+RevN1 = (0 to N array) reverse
+for Pos in RevN1
   MaxB = RemClose Pos
   if MaxB greater MaxBal
     MaxB = MaxBal
@@ -56,26 +56,28 @@ for Pos in (0 to N array) reverse
       Res = 1
     end
 
-    rem Transition on (
     NO = NextOpen Pos
     if NO greater -1
       NextP = NO + 1
       NextB = Bal + 1
-      if NextB less (MaxBal + 1)
-        if NextB less ((RemClose NextP) + 1)
-          Res = Res + (DP NextP NextB)
+      if NextB less BalDim
+        RemP = (RemClose NextP) + 1
+        if NextB less RemP
+          AddO = DP NextP NextB
+          Res = Res + AddO
         end
       end
     end
 
-    rem Transition on )
     if Bal greater 0
       NC = NextClose Pos
       if NC greater -1
         NextP = NC + 1
         NextB = Bal - 1
-        if NextB less ((RemClose NextP) + 1)
-          Res = Res + (DP NextP NextB)
+        RemP = (RemClose NextP) + 1
+        if NextB less RemP
+          AddC = DP NextP NextB
+          Res = Res + AddC
         end
       end
     end
@@ -85,4 +87,4 @@ for Pos in (0 to N array) reverse
 end
 
 Answer = DP 0 0
-Answer text print
+Answer print

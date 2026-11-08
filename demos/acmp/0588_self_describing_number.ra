@@ -1,6 +1,7 @@
 rem Self-Describing Number
-rem https://acmp.ru/index.asp?main=task&id_task=588
-rem Find a b-digit self-describing number in base b or -1
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=588
+rem B-digit self-describing number in B
 
 use io
 use numbers
@@ -8,9 +9,12 @@ use cli
 use sequences
 use text
 
-arg Input text = "5"
+arg Input text = "100"
 
-Tokens = Input split "\n" join " " split " "
+Tokens = (
+  (Input split "\n" join " ")
+  split " "
+)
 Tokens = Tokens (Tokens not equal "")
 B = Tokens 0 integer
 
@@ -20,7 +24,8 @@ if B equal 4
   Answer = (array 2 1 0 1) join "\n"
 else
   if B equal 5
-    Answer = (array 1 2 0 0 2) join "\n"
+    P5 = array 1 2 0 0 2
+    Answer = P5 join "\n"
   else
     if B greater 6
       Digits = array shape B fill 0

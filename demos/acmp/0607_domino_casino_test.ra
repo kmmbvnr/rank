@@ -32,6 +32,13 @@ end
 
 test "ACMP 607: Default input 4x4"
   use "0607_domino_casino"
+  Input = (
+    "4 4 4\n" +
+    "1 4 2 5\n" +
+    "3 2 6 1\n" +
+    "7 2 3 4\n" +
+    "1 5 2 6"
+  )
   run
 
   Result greater 0

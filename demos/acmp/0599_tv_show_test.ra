@@ -4,6 +4,11 @@ use testing
 
 test "default N = 20"
   use "0599_tv_show"
+  Input = (
+    "20\n" +
+    "a z a z a z a z a z\n" +
+    "a z a z a z a z a z"
+  )
   run
 
   BestScore equal 1250
