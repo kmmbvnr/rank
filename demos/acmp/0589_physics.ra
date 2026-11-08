@@ -117,7 +117,7 @@ fun solve_physics Inp
         CurT = T
         break
       end
-      InfTau = 1e18
+      InfTau = 1.0e18
       TauClamp = 0.0 max TauAll
       TauFiltered = (
         ValidTau choose TauClamp InfTau)

@@ -2,6 +2,8 @@ use testing
 
 test "sample 1: N = 8, K = 1"
   use "0077_zeros"
+  N = 8
+  K = 1
   run
 
   Answer equal 3
@@ -16,7 +18,7 @@ test "N = 100, K = 2"
   Answer equal 25
 end
 
-test "K = 0: powers of 2 minus 1 up to N"
+test "K = 0: powers of 2 up to N"
   use "0077_zeros"
   N = 8
   K = 0
