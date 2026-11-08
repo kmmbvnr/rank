@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type RankArray } from '../src/index.js';
-import { readArrayItem, typedArray } from '../src/array-storage.js';
+import { readArrayItem, typedArray, ownedScalarArray } from '../src/array-storage.js';
 import { prepareLayoutNumberTensor } from '../src/jit/tensor-number-layout.js';
 import type { TensorNode } from '../src/jit/tensor-ir.js';
 
@@ -79,10 +79,15 @@ Values sum`));
     const actual = observe(true), expected = observe(false);
     expect(actual.answer).toBe(value * 4096n);
     expect(actual.answer).toBe(expected.answer);
-    if (value === 3000000000n) expect(actual.diagnostics.numberTensors).toBeGreaterThan(0);
+    if (value <= (1n << 53n) - 1n) expect(actual.diagnostics.numberTensors).toBeGreaterThan(0);
 });
 
-it('retains the conservative cap for equal-size wide sums', () => {
+it('admits equal-size native word sums without a conversion buffer', () => {
     const source = input(new BigInt64Array(128).fill(3000000000n));
+    const run = prepareLayoutNumberTensor(source, domains(source), 'sum', new Map(), () => true);
+    expect(run?.()).toBe(3000000000n * 128n);
+});
+it('retains the copy cap for equal-size boxed wide sums', () => {
+    const source: TensorNode = { kind: 'input', value: ownedScalarArray(new Array(128).fill(1n << 100n), 'integer', [128]) };
     expect(prepareLayoutNumberTensor(source, domains(source), 'sum', new Map(), () => true)).toBeUndefined();
 });

@@ -1,3 +1,4 @@
+import { checkedIntegerSumStep } from './tensor-reduction-codegen.js';
 import { arrayRange } from '../range-plan.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import type { CompiledAtomType } from '@arrrank/language';
@@ -9,6 +10,7 @@ import { isRankArray } from '../value.js';
 import type { RankValue } from '../value.js';
 
 const overflow = {};
+const LOW = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 function safe(value: number): number {
     if (!Number.isSafeInteger(value)) throw overflow;
     return value;
@@ -20,7 +22,7 @@ function divide(a: number, b: number): number {
 }
 type Cells = ArrayLike<number | bigint>;
 type Check = (cell: RankValue, index: number) => RankValue;
-type Run = (data: Cells[], scalars: (number | boolean)[], size: number, indices: ArrayLike<number> | undefined, checks: Check[]) => number | number[];
+type Run = (data: Cells[], scalars: (number | boolean)[], size: number, indices: ArrayLike<number> | undefined, checks: Check[]) => bigint | number | number[];
 const caches = new WeakMap<TensorCodeCache, Map<string, Run>>();
 
 /** Private, checked Number registers for integer/boolean native recipes. Only
@@ -70,8 +72,15 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
             if (items.length !== node.value.shape[0]) return undefined;
             if (size !== undefined && size !== items.length) return undefined;
             size = items.length;
-            const read = `data[${data.push(items) - 1}][i]`;
-            value = cells ? read : `safe(Number(${read}))`;
+            if (items instanceof BigInt64Array && items.buffer instanceof ArrayBuffer) {
+                // A numeric register needs no allocated BigInt load or buffer copy.
+                const words = new Int32Array(items.buffer, items.byteOffset, items.length * 2);
+                const slot = data.push(words) - 1;
+                value = `safe(data[${slot}][i * 2 + ${1 - LOW}] * 4294967296 + (data[${slot}][i * 2 + ${LOW}] >>> 0))`;
+            } else {
+                const read = `data[${data.push(items) - 1}][i]`;
+                value = cells ? read : `safe(Number(${read}))`;
+            }
             const progression = arrayRange(node.value);
             if (progression && progression.count > 0n) {
                 const last = progression.start + (progression.count - 1n) * progression.step;
@@ -142,15 +151,16 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
     const interruptible = interruptsEnabled();
     const source = `return function(data, scalars, size, indices, checks) {
         const checked = [];
+        ${operation === 'sum' ? 'let total = 0n;' : ''}
         let result = ${operation === 'sum' ? '0' : '[]'};
         const count = indices ? indices.length : size;
         for (let at = 0; at < count; at++) {
             ${interruptible ? "if ((at & 4095) === 0) checkpoint('computing tensor', Math.min(4096, count - at));" : ''}
             const i = indices ? indices[at] : at;
             ${lines.join('\n')}
-            ${operation === 'sum' ? `result = safe(result + ${result.name});` : `if (${result.name}) result.push(i);`}
+            ${operation === 'sum' ? checkedIntegerSumStep(result.name) : `if (${result.name}) result.push(i);`}
         }
-        return result;
+        return ${operation === 'sum' ? 'total + BigInt(result)' : 'result'};
     }`;
     let cache = caches.get(code);
     if (!cache) caches.set(code, cache = new Map());

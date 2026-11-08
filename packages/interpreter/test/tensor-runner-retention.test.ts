@@ -32,3 +32,34 @@ it('cached Number tensor variants release their previous input buffers', () => {
     expect(result.error).toBeUndefined();
     expect(result.status, result.stderr).toBe(0);
 });
+
+it('cached native word sums release previous input buffers', () => {
+    const index = new URL('../out/array-storage.js', import.meta.url).href;
+    const operators = new URL('../out/operators.js', import.meta.url).href;
+    const maps = new URL('../out/tensor-map.js', import.meta.url).href;
+    const result = spawnSync(process.execPath, ['--expose-gc', '--input-type=module', '-e', `
+        import assert from 'node:assert/strict';
+        import { setImmediate } from 'node:timers/promises';
+        import { typedArray } from ${JSON.stringify(index)};
+        import { Operators } from ${JSON.stringify(operators)};
+        import { tensorPlanScope, reduceTensorMap } from ${JSON.stringify(maps)};
+        const references = [];
+        const scope = tensorPlanScope({lookup: () => undefined, builtin: () => true}, () => true, () => {});
+        const ops = new Operators(() => {}, () => undefined);
+        function call(size) {
+            const cells = new BigInt64Array(size).fill(1n << 40n);
+            references.push(new WeakRef(cells.buffer));
+            scope(() => {
+                const mapped = ops.evaluateBinary('*', typedArray(cells), 3n);
+                assert.equal(reduceTensorMap(mapped, 'sum'), 3n * (1n << 40n) * BigInt(size));
+            });
+        }
+        for (const size of [10000, 20000, 30000]) call(size);
+        for (let turn = 0; turn < 4; turn++) { await setImmediate(); global.gc(); }
+        assert.equal(references.filter(reference => reference.deref() !== undefined).length, 0,
+            'cached native word sum runners retain input buffers');
+        call(10000);
+    `], { encoding: 'utf8', timeout: 20000 });
+    expect(result.error).toBeUndefined();
+    expect(result.status, result.stderr).toBe(0);
+});

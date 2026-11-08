@@ -89,7 +89,7 @@ export function prepareNativeScalarView(value: RankArray): {
     const validate = arrayCellValidator(value);
     return { ...snapshot, shape, linear: linear && { ...linear },
         replaySafe: !view.check || view.pureCheck === true,
-        uniform: !value.columnNames && (!view.check || view.scalarCheck === true), valid() {
+        uniform: !value.columnNames && (!view.check || view.scalarCheck === true && view.pureCheck === true), valid() {
         const current = capture();
         return value.itemAt === view.reader && current.source === snapshot.source && current.offset === snapshot.offset
             && value.shape.length === shape.length && value.shape.every((n, axis) => n === shape[axis]);
@@ -187,8 +187,9 @@ export function prepareStoredScalarView(value: RankValue, allowChecks = false): 
         if (source.itemAt !== view.reader) return undefined;
         const needsCheck = view.accepts && !view.accepts();
         if (needsCheck && (!allowChecks || !view.check || !view.scalarCheck)) return undefined;
-        layers.push({ offset: view.offset, validate: arrayCellValidator(source), check: view.scalarCheck || needsCheck ? view.check : undefined, linear: view.linear?.(), regular: view.regular === true || view.linear !== undefined,
-            scalarCheck: !needsCheck || view.scalarCheck === true, columns: source.columnNames !== undefined });
+        const check = view.scalarCheck || needsCheck ? view.check : undefined;
+        layers.push({ offset: view.offset, validate: arrayCellValidator(source), check, linear: view.linear?.(), regular: view.regular === true || view.linear !== undefined,
+            scalarCheck: !check || view.scalarCheck === true && view.pureCheck === true, columns: source.columnNames !== undefined });
         source = typeof view.source === 'function' ? view.source() : view.source;
     }
     if (source.itemAt !== undefined) return undefined;
