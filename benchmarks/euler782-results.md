@@ -78,6 +78,11 @@ The TypeScript build, 65 ownership-boundary tests, application-form checks
 and five exclusion-policy tests also passed. The stricter cancellation
 assertion was checked again on Mac (12 tests).
 
+After integrating concurrent main changes (Euler 482/483 runtime work),
+the build, five exclusion-policy tests and 337 focused tests passed on Mac.
+A full-input integration check retained `318313204` (10.57 s, 500 MiB);
+this additional check is not included in the three-sample timing series.
+
 Implementation commits: `3b91f5a2` (runtime) and `aad48b6f` (demo and oracle).
 
 Build the runtime before each fresh-process sample:
