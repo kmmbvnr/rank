@@ -3,6 +3,7 @@ grammar Rank
 interface Expression {}
 
 interface ArrayAssignmentStatement {
+    modulus?: Expression
     name: string
     indices: AddressItem[]
     selectorRanks: AddressItem[]

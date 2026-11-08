@@ -39,7 +39,7 @@ for L in 0 till R
       end
       for Digit in 0 to (9 min (23 - S))
         Id = 23 * (S + Digit)
-        Id += (M * 10 + Digit) mod 23
+        Id += ((M * 10 + Digit) mod 23)
         Next Id += V
       end
     end

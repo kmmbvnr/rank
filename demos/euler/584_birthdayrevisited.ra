@@ -29,7 +29,7 @@ for Cd in 0 till Bs
   Sm = 0
   Cu = Cd
   for # in 1 to D
-    Sm += Cu mod K
+    Sm += (Cu mod K)
     Cu = Cu // K
   end
   if Sm at most K - 1
@@ -47,7 +47,7 @@ for S in 0 till Sn
   Sm = 0
   Cu = Cd
   for # in 1 to D
-    Sm += Cu mod K
+    Sm += (Cu mod K)
     Cu = Cu // K
   end
   Su S = Sm

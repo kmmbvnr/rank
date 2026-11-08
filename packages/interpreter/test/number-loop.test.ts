@@ -314,7 +314,7 @@ end`);
         'S = 9007199254740990\nfor I in 0 to 3\n S += 1\nend',
         'S = -9007199254740990\nfor I in 0 to 3\n S -= 1\nend',
         // Wider moduli still require exact replay for an unsafe product.
-        'S = 0\nA = 9007199254740991\nfor I in 0 to 2\n S += (A * 3) mod 1073741825\nend',
+        'S = 0\nA = 9007199254740991\nfor I in 0 to 2\n S += ((A * 3) mod 2147483649)\nend',
         'S = 0\nA = 9007199254740991\nfor I in 0 to 2\n S += A * 3 - A * 3\nend',
         'S = 0\nfor I in 9007199254740990 to 9007199254740991\n S += 1\nend',
         // An input trip count keeps this a replay test, not a growth proof.

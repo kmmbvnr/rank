@@ -59,7 +59,7 @@ for Len in 2 to (Size - 1)
       for K in I + 1 to (J - 1)
         Left = T I K
         Right = T K J
-        Sum += Left * Right mod Mod
+        Sum += (Left * Right mod Mod)
       end
       T I J = Sum mod Mod
     end

@@ -20,7 +20,7 @@ Weights = (0 till Count) mod 97
 Values = array shape 4096 fill 1`);
     const start = performance.now(), cpu = process.cpuUsage();
     runtime.execute(`for I in 1 to ${repeats}
- Values Keys += (Weights * 13 + 7) mod 101 ${accumulate ? ".accumulate" : ""}
+ Values Keys += ((Weights * 13 + 7) mod 101) ${accumulate ? ".accumulate" : ""}
  Done = I
 end`);
     const ms = performance.now() - start, used = process.cpuUsage(cpu);

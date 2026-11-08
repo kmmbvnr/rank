@@ -83,7 +83,7 @@ for K in First to Last
       Sum = (Sum + Term) mod Mod
     end
   end
-  Total += (Sum - 1) mod Mod
+  Total += ((Sum - 1) mod Mod)
 end
 Answer = Total mod Mod
 Answer print

@@ -35,7 +35,7 @@ for Bi in 0 to 1
   Dsv = Sv * 0
   Cg = Cu greater 0
   for Cg any
-    Dsv += Cu mod B
+    Dsv += (Cu mod B)
     Cu = Cu // B
     Cg = Cu greater 0
   end

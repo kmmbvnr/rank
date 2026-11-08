@@ -61,7 +61,7 @@ describe('packed read-only inputs beside private writes', () => {
         expect(compare(walk('Dest I = Value\nTotal += Keys sum')).numberLoopBorrowedIntegerBuffers).toBe(0);
     });
     it('does not borrow repeated nested reads', () => {
-        expect(compare(`${setup}\nfor I in 0 till 3\n for J in 0 till 2\n  Value = Keys I\n  Dest I += Value mod 7\n end\nend`).numberLoopBorrowedIntegerBuffers).toBe(0);
+        expect(compare(`${setup}\nfor I in 0 till 3\n for J in 0 till 2\n  Value = Keys I\n  Dest I += (Value mod 7)\n end\nend`).numberLoopBorrowedIntegerBuffers).toBe(0);
     });
     it('retains rebinding rather than borrowing the previous source', () => {
         expect(compare(walk('Dest I = Value\nKeys = Keys copy')).numberLoopBorrowedIntegerBuffers).toBe(0);

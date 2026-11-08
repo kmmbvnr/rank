@@ -16,7 +16,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
     return (assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined => {
         // Accumulation has its own numeric-only validation and reduction contract.
         // Only the private Number scatter below implements that contract.
-        if (assignment.accumulate) {
+        if (assignment.accumulate || assignment.modulus) {
             return numberMode && host.arrayWrites && host.compoundWrites
                 && !assignment.name.includes('.') && emitNumberScatter(state, expressions, assignment, body, location)
                 || reject(assignment);

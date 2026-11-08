@@ -147,7 +147,7 @@ for Ti in 0 to 2
     Cl = Pa Qa W bm
     Ev Si = (Ch - Cl) mod Md
   end
-  Answer += (Ev sum) * I2 mod Md
+  Answer += ((Ev sum) * I2 mod Md)
 end
 Answer = Answer mod Md
 Answer print

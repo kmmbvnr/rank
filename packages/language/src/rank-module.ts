@@ -4,7 +4,7 @@ import { ErrorLookaheadStrategy } from './error-lookahead.js';
 import { groupExpressions, type GroupingOptions } from './expression-grouping.js';
 import { SignatureLexer } from './signature-lexer.js';
 import { prepareFunctionDeclarations } from './function-declaration.js';
-import { normalizePrimaryApplications } from './primary-applications.js';
+import { normalizePrimaryApplications, normalizeModularAssignments } from './primary-applications.js';
 import { functionCallSignature } from './function-call-signature.js';
 import { functionBindingPlan } from './function-binding.js';
 import { isFunctionStatement, isFunctionBindingStatement, isProgram } from './generated/ast.js';
@@ -133,6 +133,7 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
                     prepareFunctionDeclarations(result.value);
                     normalizePrimaryApplications(result.value, lexer.operatorOffsets);
                     groupExpressions(result.value, grouping);
+                    normalizeModularAssignments(result.value);
                 }
                 return result;
             };

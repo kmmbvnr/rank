@@ -20,7 +20,7 @@ end
 rem W(k) is W(Exp) modulo p^Exp for all k >= Exp.
 Tail = 0
 for K in Exp to Q
-  Tail += S mod P
+  Tail += (S mod P)
   S = S * S mod 50515093
 end
 Answer = (Low + Tail * Weight) mod (P ** Exp)

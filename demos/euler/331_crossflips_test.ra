@@ -31,7 +31,7 @@ test "small boards match direct flips"
         if D at least Low and D less High
           Black = 1
         end
-        Count += (Black + P X + P Y) mod 2
+        Count += ((Black + P X + P Y) mod 2)
       end
     end
     return Count

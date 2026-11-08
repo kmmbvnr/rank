@@ -659,6 +659,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 return definition.parameters.includes(item.name) || definition.$container.$type === 'Program'
                     || !isBound(item.name) && (!enclosingBindings.has(item.name) || !!facts);
             }
+            if (isArrayAssignmentStatement(item) && item.modulus && !expression(item.modulus)) return false;
             if (isArrayAssignmentStatement(item) && facts && item.indices.length > 0
                 && item.indices.every(index => !index.all && !index.spread && index.value && isLabelLiteral(index.value))) {
                 // A write to a proven record field keeps the field's type, so no fact about any alias changes.

@@ -376,6 +376,7 @@ class Analyzer {
             this.read(statement.name, statement);
             for (const index of statement.indices) this.expression(index.value);
             this.expression(statement.value);
+            this.expression(statement.modulus);
             this.write(statement.name, statement);
             return;
         }

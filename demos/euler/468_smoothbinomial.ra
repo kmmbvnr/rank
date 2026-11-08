@@ -107,7 +107,7 @@ fun State merge_maps
   Totals = State .total
   Nodes = Keys // Stride
   Joined = Nodes // 2 * Stride
-  Joined += Keys mod Stride
+  Joined += (Keys mod Stride)
   Joined = 2 * Joined + Nodes mod 2
   Order = Joined argsort
   Joined = Joined Order

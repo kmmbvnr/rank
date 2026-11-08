@@ -35,6 +35,7 @@ export function wideLoopScalars(plan: IntegerLoopPlan): Set<string> {
         if (isArrayAssignmentStatement(node)) {
             node.indices.forEach(index => read(index.value));
             read(node.value);
+            read(node.modulus);
         }
         if (isApplicationExpression(node)) {
             const [head, ...indices] = flattenApplication(node);

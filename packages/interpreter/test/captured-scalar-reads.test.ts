@@ -115,7 +115,7 @@ describe('loop jumps in scalar functions', () => {
     end
     S = 0
     for N greater 0
-      S += N mod 10
+      S += (N mod 10)
       N //= 10
     end
     N = S

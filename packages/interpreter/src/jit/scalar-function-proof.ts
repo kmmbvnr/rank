@@ -824,6 +824,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 continue;
             }
             if (loops && isArrayAssignmentStatement(command)) {
+            if (command.modulus) return reject(command);
                 // Erased recipes read captured slots at demand time. Independent
                 // destinations may change, but a captured slot must still denote
                 // its construction-time array after copy-on-write detaches it.

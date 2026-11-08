@@ -106,7 +106,7 @@ export function compileArrayRegion(commands: readonly Statement[], start: number
         if (!node) return undefined;
         definitions.set(statement.name, node);
     }
-    if (!consumer || definitions.size < 2 || consumer.accumulate || consumer.name.includes('.')
+    if (!consumer || definitions.size < 2 || consumer.accumulate || consumer.modulus || consumer.name.includes('.')
         || definitions.has(consumer.name) || !['=', '+=', '-=', '*='].includes(consumer.operator)
         || consumer.indices.length !== 1 || consumer.indices[0].sign || consumer.indices[0].all
         || !consumer.indices[0].value || !statementResultDiscarded(consumer)) return undefined;

@@ -1262,6 +1262,15 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 });
                 invalidateCalls(statement.value, env);
                 const replacement = complete(inspect(statement.value, env), env);
+                let modulus: ValueFacts | undefined;
+                if (statement.modulus) {
+                    invalidateCalls(statement.modulus, env);
+                    modulus = complete(inspect(statement.modulus, env), env);
+                }
+                const updateTypes = (left: ValueFacts['types'], right: ValueFacts['types']) => {
+                    const types = compoundType(statement.operator, left, right);
+                    return modulus ? compoundType('mod=', types, modulus.types) : types;
+                };
                 if (statement.selectorRanks.length) {
                     try {
                         const form = rankedAddressAssignmentForm(statement)!;
@@ -1295,7 +1304,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     ...fact!, shape: Array(fact!.rank).fill(1),
                 });
                 const inserted = statement.operator === '=' ? replacement : {
-                    types: compoundType(statement.operator, fact?.elements ?? [], replacement.types), rank: 0,
+                    types: updateTypes(fact?.elements ?? [], replacement.types), rank: 0,
                 };
                 const elementConflict = cellWrite && arrayContractConflict(contract, inserted, statement.name, true);
                 if (elementConflict) diagnostics.push({ node: statement.value, kind: 'TypeError', message: elementConflict });
@@ -1305,9 +1314,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const fenwickIndex = statement.indices.length === 1 && !statement.indices[0].all
                     && !statement.indices[0].spread ? selectors[0] : undefined;
                 const fenwickValueTypes = statement.operator === '=' ? replacement.types
-                    : compoundType(statement.operator, ['integer'], replacement.types);
+                    : updateTypes(['integer'], replacement.types);
                 const segmentValueTypes = statement.operator === '=' ? replacement.types
-                    : compoundType(statement.operator, fact?.elements ?? [], replacement.types);
+                    : updateTypes(fact?.elements ?? [], replacement.types);
                 if (fact?.types.join() === 'fenwick' && fenwickIndex?.types.length
                     && fenwickIndex.types.every(type => type !== 'integer')) {
                     diagnostics.push({ node: statement.indices[0].value!, kind: 'TypeError',
@@ -1340,7 +1349,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && selector.elements?.join() === 'integer'
                     && (selector.eagerScalarCells === true || selector.callbackFreeScalarCells === true);
                 const lineTypes = statement.operator === '=' ? replacement.elements ?? []
-                    : compoundType(statement.operator, fact?.elements ?? [], replacement.elements ?? []);
+                    : updateTypes(fact?.elements ?? [], replacement.elements ?? []);
                 const lineWrite = !!fact && fact.rank === statement.indices.length
                     && fact.eagerScalarCells === true && !!fact.elements?.length
                     && fact.elements.every(type => type === 'integer' || type === 'real')
@@ -1359,7 +1368,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && !!fact.elements?.length && fact.elements.every(type => type === 'integer' || type === 'real')
                     && replacement.rank === 0 && replacement.types.length > 0
                     && replacement.types.every(type => type === 'integer' || type === 'real')
-                    ? compoundType(statement.operator, fact.elements, replacement.types) : [];
+                    ? updateTypes(fact.elements, replacement.types) : [];
                 const lineCompound = statement.operator !== '=' && !!fact && fact.rank === statement.indices.length
                     && fact.eagerScalarCells === true && !!fact.elements?.length
                     && fact.elements.every(type => type === 'integer' || type === 'real')
@@ -1368,7 +1377,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && statement.indices.filter(index => index.all).length === 1
                     && replacement.rank === 0 && replacement.types.length > 0
                     && replacement.types.every(type => type === 'integer' || type === 'real')
-                    ? compoundType(statement.operator, fact.elements, replacement.types) : [];
+                    ? updateTypes(fact.elements, replacement.types) : [];
                 if (fact?.types.join() === 'fenwick' && statement.indices.length === 1
                     && !statement.indices[0].all && !statement.indices[0].spread
                     && fenwickIndex?.types.join() === 'integer'

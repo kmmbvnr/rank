@@ -89,7 +89,7 @@ fun I digit_factorial_score Fa Dd Length
     Pp = 1
     Sb = 0
     for P in 1 to 22
-      Sb += Dg mod 10
+      Sb += (Dg mod 10)
       Dg = Dg // 10
       Pp *= 10
       if Dg mod 10 less 9 and Sb at least 1

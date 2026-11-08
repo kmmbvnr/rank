@@ -60,7 +60,7 @@ for I in Is
   V = N // Ts I
   S = V isqrt
   Hy = 2 * ((V // (1 to S)) sum) - S * S
-  Answer += Hy mod M * Ws I mod M
+  Answer += (Hy mod M * Ws I mod M)
 end
 Bg = Ts greater B
 Ib = Bg indices

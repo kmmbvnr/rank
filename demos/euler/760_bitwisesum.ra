@@ -43,7 +43,7 @@ for Spot in 0 to 61
   Fresh = array shape 4 fill 0
   Added = array shape 4 fill 0
   Fresh To += Here .accumulate
-  Added To += Part mod Prime .accumulate
+  Added To += (Part mod Prime) .accumulate
   Count = Fresh mod Prime
   Sum = Added mod Prime
 end

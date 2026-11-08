@@ -58,3 +58,12 @@ it('does not extract a label from the dimensions of a multiline array', async ()
     expect(document.parseResult.parserErrors).toEqual([]);
     expect(document.parseResult.value.statements.at(-1)).toMatchObject({ accumulate: false });
 });
+
+it('distinguishes modular updates from a parenthesized RHS residue', async () => {
+    const document = await parse('A = array 1\nM = 7\nA 0 *= 3 mod M .accumulate\nA 0 *= (3 mod M) .accumulate', { validation: true });
+    expect(document.diagnostics).toEqual([]);
+    const statements = document.parseResult.value.statements;
+    expect(statements[2]).toMatchObject({ operator: '*=', accumulate: true,
+        value: { $type: 'NumberLiteral', value: 3n }, modulus: { name: 'M' } });
+    expect(statements[3]).not.toHaveProperty('modulus');
+});

@@ -118,7 +118,7 @@ Pq = Pl * Sh + Q
 for Lv greater 0
   Nd = Ky // H1
   Kz = (Nd // 2 * H1 + Ky mod H1) * 2
-  Kz += Nd mod 2
+  Kz += (Nd mod 2)
   Od = Kz argsort
   Kz = Kz Od
   Pq = Pq Od

@@ -211,3 +211,26 @@ function extractAccumulate(expression: Expression): { value: Expression; accumul
     }
     return { value: expression, accumulate: false };
 }
+
+/** Trailing mod belongs to a compound update; parentheses retain RHS-only mod. */
+export function normalizeModularAssignments(program: Program): void {
+    for (const node of AstUtils.streamAst(program).toArray()) {
+        if (!isArrayAssignmentStatement(node) && !isAssignmentStatement(node)) continue;
+        if (node.operator !== '=' && isBinaryExpression(node.value) && node.value.operator === 'mod') {
+            const { left, right } = node.value;
+            if (isArrayAssignmentStatement(node)) {
+                node.value = left;
+                node.modulus = right;
+            } else if (isAssignmentStatement(node) && !node.accumulate) {
+                node.value.left = { $type: 'ParenthesizedExpression', value: {
+                    $type: 'BinaryExpression', operator: node.operator.slice(0, -1),
+                    left: { $type: 'NameExpression', name: node.name }, right: left } } as Expression;
+                if (isParenthesizedExpression(node.value.left)) AstUtils.linkContentToContainer(node.value.left.value);
+                node.operator = '=';
+                AstUtils.linkContentToContainer(node.value.left);
+                AstUtils.linkContentToContainer(node.value);
+            }
+        }
+        AstUtils.linkContentToContainer(node);
+    }
+}

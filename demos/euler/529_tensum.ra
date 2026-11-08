@@ -211,7 +211,7 @@ for J in Nb - 1 to 0 by -1
   Cv = array shape W fill 0
   Cv Kd += Pr .accumulate
   Cv = 2 * Cv
-  Cv Dg += Xc * Xc mod P
+  Cv Dg += (Xc * Xc mod P)
   Cv = Cv mod P
   Hg = Cv (R till W)
   Hl = Hg mod 32768

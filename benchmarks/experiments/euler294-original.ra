@@ -45,8 +45,8 @@ for B in 0 till Bits
         for J in 0 till (23 * (24 - S1))
           S2 = J // 23
           To = 23 * (S1 + S2)
-          To += (Sh + J mod 23) mod 23
-          Res To += X * Pw J mod Mod
+          To += ((Sh + J mod 23) mod 23)
+          Res To += (X * Pw J mod Mod)
         end
       end
       Out = Res mod Mod

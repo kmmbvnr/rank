@@ -55,7 +55,7 @@ for Ps in 0 to 1
   for T in 0 till Lv
     Q = Is // (2 * Pw)
     Ky = Q * M4 + R4
-    Ky += Is // Pw mod 4
+    Ky += (Is // Pw mod 4)
     Lo = Ky sort mod 4
     Hb = Lo // 2
     Sh = Is * Hb sum

@@ -2923,3 +2923,9 @@ it('infers reshape placeholders from the total tensor size', () => {
         .toEqual(['reshape cannot infer # when another dimension is zero']);
     expect(messages('use sequences\nfun A column\n return A reshape # 1\nend')).toEqual([]);
 });
+
+it('includes the modulus type in an indexed compound replacement', () => {
+    expect(messages('A = array 6\nA 0 += 3 mod 2.5'))
+        .toContain('A has array elements of type integer and cannot receive real');
+    expect(messages('A = array 6.0\nA 0 += 3 mod 2.5')).toEqual([]);
+});

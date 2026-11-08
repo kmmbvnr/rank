@@ -24,7 +24,7 @@ Answer print
 fun N digit_sum
   Sum = 0
   for N greater 0
-    Sum += N mod 10
+    Sum += (N mod 10)
     N //= 10
   end
   return Sum

@@ -227,6 +227,11 @@ Mask xor= Changed
 The current compound assignment operators are `+=`, `-=`, `*=`, `**=`, `/=`,
 `//=`, `mod=`, `and=`, `or=` and `xor=`.
 
+A top-level trailing `mod` reduces the updated value: `Total += Value mod M`
+means `Total = (Total + Value) mod M`. Parenthesize the RHS to add only its
+residue: `Total += (Value mod M)`. This also applies to indexed writes, including
+[modular accumulation](sequences-arrays.md).
+
 The same operators may update an addressed material-array selection:
 
 ```rank

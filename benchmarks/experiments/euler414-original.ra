@@ -111,7 +111,7 @@ for K in First to Last
       Sm = (Sm + Wt) mod Mod
     end
   end
-  Tot += (Sm - 1) mod Mod
+  Tot += ((Sm - 1) mod Mod)
 end
 Answer = Tot mod Mod
 Answer print

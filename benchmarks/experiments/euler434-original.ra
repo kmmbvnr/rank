@@ -59,7 +59,7 @@ for M in 1 to N
       V -= Tm sum
     end
     Rg M Q = V mod Mod
-    Tot += V mod Mod
+    Tot += (V mod Mod)
   end
 end
 Answer = Tot mod Mod

@@ -131,7 +131,7 @@ export function prepareRegionArrayWrite(statement: ArrayAssignmentStatement, hos
 
 /** `Name Selectors = Value` and `op=`: a write into what a name holds. */
 export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host: AssignmentContext): PreparedStatement {
-    const recipe = statementResultDiscarded(statement) ? numericUpdateExpression(statement.value) : undefined;
+    const recipe = !statement.modulus && statementResultDiscarded(statement) ? numericUpdateExpression(statement.value) : undefined;
     const fused = recipe && computedArrayUpdate(recipe, statement.operator);
     let ranks: readonly (number | '#')[] | undefined;
     try { ranks = rankedAddressAssignmentForm(statement)?.ranks; }
@@ -150,6 +150,11 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         }
         if (statement.accumulate && (!isRankArray(target) || target.kind !== 'array' || isRankTable(target) || target instanceof FlatRecords)) {
             throw new RankError('.accumulate expects a numeric array target', 'TypeError');
+        }
+        if (statement.modulus && (!isRankArray(target) || target.kind !== 'array'
+            || isRankTable(target) || target instanceof FlatRecords
+            || selectors.some(selector => isRankLabel(selector) && selector.name !== '#'))) {
+            throw new RankError('modular assignment expects numeric array cells', 'TypeError');
         }
         if (isRankTable(target)) {
             // A table is a value: a write makes a new version and rebinds the name.
@@ -209,6 +214,51 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             const last = linear.offset + (count - 1) * linear.stride;
             return owned(target, Math.min(linear.offset, last), Math.max(linear.offset, last) + 1);
         };
+        if (statement.modulus) {
+            let result = demandValue(yield* resume(host.evaluate(statement.value)));
+            if (isRankSequence(result)) result = materializeSequence(result);
+            if (isRankArray(result) && !sameShape(selection.shape, result.shape)) {
+                throw new RankError(`assignment shape mismatch: ${selection.shape} and ${result.shape}`, 'DimensionMismatch');
+            }
+            const operands = isRankArray(result)
+                ? Array.from({ length: count }, (_, index) => demandValue(readArrayItem(result, index))) : undefined;
+            const modulus = demandValue(yield* resume(host.evaluate(statement.modulus)));
+            if (typeof modulus !== 'bigint' && typeof modulus !== 'number') {
+                throw new RankError('modular assignment expects a scalar modulus', 'TypeError');
+            }
+            const binary = (operation: string, left: RankValue, right: RankValue) =>
+                host.operators.evaluateBinary(operation, left, right);
+            // Validate even an empty selection. No destination is changed until
+            // every index, operand and replacement has been checked.
+            binary('mod', typeof modulus === 'bigint' ? 0n : 0, modulus);
+            const operation = assignmentOperator(statement.operator);
+            const updates = new Map<number, RankValue>();
+            for (let index = 0; index < count; index++) {
+                checkpoint('preparing modular array updates');
+                const offset = selection.offsetAt(index);
+                let left = statement.accumulate && updates.has(offset) ? updates.get(offset)!
+                    : demandValue(readArrayItem(target, offset));
+                let right = operands ? operands[index] : result;
+                if (typeof left !== 'bigint' && typeof left !== 'number'
+                    || typeof right !== 'bigint' && typeof right !== 'number') {
+                    throw new RankError('modular assignment expects numeric array cells and updates', 'TypeError');
+                }
+                if (typeof left === 'bigint' && typeof right === 'bigint' && typeof modulus === 'bigint'
+                    && ['+', '-', '*'].includes(operation)) {
+                    left = binary('mod', left, modulus);
+                    right = binary('mod', right, modulus);
+                }
+                updates.set(offset, binary('mod', binary(operation, left, right), modulus));
+            }
+            const offsets = [...updates.keys()];
+            const checked = host.checkArrayWrite(statement.name, target, [...updates.values()], offsets);
+            const destination = ownedSelection() as typeof target;
+            for (let index = 0; index < offsets.length; index++) {
+                checkpoint('writing modular array updates');
+                writeArrayCell(destination, offsets[index], checked[index]);
+            }
+            return result;
+        }
         if (fused && evaluated === undefined && host.options().compilation !== false
             && (!statement.accumulate || !demandBudgetEnabled())) {
             const update = fused(target, selection, host);
@@ -426,7 +476,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
     const directIndex = address && !address.all && !address.sign && !address.spread && address.value
         ? host.compileDirect(address.value) : undefined;
     const directValue = host.compileDirect(statement.value);
-    if (directIndex && !statement.accumulate) {
+    if (directIndex && !statement.accumulate && !statement.modulus) {
         // One integer index into a stored vector is the shape dynamic
         // programming writes in its inner loop. Its address needs no
         // selector list or tensor selection; broader shapes fall through

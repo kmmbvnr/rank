@@ -1,5 +1,6 @@
 import { flattenApplication, isApplicationExpression, loopOperatorSignature, isParenthesizedExpression, isBinaryExpression, isNameExpression, isNumberLiteral, isBooleanLiteral, type Expression, type ArrayAssignmentStatement } from '@arrrank/language';
 import type { LoopCompilationState } from './integer-loop-state.js';
+import type { LoopTerm } from './integer-loop-plan.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
 
 /** Vector selection prepares every index before the RHS and snapshots aliased
@@ -13,7 +14,7 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     const selector = assignment.indices[0].value;
     let range = selector;
     while (range && isParenthesizedExpression(range)) range = range.value;
-    if (range && isBinaryExpression(range) && ['to', 'till'].includes(range.operator)) return undefined;
+    if (!assignment.modulus && range && isBinaryExpression(range) && ['to', 'till'].includes(range.operator)) return undefined;
     if (!selector || assignment.indices[0].all || assignment.indices[0].sign
         || expressions.arrayType(selector)?.element !== 'integer') return undefined;
     const discarded = state.resultDiscarded(assignment);
@@ -25,6 +26,27 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
         const signature = loopOperatorSignature(assignment.operator.slice(0, -1), [type, type], state.host.nativeCalls);
         if (type === 'boolean' || !signature?.compound || signature.result !== type) return undefined;
     }
+    if (assignment.modulus && (type !== 'integer' || !isNameExpression(assignment.modulus)
+        && !isNumberLiteral(assignment.modulus))) return undefined;
+    const modulus = assignment.modulus ? `modulus${state.serial++}` : '';
+    const prepareModulus = (lines: string[]): boolean => {
+        if (!assignment.modulus) return true;
+        const value = expressions.emit(assignment.modulus, lines, 'integer');
+        if (value?.type !== 'integer') return false;
+        lines.push(`const ${modulus} = ${value.code};`,
+            `if (!(${modulus} > 0 && ${modulus} <= 2147483648)) throw overflow;`);
+        return true;
+    };
+    const combine = (left: LoopTerm, right: LoopTerm, lines: string[]): string | undefined => {
+        const operation = assignment.operator.slice(0, -1);
+        if (!assignment.modulus) return expressions.arithmetic(operation, left, right, type, lines);
+        if (operation === '*') return `mulmod(${left.code}, ${right.code}, ${modulus})`;
+        const value = `residue${state.serial++}`;
+        // Each operand is reduced before addition/subtraction, so even inputs
+        // near MAX_SAFE_INTEGER have an exact, bounded intermediate sum.
+        lines.push(`const ${value} = ((${left.code} % ${modulus}) ${operation} (${right.code} % ${modulus})) % ${modulus};`);
+        return `(${value} < 0 ? ${value} + ${modulus} : ${value})`;
+    };
     const target = old ?? { slot: expressions.slot(assignment.name), rank: 1, compound, type };
     destinations.set(assignment.name, target);
     state.currentScope()?.assigned.add(assignment.name);
@@ -58,7 +80,7 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
             const arrayRhs = !!expressions.arrayType(assignment.value);
             const rhsVector = arrayRhs ? expressions.numberVector(assignment.value, setup) : undefined;
             const rhs = arrayRhs ? undefined : expressions.emit(assignment.value, setup, type);
-            if (arrayRhs ? rhsVector?.type === type : rhs?.type === type) {
+            if ((arrayRhs ? rhsVector?.type === type : rhs?.type === type) && prepareModulus(setup)) {
                 const operand = `fill${state.serial++}`;
                 const store = (compact: boolean): string | undefined => {
                     const index = `stream${state.serial++}`, stores: string[] = [];
@@ -69,9 +91,9 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
                         compact, offsets: new Map(), values: new Map() });
                     if (rhsVector && rhsCell?.type !== type) return undefined;
                     const operations: string[] = [];
-                    const value = compound ? expressions.arithmetic(assignment.operator.slice(0, -1),
+                    const value = compound ? combine(
                         { code: `${cells}[${key.code}]`, type, bounds: compact ? [-2147483648, 2147483647] : undefined },
-                        rhsCell ?? { code: operand, type, bounds: compact ? [-2147483648, 2147483647] : rhs!.bounds }, type, operations) : operand;
+                        rhsCell ?? { code: operand, type, bounds: compact ? [-2147483648, 2147483647] : rhs!.bounds }, operations) : operand;
                     if (!value) return undefined;
                     const next = `next${state.serial++}`;
                     return expressions.numberVectorLoop(vector.size, index, [...stores,
@@ -138,14 +160,15 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
         value = type === 'boolean' ? `Boolean(${operand}[${index}])`
             : type === 'real' ? `Number(${operand}[${index}])` : `safe(Number(${operand}[${index}]))`;
     }
+    if (!prepareModulus(lines)) return undefined;
     if (assignment.accumulate && type === 'real') {
         // Real accumulation reduces the updates per key first, then applies
         // one operation to the old cell. Sequential -= or *= changes rounding.
         const groups = `groups${n}`, prior = `prior${n}`, reduced = `reduced${n}`;
         const operation = assignment.operator === '*=' ? '*' : '+';
         const arithmetic: string[] = [];
-        const next = expressions.arithmetic(assignment.operator.slice(0, -1),
-            { code: `${cells}[${key}]`, type }, { code: reduced, type }, type, arithmetic);
+        const next = combine(
+            { code: `${cells}[${key}]`, type }, { code: reduced, type }, arithmetic);
         if (!next) return undefined;
         body.push(`location = ${location};`, ...lines, `const ${groups} = new Map();`,
             expressions.numberVectorLoop(`${keys}.length`, index, [
@@ -161,8 +184,8 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
         // before committing stores, so the last occurrence wins rather than
         // accumulating earlier writes. Keep the original RHS as the result.
         const updates = `updates${n}`, operations: string[] = [];
-        const next = expressions.arithmetic(assignment.operator.slice(0, -1),
-            { code: `${cells}[${key}]`, type }, { code: value, type }, type, operations);
+        const next = combine(
+            { code: `${cells}[${key}]`, type }, { code: value, type }, operations);
         if (!next) return undefined;
         lines.push(`const ${updates} = vectorArray(${selected.code}.shape, ${type === 'real'}, vectorPool, vectorLive,
             [result, iterationResult, ${keys}, ${operand}, ${cells}]);`,
@@ -174,8 +197,8 @@ export function emitNumberScatter(state: LoopCompilationState, expressions: Loop
     }
     const accumulation: string[] = [];
     if (assignment.accumulate) {
-        const next = expressions.arithmetic(assignment.operator.slice(0, -1),
-            { code: `${cells}[${key}]`, type }, { code: value, type }, type, accumulation);
+        const next = combine(
+            { code: `${cells}[${key}]`, type }, { code: value, type }, accumulation);
         if (!next) return undefined;
         value = next;
     }

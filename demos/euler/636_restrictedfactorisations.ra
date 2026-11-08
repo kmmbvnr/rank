@@ -129,7 +129,7 @@ for R in 0 to Ng - 1
     Rh = Gv (Hl till 2 * Hl)
     Gv = Lh * Rh mod Md
   end
-  Total += (Cm R mod Md) * Gv 0 mod Md
+  Total += ((Cm R mod Md) * Gv 0 mod Md)
 end
 Iv = 288 (Md - 2) Md powmod
 Answer = Total mod Md * Iv mod Md

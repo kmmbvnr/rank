@@ -764,6 +764,34 @@ Real-number results may differ in rounding between reduction orders or backends.
 Other assignment operators reject `.accumulate`; plain `=` keeps its
 last-replacement behavior.
 
+A trailing, unparenthesized `mod M` on a compound assignment applies to
+its updated value, including the previous destination value:
+
+```rank
+Total = 6
+Total += 3 mod 7
+rem Total is 2
+A = array 6 5
+A (array 0 0) *= 3 mod 7 .accumulate
+rem A is 5 5
+```
+
+`Total += Value mod M` means `Total = (Total + Value) mod M`.
+Use `Total += (Value mod M)` to add only the RHS residue without reducing
+Total. The same rule applies to other compound operators. Only a top-level
+trailing `mod` has this meaning; `Total += Value mod M sum` still adds the sum.
+
+Indexed modular updates require numeric array cells and a scalar modulus.
+Selectors, RHS values and modulus are evaluated before committing replacements.
+Without `.accumulate`, repeated indices still read the original cell.
+With `.accumulate`, each update reduces the accumulated cell modulo M.
+For integers, addition, subtraction and multiplication can reduce operands
+and intermediate results without changing the answer, avoiding growing products.
+Integers remain exact beyond fixed-width limits. Division and real-number
+arithmetic apply the operation first, then `mod`; their operands are not
+reduced early. Real accumulating modular updates follow selection order.
+A zero integer modulus is an error, including for an empty selection.
+
 Deferred results of `outer` and `window` are read-only recipes. An ordinary
 binding such as `Saved = Plan` completes a finite result and makes it writable;
 no trailing `copy` or `array` is required.
