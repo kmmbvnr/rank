@@ -1,15 +1,7 @@
-rem ACMP 232 - Dense Forest 2 (Дремучий лес - 2)
-rem Solved in Euler 1-15 style with geometric duality and interval projection.
-rem
-rem A forest of non-overlapping disks is "dense" if no straight line can separate
-rem them into two non-empty subsets without intersecting any disk.
-rem
-rem By duality, a separating line with normal angle Theta exists if and only if
-rem the 1D shadow intervals [center * u - r, center * u + r] have a gap.
-rem The connectivity of these intervals can only change at the critical angles of
-rem inner common tangents between pairs of disks. We compute all critical tangent
-rem angles, sample the midpoint angles, and verify 1D interval connectivity using
-rem vector projections, argsort, and prefix scans.
+rem Dense Forest 2
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=232
+rem Dense forest via tangent duality
 
 use io
 use cli
@@ -17,13 +9,23 @@ use sequences
 use text
 use numbers
 
-arg N integer = 3
-arg TreesText text = "0 10 2 5 11 2 12.04 7 2"
+arg N integer = 8
+arg TreesText text = (
+  "50.0 0.0 25.0 " +
+  "35.36 35.36 25.0 " +
+  "0.0 50.0 25.0 " +
+  "-35.36 35.36 25.0 " +
+  "-50.0 0.0 25.0 " +
+  "-35.36 -35.36 25.0 " +
+  "0.0 -50.0 25.0 " +
+  "35.36 -35.36 25.0"
+)
 
 Pi = -1 acos
 Eps = 1e-7
 
-TP = (TreesText split "\n" join " ") split " "
+RawT = TreesText split "\n"
+TP = (RawT join " ") split " "
 Tokens = (TP (not (TP equal ""))) real
 
 X = array shape N fill 0.0
@@ -39,7 +41,7 @@ end
 Answer = "YES"
 
 if N greater 1
-  rem Collect inner common tangent angles
+  rem Inner common tangent angles
   Angles = array shape 0 fill 0.0
   for I in 0 till N
     XI = X I
@@ -48,14 +50,14 @@ if N greater 1
     for J in I + 1 till N
       DX = (X J) - XI
       DY = (Y J) - YI
-      Dist = ((DX * DX) + (DY * DY)) sqrt
+      DistSq = (DX * DX) + (DY * DY)
+      Dist = DistSq sqrt
       RadSum = RI + (R J)
       if Dist greater RadSum
         CosVal = RadSum / Dist
         if not (CosVal greater 1.0)
           Alpha = CosVal acos
           Base = DY atan2 DX
-          rem Modulo Pi
           Ang1 = Base + Alpha
           for Ang1 less 0.0
             Ang1 = Ang1 + Pi
@@ -72,58 +74,72 @@ if N greater 1
             Ang2 = Ang2 - Pi
           end
 
-          Angles = concat Angles (array Ang1 Ang2)
+          PairAng = array Ang1 Ang2
+          Angles = concat Angles PairAng
         end
       end
     end
   end
 
-  TestAngles = array shape 0 fill 0.0
-  NumAngles = Angles len
+  AllAngles = Angles sort
+  NumAngles = AllAngles len
 
+  TestAngles = array shape 0 fill 0.0
   if NumAngles equal 0
     TestAngles = array 0.0
   else
-    SortedAngles = Angles sort
-    for I in 0 till NumAngles
-      NextI = (I + 1) mod NumAngles
-      T1 = SortedAngles I
-      T2 = SortedAngles NextI
-      if T2 less T1
-        T2 = T2 + Pi
+    for K in 0 till NumAngles
+      A1 = AllAngles K
+      NextK = (K + 1) mod NumAngles
+      A2 = AllAngles NextK
+      Diff = A2 - A1
+      if Diff less 0.0
+        Diff = Diff + Pi
       end
-      Mid = (T1 + T2) / 2.0
+      Mid = A1 + (Diff / 2.0)
+      for Mid less 0.0
+        Mid = Mid + Pi
+      end
       for not (Mid less Pi)
         Mid = Mid - Pi
       end
-      TestAngles = concat TestAngles (array Mid)
+      MidArr = array Mid
+      TestAngles = (
+        concat TestAngles MidArr
+      )
     end
   end
 
-  FoundClearing = false
-  for Ang in TestAngles
-    if not FoundClearing
-      Ux = Ang cos
-      Uy = Ang sin
-      Proj = (X * Ux) + (Y * Uy)
-      Starts = Proj - R
-      Ends = Proj + R
+  CanSeparate = false
+  for Th in TestAngles
+    UX = Th cos
+    UY = Th sin
+    Proj = (X * UX) + (Y * UY)
+    Starts = Proj - R
+    Ends = Proj + R
 
-      Perm = Starts argsort
-      SStarts = Starts Perm
-      SEnds = Ends Perm
+    Order = Starts argsort
+    SStarts = Starts Order
+    SEnds = Ends Order
 
-      M = SEnds scan max with (SEnds 0) array
-      PrevMax = (M (1 till N)) + Eps
-      Gaps = (SStarts (1 till N)) greater PrevMax
-      if Gaps count greater 0
-        FoundClearing = true
-      end
+    FirstEnd = SEnds 0
+    ScanM = (
+      SEnds scan max with FirstEnd
+    )
+    M = ScanM array
+    PrevMax = (M (1 till N)) + Eps
+    DropStarts = SStarts (1 till N)
+    Gaps = DropStarts greater PrevMax
+    if Gaps count greater 0
+      CanSeparate = true
+      break
     end
   end
 
-  if FoundClearing
+  if CanSeparate
     Answer = "NO"
+  else
+    Answer = "YES"
   end
 end
 

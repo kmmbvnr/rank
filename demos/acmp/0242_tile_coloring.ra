@@ -1,18 +1,7 @@
-rem ACMP 242 - Tile Coloring (Раскраска плиток)
-rem Solved in Euler 1-15 style with array-oriented line covering and cascade analysis.
-rem
-rem Tom Sawyer wants to repaint an N x N yard into a single color C (1 <= K < N).
-rem A row or column can only be repainted if it currently has at least 2 tiles of that color.
-rem Every tile must be painted with the new paint, so either all N rows or all N columns
-rem must be painted.
-rem
-rem Since two perpendicular painted lines intersect every parallel line, any 2 painted
-rem lines immediately satisfy all lines of the opposite orientation.
-rem Thus the minimum operations L can only be:
-rem   1. L = N: if all rows or all columns already have >= 2 tiles of color C.
-rem   2. L = N + 1: if 1 column (or row) with >= 2 tiles gives all rows (or cols) >= 2 tiles.
-rem   3. L = N + 2: if a cascade reaches at least 2 rows or 2 columns of color C.
-rem If no color works, the answer is "0 0".
+rem Tile Coloring
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=242
+rem Repaint yard into single color
 
 use io
 use cli
@@ -20,11 +9,21 @@ use sequences
 use text
 use numbers
 
-arg N integer = 3
-arg K integer = 2
-arg GridText text = "1 2 1\n2 1 1\n1 2 2"
+arg N integer = 8
+arg K integer = 5
+arg GridText text = (
+  "1 2 3 4 5 1 2 3\n" +
+  "2 3 4 5 1 2 3 4\n" +
+  "3 4 5 1 2 3 4 5\n" +
+  "4 5 1 2 3 4 5 1\n" +
+  "5 1 2 3 4 5 1 2\n" +
+  "1 2 3 4 5 1 2 3\n" +
+  "2 3 4 5 1 2 3 4\n" +
+  "3 4 5 1 2 3 4 5"
+)
 
-GP = (GridText split "\n" join " ") split " "
+RawGP = GridText split "\n"
+GP = (RawGP join " ") split " "
 GT = (GP (not (GP equal ""))) integer
 Grid = GT reshape N N
 
@@ -33,12 +32,15 @@ BestC = 0
 
 for C in 1 to K
   ColorMask = Grid equal C
-  RowCnt = (ColorMask integer) sum axis -1
-  ColCnt = (ColorMask integer) sum axis 0
+  RowInt = ColorMask integer
+  RowCnt = RowInt sum axis -1
+  ColCnt = RowInt sum axis 0
 
   rem Check L = N
-  RowsOk = (RowCnt greater 1) count equal N
-  ColsOk = (ColCnt greater 1) count equal N
+  R2 = RowCnt greater 1
+  RowsOk = R2 count equal N
+  C2 = ColCnt greater 1
+  ColsOk = C2 count equal N
 
   if RowsOk or ColsOk
     if N less BestL
@@ -54,19 +56,22 @@ for C in 1 to K
       ColSlice = ColorMask # J
       ColInc = (not ColSlice) integer
       NewRowCnt = RowCnt + ColInc
-      if (NewRowCnt greater 1) count equal N
+      NR2 = NewRowCnt greater 1
+      if NR2 count equal N
         CanN1 = true
         break
       end
     end
 
     if not CanN1
-      RowCand = (RowCnt greater 1) indices
+      RowG1 = RowCnt greater 1
+      RowCand = RowG1 indices
       for I in RowCand
         RowSlice = ColorMask I
         RowInc = (not RowSlice) integer
         NewColCnt = ColCnt + RowInc
-        if (NewColCnt greater 1) count equal N
+        NC2 = NewColCnt greater 1
+        if NC2 count equal N
           CanN1 = true
           break
         end
@@ -80,7 +85,7 @@ for C in 1 to K
       end
     else
       rem Check L = N + 2 via cascade
-      CurMask = ColorMask integer
+      CurMask = RowInt
       PaintedR = array shape N fill 0
       PaintedC = array shape N fill 0
 
@@ -91,15 +96,22 @@ for C in 1 to K
         CurColCnt = CurMask sum axis 0
 
         for I in 0 till N
-          if ((PaintedR I) equal 0) and ((CurRowCnt I) greater 1)
+          UnpR = (PaintedR I) equal 0
+          CntRI = CurRowCnt I
+          Has2R = CntRI greater 1
+          if UnpR and Has2R
             PaintedR I = 1
-            CurMask I = array shape N fill 1
+            Row1 = array shape N fill 1
+            CurMask I = Row1
             Changed = true
           end
         end
 
         for J in 0 till N
-          if ((PaintedC J) equal 0) and ((CurColCnt J) greater 1)
+          UnpC = (PaintedC J) equal 0
+          CntCJ = CurColCnt J
+          Has2C = CntCJ greater 1
+          if UnpC and Has2C
             PaintedC J = 1
             for I in 0 till N
               CurMask I J = 1
@@ -109,7 +121,12 @@ for C in 1 to K
         end
       end
 
-      if ((PaintedR sum) greater 1) or ((PaintedC sum) greater 1)
+      SumR = PaintedR sum
+      SumC = PaintedC sum
+      BigR = SumR greater 1
+      BigC = SumC greater 1
+      Reach2 = BigR or BigC
+      if Reach2
         if (N + 2) less BestL
           BestL = N + 2
           BestC = C
@@ -121,7 +138,9 @@ end
 
 Answer = "0 0"
 if BestL less 1000000000
-  Answer = (BestL text) + " " + (BestC text)
+  OutL = BestL text
+  OutC = BestC text
+  Answer = OutL + " " + OutC
 end
 
 Answer print

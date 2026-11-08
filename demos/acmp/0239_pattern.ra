@@ -1,15 +1,7 @@
-rem ACMP 239 - Pattern (Узор)
-rem Solved in Euler 1-15 style with exact-cover bitmask dynamic programming.
-rem
-rem We want to tile an N x M room where some squares are already covered (2) and
-rem the rest must match specific binary colors (0 or 1).
-rem Available tiles come in 4 shapes (1x1, 1x2 domino, 1x3 tromino, corner L-tromino)
-rem with given colors and costs, and can be rotated by multiples of 90 degrees.
-rem
-rem We identify all U target squares that need tiling, generate all valid tile
-rem placements on the grid, and solve the exact-cover problem with bitmask DP:
-rem   DP[mask | tile_mask] = min(DP[mask | tile_mask], DP[mask] + cost)
-rem where each step covers the lowest unset bit to prevent redundant orderings.
+rem Pattern
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=239
+rem Exact-cover room tiling with DP
 
 use io
 use cli
@@ -21,21 +13,29 @@ use bits
 arg N integer = 4
 arg M integer = 3
 arg K integer = 3
-arg GridText text = "2 2 2\n2 0 0\n2 1 2\n2 2 2"
-arg TilesText text = "2 10 0 0\n1 5 1\n4 6 0 0 1"
+arg GridText text = (
+  "2 2 2\n" +
+  "2 0 0\n" +
+  "2 1 2\n" +
+  "2 2 2"
+)
+arg TilesText text = (
+  "2 10 0 0\n" +
+  "1 5 1\n" +
+  "4 6 0 0 1"
+)
 
 INF = 1000000000
 
-rem Parse Grid
-GP = (GridText split "\n" join " ") split " "
+RawGP = GridText split "\n"
+GP = (RawGP join " ") split " "
 GT = (GP (not (GP equal ""))) integer
 
-rem Collect target cells that need tiling (value != 2)
 TargetR = array shape 0 fill 0
 TargetC = array shape 0 fill 0
 TargetColor = array shape 0 fill 0
-
-TargetLookup = (array shape (N * M) fill -1)
+NM = N * M
+TargetLookup = array shape NM fill -1
 
 for R in 0 till N
   for C in 0 till M
@@ -43,9 +43,14 @@ for R in 0 till N
     Val = GT Idx
     if Val not equal 2
       Tid = TargetR len
-      TargetR = concat TargetR (array R)
-      TargetC = concat TargetC (array C)
-      TargetColor = concat TargetColor (array Val)
+      RArr = array R
+      TargetR = concat TargetR RArr
+      CArr = array C
+      TargetC = concat TargetC CArr
+      VArr = array Val
+      TargetColor = (
+        concat TargetColor VArr
+      )
       TargetLookup Idx = Tid
     end
   end
@@ -57,10 +62,7 @@ Answer = -1
 if U equal 0
   Answer = 0
 else
-  rem Parse tiles and generate valid placements
-  RawTileLines = TilesText split "\n"
-  TLMask = not (RawTileLines equal "")
-  TileLines = RawTileLines TLMask
+  TileLines = TilesText split "\n"
   NumTiles = TileLines len
 
   PlacementsCost = array shape 0 fill 0
@@ -68,7 +70,9 @@ else
 
   for TIdx in 0 till NumTiles
     TLine = TileLines TIdx
-    Parts = (TLine split " ") (not ((TLine split " ") equal ""))
+    RawParts = TLine split " "
+    NonEmpty = RawParts not equal ""
+    Parts = RawParts NonEmpty
     Words = Parts integer
     Form = Words 0
     Cost = Words 1
@@ -90,19 +94,21 @@ else
       BaseC = array 0 1 1
     end
 
-    rem 4 rotations
     CurR = BaseR
     CurC = BaseC
     for Rot in 0 to 3
       if Rot greater 0
-        rem Rotate 90 deg clockwise: (r, c) -> (c, -r)
         NewR = CurC
         NewC = 0 - CurR
         CurR = NewR
         CurC = NewC
       end
 
-      rem Try placing at every (R0, C0)
+      MinR = CurR min
+      MinC = CurC min
+      CurR = CurR - MinR
+      CurC = CurC - MinC
+
       for R0 in 0 till N
         for C0 in 0 till M
           CanPlace = true
@@ -110,7 +116,13 @@ else
           for Cell in 0 till NumColors
             NR = R0 + (CurR Cell)
             NC = C0 + (CurC Cell)
-            if NR less 0 or (not (NR less N)) or NC less 0 or (not (NC less M))
+            BadNR = NR less 0
+            BigNR = NR at least N
+            BadNR = BadNR or BigNR
+            BadNC = NC less 0
+            BigNC = NC at least M
+            BadNC = BadNC or BigNC
+            if BadNR or BadNC
               CanPlace = false
             else
               NIdx = NR * M + NC
@@ -120,36 +132,42 @@ else
               else
                 ReqCol = TargetColor Tid
                 TileCol = Colors Cell
-                if ReqCol not equal TileCol
+                EqCol = (
+                  ReqCol equal TileCol
+                )
+                if not EqCol
                   CanPlace = false
                 else
-                  PMask = PMask bor (1 shl Tid)
+                  ShT = 1 shl Tid
+                  PMask = PMask bor ShT
                 end
               end
             end
           end
 
           if CanPlace
-            PlacementsCost = concat PlacementsCost (array Cost)
-            PlacementsMask = concat PlacementsMask (array PMask)
+            CArr = array Cost
+            PlacementsCost = (
+              concat PlacementsCost CArr
+            )
+            MArr = array PMask
+            PlacementsMask = (
+              concat PlacementsMask MArr
+            )
           end
         end
       end
     end
   end
 
-  rem Bitmask DP
+  NumPlacements = PlacementsMask len
   TotalStates = 1 shl U
   DP = array shape TotalStates fill INF
   DP 0 = 0
 
-  NumPlacements = PlacementsCost len
-
-  Limit = TotalStates - 1
-  for Mask in 0 till Limit
+  for Mask in 0 till TotalStates
     CurCost = DP Mask
     if CurCost less INF
-      rem Find lowest unset bit
       Low = 0
       for Bit in 0 till U
         if not (Mask bit Bit)
@@ -162,13 +180,17 @@ else
 
       for P in 0 till NumPlacements
         PM = PlacementsMask P
-        rem Only consider placements that cover the lowest unset bit
-        if PM band LowBitMask not equal 0
+        HasLow = PM band LowBitMask
+        if HasLow not equal 0
           if Mask band PM equal 0
             NMask = Mask bor PM
-            NewCost = CurCost + (PlacementsCost P)
+            CostP = PlacementsCost P
+            NewCost = CurCost + CostP
             OldCost = DP NMask
-            DP NMask = OldCost min NewCost
+            MinCost = (
+              OldCost min NewCost
+            )
+            DP NMask = MinCost
           end
         end
       end

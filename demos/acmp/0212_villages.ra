@@ -1,30 +1,29 @@
-rem ACMP 212 - Villages (Деревни)
-rem Solved in Euler 1-15 style with tree dynamic programming and min-plus convolution.
-rem
-rem We are given a tree of N villages and need to find the minimum number of edges to cut
-rem so that there is an isolated connected component of size exactly P.
-rem
-rem We root the tree at node 0 and traverse bottom-up by depth. For each node U,
-rem DP[U][s] represents the minimum cuts in the subtree of U to keep a component of size s
-rem containing U. When merging child V into U, we perform a vectorized min-plus convolution:
-rem   NewDP[s] = min(DP[U][s] + 1, min_{1 <= s1 < s}(DP[U][s1] + DP[V][s - s1]))
-rem
-rem Finally, for each candidate root U of the component, the total cuts are:
-rem   DP[0][P] if U is the tree root, else DP[U][P] + 1 (cutting the edge to U's parent).
+rem Villages
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=212
+rem Min cuts for component of size P
 
 use io
 use cli
 use sequences
 use text
 
-arg N integer = 3
-arg P integer = 2
-arg EdgesText text = "1 2 3 2"
+arg N integer = 20
+arg P integer = 10
+arg EdgesText text = (
+  "1 2  2 3  3 4  4 5  5 6  " +
+  "6 7  7 8  8 9  9 10 10 11 " +
+  "11 12 12 13 13 14 14 15 15 16 " +
+  "16 17 17 18 18 19 19 20"
+)
 
 INF = 1000
 
 EdgeTokens = EdgesText words integer
-Adj = (array shape (N * N) fill 0) reshape N N
+ZeroMat = (
+  array shape (N * N) fill 0
+)
+Adj = ZeroMat reshape N N
 NumEdges = (EdgeTokens len) // 2
 
 for E in 0 till NumEdges
@@ -48,7 +47,9 @@ for D in 0 till N
   for U in 0 till N
     if Depth U equal D
       for V in 0 till N
-        if Adj U V equal 1 and (Depth V equal -1)
+        AdjEdge = Adj U V equal 1
+        Unvisited = Depth V equal -1
+        if AdjEdge and Unvisited
           Depth V = D + 1
           Parent V = U
         end
@@ -57,25 +58,39 @@ for D in 0 till N
   end
 end
 
-DP = (array shape (N * (P + 1)) fill INF) reshape N (P + 1)
+P1 = P + 1
+ZeroDP = array shape (N * P1) fill INF
+DP = ZeroDP reshape N P1
 for U in 0 till N
   DP U 1 = 0
 end
 
-for D in 0 to MaxDepth reverse
+for Step in 0 to MaxDepth
+  D = MaxDepth - Step
   for U in 0 till N
     if Depth U equal D
       for V in 0 till N
-        if Parent V equal U and (Depth V equal (D + 1))
-          NewDP = array shape (P + 1) fill INF
-          NewDP 1 = (DP U 1) + 1
-          if P greater 1
-            for S in 2 to P
-              S1 = 1 to (S - 1)
+        IsChild = Parent V equal U
+        NextD = Depth V equal (D + 1)
+        if IsChild and NextD
+          NewDP = (
+            array shape P1 fill INF
+          )
+          for S in 1 to P
+            CutVal = (DP U S) + 1
+            if S equal 1
+              NewDP S = CutVal
+            else
+              S1 = 1 till S
               S2 = S - S1
-              PairMin = ((DP U S1) + (DP V S2)) min
-              CutVal = (DP U S) + 1
-              NewDP S = CutVal min PairMin
+              DPU = DP U S1
+              DPV = DP V S2
+              Sums = DPU + DPV
+              PairMin = Sums min
+              MinVal = (
+                CutVal min PairMin
+              )
+              NewDP S = MinVal
             end
           end
           DP U = NewDP
@@ -85,15 +100,8 @@ for D in 0 to MaxDepth reverse
   end
 end
 
-Costs = array shape N fill INF
-for U in 0 till N
-  BaseCost = DP U P
-  if U equal 0
-    Costs U = BaseCost
-  else
-    Costs U = BaseCost + 1
-  end
-end
-
-Answer = Costs min
+BestRoot = DP 0 P
+SubtreeCuts = (DP (1 till N) P) + 1
+BestChild = SubtreeCuts min
+Answer = BestRoot min BestChild
 Answer print
