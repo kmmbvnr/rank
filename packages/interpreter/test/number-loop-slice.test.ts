@@ -122,7 +122,8 @@ end`, false);
 for I in 1 to 2
  A (0 to 4 by 2) -= A (0 to 4 by 2) // 2
 end`);
-        expect(result.diagnostics.numberLoops).toBe(0);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.state.result).toBe('0 1 2');
     });
 
     it('snapshots a scalar read from the destination before filling', () => {

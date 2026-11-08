@@ -767,6 +767,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if ((plan.syntax.has('take') || plan.syntax.has('drop'))
                 && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
                 return recordFallback('number-loop:count-slice-metadata', 'proof');
+            if (plan.rangeDefinitions?.size
+                && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
+                return recordFallback('number-loop:range-selection-metadata', 'proof');
             // Named table rows can return positional products rather than
             // plain arrays. Keep their selection/result contract in the evaluator.
             if (plan.sliceReadSources.has(name) && value.columnNames) return recordFallback('number-loop:named-selection', 'proof');

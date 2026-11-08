@@ -54,7 +54,9 @@ export function emitNumberArraySlice(state: LoopCompilationState, expressions: L
         || state.calls.length !== calls || state.callouts.length !== callouts) return undefined;
     const scalar = typeof rhs.type === 'string', operand = `operand${n}`;
     if (!scalar) {
-        if (rhs.type.rank !== 1 || !state.resultDiscarded(assignment) && (compound || !rhs.fresh)) return undefined;
+        // A fresh completed RHS is independent of the target, including for
+        // compound writes. Retained views still need ordinary live readers.
+        if (rhs.type.rank !== 1 || !state.resultDiscarded(assignment) && !rhs.fresh) return undefined;
         const source = rhs.cells ?? `${rhs.code}.cells`;
         lines.push(`if (${rhs.code}.shape.length !== 1 || ${rhs.code}.shape[0] !== ${count}) throw overflow;
             const ${operand} = ${source} === ${cells} || ${source}.buffer && ${source}.buffer === ${cells}.buffer

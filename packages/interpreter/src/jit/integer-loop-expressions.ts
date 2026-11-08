@@ -1019,6 +1019,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (parts.length === 2) {
                 const source = arrayType(parts[0]), selector = arrayType(last);
                 if (source && selector?.element === 'integer') return { ...source, rank: source.rank + selector.rank - 1 };
+                if (numberMode && source?.rank === 1 && isRange(last)) return source;
                 if (host.booleanArrays && source && source.rank > 0 && selector?.rank === source.rank
                     && selector.element === 'boolean') return { ...source, rank: 1 };
             }
@@ -1185,6 +1186,36 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function numberVector(source: Expression, lines: string[], inlineRanges = false): NumberVector | undefined {
         let e = source;
         while (isParenthesizedExpression(e)) e = e.value;
+        if (inlineRanges && isRange(e)) {
+            const zeroOrigin = isBinaryExpression(e) && isNumberLiteral(e.left) && e.left.value === 0n
+                && (!e.step || isNumberLiteral(e.step) && e.step.value === 1n);
+            const range = rangeOperands(e, lines);
+            if (!range) return undefined;
+            const { start: first, end: last, step: stride, inclusive } = range;
+            const id = state.serial++, start = `start${id}`, end = `end${id}`, step = `step${id}`;
+            const distance = `distance${id}`, size = `length${id}`;
+            // A consumed progression needs bounds, not a temporary vector.
+            // Unsafe distances/cells replay the ordinary exact consumer.
+            lines.push(`const ${start} = ${first.code}, ${end} = ${last.code}, ${step} = ${stride.code};
+                if (${step} === 0) throw overflow;
+                const ${distance} = safe(${step} > 0 ? ${end} - ${start} : ${start} - ${end});
+                const ${size} = ${distance} < 0 || (${!inclusive} && ${distance} === 0) ? 0
+                    : safe(divide(${inclusive ? distance : `safe(${distance} - 1)`}, Math.abs(${step})) + 1);`);
+            return { size, shape: `[${size}]`, rank: 1, type: 'integer', sources: [],
+                compactGuards: zeroOrigin ? [`${size} <= 2147483648`] : [], cell: (index, body, frame) => {
+                // Multidimensional trailing-axis addressing retains the
+                // existing backend until a progression has an axis layout.
+                if (frame && frame.rank > 1) return undefined;
+                const position = frame ? `(${size} === 1 ? 0 : ${index})` : index;
+                // An admitted 0..count-1 progression is its own coordinate;
+                // no per-cell multiply/add or safe-integer checks are needed.
+                if (zeroOrigin) return { code: position, type: 'integer',
+                    bounds: frame?.compact ? [0, 2147483647] : undefined };
+                const value = `rangeCell${state.serial++}`;
+                body.push(`const ${value} = safe(${start} + safe(${position} * ${step}));`);
+                return { code: value, type: 'integer' };
+            } };
+        }
         const type = arrayType(e);
         if (!type) {
             if (!(isNameExpression(e) || isNumberLiteral(e) || isBooleanLiteral(e) || isUnaryExpression(e) || isBinaryExpression(e))) return undefined;
@@ -1219,36 +1250,6 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     body.push(`const ${result} = sortedIndexBatch(${cells}, ${target.code}, ${search.name === 'upperindex'}, ${hint});`);
                     return { code: result, type: 'integer', bounds: frame?.compact ? [0, 2147483647] : undefined };
                 } };
-        }
-        if (inlineRanges && isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
-            const zeroOrigin = isNumberLiteral(e.left) && e.left.value === 0n
-                && (!e.step || isNumberLiteral(e.step) && e.step.value === 1n);
-            const first = emit(e.left, lines, 'integer'), last = emit(e.right, lines, 'integer');
-            const stride = e.step ? emit(e.step, lines, 'integer') : { code: '1', type: 'integer' };
-            if (first?.type !== 'integer' || last?.type !== 'integer' || stride?.type !== 'integer') return undefined;
-            const id = state.serial++, start = `start${id}`, end = `end${id}`, step = `step${id}`;
-            const distance = `distance${id}`, size = `length${id}`;
-            // A consumed progression needs bounds, not a temporary vector.
-            // Unsafe distances/cells replay the ordinary exact consumer.
-            lines.push(`const ${start} = ${first.code}, ${end} = ${last.code}, ${step} = ${stride.code};
-                if (${step} === 0) throw overflow;
-                const ${distance} = safe(${step} > 0 ? ${end} - ${start} : ${start} - ${end});
-                const ${size} = ${distance} < 0 || (${e.operator === 'till'} && ${distance} === 0) ? 0
-                    : safe(divide(${e.operator === 'to' ? distance : `safe(${distance} - 1)`}, Math.abs(${step})) + 1);`);
-            return { size, shape: `[${size}]`, rank: 1, type: 'integer', sources: [],
-                compactGuards: zeroOrigin ? [`${size} <= 2147483648`] : [], cell: (index, body, frame) => {
-                // Multidimensional trailing-axis addressing retains the
-                // existing backend until a progression has an axis layout.
-                if (frame && frame.rank > 1) return undefined;
-                const position = frame ? `(${size} === 1 ? 0 : ${index})` : index;
-                // An admitted 0..count-1 progression is its own coordinate;
-                // no per-cell multiply/add or safe-integer checks are needed.
-                if (zeroOrigin) return { code: position, type: 'integer',
-                    bounds: frame?.compact ? [0, 2147483647] : undefined };
-                const value = `rangeCell${state.serial++}`;
-                body.push(`const ${value} = safe(${start} + safe(${position} * ${step}));`);
-                return { code: value, type: 'integer' };
-            } };
         }
         const membership = numericMembership(e);
         if (membership) {
@@ -1346,7 +1347,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         if (isApplicationExpression(e)) {
             const parts = flattenApplication(e);
-            if (parts.length === 2 && arrayType(parts[0])?.rank === 1 && arrayType(parts[1])?.element === 'integer') {
+            if (parts.length === 2 && arrayType(parts[0])?.rank === 1
+                && (arrayType(parts[1])?.element === 'integer' || isRange(parts[1]))) {
                 // Inline gathers are recipe leaves for a surrounding map.
                 // A named gather still completes through emitNumberArray.
                 const source = emitNumberArray(parts[0], lines);
@@ -1668,13 +1670,14 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 ${numberVectorLoop(`${cells}.length`, index, [...body, `if (${selected.code}) ${result}.store(${count}++, ${type.element === 'real' ? `Number(${cells}[${index}])` : `safe(Number(${cells}[${index}]))`});`])}
                 ${result}.shape[0] = ${count}; ${result}.cells = ${result}.cells.subarray(0, ${count});`);
         } else if (isApplicationExpression(e) && flattenApplication(e).length === 2
-            && arrayType(flattenApplication(e)[0])?.rank === 1 && arrayType(flattenApplication(e)[1])?.element === 'integer') {
+            && arrayType(flattenApplication(e)[0])?.rank === 1
+            && (arrayType(flattenApplication(e)[1])?.element === 'integer' || isRange(flattenApplication(e)[1]))) {
             // A rank-one source accepts an integer selector of any shape.
             // Complete the gather before binding it, retaining ordinary `=`
             // snapshots even when its source is written later in the region.
             const parts = flattenApplication(e);
             if (parts.length !== 2 || arrayType(parts[0])?.rank !== 1
-                || arrayType(parts[1])?.element !== 'integer') return undefined;
+                || arrayType(parts[1])?.element !== 'integer' && !isRange(parts[1])) return undefined;
             state.numberVectors = true;
             const source = emitNumberArray(parts[0], lines);
             if (!source || typeof source.type === 'string') return undefined;

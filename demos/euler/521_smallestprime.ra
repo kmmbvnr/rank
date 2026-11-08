@@ -9,96 +9,100 @@ use cli
 
 arg N integer = 1000000000000
 
-rem Lucy's sieve keeps the count C and
-rem sum S of 2..x minus the composites
-rem whose least factor is below p, at
-rem x <= R (Lo) and x = N // i (Hi).
-rem Prime p removes p m, m >= p with no
-rem smaller factor: C(N // p) - C(p - 1)
-rem composites of least factor p. The
-rem primes up to N add S(N) at the end.
-rem S drifts below zero between the
-rem reads, which reduce it mod M.
-M = 1000000000
-R = N isqrt
-X = 0 to R copy
-Ii = 1 to R copy
-Xh = concat (array 0) (N // Ii)
-rem x (x + 1) / 2 - 1 mod M; halve the
-rem even factor first.
-fun X tri
-  E = X mod 2 equal 0
-  A = E choose (X // 2) X
-  B = E choose (X + 1) ((X + 1) // 2)
-  T = (A mod M) * (B mod M) - 1
-  return T mod M
+Mod = 1000000000
+Root = N isqrt
+Small = 0 to Root copy
+Indices = 1 to Root copy
+Large = concat (array 0) (N // Indices)
+rem Halve before multiplying modulo Mod.
+fun Values triangle
+  Even = Values mod 2 equal 0
+  Half = Values // 2
+  Left = Even choose Half Values
+  Next = Values + 1
+  Right = Even choose Next (Next // 2)
+  Left = Left mod Mod
+  Right = Right mod Mod
+  Total = Left * Right
+  return (Total - 1) mod Mod
 end
-Lo = X - 1 max 0
-Hi = Xh - 1 max 0
-Sl = X tri
-Sh = Xh tri
-Sl 0 = 0
-Sh 0 = 0
-rem C is the cube root of N.
-C = ((N * 1.0) ** (1.0 / 3.0)) floor
-C += 2
-for C * C * C greater N
-  C -= 1
-end
+LowCount = Small - 1 max 0
+HighCount = Large - 1 max 0
+LowSum = Small triangle
+HighSum = Large triangle
+LowSum 0 = 0
+HighSum 0 = 0
+rem Correct the floating cube-root seed.
+Seed = N ** (1.0 / 3.0) floor
+Candidates = Seed - 1 to Seed + 2 copy
+Cubes = Candidates ** 3
+Allowed = Candidates (Cubes at most N)
+Cube = Allowed max
 Answer = 0
-for P in primes to C
-  P2 = P * P
-  Pc = Lo (P - 1)
-  Ps = Sl (P - 1)
-  Answer += (P * (Hi P - Pc) mod M)
-  Lm = R min (N // P2)
-  M1 = R // P min Lm
-  if M1 greater 0
-    Ix = P to M1 * P by P
-    Hs = Hi Ix
-    Hi (1 to M1) -= Hs - Pc
-    Ss = (Sh Ix - Ps) mod M * P
-    Sh (1 to M1) -= (Ss mod M)
+rem Lucy's sieve removes composites
+rem whose least prime factor is Prime.
+for Prime in primes to Cube
+  Square = Prime * Prime
+  BeforeCount = LowCount (Prime - 1)
+  BeforeSum = LowSum (Prime - 1)
+  Count = HighCount Prime - BeforeCount
+  Answer += Prime * Count mod Mod
+  Limit = Root min (N // Square)
+  Split = Root // Prime min Limit
+  if Split greater 0
+    Last = Split * Prime
+    Slots = Prime to Last by Prime
+    Counts = HighCount Slots
+    Counts = Counts - BeforeCount
+    HighCount (1 to Split) -= Counts
+    Delta = HighSum Slots - BeforeSum
+    Delta = Delta * Prime mod Mod
+    Slots = 1 to Split
+    Values = HighSum Slots - Delta
+    HighSum Slots = Values mod Mod
   end
-  if Lm greater M1
-    Ib = M1 + 1 to Lm copy
-    Iv = N // (Ib * P)
-    Hi (M1 + 1 to Lm) -= Lo Iv - Pc
-    Ss = (Sl Iv - Ps) mod M * P
-    Sh (M1 + 1 to Lm) -= (Ss mod M)
+  if Limit greater Split
+    Indices = Split + 1 to Limit copy
+    Indices = N // (Indices * Prime)
+    Counts = LowCount Indices
+    Counts = Counts - BeforeCount
+    Slots = Split + 1 to Limit
+    HighCount Slots -= Counts
+    Delta = LowSum Indices - BeforeSum
+    Delta = Delta * Prime mod Mod
+    Values = HighSum Slots - Delta
+    HighSum Slots = Values mod Mod
   end
-  if P2 at most R
-    Iv = (P2 to R) // P
-    Lo (P2 to R) -= Lo Iv - Pc
-    Ss = (Sl Iv - Ps) mod M * P
-    Sl (P2 to R) -= (Ss mod M)
+  if Square at most Root
+    Indices = (Square to Root) // Prime
+    Counts = LowCount Indices
+    Counts = Counts - BeforeCount
+    Slots = Square to Root
+    LowCount Slots -= Counts
+    Delta = LowSum Indices - BeforeSum
+    Delta = Delta * Prime mod Mod
+    Values = LowSum Slots - Delta
+    LowSum Slots = Values mod Mod
   end
 end
-rem For p > C every value a step
-rem reads is final: p^3 > N // i
-rem leaves Hi at i p untouched by
-rem primes from p on. So all larger
-rem primes update Hi together, one
-rem pair (i, p) per i <= N // p^2.
-Pb = primes from C + 1 to R array
-Ac = Pb * ((Hi Pb - Lo (Pb - 1)) mod M)
-Answer += Ac mod M sum
-Ct = N // (Pb * Pb)
-Cs = Ct scan +
-Nt = Cs last
-Po = 0 till Nt copy
-J = Cs upperindex Po
-I = Po - (Cs - Ct) J + 1
-Pp = Pb J
-Q = I * Pp
-Bg = Q at most R
-Qh = Q min R
-Ql = N // Q min R
-Vc = Bg choose (Hi Qh) (Lo Ql)
-Vs = Bg choose (Sh Qh) (Sl Ql)
-Dc = Vc - Lo (Pp - 1)
-Ds = (Vs - Sl (Pp - 1)) mod M * Pp
-Hi I -= Dc .accumulate
-Sh I -= (Ds mod M) .accumulate
-Answer = (Answer + Sh 1) mod M
+rem Above Cube, all source values are
+rem final. Only the sum at N is needed;
+rem do not expand unused (index, prime)
+rem pairs to update the entire table.
+Primes = primes from Cube + 1 to Root
+Primes = Primes array
+Counts = HighCount Primes
+Counts = Counts - LowCount (Primes - 1)
+Terms = Primes * (Counts mod Mod)
+Answer += Terms mod Mod sum
+Sums = HighSum Primes
+Sums = Sums - LowSum (Primes - 1)
+Terms = Sums * Primes mod Mod
+Correction = Terms sum
+if N greater 1
+  Answer += HighSum 1 - Correction
+  Answer = Answer mod Mod
+else
+  Answer = 0
+end
 Answer print
