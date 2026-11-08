@@ -53,6 +53,10 @@ fi
 # Keep the deployed harness until its version is available in origin/main.
 if [ -f benchmarks/nightly/run.mjs ]; then
   cp benchmarks/nightly/{run.mjs,report.mjs,worker.mjs,render-latest.mjs,publish-report.sh} "$BASE/controller/"
+  # Replace the wrapper atomically: the running shell keeps its open script,
+  # and the next invocation picks up dataset/setup changes from this checkout.
+  install -m 0755 benchmarks/nightly/nightly.sh "$BASE/controller/nightly.sh.next"
+  mv "$BASE/controller/nightly.sh.next" "$BASE/controller/nightly.sh"
 fi
 phase dependencies
 timeout 1200 npm ci --no-audit --no-fund

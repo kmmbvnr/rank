@@ -137,7 +137,15 @@ export class NodeInput implements RankInput {
 
 export const nodeIo: RankIo = {
     openSqlite(path): RankSqliteConnection {
-        const database = new Sqlite(path, { readonly: true, fileMustExist: true });
+        let database: NativeSqliteDatabase;
+        try { database = new Sqlite(path, { readonly: true, fileMustExist: true }); }
+        catch (error) {
+            // SQLite omits the filename for a missing file in an existing
+            // directory. Preserve ENOENT and its path for callers/reporting;
+            // existing but inaccessible databases retain the SQLite error.
+            if ((error as { code?: string }).code === 'SQLITE_CANTOPEN') fs.accessSync(path);
+            throw error;
+        }
         try {
             registerRankText(database);
             attachSqliteInterrupt(database);

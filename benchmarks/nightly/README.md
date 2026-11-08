@@ -58,7 +58,10 @@ so normal site deployments do not erase benchmark history.
 The controller's `run.mjs`, `worker.mjs` and `report.mjs` update from the checkout when those
 files exist on `origin/main`; until these changes are merged/pushed, the
 initial deployed copies run against the latest upstream language sources.
-The shell wrapper and cron configuration are installed separately.
+The wrapper is replaced atomically after each successful pull and takes effect
+on the next invocation. The cron configuration is reinstalled with root ownership.
+An older deployment without wrapper updates needs a one-time installation of
+`benchmarks/nightly/nightly.sh` into the controller directory.
 
 Manual full run:
 
