@@ -23,3 +23,11 @@ test "brute force values"
   run
   Answer equal 14894618
 end
+
+test "saturated valuation"
+  use "474_lastdigitsdivisors"
+  N = 12
+  D = 12
+  run
+  Answer equal 11
+end

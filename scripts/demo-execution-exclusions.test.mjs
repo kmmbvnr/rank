@@ -73,3 +73,11 @@ test('Euler 468 retains explicit full-scale and ordinary fixture lanes', () => {
     const full = readFileSync(new URL('../packages/interpreter/test/full-scale-demos.test.ts', import.meta.url), 'utf8');
     assert.ok(full.includes("['468_smoothbinomial.ra', 852950321n]"));
 });
+
+test('Euler 474 retains full-scale verification and its ordinary fixture', () => {
+    assert.match(exclusions['euler/474_lastdigitsdivisors.ra'], /Full-scale lane/);
+    assert.ok(!files.has('euler/474_lastdigitsdivisors_test.ra'));
+    const full = readFileSync(new URL('../packages/interpreter/test/full-scale-demos.test.ts', import.meta.url), 'utf8');
+    assert.ok(full.includes('checks the full Euler 474 unit-residue count with compact row copies'));
+    assert.ok(full.includes('9690646731515010n'));
+});

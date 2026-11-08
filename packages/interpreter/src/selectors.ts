@@ -392,7 +392,10 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
     const rest = shape.slice(indices.length);
     // A row of a typed array is one contiguous run of its buffer.
     const kind = typedElementKind(source);
-    const stored = kind ? denseScalarItems(source) as Float64Array | BigInt64Array : undefined;
+    // Preserve compact Int32 rows: their Rank-facing items adapter boxes
+    // and widens on slice. A private native slice also avoids retaining the
+    // entire parent or making its later overlapping write copy the matrix.
+    const stored = kind ? integer32Cells(source) ?? denseScalarItems(source) as Float64Array | BigInt64Array : undefined;
     if (stored) {
         const length = arraySize(rest);
         return inheritSemanticArrayType(source, typedArray(stored.slice(offset, offset + length), rest, undefined, knownUniformKind(source)));

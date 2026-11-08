@@ -393,3 +393,11 @@ for (const compilation of [true, false]) it(`checks the full Euler 707 polynomia
         expect(runtime.variables.get('Answer')).toBe(652907799n);
     } finally { runtime.dispose(); }
 });
+
+it('checks the full Euler 474 unit-residue count with compact row copies', () => {
+    const runtime = new Interpreter(() => {});
+    try {
+        runtime.execute(readFileSync(new URL('../../../demos/euler/474_lastdigitsdivisors.ra', import.meta.url), 'utf8'));
+        expect(runtime.variables.get('Answer')).toBe(9690646731515010n);
+    } finally { runtime.dispose(); }
+}, 180_000);

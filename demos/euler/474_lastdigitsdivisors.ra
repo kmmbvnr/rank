@@ -9,87 +9,142 @@ use cli
 
 arg N integer = 1000000
 arg D integer = 65432
+CountMod = 10000000000000061
 
-rem D = 2^a 5^b T with a, b below its
-rem K digits: a divisor ending in D
-rem has exactly 2^a 5^b, and its rest
-rem is the unit T mod M = 10^K / (2^a
-rem 5^b). Count the products of the
-rem other prime powers by residue.
-Md = 10000000000000061
-K = D text len
-T = D
-Al = 0
-Be = 0
-for T mod 2 equal 0
-  T //= 2
-  Al += 1
+fun Primes factorial_powers Bound
+  Exponents = Primes * 0
+  Powers = Primes
+  for Powers at most Bound any
+    Exponents += Bound // Powers
+    Active = Powers at most Bound
+    Next = Powers * Primes
+    Powers = Active choose Next Powers
+  end
+  return Exponents
 end
-for T mod 5 equal 0
-  T //= 5
-  Be += 1
+rem Sorted units modulo 2^a 5^b have
+rem explicit positions, with no lookup.
+fun Values unit_positions Mod
+  if Mod mod 10 equal 0
+    return Values * 2 // 5
+  end
+  if Mod mod 2 equal 0
+    return Values // 2
+  end
+  if Mod mod 5 equal 0
+    return Values - 1 - Values // 5
+  end
+  return Values * 0
 end
-M = 10 ** K // (2 ** Al * 5 ** Be)
-Pr = primes to N array
-rem Exponents of the primes in N!.
-E = Pr * 0
-Pk = Pr
-for Pk at most N any
-  E += N // Pk
-  Lo = Pk at most N
-  Pk = Lo choose (Pk * Pr) Pk
+rem Batch the table to bound temporary
+rem storage independently of its size.
+fun Units unit_table Mod
+  Count = Units len
+  Table = array shape Count Count fill 0
+  for Start in 0 till Count by 256
+    Stop = Start + 256 min Count
+    Rows = Start till Stop
+    Height = Rows len
+    Selected = Units Rows
+    Column = Selected reshape Height 1
+    Keys = Column * Units mod Mod
+    Table Rows = Keys unit_positions Mod
+  end
+  return Table
 end
-E5 = 0
-if N at least 5
-  E5 = E 2
-end
-Answer = 0
-if Al at most E 0 and Be at most E5
-  Rs = 0 till M copy
-  Cp = Rs gcd 10 equal 1
-  Us = Rs (Cp indices)
-  Nu = Us len
-  Ps = Rs * 0
-  Ps Us = 0 till Us len copy
-  rem Tx w i: position of u_i times
-  rem the unit at position w.
-  Ur = Us reshape Nu 1
-  Tf = Ur * Us mod M reshape (Nu * Nu)
-  Tg = Ps Tf
-  Tx = Tg reshape Nu Nu
-  A = Us * 0
-  A (Ps 1) = 1
-  rem Exponent j of p moves count from
-  rem x to x p^j: the sum of e + 1
-  rem shifts by p^-1, built by binary
-  rem doubling. Sums stay below 2^63
-  rem for 8 doublings between mods.
-  Fr = Pr mod 2 equal 1
-  Fr = Fr and (Pr mod 5 not equal 0)
-  Bd = 0
-  for I in Fr indices
-    Pv = (Pr I) (Nu - 1) M powmod
-    R1 = Tx (Ps Pv)
-    Bt = E I + 1 binary
-    Sm = A
-    Cu = 1
-    for J in 1 till Bt len
-      W = Pv Cu M powmod
-      Sm += Sm (Tx (Ps W))
-      Cu *= 2
-      Bd += 1
-      if Bt J equal "1"
-        Sm = A + Sm R1
-        Cu += 1
-        Bd += 1
+fun Bound count_divisors Target
+  Digits = Target text len
+  rem Saturated valuations leave extra
+  rem powers of 2 or 5 in the unit DP.
+  Twos = Digits
+  Fives = Digits
+  if Target greater 0
+    Factors = Target factors array
+    Twos = Factors equal 2 count
+    Twos = Twos min Digits
+    Fives = Factors equal 5 count
+    Fives = Fives min Digits
+  end
+  Base = 2 ** Twos * 5 ** Fives
+  Mod = 10 ** Digits // Base
+  Primes = primes to Bound array
+  Powers = Primes factorial_powers Bound
+  TwoCount = 0
+  FiveCount = 0
+  if Bound at least 2
+    TwoCount = Powers 0
+  end
+  if Bound at least 5
+    FiveCount = Powers 2
+  end
+  if Twos greater TwoCount
+    return 0
+  end
+  if Fives greater FiveCount
+    return 0
+  end
+  if Bound at least 2
+    Powers 0 -= Twos
+  end
+  if Bound at least 5
+    Powers 2 -= Fives
+  end
+  Residues = 0 till Mod copy
+  Keep = Residues gcd Mod equal 1
+  Units = Residues (Keep indices)
+  Count = Units len
+  Table = Units unit_table Mod
+  rem Binary geometric sums of the
+  rem shifts by the inverse prime.
+  fun State with_prime Prime Power
+    Original = State .counts
+    Sum = Original
+    Debt = State .debt
+    Degree = Count - 1
+    Inverse = Prime Degree Mod powmod
+    First = Inverse unit_positions Mod
+    Once' = Table First
+    Bits = Power + 1 binary
+    Length = 1
+    for Bit in 1 till Bits len
+      Unit = Inverse Length Mod powmod
+      Offset = Unit unit_positions Mod
+      Sum += Sum (Table Offset)
+      Length *= 2
+      Debt += 1
+      if Bits Bit equal "1"
+        Sum = Original + Sum Once
+        Length += 1
+        Debt += 1
       end
-      if Bd at least 8
-        Sm = Sm mod Md
-        Bd = 0
+      rem At most nine growth bits keep
+      rem counts below signed Int64.
+      if Debt at least 8
+        Sum = Sum mod CountMod
+        Debt = 0
       end
     end
-    A = Sm
+    return record
+      .counts = Sum
+      .debt = Debt
+    end
   end
-  Answer = (A (Ps (T mod M))) mod Md
+  Counts = Units * 0
+  Counts 0 = 1
+  State = record
+    .counts = Counts
+    .debt = 0
+  end
+  Keep = Primes gcd Mod equal 1
+  for I in Keep indices
+    Prime = Primes I
+    Power = Powers I
+    State = State with_prime Prime Power
+  end
+  Values = State .counts
+  Residue = Target // Base mod Mod
+  Position = Residue unit_positions Mod
+  return Values Position mod CountMod
 end
+Answer = N count_divisors D
 Answer print
