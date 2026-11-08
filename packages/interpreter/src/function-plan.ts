@@ -25,7 +25,7 @@ interface PlanInput {
     readonly negative?: boolean;
 }
 export type FunctionPlan = CompiledExpression<FunctionPlanDomain, PlanInput>;
-export type FunctionPlanTerminal = 'copy' | 'sum';
+export type FunctionPlanTerminal = 'copy' | 'sum' | 'product' | 'view';
 export interface FunctionPlanConsumer { readonly stage: FunctionPlan; readonly terminal: FunctionPlanTerminal }
 /** A consumed helper has returned before its plan can fail. Its generated
  * consumer must not add that discarded helper frame to the demand error. */
@@ -385,14 +385,20 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
         return `ownedArray(${result}, ${source.shape ?? `[${source.size}]`}, true)`;
     }
     const source = prepare(consumer.stage);
-    if (consumer.terminal === 'copy' && source.value) { lines.push('planConsumed?.();'); return source.value; }
+    if (['copy', 'view'].includes(consumer.terminal) && source.value) { lines.push('planConsumed?.();'); return source.value; }
     if (!source.size) return source.read('0', lines);
+    if (consumer.terminal === 'view') {
+        const index = host.variable(), body: string[] = [];
+        const value = source.read(index, body);
+        const dependencies = [...functionPlanArrays(consumer.stage)].map(name => host.slot(name));
+        return `derivedArray(${source.shape ?? `[${source.size}]`}, [${dependencies.join(',')}], ${index} => { ${body.join('\n')} return ${value}; }, true)`;
+    }
     const result = host.variable(), index = host.variable();
-    lines.push(`let ${result} = ${consumer.terminal === 'copy' ? '[]' : host.number ? '0' : '0n'};`);
+    lines.push(`let ${result} = ${consumer.terminal === 'copy' ? '[]' : consumer.terminal === 'product' ? host.number ? '1' : '1n' : host.number ? '0' : '0n'};`);
     const body: string[] = [];
     const value = source.read(index, body);
     body.push(consumer.terminal === 'copy' ? `${result}.push(${value});`
-        : tensorReductionStep('sum', result, value, index, !!host.number));
+        : tensorReductionStep(consumer.terminal === 'product' ? 'reduce*' : 'sum', result, value, index, consumer.terminal === 'product' || !!host.number));
     if (host.check && consumer.terminal !== 'copy') body.push(`${result} = ${host.check(result, consumer.stage.type.element)};`);
     lines.push(`for (let ${index} = 0; ${index} < ${source.size}; ${index}++) { checkpoint('consuming function plan'); ${body.join('\n')} }`);
     lines.push('planConsumed?.();');

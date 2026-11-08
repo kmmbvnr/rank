@@ -1,0 +1,61 @@
+
+ RUN  v3.2.7 /tmp/rank454-delivery/packages/interpreter
+
+ ✓ test/tensor-gather-fusion.test.ts (66 tests) 1533ms
+   ✓ completed gather arithmetic > fuses an ordinary gather/multiply/mod assignment before the next statement  319ms
+ ✓ test/scalar-function-kernel.test.ts (30 tests) 2156ms
+   ✓ compiled scalar function bodies > compiles integer and real abs with their exact result domains  351ms
+   ✓ scalar function speculative number mode and BigInt overflow fallback > backs off repeated overflow and recovers after the input scale changes  841ms
+ ✓ test/compiled-finite-arrays.test.ts (34 tests) 1137ms
+   ✓ finite arrays inside exact compiled functions > builds prime powers with a materialized factorization and mask counts  507ms
+ ✓ test/number-call-borrowed-array.test.ts (24 tests) 1057ms
+   ✓ read-only array calls in private Number regions > reads private stores without publishing or copying the buffer  391ms
+ ✓ test/compiled-function-folds.test.ts (21 tests) 886ms
+   ✓ preserves seeded scalar fold order  320ms
+ ✓ test/number-loop-vector-unary.test.ts (22 tests) 795ms
+   ✓ fuses array isqrt with a reduction  346ms
+ ✓ test/number-vector-results.test.ts (6 tests) 421ms
+ ✓ test/number-loop-axis-sum.test.ts (16 tests) 603ms
+   ✓ compiles integer sum on shape 2 3 axis 0  340ms
+ ✓ test/vector-entry-work.test.ts (22 tests) 12402ms
+   ✓ complete nested passes in packed vector loops > amortizes copies above the probe cap (reverse=false)  959ms
+   ✓ complete nested passes in packed vector loops > amortizes copies above the probe cap (reverse=true)  595ms
+   ✓ complete nested passes in packed vector loops > counts a later pass after an outer continue  541ms
+   ✓ complete nested passes in packed vector loops > does not reuse bounds changed by an earlier inner pass  550ms
+   ✓ complete nested passes in packed vector loops > keeps helper calls outside the entry work proof  1103ms
+   ✓ complete nested passes in packed vector loops > retains the cap for incomplete or mutable passes  839ms
+   ✓ complete nested passes in packed vector loops > retains the cap for incomplete or mutable passes  562ms
+   ✓ complete nested passes in packed vector loops > retains the cap for incomplete or mutable passes  1041ms
+   ✓ complete nested passes in packed vector loops > preserves exact replay when an admitted pass overflows  1030ms
+   ✓ complete nested passes in packed vector loops > does not inspect a vector sharing destination storage  521ms
+   ✓ complete nested passes in packed vector loops > counts bounded distinct passes beyond the first two entries  1763ms
+   ✓ complete nested passes in packed vector loops > uses immutable indexed entry cells and checked powers for bounds  806ms
+   ✓ complete nested passes in packed vector loops > preserves changing indexed entry bounds  801ms
+   ✓ complete nested passes in packed vector loops > preserves indexed entry bounds sharing a destination buffer  802ms
+ ✓ test/euler790.test.ts (13 tests) 20110ms
+   ✓ Euler 790 compilation=false > matches independent raster at Steps=0 across block boundaries  678ms
+   ✓ Euler 790 compilation=false > matches independent raster at Steps=2 across block boundaries  315ms
+   ✓ Euler 790 compilation=false > matches independent raster at Steps=10 across block boundaries  513ms
+   ✓ Euler 790 compilation=false > matches independent raster at Steps=25 across block boundaries  726ms
+   ✓ Euler 790 compilation=false > matches independent raster at Steps=100 across block boundaries  2452ms
+   ✓ Euler 790 compilation=true > matches independent raster at Steps=0 across block boundaries  319ms
+   ✓ Euler 790 compilation=true > matches independent raster at Steps=2 across block boundaries  413ms
+   ✓ Euler 790 compilation=true > matches independent raster at Steps=10 across block boundaries  638ms
+   ✓ Euler 790 compilation=true > matches independent raster at Steps=25 across block boundaries  1391ms
+   ✓ Euler 790 compilation=true > matches independent raster at Steps=100 across block boundaries  2005ms
+   ✓ retains the original 1000-rectangle answer and uses an exact mixed loop  10086ms
+stdout | test/euler489.test.ts > matches the full default exact oracle
+1791954757162
+
+ ✓ test/euler489.test.ts (10 tests) 39543ms
+   ✓ matches all least maximizing roots for a<=4,b<=6 with {}  660ms
+   ✓ matches all least maximizing roots for a<=4,b<=6 with {"compilation":false}  353ms
+   ✓ retains the statement fixture and empty parameter grids with {}  598ms
+   ✓ retains the statement fixture and empty parameter grids with {"compilation":false}  1126ms
+   ✓ retains the statement fixture and empty parameter grids with {"numberLoopCompilation":false}  670ms
+   ✓ matches the full default exact oracle  35430ms
+
+ Test Files  11 passed (11)
+      Tests  264 passed (264)
+   Start at  20:14:31
+   Duration  43.19s (transform 2.36s, setup 0ms, collect 17.68s, tests 80.64s, environment 2ms, prepare 689ms)

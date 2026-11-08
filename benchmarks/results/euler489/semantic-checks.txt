@@ -1,0 +1,26 @@
+
+> rank-workspace@0.0.1 check:semantic-boundaries
+> node --test scripts/semantic-source.test.mjs scripts/demo-execution-exclusions.test.mjs scripts/local-demo-audits.test.mjs && node scripts/check-semantic-boundaries.mjs
+
+✔ execution exclusions name existing workloads and explain the resource cost (1.4025ms)
+✔ recorded timeouts stay excluded while corrected compiler cases remain eligible (0.064958ms)
+✔ new full-scale exclusions retain their small test fixtures unless they timed out (16.021084ms)
+✔ Euler 468 retains explicit full-scale and ordinary fixture lanes (0.125042ms)
+✔ Euler 474 retains full-scale verification and its ordinary fixture (0.085125ms)
+✔ local concurrency uses CPU and memory limits, with a serial CI path (0.479792ms)
+✔ shards execute concurrently and all results enter the coverage gate (549.050292ms)
+✔ a failing worker fails the audit (525.195041ms)
+✔ successful workers with incomplete summaries still fail coverage (549.546458ms)
+✔ comments and ordinary strings do not create dependencies or semantic violations (2.407583ms)
+✔ distinguishes runtime dependencies from all forms of type-only imports and exports (1.387958ms)
+✔ recognizes semantic owner helpers from declarations and typed closures (0.8455ms)
+✔ retains requirement restrictions for aliases, properties, types, and module paths (0.380708ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1653.211125
+Semantic boundaries: 65 owners checked

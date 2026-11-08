@@ -1,0 +1,114 @@
+rem Common factors between two
+rem sequences
+rem https://projecteuler.net/problem=489
+use numbers
+use sequences
+use io
+use cli
+arg Ma integer = 18
+arg Nb integer = 1900
+
+rem For p not dividing 6a there is only
+rem one possible root at each level.
+fun A B Phi simple_roots Bound
+  Base = 2 * A * A
+  Inverse = Base (Phi - 1) Bound powmod
+  Offset = 0 - 3 * B - A ** 3
+  Root = Offset * Inverse mod Bound
+  return array Bound Root
+end
+
+fun A B Prime roots Power
+  Mod = 1
+  Roots = array 0
+  for Mod less Power
+    Next = Mod * Prime
+    Digits = 0 till Prime
+    Rows = Roots len
+    Grid = Roots reshape Rows 1
+    Choices = Grid + Digits * Mod
+    Flat = Choices reshape #
+    Left = Flat 3 Next powmod + B
+    Shifted = Flat + A
+    Right = Shifted 3 Next powmod + B
+    Remainders = Left mod Next
+    Total = Remainders + Right mod Next
+    Mask = Total equal 0
+    if Mask count equal 0
+      break
+    end
+    Roots = Flat Mask
+    Mod = Next
+  end
+  rem Return a completed state.
+  return concat (array Mod) Roots copy
+end
+
+rem State is modulus followed by roots.
+rem CRT joins independent constraints.
+
+rem Each row holds a, b, prime, power.
+fun State extend Row
+  A = Row 0
+  B = Row 1
+  Prime = Row 2
+  Power = Row 3
+  Part = A B Prime roots Power
+  Scale = State 0
+  Mod = Part 0
+  if Mod equal 1
+    return State
+  end
+  Phi = Mod // Prime * (Prime - 1)
+  Base = Scale mod Mod
+  Inverse = Base (Phi - 1) Mod powmod
+  Previous = State drop 1
+  Roots = Part drop 1
+  Grid = Roots reshape (Roots len) 1
+  Delta = Grid - Previous
+  Step = Delta mod Mod * Inverse mod Mod
+  Current = Previous + Scale * Step
+  Flat = Current reshape #
+  Period = Scale * Mod
+  return concat (array Period) Flat copy
+end
+
+rem The resultant bounds every common
+rem prime power of the two cubics.
+fun A common B
+  Cube = A ** 3
+  Extra = Cube * Cube + 27 * B * B
+  Resultant = Cube * Extra
+  Factors = Resultant factors array
+  Primes = Factors unique
+  Grid = Primes Factors outer equal
+  Counts = Grid count rank 1
+  Powers = Primes ** Counts
+  Remainders = 6 * A mod Primes
+  Good = Remainders not equal 0
+  Bad = Remainders equal 0
+  Ordinary = Primes Good
+  Bounds = Powers Good
+  Degrees = Bounds // Ordinary
+  Totients = Degrees * (Ordinary - 1)
+  Phi = Totients reduce *
+  Bound = Bounds reduce *
+  Seed = A B Phi simple_roots Bound
+  Singular = Primes Bad
+  Limits = Powers Bad
+  First = Singular * 0 + A
+  Second = Singular * 0 + B
+  Rows = stack First Second Singular Limits axis 1
+  State = Rows reduce extend rank 1 axis 0 with Seed
+  Values = State drop 1
+  return Values min
+end
+
+Answer = 0
+if Ma greater 0 and Nb greater 0
+  Pairs = 0 till Ma * Nb
+  First = Pairs // Nb + 1
+  Second = Pairs mod Nb + 1
+  Answer = First common Second rank 0 0 sum
+end
+Answer print

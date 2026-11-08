@@ -26,7 +26,7 @@ import { registerFlatCombine } from './flat-combine.js';
 import { compileFusedReduction, compileFusedSum } from './jit/fused-reduction.js';
 import type { Operators } from './operators.js';
 import { compileScalarExpression, compileResumableScalarExpression } from './jit/scalar-compiler.js';
-import { scalarFunctionResult, privateScalarFunction, scalarFunctionEffects, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
+import { scalarFunctionResult, hasNativeCompletion, privateScalarFunction, scalarFunctionEffects, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { completed, flatMapResult, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './jit/call-specializations.js';
@@ -569,9 +569,12 @@ export class FastPaths {
         // need the linked exact tier; their invocation-local writes are proved above.
         // A newly admitted stored-array loop must not steal an ordinary
         // array-only helper from its existing private Number loop backend.
-        if (proof && !proof.recursive && !proof.containers
+        // Explicit finite native completion cannot use the private Number
+        // body. Its owned arrays may enter the exact function tier instead.
+        const nativeCompletion = proof && hasNativeCompletion(proof);
+        if (proof && !proof.recursive && !proof.containers && !nativeCompletion
             && [...proof.loopIterables.values()].some(loop => loop.kind === 'literal' && isNameExpression(loop.expression))) return undefined;
-        return proof && proof.localArrayWrites && (!proof.arrayWrites.size || proof.containers || proof.recursive) && !proof.planReturn
+        return proof && proof.localArrayWrites && (!proof.arrayWrites.size || proof.containers || proof.recursive || nativeCompletion) && (!proof.planReturn || typeof proof.type !== 'string')
             ? { locals: proof.locals, nonnegative: proof.nonnegative, loops: true } : undefined;
     }
 
@@ -600,7 +603,7 @@ export class FastPaths {
             const proof = scalarFunctionResult(statement, this.compiler.scalars.blockCalls, types, true, [], scalarTypes);
             // Whole-loop registers do not yet accept returned containers.
             // Scalar helper chains retain their reference-valued result.
-            if (!proof || isCompiledContainer(proof.type) || proof.planReturn && !consumed || proof.nonnegative.length) return undefined;
+            if (!proof || isCompiledContainer(proof.type) || proof.planReturn && typeof proof.type === 'string' && !consumed || proof.nonnegative.length) return undefined;
             const captures = definition.context !== undefined;
             const isScalarType = (type: CompiledCalleeType): boolean =>
                 type === 'integer' || type === 'real' || type === 'boolean' || type === 'text';

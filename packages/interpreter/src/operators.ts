@@ -587,7 +587,7 @@ function outerCells(
 /** A range's own bounds, so selecting with it can reach SQL as LIMIT and OFFSET or substr. */
 const rangeBoundsBySequence = new WeakMap<RankSequence, { start: bigint; end: bigint; inclusive: boolean }>();
 
-function makeRange(start: bigint, end: bigint | undefined, inclusive: boolean, stride?: bigint): RankSequence {
+export function makeRange(start: bigint, end: bigint | undefined, inclusive: boolean, stride?: bigint): RankSequence {
     if (end === undefined) return openRange(start, stride ?? 1n);
     const range = rangeSequence(start, end, inclusive, stride);
     if (stride === undefined || stride === 1n) rangeBoundsBySequence.set(range, { start, end, inclusive });

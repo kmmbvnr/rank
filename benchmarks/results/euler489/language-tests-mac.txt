@@ -1,0 +1,20 @@
+
+> @arrrank/language@0.0.2 test
+> vitest run test/function-effects.test.ts test/value-diagnostics.test.ts test/value-facts.test.ts test/accumulate-writes.test.ts --maxWorkers 4
+
+
+ RUN  v3.2.7 /private/tmp/rank423-delivery/packages/language
+
+ ✓ test/accumulate-writes.test.ts (22 tests) 102ms
+ ✓ test/value-facts.test.ts (168 tests) 390ms
+ ✓ test/function-effects.test.ts (78 tests) 471ms
+ ✓ test/value-diagnostics.test.ts (245 tests) 7191ms
+   ✓ infers unchanged probability demos through numeric text formatting  322ms
+   ✓ infers table projection ranks from literal JSON test inputs  367ms
+   ✓ infers the disaster-tweets imported prediction result from its module  752ms
+   ✓ infers circuit signals through a read-only helper and a caught retry loop  2186ms
+
+ Test Files  4 passed (4)
+      Tests  513 passed (513)
+   Start at  18:44:40
+   Duration  7.78s (transform 475ms, setup 0ms, collect 1.95s, tests 8.15s, environment 0ms, prepare 125ms)

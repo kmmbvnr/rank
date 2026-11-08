@@ -1,0 +1,12 @@
+
+> rank-workspace@0.0.1 langium:generate
+> npm run --workspace packages/language langium:generate
+
+
+> @arrrank/language@0.0.2 langium:generate
+> langium generate
+
+Reading config from /private/tmp/rank423-delivery/packages/language/langium-config.json
+Writing generated files to /private/tmp/rank423-delivery/packages/language/src/generated
+Writing textmate grammar to /private/tmp/rank423-delivery/packages/language/syntaxes/rank.tmLanguage.json
+[18:38:12] Langium generator finished successfully in 141ms

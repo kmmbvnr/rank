@@ -1,3 +1,5 @@
+import { tensorCells } from '../rank-application.js';
+import { Operators, makeRange } from '../operators.js';
 import { AstUtils } from 'langium';
 import { PrivateNumericArray } from './number-loop-runtime.js';
 import { checkedNumberModularMultiply, numberOverflow } from './number-arithmetic.js';
@@ -5,6 +7,9 @@ import { safeIntegerModularPower } from '../modular-power.js';
 import { safeIntegerGcd } from '../integer-gcd.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import { checkValueMutable } from '../value-protection.js';
+import { completed } from '../execution.js';
+import { denseScalarItems } from '../array-storage.js';
+import { isBorrowedIntegerBuffer } from './borrowed-integer-buffer.js';
 import { materializeValue } from '../materialize.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource, numberBitwiseSource } from './operator-codegen.js';
 import { numericBoundSource } from './numeric-bound-codegen.js';
@@ -20,15 +25,15 @@ import {
 import { sequenceValues } from '../sequence.js';
 import { checkpoint, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
 import { argumentSelectionError, RankError } from '../errors.js';
-import { recordFallback } from '../diagnostics.js';
+import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { isRankArray, type RankArray, type RankSequence, type RankValue } from '../value.js';
 import type { LoopCallable } from './integer-loop-plan.js';
 import { scalarArrayWriteOffset } from '../selectors.js';
 import { checkedArrayDimension } from '../tensor-index.js';
-import { ArrayBindingScope, arrayValues, arrayForWrite, ownedArray, noteArrayBinding, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from '../array-storage.js';
+import { ArrayBindingScope, arrayValues, arrayForWrite, ownedArray, noteArrayBinding, derivedArray, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from '../array-storage.js';
 import { scalarSelection } from './scalar-selection.js';
 import { takeDropValue } from '../sequence.js';
-import { concatValues, copyArray, materializeCollection } from '../modules/sequences.js';
+import { concatValues, copyArray, materializeArray, stackValues, reshapeWithDimensions, materializeCollection } from '../modules/sequences.js';
 import { hasDeferredSelectionCopy } from '../integer-view.js';
 import { scalarFunctionResult, privateScalarFunction, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes, type ScalarLoopIterable } from './scalar-function-proof.js';
 import { emitFunctionPlan, functionPlanArrays, functionPlanCallbacks, FunctionPlanDemandError, type FunctionPlanConsumer, type FunctionPlan } from '../function-plan.js';
@@ -45,6 +50,7 @@ interface Kernel {
     readonly source: string;
     readonly returnType?: CompiledCalleeType;
     readonly plans: boolean;
+    readonly privateFolds: boolean;
     readonly deques: boolean;
     readonly setMembership: boolean;
     readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[];
@@ -52,7 +58,7 @@ interface Kernel {
     readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
     readonly captures: readonly { name: string; rank: number }[];
-    readonly calls: readonly { operation: Operation; inputs: readonly string[]; iterator?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[];
+    readonly calls: readonly { operation: Operation; inputs: readonly string[]; native?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[];
     readonly guards: readonly string[];
     readonly modules: readonly string[];
     readonly locations: readonly (Statement | Expression)[];
@@ -92,6 +98,7 @@ function compileScalarNumberKernel(
     memberships: readonly string[],
     users: Kernel['userCalls'],
 ): Kernel['numberDirect'] | undefined {
+    if (proof.planReturn && typeof proof.type !== 'string') return undefined;
     if (!proof.localArrayWrites || proof.planCalls.length
         || proof.iterableBindings.size || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt', 'sum', 'count', 'powmod', 'gcd', 'band', 'bor', 'bxor'].includes(name))
         || proof.recursive || (proof.callCount ? !privateScalarFunction(proof, true)
@@ -103,7 +110,15 @@ function compileScalarNumberKernel(
     const isNumType = (t: CompiledCalleeType) => t === 'integer' || t === 'real' || t === 'boolean';
     const arrayParameter = (t: CompiledCalleeType) => typeof t !== 'string' && !isCompiledContainer(t)
         && t.rank === 1 && t.element === 'integer';
-    if (!isNumType(proof.type) || !parameterTypes.every(t => isNumType(t) || arrayParameter(t))) return undefined;
+    const vectorOperands = (value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>) => {
+        while (value.kind === 'group') value = value.operand;
+        return value.kind === 'input' && value.input.operation === 'vector' ? value.input : undefined;
+    };
+    // A fresh literal vector can be published once after every numeric guard
+    // passed. Borrowed arrays and broader array expressions keep the exact tier.
+    const vectorResult = arrayParameter(proof.type) && proof.returned.length > 0
+        && proof.returned.every(value => !!vectorOperands(value));
+    if ((!isNumType(proof.type) && !vectorResult) || !parameterTypes.every(t => isNumType(t) || arrayParameter(t))) return undefined;
 
     const slots = new Map<string, number>();
     const slot = (name: string): string => {
@@ -440,7 +455,7 @@ function compileScalarNumberKernel(
                 input.outer?.right, input.reduction?.operand, input.length, input.gather?.source, input.gather?.indices]
                 .filter((value): value is FunctionPlan => !!value).every(supported);
         }
-        if (consumer.terminal !== 'sum' || !supported(consumer.stage)) return undefined;
+        if (!['sum', 'product'].includes(consumer.terminal) || !supported(consumer.stage)) return undefined;
         const unavailable = Symbol();
         try {
             return emitFunctionPlan(consumer, lines, {
@@ -476,6 +491,17 @@ function compileScalarNumberKernel(
             if (isReturnStatement(cmd)) {
                 if (!cmd.value) { lines.push('return undefined;'); continue; }
                 const body = proof.planReturns.has(cmd) ? [] : lines;
+                if (vectorResult) {
+                    const vector = vectorOperands(proof.expressions.get(cmd.value)!)!;
+                    const values: string[] = [];
+                    for (const [index, operand] of vector.indices!.entries()) {
+                        const value = lowerNum(operand, body);
+                        if (value === undefined) return false;
+                        values.push(`safe(${vector.signs?.[index] ? '-' : ''}(${value}))`);
+                    }
+                    body.push(`return integerVector([${values.join(',')}]);`);
+                    continue;
+                }
                 const val = emitNum(cmd.value, body);
                 if (!val) return false;
                 body.push(`return ${proof.type === 'integer' ? `safe(${val})` : val};`);
@@ -483,6 +509,7 @@ function compileScalarNumberKernel(
                     const origin = locations.indexOf(cmd.value);
                     lines.push(`try { location = ${origin}; ${body.join('\n')} } catch (error) {
                         if (error === overflow) throw error;
+                        if (!(error instanceof RankError)) throw error;
                         throw new FunctionPlanDemandError(locate(error, location));
                     }`);
                 }
@@ -644,11 +671,11 @@ function compileScalarNumberKernel(
         return function(${paramNames.join(',')}) {
             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
             let location = -1;
-            try { ${narrowParameters.join('\n')} ${lines.join('\n')} } catch (error) { throw locate(error, location); }
+            try { ${vectorResult ? 'if (!vectorAllowed()) throw overflow;' : ''} ${narrowParameters.join('\n')} ${lines.join('\n')} } catch (error) { throw locate(error, location); }
         };
     };`;
     try {
-        return new Function('isqrt', 'mulmod', 'PrivateNumericArray', 'broadcastShape', 'RankError', 'FunctionPlanDemandError', 'gcd', 'powmod', source)(safeIntegerSquareRoot, checkedNumberModularMultiply, PrivateNumericArray, broadcastShape, RankError, FunctionPlanDemandError,
+        return new Function('isqrt', 'mulmod', 'PrivateNumericArray', 'broadcastShape', 'RankError', 'FunctionPlanDemandError', 'gcd', 'powmod', 'integerVector', 'vectorAllowed', source)(safeIntegerSquareRoot, checkedNumberModularMultiply, PrivateNumericArray, broadcastShape, RankError, FunctionPlanDemandError,
             (left: number, right: number) => {
                 if (!privateLoopPolling() || demandBudgetEnabled()) throw numberOverflow;
                 checkpoint('computing numbers');
@@ -659,7 +686,8 @@ function compileScalarNumberKernel(
                 // wider moduli, and observable budget/cancellation boundaries.
                 if (!privateLoopPolling() || demandBudgetEnabled() || exponent < 0 || !(modulus > 0 && modulus <= 2 ** 31)) throw numberOverflow;
                 return safeIntegerModularPower(base, exponent, modulus);
-            }) as Kernel['numberDirect'];
+            }, (items: number[]) => ownedArray(items.map(BigInt), [items.length], true),
+                () => privateLoopPolling() && !demandBudgetEnabled()) as Kernel['numberDirect'];
     } catch {
         return undefined;
     }
@@ -686,7 +714,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     // Guarded captures cannot change when assignments are local, polling is
     // private, and the invocation makes no native or nested user calls.
     const stableCaptures = !proof.callCount && !proof.observableCaptures
-        && ![...expressions.values()].some(expression => expression.kind === 'call');
+        && ![...expressions.values()].some(expression => expression.kind === 'call'
+            || expression.kind === 'binary' && typeof expression.signature.result !== 'string'
+            || expression.kind === 'input' && ['materialize-iterable', 'array-native', 'reshape', 'range-array'].includes(expression.input.operation ?? ''));
     const slots = new Map<string, number>();
     const slot = (name: string): string => {
         if (!slots.has(name)) slots.set(name, slots.size);
@@ -696,7 +726,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         ? `bindings.bind(${slots.get(name)}, ${slot(name)})` : `noteArrayBinding(${slot(name)})`;
     statement.parameters.forEach(slot);
     const locations: (Statement | Expression)[] = [];
-    const calls: { operation: Operation; inputs: readonly string[]; iterator?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[] = [];
+    const calls: { operation: Operation; inputs: readonly string[]; native?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[] = [];
     const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[] = [];
     const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
     const memberships: string[] = [];
@@ -723,13 +753,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         } else lines.push(`const ${result} = ${binaryOperatorSource(operation, left, right)};`);
         return result;
     }
-    function emitPlan(consumer: FunctionPlanConsumer, lines: string[], origin?: Expression): string {
+    function emitPlan(consumer: FunctionPlanConsumer, lines: string[], origin?: Expression, captured = false): string {
         return emitFunctionPlan(consumer, lines, {
             variable: () => `v${serial++}`, slot, binary,
             // Cell computation belongs to the consumer. Shape validation
             // still belongs to construction of the deferred expression.
             locate: (source, body, demandLocation) => {
-                if (consumer.terminal === 'sum' && consumer.stage.type.rank) {
+                if (['sum', 'product'].includes(consumer.terminal) && consumer.stage.type.rank) {
                     body.push(`location = ${origin ? locations.push(origin) - 1 : demandLocation};`);
                     return;
                 }
@@ -742,7 +772,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 while (owner && !isAssignmentStatement(owner)) owner = owner.$container;
                 body.push(`location = ${owner && isAssignmentStatement(owner) && owner.deferred ? locations.push(origin ?? source) - 1 : demandLocation};`);
             },
-            capture: (key, body) => body.push(`mappedCalls[${key}] = rankedCalls[${key}]();`),
+            capture: (key, body) => { if (!captured) body.push(`mappedCalls[${key}] = rankedCalls[${key}]();`); },
             callback: (key, value, body) => {
                 const result = `v${serial++}`;
                 body.push(`const ${result} = mappedCalls[${key}]([${value}]);`);
@@ -759,7 +789,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         if (source.kind === 'literal') return emit(source.expression, lines);
         const argument = source.argument ? emitPlan({stage: source.argument, terminal: 'copy'}, lines, 'kind' in source.source ? undefined : source.source)
             : 'kind' in source.source ? iterable(source.source, lines) : emit(source.source, lines);
-        const index = calls.push({ operation: source.operation, inputs: [], iterator: true }) - 1;
+        const index = calls.push({ operation: source.operation, inputs: [], native: true }) - 1;
         const result = `v${serial++}`;
         if (source.deferred) lines.push(`location = ${locations.push(source.origin) - 1};`);
         lines.push(`const ${result} = calls[${index}](${argument});`);
@@ -802,6 +832,53 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 lines.push(`const ${result} = ${expression.input.negative ? '-' : ''}((${left}) ** (${right}));`);
                 return result;
             }
+            if (operation === 'array-power') {
+                const values = expression.input.indices!.map(input => lower(input, lines)), result = `v${serial++}`;
+                lines.push(`const ${result} = arrayBinary('**', ${values.join(',')});`);
+                return expression.input.negative ? `arrayBinary('*', -1n, ${result})` : result;
+            }
+            if (operation === 'stack') {
+                const values = expression.input.indices!.map(input => lower(input, lines)), result = `v${serial++}`;
+                lines.push(`const ${result} = stackValues([${values.join(',')}], ${expression.input.axis});`);
+                return result;
+            }
+            if (operation === 'fold') {
+                const [source, seed] = expression.input.indices!.map(input => lower(input, lines));
+                const callee = expression.input.callee!;
+                const key = userCalls.push({ name: expression.input.name, statement: callee.statement, types: callee.types,
+                    locals: callee.proof.locals, tail: false, captures: callee.captures }) - 1;
+                const cells = `v${serial++}`, size = `v${serial++}`, index = `v${serial++}`, state = `v${serial++}`;
+                lines.push(`noteFold(); const ${cells} = tensorCells(${source}, [0]); const ${size} = ${source}.shape[0]; let ${state} = ${seed};`);
+                lines.push(`for (let ${index} = 0; ${index} < ${size}; ${index}++) {
+                    checkpoint('reducing input cells');
+                    const row = ${cells}.cellAt(${index});
+                    ${state} = userCalls[${key}](materializeValue(${state}), materializeValue(row));
+                }`);
+                return state;
+            }
+            if (operation === 'range-array') {
+                const values = expression.input.indices!.map(input => lower(input, lines)), result = `v${serial++}`;
+                lines.push(`const ${result} = materializeArray(makeRange(${values[0]}, ${values[1]}, ${expression.input.name === 'to'}, ${values[2] ?? 'undefined'}));`);
+                return result;
+            }
+            if (operation === 'reshape') {
+                const source = lower(expression.input.indices![0], lines);
+                const dimensions = expression.input.reshapeDimensions!.map(dimension => dimension ? lower(dimension, lines) : 'undefined');
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = reshapeWithDimensions(${source}, [${dimensions.join(',')}]);`);
+                return result;
+            }
+            if (operation === 'array-native') {
+                const values = expression.input.indices!.map(input => lower(input, lines)), result = `v${serial++}`;
+                const index = calls.push({ operation: expression.input.native!, inputs: [], native: true }) - 1;
+                lines.push(`const ${result} = calls[${index}](${values.join(',')});`);
+                return result;
+            }
+            if (operation === 'materialize-iterable') {
+                const source = iterable(expression.input.iterable!, lines), result = `v${serial++}`;
+                lines.push(`const ${result} = materializeArray(${source});`);
+                return result;
+            }
             if (operation === 'plan') return emitPlan(expression.input.plan!, lines);
             if (operation === 'materialize-deque') {
                 const value = lower(expression.input.indices![0], lines), result = `v${serial++}`;
@@ -832,7 +909,16 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             }
             if (operation === 'user-call' || operation === 'self-call') {
                 const callee = expression.input.callee;
-                const arguments_ = expression.input.indices!.map(argument => lower(argument, lines));
+                // Construct every argument before the strict parameter
+                // boundary completes arrays, matching the ordinary binder.
+                const values = expression.input.indices!.map(argument => lower(argument, lines));
+                const arguments_ = values.map((value, index) => {
+                    const domain = expression.input.indices![index].type;
+                    if (typeof domain === 'string' || isCompiledContainer(domain)) return value;
+                    const completed = `v${serial++}`;
+                    lines.push(`const ${completed} = completeArgument(${value});`);
+                    return completed;
+                });
                 const index = userCalls.push({ name: expression.input.name, statement: callee?.statement ?? statement,
                     types: callee?.types ?? expression.input.indices!.map(argument => argument.type),
                     locals: callee?.proof.locals ?? proof!.locals, tail, recursive: operation === 'self-call', captures: callee?.captures }) - 1;
@@ -954,6 +1040,8 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         }
         if (expression.kind === 'unary') {
             const value = lower(expression.operand, lines), result = `v${serial++}`;
+            if (typeof expression.type !== 'string') return expression.operation.unary === '-'
+                ? `arrayBinary('*', -1n, ${value})` : value;
             lines.push(`const ${result} = ${expression.operation.unary}(${value});`);
             return result;
         }
@@ -976,6 +1064,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             return result;
         }
         const operator = expression.operation.name;
+        if (typeof expression.signature.result !== 'string') {
+            const left = lower(expression.left, lines), right = lower(expression.right, lines), result = `v${serial++}`;
+            lines.push(`const ${result} = arrayBinary(${JSON.stringify(operator)}, ${left}, ${right});`);
+            return result;
+        }
         if (operator === 'and' || operator === 'or') {
             // The right side runs only when the left does not decide.
             const left = lower(expression.left, lines), result = `v${serial++}`, guarded: string[] = [];
@@ -991,12 +1084,31 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             const location = locations.push(command) - 1;
             lines.push(`location = ${location};`);
             if (isReturnStatement(command) && command.value) {
+                let returned = expressions.get(command.value)!;
+                while (returned.kind === 'group') returned = returned.operand;
+                if (typeof returned.type !== 'string' && returned.kind === 'input' && returned.input.operation === 'plan'
+                    && returned.input.plan?.terminal === 'copy') {
+                    const consumer = returned.input.plan;
+                    // A return retains a recipe when its inputs are plans or
+                    // views. Capture callbacks and storage now, but perform
+                    // shape/cell work only at the caller's demand boundary.
+                    for (const key of functionPlanCallbacks(consumer.stage)) lines.push(`mappedCalls[${key}] = rankedCalls[${key}]();`);
+                    const names = [...functionPlanArrays(consumer.stage)];
+                    const inputs = names.map(name => slot(name));
+                    for (const value of inputs) lines.push(`noteArrayBinding(${value});`);
+                    const body: string[] = [], value = emitPlan({...consumer, terminal: 'view'}, body, undefined, true);
+                    lines.push(`if (deferredArrayInputs([${inputs.join(',')}])) return returnedArrayPlan(new Map([${names.map(name => `[${JSON.stringify(name)}, ${slot(name)}]`).join(',')}]), () => { ${body.join('\n')} return ${value}; });`);
+                    const eager = emitPlan({...consumer, terminal: 'view'}, lines, undefined, true);
+                    lines.push(`return ${eager};`);
+                    continue;
+                }
                 const body = proof!.planReturns.has(command) ? [] : lines;
                 const value = emit(command.value, body, true);
                 body.push(`return ${value};`);
                 if (body !== lines) {
                     const origin = locations.push(command.value) - 1;
-                    lines.push(`try { location = ${origin}; ${body.join('\n')} } catch (error) { throw new FunctionPlanDemandError(locate(error, location)); }`);
+                    lines.push(`try { location = ${origin}; ${body.join('\n')} } catch (error) { if (!(error instanceof RankError)) throw error;
+                        throw new FunctionPlanDemandError(locate(error, location)); }`);
                 }
             } else if (isExpressionStatement(command)) {
                 const mutation = applicationForm(command.value, findOperation, true);
@@ -1233,21 +1345,31 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const arrayBindings = (inputs: readonly RankValue[]) => new ArrayBindingScope(value => {
         if (inputs.includes(value)) noteArrayBinding(value);
     });
+    const arrayOperators = new Operators(() => {}, () => undefined);
+    const arrayBinary = (name: string, left: RankValue, right: RankValue) => arrayOperators.evaluateBinary(name, left, right);
+    const noteFold = () => { const diagnostics = currentDiagnostics(); if (diagnostics) diagnostics.compiledFunctionFolds++; };
+    // Private numeric call views already represent completed, nonescaping
+    // buffers. Preserve their zero-copy ABI across a linked helper graph.
+    const completeArgument = (value: RankValue) => isBorrowedIntegerBuffer(value) ? value : materializeValue(value);
+    const deferredArrayInputs = (inputs: RankArray[]) => inputs.some(value => denseScalarItems(value) === undefined);
+    const returnedArrayPlan = (dependencies: ReadonlyMap<string, RankValue>, evaluate: () => RankValue): RankValue => ({
+        kind: 'plan', dependencies, evaluate: () => completed(evaluate()),
+    });
     const kernelArguments = [
-        arrayBindings, loopValues, RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection,
+        completeArgument, derivedArray, deferredArrayInputs, returnedArrayPlan, arrayBindings, loopValues, RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection,
         indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension,
         membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem,
         prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection,
         textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError, setHas, textAt,
-        sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems, concatValues, concatCopy,
+        sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems, concatValues, concatCopy, materializeArray, reshapeWithDimensions, makeRange, arrayBinary, stackValues, tensorCells, noteFold,
     ];
     const kernelParameterNames = [
-        'arrayBindings', 'loopValues', 'RankError', 'scalarSelection', 'noteArrayBinding', 'kernelCheckpoint', 'newStructure', 'addToCollection', 'expectAddCollection',
+        'completeArgument', 'derivedArray', 'deferredArrayInputs', 'returnedArrayPlan', 'arrayBindings', 'loopValues', 'RankError', 'scalarSelection', 'noteArrayBinding', 'kernelCheckpoint', 'newStructure', 'addToCollection', 'expectAddCollection',
         'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension',
         'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem',
         'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection',
         'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', 'setHas', 'textAt',
-        'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems', 'concatValues', 'concatCopy',
+        'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems', 'concatValues', 'concatCopy', 'materializeArray', 'reshapeWithDimensions', 'makeRange', 'arrayBinary', 'stackValues', 'tensorCells', 'noteFold',
     ];
     try {
         const run = new Function(...kernelParameterNames, source)(...kernelArguments) as Kernel['run'];
@@ -1258,6 +1380,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             parameterTypes ?? statement.parameters.map(() => 'integer' as const), locations, memberships, userCalls);
         kernel = {
             source,
+            privateFolds: [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'fold'),
             plans: proof.planReturn || proof.planBindings.size > 0 || proof.iterableBindings.size > 0
                 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan')
                 || userCalls.some(call => !call.recursive && compileScalarFunction(call.statement, call.types, true, call.captures)?.plans),

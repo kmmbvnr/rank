@@ -1,0 +1,96 @@
+
+ RUN  v3.2.7 /tmp/rank454-delivery/packages/interpreter
+
+ ✓ test/manual.test.ts (304 tests) 1617ms
+ ✓ test/scalar-function-kernel.test.ts (30 tests) 2105ms
+   ✓ compiled scalar function bodies > compiles integer and real abs with their exact result domains  354ms
+   ✓ scalar function speculative number mode and BigInt overflow fallback > backs off repeated overflow and recovers after the input scale changes  879ms
+ ✓ test/function-plan.test.ts (22 tests) 1555ms
+   ✓ function-local plan lowering > compiles the unchanged full Euler 30 entrypoint  803ms
+ ✓ test/number-function-plans.test.ts (42 tests) 1221ms
+   ✓ lowers an integer plan with the shared Number emitter: Values' = Input min 2
+ return Values sum  396ms
+ ✓ test/compiled-accumulate-scatter.test.ts (41 tests) 1212ms
+   ✓ compiles duplicate accumulating += with scalar and vector operands  375ms
+ ✓ test/tensor-gather-fusion.test.ts (57 tests) 1431ms
+   ✓ completed gather arithmetic > fuses an ordinary gather/multiply/mod assignment before the next statement  325ms
+ ✓ test/tail-calls.test.ts (11 tests) 8425ms
+   ✓ tail calls > runs a million tail calls with a one-frame call budget  1651ms
+   ✓ tail calls > replaces frames for mutual recursion and parenthesized returns  5791ms
+   ✓ tail calls > allows tail calls again after leaving a try block  802ms
+ ✓ test/scalar-function-modular-product.test.ts (9 tests) 1181ms
+   ✓ exact modular products in scalar Number functions > keeps wide products of safe signed integers in Number mode  947ms
+ ✓ test/function-iterable-plans.test.ts (22 tests) 1170ms
+   ✓ finite iterable plans in compiled functions > consumes named factors and unique stages repeatedly  486ms
+ ✓ test/compiled-finite-arrays.test.ts (34 tests) 1305ms
+   ✓ finite arrays inside exact compiled functions > builds prime powers with a materialized factorization and mask counts  559ms
+ ✓ test/compiled-array-operations.test.ts (23 tests) 1184ms
+   ✓ array operations in linked function kernels > refreshes a prepared writer when an earlier assignment runs again  358ms
+   ✓ array operations in linked function kernels > compiles convolution and polynomial reduction in Euler 324  376ms
+ ✓ test/scalar-function-real.test.ts (21 tests) 1306ms
+   ✓ real scalar function kernels > compiles integer conversion without changing truncation or domain errors  353ms
+ ✓ test/compiled-function-folds.test.ts (21 tests) 909ms
+   ✓ preserves seeded scalar fold order  323ms
+ ✓ test/number-call-borrowed-array.test.ts (24 tests) 1055ms
+   ✓ read-only array calls in private Number regions > reads private stores without publishing or copying the buffer  413ms
+ ✓ test/loop-range-values.test.ts (32 tests) 913ms
+   ✓ range values in compiled loops (#432) > compiles Result = K to 3 * K by K  313ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 787ms
+   ✓ array binding contracts (compiled true) > checks every lazy scalar read after establishing the type: 1n  314ms
+ ✓ test/array-storage.test.ts (43 tests) 881ms
+   ✓ eager array storage > fuses each name over the value that name holds  309ms
+ ✓ test/modular-updates.test.ts (30 tests) 877ms
+ ✓ test/plan-tensor-reduction.test.ts (52 tests) 787ms
+ ✓ test/scalar-function-real-arrays.test.ts (7 tests) 768ms
+   ✓ keeps fractional, signed-zero and nonfinite real fills, unary negation and compound writes  588ms
+ ✓ test/recursive-owned-arrays.test.ts (14 tests) 738ms
+   ✓ recursive functions with invocation-owned arrays > keeps parent and child allocations independent and leaves the input unchanged  404ms
+ ✓ test/plan-effects.test.ts (22 tests) 713ms
+   ✓ effects in explicit plans (compilation=false) > repeats callback effects on demand and retains an explicit result: fun A combine B rank 0 0
+ B print
+ return A + B
+end  338ms
+ ✓ test/function-plan-inputs.test.ts (16 tests) 704ms
+ ✓ test/function-snapshots.test.ts (30 tests) 670ms
+ ✓ test/function-binding.test.ts (22 tests) 608ms
+   ✓ single-expression function bindings > keeps both inline and multiline declarations constant  320ms
+ ✓ test/plan-escape.test.ts (30 tests) 615ms
+   ✓ computation plan escape (compilation=false) > returns a local callback plan with frozen dependencies and repeats its effects  318ms
+ ✓ test/function-control.test.ts (16 tests) 603ms
+   ✓ function control parity (compilation=false) > preserves returns, cleanup and errors for 'fun N count\n  if N equal 0\n    retu…'  325ms
+ ✓ test/computed-array-update.test.ts (24 tests) 552ms
+   ✓ computed array writes (compilation=false) > fuses independent arithmetic with unique affine addressing  320ms
+ ✓ test/return-contract.test.ts (13 tests) 541ms
+   ✓ enforces return contracts with compilation true  317ms
+ ✓ test/array-returning-loop-calls.test.ts (12 tests) 643ms
+   ✓ array-returning calls in compiled loops > binds a fresh result on each iteration and reads it in the region  362ms
+ ✓ test/array-binding-lifetime.test.ts (18 tests) 460ms
+   ✓ array binding lifetimes, compiled=false > retires a rebound alias of 1 2 3  305ms
+ ✓ test/number-vector-results.test.ts (6 tests) 451ms
+ ✓ test/captured-scalar-reads.test.ts (8 tests) 572ms
+   ✓ captured integer arrays in scalar functions > compiles a helper reading a captured concat array  369ms
+ ✓ test/capture-protection.test.ts (9 tests) 22ms
+ ✓ test/plan-binding-location.test.ts (14 tests) 413ms
+ ✓ test/range-mask-selection.test.ts (7 tests) 479ms
+   ✓ keeps range masks packed when compiled=false  347ms
+ ✓ test/native-array-storage.test.ts (2 tests) 5ms
+ ✓ test/euler799.test.ts (8 tests) 7604ms
+   ✓ Euler 799 compiled=false > matches every direct pair count through n=500  3217ms
+   ✓ Euler 799 compiled=false > retains the original answer at Limit=300 Least=2  426ms
+   ✓ Euler 799 compiled=true > matches every direct pair count through n=500  2621ms
+   ✓ Euler 799 compiled=true > retains the original answer at Limit=300 Least=2  433ms
+stdout | test/euler489.test.ts > matches the full default exact oracle
+1791954757162
+
+ ✓ test/euler489.test.ts (10 tests) 44150ms
+   ✓ matches all least maximizing roots for a<=4,b<=6 with {}  630ms
+   ✓ matches all least maximizing roots for a<=4,b<=6 with {"compilation":false}  349ms
+   ✓ retains the statement fixture and empty parameter grids with {}  593ms
+   ✓ retains the statement fixture and empty parameter grids with {"compilation":false}  1094ms
+   ✓ retains the statement fixture and empty parameter grids with {"numberLoopCompilation":false}  637ms
+   ✓ matches the full default exact oracle  40132ms
+
+ Test Files  39 passed (39)
+      Tests  1160 passed (1160)
+   Start at  20:07:37
+   Duration  47.80s (transform 2.53s, setup 0ms, collect 37.82s, tests 91.23s, environment 7ms, prepare 2.28s)

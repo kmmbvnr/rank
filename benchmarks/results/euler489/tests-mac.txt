@@ -1,0 +1,55 @@
+
+ RUN  v3.2.7 /private/tmp/rank423-delivery/packages/interpreter
+
+ ✓ test/scalar-function-real.test.ts (21 tests) 360ms
+ ✓ test/scalar-function-modular-product.test.ts (9 tests) 368ms
+ ✓ test/plan-effects.test.ts (22 tests) 247ms
+ ✓ test/manual.test.ts (304 tests) 606ms
+ ✓ test/number-call-borrowed-array.test.ts (24 tests) 352ms
+ ✓ test/tail-calls.test.ts (11 tests) 2111ms
+   ✓ tail calls > runs a million tail calls with a one-frame call budget  546ms
+   ✓ tail calls > replaces frames for mutual recursion and parenthesized returns  1317ms
+ ✓ test/compiled-finite-arrays.test.ts (34 tests) 414ms
+ ✓ test/compiled-array-operations.test.ts (23 tests) 366ms
+ ✓ test/scalar-function-kernel.test.ts (30 tests) 637ms
+ ✓ test/loop-range-values.test.ts (32 tests) 342ms
+ ✓ test/array-storage.test.ts (43 tests) 313ms
+ ✓ test/modular-updates.test.ts (30 tests) 299ms
+ ✓ test/function-plan.test.ts (22 tests) 543ms
+ ✓ test/tensor-gather-fusion.test.ts (57 tests) 490ms
+ ✓ test/scalar-function-real-arrays.test.ts (7 tests) 272ms
+ ✓ test/number-function-plans.test.ts (42 tests) 456ms
+ ✓ test/compiled-accumulate-scatter.test.ts (41 tests) 438ms
+ ✓ test/function-iterable-plans.test.ts (22 tests) 465ms
+ ✓ test/plan-tensor-reduction.test.ts (52 tests) 275ms
+ ✓ test/return-contract.test.ts (13 tests) 192ms
+ ✓ test/compiled-function-folds.test.ts (21 tests) 352ms
+ ✓ test/recursive-owned-arrays.test.ts (14 tests) 272ms
+ ✓ test/range-mask-selection.test.ts (7 tests) 181ms
+ ✓ test/number-vector-results.test.ts (6 tests) 166ms
+ ✓ test/function-plan-inputs.test.ts (16 tests) 233ms
+ ✓ test/plan-escape.test.ts (30 tests) 249ms
+ ✓ test/captured-scalar-reads.test.ts (8 tests) 236ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 311ms
+ ✓ test/function-snapshots.test.ts (30 tests) 309ms
+ ✓ test/function-control.test.ts (16 tests) 270ms
+ ✓ test/function-binding.test.ts (22 tests) 255ms
+ ✓ test/array-returning-loop-calls.test.ts (12 tests) 289ms
+ ✓ test/array-binding-lifetime.test.ts (18 tests) 206ms
+ ✓ test/capture-protection.test.ts (9 tests) 10ms
+ ✓ test/computed-array-update.test.ts (24 tests) 265ms
+ ✓ test/plan-binding-location.test.ts (14 tests) 170ms
+ ✓ test/native-array-storage.test.ts (2 tests) 3ms
+ ✓ test/euler799.test.ts (8 tests) 3349ms
+   ✓ Euler 799 compiled=false > matches every direct pair count through n=500  1311ms
+   ✓ Euler 799 compiled=true > matches every direct pair count through n=500  1253ms
+stdout | test/euler489.test.ts > matches the full default exact oracle
+1791954757162
+
+ ✓ test/euler489.test.ts (10 tests) 13895ms
+   ✓ matches the full default exact oracle  12637ms
+
+ Test Files  39 passed (39)
+      Tests  1160 passed (1160)
+   Start at  20:05:49
+   Duration  15.98s (transform 1.17s, setup 0ms, collect 19.68s, tests 30.57s, environment 3ms, prepare 990ms)

@@ -1,0 +1,20 @@
+
+ RUN  v3.2.7 /tmp/rank454-delivery/packages/interpreter
+
+stdout | test/differential.test.ts > compiled and reference demo execution > euler/489_commonfactors.ra
+comparing euler/489_commonfactors.ra
+
+stdout | test/differential.test.ts > compiled and reference demo execution > euler/489_commonfactors_test.ra
+comparing euler/489_commonfactors_test.ra
+
+stdout | test/differential.test.ts > compiled and reference demo execution
+differential: 2/1703 compared, 2 completed, 1 test blocks, 1274032 compiled entries, 0 Number loop entries
+
+ ✓ test/differential.test.ts (1704 tests | 1702 skipped) 161456ms
+   ✓ compiled and reference demo execution > euler/489_commonfactors.ra  160637ms
+   ✓ compiled and reference demo execution > euler/489_commonfactors_test.ra  811ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 1702 skipped (1704)
+   Start at  18:49:14
+   Duration  164.60s (transform 2.01s, setup 0ms, collect 2.87s, tests 161.46s, environment 0ms, prepare 60ms)

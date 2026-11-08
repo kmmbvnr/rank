@@ -1,5 +1,13 @@
 import { ownedStorage } from './array-storage-state.js';
-import type { RankValue } from './value.js';
+import type { RankArray, RankValue } from './value.js';
+
+// Only the private Number call adapter registers these trusted buffers.
+// Error previews can read eight stored cells without evaluating a view.
+const integerBufferSummaries = new WeakMap<RankArray, ArrayLike<number | bigint>>();
+export function registerIntegerBufferSummary(value: RankArray, cells: ArrayLike<number | bigint>): RankArray {
+    integerBufferSummaries.set(value, cells);
+    return value;
+}
 
 /** Bounded diagnostic text; never evaluates lazy arrays or consumes sequences. */
 export function summarizeValue(value: RankValue, depth = 0): string {
@@ -10,7 +18,10 @@ export function summarizeValue(value: RankValue, depth = 0): string {
     if (typeof value !== 'object') return String(value);
     if (value.kind === 'array' || value.kind === 'bytes') {
         const label = `${value.kind}[${value.shape.join('×')}]`;
-        if (depth >= 2 || value.itemAt) return label;
+        if (depth >= 2) return label;
+        const buffer = value.kind === 'array' ? integerBufferSummaries.get(value) : undefined;
+        if (buffer) return summarizeIntegerBuffer(buffer);
+        if (value.itemAt) return label;
         // Stay below array-storage's errors/interrupt imports. Reading public
         // `.items` boxes the whole typed buffer, even for an eight-cell preview.
         const state = value.kind === 'array' ? ownedStorage.get(value) : undefined;

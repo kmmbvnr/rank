@@ -262,3 +262,24 @@ Total`);
   } finally {runtime.dispose();}
  });
 });
+
+it('keeps completed private buffers borrowed across nested exact helpers', () => {
+ const result = compare(`use sequences
+fun Values prefix
+ Picked = Values take 1
+ return Picked sum
+end
+fun Values relay
+ return Values prefix
+end
+Input = array shape 5000 fill 7
+Total = 0
+for I in 1 to 20
+ Total += Input relay
+end
+Total`);
+ expect(result.value).toBe('140');
+ expect(result.diagnostics.numberLoops).toBeGreaterThan(0);
+ expect(result.diagnostics.numberFunctionArrayBorrows).toBeGreaterThan(0);
+ expect(result.diagnostics.cellsComputed).toBeLessThan(5000);
+});

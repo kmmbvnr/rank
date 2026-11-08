@@ -873,7 +873,7 @@ export class FunctionInvocation {
         const captureReaders: ReturnType<typeof capturedIntegerReader>[] = [];
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
         const boundedCalls: LoopCallable[] = [];
-        const binders = kernel.calls.map(({ operation, inputs, iterator, capturedArgument, bound }, callIndex) => capturedArgument ? () => {
+        const binders = kernel.calls.map(({ operation, inputs, native, capturedArgument, bound }, callIndex) => capturedArgument ? () => {
             const value = resolve(operation.name);
             if (!privateLoopPolling() || demandBudgetEnabled() || !this.modules.has(operation.module)
                 || !value || !isNativeFunction(value) || !this.builtins.is(operation.module, operation.name, value)
@@ -908,13 +908,13 @@ export class FunctionInvocation {
                 return typeof argument === 'string' || hasNativeArrayHeader(argument)
                     ? value.call([argument]) : runExecution(this.host.apply(value, [argument]));
             }) as LoopCallable;
-        } : iterator ? () => {
+        } : native ? () => {
             // Finite iterator stages use the original native implementation and
             // interpreter-owned workspace. No callbacks can invalidate entry guards.
             const value = resolve(operation.name);
             if (!privateLoopPolling() || !this.modules.has(operation.module) || !value || !isNativeFunction(value)
                 || !this.builtins.is(operation.module, operation.name, value) || !hasNativeImplementation(value)) return undefined;
-            return ((argument: RankValue) => value.call([argument])) as LoopCallable;
+            return ((...arguments_: RankValue[]) => value.call(arguments_)) as LoopCallable;
         } : preparePositionalBuiltin({
             modules: this.modules, builtins: this.builtins, options: this.options,
             resolve: name => context?.lookup(name) ?? this.bindings.globals.get(name)
@@ -1112,7 +1112,9 @@ export class FunctionInvocation {
             }
         };
         if (directFn) run.direct = directFn;
-        if (rawNumber) {
+        // Vector publication is an internal Number specialization, not the
+        // scalar-only ABI consumed by numeric loop and callback callers.
+        if (rawNumber && typeof kernel.returnType === 'string') {
             // Hooks are constructor snapshots shared by ordinary and inspection
             // profiles. Keep the hook call live without resolving capabilities
             // for every cell of a compiled caller's loop.
@@ -1198,8 +1200,10 @@ export class FunctionInvocation {
             };
         }
 
-        if (kernel.rankedCalls.length || kernel.plans || kernel.deques || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
+        const observableFold = kernel.privateFolds && Object.values(this.compiler.hooks).some(value => typeof value === 'function');
+        if (kernel.privateFolds || kernel.rankedCalls.length || kernel.plans || kernel.deques || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             if (inspectionEnabled() || this.scalarFallbackDepth) return false;
+            if (kernel.privateFolds && (observableFold || !privateLoopPolling() || demandBudgetEnabled())) return false;
             // A native powmod helper keeps ordinary demand/error boundaries
             // under guards, including when this prepared function was cached.
             if (kernel.guards.includes('powmod') && (!privateLoopPolling() || demandBudgetEnabled())) return false;

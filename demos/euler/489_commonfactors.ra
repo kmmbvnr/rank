@@ -1,118 +1,113 @@
 rem Common factors between two
 rem sequences
 rem https://projecteuler.net/problem=489
-
 use numbers
 use sequences
 use io
 use cli
-
 arg Ma integer = 18
 arg Nb integer = 1900
 
-rem gcd(n^3 + b, (n + a)^3 + b) divides
-rem the resultant a^3 (a^6 + 27 b^2),
-rem so the best gcd is the product of
-rem the largest p^k with a common root
-rem mod p^k; G is the least CRT of the
-rem roots. For p not dividing 6a both
-rem congruences force n = -(3b + a^3)
-rem / (2 a^2) mod p^k; other p lift
-rem roots digit by digit.
-Lm = Ma ** 6 + 27 * Nb * Nb isqrt
-Ps = primes to Lm + 1 array
-Answer = 0
-for A in 1 to Ma
-  Pa = Ps ((A mod Ps equal 0) indices)
-  for B in 1 to Nb
-    Nv = A ** 6 + 27 * B * B
-    Dz = Nv mod Ps equal 0
-    Pd = Ps (Dz indices)
-    Co = Nv
-    for P in Pd
-      for Co mod P equal 0
-        Co //= P
-      end
+rem Primes coprime to 6a share one root
+rem modulo their combined prime powers.
+fun A B Phi simple_roots Bound
+  Base = 2 * A * A
+  Inverse = Base (Phi - 1) Bound powmod
+  Offset = 0 - 3 * B - A ** 3
+  Root = Offset * Inverse mod Bound
+  return array Bound Root
+end
+
+rem Only primes dividing 6a need lifting.
+fun A B Prime roots Power
+  Mod = 1
+  Roots = array 0
+  for Mod less Power
+    Next = Mod * Prime
+    Digits = 0 till Prime
+    Rows = Roots len
+    Grid = Roots reshape Rows 1
+    Choices = Grid + Digits * Mod
+    Flat = Choices reshape #
+    Left = Flat 3 Next powmod + B
+    Shifted = Flat + A
+    Right = Shifted 3 Next powmod + B
+    Remainders = Left mod Next
+    Total = Remainders + Right mod Next
+    Mask = Total equal 0
+    if Mask count equal 0
+      break
     end
-    Pt = concat Pa Pd
-    if Co greater 1
-      Pt = concat Pt (array Co)
-    end
-    Pt = Pt unique
-    Cur = array 0
-    Mc = 1
-    for P in Pt
-      E = 0
-      X = A
-      for X mod P equal 0
-        X //= P
-        E += 3
-      end
-      X = Nv
-      for X mod P equal 0
-        X //= P
-        E += 1
-      end
-      Rs = array 0
-      Md = 1
-      Gn = A mod P not equal 0
-      if P greater 3 and Gn
-        rem One candidate per level.
-        for T in 1 to E
-          Mn = Md * P
-          Ph = Mn // P * (P - 1)
-          Ta = 2 * A * A
-          Iv = Ta (Ph - 1) Mn powmod
-          Xc = 0 - 3 * B - A ** 3
-          Xc = Xc * Iv mod Mn
-          G1 = Xc 3 Mn powmod + B
-          Xa = Xc + A
-          G2 = Xa 3 Mn powmod + B
-          Gs = G1 mod Mn + G2 mod Mn
-          if Gs equal 0
-            Rs = array Xc
-            Md = Mn
-          else
-            break
-          end
-        end
-      else
-        rem Lift roots digit by digit.
-        for T in 1 to E
-          Mn = Md * P
-          Us = (0 till P) * Md
-          Rc = Rs reshape (Rs len) 1
-          C2 = Rc + Us
-          Nc = (Rs len) * P
-          Ch = C2 reshape Nc
-          F1 = Ch 3 Mn powmod + B
-          Ca = Ch + A
-          F2 = Ca 3 Mn powmod + B
-          Fz = F1 mod Mn + F2 mod Mn
-          Ok = Fz equal 0 indices
-          if Ok len equal 0
-            break
-          end
-          Rs = Ch Ok
-          Md = Mn
-        end
-      end
-      if Md greater 1
-        rem CRT with Cur mod Mc.
-        Ph = Md // P * (P - 1)
-        Mr = Mc mod Md
-        Iv = Mr (Ph - 1) Md powmod
-        Nr = Cur len
-        Nt = Nr * (Rs len)
-        Ip = 0 till Nt copy
-        Cq = Cur (Ip mod Nr)
-        Rq = Rs (Ip // Nr)
-        K = (Rq - Cq) mod Md * Iv mod Md
-        Cur = Cq + Mc * K
-        Mc *= Md
-      end
-    end
-    Answer += Cur min
+    Roots = Flat Mask
+    Mod = Next
   end
+  rem Return a completed state.
+  return concat (array Mod) Roots copy
+end
+
+rem State is modulus followed by roots.
+rem Rows hold a, b, prime, power.
+rem CRT joins the singular constraints.
+fun State extend Row
+  A = Row 0
+  B = Row 1
+  Prime = Row 2
+  Power = Row 3
+  Part = A B Prime roots Power
+  Scale = State 0
+  Mod = Part 0
+  if Mod equal 1
+    return State
+  end
+  Phi = Mod // Prime * (Prime - 1)
+  Base = Scale mod Mod
+  Inverse = Base (Phi - 1) Mod powmod
+  Previous = State drop 1
+  Roots = Part drop 1
+  Grid = Roots reshape (Roots len) 1
+  Delta = Grid - Previous
+  Step = Delta mod Mod * Inverse mod Mod
+  Current = Previous + Scale * Step
+  Flat = Current reshape #
+  Period = Scale * Mod
+  return concat (array Period) Flat copy
+end
+
+rem The resultant bounds every common
+rem prime power of the two cubics.
+fun A common B
+  Cube = A ** 3
+  Extra = Cube * Cube + 27 * B * B
+  Resultant = Cube * Extra
+  Factors = Resultant factors array
+  Primes = Factors unique
+  Counts = Primes Factors outer equal count rank 1
+  Powers = Primes ** Counts
+  Remainders = 6 * A mod Primes
+  Good = Remainders not equal 0
+  Bad = Remainders equal 0
+  Ordinary = Primes Good
+  Bounds = Powers Good
+  Degrees = Bounds // Ordinary
+  Totients = Degrees * (Ordinary - 1)
+  Phi = Totients reduce *
+  Bound = Bounds reduce *
+  Seed = A B Phi simple_roots Bound
+  Singular = Primes Bad
+  Limits = Powers Bad
+  First = Singular * 0 + A
+  Second = Singular * 0 + B
+  Rows = stack First Second Singular Limits axis 1
+  State = Rows reduce extend rank 1 axis 0 with Seed
+  Values = State drop 1
+  return Values min
+end
+
+Answer = 0
+if Ma greater 0 and Nb greater 0
+  Pairs = 0 till Ma * Nb
+  First = Pairs // Nb + 1
+  Second = Pairs mod Nb + 1
+  Answer = First common Second rank 0 0 sum
 end
 Answer print

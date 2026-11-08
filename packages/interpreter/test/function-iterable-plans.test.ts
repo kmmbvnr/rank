@@ -126,6 +126,41 @@ ${consume}`);
             expect(runtime.execute('12 total')).toBe(5n);
         }finally{runtime.dispose();}
     });
+    it.each(['factors','divisors'])('materializes %s inside a compiled helper',operation=>{
+        for(const n of [1,2,12,360,1000003]) compare(`${prefix}fun N total
+ Items = N ${operation} array
+ N = 1
+ Total = Items sum
+ Count = Items len
+ return Total + Count
+end
+${n} total`);
+    });
+    it('owns explicitly completed iterable arrays across writes and calls',()=>{
+        expect(compare(`${prefix}fun N values
+ Items = N factors unique array
+ Alias = Items
+ Items 0 = 99
+ return Alias sum
+end
+360 values`).value).toBe('10');
+        compare(`${prefix}fun N values
+ Items = N factors array
+ return Items
+end
+12 values`);
+    });
+    it.each(['0','-1'])('keeps explicit factor materialization errors for %s',n=>{
+        const result=compare(`${prefix}use io
+fun N total
+ "before" print
+ Items = N factors array
+ return Items len
+end
+(${n}) total`,false);
+        expect(result.output).toEqual(['before']);
+        expect(result.error).toContain('factors expects a positive integer');
+    });
     it('guards native identities after a cached compilation',()=>{
         let calls=0;
         const runtime=new Interpreter(undefined,{onScalarFunctionExecuted:()=>calls++});
@@ -139,4 +174,37 @@ ${consume}`);
             expect(runtime.execute('12 total')).toBe(17n);
         }finally{runtime.dispose();}
     });
+});
+
+it('links a returned scalar recipe to an ordinary consumer', () => {
+    expect(compare(`${prefix}fun N delayed
+ Value' = N + 1
+ return Value
+end
+Result = 0
+for Once in 1 to 1
+ Result = 4 delayed
+end
+Result`).value).toBe('5');
+});
+it('retains returned scalar recipe errors at their demand location', () => {
+    expect(compare(`${prefix}fun N delayed
+ Value' = N // 0
+ return Value
+end
+Result = 0
+for Once in 1 to 1
+ Result = 0 delayed
+end
+Result`).error).toContain('division by zero');
+});
+it.each(["Unused' = 0 delayed", 'for Once in 1 to 1\n 0 delayed\nend'])('preserves explicit-plan laziness and statement demand: %s', consumer => {
+    const result = compare(`${prefix}fun N delayed
+ Value' = N // 0
+ return Value
+end
+${consumer}
+7`, false);
+    if (consumer.startsWith('for')) expect(result.error).toContain('division by zero');
+    else expect(result.value).toBe('7');
 });

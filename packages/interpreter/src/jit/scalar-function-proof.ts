@@ -1,11 +1,11 @@
 import { compiledCalleeTypeKey, sameCompiledCalleeType, isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import { positionalDeclaredCall, strictDataCall } from './declared-scalar-call.js';
 import {
-    scalarChooseOperands, functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead, terminalReductionForm,
+    symbolicApplicationForm, scalarChooseOperands, functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead, terminalReductionForm,
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, flattenApplication, isApplicationExpression, isDeclaredCallExpression,
     isNameExpression, isExpressionStatement, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
-    isCountClauseExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement, type Operation, type FunctionEffects, type ReturnOrigin,
+    isCountClauseExpression, isAllAxisExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement, type Operation, type FunctionEffects, type ReturnOrigin,
 } from '@arrrank/language';
 import { describeCompilerRejection, recordCompilerRejection, type CompilerRejection } from './compiler-rejection.js';
 import { recordFallback } from '../diagnostics.js';
@@ -46,11 +46,12 @@ function expressionOrigins(expression: ProvenExpression | undefined,
     if (expression.kind !== 'input') return [unknownOrigin];
     const input = expression.input;
     if (!input.operation && !input.indices) return bindings.get(input.name) ?? [];
+    if (input.operation === 'reshape') return expressionOrigins(input.indices?.[0], bindings);
     if (input.operation === 'user-call' && input.callee) {
         return scalarFunctionEffects(input.callee.proof).returns.flatMap(origin =>
             origin.kind === 'parameter' ? [...expressionOrigins(input.indices?.[origin.index], bindings)] : [origin]);
     }
-    return ['array', 'new', 'vector', 'copy', 'concat-copy', 'materialize-deque', 'sort', 'unique', 'argsort', 'gather']
+    return ['array', 'new', 'vector', 'copy', 'concat-copy', 'materialize-deque', 'materialize-iterable', 'range-array', 'sort', 'unique', 'argsort', 'gather']
         .includes(input.operation ?? '') ? [freshOrigin] : [unknownOrigin];
 }
 function storageOrigins(parameters: readonly string[], types: readonly CompiledCalleeType[],
@@ -107,6 +108,7 @@ export function scalarFunctionEffects(proof: ScalarFunctionProof): ScalarFunctio
         if (node.kind === 'call') return node.signature.callbacks === 'none' && !node.signature.hostFunction
             && node.arguments.every(expression);
         const input = node.input;
+        if (input.reshapeDimensions?.some(value => value && !expression(value))) return false;
         if (input.indices && !input.indices.every(expression)
             || input.dimensions && !input.dimensions.every(dimension => expression(dimension.value))) return false;
         if (input.operation === 'user-call') {
@@ -121,10 +123,18 @@ export function scalarFunctionEffects(proof: ScalarFunctionProof): ScalarFunctio
             }
             return !effects.unknown;
         }
+        if (input.operation === 'fold') {
+            if (!input.callee) return false;
+            const effects = scalarFunctionEffects(input.callee.proof);
+            localWrites ||= effects.localWrites;
+            return !effects.unknown && !effects.parameters.size;
+        }
+        if (input.operation === 'array-native') return input.native?.name === 'powmod';
+        if (input.operation === 'materialize-iterable') return !!input.iterable && iterableSafe(input.iterable);
         if (input.operation === 'pop') write(input.name);
         // Self calls keep the same parameter domains, but may remap references.
         if (input.operation === 'self-call') return !proof.parameterTypes.some(type => typeof type !== 'string');
-        return !input.operation || ['choose', 'integer-power', 'text-at', 'array-len',
+        return !input.operation || ['choose', 'integer-power', 'text-at', 'array-len', 'range-array', 'reshape', 'array-power', 'stack', 'gather', 'concat', 'concat-copy', 'copy', 'take', 'drop', 'sort', 'unique', 'argsort',
             'array', 'vector', 'new', 'pop', 'len', 'contains', 'not-contains',
             'set-contains', 'set-not-contains', 'index-default', 'plan'].includes(input.operation);
     }
@@ -136,6 +146,15 @@ export function scalarFunctionEffects(proof: ScalarFunctionProof): ScalarFunctio
     return effects;
 }
 
+/** A finite native completion needs the exact tier, including in linked helpers. */
+export function hasNativeCompletion(proof: ScalarFunctionProof, seen = new Set<ScalarFunctionProof>()): boolean {
+    if (seen.has(proof)) return false;
+    seen.add(proof);
+    return [...proof.expressions.values()].some(expression => expression.kind === 'input'
+        && (expression.input.operation === 'materialize-iterable'
+            || expression.input.callee && hasNativeCompletion(expression.input.callee.proof, seen)));
+}
+
 /** Live binding and native implementation guards are still checked at entry. */
 export function privateScalarFunction(proof: ScalarFunctionProof, consumed = false): boolean {
     const effects = scalarFunctionEffects(proof);
@@ -145,8 +164,12 @@ export function privateScalarFunction(proof: ScalarFunctionProof, consumed = fal
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort' | 'choose' | 'concat' | 'concat-copy' | 'captured-bound-len';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'materialize-iterable' | 'range-array' | 'reshape' | 'array-native' | 'array-power' | 'stack' | 'fold' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort' | 'choose' | 'concat' | 'concat-copy' | 'captured-bound-len';
     readonly plan?: FunctionPlanConsumer;
+    readonly iterable?: ScalarLoopIterable;
+    readonly native?: Operation;
+    readonly axis?: number;
+    readonly reshapeDimensions?: readonly (CompiledExpression<CompiledCalleeType, ScalarFunctionInput> | undefined)[];
     readonly negative?: boolean;
     readonly keyed?: boolean;
     readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof; readonly captures: ScalarCaptureTypes };
@@ -249,8 +272,12 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const protectedNames = new Set<string>();
     const nonnegativeParameters = new Set<number>();
     const modified = new Set<string>();
+    const definitions = new Map<string, Expression | undefined>();
     for (const node of AstUtils.streamAst(statement)) {
-        if (isAssignmentStatement(node)) modified.add(node.name);
+        if (isAssignmentStatement(node)) {
+            modified.add(node.name);
+            definitions.set(node.name, definitions.has(node.name) || node.operator !== '=' || node.deferred ? undefined : node.value);
+        }
         if (isUnpackStatement(node)) for (const name of node.names) modified.add(name);
         if (isForStatement(node)) for (const name of forIteration(node.condition)?.names ?? []) modified.add(name);
     }
@@ -266,7 +293,27 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     function nonnegative(source: Expression): boolean {
         source = unwrap(source);
         if (isNumberLiteral(source)) return typeof source.value === 'bigint' && source.value >= 0n;
-        if (!isNameExpression(source) || modified.has(source.name)) return false;
+        if (isArrayExpression(source) && source.items.length && !source.dimensions.length
+            && !source.fill && !source.rows.length && !source.range) return source.items.every(item =>
+                isNumberLiteral(item.value) && typeof item.value.value === 'bigint' && item.value.value >= 0n
+                && (item.sign !== '-' || item.value.value === 0n));
+        if (!isNameExpression(source)) return false;
+        if (modified.has(source.name)) {
+            // A single local definition whose proved operation returns a size
+            // stays nonnegative even when that definition runs in a loop.
+            if (parameters.has(source.name)) return false;
+            const value = definitions.get(source.name);
+            let compiled = value && expressions.get(value);
+            while (compiled?.kind === 'group') compiled = compiled.operand;
+            if (compiled?.kind === 'call') return ['count', 'len'].includes(compiled.operation.name);
+            if (compiled?.kind !== 'input') return false;
+            if (compiled.input.operation === 'vector') return !!compiled.input.indices?.every((item, index) =>
+                item.kind === 'literal' && typeof item.value === 'bigint' && item.value >= 0n
+                && (!compiled.input.signs?.[index] || item.value === 0n));
+            if (['array-len', 'len', 'captured-len', 'captured-bound-len'].includes(compiled.input.operation ?? '')) return true;
+            const stage = compiled.input.plan?.stage;
+            return stage?.kind === 'input' && (!!stage.input.length || stage.input.reduction?.name === 'count');
+        }
         const index = statement.parameters.lastIndexOf(source.name);
         if (index < 0) return false;
         nonnegativeParameters.add(index);
@@ -378,12 +425,47 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                         ? (lexical?.reads.get(source.callee) ?? lexicalBinding(scope, source.callee.name))?.function : undefined;
                     return parts && callee && strictDataCall(callee) ? userCall(parts, env, source) : undefined;
                 }
+                if (loops && isBinaryExpression(source)) {
+                    const fold = symbolicApplicationForm(source, name => !env.has(name) && !lexicalBinding(scope, name));
+                    if (fold?.kind === 'reduce' && fold.operator === '*' && !fold.rank && !fold.axes
+                        && !fold.seed && !fold.keys && !fold.size) {
+                        const stage = plan(fold.source, env, false);
+                        if (stage?.type.rank === 1 && stage.type.element === 'integer') return {
+                            type: 'integer', input: { name: '', operation: 'plan', plan: { stage, terminal: 'product' } },
+                        };
+                    }
+                }
+                if (loops && isBinaryExpression(source) && ['to', 'till'].includes(source.operator)) {
+                    let owner = source.$container;
+                    while (owner && isParenthesizedExpression(owner)) owner = owner.$container;
+                    // An ordinary binding completes the range before anything
+                    // else observes it. Broader metadata consumers stay lazy.
+                    if (owner && isAssignmentStatement(owner) && !owner.deferred && owner.operator === '='
+                        && type(source.left, env) === 'integer' && type(source.right, env) === 'integer'
+                        && (!source.step || type(source.step, env) === 'integer')) {
+                        return { type: { kind: 'array', element: 'integer', rank: 1 }, input: {
+                            name: source.operator, operation: 'range-array', indices: [expressions.get(source.left)!, expressions.get(source.right)!,
+                                ...source.step ? [expressions.get(source.step)!] : []] } };
+                    }
+                }
                 if (loops && isBinaryExpression(source) && source.operator === '**') {
                     const signed = isUnaryExpression(source.left) && ['+', '-'].includes(source.left.operator) ? source.left : undefined;
                     const base = signed?.operand ?? source.left;
-                    if (type(base, env) === 'integer' && type(source.right, env) === 'integer' && nonnegative(source.right)) {
+                    const left = type(base, env), right = type(source.right, env);
+                    if (left === 'integer' && right === 'integer' && nonnegative(source.right)) {
                         return { type: 'integer', input: { name: '', operation: 'integer-power', negative: signed?.operator === '-',
                             indices: [expressions.get(base)!, expressions.get(source.right)!] } };
+                    }
+                    const integer = (domain: CompiledCalleeType | undefined) => domain === 'integer'
+                        || domain && typeof domain !== 'string' && !isCompiledContainer(domain) && domain.element === 'integer';
+                    const exponent = unwrap(source.right);
+                    if (integer(left) && integer(right) && (typeof left !== 'string' || typeof right !== 'string')
+                        && !(typeof right !== 'string' && isNameExpression(exponent) && parameters.has(exponent.name))
+                        && nonnegative(source.right)) {
+                        return { type: { kind: 'array', element: 'integer', rank: Math.max(...[left, right].map(domain =>
+                            typeof domain === 'string' || !domain || isCompiledContainer(domain) ? 0 : domain.rank)) },
+                            input: { name: '', operation: 'array-power', negative: signed?.operator === '-',
+                                indices: [expressions.get(base)!, expressions.get(source.right)!] } };
                     }
                 }
                 if (loops && isNameExpression(source) && stages.has(source.name)) {
@@ -391,6 +473,72 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     return { type: functionPlanType(stage), input: { name: '', operation: 'plan', plan: { stage, terminal: 'copy' } } };
                 }
                 if (loops && isApplicationExpression(source)) {
+                    const form = applicationForm(source, name => env.has(name) || lexicalBinding(scope, name) ? false : findOperation(name));
+                    if (form.kind === 'array-combine-constructor' && form.operation === 'stack' && !form.rest.length) {
+                        const domains = form.items.map(item => type(item, env)), first = domains[0];
+                        const axis = form.axis ? isNumberLiteral(form.axis) && typeof form.axis.value === 'bigint'
+                            ? Number(form.axis.value) : -1 : 0;
+                        if (first && typeof first !== 'string' && !isCompiledContainer(first)
+                            && domains.every(domain => domain && sameCompiledCalleeType(domain, first))
+                            && axis >= 0 && axis <= first.rank) {
+                            modules.add('sequences');
+                            return { type: { ...first, rank: first.rank + 1 }, input: { name: '', operation: 'stack', axis,
+                                indices: form.items.map(item => expressions.get(item)!) } };
+                        }
+                    }
+                    if (form.kind === 'named-reduce' && form.seed && !form.keys && !form.size && isNameExpression(form.operation)
+                        && !env.has(form.operation.name)) {
+                        const domain = type(form.source, env), seed = type(form.seed, env);
+                        const row = domain && typeof domain !== 'string' && !isCompiledContainer(domain) && domain.rank === 2
+                            && form.rank && isNumberLiteral(form.rank) && form.rank.value === 1n
+                            && form.axes?.length === 1 && isNumberLiteral(form.axes[0]) && form.axes[0].value === 0n;
+                        const vector = domain && typeof domain !== 'string' && !isCompiledContainer(domain) && domain.rank === 1
+                            && !form.rank && !form.axes;
+                        const binding = lexicalBinding(scope, form.operation.name), callee = binding?.function;
+                        if ((row || vector) && seed && !isCompiledContainer(seed) && callee && callee !== statement
+                            && binding?.scope.owner !== statement && !callee.memo && strictDataCall(callee)
+                            && callee.parameters.length === 2 && callee.ranks.every(rank => rank === 'all')) {
+                            const cell: CompiledCalleeType = row ? { kind: 'array', element: domain.element, rank: 1 } : domain.element;
+                            const inputs = [seed, cell];
+                            const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement], captures);
+                            const effects = proof && scalarFunctionEffects(proof);
+                            if (proof && (!proof.planReturn || typeof proof.type !== 'string') && !proof.recursive && !proof.nonnegative.length
+                                && effects && !effects.unknown && !effects.parameters.size
+                                && sameCompiledCalleeType(seed, proof.type)
+                                && proof.callDepth < 16 && callCount + proof.callCount + 1 <= 64) {
+                                callDepth = Math.max(callDepth, proof.callDepth + 1); callCount += proof.callCount + 1;
+                                dependencies.add(form.operation.name);
+                                for (const name of [...proof.dependencies, ...proof.nativeReads, ...proof.locals]) dependencies.add(name);
+                                return { type: seed, input: { name: form.operation.name, operation: 'fold',
+                                    callee: { statement: callee, types: inputs, proof, captures },
+                                    indices: [expressions.get(form.source)!, expressions.get(form.seed)!] } };
+                            }
+                        }
+                    }
+                    if (form.kind === 'reshape' && !form.rest.length) {
+                        const array = type(form.source, env);
+                        if (array && typeof array !== 'string' && !isCompiledContainer(array)
+                            && form.dimensions.every(dimension => isAllAxisExpression(dimension) || type(dimension, env) === 'integer')) {
+                            nativeReads.add('reshape');
+                            modules.add('sequences');
+                            return { type: { ...array, rank: form.dimensions.length }, input: { name: '', operation: 'reshape',
+                                indices: [expressions.get(form.source)!], reshapeDimensions: form.dimensions.map(dimension =>
+                                    isAllAxisExpression(dimension) ? undefined : expressions.get(dimension)!) } };
+                        }
+                    }
+                    const parts = flattenApplication(source), last = parts.at(-1);
+                    if (parts.length === 4 && isNameExpression(last) && last.name === 'powmod'
+                        && !env.has('powmod') && !lexicalBinding(scope, 'powmod')) {
+                        const inputs = parts.slice(0, -1).map(operand => type(operand, env));
+                        if (inputs.every(input => input === 'integer' || input && typeof input !== 'string'
+                            && !isCompiledContainer(input) && input.element === 'integer')
+                            && inputs.some(input => typeof input !== 'string')) {
+                            nativeReads.add('powmod'); modules.add('numbers');
+                            return { type: { kind: 'array', element: 'integer', rank: Math.max(...inputs.map(input =>
+                                typeof input === 'string' ? 0 : (input as {rank:number}).rank)) }, input: { name: '', operation: 'array-native',
+                                native: findOperation('powmod')!, indices: parts.slice(0, -1).map(operand => expressions.get(operand)!) } };
+                        }
+                    }
                     const reduction = terminalReductionForm(flattenApplication(source), name => !env.has(name) && !lexicalBinding(scope, name));
                     if (reduction?.operation === 'sum') {
                         const stage = plan(reduction.source, env, false);
@@ -435,6 +583,11 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     }
                 }
                 if (loops && isMaterializeExpression(source)) {
+                    const iterable = loopIterable(source.source, env);
+                    if (iterable && nativeFactorStage(iterable)) {
+                        return { type: { kind: 'array', element: iterable.element, rank: 1 },
+                            input: { name: '', operation: 'materialize-iterable', iterable } };
+                    }
                     const domain = type(source.source, env);
                     if (!domain || !isCompiledContainer(domain) || domain.kind !== 'deque') return undefined;
                     return { type: { kind: 'array', element: 'integer', rank: 1 },
@@ -606,7 +759,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (!isCompiledContainer(array) && array.rank === 1 && indices.length === 1) {
                     const selector = type(indices[0], env);
                     if (selector && typeof selector !== 'string' && !isCompiledContainer(selector)
-                        && selector.rank === 1 && selector.element === 'integer') return { type: array,
+                        && selector.rank === 1 && ['integer', 'boolean'].includes(selector.element)) return { type: array,
                             input: { name: head.name, operation: 'gather', indices: [expressions.get(indices[0])!] } };
                 }
                 if (!indices.every(index => type(index, env) === 'integer')) return undefined;
@@ -620,8 +773,16 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 nativeReads.add(name);
                 return type;
             },
-            operator: (operation, inputs) => inputs.every((value): value is CompiledScalarType => typeof value === 'string')
-                ? matchCompiledOperatorSignature(operation.scalarFunction, inputs) : undefined,
+            operator: (operation, inputs) => {
+                if (inputs.every((value): value is CompiledScalarType => typeof value === 'string'))
+                    return matchCompiledOperatorSignature(operation.scalarFunction, inputs);
+                if (!['+', '-', '*', '/', '//', 'mod', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal'].includes(operation.name)
+                    || inputs.some(isCompiledContainer)) return undefined;
+                const signature = matchCompiledOperatorSignature(operation.scalarFunction,
+                    inputs.map(input => typeof input === 'string' ? input : !isCompiledContainer(input) ? input.element : 'integer'));
+                return signature ? { ...signature, inputs, result: { kind: 'array', element: signature.result,
+                    rank: Math.max(...inputs.map(input => typeof input === 'string' || isCompiledContainer(input) ? 0 : input.rank)) } } : undefined;
+            },
             call: (operation, inputs) => {
                 // Only explicit completion and the lowered sum own a plan's
                 // traversal. Metadata calls such as len must not force its cells.
@@ -723,12 +884,19 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (returnedCall?.kind === 'input' && returnedCall.input.operation === 'user-call'
                     && returnedCall.input.callee?.proof.planReturn) {
                     planReturn = true;
+                    // Arrays now return actual recipes/views. Their argument
+                    // construction is eager and keeps this caller's frame.
+                    if (typeof value === 'string') planReturns.add(command);
+                }
+                if (typeof value !== 'string' && returnedCall?.kind === 'input' && returnedCall.input.operation === 'plan'
+                    && returnedCall.input.plan?.terminal === 'copy') {
+                    planReturn = true;
                     planReturns.add(command);
                 }
                 if (delayed) {
                     let expression = expressions.get(command.value);
                     while (expression?.kind === 'group') expression = expression.operand;
-                    if (expression?.kind !== 'input' || expression.input.plan?.terminal !== 'sum') return reject(command, 'plan-escape');
+                    if (expression?.kind !== 'input' || !['sum', 'product', 'copy'].includes(expression.input.plan?.terminal ?? '')) return reject(command, 'plan-escape');
                     planReturn = true;
                     planReturns.add(command);
                 }

@@ -31,6 +31,7 @@ export class RuntimeDiagnostics {
     nativeFirstSearches = 0;
     nativeFirstSearchCells = 0;
     compiledLoops = 0;
+    compiledFunctionFolds = 0;
     nativeIntegerSums = 0;
     nativeIntegerSumCells = 0;
     weightedAxisSums = 0;
