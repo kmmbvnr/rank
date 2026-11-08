@@ -23,8 +23,8 @@ rem groups plus rectangles a b. All
 rem other k are taken as complexity 4:
 rem C = 3 T - 4 - N2 + N4, T = n^2 + 1.
 Area = Size * Size
-Cells = array shape (Area + 1) fill 0
-Pair = array shape (Area + 1) fill 0
+Cells = array shape (Area + 1) fill false
+Pair = array shape (Area + 1) fill false
 rem Templates: bits of a 3 x 3 matrix.
 Code = (0 to 511) reshape 512 1
 Bits = (Code shr (0 to 8)) band 1
@@ -79,8 +79,8 @@ rem Rectangles a b and, for each first
 rem group size a, the three-group forms.
 for Lead in 0 to Size
   Prod = Lead * (0 to Size)
-  Cells Prod = 1
-  Cells (Area - Prod) = 1
+  Cells Prod = true
+  Cells (Area - Prod) = true
   Small = 3 * Lead at most Size
   if Lead at least 1 and Small
     Half = (Size - Lead) // 2
@@ -88,15 +88,17 @@ for Lead in 0 to Size
     Seq = Lead to Lead + Count - 1
     Mid = Seq reshape Count 1
     End = Size - Lead - Mid
-    Cross = F12 * Lead * Mid
-    Cross = Cross + F13 * Lead * End
-    Cross = Cross + F23 * Mid * End
-    Vals = F1 * Lead * Lead
-    Vals = Vals + F2 * Mid * Mid
-    Vals = Vals + F3 * End * End + Cross
+    Both' = F12 * Lead * Mid
+    Outer' = F13 * Lead * End
+    Inner' = F23 * Mid * End
+    Cross' = Both + Outer + Inner
+    First' = F1 * Lead * Lead
+    Second' = F2 * Mid * Mid
+    Third' = F3 * End * End
+    Vals = First + Second + Third + Cross
     Cells3 = Count * Many
     Flat = Vals reshape Cells3
-    Cells Flat = 1
+    Cells Flat = true
   end
 end
 rem Two groups: nonempty subset sums.
@@ -112,11 +114,11 @@ Subsets = concat Subsets (Xs + Zs)
 Subsets = concat Subsets (Ys + Zs)
 Inner = Subsets not equal Area
 Interior = Subsets filter Inner
-Pair Interior = 1
-Marked = Cells bor Pair
+Pair Interior = true
+Marked = Cells or Pair
 Total = Area + 1
-Twos = Pair sum
-Seen = Marked sum
+Twos = Pair count
+Seen = Marked count
 Fours = Total - Seen
 Answer = 3 * Total - 4 - Twos + Fours
 Answer print
