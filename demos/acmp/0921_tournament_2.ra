@@ -9,7 +9,7 @@ use cli
 use sequences
 use text
 
-arg Input text = "3 50 50 50"
+arg Input text = "60000 60 40 10"
 
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")

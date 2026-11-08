@@ -1,4 +1,4 @@
-rem Circle Packing III
+rem Circle Packing II
 rem https://projecteuler.net/problem=476
 
 use numbers
@@ -9,35 +9,41 @@ use cli
 arg N integer = 1803
 
 rem Sides a <= b <= c = b + u, u < a.
-rem With x, y, z = p - 2a, p - 2b, p -
-rem 2c: r^2 = xyz / 4p. A corner of
-rem angle t shrinks circles by q =
-rem (1 - s)/(1 + s), s = sin(t/2), and
-rem sin^2(A/2) = yz / 4bc, sin^2(B/2)
-rem = xz / 4ac. The two next circles
-rem are r q_A and r max(q_B, q_A^2).
-Tot = 0.0
-Cnt = 0
-for A in 1 to N // 2
-  Nb = N - 2 * A + 1
-  Bs = (A to N - A) * 1.0
-  Bc = Bs reshape Nb 1
-  Us = (0 till A) * 1.0
-  Yz = A * A - Us * Us
-  X = 2 * Bc + Us - A
-  C = Bc + Us
-  R2 = X * Yz / (4.0 * (X + 2 * A))
-  Ta = Yz / (4.0 * Bc * C)
-  Tb = X * (A - Us) / (4.0 * A * C)
-  Sa = Ta ** 0.5
-  Sb = Tb ** 0.5
-  Qa = (1.0 - Sa) / (1.0 + Sa)
-  Qb = (1.0 - Sb) / (1.0 + Sb)
-  Q3 = Qb max (Qa * Qa)
-  F = R2 * (1.0 + Qa * Qa + Q3 * Q3)
-  Tot += F sum
-  Cnt += Nb * A
+rem The incircle has radius r. In a
+rem corner t, successive radii shrink
+rem by q = (1-s)/(1+s), s = sin(t/2).
+rem The next two radii are r q_A and
+rem r max(q_B, q_A^2).
+fun A covered B Gap
+  C = B + Gap
+  S = (A + B + C) / 2.0
+  Left = S - A
+  Middle = S - B
+  Right = S - C
+  Radius2 = Left * Middle * Right / S
+  SquareA = Middle * Right / (B * C)
+  SquareB = Left * Right / (A * C)
+  SineA = SquareA ** 0.5
+  SineB = SquareB ** 0.5
+  RatioA = (1.0 - SineA) / (1.0 + SineA)
+  RatioB = (1.0 - SineB) / (1.0 + SineB)
+  Second = RatioA * RatioA
+  Third = RatioB max Second
+  Weight = 1.0 + Second + Third * Third
+  return Radius2 * Weight
+end
+Total = 0.0
+Count = 0
+for Side in 1 to N // 2
+  Height = N - 2 * Side + 1
+  Values = (Side to N - Side) * 1.0
+  Column = Values reshape Height 1
+  Offsets = (0 till Side) * 1.0
+  Size = Height * Side
+  Areas = Side covered Column Offsets
+  Total += Areas sum
+  Count += Size
 end
 Pi = 4 * (1.0 atan)
-Answer = Tot * Pi / Cnt round 5
+Answer = Total * Pi / Count round 5
 Answer print

@@ -5,7 +5,7 @@ rem Number of permutations of N elements with no fixed points
 use io
 use cli
 
-arg N integer = 5
+arg N integer = 20
 
 Answer = 0
 if N equal 1

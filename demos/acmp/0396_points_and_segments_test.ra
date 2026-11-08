@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 3 segments, 2 points"
   use "0396_points_and_segments"
+  Input = "3 2\n0 5\n-3 2\n7 10\n1 6"
   run
 
   Answer equal (array 2 0)

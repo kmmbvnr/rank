@@ -2,6 +2,9 @@ use testing
 
 test "sample 1: 5 cards with duplicates gives 7 swaps"
   use "0441_cards_2"
+  Input = "5
+3 2 3 4 5
+5 4 3 2 3"
   run
 
   Answer equal 7

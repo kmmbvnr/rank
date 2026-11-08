@@ -2,6 +2,8 @@ use testing
 
 test "sample: OMSCMNWQTTARTERPDEINAL with length 20"
   use "0428_sms"
+  S = "OMSCMNWQTTARTERPDEINAL"
+  N = 20
   run
 
   Answer equal 760

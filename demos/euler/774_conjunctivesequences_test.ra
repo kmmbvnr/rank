@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "774_conjunctivesequences"
+  Length = 3
+  Bound = 4
+  run
+  Answer equal 18
+  Length = 10
+  Bound = 6
+  run
+  Answer equal 2496120
+  Length = 100
+  Bound = 200
+  run
+  Answer equal 268159379
+end

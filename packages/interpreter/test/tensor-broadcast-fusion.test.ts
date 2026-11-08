@@ -30,20 +30,22 @@ end`);
 }
 describe('broadcast tensor fusion', () => {
     it.each([
-        [[2, 3], [3], [3]],
-        [[2, 3], [2, 1], [3]],
-        [[2, 1, 3], [1, 4, 1], [3]],
-        [[2, 0, 3], [1, 1, 3], [3]],
-        [[2, 3], [], [3]],
-        [[1, 3], [2, 1], [2, 3]],
-    ])('preserves shape domain %j', (...shapes) => {
+        { shapes: [[2, 3], [3], [3]], kernels: 3 },
+        { shapes: [[2, 3], [2, 1], [3]], kernels: 3 },
+        { shapes: [[2, 1, 3], [1, 4, 1], [3]], kernels: 1 },
+        { shapes: [[2, 0, 3], [1, 1, 3], [3]], kernels: 1 },
+        { shapes: [[2, 3], [], [3]], kernels: 1 },
+        { shapes: [[1, 3], [2, 1], [2, 3]], kernels: 3 },
+    ])('preserves shape domain $shapes', ({ shapes, kernels }) => {
         for (const terminal of ['copy', 'sum']) {
             const body = `Difference = A - B\n  Scaled = Difference * Difference\n  return (Scaled / C) ${terminal}`;
             const expected = run(shapes, body, false);
             const actual = run(shapes, body, true);
             expect(actual).not.toHaveProperty('error');
             expect({ ...actual, kernels: 0 }).toEqual({ ...expected, kernels: 0 });
-            expect(actual.kernels).toBe(1);
+            // Checked matrix stages preserve both eager bindings and
+            // the terminal; broader domains retain the terminal path.
+            expect(actual.kernels).toBe(terminal === 'copy' ? kernels : 1);
         }
     });
     it('matches an independent matrix/vector oracle', () => {
@@ -94,7 +96,9 @@ end`);
         const reference = evaluate(false), actual = evaluate(true);
         expect(actual.outputs).toEqual(reference.outputs);
         expect(actual.outputs[0].items).toEqual([1, 2, 3, 4]);
-        expect(actual.kernels).toBe(6);
+        // Five eligible calls compile Centered and its consumer;
+        // the missing-cell fallback contributes only its terminal.
+        expect(actual.kernels).toBe(11);
     });
 
     it('keeps error guards after a successful binding', () => {

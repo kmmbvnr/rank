@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 0.1(6) * 3 gives finite 0.5"
   use "0455_fraction_multiplication"
+  Input = "0.1(6)\n3"
   run
 
   Answer equal "0.5"

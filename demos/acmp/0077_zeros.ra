@@ -8,8 +8,8 @@ use sequences
 use numbers
 use bits
 
-arg N integer = 8
-arg K integer = 1
+arg N integer = 1000000000
+arg K integer = 15
 
 Bits = N binary integer rank 0
 L = Bits len

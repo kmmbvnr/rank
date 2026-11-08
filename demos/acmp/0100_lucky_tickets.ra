@@ -5,7 +5,7 @@ rem Number of N-digit tickets where sum of first N/2 digits equals sum of last N
 use io
 use cli
 
-arg N integer = 4
+arg N integer = 100
 
 K = N // 2
 DP = array 1

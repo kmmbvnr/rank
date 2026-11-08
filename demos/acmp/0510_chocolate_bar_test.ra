@@ -10,6 +10,7 @@ end
 
 test "sample 2: N = 4"
   use "0510_chocolate_bar"
+  N = 4
   run
 
   Answer equal 11

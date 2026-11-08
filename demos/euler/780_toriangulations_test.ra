@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "780_toriangulations"
+  Limit = 6
+  run
+  Answer equal 14
+  Limit = 100
+  run
+  Answer equal 8090
+  Limit = 100000
+  run
+  Answer equal 645124048
+end

@@ -7,8 +7,8 @@ use cli
 use numbers
 use sequences
 
-arg N integer = 3
-arg K integer = 1
+arg N integer = 10
+arg K integer = 10
 
 fun Free solve Need
   if Need equal 0

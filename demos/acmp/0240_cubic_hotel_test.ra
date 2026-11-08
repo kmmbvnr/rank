@@ -2,6 +2,10 @@ use testing
 
 test "sample 1: 3x3x3 colored cube with holes"
   use "0240_cubic_hotel"
+  Input = "3
+.R. YYR .Y. RYY .Y. .R.
+GRB YGR BYG RBY GYB GRB
+.R. YRR .Y. RRY .R. .Y."
   run
 
   Answer equal 11

@@ -1,0 +1,24 @@
+use testing
+
+test "statement values"
+  use "771_pseudogeometric"
+  Limit = 6
+  run
+  Answer equal 4
+  Limit = 10
+  run
+  Answer equal 26
+  Limit = 100
+  run
+  Answer equal 4710
+  Limit = 1000
+  run
+  Answer equal 496805
+end
+
+test "brute force values"
+  use "771_pseudogeometric"
+  Limit = 20000
+  run
+  Answer equal 199934107
+end

@@ -2,6 +2,8 @@ use testing
 
 test "default input 3x3"
   use "0083_pretty_patterns"
+  M = 3
+  N = 3
   run
 
   Answer equal 322

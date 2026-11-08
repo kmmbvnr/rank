@@ -1495,7 +1495,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             builtins.set('reshape', 'sequences');
             lines.push(`const ${shape} = [${dimensions.join(',')}];
                 if (${shape}.reduce((a, b) => a * BigInt(b), 1n) !== BigInt(${cells}.length)) throw overflow;
-                const ${result} = copyArray(${shape}, ${cells}, ${type.element === 'real'}, ${type.element === 'boolean'});`);
+                const ${result} = copyArray(${shape}, ${cells}, ${type.element === 'real'}, ${type.element === 'boolean'}, ${input.code});`);
         } else if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
             state.numberVectors = true;
             const start = emit(e.left, lines, 'integer'), end = emit(e.right, lines, 'integer');
@@ -1581,7 +1581,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const index = `cell${state.serial++}`, body: string[] = [];
             const value = input.cell(index, body);
             if (!value) return undefined;
-            let loop = numberVectorLoop(input.size, index, [...body, type.element === 'boolean' ? `${result}.cells[${index}] = ${value.code} ? 1 : 0;` : `${result}.store(${index}, ${value.code});`]);
+            let loop = numberVectorLoop(input.size, index, [...body, type.element === 'boolean' ? `${result}.cells[${index}] = ${value.code} ? 1 : 0;`
+                : type.element === 'real' ? `${result}.cells[${index}] = ${value.code};`
+                    : `${result}.store(${index}, ${value.code});`]);
             if (type.element === 'integer' && input.sources.length) {
                 const fast: string[] = [];
                 const proven = input.cell(index, fast, { shape: input.shape, rank: input.rank,
@@ -2123,6 +2125,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 if (prepareCallee) {
                     const arguments_: string[] = [];
                     const types: CompiledCalleeType[] = [];
+                    const realShapes = new Map<number, string>();
                     for (let part of parts.slice(0, -1)) {
                         while (isParenthesizedExpression(part)) part = part.value;
                         const existing = isNameExpression(part) && !scalarInputs.has(part) ? arrays.get(part.name) : undefined;
@@ -2146,8 +2149,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         const type = existing ? { kind: 'array' as const, element: existing.type, rank: existing.rank }
                             : current === undefined ? undefined : compiledStoredArgumentType(current);
                         if (type && typeof type !== 'string' && isNameExpression(part)) {
-                            if (!host.arrayReads || numberMode && (type.rank !== 1 || type.element !== 'integer')
-                                || type.element === 'real' || type.element === 'bytes'
+                            if (!host.arrayReads || numberMode && (type.element === 'integer' ? type.rank !== 1 : type.element !== 'real' || type.rank > 2)
+                                || type.element === 'real' && (!numberMode || !host.reals) || type.element === 'bytes'
                                 || type.element === 'text' && !host.textArrayLoops
                                 || type.element === 'boolean' && !host.booleanArrays) return undefined;
                             const info = existing ?? { slot: slot(part.name), rank: type.rank, type: type.element };
@@ -2157,6 +2160,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                             // Pass the current buffer, including any private stores
                             // or widening before this call. The callee proof below
                             // excludes writes, escaping arrays and opaque callbacks.
+                            if (numberMode && type.element === 'real') realShapes.set(arguments_.length, `r${info.slot}.shape`);
                             arguments_.push(numberMode ? `cells${info.slot}` : `r${info.slot}`);
                             types.push({ kind: 'array', element: type.element, rank: type.rank });
                         } else {
@@ -2175,7 +2179,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     if (numberMode && (!callable?.numberSafe || !callable.bindNumber || callable.locals.some(name => destinations.has(name) || arrays.has(name)))) return undefined;
                     if (callable) {
                         if (typeof callable.type !== 'string') {
-                            if (numberMode && !callable.numberArrayResult || !host.arrayLocals || callable.type.element === 'real'
+                            if (numberMode && !callable.numberArrayResult || !host.arrayLocals || callable.type.element === 'real' && (!numberMode || !host.reals)
                                 || callable.type.element === 'boolean' && !host.booleanArrays
                                 || callable.type.element === 'text' && !host.textArrayLoops) return undefined;
                             if (!numberMode) state.hasArrayCall = true;
@@ -2195,7 +2199,12 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                                     && types.every(type => typeof type === 'string') ? e : undefined,
                                 bind: work => callable.bindNumber!(work),
                             });
-                            const callCode = `call${index}(${arguments_.join(',')})`;
+                            if (callable.numberArrayPool) state.numberVectors = true;
+                            const allocation = callable.numberArrayPool
+                                ? `(shape => vectorArray(shape, true, vectorPool, vectorLive, [result, iterationResult, ${arguments_.join(',')}]))` : undefined;
+                            const inputs = callable.numberArrayPool ? arguments_.map((argument, i) => realShapes.has(i)
+                                ? `{cells:${argument},shape:${realShapes.get(i)}}` : argument) : arguments_;
+                            const callCode = `call${index}(${[...inputs, ...(allocation ? [allocation] : [])].join(',')})`;
                             lines.push(`const ${name} = ${callable.type === 'integer' ? safe(callCode) : callCode};`);
                         } else {
                             calls.push({

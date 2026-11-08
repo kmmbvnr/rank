@@ -5,7 +5,7 @@ rem Determine winner in square-root subtraction game up to 10^12 using accelerat
 use io
 use cli
 
-arg N integer = 3
+arg N integer = 1000000000000
 
 Answer = "WIN"
 

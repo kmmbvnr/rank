@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: N = 6 requires 5 candies"
   use "0631_guess_number"
+  Input = "6"
   run
 
   Candies equal 5

@@ -35,6 +35,9 @@ export function tensorExpressionLowerer<D, I>(host: {
         } else if (expression.kind === 'binary') {
             const left = lower(expression.left), right = lower(expression.right);
             if (left && right) result = host.typed({ kind: 'binary', op: expression.operation.name, left, right }, expression);
+        } else if (expression.kind === 'extreme' && expression.right) {
+            const left = lower(expression.left), right = lower(expression.right);
+            if (left && right) result = host.typed({ kind: 'binary', op: expression.name, native: expression.name, left, right }, expression);
         } else if (expression.kind === 'literal') result = host.typed({ kind: 'input', value: expression.value }, expression);
         else result = host.input(expression);
         if (result) lowered.set(expression, result);

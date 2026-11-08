@@ -44,7 +44,11 @@ unpack A B = Source axis 1`);
         try {
             const result = runtime.execute(`use numbers\nuse sequences\nA = ((0 till ${size}) mod 31) copy\n(A * 3 + 1) copy`) as RankArray;
             expect(result.shape).toEqual([size]);
-            expect(typedElementKind(result)).toBe(size >= 64 ? 'integer' : undefined);
+            // Small range inputs can already carry compact storage;
+            // the copy threshold does not forbid that representation.
+            const kind = typedElementKind(result);
+            if (size >= 64) expect(kind).toBe('integer');
+            else expect([undefined, 'integer']).toContain(kind);
             for (let i = 0; i < size; i++) expect(readArrayItem(result, i)).toBe(BigInt(i % 31 * 3 + 1));
         } finally { runtime.dispose(); }
     });

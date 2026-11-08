@@ -8,8 +8,8 @@ use text
 use io
 use cli
 
-arg XsText text = "-1 -1 1 1"
-arg YsText text = "-1 1 1 -1"
+arg XsText text = "0 10000 10000 0"
+arg YsText text = "0 0 10000 10000"
 
 Xs = XsText split " " integer
 Ys = YsText split " " integer

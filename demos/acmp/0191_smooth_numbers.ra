@@ -12,7 +12,7 @@ use cli
 use numbers
 use sequences
 
-arg N integer = 239
+arg N integer = 2147483647
 
 rem Cumulative count of smooth numbers of each length up to 70
 Lengths = 1 to 70

@@ -12,7 +12,7 @@ use cli
 use numbers
 use bits
 
-arg N integer = 1
+arg N integer = 2147483647
 
 K = N - 1
 

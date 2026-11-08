@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 5 radii -> 1"
   use "0558_packing"
+  Input = "5\n2 1 5 10 20"
   run
 
   Ans equal 1

@@ -2,6 +2,13 @@ use testing
 
 test "sample 1: L-shaped swamp 6 vertices"
   use "0434_glass_fence"
+  Input = "6
+0 0
+2 0
+2 1
+1 1
+1 2
+0 2"
   run
 
   AnswerCount equal 6

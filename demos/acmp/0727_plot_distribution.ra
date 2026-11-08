@@ -12,10 +12,13 @@ use text
 use cli
 use sequences
 
-arg Input text = "3
-5 4 4
-5 2 3
-2 1 2"
+arg Input text = "6
+5 4 4 3 2 1
+5 2 3 4 5 1
+2 1 2 5 4 3
+4 5 1 2 3 4
+1 2 3 4 5 5
+3 4 5 1 2 3"
 
 Tokens = Input split "\r" join " " split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")

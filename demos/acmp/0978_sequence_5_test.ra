@@ -2,6 +2,7 @@ use testing
 
 test "default 12"
   use "0978_sequence_5"
+  N = 12
   run
 
   Answer equal 5

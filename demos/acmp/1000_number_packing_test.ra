@@ -18,6 +18,7 @@ end
 
 test "100 -> 8064"
   use "1000_number_packing"
+  X = 100
   run
 
   Answer equal "8064"

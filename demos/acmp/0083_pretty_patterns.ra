@@ -8,8 +8,8 @@ use linalg
 use sequences
 use cli
 
-arg M integer = 3
-arg N integer = 3
+arg M integer = 5
+arg N integer = 30
 
 Rows = M min N
 Cols = M max N

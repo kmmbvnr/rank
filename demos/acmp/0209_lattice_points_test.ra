@@ -2,6 +2,8 @@ use testing
 
 test "square (-1,-1) to (1,1)"
   use "0209_lattice_points"
+  XsText = "-1 -1 1 1"
+  YsText = "-1 1 1 -1"
   run
 
   Answer equal 1

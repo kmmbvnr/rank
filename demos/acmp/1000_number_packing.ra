@@ -7,7 +7,7 @@ use text
 use io
 use cli
 
-arg X integer = 100
+arg X integer = 9223372036854775807
 
 TargetQ = 8
 for Q in 0 to 7

@@ -7,9 +7,9 @@ use sequences
 use io
 use cli
 
-arg A integer = 1
-arg B integer = 2
-arg C integer = 3
+arg A integer = 100
+arg B integer = 200
+arg C integer = 500
 
 Piles = (array A B C) sort
 P0 = Piles 0

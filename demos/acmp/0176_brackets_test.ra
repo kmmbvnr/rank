@@ -2,6 +2,8 @@ use testing
 
 test "default 3 2"
   use "0176_brackets"
+  N = 3
+  K = 2
   run
 
   Answer equal 3

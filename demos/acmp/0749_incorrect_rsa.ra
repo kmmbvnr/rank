@@ -16,7 +16,7 @@ use cli
 use numbers
 use text
 
-arg Input text = "100"
+arg Input text = "1000000000000000000"
 
 Tokens = (Input split "\n" join " ") split " "
 Tokens = Tokens (Tokens not equal "")

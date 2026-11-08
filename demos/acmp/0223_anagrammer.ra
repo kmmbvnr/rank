@@ -16,8 +16,8 @@ use cli
 use sequences
 use text
 
-arg S text = "TROT"
-arg T text = "TORT"
+arg S text = "ABCDEFGHIJKLMNO"
+arg T text = "ONMLKJIHGFEDCBA"
 
 N = S len
 Dim = N + 2

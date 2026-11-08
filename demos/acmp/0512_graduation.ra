@@ -9,7 +9,7 @@ use sequences
 use text
 use bits
 
-arg Input text = "3 4 3\nYYYY\nYYYY\nYYYY"
+arg Input text = "10 10 10\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY"
 
 Tokens = Input split "\n" join " " split " "
 Tokens = Tokens (Tokens not equal "")

@@ -9,7 +9,7 @@ use numbers
 use sequences
 use text
 
-arg Input text = "8 427"
+arg Input text = "1000000000 1000000007"
 
 Tok = Input words
 N = Tok 0 integer

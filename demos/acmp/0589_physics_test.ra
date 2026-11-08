@@ -1,8 +1,10 @@
 rem ACMP 0589: Physics tests
 use testing
+use text
 
 test "ACMP 589: 2D off-center collision"
   use "0589_physics"
+  use text
   Inp = "2 5
 1 1 -5 1 0 1 0 0
 1 1 0 0 0 0 0 0"
@@ -16,6 +18,7 @@ end
 
 test "ACMP 589: 1D head-on (T on last)"
   use "0589_physics"
+  use text
   Inp = "2
 1 1 0 0 0 1 0 0
 1 1 5 0 0 -1 0 0
@@ -36,6 +39,7 @@ end
 
 test "ACMP 589: 3-sphere 1D chain"
   use "0589_physics"
+  use text
   Inp = "3 20
 2 1 -10 0 0 2 0 0
 1 1 0 0 0 0 0 0

@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: valve 8"
   use "0484_pipeline"
+  Input = "8"
   run
 
   Answer equal "8 4 2 1"
