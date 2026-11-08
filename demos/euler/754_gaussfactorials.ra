@@ -7,7 +7,7 @@ use io
 use cli
 
 arg Limit integer = 100000000
-arg Chunk integer = 4194304
+arg Chunk integer = 1048576
 arg Prime integer = 1000000007
 
 rem G(N) = prod over k of k^c(k), where
@@ -76,8 +76,7 @@ for Piece in 0 to Chunks - 1
   Prod = array shape Width fill 1
   Sign = array shape Width fill 1
   Prod Spot *= Pk Owner .accumulate
-  Flip = Pk Owner * 0 - 1
-  Sign Spot *= Flip .accumulate
+  Sign Spot *= 0 - 1 .accumulate
   rem Multiples of squares.
   SPlus = Low + Squares - 1
   SAhead = SPlus // Squares

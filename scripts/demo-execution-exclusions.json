@@ -204,7 +204,7 @@
   "euler/749_nearpowersums.ra": "About 2.2 min and 2.6 GB: 2 x 10^6 count vectors for 53 exponents; run manually.",
   "euler/750_cardstacking.ra": "About 40 s: interval DP with 1.5 x 10^8 split costs; run manually.",
   "euler/752_powers.ra": "Full input remains manual: about 32 s and 2.8 GiB RSS on arm64 after native batching; see benchmarks/euler752-results.md and node benchmarks/euler752.mjs 1000000.",
-  "euler/754_gaussfactorials.ra": "Full default run takes about 40 s (1e8 chunked sieve and prefix products); small values are covered by the test.",
+  "euler/754_gaussfactorials.ra": "Full default run takes about 24 s on Mac and 50 s on Intel (1e8 chunked sieve and prefix products); direct coprime-product tests cover small values.",
   "euler/764_asymmetricdiophantine.ra": "Full default run takes about 45 s (gcd over 7e7 parameter pairs); small values are covered by the test.",
   "euler/781_feynmandiagrams.ra": "Full default run takes about 47 s (25000 layers of length up to 50000); small values are covered by the test.",
   "euler/782_distinctrowscolumns.ra": "Full default run takes about 36 s (8e6 triples times 46 forms scattered into 1e8 cells); small values are covered by the test.",
