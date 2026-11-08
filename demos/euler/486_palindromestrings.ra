@@ -3,78 +3,129 @@ rem https://projecteuler.net/problem=486
 
 use numbers
 use sequences
+use algo
 use io
 use cli
 
 arg L integer = 1000000000000000000
 
-rem Avoiding palindromes of length >=
-rem 5 means avoiding lengths 5 and 6;
-rem the avoider counts are 2^n up to
-rem 4, then 24, 30, 32, 32 and from n
-rem = 9 the cycle 32 34 36 34 32 32.
-rem So F(9 + 6t + u) = 2^(10+u) 64^t -
-rem (200 t + C_u); F(5..8) = 8, 42,
-rem 138, 362 are never 0. Mod each of
-rem 9, 1997, 4877, fixing s = t mod
-rem ord(64) leaves 200 t = const.
-fun A Ma B Mb crt
-  rem t = A mod Ma, t = B mod Mb.
-  G = Ma gcd Mb
-  M1 = Ma // G
-  M2 = Mb // G
-  rem Inverse of M1 mod M2 by Euclid.
-  R0 = M1
-  R1 = M2
-  S0 = 1
-  S1 = 0
-  for R1 not equal 0
-    Q = R0 // R1
-    Tr = R0 - Q * R1
-    R0 = R1
-    R1 = Tr
-    Ts = S0 - Q * S1
-    S0 = S1
-    S1 = Ts
+rem Avoiding lengths 5 and 6 suffices.
+rem For n = 9 + 6t + u, the cumulative
+rem count is 2^(10+u)64^t - 200t - C_u.
+Bias = array 182 216 252 286 318 350
+
+fun Value inverse Mod
+  if Mod equal 1
+    return 0
   end
-  Iv = S0 mod M2
-  Cp = ((B - A) mod G equal 0) indices
-  K = ((B Cp - A Cp) // G mod M2) * Iv
-  X = A Cp + Ma * (K mod M2)
-  return X mod (M1 * Mb)
+  Value = Value mod Mod
+  if Value equal 1
+    return 1
+  end
+  Rest = Mod mod Value
+  Previous = Rest inverse Value
+  Answer = (1 - Mod * Previous) // Value
+  return Answer mod Mod
 end
-Cu = array 182 216 252 286 318 350
-Ms = array 9 1997 4877
-Answer = 0
-for U in 0 to 5
-  Tm = (L - 9 - U) // 6
-  if Tm less 0
-    continue
-  end
-  Rs = array 0
-  Mr = 1
-  for M in Ms
-    Ks = 1 till M copy
-    Ok = 64 Ks M powmod equal 1
-    Or = Ks ((Ok indices) 0)
-    Ss = 0 till Or copy
-    Ys = 0 till M copy
-    Iy = Ys * 200 mod M equal 1
-    I2 = Ys ((Iy indices) 0)
-    Tw = 2 (10 + U) M powmod
-    Pw = 64 Ss M powmod
-    Ta = (Tw * Pw - Cu U) * I2 mod M
-    Bm = Ss Or Ta M crt
-    Pm = Or lcm M
-    rem Pairs with earlier residues.
-    Nb = Bm len
-    Ip = 0 till Rs len * Nb copy
-    Ra = Rs (Ip // Nb)
-    Rs = Ra Mr (Bm (Ip mod Nb)) Pm crt
-    Mr = Mr lcm Pm
-  end
-  Lv = Rs at most Tm
-  Ct = (Tm - Rs) // Mr + 1
-  Answer += Lv choose Ct 0 sum
+
+fun Mod prepare
+  Trials = 1 till Mod copy
+  Mask = 64 Trials Mod powmod equal 1
+  Order = Trials Mask first
+  Steps = 0 till Order copy
+  Powers = 64 Steps Mod powmod
+  Scale = 200 inverse Mod
+  Back = Order inverse Mod
+  Meta = tuple Mod Scale Back
+  return tuple Steps Powers Meta
 end
+
+fun Table residues Offset
+  unpack Steps Powers Meta = Table
+  unpack Mod Scale Back = Meta
+  Twos = 2 (10 + Offset) Mod powmod
+  Target = Twos * Powers
+  Target -= Bias Offset
+  Target = Target * Scale mod Mod
+  Order = Steps len
+  Slot = (Target - Steps) * Back mod Mod
+  Period = Order * Mod
+  Values = Steps + Order * Slot
+  return tuple Values Period
+end
+
+fun Left join Right
+  unpack A Ma = Left
+  unpack B Mb = Right
+  Gcd = Ma gcd Mb
+  Reduced = Mb // Gcd
+  Back = Ma // Gcd inverse Reduced
+  Width = B len
+  Count = A len
+  Size = Count * Width
+  Slots = 0 till Size copy
+  A = A (Slots // Width)
+  B = B (Slots mod Width)
+  Mask = (B - A) mod Gcd equal 0
+  A = A Mask
+  B = B Mask
+  Index = (B - A) // Gcd * Back
+  Index = Index mod Reduced
+  Period = Ma * Reduced
+  Values = (A + Ma * Index) mod Period
+  return tuple Values Period
+end
+
+rem CRT pairs become cyclic intervals
+rem Sort keys by compatibility class.
+fun Left count_join Right Limit
+  if Limit less 0
+    return 0
+  end
+  unpack A Ma = Left
+  unpack B Mb = Right
+  Gcd = Ma gcd Mb
+  Width = Mb // Gcd
+  Back = Ma // Gcd inverse Width
+  Keys = B // Gcd * Back mod Width
+  Keys += (B mod Gcd) * Width
+  Keys = Keys sort
+  Base = (A mod Gcd) * Width
+  Shift = A // Gcd * Back mod Width
+  Period = Ma * Width
+  Whole = Limit // Period
+  Rest = Limit mod Period
+  Bound = (Rest - A) // Ma
+  Bound = Bound max -1 min (Width - 1)
+  End = Shift + Bound
+  Lower = Keys upperindex (Base - 1)
+  Top = Base + Width - 1
+  Upper = Keys upperindex Top
+  Pairs = Upper - Lower
+  Bottom = Base + Shift - 1
+  Low = Keys upperindex Bottom
+  Wrap = End - Width max -1
+  End = End min (Width - 1)
+  High = Keys upperindex (Base + End)
+  Extra = Keys upperindex (Base + Wrap)
+  Count = High - Low + Extra - Lower
+  Total = Pairs sum
+  Partial = Count sum
+  return Whole * Total + Partial
+end
+
+Mods = array 9 1997 4877
+Tables = Mods prepare rank 0
+
+fun Offset subtotal
+  Left = Tables 0 residues Offset
+  Middle = Tables 1 residues Offset
+  State = Left join Middle
+  Right = Tables 2 residues Offset
+  Limit = (L - 9 - Offset) // 6
+  return State count_join Right Limit
+end
+
+Offsets = 0 to 5
+Answer = Offsets subtotal rank 0 sum
 Answer print
