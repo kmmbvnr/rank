@@ -1,7 +1,7 @@
-rem Drawing (Рисование)
-rem https://acmp.ru/task.asp?id=583
-rem Convex iff perimeter equals
-rem 2 * (dx + dy) of bounding box.
+rem Drawing
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=583
+rem Convex iff perimeter equals 2 * span
 
 use cli
 use io
@@ -9,18 +9,28 @@ use numbers
 use sequences
 use text
 
-arg Input text = "11
-f 1
-r
-f 2
-r
-f 2
-r
-f 1
-r
-f 1
-l
-f 1"
+arg Input text = (
+  "19\n" +
+  "f 100\n" +
+  "l\n" +
+  "f 200\n" +
+  "r\n" +
+  "f 150\n" +
+  "r\n" +
+  "f 300\n" +
+  "r\n" +
+  "f 250\n" +
+  "r\n" +
+  "f 100\n" +
+  "l\n" +
+  "f 100\n" +
+  "r\n" +
+  "f 100\n" +
+  "r\n" +
+  "f 100\n" +
+  "r\n" +
+  "f 100"
+)
 
 Clean = Input split "\r" join ""
 Raw = Clean split "\n"
@@ -61,7 +71,9 @@ XMax = AllX max
 YMin = AllY min
 YMax = AllY max
 
-Span = XMax - XMin + YMax - YMin
+SpanX = XMax - XMin
+SpanY = YMax - YMin
+Span = SpanX + SpanY
 Peri = Dists sum
 Need = 2 * Span
 

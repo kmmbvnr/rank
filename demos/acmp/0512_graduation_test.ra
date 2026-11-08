@@ -1,17 +1,19 @@
 use testing
 
-test "sample 1: 3 boys and 4 girls with K=3 complete matching yields 24 ways"
+test "sample 1: 3 boys 4 girls -> 24"
   use "0512_graduation"
-  Input = "3 4 3
-YYYY
-YYYY
-YYYY"
+  Input = (
+    "3 4 3\n" +
+    "YYYY\n" +
+    "YYYY\n" +
+    "YYYY"
+  )
   run
 
   Ways equal 24
 end
 
-test "sample 2: 1 boy and 5 girls with K=1 yields 3 ways"
+test "sample 2: 1 boy 5 girls K=1 -> 3"
   use "0512_graduation"
   Input = "1 5 1\nYYNNY"
   run
@@ -19,7 +21,7 @@ test "sample 2: 1 boy and 5 girls with K=1 yields 3 ways"
   Ways equal 3
 end
 
-test "impossible K exceeding boys yields 0"
+test "impossible K > boys -> 0"
   use "0512_graduation"
   Input = "2 3 3\nYYY\nYYY"
   run
@@ -27,7 +29,7 @@ test "impossible K exceeding boys yields 0"
   Ways equal 0
 end
 
-test "impossible K exceeding girls yields 0"
+test "impossible K > girls -> 0"
   use "0512_graduation"
   Input = "3 2 3\nYY\nYY\nYY"
   run
@@ -51,9 +53,21 @@ test "unique diagonal pairing yields 1"
   Ways equal 1
 end
 
-test "full 10x10 complete matching for K=10 yields 10! ways"
+test "full 10x10 complete matching"
   use "0512_graduation"
-  Input = "10 10 10\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY\nYYYYYYYYYY"
+  Input = (
+    "10 10 10\n" +
+    "YYYYYYYYYY\n" +
+    "YYYYYYYYYY\n" +
+    "YYYYYYYYYY\n" +
+    "YYYYYYYYYY\n" +
+    "YYYYYYYYYY\n" +
+    "YYYYYYYYYY\n" +
+    "YYYYYYYYYY\n" +
+    "YYYYYYYYYY\n" +
+    "YYYYYYYYYY\n" +
+    "YYYYYYYYYY"
+  )
   run
 
   Ways equal 3628800

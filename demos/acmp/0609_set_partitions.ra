@@ -167,13 +167,7 @@ for Step in 0 till TotalLines
       Header = TxtN + " " + TxtK
       OutQ push Header
       for Sub in FinalP
-        S = ""
-        for X in Sub
-          X_txt = X text
-          Sep = S + " " + X_txt
-          Emp = S equal ""
-          S = Emp choose X_txt Sep
-        end
+        S = Sub join " "
         OutQ push S
       end
       OutQ push ""

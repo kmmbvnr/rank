@@ -1,6 +1,7 @@
 rem Substring
-rem https://acmp.ru/index.asp?main=task&id_task=612
-rem Shortest word in free group equivalent to X containing Y as substring via longest common subword
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=612
+rem Shortest free group word with Y
 
 use io
 use algo
@@ -9,20 +10,24 @@ use cli
 use sequences
 use text
 
-arg Input text = "abAaBBabbA\nAaBaba"
+arg Input text = (
+  "abAaBBabbAabAaBBabbAabAaBBabbA\n" +
+  "AaBabaAaBabaAaBaba"
+)
 
 Tokens = Input split "\n"
 X = Tokens 0
 Y = Tokens 1
 
-rem Reduce X in free group via stack
 StackX = array shape (X len) fill ""
 TopX = 0
 for I in 0 till (X len)
   Ch = X drop I take 1
   if TopX greater 0
     Prev = StackX (TopX - 1)
-    InvPrev = Prev "AaBb" "aAbB" translate
+    InvPrev = (
+      Prev "AaBb" "aAbB" translate
+    )
     if InvPrev equal Ch
       TopX = TopX - 1
     else
@@ -36,14 +41,15 @@ for I in 0 till (X len)
 end
 Xred = StackX take TopX join ""
 
-rem Reduce Y in free group via stack
 StackY = array shape (Y len) fill ""
 TopY = 0
 for I in 0 till (Y len)
   Ch = Y drop I take 1
   if TopY greater 0
     Prev = StackY (TopY - 1)
-    InvPrev = Prev "AaBb" "aAbB" translate
+    InvPrev = (
+      Prev "AaBb" "aAbB" translate
+    )
     if InvPrev equal Ch
       TopY = TopY - 1
     else
@@ -66,7 +72,6 @@ BestXPos = 0
 BestYPos = 0
 
 if MaxPossible greater 0
-  rem Binary search for length of longest common substring between Xred and Yred
   Low = 1
   High = MaxPossible
   for true
@@ -97,12 +102,19 @@ Xright = Xred drop (BestXPos + BestL)
 Pprime = Yred take BestYPos
 Qprime = Yred drop (BestYPos + BestL)
 
-InvPprime = (Pprime reverse) "AaBb" "aAbB" translate
-InvQprime = (Qprime reverse) "AaBb" "aAbB" translate
+RevP = Pprime reverse
+InvPprime = (
+  RevP "AaBb" "aAbB" translate
+)
+RevQ = Qprime reverse
+InvQprime = (
+  RevQ "AaBb" "aAbB" translate
+)
 
 Lpart = (array Xleft InvPprime) join ""
 Rpart = (array InvQprime Xright) join ""
 
-Answer = (array Lpart Y Rpart) join ""
+Parts = array Lpart Y Rpart
+Answer = Parts join ""
 
 Answer print

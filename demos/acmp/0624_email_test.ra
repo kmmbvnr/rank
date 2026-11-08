@@ -1,24 +1,33 @@
 use testing
 
-test "sample 1: two tests with valid and invalid email exchanges"
+test "sample 1: two tests valid/invalid"
   use "0624_email"
+  Input = (
+    "2\n" +
+    "2 2\n" +
+    "2 1 -2\n" +
+    "2 2 -1\n" +
+    "2 2\n" +
+    "2 -2 1\n" +
+    "2 -1 2"
+  )
   run
 
   Answer equal "YES\nNO"
 end
 
-test "single computer self send and receive"
+test "single computer self send/receive"
   use "0624_email"
-  rem Computer sends 1 then receives 1: valid
+  rem Send 1 then receive 1: valid
   Input = "1\n1 1\n2 1 -1"
   run
 
   Answer equal "YES"
 end
 
-test "single computer receive before send is impossible"
+test "single computer receive first"
   use "0624_email"
-  rem Computer receives 1 then sends 1: cycle
+  rem Receive 1 then send 1: cycle
   Input = "1\n1 1\n2 -1 1"
   run
 
@@ -27,19 +36,22 @@ end
 
 test "three-computer linear pipeline"
   use "0624_email"
-  rem Comp 1 sends 1, Comp 2 receives 1 and sends 2, Comp 3 receives 2
+  rem Comp 1 sends, 2 forwards, 3 recvs
   Input = "1\n3 2\n1 1\n2 -1 2\n1 -2"
   run
 
   Answer equal "YES"
 end
 
-test "three-computer circular dependency"
+test "three-computer dependency cycle"
   use "0624_email"
-  rem Comp 1 receives 3 and sends 1
-  rem Comp 2 receives 1 and sends 2
-  rem Comp 3 receives 2 and sends 3
-  Input = "1\n3 3\n2 -3 1\n2 -1 2\n2 -2 3"
+  Input = (
+    "1\n" +
+    "3 3\n" +
+    "2 -3 1\n" +
+    "2 -1 2\n" +
+    "2 -2 3"
+  )
   run
 
   Answer equal "NO"

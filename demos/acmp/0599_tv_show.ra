@@ -1,6 +1,7 @@
-rem TV Show (Телешоу)
-rem https://acmp.ru/task.asp?id=599
-rem Max circular score via prefix scans.
+rem TV Show
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=599
+rem Max circular score via prefix scans
 
 use cli
 use io
@@ -8,9 +9,13 @@ use numbers
 use sequences
 use text
 
-arg Input text = "20
-a z a z a z a z a z
-a z a z a z a z a z"
+arg Input text = (
+  "52\n" +
+  "a b c d e f g h i j k l m " +
+  "n o p q r s t u v w x y z\n" +
+  "a b c d e f g h i j k l m " +
+  "n o p q r s t u v w x y z"
+)
 
 Raw = Input split "\n" join " "
 Raw = Raw split "\r" join " "
@@ -43,7 +48,8 @@ for C in Present
   Dbl = concat Zero Mask Mask
   P = Dbl scan +
 
-  S0 = (Dj Eq) sum
+  EqDj = Dj Eq
+  S0 = EqDj sum
 
   P1 = P (I + N + 1)
   P2 = P (I + N - K + 1)
@@ -63,10 +69,13 @@ for C in Present
   Score = Score + Weight * Sc
 end
 
-HasMore = N greater 1
-BestScore = HasMore choose (Score max) 0
-MaxIdx = (Score max .index) + 1
-BestPos = HasMore choose MaxIdx 1
+BestScore = 0
+BestPos = 1
+if N greater 1
+  BestScore = Score max
+  MaxIdx = (Score max .index) + 1
+  BestPos = MaxIdx
+end
 
 BestScore print
 BestPos print
