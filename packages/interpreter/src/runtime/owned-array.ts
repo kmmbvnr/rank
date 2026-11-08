@@ -343,6 +343,41 @@ export function prepareIntegerScalarDivision(value: RankArray, count: number,
     };
 }
 
+/** Keep the scalar and operation outside the hot affine address walk.
+ * Return the first widening cell; the caller commits the exact tail once. */
+function writeCompactScalar(cells: Int32Array, count: number,
+    linear: { offset: number; stride: number }, scalar: number,
+    operator: '=' | '+=' | '-=' | '*='): number {
+    for (let start = 0; start < count; start += 1024) {
+        const end = Math.min(count, start + 1024);
+        checkpoint('writing array', end - start);
+        let offset = linear.offset + start * linear.stride;
+        if (operator === '=') {
+            if (scalar !== (scalar | 0)) return start;
+            for (let i = start; i < end; i++, offset += linear.stride) cells[offset] = scalar;
+        } else if (operator === '+=') {
+            for (let i = start; i < end; i++, offset += linear.stride) {
+                const result = cells[offset] + scalar;
+                if (result !== (result | 0)) return i;
+                cells[offset] = result;
+            }
+        } else if (operator === '-=') {
+            for (let i = start; i < end; i++, offset += linear.stride) {
+                const result = cells[offset] - scalar;
+                if (result !== (result | 0)) return i;
+                cells[offset] = result;
+            }
+        } else {
+            for (let i = start; i < end; i++, offset += linear.stride) {
+                const result = cells[offset] * scalar;
+                if (result !== (result | 0)) return i;
+                cells[offset] = result;
+            }
+        }
+    }
+    return count;
+}
+
 /** Commit a prevalidated integer selection without per-cell Proxy traffic.
  * Callers have protected ownership, established an integer binding, and removed
  * lazy reads/callbacks from operands and offsets. Compound writes accumulate
@@ -448,20 +483,24 @@ export function writeIntegerSelection(
             return;
         }
         const scalar = typeof operand === 'bigint' ? Number(operand) : undefined;
-        const numeric = operator === '=' ? (_: number, next: number) => next
-            : operator === '+=' ? (old: number, next: number) => old + next
-            : operator === '-=' ? (old: number, next: number) => old - next
-            : (old: number, next: number) => old * next;
-        outer: for (let start = 0; start < count; start += 1024) {
-            const end = Math.min(count, start + 1024);
-            checkpoint('writing array', end - start);
-            for (let i = start; i < end; i++) {
-                const next = scalar ?? Number((operand as readonly bigint[] | Int32Array)[i]);
-                const offset = linear ? linear.offset + i * linear.stride : offsetAt(i);
-                const result = numeric(cells[offset], next);
-                if (!Number.isSafeInteger(next) || result !== (result | 0)) { first = i; break outer; }
-                cells[offset] = result;
-                first = i + 1;
+        if (linear && scalar !== undefined && Number.isSafeInteger(scalar)) {
+            first = writeCompactScalar(cells, count, linear, scalar, operator);
+        } else {
+            const numeric = operator === '=' ? (_: number, next: number) => next
+                : operator === '+=' ? (old: number, next: number) => old + next
+                : operator === '-=' ? (old: number, next: number) => old - next
+                : (old: number, next: number) => old * next;
+            outer: for (let start = 0; start < count; start += 1024) {
+                const end = Math.min(count, start + 1024);
+                checkpoint('writing array', end - start);
+                for (let i = start; i < end; i++) {
+                    const next = scalar ?? Number((operand as readonly bigint[] | Int32Array)[i]);
+                    const offset = linear ? linear.offset + i * linear.stride : offsetAt(i);
+                    const result = numeric(cells[offset], next);
+                    if (!Number.isSafeInteger(next) || result !== (result | 0)) { first = i; break outer; }
+                    cells[offset] = result;
+                    first = i + 1;
+                }
             }
         }
         if (first === count) return;

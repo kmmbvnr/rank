@@ -74,13 +74,28 @@ export function materializeSelectedView(value: RankArray): RankArray | undefined
     if (!(first >= 0 && first < cells.length)) return undefined;
     view.validateUniform(view.items[first]);
     const out = cells instanceof Int32Array ? new Int32Array(size) : cells instanceof BigInt64Array ? new BigInt64Array(size) : new Float64Array(size);
-    for (let start = 0; start < size; start += 4096) {
-        const end = Math.min(size, start + 4096);
-        checkpoint('gathering numeric selection', end - start);
-        for (let index = start; index < end; index++) {
-            const at = view.position(index);
-            if (!(at >= 0 && at < cells.length)) return undefined;
-            out[index] = cells[at];
+    const linear = view.linear;
+    if (linear) {
+        const last = linear.offset + (size - 1) * linear.stride;
+        if (!Number.isSafeInteger(linear.offset) || !Number.isSafeInteger(linear.stride)
+            || !Number.isSafeInteger(last) || last < 0 || last >= cells.length) return undefined;
+        // Native affine selections already prove their address map. Walk it
+        // directly instead of decoding each index through the view closure.
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('gathering numeric selection', end - start);
+            let at = linear.offset + start * linear.stride;
+            for (let index = start; index < end; index++, at += linear.stride) out[index] = cells[at];
+        }
+    } else {
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('gathering numeric selection', end - start);
+            for (let index = start; index < end; index++) {
+                const at = view.position(index);
+                if (!(at >= 0 && at < cells.length)) return undefined;
+                out[index] = cells[at];
+            }
         }
     }
     const result = typedArray(out, [...value.shape], undefined, view.kinds![0]);

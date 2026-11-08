@@ -59,6 +59,7 @@ test('new full-scale exclusions retain their small test fixtures unless they tim
         assert.ok(!files.has(fixture), fixture);
         assert.match(readFileSync(new URL('../demos/' + fixture, import.meta.url), 'utf8'), /^test /m, fixture);
     }
+    assert.ok(!files.has('euler/485_maxdivisors.ra'), 'bounded independent divisor blocks keep the full window sum eligible');
     assert.ok(!files.has('euler/484_arithmeticderivative.ra'), 'stored powerful stages keep the full derivative sum eligible');
     assert.ok(!files.has('euler/483_repeatedpermutation.ra'), 'batched cycle transitions keep the full permutation mean eligible');
     assert.ok(!files.has('euler/482_incenter.ra'), 'exact geometric windows keep the full incenter sum eligible');
