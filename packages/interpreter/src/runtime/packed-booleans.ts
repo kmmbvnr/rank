@@ -176,14 +176,33 @@ export function registerPackedBooleanMap(value: RankArray, operator: string, ope
     const rowBroadcast = (operand: RankArray) => value.shape.length === 2
         && (operand.shape.length === 1 || operand.shape.length === 2 && operand.shape[0] === 1)
         && operand.shape[operand.shape.length - 1] === value.shape[1];
+    const columnBroadcast = (operand: RankArray) => value.shape.length === 2
+        && operand.shape.length === 2 && operand.shape[0] === value.shape[0] && operand.shape[1] === 1;
     if (!operands.every(operand => typeof operand === 'boolean' || isRankArray(operand)
-        && (matches(operand) || rowBroadcast(operand)))) return;
+        && (matches(operand) || rowBroadcast(operand) || columnBroadcast(operand)))) return;
     register(value, () => {
         const length = value.shape.reduce((a, b) => a * b, 1);
         const inputs = operands.map(operand => {
             if (typeof operand === 'boolean') return { length, wordAt: () => operand ? 0xffffffff : 0 };
             const array = operand as RankArray, input = bitReader(array);
             if (!input || matches(array)) return input;
+            if (columnBroadcast(array)) {
+                const width = value.shape[1];
+                return { length, validate: input.validate, wordAt: (index: number) => {
+                    let result = 0, filled = 0, position = index * 32;
+                    while (filled < 32 && position < length) {
+                        const row = Math.floor(position / width);
+                        const take = Math.min(32 - filled, width - position % width, length - position);
+                        if (readBits(input, row) & 1) {
+                            const mask = take === 32 ? 0xffffffff : 0xffffffff >>> (32 - take);
+                            result |= mask << filled;
+                        }
+                        filled += take;
+                        position += take;
+                    }
+                    return result;
+                } };
+            }
             if (!rowBroadcast(array)) return undefined;
             // Repeat the logical row, including when words cross row boundaries.
             return { length, validate: input.validate, physical: input.physical && { ...input.physical, period: input.length }, wordAt: (index: number) => {

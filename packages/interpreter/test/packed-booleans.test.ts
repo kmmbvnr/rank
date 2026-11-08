@@ -272,3 +272,34 @@ describe('packed boolean problem demonstrations', () => {
         });
     }
 });
+
+describe('packed column broadcasts', () => {
+    it.each([0, 1, 3, 31, 32, 33, 65, 4097])('combines column masks across %i columns', columns => {
+        const rows = 35, bits = Array.from({ length: rows * columns }, (_, i) => i % 3 === 0);
+        const flags = Array.from({ length: rows }, (_, i) => i % 5 < 2);
+        const matrix = columns ? ownedArray(bits, [rows, columns]) : filledArray(false, [rows, 0]);
+        const column = ownedArray(flags, [rows, 1]);
+        const operators = new Operators(() => {}, () => undefined);
+        for (const operator of ['and', 'or', 'xor']) for (const reverse of [false, true]) {
+            const result = operators.evaluateBinary(operator, reverse ? column : matrix, reverse ? matrix : column) as RankArray;
+            const expected = bits.map((bit, i) => operator === 'and' ? bit && flags[Math.floor(i / columns)]
+                : operator === 'or' ? bit || flags[Math.floor(i / columns)] : bit !== flags[Math.floor(i / columns)]);
+            expect(countPackedBooleans(result)).toBe(BigInt(expected.filter(Boolean).length));
+            expect(Array.from(packedTruePositions(result)!)).toEqual(expected.flatMap((hit, i) => hit ? [i] : []));
+            for (let row = 0; row < rows; row++) expect(countPackedBooleanRange(result, row * columns, columns))
+                .toBe(BigInt(expected.slice(row * columns, (row + 1) * columns).filter(Boolean).length));
+        }
+    });
+});
+
+it('refreshes a packed column recipe after source writes and composes it with a row', () => {
+    const operators = new Operators(() => {}, () => undefined);
+    const matrix = filledArray(true, [3, 33]), column = ownedArray([true, false, true], [3, 1]);
+    const row = ownedArray(Array.from({ length: 33 }, (_, i) => i % 2 === 0), [1, 33]);
+    const first = operators.evaluateBinary('and', matrix, column) as RankArray;
+    const result = operators.evaluateBinary('xor', first, row) as RankArray;
+    expect(countPackedBooleans(result)).toBe(49n);
+    writeArrayCell(column, 0, false);
+    expect(countPackedBooleans(result)).toBe(50n);
+    expect(copyArray(result).items.slice(0, 33)).toEqual(row.items);
+});
