@@ -1,6 +1,7 @@
 rem Triangles - 3
-rem https://acmp.ru/index.asp?main=task&id_task=533
-rem Count non-degenerate isosceles triangles among N 2D integer points
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=533
+rem Count isosceles triangles
 
 use io
 use numbers
@@ -8,9 +9,29 @@ use cli
 use sequences
 use text
 
-arg Input text = "3\n0 0\n2 2\n-2 2"
+arg Input text = (
+  "16\n" +
+  "0 0\n" +
+  "0 100000000\n" +
+  "0 200000000\n" +
+  "0 300000000\n" +
+  "100000000 0\n" +
+  "100000000 100000000\n" +
+  "100000000 200000000\n" +
+  "100000000 300000000\n" +
+  "200000000 0\n" +
+  "200000000 100000000\n" +
+  "200000000 200000000\n" +
+  "200000000 300000000\n" +
+  "300000000 0\n" +
+  "300000000 100000000\n" +
+  "300000000 200000000\n" +
+  "300000000 300000000"
+)
 
-Tokens = Input split "\n" join " " split " "
+Tokens = (
+  Input split "\n" join " " split " "
+)
 Tokens = Tokens (Tokens not equal "")
 N = Tokens 0 integer
 Coords = Tokens drop 1 integer
@@ -33,21 +54,36 @@ for I in 0 till N
   D = (Dx * Dx) + (Dy * Dy)
   M = D len
 
-  rem Count pairs with equal distance D from apex (XO, YO)
   OrderD = D argsort
   SortedD = D OrderD
 
-  DiffD = SortedD drop 1 not equal (SortedD take (M - 1))
+  DropSorted = SortedD drop 1
+  TakeSorted = SortedD take (M - 1)
+  DiffD = (
+    DropSorted not equal TakeSorted
+  )
   IdxM = 0 till (M - 1)
   CutIdx = (IdxM DiffD) + 1
-  Boundaries = concat (concat (array 0) CutIdx) (array M)
+  LeftBound = concat (array 0) CutIdx
+  Boundaries = (
+    concat LeftBound (array M)
+  )
   NumBoundaries = Boundaries len
-  Counts = (Boundaries drop 1) - (Boundaries take (NumBoundaries - 1))
-  PairsD = ((Counts * (Counts - 1)) // 2) sum
+  DropBound = Boundaries drop 1
+  TakeBound = (
+    Boundaries take (NumBoundaries - 1)
+  )
+  Counts = DropBound - TakeBound
+  TermPairs = (
+    (Counts * (Counts - 1)) // 2
+  )
+  PairsD = TermPairs sum
 
-  rem Count collinear opposite pairs where (XO, YO) is midpoint
-  rem Map vector (Dx, Dy) to upper half-plane
-  IsNeg = Dx less 0 or (Dx equal 0 and (Dy less 0))
+  IsDx0 = Dx equal 0
+  IsDyNeg = Dy less 0
+  IsNeg = (
+    Dx less 0 or (IsDx0 and IsDyNeg)
+  )
   Cx = Dx
   Cx IsNeg = 0 - (Dx IsNeg)
   Cy = Dy
@@ -57,10 +93,20 @@ for I in 0 till N
   OrderKey = Key argsort
   SortedKey = Key OrderKey
 
-  DiffKey = SortedKey drop 1 not equal (SortedKey take (M - 1))
-  CollinearPairs = (M - 1) - (DiffKey count)
+  DropKey = SortedKey drop 1
+  TakeKey = SortedKey take (M - 1)
+  DiffKey = (
+    DropKey not equal TakeKey
+  )
+  DiffCount = DiffKey count
+  CollinearPairs = (M - 1) - DiffCount
 
-  TotalTriangles = TotalTriangles + (PairsD - CollinearPairs)
+  ValidPairs = (
+    PairsD - CollinearPairs
+  )
+  TotalTriangles = (
+    TotalTriangles + ValidPairs
+  )
 end
 
 TotalTriangles print

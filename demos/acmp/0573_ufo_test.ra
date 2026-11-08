@@ -3,6 +3,13 @@ use testing
 
 test "ACMP 573: Sample 1"
   use "0573_ufo"
+  Input = (
+    "4 1\n" +
+    "12:00 0 0\n" +
+    "13:10 0 1\n" +
+    "14:00 1 0\n" +
+    "15:00 1 1"
+  )
   run
   MinUFOs equal 2
 end

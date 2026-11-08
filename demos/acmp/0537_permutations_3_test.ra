@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 1st 2-permutation of 4 elements"
   use "0537_permutations_3"
+  Input = "4 1 2\n6 8 3 9"
   run
 
   Answer equal "3 9 6 8"

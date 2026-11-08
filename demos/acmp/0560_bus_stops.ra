@@ -1,6 +1,7 @@
 rem Bus Stops
-rem https://acmp.ru/index.asp?main=task&id_task=560
-rem Minimum cost to place N platforms of width W along railway L with gap constraints [r, R]
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=560
+rem Minimum cost to place N platforms
 
 use io
 use algo
@@ -9,9 +10,16 @@ use cli
 use sequences
 use text
 
-arg Input text = "3 1 5\n0 1\n3 7 1 5 2"
+arg Input text = (
+  "5 2 20\n" +
+  "1 3\n" +
+  "1 2 3 4 5 6 7 8 9 10 " +
+  "11 12 13 14 15 16 17 18 19 20"
+)
 
-Tokens = Input split "\n" join " " split " "
+Tokens = (
+  Input split "\n" join " " split " "
+)
 Tokens = Tokens (Tokens not equal "")
 
 N = Tokens 0 integer
@@ -27,18 +35,26 @@ MaxG = (N + 1) * Rmax
 
 Answer = "No solution."
 
-if (not (G less 0)) and (not (G less MinG)) and (not (G greater MaxG))
+ValidG1 = not (G less 0)
+ValidG2 = not (G less MinG)
+ValidG3 = not (G greater MaxG)
+ValidG = ValidG1 and ValidG2 and ValidG3
+
+if ValidG
   M = L - W + 1
   Pref = array shape (L + 1) fill 0
   Pref (1 till (L + 1)) = A scan +
-  C = (Pref (W till (L + 1))) - (Pref (0 till (L - W + 1)))
+  PrefW = Pref (W till (L + 1))
+  Pref0 = Pref (0 till (L - W + 1))
+  C = PrefW - Pref0
 
   INF = 1000000000000000
   DP = array shape M fill INF
 
   R1 = Rmax min (M - 1)
   if not (R1 less Rmin)
-    DP (Rmin till (R1 + 1)) = C (Rmin till (R1 + 1))
+    R1Range = Rmin till (R1 + 1)
+    DP R1Range = C R1Range
   end
 
   if N greater 1

@@ -1,6 +1,7 @@
 rem Permutations - 3
-rem https://acmp.ru/index.asp?main=task&id_task=537
-rem Find M-th lexicographical K-permutation where every adjacent pair has gcd >= K
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=537
+rem M-th permutation with pair gcd >= K
 
 use io
 use numbers
@@ -9,9 +10,14 @@ use sequences
 use text
 use bits
 
-arg Input text = "4 1 2\n6 8 3 9"
+arg Input text = (
+  "12 400000000 2\n" +
+  "2 4 6 8 10 12 14 16 18 20 22 24"
+)
 
-Tokens = Input split "\n" join " " split " "
+Tokens = (
+  Input split "\n" join " " split " "
+)
 Tokens = Tokens (Tokens not equal "")
 
 N = Tokens 0 integer
@@ -22,7 +28,7 @@ RawA = Tokens drop 3 integer
 A = RawA sort
 AllMask = (1 shl N) - 1
 
-rem Precompute adjacency: Adj i j is 1 if gcd(A_i, A_j) >= K and i != j
+rem Precompute adjacency: gcd >= K
 Adj = (0 till (N * N)) * 0
 for I in 0 till N
   for J in 0 till N
@@ -36,8 +42,7 @@ for I in 0 till N
   end
 end
 
-rem DP state: DP(mask, last) = number of valid completions
-rem When mask == AllMask, DP(AllMask, last) = 1
+rem DP state: DP(mask, last)
 DP = array shape ((1 shl N) * N) fill 0
 for Last in 0 till N
   Idx = (AllMask * N) + Last
@@ -47,15 +52,18 @@ end
 for MaskRev in 1 till AllMask
   Mask = AllMask - MaskRev
   for Last in 0 till N
-    if not (Mask shr Last band 1 equal 0)
+    BitLast = Mask shr Last band 1
+    if BitLast not equal 0
       Ways = 0
       for Next in 0 till N
-        if Mask shr Next band 1 equal 0
+        BitNext = Mask shr Next band 1
+        if BitNext equal 0
           EdgeIdx = (Last * N) + Next
           if Adj EdgeIdx equal 1
-            NextMask = Mask bor (1 shl Next)
-            NextDPIdx = (NextMask * N) + Next
-            Ways = Ways + (DP NextDPIdx)
+            Sh = 1 shl Next
+            NxtM = Mask bor Sh
+            NxtIdx = (NxtM * N) + Next
+            Ways = Ways + (DP NxtIdx)
           end
         end
       end
@@ -65,23 +73,22 @@ for MaskRev in 1 till AllMask
   end
 end
 
-rem Reconstruct M-th permutation
 Answer = "-1"
 RemM = M
 CurMask = 0
-CurLast = -1
+CurLast = 0
 Perm = array shape N fill 0
 Possible = true
 
 FoundFirst = false
-for I in 0 till N
-  StartMask = 1 shl I
-  StartDPIdx = (StartMask * N) + I
-  Ways = DP StartDPIdx
+for First in 0 till N
+  ShiftFirst = 1 shl First
+  NextDPIdx = (ShiftFirst * N) + First
+  Ways = DP NextDPIdx
   if not (Ways less RemM)
-    Perm 0 = A I
-    CurMask = StartMask
-    CurLast = I
+    Perm 0 = A First
+    CurMask = ShiftFirst
+    CurLast = First
     FoundFirst = true
     break
   else
@@ -97,15 +104,17 @@ if Possible
   for Step in 1 till N
     FoundNext = false
     for Next in 0 till N
-      if CurMask shr Next band 1 equal 0
+      BitNext = CurMask shr Next band 1
+      if BitNext equal 0
         EdgeIdx = (CurLast * N) + Next
         if Adj EdgeIdx equal 1
-          NextMask = CurMask bor (1 shl Next)
-          NextDPIdx = (NextMask * N) + Next
-          Ways = DP NextDPIdx
+          Sh = 1 shl Next
+          NxtM = CurMask bor Sh
+          NxtIdx = (NxtM * N) + Next
+          Ways = DP NxtIdx
           if not (Ways less RemM)
             Perm Step = A Next
-            CurMask = NextMask
+            CurMask = NxtM
             CurLast = Next
             FoundNext = true
             break

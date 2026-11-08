@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 3 points forming 1 isosceles triangle"
   use "0533_triangles_3"
+  Input = "3\n0 0\n2 2\n-2 2"
   run
 
   TotalTriangles equal 1

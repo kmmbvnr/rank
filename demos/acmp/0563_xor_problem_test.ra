@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: consecutive 1 2 3"
   use "0563_xor_problem"
+  Input = "3\n1\n2\n3"
   run
 
   Answer equal 1

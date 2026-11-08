@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: 3 chapters, 2 volumes"
   use "0523_book_volumes"
+  Input = "3\n1 2 1\n2"
   run
 
   Answer equal 3

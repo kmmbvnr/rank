@@ -3,6 +3,7 @@ use numbers
 
 test "sample 1: unit square towers give sqrt(2)/2"
   use "0538_radio"
+  Input = "4\n0 0\n0 1\n1 0\n1 1"
   run
 
   rem Expected R = 1 / sqrt(2) approx 0.70710678

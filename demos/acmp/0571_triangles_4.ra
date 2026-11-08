@@ -6,8 +6,10 @@ use cli
 use sequences
 use text
 
-arg Input text = "8
-1 1 3 2 4 4 6 5"
+arg Input text = (
+  "12\n" +
+  "1 1 1 1 3 3 3 3 5 5 5 5"
+)
 
 Clean = Input split "\r" join " "
 Clean = Clean split "\n" join " "
@@ -54,8 +56,9 @@ S3 = (Steps equal 3) integer
 S5 = (Steps equal 5) integer
 S6 = (Steps equal 6) integer
 
-PosUp = (S2 * (2 * U0)) + (S3 * ((2 * U0) - 1))
-PosDn = (S5 * (2 * U0)) + (S6 * ((2 * U0) + 1))
+U2 = 2 * U0
+PosUp = (S2 * U2) + (S3 * (U2 - 1))
+PosDn = (S5 * U2) + (S6 * (U2 + 1))
 
 EdgeV = (IsUp * V0) + (IsDn * V1)
 EdgeP = (IsUp * PosUp) + (IsDn * PosDn)

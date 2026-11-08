@@ -7,11 +7,19 @@ use numbers
 use text
 use graph
 
-arg Input text = "4 1
-12:00 0 0
-13:10 0 1
-14:00 1 0
-15:00 1 1"
+arg Input text = (
+  "10 100\n" +
+  "01:00 0 0\n" +
+  "02:00 50 50\n" +
+  "03:00 100 0\n" +
+  "04:00 150 150\n" +
+  "05:00 200 0\n" +
+  "06:00 300 300\n" +
+  "07:00 400 0\n" +
+  "08:00 500 500\n" +
+  "09:00 600 0\n" +
+  "10:00 700 700"
+)
 
 Clean = Input split ":" join " "
 Clean = Clean split "\r" join " "

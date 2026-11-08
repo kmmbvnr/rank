@@ -1,6 +1,7 @@
 rem Problem About XOR
-rem https://acmp.ru/index.asp?main=task&id_task=563
-rem Compute S = (xor of all a_i) xor (xor of F(a_i, a_j) for all i < j)
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=563
+rem Compute XOR sum of all pairs
 
 use io
 use numbers
@@ -9,9 +10,24 @@ use sequences
 use text
 use bits
 
-arg Input text = "3\n1\n2\n3"
+arg Input text = (
+  "30\n" +
+  "2147483647\n1000000000\n" +
+  "500000000\n" +
+  "250000000\n125000000\n62500000\n" +
+  "31250000\n15625000\n7812500\n" +
+  "3906250\n1953125\n976562\n" +
+  "488281\n244140\n122070\n" +
+  "61035\n30517\n15258\n" +
+  "7629\n3814\n1907\n" +
+  "953\n476\n238\n" +
+  "119\n59\n29\n" +
+  "14\n7\n3"
+)
 
-Tokens = Input split "\n" join " " split " "
+Tokens = (
+  Input split "\n" join " " split " "
+)
 Tokens = Tokens (Tokens not equal "")
 N = Tokens 0 integer
 A = Tokens drop 1 integer
@@ -42,11 +58,19 @@ for P in 0 till 32
   Order = Masked argsort
   S = Masked Order
 
-  Diff = S drop 1 not equal (S take (N - 1))
-  CutIdx = ((0 till (N - 1)) Diff) + 1
-  Boundaries = concat (concat (array 0) CutIdx) (array N)
+  DropS = S drop 1
+  TakeS = S take (N - 1)
+  Diff = DropS not equal TakeS
+  IdxCut = (0 till (N - 1)) Diff
+  CutIdx = IdxCut + 1
+  LeftB = concat (array 0) CutIdx
+  Boundaries = concat LeftB (array N)
   NumCuts = Boundaries len
-  Counts = (Boundaries drop 1) - (Boundaries take (NumCuts - 1))
+  DropB = Boundaries drop 1
+  TakeB = (
+    Boundaries take (NumCuts - 1)
+  )
+  Counts = DropB - TakeB
   Parities = Counts shr 1 band 1
   BitP = Parities sum mod 2
 
@@ -59,9 +83,10 @@ for P in 0 till 32
   end
 end
 
-Answer = Axor bxor Fxor
-if not (Answer less Half32)
-  Answer = Answer - Two32
+TotalXor = Axor bxor Fxor
+if TotalXor at least Half32
+  TotalXor = TotalXor - Two32
 end
 
+Answer = TotalXor
 Answer print

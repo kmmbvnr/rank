@@ -1,15 +1,27 @@
 rem Book in Volumes
-rem https://acmp.ru/index.asp?main=task&id_task=523
-rem Partition N chapters into at most K volumes minimizing maximum volume size via binary search
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=523
+rem Partition N chapters into K volumes
 
 use io
 use cli
 use sequences
 use text
 
-arg Input text = "3\n1 2 1\n2"
+arg Input text = (
+  "30\n" +
+  "1000 2000 3000 4000 5000 " +
+  "6000 7000 8000 9000 10000 " +
+  "11000 12000 13000 14000 15000 " +
+  "16000 17000 18000 19000 20000 " +
+  "21000 22000 23000 24000 25000 " +
+  "26000 27000 28000 29000 30000\n" +
+  "10"
+)
 
-Tokens = Input split "\n" join " " split " "
+Tokens = (
+  Input split "\n" join " " split " "
+)
 Tokens = Tokens (Tokens not equal "")
 
 N = Tokens 0 integer

@@ -1,10 +1,7 @@
-rem ACMP 0538 - Radio (Радио)
-rem Maximize coverage radius R of N transmitters with 2 frequencies to avoid interference.
-rem
-rem Two transmitters broadcasting on the same frequency must be at distance >= 2R.
-rem Thus, any pair at distance < 2R must broadcast on different frequencies (2-coloring).
-rem We binary search for the maximal 2R = Mid such that the graph with edges
-rem for distance < Mid is bipartite, verifying with BFS 2-coloring.
+rem Radio
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=538
+rem Maximize transmitter coverage radius
 
 use io
 use cli
@@ -12,9 +9,22 @@ use sequences
 use numbers
 use text
 
-arg Input text = "4\n0 0\n0 1\n1 0\n1 1"
+arg Input text = (
+  "10\n" +
+  "-10000 -10000\n" +
+  "-10000 0\n" +
+  "-10000 10000\n" +
+  "0 -10000\n" +
+  "0 0\n" +
+  "0 10000\n" +
+  "10000 -10000\n" +
+  "10000 0\n" +
+  "10000 10000\n" +
+  "5000 5000"
+)
 
-Tokens = (Input split "\n" join " ") split " "
+Lines = Input split "\n"
+Tokens = (Lines join " ") split " "
 Tokens = Tokens (Tokens not equal "")
 Nums = Tokens real
 
@@ -41,7 +51,8 @@ for Iter in 0 till 45
   IsBipartite = true
 
   for I in 0 till N
-    if (Colors I equal 0) and IsBipartite
+    IsZero = Colors I equal 0
+    if IsZero and IsBipartite
       Colors I = 1
       Head = 0
       Tail = 0
@@ -55,7 +66,9 @@ for Iter in 0 till 45
         NextCol = 3 - ColU
 
         Row = D2 U
-        Mask = Row less Mid2 and (Row greater 0.0)
+        MaskMid = Row less Mid2
+        MaskPos = Row greater 0.0
+        Mask = MaskMid and MaskPos
         Neighs = Idxs Mask
 
         for V in Neighs
@@ -83,10 +96,12 @@ for Iter in 0 till 45
   end
 end
 
-rem Fill any unvisited nodes with color 1
+rem Fill unvisited nodes with color 1
 ZeroMask = FinalColors equal 0
 FinalColors ZeroMask = 1
 
 R = Low / 2.0
-Answer = (R text) + "\n" + (FinalColors join " ")
+OutR = R text
+OutCols = FinalColors join " "
+Answer = OutR + "\n" + OutCols
 Answer print
