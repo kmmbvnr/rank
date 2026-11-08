@@ -823,7 +823,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         try {
             const form = symbolicApplicationForm(source);
-            if (form?.kind !== 'scan' || form.operator !== '+' || form.rank || form.keys || form.size
+            if (form?.kind !== 'scan' || !(form.operator === '+' || modulus && form.operator === '*') || form.rank || form.keys || form.size
                 || form.axis && !modulus) return undefined;
             const type = arrayType(form.source);
             if (!type || type.element !== 'integer' || type.rank < 1 || !form.axis && type.rank !== 1
@@ -917,6 +917,17 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         return type && type.rank > 0 && (type.element === 'integer' || type.element === 'boolean' || type.element === 'real' && host.reals)
             ? { form: expression, type } : undefined;
     }
+    function numericReverse(expression: Expression) {
+        if (!numberMode || !host.nativeCalls || !host.arrayLocals || !host.arrayReads
+            || !host.module('sequences') || !isApplicationExpression(expression)
+            || localTypes.has('reverse') || arrays.has('reverse') || containers.has('reverse')) return undefined;
+        const parts = flattenApplication(expression);
+        if (parts.length !== 2 || !isNameExpression(parts[1]) || parts[1].name !== 'reverse'
+            || !completedIndicesMask(parts[0])) return undefined;
+        const type = arrayType(parts[0]);
+        return type && type.rank > 0 && ['integer', 'real', 'boolean'].includes(type.element)
+            ? { source: parts[0], type } : undefined;
+    }
     function sortedSearch(source: Expression) {
         while (isParenthesizedExpression(source)) source = source.value;
         if (!numberMode || !host.nativeCalls || !host.arrayReads || !host.module('algo') || !isApplicationExpression(source)) return undefined;
@@ -936,6 +947,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (numericPrimeCopy(e) || numericIndices(e)) return { kind: 'array', element: 'integer', rank: 1 };
         const countSlice = numericCountSlice(e);
         if (countSlice) return countSlice.type;
+        const reverse = numericReverse(e);
+        if (reverse) return reverse.type;
         const membership = numericMembership(e);
         if (membership) {
             const input = arrayType(membership.key);
@@ -1443,6 +1456,26 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {
         let countSource = source;
         while (isParenthesizedExpression(countSource)) countSource = countSource.value;
+        const reverse = numericReverse(countSource);
+        if (reverse) {
+            state.numberVectors = true;
+            const input = emitNumberArray(reverse.source, lines);
+            if (!input || typeof input.type === 'string') return undefined;
+            builtins.set('reverse', 'sequences');
+            state.syntax.add('reverse');
+            const cells = input.cells ?? `${input.code}.cells`, result = `reverse${state.serial++}`;
+            const shape = `reverseShape${state.serial++}`, width = `reverseWidth${state.serial++}`;
+            const index = `reverseCell${state.serial++}`;
+            // Reverse the leading axis, preserving each trailing cell block.
+            // Complete fresh storage so later source/result writes are separate.
+            lines.push(`const ${shape} = ${input.code}.shape;
+                const ${width} = ${shape}.slice(1).reduce((a,b) => safe(a*b), 1);
+                const ${result} = vectorArray([...${shape}], ${input.type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${cells}], ${input.type.element === 'boolean'});
+                ${numberVectorLoop(`${cells}.length`, index, [
+                    `${result}.store(${index}, ${cells}[(${shape}[0] - 1 - Math.floor(${index} / ${width})) * ${width} + ${index} % ${width}]);`,
+                ])}`);
+            return { code: result, cells: `${result}.cells`, type: input.type, fresh: true };
+        }
         const countSlice = numericCountSlice(countSource);
         if (countSlice) {
             state.numberVectors = true;
@@ -1604,8 +1637,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     ...(seed ? [`if (${position} < ${inner}) ${value} = ${initial}; else {`] : []),
                     `let input = ${compact ? `${cells}[${source}]` : `safe(Number(${cells}[${source}]))`};`,
                     `if (input < 0 || input >= ${mod}) input = ((input % ${mod}) + ${mod}) % ${mod};`,
-                    `${value} = ${!seed ? `${position} < ${inner} ? input : ` : ''}Number(${result}.cells[${index} - ${inner}]) + input;`,
-                    `if (${value} >= ${mod}) ${value} -= ${mod};`,
+                    `${value} = ${!seed ? `${position} < ${inner} ? input : ` : ''}${scan.form.operator === '*'
+                        ? `mulmod(Number(${result}.cells[${index} - ${inner}]), input, ${mod})`
+                        : `Number(${result}.cells[${index} - ${inner}]) + input`};`,
+                    ...(scan.form.operator === '+' ? [`if (${value} >= ${mod}) ${value} -= ${mod};`] : []),
                     ...(seed ? ['}'] : []),
                     `${result}.cells[${index}] = ${value};`,
                 ];

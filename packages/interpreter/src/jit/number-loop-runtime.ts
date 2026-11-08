@@ -620,6 +620,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         for (const name of plan.syntax) if (host.read(name) !== undefined) return recordFallback('number-loop:syntax-binding', 'proof');
         // Packed native consumers have a different traversal budget.
         if ((plan.syntax.has('take') || plan.syntax.has('drop')) && demandBudgetEnabled()) return recordFallback('number-loop:observable-count-slice', 'effects');
+        if (plan.syntax.has('reverse') && demandBudgetEnabled()) return recordFallback('number-loop:observable-reverse', 'effects');
         if (plan.builtins.get('indices') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-indices', 'effects');
         if (plan.builtins.get('count') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-count', 'effects');
         // Prime-plan completion has its own demand traversal; do not charge
@@ -767,6 +768,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if ((plan.syntax.has('take') || plan.syntax.has('drop'))
                 && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
                 return recordFallback('number-loop:count-slice-metadata', 'proof');
+            if (plan.syntax.has('reverse')
+                && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
+                return recordFallback('number-loop:reverse-metadata', 'proof');
             if (plan.rangeDefinitions?.size
                 && ['columnNames', 'tableScopes', 'sortKeys'].some(key => Object.getOwnPropertyDescriptor(value, key)))
                 return recordFallback('number-loop:range-selection-metadata', 'proof');
