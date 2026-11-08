@@ -1,6 +1,6 @@
 import { checkpoint, demandBudgetEnabled, privateLoopPolling } from '../interrupt.js';
 import { collectArrayCells } from './array-read.js';
-import { float64Cells, integer32Cells, integer64Cells, typedArray, typedElementKind } from './owned-array.js';
+import { consumeSafeIntegerBuffer, float64Cells, integer32Cells, integer64Cells, typedArray, typedElementKind } from './owned-array.js';
 import type { RankArray } from './value.js';
 
 type Keys = Float64Array | Int32Array;
@@ -330,7 +330,7 @@ export function scanInt32Axis(op: '+' | '*' | 'max' | 'min', value: RankArray, s
         if (x > INT32_MAX || x < -INT32_MAX - 1) { wide = true; break; }
     }
     if (!wide) return typedArray(Int32Array.from(out), [...shape]);
-    return typedArray(BigInt64Array.from(out, x => BigInt(x)), [...shape]);
+    return typedArray(consumeSafeIntegerBuffer(out), [...shape]);
 }
 
 /** `sum` along one axis of stored real cells, adding in axis order from 0 as

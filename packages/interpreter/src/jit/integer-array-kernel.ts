@@ -1,7 +1,7 @@
 import { checkedNumberPower, numberOverflow } from './number-arithmetic.js';
 import { DENSE_MIN_CELLS } from './tensor-operands.js';
 import { BooleanCells } from '../boolean-cells.js';
-import { createOwned } from '../owned-array.js';
+import { createOwned, consumeSafeIntegerBuffer } from '../owned-array.js';
 import { booleanCells, IntegerCells, ownedScalarArray, typedArray } from '../array-storage.js';
 import { greatestCommonDivisor, leastCommonMultiple, safeIntegerGcd } from '../integer-gcd.js';
 import { RankError } from '../errors.js';
@@ -315,20 +315,8 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
         return ownedScalarArray(size ? [BigInt(cells![0])] : [], 'integer', shape);
     }
     // Keep computed numeric cells, including short results from boxed inputs.
-    if (wide) return typedArray(safeIntegerWords(cells as Float64Array), shape);
+    if (wide) return typedArray(consumeSafeIntegerBuffer(cells as Float64Array), shape);
     return typedArray(cells as Int32Array ?? new Int32Array(0), shape);
-}
-
-/** Each safe-integer double dies after its read. The private scratch can
- * become the integer result without allocating a second wide buffer. */
-function safeIntegerWords(cells: Float64Array): BigInt64Array {
-    const out = new BigInt64Array(cells.buffer), words = new Int32Array(out.buffer);
-    for (let i = 0; i < cells.length; i++) {
-        const value = cells[i], high = Math.floor(value / 4294967296);
-        words[2 * i + lowWord] = value - high * 4294967296 | 0;
-        words[2 * i + 1 - lowWord] = high;
-    }
-    return out;
 }
 
 /** Contiguous broadcast rows with compact results. Tiny completed boxed

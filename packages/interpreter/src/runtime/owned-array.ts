@@ -191,6 +191,21 @@ export function writableIntegerCells(value: RankArray): ArrayLike<bigint> | unde
 
 const LITTLE_ENDIAN = new Uint8Array(new Uint16Array([1]).buffer)[0] === 1;
 
+/** Consume a private buffer of proved safe integers as packed Int64 cells.
+ * Each double is read before overwriting its two words. The caller must not
+ * retain a numeric alias; no new buffer or per-cell BigInt is allocated. */
+export function consumeSafeIntegerBuffer(cells: Float64Array): BigInt64Array {
+    const out = new BigInt64Array(cells.buffer, cells.byteOffset, cells.length);
+    const words = new Int32Array(cells.buffer, cells.byteOffset, cells.length * 2);
+    const low = LITTLE_ENDIAN ? 0 : 1;
+    for (let i = 0; i < cells.length; i++) {
+        const value = cells[i], high = Math.floor(value / 4294967296);
+        words[2 * i + low] = value - high * 4294967296 | 0;
+        words[2 * i + 1 - low] = high;
+    }
+    return out;
+}
+
 /** Int32 cells as int64 cells. Writing the two halves avoids a BigInt per cell. */
 function widenInt32(cells: Int32Array): BigInt64Array {
     if (!LITTLE_ENDIAN) return BigInt64Array.from(cells, BigInt);
