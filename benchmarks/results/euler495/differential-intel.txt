@@ -1,0 +1,20 @@
+
+ RUN  v3.2.7 /tmp/rank454-delivery/packages/interpreter
+
+stdout | test/differential.test.ts > compiled and reference demo execution > euler/495_distinctproduct.ra
+comparing euler/495_distinctproduct.ra
+
+stdout | test/differential.test.ts > compiled and reference demo execution > euler/495_distinctproduct_test.ra
+comparing euler/495_distinctproduct_test.ra
+
+stdout | test/differential.test.ts > compiled and reference demo execution
+differential: 2/1705 compared, 2 completed, 1 test blocks, 70963 compiled entries, 5646 Number loop entries
+
+ ✓ test/differential.test.ts (1706 tests | 1704 skipped) 33868ms
+   ✓ compiled and reference demo execution > euler/495_distinctproduct.ra  33480ms
+   ✓ compiled and reference demo execution > euler/495_distinctproduct_test.ra  377ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 1704 skipped (1706)
+   Start at  21:16:04
+   Duration  36.94s (transform 1.98s, setup 0ms, collect 2.84s, tests 33.87s, environment 0ms, prepare 54ms)

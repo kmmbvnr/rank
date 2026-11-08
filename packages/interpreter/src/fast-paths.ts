@@ -572,8 +572,18 @@ export class FastPaths {
         // Explicit finite native completion cannot use the private Number
         // body. Its owned arrays may enter the exact function tier instead.
         const nativeCompletion = proof && hasNativeCompletion(proof);
+        const boundLoopRange = proof && !nativeCompletion && [...proof.expressions].some(([source, expression]) => {
+            if (expression.kind !== 'input' || expression.input.operation !== 'range-array') return false;
+            for (let owner = source.$container; owner && owner !== statement; owner = owner.$container) {
+                if (isForStatement(owner)) return true;
+            }
+            return false;
+        });
         if (proof && !proof.recursive && !proof.containers && !nativeCompletion
-            && [...proof.loopIterables.values()].some(loop => loop.kind === 'literal' && isNameExpression(loop.expression))) return undefined;
+            && ([...proof.loopIterables.values()].some(loop => loop.kind === 'literal' && isNameExpression(loop.expression))
+                // Bound range loops also have an analytic Number consumer;
+                // do not replace it with completed arrays in the exact tier.
+                || boundLoopRange)) return undefined;
         return proof && proof.localArrayWrites && (!proof.arrayWrites.size || proof.containers || proof.recursive || nativeCompletion) && (!proof.planReturn || typeof proof.type !== 'string')
             ? { locals: proof.locals, nonnegative: proof.nonnegative, loops: true } : undefined;
     }

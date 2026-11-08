@@ -17,12 +17,12 @@ import { compiledArgumentType, compiledStoredArgumentType, hasNativeDeque } from
 import {
     symbolicApplicationForm, groupedUnaryDyadicChain, compiledCallSignatures, matchCompiledCallSignature, scalarChooseOperands, applicationExpression, rangeSliceOperands, flattenApplication, unaryApplicationHead, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isDeclaredCallExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
-    isAssignmentStatement, isArrayAssignmentStatement, isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isBooleanLiteral, isNumberLiteral, isNameExpression, isArrayExpression, applicationForm, type Expression, type CompiledLoopType,
+    isAssignmentStatement, isArrayAssignmentStatement, isFirstIndexWhereExpression, isSubjectComparisonExpression, isMaterializeExpression, isTableFilterExpression, isParenthesizedExpression, isBooleanLiteral, isNumberLiteral, isNameExpression, isArrayExpression, isAllAxisExpression, applicationForm, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType, type CompiledCallSignature,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex, isRankSet } from '../value.js';
 import { integerLiteral } from '../eval/application.js';
-import { resolveAxes, safeDimension } from '../tensor-index.js';
+import { resolveAxis, resolveAxes, safeDimension } from '../tensor-index.js';
 import { RankDeque } from '../containers.js';
 import { denseScalarItems, materializedArrayItems, arrayRevision, storedScalarKinds } from '../array-storage.js';
 
@@ -799,21 +799,35 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             || !isApplicationExpression(e) || localTypes.has('reshape') || arrays.has('reshape') || containers.has('reshape')) return undefined;
         const form = applicationForm(e, name => findOperation(name));
         if (form.kind !== 'reshape' || form.rest.length
-            || form.dimensions.some(dimension => !isNameExpression(dimension) && !isNumberLiteral(dimension)
+            || form.dimensions.some(dimension => !isAllAxisExpression(dimension) && !isNameExpression(dimension) && !isNumberLiteral(dimension)
                 && !isParenthesizedExpression(dimension) && !isUnaryExpression(dimension) && !isBinaryExpression(dimension))) return undefined;
         const type = arrayType(form.source);
         return type && ['integer', 'real', 'boolean'].includes(type.element) ? { form, type } : undefined;
     }
-    /** A native integer prefix owns fresh storage. Callback scans, axes and
-     * mixed scalar kinds retain their ordinary execution and demand rules. */
+    /** Integer prefixes own fresh storage. Bounded modular prefixes can keep
+     * tensor axes inside a region without wide intermediates or a second map. */
     function numericScan(e: Expression) {
         if (!numberMode || !host.nativeCalls || !host.arrayLocals || !host.arrayReads
             || localTypes.has('scan') || arrays.has('scan') || containers.has('scan') || host.read('scan') !== undefined) return undefined;
-        const form = symbolicApplicationForm(e);
-        if (form?.kind !== 'scan' || form.operator !== '+' || form.rank || form.axis || form.keys || form.size) return undefined;
-        const type = arrayType(form.source);
-        if (type?.rank !== 1 || type.element !== 'integer' || form.seed && knownType(form.seed) !== 'integer') return undefined;
-        return { form, type };
+        let source = e;
+        while (isParenthesizedExpression(source)) source = source.value;
+        const modulus = isBinaryExpression(source) && source.operator === 'mod' ? source.right : undefined;
+        if (modulus) {
+            // A scalar stored modulus cannot run callbacks before the prefix.
+            if (wide || !isNameExpression(modulus) && !isNumberLiteral(modulus) || knownType(modulus) !== 'integer') return undefined;
+            source = (source as import('@arrrank/language').BinaryExpression).left;
+            while (isParenthesizedExpression(source)) source = source.value;
+        }
+        try {
+            const form = symbolicApplicationForm(source);
+            if (form?.kind !== 'scan' || form.operator !== '+' || form.rank || form.keys || form.size
+                || form.axis && !modulus) return undefined;
+            const type = arrayType(form.source);
+            if (!type || type.element !== 'integer' || type.rank < 1 || !form.axis && type.rank !== 1
+                || form.seed && knownType(form.seed) !== 'integer') return undefined;
+            const axis = form.axis ? resolveAxis(Number(safeDimension(integerLiteral(form.axis, 'scan axis'), 'scan axis')), type.rank) : undefined;
+            return { form, type, axis, modulus };
+        } catch { return undefined; }
     }
     function numericPrimeCopy(expression: Expression) {
         if (!numberMode || !host.nativeCalls || !host.arrayLocals || !host.arrayReads
@@ -1489,14 +1503,50 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     `${result}.store(${target}, safe(Number(${result}.cells[${target}]) + ${value.code}));`,
                 ])}`);
         } else if (scan) {
+            state.numberVectors = true;
             const input = emitNumberArray(scan.form.source, lines);
             if (!input || typeof input.type === 'string') return undefined;
             const cells = input.cells ?? `${input.code}.cells`;
             lines.push(`vectorLive.push(${cells});`);
             const seed = scan.form.seed ? emit(scan.form.seed, lines, 'integer') : undefined;
             if (scan.form.seed && seed?.type !== 'integer') return undefined;
+            const modulus = scan.modulus ? emit(scan.modulus, lines, 'integer') : undefined;
+            if (scan.modulus && modulus?.type !== 'integer') return undefined;
             lines.push('vectorLive.pop();');
             state.syntax.add('scan');
+            if (modulus) {
+                const mod = `modulus${state.serial++}`, initial = `seed${state.serial++}`;
+                // Reduced states fit Int32 and adding two residues stays exact.
+                // Other moduli retain the exact native fold.
+                lines.push(`const ${mod} = ${modulus.code}; if (${mod} <= 0 || ${mod} > 2147483648) throw overflow;
+                    const ${initial} = ${seed ? `((${seed.code} % ${mod}) + ${mod}) % ${mod}` : '0'};`);
+                const axis = scan.axis ?? 0;
+                const shape = `shape${state.serial++}`, length = `length${state.serial++}`, inner = `inner${state.serial++}`;
+                const output = `shape${state.serial++}`, index = `cell${state.serial++}`, value = `prefix${state.serial++}`;
+                lines.push(`const ${shape} = ${input.code}.shape; const ${length} = ${shape}[${axis}];
+                    const ${inner} = ${shape}.slice(${axis + 1}).reduce((a, b) => a * b, 1);
+                    const ${output} = [...${shape}]; ${seed ? `${output}[${axis}]++;` : ''}
+                    const ${result} = vectorArray(${output}, false, vectorPool, vectorLive, [result, iterationResult, ${cells}]);`);
+                const position = `position${state.serial++}`;
+                const source = seed ? `Math.floor(${index} / ((${length} + 1) * ${inner})) * ${length} * ${inner} + ${position} - ${inner}` : index;
+                const body = (compact: boolean) => [
+                    `const ${position} = ${axis === 0 ? index : `${index} % ((${length} + ${seed ? 1 : 0}) * ${inner})`};`,
+                    `let ${value};`,
+                    ...(seed ? [`if (${position} < ${inner}) ${value} = ${initial}; else {`] : []),
+                    `let input = ${compact ? `${cells}[${source}]` : `safe(Number(${cells}[${source}]))`};`,
+                    `if (input < 0 || input >= ${mod}) input = ((input % ${mod}) + ${mod}) % ${mod};`,
+                    `${value} = ${!seed ? `${position} < ${inner} ? input : ` : ''}Number(${result}.cells[${index} - ${inner}]) + input;`,
+                    `if (${value} >= ${mod}) ${value} -= ${mod};`,
+                    ...(seed ? ['}'] : []),
+                    `${result}.cells[${index}] = ${value};`,
+                ];
+                // Stored Int32 inputs already prove cell safety. Axis zero has
+                // one outer block, so it needs no per-cell division/remainder.
+                const checked = numberVectorLoop(`${result}.cells.length`, index, body(false));
+                const compact = numberVectorLoop(`${result}.cells.length`, index, body(true));
+                lines.push(`if (${cells} instanceof Int32Array) { ${compact} } else { ${checked} }`);
+                return { code: result, cells: `${result}.cells`, type: scan.type, fresh: true };
+            }
             const index = `cell${state.serial++}`, total = `prefix${state.serial++}`;
             const offset = seed ? 1 : 0;
             lines.push(`const ${result} = vectorArray([${cells}.length + ${offset}], false, vectorPool, vectorLive, [result, iterationResult, ${cells}]);
@@ -1512,6 +1562,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             lines.push(`vectorLive.push(${input.cells ?? `${input.code}.cells`});`);
             const dimensions: string[] = [];
             for (const part of reshape.form.dimensions) {
+                if (isAllAxisExpression(part)) { dimensions.push('undefined'); continue; }
                 const value = emit(part, lines, 'integer');
                 if (value?.type !== 'integer') return undefined;
                 const dimension = `dimension${state.serial++}`;
@@ -1521,7 +1572,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             lines.push('vectorLive.pop();');
             const shape = `shape${state.serial++}`, cells = input.cells ?? `${input.code}.cells`;
             builtins.set('reshape', 'sequences');
-            lines.push(`const ${shape} = [${dimensions.join(',')}];
+            const layout = `[${dimensions.join(',')}]`;
+            lines.push(`const ${shape} = ${dimensions.includes('undefined') ? `inferShape(${layout}, ${cells}.length)` : layout};
                 if (${shape}.reduce((a, b) => a * BigInt(b), 1n) !== BigInt(${cells}.length)) throw overflow;
                 const ${result} = copyArray(${shape}, ${cells}, ${type.element === 'real'}, ${type.element === 'boolean'}, ${input.code});`);
         } else if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {

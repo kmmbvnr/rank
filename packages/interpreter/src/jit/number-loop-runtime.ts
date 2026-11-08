@@ -1,7 +1,7 @@
 import { materializeValue } from '../materialize.js';
 import { primeRange } from '../prime-sequence.js';
 import { integerInput } from './integer-representation.js';
-import { broadcastShape, arrayStrides } from './tensor-layout.js';
+import { broadcastShape, arrayStrides, reshapeDimensions } from './tensor-layout.js';
 import { numberOverflow, checkedNumberModularMultiply as modularMultiply, checkedNumberPower } from './number-arithmetic.js';
 import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
 import { textLength } from '../text-storage.js';
@@ -509,7 +509,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'sortedIndexBatch', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', readers + '\n' + code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'sortedIndexBatch', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', 'inferShape', readers + '\n' + code)(
             modularMultiply, safe, numberSortedIndex, numberSortedIndexBatch, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -580,6 +580,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                 if (!Number.isSafeInteger(count) || count > 0xffffffff) throw overflow;
                 if (count) safe(start + safe((count - 1) * step));
                 return new PrivateRange(start, end, step, inclusive, host.arrayValues.range);
+            }, (dimensions: (number | undefined)[], size: number) => {
+                try { return reshapeDimensions(dimensions.map(value => value === undefined ? undefined : BigInt(value)), () => BigInt(size)); }
+                catch { throw overflow; }
             });
     try { run = compile(source); } catch { return recordFallback('number-loop:code-generation', 'proof'); }
     host.compiled?.(source);

@@ -1,0 +1,22 @@
+
+ RUN  v3.2.7 /tmp/rank454-delivery/packages/interpreter
+
+ ✓ test/number-loop-inferred-reshape.test.ts (14 tests) 580ms
+   ✓ compiles reshape # without copying input cells  353ms
+ ✓ test/number-loop-modular-axis-scan.test.ts (29 tests) 893ms
+   ✓ compiles modular prefixes on shape 2 3 axis 0  411ms
+ ✓ test/number-reduction-prefix.test.ts (22 tests) 1349ms
+   ✓ joins two readonly vector reduction loops at size 0  441ms
+ ✓ test/euler495.test.ts (10 tests) 27568ms
+   ✓ matches direct distinct-factor enumeration with {}  1643ms
+   ✓ matches direct distinct-factor enumeration with {"compilation":false}  837ms
+   ✓ matches direct distinct-factor enumeration with {"numberLoopCompilation":false}  848ms
+   ✓ matches the original nontrivial fixtures with {}  3438ms
+   ✓ matches the original nontrivial fixtures with {"compilation":false}  3795ms
+   ✓ matches the original nontrivial fixtures with {"numberLoopCompilation":false}  3707ms
+   ✓ retains the original full answer  12842ms
+
+ Test Files  4 passed (4)
+      Tests  75 passed (75)
+   Start at  21:10:39
+   Duration  30.82s (transform 2.13s, setup 0ms, collect 12.01s, tests 30.39s, environment 1ms, prepare 296ms)

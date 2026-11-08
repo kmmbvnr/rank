@@ -1,0 +1,14 @@
+
+> @arrrank/language@0.0.2 test
+> vitest run test/compiled-expression.test.ts test/application-forms.test.ts --maxWorkers 4
+
+
+ RUN  v3.2.7 /tmp/rank454-delivery/packages/language
+
+ ✓ test/compiled-expression.test.ts (20 tests) 246ms
+ ✓ test/application-forms.test.ts (93 tests) 577ms
+
+ Test Files  2 passed (2)
+      Tests  113 passed (113)
+   Start at  21:10:36
+   Duration  1.85s (transform 688ms, setup 0ms, collect 2.00s, tests 823ms, environment 0ms, prepare 103ms)

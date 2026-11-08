@@ -1,0 +1,139 @@
+
+ RUN  v3.2.7 /tmp/rank454-delivery/packages/interpreter
+
+ ✓ test/tail-calls.test.ts (11 tests) 7893ms
+   ✓ tail calls > runs a million tail calls with a one-frame call budget  1565ms
+   ✓ tail calls > replaces frames for mutual recursion and parenthesized returns  5439ms
+   ✓ tail calls > allows tail calls again after leaving a try block  736ms
+ ✓ test/vector-entry-work.test.ts (22 tests) 12398ms
+   ✓ complete nested passes in packed vector loops > amortizes copies above the probe cap (reverse=false)  899ms
+   ✓ complete nested passes in packed vector loops > amortizes copies above the probe cap (reverse=true)  605ms
+   ✓ complete nested passes in packed vector loops > counts a later pass after an outer continue  576ms
+   ✓ complete nested passes in packed vector loops > does not reuse bounds changed by an earlier inner pass  558ms
+   ✓ complete nested passes in packed vector loops > keeps helper calls outside the entry work proof  1039ms
+   ✓ complete nested passes in packed vector loops > retains the cap for incomplete or mutable passes  741ms
+   ✓ complete nested passes in packed vector loops > retains the cap for incomplete or mutable passes  556ms
+   ✓ complete nested passes in packed vector loops > retains the cap for incomplete or mutable passes  951ms
+   ✓ complete nested passes in packed vector loops > preserves exact replay when an admitted pass overflows  982ms
+   ✓ complete nested passes in packed vector loops > does not inspect a vector sharing destination storage  470ms
+   ✓ complete nested passes in packed vector loops > counts bounded distinct passes beyond the first two entries  1838ms
+   ✓ complete nested passes in packed vector loops > uses immutable indexed entry cells and checked powers for bounds  888ms
+   ✓ complete nested passes in packed vector loops > preserves changing indexed entry bounds  886ms
+   ✓ complete nested passes in packed vector loops > preserves indexed entry bounds sharing a destination buffer  902ms
+ ✓ test/scalar-function-kernel.test.ts (30 tests) 2129ms
+   ✓ compiled scalar function bodies > compiles integer and real abs with their exact result domains  372ms
+   ✓ scalar function speculative number mode and BigInt overflow fallback > backs off repeated overflow and recovers after the input scale changes  869ms
+ ✓ test/manual.test.ts (304 tests) 1567ms
+ ✓ test/euler799.test.ts (8 tests) 10037ms
+   ✓ Euler 799 compiled=false > matches every direct pair count through n=500  4020ms
+   ✓ Euler 799 compiled=false > retains the original answer at Limit=60 Least=1  415ms
+   ✓ Euler 799 compiled=false > retains the original answer at Limit=300 Least=2  589ms
+   ✓ Euler 799 compiled=true > matches every direct pair count through n=500  3646ms
+   ✓ Euler 799 compiled=true > retains the original answer at Limit=60 Least=1  362ms
+   ✓ Euler 799 compiled=true > retains the original answer at Limit=300 Least=2  530ms
+ ✓ test/function-plan.test.ts (22 tests) 1541ms
+   ✓ function-local plan lowering > compiles the unchanged full Euler 30 entrypoint  787ms
+ ✓ test/tensor-gather-fusion.test.ts (66 tests) 1406ms
+ ✓ test/scalar-function-real.test.ts (21 tests) 1130ms
+   ✓ real scalar function kernels > compiles integer conversion without changing truncation or domain errors  338ms
+ ✓ test/number-reduction-prefix.test.ts (22 tests) 1360ms
+   ✓ joins two readonly vector reduction loops at size 0  407ms
+ ✓ test/number-function-plans.test.ts (42 tests) 1359ms
+   ✓ lowers an integer plan with the shared Number emitter: Values' = Input min 2
+ return Values sum  360ms
+ ✓ test/euler790.test.ts (13 tests) 25084ms
+   ✓ Euler 790 compilation=false > matches independent raster at Steps=0 across block boundaries  659ms
+   ✓ Euler 790 compilation=false > matches independent raster at Steps=10 across block boundaries  515ms
+   ✓ Euler 790 compilation=false > matches independent raster at Steps=25 across block boundaries  951ms
+   ✓ Euler 790 compilation=false > matches independent raster at Steps=100 across block boundaries  2768ms
+   ✓ Euler 790 compilation=true > matches independent raster at Steps=0 across block boundaries  338ms
+   ✓ Euler 790 compilation=true > matches independent raster at Steps=2 across block boundaries  465ms
+   ✓ Euler 790 compilation=true > matches independent raster at Steps=10 across block boundaries  794ms
+   ✓ Euler 790 compilation=true > matches independent raster at Steps=25 across block boundaries  1619ms
+   ✓ Euler 790 compilation=true > matches independent raster at Steps=100 across block boundaries  2412ms
+   ✓ retains the original 1000-rectangle answer and uses an exact mixed loop  13699ms
+ ✓ test/compiled-accumulate-scatter.test.ts (41 tests) 1296ms
+   ✓ compiles duplicate accumulating += with scalar and vector operands  414ms
+ ✓ test/compiled-array-operations.test.ts (23 tests) 1043ms
+   ✓ array operations in linked function kernels > refreshes a prepared writer when an earlier assignment runs again  345ms
+   ✓ array operations in linked function kernels > compiles convolution and polynomial reduction in Euler 324  353ms
+ ✓ test/scalar-function-modular-product.test.ts (9 tests) 1188ms
+   ✓ exact modular products in scalar Number functions > keeps wide products of safe signed integers in Number mode  953ms
+ ✓ test/function-iterable-plans.test.ts (22 tests) 1118ms
+   ✓ finite iterable plans in compiled functions > consumes named factors and unique stages repeatedly  461ms
+ ✓ test/compiled-finite-arrays.test.ts (34 tests) 1182ms
+   ✓ finite arrays inside exact compiled functions > builds prime powers with a materialized factorization and mask counts  535ms
+ ✓ test/number-call-borrowed-array.test.ts (24 tests) 1036ms
+   ✓ read-only array calls in private Number regions > reads private stores without publishing or copying the buffer  396ms
+ ✓ test/loop-range-values.test.ts (32 tests) 882ms
+   ✓ range values in compiled loops (#432) > compiles Result = K to 3 * K by K  323ms
+ ✓ test/compiled-function-folds.test.ts (21 tests) 958ms
+   ✓ preserves seeded scalar fold order  326ms
+ ✓ test/array-storage.test.ts (43 tests) 840ms
+   ✓ eager array storage > fuses each name over the value that name holds  333ms
+ ✓ test/modular-updates.test.ts (30 tests) 801ms
+ ✓ test/number-loop-vector-unary.test.ts (22 tests) 845ms
+   ✓ fuses array isqrt with a reduction  376ms
+ ✓ test/array-binding-contracts.test.ts (54 tests) 799ms
+ ✓ test/plan-tensor-reduction.test.ts (52 tests) 764ms
+   ✓ tensor reduction plan demand (compilation=false) > fuses a scalar plan only at demand, recomputes, and retains ordinary results  315ms
+ ✓ test/scalar-function-real-arrays.test.ts (7 tests) 739ms
+   ✓ keeps fractional, signed-zero and nonfinite real fills, unary negation and compound writes  566ms
+ ✓ test/recursive-owned-arrays.test.ts (14 tests) 716ms
+   ✓ recursive functions with invocation-owned arrays > keeps parent and child allocations independent and leaves the input unchanged  376ms
+ ✓ test/plan-effects.test.ts (22 tests) 687ms
+   ✓ effects in explicit plans (compilation=false) > repeats callback effects on demand and retains an explicit result: fun A combine B rank 0 0
+ B print
+ return A + B
+end  327ms
+ ✓ test/function-plan-inputs.test.ts (16 tests) 686ms
+ ✓ test/function-snapshots.test.ts (30 tests) 662ms
+ ✓ test/array-returning-loop-calls.test.ts (12 tests) 586ms
+   ✓ array-returning calls in compiled loops > binds a fresh result on each iteration and reads it in the region  332ms
+ ✓ test/plan-escape.test.ts (30 tests) 580ms
+   ✓ computation plan escape (compilation=false) > returns a local callback plan with frozen dependencies and repeats its effects  305ms
+ ✓ test/function-binding.test.ts (22 tests) 581ms
+   ✓ single-expression function bindings > keeps both inline and multiline declarations constant  308ms
+ ✓ test/number-loop-modular-axis-scan.test.ts (29 tests) 819ms
+   ✓ compiles modular prefixes on shape 2 3 axis 0  341ms
+ ✓ test/return-contract.test.ts (13 tests) 506ms
+ ✓ test/number-loop-axis-sum.test.ts (16 tests) 628ms
+   ✓ compiles integer sum on shape 2 3 axis 0  349ms
+ ✓ test/range-mask-selection.test.ts (7 tests) 497ms
+   ✓ keeps range masks packed when compiled=false  355ms
+ ✓ test/number-vector-results.test.ts (6 tests) 449ms
+ ✓ test/plan-binding-location.test.ts (14 tests) 424ms
+ ✓ test/number-loop-inferred-reshape.test.ts (14 tests) 531ms
+   ✓ compiles reshape # without copying input cells  317ms
+ ✓ test/function-control.test.ts (16 tests) 623ms
+   ✓ function control parity (compilation=false) > preserves returns, cleanup and errors for 'fun N count\n  if N equal 0\n    retu…'  354ms
+ ✓ test/captured-scalar-reads.test.ts (8 tests) 618ms
+   ✓ captured integer arrays in scalar functions > compiles a helper reading a captured concat array  391ms
+ ✓ test/capture-protection.test.ts (9 tests) 19ms
+ ✓ test/computed-array-update.test.ts (24 tests) 543ms
+   ✓ computed array writes (compilation=false) > fuses independent arithmetic with unique affine addressing  313ms
+ ✓ test/array-binding-lifetime.test.ts (18 tests) 437ms
+ ✓ test/native-array-storage.test.ts (2 tests) 5ms
+stdout | test/euler489.test.ts > matches the full default exact oracle
+1791954757162
+
+ ✓ test/euler489.test.ts (10 tests) 50930ms
+   ✓ matches all least maximizing roots for a<=4,b<=6 with {}  604ms
+   ✓ matches all least maximizing roots for a<=4,b<=6 with {"compilation":false}  337ms
+   ✓ retains the statement fixture and empty parameter grids with {}  562ms
+   ✓ retains the statement fixture and empty parameter grids with {"compilation":false}  960ms
+   ✓ retains the statement fixture and empty parameter grids with {"numberLoopCompilation":false}  604ms
+   ✓ matches the full default exact oracle  47147ms
+ ✓ test/euler495.test.ts (10 tests) 29252ms
+   ✓ matches direct distinct-factor enumeration with {}  1375ms
+   ✓ matches direct distinct-factor enumeration with {"compilation":false}  928ms
+   ✓ matches direct distinct-factor enumeration with {"numberLoopCompilation":false}  849ms
+   ✓ matches the original nontrivial fixtures with {}  3612ms
+   ✓ matches the original nontrivial fixtures with {"compilation":false}  3846ms
+   ✓ matches the original nontrivial fixtures with {"numberLoopCompilation":false}  3745ms
+   ✓ retains the original full answer  14441ms
+
+ Test Files  47 passed (47)
+      Tests  1317 passed (1317)
+   Start at  21:04:47
+   Duration  76.87s (transform 2.43s, setup 0ms, collect 46.36s, tests 170.18s, environment 8ms, prepare 2.76s)

@@ -61,6 +61,7 @@ test('new full-scale exclusions retain their small test fixtures unless they tim
     }
     assert.ok(!files.has('euler/487_sumsofpowersums.ra'), 'linear scalar-modulus scans keep the full power-sum input eligible');
     assert.ok(!files.has('euler/489_commonfactors.ra'), 'compiled finite-array helpers keep the full common-factor search eligible');
+    assert.ok(!files.has('euler/495_distinctproduct.ra'), 'modular axis scans keep the full distinct-factor count eligible');
     assert.ok(!files.has('euler/485_maxdivisors.ra'), 'bounded independent divisor blocks keep the full window sum eligible');
     assert.ok(!files.has('euler/484_arithmeticderivative.ra'), 'stored powerful stages keep the full derivative sum eligible');
     assert.ok(!files.has('euler/483_repeatedpermutation.ra'), 'batched cycle transitions keep the full permutation mean eligible');

@@ -156,3 +156,22 @@ end`)))).toThrow('Interrupted');
         expect(diagnostics.numberLoops).toBe(1);
     } finally { runtime.dispose(); }
 });
+
+it('publishes only a returned owned array, not completed intermediate arrays', () => {
+    const result = compare(`${helper.replace('return Total', 'return Next')}\n100 total`);
+    expect(result.observation.value).toBe(Array.from({ length: 100 }, (_, i) => 2 * (i + 1)).join(' '));
+    expect(result.diagnostics.numberLoops).toBe(1);
+    expect(result.diagnostics.typedArrayPublications).toBe(1);
+});
+it('keeps returned arrays independent across private regions', () => {
+    const source = helper.replace('return Total', 'return Next');
+    expect(compare(`${source}
+Saved = 3 total
+Other = 4 total
+Other 0 = 99
+Saved`).observation.value).toBe('2 4 6');
+});
+it('still completes unused ordinary arrays before returning another array', () => {
+    const source = helper.replace(' Next = Values * 2', ' Unused = Values // 0\n Next = Values * 2').replace('return Total', 'return Next');
+    expect(compare(`${source}\n7 total`).observation.error).toContain('division by zero');
+});

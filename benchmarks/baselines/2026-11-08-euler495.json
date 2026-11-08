@@ -1,0 +1,1323 @@
+{
+  "task": 495,
+  "date": "2026-11-08",
+  "baselineCommit": "83892c42e5ebffa77c613b9649506d090e5c9cfc",
+  "releaseParentCommit": "0738ffde",
+  "answer": "789107601",
+  "n": 10000,
+  "k": 30,
+  "protocol": {
+    "node": "24.15.0",
+    "compiledRounds": 3,
+    "alternatingOrder": true,
+    "freshProcesses": true,
+    "diagnostics": false,
+    "profiler": false,
+    "rss": "process peak MiB; individual observations retained",
+    "controls": "single observations, not medians",
+    "referenceRunsPerVariant": 1,
+    "notes": [
+      "Only the bounded modular axis scan was retained; a generic bare-axis prototype was slower.",
+      "No global Number-array threshold changed.",
+      "Memory GC/retention probes run separately and force GC only in the harness.",
+      "The frozen baseline contains matching language output and package metadata; the nearest @arrrank/language alias resolves inside that snapshot.",
+      "Intel full 1317-case release set precedes the final Int32 fast path; 75 focused cases including the full default and relevant error/ownership cases pass afterward. Mac full 1317-case set is on the final runtime."
+    ]
+  },
+  "sourceSha256": {
+    "demos/euler/495_distinctproduct.ra": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+    "benchmarks/fixtures/euler495-original.ra": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8"
+  },
+  "runtimeHashes": {
+    "before": {
+      "packages/interpreter/out/jit/integer-loop-expressions.js": "24449d220451ef9c64d5e8856efbeb406359d87b0d81ac4d675b1356e1936e62",
+      "packages/interpreter/out/jit/integer-loop.js": "d5afbff7632d42d360beca21d290539a82e0f0dfeedd0295360c02ee58ddae30",
+      "packages/interpreter/out/jit/number-loop-runtime.js": "cf05430e53b64d97709fd3d8211fbefb26583674e9c5ce037b310137d5a100e0",
+      "packages/interpreter/out/fast-paths.js": "3ad38d4f2039a60d83afb86f3cdc86c093a3fdd7b7a72294841a68e037f30153",
+      "packages/language/out/compiled-expression.js": "dddfd7cfcd0dc798ab290f0a70ea030400eb9842a18889316f05e98e3c794fee"
+    },
+    "final": {
+      "packages/interpreter/out/jit/integer-loop-expressions.js": "5c53e6637cd91a6c4bb1a7fc4b781ea96e60105f9b9981298040edc4e5b204b6",
+      "packages/interpreter/out/jit/integer-loop.js": "c0de5d35605d29e3a9872f928d9e1f099166e1a65f80478fc44f12b945e1a0ef",
+      "packages/interpreter/out/jit/number-loop-runtime.js": "c6bc4bb10677297f7421d0a459dea18fb9c36e86cf2afe97eaafafc67d278c1b",
+      "packages/interpreter/out/fast-paths.js": "c3330f4f2510a1bc3639e0b667724d2f32e33405c4686c2d1d3363c87429092b",
+      "packages/language/out/compiled-expression.js": "5689e03cd1bcc0d4242f6a95e63941fa6088572c04a4d14b78350f5cddc6f910"
+    }
+  },
+  "normal": {
+    "mac": [
+      {
+        "variant": "original",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            2.27685546875,
+            1.9267578125,
+            1.71435546875
+          ],
+          "freeMiB": 2127.71875
+        },
+        "after": {
+          "load": [
+            2.25439453125,
+            1.927734375,
+            1.7158203125
+          ],
+          "freeMiB": 2116.171875
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 6573.123958,
+        "cpu": {
+          "user": 10780154,
+          "system": 247000
+        },
+        "rssMiB": 503.90625,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            2.25439453125,
+            1.927734375,
+            1.7158203125
+          ],
+          "freeMiB": 2116.734375
+        },
+        "after": {
+          "load": [
+            2.31396484375,
+            1.9453125,
+            1.72314453125
+          ],
+          "freeMiB": 2112.234375
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 5064.6665,
+        "cpu": {
+          "user": 7235786,
+          "system": 109604
+        },
+        "rssMiB": 289.625,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 2,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            2.31396484375,
+            1.9453125,
+            1.72314453125
+          ],
+          "freeMiB": 2112.375
+        },
+        "after": {
+          "load": [
+            2.20849609375,
+            1.92919921875,
+            1.71875
+          ],
+          "freeMiB": 2113.796875
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 5046.943499999999,
+        "cpu": {
+          "user": 7152141,
+          "system": 105153
+        },
+        "rssMiB": 295.171875,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "original",
+        "round": 2,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            2.20849609375,
+            1.92919921875,
+            1.71875
+          ],
+          "freeMiB": 2113.96875
+        },
+        "after": {
+          "load": [
+            2.7041015625,
+            2.0458984375,
+            1.7626953125
+          ],
+          "freeMiB": 2099.390625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 6615.212082999999,
+        "cpu": {
+          "user": 10898326,
+          "system": 246640
+        },
+        "rssMiB": 504.109375,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "original",
+        "round": 3,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            2.7041015625,
+            2.0458984375,
+            1.7626953125
+          ],
+          "freeMiB": 2099.609375
+        },
+        "after": {
+          "load": [
+            2.7275390625,
+            2.0615234375,
+            1.76953125
+          ],
+          "freeMiB": 2097.515625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 6593.22025,
+        "cpu": {
+          "user": 10832038,
+          "system": 245234
+        },
+        "rssMiB": 499.859375,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 3,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            2.7275390625,
+            2.0615234375,
+            1.76953125
+          ],
+          "freeMiB": 2097.765625
+        },
+        "after": {
+          "load": [
+            2.5888671875,
+            2.04345703125,
+            1.7646484375
+          ],
+          "freeMiB": 1793.96875
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 5140.789042,
+        "cpu": {
+          "user": 7362438,
+          "system": 115379
+        },
+        "rssMiB": 293.890625,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "demoOnly",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            2.5888671875,
+            2.04345703125,
+            1.7646484375
+          ],
+          "freeMiB": 1794.125
+        },
+        "after": {
+          "load": [
+            2.46142578125,
+            2.02587890625,
+            1.759765625
+          ],
+          "freeMiB": 1833.515625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 4969.6747080000005,
+        "cpu": {
+          "user": 8473126,
+          "system": 199047
+        },
+        "rssMiB": 354.28125,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "runtimeOnly",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            2.46142578125,
+            2.02587890625,
+            1.759765625
+          ],
+          "freeMiB": 1833.671875
+        },
+        "after": {
+          "load": [
+            2.34423828125,
+            2.0087890625,
+            1.7548828125
+          ],
+          "freeMiB": 1442.890625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 6798.628042,
+        "cpu": {
+          "user": 11323756,
+          "system": 236673
+        },
+        "rssMiB": 507.921875,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "original",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            2.34423828125,
+            2.0087890625,
+            1.7548828125
+          ],
+          "freeMiB": 1443.0625
+        },
+        "after": {
+          "load": [
+            2.291015625,
+            2.0078125,
+            1.7568359375
+          ],
+          "freeMiB": 1063.28125
+        },
+        "mode": "reference",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 8025.080875,
+        "cpu": {
+          "user": 13068505,
+          "system": 281535
+        },
+        "rssMiB": 510.5625,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            2.291015625,
+            2.0078125,
+            1.7568359375
+          ],
+          "freeMiB": 1064.21875
+        },
+        "after": {
+          "load": [
+            2.427734375,
+            2.04052734375,
+            1.76953125
+          ],
+          "freeMiB": 1135.125
+        },
+        "mode": "reference",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 5551.375708,
+        "cpu": {
+          "user": 9558678,
+          "system": 243765
+        },
+        "rssMiB": 318.359375,
+        "answer": "789107601",
+        "diagnosticMode": false
+      }
+    ],
+    "intel": [
+      {
+        "variant": "original",
+        "round": 1,
+        "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "before": {
+          "load": [
+            0.6,
+            0.55,
+            0.36
+          ],
+          "freeMiB": 8400.9140625
+        },
+        "after": {
+          "load": [
+            0.74,
+            0.58,
+            0.38
+          ],
+          "freeMiB": 8387.16015625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 22513.390510999998,
+        "cpu": {
+          "user": 32915662,
+          "system": 187350
+        },
+        "rssMiB": 319.6953125,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 1,
+        "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "before": {
+          "load": [
+            0.74,
+            0.58,
+            0.38
+          ],
+          "freeMiB": 8387.16015625
+        },
+        "after": {
+          "load": [
+            0.93,
+            0.63,
+            0.4
+          ],
+          "freeMiB": 8350.66796875
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 11602.536306,
+        "cpu": {
+          "user": 16199562,
+          "system": 183814
+        },
+        "rssMiB": 264.28515625,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 2,
+        "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "before": {
+          "load": [
+            0.93,
+            0.63,
+            0.4
+          ],
+          "freeMiB": 8350.66796875
+        },
+        "after": {
+          "load": [
+            0.94,
+            0.65,
+            0.41
+          ],
+          "freeMiB": 8371.33984375
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 11938.958376,
+        "cpu": {
+          "user": 16849946,
+          "system": 75175
+        },
+        "rssMiB": 267.26171875,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "original",
+        "round": 2,
+        "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "before": {
+          "load": [
+            0.94,
+            0.65,
+            0.41
+          ],
+          "freeMiB": 8371.33984375
+        },
+        "after": {
+          "load": [
+            1.04,
+            0.69,
+            0.43
+          ],
+          "freeMiB": 8382.8984375
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 23099.991838,
+        "cpu": {
+          "user": 33737704,
+          "system": 161384
+        },
+        "rssMiB": 314.98046875,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "original",
+        "round": 3,
+        "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "before": {
+          "load": [
+            1.04,
+            0.69,
+            0.43
+          ],
+          "freeMiB": 8382.8984375
+        },
+        "after": {
+          "load": [
+            1.03,
+            0.72,
+            0.44
+          ],
+          "freeMiB": 8393.265625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 22766.710512,
+        "cpu": {
+          "user": 33151805,
+          "system": 169237
+        },
+        "rssMiB": 314.26171875,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 3,
+        "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "before": {
+          "load": [
+            1.03,
+            0.72,
+            0.44
+          ],
+          "freeMiB": 8393.265625
+        },
+        "after": {
+          "load": [
+            1.02,
+            0.73,
+            0.45
+          ],
+          "freeMiB": 8332.60546875
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 11724.292828,
+        "cpu": {
+          "user": 16360072,
+          "system": 231778
+        },
+        "rssMiB": 264.7734375,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "demoOnly",
+        "round": 1,
+        "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "before": {
+          "load": [
+            1.02,
+            0.73,
+            0.45
+          ],
+          "freeMiB": 8332.60546875
+        },
+        "after": {
+          "load": [
+            1.76,
+            0.91,
+            0.52
+          ],
+          "freeMiB": 8384.625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 16328.751671,
+        "cpu": {
+          "user": 24743127,
+          "system": 163018
+        },
+        "rssMiB": 278.16015625,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "runtimeOnly",
+        "round": 1,
+        "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "before": {
+          "load": [
+            1.76,
+            0.91,
+            0.52
+          ],
+          "freeMiB": 8384.625
+        },
+        "after": {
+          "load": [
+            2.01,
+            1.03,
+            0.56
+          ],
+          "freeMiB": 8394.3828125
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 22678.802716,
+        "cpu": {
+          "user": 33170941,
+          "system": 198480
+        },
+        "rssMiB": 318.17578125,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "original",
+        "round": 1,
+        "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "before": {
+          "load": [
+            2.01,
+            1.03,
+            0.56
+          ],
+          "freeMiB": 8394.3828125
+        },
+        "after": {
+          "load": [
+            1.79,
+            1.06,
+            0.59
+          ],
+          "freeMiB": 8370.6171875
+        },
+        "mode": "reference",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 23347.745185,
+        "cpu": {
+          "user": 33270182,
+          "system": 188470
+        },
+        "rssMiB": 315.28515625,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 1,
+        "cpuModel": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "before": {
+          "load": [
+            1.79,
+            1.06,
+            0.59
+          ],
+          "freeMiB": 8370.6171875
+        },
+        "after": {
+          "load": [
+            1.76,
+            1.09,
+            0.6
+          ],
+          "freeMiB": 8368.63671875
+        },
+        "mode": "reference",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 16153.766623,
+        "cpu": {
+          "user": 24741539,
+          "system": 106420
+        },
+        "rssMiB": 276.48828125,
+        "answer": "789107601",
+        "diagnosticMode": false
+      }
+    ]
+  },
+  "retained": {
+    "mac": {
+      "before": {
+        "file": "benchmarks/fixtures/euler495-original.ra",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "runs": [
+          {
+            "heapMiB": 42.272499084472656,
+            "arrayBuffersMiB": 1.5715093612670898
+          },
+          {
+            "heapMiB": 42.583251953125,
+            "arrayBuffersMiB": 1.5715093612670898
+          },
+          {
+            "heapMiB": 42.79369354248047,
+            "arrayBuffersMiB": 1.5715093612670898
+          }
+        ],
+        "rssMiB": 554.34375
+      },
+      "after": {
+        "file": "demos/euler/495_distinctproduct.ra",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "runs": [
+          {
+            "heapMiB": 40.122535705566406,
+            "arrayBuffersMiB": 0.036200523376464844
+          },
+          {
+            "heapMiB": 40.300323486328125,
+            "arrayBuffersMiB": 0.036200523376464844
+          },
+          {
+            "heapMiB": 40.465431213378906,
+            "arrayBuffersMiB": 0.036200523376464844
+          }
+        ],
+        "rssMiB": 384.625
+      }
+    },
+    "intel": {
+      "before": {
+        "file": "benchmarks/fixtures/euler495-original.ra",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "runs": [
+          {
+            "heapMiB": 42.289466857910156,
+            "arrayBuffersMiB": 1.5715093612670898
+          },
+          {
+            "heapMiB": 42.610939025878906,
+            "arrayBuffersMiB": 1.5715093612670898
+          },
+          {
+            "heapMiB": 42.81201171875,
+            "arrayBuffersMiB": 1.5715093612670898
+          }
+        ],
+        "rssMiB": 423.4609375
+      },
+      "after": {
+        "file": "demos/euler/495_distinctproduct.ra",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "runs": [
+          {
+            "heapMiB": 39.889892578125,
+            "arrayBuffersMiB": 0.036200523376464844
+          },
+          {
+            "heapMiB": 40.05500030517578,
+            "arrayBuffersMiB": 0.036200523376464844
+          },
+          {
+            "heapMiB": 40.18743133544922,
+            "arrayBuffersMiB": 0.036200523376464844
+          }
+        ],
+        "rssMiB": 291.50390625
+      }
+    }
+  },
+  "rangeAdmissionRegression": [
+    {
+      "variant": "before",
+      "answer": "1000001000000",
+      "numberLoops": 0,
+      "typedArrayPublications": 2,
+      "typedArrayPublishedCells": 2000000
+    },
+    {
+      "variant": "after",
+      "answer": "1000001000000",
+      "numberLoops": 1,
+      "typedArrayPublications": 0,
+      "typedArrayPublishedCells": 0
+    }
+  ],
+  "experiments": {
+    "bareAxisOriginalMac": {
+      "mode": "compiled",
+      "n": "10000",
+      "k": "30",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+      "ms": 9360.835875,
+      "cpu": {
+        "user": 12225762,
+        "system": 143578
+      },
+      "rssMiB": 527.6875,
+      "answer": "789107601",
+      "diagnosticMode": false
+    },
+    "arrayRewriteWithoutNumberReshapeMac": {
+      "mode": "compiled",
+      "n": "10000",
+      "k": "30",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "71a80619d2d43b46a1a514249b4b64ae5ff60464eb3cd6440ddddf6fb370857b",
+      "ms": 6414.704833,
+      "cpu": {
+        "user": 10562573,
+        "system": 217764
+      },
+      "rssMiB": 359.4375,
+      "answer": "789107601",
+      "diagnosticMode": false
+    },
+    "arrayRewriteWithUnreducedNumberPrefixMac": {
+      "mode": "compiled",
+      "n": "10000",
+      "k": "30",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "71a80619d2d43b46a1a514249b4b64ae5ff60464eb3cd6440ddddf6fb370857b",
+      "ms": 9704.620499999999,
+      "cpu": {
+        "user": 12788000,
+        "system": 120961
+      },
+      "rssMiB": 368.203125,
+      "answer": "789107601",
+      "diagnosticMode": false
+    },
+    "modularBeforeInt32FastPathMac": [
+      {
+        "variant": "original",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            1.29638671875,
+            1.50439453125,
+            1.548828125
+          ],
+          "freeMiB": 2676.75
+        },
+        "after": {
+          "load": [
+            1.5126953125,
+            1.54541015625,
+            1.56298828125
+          ],
+          "freeMiB": 2650.390625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 6549.6720000000005,
+        "cpu": {
+          "user": 10701767,
+          "system": 237479
+        },
+        "rssMiB": 499.6875,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            1.5126953125,
+            1.54541015625,
+            1.56298828125
+          ],
+          "freeMiB": 2650.984375
+        },
+        "after": {
+          "load": [
+            1.47119140625,
+            1.5361328125,
+            1.5595703125
+          ],
+          "freeMiB": 2671.65625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 5383.833875,
+        "cpu": {
+          "user": 7527218,
+          "system": 98145
+        },
+        "rssMiB": 290.21875,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 2,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            1.47119140625,
+            1.5361328125,
+            1.5595703125
+          ],
+          "freeMiB": 2671.796875
+        },
+        "after": {
+          "load": [
+            1.59326171875,
+            1.56005859375,
+            1.56787109375
+          ],
+          "freeMiB": 1990.671875
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 5382.677208,
+        "cpu": {
+          "user": 7513114,
+          "system": 95887
+        },
+        "rssMiB": 290.203125,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "original",
+        "round": 2,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            1.59326171875,
+            1.56005859375,
+            1.56787109375
+          ],
+          "freeMiB": 1990.828125
+        },
+        "after": {
+          "load": [
+            1.50146484375,
+            1.541015625,
+            1.56103515625
+          ],
+          "freeMiB": 2030.515625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 6548.817292,
+        "cpu": {
+          "user": 10776480,
+          "system": 208613
+        },
+        "rssMiB": 499.6875,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "original",
+        "round": 3,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            1.50146484375,
+            1.541015625,
+            1.56103515625
+          ],
+          "freeMiB": 2030.65625
+        },
+        "after": {
+          "load": [
+            1.62109375,
+            1.56494140625,
+            1.5693359375
+          ],
+          "freeMiB": 2052.109375
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 6550.775541,
+        "cpu": {
+          "user": 10790382,
+          "system": 208889
+        },
+        "rssMiB": 499.921875,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 3,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            1.62109375,
+            1.56494140625,
+            1.5693359375
+          ],
+          "freeMiB": 2052.25
+        },
+        "after": {
+          "load": [
+            1.8115234375,
+            1.60498046875,
+            1.58349609375
+          ],
+          "freeMiB": 2155.140625
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 5418.335792,
+        "cpu": {
+          "user": 7606424,
+          "system": 100834
+        },
+        "rssMiB": 289.84375,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "demoOnly",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            1.8115234375,
+            1.60498046875,
+            1.58349609375
+          ],
+          "freeMiB": 2155.5625
+        },
+        "after": {
+          "load": [
+            1.90625,
+            1.6279296875,
+            1.59130859375
+          ],
+          "freeMiB": 2456.78125
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 4981.376166999999,
+        "cpu": {
+          "user": 8465493,
+          "system": 200413
+        },
+        "rssMiB": 358.921875,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "runtimeOnly",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            1.90625,
+            1.6279296875,
+            1.59130859375
+          ],
+          "freeMiB": 2457.75
+        },
+        "after": {
+          "load": [
+            1.83349609375,
+            1.6171875,
+            1.58740234375
+          ],
+          "freeMiB": 2442.234375
+        },
+        "mode": "compiled",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 6579.768875,
+        "cpu": {
+          "user": 10799191,
+          "system": 234289
+        },
+        "rssMiB": 503.75,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "original",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            1.83349609375,
+            1.6171875,
+            1.58740234375
+          ],
+          "freeMiB": 2442.40625
+        },
+        "after": {
+          "load": [
+            1.78515625,
+            1.61328125,
+            1.58544921875
+          ],
+          "freeMiB": 2779.046875
+        },
+        "mode": "reference",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "26d0b4979767ea394980694b58b032355d6aa454ed68f278ab8aed1baeadd2b8",
+        "ms": 7130.045999999999,
+        "cpu": {
+          "user": 11266712,
+          "system": 235896
+        },
+        "rssMiB": 501.859375,
+        "answer": "789107601",
+        "diagnosticMode": false
+      },
+      {
+        "variant": "final",
+        "round": 1,
+        "cpuModel": "Apple M5",
+        "before": {
+          "load": [
+            1.78515625,
+            1.61328125,
+            1.58544921875
+          ],
+          "freeMiB": 2779.234375
+        },
+        "after": {
+          "load": [
+            1.88232421875,
+            1.63623046875,
+            1.59326171875
+          ],
+          "freeMiB": 2771.421875
+        },
+        "mode": "reference",
+        "n": "10000",
+        "k": "30",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "42f2764c875f9c2078785b7c74eab2fa122f6b2988adeca8b82bbc65108466ea",
+        "ms": 4864.640792,
+        "cpu": {
+          "user": 8190088,
+          "system": 192684
+        },
+        "rssMiB": 308.59375,
+        "answer": "789107601",
+        "diagnosticMode": false
+      }
+    ],
+    "modularBeforeResultElisionIntel": {
+      "mode": "compiled",
+      "n": "10000",
+      "k": "30",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "616a7904e60e283b19a1ef7a7c06920d8f2e8503c3c9b410ec56b2da7e69d75b",
+      "ms": 12518.088156999998,
+      "cpu": {
+        "user": 17229854,
+        "system": 127174
+      },
+      "rssMiB": 292.546875,
+      "answer": "789107601",
+      "diagnosticMode": false
+    },
+    "notes": "Exploratory single series; not mixed into final medians. Rejected runtime variants do not ship."
+  },
+  "verification": {
+    "mac": {
+      "tests": 1317,
+      "files": 47
+    },
+    "intel": {
+      "tests": 1317,
+      "files": 47,
+      "thenFinalInt32FocusedTests": 75,
+      "thenFinalInt32FocusedFiles": 4
+    },
+    "language": {
+      "tests": 113,
+      "files": 2,
+      "hosts": [
+        "mac",
+        "intel"
+      ]
+    },
+    "filteredDifferential": {
+      "mac": 2,
+      "intel": 2
+    },
+    "directFactorEnumeration": {
+      "n": [
+        0,
+        9
+      ],
+      "k": [
+        0,
+        5
+      ],
+      "pairs": 60,
+      "modes": [
+        "compiled",
+        "reference",
+        "numberLoopCompilation=false"
+      ]
+    },
+    "sourceTypeScript": "pass",
+    "testTypeScript": "pass",
+    "semanticTests": 13,
+    "semanticOwners": 65,
+    "fullUnfilteredAudits": false
+  }
+}

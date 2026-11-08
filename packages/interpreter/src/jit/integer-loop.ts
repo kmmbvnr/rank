@@ -84,20 +84,23 @@ export function compileIntegerFunctionPrefix(statement: FunctionStatement, host:
         || [...plan.destinations.keys()].some(name => !plan.arrayDefinitions.has(name))) return undefined;
     const terminal = statement.statements.at(-1);
     const returned = isReturnStatement(terminal) && isNameExpression(terminal.value) ? terminal.value.name : undefined;
-    if (reduction && returned && ['integer', 'real'].includes(plan.localTypes.get(returned) ?? '')
+    const privateReturn = !plan.containers.size && !plan.callouts?.length && plan.calls.every(call => call.privateStateSafe);
+    if (privateReturn && returned && (plan.arrayDefinitions.has(returned)
+        || reduction && ['integer', 'real'].includes(plan.localTypes.get(returned) ?? ''))
         && statement.statements.some(node => isAssignmentStatement(node) && node.operator === '='
             && !node.deferred && node.name === returned)) {
         // The terminal name is initialized on every successful path. Other
         // private locals cannot escape through this return; still compute and
         // validate their values, but avoid boxing/publishing discarded arrays.
-        plan.prefixBindings = new Set([returned, ...statement.parameters, ...(plan.rangeDefinitions ?? [])]);
+        plan.prefixBindings = new Set([returned, ...statement.parameters,
+            ...plan.arrayDefinitions.has(returned) ? [] : plan.rangeDefinitions ?? []]);
     }
     const fast = prepareNumberLoop(plan, host, undefined, undefined,
         polling => lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, new Set(), false, polling));
     let mixed: CompiledLoop | undefined, preparedMixed = false;
     return fast && { run: (...context) => {
         // Ordinary completion and native reductions retain their work units.
-        if (reduction && demandBudgetEnabled()) return recordFallback('number-loop:observable-prefix-budget', 'effects');
+        if ((reduction || plan.prefixBindings) && demandBudgetEnabled()) return recordFallback('number-loop:observable-prefix-budget', 'effects');
         const result = fast.run(...context);
         if (result) return result;
         if (!preparedMixed) {

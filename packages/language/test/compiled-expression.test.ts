@@ -253,3 +253,8 @@ describe('shared compiled expression inference', () => {
         expect(inferCompiledExpression(expression(source), context({ A: 'integer', B: 'integer' })).failure).toBeDefined();
     });
 });
+
+it('declines malformed symbolic modifiers without throwing from a compilation probe', () => {
+    const source = expression('(Values scan + axis 1 with -7) mod 17');
+    expect(inferCompiledExpression(source, context())).toMatchObject({ failure: { detail: 'application-form' } });
+});

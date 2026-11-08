@@ -144,7 +144,11 @@ export function inferCompiledExpression<T, Input>(
     }
     const input = context.read(source, hint);
     if (input) return { expression: { kind: 'input', source, ...input } };
-    if (symbolicApplicationForm(source, name => !context.isBound(name))) return reject('application-form');
+    // Malformed modifiers belong to the evaluator's diagnostic boundary,
+    // not speculative inference before earlier statements have executed.
+    try {
+        if (symbolicApplicationForm(source, name => !context.isBound(name))) return reject('application-form');
+    } catch { return reject('application-form'); }
     if (isNameExpression(source)) return reject('unbound-name');
     if (isUnaryExpression(source)) {
         const result = inferCompiledExpression(source.operand, context, context.operandHint?.(source, 0));
@@ -167,7 +171,9 @@ export function inferCompiledExpression<T, Input>(
     if (isApplicationExpression(source) && context.call) {
         const unbound = (name: string) => !context.isBound(name);
         const lookup = (name: string) => unbound(name) ? findOperation(name) : false;
-        if (applicationForm(source, lookup).kind !== 'plain') return reject('application-form');
+        try {
+            if (applicationForm(source, lookup).kind !== 'plain') return reject('application-form');
+        } catch { return reject('application-form'); }
         const grouped = groupedUnaryDyadicChain(source, unbound);
         if (grouped) return inferCompiledExpression(grouped, context);
         const head = unaryApplicationHead(source, name => { const operation = lookup(name); return operation ? operation.arities : undefined; }, unbound);

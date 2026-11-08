@@ -1,104 +1,113 @@
-rem Writing n as the product of k
-rem distinct positive integers
+rem Distinct factors of a factorial
 rem https://projecteuler.net/problem=495
-
 use numbers
 use sequences
+use bits
 use io
 use cli
-
 arg N integer = 10000
 arg K integer = 30
-
-rem Choose k distinct divisors: e_k of
-rem the divisor monomials, written in
-rem power sums, e_k = sum over
-rem partitions of (-1)^(k - l) p_lam /
-rem z_lam. For one prime of exponent
-rem e, p_lam gives d(e) = [x^e] prod
-rem 1/(1 - x^part); primes with the
-rem same e share it.
 Md = 1000000007
-Pr = primes to N array
-E = Pr * 0
-Pk = Pr
-for Pk at most N any
-  E += N // Pk
-  Lo = Pk at most N
-  Pk = Lo choose (Pk * Pr) Pk
+
+rem Expand rows by admissible counts.
+fun State include Part
+  Remaining = State # 0
+  Counts = Remaining // Part + 1
+  Prefix = Counts scan + with 0
+  Size = Prefix last
+  Groups = array shape Size fill 0
+  Slots = 0 till Counts len
+  Groups (Prefix Slots) = Slots
+  Groups = Groups scan max
+  Copies = 0 till Size
+  Copies -= Prefix Groups
+  Rows = State Groups copy
+  Rows # 0 = Remaining Groups
+  Rows # 0 -= Copies * Part
+  Rows # Part = Copies
+  return Rows
 end
-Es = E sort
-Nx = Es shift -1 with -1
-Ei = Es not equal Nx indices
-Ue = Es Ei
-Fe = Ei - (Ei shift 1 with -1)
-Em = Ue last
-rem Partitions of K as multiplicity
-rem rows, parts K down to 1.
-Rm = array K
-Mt = array shape 1 K fill 0
-for V in K to 1 by -1
-  Nr = array shape 0 fill 0
-  Nm = array shape 0 K fill 0
-  for C in 0 to K // V
-    Sl = Rm at least C * V indices
-    if Sl len greater 0
-      Nr = concat Nr (Rm Sl - C * V)
-      Mc = Mt Sl
-      Ns = Sl len
-      Mc (0 till Ns copy) (V - 1) = C
-      Nm = concat Nm Mc
-    end
+
+rem Each part adds a residue-class sum.
+fun Parts coefficients Top
+  Values = array shape (Top + 1) fill 0
+  Values 0 = 1
+  Slots = 0 to Top copy
+  for Part in Parts
+    Rows = (Top + Part) // Part
+    Size = Rows * Part
+    Pad = array shape Size fill 0
+    Pad Slots = Values
+    Matrix = Pad reshape Rows Part
+    Scan = (Matrix scan + axis 0) mod Md
+    Flat = Scan reshape #
+    Values = Flat Slots
   end
-  Rm = Nr
-  Mt = Nm
+  return Values
 end
-Mt = Mt (Rm equal 0 indices)
-Np = Mt shape 0
-rem Per partition: a part v adds a
-rem running sum along each residue
-rem class mod v, done as a scan down
-rem the rows of a (Em/v) x v reshape.
-Fc = 1 to K scan * with 1
-Fc = Fc mod Md
-Answer = 0
-for J in 0 till Np
-  Mv = Mt J
-  D = array shape (Em + 1) fill 0
-  D 0 = 1
-  Z = 1
-  Ln = 0
-  for V in 1 to K
-    M = Mv (V - 1)
-    if M greater 0
-      Z = Z * (V M Md powmod) mod Md
-      Z = Z * Fc M mod Md
-      Ln += M
-      Rw = (Em + V) // V
-      for I in 1 to M
-        Pd = array shape (Rw * V) fill 0
-        Pd (0 to Em) = D
-        Pm = Pd reshape Rw V
-        Sc = Pm scan + axis 0
-        Sf = Sc reshape (Rw * V)
-        D = Sf (0 to Em) mod Md
-      end
+
+fun N solve K
+  if N equal 0 or N equal 1
+    Possible = K equal 0 or K equal 1
+    return Possible integer
+  end
+  if K at most 0
+    return 0
+  end
+  rem Legendre sums for all primes.
+  Primes = primes to N array
+  Width = N binary len
+  Levels = 1 to Width copy
+  Grid = Primes reshape (Primes len) 1
+  Divisors = Grid ** Levels
+  Quotients = N // Divisors
+  Exponents = Quotients sum rank 1
+  Sorted = Exponents sort
+  Next = Sorted shift -1 with -1
+  Ends = Sorted not equal Next indices
+  Degrees = Sorted Ends
+  Previous = Ends shift 1 with -1
+  Weights = Ends - Previous
+  Top = Degrees last
+  Steps = 1 to K copy
+  Products = Steps scan * with 1
+  Factorials = Products mod Md
+
+  rem Expand positive multiplicities.
+  fun Counts contribution
+    Active = Counts greater 0 indices
+    Prefix = Counts scan + with 0
+    Size = Prefix last
+    Groups = array shape Size fill 0
+    Groups (Prefix Active) = Active
+    Groups = Groups scan max
+    Expanded = Groups + 1
+    Values = Expanded coefficients Top
+    Selected = Values Degrees
+    Powers = Selected Weights Md powmod
+    Product = (Powers reduce *) mod Md
+    Terms = Steps Counts Md powmod
+    Terms *= Factorials Counts
+    Denom = (Terms reduce *) mod Md
+    Inverse = Denom (Md - 2) Md powmod
+    Result = Product * Inverse mod Md
+    if (K - Size) mod 2 equal 1
+      return 0 - Result mod Md
     end
+    return Result
   end
-  Pw = (D Ue) Fe Md powmod
-  for Pw len greater 1
-    if Pw len mod 2 equal 1
-      Pw = concat Pw (array 1)
-    end
-    Hh = Pw len // 2
-    Pa = Pw (0 till Hh)
-    Pw = Pa * Pw (Hh till 2 * Hh) mod Md
-  end
-  Iz = Z (Md - 2) Md powmod
-  W = (Pw 0) * Iz mod Md
-  if (K - Ln) mod 2 equal 1
-    W = (Md - W) mod Md
-  end
-  Answer = (Answer + W) mod Md
+
+  rem Leave ones until all other parts.
+  Seed = array shape 1 (K + 1) fill 0
+  Seed 0 0 = K
+  Parts = K to 2 by -1 copy
+  Rows = Parts reduce include with Seed
+  Rows # 1 = Rows # 0
+  Columns = 1 to K copy
+  Counts = Rows # Columns
+  Totals = Counts contribution rank 1
+  return Totals sum mod Md
 end
+
+Answer = N solve K
 Answer print
