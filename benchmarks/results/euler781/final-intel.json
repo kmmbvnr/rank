@@ -1,0 +1,32 @@
+[
+  {
+    "artifact": "euler781-buffer-intel.json",
+    "count": 50000,
+    "answer": "162450870",
+    "ms": 48937.11708,
+    "cpuMs": 78163.759,
+    "maxRssMiB": 341.08203125,
+    "node": "v24.15.0",
+    "arch": "x64"
+  },
+  {
+    "artifact": "euler781-final-intel-2.json",
+    "count": 50000,
+    "answer": "162450870",
+    "ms": 43771.789826,
+    "cpuMs": 73176.557,
+    "maxRssMiB": 341.296875,
+    "node": "v24.15.0",
+    "arch": "x64"
+  },
+  {
+    "artifact": "euler781-final-intel-3.json",
+    "count": 50000,
+    "answer": "162450870",
+    "ms": 44993.266848,
+    "cpuMs": 74690.31,
+    "maxRssMiB": 338.88671875,
+    "node": "v24.15.0",
+    "arch": "x64"
+  }
+]

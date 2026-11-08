@@ -1,0 +1,22 @@
+[
+  {
+    "artifact": "euler781-modscan-mac.json",
+    "count": 50000,
+    "answer": "162450870",
+    "ms": 13277.970792,
+    "cpuMs": 22436.686,
+    "maxRssMiB": 744,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler781-modscan-intel.json",
+    "count": 50000,
+    "answer": "162450870",
+    "ms": 36305.388019,
+    "cpuMs": 56891.731,
+    "maxRssMiB": 346,
+    "node": "v24.15.0",
+    "arch": "x64"
+  }
+]

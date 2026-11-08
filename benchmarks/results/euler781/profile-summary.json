@@ -1,0 +1,102 @@
+[
+  {
+    "function": "scanInt32Axis",
+    "url": "file://packages/interpreter/out/runtime/axis-order.js",
+    "samples": 515
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 426
+  },
+  {
+    "function": "",
+    "url": "file://packages/interpreter/out/runtime/axis-order.js",
+    "samples": 147
+  },
+  {
+    "function": "(garbage collector)",
+    "url": "",
+    "samples": 76
+  },
+  {
+    "function": "(program)",
+    "url": "",
+    "samples": 47
+  },
+  {
+    "function": "mapStoredInt32Binary",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 41
+  },
+  {
+    "function": "",
+    "url": "",
+    "samples": 38
+  },
+  {
+    "function": "inputBounds",
+    "url": "file://packages/interpreter/out/jit/tensor-bounds.js",
+    "samples": 35
+  },
+  {
+    "function": "copyStoredArrayBlocks",
+    "url": "file://packages/interpreter/out/runtime/array-copy.js",
+    "samples": 31
+  },
+  {
+    "function": "bindRun",
+    "url": "file://packages/interpreter/out/jit/tensor-kernel.js",
+    "samples": 30
+  },
+  {
+    "function": "reverseArray",
+    "url": "file://packages/interpreter/out/runtime/ordered-source.js",
+    "samples": 25
+  },
+  {
+    "function": "setNumber",
+    "url": "file://packages/interpreter/out/runtime/owned-array.js",
+    "samples": 24
+  },
+  {
+    "function": "reverseArray",
+    "url": "file://packages/interpreter/out/runtime/ordered-source.js",
+    "samples": 23
+  },
+  {
+    "function": "reverseArray",
+    "url": "file://packages/interpreter/out/runtime/ordered-source.js",
+    "samples": 20
+  },
+  {
+    "function": "mapStoredInt32Binary",
+    "url": "file://packages/interpreter/out/jit/integer-array-kernel.js",
+    "samples": 18
+  },
+  {
+    "function": "reverseArray",
+    "url": "file://packages/interpreter/out/runtime/ordered-source.js",
+    "samples": 15
+  },
+  {
+    "function": "advance",
+    "url": "file://packages/interpreter/out/execution.js",
+    "samples": 12
+  },
+  {
+    "function": "materializeSequence",
+    "url": "file://packages/interpreter/out/sequence.js",
+    "samples": 12
+  },
+  {
+    "function": "run",
+    "url": "file://packages/interpreter/out/jit/tensor-bounds.js",
+    "samples": 8
+  },
+  {
+    "function": "reverseArray",
+    "url": "file://packages/interpreter/out/runtime/ordered-source.js",
+    "samples": 8
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "artifact": "euler781-buffer-mac.json",
+    "count": 50000,
+    "answer": "162450870",
+    "ms": 24839.690791,
+    "cpuMs": 39187.401,
+    "maxRssMiB": 582.5625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler781-final-mac-2.json",
+    "count": 50000,
+    "answer": "162450870",
+    "ms": 24750.571791000002,
+    "cpuMs": 38813.456,
+    "maxRssMiB": 579.453125,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "artifact": "euler781-final-mac-3.json",
+    "count": 50000,
+    "answer": "162450870",
+    "ms": 27378.610958999998,
+    "cpuMs": 43391.688,
+    "maxRssMiB": 597.765625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]

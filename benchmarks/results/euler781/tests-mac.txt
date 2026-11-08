@@ -1,0 +1,18 @@
+
+ RUN  v3.2.7 /private/tmp/rank-euler781/packages/interpreter
+
+ ✓ test/int64-scan.test.ts (7 tests) 153ms
+ ✓ test/int32-product-scan.test.ts (11 tests) 159ms
+ ✓ test/scan.test.ts (20 tests) 263ms
+ ✓ test/safe-integer-word-results.test.ts (12 tests) 26ms
+ ✓ test/safe-integer-buffer.test.ts (2 tests) 2ms
+ ✓ test/compact-integer-scan.test.ts (8 tests) 834ms
+   ✓ compact integer scan (compilation=true) > falls back to exact integers above Number range without changing the input  341ms
+ ✓ test/int64-words.test.ts (3 tests) 140ms
+ ✓ test/euler781.test.ts (22 tests) 332ms
+
+ Test Files  8 passed (8)
+      Tests  85 passed (85)
+   Start at  09:47:01
+   Duration  2.38s (transform 936ms, setup 0ms, collect 6.44s, tests 1.91s, environment 0ms, prepare 194ms)
+
