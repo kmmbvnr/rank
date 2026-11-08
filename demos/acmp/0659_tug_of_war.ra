@@ -1,29 +1,45 @@
-rem ACMP 0659 - Tug of War (Перетягивание каната)
-rem Partition N participants into two teams of size K and N - K
-rem to maximize the total internal cohesion (number of within-team edges).
-rem
-rem Formulated as Minimum Bisection / Min K-Cut:
-rem Maximizing internal edges is equivalent to minimizing the cut between teams:
-rem Internal = M - Cut.
-rem
-rem Efficient Branch and Bound with vector operations:
-rem 1. Reorder vertices by degree descending via APL-style array indexing:
-rem    Order = (0 - Deg) argsort; NewAdj = (Adj Order) # Order.
-rem 2. Maintain counts of cut edges and future guaranteed cut edges:
-rem    FutureCut = ((To1 min To2) (Vtx till N)) sum.
-rem    Prune any branch where M - (CurCut + FutureCut) <= Best.
-rem 3. Update neighbor degree vectors via vector arithmetic:
-rem    To1 = To1 + RowV, To2 = To2 + RowV.
-rem 4. Direct procedural iterative backtracking without recursion.
+rem Tug of War
+rem https://acmp.ru/
+rem   index.asp?main=task&id_task=659
+rem Max internal cohesion via B&B cut
 
 use io
 use cli
 use sequences
 use text
 
-arg Input text = "5 3 3\n1 3\n2 5\n5 4"
+arg Input text = (
+  "16 8 24\n" +
+  "1 2\n" +
+  "2 3\n" +
+  "3 4\n" +
+  "4 1\n" +
+  "5 6\n" +
+  "6 7\n" +
+  "7 8\n" +
+  "8 5\n" +
+  "9 10\n" +
+  "10 11\n" +
+  "11 12\n" +
+  "12 9\n" +
+  "13 14\n" +
+  "14 15\n" +
+  "15 16\n" +
+  "16 13\n" +
+  "1 5\n" +
+  "2 6\n" +
+  "3 7\n" +
+  "4 8\n" +
+  "9 13\n" +
+  "10 14\n" +
+  "11 15\n" +
+  "12 16"
+)
 
-Tokens = (Input split "\n" join " ") split " "
+Tokens = (
+  (Input split "\n" join " ")
+  split " "
+)
 Tokens = Tokens (Tokens not equal "")
 Nums = Tokens integer
 
@@ -33,17 +49,21 @@ M = Nums 2
 
 Swapped = false
 TargetK = K
-if K greater (N - K)
-  TargetK = N - K
+DiffNK = N - K
+if K greater DiffNK
+  TargetK = DiffNK
   Swapped = true
 end
+DiffNK = N - TargetK
 
 Adj = array shape N N fill 0
 
 if M greater 0
   EdgeIdxs = 0 till M array
-  U = (Nums (3 + EdgeIdxs * 2)) - 1
-  V = (Nums (4 + EdgeIdxs * 2)) - 1
+  IdxU = 3 + EdgeIdxs * 2
+  IdxV = 4 + EdgeIdxs * 2
+  U = (Nums IdxU) - 1
+  V = (Nums IdxV) - 1
   for E in 0 till M
     NodeU = U E
     NodeV = V E
@@ -57,7 +77,8 @@ if M greater 0
 end
 
 Deg = Adj sum axis 1
-Order = 0 - Deg argsort
+InvDeg = 0 - Deg
+Order = InvDeg argsort
 Perm = array shape N fill 0
 for I in 0 till N
   Orig = Order I
@@ -70,19 +91,25 @@ NewAdj = Rows # Order
 Best = 0
 BestAssignment = array shape N fill 0
 
-rem Initial greedy baseline
 for I in 0 till TargetK
   BestAssignment I = 1
 end
 
 for I in 0 till N
   RowI = NewAdj I
-  for J in I + 1 till N
+  NextI = I + 1
+  for J in NextI till N
     if RowI J equal 1
-      if I less TargetK and (J less TargetK)
+      ILess = I less TargetK
+      JLess = J less TargetK
+      BothIn1 = ILess and JLess
+      if BothIn1
         Best = Best + 1
       end
-      if (not (I less TargetK)) and (not (J less TargetK))
+      Neither1 = (not ILess) and (
+        not JLess
+      )
+      if Neither1
         Best = Best + 1
       end
     end
@@ -93,10 +120,11 @@ To1 = array shape N fill 0
 To2 = array shape N fill 0
 CurAssignment = array shape N fill 0
 
-State = array shape (N + 1) fill 0
-FirstBranch = array shape (N + 1) fill 0
-SecondBranch = array shape (N + 1) fill 0
-CutAdded = array shape (N + 1) fill 0
+N1 = N + 1
+State = array shape N1 fill 0
+FirstBranch = array shape N1 fill 0
+SecondBranch = array shape N1 fill 0
+CutAdded = array shape N1 fill 0
 
 CurCut = 0
 CurK = 0
@@ -108,7 +136,9 @@ for not (Vtx less 0)
     if TotalInt greater Best
       Best = TotalInt
       for I in 0 till N
-        BestAssignment I = CurAssignment I
+        BestAssignment I = (
+          CurAssignment I
+        )
       end
     end
     Vtx = Vtx - 1
@@ -120,19 +150,24 @@ for not (Vtx less 0)
 
     if St equal 0
       RemNeeded1 = TargetK - CurK
-      RemNeeded2 = (N - TargetK) - (Vtx - CurK)
+      VtxPast = Vtx - CurK
+      RemNeeded2 = DiffNK - VtxPast
 
-      Valid = true
-      if RemNeeded1 less 0 or (RemNeeded2 less 0)
-        Valid = false
-      end
+      Neg1 = RemNeeded1 less 0
+      Neg2 = RemNeeded2 less 0
+      Valid = not (Neg1 or Neg2)
 
       if Valid
         FutureCut = 0
         if Vtx less N
-          FutureCut = ((To1 min To2) (Vtx till N)) sum
+          MinTo = To1 min To2
+          RestMin = MinTo (Vtx till N)
+          FutureCut = RestMin sum
         end
-        if not ((M - (CurCut + FutureCut)) greater Best)
+        BestPoss = M - (
+          CurCut + FutureCut
+        )
+        if not (BestPoss greater Best)
           Valid = false
         end
       end
@@ -168,7 +203,9 @@ for not (Vtx less 0)
         if NextChoice equal 0
           Vtx = Vtx - 1
         else
-          if NextChoice equal B1 and (B2 greater 0)
+          IsB1 = NextChoice equal B1
+          HasB2 = B2 greater 0
+          if IsB1 and HasB2
             State Vtx = 1
           else
             State Vtx = 2
@@ -195,7 +232,8 @@ for not (Vtx less 0)
     else
       if St equal 1
         PrevChoice = FirstBranch Vtx
-        CurCut = CurCut - (CutAdded Vtx)
+        SubCut = CutAdded Vtx
+        CurCut = CurCut - SubCut
         if PrevChoice equal 1
           CurK = CurK - 1
           To1 = To1 - RowV
@@ -223,10 +261,14 @@ for not (Vtx less 0)
         Vtx = Vtx + 1
       else
         PrevChoice = SecondBranch Vtx
-        if FirstBranch Vtx greater 0 and (SecondBranch Vtx equal 0)
+        FB = FirstBranch Vtx
+        HasFB = FB greater 0
+        NoSB = SecondBranch Vtx equal 0
+        if HasFB and NoSB
           PrevChoice = FirstBranch Vtx
         end
-        CurCut = CurCut - (CutAdded Vtx)
+        SubCut = CutAdded Vtx
+        CurCut = CurCut - SubCut
         if PrevChoice equal 1
           CurK = CurK - 1
           To1 = To1 - RowV
@@ -245,7 +287,8 @@ if Swapped
   OrigIsTeam1 = 1 - OrigIsTeam1
 end
 AllOrig = 1 to N array
-Team1 = AllOrig (OrigIsTeam1 equal 1)
+IsT1 = OrigIsTeam1 equal 1
+Team1 = AllOrig IsT1
 Answer = Team1 join " "
 
 Answer text print

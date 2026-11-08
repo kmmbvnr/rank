@@ -2,6 +2,7 @@ use testing
 
 test "sample 1: ABBBAA -> 1 B1"
   use "0707_zuma"
+  Input = "ABBBAA"
   run
 
   Ans equal "1 B1"
@@ -20,7 +21,11 @@ test "sample 2: ACMNEERC -> 10 shots"
   Input = "ACMNEERC"
   run
 
-  Ans equal "10 A0 A0 C0 M2 M2 N2 N2 E2 R2 R2"
+  Exp = (
+    "10 A0 A0 C0 M2 M2 " +
+    "N2 N2 E2 R2 R2"
+  )
+  Ans equal Exp
 end
 
 test "trivial: AA -> 1 A0"
