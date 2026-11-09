@@ -1,72 +1,101 @@
 rem Irrational Base
 rem https://projecteuler.net/problem=558
-
 use numbers
 use sequences
+use algo
+use bits
 use io
 use cli
-
 arg M integer = 5000000
-
-rem r^3 = r^2 + 1 gives r^(e+1) = r^e
-rem + r^(e-2). Greedy digits of j^2
-rem take the largest r^e left with
-rem e below the last by 3. Powers are
-rem integers scaled by 10^70 (table
-rem index e + 200); the exponent comes
-rem from a log and a fix-up, and ends
-rem when the rest is below r^-200.
-Sc = 10 ** 70
-Tl = 10 ** 4
-Lo = Sc
-Hi = 2 * Sc
-for # in 1 to 240
-  Md = (Lo + Hi) // 2
-  C3 = Md * Md * Md
-  if C3 greater Md * Md * Sc + Sc ** 3
-    Hi = Md
-  else
-    Lo = Md
+Bound = M max 1
+Bits = Bound binary len
+Height = 4 * Bits + 2
+Depth = 2 * Height + 20
+Seed = record
+  .first = array 1 0 0
+  .second = array 0 1 0
+  .third = array 0 0 1
+end
+rem Preserve identities in Z[r].
+fun State forward Step
+  return record
+    .first = State .second
+    .second = State .third
+    .third = State .first + State .third
   end
 end
-Tb = array shape 291 fill 0
-Tb 200 = Sc
-Tb 201 = Lo
-Tb 202 = Lo * Lo // Sc
-for I in 203 to 290
-  Tb I = Tb (I - 1) + Tb (I - 3)
+fun State backward Step
+  Third = State .third
+  Difference = Third - State .second
+  return record
+    .first = Difference
+    .second = State .first
+    .third = State .second
+  end
 end
-Tb 199 = Tb 202 - Tb 201
-for I in 198 to 0 by -1
-  Tb I = Tb (I + 1) * Tb 199 // Sc
+fun State value rank 0
+  return State .first
 end
-Ls = Sc * 1.0 log
-Lr = (Lo * 1.0 log) - Ls
+Steps = 1 to Height
+Back = 1 to Depth
+Ahead = Steps scan forward with Seed
+Behind = Back scan backward with Seed
+Front' = Ahead value drop 1
+Rear' = Behind value drop 1
+FrontCells = concat unpack Front
+Positive = FrontCells reshape Height 3
+RearCells = concat unpack Rear
+Negative = RearCells reshape Depth 3
+Negative = Negative reverse
+Unit = array 1 0 0
+Identity = Unit reshape 1 3
+Rows = concat Negative Identity
+Rows = concat Rows Positive
+rem Cubic norm bounds nonzero residues.
+rem Scale exceeds five times Budget^3.
+Magnitude = Rows abs sum
+Budget = Bound * Bound + 2 * Magnitude
+Precision = Budget binary len
+Scale = 2 ** (3 * Precision + 4)
+fun Bounds bisect
+  Low = Bounds 0
+  High = Bounds 1
+  Sum = Low + High
+  Middle = Sum // 2
+  Square = Middle ** 2 * Scale
+  Limit = Square + Scale ** 3
+  if Middle ** 3 greater Limit
+    return array Low Middle
+  end
+  return array Middle High
+end
+Bounds = array Scale (2 * Scale)
+Digits = Scale binary len
+Root = Bounds bisect repeat Digits
+First = Root 0
+Second = First * First // Scale
+Basis = array Scale First Second
+Powers = Rows * Basis sum axis 1
+rem Bound temporary greedy arrays.
+Block = 125000
+Rest = array shape 0 fill 0
+Start = 1
+More = M greater 0
 Answer = 0
-Bk = 250000
-for B0 in 1 to M by Bk
-  B1 = B0 + Bk - 1 min M
-  J = B0 to B1 array
-  R = J * J * Sc
-  Ex = J * 0 + 290
-  for R len greater 0
-    Rt = R + Tl
-    Lv = Rt * 1.0 log
-    Ei = ((Lv - Ls) / Lr) floor
-    Ei = (Ei integer) + 200
-    Ei = Ei min Ex max 0
-    Nx = Ei + 1 min 290
-    Up = Tb Nx at most Rt
-    Up = Up and (Ei + 1 at most Ex)
-    Ei += Up integer
-    Dn = Tb Ei greater Rt
-    Ei -= Dn integer
-    Answer += R len
-    R = R - (Tb Ei)
-    Ex = Ei - 3
-    Kp = R + Tl at least Tb 0 indices
-    R = R Kp
-    Ex = Ex Kp
+for More
+  if Rest len equal 0
+    Last = Start + Block - 1 min M
+    Inputs = Start to Last array
+    Rest = Inputs * Inputs * Scale
+    Start = Last + 1
   end
+  Index = Powers upperindex Rest
+  Index -= 1
+  Rest = Rest - Powers Index
+  Answer += Rest len
+  Keep = Rest greater 0 indices
+  Rest = Rest Keep
+  Alive = Rest len greater 0
+  More = Start at most M or Alive
 end
 Answer print

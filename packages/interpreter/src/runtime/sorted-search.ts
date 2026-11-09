@@ -1,4 +1,4 @@
-import { readArrayItem } from './array-storage.js';
+import { readArrayItem, storedScalarKinds } from './array-storage.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import { RankError } from '../errors.js';
 import { checkpoint, privateLoopPolling, demandBudgetEnabled, inspectionEnabled } from '../interrupt.js';
@@ -94,6 +94,51 @@ export function sortedIndexBatch(source: RankValue, targets: RankValue, upper: b
     if (!sview?.linear || sview.validate || !tview?.linear || tview.validate) return undefined;
     const size = source.shape[0];
     if (size > 2147483647) return undefined;
+    // Completed arbitrary-precision integer storage can use the same batch
+    // search without narrowing its keys or invoking a reader per probe.
+    const boxed = (view: NonNullable<StoredView>) => Array.isArray(view.items)
+        && view.regular && storedScalarKinds(view.source)?.join() === 'integer';
+    const sourceBoxed = boxed(sview), targetBoxed = boxed(tview);
+    if (sourceBoxed || targetBoxed) {
+        const integers = (view: NonNullable<StoredView>, boxed: boolean): ArrayLike<number | bigint> | undefined => {
+            if (boxed) return view.items as bigint[];
+            const cells = view.compact ?? (view.items instanceof BigInt64Array ? view.items : undefined);
+            return cells?.buffer instanceof ArrayBuffer ? cells : undefined;
+        };
+        const cells = integers(sview, sourceBoxed), queries = integers(tview, targetBoxed);
+        if (!cells || !queries) return undefined;
+        const count = targets.shape.reduce((n, d) => n * d, 1), found = new Int32Array(count);
+        const query = (at: number) => queries[tview.linear!.offset + at * tview.linear!.stride];
+        // Number conversion is monotone, but never an exact integer proof.
+        // When all source images are distinct, an upper search can overshoot
+        // by only one cell. One exact comparison repairs that boundary.
+        // Rounded collisions keep the ordinary exact logarithmic search.
+        let coarse: Float64Array | undefined;
+        if (size > 1 && size <= count && count >= 1024) {
+            const keys = new Float64Array(size);
+            let distinct = true;
+            for (let i = 0; i < size; i++) {
+                if ((i & 4095) === 0) checkpoint('preparing sorted numbers', Math.min(4096, size - i));
+                keys[i] = Number(cells[sview.linear.offset + i * sview.linear.stride]);
+                if (i && !(keys[i] > keys[i - 1])) { distinct = false; break; }
+            }
+            if (distinct) coarse = keys;
+        }
+        if (coarse) {
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) diagnostics.sortedIndexCoarseBatches++;
+            search(coarse, { offset: 0, stride: 1 }, size, found, true, at => Number(query(at)));
+            for (let at = 0; at < count; at++) {
+                if ((at & 4095) === 0) checkpoint('checking sorted boundary', Math.min(4096, count - at));
+                if (!found[at]) continue;
+                const cell = cells[sview.linear.offset + (found[at] - 1) * sview.linear.stride], target = query(at);
+                if (!(upper ? cell <= target : cell < target)) found[at]--;
+            }
+        } else search(cells, sview.linear, size, found, upper, query);
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) { diagnostics.sortedIndexBatches++; diagnostics.sortedIndexBatchQueries += count; }
+        return typedArray(found, targets.shape);
+    }
     const cells = sview.compact ?? (sview.items instanceof BigInt64Array || sview.items instanceof Float64Array ? sview.items : undefined);
     const wide = tview.items instanceof BigInt64Array ? tview.items : undefined;
     const narrow = tview.compact;

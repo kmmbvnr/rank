@@ -1,5 +1,21 @@
 # Compiler progress
 
+## Exact wide sorted-search batches (Euler 558)
+
+The shared sorted-search kernel now handles completed arbitrary-precision
+integer sources/targets directly, retaining exact insertion semantics through
+trusted linear views. For large batches, strictly increasing Number images
+can guide the search; one exact integer comparison repairs the candidate.
+Rounded source collisions keep the exact logarithmic route. Guarded paths
+retain budgets, observable polling, shared buffers and checked/opaque readers.
+This benefits compiled and reference execution without changing Number
+precision or private-copy admission thresholds.
+
+Euler 558 builds exact polynomial coefficient tables with scans, derives
+fixed-point precision from cubic norm separation and consumes greedy residuals
+in one array loop. It removes repeated logarithms, numerical tolerances and
+extra exponent arrays. See [measurements and checks](../../benchmarks/euler558.md).
+
 ## Exact scaling and native self-sorts (Euler 557)
 
 Stored integer arrays can multiply or floor-divide by positive powers of two
