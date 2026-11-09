@@ -27,6 +27,18 @@ function compare(source: string) {
 }
 
 describe('private numeric vector stages', () => {
+    it.each(['min', 'max'])('keeps %s cell precedence in sums and arithmetic', operation => {
+        for (const real of [false, true]) {
+            const a = real ? '1.5 5.5 3.5' : '1 5 3';
+            const b = real ? '2.5 4.5 9.5' : '2 4 9';
+            const source = `A = array ${a}\nB = array ${b}\nTotal = ${real ? '0.0' : '0'}\nfor I in 1 to 2\n Total += A ${operation} B sum\nend\nTotal`;
+            const result = compare(source);
+            expect(result.observation.error).toBeUndefined();
+            expect(result.observation.result).toBe(String((operation === 'max' ? 16 : 8) * 2 + (real ? 3 : 0)));
+            expect(result.diagnostics.numberLoops).toBe(1);
+        }
+    });
+
     it.each(['(A mod 97) + (A mod 89)', 'A // 3 + A mod 3',
         'A // -3 + A mod -3'])('retains exact repeated operands in %s', formula => {
         const r = compare(`A = array -9007199254740991 -4503599627370495 -1 0 1 4503599627370495 9007199254740991

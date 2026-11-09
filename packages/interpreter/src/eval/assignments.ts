@@ -9,7 +9,7 @@ import {
 import { hasDeferredSelectionCopy, prepareStoredScalarView } from '../integer-view.js';
 import { materializeValue, materializeValues } from '../materialize.js';
 import { demandValue } from '../plan.js';
-import { computedArrayUpdate } from '../computed-array-update.js';
+import { computedArrayUpdate, scalarExtremaUpdate } from '../computed-array-update.js';
 import { materializeTensorMap } from '../tensor-map.js';
 import { numericSortInPlace } from '../numeric-collections.js';
 import { materializeSequence } from '../sequence.js';
@@ -46,7 +46,7 @@ export interface AssignmentContext {
     compileAssign(name: string): (value: RankValue) => void;
     protect(names: readonly string[], plan: AssignmentStatement): () => void;
     resolveVariable(name: string): RankValue;
-    isStandardFunction(module: string, name: string): boolean;
+    isStandardFunction(module: string, name: string, monadicRank?: number | 'all'): boolean;
     canConsumeBinding(): boolean;
     checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[];
     evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]>;
@@ -133,6 +133,8 @@ export function prepareRegionArrayWrite(statement: ArrayAssignmentStatement, hos
 export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host: AssignmentContext): PreparedStatement {
     const recipe = !statement.modulus && statementResultDiscarded(statement) ? numericUpdateExpression(statement.value) : undefined;
     const fused = recipe && computedArrayUpdate(recipe, statement.operator);
+    const extrema = !statement.modulus && statement.operator === '=' && statementResultDiscarded(statement)
+        ? scalarExtremaUpdate(statement.value) : undefined;
     let ranks: readonly (number | '#')[] | undefined;
     try { ranks = rankedAddressAssignmentForm(statement)?.ranks; }
     catch (error) { throw new RankError(error instanceof Error ? error.message : String(error), 'Syntax'); }
@@ -258,6 +260,13 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 writeArrayCell(destination, offsets[index], checked[index]);
             }
             return result;
+        }
+        if (extrema && evaluated === undefined && !ranks) {
+            const update = extrema(target, selection, host);
+            if (update) {
+                host.checkArrayWrite(statement.name, target, [update.representative]);
+                if (update.write(ownedSelection() as typeof target)) return undefined;
+            }
         }
         if (fused && evaluated === undefined && host.options().compilation !== false
             && (!statement.accumulate || !demandBudgetEnabled())) {

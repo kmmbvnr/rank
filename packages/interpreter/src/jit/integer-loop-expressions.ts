@@ -1394,8 +1394,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         body.push(`if (${values[1]!.code} < 0 || ${values[2]!.code} <= 0) throw overflow;`);
                     }
                     if (point.module === 'core' && (point.name === 'min' || point.name === 'max')) {
+                        // Cell expressions also occur inside sums and arithmetic.
                         return { type: values[0]!.type,
-                            code: scalarExtremeSource(point.name, values[0]!.code, values[1]!.code) };
+                            code: `(${scalarExtremeSource(point.name, values[0]!.code, values[1]!.code)})` };
                     }
                     if (point.module) {
                         const operation = findOperation(point.name)!;

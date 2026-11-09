@@ -54,8 +54,8 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             const compound = assignment.operator !== '=';
             if (compound && !host.compoundWrites) return undefined;
             if (emitNumberScatter(state, expressions, assignment, body, location)) return true;
-            if (emitNumberArraySlice(state, expressions, assignment, body, location)) return true;
             if (emitNumberSlice(state, expressions, assignment, body, location)) return true;
+            if (emitNumberArraySlice(state, expressions, assignment, body, location)) return true;
             if (!arrays.has(assignment.name) && !destinations.has(assignment.name)
                 && isRankIndex(host.read(assignment.name)!)) {
                 const receiver = expressions.container(assignment.name, 'index', true);

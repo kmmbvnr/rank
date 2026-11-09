@@ -1,58 +1,69 @@
 rem Divisibility of factorials
 rem https://projecteuler.net/problem=549
-
 use numbers
 use sequences
+use bits
+use algo
 use io
 use cli
-
 arg N integer = 100000000
-
-rem s(n) is the largest t(p, a) over
-rem the p^a || n, t(p, a) the least m
-rem with v_p(m!) >= a. For a = 1 that
-rem is p, so start from the largest
-rem prime factor (primes in order, each
-rem overwriting its multiples), then
-rem raise multiples of p^a, a >= 2.
-S = array shape (N + 1) fill 0
-for P in primes to N
-  S (P to N by P) = P
-end
-Rt = N isqrt
-Ps = primes to Rt array
-Z1 = array shape 0 fill 0
-Pa = Z1
-Ea = Z1
-for A in 2 to 30
-  Pk = Ps (Ps ** A at most N indices)
-  Pa = concat Pa Pk
-  Ea = concat Ea (Pk * 0 + A)
-end
-rem t by bisection on Legendre's sum.
-Lo = Pa * 0 + 1
-Hi = Pa * Ea
-for It in 1 to 40
-  Md = (Lo + Hi) // 2
-  V = Md * 0
-  Q = Pa
-  for J in 1 to 30
-    V += Md // Q
-    Q = Q * Pa
+Digits = N binary len
+Maximum = Digits max 2
+rem First write largest prime factors.
+rem Then raise prime-power multiples.
+Small = primes to (N isqrt) array
+Exponents = 2 to Maximum copy
+Bases = Small reshape (Small len) 1
+Powers = Bases ** Exponents
+Valid = Powers at most N
+Jobs = Powers Valid
+OrderGrid = Exponents + Bases * 0
+Orders = OrderGrid Valid
+BaseGrid = Bases + Exponents * 0
+Factors = BaseGrid Valid
+rem Invert Legendre valuations in bulk.
+Row = 2 to Maximum copy
+Grid = Row reshape (Row len) 1 1
+Samples = 1 to Maximum copy
+Steps = Samples reshape 1 Maximum 1
+Width = Maximum binary len
+Divisors = Grid ** (0 till Width)
+Terms = Steps // Divisors
+Counts = Terms sum axis 2
+Height = Maximum - 1
+Rows = Counts reshape Height 1 Maximum
+Table = Rows lowerindex Samples rank 1 0
+Size = Height * Maximum
+Flat = Table reshape Size
+rem Larger primes need exactly p*a.
+Index = (Factors min Maximum) - 2
+Index = Index * Maximum + Orders - 1
+Scores = Factors * (Flat Index + 1)
+Jobs = concat Small Jobs copy
+Scores = concat Small Scores copy
+Factors = concat Small Factors copy
+rem Strip small prime factors per block.
+rem The remaining factor is prime or 1.
+fun Start subtotal Stop
+  Size = Stop - Start + 1
+  Sieve = array shape Size fill 0
+  Rest = Start to Stop copy
+  for Step I in Jobs
+    First = (Start + Step - 1) // Step
+    Offset = First * Step - Start
+    Slots = Offset till Size by Step
+    Prime = Factors I
+    Need = Scores I
+    Sieve Slots = Sieve Slots max Need
+    Rest Slots //= Prime
   end
-  G = V at least Ea
-  Hi = G choose Md Hi
-  Lo = G choose Lo (Md + 1)
+  Total = Sieve max Rest sum
+  return Total
 end
-T = Hi
-for I in 0 till Pa len
-  Q = (Pa I) ** (Ea I)
-  Ti = T I
-  rem Each multiple is independent; avoid a temporary slice and RHS snapshot.
-  for K in Q to N by Q
-    S K = S K max Ti
-  end
-end
-rem S 0 and S 1 stay zero, so sum the stored array without a temporary slice.
-Answer = S sum
+Block = 1048576
+Starts = 2 to N by Block copy
+Ends = Starts + Block - 1
+Stops = Ends min N
+Totals = Starts subtotal Stops rank 0 0
+Answer = Totals sum
 Answer print

@@ -254,10 +254,10 @@ export class Interpreter {
             // Local parameters may borrow a caller's array without an ownership
             // increment. Keep their self-rebindings on the copying path.
             canConsumeBinding: () => this.bindings.current === undefined,
-            isStandardFunction: (module, name) => {
+            isStandardFunction: (module, name, monadicRank = 1) => {
                 const value = this.resolve(name);
                 return isNativeFunction(value) && this.builtins.is(module, name, value)
-                    && hasNativeImplementation(value) && value.monadicRank === 1;
+                    && hasNativeImplementation(value) && value.monadicRank === monadicRank;
             },
             evaluateAddressParts: item => this.expressions.evaluateAddressParts(item),
             select: values => select(values),

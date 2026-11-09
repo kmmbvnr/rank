@@ -46,7 +46,7 @@ end`);
         expect(result.state.variables).toContainEqual(['Alias', '3 3 3 3 3 3 3 3 3 3 3 3']);
     });
 
-    it.each(['+', '-', '*', '//', 'mod'])('fuses a discarded slice transform with %s', operator => {
+    it.each(['+', '-', '*', '//', 'mod', 'min', 'max'])('fuses a discarded slice transform with %s', operator => {
         // Parentheses distinguish RHS remainder from the modular-write suffix.
         const rhs = operator === 'mod' ? '(A Slots mod (I + 2))' : `A Slots ${operator} (I + 2)`;
         const result = compare(`A = array 2 4 6 8 10 12
@@ -60,6 +60,23 @@ end`);
         expect(result.diagnostics.numberLoopSliceCopies).toBe(0);
         expect(result.state.variables).toContainEqual(['Alias', '2 4 6 8 10 12']);
         if (operator === 'mod') expect(result.state.variables).toContainEqual(['A', '0 4 4 8 8 12']);
+    });
+
+    it.each(['min', 'max'])('streams %s transforms through typed widening and scalar snapshots', operator => {
+        const result = compare(`A = array shape 2 6 fill 2000000000
+Alias = A
+for I in 0 to 1
+ A I (0 to 4 by 2) = A I (0 to 4 by 2) ${operator} 4000000000
+ Done = I
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopSliceCopies).toBe(0);
+        const snapshot = compare(`A = array shape 6 fill 1
+for I in 1 to 2
+ A (0 to 4) = A (0 to 4) ${operator} (A 0 + I)
+ Done = I
+end`);
+        expect(snapshot.diagnostics.numberLoops).toBe(1);
     });
 
     it('uses a later statement or explicit return as a discarded-result proof', () => {

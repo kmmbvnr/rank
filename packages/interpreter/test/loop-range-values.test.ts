@@ -70,6 +70,24 @@ describe('range values in compiled loops (#432)', () => {
         compare(`${body}\n Done = K`);
     });
 
+    it.each(['min', 'max'])('streams discarded %s transforms with snapshot semantics', operation => {
+        for (const [destination, source] of [
+            ['1 to 5', '1 to 5'], ['2 to 6', '1 to 5'],
+            ['5 to 1 by -1', '1 to 5'], ['8 till 8', '8 till 8'],
+        ]) compare(`A (${destination}) = A (${source}) ${operation} K\n Done = K`);
+    });
+
+    it.each(['min', 'max'])('preserves rejection of a redefined %s in range transforms', operation => {
+        const source = `fun Left ${operation} Right\n return Left + Right\nend\nA = array shape 8 fill 2\nfor K in 1 to 3\n A (1 to 4) = A (1 to 4) ${operation} K\n Done = K\nend`;
+        expect(run(source, true).observation).toEqual(run(source, false).observation);
+    });
+
+    it.each(['min', 'max'])('preserves empty %s scalar demand and overflow fallback', operation => {
+        compare(`A (3 till 3) = A (3 till 3) ${operation} (1 // 0)\n Done = K`);
+        compare(`A (1 to 3) = A (1 to 3) ${operation} 9007199254740993\n Done = K`);
+        compare(`Result = A (1 to 3) ${operation} K\n A (1 to 3) = Result`);
+    });
+
     it('keeps copy binding guards for stepped slices', () => {
         const source = `fun X copy
  return X

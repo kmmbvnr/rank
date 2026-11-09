@@ -32,8 +32,15 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
     const rhs = unparenthesized(assignment.value);
     // A transformed RHS is a fresh value. Elide it only when discarded; an
     // escaping result must never become a live view of its source instead.
+    const words = isApplicationExpression(rhs) ? flattenApplication(rhs) : [];
+    const word = words.at(-1);
+    const extreme = discarded && state.host.nativeCalls && state.host.extrema
+        && words.length === 3 && word && isNameExpression(word)
+        && ['min', 'max'].includes(word.name) && !state.localTypes.has(word.name)
+        && !state.arrays.has(word.name) && !state.containers.has(word.name)
+        ? { operator: word.name, left: words[0], right: words[1] } : undefined;
     const candidate = discarded && isBinaryExpression(rhs) && !rhs.step
-        && ['+', '-', '*', '//', 'mod'].includes(rhs.operator) ? rhs : undefined;
+        && ['+', '-', '*', '//', 'mod'].includes(rhs.operator) ? rhs : extreme;
     const selected = candidate ? unparenthesized(candidate.left) : rhs;
     const parts = isApplicationExpression(selected) ? flattenApplication(selected) : [];
     const source = parts.shift();
@@ -47,6 +54,8 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
     const rank = selectors.length;
     const header = expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as Expression);
     const type = previous?.type ?? known?.type ?? header?.element;
+    // Other numeric kinds retain the vector RHS lowering without registering an integer destination.
+    if (type && type !== 'integer' && type !== 'boolean') return undefined;
     const boolean = type === 'boolean';
     // Boolean fills share the same selector checks and private transaction.
     // Array RHS snapshots and arithmetic retain the established integer path.
@@ -140,8 +149,11 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
         const right = `scalar${n}`;
         lines.push(`const ${right} = ${scalar.code};`);
         if (transform.operator === '//' || transform.operator === 'mod') operations.push(`if (${right} === 0) throw overflow;`);
-        const value = expressions.arithmetic(transform.operator, { code: replacement, type: 'integer' },
-            { code: right, type: 'integer' }, 'integer', operations);
+        const extrema = ['min', 'max'].includes(transform.operator);
+        if (extrema) state.builtins.set(transform.operator, 'core');
+        const value = extrema ? `Math.${transform.operator}(${replacement}, ${right})`
+            : expressions.arithmetic(transform.operator, { code: replacement, type: 'integer' },
+                { code: right, type: 'integer' }, 'integer', operations);
         if (!value) return undefined;
         replacement = value;
     }

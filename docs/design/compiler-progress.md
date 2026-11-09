@@ -1,5 +1,22 @@
 # Compiler progress
 
+## Segmented sieves and scalar extrema writes (Euler 549)
+
+Number loops can stream discarded `A Slots min/max Scalar` range updates
+without a temporary RHS array. Real destinations retain their vector-write
+handler before an integer destination is registered. Existing overlap,
+result-ownership, builtin and overflow guards remain in force.
+
+Vector extrema cells retain conditional precedence inside sums and arithmetic.
+This fixes incorrect compiled results from an otherwise valid array reduction.
+Reference execution also streams ready same-selection Int32 extrema writes
+through a native kernel, with ordinary alias ownership and observable-mode
+fallback. This native path generates no JavaScript.
+
+Euler 549 uses independent blocks, small-prime powers and residual factors
+instead of a full largest-prime-factor table. Broadcast Legendre valuations
+replace repeated bisection. See [measurements and checks](../../benchmarks/euler549.md).
+
 ## Exact wide product contractions (Euler 548)
 
 Integer matrices with equal shapes can feed `A * B sum axis 0/1` directly

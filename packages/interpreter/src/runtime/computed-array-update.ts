@@ -1,10 +1,11 @@
-import type { NumericUpdateExpression } from '@arrrank/language';
+import { flattenApplication, isApplicationExpression, isNameExpression, isParenthesizedExpression, numericUpdateExpression,
+    type Expression, type NumericUpdateExpression } from '@arrrank/language';
 import { arithmeticRange } from '../range-plan.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { writeComputedSelection, denseScalarItems, storedScalarKinds } from './array-storage.js';
 import { tensorSelection } from '../selectors.js';
 import { sameShape } from '../tensor-index.js';
-import { inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { inspectionEnabled, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
 import { RankError } from '../errors.js';
 import type { Operators } from '../operators.js';
 import { isRankArray, isRankSequence, type RankArray, type RankValue } from './value.js';
@@ -112,6 +113,51 @@ export function computedArrayUpdate(expression: NumericUpdateExpression, assignm
             write: target => writeComputedSelection(target, count, offset, stride,
                 (dst, start, end) => kernel(dst, cells, offsets, strides, scalars, offset, stride, start, end),
                 (i, old) => host.operators.evaluateBinary(operation, old, exact(i)) as bigint | number) };
+    };
+}
+
+/** Same-cell integer extrema need no RHS snapshot or generated kernel. This
+ * native write also serves reference execution; observable modes keep dispatch. */
+export function scalarExtremaUpdate(expression: Expression) {
+    while (isParenthesizedExpression(expression)) expression = expression.value;
+    if (!isApplicationExpression(expression)) return undefined;
+    const parts = flattenApplication(expression), word = parts.at(-1);
+    if (parts.length !== 3 || !word || !isNameExpression(word) || !['min', 'max'].includes(word.name)) return undefined;
+    const source = numericUpdateExpression(parts[0]), operand = numericUpdateExpression(parts[1]);
+    if (source?.kind !== 'select' || !operand || !['literal', 'name'].includes(operand.kind)) return undefined;
+    const maximum = word.name === 'max';
+    return (target: RankArray, selection: Selection, host: Host & { isStandardFunction(module: string, name: string, monadicRank?: number | 'all'): boolean }) => {
+        if (inspectionEnabled() || demandBudgetEnabled() || !privateLoopPolling()
+            || !selection.unique || !selection.linear || target.columnNames || target.tableScopes
+            || !host.isStandardFunction('core', word.name, 'all')) return undefined;
+        const count = selection.shape.reduce((a, b) => a * b, 1);
+        const stored = storage(target);
+        if (count < 64 || !stored || !(stored.cells instanceof Int32Array)
+            || stored.offset !== 0 || stored.stride !== 1
+            || typeof SharedArrayBuffer !== 'undefined' && stored.cells.buffer instanceof SharedArrayBuffer) return undefined;
+        const ready = (node: NumericUpdateExpression): RankValue | undefined => node.kind === 'literal' ? node.value
+            : node.kind === 'name' ? host.resolveVariable(node.name) : undefined;
+        let value: RankValue | undefined;
+        try {
+            if (host.resolveVariable(source.name) !== target) return undefined;
+            const selectors = source.selectors.map(ready);
+            if (!selectors.every((value): value is RankValue => trustedSelector(value))) return undefined;
+            const selected = tensorSelection(target, selectors);
+            if (!sameShape(selected.shape, selection.shape) || selected.linear?.offset !== selection.linear.offset
+                || selected.linear.stride !== selection.linear.stride) return undefined;
+            value = ready(operand);
+        } catch (error) { if (error instanceof RankError) return undefined; throw error; }
+        if (typeof value !== 'bigint' || value < -2147483648n || value > 2147483647n) return undefined;
+        const exact = value, scalar = Number(value), { offset, stride } = selection.linear;
+        return { representative: 0n,
+            write: (destination: RankArray) => writeComputedSelection(destination, count, offset, stride,
+                (cells, start, end) => {
+                    for (let i = start, position = offset + start * stride; i < end; i++, position += stride) {
+                        const old = cells[position];
+                        cells[position] = maximum ? Math.max(old, scalar) : Math.min(old, scalar);
+                    }
+                    return end;
+                }, (_i, old) => maximum ? old > exact ? old : exact : old < exact ? old : exact) };
     };
 }
 
