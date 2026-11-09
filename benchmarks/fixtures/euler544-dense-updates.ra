@@ -1,0 +1,11 @@
+use cli
+use sequences
+arg R integer = 10
+arg C integer = 9
+arg N integer = 1112131415
+Count = 200000
+Weights = 0 till Count * 8 copy
+Keys = Weights mod Count copy
+Values = array shape Count fill 0
+Values Keys += Weights .accumulate
+Answer = Values sum

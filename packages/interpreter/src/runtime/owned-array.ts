@@ -637,10 +637,10 @@ export function writeRealSelection(
 }
 
 /** Reduce trusted integer updates without retaining a boxed RHS cell per input.
- * Safe integer partials use Number exactly; a bucket promotes to BigInt before
- * any addition/product can round. No destination is written while reading. */
+ * Number inputs are trusted Int32 cells. Safe partials use Number exactly;
+ * a bucket promotes to BigInt before any addition/product can round. No destination is written while reading. */
 export function reduceIntegerUpdates(size: number, count: number, offsetAt: (index: number) => number,
-    read: (index: number) => bigint, product: boolean): { offsets: number[]; operands: bigint[] } {
+    read: (index: number) => bigint | number, product: boolean): { offsets: number[]; operands: bigint[] } {
     const numbers = new Float64Array(size), states = new Uint8Array(size);
     const wide = new Map<number, bigint>();
     for (let start = 0; start < count; start += 4096) {
@@ -650,7 +650,8 @@ export function reduceIntegerUpdates(size: number, count: number, offsetAt: (ind
             const offset = offsetAt(index), value = read(index);
             if (states[offset] === 2) {
                 const previous = wide.get(offset)!;
-                wide.set(offset, product ? previous * value : previous + value);
+                const exact = BigInt(value);
+                wide.set(offset, product ? previous * exact : previous + exact);
                 continue;
             }
             const number = Number(value), previous = numbers[offset];
@@ -659,8 +660,9 @@ export function reduceIntegerUpdates(size: number, count: number, offsetAt: (ind
                 numbers[offset] = next;
                 states[offset] = 1;
             } else {
-                wide.set(offset, states[offset] === 0 ? value
-                    : product ? BigInt(previous) * value : BigInt(previous) + value);
+                const exact = BigInt(value);
+                wide.set(offset, states[offset] === 0 ? exact
+                    : product ? BigInt(previous) * exact : BigInt(previous) + exact);
                 states[offset] = 2;
             }
         }

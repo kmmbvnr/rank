@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
+import { reduceIntegerUpdates } from '../src/runtime/owned-array.js';
 import { typedArray, ownedArray } from '../src/array-storage.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
 import { InterruptedError, withInterrupt } from '../src/interrupt.js';
@@ -245,5 +246,46 @@ it.each([false, true])('widens repeated packed products exactly (compiled=%s)', 
             expect(r.execute('A 0')).toBe(2147483647n ** 2n * 15n);
             expect(r.execute('Weights 0')).toBe(2147483647n);
         } finally { r.dispose(); }
+    }
+});
+
+// Packed Int32 readers need no BigInt boxing before the safe partial fold.
+it.each([false, true])('reduces packed updates exactly, product=%s', product => {
+    const input = new Int32Array([2147483647, -2147483648, 17, 2147483647, 2147483647, -19]);
+    const keys = [0, 1, 2, 0, 0, 2];
+    const expected = new Map<number, bigint>();
+    input.forEach((value, i) => {
+        const previous = expected.get(keys[i]);
+        expected.set(keys[i], previous === undefined ? BigInt(value)
+            : product ? previous * BigInt(value) : previous + BigInt(value));
+    });
+    const actual = reduceIntegerUpdates(4, input.length, i => keys[i], i => input[i], product);
+    expect(actual).toEqual({ offsets: [...expected.keys()].sort(), operands: [...expected.keys()].sort().map(key => expected.get(key)) });
+});
+it.each([false, true])('keeps exact wide updates after packed partials, product=%s', product => {
+    const input = [2147483647, 2147483647, 1n << 100n, -2147483648, -3n];
+    const actual = reduceIntegerUpdates(1, input.length, () => 0, i => input[i], product);
+    const expected = input.reduce<bigint>((value, next) => product ? value * BigInt(next) : value + BigInt(next), product ? 1n : 0n);
+    expect(actual).toEqual({offsets: [0], operands: [expected]});
+});
+
+it.each(['+=', '-=', '*='] as const)('snapshots dense packed and reversed operands for %s', operator => {
+    for (const compilation of [false, true]) for (const reverse of [false, true]) {
+        const runtime = new Interpreter(() => {}, {compilation});
+        const weights = Int32Array.from({length: 64}, (_, i) => [2147483647, -2147483648, 2, -3][i % 4]);
+        const keys = Array.from({length: 64}, (_, i) => (i * 13 + (i >> 2)) % 4);
+        const expected = [0n, 1n, -3n, 9223372036854775807n];
+        for (let i = 0; i < keys.length; i++) {
+            const next = BigInt(weights[reverse ? weights.length-1-i : i]), key = keys[i];
+            expected[key] = operator === '+=' ? expected[key]+next : operator === '-=' ? expected[key]-next : expected[key]*next;
+        }
+        try {
+            runtime.variables.set('Values', typedArray(BigInt64Array.of(0n, 1n, -3n, 9223372036854775807n)));
+            runtime.variables.set('Weights', typedArray(weights));
+            runtime.variables.set('Keys', typedArray(Int32Array.from(keys)));
+            runtime.execute(`use sequences
+Values Keys ${operator} Weights${reverse ? ' reverse' : ''} .accumulate`);
+            expect(formatValue(runtime.execute('Values')!)).toBe(expected.join(' '));
+        } finally {runtime.dispose();}
     }
 });

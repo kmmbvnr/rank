@@ -308,7 +308,8 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 view.validateUniform(first);
                 host.checkArrayWrite(statement.name, target, [first]);
                 const updates = reduceIntegerUpdates(arraySize(target.shape), count, selection.offsetAt,
-                    index => view.items[offset + index * stride] as bigint, statement.operator === '*=');
+                    index => view.compact ? view.compact[offset + index * stride]
+                        : view.items[offset + index * stride] as bigint, statement.operator === '*=');
                 writeIntegerSelection(ownedSelection() as typeof target, updates.offsets.length,
                     index => updates.offsets[index], updates.operands, statement.operator as '+=' | '-=' | '*=');
                 return result;

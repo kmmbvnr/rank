@@ -11,118 +11,199 @@ arg R integer = 10
 arg C integer = 9
 arg N integer = 1112131415
 
-rem Count colourings that name colours
-rem in order of first use: with j
-rem colours, F(q) = sum N(j) q!/(q-j)!
-rem and sum F(x), x <= N, is sum N(j)
-rem j! C(N + 1, j + 1). Sweep cells with
-rem the canonical pattern of the last C
-rem cells (4 bits each, 15 = none yet)
-rem and a count row over j per pattern.
 P = 1000000007
-Pw = 16 ** (0 till C)
-Jw = R * C + 2
-Jv = 0 till Jw copy
-Pc = array (15 * Pw sum)
-V = array shape 1 Jw fill 0
-V 0 0 = 1
-for Rw in 0 till R
-  for Cl in 0 till C
-    Np = Pc len
-    Pq = Pc reshape Np 1
-    Lm = Pq // Pw mod 16
-    Lf = Lm reshape (Np * C)
-    Ir = 0 till Np copy
-    Up = Lf (Ir * C)
-    Lt = Up * 0 + 15
-    if Cl greater 0
-      Lt = Lf (Ir * C + C - 1)
-    end
-    Lr = Lm equal 15 choose (0 - 1) Lm
-    D = (Lr reduce max axis 1) + 1
-    rem Options: join block 0..C-1, or a
-    rem new block (label 14).
-    Kc = C + 1
-    Ci = 0 till Np * Kc copy
-    Cs = Ci // Kc
-    Co = Ci mod Kc
-    Ok = Co equal C
-    Pr = Co * 0
-    for K in 1 till C
-      Lk = Lf (Cs * C + K)
-      Pr += Lk equal Co integer
-    end
-    Dc = D Cs
-    Uq = Up Cs
-    Lq = Lt Cs
-    Jn = Co less Dc and (Pr greater 0)
-    Eu = (Co equal Uq) equal false
-    El = (Co equal Lq) equal false
-    Jn = Jn and Eu and El
-    Ok = Ok or Jn
-    Ci = Ok indices
-    Cs = Cs Ci
-    Co = Co Ci
-    Nc = Ci len
-    rem Drop the oldest cell, append the
-    rem new one, relabel in order.
-    Mp = array shape (Nc * 16) fill 0
-    Mp = Mp - 1
-    Nx = Cs * 0
-    Cd = Cs * 0
-    Ib = 0 till Nc copy
-    for K in 0 till C
-      X = Co
-      if K less C - 1
-        X = Lf (Cs * C + K + 1)
-      end
-      X = X equal C choose 14 X
-      Fx = Ib * 16 + X
-      M = Mp Fx
-      Nw = M less 0 and (X less 15)
-      Wi = Nw indices
-      Mp (Fx Wi) = Nx Wi
-      Nx += Nw integer
-      M = Mp Fx
-      Lb = X equal 15 choose 15 M
-      Cd += Lb * Pw K
-    end
-    Uc = Cd unique sort
-    Tx = Uc lowerindex Cd
-    Nv = array shape (Uc len) Jw fill 0
-    Rv = V Cs
-    Jo = Co less C indices
-    Rj = Rv Jo
-    Nv (Tx Jo) += Rj .accumulate
-    No = Co equal C indices
-    Rn = Rv No
-    Ne = No len
-    Dn = (D (Cs No)) reshape Ne 1
-    Mu = Jv - Dn max 0
-    Od = Rn * Mu mod P
-    Rf = Rn reshape (Ne * Jw)
-    Rh = Rf (0 till Ne * Jw - 1)
-    Sf = concat (array 0) Rh
-    Sm = Sf reshape Ne Jw
-    Nn = (Od + Sm) mod P
-    Nv (Tx No) += Nn .accumulate
-    V = Nv mod P
-    Pc = Uc
+Width = R min C
+Powers = 16 ** (0 till Width)
+
+rem Only the frontier determines which
+rem old colours can join the next cell.
+fun Patterns transitions Column
+  Count = Patterns len
+  Labels = Patterns reshape Count 1
+  Labels = Labels // Powers mod 16
+  Flat = Labels reshape (Count * Width)
+  Rows = 0 till Count copy
+  Above = Flat (Rows * Width)
+  Left = Above * 0 + 15
+  if Column greater 0
+    Last = Rows * Width + Width - 1
+    Left = Flat Last
+  end
+  Empty = Labels equal 15
+  Named = Empty choose (0 - 1) Labels
+  Maximum = Named reduce max axis 1
+  Used = Maximum + 1
+  Options = Width + 1
+  Choices = 0 till Count * Options copy
+  Source = Choices // Options
+  Colour = Choices mod Options
+  Tail = 1 till Width copy
+  Start = Source reshape (Choices len) 1
+  Offset = Start * Width + Tail
+  Remaining = Flat Offset
+  Length = Choices len
+  Candidate = Colour reshape Length 1
+  Matches = Remaining equal Candidate
+  Present = Matches reduce or axis 1
+  Join = Colour less Used Source
+  Join = Join and Present
+  Clear = Colour not equal Above Source
+  Join = Join and Clear
+  Clear = Colour not equal Left Source
+  Join = Join and Clear
+  Allowed = Colour equal Width or Join
+  Valid = Allowed indices
+  Source = Source Valid
+  Colour = Colour Valid
+  Size = Source len
+  Starts = Source reshape Size 1
+  Offsets = Starts * Width + Tail
+  Rest = Flat Offsets
+  New = Colour equal Width
+  Last = New choose 14 Colour
+  End = Last reshape Size 1
+  Next = concat Rest End axis 1
+
+  rem Canonical labels follow first use.
+  Row = 0 till Size copy
+  Base = Row reshape Size 1
+  Addresses = Base * 16 + Next
+  Places = 0 till Width copy
+  Orders = Next * 0 + Places
+  Length = Size * Width
+  Address = Addresses reshape Length
+  Order = Orders reshape Length
+  Slots = Size * 16
+  Map = array shape Slots fill Width
+  Map (Address reverse) = Order reverse
+  Earliest = Map Address
+  First = Earliest reshape Size Width
+  Fresh = First equal Places
+  Fresh = Fresh and (Next less 15)
+  Names = Fresh integer scan + axis 1
+  Gather = Base * Width + First
+  Ranks = Names reshape (Size * Width)
+  Renamed = Ranks Gather - 1
+  Empty = Next equal 15
+  Canonical = Empty choose 15 Renamed
+  Codes = Canonical * Powers
+  Packed = Codes reduce + axis 1
+  Unique = Packed unique sort
+  Target = Unique lowerindex Packed
+  New = Colour equal Width
+  FreshRows = New indices
+  Joins = New equal false indices
+  NewSource = Source FreshRows
+  return record
+    .patterns = Unique copy
+    .source = Source Joins copy
+    .target = Target Joins copy
+    .newsource = NewSource copy
+    .newtarget = Target FreshRows copy
+    .used = Used NewSource copy
   end
 end
-Nj = V reduce + axis 0 mod P
-rem Lucas: N + 1 above P keeps n mod P,
-rem and j! C(n, j + 1) is the falling
-rem product of j + 1 terms over j + 1.
-N0 = (N + 1) mod P
-Fp = Jv * 0
-Pf = 1
-for I in 0 till Jw
-  Pf = Pf * ((N0 - I) mod P) mod P
-  Fp I = Pf
+
+rem Sample the chromatic polynomial,
+rem then interpolate its prefix sum.
+Samples = R * C + 1 min N
+rem Bound DP rows; 16 is slower
+rem and 64 needs more memory in trials.
+Block = 32 min (Samples + 1)
+Colours = 0 till Block copy
+rem After two rows the transfer graph
+rem repeats with the column position.
+fun Graph extend Cell
+  States = Graph .patterns
+  Column = Cell mod Width
+  return States transitions Column
 end
-Iv = (Jv + 1) (P - 2) P powmod
-Wj = Fp * Iv mod P
-Answer = Nj * Wj mod P sum
-Answer = Answer mod P
+Seed = record
+  .patterns = array (15 * Powers sum)
+  .source = array shape 0 fill 0
+  .target = array shape 0 fill 0
+  .newsource = array shape 0 fill 0
+  .newtarget = array shape 0 fill 0
+  .used = array shape 0 fill 0
+end
+Steps = 0 till (R * C min (2 * Width))
+Graphs = Steps scan extend with Seed
+Values = array shape 1 Block fill 1
+Batches = (Samples + Block) // Block
+Length = Batches * Block
+Evaluations = array shape Length fill 0
+Cells = R * C
+for Job in 0 till Cells * Batches
+  Cell = Job mod Cells
+  Batch = Job // Cells
+  Start = Batch * Block
+  if Cell equal 0
+    Range = 0 till Block copy
+    Colours = Start + Range
+    Values = array shape 1 Block fill 1
+  end
+  Index = Cell
+  if Cell at least 2 * Width
+    Index = Width + Cell mod Width
+  end
+  Step = Graphs (Index + 1)
+  Sources = Step .source
+  Targets = Step .target
+  NewPatterns = Step .patterns
+  Count = NewPatterns len
+  Next = array shape Count Block fill 0
+  Kept = Values Sources copy
+  Next Targets += Kept .accumulate
+  Counts = Step .used
+  Count = Counts len
+  Used = Counts reshape Count 1
+  Factor = Colours - Used max 0
+  Sources = Step .newsource
+  Targets = Step .newtarget
+  NewValues = Values Sources
+  Added = NewValues * Factor mod P
+  Next Targets += Added .accumulate
+  Values = Next mod P
+  if Cell equal Cells - 1
+    Total = Values reduce + axis 0 mod P
+    Evaluations Colours = Total
+  end
+end
+Totals = Evaluations (0 to Samples)
+Sums = Totals scan + mod P
+Sums 0 = 0
+rem Degree is below P - 1: complete
+rem colour periods sum to zero mod P.
+Point = N mod P
+Answer = 0
+if Point at most Samples
+  Answer = Sums Point
+else
+  Terms = 0 to Samples copy
+  Delta = Point - Terms mod P
+  Prefix = Delta scan * with 1 mod P
+  Back = Delta reverse
+  Suffix = Back scan * with 1 mod P
+  Suffix = Suffix reverse
+  Before = Prefix Terms
+  After = Suffix (Terms + 1)
+  Product = Before * After mod P
+  Up = 1 to Samples
+  Factorial = Up scan * with 1 mod P
+  Inverse = Factorial (P - 2) P powmod
+  Before = Inverse Terms
+  After = Inverse (Samples - Terms)
+  Weight = Before * After mod P
+  Parity = Samples - Terms
+  Sign = Parity mod 2
+  Even = Sign equal 0
+  Negative = 0 - Weight
+  Weight = Even choose Weight Negative
+  Product = Product * Weight mod P
+  Answer = Product * Sums mod P sum
+  Answer = Answer mod P
+end
+if Cells equal 0
+  Answer = N mod P
+end
 Answer print
