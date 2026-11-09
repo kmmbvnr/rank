@@ -644,6 +644,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         // Existing array contracts can poll again while publishing a rebound
         // binding. Retain ordinary statement boundaries for observable budgets.
         if (plan.rangeDefinitions?.size && interruptsEnabled()) return recordFallback('number-loop:observable-range-completion', 'effects');
+        if (plan.syntax.has('pointwise-bindings') && interruptsEnabled()) return recordFallback('number-loop:observable-pointwise-bindings', 'effects');
         if ((plan.builtins.has('lowerindex') || plan.builtins.has('upperindex')) && (demandBudgetEnabled() || interruptsEnabled()))
             return recordFallback('number-loop:observable-sorted-search', 'effects');
         // Retained local vectors must keep the existing exact tier's demand

@@ -1,5 +1,19 @@
 # Compiler progress
 
+## Independent pointwise loop bindings (Euler 552)
+
+Adjacent independent numeric vector bindings can share one private traversal
+inside a Number loop. Integer, real and Boolean outputs use the existing buffer
+pool and share repeated leaf reads. Ordinary aliases and dependencies stop the
+group. Different output lengths retain separate traversals; unsafe arithmetic
+replays the original loop with exact arithmetic and source-order errors.
+Cancellation and demand budgets retain the previous completion boundaries.
+
+Euler 552 keeps its modular CRT algorithm and array expressions. Prefix trimming
+uses `drop` instead of an explicit index array. No helper boundary, unchecked
+Number arithmetic or larger temporary table is introduced.
+See [measurements and checks](../../benchmarks/euler552.md).
+
 ## Whole-loop coordinate invariance (Euler 551)
 
 Number-loop row-base hoisting now considers all assignments in a loop before

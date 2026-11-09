@@ -6,7 +6,7 @@ import {
     applicationForm, isExpressionStatement, findOperation, matchCompiledEffectSignature, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement,
     isPushStatement, isBinaryExpression, isArrayAssignmentStatement, isReturnStatement, isYieldStatement, isArrayExpression,
-    isParenthesizedExpression, isNameExpression, isUnpackStatement, isFunctionStatement, type Statement,
+    isParenthesizedExpression, isNameExpression, isNumberLiteral, isBooleanLiteral, isUnaryExpression, isUnpackStatement, isFunctionStatement, type Expression, type Statement,
 } from '@arrrank/language';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
@@ -62,9 +62,90 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
         return true;
     }
 
+    /** Independent ordinary bindings can share a private traversal. Any cell
+     * failure replays the original loop, preserving binding and error order. */
+    function pointwiseBindings(commands: readonly Statement[], at: number, body: string[]): number | undefined {
+        if (!numberMode || !host.arrayLocals || !host.arrayReads) return 0;
+        const group: import('@arrrank/language').AssignmentStatement[] = [];
+        const targets = new Set<string>();
+        function pure(expression: Expression): boolean {
+            const pending = [expression];
+            while (pending.length) {
+                const e = pending.pop()!;
+                if (isParenthesizedExpression(e)) pending.push(e.value);
+                else if (isNameExpression(e)) {
+                    if (e.name.includes('.') || targets.has(e.name)) return false;
+                } else if (isNumberLiteral(e) || isBooleanLiteral(e)) continue;
+                else if (isUnaryExpression(e) && ['+', '-', 'not'].includes(e.operator)) pending.push(e.operand);
+                else if (isBinaryExpression(e) && !e.step
+                    && ['+', '-', '*', '/', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast', 'and', 'or'].includes(e.operator)) pending.push(e.left, e.right);
+                else return false;
+            }
+            return true;
+        }
+        for (let index = at; index < commands.length; index++) {
+            const command = commands[index];
+            if (!isAssignmentStatement(command) || command.operator !== '=' || command.deferred
+                || command.name.includes('.') || targets.has(command.name) || localTypes.has(command.name)) break;
+            let root = command.value;
+            while (isParenthesizedExpression(root)) root = root.value;
+            if (isNameExpression(root)) break;
+            const type = expressions.arrayType(command.value);
+            if (type?.rank !== 1 || !['integer', 'boolean', 'real'].includes(type.element) || !pure(command.value)) break;
+            group.push(command); targets.add(command.name);
+        }
+        if (group.length < 2) return 0;
+        // Shape changes, readers and calls retain their individual completion
+        // boundaries. Each admitted leaf is a completed private array/scalar.
+        const setup: string[] = [];
+        const vectors = group.map(command => expressions.numberVector(command.value, setup));
+        if (vectors.some(vector => !vector)) return reject(group[0]);
+        const first = vectors[0]!;
+        const cell = `fusedCell${state.serial++}`, outputs = group.map(() => `fusedArray${state.serial++}`);
+        const sources = [...new Set(vectors.flatMap(vector => vector!.sources))];
+        const cells: string[] = [];
+        const frame = { shape: first.shape, rank: 1, offsets: new Map<string, string>(), values: new Map<string, LoopTerm>() };
+        const values = vectors.map(vector => vector!.cell(cell, cells, frame));
+        if (values.some(value => !value)) return reject(group[0]);
+        state.syntax.add('pointwise-bindings');
+        body.push(...setup);
+
+        outputs.forEach((output, i) => body.push(`const ${output} = vectorArray(${vectors[i]!.shape}, ${vectors[i]!.type === 'real'}, vectorPool, vectorLive,
+            [result, iterationResult, ${[...sources, ...outputs.slice(0, i).map(name => `${name}.cells`)].join(',')}], ${vectors[i]!.type === 'boolean'});`));
+        const store = (value: LoopTerm, i: number) => `${outputs[i]}.store(${cell}, ${vectors[i]!.type === 'boolean' ? `${value.code} ? 1 : 0` : value.code});`;
+        const fast: string[] = [];
+        const compactFrame = { ...frame, compact: true, offsets: new Map<string, string>(), values: new Map<string, LoopTerm>() };
+        const compactValues = vectors.map(vector => vector!.cell(cell, fast, compactFrame));
+        const ordinary = expressions.numberVectorLoop(first.size, cell, [...cells, ...values.map((value, i) => store(value!, i))]);
+        const guards = [...new Set(vectors.flatMap(vector => vector!.compactGuards))];
+        const joined = compactValues.every(value => !!value) && guards.length
+            ? `if (${guards.join(' && ')}) { ${expressions.numberVectorLoop(first.size, cell, [...fast, ...compactValues.map((value, i) => store(value!, i))])} } else { ${ordinary} }`
+            : ordinary;
+        const separate: string[] = [];
+        for (let i = 0; i < vectors.length; i++) {
+            const vector = vectors[i];
+            const lines: string[] = [];
+            const value = vector!.cell(cell, lines);
+            if (!value) return reject(group[i]);
+            separate.push(expressions.numberVectorLoop(vector!.size, cell, [...lines, store(value, i)]));
+        }
+        body.push(`if (${vectors.slice(1).map(vector => `${first.size} === ${vector!.size}`).join(' && ')}) { ${joined} } else { ${separate.join('\n')} }`);
+        for (let i = 0; i < group.length; i++) {
+            if (locations.length >= 128) return reject(group[i], 'statement-budget');
+            const location = locations.length; locations.push(group[i]);
+            if (!bindArray(group[i], group[i].name, outputs[i], 1, vectors[i]!.type, [], body, location)) return undefined;
+        }
+        return group.length;
+    }
+
     function statements(commands: readonly Statement[], body: string[], allowTail: boolean, breakLabel?: string, fusion = true): 'next' | 'stop' | undefined {
         for (let commandIndex = 0; commandIndex < commands.length; commandIndex++) {
             const assignment = commands[commandIndex];
+            if (fusion && numberMode) {
+                const count = pointwiseBindings(commands, commandIndex, body);
+                if (count === undefined) return undefined;
+                if (count) { commandIndex += count - 1; continue; }
+            }
             if (fusion && !numberMode && host.arrayRegions && host.prepareArrayWrite) {
                 const region = compileArrayRegion(commands, commandIndex);
                 if (region && region.locals.every(name => !assigned.has(name) && host.read(name) === undefined)
