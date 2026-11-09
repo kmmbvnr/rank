@@ -1,5 +1,18 @@
 # Compiler progress
 
+## Whole-loop coordinate invariance (Euler 551)
+
+Number-loop row-base hoisting now considers all assignments in a loop before
+lowering its first read or write. Later conditional assignments and nested-loop
+updates invalidate a coordinate too. This repairs the wrong full result from
+the unchanged Euler 551 program; it is independent of the demo's faster rewrite.
+Definite assignment remains separate from the invariance proof, and existing
+constant/invariant row bases retain hoisting and bounds-check optimizations.
+
+The demo now constructs unit-boundary transitions directly and composes decimal
+levels as array operations. Separate matrix records avoid copying old levels.
+See [correctness and measurements](../../benchmarks/euler551.md).
+
 ## Segmented sieves and scalar extrema writes (Euler 549)
 
 Number loops can stream discarded `A Slots min/max Scalar` range updates

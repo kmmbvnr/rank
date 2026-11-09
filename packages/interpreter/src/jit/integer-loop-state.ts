@@ -4,7 +4,7 @@ import { INTERRUPT_POLL_INTERVAL } from '../interrupt.js';
 import { type LoopHost, type IntegerLoopPlan, type LoopTerm, type LoopPolling } from './integer-loop-plan.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    isFunctionStatement, isReturnStatement, statementResultDiscarded, isArrayAssignmentStatement, isAssignmentStatement, isParenthesizedExpression, isUnpackStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
+    isForStatement, isFunctionStatement, isReturnStatement, statementResultDiscarded, isArrayAssignmentStatement, isAssignmentStatement, isParenthesizedExpression, isUnpackStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
     type Expression, type Statement, type ForStatement, type FunctionStatement,
 } from '@arrrank/language';
 
@@ -144,6 +144,14 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
     }
     function pushScope(inductionVariable?: string, inductionSlot?: number, range?: LoopRangeInfo, source = statement): LoopScope {
         const stableStores = new Set<string>();
+        // Hoisting is a whole-loop proof: later and conditional writes also
+        // invalidate a leading coordinate, including writes in nested loops.
+        const modified = new Set<string>();
+        for (const node of AstUtils.streamAllContents(source)) {
+            if (isAssignmentStatement(node)) modified.add(node.name);
+            if (isUnpackStatement(node)) node.names.forEach(name => modified.add(name));
+            if (isForStatement(node)) host.iteration(node.condition)?.names.forEach(name => modified.add(name));
+        }
         if (ownershipChecks && range) {
             for (const node of source.statements) if (isArrayAssignmentStatement(node)) stableStores.add(node.name);
             for (const node of AstUtils.streamAllContents(source)) {
@@ -159,7 +167,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
             depth: loopScopes.length,
             inductionVariable,
             inductionSlot,
-            assigned: new Set(),
+            assigned: modified,
             range,
             setupLines: [],
             bceGuards: new Map(),

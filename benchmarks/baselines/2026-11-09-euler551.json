@@ -1,0 +1,2465 @@
+{
+  "base": "8a026d9ef513af57ba32cc59b6d15209674bb69e",
+  "fullAnswer": "73597483551591773",
+  "primaryRuntime": "corrected compiler for both old and new programs",
+  "mac": {
+    "base": "8a026d9ef513af57ba32cc59b6d15209674bb69e",
+    "runtime": "both primary variants use the corrected loop-invariance proof",
+    "arch": "arm64",
+    "platform": "darwin",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "samples": [
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 0,
+        "before": {
+          "load": [
+            1.77001953125,
+            1.8759765625,
+            1.82861328125
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 526.477125,
+        "cpu": {
+          "user": 864932,
+          "system": 22132
+        },
+        "rssMiB": 286.703125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 0,
+        "before": {
+          "load": [
+            1.7880859375,
+            1.8779296875,
+            1.82958984375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 237.37179200000003,
+        "cpu": {
+          "user": 455089,
+          "system": 13177
+        },
+        "rssMiB": 205.71875,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 1,
+        "before": {
+          "load": [
+            1.7880859375,
+            1.8779296875,
+            1.82958984375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 234.77575,
+        "cpu": {
+          "user": 424940,
+          "system": 12637
+        },
+        "rssMiB": 205.171875,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 1,
+        "before": {
+          "load": [
+            1.7880859375,
+            1.8779296875,
+            1.82958984375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 529.4465419999999,
+        "cpu": {
+          "user": 869146,
+          "system": 22256
+        },
+        "rssMiB": 279.78125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 2,
+        "before": {
+          "load": [
+            1.7880859375,
+            1.8779296875,
+            1.82958984375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 527.556875,
+        "cpu": {
+          "user": 868016,
+          "system": 22448
+        },
+        "rssMiB": 288.484375,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 2,
+        "before": {
+          "load": [
+            1.7880859375,
+            1.8779296875,
+            1.82958984375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 236.63350000000003,
+        "cpu": {
+          "user": 455403,
+          "system": 12786
+        },
+        "rssMiB": 208.21875,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 3,
+        "before": {
+          "load": [
+            1.7880859375,
+            1.8779296875,
+            1.82958984375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 234.351709,
+        "cpu": {
+          "user": 424102,
+          "system": 13083
+        },
+        "rssMiB": 204.703125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 3,
+        "before": {
+          "load": [
+            1.7880859375,
+            1.8779296875,
+            1.82958984375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 524.5865,
+        "cpu": {
+          "user": 857369,
+          "system": 23307
+        },
+        "rssMiB": 280.28125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 4,
+        "before": {
+          "load": [
+            1.7880859375,
+            1.8779296875,
+            1.82958984375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 525.989083,
+        "cpu": {
+          "user": 876162,
+          "system": 22298
+        },
+        "rssMiB": 276.140625,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 4,
+        "before": {
+          "load": [
+            1.7880859375,
+            1.8779296875,
+            1.82958984375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 235.56249999999997,
+        "cpu": {
+          "user": 449057,
+          "system": 12782
+        },
+        "rssMiB": 205.765625,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 0,
+        "before": {
+          "load": [
+            1.7880859375,
+            1.8779296875,
+            1.82958984375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 523.797,
+        "cpu": {
+          "user": 905658,
+          "system": 23108
+        },
+        "rssMiB": 273.296875,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 0,
+        "before": {
+          "load": [
+            1.724609375,
+            1.86328125,
+            1.82470703125
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 264.08375,
+        "cpu": {
+          "user": 504686,
+          "system": 14732
+        },
+        "rssMiB": 257.203125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 1,
+        "before": {
+          "load": [
+            1.724609375,
+            1.86328125,
+            1.82470703125
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 270.906708,
+        "cpu": {
+          "user": 507036,
+          "system": 16474
+        },
+        "rssMiB": 255.078125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 1,
+        "before": {
+          "load": [
+            1.724609375,
+            1.86328125,
+            1.82470703125
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 520.18475,
+        "cpu": {
+          "user": 890303,
+          "system": 22643
+        },
+        "rssMiB": 274.453125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 2,
+        "before": {
+          "load": [
+            1.724609375,
+            1.86328125,
+            1.82470703125
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 523.256042,
+        "cpu": {
+          "user": 897908,
+          "system": 23296
+        },
+        "rssMiB": 273.296875,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 2,
+        "before": {
+          "load": [
+            1.724609375,
+            1.86328125,
+            1.82470703125
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 270.06375,
+        "cpu": {
+          "user": 512053,
+          "system": 15667
+        },
+        "rssMiB": 255.765625,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 3,
+        "before": {
+          "load": [
+            1.724609375,
+            1.86328125,
+            1.82470703125
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 266.83566599999995,
+        "cpu": {
+          "user": 504807,
+          "system": 15744
+        },
+        "rssMiB": 257.390625,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 3,
+        "before": {
+          "load": [
+            1.724609375,
+            1.86328125,
+            1.82470703125
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 531.5240409999999,
+        "cpu": {
+          "user": 922664,
+          "system": 23230
+        },
+        "rssMiB": 275.65625,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 4,
+        "before": {
+          "load": [
+            1.724609375,
+            1.86328125,
+            1.82470703125
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 521.227833,
+        "cpu": {
+          "user": 895505,
+          "system": 23426
+        },
+        "rssMiB": 289.640625,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 4,
+        "before": {
+          "load": [
+            1.74658203125,
+            1.865234375,
+            1.82568359375
+          ]
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 272.20066700000007,
+        "cpu": {
+          "user": 483343,
+          "system": 17321
+        },
+        "rssMiB": 259.3125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 0,
+        "before": {
+          "load": [
+            1.74658203125,
+            1.865234375,
+            1.82568359375
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 922.037834,
+        "cpu": {
+          "user": 1489833,
+          "system": 31469
+        },
+        "rssMiB": 289.578125,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 0,
+        "before": {
+          "load": [
+            1.74658203125,
+            1.865234375,
+            1.82568359375
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 167.317875,
+        "cpu": {
+          "user": 310942,
+          "system": 10895
+        },
+        "rssMiB": 187.609375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 1,
+        "before": {
+          "load": [
+            1.74658203125,
+            1.865234375,
+            1.82568359375
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 170.584875,
+        "cpu": {
+          "user": 308176,
+          "system": 10500
+        },
+        "rssMiB": 187.125,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 1,
+        "before": {
+          "load": [
+            1.74658203125,
+            1.865234375,
+            1.82568359375
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 926.597291,
+        "cpu": {
+          "user": 1496613,
+          "system": 31076
+        },
+        "rssMiB": 286.421875,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 2,
+        "before": {
+          "load": [
+            1.74658203125,
+            1.865234375,
+            1.82568359375
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 943.7476660000001,
+        "cpu": {
+          "user": 1556751,
+          "system": 32871
+        },
+        "rssMiB": 286.734375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 2,
+        "before": {
+          "load": [
+            1.74658203125,
+            1.865234375,
+            1.82568359375
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 172.836542,
+        "cpu": {
+          "user": 313533,
+          "system": 10551
+        },
+        "rssMiB": 187.5,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 3,
+        "before": {
+          "load": [
+            1.74658203125,
+            1.865234375,
+            1.82568359375
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 172.38,
+        "cpu": {
+          "user": 318302,
+          "system": 10970
+        },
+        "rssMiB": 187.9375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 3,
+        "before": {
+          "load": [
+            1.7666015625,
+            1.8671875,
+            1.82666015625
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 936.9714590000001,
+        "cpu": {
+          "user": 1526758,
+          "system": 31683
+        },
+        "rssMiB": 285.8125,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 4,
+        "before": {
+          "load": [
+            1.7666015625,
+            1.8671875,
+            1.82666015625
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 926.3917919999999,
+        "cpu": {
+          "user": 1494929,
+          "system": 31218
+        },
+        "rssMiB": 287.484375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 4,
+        "before": {
+          "load": [
+            1.7666015625,
+            1.8671875,
+            1.82666015625
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 170.753667,
+        "cpu": {
+          "user": 311290,
+          "system": 10952
+        },
+        "rssMiB": 187.75,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 0,
+        "before": {
+          "load": [
+            1.7666015625,
+            1.8671875,
+            1.82666015625
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 957.3000829999999,
+        "cpu": {
+          "user": 1609661,
+          "system": 35019
+        },
+        "rssMiB": 293.109375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 0,
+        "before": {
+          "load": [
+            1.7666015625,
+            1.8671875,
+            1.82666015625
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 171.566375,
+        "cpu": {
+          "user": 332158,
+          "system": 11528
+        },
+        "rssMiB": 196.28125,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 1,
+        "before": {
+          "load": [
+            1.7666015625,
+            1.8671875,
+            1.82666015625
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 165.271625,
+        "cpu": {
+          "user": 326485,
+          "system": 11141
+        },
+        "rssMiB": 197.21875,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 1,
+        "before": {
+          "load": [
+            1.7666015625,
+            1.8671875,
+            1.82666015625
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 954.4095420000001,
+        "cpu": {
+          "user": 1601136,
+          "system": 34817
+        },
+        "rssMiB": 288.953125,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 2,
+        "before": {
+          "load": [
+            1.78515625,
+            1.869140625,
+            1.82763671875
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 955.8657079999999,
+        "cpu": {
+          "user": 1598225,
+          "system": 34016
+        },
+        "rssMiB": 289.109375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 2,
+        "before": {
+          "load": [
+            1.78515625,
+            1.869140625,
+            1.82763671875
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 171.31525,
+        "cpu": {
+          "user": 334141,
+          "system": 11187
+        },
+        "rssMiB": 196.265625,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 3,
+        "before": {
+          "load": [
+            1.78515625,
+            1.869140625,
+            1.82763671875
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 169.68704100000002,
+        "cpu": {
+          "user": 328797,
+          "system": 11850
+        },
+        "rssMiB": 196.234375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 3,
+        "before": {
+          "load": [
+            1.78515625,
+            1.869140625,
+            1.82763671875
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 947.4862090000001,
+        "cpu": {
+          "user": 1585223,
+          "system": 33511
+        },
+        "rssMiB": 287.609375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 4,
+        "before": {
+          "load": [
+            1.78515625,
+            1.869140625,
+            1.82763671875
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 957.9034170000001,
+        "cpu": {
+          "user": 1612919,
+          "system": 33177
+        },
+        "rssMiB": 264.03125,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 4,
+        "before": {
+          "load": [
+            1.78515625,
+            1.869140625,
+            1.82763671875
+          ]
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 170.78975000000003,
+        "cpu": {
+          "user": 330505,
+          "system": 11601
+        },
+        "rssMiB": 196.625,
+        "answer": "passed",
+        "diagnosticMode": false
+      }
+    ]
+  },
+  "intel": {
+    "base": "8a026d9ef513af57ba32cc59b6d15209674bb69e",
+    "runtime": "both primary variants use the corrected loop-invariance proof",
+    "arch": "x64",
+    "platform": "linux",
+    "node": "v24.15.0",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "samples": [
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 0,
+        "before": {
+          "load": [
+            0.17,
+            0.11,
+            0.09
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 1256.0038470000002,
+        "cpu": {
+          "user": 1940464,
+          "system": 82749
+        },
+        "rssMiB": 253.82421875,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 0,
+        "before": {
+          "load": [
+            0.23,
+            0.12,
+            0.09
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 613.116154,
+        "cpu": {
+          "user": 1068240,
+          "system": 32813
+        },
+        "rssMiB": 194.97265625,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 1,
+        "before": {
+          "load": [
+            0.23,
+            0.12,
+            0.09
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 580.344907,
+        "cpu": {
+          "user": 1010935,
+          "system": 31948
+        },
+        "rssMiB": 195.06640625,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 1,
+        "before": {
+          "load": [
+            0.23,
+            0.12,
+            0.09
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 1271.757658,
+        "cpu": {
+          "user": 1929842,
+          "system": 97643
+        },
+        "rssMiB": 251.0703125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 2,
+        "before": {
+          "load": [
+            0.23,
+            0.12,
+            0.09
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 1314.673867,
+        "cpu": {
+          "user": 2055205,
+          "system": 56070
+        },
+        "rssMiB": 249.43359375,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 2,
+        "before": {
+          "load": [
+            0.29,
+            0.14,
+            0.1
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 579.1091630000001,
+        "cpu": {
+          "user": 1024630,
+          "system": 25909
+        },
+        "rssMiB": 194.6796875,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 3,
+        "before": {
+          "load": [
+            0.29,
+            0.14,
+            0.1
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 593.1392109999999,
+        "cpu": {
+          "user": 1015898,
+          "system": 39458
+        },
+        "rssMiB": 195.703125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 3,
+        "before": {
+          "load": [
+            0.29,
+            0.14,
+            0.1
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 1364.961125,
+        "cpu": {
+          "user": 2133297,
+          "system": 73867
+        },
+        "rssMiB": 248.03125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 4,
+        "before": {
+          "load": [
+            0.29,
+            0.14,
+            0.1
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 1314.572141,
+        "cpu": {
+          "user": 2039836,
+          "system": 71565
+        },
+        "rssMiB": 249.40234375,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "compiled",
+        "pair": 4,
+        "before": {
+          "load": [
+            0.35,
+            0.15,
+            0.1
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 626.6299389999999,
+        "cpu": {
+          "user": 1073622,
+          "system": 46160
+        },
+        "rssMiB": 195.4375,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 0,
+        "before": {
+          "load": [
+            0.35,
+            0.15,
+            0.1
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 1340.791443,
+        "cpu": {
+          "user": 2228371,
+          "system": 57961
+        },
+        "rssMiB": 236.6796875,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 0,
+        "before": {
+          "load": [
+            0.35,
+            0.15,
+            0.1
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 696.791201,
+        "cpu": {
+          "user": 1130270,
+          "system": 60731
+        },
+        "rssMiB": 240.5,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 1,
+        "before": {
+          "load": [
+            0.4,
+            0.17,
+            0.11
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 674.2147600000001,
+        "cpu": {
+          "user": 1090959,
+          "system": 49677
+        },
+        "rssMiB": 241.83203125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 1,
+        "before": {
+          "load": [
+            0.4,
+            0.17,
+            0.11
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 1271.8852590000001,
+        "cpu": {
+          "user": 2100545,
+          "system": 62157
+        },
+        "rssMiB": 238.99609375,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 2,
+        "before": {
+          "load": [
+            0.4,
+            0.17,
+            0.11
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 1293.515476,
+        "cpu": {
+          "user": 2168655,
+          "system": 57647
+        },
+        "rssMiB": 239.53515625,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 2,
+        "before": {
+          "load": [
+            0.4,
+            0.17,
+            0.11
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 650.608363,
+        "cpu": {
+          "user": 1099898,
+          "system": 71115
+        },
+        "rssMiB": 237.90625,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 3,
+        "before": {
+          "load": [
+            0.45,
+            0.18,
+            0.11
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 656.4987360000001,
+        "cpu": {
+          "user": 1110696,
+          "system": 58902
+        },
+        "rssMiB": 237.66796875,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 3,
+        "before": {
+          "load": [
+            0.45,
+            0.18,
+            0.11
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 1271.4064939999998,
+        "cpu": {
+          "user": 2087958,
+          "system": 90747
+        },
+        "rssMiB": 238.203125,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 4,
+        "before": {
+          "load": [
+            0.45,
+            0.18,
+            0.11
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "ms": 1270.5800219999999,
+        "cpu": {
+          "user": 2110934,
+          "system": 84503
+        },
+        "rssMiB": 239.9609375,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "full",
+        "mode": "reference",
+        "pair": 4,
+        "before": {
+          "load": [
+            0.66,
+            0.23,
+            0.13
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "1000000000000000",
+        "limit": "1000000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "ms": 688.782598,
+        "cpu": {
+          "user": 1092928,
+          "system": 47862
+        },
+        "rssMiB": 242.3046875,
+        "answer": "73597483551591773",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 0,
+        "before": {
+          "load": [
+            0.66,
+            0.23,
+            0.13
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 2234.791983,
+        "cpu": {
+          "user": 3448603,
+          "system": 95819
+        },
+        "rssMiB": 260.4921875,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 0,
+        "before": {
+          "load": [
+            0.66,
+            0.23,
+            0.13
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 424.292173,
+        "cpu": {
+          "user": 699733,
+          "system": 34571
+        },
+        "rssMiB": 173.69140625,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 1,
+        "before": {
+          "load": [
+            0.68,
+            0.24,
+            0.13
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 426.656622,
+        "cpu": {
+          "user": 702718,
+          "system": 31889
+        },
+        "rssMiB": 173.890625,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 1,
+        "before": {
+          "load": [
+            0.68,
+            0.24,
+            0.13
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 2188.192931,
+        "cpu": {
+          "user": 3390939,
+          "system": 89758
+        },
+        "rssMiB": 263.6953125,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 2,
+        "before": {
+          "load": [
+            0.68,
+            0.24,
+            0.13
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 2291.702008,
+        "cpu": {
+          "user": 3532745,
+          "system": 105549
+        },
+        "rssMiB": 265.671875,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 2,
+        "before": {
+          "load": [
+            0.79,
+            0.27,
+            0.14
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 425.830113,
+        "cpu": {
+          "user": 709834,
+          "system": 24320
+        },
+        "rssMiB": 172.859375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 3,
+        "before": {
+          "load": [
+            0.79,
+            0.27,
+            0.14
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 434.921704,
+        "cpu": {
+          "user": 691713,
+          "system": 50161
+        },
+        "rssMiB": 174.10546875,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 3,
+        "before": {
+          "load": [
+            0.79,
+            0.27,
+            0.14
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 2392.150419,
+        "cpu": {
+          "user": 3747605,
+          "system": 124104
+        },
+        "rssMiB": 259.1484375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 4,
+        "before": {
+          "load": [
+            0.89,
+            0.3,
+            0.16
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 2240.56556,
+        "cpu": {
+          "user": 3451783,
+          "system": 87677
+        },
+        "rssMiB": 261.87109375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "compiled",
+        "pair": 4,
+        "before": {
+          "load": [
+            0.89,
+            0.3,
+            0.16
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 426.683772,
+        "cpu": {
+          "user": 721810,
+          "system": 21722
+        },
+        "rssMiB": 172.3046875,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 0,
+        "before": {
+          "load": [
+            0.89,
+            0.3,
+            0.16
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 2365.199091,
+        "cpu": {
+          "user": 3829460,
+          "system": 77525
+        },
+        "rssMiB": 263.75,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 0,
+        "before": {
+          "load": [
+            0.89,
+            0.31,
+            0.16
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 435.25312399999996,
+        "cpu": {
+          "user": 726903,
+          "system": 53902
+        },
+        "rssMiB": 183.01953125,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 1,
+        "before": {
+          "load": [
+            0.89,
+            0.31,
+            0.16
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 434.24514300000004,
+        "cpu": {
+          "user": 735798,
+          "system": 37941
+        },
+        "rssMiB": 182.20703125,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 1,
+        "before": {
+          "load": [
+            0.89,
+            0.31,
+            0.16
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 2352.380768,
+        "cpu": {
+          "user": 3777275,
+          "system": 123789
+        },
+        "rssMiB": 260.9609375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 2,
+        "before": {
+          "load": [
+            0.9,
+            0.32,
+            0.16
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 2421.7558480000002,
+        "cpu": {
+          "user": 3874328,
+          "system": 139311
+        },
+        "rssMiB": 262.7265625,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 2,
+        "before": {
+          "load": [
+            0.9,
+            0.32,
+            0.16
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 432.156609,
+        "cpu": {
+          "user": 736825,
+          "system": 42657
+        },
+        "rssMiB": 184.12109375,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 3,
+        "before": {
+          "load": [
+            0.91,
+            0.33,
+            0.17
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 439.12417600000003,
+        "cpu": {
+          "user": 741359,
+          "system": 47798
+        },
+        "rssMiB": 184.20703125,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 3,
+        "before": {
+          "load": [
+            0.91,
+            0.33,
+            0.17
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 2410.289619,
+        "cpu": {
+          "user": 3900176,
+          "system": 111576
+        },
+        "rssMiB": 240.62890625,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "old",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 4,
+        "before": {
+          "load": [
+            0.91,
+            0.33,
+            0.17
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 2296.3820170000004,
+        "cpu": {
+          "user": 3735548,
+          "system": 103442
+        },
+        "rssMiB": 262.2421875,
+        "answer": "passed",
+        "diagnosticMode": false
+      },
+      {
+        "label": "new",
+        "scale": "fixture",
+        "mode": "reference",
+        "pair": 4,
+        "before": {
+          "load": [
+            0.92,
+            0.34,
+            0.17
+          ],
+          "otherNodeProcesses": 0
+        },
+        "n": "fixture",
+        "limit": "undefined",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "d939c30f8a442bf0e807ba40f36038e2b3fbe4ed82c834f16600bcdf5d024076",
+        "moduleSha256": "cefed1c4c5bc38624335c752d89b5b1c247abc114cbbd7f64a0025f0e0437b46",
+        "tests": [
+          {
+            "name": "statement terms and a million",
+            "passed": true
+          }
+        ],
+        "ms": 433.35801499999997,
+        "cpu": {
+          "user": 748379,
+          "system": 28141
+        },
+        "rssMiB": 182.83203125,
+        "answer": "passed",
+        "diagnosticMode": false
+      }
+    ]
+  },
+  "preFixCorrectnessControls": [
+    {
+      "host": "mac",
+      "expected": "73597483551591773",
+      "correct": false,
+      "mode": "compiled",
+      "n": "1000000000000000",
+      "limit": "1000000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+      "ms": 519.775042,
+      "cpu": {
+        "user": 855951,
+        "system": 21653
+      },
+      "rssMiB": 267.0625,
+      "answer": "70549705357605360",
+      "diagnosticMode": false
+    },
+    {
+      "host": "intel",
+      "expected": "73597483551591773",
+      "correct": false,
+      "mode": "compiled",
+      "n": "1000000000000000",
+      "limit": "1000000000000000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "68368cee9a7aa76b4658b374d074a630863a4cf6ba970e6890799bb33b9f4aaf",
+      "ms": 1340.0554430000002,
+      "cpu": {
+        "user": 2055095,
+        "system": 89554
+      },
+      "rssMiB": 250.37890625,
+      "answer": "70549705357605360",
+      "diagnosticMode": false
+    }
+  ]
+}

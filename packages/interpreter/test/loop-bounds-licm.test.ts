@@ -35,6 +35,52 @@ function compare(source: string, negativeRead = false) {
 }
 
 describe('loop-invariant code motion, strength reduction, and bounds check elimination (#469)', () => {
+    it.each(['Row += 1', 'if J at least 0\n Row += 1\nend', 'for # in 1 to 1\n Row += 1\nend'])
+        ('keeps a row coordinate updated later in its loop: %s', update => {
+        const candidate = compare(`use sequences
+A = (1 to 16 copy) reshape 4 4
+Row = 0
+Total = 0
+for Outer in 1 to 1
+ for J in 0 to 2
+  Total += A Row J
+  ${update}
+ end
+end`);
+        expect(candidate.observation.error).toBeUndefined();
+        expect(candidate.observation.variables).toContainEqual(['Total', '18']);
+        expect(candidate.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('uses the current row for stores after a later coordinate update', () => {
+        const candidate = compare(`A = array shape 4 4 fill 0
+Row = 0
+for Outer in 1 to 1
+ for J in 0 to 2
+  A Row J = J + 1
+  Row += 1
+ end
+end`);
+        expect(candidate.observation.error).toBeUndefined();
+        expect(candidate.observation.variables).toContainEqual(['A', '1 0 0 0 0 2 0 0 0 0 3 0 0 0 0 0']);
+        expect(candidate.diagnostics.numberLoops).toBe(1);
+    });
+
+    it('raises the located error when a later row update leaves the array', () => {
+        const candidate = compare(`use sequences
+A = (1 to 16 copy) reshape 4 4
+Row = 0
+Total = 0
+for Outer in 1 to 1
+ for J in 0 to 2
+  Total += A Row J
+  Row += 4
+ end
+end`);
+        expect(candidate.observation.error).toBeDefined();
+        expect(candidate.observation.variables).toContainEqual(['Total', '1']);
+    });
+
     describe('1D Bounds Check Elimination (BCE)', () => {
         it('elides per-iteration bounds checks in 0 till (A len) loops', () => {
             const candidate = compare(`A = array 10 20 30 40 50
