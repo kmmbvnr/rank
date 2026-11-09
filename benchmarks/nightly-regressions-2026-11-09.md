@@ -1,8 +1,23 @@
 # Nightly regression investigation, 9 November 2026
 
 The public report compares `2cdb203c` (7 November 22:00 UTC) with
-`563c31e3` (8 November 22:00 UTC). Investigation starts from current main
-`2177dc71` in an isolated worktree.
+`563c31e3` (8 November 22:00 UTC). Investigation started from main `2177dc71` in an isolated worktree; the
+fixes were then rebased onto `56ac57f1`. Four compiler regressions reproduce
+in repeated Intel measurements and are repaired without changing demo
+algorithms. Ten other candidates do not reproduce material slowdowns.
+
+
+| Reproduced regression | Intel nightly ms | Fixed ms | Sampling |
+| --- | ---: | ---: | --- |
+| Euler 777 | 3,263.89 | 1,905.98 | Three paired medians |
+| Euler 785 | 31,073.48 | 23,317.74 | One final-policy pair |
+| Euler 750 | 24,776.09 | 18,935.08 | Three paired medians |
+| Euler 596 | 49,474.63 | 43,114.19 | Three paired medians |
+
+These comparisons use the reported nightly as the before version. Mac and
+Intel results, raw samples and limitations are detailed below. The fixes
+bring performance close to, or below, the older nightly timings; the public report
+remains a historical record until a new nightly runs.
 
 Eight unchanged successful Euler workloads increased by more than 20% and
 500 ms: 417, 418, 419, 420, 455, 750, 777 and 785. These are candidates,
@@ -24,8 +39,8 @@ the nightly runner. The initial comparison uses the exact two nightly
 revisions; current main must be checked before selecting a repair.
 
 Step 1 validation: harness syntax check, whitespace check and TypeScript
-build after Langium generation pass. Paired measurement and compiler
-investigation are ongoing. No performance fix is claimed at this stage.
+build after Langium generation pass. Subsequent paired measurements and
+repairs are recorded below.
 
 ## Step 2: preserve native recipes returned by compiled functions
 
@@ -96,8 +111,10 @@ numeric runner across shapes; exact fallback remains shape-specific. The
 cached closure retains only geometry numbers, never input storage.
 
 Three alternating Mac pairs: Euler 750 median 5,764.44 to 3,937.13 ms;
-Euler 420 control 679.84 to 679.71 ms. Complete answers match. Intel verification
-is pending completion of the independent secondary regression measurements.
+Euler 420 control 679.84 to 679.71 ms. Three alternating Intel pairs give
+Euler 750 median 24,776.09 to 18,935.08 ms, close to the old nightly median
+of 18,587 ms. The Intel Euler 420 control is 2,231.45 to 2,200.44 ms.
+Complete answers match.
 
 The new test checks runner identity across 43 changing shapes, every gathered
 cell against a separate formula, cache bounds, and exact replay of wide cells
@@ -126,8 +143,10 @@ fallback. This is shared expression lowering, with no Euler-specific rule.
 
 The fixed full diagnostic run records 99,999,999 numeric fold cells and zero
 BigInt cell fallbacks. Three alternating Mac pairs give medians 22,642.08 ms
-before and 20,544.63 ms after, with answer `734582049` throughout. Intel
-verification is running separately from tests. No algorithm or demo changes.
+before and 20,544.63 ms after, with answer `734582049` throughout. Three
+alternating Intel pairs give 49,474.63 to 43,114.19 ms, restoring the old
+nightly median of 43,177.93 ms. The combined step 4/5 Intel check passes
+311 tests in eight files. No algorithm or demo changes.
 
 The focused check passes all 215 tests, including signed/large/zero moduli,
 wide products, an independent BigInt oracle, and warmed budget/cancellation
@@ -144,3 +163,30 @@ The tensor-specific helpers now disable those other three compiler modes.
 All value, error, shape and independent-oracle comparisons remain. Each final
 copy/sum in the broadcast matrix now requires one tensor execution. All 76
 tests in the two affected files pass; TypeScript build passes as well.
+
+
+## Integrated verification
+
+After rebasing onto `56ac57f1`, the TypeScript build, semantic-boundary check
+(13 tests, 65 owners), application-form check and harness syntax check pass.
+The combined focused interpreter check passes 641 tests in 22 files on Mac
+and 463 tests in 13 files on Intel, including the concurrent Euler 534 and
+array-ordering changes. Full repository suites and exhaustive audits were
+not run.
+
+A final full-input pair covers 420, 596, 750, 777 and 785 after integration,
+checking all archived answers and identical demo sources. These single pairs
+are integration checks, separate from the repeated performance samples.
+The fixed Mac times are respectively 665.47, 21,876.47, 4,062.84, 561.49 and
+9,659.79 ms. The corresponding fixed Intel times are 2,204.95, 43,501.41, 19,056.23, 1,965.16, 23,547.18 ms.
+Both hosts pass every archived-answer check. Raw samples retain CPU time and
+peak RSS as well as elapsed time.
+The three-pair Intel peak-RSS medians for Euler 596 are 636.6 MiB before and
+636.2 MiB after; Euler 750 is 270.9 MiB before and 266.8 MiB after. These fixes
+primarily reduce execution time; no broad memory-reduction claim is made.
+
+The public dashboard was rechecked and still reports `563c31e3`. Its existing
+historical measurements are unchanged; a future nightly must publish the new
+revision. No new workload failures appeared between the two investigated
+reports. This investigation covers fourteen material timing candidates, not
+a full rerun of all 1,427 dashboard entries.
