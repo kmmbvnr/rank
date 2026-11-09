@@ -1,0 +1,290 @@
+{
+  "before": {
+    "id": "2026-11-07T22-00-52.154Z",
+    "commit": "2cdb203c991a7a3f549eeb9e7265d477c2b44de4",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "node": "v24.15.0",
+    "method": "One fresh CLI process per demo; measured time includes parsing and execution after CLI imports. Startup is recorded separately as wallMs. Libraries run their companion tests. Sequential execution."
+  },
+  "after": {
+    "id": "2026-11-08T22-00-58.475Z",
+    "commit": "563c31e308242a4f8d2df6c8fdfe034689585fc1",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "node": "v24.15.0",
+    "method": "One fresh CLI process per demo; measured time includes parsing and execution after CLI imports. Startup is recorded separately as wallMs. Libraries run their companion tests. Sequential execution."
+  },
+  "candidates": [
+    {
+      "before": {
+        "path": "demos/euler/417_reciprocalcycles.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "65508b2d8928d7a2d90fb857959e74be89b49e3fb23743ef89103ba73afe0b68",
+        "workload": "demos/euler/417_reciprocalcycles.ra",
+        "workloadHash": "ee7ae3ea87e2b968cec99b26db45d4b2e34d05b72639c23879a88e56c4ac862f",
+        "ms": 17799.738927000002,
+        "wallMs": 18399.69207700016,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "446572970925740\n"
+      },
+      "after": {
+        "path": "demos/euler/417_reciprocalcycles.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "65508b2d8928d7a2d90fb857959e74be89b49e3fb23743ef89103ba73afe0b68",
+        "workload": "demos/euler/417_reciprocalcycles.ra",
+        "workloadHash": "ee7ae3ea87e2b968cec99b26db45d4b2e34d05b72639c23879a88e56c4ac862f",
+        "ms": 21835.468391,
+        "wallMs": 22540.347533999942,
+        "cpuMs": 21795.602,
+        "peakRssMiB": 602.13671875,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "446572970925740\n"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/418_factorisationtriples.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "74ec63617018fd4d9de9a6abb91e51da24d95522e4ba56b8ed224f130e23dfc4",
+        "workload": "demos/euler/418_factorisationtriples.ra",
+        "workloadHash": "972e71a6707c7e4ca0d0b846146428908be055c9ccbe16e64cfb7ebe08ceab29",
+        "ms": 1721.076365,
+        "wallMs": 2364.6953340000473,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "1177163565297340320\n"
+      },
+      "after": {
+        "path": "demos/euler/418_factorisationtriples.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "74ec63617018fd4d9de9a6abb91e51da24d95522e4ba56b8ed224f130e23dfc4",
+        "workload": "demos/euler/418_factorisationtriples.ra",
+        "workloadHash": "972e71a6707c7e4ca0d0b846146428908be055c9ccbe16e64cfb7ebe08ceab29",
+        "ms": 2723.1462220000003,
+        "wallMs": 3654.934781999793,
+        "cpuMs": 2721.888,
+        "peakRssMiB": 208.80078125,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "1177163565297340320\n"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/419_lookandsay.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "b7ab624aa4d9ea1f6734ec59b5d15608786dfbed84e8f40b10700a49eaa0e45a",
+        "workload": "demos/euler/419_lookandsay.ra",
+        "workloadHash": "bc43fc57cb665442c223fefbecc592b901d2020dab63e96b0d0a9c1e8958f2fc",
+        "ms": 1084.160668,
+        "wallMs": 1673.7963519999757,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "998567458,1046245404,43363922\n"
+      },
+      "after": {
+        "path": "demos/euler/419_lookandsay.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "b7ab624aa4d9ea1f6734ec59b5d15608786dfbed84e8f40b10700a49eaa0e45a",
+        "workload": "demos/euler/419_lookandsay.ra",
+        "workloadHash": "bc43fc57cb665442c223fefbecc592b901d2020dab63e96b0d0a9c1e8958f2fc",
+        "ms": 1636.368217,
+        "wallMs": 2474.904552000109,
+        "cpuMs": 1636.29,
+        "peakRssMiB": 194.25390625,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "998567458,1046245404,43363922\n"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/420_squarematrices.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "ec0d8c4209d5f95a4b23a746732bf4fdc95539f458de7ae8799fadcb7ca93103",
+        "workload": "demos/euler/420_squarematrices.ra",
+        "workloadHash": "cd76b327599e40f895766c6e84f5e6916e9d7c427d272acc75d5392fdc278ea8",
+        "ms": 2564.341725,
+        "wallMs": 3194.284642000217,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "145159332\n"
+      },
+      "after": {
+        "path": "demos/euler/420_squarematrices.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "ec0d8c4209d5f95a4b23a746732bf4fdc95539f458de7ae8799fadcb7ca93103",
+        "workload": "demos/euler/420_squarematrices.ra",
+        "workloadHash": "cd76b327599e40f895766c6e84f5e6916e9d7c427d272acc75d5392fdc278ea8",
+        "ms": 4202.944853999999,
+        "wallMs": 5130.683619999792,
+        "cpuMs": 4198.614,
+        "peakRssMiB": 425.59765625,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "145159332\n"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/455_powersownlastdigits.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "57e2c577bb8136d8d65f38dcff3c57009337af6f3af5817c73171d123415261b",
+        "workload": "demos/euler/455_powersownlastdigits.ra",
+        "workloadHash": "79192669caf9cfa05f5a41148e58e5d8fe4a05bfbf162b610563fa77bc24aae1",
+        "ms": 3519.409743,
+        "wallMs": 4014.2590210000053,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "450186511399999\n"
+      },
+      "after": {
+        "path": "demos/euler/455_powersownlastdigits.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "57e2c577bb8136d8d65f38dcff3c57009337af6f3af5817c73171d123415261b",
+        "workload": "demos/euler/455_powersownlastdigits.ra",
+        "workloadHash": "79192669caf9cfa05f5a41148e58e5d8fe4a05bfbf162b610563fa77bc24aae1",
+        "ms": 5684.581977,
+        "wallMs": 6189.195791000035,
+        "cpuMs": 5681.676,
+        "peakRssMiB": 217.55859375,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "450186511399999\n"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/750_cardstacking.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+        "workload": "demos/euler/750_cardstacking.ra",
+        "workloadHash": "ebdba81c9bb690aeabdbf83da6f3cb5505b6a8fbe13b6fc3982cd8998b32649e",
+        "ms": 19084.411932000003,
+        "wallMs": 19615.97271100059,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "160640\n"
+      },
+      "after": {
+        "path": "demos/euler/750_cardstacking.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+        "workload": "demos/euler/750_cardstacking.ra",
+        "workloadHash": "ebdba81c9bb690aeabdbf83da6f3cb5505b6a8fbe13b6fc3982cd8998b32649e",
+        "ms": 25024.445965,
+        "wallMs": 25558.528667001054,
+        "cpuMs": 24983.342,
+        "peakRssMiB": 251.5234375,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "160640\n"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/777_lissajouscurves.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "7a42d94da0a306743fadf66cf52967b389b1bf1a579a873e98a89331bddfd565",
+        "workload": "demos/euler/777_lissajouscurves.ra",
+        "workloadHash": "e7b72f0883e89cb18664a0b748e5abdc43877f65427bc743c63ef66170bcbe4b",
+        "ms": 2199.290806,
+        "wallMs": 2736.924246000126,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "2.533018434e23\n"
+      },
+      "after": {
+        "path": "demos/euler/777_lissajouscurves.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "7a42d94da0a306743fadf66cf52967b389b1bf1a579a873e98a89331bddfd565",
+        "workload": "demos/euler/777_lissajouscurves.ra",
+        "workloadHash": "e7b72f0883e89cb18664a0b748e5abdc43877f65427bc743c63ef66170bcbe4b",
+        "ms": 3191.61571,
+        "wallMs": 3763.0554719995707,
+        "cpuMs": 3162.506,
+        "peakRssMiB": 534.671875,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "2.533018434e23\n"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "workload": "demos/euler/785_symmetricdiophantine.ra",
+        "workloadHash": "4008a2f53ec511c4ee4f7d2a6a8596dc1503eeba4eee7b838861cd7beada4424",
+        "ms": 22940.470342999997,
+        "wallMs": 23524.361082999036,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "29526986315080920\n"
+      },
+      "after": {
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "group": "euler",
+        "kind": "program",
+        "workloadReason": "Default program arguments",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "workload": "demos/euler/785_symmetricdiophantine.ra",
+        "workloadHash": "4008a2f53ec511c4ee4f7d2a6a8596dc1503eeba4eee7b838861cd7beada4424",
+        "ms": 31296.451695,
+        "wallMs": 31905.11960900016,
+        "cpuMs": 31258.593,
+        "peakRssMiB": 984.2265625,
+        "status": "ok",
+        "code": 0,
+        "signal": null,
+        "log": "29526986315080920\n"
+      }
+    }
+  ]
+}
