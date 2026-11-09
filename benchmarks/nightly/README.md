@@ -28,7 +28,15 @@ The measured time includes parsing and execution after CLI imports.
 `wallMs` also records startup overhead; the ten-minute deadline includes it. There is no
 warmup and one sample per night. Each completed worker also records process CPU
 time over the measured interval and peak process RSS (including CLI imports).
-These appear in demo details and JSON; older runs omit them. CPU time includes
+Peak RSS appears in the individual-demo table, with baseline RSS and percentage
+change, and can be sorted by clicking its column title. The comparison uses
+successful workloads with matching source/test hashes, workload kinds, Node
+versions, CPUs and measurement methods. Unlike timing comparisons, it includes
+workloads shorter than 100 ms. Missing measurements in older runs show a dash.
+CPU time appears in demo details and JSON. The worker reads peak RSS once after
+stopping the execution timer; displaying it adds no instrumentation to Rank
+execution. It measures the whole process high-water mark, including Node and
+CLI imports, rather than just live Rank values or JavaScript heap usage. CPU time includes
 worker threads and can exceed elapsed time. It helps identify waiting but does
 not rule out frequency, cache or memory contention. Group changes use geometric means over
 successful, matching workloads that take at least 100 ms in both runs.

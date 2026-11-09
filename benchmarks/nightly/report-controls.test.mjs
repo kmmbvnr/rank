@@ -78,3 +78,41 @@ test('a failed reload shows the error and keeps the last valid report',async()=>
  assert.match(p.element('histogram').innerHTML,/Median 5.0 s/);
  assert.equal(p.element('refresh').disabled,false);
 });
+
+test('peak RSS compares short workloads and follows the selected baseline',async()=>{
+ const p=await page();
+ const latest=p.data.get('latest.json'),older=p.data.get('runs/'+oldId+'.json');
+ latest.results[0]={...latest.results[0],ms:50,peakRssMiB:150};
+ older.results[0]={...older.results[0],ms:40,peakRssMiB:100};
+ await p.element('refresh').onclick();
+ const row=p.element('rows').innerHTML.split('</tr>').find(x=>x.includes('keep.ra'));
+ assert.match(row,/150.0 MiB/);
+ assert.match(row,/100.0 MiB/);
+ assert.match(row,/\+50.0%/);
+ assert(!row.includes('+25.0%')); // Short timing samples remain excluded.
+ p.element('run').value=oldId;
+ await p.element('run').onchange();
+ const oldRow=p.element('rows').innerHTML.split('</tr>').find(x=>x.includes('keep.ra'));
+ assert.match(oldRow,/100.0 MiB/);
+ assert(!oldRow.includes('+50.0%'));
+});
+
+test('memory changes exclude missing, invalid, failed and changed workloads',async()=>{
+ const p=await page();
+ const latest=p.data.get('latest.json'),older=p.data.get('runs/'+oldId+'.json');
+ for(const patch of [{}, {peakRssMiB:0}, {peakRssMiB:-1}, {peakRssMiB:NaN},
+  {peakRssMiB:Infinity}, {peakRssMiB:100,status:'timeout'},
+  {peakRssMiB:100,workloadHash:'changed'}, {peakRssMiB:100,kind:'tests'}]){
+  latest.results[0]={path:'demos/keep.ra',group:'examples',kind:'program',status:'ok',ms:200,workloadHash:'same',peakRssMiB:150};
+  older.results[0]={...latest.results[0],peakRssMiB:undefined,...patch};
+  await p.element('refresh').onclick();
+  const row=p.element('rows').innerHTML.split('</tr>').find(x=>x.includes('keep.ra'));
+  assert(!row.includes('+50.0%'));
+  assert(!row.includes('NaN'));
+  assert(!row.includes('Infinity'));
+ }
+ older.results[0]={...latest.results[0],peakRssMiB:100};
+ older.cpu='different CPU';
+ await p.element('refresh').onclick();
+ assert(!p.element('rows').innerHTML.includes('+50.0%'));
+});
