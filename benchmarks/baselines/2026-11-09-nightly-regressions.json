@@ -1774,5 +1774,154 @@
         "arch": "x64"
       }
     ]
+  },
+  "step4": {
+    "macBase": "2177dc71",
+    "mac": [
+      {
+        "round": 0,
+        "variant": 0,
+        "path": "demos/euler/420_squarematrices.ra",
+        "sourceHash": "ec0d8c4209d5f95a4b23a746732bf4fdc95539f458de7ae8799fadcb7ca93103",
+        "ms": 672.3071669999999,
+        "cpuMs": 1001.074,
+        "peakRssMiB": 408.953125,
+        "answer": "145159332",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "path": "demos/euler/420_squarematrices.ra",
+        "sourceHash": "ec0d8c4209d5f95a4b23a746732bf4fdc95539f458de7ae8799fadcb7ca93103",
+        "ms": 671.8774589999999,
+        "cpuMs": 1003.731,
+        "peakRssMiB": 408.640625,
+        "answer": "145159332",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 0,
+        "path": "demos/euler/750_cardstacking.ra",
+        "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+        "ms": 5757.618,
+        "cpuMs": 10449.588,
+        "peakRssMiB": 363.390625,
+        "answer": "160640",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "path": "demos/euler/750_cardstacking.ra",
+        "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+        "ms": 3937.1268749999995,
+        "cpuMs": 6194.148,
+        "peakRssMiB": 360.265625,
+        "answer": "160640",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "path": "demos/euler/420_squarematrices.ra",
+        "sourceHash": "ec0d8c4209d5f95a4b23a746732bf4fdc95539f458de7ae8799fadcb7ca93103",
+        "ms": 679.7088749999999,
+        "cpuMs": 1050.479,
+        "peakRssMiB": 420.484375,
+        "answer": "145159332",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "path": "demos/euler/420_squarematrices.ra",
+        "sourceHash": "ec0d8c4209d5f95a4b23a746732bf4fdc95539f458de7ae8799fadcb7ca93103",
+        "ms": 679.839833,
+        "cpuMs": 1020.948,
+        "peakRssMiB": 408.59375,
+        "answer": "145159332",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "path": "demos/euler/750_cardstacking.ra",
+        "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+        "ms": 3926.2210419999997,
+        "cpuMs": 6217.4,
+        "peakRssMiB": 360.09375,
+        "answer": "160640",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "path": "demos/euler/750_cardstacking.ra",
+        "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+        "ms": 5764.435584,
+        "cpuMs": 10392.948,
+        "peakRssMiB": 363.3125,
+        "answer": "160640",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "path": "demos/euler/420_squarematrices.ra",
+        "sourceHash": "ec0d8c4209d5f95a4b23a746732bf4fdc95539f458de7ae8799fadcb7ca93103",
+        "ms": 754.680875,
+        "cpuMs": 1157.82,
+        "peakRssMiB": 409.234375,
+        "answer": "145159332",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "path": "demos/euler/420_squarematrices.ra",
+        "sourceHash": "ec0d8c4209d5f95a4b23a746732bf4fdc95539f458de7ae8799fadcb7ca93103",
+        "ms": 780.352,
+        "cpuMs": 1176.385,
+        "peakRssMiB": 421.59375,
+        "answer": "145159332",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "path": "demos/euler/750_cardstacking.ra",
+        "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+        "ms": 8619.127959,
+        "cpuMs": 15938.271,
+        "peakRssMiB": 381.375,
+        "answer": "160640",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "path": "demos/euler/750_cardstacking.ra",
+        "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+        "ms": 4656.183625,
+        "cpuMs": 7536.576,
+        "peakRssMiB": 356.875,
+        "answer": "160640",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      }
+    ]
   }
 }

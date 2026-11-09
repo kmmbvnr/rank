@@ -86,3 +86,24 @@ The final Intel pair is 31,073.48 ms before and 23,317.74 ms fixed. All 198
 focused tests also pass on Intel. This restores performance close to the
 older nightly's 22.28 s paired median; it does not claim a speedup over that
 older version. Mac samples varied across rounds, and no samples were removed.
+
+## Step 4: reuse numeric tensor code across changing shapes
+
+The multidimensional gather path added in `5c2fd54d` compiled a new numeric
+runner for each broadcast shape in Euler 750. Broadcast dimensions and source
+bounds now bind separately from executable code. A bounded cache shares the
+numeric runner across shapes; exact fallback remains shape-specific. The
+cached closure retains only geometry numbers, never input storage.
+
+Three alternating Mac pairs: Euler 750 median 5,764.44 to 3,937.13 ms;
+Euler 420 control 679.84 to 679.71 ms. Complete answers match. Intel verification
+is pending completion of the independent secondary regression measurements.
+
+The new test checks runner identity across 43 changing shapes, every gathered
+cell against a separate formula, cache bounds, and exact replay of wide cells
+following warmup. It fails on unchanged main and passes with the fix. All 96
+focused gather/copy/cache tests pass; build and semantic boundaries pass.
+The broader checks also pass compiled integer collections. Four tensor-test
+counter assertions fail identically on unchanged main: two in tensor-kernel
+and two in tensor-broadcast-fusion. Their computation/error comparisons pass;
+these pre-existing instrumentation expectations are not counted as new passes.
