@@ -1,5 +1,19 @@
 # Compiler progress
 
+## Modular convolution workspaces (Euler 553)
+
+CRT/NTT modular convolution reuses invocation-private transform scratch across
+its three prime passes. The separate residue outputs remain immutable, with no
+persistent cache or change to cancellation checkpoints. Ordinary products and
+squares allocate one third of their former transform scratch; schoolbook and
+single-modulus paths retain their existing behavior.
+
+Euler 553's four old loops already compiled without Number overflow. Its main
+improvement is algorithmic: replace three quadratic coefficient recurrences
+with existing modular convolutions, Newton series inversion and binary powering.
+No explicit Rank loop is needed, and the degree is bounded by N-K.
+See [measurements and checks](../../benchmarks/euler553.md).
+
 ## Independent pointwise loop bindings (Euler 552)
 
 Adjacent independent numeric vector bindings can share one private traversal

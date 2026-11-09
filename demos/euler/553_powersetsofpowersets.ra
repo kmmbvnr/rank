@@ -1,83 +1,96 @@
 rem Power Sets of Power Sets
 rem https://projecteuler.net/problem=553
-
 use numbers
 use sequences
+use bits
 use io
 use cli
-
 arg N integer = 10000
 arg K integer = 10
-
-rem R(r) = 2^(2^r - 1) - 1 families on
-rem r labels. Inclusion-exclusion gives
-rem a(n) / n! of them using every label,
-rem log gives the connected ones H, and
-rem C = n! [x^n] e^x H^K / K! with H^K
-rem by the power recurrence. Arrays are
-rem kept reversed to slice convolutions.
-Md = 1000000007
-Mm = Md - 1
-Ex = Md - 2
-Fa = array shape (N + 1) fill 1
-for I in 1 to N
-  Pv = Fa (I - 1)
-  Fa I = Pv * I mod Md
+Mod = 1000000007
+fun Left multiply Right
+  return Left * Right mod Mod
 end
-Iq = Fa Ex Md powmod
-Js = 0 to N array
-E = (2 Js Mm powmod) - 1
-Rr = ((2 E Md powmod) - 1 + Md) mod Md
-Cc = Rr * Iq mod Md
-Od = Js mod 2
-Dd = Iq + Od * (Md - 2 * Iq)
-Dr = Dd (N - Js)
-Ah = Js * 0
-for M in 0 to N
-  Sl = N - M to N array
-  Cs = Cc (0 to M array)
-  Ds = Dr Sl
-  Ah M = (Cs * Ds mod Md sum) mod Md
+fun N families K
+  if K greater N
+    return 0
+  end
+  if K equal 0
+    return 1
+  end
+  Size = N - K + 1
+  Index = 0 to Size copy
+  Fact = (Index max 1) scan multiply
+  Last = Fact Size (Mod - 2) Mod powmod
+  Down = Size to 1 by -1
+  Prefix = Down scan multiply with Last
+  Weights = Prefix reverse
+  Powers = 2 Index (Mod - 1) powmod
+  Families = 2 (Powers - 1) Mod powmod
+  Families = Families - 1
+  Terms = Families * Weights mod Mod
+  Signs = 1 - 2 * (Index mod 2)
+  Signed = Signs * Weights mod Mod
+  Full = Terms convolve Signed mod Mod
+  Whole = Full take (Size + 1) copy
+  Whole 0 = 1
+  rem Newton reciprocal of 1+A(x).
+  fun Series grow
+    Width = Series len * 2 min Size
+    Part = Whole take Width
+    Wide = Part convolve Series mod Mod
+    Convolved = Wide take Width
+    Minus = (0 - Convolved) mod Mod
+    Minus 0 = (2 - Convolved 0) mod Mod
+    Next = Series convolve Minus mod Mod
+    return Next take Width
+  end
+  Unit = array 1
+  Levels = Size - 1 binary len
+  Inverse = Unit grow repeat Levels
+  rem H(x)/x = integral(F'/F)/x.
+  Orders = 1 to Size copy
+  Tail = Whole drop 1
+  Slope = Orders * Tail mod Mod
+  Full = Slope convolve Inverse mod Mod
+  Product = Full take Size
+  Before = Fact take Size
+  After = Weights drop 1
+  Divisors = Before * After mod Mod
+  Connected = Product * Divisors mod Mod
+  rem Shift out x^K before powering H.
+  fun State square
+    Value = State .result
+    Base = State .base
+    Count = State .count
+    if Count odd
+      Next = Value convolve Base mod Mod
+      Value = Next take Size
+    end
+    if Count greater 1
+      Next = Base convolve Base mod Mod
+      Base = Next take Size
+    end
+    return record
+      .result = Value
+      .base = Base
+      .count = Count // 2
+    end
+  end
+  Seed = record
+    .result = Unit
+    .base = Connected
+    .count = K
+  end
+  Steps = K binary len
+  State = Seed square repeat Steps
+  Result = State .result
+  Back = Weights take Size reverse
+  Terms = Result * Back mod Mod
+  Total = Terms sum mod Mod
+  Labels = K + 1 to N
+  Scale = Labels reduce multiply with 1
+  return Scale * Total mod Mod
 end
-Ar = Ah (N - Js)
-Bv = Js * 0
-Hh = Js * 0
-for M in 1 to N
-  Sl = N - M to N - 1 array
-  Bs = Bv (0 to M - 1 array)
-  As = Ar Sl
-  Sm = (Bs * As mod Md sum) mod Md
-  Pv = Fa (M - 1)
-  Qv = Iq M
-  Im = Pv * Qv mod Md
-  Am = Ah M
-  Xm = Im * Sm mod Md
-  Hh M = (Am + Md - Xm) mod Md
-  Hm = Hh M
-  Bv M = M * Hm mod Md
-end
-Z = N - K
-Gg = Hh (1 to Z + 1 array)
-Pr = array shape (Z + 1) fill 0
-Pr Z = 1
-for M in 1 to Z
-  Jm = 1 to M array
-  Wt = (((K + 1) * Jm - M) mod Md)
-  Gs = Gg Jm
-  Sl = Z - M + 1 to Z array
-  Ps = Pr Sl
-  Tt = Wt * Gs mod Md
-  Tt = Tt * Ps mod Md
-  Sm = (Tt sum mod Md)
-  Pv = Fa (M - 1)
-  Qv = Iq M
-  Im = Pv * Qv mod Md
-  Pr (Z - M) = Im * Sm mod Md
-end
-Iz = Iq (0 to Z array)
-Tot = (Pr * Iz mod Md sum) mod Md
-Fn = Fa N
-Ik = Iq K
-Fk = Fn * Ik mod Md
-Answer = Fk * Tot mod Md
+Answer = N families K
 Answer print

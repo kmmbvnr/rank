@@ -74,14 +74,17 @@ function transform(a: Int32Array, p: number, tw: Int32Array): void {
 }
 
 /** The product of the residue vectors modulo `p`, as a vector of length `size`. */
-function productMod(a: Int32Array, b: Int32Array, p: number, n: number, outLength: number): Int32Array {
+function productMod(a: Int32Array, b: Int32Array, p: number, n: number, outLength: number,
+    scratch?: { left: Int32Array; right: Int32Array }): Int32Array {
     const tw = twiddlesOf(p, n);
-    const left = new Int32Array(n);
+    const left = scratch?.left ?? new Int32Array(n);
+    if (scratch) left.fill(0);
     for (let i = 0; i < a.length; i++) left[i] = a[i] % p;
     transform(left, p, tw);
     let right = left;
     if (a !== b) {
-        right = new Int32Array(n);
+        right = scratch?.right ?? new Int32Array(n);
+        if (scratch) right.fill(0);
         for (let i = 0; i < b.length; i++) right[i] = b[i] % p;
         transform(right, p, tw);
     }
@@ -168,7 +171,11 @@ export function modularConvolve(a: Residues, b: Residues, modulus: number): Resi
     while (n < length) n *= 2;
     if (n > 2 ** MAX_LOG) return undefined;
     if (supportsTransform(modulus, n)) return { cells: productMod(x, y, modulus, n, length), shape: [length] };
-    const parts = PRIMES.map(p => productMod(x, y, p, n, length));
+    // CRT prime passes are sequential. Reuse their invocation-private
+    // transform workspace; only the independent residue outputs survive.
+    const left = new Int32Array(n);
+    const scratch = { left, right: x === y ? left : new Int32Array(n) };
+    const parts = PRIMES.map(p => productMod(x, y, p, n, length, scratch));
     return { cells: combine(parts, modulus), shape: [length] };
 }
 

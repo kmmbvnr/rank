@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray } from '../src/index.js';
 import { readArrayItem, typedArray } from '../src/array-storage.js';
+import { modularConvolve } from '../src/runtime/convolution.js';
 
 const mod = (x: bigint, m: bigint) => ((x % m) + m) % m;
 
@@ -145,4 +146,18 @@ it('cancels a direct transform without changing its inputs', async () => {
     expect(() => withInterrupt(new Int32Array([1]), call)).toThrow(InterruptedError);
     expect(a.cells).toEqual(before);
     expect(call()).toBeDefined();
+});
+
+
+it('keeps CRT outputs and inputs independent while reusing transform scratch', () => {
+    const modulus = 1000000007n;
+    const a = Int32Array.from(vector(65, 3, 1000000006), x => Number(mod(BigInt(x), modulus)));
+    const b = Int32Array.from(vector(137, 7, 1000000006), x => Number(mod(BigInt(x), modulus)));
+    const left = { cells: a, shape: [a.length] }, right = { cells: b, shape: [b.length] };
+    const savedA = a.slice(), savedB = b.slice();
+    const products = [modularConvolve(left, right, Number(modulus)),
+        modularConvolve(left, left, Number(modulus)), modularConvolve(right, left, Number(modulus))];
+    const expected = [reference(a, b, modulus), reference(a, a, modulus), reference(b, a, modulus)];
+    products.forEach((product, i) => expect(Array.from(product!.cells, BigInt)).toEqual(expected[i]));
+    expect(a).toEqual(savedA); expect(b).toEqual(savedB);
 });
