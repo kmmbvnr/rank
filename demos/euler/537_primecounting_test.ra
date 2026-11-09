@@ -15,3 +15,19 @@ test "statement values"
   run
   Answer equal 578270566
 end
+
+
+test "empty tuples and zero prime counts"
+  use "537_primecounting"
+  N = 0
+  K = 0
+  run
+  Answer equal 1
+  K = 7
+  run
+  Answer equal 1
+  N = 1
+  K = 0
+  run
+  Answer equal 0
+end

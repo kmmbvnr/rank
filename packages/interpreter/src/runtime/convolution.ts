@@ -1,4 +1,4 @@
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, privateLoopPolling } from '../interrupt.js';
 import { RankError } from '../errors.js';
 import { collectArrayCells } from './array-read.js';
 import { multiply } from './modular-power.js';
@@ -43,6 +43,8 @@ function twiddlesOf(p: number, n: number): Int32Array {
     if (n > SHORT_TWIDDLE_LENGTH || largeTwiddle) {
         twiddles.clear();
         largeTwiddle = n > SHORT_TWIDDLE_LENGTH;
+    } else if (!twiddles.has(p) && twiddles.size >= PRIMES.length) {
+        twiddles.delete(twiddles.keys().next().value!);
     }
     twiddles.set(p, tw);
     return tw;
@@ -86,11 +88,26 @@ function productMod(a: Int32Array, b: Int32Array, p: number, n: number, outLengt
     for (let i = 0; i < n; i++) left[i] = multiply(left[i], right[i], p);
     transform(left, p, tw);
     // The inverse is the forward transform on reversed output, scaled by 1/n.
-    const scale = power(n, p - 2, p);
+    // n is a power of two and p is odd. This inverse also works over an
+    // admissible composite ring, without assuming Fermat's theorem for p.
+    const scale = power((p + 1) / 2, Math.log2(n), p);
     const out = new Int32Array(outLength);
     out[0] = multiply(left[0], scale, p);
     for (let i = 1; i < outLength; i++) out[i] = multiply(left[n - i], scale, p);
     return out;
+}
+
+let rootModulus = 0, rootSupported = false;
+/** The root has full two-power order modulo every prime factor of m:
+ * w^(n/2)=-1, w^n=1. Hence w^j-1 is a unit for 0<j<n, giving a principal
+ * root even for a composite m. Keep one scalar verdict, not an unbounded map. */
+function supportsTransform(m: number, n: number): boolean {
+    if (!privateLoopPolling() || demandBudgetEnabled() || m > 2 ** 30 || (m - 1) % n !== 0) return false;
+    if (m !== rootModulus) {
+        const supported = power(ROOT, (m - 1) / 2, m) === m - 1;
+        rootModulus = m; rootSupported = supported;
+    }
+    return rootSupported;
 }
 
 function mulmod(m: number): (a: number, b: number) => number {
@@ -150,6 +167,7 @@ export function modularConvolve(a: Residues, b: Residues, modulus: number): Resi
     let n = 1;
     while (n < length) n *= 2;
     if (n > 2 ** MAX_LOG) return undefined;
+    if (supportsTransform(modulus, n)) return { cells: productMod(x, y, modulus, n, length), shape: [length] };
     const parts = PRIMES.map(p => productMod(x, y, p, n, length));
     return { cells: combine(parts, modulus), shape: [length] };
 }

@@ -42,7 +42,7 @@ describe('convolve', () => {
 });
 
 describe('convolve mod', () => {
-    const moduli = [1n, 2n, 7n, 998244353n, 1000000007n, 1073741824n, 1073741827n, 2147483647n, 2147483648n];
+    const moduli = [1n, 2n, 7n, 998244353n, 1004535809n, 1000000007n, 1073741824n, 1073741827n, 2147483647n, 2147483648n];
     const sizes: [number, number][] = [[1, 1], [1, 9], [5, 7], [33, 40], [64, 64], [100, 129], [300, 257], [1000, 3]];
     for (const m of moduli) {
         for (const [p, q] of sizes) {
@@ -104,4 +104,45 @@ it('keeps demand checkpoints and input buffers unchanged with warm roots', async
     expect(() => withDemandBudget(1, call)).toThrow(DemandBudgetExhausted);
     expect(a.cells).toEqual(beforeA);
     expect(b.cells).toEqual(beforeB);
+});
+
+
+it('checks arbitrary transform moduli, cached roots and unsupported lengths', () => {
+    // More than three small moduli exercise eviction; 257 cannot support 512.
+    for (const [m, size] of [[257, 65], [3329, 65], [40961, 65], [65537, 65],
+        [257, 65], [257, 130], [769, 65], [197633, 65], [1004535809, 130],
+        [1004535809, 65], [998244353, 130]]) {
+        const a = vector(size, 17, 2 ** 30), b = vector(size + 1, 19, 2 ** 30);
+        expect(run(`A convolve B mod ${m}`, { A: a, B: b })).toEqual(reference(a, b, BigInt(m)));
+        expect(run(`A convolve A mod ${m}`, { A: a })).toEqual(reference(a, a, BigInt(m)));
+    }
+});
+
+it('preserves demand limits after a direct transform warms its roots', async () => {
+    const {withDemandBudget, DemandBudgetExhausted} = await import('../src/interrupt.js');
+    const {modularConvolve} = await import('../src/convolution.js');
+    const a = {cells: vector(101, 23, 2 ** 30), shape: [101]};
+    const b = {cells: vector(101, 29, 2 ** 30), shape: [101]};
+    const savedA = a.cells.slice(), savedB = b.cells.slice();
+    const call = () => modularConvolve(a, b, 1004535809);
+    expect(() => withDemandBudget(1, call)).toThrow(DemandBudgetExhausted);
+    expect(call()).toBeDefined();
+    expect(() => withDemandBudget(1, call)).toThrow(DemandBudgetExhausted);
+    // Three primes, three transforms each, eight levels of 256 cells.
+    expect(() => withDemandBudget(10000, call)).toThrow(DemandBudgetExhausted);
+    expect(withDemandBudget(18432, call)).toBeDefined();
+    expect(a.cells).toEqual(savedA);
+    expect(b.cells).toEqual(savedB);
+});
+
+
+it('cancels a direct transform without changing its inputs', async () => {
+    const {withInterrupt, InterruptedError} = await import('../src/interrupt.js');
+    const {modularConvolve} = await import('../src/convolution.js');
+    const a = {cells: vector(1025, 31, 2 ** 30), shape: [1025]};
+    const before = a.cells.slice();
+    const call = () => modularConvolve(a, a, 1004535809);
+    expect(() => withInterrupt(new Int32Array([1]), call)).toThrow(InterruptedError);
+    expect(a.cells).toEqual(before);
+    expect(call()).toBeDefined();
 });
