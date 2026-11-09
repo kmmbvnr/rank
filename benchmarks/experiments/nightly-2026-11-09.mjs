@@ -18,6 +18,14 @@ if (process.argv[2] === '--worker') {
     if (roots.length !== 2) throw Error('Usage: node benchmarks/experiments/nightly-2026-11-09.mjs BEFORE AFTER');
     const cases = [
     [
+        "302_strongachilles",
+        "1170060"
+    ],
+    [
+        "362_squarefree",
+        "457895958010"
+    ],
+    [
         "417_reciprocalcycles",
         "446572970925740"
     ],
@@ -34,8 +42,24 @@ if (process.argv[2] === '--worker') {
         "145159332"
     ],
     [
+        "446_retractionsb",
+        "907803852"
+    ],
+    [
+        "447_retractions",
+        "530553372"
+    ],
+    [
         "455_powersownlastdigits",
         "450186511399999"
+    ],
+    [
+        "596_hyperballpoints",
+        "734582049"
+    ],
+    [
+        "655_divisiblepalindromes",
+        "2000008332"
     ],
     [
         "750_cardstacking",

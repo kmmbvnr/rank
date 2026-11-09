@@ -141,3 +141,56 @@ Total`;
     expect(result.diagnostics.numberLoops).toBe(1);
     expect(result.diagnostics.mixedIntegerLoops).toBe(1);
 });
+
+it('retains fused modular products inside an exact vector sum', () => {
+    const source = `use sequences
+Modulus = 1000000007
+Total = 100000000000000000000
+for I in 1 to 3
+ A = 999999900 to 1000000000 copy
+ B = A + I
+ Total += A * B mod Modulus sum
+end
+Total`;
+    const result = compare(source);
+    let expected = 100000000000000000000n;
+    for (let i = 1n; i <= 3n; i++) for (let a = 999999900n; a <= 1000000000n; a++)
+        expected += a * (a + i) % 1000000007n;
+    expect(result.observation.value).toBe(String(expected));
+    expect(result.diagnostics.costs['number-loop.wide-vector']).toMatchObject({
+        unboxedCells: 303, boxedCells: 0,
+    });
+});
+
+it.each(['-97', '97', '1', '2147483648', '2305843009213693951', '0'])(
+    'retains exact modular sum semantics with modulus %s', modulus => {
+        const result = compare(`use sequences
+Modulus = ${modulus}
+Total = 100000000000000000000
+for I in 1 to 3
+ A = -1000000010 to -999999990 copy
+ B = A + I
+ Total += A * B mod Modulus sum
+end
+Total`, modulus !== '0');
+        if (modulus === '0') expect(result.observation.error).toContain('division by zero');
+    });
+
+it('keeps budget and cancellation guards on warmed exact modular sums', () => {
+    const runtime = new Interpreter(() => {});
+    const source = `use sequences
+Modulus = 1000000007
+Total = 100000000000000000000
+for I in 1 to 3
+ A = 999999000 to 1000000000 copy
+ B = A + I
+ Total += A * B mod Modulus sum
+end
+Total`;
+    try {
+        const expected = runtime.execute(source);
+        expect(() => withDemandBudget(10, () => runtime.execute(source))).toThrow(DemandBudgetExhausted);
+        expect(() => withInterrupt(new Int32Array([1]), () => runtime.execute(source))).toThrow(InterruptedError);
+        expect(runtime.execute(source)).toBe(expected);
+    } finally { runtime.dispose(); }
+});

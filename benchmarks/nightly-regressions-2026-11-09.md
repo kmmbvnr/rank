@@ -107,3 +107,30 @@ The broader checks also pass compiled integer collections. Four tensor-test
 counter assertions fail identically on unchanged main: two in tensor-kernel
 and two in tensor-broadcast-fusion. Their computation/error comparisons pass;
 these pre-existing instrumentation expectations are not counted as new passes.
+
+## Secondary candidates and step 5: numeric terms in exact modular sums
+
+The investigation also covers unchanged successful workloads with 10–20%
+nightly increases exceeding one second: 302, 362, 446, 447, 596 and 655.
+Three alternating Intel pairs reproduced only Euler 596: 43,177.93 to
+49,050.15 ms. Median changes for the other five were between -1.4% and +3.2%.
+The paired harness now includes all fourteen investigated workloads.
+
+A mixed integer loop in Euler 596 lowered the entire modular product/sum
+through BigInt operations, losing the ordinary numeric compiler's fused
+modular multiplication. Exact vector folds now reuse that numeric expression
+compiler when their scalar inputs already occupy Number registers. Their
+subtotals remain checked and flush to an exact BigInt total; failed cells
+replay exactly. Wide scalar captures retain guarded narrowing and exact
+fallback. This is shared expression lowering, with no Euler-specific rule.
+
+The fixed full diagnostic run records 99,999,999 numeric fold cells and zero
+BigInt cell fallbacks. Three alternating Mac pairs give medians 22,642.08 ms
+before and 20,544.63 ms after, with answer `734582049` throughout. Intel
+verification is running separately from tests. No algorithm or demo changes.
+
+The focused check passes all 215 tests, including signed/large/zero moduli,
+wide products, an independent BigInt oracle, and warmed budget/cancellation
+checks. The new modular-fold test fails on unchanged main and passes with
+303 numeric cells and zero exact cell fallbacks. Build and semantic boundaries
+pass. Full suites and exhaustive audits remain unrun.

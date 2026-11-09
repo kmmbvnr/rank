@@ -2050,11 +2050,18 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             // Pure checked arithmetic may stay numeric until one cell
             // overflows. Retry just that cell exactly; domain errors retain
             // their ordinary failure. Keep completed numeric subtotals.
-            const numeric = [source, ...AstUtils.streamAllContents(source)].every(node =>
-                !isBinaryExpression(node) || ['+', '-', '*', '//'].includes(node.operator));
+            const nodes = [source, ...AstUtils.streamAllContents(source)];
+            const numeric = nodes.every(node =>
+                !isBinaryExpression(node) || ['+', '-', '*', '//', 'mod'].includes(node.operator));
             const setup: string[] = [];
             numericExpressions = numeric ? createLoopExpressions(state) : undefined;
-            const fast = numeric ? vector(source, true, setup) : undefined;
+            // Retain the ordinary numeric expression compiler, including fused
+            // modular products, when every scalar already has a Number register.
+            // Wide scalar captures still use guarded narrowing and exact replay.
+            const nativeNumeric = numeric && !nodes.some(node =>
+                isNameExpression(node) && state.wideScalars.has(node.name));
+            const fast = nativeNumeric ? numericExpressions!.numberVector(source, setup)
+                : numeric ? vector(source, true, setup) : undefined;
             const fastBody: string[] = [], term = fast?.cell(index, fastBody);
             if (fast && term) {
                 const subtotal = `partial${state.serial++}`, exact = `exact${state.serial++}`;
