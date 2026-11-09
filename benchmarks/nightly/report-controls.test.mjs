@@ -18,6 +18,7 @@ async function page(search='') {
  function element(key) {
   key=key.replace(/^#/,'');
   if(!elements.has(key)) elements.set(key,{value:'',innerHTML:'',textContent:'',hidden:true,disabled:false,
+   scrolls:0,focuses:0,scrollIntoView(){this.scrolls++;},focus(){this.focuses++;},
    listeners:{},addEventListener(event,fn){this.listeners[event]=fn;}});
   return elements.get(key);
  }
@@ -115,4 +116,18 @@ test('memory changes exclude missing, invalid, failed and changed workloads',asy
  older.cpu='different CPU';
  await p.element('refresh').onclick();
  assert(!p.element('rows').innerHTML.includes('+50.0%'));
+});
+
+
+test('opening a demo brings its details into view and exposes its source',async()=>{
+ const p=await page();
+ let prevented=false;
+ await p.element('rows').onclick({target:{dataset:{path:'demos/keep.ra'}},preventDefault(){prevented=true;}});
+ const panel=p.element('detail');
+ assert.equal(prevented,true);
+ assert.equal(panel.hidden,false);
+ assert.match(panel.innerHTML,/demos\/keep.ra/);
+ assert.equal(panel.scrolls,1);
+ assert.equal(panel.focuses,1);
+ assert.match(panel.innerHTML,new RegExp('https://github.com/kmmbvnr/rank/blob/'+'b'.repeat(40)+'/demos/keep.ra'));
 });
