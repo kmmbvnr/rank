@@ -149,9 +149,9 @@ export function sortStoredIntegerArray(value: RankArray, descending: boolean): R
         || state.readOnlyCells || state.validity || value.itemAt !== undefined || value.shape.length !== 1
         || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
     const cells = state.typed;
-    if (!(cells instanceof BigInt64Array || cells instanceof Int32Array || cells instanceof Float64Array)) return undefined;
+    if (!(cells instanceof BigInt64Array || cells instanceof Int32Array || cells instanceof Float64Array)
+        || !(cells.buffer instanceof ArrayBuffer)) return undefined;
     if (cells instanceof Float64Array) {
-        if (!(cells.buffer instanceof ArrayBuffer)) return undefined;
         // Generic ordering keeps signed-zero ties stable and handles NaN
         // differently. Decline before touching any cell in either case.
         for (let index = 0; index < cells.length; index++) {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isNativeFunction, type RankArray } from '../src/index.js';
 import { denseScalarItems, ownedArray, typedArray } from '../src/array-storage.js';
-import { withInterrupt } from '../src/interrupt.js';
+import { withInterrupt, withDemandBudget, DemandBudgetExhausted } from '../src/interrupt.js';
 
 for (const compilation of [false, true]) describe(`compact sort pipeline (compilation=${compilation})`, () => {
     it('shares contiguous stored slices and detaches either value before writes', () => {
@@ -77,8 +77,8 @@ for (const compilation of [false, true]) describe(`compact sort pipeline (compil
             const cells = denseScalarItems(runtime.variables.get('A') as RankArray) as BigInt64Array;
             const expected = [-5n, -5n, 9007199254740992n, 9007199254740993n];
             expect(Array.from(cells)).toEqual(direction === ' .descending' ? expected.reverse() : expected);
-            expect(cells.buffer === original.buffer).toBe(compilation);
-            expect(diagnostics.numericInPlaceSorts).toBe(compilation ? 1 : 0);
+            expect(cells.buffer === original.buffer).toBe(true);
+            expect(diagnostics.numericInPlaceSorts).toBe(1);
         } finally { runtime.dispose(); }
     });
 
@@ -146,4 +146,28 @@ A = 10000 to 1 by -1 array`);
             expect(diagnostics.numericInPlaceSorts).toBe(0);
         } finally { runtime.dispose(); }
     });
+});
+
+
+it.each([false, true])('preserves a self-sort input when demand runs out (compilation=%s)', compilation => {
+    const runtime = new Interpreter(() => {}, { compilation }), diagnostics = new RuntimeDiagnostics();
+    try {
+        runtime.execute('use sequences\nA = 10000 to 1 by -1 array');
+        expect(() => diagnostics.run(() => withDemandBudget(10, () => runtime.execute('A = A sort')))).toThrow(DemandBudgetExhausted);
+        expect(runtime.execute('A 0')).toBe(10000n);
+        expect(diagnostics.numericInPlaceSorts).toBe(0);
+    } finally { runtime.dispose(); }
+});
+it.each([false, true])('does not consume shared Int64 memory (compilation=%s)', compilation => {
+    const runtime = new Interpreter(() => {}, { compilation }), diagnostics = new RuntimeDiagnostics();
+    const cells = new BigInt64Array(new SharedArrayBuffer(24));
+    cells.set([3n, 1n, 2n]);
+    try {
+        runtime.variables.set('A', typedArray(cells));
+        runtime.execute('use sequences\nA = A');
+        diagnostics.run(() => runtime.execute('A = A sort'));
+        expect([...cells]).toEqual([3n, 1n, 2n]);
+        expect([...(runtime.variables.get('A') as RankArray).items]).toEqual([1n, 2n, 3n]);
+        expect(diagnostics.numericInPlaceSorts).toBe(0);
+    } finally { runtime.dispose(); }
 });

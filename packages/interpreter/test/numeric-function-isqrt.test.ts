@@ -64,3 +64,28 @@ end`).statements[1];
         expect(executed).toBe(2);
     });
 });
+
+it('guards correlated array differences and replays negative operands', () => {
+    const source = `use numbers
+use sequences
+fun Left roots Right
+ Difference = Left - Right
+ Roots = Difference isqrt
+ return Roots sum
+end`;
+    for (const compilation of [true, false]) {
+        const runtime = new Interpreter(() => {}, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute(source);
+            const fn = runtime.variables.get('roots') as NativeFunction;
+            const left = typedArray(new Int32Array([1, 100]));
+            const positive = typedArray(new Int32Array([0, 99]));
+            const negative = typedArray(new Int32Array([2, 99]));
+            expect(diagnostics.run(() => fn.call([left, positive]))).toBe(2n);
+            expect(() => diagnostics.run(() => fn.call([left, negative]))).toThrow('nonnegative');
+            expect(diagnostics.run(() => fn.call([left, positive]))).toBe(2n);
+            expect(diagnostics.compiledArrayFunctions).toBe(compilation ? 2 : 0);
+        } finally { runtime.dispose(); }
+    }
+});

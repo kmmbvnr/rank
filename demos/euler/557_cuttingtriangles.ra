@@ -1,81 +1,90 @@
 rem Cutting Triangles
 rem https://projecteuler.net/problem=557
-
 use numbers
 use sequences
+use bits
+use algo
 use io
 use cli
-
 arg N integer = 10000
-
-rem With p = a + b and q = a + c, the
-rem area T obeys 1/T + 1/a = 1/p + 1/q
-rem and d > 0 follows. So S(n) adds T
-rem for each pair of pairs a < p <= q
-rem < T <= n with equal 1/x + 1/y. Sort
-rem the pairs by reduced fraction then
-rem x; a pair of rank i in a group of m
-rem is the outer one for m - 1 - i, so
-rem it adds y (m - 1 - i).
-Tot = N * (N + 1) // 2
-Za = array shape Tot fill 0
-Bk = 200
-Off = 0
-for X0 in 1 to N by Bk
-  X1 = X0 + Bk - 1 min N
-  Rw = X1 - X0 + 1
-  Wd = N - X0 + 1
-  Xb = X0 to X1 array reshape Rw 1
-  Yb = X0 to N array
-  Mk = Yb at least Xb
-  Fl = Mk reshape (Rw * Wd)
-  Ix = Fl indices
-  Xp = X0 + Ix // Wd
-  Yp = X0 + Ix mod Wd
-  Sm = Xp + Yp
-  Pr = Xp * Yp
-  Gc = Sm gcd Pr
-  Ky = (Pr // Gc) * 32768 + Sm // Gc
-  Zb = Ky * 16384 + Xp
-  Ln = Zb len
-  Za (Off till Off + Ln array) = Zb
-  Off += Ln
+rem Equal reciprocal sums pair the
+rem outer (a,T) with inner (a+b,a+c).
+Bound = N max 1
+Bits = Bound binary len
+Base = 2 ** Bits
+Radix = 2 * Base
+Size = N * (N + 1) // 2
+rem Bound transient pair matrices.
+Block = 50
+fun Start pairs rank 0
+  Stop = Start + Block - 1 min N
+  Rows = Stop - Start + 1
+  Width = N - Start + 1
+  Range = Start to Stop copy
+  Column = Range reshape Rows 1
+  Row = Start to N copy
+  Mask = Row at least Column
+  Flat = Mask reshape #
+  Places = Flat indices
+  Left = Start + Places // Width
+  Right = Start + Places mod Width
+  Sum = Left + Right
+  Product = Left * Right
+  Common = Sum gcd Product
+  Den = Product // Common
+  Num = Sum // Common
+  Keys = Den * Radix + Num
+  return Keys * Base + Left
 end
-Za = Za sort
-rem Compare adjacent keys in overlapping windows;
-rem keep only the endpoints of matching pairs.
-rem The overlap includes matches across windows.
+Packed = array shape Size fill 0
+Offset = 0
+for Start in 1 to N by Block
+  Part = Start pairs
+  Length = Part len
+  End = Offset + Length
+  Packed (Offset till End) = Part
+  Offset = End
+end
+Packed = Packed sort
+rem Overlap windows to retain groups
+rem that cross a window boundary.
 Window = 1000000
-Mi = array shape 0 fill 0
-for Start in 1 till Tot by Window
-  Stop = Start + Window min Tot
-  Kb = Za (Start - 1 till Stop) // 16384
-  Count = Kb len
-  Hi = Kb (1 till Count)
-  Lw = Kb (0 till (Count - 1))
-  Hits = Hi equal Lw indices
+fun Start matches rank 0
+  Stop = Start + Window min Size
+  Keys = Packed (Start - 1 till Stop)
+  Keys = Keys // Base
+  Count = Keys len
+  Last = Count - 1
+  Before = Keys take Last
+  After = Keys drop 1
+  Hits = Before equal After indices
   Hits += Start
-  Mi = concat Mi (Hits - 1) Hits
+  return concat (Hits - 1) Hits
 end
-Mi = Mi unique sort
-Zm = Za Mi
-Km = Zm // 16384
-Xm = Zm mod 16384
-Dr = Km // 32768
-Nr = Km mod 32768
-Ym = Dr * Xm // (Nr * Xm - Dr)
-Nm = Km len
-Hk = Km (1 till Nm array)
-Lk = Km (0 till Nm - 1 array)
-St = Hk not equal Lk integer
-St = concat (array 1) St
-Gi = St scan + array
-Gs = St equal 1 indices
-Ng = Gs len
-Cn = array shape (Ng + 1) fill 0
-Cn Gi += 1 .accumulate
-Pn = 0 till Nm array
-Rk = Pn - (Gs (Gi - 1))
-Ms = Cn Gi
-Answer = (Ym * (Ms - 1 - Rk)) sum
+Begins' = 1 till Size by Window
+Matches' = Begins matches
+Selected = concat unpack Matches
+Selected = Selected unique sort
+Values = Packed Selected
+fun Values total
+  Count = Values len
+  if Count equal 0
+    return 0
+  end
+  Keys = Values // Base
+  Left = Values mod Base
+  Den = Keys // Radix
+  Num = Keys mod Radix
+  Bottom = Num * Left - Den
+  Right = Den * Left // Bottom
+  unpack # Counts = Keys unique .counts
+  Ends = Counts scan +
+  Starts = Ends - Counts
+  Positions = 0 till Count copy
+  Owners = Ends upperindex Positions
+  Rank = Positions - Starts Owners
+  Later = Counts Owners - 1 - Rank
+  return Right * Later sum
+end
+Answer = Values total
 Answer print

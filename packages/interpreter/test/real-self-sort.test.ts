@@ -14,8 +14,8 @@ it.each(['', ' .ascending', ' .descending'])('consumes an exclusive real buffer 
             const sorted = denseScalarItems(runtime.variables.get('Values') as RankArray)!;
             const expected = [-Infinity, -2.5, 0, 1.5, 1.5, Infinity];
             expect(Array.from(sorted)).toEqual(direction === ' .descending' ? expected.reverse() : expected);
-            expect((sorted as Float64Array).buffer === original.buffer).toBe(compilation);
-            expect(diagnostics.numericInPlaceSorts).toBe(compilation ? 1 : 0);
+            expect((sorted as Float64Array).buffer === original.buffer).toBe(true);
+            expect(diagnostics.numericInPlaceSorts).toBe(1);
         } finally { runtime.dispose(); }
     }
 });

@@ -1,5 +1,35 @@
 # Compiler progress
 
+## Exact scaling and native self-sorts (Euler 557)
+
+Stored integer arrays can multiply or floor-divide by positive powers of two
+through exact Int64 word shifts, without boxing each cell. Both signs and
+matrix shapes are preserved. A product beyond Int64 replays the ordinary
+unbounded operation; budgets and physically shared word buffers retain their
+previous routes. No Number threshold or language syntax changes.
+
+Self-rebinding sorts now reuse an exclusive private numeric buffer even with
+compilation disabled: this storage optimization generates no code. Aliases,
+retained selections, deferred readers, borrowed function parameters, replaced
+sort functions, cancellation and budgets still prevent consumption. Signed-zero
+and NaN real inputs retain ordinary ordering. Physical shared buffers are never
+consumed, including integer buffers.
+
+Numeric functions can also guard actual integer-root operands when interval
+bounds cross zero. Correlated arrays may still have nonnegative differences.
+A negative cell abandons unpublished results and replays the ordinary function,
+preserving its domain error rather than rejecting every valid specialization.
+
+Broadcast comparisons can pack completed short boxed integer axes once,
+reusing the existing arithmetic lane cap. Opaque readers, wide values, shared
+word buffers and budgets retain their routes; logical slices stay exact.
+
+Euler 557 retains exact reciprocal-fraction sorting. One loop fills a packed
+buffer from array-based blocks; lazy comparison windows feed `concat unpack`,
+and `unique .counts` supplies group sizes. Packing widths derive from N,
+including exact fallback beyond Int64.
+See [measurements and checks](../../benchmarks/euler557.md).
+
 ## Exact array square roots in numeric functions (Euler 556)
 
 Pure structural numeric functions now keep integer `isqrt` maps virtual

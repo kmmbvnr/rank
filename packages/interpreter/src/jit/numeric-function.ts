@@ -316,8 +316,12 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
                 const source = bind(node.source);
                 if (!source.integer || source.boolean) return bad();
                 if (node.kind === 'sqrt') {
-                    if (source.low === undefined || source.high === undefined || source.low < 0) return bad();
-                    const low = safeIntegerSquareRoot(source.low), high = safeIntegerSquareRoot(source.high);
+                    if (source.low === undefined || source.high === undefined || source.high < 0
+                        || source.scalar !== undefined && source.scalar < 0) return bad();
+                    // Correlated arrays can have a nonnegative difference even
+                    // when interval bounds cross zero. Guard actual cells and
+                    // replay the ordinary function on a negative operand.
+                    const low = safeIntegerSquareRoot(Math.max(0, source.low)), high = safeIntegerSquareRoot(source.high);
                     const scalar = source.scalar === undefined ? undefined : safeIntegerSquareRoot(source.scalar);
                     info = { shape: source.shape, size: source.size, integer: true, scalar, low, high };
                 } else {

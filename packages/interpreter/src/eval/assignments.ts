@@ -559,7 +559,9 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
         } };
     }
     return { stream: () => {
-        if (selfSort && host.options().compilation !== false && host.canConsumeBinding()
+        // Native storage reuse needs no generated code. Reference execution
+        // retains the same ownership, retained-reader and interrupt guards.
+        if (selfSort && host.canConsumeBinding()
             && host.isStandardFunction('sequences', 'sort')) {
             const sorted = numericSortInPlace(host.resolveVariable(statement.name),
                 parts.length === 3 && isLabelLiteral(parts[2]) && parts[2].name === 'descending');

@@ -1,8 +1,9 @@
 import { checkedNumberPower, numberOverflow } from './number-arithmetic.js';
 import { DENSE_MIN_CELLS } from './tensor-operands.js';
 import { BooleanCells } from '../boolean-cells.js';
+import { currentDiagnostics } from '../diagnostics.js';
 import { createOwned, consumeSafeIntegerBuffer } from '../owned-array.js';
-import { booleanCells, IntegerCells, ownedScalarArray, typedArray } from '../array-storage.js';
+import { booleanCells, IntegerCells, ownedScalarArray, typedArray, MAX_HELD_CELLS } from '../array-storage.js';
 import { greatestCommonDivisor, leastCommonMultiple, safeIntegerGcd } from '../integer-gcd.js';
 import { RankError } from '../errors.js';
 import { modularExponentQuad, modularPowerQuad, modularModuliQuad, multiply, safeIntegerModularPower } from '../modular-power.js';
@@ -390,6 +391,22 @@ function compactBroadcastLanes(left: RankArray, right: RankArray,
  * scalar, on Int32 word pairs with no BigInt per cell. A result outside Int64
  * declines. */
 function mapStoredWords(left: RankValue, right: RankValue, name: string): RankArray | undefined {
+    // Power-of-two scaling is an exact word shift, including floor division
+    // of negative cells. Overflow keeps the ordinary unbounded integer path.
+    // Budgeted evaluation retains its existing speculative work charges.
+    if (!demandBudgetEnabled() && (name === '*' || name === '//')) {
+        const factor = typeof right === 'bigint' ? right : name === '*' && typeof left === 'bigint' ? left : undefined;
+        const source = typeof right === 'bigint' ? left : right;
+        if (factor !== undefined && factor > 0n && factor <= 1n << 63n && (factor & (factor - 1n)) === 0n) {
+            const shift = BigInt(factor.toString(2).length - 1);
+            const scaled = mapStoredBitwise(source, shift, name === '*' ? 'shl' : 'shr', true);
+            if (scaled) {
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) diagnostics.integerWordScalings++;
+                return scaled;
+            }
+        }
+    }
     const code = name === '+' ? 0 : name === '-' ? 1 : name === 'mod' ? 2 : name === 'min' ? 3 : name === 'max' ? 4 : -1;
     if (code < 0) return undefined;
     const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
@@ -540,10 +557,11 @@ function mapStoredWordRemainders(left: RankValue, right: RankValue,
 /** Bitwise operations on Int32/Int64 storage, one Int32 word pair per cell.
  * A shift that leaves the Int64 range, a negative count, a product by anything
  * but 0 or 1 or boxed operands decline, so the exact BigInt path produces the value or the error. */
-function mapStoredBitwise(left: RankValue, right: RankValue, name: 'band' | 'bor' | 'bxor' | 'shl' | 'shr' | 'mask'): RankArray | undefined {
+function mapStoredBitwise(left: RankValue, right: RankValue, name: 'band' | 'bor' | 'bxor' | 'shl' | 'shr' | 'mask', privateWords = false): RankArray | undefined {
     const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
     const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
-    const typed = (view: typeof a) => view?.compact || view?.items instanceof BigInt64Array;
+    const typed = (view: typeof a) => (view?.compact || view?.items instanceof BigInt64Array)
+        && (!privateWords || !(view?.items instanceof BigInt64Array) || view.items.buffer instanceof ArrayBuffer);
     const eligible = (value: RankValue, view: typeof a) => isRankArray(value)
         ? view?.kinds?.length === 1 && view.kinds[0] === 'integer' && view.linear !== undefined
             && typed(view) && (!view.validate || view.validateUniform !== undefined)
@@ -657,8 +675,45 @@ export function compareStoredInt32(left: RankValue, right: RankValue, name?: str
         : name === 'atleast' ? (a: number, b: number) => a >= b : undefined;
     const code = ['equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].indexOf(name ?? '');
     if (!compare || inspectionEnabled() || !privateLoopPolling()) return undefined;
-    const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
-    const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
+    let a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
+    let b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
+    // Small boxed axes are cheap to narrow once when a broadcast reuses them.
+    // Reuse the existing small-lane cap from arithmetic broadcasting.
+    // Keep opaque readers, wide values and observable demand on their old path.
+    if ((a && !a.compact && Array.isArray(a.items) || b && !b.compact && Array.isArray(b.items))
+        && !demandBudgetEnabled() && a?.regular && b?.regular && a.linear && b.linear
+        && a.kinds?.join() === 'integer' && b.kinds?.join() === 'integer'
+        && isRankArray(left) && isRankArray(right) && !same(left.shape, right.shape)) {
+        try {
+            const shape = broadcastShape(isRankArray(left) ? left.shape : [], isRankArray(right) ? right.shape : []);
+            const size = shape.reduce((n, dimension) => n * dimension, 1);
+            const narrow = (value: RankValue, view: typeof a): typeof a => {
+                if (!isRankArray(value) || !view?.regular || !view.linear || view.compact
+                    || !Array.isArray(view.items) || view.kinds?.join() !== 'integer'
+                    || view.validate && !view.validateUniform) return view;
+                const count = value.shape.reduce((n, dimension) => n * dimension, 1);
+                if (!count || count > 64 || count * 4 > size) return view;
+                const { offset, stride } = view.linear;
+                view.validateUniform?.(view.items[offset]);
+                const cells = new Int32Array(count);
+                for (let i = 0; i < count; i++) {
+                    const cell = view.items[offset + i * stride];
+                    if (typeof cell !== 'bigint' || cell < -2147483648n || cell > 2147483647n) return view;
+                    cells[i] = Number(cell);
+                }
+                return { ...view, compact: cells, linear: { offset: 0, stride: 1 } };
+            };
+            const sharedWords = (view: typeof a) => view?.items instanceof BigInt64Array
+                && !(view.items.buffer instanceof ArrayBuffer);
+            if (size >= DENSE_MIN_CELLS && size <= MAX_HELD_CELLS && !sharedWords(a) && !sharedWords(b)) {
+                a = narrow(left, a); b = narrow(right, b);
+            }
+        } catch (error) {
+            if (error instanceof InterruptedError) throw error;
+            if (!(error instanceof RankError)) throw error;
+            return undefined;
+        }
+    }
     const eligible = (value: RankValue, view: typeof a) => isRankArray(value)
         ? view?.compact && view.regular && view.linear && (!view.validate || view.validateUniform)
         : typeof value === 'bigint' && value >= -2147483648n && value <= 2147483647n;

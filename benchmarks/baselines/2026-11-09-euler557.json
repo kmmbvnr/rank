@@ -1,0 +1,1734 @@
+{
+  "base": "504014bc6e79f118d5f396af284ca18319894afd",
+  "answer": "2699929328",
+  "methodology": "Three alternating fresh-process old/new pairs per host, input and mode. Parse/execute timing; runtime import excluded. Diagnostics/profiling disabled. RSS is process high-water mark. Fixture executes unchanged test source with variant-specific module.",
+  "sourceHashes": {
+    "demos/euler/557_cuttingtriangles.ra": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+    "packages/interpreter/src/diagnostics.ts": "401480ae0319c757753c8efca464b27250320f1b6d741365eebe8115d02c8500",
+    "packages/interpreter/src/eval/assignments.ts": "e1ba9d83fbfeaa573261322fb5c0d47c78208925de40b0611fe1585410527e91",
+    "packages/interpreter/src/jit/integer-array-kernel.ts": "6ea53ff8e557ae09a1676a8b77c73dd197e7482c259a22d414eb53867f9142b4",
+    "packages/interpreter/src/jit/numeric-function-codegen.ts": "7365212506f401ff696fd55bb722dbb3e07924f7345ae67a660abab83f5908e6",
+    "packages/interpreter/src/jit/numeric-function.ts": "a8a1bb58e68a0aa68b115d3b84cc8dbadb7a6cdffecad903d00015045b887445",
+    "packages/interpreter/src/runtime/owned-array.ts": "62778b1d0f928184c87b2a3ed059219c8f8e0524f0bc1c772d06c4e3b33a03dd"
+  },
+  "primary": {
+    "mac": {
+      "host": "macOS-26.6.2-arm64-arm-64bit",
+      "node": "v24.15.0",
+      "loadStart": [
+        1.0966796875,
+        1.15380859375,
+        1.17919921875
+      ],
+      "samples": [
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 7243.199333,
+          "cpu": {
+            "user": 9004744,
+            "system": 93577
+          },
+          "rssMiB": 1241.890625,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 0,
+          "load": [
+            1.24169921875,
+            1.18115234375,
+            1.18798828125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 5617.629708,
+          "cpu": {
+            "user": 7231160,
+            "system": 101157
+          },
+          "rssMiB": 1161.859375,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 0,
+          "load": [
+            1.22216796875,
+            1.177734375,
+            1.1865234375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 5643.302125,
+          "cpu": {
+            "user": 7244043,
+            "system": 96301
+          },
+          "rssMiB": 1144.640625,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 1,
+          "load": [
+            1.2041015625,
+            1.17431640625,
+            1.18505859375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 7389.740042,
+          "cpu": {
+            "user": 9147129,
+            "system": 87952
+          },
+          "rssMiB": 1246.296875,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 1,
+          "load": [
+            1.1875,
+            1.17138671875,
+            1.18359375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 7357.373541,
+          "cpu": {
+            "user": 9118020,
+            "system": 89516
+          },
+          "rssMiB": 1273.40625,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 2,
+          "load": [
+            1.158203125,
+            1.16552734375,
+            1.1806640625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 5660.862959,
+          "cpu": {
+            "user": 7194661,
+            "system": 91736
+          },
+          "rssMiB": 1121.875,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 2,
+          "load": [
+            1.3056640625,
+            1.19580078125,
+            1.19091796875
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 7766.984792,
+          "cpu": {
+            "user": 9993967,
+            "system": 116618
+          },
+          "rssMiB": 1688.71875,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 0,
+          "load": [
+            1.953125,
+            1.33740234375,
+            1.24072265625
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 6559.389833,
+          "cpu": {
+            "user": 8641315,
+            "system": 112095
+          },
+          "rssMiB": 1162.515625,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 0,
+          "load": [
+            1.95654296875,
+            1.34814453125,
+            1.2451171875
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 6460.455709,
+          "cpu": {
+            "user": 8558472,
+            "system": 118412
+          },
+          "rssMiB": 1139.609375,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 1,
+          "load": [
+            1.8798828125,
+            1.34228515625,
+            1.24365234375
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 7685.407749999999,
+          "cpu": {
+            "user": 9883409,
+            "system": 116813
+          },
+          "rssMiB": 1771.296875,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 1,
+          "load": [
+            1.904296875,
+            1.36376953125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 7828.866416,
+          "cpu": {
+            "user": 10025011,
+            "system": 114383
+          },
+          "rssMiB": 1726.828125,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 2,
+          "load": [
+            1.83154296875,
+            1.357421875,
+            1.25048828125
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 6491.97075,
+          "cpu": {
+            "user": 8522845,
+            "system": 110071
+          },
+          "rssMiB": 1131.046875,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 2,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 161.744708,
+          "cpu": {
+            "user": 300407,
+            "system": 9617
+          },
+          "rssMiB": 184.640625,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 0,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 169.541958,
+          "cpu": {
+            "user": 304962,
+            "system": 9404
+          },
+          "rssMiB": 185.78125,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 0,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 168.70516700000002,
+          "cpu": {
+            "user": 306534,
+            "system": 9672
+          },
+          "rssMiB": 185.46875,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 1,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 164.416833,
+          "cpu": {
+            "user": 303658,
+            "system": 9597
+          },
+          "rssMiB": 184.53125,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 1,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 164.93625000000003,
+          "cpu": {
+            "user": 305322,
+            "system": 9383
+          },
+          "rssMiB": 183.546875,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 2,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 168.52083299999998,
+          "cpu": {
+            "user": 306237,
+            "system": 9956
+          },
+          "rssMiB": 186.28125,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 2,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 144.0565,
+          "cpu": {
+            "user": 271966,
+            "system": 8746
+          },
+          "rssMiB": 181.828125,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 0,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 150.57649999999998,
+          "cpu": {
+            "user": 280317,
+            "system": 8908
+          },
+          "rssMiB": 181.0625,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 0,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 153.8705,
+          "cpu": {
+            "user": 284414,
+            "system": 9363
+          },
+          "rssMiB": 181.875,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 1,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 143.213083,
+          "cpu": {
+            "user": 270342,
+            "system": 9044
+          },
+          "rssMiB": 181.5625,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 1,
+          "load": [
+            1.77685546875,
+            1.361328125,
+            1.25244140625
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 143.35679100000002,
+          "cpu": {
+            "user": 273701,
+            "system": 8940
+          },
+          "rssMiB": 183.46875,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 2,
+          "load": [
+            1.71435546875,
+            1.35498046875,
+            1.25048828125
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 151.898833,
+          "cpu": {
+            "user": 284027,
+            "system": 9354
+          },
+          "rssMiB": 181.75,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 2,
+          "load": [
+            1.71435546875,
+            1.35498046875,
+            1.25048828125
+          ]
+        }
+      ]
+    },
+    "intel": {
+      "host": "Linux-6.12.74+deb13+1-amd64-x86_64-with-glibc2.41",
+      "node": "v24.15.0",
+      "loadStart": [
+        0.1201171875,
+        0.220703125,
+        0.1982421875
+      ],
+      "samples": [
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 18323.131723,
+          "cpu": {
+            "user": 21908227,
+            "system": 445876
+          },
+          "rssMiB": 905.05859375,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 0,
+          "load": [
+            0.31591796875,
+            0.259765625,
+            0.21142578125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 14686.837743999999,
+          "cpu": {
+            "user": 17951429,
+            "system": 396943
+          },
+          "rssMiB": 819.25,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 0,
+          "load": [
+            0.76318359375,
+            0.3623046875,
+            0.24609375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 14408.493752,
+          "cpu": {
+            "user": 17727380,
+            "system": 420858
+          },
+          "rssMiB": 815.984375,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 1,
+          "load": [
+            0.8837890625,
+            0.41015625,
+            0.2646484375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 18646.701420999998,
+          "cpu": {
+            "user": 22301882,
+            "system": 409395
+          },
+          "rssMiB": 904.61328125,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 1,
+          "load": [
+            1.109375,
+            0.4970703125,
+            0.296875
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 18690.318768999998,
+          "cpu": {
+            "user": 22426919,
+            "system": 442257
+          },
+          "rssMiB": 905.25390625,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 2,
+          "load": [
+            1.07763671875,
+            0.53076171875,
+            0.3125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 14529.227142,
+          "cpu": {
+            "user": 17823353,
+            "system": 323467
+          },
+          "rssMiB": 818.43359375,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 2,
+          "load": [
+            1.13427734375,
+            0.5703125,
+            0.32958984375
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 20165.341800000002,
+          "cpu": {
+            "user": 25652686,
+            "system": 569292
+          },
+          "rssMiB": 973.68359375,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 0,
+          "load": [
+            1.09521484375,
+            0.59912109375,
+            0.34521484375
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 16918.341421999998,
+          "cpu": {
+            "user": 21532361,
+            "system": 454118
+          },
+          "rssMiB": 810.859375,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 0,
+          "load": [
+            1.15380859375,
+            0.63623046875,
+            0.3623046875
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 16788.821868,
+          "cpu": {
+            "user": 20898746,
+            "system": 580188
+          },
+          "rssMiB": 807.6640625,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 1,
+          "load": [
+            1.10888671875,
+            0.66064453125,
+            0.37646484375
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 20304.596116,
+          "cpu": {
+            "user": 25403117,
+            "system": 570675
+          },
+          "rssMiB": 1019.8359375,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 1,
+          "load": [
+            1.23193359375,
+            0.716796875,
+            0.40087890625
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "ms": 19876.400706,
+          "cpu": {
+            "user": 25120551,
+            "system": 537177
+          },
+          "rssMiB": 973.7734375,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 2,
+          "load": [
+            1.2392578125,
+            0.75244140625,
+            0.419921875
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "10000",
+          "limit": "10000",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "ms": 17128.055408,
+          "cpu": {
+            "user": 22011375,
+            "system": 509202
+          },
+          "rssMiB": 810.26171875,
+          "answer": "2699929328",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 2,
+          "load": [
+            1.244140625,
+            0.7861328125,
+            0.43896484375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 448.44624200000004,
+          "cpu": {
+            "user": 733727,
+            "system": 51035
+          },
+          "rssMiB": 177.01953125,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 0,
+          "load": [
+            1.244140625,
+            0.7861328125,
+            0.43896484375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 432.81019499999996,
+          "cpu": {
+            "user": 717567,
+            "system": 28384
+          },
+          "rssMiB": 175.95703125,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 0,
+          "load": [
+            1.244140625,
+            0.7861328125,
+            0.43896484375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 428.42286,
+          "cpu": {
+            "user": 692190,
+            "system": 39157
+          },
+          "rssMiB": 173.44921875,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 1,
+          "load": [
+            1.244140625,
+            0.7861328125,
+            0.43896484375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 411.567834,
+          "cpu": {
+            "user": 677883,
+            "system": 32439
+          },
+          "rssMiB": 174.58203125,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 1,
+          "load": [
+            1.244140625,
+            0.7861328125,
+            0.43896484375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 415.13191700000004,
+          "cpu": {
+            "user": 697934,
+            "system": 27343
+          },
+          "rssMiB": 176.171875,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 2,
+          "load": [
+            1.22412109375,
+            0.7900390625,
+            0.4423828125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 432.850942,
+          "cpu": {
+            "user": 707371,
+            "system": 30352
+          },
+          "rssMiB": 174.23828125,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 2,
+          "load": [
+            1.22412109375,
+            0.7900390625,
+            0.4423828125
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 371.34069900000003,
+          "cpu": {
+            "user": 638188,
+            "system": 20816
+          },
+          "rssMiB": 168.4765625,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 0,
+          "load": [
+            1.22412109375,
+            0.7900390625,
+            0.4423828125
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 390.583543,
+          "cpu": {
+            "user": 639486,
+            "system": 36218
+          },
+          "rssMiB": 171.4375,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 0,
+          "load": [
+            1.22412109375,
+            0.7900390625,
+            0.4423828125
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 390.115603,
+          "cpu": {
+            "user": 647788,
+            "system": 26501
+          },
+          "rssMiB": 170.69140625,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 1,
+          "load": [
+            1.22412109375,
+            0.7900390625,
+            0.4423828125
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 366.601931,
+          "cpu": {
+            "user": 608385,
+            "system": 36511
+          },
+          "rssMiB": 170.015625,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 1,
+          "load": [
+            1.22412109375,
+            0.7900390625,
+            0.4423828125
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 367.585791,
+          "cpu": {
+            "user": 614368,
+            "system": 39784
+          },
+          "rssMiB": 169.24609375,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "old",
+          "pair": 2,
+          "load": [
+            1.22412109375,
+            0.7900390625,
+            0.4423828125
+          ]
+        },
+        {
+          "mode": "reference",
+          "n": "fixture",
+          "limit": "undefined",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "6f91390c805ba0e2ba64d962039a65ab1b5a8927f98a15146557a42be8a8c9dd",
+          "moduleSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+          "tests": [
+            {
+              "name": "statement values",
+              "passed": true
+            }
+          ],
+          "ms": 385.365098,
+          "cpu": {
+            "user": 675255,
+            "system": 13234
+          },
+          "rssMiB": 170.05859375,
+          "answer": "passed",
+          "diagnosticMode": false,
+          "variant": "new",
+          "pair": 2,
+          "load": [
+            1.2060546875,
+            0.7939453125,
+            0.44580078125
+          ]
+        }
+      ]
+    }
+  },
+  "wordScaling": {
+    "mac": [
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 5.293791999999996,
+        "cpu": {
+          "user": 9437,
+          "system": 554
+        },
+        "rssMiB": 121,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "old",
+        "pair": 0
+      },
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 2.9838339999999874,
+        "cpu": {
+          "user": 4262,
+          "system": 93
+        },
+        "rssMiB": 117.734375,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "new",
+        "pair": 0
+      },
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 2.9778340000000014,
+        "cpu": {
+          "user": 4261,
+          "system": 124
+        },
+        "rssMiB": 117.703125,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "new",
+        "pair": 1
+      },
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 5.159374999999997,
+        "cpu": {
+          "user": 8969,
+          "system": 446
+        },
+        "rssMiB": 120.953125,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "old",
+        "pair": 1
+      },
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 5.289917000000003,
+        "cpu": {
+          "user": 9350,
+          "system": 589
+        },
+        "rssMiB": 121.046875,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "old",
+        "pair": 2
+      },
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 2.9575420000000037,
+        "cpu": {
+          "user": 4217,
+          "system": 104
+        },
+        "rssMiB": 117.703125,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "new",
+        "pair": 2
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 7.329999999999998,
+        "cpu": {
+          "user": 12579,
+          "system": 604
+        },
+        "rssMiB": 118.625,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "old",
+        "pair": 0
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 2.954166999999998,
+        "cpu": {
+          "user": 4365,
+          "system": 110
+        },
+        "rssMiB": 117.90625,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "new",
+        "pair": 0
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 2.943916999999999,
+        "cpu": {
+          "user": 4429,
+          "system": 165
+        },
+        "rssMiB": 117.75,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "new",
+        "pair": 1
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 7.274833000000001,
+        "cpu": {
+          "user": 12485,
+          "system": 724
+        },
+        "rssMiB": 118.65625,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "old",
+        "pair": 1
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 7.196709000000013,
+        "cpu": {
+          "user": 12473,
+          "system": 628
+        },
+        "rssMiB": 119.125,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "old",
+        "pair": 2
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 2.9497499999999945,
+        "cpu": {
+          "user": 4950,
+          "system": 124
+        },
+        "rssMiB": 117.609375,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "variant": "new",
+        "pair": 2
+      }
+    ],
+    "intel": [
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 13.206142999999997,
+        "cpu": {
+          "user": 18642,
+          "system": 3941
+        },
+        "rssMiB": 120.4609375,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "old",
+        "pair": 0
+      },
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 9.003026999999975,
+        "cpu": {
+          "user": 13161,
+          "system": 0
+        },
+        "rssMiB": 117.41015625,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "new",
+        "pair": 0
+      },
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 8.604488000000003,
+        "cpu": {
+          "user": 12644,
+          "system": 106
+        },
+        "rssMiB": 117.359375,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "new",
+        "pair": 1
+      },
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 12.620207999999991,
+        "cpu": {
+          "user": 21402,
+          "system": 0
+        },
+        "rssMiB": 120.26171875,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "old",
+        "pair": 1
+      },
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 13.051425999999992,
+        "cpu": {
+          "user": 19804,
+          "system": 1706
+        },
+        "rssMiB": 120.21484375,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "old",
+        "pair": 2
+      },
+      {
+        "operation": "*",
+        "size": 200000,
+        "ms": 8.814548000000002,
+        "cpu": {
+          "user": 12998,
+          "system": 85
+        },
+        "rssMiB": 117.75,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "new",
+        "pair": 2
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 20.008601,
+        "cpu": {
+          "user": 31792,
+          "system": 160
+        },
+        "rssMiB": 117.5390625,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "old",
+        "pair": 0
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 6.51924299999996,
+        "cpu": {
+          "user": 7136,
+          "system": 3748
+        },
+        "rssMiB": 118.375,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "new",
+        "pair": 0
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 6.224995999999976,
+        "cpu": {
+          "user": 6702,
+          "system": 3669
+        },
+        "rssMiB": 118.00390625,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "new",
+        "pair": 1
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 18.551804000000004,
+        "cpu": {
+          "user": 29698,
+          "system": 0
+        },
+        "rssMiB": 115.95703125,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "old",
+        "pair": 1
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 19.222036000000003,
+        "cpu": {
+          "user": 30814,
+          "system": 0
+        },
+        "rssMiB": 116.1015625,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "old",
+        "pair": 2
+      },
+      {
+        "operation": "//",
+        "size": 200000,
+        "ms": 8.446395999999993,
+        "cpu": {
+          "user": 12641,
+          "system": 0
+        },
+        "rssMiB": 116.44140625,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "variant": "new",
+        "pair": 2
+      }
+    ]
+  },
+  "macSingleControls": {
+    "new-old": {
+      "mode": "compiled",
+      "n": "10000",
+      "limit": "10000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+      "ms": 9098.703249999999,
+      "cpu": {
+        "user": 10383391,
+        "system": 138369
+      },
+      "rssMiB": 1162.546875,
+      "answer": "2699929328",
+      "diagnosticMode": false
+    },
+    "old-new": {
+      "mode": "compiled",
+      "n": "10000",
+      "limit": "10000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+      "ms": 7146.066833,
+      "cpu": {
+        "user": 8929356,
+        "system": 90691
+      },
+      "rssMiB": 1310.703125,
+      "answer": "2699929328",
+      "diagnosticMode": false
+    },
+    "new-old-ref": {
+      "mode": "reference",
+      "n": "10000",
+      "limit": "10000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "7e25b08cf82ad78492997ad8c4770bc40547db43960a40a4f171d1d53fdd666a",
+      "ms": 10691.090916,
+      "cpu": {
+        "user": 12529327,
+        "system": 168869
+      },
+      "rssMiB": 1490.921875,
+      "answer": "2699929328",
+      "diagnosticMode": false
+    },
+    "old-new-ref": {
+      "mode": "reference",
+      "n": "10000",
+      "limit": "10000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "7e78d40ae10b4e6ed14d06575b173fcc38a7109ad155346ccb62d1dc920a627b",
+      "ms": 6956.153792,
+      "cpu": {
+        "user": 8997068,
+        "system": 92982
+      },
+      "rssMiB": 1359.140625,
+      "answer": "2699929328",
+      "diagnosticMode": false
+    }
+  },
+  "independentFullOracle": {
+    "n": 10000,
+    "answer": "2699929328",
+    "ms": 1622.216958
+  },
+  "verification": {
+    "focusedPerHost": 227,
+    "differentialPerHost": 2,
+    "fullAnswerBackends": [
+      "Number",
+      "exact",
+      "reference"
+    ],
+    "legacyNumericFunctionAssertions": "Five pre-existing route/caching assertions fail on frozen 504014bc and current runtime; semantic comparisons pass. Not repaired here.",
+    "exhaustiveAuditsRun": false
+  }
+}
