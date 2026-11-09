@@ -134,3 +134,13 @@ wide products, an independent BigInt oracle, and warmed budget/cancellation
 checks. The new modular-fold test fails on unchanged main and passes with
 303 numeric cells and zero exact cell fallbacks. Build and semantic boundaries
 pass. Full suites and exhaustive audits remain unrun.
+
+## Step 6: isolate tensor compiler counter checks
+
+The four previously failing counter assertions reproduced on unchanged main.
+Their test helpers also enabled scalar-entry, function and loop compilation,
+so a different compiler could consume the work before the tensor counter ran.
+The tensor-specific helpers now disable those other three compiler modes.
+All value, error, shape and independent-oracle comparisons remain. Each final
+copy/sum in the broadcast matrix now requires one tensor execution. All 76
+tests in the two affected files pass; TypeScript build passes as well.

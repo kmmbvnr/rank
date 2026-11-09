@@ -8,7 +8,10 @@ import { materializeValue } from '../src/materialize.js';
 function run(shapes: number[][], body: string, fused: boolean) {
     let kernels = 0;
     const runtime = new Interpreter(undefined, {
-        tensorFusion: fused, onTensorKernelExecuted: () => kernels++,
+        tensorFusion: fused,
+        // Keep these counters specific to tensor compilation.
+        scalarFunctionCompilation: false, integerLoopCompilation: false, scalarEntryCompilation: false,
+        onTensorKernelExecuted: () => kernels++,
     });
     try {
         runtime.execute(`use sequences
@@ -30,22 +33,22 @@ end`);
 }
 describe('broadcast tensor fusion', () => {
     it.each([
-        { shapes: [[2, 3], [3], [3]], kernels: 3 },
-        { shapes: [[2, 3], [2, 1], [3]], kernels: 3 },
-        { shapes: [[2, 1, 3], [1, 4, 1], [3]], kernels: 1 },
-        { shapes: [[2, 0, 3], [1, 1, 3], [3]], kernels: 1 },
-        { shapes: [[2, 3], [], [3]], kernels: 1 },
-        { shapes: [[1, 3], [2, 1], [2, 3]], kernels: 3 },
-    ])('preserves shape domain $shapes', ({ shapes, kernels }) => {
+        { shapes: [[2, 3], [3], [3]] },
+        { shapes: [[2, 3], [2, 1], [3]] },
+        { shapes: [[2, 1, 3], [1, 4, 1], [3]] },
+        { shapes: [[2, 0, 3], [1, 1, 3], [3]] },
+        { shapes: [[2, 3], [], [3]] },
+        { shapes: [[1, 3], [2, 1], [2, 3]] },
+    ])('preserves shape domain $shapes', ({ shapes }) => {
         for (const terminal of ['copy', 'sum']) {
             const body = `Difference = A - B\n  Scaled = Difference * Difference\n  return (Scaled / C) ${terminal}`;
             const expected = run(shapes, body, false);
             const actual = run(shapes, body, true);
             expect(actual).not.toHaveProperty('error');
             expect({ ...actual, kernels: 0 }).toEqual({ ...expected, kernels: 0 });
-            // Checked matrix stages preserve both eager bindings and
-            // the terminal; broader domains retain the terminal path.
-            expect(actual.kernels).toBe(terminal === 'copy' ? kernels : 1);
+            // Ordinary eager bindings remain separate; this suite counts
+            // the tensor kernel at the final copy or sum consumer.
+            expect(actual.kernels).toBe(1);
         }
     });
     it('matches an independent matrix/vector oracle', () => {

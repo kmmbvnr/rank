@@ -9,6 +9,8 @@ function run(source: string, fused: boolean, input = '') {
     let kernels = 0;
     const runtime = new Interpreter(line => output.push(line), {
         tensorFusion: fused,
+        // Keep these counters specific to tensor compilation.
+        scalarFunctionCompilation: false, integerLoopCompilation: false, scalarEntryCompilation: false,
         onTensorKernelExecuted: () => kernels++,
         input: new TokenInput(input.trim().split(/\s+/)),
     });
