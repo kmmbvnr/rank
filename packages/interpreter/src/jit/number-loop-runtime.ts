@@ -14,6 +14,7 @@ import { argumentSelectionError, MissingValueError, RankError } from '../errors.
 import { completed } from '../execution.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { checkpoint, privateLoopPolling, demandBudgetEnabled, interruptsEnabled } from '../interrupt.js';
+import { numericOrder } from '../runtime/numeric-collections.js';
 import { arrayRevision, reshapeStoredArray, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, filledArray, booleanCells, typedArray, realCells, storedOperandItems } from '../array-storage.js';
 import { tuple, isRankArray, type RankArray, type RankValue } from '../value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, LoopWorkFeedback, LoopPolling } from './integer-loop-plan.js';
@@ -531,7 +532,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'sortedIndexBatch', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'promoteIntegerCells', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', 'inferShape', readers + '\n' + code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'sortedIndexBatch', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'orderArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'promoteIntegerCells', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', 'inferShape', readers + '\n' + code)(
             modularMultiply, safe, numberSortedIndex, numberSortedIndexBatch, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -544,6 +545,17 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             (index: number | bigint, axis = 0) => index < 0 ? new RankError(`array index must be nonnegative on axis ${axis}`)
                 : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, integerSquareRoot, divide, checkedNumberPower, widePower,
             (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number, real = false, logical = false) => new PrivateNumericArray(shape, fill, undefined, undefined, real, logical),
+            (cells: PrivateCells) => {
+                // Reuse native stable radix ordering without publishing or
+                // copying the key vector. NaNs retain ordinary ordering.
+                if (cells instanceof Float64Array && cells.some(Number.isNaN)) throw overflow;
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) diagnostics.numericSorts++;
+                const order = numericOrder(cells, false);
+                const values = order.length <= 2147483647
+                    ? new Int32Array(order.buffer, order.byteOffset, order.length) : Float64Array.from(order);
+                return new PrivateNumericArray([order.length], 0, undefined, { cells: values });
+            },
             (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
             (shape: number[], cells: NumberCells, real = false, logical = false, source?: unknown) => source instanceof PrivateNumericArray && source.cells === cells
                 ? source.reshape(shape) : new PrivateNumericArray([...shape], 0, cells, undefined, real, logical), concatArrays, textLength, indexKey,
@@ -643,6 +655,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         // Packed native consumers have a different traversal budget.
         if ((plan.syntax.has('take') || plan.syntax.has('drop')) && demandBudgetEnabled()) return recordFallback('number-loop:observable-count-slice', 'effects');
         if (plan.syntax.has('reverse') && demandBudgetEnabled()) return recordFallback('number-loop:observable-reverse', 'effects');
+        if (plan.syntax.has('array-literal') && (demandBudgetEnabled() || interruptsEnabled()))
+            return recordFallback('number-loop:observable-array-literal', 'effects');
+        if (plan.syntax.has('argsort') && (demandBudgetEnabled() || interruptsEnabled()))
+            return recordFallback('number-loop:observable-argsort', 'effects');
         if (plan.syntax.has('scalar-row-selection') && demandBudgetEnabled()) return recordFallback('number-loop:observable-row-selection', 'effects');
         if (plan.syntax.has('scalar-array-end') && (demandBudgetEnabled() || interruptsEnabled()))
             return recordFallback('number-loop:observable-array-end', 'effects');

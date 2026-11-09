@@ -9,3 +9,16 @@ test "statement value and brute force"
   run
   Answer equal 3347
 end
+
+test "small and impossible fronts"
+  use "534_weakqueens"
+  N = 1
+  run
+  Answer equal 1
+  N = 2
+  run
+  Answer equal 4
+  N = 3
+  run
+  Answer equal 29
+end

@@ -145,7 +145,7 @@ function radixOrder(values: NumericBuffer, descending: boolean): Uint32Array | u
     return order;
 }
 
-function numericOrder(values: NumericBuffer, descending: boolean): Uint32Array {
+export function numericOrder(values: NumericBuffer, descending: boolean): Uint32Array {
     const radix = radixOrder(values, descending) ?? wideIntegerOrder(values, descending);
     if (radix) return radix;
     const order = Uint32Array.from({ length: values.length }, (_, index) => index);

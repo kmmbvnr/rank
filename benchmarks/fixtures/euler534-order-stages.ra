@@ -1,0 +1,15 @@
+rem General small-array stage workload.
+use sequences
+use io
+use cli
+arg N integer = 50000
+Answer = 0
+for Turn in 1 to N
+  Rest = Turn mod 7
+  Keys = (array
+    Rest (Turn mod 3) (Rest - 1) Rest
+  )
+  Order = Keys argsort
+  Answer += Order 0
+end
+Answer print

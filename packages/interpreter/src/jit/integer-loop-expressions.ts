@@ -954,6 +954,17 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         return type && type.rank > 0 && ['integer', 'real', 'boolean'].includes(type.element)
             ? { source: parts[0], type } : undefined;
     }
+    function numericArgsort(expression: Expression) {
+        if (!numberMode || !host.nativeCalls || !host.arrayLocals || !host.arrayReads
+            || !host.module('sequences') || !isApplicationExpression(expression)
+            || localTypes.has('argsort') || arrays.has('argsort') || containers.has('argsort')) return undefined;
+        const parts = flattenApplication(expression);
+        if (parts.length !== 2 || !isNameExpression(parts[1]) || parts[1].name !== 'argsort'
+            || !completedIndicesMask(parts[0])) return undefined;
+        const type = arrayType(parts[0]);
+        return type?.rank === 1 && (type.element === 'integer' || type.element === 'real' && host.reals
+            || type.element === 'boolean' && host.booleanArrays) ? parts[0] : undefined;
+    }
     function sortedSearch(source: Expression) {
         while (isParenthesizedExpression(source)) source = source.value;
         if (!numberMode || !host.nativeCalls || !host.arrayReads || !host.module('algo') || !isApplicationExpression(source)) return undefined;
@@ -966,9 +977,21 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     }
     // Array operands use the same concrete range/selection operations as the
     // evaluator, without re-entering expression evaluation on every iteration.
+    function numericLiteral(e: Expression) {
+        if (!numberMode || !host.arrayLocals || !isArrayExpression(e) || !e.items.length
+            || e.dimensions.length || e.fill || e.rows.length || e.range) return undefined;
+        const types = e.items.map(item => knownType(item.value));
+        const type = types[0];
+        if (type !== 'integer' && !(type === 'real' && host.reals) && !(type === 'boolean' && host.booleanArrays)
+            || types.some(other => other !== type) || e.items.some(item => item.sign && type === 'boolean')) return undefined;
+        return { items: e.items, type };
+    }
     function arrayType(e: Expression): CompiledArrayType | undefined {
         while (isParenthesizedExpression(e)) e = e.value;
         if (scalarInputs.has(e) || isNameExpression(e) && state.ranges.has(e.name)) return undefined;
+        const literal = numericLiteral(e);
+        if (literal) return { kind: 'array', element: literal.type, rank: 1 };
+        if (numericArgsort(e)) return { kind: 'array', element: 'integer', rank: 1 };
         if (numberMode && isMaterializeExpression(e)) return arrayType(e.source);
         if (numericPrimeCopy(e) || numericIndices(e)) return { kind: 'array', element: 'integer', rank: 1 };
         const countSlice = numericCountSlice(e);
@@ -1488,6 +1511,34 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {
         let countSource = source;
         while (isParenthesizedExpression(countSource)) countSource = countSource.value;
+        const sorted = numericArgsort(countSource);
+        if (sorted) {
+            state.numberVectors = true;
+            const input = emitNumberArray(sorted, lines);
+            if (!input || typeof input.type === 'string') return undefined;
+            builtins.set('argsort', 'sequences');
+            state.syntax.add('argsort');
+            const result = `order${state.serial++}`;
+            lines.push(`const ${result} = orderArray(${input.cells ?? `${input.code}.cells`});`);
+            return { code: result, cells: `${result}.cells`, type: { kind: 'array', element: 'integer', rank: 1 }, fresh: true };
+        }
+        const literal = numericLiteral(countSource);
+        if (literal) {
+            state.numberVectors = true;
+            state.syntax.add('array-literal');
+            const values: string[] = [];
+            for (const item of literal.items) {
+                const value = emit(item.value, lines, literal.type);
+                if (!value || value.type !== literal.type) return undefined;
+                const name = `literalCell${state.serial++}`;
+                lines.push(`const ${name} = ${item.sign === '-' ? '-' : ''}(${value.code});`);
+                values.push(name);
+            }
+            const result = `literal${state.serial++}`;
+            lines.push(`const ${result} = vectorArray([${values.length}], ${literal.type === 'real'}, vectorPool, vectorLive, [result, iterationResult], ${literal.type === 'boolean'});`);
+            values.forEach((value, index) => lines.push(`${result}.store(${index}, ${literal.type === 'boolean' ? `Number(${value})` : value});`));
+            return { code: result, cells: `${result}.cells`, type: { kind: 'array', element: literal.type, rank: 1 }, fresh: true };
+        }
         if (isApplicationExpression(countSource)) {
             const parts = flattenApplication(countSource), type = parts.length === 2 ? arrayType(parts[0]) : undefined;
             if (type && type.rank > 1 && knownType(parts[1]) === 'integer' && !arrayType(parts[1])) {

@@ -9,79 +9,121 @@ use cli
 
 arg N integer = 14
 
-rem A queen reaching D rows only meets
-rem the last D queens, so step rows on
-rem states of the last D columns (4
-rem bits each), merging equal states.
-rem V, L, R carry the column and the
-rem two diagonal bits for the next row;
-rem the queen falling out of reach is
-rem subtracted. Mirror symmetry halves
-rem the first row. D = 0 gives N^N.
-Of = 16
-Fu = (1 shl N) - 1
-Pw = 2 ** (0 till N)
-Hf = (1 shl ((N + 1) // 2)) - 1
+rem Cache columns for each free mask.
+Full = (1 shl N) - 1
+Powers = 2 ** (0 till N)
+Masks = 0 to Full
+Grid = Masks reshape (Full + 1) 1
+Set = Grid bit (0 till N)
+Flat = Set reshape ((Full + 1) * N)
+Columns = Flat indices mod N
+Choices = Masks popcount
+Starts = Choices scan + with 0
+Half = (1 shl ((N + 1) // 2)) - 1
+Scale = 2 ** N
+History = array 0
+Ways = array 1
+Vertical = array 0
+Left = array 0
+Right = array 0
 Answer = N ** N
-for D in 1 till N
-  Mk = 16 ** D
-  Sh = 16 ** (D - 1)
-  St = array 0
-  Cn = array 1
-  V = array 0
-  Lm = array 0
-  Rr = array 0
-  for Rw in 0 till N
-    R1 = Rr // (2 ** Of)
-    Bl = V bor Lm
-    Bl = Bl bor R1
-    Fr = Fu - (Bl band Fu)
-    if Rw equal 0
-      Fr = Fr * 0 + Hf
-    end
-    F = Fr len
-    Fb = ((Fr reshape F 1) // Pw) mod 2
-    Fv = Fb reshape (F * N)
-    Ix = Fv equal 1 indices
-    Si = Ix // N
-    C = Ix mod N
-    Bc = Pw C
-    Sx = St Si
-    Cp = Cn Si
-    if Rw equal 0
-      Md = 2 * C equal N - 1
-      Cp = Md choose 1 2
-    end
-    Nw = (Sx * 16 + C) mod Mk
-    Vx = V Si + Bc
-    Lx = (Lm Si + Bc) * 2
-    Rx = (Rr Si + Bc * 2 ** Of) // 2
-    if Rw at least D
-      Od = Sx // Sh mod 16
-      Bo = Pw Od
-      Vx = Vx - Bo
-      Lx = Lx - Bo * 2 ** (D + 1)
-      Rx = Rx - Bo * 2 ** (Of - D - 1)
-    end
-    rem Merge equal states after a sort.
-    Od = Nw argsort
-    Ss = Nw Od
-    Ln = Ss len
-    Sa = Ss (1 till Ln)
-    Eq = Sa equal (Ss (0 till Ln - 1))
-    Ne = Eq equal false
-    Fl = concat (array true) Ne
-    Fi = Fl indices
-    G = Fl integer scan +
-    G = G - 1
-    St = Ss Fi
-    Cn = array shape (Fi len) fill 0
-    Co = Cp Od
-    Cn G += Co .accumulate
-    V = (Vx Od) Fi
-    Lm = (Lx Od) Fi
-    Rr = (Rx Od) Fi
+rem Keep only the last Depth queens.
+rem Equal histories can merge only
+rem after the first Depth rows.
+for Turn in 0 till N * (N - 1)
+  Depth = Turn // N + 1
+  Row = Turn mod N
+  Keep = N ** (Depth - 1)
+  if Row equal 0
+    History = array 0
+    Ways = array 1
+    Vertical = array 0
+    Left = array 0
+    Right = array 0
   end
-  Answer += Cn sum
+  Blocked = Vertical bor Left
+  Blocked = Blocked bor (Right // Scale)
+  Free = Full - (Blocked band Full)
+  if Row equal 0
+    Free = array Half
+  end
+  Counts = Choices Free
+  if Row equal N - 1
+    Totals = Ways * Counts
+    Answer += Totals sum
+  else
+    Active = Counts greater 0 indices
+    Lengths = Counts Active
+    Ends = Lengths scan +
+    Begin = Ends - Lengths
+    Size = Lengths sum
+    if Size greater 0
+      Marks = array shape Size fill 0
+      Marks Begin = 1
+      Owners = Marks scan +
+      Owners = Owners - 1
+      Source = Active Owners
+      Offset = 0 till Size
+      Offset = Offset - Begin Owners
+      Lookup = Starts (Free Source)
+      Column = Columns (Lookup + Offset)
+      Past = History Source
+      Child = Past mod Keep * N + Column
+      Weight = Ways Source
+      if Row equal 0
+        Middle = 2 * Column equal N - 1
+        Weight = Middle choose 1 2
+      end
+      if Row less Depth
+        History = Child
+        Ways = Weight
+      else
+        Order = Child argsort
+        Sorted = Child Order
+        Count = Sorted len
+        Previous = 0 till Count
+        Previous = (Previous - 1) max 0
+        Prior = Sorted Previous
+        Changes = Sorted not equal Prior
+        Flags = Changes integer
+        Flags 0 = 1
+        Selected = Flags not equal 0
+        First = Selected indices
+        Group = Flags scan +
+        Group = Group - 1
+        History = Sorted First
+        Groups = First len
+        Ways = array shape Groups fill 0
+        Weight = Weight Order
+        Ways Group += Weight .accumulate
+        Picks = Order First
+        Source = Source Picks
+        Column = Column Picks
+        Past = Past Picks
+      end
+      Bit = Powers Column
+      Straight = Vertical Source + Bit
+      Forward = (Left Source + Bit) * 2
+      Back = Right Source + Bit * Scale
+      Back = Back // 2
+      if Row at least Depth
+        Old = Powers (Past // Keep)
+        Straight = Straight - Old
+        Ahead = 2 ** (Depth + 1)
+        Forward = Forward - Old * Ahead
+        Shift = N - Depth - 1
+        Back = Back - Old * 2 ** Shift
+      end
+      Vertical = Straight
+      Left = Forward
+      Right = Back
+    else
+      History = array shape 0 fill 0
+      Ways = array shape 0 fill 0
+      Vertical = array shape 0 fill 0
+      Left = array shape 0 fill 0
+      Right = array shape 0 fill 0
+    end
+  end
 end
 Answer print
