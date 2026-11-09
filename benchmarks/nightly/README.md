@@ -142,3 +142,8 @@ individual results update together. **Compare with** selects the baseline for
 comparison columns. **Refresh** reloads the selected pass and preserves the
 run, comparison and table filters in the page URL. Loading failures appear
 beside Refresh and leave the last valid report visible.
+
+Click a demo to open its output and recent history in a modal dialog. On small
+screens the dialog fills the viewport. Close it with the × button, Escape, or
+browser Back; Forward reopens it. The URL includes the selected demo so a direct
+link can reopen its details. The GitHub link targets the selected run's commit.

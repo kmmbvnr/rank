@@ -18,21 +18,28 @@ async function page(search='') {
  function element(key) {
   key=key.replace(/^#/,'');
   if(!elements.has(key)) elements.set(key,{value:'',innerHTML:'',textContent:'',hidden:true,disabled:false,
-   scrolls:0,focuses:0,scrollIntoView(){this.scrolls++;},focus(){this.focuses++;},
+   open:false,showModal(){this.open=true;},close(){this.open=false;},
    listeners:{},addEventListener(event,fn){this.listeners[event]=fn;}});
   return elements.get(key);
  }
  let href='https://example.test/bench/'+search;
- const document={hidden:false,querySelector:element,getElementById:element,querySelectorAll:()=>[]};
+ const classes=new Set();
+ const document={body:{classList:{add:x=>classes.add(x),remove:x=>classes.delete(x)}},hidden:false,querySelector:element,getElementById:element,querySelectorAll:()=>[]};
  const location={get href(){return href},get search(){return new URL(href).search},get pathname(){return new URL(href).pathname}};
- const context=createContext({document,location,URL,URLSearchParams,console,setInterval(){},window:{history:{replaceState(_state,_title,url){href=String(url)}}},
+ const listeners={},stack=[{href,state:null}];let index=0;
+ const browserHistory={get state(){return stack[index].state;},
+  replaceState(state,_title,url){href=String(url);stack[index]={href,state};},
+  pushState(state,_title,url){href=String(url);stack.splice(++index);stack.push({href,state});},
+  async back(){if(index){href=stack[--index].href;await listeners.popstate?.();}},
+  async forward(){if(index+1<stack.length){href=stack[++index].href;await listeners.popstate?.();}}};
+ const context=createContext({document,location,URL,URLSearchParams,console,setInterval(){},window:{history:browserHistory,addEventListener(name,fn){listeners[name]=fn;}},
   async fetch(path,options){requests.push({path,options});return {ok:!errors.has(path),status:errors.get(path)||200,json:async()=>structuredClone(data.get(path))};}});
  const html=render(latest,older), script=html.match(/<script>([\s\S]*?)<\/script>/)[1];
  new Script(script).runInContext(context);
  // Wait for the page's own initial refresh, not a second synthetic load.
  for(let i=0;i<20&&element('refresh').disabled;i++)await new Promise(setImmediate);
  assert.equal(element('refresh').disabled,false);
- return {element,data,errors,requests,location};
+ return {element,data,errors,requests,location,browserHistory,classes};
 }
 
 test('selecting a past run updates histogram, header, counters and rows',async()=>{
@@ -119,15 +126,46 @@ test('memory changes exclude missing, invalid, failed and changed workloads',asy
 });
 
 
-test('opening a demo brings its details into view and exposes its source',async()=>{
+test('opening a demo shows a modal and exposes its source',async()=>{
  const p=await page();
  let prevented=false;
  await p.element('rows').onclick({target:{dataset:{path:'demos/keep.ra'}},preventDefault(){prevented=true;}});
  const panel=p.element('detail');
  assert.equal(prevented,true);
- assert.equal(panel.hidden,false);
- assert.match(panel.innerHTML,/demos\/keep.ra/);
- assert.equal(panel.scrolls,1);
- assert.equal(panel.focuses,1);
- assert.match(panel.innerHTML,new RegExp('https://github.com/kmmbvnr/rank/blob/'+'b'.repeat(40)+'/demos/keep.ra'));
+ assert.equal(panel.open,true);
+ assert(p.classes.has('detail-open'));
+ assert.match(p.element('detail-content').innerHTML,/demos\/keep.ra/);
+ assert.match(p.element('detail-content').innerHTML,new RegExp('https://github.com/kmmbvnr/rank/blob/'+'b'.repeat(40)+'/demos/keep.ra'));
+});
+
+
+test('Back closes the modal and Forward reopens it without losing filters',async()=>{
+ const p=await page('?q=keep&status=ok');
+ await p.element('rows').onclick({target:{dataset:{path:'demos/keep.ra'}},preventDefault(){}});
+ assert.equal(new URL(p.location.href).hash,'#demo=demos%2Fkeep.ra');
+ await p.browserHistory.back();
+ assert.equal(p.element('detail').open,false);
+ assert(!p.classes.has('detail-open'));
+ assert.equal(new URL(p.location.href).searchParams.get('q'),'keep');
+ await p.browserHistory.forward();
+ assert.equal(p.element('detail').open,true);
+});
+
+test('close button and Escape consume the modal history entry',async()=>{
+ const p=await page();
+ for(const close of [()=>p.element('detail-close').onclick(),()=>p.element('detail').listeners.cancel({preventDefault(){}})]){
+  await p.element('rows').onclick({target:{dataset:{path:'demos/keep.ra'}},preventDefault(){}});
+  await close();
+  assert.equal(p.element('detail').open,false);
+  assert.equal(new URL(p.location.href).hash,'');
+ }
+});
+
+test('a direct demo link closes in place instead of navigating away',async()=>{
+ const p=await page('?q=keep#demo=demos%2Fkeep.ra');
+ assert.equal(p.element('detail').open,true);
+ await p.element('detail-close').onclick();
+ assert.equal(p.element('detail').open,false);
+ assert.equal(new URL(p.location.href).hash,'');
+ assert.equal(new URL(p.location.href).searchParams.get('q'),'keep');
 });
