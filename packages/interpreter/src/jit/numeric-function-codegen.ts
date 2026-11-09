@@ -8,7 +8,7 @@ const unshape = (node: NumericNode): NumericNode => node.kind === 'reshape' ? un
  * Common concat layouts stream all pieces of all returned arrays together. */
 export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<NumericNode, NumericBound>, scalarSlots: ReadonlyMap<NumericNode, number>): string | undefined {
     if (roots.every(root => !bound.get(root)!.shape.length)) return emitReductions(roots, bound, scalarSlots);
-    if ([...bound.keys()].some(node => !scalarSlots.has(node) && (node.kind === 'choose' || node.kind === 'sum' || node.kind === 'sqrt'
+    if ([...bound.keys()].some(node => !scalarSlots.has(node) && (node.kind === 'choose' || node.kind === 'sum'
         || node.kind === 'binary' && !['+', '-', '*', '/', '//'].includes(node.op)))) return undefined;
     const sources = roots.map(unshape);
     const first = sources[0], concat = first.kind === 'concat' ? first : undefined;
@@ -53,6 +53,7 @@ export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<Num
         if (node.kind === 'input') expression = `data[${info.data}][${index}]`;
         else if (node.kind === 'range') expression = `scalars[${scalarSlots.get(node.start)}] + (${index})`;
         else if (node.kind === 'unary') expression = `${node.op}(${emit(node.child, index)})`;
+        else if (node.kind === 'sqrt') expression = `isqrt(${emit(node.source, index)})`;
         else if (node.kind === 'binary') {
             const a = emit(node.left, broadcast(index, info.shape, bound.get(node.left)!.shape));
             const b = emit(node.right, broadcast(index, info.shape, bound.get(node.right)!.shape));
@@ -118,6 +119,7 @@ function emitReductions(roots: NumericNode[], bound: ReadonlyMap<NumericNode, Nu
             else if (node.kind === 'reshape') return emit(node.source, at);
             else if (node.kind === 'gather') return emit(node.source, emit(node.indices, at));
             else if (node.kind === 'unary') expression = `${node.op}(${emit(node.child, at)})`;
+            else if (node.kind === 'sqrt') expression = `isqrt(${emit(node.source, at)})`;
             else if (node.kind === 'choose') {
                 const condition = emit(node.condition, index(at, info.shape, bound.get(node.condition)!.shape));
                 const yes = emit(node.yes, index(at, info.shape, bound.get(node.yes)!.shape));

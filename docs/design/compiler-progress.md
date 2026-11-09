@@ -1,5 +1,22 @@
 # Compiler progress
 
+## Exact array square roots in numeric functions (Euler 556)
+
+Pure structural numeric functions now keep integer `isqrt` maps virtual
+through reshapes and sums. Nonnegative safe-integer bounds prove the input
+domain, and generated code uses the shared corrected integer square root.
+Negative or wider inputs retain ordinary exact execution. Roots and reductions
+share a traversal without retaining the intermediate root array.
+
+The loop copy-cost proof also preserves lengths through explicit `array`
+completion of trusted ranges. It does not evaluate deferred sources or relax
+copy budgets; existing immutable-entry, escape and replay guards still apply.
+
+Euler 556 uses a residual cofactor sieve, scopes temporary arrays to a helper,
+and ranks a quarter-disc function over distinct quotients. Only the sieve has
+an explicit loop. Prime 2 is included even at the smallest sieve bounds.
+See [measurements and checks](../../benchmarks/euler556.md).
+
 ## Streaming modular callback reductions (Euler 554)
 
 A pure declared `(Acc +/* Value) mod M` callback can fold a constructor-proved

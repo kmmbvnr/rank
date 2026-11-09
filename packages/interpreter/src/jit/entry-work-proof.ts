@@ -178,7 +178,10 @@ export function prepareEntryWorkProof(plan: IntegerLoopPlan, host: LoopHost) {
     }
     const rangeKey = (name: string) => `#range:${name}`;
     function range(expression: Expression | undefined): (values: Values) => number {
-        while (expression && isParenthesizedExpression(expression)) expression = expression.value;
+        // Completing a proved range preserves its length. This is metadata
+        // for copy admission, never evaluation of a deferred source.
+        while (expression && (isParenthesizedExpression(expression) || isMaterializeExpression(expression)))
+            expression = isParenthesizedExpression(expression) ? expression.value : expression.source;
         if (expression && isApplicationExpression(expression) && plan.builtins.get('copy') === 'sequences') {
             const parts = flattenApplication(expression), last = parts.at(-1);
             if (parts.length === 2 && isNameExpression(last) && last.name === 'copy') {

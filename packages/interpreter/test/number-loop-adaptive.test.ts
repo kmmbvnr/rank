@@ -293,3 +293,41 @@ describe('condition-loop entry range work', () => {
         expect(run(source).result.error).toContain('array index out of bounds');
     });
 });
+
+const completedPasses = (selector = 'Prime to Last by Prime array', tail = '') => `use sequences
+use numbers
+Size = 262145
+Last = Size - 1
+A = array shape Size fill 0
+Alias = A
+Primes = primes till 1000 array
+for Prime in Primes
+ Places = ${selector}
+ A Places = A Places + 1
+ ${tail}
+end`;
+
+describe('completed selector copy admission', () => {
+    it.each(['Prime to Last by Prime array', 'Last to Prime by -Prime array'])(
+        'combines proved materialized range passes: %s', selector => {
+            const d = compare(completedPasses(selector));
+            expect(d.numberLoops).toBe(1);
+            expect(d.numberLoopCopyProbes).toBe(0);
+            expect(d.fallbacks['number-loop:condition-write-budget']).toBeUndefined();
+        });
+    it('does not count later passes after an escaping branch', () => {
+        const d = compare(completedPasses(undefined, 'break'));
+        expect(d.numberLoops).toBe(0);
+        expect(d.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
+    });
+    it('keeps empty completed ranges below the copy cap', () => {
+        const d = compare(completedPasses('Size till Prime array'));
+        expect(d.numberLoops).toBe(0);
+        expect(d.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
+    });
+    it('preserves overflow replay and aliases for admitted passes', () => {
+        const source = completedPasses().replace('A Places = A Places + 1', 'A Places = A Places + 9007199254740991');
+        const d = compare(source);
+        expect(d.numberLoopOverflows).toBe(1);
+    });
+});

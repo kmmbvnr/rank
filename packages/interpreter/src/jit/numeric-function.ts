@@ -316,9 +316,10 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
                 const source = bind(node.source);
                 if (!source.integer || source.boolean) return bad();
                 if (node.kind === 'sqrt') {
-                    if (source.shape.length || source.scalar === undefined || source.scalar < 0) return bad();
-                    const scalar = safeIntegerSquareRoot(source.scalar);
-                    info = { shape: [], size: 1, integer: true, scalar, low: scalar, high: scalar };
+                    if (source.low === undefined || source.high === undefined || source.low < 0) return bad();
+                    const low = safeIntegerSquareRoot(source.low), high = safeIntegerSquareRoot(source.high);
+                    const scalar = source.scalar === undefined ? undefined : safeIntegerSquareRoot(source.scalar);
+                    info = { shape: source.shape, size: source.size, integer: true, scalar, low, high };
                 } else {
                     if (!source.shape.length || source.low === undefined || source.high === undefined) return bad();
                     const low = source.low * source.size, high = source.high * source.size;
@@ -437,7 +438,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             if (!emitted) return undefined;
             let run = programs.get(emitted);
             if (!run) {
-                try { run = new Function(emitted)() as NumericRun; } catch { unavailable = true; return undefined; }
+                try { run = new Function('isqrt', emitted)(safeIntegerSquareRoot) as NumericRun; } catch { unavailable = true; return undefined; }
                 if (programs.size >= 32) programs.delete(programs.keys().next().value!);
                 programs.set(emitted, run);
                 host.compiled(emitted);
