@@ -8,38 +8,56 @@ use cli
 
 arg Q integer = 100000
 
-rem By von Staudt-Clausen D(k) is the
-rem product of the primes p with p - 1
-rem | k. 20010 = 2 3 5 23 29 needs 1, 2,
-rem 4, 22, 28 | k: k = 308 m. Any other
-rem prime p = g u + 1, g = gcd(p - 1,
-rem 308), rules out every m divisible
-rem by u; sieve m and double the range
-rem until Q values survive.
-Bs = 308
-Gs = array 2 4 14 22 28 44 154 308
-Al = array 3 5 23 29
-Mb = 1024
-Answer = 0
-for Answer equal 0
-  Mb *= 2
-  Sv = Bs * Mb + 1 primesieve
-  Mk = array shape (Mb + 1) fill true
-  Mk 0 = false
-  U = 1 to Mb copy
-  for G in Gs
-    Pp = G * U + 1
-    Na = (Pp in Al) equal false
-    Ok = Pp in Sv and Na
-    Gu = G * U gcd Bs
-    Ok = Ok and (Gu equal G)
-    for R in U (Ok indices)
-      Mk (R to Mb by R) = false
+rem von Staudt-Clausen: the denominator
+rem 20010 needs k = 308 m. Other primes
+rem p forbid multiples of (p - 1) / g,
+rem where g = gcd(p - 1, 308).
+Base = 308
+Groups = array 2 4 14 22 28 44 154 308
+Other = Base // Groups
+
+fun Count solve
+  if Count equal 1
+    return Base
+  end
+  fun State advance
+    Limit = State 0
+    Sieve = Base * Limit + 1 primesieve
+    Size = Limit + 1
+    Flags = array shape Size fill true
+    Flags 0 = false
+    rem m = 1 gives the required primes.
+    rem Later m can only add bad primes.
+    for M in 2 to Limit
+      if Flags M
+        Candidates = Groups * M + 1
+        Forbidden = Candidates in Sieve
+        Coprime = M gcd Other equal 1
+        Bad = Forbidden and Coprime
+        if Bad any
+          Multiples = M to Limit by M
+          Flags Multiples = false
+        end
+      end
     end
+    Matches = Flags indices
+    Value = 0
+    if Matches len at least Count
+      Value = Base * Matches (Count - 1)
+    end
+    return tuple (Limit * 2) Value
   end
-  Ix = Mk indices
-  if Ix len at least Q
-    Answer = Bs * Ix (Q - 1)
+  fun Previous done Next
+    return Next 1 greater 0
   end
+  rem Starting guess; double if needed.
+  Initial = Count * 32 max 1024
+  Seed = tuple Initial 0
+  Final = (
+    Seed advance repeat 32 till done
+  )
+  return Final 1
 end
+
+Answer = Q solve
 Answer print

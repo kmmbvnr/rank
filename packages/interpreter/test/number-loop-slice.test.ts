@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, RuntimeDiagnostics, formatValue } from '../src/index.js';
-import { withInterrupt } from '../src/interrupt.js';
+import { withDemandBudget, withInterrupt } from '../src/interrupt.js';
 
 function execute(source: string, mode = 'number') {
     const runtime = new Interpreter(() => {}, { compilation: mode !== 'reference',
@@ -47,16 +47,19 @@ end`);
     });
 
     it.each(['+', '-', '*', '//', 'mod'])('fuses a discarded slice transform with %s', operator => {
+        // Parentheses distinguish RHS remainder from the modular-write suffix.
+        const rhs = operator === 'mod' ? '(A Slots mod (I + 2))' : `A Slots ${operator} (I + 2)`;
         const result = compare(`A = array 2 4 6 8 10 12
 Alias = A
 for I in 1 to 2
  Slots = 0 to 4 by 2
- A Slots -= A Slots ${operator} (I + 2)
+ A Slots -= ${rhs}
  Done = I
 end`);
         expect(result.diagnostics.numberLoops).toBe(1);
         expect(result.diagnostics.numberLoopSliceCopies).toBe(0);
         expect(result.state.variables).toContainEqual(['Alias', '2 4 6 8 10 12']);
+        if (operator === 'mod') expect(result.state.variables).toContainEqual(['A', '0 4 4 8 8 12']);
     });
 
     it('uses a later statement or explicit return as a discarded-result proof', () => {
@@ -443,4 +446,66 @@ end`)))).toThrow('Interrupted');
             expect(diagnostics.numberLoops).toBe(1);
         } finally { runtime.dispose(); }
     });
+});
+
+
+describe('private boolean range fills', () => {
+    it.each(['true', 'false', 'Step equal 2'])('compiles dynamic-stride boolean fills with %s', value => {
+        const result = compare(`Flags = array shape 13 fill true
+Saved = Flags
+for Step in 1 to 3
+ Flags (Step to 12 by Step) = ${value}
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.state.variables).toContainEqual(['Saved', Array(13).fill('true').join(' ')]);
+    });
+    it.each(['5 to 1 by -2', '3 till 3', '9 till 0', '0 till 5 by -1'])('preserves scalar results for the range %s', range => {
+        const result = compare(`Flags = array shape 6 fill false
+for I in 0 to 1
+ Flags (${range}) = true
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.state.result).toBe('true');
+    });
+    it('fills rows of a tensor and snapshots its own boolean scalar', () => {
+        const result = compare(`Flags = array shape 2 2 6 fill true
+Saved = Flags
+for I in 0 to 1
+ Flags I 1 (5 to 1 by -2) = Flags I 1 0
+ Flags I 1 0 = false
+end`);
+        expect(result.diagnostics.numberLoops).toBe(1);
+    });
+    it.each([
+        'Flags (0 to 2 by 0) = true',
+        'Flags (0 to 8) = true',
+        'Flags (8 to 1 by -1) = true',
+        'Flags (0 to 2 by 0) = 1 // 0 equal 0',
+        'Flags (9 till 0) = 1 // 0 equal 0',
+        'Flags (0 to 2) = 0',
+    ])('replays boolean range errors in order: %s', statement => {
+        compare(`Flags = array shape 6 fill false
+Count = 0
+for I in 1 to 2
+ Count += 1
+ ${statement}
+end`, false);
+    });
+});
+
+it.each([1,5,20,100])('retains exact-backend demand-budget observations for boolean range fills, budget=%s', budget=>{
+    const bounded=(numberLoopCompilation:boolean)=>{
+        const runtime=new Interpreter(()=>{}, {compilation:true,numberLoopCompilation,scalarEntryCompilation:false});
+        let error:string|undefined;
+        try {try {withDemandBudget(budget,()=>runtime.execute(`Flags = array shape 8 fill true
+Count = 0
+for I in 1 to 3
+ Count += 1
+ Flags (I to 7 by I) = false
+end`));}
+            catch(failure){error=failure instanceof RankError?failure.format():String(failure);}
+            return {error,variables:[...runtime.variables].map(([name,value])=>[name,formatValue(value)])};
+        }finally{runtime.dispose();}
+    };
+    expect(bounded(true)).toEqual(bounded(false));
 });

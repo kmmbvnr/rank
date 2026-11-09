@@ -1,5 +1,21 @@
 # Compiler progress
 
+## Scalar boolean range fills (Euler 545)
+
+Private Number loops now fill trailing arithmetic ranges with a scalar boolean,
+including dynamic/reverse strides and scalar leading coordinates on tensors.
+The scalar is read once before stores, even when the selection is empty.
+Selector validation, assignment results and private publication use the existing
+integer-slice path. Boolean array RHS values retain their current routes.
+Budgeted execution keeps the prior exact backend; opaque host polling retains
+its existing guard. Copy-admission thresholds are unchanged.
+
+Euler 545 visits only still-eligible multipliers, so a forbidden divisor removes
+its multiples once. A complete sweep supplies enough work for the existing copy
+proof, then an array selection obtains the requested survivor. A smaller initial
+bound reduces the prime bitmap and doubles if needed. See
+[measurements and verification](../../benchmarks/euler545.md).
+
 ## Local storage across scalar helper calls
 
 Scalar function proofs now summarize writes to parameters separately from

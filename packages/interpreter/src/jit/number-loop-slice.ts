@@ -45,9 +45,16 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
     const { arrays, destinations, assigned, arrayInputs } = state;
     const previous = destinations.get(assignment.name), known = arrays.get(assignment.name);
     const rank = selectors.length;
-    if (previous && (previous.rank !== rank || previous.type !== 'integer')
-        || known && (known.rank !== rank || known.type !== 'integer')) return undefined;
-    const target = previous ?? { slot: expressions.slot(assignment.name), rank, compound: assignment.operator !== '=', type: 'integer' as const };
+    const header = expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as Expression);
+    const type = previous?.type ?? known?.type ?? header?.element;
+    const boolean = type === 'boolean';
+    // Boolean fills share the same selector checks and private transaction.
+    // Array RHS snapshots and arithmetic retain the established integer path.
+    if (boolean && (!state.host.booleanArrays || assignment.operator !== '=' || slice || candidate)) return undefined;
+    const element = boolean ? 'boolean' as const : 'integer' as const;
+    if (previous && (previous.rank !== rank || previous.type !== element)
+        || known && (known.rank !== rank || known.type !== element)) return undefined;
+    const target = previous ?? { slot: expressions.slot(assignment.name), rank, compound: assignment.operator !== '=', type: element };
     destinations.set(assignment.name, target);
     state.currentScope()?.assigned.add(assignment.name);
     if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
@@ -121,8 +128,8 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
     } else {
         // Demand a scalar once, including for an empty selection. An element
         // of the destination is read before any of the selected cells change.
-        const scalar = expressions.emit(rhs, lines, 'integer');
-        if (scalar?.type !== 'integer') return undefined;
+        const scalar = expressions.emit(rhs, lines, element);
+        if (scalar?.type !== element) return undefined;
         lines.push(`const ${snapshot} = ${scalar.code};`);
     }
     let replacement = operand ? `operand${n}[cursor${n}]` : snapshot;
@@ -157,7 +164,8 @@ export function emitNumberSlice(state: LoopCompilationState, expressions: LoopEx
             cells${target.slot}[${key}] = next${n};
             ${state.arrayDefinitions.has(assignment.name) ? '' : `changed${target.slot}[${key}] = 1;`}
         }
-        iterationResult = ${discarded && operand ? 'undefined' : operand && input ? `sliceResult(r${input.slot}, ${operand.offset}, ${operand.count}, ${operand.stride})` : snapshot}; iterationType = '${operand && !discarded ? 'array' : 'integer'}';`);
+        iterationResult = ${discarded && operand ? 'undefined' : operand && input ? `sliceResult(r${input.slot}, ${operand.offset}, ${operand.count}, ${operand.stride})` : snapshot}; iterationType = '${operand && !discarded ? 'array' : element}';`);
+    if (boolean) state.syntax.add('boolean-range-fill');
     body.push(`location = ${location};`, ...lines);
     return true;
 }

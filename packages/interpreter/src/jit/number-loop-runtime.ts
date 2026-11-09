@@ -659,6 +659,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             return recordFallback('number-loop:observable-array-literal', 'effects');
         if (plan.syntax.has('argsort') && (demandBudgetEnabled() || interruptsEnabled()))
             return recordFallback('number-loop:observable-argsort', 'effects');
+        if (plan.syntax.has('boolean-range-fill') && demandBudgetEnabled()) return recordFallback('number-loop:observable-boolean-range-fill', 'effects');
         if (plan.syntax.has('scalar-row-selection') && demandBudgetEnabled()) return recordFallback('number-loop:observable-row-selection', 'effects');
         if (plan.syntax.has('scalar-array-end') && (demandBudgetEnabled() || interruptsEnabled()))
             return recordFallback('number-loop:observable-array-end', 'effects');
