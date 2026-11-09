@@ -1,61 +1,94 @@
 rem Divisor game
 rem https://projecteuler.net/problem=550
-
 use numbers
 use sequences
 use bits
+use algo
 use io
 use cli
-
 arg N integer = 10000000
 arg K integer = 1000000000000
-
-rem A move splits x into two proper
-rem divisors > 1. Those divisors reach
-rem every Omega below Omega(x), so by
-rem induction the Grundy value is G(w),
-rem w = Omega(x): the mex of G(i) xor
-rem G(j), i, j < w. The losing k-tuples
-rem have xor 0: their count is 1 / 64
-rem times the sum of the k-th powers of
-rem the Walsh-Hadamard histogram.
-Md = 987654321
-Om = array shape (N + 1) fill 0
-for P in primes to N
-  Q = P
-  for Q at most N
-    Om (Q to N by Q) += 1
-    Q *= P
+Mod = 987654321
+Primes = primes to N copy
+rem Products have nondecreasing primes.
+rem Count all last primes in one query.
+fun State grow
+  Products = State .products
+  First = State .first
+  Bounds = N // Products
+  Available = Primes upperindex Bounds
+  Choices = Available - First
+  Count = Choices sum
+  rem Expand only extendable prefixes.
+  Roots = Bounds isqrt
+  Last = Primes upperindex Roots
+  Lengths = Last - First
+  Lengths = Lengths max 0
+  Ends = Lengths scan +
+  Begin = Ends - Lengths
+  Size = Lengths sum
+  Positions = 0 till Size copy
+  Owners = Ends upperindex Positions
+  Indices = First Owners + Positions
+  Indices -= Begin Owners
+  Parents = Products Owners
+  Next = Parents * Primes Indices
+  Histogram = State .histogram
+  Added = array Count
+  return record
+    .products = Next copy
+    .first = Indices copy
+    .histogram = concat Histogram Added
   end
 end
-Wm = 30
-Hw = array shape (Wm + 1) fill 0
-Oc = Om (2 to N)
-Hw Oc += 1 .accumulate
-G = array shape (Wm + 1) fill 0
-for W in 2 to Wm
-  Gs = G (1 till W)
-  Nw = W - 1
-  Xm = Gs Gs outer bxor
-  X = Xm reshape (Nw * Nw)
-  Sn = array shape 128 fill false
-  Sn X = true
-  G W = (Sn equal false indices) first
+fun Before done After
+  Products = After .products
+  return Products len equal 0
 end
-rem Histogram by Grundy value, then the
-rem 64-point Walsh-Hadamard transform.
-Hg = Hw sum by G size 64
-J = 0 till 64 copy
-Sg = (J J outer band popcount) mod 2
-Ht = ((1 - 2 * Sg) * Hg) reduce + axis 1
-Pw = (Ht mod Md) K Md powmod
-rem Md is odd but not prime: 1 / 64 is
-rem (Md t + 1) / 64 for t below 64.
-Ts = 0 till 64 copy
-Tm = (Md * Ts + 1) mod 64
-Ti = Tm equal 0 indices
-I64 = (Md * (Ts (Ti first)) + 1) // 64
-Lz = Pw sum mod Md * I64 mod Md
-Al = (N - 1) K Md powmod
-Answer = (Al - Lz) mod Md
+Seed = record
+  .products = array 1
+  .first = array 0
+  .histogram = array 0
+end
+Levels = N binary len
+Tree = Seed grow repeat Levels till done
+Histogram = Tree .histogram
+Width = Histogram len - 1
+rem The mex depends only on Omega(n).
+Digits = Width binary len
+SeenSize = 2 ** (2 * Digits)
+Grundy = array shape (Width + 1) fill 0
+for W in 2 to Width
+  Previous = Grundy (1 till W)
+  Matrix = Previous Previous outer bxor
+  Size = (W - 1) * (W - 1)
+  Moves = Matrix reshape Size
+  Seen = array shape SeenSize fill false
+  Seen Moves = true
+  Missing = Seen equal false indices
+  Grundy W = Missing first
+end
+Largest = Grundy max
+Bits = Largest binary len
+Size = 2 ** Bits
+Groups = Histogram
+Counts = Groups sum by Grundy size Size
+Positions = 0 till Size copy
+Signs = Positions Positions outer band
+Signs = Signs popcount mod 2
+Weights = 1 - 2 * Signs
+Transform = Weights * Counts sum axis 1
+Reduced = Transform mod Mod
+Powers = Reduced K Mod powmod
+rem Mod is odd, so Size is invertible.
+Trials = 0 till Size copy
+Remainder = (Mod * Trials + 1) mod Size
+Selected = Remainder equal 0 indices
+Trial = Trials (Selected first)
+Inverse = (Mod * Trial + 1) // Size
+Lost = Powers sum
+Lost = Lost mod Mod * Inverse mod Mod
+Items = (N - 1) max 0
+All = Items K Mod powmod
+Answer = (All - Lost) mod Mod
 Answer print
