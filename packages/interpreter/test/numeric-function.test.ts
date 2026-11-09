@@ -12,6 +12,8 @@ function fixture(arrayFunctionCompilation = true, source = stage, name = 'fftSta
     const generated: string[] = [], diagnostics = new RuntimeDiagnostics(), output: string[] = [];
     const runtime = new Interpreter(text => output.push(text), {
         arrayFunctionCompilation,
+        // Exercise this backend even when a scalar-call specialization could win.
+        scalarFunctionCompilation: false,
         onFunctionBodyCompiled: text => { if (text.includes('numeric-array-function')) generated.push(text); },
     });
     runtime.execute(source);

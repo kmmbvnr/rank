@@ -1,57 +1,60 @@
 rem Coprime Nim
 rem https://projecteuler.net/problem=560
-
 use numbers
 use sequences
 use bits
 use io
 use cli
-
 arg N integer = 10000000
 arg K integer = 10000000
 
-rem Grundy value of a pile: 0 if even,
-rem 1 for 1, else the index of its
-rem least prime factor. Count piles by
-rem value c; the K-pile xor-0 positions
-rem number (1 / m) sum of the K-th
-rem powers of the Walsh-Hadamard
-rem transform of c (length m).
-Md = 1000000007
-Lm = N - 1
-Ps = primes till Lm + 1 array
-Np = Ps len
-Cc = array shape Np fill 1
-Al = array shape (Lm + 1) fill 1
-Sq = Lm isqrt
-Ns = (Ps at most Sq integer) sum
-for I in 1 till Ns
-  P = Ps I
-  Ix = P to Lm by 2 * P array
-  Cc I = Al Ix sum
-  Al Ix = 0
+rem Even piles have Grundy value zero.
+rem For odd piles, count least factors;
+rem larger primes occur just once.
+Limit = N - 1
+Sieve = Limit primesieve
+Count = Sieve len
+Root = Limit isqrt
+Primes = Sieve to Root array
+Small = Primes len
+Counts = array shape Count fill 1
+Odd = (Limit + 1) // 2
+Alive = array shape Odd fill 1
+for I in 1 till Small
+  Prime = Primes I
+  First = (Prime - 1) // 2
+  Slots = First till Odd by Prime
+  Counts I = Alive Slots sum
+  Alive Slots = 0
 end
-Lg = 0
-Mm = 1
-for Mm less Np + 1
-  Mm *= 2
-  Lg += 1
+
+Bits = Count binary len
+Width = 2 ** Bits
+Values = array shape Width fill 0
+Values 0 = Limit // 2
+Values 1 = Limit at least 1 integer
+Targets = 2 till Count + 1
+Values Targets = Counts (1 till Count)
+rem Walsh butterflies count XOR powers.
+fun Values walsh Half
+  Size = Values len
+  Blocks = Size // (2 * Half)
+  Cube = Values reshape Blocks 2 Half
+  unpack Left Right = Cube axis 1
+  Plus = Left + Right
+  Minus = Left - Right
+  Top = Plus reshape Blocks 1 Half
+  Bottom = Minus reshape Blocks 1 Half
+  Joined = concat Top Bottom axis 1
+  return Joined reshape Size
 end
-Wt = array shape Mm fill 0
-Wt 0 = Lm // 2
-Wt 1 = 1
-Hi = 2 till Np + 1 array
-Wt Hi = Cc (1 till Np array)
-Ix = 0 till Mm array
-for E in 0 till Lg
-  H = 2 ** E
-  Xp = Wt (Ix bxor H)
-  Bt = (Ix band H) // H
-  Wt = Xp + Wt * (1 - 2 * Bt)
-end
-Th = Wt mod Md
-Pw = Th K Md powmod
-Iv = Mm (Md - 2) Md powmod
-Sm = Pw sum mod Md
-Answer = Sm * Iv mod Md
+Steps = 2 ** (0 till Bits)
+Weights = Steps reduce walsh with Values
+Mod = 1000000007
+Residues = Weights mod Mod
+Powers = Residues K Mod powmod
+Exponent = Mod - 2
+Inverse = Width Exponent Mod powmod
+Total = Powers sum mod Mod
+Answer = Total * Inverse mod Mod
 Answer print

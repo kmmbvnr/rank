@@ -3369,3 +3369,21 @@ Newton reciprocal prefixes for long series and array batches for short series,
 with one nonnested loop. The full demo returns to corpus execution. See
 [Euler 559 controls](../../benchmarks/euler559.md) for separate source/backend
 measurements, including process RSS limitations.
+
+## Compact structural integer functions and bitwise lanes (Euler 560, #447)
+
+The pure numeric function backend allocates final Int32 destinations when its
+result interval fits signed 32 bits, avoiding a Float64 temporary and BigInt64
+publication. Concatenations propagate conservative source intervals. Successive
+structural integer helpers can therefore remain compact and compiled instead
+of alternating with ordinary execution. Wider integers retain exact wide
+publication; real arrays retain Float64 storage. Existing guards and private
+result ownership remain in place; Number admission thresholds are unchanged.
+
+The same backend admits `band`, `bor` and `bxor` for proved nonnegative Int32
+operands. Signed/wide/real operands and nonstandard builtin bindings retain
+ordinary evaluation. Independent tests cover chained XOR permutations and
+both compact-result boundaries. The final Euler 560 demo uses reshape/unpack
+butterflies, a fold over stages, and an odd-only sieve with library prime counts.
+See [Euler 560 controls](../../benchmarks/euler560.md) for separate source and
+compiler effects, peak RSS and the numeric-backend test isolation repair.

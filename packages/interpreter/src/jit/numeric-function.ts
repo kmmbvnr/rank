@@ -133,6 +133,11 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
                 return { kind: 'concat', sources: sources as NumericNode[], axis: axis ? Number(axis.value) : 0 };
             }
             const parts = flattenApplication(e);
+            if (parts.length === 3 && isNameExpression(parts[2]) && ['band', 'bor', 'bxor'].includes(parts[2].name)) {
+                const left = parse(parts[0]), right = parse(parts[1]);
+                builtins.add(parts[2].name);
+                return left && right ? { kind: 'binary', op: parts[2].name, left, right } : undefined;
+            }
             if (parts.length === 4 && isNameExpression(parts[3]) && parts[3].name === 'choose') {
                 const condition = parse(parts[0]), yes = parse(parts[1]), no = parse(parts[2]);
                 builtins.add('choose');
@@ -228,7 +233,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
         const bad = (reason = 'domain'): NumericBound => { rejected = true; recordFallback(`numeric-function:${reason}`); return { shape: [], size: 1, integer: false }; };
         function viewOnly(node: NumericNode): boolean { return node.kind === 'input' || node.kind === 'reshape' && viewOnly(node.source); }
         function binary(op: string, a: number, b: number): number {
-            return op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b : op === '/' ? a / b
+            return op === 'band' ? a & b : op === 'bor' ? a | b : op === 'bxor' ? a ^ b : op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b : op === '/' ? a / b
                 : op === '//' ? Math.floor(a / b) : a - Math.floor(a / b) * b;
         }
         function readInput(name: string): NumericBound {
@@ -260,7 +265,10 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             return true;
         }
         function execute(prepared: Prepared): RankValue | NumericBuffer[] | undefined {
-            const buffers = prepared.results.map(r => new Float64Array(r.size));
+            // A proved Int32 result can be published directly. Keeping it compact
+            // also lets the next numeric helper borrow it without a boxed conversion.
+            const buffers = prepared.results.map(r => r.integer && r.low! >= -2147483648 && r.high! <= 2147483647
+                ? new Int32Array(r.size) : new Float64Array(r.size));
             if (!prepared.run(data, prepared.scalars, buffers, prepared.sizes)) return undefined;
             if (raw && arrayResult) {
                 host.executed();
@@ -274,12 +282,14 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             }
             if (arrayResult) {
                 host.executed();
-                return typedArray(BigInt64Array.from(buffers, buffer => BigInt(buffer[0])));
+                const compact = prepared.results.every(r => r.low! >= -2147483648 && r.high! <= 2147483647);
+                return compact ? typedArray(Int32Array.from(buffers, buffer => buffer[0]))
+                    : typedArray(BigInt64Array.from(buffers, buffer => BigInt(buffer[0])));
             }
             const values = buffers.map((buffer, i) => {
                 const result = prepared.results[i];
                 if (!result.shape.length) return BigInt(buffer[0]);
-                return result.integer ? typedArray(BigInt64Array.from(buffer, BigInt), result.shape)
+                return result.integer ? typedArray(buffer instanceof Int32Array ? buffer : BigInt64Array.from(buffer, BigInt), result.shape)
                     : typedArray(buffer, result.shape, undefined, 'real');
             });
             host.executed();
@@ -349,7 +359,16 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
                 if (a.boolean || b?.boolean) return bad();
                 const integer = a.integer && (!b || b.integer) && node.op !== '/';
                 info = { shape, size: sizeOf(shape), integer, ...(comparison ? { boolean: true } : {}) };
-                if (comparison) {
+                if (b && ['band', 'bor', 'bxor'].includes(node.op)) {
+                    // JavaScript bit operators preserve BigInt semantics only in this proved domain.
+                    if (!integer || a.low === undefined || a.high === undefined || b.low === undefined || b.high === undefined
+                        || a.low < 0 || b.low < 0
+                        || a.high! > 2147483647 || b.high! > 2147483647) return bad('bitwise-domain');
+                    info.low = 0;
+                    info.high = node.op === 'band' ? Math.min(a.high!, b.high!)
+                        : 2 ** Math.ceil(Math.log2(Math.max(a.high!, b.high!) + 1)) - 1;
+                    if (!shape.length) info.scalar = binary(node.op, a.scalar!, b.scalar!);
+                } else if (comparison) {
                     if (!integer) return bad();
                     info.low = 0; info.high = 1;
                 } else if (!shape.length && a.scalar !== undefined && (!b || b.scalar !== undefined)) {
@@ -404,6 +423,10 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
                     || s.shape.length !== first.shape.length || s.shape.some((n, i) => i !== node.axis && n !== first.shape[i]))) return bad();
                 const shape = [...first.shape]; shape[node.axis] = sources.reduce((n, s) => n + s.shape[node.axis], 0);
                 info = { shape, size: sizeOf(shape), integer: first.integer, boolean: first.boolean };
+                if (info.integer && sources.every(s => s.low !== undefined && s.high !== undefined)) {
+                    info.low = Math.min(...sources.map(s => s.low!));
+                    info.high = Math.max(...sources.map(s => s.high!));
+                }
             }
             bound.set(node, info); return info;
         }

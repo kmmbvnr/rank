@@ -1,5 +1,6 @@
 import type { NumericBound, NumericNode } from './numeric-function.js';
-export type NumericRun = (data: ArrayLike<number>[], scalars: number[], output: Float64Array[], sizes?: readonly number[]) => boolean;
+export type NumericRun = (data: ArrayLike<number>[], scalars: number[], output: (Float64Array | Int32Array)[], sizes?: readonly number[]) => boolean;
+const operators: Record<string, string> = { band: '&', bor: '|', bxor: '^', equal: '===', notequal: '!==', less: '<', greater: '>', atmost: '<=', atleast: '>=' };
 const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
 const sizeOf = (shape: readonly number[]) => shape.reduce((a, b) => a * b, 1);
 const unshape = (node: NumericNode): NumericNode => node.kind === 'reshape' ? unshape(node.source) : node;
@@ -9,7 +10,7 @@ const unshape = (node: NumericNode): NumericNode => node.kind === 'reshape' ? un
 export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<NumericNode, NumericBound>, scalarSlots: ReadonlyMap<NumericNode, number>): string | undefined {
     if (roots.every(root => !bound.get(root)!.shape.length)) return emitReductions(roots, bound, scalarSlots);
     if ([...bound.keys()].some(node => !scalarSlots.has(node) && (node.kind === 'choose' || node.kind === 'sum'
-        || node.kind === 'binary' && !['+', '-', '*', '/', '//'].includes(node.op)))) return undefined;
+        || node.kind === 'binary' && !['+', '-', '*', '/', '//', 'band', 'bor', 'bxor'].includes(node.op)))) return undefined;
     const sources = roots.map(unshape);
     const first = sources[0], concat = first.kind === 'concat' ? first : undefined;
     const common = concat && sources.every(n => n.kind === 'concat' && n.axis === concat.axis && n.sources.length === concat.sources.length
@@ -61,7 +62,7 @@ export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<Num
         else if (node.kind === 'binary') {
             const a = emit(node.left, broadcast(index, info.shape, bound.get(node.left)!.shape));
             const b = emit(node.right, broadcast(index, info.shape, bound.get(node.right)!.shape));
-            expression = node.op === '//' ? `Math.floor((${a}) / (${b}))` : `(${a}) ${node.op} (${b})`;
+            expression = node.op === '//' ? `Math.floor((${a}) / (${b}))` : `(${a}) ${operators[node.op] ?? node.op} (${b})`;
         } else throw new Error('unsupported numeric function node');
         const name = `v${serial++}`;
         let entries = emitted.get(node); if (!entries) emitted.set(node, entries = new Map()); entries.set(index, name);
@@ -100,7 +101,6 @@ function emitReductions(roots: NumericNode[], bound: ReadonlyMap<NumericNode, Nu
     }
     let serial = 0, failed = false;
     const loops: string[] = [];
-    const operators: Record<string, string> = { equal: '===', notequal: '!==', less: '<', greater: '>', atmost: '<=', atleast: '>=' };
     function emitter(lines: string[], inside: boolean) {
         const cache = new Map<NumericNode, Map<string, string>>();
         const index = (at: string, parent: readonly number[], child: readonly number[]) => {
