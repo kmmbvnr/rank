@@ -59,3 +59,30 @@ pass across function plans, numeric plans, real arrays and scalar kernels;
 Intel passes all 112 tests in the six-file function-plan check, including
 four returned-array error/alias/empty-result checks. TypeScript build and
 semantic boundaries pass. Exhaustive audits and the full suite were not run.
+
+## Step 3: exact scalar outputs after private vector stages
+
+Euler 785 entered the Number region and overflowed its final scalar total
+only after substantial vector work. It then repeated the region in the mixed
+integer tier. Prefer exact scalar output registers for regions with private
+vector stages when a scalar expression consumes their completed results.
+Vector cells and vector reductions retain their existing numeric/exact tiers;
+observable demand budgets retain their prior admission order. The full run
+now enters one mixed region with no overflow replay, instead of two regions.
+
+Three alternating Mac pairs: median 13,639.17 ms before, 10,071.66 ms after.
+The preliminary Intel variant used exact outputs for all vector regions:
+its three pairs are retained separately, not pooled with the final version.
+The final policy avoids speculative mixed entry for empty vector reductions;
+the existing empty-vector and overflow-replay tests remain unchanged.
+
+The new scalar-output regression fails on unchanged main with one overflow
+and passes with zero overflows and one mixed-region execution. All 198 tests
+in vector exact reduction, vector stages, vector results, loop aliases and
+axis sum pass on Mac. TypeScript build and semantic boundaries pass.
+The full Euler 785 answer remains `29526986315080920`.
+
+The final Intel pair is 31,073.48 ms before and 23,317.74 ms fixed. All 198
+focused tests also pass on Intel. This restores performance close to the
+older nightly's 22.28 s paired median; it does not claim a speedup over that
+older version. Mac samples varied across rounds, and no samples were removed.

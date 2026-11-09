@@ -1,6 +1,6 @@
 import { safeIntegerRange, integerRange, type IntegerRange } from './integer-range-facts.js';
 import { AstUtils, type AstNode } from 'langium';
-import { expressionFacts, forIteration, flattenApplication, isApplicationExpression, isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isNameExpression, isIfStatement, isUnpackStatement, type Statement, type Expression } from '@arrrank/language';
+import { expressionFacts, isNumberLiteral, isParenthesizedExpression, isBinaryExpression, isUnaryExpression, forIteration, flattenApplication, isApplicationExpression, isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isNameExpression, isIfStatement, isUnpackStatement, type Statement, type Expression } from '@arrrank/language';
 import type { IntegerLoopPlan } from './integer-loop-plan.js';
 
 /** Keep addresses, iteration bounds and cell stores checked Numbers. Integer
@@ -135,4 +135,18 @@ export function localCallLoopOutput(plan: IntegerLoopPlan): boolean {
     return [plan.statement, ...AstUtils.streamAllContents(plan.statement)].some(node =>
         isAssignmentStatement(node) && outputs.has(node.name)
         && [node.value, ...AstUtils.streamAllContents(node.value)].some(value => calls.has(value as Expression)));
+}
+
+/** Completed vector work should not be replayed because its scalar output
+ * grows wide. Keep vector reductions in their existing numeric/exact tiers. */
+export function vectorLoopOutput(plan: IntegerLoopPlan): boolean {
+    if (!plan.numberVectors) return false;
+    const outputs = wideLoopOutputs(plan, wideLoopScalars(plan));
+    const scalar = (value: Expression): boolean => isNumberLiteral(value)
+        || isNameExpression(value) && plan.localTypes.get(value.name) === 'integer'
+        || isParenthesizedExpression(value) && scalar(value.value)
+        || isUnaryExpression(value) && scalar(value.operand)
+        || isBinaryExpression(value) && scalar(value.left) && scalar(value.right);
+    return [plan.statement, ...AstUtils.streamAllContents(plan.statement)].some(node =>
+        isAssignmentStatement(node) && outputs.has(node.name) && scalar(node.value));
 }

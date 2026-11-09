@@ -1596,5 +1596,183 @@
         }
       ]
     }
+  },
+  "step3": {
+    "macBase": "2177dc71",
+    "intelBase": "563c31e3",
+    "mac": [
+      {
+        "round": 0,
+        "variant": 0,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 12280.034334,
+        "cpuMs": 13896.591,
+        "peakRssMiB": 1074.40625,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 9318.606042000001,
+        "cpuMs": 10374.53,
+        "peakRssMiB": 1036.71875,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 10071.661124999999,
+        "cpuMs": 11191.709,
+        "peakRssMiB": 1049.140625,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 13639.167458,
+        "cpuMs": 15547.076,
+        "peakRssMiB": 1060.5,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 14131.124291,
+        "cpuMs": 16057.445,
+        "peakRssMiB": 1060.03125,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 10821.363041999999,
+        "cpuMs": 12009.628,
+        "peakRssMiB": 1070.265625,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "arm64"
+      }
+    ],
+    "intelPrototype": [
+      {
+        "round": 0,
+        "variant": 0,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 29366.747792,
+        "cpuMs": 29336.423,
+        "peakRssMiB": 965.64453125,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 22678.133281000002,
+        "cpuMs": 22649.972,
+        "peakRssMiB": 981.8359375,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 22359.671414999997,
+        "cpuMs": 22331.574,
+        "peakRssMiB": 946.24609375,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 30199.408013,
+        "cpuMs": 30167.516,
+        "peakRssMiB": 949.62109375,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 30305.438146,
+        "cpuMs": 30250.81,
+        "peakRssMiB": 940.6328125,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 23465.713466,
+        "cpuMs": 23436.115,
+        "peakRssMiB": 966.375,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "x64"
+      }
+    ],
+    "intelFinal": [
+      {
+        "round": 0,
+        "variant": 0,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 31073.484794,
+        "cpuMs": 31041.117,
+        "peakRssMiB": 952.421875,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "path": "demos/euler/785_symmetricdiophantine.ra",
+        "sourceHash": "a96ed470b40f6d64527acdbc54afed3d2148126ce52bb8600f49527b81c1ce03",
+        "ms": 23317.741422000003,
+        "cpuMs": 23289.036,
+        "peakRssMiB": 968.6640625,
+        "answer": "29526986315080920",
+        "node": "v24.15.0",
+        "arch": "x64"
+      }
+    ]
   }
 }

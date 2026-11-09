@@ -6,7 +6,7 @@ import { createLoopStatements } from './integer-loop-statements.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
 import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan, type LoopWorkFeedback, type LoopPolling } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
-import { wideLoopScalars, wideLoopOutputs, wideLoopBoundary, overflowingLoopOutput, localCallLoopOutput } from './integer-loop-wide.js';
+import { wideLoopScalars, wideLoopOutputs, wideLoopBoundary, overflowingLoopOutput, localCallLoopOutput, vectorLoopOutput } from './integer-loop-wide.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
@@ -136,7 +136,8 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     // A replay-safe backend can support expressions the publishing backend
     // cannot type statically (integer powers may become real for negative exponents).
     const compileFastCounted = feedback ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), true) : undefined;
-    const exactOutputFirst = numberPlan && (overflowingLoopOutput(numberPlan) || localCallLoopOutput(numberPlan));
+    const exactOutputFirst = numberPlan && (overflowingLoopOutput(numberPlan) || localCallLoopOutput(numberPlan)
+        || vectorLoopOutput(numberPlan));
     let fast: CompiledLoop | undefined, preparedFast = false;
     const prepareFast = () => {
         if (!preparedFast) {
@@ -146,7 +147,8 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
         }
         return fast;
     };
-    // Prefer exact outputs for proven overflow or costly local-storage calls.
+    // Keep scalar outputs exact before expensive vector work or local-storage
+    // calls. A late output overflow must not discard completed vector stages.
     // Budgets or failed mixed entry can still request the Number kernel lazily.
     if (!exactOutputFirst) prepareFast();
     if (!fast && (!numberVariant || !region)) {

@@ -123,3 +123,21 @@ end
 Total`, false);
     });
 });
+
+it('keeps vector-region outputs exact before running a costly numeric prefix', () => {
+    const source = `use sequences
+Rounds = 4
+Width = 1000
+Total = 0
+for I in 1 to Rounds
+ A = (1 to Width copy) * 10000000000
+ Subtotal = A sum
+ Total += Subtotal
+end
+Total`;
+    const result = compare(source);
+    expect(result.observation.value).toBe('20020000000000000');
+    expect(result.diagnostics.numberLoopOverflows).toBe(0);
+    expect(result.diagnostics.numberLoops).toBe(1);
+    expect(result.diagnostics.mixedIntegerLoops).toBe(1);
+});
