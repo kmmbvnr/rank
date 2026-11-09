@@ -644,6 +644,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         if ((plan.syntax.has('take') || plan.syntax.has('drop')) && demandBudgetEnabled()) return recordFallback('number-loop:observable-count-slice', 'effects');
         if (plan.syntax.has('reverse') && demandBudgetEnabled()) return recordFallback('number-loop:observable-reverse', 'effects');
         if (plan.syntax.has('scalar-row-selection') && demandBudgetEnabled()) return recordFallback('number-loop:observable-row-selection', 'effects');
+        if (plan.syntax.has('scalar-array-end') && (demandBudgetEnabled() || interruptsEnabled()))
+            return recordFallback('number-loop:observable-array-end', 'effects');
         if (plan.syntax.has('owned-scatter') && plan.ownedAliases?.size && (demandBudgetEnabled() || interruptsEnabled())) return recordFallback('number-loop:observable-owned-scatter', 'effects');
         if (plan.syntax.has('filtered-scatter') && (demandBudgetEnabled() || interruptsEnabled())) return recordFallback('number-loop:observable-filtered-scatter', 'effects');
         if (plan.builtins.get('indices') === 'sequences' && demandBudgetEnabled()) return recordFallback('number-loop:observable-indices', 'effects');

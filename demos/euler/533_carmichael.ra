@@ -1,73 +1,145 @@
-rem Minimum values of the Carmichael
-rem function
+rem Minimum values of Carmichael
 rem https://projecteuler.net/problem=533
 
 use numbers
 use sequences
+use bits
 use io
 use cli
 
 arg N integer = 20000000
 
-rem L(n) - 1 is the largest M(t), t <
-rem n, M(t) the largest m with lambda(m)
-rem | t: 2^a with a = 1 for odd t, v2(t)
-rem + 2 else, times p^(vp(t) + 1) for
-rem each odd prime p with p - 1 | t.
-rem Sieve log M(t) in fixed point over
-rem all t, then build the best M mod
-rem 10^9 from the divisors of t.
-Sc = 2.0 ** 40
-Ps = primes from 3 to N array
-Lq = ((Ps log) * Sc) integer
-L2 = ((2.0 log) * Sc) integer
-Lg = array shape N fill L2
-Lg (2 till N by 2) += 2 * L2
-Q = 4
-for Q less N
-  Lg (Q till N by Q) += L2
-  Q *= 2
-end
-for T in 0 till Ps len
-  D = Ps T - 1
-  Lg (D till N by D) += Lq T
-end
-rem Higher powers of small primes.
-for T in 0 till Ps len
-  Pp = Ps T
-  Q = (Pp - 1) * Pp
-  if Q at least N
-    break
+fun T maximal
+  Divisors = T divisors array
+  Values = Divisors + 1
+  Prime = Values in primes
+  Bases = Values Prime
+  Factors = T factors array
+  Size = Bases len
+  Grid = Bases reshape Size 1
+  Matches = Grid equal Factors
+  Flags = Matches integer
+  Powers = Flags sum rank 1
+  Powers += 1
+  if T mod 2 equal 0
+    Twos = Bases equal 2
+    Extra = Twos integer
+    Powers += Extra
   end
-  for Q less N
-    Lg (Q till N by Q) += Lq T
-    Q *= Pp
+  Parts = Bases ** Powers
+  return Parts reduce * with 1
+end
+
+fun Limit solve
+  if Limit at most 1
+    return 1
   end
-end
-Lg 0 = 0
-Tb = Lg max .index
-Md = 1000000000
-Mt = 2 ** 1
-V2 = 0
-X = Tb
-for X mod 2 equal 0
-  X //= 2
-  V2 += 1
-end
-if V2 greater 0
-  Mt = 2 ** (V2 + 2)
-end
-for Dd in Tb divisors
-  Pp = Dd + 1
-  if Pp greater 2 and (Pp in primes)
-    E = 1
-    Y = Tb
-    for Y mod Pp equal 0
-      Y //= Pp
-      E += 1
+  rem Screen cheaply, then compare exact
+  rem products among the close scores.
+  if Limit equal 2
+    return 3
+  end
+  Scale = 65536
+  LogTwo = 2.0 log * Scale integer
+  Seeds = primes to Limit array
+  RealLogs = Seeds log * Scale
+  PrimeLogs = RealLogs integer
+  BaseSteps = Seeds - 1
+  Root = Limit isqrt
+  Small = Seeds at most Root + 1
+  SmallPrimes = Seeds Small
+  SmallLogs = PrimeLogs Small
+  Rows = SmallPrimes len
+  Width = Limit binary len
+  Exponents = 1 to Width
+  Grid = SmallPrimes reshape Rows 1
+  Powers = Grid ** Exponents
+  Shifts = Grid - 1
+  Products = Shifts * Powers
+  Cells = Rows * Width
+  Flat = Products reshape Cells
+  Keep = Flat less Limit
+  Places = 0 till Cells
+  PrimeRows = Places // Width
+  ExtraLogs = SmallLogs PrimeRows
+  Logs = concat PrimeLogs (
+    ExtraLogs Keep)
+  Steps = concat BaseSteps (Flat Keep)
+  Steps = Steps // (Steps gcd 2)
+  Tasks = Steps len
+  rem Doubling t strictly raises M(t).
+  rem Only the upper half can win.
+  rem Odd t admit only m = 1 or 2.
+  rem Store t = 2s in the upper half.
+  Top = (Limit - 1) // 2
+  Begin = Limit // 4
+  Begin = Begin max 1
+  Size = Top - Begin + 1
+  Visits = Top // Steps
+  Visits -= (Begin - 1) // Steps
+  Totals = Visits scan +
+  rem Light batches hold at most twice
+  rem this many events; dense ones stay
+  rem direct strided writes.
+  Budget = 65536
+  Groups = (Totals - 1) // Budget
+  Previous = Groups shift 1 with (-1)
+  Changed = Groups not equal Previous
+  Heavy = Visits greater Budget
+  After = Heavy shift 1 with false
+  Boundary = Changed or Heavy or After
+  Boundaries = Boundary indices
+  Tail = Boundaries drop 1
+  Last = array Tasks
+  Stops = concat Tail Last
+  BatchCount = Boundaries len
+
+  fun Size shortlist Begin
+    Score = array shape Size fill LogTwo
+    for Batch in 0 till BatchCount
+      Start = Boundaries Batch
+      Stop = Stops Batch
+      if Stop - Start equal 1
+        Step = Steps Start
+        First = (0 - Begin) mod Step
+        Slots = First till Size by Step
+        Score Slots += Logs Start
+      else
+        Range = Start till Stop
+        Moduli = Steps Range
+        Counts = Visits Range
+        Weights = Logs Range
+        Firsts = (0 - Begin) mod Moduli
+        Ends = Counts scan +
+        Begins = Ends - Counts
+        Events = Ends last
+        Mark = array shape Events fill 0
+        Mark Begins = 1
+        Owners = Mark scan +
+        Owners -= 1
+        Offsets = 0 till Events
+        Offsets -= Begins Owners
+        Keys = Offsets * (Moduli Owners)
+        Keys += Firsts Owners
+        Adds = Weights Owners
+        Score Keys += Adds .accumulate
+      end
     end
-    Mt = Mt * (Pp E Md powmod) mod Md
+    Peak = Score max
+    rem Include a one-unit log-error
+    rem allowance and rounding in either
+    rem candidate comparison interval.
+    Terms = Peak // LogTwo + 1
+    Margin = 3 * Terms
+    Good = Score at least Peak - Margin
+    Positions = Good indices
+    Result = (Positions + Begin) * 2
+    return Result
   end
+  Candidates = Size shortlist Begin
+  Values = Candidates maximal rank 0
+  Largest = Values max
+  return (Largest + 1) mod 1000000000
 end
-Answer = (Mt + 1) mod Md
+Answer = N solve
 Answer print

@@ -363,6 +363,32 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             substitute: source => {
                 const supplied = scalarInputs.get(source);
                 if (supplied) return { type: supplied.type, input: { term: supplied, lines: [] } };
+                // A completed rank-one array has a scalar endpoint. Keep
+                // arbitrary expressions on their native demand path; empty
+                // arrays replay native missing rules.
+                if (state.numberMode && host.nativeCalls && host.arrayReads
+                    && host.module('sequences') && isApplicationExpression(source)) {
+                    const parts = flattenApplication(source), last = parts.at(-1);
+                    let receiver = parts[0];
+                    while (isParenthesizedExpression(receiver)) receiver = receiver.value;
+                    if (parts.length === 2 && isNameExpression(receiver) && isNameExpression(last)
+                        && ['first', 'last'].includes(last.name) && !localTypes.has(last.name)
+                        && !arrays.has(last.name) && !containers.has(last.name)
+                        && arrayType(receiver)?.rank === 1) {
+                        const setup: string[] = [], input = numberVector(receiver, setup);
+                        if (input) {
+                            setup.push(`if (${input.size} === 0) throw overflow;`);
+                            const value = input.cell(last.name === 'first' ? '0' : `(${input.size} - 1)`, setup);
+                            if (value) {
+                                builtins.set(last.name, 'sequences');
+                                state.syntax.add('scalar-array-end');
+                                const term = wide && value.type === 'integer'
+                                    ? { ...value, code: `BigInt(${value.code})` } : value;
+                                return { type: value.type, input: { term, lines: setup } };
+                            }
+                        }
+                    }
+                }
                 // Collection extrema must precede scalar inference: treating
                 // a stored array as a scalar poisons subsequent local types.
                 if (numberMode && host.nativeCalls && host.extrema && isApplicationExpression(source)) {
