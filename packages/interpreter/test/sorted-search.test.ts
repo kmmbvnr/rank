@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue, isNativeFunction, type RankArray } from '../src/index.js';
-import { ownedArray } from '../src/array-storage.js';
-import { sortedIndex } from '../src/sorted-search.js';
+import { ownedArray, typedArray, readArrayItem } from '../src/array-storage.js';
+import { registerScalarView } from '../src/integer-view.js';
+import { sortedIndex, sortedIndexBatch } from '../src/sorted-search.js';
 import { withInterrupt, type InterruptSignal } from '../src/interrupt.js';
 
 describe('sorted integer insertion indices', () => {
@@ -160,4 +161,37 @@ describe('Int32 index vector gathers', () => {
         expect(exec(`${base}Ix = ((0 to 4999) - 3) copy\nRs = Dk Ix\nRs sum`)).toContain('nonnegative');
         expect(exec(`${base}Ix = ((0 to 4999) + 3) copy\nRs = Dk Ix\nRs sum`)).toContain('out of bounds on axis 0: 5000');
     });
+});
+
+
+it('compares all Int64 words exactly in batches, including strided views', () => {
+    const cells = [-(1n << 63n), -(1n << 53n) - 1n, -(1n << 53n), -4294967297n,
+        -4294967296n, -1n, 0n, 0n, 4294967295n, 4294967296n, (1n << 53n),
+        (1n << 53n) + 1n, (1n << 63n) - 1n];
+    const targets = cells.flatMap(n => [n - 1n, n, n + 1n])
+        .filter(n => n >= -(1n << 63n) && n < (1n << 63n)).reverse();
+    const runtime = new Interpreter();
+    try {
+        runtime.variables.set('Data', typedArray(BigInt64Array.from(cells.flatMap(n => [n, n]))));
+        runtime.variables.set('Queries', typedArray(BigInt64Array.from(targets.flatMap(n => [n, n]))));
+        runtime.execute('use sequences');
+        const source = registerScalarView<RankArray>({kind:'array',shape:[cells.length],items:[]},
+            runtime.variables.get('Data') as RankArray, i=>i*2, {linear:()=>({offset:0,stride:2})});
+        const wanted = registerScalarView<RankArray>({kind:'array',shape:[targets.length],items:[]},
+            runtime.variables.get('Queries') as RankArray, i=>i*2, {linear:()=>({offset:0,stride:2})});
+        for (const upper of [false, true]) {
+            for (const [queries, values] of [[wanted, targets],
+                [typedArray(Int32Array.from([-2147483648, -1, 0, 1, 2147483647])), [-2147483648n, -1n, 0n, 1n, 2147483647n]]] as const) {
+                const found = sortedIndexBatch(source, queries, upper);
+                expect(found).toBeDefined();
+                expect(values.map((_, i) => readArrayItem(found!, i))).toEqual(
+                    values.map(t => BigInt(cells.filter(n => n < t || upper && n === t).length)));
+            }
+        }
+        // Point edits after the strided queries retain exact Int64 ordering.
+        runtime.execute(`Data ${cells.length * 2 - 2} = 9223372036854775806`);
+        const updated = runtime.execute(`Data (0 till ${cells.length * 2} by 2) copy`)!;
+        const found = sortedIndexBatch(updated, typedArray(BigInt64Array.from([9223372036854775806n, 9223372036854775807n])), true)!;
+        expect([readArrayItem(found, 0), readArrayItem(found, 1)]).toEqual([BigInt(cells.length), BigInt(cells.length)]);
+    } finally { runtime.dispose(); }
 });

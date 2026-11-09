@@ -134,7 +134,7 @@ export function sortedIndexBatch(source: RankValue, targets: RankValue, upper: b
             return big > 2147483647n ? 2147483648 : big < -2147483648n ? -2147483649 : Number(big);
         });
     } else {
-        search(cells, sview.linear, size, found, upper, at => narrow ? BigInt(narrow[offset + at * stride]) : wide![offset + at * stride]);
+        searchWide(cells, sview.linear, size, found, upper, narrow ?? wide!, tview.linear);
     }
     const diagnostics = currentDiagnostics();
     if (diagnostics) { diagnostics.sortedIndexBatches++; diagnostics.sortedIndexBatchQueries += count; }
@@ -185,5 +185,56 @@ function search<T extends number | bigint>(cells: ArrayLike<T>, linear: { offset
         answer = low;
         previous = wanted;
         found[at] = low;
+    }
+}
+
+
+const lowWord = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
+
+/** Compare stored signed Int64s by words, without boxing a BigInt per probe.
+ * Signed high words decide first; unsigned low words preserve nearby values
+ * beyond Number precision. Both buffers are trusted private numeric storage. */
+function searchWide(cells: BigInt64Array, source: {offset: number; stride: number}, size: number,
+    found: Int32Array, upper: boolean, targets: BigInt64Array | Int32Array,
+    target: {offset: number; stride: number}): void {
+    const words = new Uint32Array(cells.buffer, cells.byteOffset, cells.length * 2);
+    const wantedWords = targets instanceof BigInt64Array
+        ? new Uint32Array(targets.buffer, targets.byteOffset, targets.length * 2) : undefined;
+    const below = (position: number, high: number, low: number) => {
+        const index = (source.offset + position * source.stride) * 2;
+        const h = words[index + 1 - lowWord] | 0, l = words[index + lowWord];
+        return h < high || h === high && (l < low || upper && l === low);
+    };
+    let previousHigh = 0, previousLow = 0, answer = 0;
+    for (let at = 0; at < found.length; at++) {
+        if ((at & 4095) === 0) checkpoint('searching sorted numbers', Math.ceil(Math.log2(size + 1)) * Math.min(4096, found.length - at));
+        const index = target.offset + at * target.stride;
+        const high = wantedWords ? wantedWords[index * 2 + 1 - lowWord] | 0 : targets[index] < 0 ? -1 : 0;
+        const low = wantedWords ? wantedWords[index * 2 + lowWord] : Number(targets[index]) >>> 0;
+        let left = 0, right = size;
+        if (at) {
+            if (high > previousHigh || high === previousHigh && low >= previousLow) {
+                left = answer;
+                let reach = 1;
+                while (left + reach < size) {
+                    if (below(left + reach, high, low)) { left += reach; reach *= 2; }
+                    else { right = left + reach; break; }
+                }
+            } else {
+                right = answer;
+                for (let reach = 1; reach <= right; reach *= 2) {
+                    const probe = right - reach;
+                    if (below(probe, high, low)) { left = probe + 1; break; }
+                    right = probe;
+                }
+            }
+        }
+        while (left < right) {
+            const middle = (left + right) >>> 1;
+            if (below(middle, high, low)) left = middle + 1;
+            else right = middle;
+        }
+        found[at] = answer = left;
+        previousHigh = high; previousLow = low;
     }
 }

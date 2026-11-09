@@ -12,3 +12,14 @@ test "brute force prefixes"
   run
   Answer equal 397768273
 end
+
+
+test "prefixes without four sides"
+  use "538_maxquadrilaterals"
+  N = 0
+  run
+  Answer equal 0
+  N = 3
+  run
+  Answer equal 0
+end

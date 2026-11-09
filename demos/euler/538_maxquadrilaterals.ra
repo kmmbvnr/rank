@@ -14,108 +14,100 @@ rem For a fixed largest side the best
 rem quadrilateral takes the three next
 rem smaller values, so only consecutive
 rem 4-blocks of the sorted prefix count,
-rem scored by Brahmagupta's 16 A^2. The
+rem scored by exact 16 * area^2. The
 rem best only grows, and the prefix
 rem changes the blocks only when a value
 rem gets its 1st to 4th copy: step over
 rem those events, testing the blocks
-rem that hold the new copy.
-Ns = 1 to N copy
-B3 = 3 * Ns popcount
-B2 = 2 * Ns popcount
-B1 = Ns + 1 popcount
-U = 2 ** B3 + 3 ** B2 + B1
-Uq = U unique sort
-Rk = Uq lowerindex U
-Od = Rk argsort
-Rs = Rk Od
-Nd = Rs len
-Ix = 0 till Nd copy
-Sa = Rs (1 till Nd)
-Eq = Sa equal (Rs (0 till Nd - 1))
-Nq = Eq equal false
-Fl = concat (array true) Nq
-G = Fl integer scan +
-G = G - 1
-Oc = Ix - (Fl indices) G
-rem The first four copies of each value.
-Ev = Oc less 4 indices
-Et = (Od Ev) + 1
-Er = Rs Ev
-Eo = Et argsort
-Et = Et Eo
-Er = Er Eo
-Ne = Et len
-Dn = Uq len
-Cc = array shape Dn fill 0
-Pe = array shape Ne fill 0
-Qb = 0.0
-Pb = 0
-for E in 0 till Ne
-  I = Er E
-  V = Uq I
-  Cc I += 1
-  Cv = Cc I min 4
-  rem Three entries below and above.
-  Lm = (Cc (0 till I)) greater 0
-  Lp = Lm indices
-  Ln = Lp len
-  Ls = Ln - 3 max 0
-  Lp = Lp (Ls till Ln)
-  Cl = Cc Lp min 3
-  Xl = Cl scan +
-  Tl = Xl last default 0
-  Rl = 0 till Tl copy
-  Lw = Uq (Lp (Xl upperindex Rl))
-  Ts = Tl - 3 max 0
-  Lw = Lw (Ts till Tl)
-  Um = (Cc (I + 1 till Dn)) greater 0
-  Up = Um indices
-  Un = Up len min 3
-  Up = (Up (0 till Un)) + I + 1
-  Cu = Cc Up min 3
-  Xu = Cu scan +
-  Tu = Xu last default 0
-  Ru = 0 till Tu copy
-  Uw = Uq (Up (Xu upperindex Ru))
-  Te = Tu min 3
-  Uw = Uw (0 till Te)
-  Vs = array shape Cv fill V
-  W = concat Lw Vs Uw
-  V0 = Lw len
-  Wn = W len
-  if Wn at least 4
-    S = 0 to Wn - 4 copy
-    Ok = S at most V0 + Cv - 1
-    Ok = Ok and (S + 3 at least V0)
-    S = S (Ok indices)
-    Wa = W S
-    Wb = W (S + 1)
-    Wc = W (S + 2)
-    Wd = W (S + 3)
-    A = Wa * 1.0
-    B = Wb * 1.0
-    C = Wc * 1.0
-    D = Wd * 1.0
-    Q = A + B + C - D
-    Q = Q * (A + B - C + D)
-    Q = Q * (A - B + C + D)
-    Q = Q * (B + C + D - A)
-    Q = D less A + B + C choose Q 0.0
-    P = Wa + Wb + Wc + Wd
-    Qm = Q max
-    Pm = (P (Q equal Qm indices)) max
-    Bt = Qm equal Qb
-    Bt = Bt and (Pm greater Pb)
-    Bt = Bt or (Qm greater Qb)
-    if Bt
-      Qb = Qm
-      Pb = Pm
+rem that hold the new copy. A sum tree
+rem finds neighbours by prefix counts.
+Answer = 0
+if N at least 4
+  Inputs = 1 to N copy
+  Triple = 3 * Inputs popcount
+  Bits = Inputs popcount
+  Next = Inputs + 1 popcount
+  Terms = 2 ** Triple + 3 ** Bits + Next
+  Sides = Terms unique sort
+  Keys = Sides lowerindex Terms
+  unpack Rows Order = Keys sort .indexed
+  Size = Rows len
+  Positions = 0 till Size copy
+  Tail = Rows (1 till Size)
+  Head = Rows (0 till Size - 1)
+  New = Tail greater Head
+  Starts = concat (array true) New
+  rem Sorted ranks are group numbers.
+  First = Starts indices
+  Copy = Positions - First Rows
+  rem Keep four copies of each value.
+  Keep = Copy less 4 indices
+  Times = (Order Keep) + 1
+  Owners = Rows Keep
+  Events = Times argsort
+  Times = Times Events
+  Owners = Owners Events
+  Length = Times len
+  Distinct = Sides len
+  Empty = array shape Distinct fill 0
+  Counts = Empty segment +
+  Perimeters = array shape Length fill 0
+  Best = 0
+  Perimeter = 0
+  for Event in 0 till Length
+    I = Owners Event
+    Counts I += 1
+    Copies = Counts I
+    Before = 0
+    if I greater 0
+      Before = Counts 0 (I - 1) query
     end
+    Start = Before - 3 max 0
+    Last = Before + Copies + 2 min Event
+    Places = Start to Last copy
+    Query = Places + 1
+    Nearby = Counts firstatleast Query
+    Window = Sides Nearby
+    Center = Before - Start
+    Width = Window len
+    if Width at least 4
+      Slots = 0 to Width - 4 copy
+      LastStart = Center + Copies - 1
+      Fits = Slots at most LastStart
+      EndsAt = Slots + 3
+      Touches = EndsAt at least Center
+      Fits = Fits and Touches
+      Slots = Slots (Fits indices)
+      A = Window Slots
+      B = Window (Slots + 1)
+      C = Window (Slots + 2)
+      D = Window (Slots + 3)
+      Area = A + B + C - D
+      Area = Area * (A + B - C + D)
+      Area = Area * (A - B + C + D)
+      Area = Area * (B + C + D - A)
+      Triangle = A + B + C
+      Valid = D less Triangle
+      Area = Valid choose Area 0
+      Totals = A + B + C + D
+      Largest = Area max
+      Ties = Area equal Largest indices
+      Longest = Totals Ties max
+      Better = Largest equal Best
+      Longer = Longest greater Perimeter
+      Better = Better and Longer
+      Larger = Largest greater Best
+      Better = Better or Larger
+      if Better
+        Best = Largest
+        Perimeter = Longest
+      end
+    end
+    Perimeters Event = Perimeter
   end
-  Pe E = Pb
+  Later = Times (1 till Length)
+  Ends = concat Later (array (N + 1))
+  Weights = Ends - Times
+  Answer = Perimeters * Weights sum
 end
-Ta = Et (1 till Ne)
-Nx = concat Ta (array (N + 1))
-Answer = (Pe * (Nx - Et)) sum
 Answer print
