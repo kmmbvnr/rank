@@ -1380,7 +1380,8 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             parameterTypes ?? statement.parameters.map(() => 'integer' as const), locations, memberships, userCalls);
         kernel = {
             source,
-            privateFolds: [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'fold'),
+            privateFolds: [...expressions.values()].some(expression => expression.kind === 'input'
+                && (expression.input.operation === 'fold' || expression.input.privateFold === true)),
             plans: proof.planReturn || proof.planBindings.size > 0 || proof.iterableBindings.size > 0
                 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan')
                 || userCalls.some(call => !call.recursive && compileScalarFunction(call.statement, call.types, true, call.captures)?.plans),

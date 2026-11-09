@@ -166,6 +166,8 @@ export interface ScalarFunctionInput {
     readonly name: string;
     readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'materialize-iterable' | 'range-array' | 'reshape' | 'array-native' | 'array-power' | 'stack' | 'fold' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort' | 'choose' | 'concat' | 'concat-copy' | 'captured-bound-len';
     readonly plan?: FunctionPlanConsumer;
+    /** Preserve native symbolic-fold work when polling or hooks are observable. */
+    readonly privateFold?: boolean;
     readonly iterable?: ScalarLoopIterable;
     readonly native?: Operation;
     readonly axis?: number;
@@ -427,12 +429,20 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 }
                 if (loops && isBinaryExpression(source)) {
                     const fold = symbolicApplicationForm(source, name => !env.has(name) && !lexicalBinding(scope, name));
-                    if (fold?.kind === 'reduce' && fold.operator === '*' && !fold.rank && !fold.axes
-                        && !fold.seed && !fold.keys && !fold.size) {
-                        const stage = plan(fold.source, env, false);
-                        if (stage?.type.rank === 1 && stage.type.element === 'integer') return {
-                            type: 'integer', input: { name: '', operation: 'plan', plan: { stage, terminal: 'product' } },
-                        };
+                    if (fold?.kind === 'reduce' && ['+', '*'].includes(fold.operator) && !fold.rank && !fold.axes
+                        && !fold.keys && !fold.size) {
+                        const seed = fold.seed && unwrap(fold.seed);
+                        const identity = fold.operator === '*' ? 1n : 0n;
+                        // Only an exact integer identity may disappear. A real
+                        // or nonidentity seed retains its ordinary type/work.
+                        if (!seed || isNumberLiteral(seed) && seed.value === identity) {
+                            const stage = plan(fold.source, env, false);
+                            if (stage?.type.rank === 1 && stage.type.element === 'integer') return {
+                                type: 'integer', input: { name: '', operation: 'plan', privateFold: !!seed || fold.operator === '+', plan: {
+                                    stage, terminal: fold.operator === '*' ? 'product' : 'sum',
+                                } },
+                            };
+                        }
                     }
                 }
                 if (loops && isBinaryExpression(source) && ['to', 'till'].includes(source.operator)) {
