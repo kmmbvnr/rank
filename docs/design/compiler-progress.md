@@ -1,5 +1,28 @@
 # Compiler progress
 
+## Streaming modular callback reductions (Euler 554)
+
+A pure declared `(Acc +/* Value) mod M` callback can fold a constructor-proved
+arithmetic sequence directly, without materializing its cells or calling Rank
+per element. Starts, strides and integer seeds may be arbitrarily wide; only
+exact residues enter the existing Number arithmetic kernels, for moduli through
+2^31. Empty/singleton folds keep their unreduced values and do not demand an
+unused modulus. Opaque headers, changed iterators, observers, budgets and
+unsupported domains retain ordinary execution. This interpreter path also
+works with compilation disabled; the scan capability policy is unchanged.
+
+Euler 554 reflects factorial queries with Wilson's theorem, sorts distinct
+needed targets and folds only their gaps, then scans the small block results.
+Lucas digit width is derived from the input instead of fixed at three. Lazy
+range names remain lazy until their scalar consumer runs; no explicit Rank
+loop or full factorial table is needed.
+The corpus differential collector uses passive compiler counters instead of
+execution hooks, which select observer-compatible paths and can disable these
+optimizations. Its summary marks `entryAccounting: passive-diagnostics-v1`;
+entry totals are lower bounds, not comparable to the former hook event counts.
+Actual user hooks retain their existing behavior.
+See [measurements and checks](../../benchmarks/euler554.md).
+
 ## Modular convolution workspaces (Euler 553)
 
 CRT/NTT modular convolution reuses invocation-private transform scratch across

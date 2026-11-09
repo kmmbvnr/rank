@@ -1,5 +1,5 @@
 import { currentDiagnostics } from './diagnostics.js';
-import { registerModularScanCompletion, scanStoredModularCallback } from './jit/modular-callback-scan.js';
+import { registerModularScanCompletion, scanStoredModularCallback, reduceRangeModularCallback } from './jit/modular-callback-scan.js';
 import { expectNumeric } from './modules/shared.js';
 import { prepareKeyedTensorReader } from './tensor-map.js';
 import { keyedAggregate, keyedFold } from './keyed-fold.js';
@@ -263,6 +263,10 @@ export class ReductionEvaluator {
     evaluateNamedReduction(operation: NativeFunction, value: RankValue, seed?: RankValue,
         rank?: number, axes?: readonly number[]): RankValue {
         axes = this.foldAxes(value, rank, axes, 'reduce');
+        if ((rank ?? 0) === 0 && axes === undefined && isRankSequence(value)) {
+            const reduced = reduceRangeModularCallback(value, operation, seed);
+            if (reduced !== undefined) return reduced;
+        }
         // A vector without an axis modifier folds along its only axis.
         const folded = axes ?? (isRankArray(value) && value.shape.length === 1 ? [0] : undefined);
         if ((rank ?? 0) === 0 && folded?.length === 1 && seed === undefined && isRankArray(value)

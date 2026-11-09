@@ -558,7 +558,8 @@ export class FunctionInvocation {
                 (left, right, value) => {
                     const args = [left, right];
                     checkReturn(specialization(args), args, value);
-                });
+                }, () => !this.compiler.hooks.onScalarFunctionExecuted
+                    && !this.compiler.hooks.onFunctionBodyExecuted && this.depth < this.maxDepth);
             this.host.flatCombine(fn, statement, builtins => {
                 if (this.depth >= this.maxDepth) return false;
                 for (const name of builtins) {

@@ -1,81 +1,74 @@
 rem Centaurs on a Chess Board
 rem https://projecteuler.net/problem=554
-
 use numbers
 use sequences
+use bits
+use algo
 use io
 use cli
-
 arg Top integer = 90
-
-rem Rows of a 2n board hold k pieces on
-rem one side and n-k on the other, which
-rem gives C(n) = 8 binom(2n, n) - 3n^2
-rem - 2n - 7 (checked for n <= 4 by
-rem search and n = 10 by the statement).
-rem Lucas splits binom(2n, n) mod p into
-rem base-p digits, whose factorials come
-rem from block products (B = 10^4).
-Pm = 100000007
-Ex = Pm - 2
-Bk = 10000
-Fb = array shape (Top + 1) fill 1
-for I in 3 to Top
-  A1 = Fb (I - 1)
-  A2 = Fb (I - 2)
-  Fb I = A1 + A2
+rem C(n)=8 binom(2n,n)-3n^2-2n-7.
+rem Lucas uses one binomial per digit.
+Prime = 100000007
+Exponent = Prime - 2
+fun Left multiply Right
+  return Left * Right mod Prime
 end
-Nn = Fb (2 to Top array)
-Nq = Nn len
-Nt = 3 * Nq
-Bs = array Pm Pm Pm
-V2 = 2 * Nn
-Up = V2 digits Bs
-Lo = Nn digits Bs
-Dn = Up - Lo
-Ok = Dn at least 0 integer
-Dn = Dn max 0
-Ua = Up reshape Nt
-La = Lo reshape Nt
-Da = Dn reshape Nt
-Xs = concat (concat Ua La) Da
-Nb = Pm // Bk + 1
-Bl = (0 till Nb array) * Bk
-Cu = Bl * 0 + 1
-for J in 1 to Bk
-  Cu = (Cu * (Bl + J)) mod Pm
+rem Fold only the gaps between queries.
+fun Start gap End rank 0 0
+  Span' = Start + 1 to End
+  return Span reduce multiply with 1
 end
-Pre = array shape (Nb + 1) fill 1
-for I in 0 till Nb
-  Pv = Pre I
-  Cv = Cu I
-  Pre (I + 1) = Pv * Cv mod Pm
+rem Wilson reflects factorials past p/2.
+fun Needed factorials
+  Reverse = Prime - 1 - Needed
+  Small = Needed min Reverse
+  Targets = Small unique sort
+  Starts = Targets shift 1
+  Parts = Starts gap Targets
+  Prefix = Parts scan multiply
+  Places = Targets lowerindex Small
+  Values = Prefix Places
+  Inverse = Values Exponent Prime powmod
+  Parity = Needed mod 2
+  Signs = 2 * Parity - 1
+  Reflected = Signs * Inverse mod Prime
+  Mirror = Needed greater Small
+  return Mirror choose Reflected Values
 end
-Kx = Xs // Bk
-Kb = Kx * Bk
-Tl = Xs - Kb
-Pr = Kx * 0 + 1
-for J in 1 till Bk
-  Pj = (Pr * (Kb + J)) mod Pm
-  Pr = Tl at least J choose Pj Pr
+fun Top arrangements
+  if Top less 2
+    return 0
+  end
+  Size = Top - 1
+  Values = fibonacci take Size array
+  Doubled = Values * 2
+  Largest = Doubled max
+  Bits = Largest binary len
+  Radix = Prime binary len - 1
+  Width = Bits // Radix + 1
+  Bases = array shape Width fill Prime
+  Upper = Doubled digits Bases
+  Lower = Values digits Bases
+  Difference = (Upper - Lower) max 0
+  Valid = Upper at least Lower integer
+  Flat = concat Upper Lower Difference
+  Needed = Flat reshape #
+  Facts = Needed factorials
+  Count = Width * Size
+  Grid = Facts reshape 3 Count
+  Numerator = Grid 0
+  Bottom = Grid 1 * Grid 2 mod Prime
+  Inverse = Bottom Exponent Prime powmod
+  Terms = Numerator * Inverse mod Prime
+  Digits = Terms reshape Width Size
+  Digits = Digits * Valid
+  Ways = Digits reduce multiply axis 0
+  Residue = Values mod Prime
+  Square = Residue * Residue mod Prime
+  Offset = 3 * Square + 2 * Residue + 7
+  Terms = (8 * Ways - Offset) mod Prime
+  return Terms sum mod Prime
 end
-Fx = ((Pre Kx) * Pr) mod Pm
-Fu = Fx (0 till Nt array)
-Fl = Fx (Nt till 2 * Nt array)
-Fd = Fx (2 * Nt till 3 * Nt array)
-Dm = Fl * Fd mod Pm
-Iv = Dm Ex Pm powmod
-Tm = Fu * Iv mod Pm
-Of = Ok reshape Nt
-Tm = Tm * Of
-Tr = Tm reshape 3 Nq
-R0 = Tr 0
-R1 = Tr 1
-R2 = Tr 2
-Bn = R0 * R1 mod Pm
-Bn = Bn * R2 mod Pm
-Nm = Nn mod Pm
-Sb = (3 * Nm * Nm + 2 * Nm + 7) mod Pm
-Cn = (8 * Bn + Pm - Sb) mod Pm
-Answer = Cn sum mod Pm
+Answer = Top arrangements
 Answer print

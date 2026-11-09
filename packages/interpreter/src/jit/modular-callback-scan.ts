@@ -15,6 +15,7 @@ interface Recipe {
     readonly operator: '+' | '*';
     readonly modulus: () => RankValue | undefined;
     readonly enabled: () => boolean;
+    readonly nativeEnabled: () => boolean;
     readonly call: NativeFunction['call'];
     readonly check: (left: bigint, right: bigint, result: bigint) => void;
 }
@@ -25,7 +26,7 @@ const unwrap = (e: Expression): Expression => isParenthesizedExpression(e) ? unw
  * Only a scalar, two-parameter, single-return modular sum/product qualifies. */
 export function registerModularCallbackScan(fn: NativeFunction, statement: FunctionStatement,
     lookup: (name: string) => RankValue | undefined, enabled: () => boolean,
-    check: Recipe['check']): void {
+    check: Recipe['check'], nativeEnabled = enabled): void {
     const signature = functionCallSignature(statement), command = statement.statements[0];
     if (statement.memo || statement.ranks.length || statement.statements.length !== 1
         || signature.arity !== 2 || signature.parameters.some(p => p.kind !== 'data' || p.deferred)
@@ -39,7 +40,7 @@ export function registerModularCallbackScan(fn: NativeFunction, statement: Funct
         || ![left.name, right.name].every(name => statement.parameters.includes(name)) || left.name === right.name) return;
     if (!(isNumberLiteral(modulus) && typeof modulus.value === 'bigint')
         && !(isNameExpression(modulus) && !statement.parameters.includes(modulus.name))) return;
-    recipes.set(fn, { operator: product.operator as '+' | '*', call: fn.call, enabled, check,
+    recipes.set(fn, { operator: product.operator as '+' | '*', call: fn.call, enabled, nativeEnabled, check,
         modulus: () => isNumberLiteral(modulus) ? modulus.value : lookup(modulus.name),
     });
 }
@@ -126,4 +127,45 @@ export function scanStoredModularCallback(source: RankArray, fn: NativeFunction,
     const diagnostics = currentDiagnostics();
     if (diagnostics) diagnostics.modularCallbackScans++;
     return typedArray(out);
+}
+
+
+/** Fold a constructor-proved arithmetic range without completing its cells.
+ * Only residues enter Number registers; wide starts/strides remain exact. */
+export function reduceRangeModularCallback(source: RankSequence, fn: NativeFunction,
+    seed: RankValue | undefined): bigint | undefined {
+    const recipe = recipes.get(fn);
+    if (!recipe || !recipe.nativeEnabled() || fn.call !== recipe.call || !privateLoopPolling()
+        || demandBudgetEnabled() || inspectionEnabled() || seed !== undefined && typeof seed !== 'bigint') return undefined;
+    const plan = Object.getOwnPropertyDescriptor(source, 'plan')?.value;
+    const range = plan && arithmeticRange(plan, true);
+    if (!range || range.count > BigInt(Number.MAX_SAFE_INTEGER)) return undefined;
+    // An unused callback must not demand its captured modulus.
+    if (range.count === 0n) return seed as bigint | undefined;
+    if (range.count === 1n && seed === undefined) return range.start;
+    const modulus = recipe.modulus();
+    if (typeof modulus !== 'bigint' || modulus < 1n || modulus > 2147483648n) return undefined;
+    const initial = seed === undefined ? range.start : seed as bigint;
+    const first = seed === undefined ? range.start + range.step : range.start;
+    const count = Number(range.count - (seed === undefined ? 1n : 0n));
+    const normalize = (value: bigint) => Number((value % modulus + modulus) % modulus);
+    const m = Number(modulus), stride = normalize(range.step), step = stepOf(recipe.operator, m);
+    let acc = normalize(initial), value = normalize(first);
+    checkpoint('reducing');
+    acc = step(acc, value);
+    recipe.check(initial, first, BigInt(acc));
+    value += stride;
+    if (value >= m) value -= m;
+    for (let from = 1; from < count; from += 4096) {
+        const end = Math.min(count, from + 4096);
+        checkpoint('reducing', end - from);
+        for (let at = from; at < end; at++) {
+            acc = step(acc, value);
+            value += stride;
+            if (value >= m) value -= m;
+        }
+    }
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.modularCallbackReductions++;
+    return BigInt(acc);
 }

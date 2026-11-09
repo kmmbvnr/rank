@@ -86,6 +86,7 @@ export class RuntimeDiagnostics {
     nativeModularMatrixPowers = 0;
     nativeModularMatrixBatches = 0;
     modularCallbackScans = 0;
+    modularCallbackReductions = 0;
     compiledTensors = 0;
     packedBooleanGathers = 0;
     packedBooleanGatherCells = 0;

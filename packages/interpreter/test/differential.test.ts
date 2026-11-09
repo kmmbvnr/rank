@@ -74,9 +74,9 @@ function snapshot(value: RankValue | undefined, active = new Set<object>()): unk
     } finally { active.delete(value); }
 }
 
-function run(file: string, compilation: boolean) {
+function run(file: string, compilation: boolean, recordProgress = true) {
     const start = performance.now();
-    const summary = process.env.RANK_DIFFERENTIAL_SUMMARY;
+    const summary = recordProgress ? process.env.RANK_DIFFERENTIAL_SUMMARY : undefined;
     const progress = (stage: string, elapsedMs?: number) => {
         if (summary) appendFileSync(`${summary}.progress.jsonl`, JSON.stringify({
             file: relative(demos, file), compilation, stage, elapsedMs,
@@ -85,8 +85,7 @@ function run(file: string, compilation: boolean) {
     progress('start');
     const output: string[] = [], environment = new Map<string, string>();
     const io = new CorpusIo({}), input = new TokenInput([]);
-    let seed = 12345, entries = 0;
-    const executed = () => entries++;
+    let seed = 12345;
     const diagnostics = new RuntimeDiagnostics();
     const runtime = new Interpreter(text => output.push(text), {
         compilation, sourceId: file, testing: true, io, input,
@@ -100,8 +99,6 @@ function run(file: string, compilation: boolean) {
             if (source === undefined) throw new Error(`No corpus module: ${relative(demos, id)}`);
             return { id, source };
         },
-        onScalarExecuted: executed, onBlockExecuted: executed,
-        onScalarFunctionExecuted: executed, onTensorKernelExecuted: executed, onFunctionBodyExecuted: executed,
     });
     let value: unknown, error: string | undefined;
     try { value = snapshot(diagnostics.run(() => runtime.execute(sources.get(file)!))); }
@@ -109,7 +106,13 @@ function run(file: string, compilation: boolean) {
     finally { runtime.dispose(); }
     const elapsedMs = performance.now() - start;
     progress('complete', elapsedMs);
-    return { elapsedMs, entries: entries + diagnostics.compiledLoops, numberEntries: diagnostics.numberLoops, observation: { value, error, output, environment: [...environment],
+    // User execution hooks are observers: installing them disables valid
+    // production fast paths. Existing passive counters give a lower bound on
+    // compiler activity without requesting observer mode.
+    const entries = diagnostics.compiledLoops + diagnostics.compiledFunctionFolds
+        + diagnostics.compiledGeneratorLoops + diagnostics.numberFunctions + diagnostics.compiledTensors
+        + diagnostics.compiledArrayFunctions + diagnostics.compiledNumericCallLoops;
+    return { elapsedMs, entries, numberEntries: diagnostics.numberLoops, nativeRangeReductions: diagnostics.modularCallbackReductions, observation: { value, error, output, environment: [...environment],
         files: [...io.files], closed: io.handles.map(handle => handle.closed), inputReads: input.reads,
         tests: runtime.testResults.map(({ durationMs: _, ...result }) => result),
     } };
@@ -156,10 +159,10 @@ describe('compiled and reference demo execution', () => {
     }, process.env.RANK_DIFFERENTIAL_TIMEOUT_MS !== undefined ? timeout
         : executionTimeouts[relative(demos, file)] ? executionTimeouts[relative(demos, file)] * 2 : timeout);
     afterAll(() => {
-        console.log(`differential: ${compared}/${files.length} compared, ${completed} completed, ${tests} test blocks, ${entries} compiled entries, ${numberEntries} Number loop entries`);
+        console.log(`differential: ${compared}/${files.length} compared, ${completed} completed, ${tests} test blocks, ${entries} passive compiled entries, ${numberEntries} Number loop entries`);
         if (compared !== files.length) return; // A name-filtered run reports only selected fixtures.
         const summary = process.env.RANK_DIFFERENTIAL_SUMMARY;
-        if (summary) writeFileSync(summary, JSON.stringify({ shard, count, files: files.map(file => relative(demos, file)), completed, tests, entries, numberEntries, failures, outcomes }));
+        if (summary) writeFileSync(summary, JSON.stringify({ shard, count, entryAccounting: 'passive-diagnostics-v1', files: files.map(file => relative(demos, file)), completed, tests, entries, numberEntries, failures, outcomes }));
         expect(completed).toBeGreaterThan(0);
         expect(entries).toBeGreaterThan(0);
         if (count === 1) {
@@ -179,4 +182,27 @@ it('does not mount downloaded data outside the checked-in corpus', () => {
         expect(() => new CorpusIo({}).file(relative(resolve(demos, '..'), file)))
             .toThrow('file does not exist');
     } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+it('does not install observer hooks when auditing a native range consumer', () => {
+    const file = resolve(demos, '.audit-native-range.ra');
+    const source = `use sequences
+Mod = 100000007
+fun Acc combine Value
+ return Acc * Value mod Mod
+end
+Span' = 1 to 10000
+Span reduce combine with 1`;
+    let expected = 1n;
+    for (let i = 1n; i <= 10000n; i++) expected = expected * i % 100000007n;
+    expect(sources.has(file)).toBe(false);
+    sources.set(file, source);
+    try {
+        for (const compilation of [false, true]) {
+            const result = run(file, compilation, false);
+            expect(result.observation.error).toBeUndefined();
+            expect(result.observation.value).toBe(expected);
+            expect(result.nativeRangeReductions).toBe(1);
+        }
+    } finally { sources.delete(file); }
 });
