@@ -3,54 +3,105 @@ rem https://projecteuler.net/problem=530
 
 use numbers
 use sequences
+use bits
 use io
 use cli
 
 arg N integer = 1000000000000000
 
-rem The sum over d | n of gcd(d, n / d)
-rem for n <= N counts gcd(a, b) over
-rem a b <= N. With gcd = sum of phi(t)
-rem over t | gcd it is sum phi(t)
-rem D(N // t^2), D(m) the divisor count
-rem sum: 2 sum m // x for x <= sqrt m,
-rem minus (sqrt m)^2.
-L = N isqrt
-Ph = 0 to L copy
-Rs = 0 to L copy
-Ls = L isqrt
-for P in primes to Ls
-  Sl = P to L by P
-  Ph Sl -= Ph Sl // P
-  Pe = P
-  for Pe at most L
-    Rs (Pe to L by Pe) //= P
-    Pe *= P
+fun Value divisor_sum
+  Bound = Value isqrt
+  Divisors = 1 to Bound
+  Half = Value // Divisors sum
+  Total = 2 * Half - Bound * Bound
+  return Total
+end
+
+rem Expand gcd by totients and count
+rem pairs with product at most N / t^2.
+fun Limit solve
+  if Limit less 1
+    return 0
   end
+  Root = Limit isqrt
+  Seed = Limit ** (1.0 / 3.0) floor
+  Candidates = Seed - 1 to Seed + 2 copy
+  Cubes = Candidates ** 3
+  Allowed = Cubes at most Limit
+  Cut = Candidates Allowed max
+
+  PrimeLimit = Root isqrt
+  Primes = primes to PrimeLimit array
+  PrimeCount = Primes len
+  Width = Root binary len
+  Exponents = 1 to Width copy
+  Grid = Primes reshape PrimeCount 1
+  Matrix = Grid ** Exponents
+  Cells = PrimeCount * Width
+  Flat = Matrix reshape Cells
+  Keep = Flat at most Root
+  Powers = Flat Keep
+  Places = 0 till Cells copy
+  Owners = Places // Width
+  Factors = Primes (Owners Keep)
+  Tasks = Powers len
+
+  rem Prime powers strip each small
+  rem factor; a large prime can remain.
+  fun Start totients Stop
+    Values = Start to Stop copy
+    Phi = Values copy
+    Rest = Values copy
+    Count = Values len
+    for Index in 0 till Tasks
+      Prime = Factors Index
+      Power = Powers Index
+      First = Start + Power - 1
+      First = First // Power
+      First = First * Power - Start
+      Slots = First till Count by Power
+      if Power equal Prime
+        Phi Slots -= Phi Slots // Prime
+      end
+      Rest Slots //= Prime
+    end
+    Remaining = Rest max 1
+    Changed = Phi // Remaining
+    Changed = Changed * (Remaining - 1)
+    HasPrime = Rest greater 1
+    Result = HasPrime choose Changed Phi
+    return Result
+  end
+
+  rem The small divisor totals need only
+  rem N / Cut^2 entries.
+  Last = Limit // (Cut * Cut)
+  Numbers = 1 to Last copy
+  Counts = Numbers divisors count rank 0
+  Totals = Counts scan + with 0
+  SmallPhi = 1 totients Cut
+  Indices = 1 to Cut copy
+  Samples = Limit // (Indices * Indices)
+  Sums = Samples divisor_sum rank 0
+  Initial = SmallPhi * Sums sum
+
+  Block = 1048576
+  fun Work advance
+    unpack Begin Sum = Work
+    End = Root min (Begin + Block - 1)
+    Phi = Begin totients End
+    Values = Begin to End copy
+    Squares = Values * Values
+    Arguments = Limit // Squares
+    Weights = Totals Arguments
+    Added = Phi * Weights sum
+    return tuple (End + 1) (Sum + Added)
+  end
+  Work = tuple (Cut + 1) Initial
+  Steps = Root - Cut + Block - 1
+  Steps = Steps // Block
+  FinalState = Work advance repeat Steps
+  return FinalState 1
 end
-rem One prime above sqrt L may remain.
-Rm = Rs max 1
-Pr = Ph // Rm * (Rm - 1)
-Ph = Rs greater 1 choose Pr Ph
-rem Small D from a divisor count sieve.
-K = 1
-for (K + 1) ** 3 at most N
-  K += 1
-end
-Ms = N // (K * K)
-Tu = array shape (Ms + 1) fill 0
-for Dd in 1 to Ms
-  Tu (Dd to Ms by Dd) += 1
-end
-Dt = Tu scan +
-T = K + 1 to L copy
-Dv = Dt (N // (T * T))
-Answer = ((Ph T) * Dv) sum
-for Tt in 1 to K
-  M = N // (Tt * Tt)
-  Q = M isqrt
-  X = 1 to Q copy
-  Dm = 2 * (M // X) sum - Q * Q
-  Answer += (Ph Tt) * Dm
-end
+Answer = N solve
 Answer print

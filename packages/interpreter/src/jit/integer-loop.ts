@@ -79,7 +79,7 @@ export function compileIntegerFunctionPrefix(statement: FunctionStatement, host:
     // region. External stores keep per-loop transactions and copy feedback.
     const reduction = plan && !plan.destinations.size && !plan.containers.size
         && !plan.callouts?.length && plan.calls.every(call => call.privateStateSafe) && plan.numberVectors
-        && plan.builtins.get('sum') === 'core' && plan.locations.some(isForStatement);
+        && plan.builtins.get('sum') === 'core';
     if (!plan || !reduction && (!plan.arrayDefinitions.size || !plan.destinations.size)
         || [...plan.destinations.keys()].some(name => !plan.arrayDefinitions.has(name))) return undefined;
     const terminal = statement.statements.at(-1);
@@ -95,8 +95,12 @@ export function compileIntegerFunctionPrefix(statement: FunctionStatement, host:
         plan.prefixBindings = new Set([returned, ...statement.parameters,
             ...plan.arrayDefinitions.has(returned) ? [] : plan.rangeDefinitions ?? []]);
     }
-    const fast = prepareNumberLoop(plan, host, undefined, undefined,
-        polling => lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, new Set(), false, polling));
+    const lower = (wide: ReadonlySet<string> = new Set(), counting = false, polling?: LoopPolling) => {
+        const variant = lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, wide, counting, polling);
+        if (variant) variant.prefixBindings = plan.prefixBindings;
+        return variant;
+    };
+    const fast = prepareNumberLoop(plan, host, undefined, undefined, polling => lower(undefined, false, polling));
     let mixed: CompiledLoop | undefined, preparedMixed = false;
     const straightLine = !plan.locations.some(isForStatement);
     return fast && { run: (...context) => {
@@ -107,7 +111,7 @@ export function compileIntegerFunctionPrefix(statement: FunctionStatement, host:
         if (!preparedMixed) {
             preparedMixed = true;
             mixed = prepareMixedLoops(plan, host, undefined, (wide, counting, polling) =>
-                lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true, wide, counting, polling));
+                lower(wide, counting, polling));
         }
         return mixed?.run(...context);
     } };

@@ -1970,11 +1970,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         finally { if (wide) vectorCellDepth--; }
         builtins.set('sum', 'core');
         if (wide) {
-            // Total integer arithmetic may stay numeric until one cell
-            // overflows. Retry just that pure cell exactly; keep completed
-            // numeric subtotals instead of replaying the enclosing loop.
+            // Pure checked arithmetic may stay numeric until one cell
+            // overflows. Retry just that cell exactly; domain errors retain
+            // their ordinary failure. Keep completed numeric subtotals.
             const numeric = [source, ...AstUtils.streamAllContents(source)].every(node =>
-                !isBinaryExpression(node) || ['+', '-', '*'].includes(node.operator));
+                !isBinaryExpression(node) || ['+', '-', '*', '//'].includes(node.operator));
             const setup: string[] = [];
             numericExpressions = numeric ? createLoopExpressions(state) : undefined;
             const fast = numeric ? vector(source, true, setup) : undefined;

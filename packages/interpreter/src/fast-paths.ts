@@ -11,7 +11,7 @@ import type { LoopHost, LoopContinuation, LoopCallable } from './jit/integer-loo
 import { prepareEffectCall } from './effect-call.js';
 import { isCompiledContainer, type CompiledCalleeType } from './jit/compiled-callee-type.js';
 import type { CompiledCallee } from './jit/compiled-callee.js';
-import type { AstNode } from 'langium';
+import { AstUtils, type AstNode } from 'langium';
 import {
     findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement, isArrayAssignmentStatement,
     type ApplicationForm, type Operation, type ArrayAssignmentStatement, isAssignmentStatement,
@@ -178,10 +178,12 @@ export class FastPaths {
                 compiled: this.compiler.hooks.onFunctionBodyCompiled,
                 executed: this.compiler.hooks.onFunctionBodyExecuted,
             }) ?? null : null;
-            // Join fresh allocations and writes in one private prefix, also
-            // for straight-line helpers such as a ragged expansion. A wrapper
-            // loop should not be needed to retain the same array ownership.
-            if (body && commands.slice(0, -1).some(command => isForStatement(command) || isArrayAssignmentStatement(command))) {
+            // Join fresh writes or scalar vector reductions in one private
+            // prefix. Helpers need no wrapper loop to keep scratch storage
+            // private; the numeric-function backend below keeps first choice.
+            const scalarReduction = arguments_.every(value => typeof value === 'bigint')
+                && AstUtils.streamAllContents(statement).some(node => isNameExpression(node) && node.name === 'sum');
+            if (body && (scalarReduction || commands.slice(0, -1).some(command => isForStatement(command) || isArrayAssignmentStatement(command)))) {
                 const prefix = this.compileLoop(statement, undefined);
                 if (prefix) {
                     const ordinary = body;
@@ -572,6 +574,14 @@ export class FastPaths {
         // Explicit finite native completion cannot use the private Number
         // body. Its owned arrays may enter the exact function tier instead.
         const nativeCompletion = proof && hasNativeCompletion(proof);
+        // A scalar entry would complete each bound range in the exact tier.
+        // Keep its existing fused numeric-function consumer instead.
+        const rangeReduction = this.compiler.loops.number && this.compiler.functions.bodies
+            && proof && proof.type === 'integer' && !proof.recursive && !proof.containers
+            && !nativeCompletion && !proof.arrayWrites.size && proof.nativeReads.includes('sum')
+            && [...proof.expressions.values()].some(expression => expression.kind === 'input'
+                && expression.input.operation === 'range-array');
+        if (rangeReduction) return undefined;
         const boundLoopRange = proof && !nativeCompletion && [...proof.expressions].some(([source, expression]) => {
             if (expression.kind !== 'input' || expression.input.operation !== 'range-array') return false;
             for (let owner = source.$container; owner && owner !== statement; owner = owner.$container) {
