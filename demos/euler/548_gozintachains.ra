@@ -1,154 +1,113 @@
 rem Gozinta Chains
 rem https://projecteuler.net/problem=548
-
 use numbers
 use sequences
+use bits
+use algo
 use io
 use cli
 
 arg L integer = 10000000000000000
 
-rem g(n) depends on the exponents a of n
-rem only: with T(j) = prod C(a_i + j -
-rem 1, j - 1), chains of k steps number
-rem sum (-1)^(k-j) C(k, j) T(j). List
-rem patterns whose least number is <= L,
-rem compute G and keep G <= L whose own
-rem exponents are the pattern: small
-rem primes first, then the cofactor.
-Jm = 60
-Js = 1 to Jm copy
-Ps = primes till 100 array
-Np = Ps len
-rem Cb(e, j) = C(e + j - 1, j - 1).
-Cb = array shape (Jm + 1) Jm fill 0
-for E in 1 to Jm
-  Na = E + Js - 1
-  Ka = Js - 1
-  Cb E = Na binomial Ka
-end
-rem Cw(w, j) = sum (-1)^(k-j) C(k, j),
-rem k = j .. w.
-Cw = array shape (Jm + 1) Jm fill 0
-for W in 1 to Jm
-  Cw W = Cw (W - 1)
-  Sg = 1 - 2 * ((W - Js) mod 2)
-  Kc = Js min W
-  Tk = W binomial Kc
-  In = W at least Js integer
-  Cw W = Cw W + In * Sg * Tk
-end
-rem Patterns by exponents that never
-rem grow, on the primes in order.
-Rv = array 1
-Pe = array Jm
-Ip = array 0
-Om = array 0
-T = array shape 1 Jm fill 1
-Ce = array shape 1 (Jm + 1) fill 0
-Ev = 0 to Jm copy
-Z1 = array shape 0 fill 0
-Aw = Z1
-At = array shape 0 Jm fill 0
-Ac = array shape 0 (Jm + 1) fill 0
-Nm = Np - 1
-Zt = At
-Zc = Ac
-for Rv len greater 0
-  Ne = Z1
-  Nr = Z1
-  Ni = Z1
-  No = Z1
-  Nt = Zt
-  Nc = Zc
-  Ic = Ip min Nm
-  Pp = Ps Ic
-  for E in 1 to Jm
-    Vn = Rv * Pp ** E
-    Om2 = E at most Pe
-    Om2 = Om2 and (Ip less Np)
-    Om2 = Om2 and (Vn at most L)
-    Ok = Om2 indices
-    Nr = concat Nr (Vn Ok)
-    Ne = concat Ne (Ok * 0 + E)
-    Ni = concat Ni ((Ip Ok) + 1)
-    No = concat No ((Om Ok) + E)
-    Nt = concat Nt ((T Ok) * (Cb E))
-    Oh = Ev equal E integer
-    Nc = concat Nc ((Ce Ok) + Oh)
-  end
-  Rv = Nr
-  Pe = Ne
-  Ip = Ni
-  Om = No
-  T = Nt
-  Ce = Nc
-  Aw = concat Aw Om
-  At = concat At T
-  Ac = concat Ac Ce
-end
-Gm = (Cw Aw) * At
-G = Gm reduce + axis 1
-Gk = G at most L indices
-G = G Gk
-Ac = Ac Gk
-rem Primes to 71 take their exponents
-rem out of the pattern; the rest needs
-rem a cofactor of primes above 71.
-Nk = G len
-Rw = 0 till Nk copy
-X = G
-Cg = array shape (Nk * (Jm + 1)) fill 0
-for P in primes till 72
-  K = X * 0
-  for I in 1 to Jm
-    Dv = X mod P equal 0 integer
-    K += Dv
-    X = Dv equal 1 choose (X // P) X
-  end
-  Kp = K greater 0 indices
-  Fi = (Rw Kp) * (Jm + 1) + (K Kp)
-  Cg Fi += 1 .accumulate
-end
-Rm = Ac - (Cg reshape Nk (Jm + 1))
-Fit = Rm reduce min axis 1 at least 0
-Se = Rm * Ev reduce + axis 1
-On = X equal 1 and (Se equal 0)
-Bg = X greater 1 and (Se greater 0)
-Sz = Se max 0
-Bg = Bg and (X at least 73 ** Sz)
-Sv = (Fit and (On or Bg)) indices
-rem Survivors: primes to 10^6 divide
-rem out, leaving 1, p, p^2 or p q.
-Fp = primes from 73 till 1000000 array
-Answer = 1
-for S in Sv
-  Y = X S
-  Cy = Ev * 0
-  Dq = Y mod Fp equal 0 indices
-  for Q in Fp Dq
-    K = 0
-    for Y mod Q equal 0
-      Y //= Q
-      K += 1
-    end
-    Cy K += 1
-  end
-  if Y greater 1
-    Rq = Y isqrt
-    Sq = Rq * Rq equal Y
-    Sq = Sq and (Rq in primes)
-    if Y in primes
-      Cy 1 += 1
-    elif Sq
-      Cy 2 += 1
-    else
-      Cy 1 += 2
-    end
-  end
-  Rs = Rm S
-  if Cy equal Rs all
-    Answer += G S
+rem Bit length bounds total exponents.
+Maximum = L binary len
+Steps = 1 to Maximum copy
+Rows = 0 to Maximum copy
+Column = Rows reshape (Maximum + 1) 1
+Top = Column + Steps - 1
+Bottom = Steps - 1
+Choose = Top binomial Bottom
+rem Remove repeats from weak chains.
+Weights = Steps reshape Maximum 1
+Distance = Weights - Steps
+Signs = 1 - 2 * (Distance mod 2)
+Select = Steps min Weights
+Terms = Weights binomial Select
+Valid = Weights at least Steps integer
+Terms = Terms * Signs * Valid
+Scanned = Terms scan + axis 0 with 0
+Coefficients = Scanned copy
+Primes = primes take Maximum array
+Power = Primes reshape (Primes len) 1
+Power = Power ** Steps
+
+rem Expand only prime powers that fit.
+fun State grow
+  Values = State .values
+  Previous = State .previous
+  Totals = State .totals
+  Table = State .table
+  Depth = State .depth
+  Row = Power Depth
+  Bounds = L // Values
+  Counts = Row upperindex Bounds
+  Counts = Counts min Previous
+  Active = Counts greater 0 indices
+  Lengths = Counts Active
+  Ends = Lengths scan +
+  Begin = Ends - Lengths
+  Size = Lengths sum
+  Positions = 0 till Size copy
+  Owners = Ends upperindex Positions
+  Source = Active Owners
+  Starts = Begin Owners
+  Exponent = Positions - Starts + 1
+  Parent = Values Source
+  Factor = Row (Exponent - 1)
+  Children = Parent * Factor
+  Weight = Totals Source + Exponent
+  Parents = Table Source
+  Factors = Choose Exponent
+  Product = Parents * Factors copy
+  Weights = Coefficients Weight
+  Numbers = Weights * Product sum axis 1
+  Good = Numbers at most L
+  Large = Numbers at least Children
+  Good = Good and Large
+  Selected = Good indices
+  Saved = Numbers Selected copy
+  Smallest = Children Selected copy
+  Found = State .candidates
+  Minima = State .minima
+  return record
+    .values = Children copy
+    .previous = Exponent copy
+    .totals = Weight copy
+    .table = Product
+    .depth = Depth + 1
+    .candidates = concat Found Saved
+    .minima = concat Minima Smallest
   end
 end
+fun Previous done Next
+  Values = Next .values
+  return Values len equal 0
+end
+Seed = record
+  .values = array 1
+  .previous = array Maximum
+  .totals = array 0
+  .table = array shape 1 Maximum fill 1
+  .depth = 0
+  .candidates = array shape 0 fill 0
+  .minima = array shape 0 fill 0
+end
+Levels = Primes len
+Tree = Seed grow repeat Levels till done
+Values = Tree .candidates
+Patterns = Tree .minima
+
+rem Least number with these exponents.
+memo N canonical
+  Grouped = N factors unique .counts
+  Exponents = Grouped 1
+  Sorted = Exponents sort .descending
+  Bases = primes take (Sorted len) array
+  Terms = Bases ** Sorted
+  return Terms reduce * with 1
+end
+Actual = Values canonical rank 0
+Matches = Actual equal Patterns
+Answer = Values Matches sum
+Answer += L greater 0 integer
 Answer print

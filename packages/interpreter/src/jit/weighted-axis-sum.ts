@@ -1,6 +1,6 @@
 import { currentDiagnostics } from '../diagnostics.js';
 import { prepareStoredScalarView } from '../integer-view.js';
-import { integer32Cells, integer64Cells, typedArray } from '../array-storage.js';
+import { integer32Cells, integer64Cells, typedArray, IntegerCells } from '../array-storage.js';
 import { permutedArraySource } from '../array-permutation.js';
 import { checkpoint, privateLoopPolling, demandBudgetEnabled, inspectionEnabled } from '../interrupt.js';
 import { isRankArray, type RankValue } from '../value.js';
@@ -12,7 +12,8 @@ const LOW = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
  * Absolute-product bounds prove every intermediate fits signed 64 bits.
  * Word arithmetic retains coefficients above Number's exact integer range. */
 export function weightedAxisSum(left: RankValue, right: RankValue, axis: number): RankValue | undefined {
-    if (!privateLoopPolling() || demandBudgetEnabled() || inspectionEnabled()
+    if (axis === -1 || axis === -2) axis += 2;
+    if (!Number.isInteger(axis) || !privateLoopPolling() || demandBudgetEnabled() || inspectionEnabled()
         || !isRankArray(left) || !isRankArray(right) || left.shape.length !== 2 || right.shape.length !== 2
         || axis < 0 || axis > 1) return undefined;
     for (const [matrix, weights] of [[left, right], [right, left]]) {
@@ -82,6 +83,41 @@ export function weightedAxisSum(left: RankValue, right: RankValue, axis: number)
             words[2 * index + 1 - LOW] = high;
         }
         return typedArray(output, [size]);
+    }
+    // Completed arbitrary-precision matrices cannot use the word-bound proof.
+    // Contract their products directly instead of retaining a wide cell matrix.
+    if (left.shape.every((size, axis) => size === right.shape[axis])
+        && left.shape[0] * left.shape[1] >= 1024
+        && !left.columnNames && !right.columnNames) {
+        const a = prepareStoredScalarView(left, true), b = prepareStoredScalarView(right, true);
+        const trusted = (view: typeof a) => view && view.kinds?.join() === 'integer'
+            && (!view.validate || view.validateUniform) && !view.source.columnNames;
+        const privateBuffer = (view: NonNullable<typeof a>) => {
+            const buffer = view.compact?.buffer ?? (ArrayBuffer.isView(view.items) ? view.items.buffer : undefined);
+            return !buffer || typeof SharedArrayBuffer === 'undefined' || !(buffer instanceof SharedArrayBuffer);
+        };
+        if (trusted(a) && trusted(b) && a && b && privateBuffer(a) && privateBuffer(b)
+            && (Array.isArray(a.items) && !a.compact || Array.isArray(b.items) && !b.compact)) {
+            a.validateUniform?.(a.read(0));
+            b.validateUniform?.(b.read(0));
+            const length = left.shape[axis], size = left.shape[1 - axis];
+            const innerStride = axis === 1 ? 1 : left.shape[1];
+            const frameStride = axis === 1 ? left.shape[1] : 1;
+            const output = new IntegerCells(size);
+            for (let frame = 0; frame < size; frame++) {
+                let total = 0n;
+                const start = frame * frameStride;
+                for (let k = 0; k < length; k++) {
+                    if ((k & 4095) === 0) checkpoint('contracting exact integer axis', Math.min(4096, length - k));
+                    const index = start + k * innerStride;
+                    total += (a.read(index) as bigint) * (b.read(index) as bigint);
+                }
+                output.set(frame, total);
+            }
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) { diagnostics.weightedAxisSums++; diagnostics.weightedAxisSumCells += size; }
+            return output.array([size]);
+        }
     }
     return undefined;
 }

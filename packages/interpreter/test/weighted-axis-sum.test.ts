@@ -1,7 +1,7 @@
 import { native } from '../src/modules/shared.js';
 import { describe, it, expect } from 'vitest';
 import { Interpreter, isRankArray, type RankValue } from '../src/index.js';
-import { typedArray, derivedArray, integer32Cells, readArrayItem } from '../src/array-storage.js';
+import { typedArray, derivedArray, ownedArray, integer32Cells, readArrayItem } from '../src/array-storage.js';
 import { permutedArray } from '../src/array-permutation.js';
 import { weightedAxisSum } from '../src/jit/weighted-axis-sum.js';
 import { withInterrupt, withDemandBudget, InterruptedError } from '../src/interrupt.js';
@@ -78,5 +78,58 @@ describe('weighted integer axis sums', () => {
             r.variables.set('Power', typedArray(BigInt64Array.from(wide), [4, 1]));
             expect(cells(r.execute('use sequences\n(Counts transpose * Power) sum axis 0'))).toEqual(oracle(wide));
         } finally { r.dispose(); }
+    });
+});
+
+
+describe('exact wide elementwise axis products',()=>{
+    const shape=[64,32];
+    const left=Array.from({length:2048},(_,i)=>(1n<<90n)+BigInt(i%7-3));
+    const right=Array.from({length:2048},(_,i)=>BigInt(i%11-5));
+    const expected=(axis:number)=>Array.from({length:shape[1-axis]},(_,frame)=>{
+        let total=0n;for(let k=0;k<shape[axis];k++){const i=axis===1?frame*shape[1]+k:k*shape[1]+frame;total+=left[i]*right[i];}return total;
+    });
+    it.each([0,1,-1,-2])('contracts arbitrary-precision products directly along axis %s',axis=>{
+        const a=ownedArray(left,shape),b=typedArray(BigInt64Array.from(right),shape);
+        expect(cells(weightedAxisSum(a,b,axis))).toEqual(expected((axis+2)%2));
+        expect(cells(weightedAxisSum(b,a,axis))).toEqual(expected((axis+2)%2));
+    });
+    it('contracts pure transposed and gathered wide inputs',()=>{
+        const runtime=new Interpreter(()=>{});
+        try{runtime.variables.set('A',ownedArray(left,shape));runtime.variables.set('B',typedArray(BigInt64Array.from(right),shape));
+            runtime.execute('use sequences\nAt = A transpose\nBt = B transpose');
+            expect(cells(runtime.execute('At * Bt sum axis 0'))).toEqual(expected(1));
+            const a=ownedArray(left,shape),b=typedArray(BigInt64Array.from(right),shape);
+            expect(cells(weightedAxisSum(permutedArray(a,[1,0]),permutedArray(b,[1,0]),0))).toEqual(expected(1));
+            runtime.execute('Rows = 63 to 0 by -1 copy');
+            const actual=cells(runtime.execute('A Rows * B sum axis 1'));
+            const wanted=Array.from({length:64},(_,row)=>right.slice(row*32,row*32+32).reduce((total,value,k)=>total+value*left[(63-row)*32+k],0n));
+            expect(actual).toEqual(wanted);
+        }finally{runtime.dispose();}
+    });
+    it('retains compact exact cancellation after products wider than int64',()=>{
+        const a=ownedArray(Array.from({length:2048},(_,i)=>i%2?-(1n<<100n):1n<<100n),shape);
+        const b=typedArray(new Int32Array(2048).fill(1),shape);
+        const result=weightedAxisSum(a,b,1);
+        expect(cells(result)).toEqual(Array(64).fill(0n));
+        expect(integer32Cells(result as ReturnType<typeof ownedArray>)).toBeDefined();
+    });
+    it('declines opaque inputs, reals, shape mismatches and shared memory',()=>{
+        const a=ownedArray(left,shape);
+        for(const b of [derivedArray(shape,[],i=>right[i]),typedArray(new Float64Array(2048).fill(1),shape),typedArray(new Int32Array(2048),[32,64])]) expect(weightedAxisSum(a,b,1)).toBeUndefined();
+        const shared=new BigInt64Array(new SharedArrayBuffer(2048*8));
+        expect(weightedAxisSum(a,typedArray(shared,shape),1)).toBeUndefined();
+    });
+    it.each([false,true])('matches source syntax with compilation=%s',compilation=>{
+        const runtime=new Interpreter(()=>{}, {compilation});
+        try{runtime.variables.set('A',ownedArray(left,shape));runtime.variables.set('B',typedArray(BigInt64Array.from(right),shape));
+            expect(cells(runtime.execute('A * B sum axis 1'))).toEqual(expected(1));
+            expect(cells(runtime.execute('A * B sum axis 0'))).toEqual(expected(0));
+        }finally{runtime.dispose();}
+    });
+    it('retains cancellation and budget fallback for wide products',()=>{
+        const a=ownedArray(left,shape),b=typedArray(BigInt64Array.from(right),shape);
+        expect(()=>withInterrupt(new Int32Array([1]),()=>weightedAxisSum(a,b,1))).toThrow(InterruptedError);
+        expect(withDemandBudget(1,()=>weightedAxisSum(a,b,1))).toBeUndefined();
     });
 });

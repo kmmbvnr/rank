@@ -1,5 +1,22 @@
 # Compiler progress
 
+## Exact wide product contractions (Euler 548)
+
+Integer matrices with equal shapes can feed `A * B sum axis 0/1` directly
+when stored arbitrary-precision cells prevent the bounded word kernel from
+applying. This avoids retaining the intermediate product matrix. The existing
+bounded word path keeps priority. Both axes and their negative spellings work,
+including trusted transposed/gathered views. Results remain exact beyond int64
+and compact again after cancellation when possible.
+
+Physical integer-kind proofs and uniform pure validation guard the readers.
+Opaque readers, named-column contracts, shared buffers, inspection and demand
+budgets retain their previous routes. This extends the existing guarded
+weighted-sum consumer, with no language syntax or Number threshold change.
+Euler 548 now batches valid exponent children, evaluates counts per frontier,
+and checks candidate exponent multisets with library factorization. See
+[measurements and verification](../../benchmarks/euler548.md).
+
 ## Scalar boolean range fills (Euler 545)
 
 Private Number loops now fill trailing arithmetic ranges with a scalar boolean,
