@@ -26,3 +26,36 @@ revisions; current main must be checked before selecting a repair.
 Step 1 validation: harness syntax check, whitespace check and TypeScript
 build after Langium generation pass. Paired measurement and compiler
 investigation are ongoing. No performance fix is claimed at this stage.
+
+## Step 2: preserve native recipes returned by compiled functions
+
+Three paired Intel runs confirm regressions in Euler 750 (18.59 to 24.43 s),
+777 (2.23 to 3.18 s), and 785. The other five candidates do not reproduce
+material slowdowns. Full archived answers match in every completed sample.
+
+Euler 777's compiled helpers returned opaque derived-array readers. Their
+callers lost native tensor recipes, adding 4,863,408 interpreted cell reads.
+For pure arithmetic return plans, the exact function compiler now constructs
+the existing native array operations, keeping their fusion and packed storage.
+Other plans retain the existing emitter. Demand, scalar-error and shape-error
+locations, captured bindings and copy-on-write remain covered by tests.
+No demo source or algorithm changes.
+
+Three alternating fresh-process pairs for Euler 777:
+
+| Host | Before median ms | Fixed median ms |
+| --- | ---: | ---: |
+| Mac | 987.50 | 536.62 |
+| Intel | 3263.89 | 1905.98 |
+
+Mac compares current main `2177dc71`; Intel compares the reported nightly
+`563c31e3` against current main plus this fix. Raw samples identify both bases.
+All runs return `2.533018434e23`. The fixed diagnostic run has no interpreted
+computed cells. Measurements run separately from tests and profiling.
+
+Step 2 validation: the new recipe regression fails on unchanged current main
+(1,000 interpreted cells) and passes with the fix (zero). Mac focused checks
+pass across function plans, numeric plans, real arrays and scalar kernels;
+Intel passes all 112 tests in the six-file function-plan check, including
+four returned-array error/alias/empty-result checks. TypeScript build and
+semantic boundaries pass. Exhaustive audits and the full suite were not run.

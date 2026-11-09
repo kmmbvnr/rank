@@ -756,6 +756,11 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     function emitPlan(consumer: FunctionPlanConsumer, lines: string[], origin?: Expression, captured = false): string {
         return emitFunctionPlan(consumer, lines, {
             variable: () => `v${serial++}`, slot, binary,
+            arrayBinary: (operation, left, right, body) => {
+                const result = `v${serial++}`;
+                body.push(`const ${result} = arrayBinary(${JSON.stringify(operation)}, ${left}, ${right});`);
+                return result;
+            },
             // Cell computation belongs to the consumer. Shape validation
             // still belongs to construction of the deferred expression.
             locate: (source, body, demandLocation) => {

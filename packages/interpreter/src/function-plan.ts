@@ -204,6 +204,7 @@ export function proveFunctionPlan(expression: Expression, host: {
 
 interface PlanEmitter {
     readonly number?: boolean;
+    arrayBinary?(operation: string, left: string, right: string, lines: string[]): string;
     check?(value: string, type: CompiledScalarType): string;
     array?(name: string, domain: FunctionPlanDomain): PreparedTensor;
     variable(): string;
@@ -221,6 +222,26 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
     for (const key of functionPlanCallbacks(consumer.stage)) host.capture(key, lines);
     const demandLocation = host.variable();
     lines.push(`const ${demandLocation} = location;`);
+    // Returned arithmetic must retain its native tensor recipe. An opaque
+    // per-cell reader prevents the caller from fusing a subsequent consumer.
+    function nativeView(node: FunctionPlan, body: string[]): string | undefined {
+        if (node.kind === 'group') return nativeView(node.operand, body);
+        if (node.kind === 'literal') return typeof node.value === 'bigint' ? `${node.value}n`
+            : typeof node.value === 'number' && Object.is(node.value, -0) ? '-0' : JSON.stringify(node.value);
+        if (node.kind === 'input') return node.input.stage ? nativeView(node.input.stage, body)
+            : node.input.name ? host.slot(node.input.name) : undefined;
+        if (node.kind !== 'binary') return undefined;
+        const left = nativeView(node.left, body), right = nativeView(node.right, body);
+        if (left === undefined || right === undefined) return undefined;
+        host.locate(node.source, body, demandLocation);
+        return node.type.rank ? host.arrayBinary!(node.operation.name, left, right, body)
+            : host.binary(node.operation, left, right, body, node.type.element,
+                [node.left.type.element, node.right.type.element]);
+    }
+    if (consumer.terminal === 'view' && host.arrayBinary && !host.number) {
+        const body: string[] = [], value = nativeView(consumer.stage, body);
+        if (value !== undefined) { lines.push(...body); return value; }
+    }
     const origins = new Map<TensorNode, FunctionPlan>();
     const inputs = new Map<string, TensorNode>();
     const typed = (node: TensorNode, origin: FunctionPlan): TensorNode => {

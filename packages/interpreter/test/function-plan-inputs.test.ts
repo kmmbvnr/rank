@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { isFunctionStatement } from '@arrrank/language';
-import { Interpreter, RankError, formatValue, parse, type RankArray } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, RankError, formatValue, parse, type RankArray } from '../src/index.js';
 import { compileScalarFunction } from '../src/scalar-function-kernel.js';
 import { DemandBudgetExhausted, withDemandBudget, withInterrupt, InterruptedError } from '../src/interrupt.js';
 
@@ -168,4 +168,56 @@ A total B`;
     const compiled = run(source, true), reference = run(source, false);
     expect(reference).toHaveProperty('error');
     expect({ ...compiled, calls: 0 }).toEqual(reference);
+});
+
+
+it('keeps native arithmetic recipes across compiled array returns', () => {
+    const runtime = new Interpreter();
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        const result = diagnostics.run(() => runtime.execute(`use sequences
+Limit = 1000
+fun Values scaled
+  return (Limit // Values) * 1.0
+end
+fun Values weighted
+  Part = (Limit // Values) * 1.0
+  return Values * Part * (Part + 1.0) / 2.0
+end
+Values = 1 to 1000 copy
+Scaled = Values scaled
+Weighted = Values weighted
+(Scaled + Weighted) sum`));
+        const expected = Array.from({length: 1000}, (_, i) => {
+            const value = i + 1, part = Math.floor(1000 / value);
+            return part + value * part * (part + 1) / 2;
+        }).reduce((a, b) => a + b, 0);
+        expect(result).toBe(expected);
+        expect(diagnostics.cellsComputed).toBe(0);
+    } finally { runtime.dispose(); }
+});
+
+it.each([
+    `fun Values quotient
+  return 120 // Values
+end
+Result = (array 2 0 4) quotient
+Result sum`,
+    `fun Left combine Right
+  return Left + Right
+end
+(array 1 2) combine (array 3 4 5)`,
+    `fun Values shifted
+  return Values * 2 + 1
+end
+Values = array 1 2 3
+Result = Values shifted
+Values 0 = 99
+Result sum`,
+    `fun Values shifted
+  return Values * 2 + 1
+end
+(array shape 0 fill 0) shifted sum`,
+])('preserves returned native recipe boundaries: %s', source => {
+    expect({ ...run(source, true), calls: 0 }).toEqual(run(source, false));
 });
