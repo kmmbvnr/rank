@@ -3404,3 +3404,17 @@ ranges retain fallback. Number admission thresholds are unchanged.
 
 The demo uses exact CRT roots and integer translation intervals; see
 [the benchmark](../../benchmarks/euler562.md) for controls, correctness and RSS.
+
+### Euler 563: ordered numeric frequencies
+
+The ordinary `unique .counts` operation now recognizes completed monotonically
+ordered native integer and real vectors. Two scans emit keys in first-appearance
+order and exact counts without a string-keyed Map. Int64 ordering/equality use
+the two stored words, avoiding a BigInt allocation at each probe while keeping
+all bits. NaN, unsorted/opaque/mixed/missing/shared inputs and bounded observation
+keep the ordinary route; cooperative cancellation remains supported.
+
+The kernel benefits both compiled and reference execution. No Number-admission
+threshold or language syntax changes. The demo uses adaptive area bands, ragged
+smooth-side ranges and keyed minima without explicit loops; the benchmark
+[records time, memory, controls and verification](../../benchmarks/euler563.md).

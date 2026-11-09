@@ -1,4 +1,4 @@
-import { numericDistinct } from '../numeric-collections.js';
+import { numericDistinct, numericSortedCounts } from '../numeric-collections.js';
 import { collectionSize } from '../collection-size.js';
 import { RankError } from '../errors.js';
 import { checkpoint } from '../interrupt.js';
@@ -9,8 +9,10 @@ import { setValueKey } from '../set.js';
 import { isRankArray, isRankSequence, isRankSqliteTable, tuple, type RankValue } from '../value.js';
 import { materializeSqlite } from './sqlite.js';
 
-/** Retain first occurrences and their frequencies in one traversal. */
+/** Retain first occurrences and their frequencies. */
 export function uniqueCounts(value: RankValue): RankValue {
+    const ordered = numericSortedCounts(value);
+    if (ordered !== undefined) return ordered;
     if (isRankSqliteTable(value)) value = materializeSqlite(value);
     if (isRankSequence(value) && value.plan.size.kind === 'infinite') {
         throw new RankError('unique .counts requires a finite sequence', 'TypeError');

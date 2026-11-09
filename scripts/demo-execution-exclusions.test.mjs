@@ -42,6 +42,7 @@ test('recorded timeouts stay excluded while corrected compiler cases remain elig
         'euler/276_primitivetriangles.ra', 'euler/276_primitivetriangles_test.ra',
         'euler/576_irrationaljumps.ra',
         'euler/562_maximalperimeter.ra', 'euler/562_maximalperimeter_test.ra',
+        'euler/563_robotwelders.ra', 'euler/563_robotwelders_test.ra',
         'euler/477_numbersequencegame.ra', 'euler/477_numbersequencegame_test.ra']) {
         assert.ok(!files.has(file), file);
     }

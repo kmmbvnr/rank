@@ -49,6 +49,7 @@ export class RuntimeDiagnostics {
     numericSorts = 0;
     numericInPlaceSorts = 0;
     numericDistincts = 0;
+    numericSortedCounts = 0;
     compiledDistincts = 0;
     numericUniqueSorts = 0;
     numericSmallestSelections = 0;

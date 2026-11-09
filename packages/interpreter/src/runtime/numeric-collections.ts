@@ -1,11 +1,11 @@
 import { integerMaskSelection } from '../array-mask-selection.js';
 import { prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
-import { denseScalarItems, typedArray, ownedScalarArray, isSharedArray, sortStoredIntegerArray, integer32Cells, integer64Cells, IntegerCells } from './array-storage.js';
+import { denseScalarItems, typedArray, ownedScalarArray, isSharedArray, sortStoredIntegerArray, integer32Cells, integer64Cells, realCells, typedElementKind, IntegerCells } from './array-storage.js';
 import { constructingTensorPlan, visitIntegerTensorMap } from '../jit/tensor-map.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import { integerConcatCells } from './concat-array.js';
-import { checkpoint, interruptsEnabled, privateLoopPolling } from '../interrupt.js';
-import { isRankArray, isRankSequence, type RankArray, type RankValue } from './value.js';
+import { checkpoint, interruptsEnabled, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
+import { isRankArray, isRankSequence, tuple, type RankArray, type RankValue } from './value.js';
 
 const MIN_INT64 = -(1n << 63n), MAX_INT64 = (1n << 63n) - 1n;
 type NumericBuffer = BigInt64Array | Int32Array | Float64Array | Uint8Array;
@@ -475,4 +475,52 @@ export function numericSmallest(value: RankValue, count: RankValue, distinct: bo
     // Poll inside comparisons; unlike native typed sorting this also works interactively.
     heap.sort((a, b) => { checkpoint('ordering smallest integers'); return a < b ? -1 : a > b ? 1 : 0; });
     return ownedScalarArray(heap.map(BigInt), 'integer');
+}
+
+/** Frequencies of already ordered stored numeric cells need no hash table.
+ * Prove monotonicity before allocating; unsorted/effectful inputs keep the
+ * ordinary first-occurrence path. Both ascending and descending order work. */
+export function numericSortedCounts(value: RankValue): RankValue | undefined {
+    if (demandBudgetEnabled() || !isRankArray(value) || !numericCells(value) || value.itemAt !== undefined) return undefined;
+    const integer = integer32Cells(value) ?? integer64Cells(value);
+    const real = typedElementKind(value) === 'real' ? realCells(value) : undefined;
+    const cells = integer ?? (real instanceof Float64Array ? real : undefined);
+    if (!cells?.length || !(cells.buffer instanceof ArrayBuffer)) return undefined;
+    if (real && Number.isNaN(cells[0])) return undefined;
+    // Read Int64 ordering words directly: boxing a BigInt at every probe
+    // would turn two linear scans into millions of temporary heap objects.
+    const words = cells instanceof BigInt64Array
+        ? new Uint32Array(cells.buffer, cells.byteOffset, cells.length * 2) : undefined;
+    const compare = words ? (i: number) => {
+        const high = words[i * 2 + 1 - lowWord] | 0, beforeHigh = words[(i - 1) * 2 + 1 - lowWord] | 0;
+        const low = words[i * 2 + lowWord], beforeLow = words[(i - 1) * 2 + lowWord];
+        return high === beforeHigh ? low === beforeLow ? 0 : low > beforeLow ? 1 : -1 : high > beforeHigh ? 1 : -1;
+    } : (i: number) => {
+        const cell = cells[i], before = cells[i - 1];
+        return real && Number.isNaN(cell) ? NaN : cell === before ? 0 : cell > before ? 1 : -1;
+    };
+    let groups = 1, direction = 0;
+    for (let i = 1; i < cells.length; i++) {
+        if ((i & 4095) === 0) checkpoint('checking ordered frequencies', Math.min(4096, cells.length - i));
+        const step = compare(i);
+        if (Number.isNaN(step)) return undefined;
+        if (!step) continue;
+        if (direction && direction !== step) return undefined;
+        direction = step;
+        groups++;
+    }
+    const keys = integer ? new IntegerCells(groups) : new Float64Array(groups);
+    const counts = new IntegerCells(groups);
+    let start = 0, group = 0;
+    for (let i = 1; i <= cells.length; i++) {
+        if ((i & 4095) === 0) checkpoint('counting ordered frequencies', Math.min(4096, cells.length - i + 1));
+        if (i < cells.length && compare(i) === 0) continue;
+        if (keys instanceof IntegerCells) keys.set(group, BigInt(cells[start]));
+        else keys[group] = Number(cells[start]);
+        counts.set(group++, BigInt(i - start));
+        start = i;
+    }
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.numericSortedCounts++;
+    return tuple([keys instanceof IntegerCells ? keys.array([groups]) : typedArray(keys), counts.array([groups])]);
 }
