@@ -3,7 +3,7 @@ import { currentDiagnostics } from '../diagnostics.js';
 import { RankError } from '../errors.js';
 import { checkpoint, privateLoopPolling, demandBudgetEnabled, inspectionEnabled } from '../interrupt.js';
 import { arrayRevision } from './array-revision.js';
-import { prepareStoredScalarView } from './integer-view.js';
+import { prepareIntegerRange, prepareStoredScalarView } from './integer-view.js';
 import { typedArray } from './owned-array.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
@@ -103,7 +103,18 @@ export function sortedIndexBatch(source: RankValue, targets: RankValue, upper: b
     const { offset, stride } = tview.linear;
     const count = targets.shape.reduce((n, d) => n * d, 1);
     const found = new Int32Array(count);
-    if (cells instanceof Float64Array || real) {
+    const range = narrow && count > 0 && size <= count ? prepareIntegerRange(targets) : undefined;
+    // A singleton may carry an arbitrarily large step; keep it off Number generation.
+    const merging = range && range.step > 0n && range.step <= 4294967295n && range.count === BigInt(count);
+    const compact = merging && cells instanceof BigInt64Array ? compactSearchSource(cells, sview.linear, size) : undefined;
+    if (merging && (cells instanceof Int32Array || compact)) {
+        // The trusted Int32 progression bounds every generated target. A
+        // merge reads at most source.size + count cells; sparse query batches
+        // retain galloping searches instead of walking a large source.
+        searchRange(compact ?? (cells as Int32Array), compact ? { offset: 0, stride: 1 } : sview.linear, size, found, upper, Number(range.start), Number(range.step));
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.sortedIndexRangeBatches++;
+    } else if (cells instanceof Float64Array || real) {
         // Prove NaN-free ready inputs only when the scan can amortize over
         // the batch. Tiny batches retain scalar logarithmic searches.
         const record = prepared.get(source);
@@ -237,4 +248,50 @@ function searchWide(cells: BigInt64Array, source: {offset: number; stride: numbe
         found[at] = answer = left;
         previousHigh = high; previousLow = low;
     }
+}
+
+
+/** Ascending constructor-proved targets need one source cursor, not a fresh
+ * search per target. No target reader or temporary target buffer is needed. */
+function searchRange(cells: Int32Array, source: { offset: number; stride: number }, size: number,
+    found: Int32Array, upper: boolean, first: number, step: number): void {
+    let position = 0, end = size;
+    while (position < end) {
+        const middle = (position + end) >>> 1;
+        const value = cells[source.offset + middle * source.stride];
+        if (upper ? value <= first : value < first) position = middle + 1;
+        else end = middle;
+    }
+    for (let at = 0; at < found.length; at++) {
+        if ((at & 4095) === 0) checkpoint('searching sorted numbers', Math.ceil(Math.log2(size + 1)) * Math.min(4096, found.length - at));
+        const wanted = first + at * step;
+        while (position < size) {
+            const value = cells[source.offset + position * source.stride];
+            if (upper ? value > wanted : value >= wanted) break;
+            position++;
+            if ((position & 4095) === 0) checkpoint('searching sorted numbers', 4096);
+        }
+        found[at] = position;
+    }
+}
+
+
+/** Convert an Int32-valued Int64 source once for one-word merge comparisons.
+ * Check endpoints before allocating; verify every signed word while copying.
+ * This temporary is bounded by the result size and never retained in a cache. */
+function compactSearchSource(cells: BigInt64Array, source: { offset: number; stride: number }, size: number): Int32Array | undefined {
+    const words = new Int32Array(cells.buffer, cells.byteOffset, cells.length * 2);
+    const fits = (at: number) => {
+        const index = (source.offset + at * source.stride) * 2;
+        return words[index + 1 - lowWord] === (words[index + lowWord] >> 31);
+    };
+    if (size && (!fits(0) || !fits(size - 1))) return undefined;
+    const result = new Int32Array(size);
+    for (let at = 0; at < size; at++) {
+        if ((at & 4095) === 0) checkpoint('preparing sorted numbers', Math.min(4096, size - at));
+        const index = (source.offset + at * source.stride) * 2, value = words[index + lowWord];
+        if (words[index + 1 - lowWord] !== (value >> 31)) return undefined;
+        result[at] = value;
+    }
+    return result;
 }

@@ -6,7 +6,7 @@ import { keyedAggregate, keyedFold } from './keyed-fold.js';
 import { foldAxisPartition, foldAxisDiagnostic } from '@arrrank/language';
 import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
-import { extremeIntegerAxis, extremeIntegerVector, extremeRealAxis, scanFloat64, scanInt32Axis, scanInt64, sumRealAxis } from './axis-order.js';
+import { extremeIntegerAxis, extremeIntegerVector, extremeRealAxis, scanFloat64, scanInt32Axis, scanInt32Seeded, scanInt64, sumRealAxis } from './axis-order.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
 import { storedOperand } from './array-copy.js';
@@ -196,6 +196,14 @@ export class ReductionEvaluator {
             return this.scanInputCells(value, rank ?? 0, axis, seed, (left, right) => this.binary(operator, left, right));
         }
         if (axis !== undefined) return this.evaluateScanAxis(operator, value, axis, seed);
+        if (operator === '+' && typeof seed === 'bigint' && isRankArray(value)) {
+            const compact = scanInt32Seeded(value, seed);
+            if (compact) {
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) diagnostics.storedSeededScans++;
+                return compact;
+            }
+        }
         if (operator === '+' && seed === undefined && isRankArray(value) && value.shape.length === 1) {
             const compact = scanInt32Axis('+', value, value.shape, 0) ?? scanInt64(value) ?? scanFloat64(value);
             if (compact) return compact;

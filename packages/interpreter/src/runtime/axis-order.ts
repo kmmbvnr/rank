@@ -232,6 +232,32 @@ export function extremeIntegerVector(value: RankArray, operation: 'min' | 'max')
     return BigInt(result);
 }
 
+/** Seeded integer-vector sums keep their seed and prefixes packed. A private
+ * unsafe prefix retries the ordinary exact scan; budgets retain that path. */
+export function scanInt32Seeded(value: RankArray, seed: bigint): RankArray | undefined {
+    if (!privateLoopPolling() || demandBudgetEnabled() || value.shape.length !== 1 || value.columnNames) return undefined;
+    const cells = integer32Cells(value), initial = Number(seed);
+    if (!cells || value.shape[0] !== cells.length || !Number.isSafeInteger(initial)) return undefined;
+    let out: Int32Array | Float64Array = initial === (initial | 0)
+        ? new Int32Array(cells.length + 1) : new Float64Array(cells.length + 1);
+    let sum = out[0] = initial;
+    for (let start = 0; start < cells.length; start += 4096) {
+        const end = Math.min(cells.length, start + 4096);
+        checkpoint('scanning', end - start);
+        for (let at = start; at < end; at++) {
+            sum += cells[at];
+            if (!Number.isSafeInteger(sum)) return undefined;
+            if (out instanceof Int32Array && sum !== (sum | 0)) {
+                const wide = new Float64Array(cells.length + 1);
+                wide.set(out.subarray(0, at + 1));
+                out = wide;
+            }
+            out[at + 1] = sum;
+        }
+    }
+    return typedArray(out instanceof Int32Array ? out : consumeSafeIntegerBuffer(out), [cells.length + 1]);
+}
+
 /** Stored Int64 prefixes stay packed until a prefix needs arbitrary precision.
  * Decline before publishing on overflow; the ordinary scan then remains exact. */
 export function scanInt64(value: RankArray): RankArray | undefined {

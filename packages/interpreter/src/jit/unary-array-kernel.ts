@@ -4,6 +4,8 @@ import { prepareStoredScalarView } from '../integer-view.js';
 import { checkpoint, demandBudgetEnabled, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
 import type { RankArray } from '../value.js';
 
+const LOW = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
+
 /** A private numeric pass over completed storage. Failed domains retain the
  * ordinary demand path; no lazy or host cell is read to establish eligibility. */
 export function mapStoredUnary(source: RankArray, input: 'real' | 'integer' | 'number',
@@ -47,15 +49,21 @@ export function mapStoredUnary(source: RankArray, input: 'real' | 'integer' | 'n
             if (fits) return publish(out ?? cells);
         }
         view.validateUniform?.(view.items[offset]);
+        // Private Int64 loads need no boxed BigInt per cell. One rounded
+        // addition gives the same Number conversion as the stored integer.
+        const words = view.items instanceof BigInt64Array && view.items.buffer instanceof ArrayBuffer
+            && (!view.validate || view.validateUniform)
+            ? new Int32Array(view.items.buffer, view.items.byteOffset, view.items.length * 2) : undefined;
         for (let start = 0; start < size; start += 4096) {
             const end = Math.min(size, start + 4096);
             checkpoint('computing numeric array', end - start);
             for (let index = start; index < end; index++) {
-                const value = view.items[offset + index * stride];
+                const at = offset + index * stride;
+                const value = words ? words[at * 2 + 1 - LOW] * 4294967296 + (words[at * 2 + LOW] >>> 0) : view.items[at];
                 if (!view.validateUniform) view.validate?.(value, index);
                 const number = Number(value);
                 // Integer kernels may use Number registers only while exact.
-                if (result === 'integer' && typeof value === 'bigint' && !Number.isSafeInteger(number)) return undefined;
+                if (result === 'integer' && (words || typeof value === 'bigint') && !Number.isSafeInteger(number)) return undefined;
                 const computed = operation(number);
                 if (result === 'integer') {
                     if (!Number.isInteger(computed)) return undefined;

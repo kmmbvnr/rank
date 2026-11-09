@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue, isNativeFunction, type RankArray } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, formatValue, isNativeFunction, type RankArray } from '../src/index.js';
 import { ownedArray, typedArray, readArrayItem } from '../src/array-storage.js';
 import { registerScalarView } from '../src/integer-view.js';
 import { sortedIndex, sortedIndexBatch } from '../src/sorted-search.js';
-import { withInterrupt, type InterruptSignal } from '../src/interrupt.js';
+import { withDemandBudget, DemandBudgetExhausted, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
 
 describe('sorted integer insertion indices', () => {
     it('matches independent linear counts for duplicates, gaps, empty arrays and huge integers', () => {
@@ -194,4 +194,37 @@ it('compares all Int64 words exactly in batches, including strided views', () =>
         const found = sortedIndexBatch(updated, typedArray(BigInt64Array.from([9223372036854775806n, 9223372036854775807n])), true)!;
         expect([readArrayItem(found, 0), readArrayItem(found, 1)]).toEqual([BigInt(cells.length), BigInt(cells.length)]);
     } finally { runtime.dispose(); }
+});
+
+
+it.each([false, true])('merges constructor range queries and invalidates edited ranges, compilation=%s', compilation => {
+    const runtime = new Interpreter(undefined, {compilation});
+    const cells = Array.from({length:97}, (_, i)=>BigInt(Math.floor(i/3)-10));
+    const queries = Array.from({length:512}, (_, i)=>BigInt(-30+i*3));
+    try {
+        runtime.execute('use algo\nuse sequences\nData = ((0 till 97) // 3 - 10) copy\nQueries = (-30 to 1503 by 3) copy');
+        for (const upper of [false,true]) {
+            const diagnostics = new RuntimeDiagnostics();
+            const result = diagnostics.run(()=>runtime.execute(`Data ${upper?'upperindex':'lowerindex'} Queries`)) as RankArray;
+            expect(Array.from({length:512}, (_, i)=>readArrayItem(result,i))).toEqual(
+                queries.map(q=>BigInt(cells.filter(n=>n<q || upper && n===q).length)));
+            expect(diagnostics.sortedIndexRangeBatches).toBe(1);
+        }
+        runtime.execute('Queries 200 = -999');queries[200]=-999n;
+        const diagnostics = new RuntimeDiagnostics();
+        const result=diagnostics.run(()=>runtime.execute('Data lowerindex Queries')) as RankArray;
+        expect(Array.from({length:512}, (_, i)=>readArrayItem(result,i))).toEqual(queries.map(q=>BigInt(cells.filter(n=>n<q).length)));
+        expect(diagnostics.sortedIndexRangeBatches).toBe(0);
+        expect(()=>withDemandBudget(1,()=>runtime.execute('Data lowerindex Queries sum'))).toThrow(DemandBudgetExhausted);
+    } finally {runtime.dispose();}
+});
+
+it('keeps unbounded steps of singleton ranges off the numeric merge path', async()=>{
+    const {registerArrayRange}=await import('../src/range-plan.js');
+    const source=typedArray(Int32Array.of(1));
+    const target=registerArrayRange(typedArray(Int32Array.of(0)),{start:0n,step:10n**400n,count:1n});
+    const d=new RuntimeDiagnostics();
+    const result=d.run(()=>sortedIndexBatch(source,target,false));
+    expect(result).toBeDefined();expect(readArrayItem(result!,0)).toBe(0n);
+    expect(d.sortedIndexRangeBatches).toBe(0);
 });

@@ -1,82 +1,125 @@
 rem Counting primitive Pythagorean
 rem triples
 rem https://projecteuler.net/problem=540
-
 use numbers
 use sequences
 use algo
 use io
 use cli
-
 arg N integer = 3141592653589793
+arg Table integer = 1000000
+arg Batch integer = 250000
 
-rem Primitive triples are pairs m > n
-rem > 0, coprime, of opposite parity,
-rem with m^2 + n^2 <= N. R(X) counts
-rem those pairs without gcd 1; a common
-rem divisor is odd, so P(N) = sum over
-rem odd d of mu(d) R(N // d^2). Small
-rem X read a table of R; a large X sums
-rem its rows, the first 2K rows full
-rem (K^2 pairs), the rest by isqrt.
-T = N min 10000000 max 5
-Dm = N // 5 isqrt
-rem mu by slices over small primes; one
-rem prime above sqrt Dm may remain.
-Mu = array shape (Dm + 1) fill 1
-Rs = 0 to Dm copy
-Rd = Dm isqrt
-for P in primes to Rd
-  Mu (P to Dm by P) *= -1
-  Mu (P * P to Dm by P * P) *= 0
-  Rs (P to Dm by P) //= P
-end
-Mu = Rs greater 1 choose (0 - Mu) Mu
-rem Table of R(x), x <= T: count each
-rem pair at m^2 + n^2.
-Mt = T isqrt
-Ms = 2 to Mt copy
-Nx = (T - Ms * Ms max 0) isqrt
-Nx = Ms - 1 min Nx
-Cm = (Nx + 1 - Ms mod 2) // 2
-Cs = Cm scan +
-Np = Cs last
-Po = 0 till Np copy
-Ix = Cs upperindex Po
-Mi = Ms Ix
-Ki = Po - (Cs - Cm) Ix
-Ni = 2 * Ki + 1 + Mi mod 2
-Ct = array shape (T + 1) fill 0
-Vi = Mi * Mi + Ni * Ni
-Ct Vi += 1 .accumulate
-Rt = Ct scan +
-rem Odd d: table for X <= T, rows else.
-Dv = 1 to Dm by 2 copy
-Nz = Mu Dv equal 0
-Dv = Dv (Nz equal false indices)
-X = N // (Dv * Dv)
-Sm = X at most T indices
-Answer = ((Mu (Dv Sm)) * Rt (X Sm)) sum
-Bg = (X greater T indices)
-for D in Dv Bg
-  Xd = N // (D * D)
-  M0 = (2 * Xd - 1 isqrt + 1) // 2
-  K = M0 // 2
-  Rx = K * K
-  Mx = Xd - 1 isqrt
-  for M1 in 2 * K + 1 to Mx by 2000000
-    M2 = M1 + 1999999 min Mx
-    M = M1 to M2 copy
-    V = Xd - M * M
-    Sq = ((V * 1.0) ** 0.5) integer
-    Ov = Sq * Sq greater V integer
-    Sq = Sq - Ov
-    Sp = Sq + 1
-    Un = Sp * Sp at most V integer
-    Sq = Sq + Un
-    Nm = M - 1 min Sq
-    Rx += ((Nm + 1 - M mod 2) // 2) sum
+rem P(N) = sum mu(d) R(N // d^2),
+rem with d odd and R counting pairs of
+rem opposite parity inside the circle.
+fun Limit mobius
+  Size = (Limit + 1) // 2
+  Mu = array shape Size fill 1
+  Rest = 1 to Limit by 2 copy
+  Root = Limit isqrt
+  for Prime in primes from 3 to Root
+    First = Prime // 2
+    Mu (First till Size by Prime) *= -1
+    Square = Prime * Prime
+    Slot = Square // 2
+    Mu (Slot till Size by Square) = 0
+    Slots = First till Size by Prime
+    Rest Slots //= Prime
   end
-  Answer += (Mu D) * Rx
+  Mask = Rest greater 1
+  return Mask choose (0 - Mu) Mu
 end
+
+fun Limit solve
+  if Limit less 5
+    return 0
+  end
+  Answer = 0
+  Top = Limit // 5 isqrt
+  Mu = Top mobius
+  T = Table min Limit max 5
+  Cut = Limit // (T + 1) isqrt
+  rem This split only balances work.
+  Split = Limit ** (1 / 3) integer
+  Split = Split max Cut min Top
+
+  rem Small counts, by ragged rows.
+  Root = T isqrt
+  Rows = 2 to Root copy
+  Upper = T - Rows * Rows isqrt
+  Upper = Rows - 1 min Upper
+  Counts = (Upper + 1 - Rows mod 2) // 2
+  Ends = Counts scan +
+  Size = Ends last
+  Slots = 0 till Size copy
+  Owner = Ends upperindex Slots
+  Large = Rows Owner
+  Offset = Slots - (Ends - Counts) Owner
+  Small = 2 * Offset + 1 + Large mod 2
+  At = Large * Large + Small * Small
+  Histogram = array shape (T + 1) fill 0
+  Histogram At += 1 .accumulate
+  Circles = Histogram scan +
+
+  Divisor = 1 to Split by 2 copy
+  Signs = Mu (Divisor // 2)
+  Keep = Signs not equal 0 indices
+  Divisor = Divisor Keep
+  Signs = Signs Keep
+  Queries = Limit // (Divisor * Divisor)
+  Small = Queries at most T indices
+  Targets = Queries Small
+  Counts = Circles Targets
+  Answer = Signs Small * Counts sum
+  Large = Queries greater T indices
+  Limits = Queries Large
+  Coefficients = Signs Large
+  rem The first 2K rows contribute K^2.
+  Roots = 2 * Limits - 1 isqrt
+  Halves = (Roots + 1) // 4
+  Complete = Halves * Halves
+  Answer += Coefficients * Complete sum
+  First = 2 * Halves + 1
+  Last = Limits - 1 isqrt
+  Lengths = Last - First + 1 max 0
+  Ends = Lengths scan +
+  Offsets = Ends - Lengths
+  Total = Ends last default 0
+  Block = Batch max 1
+  Finish = Total - 1
+  rem Flatten remaining rows, then sum
+  rem bounded batches of that sequence.
+  fun Start subtotal
+    Stop = Start + Block - 1 min Finish
+    Positions = Start to Stop copy
+    Owners = Ends upperindex Positions
+    Shift = Positions - Offsets Owners
+    Row = First Owners + Shift
+    Residues = Limits Owners - Row * Row
+    Floors = Residues isqrt
+    Bounds = Row - 1 min Floors
+    Parity = Row mod 2
+    Copies = (Bounds + 1 - Parity) // 2
+    Terms = Coefficients Owners * Copies
+    return Terms sum
+  end
+  Blocks = 0 till Total by Block copy
+  Answer += Blocks subtotal rank 0 sum
+
+  rem Group equal quotients in the tail.
+  Prefix = Mu scan + with 0
+  Maximum = Limit // ((Split + 1) ** 2)
+  Queries = 5 to Maximum copy
+  Upper = Limit // Queries isqrt
+  Lower = Limit // (Queries + 1) isqrt
+  Lower = Lower max Split
+  High = (Upper + 1) // 2
+  Low = (Lower + 1) // 2
+  Weights = Prefix High - Prefix Low
+  Tail = Circles Queries
+  Answer += Tail * Weights sum
+  return Answer
+end
+Answer = N solve
 Answer print

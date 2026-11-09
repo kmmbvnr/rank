@@ -53,6 +53,8 @@ export class RuntimeDiagnostics {
     numericSmallestSelections = 0;
     numericUniqueSums = 0;
     sortedIndexBatches = 0;
+    sortedIndexRangeBatches = 0;
+    storedSeededScans = 0;
     sortedIndexBatchQueries = 0;
     numericSearches = 0;
     numericSearchIndexes = 0;
