@@ -161,3 +161,14 @@ it('keeps CRT outputs and inputs independent while reusing transform scratch', (
     products.forEach((product, i) => expect(Array.from(product!.cells, BigInt)).toEqual(expected[i]));
     expect(a).toEqual(savedA); expect(b).toEqual(savedB);
 });
+
+it.each([998244353n, 1000000123n])('keeps sparse endpoints in natural output order modulo %s', m => {
+    // A transform boundary and asymmetric impulses catch a surviving frequency permutation.
+    const a = new Int32Array(32769), b = new Int32Array(16385);
+    a[0] = 7; a[32768] = -5; b[1] = -3; b[16384] = 11;
+    const out = run(`A convolve B mod ${m}`, { A: a, B: b }) as bigint[];
+    const expected = Array<bigint>(49153).fill(0n);
+    for (const [index, value] of [[1, -21], [16384, 77], [32769, 15], [49152, -55]])
+        expected[index] = mod(BigInt(value), m);
+    expect(out).toEqual(expected);
+});

@@ -3353,3 +3353,19 @@ Int32 cells retain at most 48 KiB; larger tables are cached alone as before.
 Input/result buffers, algorithm dispatch and cooperative checkpoints are
 unchanged. Tests cover prefix reuse after large transforms and warm-cache demand
 exhaustion. See [Euler 434 controls](../../benchmarks/euler434-followup.md).
+
+## Permutation-free modular transforms (Euler 559, #447)
+
+The shared native `convolve mod` backend uses forward DIF and backward DIT
+transforms. Frequency-domain operands share bit-reversed order, so pointwise
+multiplication needs no separate bit-reversal passes. Unit twiddles skip their
+multiplication. Output coefficients keep natural order and exact modular
+scaling. This helps reference execution and compiled consumers alike; it is
+not a new emitter rule or language construct.
+
+Transform workspaces, root retention, modular arithmetic domains, dispatch,
+CRT reconstruction and stage polling are unchanged. The Euler 559 demo uses
+Newton reciprocal prefixes for long series and array batches for short series,
+with one nonnested loop. The full demo returns to corpus execution. See
+[Euler 559 controls](../../benchmarks/euler559.md) for separate source/backend
+measurements, including process RSS limitations.

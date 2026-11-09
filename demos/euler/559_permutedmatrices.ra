@@ -1,58 +1,98 @@
 rem Permuted Matrices
 rem https://projecteuler.net/problem=559
-
 use numbers
 use sequences
 use io
 use cli
-
 arg N integer = 50000
+Mod = 1000000123
+Steps = 1 to N
+Factorials = Steps scan * with 1 mod Mod
+Exponent = Mod - 2
+Inverse = Factorials Exponent Mod powmod
+Powers = Inverse N Mod powmod
 
-rem Inclusion-exclusion over the ascent
-rem runs gives P(k, n, n) = (n!)^n g
-rem with u(m) = (m!)^-n, b = n // k,
-rem s = n mod k, and a the reciprocal
-rem of sum (-1)^j u(jk) z^j. Then g is
-rem a(b) if s = 0, else the sum over j
-rem of (-1)^j a(b-j) u(s + jk).
-Md = 1000000123
-Fa = array shape (N + 1) fill 1
-for I in 1 to N
-  Pv = Fa (I - 1)
-  Fa I = Pv * I mod Md
-end
-Ex = Md - 2
-Iq = Fa Ex Md powmod
-Uu = Iq N Md powmod
-Gs = 0
-for K in 1 to N
-  B = N // K
-  S = N mod K
-  Jj = 1 to B array
-  Uk = Uu (Jj * K)
-  Sg = 2 * (Jj mod 2) - 1
-  Wr = Uk * Sg mod Md
-  Wr = Wr (B - Jj)
-  Aa = array shape (B + 1) fill 0
-  Aa 0 = 1
-  for I in 1 to B
-    Xs = Aa (0 till I array)
-    Ys = Wr (B - I till B array)
-    Zs = Xs * Ys mod Md
-    Aa I = Zs sum mod Md
+rem Double the known reciprocal prefix.
+fun Series inverse Length
+  if Length equal 1
+    return array 1
   end
-  if S equal 0
-    Gs += Aa B
-  else
-    Jz = 0 to B array
-    Us = Uu (S + Jz * K)
-    Sg = 1 - 2 * (Jz mod 2)
-    Ar = Aa (B - Jz)
-    Zs = Ar * Us * Sg mod Md
-    Gs += Zs sum
-  end
+  Half = (Length + 1) // 2
+  Prefix = Series inverse Half
+  Terms = Series take Length
+  Head = Terms convolve Prefix mod Mod
+  rem The known prefix has zero error.
+  Tail = Head drop Half
+  Error = 0 - Tail take (Length - Half)
+  Next = Prefix convolve Error mod Mod
+  Added = Next take (Length - Half)
+  return concat Prefix Added
 end
-Fn = Fa N
-Fp = Fn N Md powmod
-Answer = ((Gs mod Md) * Fp) mod Md
+fun K chains
+  Size = N // K
+  Rest = N mod K
+  Indices = 0 to Size copy
+  Signs = 1 - 2 * (Indices mod 2)
+  Terms = Powers (Indices * K) * Signs
+  Series = Terms mod Mod
+  Reciprocal = Series inverse (Size + 1)
+  if Rest equal 0
+    return Reciprocal Size
+  end
+  Tail = Powers (Rest + Indices * K)
+  Back = Reciprocal (Size - Indices)
+  Product = Back * Tail * Signs mod Mod
+  return Product sum mod Mod
+end
+rem Equal quotients share matrix rows.
+fun Size batch
+  First = N // (Size + 1) + 1
+  Last = N // Size
+  Keys = First to Last copy
+  Width = Keys len
+  Rows = 1 to Size copy
+  Column = Rows reshape Size 1
+  Places = Column * Keys
+  Signs = 2 * (Column mod 2) - 1
+  Terms = Powers Places * Signs mod Mod
+  Reverse = Size - Rows
+  Weights = Terms Reverse copy
+  Height = Size + 1
+  Shape = array Height Width
+  Table = array shape Shape fill 0
+  Table 0 = 1
+  for I in 1 to Size
+    Left = Table (0 till I)
+    Right = Weights (Size - I till Size)
+    Product = Left * Right mod Mod
+    Table I = Product sum axis 0 mod Mod
+  end
+  All = 0 to Size copy
+  Column = All reshape (Size + 1) 1
+  Rest = N mod Keys
+  Places = Rest + Column * Keys
+  Tail = Powers Places
+  Signs = 1 - 2 * (Column mod 2)
+  Back = Table (Size - All)
+  Product = Back * Tail * Signs mod Mod
+  Values = Product sum axis 0 mod Mod
+  Exact = Rest equal 0
+  Full = Table Size
+  Values = Exact choose Full Values
+  return Values sum mod Mod
+end
+rem Batch the schoolbook-sized rows.
+Cut = 64 min N
+Sizes = 1 to Cut
+Lower = N // (Sizes + 1)
+Upper = N // Sizes
+Small = Sizes (Lower less Upper)
+Short = Small batch rank 0
+Last = N // (Cut + 1)
+Long = 1 to Last chains rank 0
+Total = (Short sum) + (Long sum)
+Total = Total mod Mod
+Factor = Factorials N
+Scale = Factor N Mod powmod
+Answer = Total * Scale mod Mod
 Answer print

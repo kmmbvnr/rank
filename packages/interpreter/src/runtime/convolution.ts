@@ -50,23 +50,21 @@ function twiddlesOf(p: number, n: number): Int32Array {
     return tw;
 }
 
-function transform(a: Int32Array, p: number, tw: Int32Array): void {
+/** Forward DIF and backward DIT share bit-reversed frequency order.
+ * Their product needs no bit-reversal permutation of either workspace. */
+function transform(a: Int32Array, p: number, tw: Int32Array, forward: boolean): void {
     const n = a.length;
-    for (let i = 1, j = 0; i < n; i++) {
-        let bit = n >> 1;
-        for (; j & bit; bit >>= 1) j ^= bit;
-        j ^= bit;
-        if (i < j) { const t = a[i]; a[i] = a[j]; a[j] = t; }
-    }
-    for (let half = 1; half < n; half *= 2) {
+    for (let half = forward ? n / 2 : 1; forward ? half >= 1 : half < n; half = forward ? half / 2 : half * 2) {
         for (let start = 0; start < n; start += 2 * half) {
             for (let j = 0; j < half; j++) {
                 const u = a[start + j];
-                const v = multiply(a[start + j + half], tw[half + j], p);
+                const cell = a[start + j + half];
+                const v = forward || j === 0 ? cell : multiply(cell, tw[half + j], p);
                 const sum = u + v;
                 const diff = u - v;
                 a[start + j] = sum >= p ? sum - p : sum;
-                a[start + j + half] = diff < 0 ? diff + p : diff;
+                const residue = diff < 0 ? diff + p : diff;
+                a[start + j + half] = forward && j !== 0 ? multiply(residue, tw[half + j], p) : residue;
             }
         }
         checkpoint('transforming', n);
@@ -80,16 +78,16 @@ function productMod(a: Int32Array, b: Int32Array, p: number, n: number, outLengt
     const left = scratch?.left ?? new Int32Array(n);
     if (scratch) left.fill(0);
     for (let i = 0; i < a.length; i++) left[i] = a[i] % p;
-    transform(left, p, tw);
+    transform(left, p, tw, true);
     let right = left;
     if (a !== b) {
         right = scratch?.right ?? new Int32Array(n);
         if (scratch) right.fill(0);
         for (let i = 0; i < b.length; i++) right[i] = b[i] % p;
-        transform(right, p, tw);
+        transform(right, p, tw, true);
     }
     for (let i = 0; i < n; i++) left[i] = multiply(left[i], right[i], p);
-    transform(left, p, tw);
+    transform(left, p, tw, false);
     // The inverse is the forward transform on reversed output, scaled by 1/n.
     // n is a power of two and p is odd. This inverse also works over an
     // admissible composite ring, without assuming Fermat's theorem for p.
